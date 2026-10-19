@@ -122,3 +122,40 @@ export async function myLegalVersion(id: string): Promise<PublicLegalVersion> {
   if (error) throw error;
   return parseLegalVersion(data, "my_legal_version");
 }
+
+/** Bundle 22 turn 4 — the publishing statements that apply to the seller's ad, and whether an acceptance is owed. */
+export type CertifyStatement = {
+  version_id: string;
+  kind: string;
+  country_code: string | null;
+  version: number;
+  label: string;
+  body_en: string;
+  body_am: string;
+  settings_snapshot: LegalFacts | null;
+};
+export type ListingCertification = {
+  statements: CertifyStatement[];
+  acceptance_pending: boolean;
+};
+export async function myListingCertification(listingId: string): Promise<ListingCertification> {
+  const { data, error } = await supabase.rpc("my_listing_certification", {
+    p_listing_id: listingId,
+  });
+  if (error) throw error;
+  const row = record(data, "my_listing_certification");
+  if (!Array.isArray(row.statements) || typeof row.acceptance_pending !== "boolean")
+    throw new Error("my_listing_certification: invalid answer");
+  for (const s of row.statements) {
+    const r = versionRow(s, "my_listing_certification");
+    if (
+      typeof r.body_en !== "string" ||
+      typeof r.body_am !== "string" ||
+      typeof r.label !== "string"
+    )
+      throw new Error("my_listing_certification: invalid statement");
+    if (r.settings_snapshot !== null && typeof r.settings_snapshot !== "object")
+      throw new Error("my_listing_certification: invalid facts");
+  }
+  return row as unknown as ListingCertification;
+}

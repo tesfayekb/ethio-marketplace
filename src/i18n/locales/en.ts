@@ -1099,6 +1099,12 @@ export const en = {
   "admin.listings.undo.changed": "The listing has changed since this edit, so it cannot be undone.",
   "admin.listings.undo.refused":
     "The values from before this edit do not meet today's rules, so it cannot be undone: {fields}.",
+  "admin.listings.cert.title": "Certifications",
+  "admin.listings.cert.none": "No certification yet.",
+  "admin.listings.cert.action.publish": "Publish",
+  "admin.listings.cert.action.edit": "Edit",
+  "admin.listings.cert.action.renew": "Renew",
+  "admin.listings.cert.meta": "{date} · shown in {language} · countries: {countries}",
   "admin.screening.search": "Search",
   "admin.screening.col.title": "Title",
   "admin.screening.col.category": "Category",
@@ -3073,6 +3079,13 @@ export const en = {
   "legal.accept.error": "We could not record your acceptance. Try again.",
   "legal.accept.changed": "The documents have just changed. Please read them again.",
   "legal.accept.loadError": "The documents could not be loaded.",
+  "legal.certify.title": "Your statement",
+  "legal.certify.lead":
+    "Read the statement below. You confirm it each time you publish, edit or renew an ad.",
+  "legal.certify.forCountry": "For {country}",
+  "legal.certify.tick": "I certify the above.",
+  "legal.certify.changed": "The statement has just changed. Read it and tick again.",
+  "legal.certify.loadError": "The statement could not be loaded. Try again.",
   "admin.section.legal.title": "Legal",
   "admin.section.legal.body":
     "Terms, Privacy and the publishing statement in named versions, final once published, and the facts they quote.",

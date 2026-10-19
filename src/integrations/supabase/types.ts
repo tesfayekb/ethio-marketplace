@@ -1422,6 +1422,71 @@ export type Database = {
           },
         ]
       }
+      listing_certifications: {
+        Row: {
+          action: string
+          certified_at: string
+          countries: string[]
+          home_country_code: string | null
+          id: string
+          language: string
+          listing_id: string
+          user_id: string
+          version_ids: string[]
+        }
+        Insert: {
+          action: string
+          certified_at?: string
+          countries?: string[]
+          home_country_code?: string | null
+          id?: string
+          language: string
+          listing_id: string
+          user_id: string
+          version_ids: string[]
+        }
+        Update: {
+          action?: string
+          certified_at?: string
+          countries?: string[]
+          home_country_code?: string | null
+          id?: string
+          language?: string
+          listing_id?: string
+          user_id?: string
+          version_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_certifications_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "listing_certifications_language_fkey"
+            columns: ["language"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "listing_certifications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listing_certifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       listing_counters: {
         Row: {
           day: string
@@ -3769,6 +3834,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_listing_certifications: {
+        Args: { p_listing_id: string }
+        Returns: Json
+      }
       admin_listing_detail: { Args: { p_listing_id: string }; Returns: Json }
       admin_listing_reports: { Args: { p_listing_id: string }; Returns: Json }
       admin_machine_entity_translation: {
@@ -4402,7 +4471,12 @@ export type Database = {
         Returns: Json
       }
       edit_my_listing: {
-        Args: { p_changes: Json; p_listing_id: string }
+        Args: {
+          p_certified?: string[]
+          p_changes: Json
+          p_language?: string
+          p_listing_id: string
+        }
         Returns: Json
       }
       effective_category_links: {
@@ -4629,10 +4703,29 @@ export type Database = {
       }
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      legal_acceptance_pending: {
+        Args: { p_listing_id: string; p_uid: string }
+        Returns: boolean
+      }
+      legal_certify: {
+        Args: {
+          p_action: string
+          p_certified: string[]
+          p_language: string
+          p_listing_id: string
+          p_uid: string
+        }
+        Returns: undefined
+      }
       legal_in_force: {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
       }
+      legal_listing_countries: {
+        Args: { p_listing_id: string }
+        Returns: string[]
+      }
+      legal_publishing_set: { Args: { p_listing_id: string }; Returns: Json }
       legal_scheduled: {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
@@ -4702,6 +4795,10 @@ export type Database = {
       my_legal_status: { Args: { p_kinds?: string[] }; Returns: Json }
       my_legal_version: { Args: { p_version_id: string }; Returns: Json }
       my_listing: { Args: { p_listing_id: string }; Returns: Json }
+      my_listing_certification: {
+        Args: { p_listing_id: string }
+        Returns: Json
+      }
       my_listing_private: { Args: { p_listing_id: string }; Returns: Json }
       my_listings: {
         Args: {
@@ -4781,7 +4878,14 @@ export type Database = {
         }
         Returns: Json
       }
-      publish_listing: { Args: { p_listing_id: string }; Returns: Json }
+      publish_listing: {
+        Args: {
+          p_certified?: string[]
+          p_language?: string
+          p_listing_id: string
+        }
+        Returns: Json
+      }
       rate_gate: { Args: { p_action: string }; Returns: Json }
       rate_limits_prune: { Args: never; Returns: number }
       record_legal_notice: {
@@ -4814,7 +4918,14 @@ export type Database = {
         Returns: Json
       }
       remove_own_password: { Args: never; Returns: undefined }
-      renew_listing: { Args: { p_listing_id: string }; Returns: Json }
+      renew_listing: {
+        Args: {
+          p_certified?: string[]
+          p_language?: string
+          p_listing_id: string
+        }
+        Returns: Json
+      }
       replace_listing_photo: {
         Args: {
           p_bytes: number

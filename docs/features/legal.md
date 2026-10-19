@@ -150,3 +150,18 @@ The phone-frame super admin route census includes `/admin/legal`.
 - Publishing refuses a token that is not a fact (unknownFact:<name>) or whose fact is empty today
   (factMissing:<name>); the editor's preview lists the empty-fact tokens.
 - Never publish a version of a real kind (terms, privacy) on ethio-staging: every E2E account would meet the acceptance screen.
+
+## Turn 4 — the publishing statement and the certification
+
+- **Which statements apply.** For an ad: the version in force of every Publishing statement for all countries, for each country the ad is shown in (its places and its main place), and for the seller's home country (`legal_publishing_set`). All countries first, then by country.
+- **One tick.** Before Publish (the posting form's review step), before each save of the seller's edit form, and in the Renew confirmation (the ad's page and the list in My listings), the seller sees those statements (`CertifyBlock`, src/features/legal/certify-block.tsx) and one tick, "I certify the above." When no statement applies the block renders nothing and the screens work as before; the review step then shows the old statement line.
+- **The server's exact-set check.** `publish_listing`, `edit_my_listing` and `renew_listing` take `p_certified uuid[]` and `p_language text` and call `legal_certify` after their own checks and before their first write: `acceptanceRequired` while a Terms or Privacy version is owed (the rule of `my_legal_status`), `certificationRequired` unless the certified ids are exactly the versions in force for the ad, `badLanguage` unless the language is a public one. With nothing in force nothing is recorded.
+- **The record.** `listing_certifications`: the ad, the seller, the action (publish, edit, renew), the statement versions, the ad's countries, the language shown, the time, the seller's home country. Closed to the browser roles; final (no update); erased with its ad.
+- **Staff never certify.** The three doors are the seller's own (`auth.uid()` is the seller); staff edit through their own door and certify nothing.
+- **The screens' refusals.** `certifyRefusal` (src/features/legal/certify-refusal.ts): `acceptanceRequired` sends the seller to /legal/accept with the current path and search; `certificationRequired` re-reads the statements, clears the tick and says the statement changed.
+- **The staff card.** The ad's admin page shows a Certifications card (`admin_listing_certifications`, listings:view): one row per certification, newest first, with the statements certified; a statement links to its version only for a viewer holding legal:view.
+- **The E2E seams.** A scratch document of kind `e2e-pub-<the listing id without dashes>` applies to that one listing; `e2e-acc-<the listing id without dashes>` counts as an owed acceptance for that one listing. Neither exists on production; tests never create a document of a real kind.
+- **Owed.** Photo-only edits (they do not pass through `edit_my_listing`), the contact reveal's acceptance check, and bulk Renew (it carries no certification, so each ad is refused while a statement applies).
+- The acceptance gate (INC-769, INC-770): `LegalGate` (src/features/legal/legal-gate.tsx) is mounted by the shell only while a person is signed in, its query has `gcTime: 0`, and it reads the pathname and the search string from the router's one `state.location`.
+
+Publish no version of the Publishing statement before turn 4 is on production: the doors refuse every publish, edit and renew that does not carry the certification.

@@ -1248,8 +1248,15 @@ export async function readCountries(): Promise<CountryRow[]> {
  * to SCREENING. Nothing goes live from here: D1 is the gateway that decides, and
  * "in review" is the honest word for what the seller has just done (DEC-065).
  */
-export function publishListing(listingId: string): Promise<DoorAnswer> {
-  return call("/api/listings/publish", JSON.stringify({ listingId }), {
+export function publishListing(
+  listingId: string,
+  certification?: { certified: string[]; language: string },
+): Promise<DoorAnswer> {
+  const body =
+    certification === undefined
+      ? { listingId }
+      : { listingId, certified: certification.certified, language: certification.language };
+  return call("/api/listings/publish", JSON.stringify(body), {
     "Content-Type": "application/json",
   });
 }

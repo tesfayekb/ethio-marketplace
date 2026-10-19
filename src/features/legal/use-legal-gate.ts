@@ -19,7 +19,7 @@ export function legalStatusKey(userId: string, kinds: string[]) {
   return [AUTH_DERIVED_ROOT, "legal", "status", userId, kinds] as const;
 }
 
-type GateNavigate = (options: {
+export type GateNavigate = (options: {
   to: "/legal/accept";
   search: { next: string };
   replace: true;
@@ -29,35 +29,36 @@ type GateNavigate = (options: {
  * Bundle 22 turn 3 — the acceptance at sign-in as a hard stop. A signed-in person with a document of
  * the gate's kinds to accept is sent to /legal/accept from every page the gate does not exempt. A failed
  * read sends nobody anywhere: the doors stay the authority (turn 4's server check).
+ * Turn 4 (INC-769): called only by LegalGate, which the shell mounts only while a person is signed in;
+ * gcTime 0 — the entry evaporates the moment its last observer unmounts (SO-4).
+ * Turn 4 (INC-770): `pathname` and `search` come from ONE location (LegalGate reads both from the
+ * router's state.location), so `next` never folds an earlier redirect's search into itself.
  */
 export function useLegalGate({
-  user,
-  signingOut,
+  userId,
   pathname,
   search,
   navigate,
 }: {
-  user: { id: string } | null;
-  signingOut: boolean;
+  userId: string;
   pathname: string;
   search: string;
   navigate: GateNavigate;
 }) {
-  const active = user !== null && !signingOut;
   const kinds = currentGateKinds();
   const status = useQuery({
-    queryKey: legalStatusKey(user?.id ?? "", kinds),
+    queryKey: legalStatusKey(userId, kinds),
     queryFn: () => myLegalStatus(kinds),
-    enabled: active,
     staleTime: 5 * 60 * 1000,
+    gcTime: 0,
     refetchOnWindowFocus: false,
     retry: false,
   });
   const failed = status.isError;
   useEffect(() => {
-    if (active && failed) console.error("[client-error] legal gate read failed");
-  }, [active, failed]);
-  const pending = active && (status.data?.length ?? 0) > 0;
+    if (failed) console.error("[client-error] legal gate read failed");
+  }, [failed]);
+  const pending = (status.data?.length ?? 0) > 0;
   useEffect(() => {
     if (!pending || gateExempt(pathname)) return;
     void navigate({ to: "/legal/accept", search: { next: `${pathname}${search}` }, replace: true });

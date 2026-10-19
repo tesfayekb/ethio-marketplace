@@ -46,7 +46,7 @@ import {
   useSessionPolicy,
   type SessionExpiryReason,
 } from "@/features/session/session-policy";
-import { useLegalGate } from "@/features/legal/use-legal-gate";
+import { LegalGate } from "@/features/legal/legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -781,10 +781,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (gatedRoute && (!ownSignIn || hadSession)) void navigate({ to: "/", replace: true });
   }, [authLoading, user, hadSession, gatedRoute, ownSignIn, navigate, queryClient]);
 
-  // Bundle 22 turn 3 — the acceptance at sign-in as a hard stop (src/features/legal/use-legal-gate.ts).
-  const searchStr = useRouterState({ select: (state) => state.location.searchStr });
-  useLegalGate({ user, signingOut, pathname, search: searchStr, navigate });
-
   /**
    * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL
    * same-tab SIGNED_OUT through onAuthStateChange (synthetic storage events are
@@ -866,6 +862,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           removeQueries (INC-078 class), so `enabled` is never the mechanism —
           unmounting is. The prop stays, pinned to `true` while mounted. */}
       {user !== null && !signingOut ? <ImpersonationBanner enabled /> : null}
+      {/* Bundle 22 turn 4 (INC-769) — the acceptance gate mounts only while signed in (SO-4). */}
+      {user !== null && !signingOut ? <LegalGate userId={user.id} /> : null}
 
       {/* Pre-paint: the persisted rail choice lands on <html> before the first
           frame, so the rail never renders expanded and then snaps narrow. */}

@@ -32,6 +32,7 @@ import { mayUndo, undoErrorKey, undoRefusalGroups } from "./undo-edit";
 import {
   undoAdminListingEdit,
   useAdminListing,
+  useAdminListingCertifications,
   type AdminEditAnswer,
   type AdminListingHistoryEntry,
 } from "./use-admin-listing";
@@ -796,6 +797,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                   </p>
                 ) : null}
               </PageCard>
+              <CertificationsCard listingId={listingId} />
             </div>
           </>
 
@@ -854,3 +856,95 @@ function BackLink() {
 }
 
 export default AdminListingPage;
+
+/**
+ * Bundle 22 turn 4 — the ad's certifications for staff (admin_listing_certifications, listings:view): one
+ * row per publish, edit or renew, newest first, with the statements certified; a statement links to its
+ * version only for a viewer holding legal:view (the door there checks again).
+ */
+function CertificationsCard({ listingId }: { listingId: string }) {
+  const { t, language } = useI18n();
+  const { permissions } = useAdminShell();
+  const mayViewLegal = permissions.includes("legal:view");
+  const query = useAdminListingCertifications(listingId);
+  const regions = new Intl.DisplayNames([language], { type: "region" });
+  const when = new Intl.DateTimeFormat(language, {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "UTC",
+  });
+  const kindName = (kind: string) =>
+    kind === "terms" || kind === "privacy" || kind === "publishing"
+      ? t(`legal.kind.${kind}`)
+      : kind;
+  const rows = query.data ?? [];
+  return (
+    <PageCard testid="listing-certifications" className="min-w-0 space-y-3">
+      <h2 className="text-sm font-semibold text-foreground">{t("admin.listings.cert.title")}</h2>
+      {query.isPending ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          {t("common.loading")}
+        </p>
+      ) : query.isError ? (
+        <p role="alert" className="text-sm text-destructive">
+          {t("common.error")}
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="text-sm text-muted-foreground" data-testid="listing-certifications-none">
+          {t("admin.listings.cert.none")}
+        </p>
+      ) : (
+        <ol className="min-w-0 space-y-3">
+          {rows.map((row) => (
+            <li
+              key={row.id}
+              data-testid="listing-certification"
+              data-action={row.action}
+              className="min-w-0 space-y-1 border-b border-border pb-2 text-sm last:border-b-0"
+            >
+              <p className="font-medium text-foreground">
+                {t(`admin.listings.cert.action.${row.action}`)}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("admin.listings.cert.meta")
+                  .replace("{date}", row.certifiedAt ? when.format(new Date(row.certifiedAt)) : "")
+                  .replace(
+                    "{language}",
+                    row.language === "am" ? t("admin.legal.lang.am") : t("admin.legal.lang.en"),
+                  )
+                  .replace("{countries}", row.countries.join(", "))}
+              </p>
+              <ul className="min-w-0 space-y-0.5">
+                {row.versions.map((v) => {
+                  const line = [
+                    kindName(v.kind),
+                    v.countryCode === null
+                      ? t("admin.legal.scope.global")
+                      : (regions.of(v.countryCode) ?? v.countryCode),
+                    t("admin.legal.version").replace("{n}", String(v.version)),
+                    v.label,
+                  ].join(" · ");
+                  return (
+                    <li key={v.versionId} className="break-words text-foreground">
+                      {mayViewLegal ? (
+                        <Link
+                          to="/admin/legal/$versionId"
+                          params={{ versionId: v.versionId }}
+                          className="text-primary underline"
+                        >
+                          {line}
+                        </Link>
+                      ) : (
+                        line
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      )}
+    </PageCard>
+  );
+}

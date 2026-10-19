@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 523,
-  "dynamicCallSites": 385,
+  "scanned": 527,
+  "dynamicCallSites": 389,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2586,6 +2586,12 @@
     "admin.legal.field.labelHelp": [
       "/admin/legal/edit"
     ],
+    "admin.legal.lang.am": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.legal.lang.en": [
+      "/admin/listings/$listingId"
+    ],
     "admin.legal.none": [
       "/admin/legal"
     ],
@@ -2639,6 +2645,7 @@
       "/admin/legal",
       "/admin/legal/$versionId",
       "/admin/legal/edit",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "admin.legal.unknownTokens": [
@@ -2647,6 +2654,7 @@
     "admin.legal.version": [
       "/admin/legal",
       "/admin/legal/$versionId",
+      "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
     "admin.legal.view.changelog": [
@@ -2671,6 +2679,15 @@
     ],
     "admin.listings.action.viewAsSeller": [
       "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.cert.meta": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.cert.none": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.cert.title": [
       "/admin/listings/$listingId"
     ],
     "admin.listings.col.category": [
@@ -4675,7 +4692,13 @@
     ],
     "common.tryAgain": [
       "(every page)",
-      "/legal/accept"
+      "/admin/listings/$listingId/edit",
+      "/legal/accept",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "error.pageFailed": [
       "(every page)"
@@ -4894,6 +4917,54 @@
       "/account/legal",
       "/account/legal/$versionId",
       "/legal/accept"
+    ],
+    "legal.certify.changed": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "legal.certify.forCountry": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "legal.certify.lead": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "legal.certify.loadError": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "legal.certify.tick": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "legal.certify.title": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "legal.kind.privacy": [
       "(every page)",

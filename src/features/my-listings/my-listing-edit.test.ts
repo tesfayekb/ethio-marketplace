@@ -138,3 +138,48 @@ describe("the seller's edit and copy (turn R2)", () => {
     for (const key of keys) expect(en[key], key).toBeTruthy();
   });
 });
+
+describe("the seller doors' certification (bundle 22 turn 4)", () => {
+  beforeEach(() => rpc.mockReset());
+
+  it("edit_my_listing gets p_certified and p_language only when given", async () => {
+    rpc.mockResolvedValue({ data: { ok: true, status: "active", review: false }, error: null });
+    await editMyListing("l-1", { price_amount: 900 });
+    expect(rpc).toHaveBeenLastCalledWith("edit_my_listing", {
+      p_listing_id: "l-1",
+      p_changes: { price_amount: 900 },
+    });
+    await editMyListing("l-1", { price_amount: 900 }, { certified: ["v-1"], language: "am" });
+    expect(rpc).toHaveBeenLastCalledWith("edit_my_listing", {
+      p_listing_id: "l-1",
+      p_changes: { price_amount: 900 },
+      p_certified: ["v-1"],
+      p_language: "am",
+    });
+  });
+  it("an edit's legal refusal keeps the door's word", async () => {
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "certificationRequired" } });
+    expect(await editMyListing("l-1", { title: "x" })).toMatchObject({
+      ok: false,
+      reason: "certificationRequired",
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "rateLimited" } });
+    const other = await editMyListing("l-1", { title: "x" });
+    expect(other).toEqual({ ok: false, key: "myListings.error.rateLimited" });
+  });
+  it("renew_listing gets p_certified and p_language only when given", async () => {
+    const { runAction } = await import("./my-listing");
+    const ad = { listing: { id: "l-2" } } as unknown as Parameters<typeof runAction>[0];
+    rpc.mockResolvedValue({ data: { ok: true }, error: null });
+    await runAction(ad, "renew");
+    expect(rpc).toHaveBeenLastCalledWith("renew_listing", { p_listing_id: "l-2" });
+    await runAction(ad, "renew", { certified: ["v-1", "v-2"], language: "en" });
+    expect(rpc).toHaveBeenLastCalledWith("renew_listing", {
+      p_listing_id: "l-2",
+      p_certified: ["v-1", "v-2"],
+      p_language: "en",
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "acceptanceRequired" } });
+    expect(await runAction(ad, "renew")).toMatchObject({ ok: false, reason: "acceptanceRequired" });
+  });
+});

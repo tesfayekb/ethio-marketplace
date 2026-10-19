@@ -255,3 +255,68 @@ export function useAdminListing(listingId: string) {
     retry: false,
   });
 }
+
+/** Bundle 22 turn 4 — one certification of an ad (admin_listing_certifications; listings:view). */
+export interface AdminListingCertification {
+  id: string;
+  action: "publish" | "edit" | "renew";
+  certifiedAt: string;
+  language: string;
+  countries: string[];
+  versions: {
+    versionId: string;
+    kind: string;
+    countryCode: string | null;
+    version: number;
+    label: string;
+  }[];
+}
+
+export function certificationsOf(value: unknown): AdminListingCertification[] {
+  if (!Array.isArray(value)) throw new Error("admin_listing_certifications: invalid answer");
+  return value.map((entry) => {
+    const row = object(entry);
+    const action = text(row["action"]);
+    if (action !== "publish" && action !== "edit" && action !== "renew")
+      throw new Error("admin_listing_certifications: invalid action");
+    const versions = Array.isArray(row["versions"]) ? row["versions"] : [];
+    return {
+      id: String(row["id"] ?? ""),
+      action,
+      certifiedAt: String(row["certified_at"] ?? ""),
+      language: String(row["language"] ?? ""),
+      countries: Array.isArray(row["countries"])
+        ? row["countries"].map((c) => String(c).trim())
+        : [],
+      versions: versions.map((raw) => {
+        const v = object(raw);
+        return {
+          versionId: String(v["version_id"] ?? ""),
+          kind: String(v["kind"] ?? ""),
+          countryCode: text(v["country_code"]),
+          version: number(v["version"]) ?? 0,
+          label: String(v["label"] ?? ""),
+        };
+      }),
+    };
+  });
+}
+
+export async function readAdminListingCertifications(
+  listingId: string,
+): Promise<AdminListingCertification[]> {
+  const { data, error } = await supabase.rpc("admin_listing_certifications", {
+    p_listing_id: listingId,
+  });
+  // F4 — a refusal is an error the page names, never an empty record.
+  if (error) throw new Error(error.message);
+  return certificationsOf(data);
+}
+
+export function useAdminListingCertifications(listingId: string) {
+  return useQuery({
+    queryKey: [...ADMIN_LISTINGS_KEY, "certifications", listingId],
+    queryFn: () => readAdminListingCertifications(listingId),
+    retry: false,
+  });
+}

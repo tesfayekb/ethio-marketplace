@@ -34,6 +34,12 @@ vi.mock("./posting-service", async (original) => ({
 }));
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
+  // Bundle 22 turn 4 — the review step's certification refusal navigates (certifyRefusal).
+  useNavigate: () => () => undefined,
+}));
+// Bundle 22 turn 4 — no publishing statement applies in these tests (the block reports "none").
+vi.mock("@/features/legal/legal-reader", () => ({
+  myListingCertification: async () => ({ statements: [], acceptance_pending: false }),
 }));
 
 import { StepReview } from "./step-review";
@@ -109,6 +115,12 @@ async function publishedReview() {
       />
     </QueryClientProvider>,
   );
+  // Bundle 22 turn 4 — Publish opens once the statement read answers "none" (no statement applies).
+  await act(async () => {
+    if (vi.isFakeTimers()) await vi.advanceTimersByTimeAsync(0);
+    else await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  expect(screen.getByTestId("post-publish")).toHaveProperty("disabled", false);
   await act(async () => fireEvent.click(screen.getByTestId("post-publish")));
   return view;
 }

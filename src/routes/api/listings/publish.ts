@@ -28,6 +28,37 @@ import {
 
 const PATH = "/api/listings/publish";
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Bundle 22 turn 4 — the certification a publish carries: `certified`, at most 20 version ids of the uuid
+ * shape, and `language`, at most 10 characters. Each is passed on only when sent; a wrong shape is a refusal.
+ */
+export function readCertification(
+  body: Record<string, unknown>,
+):
+  | { ok: true; args: { p_certified?: string[]; p_language?: string } }
+  | { ok: false; field: string } {
+  const args: { p_certified?: string[]; p_language?: string } = {};
+  const certified = body["certified"];
+  if (certified !== undefined) {
+    if (
+      !Array.isArray(certified) ||
+      certified.length > 20 ||
+      !certified.every((id) => typeof id === "string" && UUID.test(id))
+    )
+      return { ok: false, field: "certified" };
+    args.p_certified = certified as string[];
+  }
+  const language = body["language"];
+  if (language !== undefined) {
+    if (typeof language !== "string" || language.length > 10)
+      return { ok: false, field: "language" };
+    args.p_language = language;
+  }
+  return { ok: true, args };
+}
+
 async function handlePost(request: Request): Promise<Response> {
   const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
@@ -37,9 +68,12 @@ async function handlePost(request: Request): Promise<Response> {
   const body = await readJsonBody(request);
   const listingId = typeof body["listingId"] === "string" ? body["listingId"] : "";
   if (listingId === "") return refusal("listingId", "required");
+  const certification = readCertification(body);
+  if (!certification.ok) return refusal(certification.field, "invalid");
 
   const { data, error, status } = await supabase.rpc("publish_listing", {
     p_listing_id: listingId,
+    ...certification.args,
   });
   // INC-574 — the door was never reached: 503, not a refusal.
   if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "publish_listing", status);

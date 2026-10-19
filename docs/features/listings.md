@@ -610,3 +610,5 @@ New columns: `price_unit`, `price_unit_text`, `photos_soon` (anon and authentica
 ## listing_locations.position (Bundle 7 M10)
 
 Each coverage row carries `position` (1 = the item's own place), written in first-occurrence order. The posting doors (`submit_listing`, `edit_listing`) are the table's only writers; signed-in clients hold read access only.
+
+`publish_listing`, `edit_my_listing` and `renew_listing` take `p_certified` and `p_language` (bundle 22 turn 4; see docs/features/legal.md).

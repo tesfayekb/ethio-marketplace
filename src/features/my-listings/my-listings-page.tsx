@@ -45,6 +45,8 @@ import { fill } from "@/features/posting/refusal-text";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useDebounced } from "@/hooks/use-debounced";
+import { CertifyConfirm } from "@/features/legal/certify-confirm";
+import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { useI18n, type MessageKey } from "@/i18n";
 import { authKey } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
@@ -157,6 +159,7 @@ export function MyListingsPage() {
   const [mark, setMark] = useState<ListingMark | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [asking, setAsking] = useState<Asking>(null);
+  const [renewing, setRenewing] = useState<MyListingRow | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   // D224 — the row whose Share sheet is open; one ShareAd serves the whole list.
@@ -339,18 +342,29 @@ export function MyListingsPage() {
    * re-checking everything). A refusal of one ad does not stop the others; the rate
    * dial's refusal stops the set. The list is read again whatever the answers.
    */
-  const act = async (action: ListingAction, targets: MyListingRow[], bulk: boolean) => {
+  const act = async (
+    action: ListingAction,
+    targets: MyListingRow[],
+    bulk: boolean,
+    certification?: { certified: string[]; language: string },
+  ) => {
     if (busy || targets.length === 0) return;
     setBusy(true);
     setNotice(null);
     let done = 0;
     let reason: string | null = null;
+    let handled = false;
     try {
       for (const row of targets) {
-        const outcome = await runListAction(row.id, action);
+        const outcome = await runListAction(row.id, action, certification);
         if (outcome.ok) {
           done += 1;
           continue;
+        }
+        // Bundle 22 turn 4 — one ad's legal refusal goes through certifyRefusal; a bulk set reports it.
+        if (!bulk && outcome.reason !== undefined && certifyRefusal(outcome.reason, navigate)) {
+          handled = true;
+          break;
         }
         reason ??= t(outcome.key);
         if (outcome.key === "myListings.error.rateLimited") break;
@@ -363,6 +377,7 @@ export function MyListingsPage() {
       setBusy(false);
       setSelected([]);
     }
+    if (handled) return;
     const first = targets[0];
     if (!bulk && first !== undefined) {
       setNotice(
@@ -412,6 +427,8 @@ export function MyListingsPage() {
   /** Mark as sold and Delete ask first, and every action on ticked ads asks with their count. */
   const take = (action: ListingAction, targets: MyListingRow[], bulk: boolean) => {
     if (bulk || ASKS_FIRST.has(action)) setAsking({ action, rows: targets, bulk });
+    // Bundle 22 turn 4 — one ad's Renew passes through the publishing statement (CertifyConfirm).
+    else if (action === "renew" && targets[0] !== undefined) setRenewing(targets[0]);
     else void act(action, targets, false);
   };
 
@@ -859,6 +876,19 @@ export function MyListingsPage() {
           </AlertDialogContent>
         ) : null}
       </AlertDialog>
+      {renewing !== null ? (
+        <CertifyConfirm
+          listingId={renewing.id}
+          title={actionLabel("renew", renewing)}
+          yes={actionLabel("renew", renewing)}
+          onCancel={() => setRenewing(null)}
+          onConfirm={(certification) => {
+            const target = renewing;
+            setRenewing(null);
+            void act("renew", [target], false, certification);
+          }}
+        />
+      ) : null}
       {/* D224 — one ShareAd for the whole list, opened by the ⋯ menu's Share;
           the same sheet the ad's own page shows. */}
       {sharing !== null && shareable(sharing) ? (
