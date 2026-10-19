@@ -3935,19 +3935,22 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
           `${path}: ${measured.name}: ${measured.size}px`,
         ).toBeGreaterThanOrEqual(16);
       }
-      expect(visible, `${path}: no visible fields reached`).toBeGreaterThan(0);
+      expect(visible, `${path} (${page.url()}): no visible fields reached`).toBeGreaterThan(0);
     };
     await gotoReady(page, "/");
     await page.getByTestId("search-toggle").click();
     await expect(page.getByTestId("search-input")).toBeVisible();
     await sweep("/");
     await gotoReady(page, "/auth");
+    await expect(page.locator("#auth-email")).toBeVisible();
     await sweep("/auth");
     const user = await leaseUser();
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/post");
+    await expect(page.getByTestId("post-category-search")).toBeVisible();
     await sweep("/post");
     await gotoReady(page, "/settings");
+    await expect(page.locator("#current-password")).toBeVisible();
     await sweep("/settings");
   });
 

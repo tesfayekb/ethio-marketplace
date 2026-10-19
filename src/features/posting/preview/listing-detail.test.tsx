@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { en } from "@/i18n/locales/en";
 import { shapePostingSchema } from "../posting-service";
 import { ownValue } from "@/lib/own-key";
-import { ListingDetail, type ListingDetailView } from "./listing-detail";
+import { ListingDetail, currentListingSection, type ListingDetailView } from "./listing-detail";
 import { ShareAd } from "@/features/ad-page/share-ad";
 import { useCountryTree, type TreeNode } from "@/components/shell/location-data";
 
@@ -709,7 +709,7 @@ it("LD-22 the sign-in return focuses Show contact and highlights the seller card
   }
 });
 
-it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after scrollend or the 1000 ms fallback (INC-727)", () => {
+it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after 200 ms still, with a 3 s ceiling (INC-753)", () => {
   const observers: TestObserver[] = [];
   class TestObserver implements IntersectionObserver {
     readonly root = null;
@@ -793,42 +793,59 @@ it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after
         }),
       );
     }
+    vi.spyOn(document.documentElement, "scrollHeight", "get").mockReturnValue(10000);
+    let y = 0;
+    vi.spyOn(window, "scrollY", "get").mockImplementation(() => y);
     fireEvent.click(item("description"));
     observer.report(["ad-details"]);
     expect(item("description")).toHaveAttribute("aria-current", "true");
     act(() => window.dispatchEvent(new Event("scrollend")));
-    // Ending the pin itself makes no new decision, despite the last Details-only report.
-    expect(item("description")).toHaveAttribute("aria-current", "true");
-    observer.report(["ad-details", "ad-description", "ad-location"]);
-    expect(item("description")).toHaveAttribute("aria-current", "true");
-
-    fireEvent.click(item("description"));
-    act(() => {
-      vi.advanceTimersByTime(999);
-    });
     observer.report(["ad-details"]);
     expect(item("description")).toHaveAttribute("aria-current", "true");
-    act(() => {
-      vi.advanceTimersByTime(1);
-    });
+    act(() => vi.advanceTimersByTime(199));
+    observer.report(["ad-details"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    act(() => vi.advanceTimersByTime(1));
+    // Release itself makes no decision; the next report reads fresh, equal tops.
+    observer.report(["ad-details", "ad-description", "ad-location"]);
     expect(item("description")).toHaveAttribute("aria-current", "true");
     observer.report(["ad-details"]);
     expect(item("details")).toHaveAttribute("aria-current", "true");
 
-    // A second tap replaces both the chosen target and the first tap's expiry.
     fireEvent.click(item("description"));
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
+    for (let elapsed = 50; elapsed <= 1200; elapsed += 50) {
+      y += 1;
+      act(() => vi.advanceTimersByTime(50));
+      observer.report(["ad-details"]);
+      expect(item("description")).toHaveAttribute("aria-current", "true");
+    }
+    act(() => vi.advanceTimersByTime(199));
+    observer.report(["ad-details"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    act(() => vi.advanceTimersByTime(1));
+    observer.report(["ad-details"]);
+    expect(item("details")).toHaveAttribute("aria-current", "true");
+
+    // A second tap owns a fresh stillness period, not the first tap's expiry.
+    fireEvent.click(item("description"));
+    act(() => vi.advanceTimersByTime(150));
     fireEvent.click(item("location"));
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
+    act(() => vi.advanceTimersByTime(150));
     observer.report(["ad-details"]);
     expect(item("location")).toHaveAttribute("aria-current", "true");
-    act(() => {
-      vi.advanceTimersByTime(500);
-    });
+    act(() => vi.advanceTimersByTime(50));
+    observer.report(["ad-details"]);
+    expect(item("details")).toHaveAttribute("aria-current", "true");
+
+    fireEvent.click(item("location"));
+    for (let elapsed = 50; elapsed < 3000; elapsed += 50) {
+      y += 1;
+      act(() => vi.advanceTimersByTime(50));
+      observer.report(["ad-details"]);
+      expect(item("location")).toHaveAttribute("aria-current", "true");
+    }
+    y += 1;
+    act(() => vi.advanceTimersByTime(50));
     observer.report(["ad-details"]);
     expect(item("details")).toHaveAttribute("aria-current", "true");
   } finally {
@@ -921,4 +938,39 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
     if (standalone) Object.defineProperty(navigator, "standalone", standalone);
     else Reflect.deleteProperty(navigator, "standalone");
   }
+});
+
+describe("INC-753 section choice", () => {
+  const items = [
+    { target: "details", shown: true, top: 100, inBand: true },
+    { target: "description", shown: true, top: 108, inBand: true },
+    { target: "seller", shown: true, top: 109, inBand: true },
+    { target: "location", shown: true, top: 600, inBand: false },
+  ];
+  it("keeps a current DEC-192 candidate within 8 px", () => {
+    expect(currentListingSection(items, "description", 740, false)).toBe("description");
+  });
+  it("otherwise chooses the first candidate in bar order", () => {
+    expect(currentListingSection(items, "seller", 740, false)).toBe("details");
+  });
+  it("at page end chooses the last shown section with its top on screen", () => {
+    expect(currentListingSection(items, "details", 740, true)).toBe("location");
+    expect(currentListingSection(items, "details", 600, true)).toBe("seller");
+    expect(
+      currentListingSection(
+        items.map((item) => ({ ...item, top: -1 })),
+        "description",
+        740,
+        true,
+      ),
+    ).toBe("description");
+  });
+  it("never chooses a hidden item", () => {
+    const hidden = items.map((item) => ({
+      ...item,
+      shown: item.target !== "location" && item.target !== "details",
+    }));
+    expect(currentListingSection(hidden, "seller", 740, false)).toBe("description");
+    expect(currentListingSection(hidden, "details", 740, true)).toBe("seller");
+  });
 });

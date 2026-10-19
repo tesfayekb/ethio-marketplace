@@ -1008,8 +1008,41 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         .locator('[data-testid="listing-section-nav-item"]:visible')
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
     ).toEqual(["details", "description", "seller", "location"]);
+    const sampleScroll = async (target: string) => {
+      const started = Date.now();
+      let stillSince = started;
+      let previousY = await page.evaluate(() => window.scrollY);
+      const samples: { elapsed: number; current: (string | null)[] }[] = [];
+      await expect
+        .poll(
+          async () => {
+            const sample = await bar.evaluate((nav) => ({
+              y: window.scrollY,
+              current: Array.from(nav.querySelectorAll('[data-testid="listing-section-nav-item"]'))
+                .filter((item) => item.getAttribute("aria-current") === "true")
+                .map((item) => item.getAttribute("data-target")),
+            }));
+            const now = Date.now();
+            samples.push({ elapsed: now - started, current: sample.current });
+            if (sample.y !== previousY) {
+              previousY = sample.y;
+              stillSince = now;
+            }
+            return now - stillSince >= 300;
+          },
+          { intervals: [50] },
+        )
+        .toBe(true);
+      for (const sample of samples) {
+        expect(
+          sample.current,
+          `AP-37 ${target} at ${sample.elapsed} ms: current ${sample.current.join(",") || "none"}`,
+        ).toEqual([target]);
+      }
+    };
     const sellerItem = bar.locator('[data-target="seller"]');
     await sellerItem.click();
+    await sampleScroll("seller");
     await expect(sellerItem).toHaveAttribute("aria-current", "true");
     await expect
       .poll(async () => {
@@ -1022,6 +1055,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .toBeGreaterThanOrEqual(0);
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
+    await sampleScroll("location");
     await expect(locationItem).toHaveAttribute("aria-current", "true");
     await expect
       .poll(async () => {

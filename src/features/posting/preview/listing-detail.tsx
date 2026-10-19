@@ -99,6 +99,28 @@ function isPeriod(value: string | null): value is PricePeriod {
   return value !== null && value in PERIOD_KEYS;
 }
 
+/** DEC-192 candidates, with INC-753's page-end exception. */
+export function currentListingSection(
+  items: readonly { target: string; shown: boolean; top: number; inBand: boolean }[],
+  current: string,
+  viewportHeight: number,
+  atEnd: boolean,
+): string {
+  // INC-753 — at the end of the page the last section on screen is current: a section near the end can never reach the band.
+  if (atEnd) {
+    const last = items
+      .filter((item) => item.shown && item.top >= 0 && item.top < viewportHeight)
+      .at(-1);
+    if (last) return last.target;
+  }
+  const visible = items.filter((item) => item.inBand);
+  if (visible.length === 0) return current;
+  const minTop = Math.min(...visible.map((item) => item.top));
+  const candidates = visible.filter((item) => item.shown && item.top - minTop <= 8);
+  if (candidates.some((item) => item.target === current)) return current;
+  return candidates[0]?.target ?? current;
+}
+
 export type ListingActor = "buyer" | "owner" | "staff";
 
 export interface ListingDetailView {
@@ -456,47 +478,49 @@ export function ListingDetail(view: ListingDetailView) {
       if (pinTimerRef.current !== null) window.clearTimeout(pinTimerRef.current);
       pinTimerRef.current = null;
     };
-    window.addEventListener("scrollend", endPin);
-    const visible = new Map<string, number>();
+    const visible = new Set<string>();
+    const decide = () => {
+      if (pinnedRef.current !== null) return;
+      const items = sectionIds.split(",").flatMap((id) => {
+        const section = article.querySelector(`#${id}`);
+        if (!section) return [];
+        const target = id === "contact" ? "seller" : id.replace("ad-", "");
+        const item = navRef.current?.querySelector(`[data-target="${target}"]`);
+        return [
+          {
+            target,
+            shown: item != null && item.getClientRects().length > 0,
+            top: section.getBoundingClientRect().top,
+            inBand: visible.has(id),
+          },
+        ];
+      });
+      /* DEC-192 — tops within 8 px of the smallest are candidates;
+         a current candidate stays, otherwise the first in bar order wins. */
+      const next = currentListingSection(
+        items,
+        currentSectionRef.current,
+        window.innerHeight,
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2,
+      );
+      if (next !== currentSectionRef.current) {
+        currentSectionRef.current = next;
+        setCurrentSection(next);
+      }
+    };
+    // An early scrollend may belong to the scroll preceding this tap; it never releases the pin.
+    window.addEventListener("scrollend", decide);
+    window.addEventListener("scroll", decide, { passive: true });
     const observer =
       typeof IntersectionObserver === "undefined"
         ? null
         : new IntersectionObserver(
             (entries) => {
               for (const entry of entries) {
-                if (entry.isIntersecting)
-                  visible.set(entry.target.id, entry.boundingClientRect.top);
+                if (entry.isIntersecting) visible.add(entry.target.id);
                 else visible.delete(entry.target.id);
               }
-              if (pinnedRef.current !== null) return;
-              for (const id of visible.keys()) {
-                const section = article.querySelector(`#${id}`);
-                if (section) visible.set(id, section.getBoundingClientRect().top);
-                else visible.delete(id);
-              }
-              if (visible.size === 0) return;
-              /* DEC-192 (bundle 19 turn 22) — boxes that start at one height:
-                the visible sections whose tops lie within 8 px of the smallest
-                top are the candidates; a current candidate stays current,
-                otherwise the first candidate in the bar's order takes over. */
-              const minTop = Math.min(...visible.values());
-              const candidates = new Set(
-                [...visible].filter(([, top]) => top - minTop <= 8).map(([id]) => id),
-              );
-              // DEC-200 — the seller card is a section again; `contact` maps back to `seller`.
-              const toTarget = (id: string) =>
-                id === "contact" ? "seller" : id.replace("ad-", "");
-              // DEC-200 — a section whose bar item is hidden at this width (no client
-              // rects) is never chosen as current, so Seller is never current on a
-              // phone or a large screen.
-              const shown = (id: string) => {
-                const item = navRef.current?.querySelector(`[data-target="${toTarget(id)}"]`);
-                return item != null && item.getClientRects().length > 0;
-              };
-              const current = currentSectionRef.current;
-              if ([...candidates].some((id) => shown(id) && toTarget(id) === current)) return;
-              const first = sectionIds.split(",").find((id) => candidates.has(id) && shown(id));
-              if (first) setCurrentSection(toTarget(first));
+              decide();
             },
             { rootMargin: "-180px 0px -45% 0px", threshold: 0 },
           );
@@ -506,7 +530,8 @@ export function ListingDetail(view: ListingDetailView) {
     }
     return () => {
       observer?.disconnect();
-      window.removeEventListener("scrollend", endPin);
+      window.removeEventListener("scrollend", decide);
+      window.removeEventListener("scroll", decide);
       endPin();
     };
   }, [showSections, sectionIds]);
@@ -946,14 +971,29 @@ export function ListingDetail(view: ListingDetailView) {
                   section.target === "seller" ? "@min-[57.5rem]:hidden" : ""
                 } ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
                 onClick={() => {
+                  // INC-753 — the tap's choice holds until its own scroll has stopped (200 ms still, 3 s at most): a fixed 1 s pin, or the first scrollend, handed 'current' to another tab while a slow smooth scroll was still moving.
                   pinnedRef.current = section.target;
                   if (pinTimerRef.current !== null) window.clearTimeout(pinTimerRef.current);
-                  pinTimerRef.current = window.setTimeout(() => {
-                    pinnedRef.current = null;
-                    pinTimerRef.current = null;
-                  }, 1000);
+                  currentSectionRef.current = section.target;
                   setCurrentSection(section.target);
+                  const started = Date.now();
+                  let stillSince = started;
+                  let previousY = window.scrollY;
+                  const checkStopped = () => {
+                    const now = Date.now();
+                    if (window.scrollY !== previousY) {
+                      previousY = window.scrollY;
+                      stillSince = now;
+                    }
+                    if (now - stillSince >= 200 || now - started >= 3000) {
+                      pinnedRef.current = null;
+                      pinTimerRef.current = null;
+                      return;
+                    }
+                    pinTimerRef.current = window.setTimeout(checkStopped, 50);
+                  };
                   scrollSection(section.id);
+                  pinTimerRef.current = window.setTimeout(checkStopped, 50);
                 }}
               >
                 {t(section.label)}
