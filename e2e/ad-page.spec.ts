@@ -1013,23 +1013,28 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       let stillSince = started;
       let previousY = await page.evaluate(() => window.scrollY);
       while (Date.now() - stillSince < 300) {
-        const sample = await bar.evaluate((nav) => ({
-          y: window.scrollY,
-          current: Array.from(nav.querySelectorAll('[data-testid="listing-section-nav-item"]'))
-            .filter((item) => item.getAttribute("aria-current") === "true")
-            .map((item) => item.getAttribute("data-target")),
-        }));
-        const now = Date.now();
-        expect(
-          sample.current,
-          `AP-37 ${target} at ${now - started} ms: current ${sample.current.join(",") || "none"}`,
-        ).toEqual([target]);
-        if (sample.y !== previousY) {
-          previousY = sample.y;
-          stillSince = now;
-        }
-        expect(now - started, `AP-37 ${target}: scroll did not stop`).toBeLessThan(10000);
-        await page.waitForTimeout(50);
+      const samples: { elapsed: number; current: (string | null)[] }[] = [];
+      await expect
+        .poll(async () => {
+          const sample = await bar.evaluate((nav) => ({
+            y: window.scrollY,
+            current: Array.from(nav.querySelectorAll('[data-testid="listing-section-nav-item"]'))
+              .filter((item) => item.getAttribute("aria-current") === "true")
+              .map((item) => item.getAttribute("data-target")),
+          }));
+          const now = Date.now();
+          samples.push({ elapsed: now - started, current: sample.current });
+          if (sample.y !== previousY) {
+            previousY = sample.y;
+            stillSince = now;
+          }
+          return now - stillSince >= 300;
+        }, { intervals: [50] })
+        .toBe(true);
+      for (const sample of samples) {
+        expect(sample.current,
+          `AP-37 ${target} at ${sample.elapsed} ms: current ${sample.current.join(",") || "none"}`)
+          .toEqual([target]);
       }
     };
     const sellerItem = bar.locator('[data-target="seller"]');
