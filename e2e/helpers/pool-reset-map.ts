@@ -56,8 +56,7 @@ export const POOL_EXEMPT_TABLES = {
   screening_verdicts: "reviewer is attribution; the account's own verdicts cascade with listings",
   legal_versions:
     "created_by / published_by are attribution on version history; published scratch rows are never pooled (bundle 22 turn 1)",
-  legal_settings:
-    "updated_by is attribution on the global legal-facts row (bundle 22 turn 1)",
+  legal_settings: "updated_by is attribution on the global legal-facts row (bundle 22 turn 1)",
   ui_translation_revisions: "changed_by is attribution on revision history",
   ui_translations: "updated_by / approved_by are attribution",
 } as const;
