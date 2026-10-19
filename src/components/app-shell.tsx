@@ -53,73 +53,6 @@ import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
 
-/**
- * Bundle 21 turn 12 (INC-743) — the operator's iPhone is the only witness, so
- * ?overflow=1 renders this read-only probe: one line of the screen's numbers,
- * then up to 10 of the deepest elements whose box or content passes the
- * screen's edge. Client-only (the address is read after hydration), no
- * request, no storage; absent without the parameter. Numbers, tag names,
- * testids and class names only — no words to translate. Removal is a roadmap
- * task once the iPhone shows nothing past the screen (OP-1).
- */
-function OverflowProbe() {
-  const [lines, setLines] = useState<string[] | null>(null);
-  useEffect(() => {
-    if (!new URLSearchParams(window.location.search).has("overflow")) return;
-    const self = document.querySelector('[data-testid="overflow-probe"]');
-    const measure = () => {
-      const doc = document.documentElement;
-      const out = [
-        [
-          Math.round(screen.width),
-          Math.round(window.innerWidth),
-          Math.round(doc.clientWidth),
-          Math.round(doc.scrollWidth),
-          Math.round(window.visualViewport?.width ?? 0),
-        ].join(" "),
-      ];
-      const offenders: string[] = [];
-      for (const el of document.querySelectorAll<HTMLElement>("body *")) {
-        if (self !== null && (el === self || self.contains(el))) continue;
-        const rect = el.getBoundingClientRect();
-        const past = rect.right - screen.width > 1;
-        const inner = el.scrollWidth - el.clientWidth > 1;
-        if (!past && !inner) continue;
-        let deepest = true;
-        for (const child of el.querySelectorAll<HTMLElement>("*")) {
-          const cr = child.getBoundingClientRect();
-          if (cr.right - screen.width > 1 || child.scrollWidth - child.clientWidth > 1) {
-            deepest = false;
-            break;
-          }
-        }
-        if (!deepest) continue;
-        offenders.push(
-          `${el.tagName.toLowerCase()}[${el.getAttribute("data-testid") ?? "-"}] .${(el.getAttribute("class") ?? "").trim().split(/\s+/).slice(0, 2).join(".")} ${Math.round(rect.left)}→${Math.round(rect.right)} (${el.scrollWidth}/${el.clientWidth})`,
-        );
-        if (offenders.length >= 10) break;
-      }
-      setLines([...out, ...offenders]);
-    };
-    measure();
-    const timer = setInterval(measure, 500);
-    const stop = setTimeout(() => clearInterval(timer), 10000);
-    return () => {
-      clearInterval(timer);
-      clearTimeout(stop);
-    };
-  }, []);
-  if (lines === null) return null;
-  return (
-    <pre
-      data-testid="overflow-probe"
-      className="fixed inset-x-0 top-0 z-[100] max-h-40 overflow-y-auto bg-card px-1 font-mono text-[10px] leading-tight text-foreground"
-    >
-      {lines.join("\n")}
-    </pre>
-  );
-}
-
 /** Body shown for panels whose real pages are later features. */
 function PanelPlaceholder() {
   const { t } = useI18n();
@@ -971,7 +904,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           root rule. clip, never hidden — this is no scroll container, so the
           sticky sub-band keeps working; the fixed bars are not clipped by it. */}
       <div className="flex min-h-screen flex-col overflow-x-clip bg-background pb-[var(--bottom-bar)]">
-        <OverflowProbe />
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}
