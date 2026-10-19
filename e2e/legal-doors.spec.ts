@@ -20,7 +20,7 @@ import { adminClient, leaseUser } from "./helpers/users";
  * (`useJobSuperAdmin`), a leased user granted the "admin" role for the refused
  * staff path — no role holds a legal permission, so an admin by role is the
  * strongest refused caller. Fixtures: scratch documents whose kinds start
- * `e2e-` (D2), inserted by the service client, removed in `finally`
+ * `e2e-` (D2), inserted by the service client, removed in afterEach (J3)
  * (acceptances, then versions, then documents). Truth: the service client,
  * never a rendered summary (J4).
  *
@@ -379,7 +379,7 @@ test.describe("Legal doors", () => {
       expect(keptKind.data?.kind).toBe(kind);
 
       // The service role's cleanup DELETE of a published SCRATCH row is the one allowed path
-      // (destroyFixture proves it in finally; here it is proven against a throwaway row).
+      // (destroyFixture proves it in afterEach; here it is proven against a throwaway row).
       const extra = await seedFixture(kind, "DE");
       fixture.countryDocumentId = extra.documentId;
       fixture.countryPublishedId = extra.publishedId;
