@@ -1134,7 +1134,6 @@ test.describe("mobile chrome", () => {
     await checkVariant(menu, "Account", "menu");
     await page.getByTestId("rail-menu-close").click();
   });
-  });
 
   test("RM-1 a tap on the strip opens the menu; the row under the finger opens the category", async ({
     page,
