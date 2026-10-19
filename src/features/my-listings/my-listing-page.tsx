@@ -36,6 +36,8 @@ import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { fill } from "@/features/posting/refusal-text";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
+import { CertifyConfirm } from "@/features/legal/certify-confirm";
+import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { useI18n } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { authKey } from "@/lib/query-keys";
@@ -180,6 +182,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   };
   const [problem, setProblem] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<"sell" | "delete" | null>(null);
+  // Bundle 22 turn 4 — Renew passes through the publishing statement's confirmation (CertifyConfirm).
+  const [renewing, setRenewing] = useState(false);
   const navigate = useNavigate();
 
   const query = useQuery({
@@ -265,15 +269,21 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
   };
 
-  const act = async (action: ListingAction) => {
+  const act = async (
+    action: ListingAction,
+    certification?: { certified: string[]; language: string },
+  ) => {
     if (ad === null || busy) return;
     setBusy(true);
     setNotice(null);
     setProblem(null);
     try {
-      const outcome = await runAction(ad, action);
-      if (!outcome.ok) setProblem(t(outcome.key));
-      else if (action === "delete") {
+      const outcome = await runAction(ad, action, certification);
+      if (!outcome.ok) {
+        // Bundle 22 turn 4 — a legal refusal goes through certifyRefusal; the others as before.
+        if (outcome.reason === undefined || !certifyRefusal(outcome.reason, navigate))
+          setProblem(t(outcome.key));
+      } else if (action === "delete") {
         // Turn 3b (call F) — a deleted ad has no page: back to My listings, read again.
         await reload();
         void navigate({ to: "/my-listings" });
@@ -471,6 +481,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                 disabled={busy}
                 onClick={() => {
                   if (action === "sell") setConfirming(action);
+                  else if (action === "renew") setRenewing(true);
                   else void act(action);
                 }}
               >
@@ -753,6 +764,18 @@ export function MyListingPage({ listingId }: { listingId: string }) {
           </AlertDialogContent>
         ) : null}
       </AlertDialog>
+      {renewing ? (
+        <CertifyConfirm
+          listingId={listingId}
+          title={fill(t(actionKey("renew", row.soldWord)), { days: String(ad.renewDays ?? "") })}
+          yes={fill(t(actionKey("renew", row.soldWord)), { days: String(ad.renewDays ?? "") })}
+          onCancel={() => setRenewing(false)}
+          onConfirm={(certification) => {
+            setRenewing(false);
+            void act("renew", certification);
+          }}
+        />
+      ) : null}
     </PageShell>
   );
 }

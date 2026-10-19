@@ -36,6 +36,8 @@ export const POOL_RESET_TABLES = {
     "user_id rows deleted (a lease's legal acceptances never carry into a later lease; bundle 22 turn 1)",
   legal_notices:
     "user_id rows deleted (a lease's legal e-mails never carry into a later lease; bundle 22 turn 1)",
+  listing_certifications:
+    "user_id rows cascade with the seller's listings (a certification is always on the certifier's own ad; bundle 22 turn 4)",
 } as const;
 
 export const POOL_EXEMPT_TABLES = {

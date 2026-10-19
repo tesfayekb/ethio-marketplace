@@ -63,3 +63,51 @@ describe("shapePostingSchema — K5 failed read", () => {
     expect(schema?.details).toBe(0);
   });
 });
+
+describe("the publish route's certification (bundle 22 turn 4)", () => {
+  const ID = "0b9a6c1e-2f3d-4e5a-8b7c-9d0e1f2a3b4c";
+  it("passes certified and language only when sent", async () => {
+    const { readCertification } = await import("@/routes/api/listings/publish");
+    expect(readCertification({ listingId: "x" })).toEqual({ ok: true, args: {} });
+    expect(readCertification({ certified: [ID], language: "am" })).toEqual({
+      ok: true,
+      args: { p_certified: [ID], p_language: "am" },
+    });
+  });
+  it("refuses a non-uuid entry, more than 20 entries and a long language", async () => {
+    const { readCertification } = await import("@/routes/api/listings/publish");
+    expect(readCertification({ certified: [ID, "not-a-uuid"] })).toEqual({
+      ok: false,
+      field: "certified",
+    });
+    expect(readCertification({ certified: Array.from({ length: 21 }, () => ID) })).toEqual({
+      ok: false,
+      field: "certified",
+    });
+    expect(readCertification({ certified: Array.from({ length: 20 }, () => ID) }).ok).toBe(true);
+    expect(readCertification({ language: "x".repeat(11) })).toEqual({
+      ok: false,
+      field: "language",
+    });
+  });
+  it("publishListing sends certified and language only when given", async () => {
+    const { publishListing } = await import("./posting-service");
+    const bodies: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: RequestInit) => {
+        bodies.push(String(init.body));
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      }),
+    );
+    await publishListing("l-1");
+    await publishListing("l-1", { certified: [ID], language: "en" });
+    vi.unstubAllGlobals();
+    expect(JSON.parse(bodies[0] ?? "{}")).toEqual({ listingId: "l-1" });
+    expect(JSON.parse(bodies[1] ?? "{}")).toEqual({
+      listingId: "l-1",
+      certified: [ID],
+      language: "en",
+    });
+  });
+});

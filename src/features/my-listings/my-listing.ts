@@ -263,7 +263,7 @@ export function actionErrorKey(message: string): MessageKey {
   return "myListings.error.failed";
 }
 
-export type ActionOutcome = { ok: true } | { ok: false; key: MessageKey };
+export type ActionOutcome = { ok: true } | { ok: false; key: MessageKey; reason?: LegalReason };
 
 /** The renew door answers its refusals in its body, not as an error. */
 function refusalOf(data: unknown): string | null {
@@ -273,7 +273,11 @@ function refusalOf(data: unknown): string | null {
 }
 
 /** One action, through its door, as the signed-in seller. */
-export async function runAction(ad: MyListing, action: ListingAction): Promise<ActionOutcome> {
+export async function runAction(
+  ad: MyListing,
+  action: ListingAction,
+  certification?: Certification,
+): Promise<ActionOutcome> {
   const id = ad.listing.id;
   let result: { data: unknown; error: { message: string } | null };
   switch (action) {
@@ -301,7 +305,11 @@ export async function runAction(ad: MyListing, action: ListingAction): Promise<A
       });
       break;
     case "renew":
-      result = await supabase.rpc("renew_listing", { p_listing_id: id });
+      // Bundle 22 turn 4 — the certification, sent only when given.
+      result = await supabase.rpc("renew_listing", {
+        p_listing_id: id,
+        ...certificationArgs(certification),
+      });
       break;
     case "delete":
       // Turn 3b (call F) — deleted by its owner: it leaves My listings; the record stays.
@@ -311,7 +319,11 @@ export async function runAction(ad: MyListing, action: ListingAction): Promise<A
       });
       break;
   }
-  if (result.error) return { ok: false, key: actionErrorKey(result.error.message) };
+  if (result.error) {
+    const reason = legalReasonOf(result.error.message);
+    const key = actionErrorKey(result.error.message);
+    return reason === undefined ? { ok: false, key } : { ok: false, key, reason };
+  }
   const refusal = refusalOf(result.data);
   if (refusal !== null) return { ok: false, key: actionErrorKey(refusal) };
   return { ok: true };
@@ -326,6 +338,7 @@ export async function runAction(ad: MyListing, action: ListingAction): Promise<A
 export async function runListAction(
   listingId: string,
   action: ListingAction,
+  certification?: Certification,
 ): Promise<ActionOutcome> {
   let ad: MyListing | "notYours";
   try {
@@ -335,7 +348,7 @@ export async function runListAction(
   }
   if (ad === "notYours") return { ok: false, key: "myListings.error.notYours" };
   if (!actionsFor(ad).includes(action)) return { ok: false, key: "myListings.error.changed" };
-  return runAction(ad, action);
+  return runAction(ad, action, certification);
 }
 
 /** What the page says once an action is done (a deleted ad's page leaves for My listings). */
@@ -499,7 +512,22 @@ export function copyable(status: string): boolean {
 export type EditOutcome =
   | { ok: true; status: string; review: boolean }
   | { ok: false; refusals: Refusal[] }
-  | { ok: false; key: MessageKey };
+  | { ok: false; key: MessageKey; reason?: LegalReason };
+
+/** Bundle 22 turn 4 — the seller doors' legal refusals, kept as the door's word for certifyRefusal. */
+export type LegalReason = "acceptanceRequired" | "certificationRequired";
+export function legalReasonOf(message: string): LegalReason | undefined {
+  const word = message.trim().split(":")[0];
+  return word === "acceptanceRequired" || word === "certificationRequired" ? word : undefined;
+}
+
+/** Bundle 22 turn 4 — the certification a seller door call carries (the statements' version ids, the UI language). */
+export type Certification = { certified: string[]; language: string };
+function certificationArgs(certification: Certification | undefined) {
+  return certification === undefined
+    ? {}
+    : { p_certified: certification.certified, p_language: certification.language };
+}
 
 /**
  * Bundle 17 turn 2 (INC-665) — a specification's refusal names its `attr_key`
@@ -537,12 +565,19 @@ function refusalsOf(value: unknown): Refusal[] {
 export async function editMyListing(
   listingId: string,
   changes: Record<string, unknown>,
+  certification?: Certification,
 ): Promise<EditOutcome> {
   const { data, error } = await supabase.rpc("edit_my_listing", {
     p_listing_id: listingId,
     p_changes: changes as Json,
+    ...certificationArgs(certification),
   });
-  if (error) return { ok: false, key: actionErrorKey(error.message) };
+  if (error) {
+    const reason = legalReasonOf(error.message);
+    return reason === undefined
+      ? { ok: false, key: actionErrorKey(error.message) }
+      : { ok: false, key: actionErrorKey(error.message), reason };
+  }
   if (isObject(data) && data.ok === true && typeof data.status === "string") {
     return { ok: true, status: data.status, review: data.review === true };
   }

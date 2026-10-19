@@ -4,7 +4,7 @@ import { editErrorKey } from "@/features/admin-listings/edit-listing";
 import { editAdminListing, readAdminListing } from "@/features/admin-listings/use-admin-listing";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { editMyListing } from "@/features/my-listings/my-listing";
+import { editMyListing, type Certification } from "@/features/my-listings/my-listing";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 
@@ -61,6 +61,8 @@ export interface UseEditDraft extends UseDraft {
    * opened again starts from the saved answers; the step's refusals go with it.
    */
   discard: (step: number) => void;
+  /** Bundle 22 turn 4 — the seller's certification sent with each save (undefined: none applies). */
+  setCertification: (certification: Certification | undefined) => void;
 }
 
 /** The door fields each step draws, for INC-660's clearing. */
@@ -130,9 +132,20 @@ async function readForStaff(listingId: string) {
 
 export function useEditDraft(
   listingId: string | null,
-  options: { actor: EditActor; guard?: GuardFn },
+  options: {
+    actor: EditActor;
+    guard?: GuardFn;
+    /** Bundle 22 turn 4 — a seller door's legal refusal; true when handled (certifyRefusal). */
+    onLegalRefusal?: (reason: string) => boolean;
+  },
 ): UseEditDraft {
   const { actor, guard } = options;
+  const legalRefusalRef = useRef(options.onLegalRefusal);
+  legalRefusalRef.current = options.onLegalRefusal;
+  const certificationRef = useRef<Certification | undefined>(undefined);
+  const setCertification = useCallback((certification: Certification | undefined) => {
+    certificationRef.current = certification;
+  }, []);
   const locked = useMemo(() => lockedSteps(actor), [actor]);
   const [step, setStep] = useState<number>(TOTAL_STEPS);
   const [values, setValues] = useState<DraftValues>({
@@ -411,11 +424,18 @@ export function useEditDraft(
           setOutcome((current) => ({ kind: "saved", nonce: (current?.nonce ?? 0) + 1 }));
           return true;
         }
-        const answer = await editMyListing(listingId, changes);
+        const certification = certificationRef.current;
+        const answer =
+          certification === undefined
+            ? await editMyListing(listingId, changes)
+            : await editMyListing(listingId, changes, certification);
         if (!answer.ok) {
           if ("refusals" in answer) {
             setRefusals(answer.refusals);
-          } else {
+          } else if (
+            answer.reason === undefined ||
+            legalRefusalRef.current?.(answer.reason) !== true
+          ) {
             setProblem(answer.key);
           }
           setSaveState("unsaved");
@@ -506,6 +526,7 @@ export function useEditDraft(
       status,
       baseline,
       discard,
+      setCertification,
     }),
     [
       actor,
@@ -535,6 +556,7 @@ export function useEditDraft(
       status,
       baseline,
       discard,
+      setCertification,
     ],
   );
 }

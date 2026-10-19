@@ -62,6 +62,15 @@ import { useEditDraft, type UseEditDraft } from "./use-edit-draft";
 import type { EditActor } from "./edit-step-changes";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { FadingNotice } from "@/components/ui/fading-notice";
+import { useNavigate } from "@tanstack/react-router";
+import { CertifyBlock } from "@/features/legal/certify-block";
+import {
+  CERTIFY_LOADING,
+  certifyAllows,
+  certifyArgs,
+  type CertifyState,
+  certifyRefusal,
+} from "@/features/legal/certify-refusal";
 import { keepListedAnswers, type QuestionListRead } from "./catalog-held-answers";
 
 /** D59 — the fields a category change resets, and Undo restores. */
@@ -164,7 +173,13 @@ export function EditWizard({
   /** Bundle 17 turn 3 (D188) — from Screening: Approve and Reject on the Review. */
   onDecide?: ((next: "active" | "rejected") => void) | null;
 }) {
-  const draft = useEditDraft(listingId, { actor, guard });
+  const navigate = useNavigate();
+  // Bundle 22 turn 4 — a seller edit's legal refusal (acceptanceRequired, certificationRequired).
+  const onLegalRefusal = useCallback(
+    (reason: string) => certifyRefusal(reason, navigate),
+    [navigate],
+  );
+  const draft = useEditDraft(listingId, { actor, guard, onLegalRefusal });
   return (
     <WizardShell
       draft={draft}
@@ -197,6 +212,13 @@ function WizardShell({
   const { t, entities, language } = useI18n();
   const { user, loading: authLoading } = useAuth();
   const listingId = routeListingId;
+  // Bundle 22 turn 4 — a seller's edit save carries the publishing certification (L1 v2 item 4).
+  const sellerEdit = edit !== null && edit.actor === "seller" && listingId !== null;
+  const [certify, setCertify] = useState<CertifyState>(CERTIFY_LOADING);
+  const setEditCertification = edit?.setCertification;
+  useEffect(() => {
+    setEditCertification?.(certifyArgs(certify, language));
+  }, [certify, language, setEditCertification]);
   const { tree, isLoading: treeLoading, error: treeError } = useCategoryTree();
 
   // Which detail keys step 3 renders: refusals naming one of them are shown
@@ -1215,6 +1237,9 @@ function WizardShell({
                         }
                       }}
                     >
+                      {sellerEdit && listingId !== null && draft.step < TOTAL_STEPS ? (
+                        <CertifyBlock listingId={listingId} onChange={setCertify} />
+                      ) : null}
                       <div className="flex gap-2">
                         <button
                           type="button"
@@ -1297,7 +1322,12 @@ function WizardShell({
                              a dead control, and the line underneath says why
                              before any tap. With the mirror satisfied the step is
                              sent and the door judges (F3). */
-                            disabled={needsLeaf || photosBlockNext || photosSendingNow}
+                            disabled={
+                              needsLeaf ||
+                              photosBlockNext ||
+                              photosSendingNow ||
+                              (sellerEdit && !certifyAllows(certify))
+                            }
                             data-closed={missing.length > 0 ? "1" : undefined}
                             onClick={() => {
                               if (missing.length > 0) {

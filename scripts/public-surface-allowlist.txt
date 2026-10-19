@@ -113,3 +113,5 @@ admin_publish_legal_version | publishes a draft with the notice-period rule; che
 admin_legal_settings | the legal-facts row for staff; checks legal:view inside
 admin_set_legal_settings | sets the legal facts; checks legal:edit and the step-up inside
 admin_user_legal_history | a person's legal history for staff; checks profiles:view inside
+my_listing_certification | the seller's own ad: the publishing statements that apply and whether an acceptance is owed; signed in, owner only (B22 Stage 1 turn 4)
+admin_listing_certifications | an ad's certification record for staff; checks listings:view inside (B22 Stage 1 turn 4)

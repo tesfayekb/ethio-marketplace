@@ -7,7 +7,14 @@ import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { readMyListing, type MyListing } from "@/features/my-listings/my-listing";
 import { storedUnitNoun } from "./price-line";
 import { usePriceUnitLabels } from "./use-price-unit-labels";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { CertifyBlock } from "@/features/legal/certify-block";
+import {
+  CERTIFY_LOADING,
+  certifyAllows,
+  type CertifyState,
+  certifyRefusal,
+} from "@/features/legal/certify-refusal";
 
 import { isoDay } from "@/components/shell/date-day";
 import { DateField } from "@/components/shell/date-field";
@@ -198,6 +205,8 @@ export function StepReview({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [refusals, setRefusals] = useState<Refusal[]>([]);
+  const [certify, setCertify] = useState<CertifyState>(CERTIFY_LOADING);
+  const navigate = useNavigate();
   const [failed, setFailed] = useState(false);
   // Step 16 — the date box shows while the switch is on; a saved date opens it.
   const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
@@ -844,22 +853,29 @@ export function StepReview({
       )}
       {edit === null && (
         <>
-          {/* Bundle 4 step 19 — the seller's statement; no tick, no link (no rules page yet).
+          {/* Bundle 22 turn 4 — the publishing statements that apply, with one tick (L1 v2 item 4). */}
+          {listingId !== null ? <CertifyBlock listingId={listingId} onChange={setCertify} /> : null}
+          {/* Bundle 4 step 19 — the seller's statement; shown while no publishing statement applies.
           publish_listing stamps attested_at on every successful publish. */}
-          <p className="text-xs text-muted-foreground" data-testid="post-publish-statement">
-            {t("post.review.statement")}
-          </p>
+          {certify.state === "none" ? (
+            <p className="text-xs text-muted-foreground" data-testid="post-publish-statement">
+              {t("post.review.statement")}
+            </p>
+          ) : null}
           <button
             type="button"
             data-testid="post-publish"
-            disabled={publishing || listingId === null}
+            disabled={publishing || listingId === null || !certifyAllows(certify)}
             className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
             onClick={() => {
               if (listingId === null) return;
               setPublishing(true);
               setFailed(false);
               setRefusals([]);
-              void publishListing(listingId).then((answer) => {
+              void publishListing(
+                listingId,
+                certify.state === "ready" ? { certified: certify.versionIds, language } : undefined,
+              ).then((answer) => {
                 setPublishing(false);
                 if (answer.ok) {
                   setInReview(true);
@@ -868,7 +884,10 @@ export function StepReview({
                 // A refusal is the door's judgement and is shown; unreachability is
                 // the network's and says so — never a silent nothing (F4).
                 if (answer.unreachable) setFailed(true);
-                else setRefusals(answer.refusals);
+                else {
+                  const legal = answer.refusals.find((r) => certifyRefusal(r.reason, navigate));
+                  if (legal === undefined) setRefusals(answer.refusals);
+                }
               });
             }}
           >
