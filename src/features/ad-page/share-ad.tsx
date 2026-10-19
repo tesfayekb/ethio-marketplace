@@ -37,11 +37,14 @@ export function ShareAd({
   canonicalPath,
   title,
   priceText,
+  prominent = false,
 }: {
   publicId: string;
   canonicalPath: string;
   title: string;
   priceText: string | null;
+  /** D218 — a primary opener after posting; existing ad-page callers stay ghost. */
+  prominent?: boolean;
 }) {
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
@@ -77,8 +80,12 @@ export function ShareAd({
   return (
     <>
       <Button
-        variant="ghost"
-        className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+        variant={prominent ? "default" : "ghost"}
+        className={
+          prominent
+            ? "h-auto min-h-11 gap-2 font-semibold"
+            : "h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+        }
         data-testid="listing-share-open"
         onClick={() => changeOpen(true)}
       >

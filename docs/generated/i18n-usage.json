@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 493,
-  "dynamicCallSites": 355,
+  "dynamicCallSites": 356,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -395,36 +395,68 @@
       "/post/$listingId"
     ],
     "adPage.share.copy": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.download": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.facebook": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.more": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.open": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.qr": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.qrHint": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.share.title": [
+      "/admin/listings/$listingId/edit",
       "/l/$slug",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "adPage.similar.title": [
       "/l/$slug"
@@ -6449,7 +6481,7 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.review.reviewTitle": [
+    "post.review.shareWait": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",

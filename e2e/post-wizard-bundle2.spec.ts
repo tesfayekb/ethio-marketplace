@@ -925,6 +925,62 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     expect(new URL(page.url()).pathname, "PW-123: a draft address was carried").toBe("/post");
   });
 
+  test("PS-1 the end of posting offers Share: grey while in review, green once live", async ({
+    page,
+  }) => {
+    const user = await signedInSeller(page, { homeConfirmed: false, named: true });
+    const leaf = await category();
+    const city = await activeCityOf("ET");
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
+    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("post-who-country-required")).toBeVisible();
+    await page.getByTestId("post-who-country-confirm").click();
+    await page.getByTestId("post-who-country-yes").click();
+    await expect(page.getByTestId("post-who-country")).toBeDisabled({ timeout: 20_000 });
+    await expect(page.getByTestId("post-who-country-required")).toHaveCount(0);
+    await page.getByTestId("post-next").click();
+    await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId("post-publish").click();
+    const review = page.getByTestId("post-in-review");
+    await expect(review).toBeVisible({ timeout: 20_000 });
+    await expect(review.getByTestId("post-review-share-wait")).toBeVisible();
+    await expect(review.getByTestId("post-review-share-wait")).toBeDisabled();
+    await expect(review.getByTestId("post-review-share-note")).toHaveText(
+      en["post.review.shareWait"],
+    );
+    await expect(page.getByTestId("listing-share-open")).toHaveCount(0);
+    // Same service-client active-row shape as adPageFixtures().seed; update only
+    // this test's published scratch ad, never insert a substitute or touch a real row.
+    const now = new Date().toISOString();
+    const { data, error } = await adminClient()
+      .from("listings")
+      .update({
+        status: "active",
+        published_at: now,
+        published_first_at: now,
+        expires_at: new Date(Date.now() + 28 * 86_400_000).toISOString(),
+      })
+      .eq("id", listingId)
+      .eq("seller_id", user.id)
+      .eq("status", "screening")
+      .select("id,status,public_id")
+      .single();
+    if (error || !data)
+      throw new Error(`[e2e:ps1] making scratch ad live failed: ${error?.message ?? "no row"}`);
+    expect(data.id).toBe(listingId);
+    expect(data.status).toBe("active");
+    expect(typeof data.public_id).toBe("string");
+    const deadline = Date.now() + 15_000;
+    await expect(page.getByTestId("listing-share-open")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("listing-share-open")).toBeEnabled();
+    await expect(review.getByTestId("post-review-share-wait")).toHaveCount(0);
+    await expect(review.getByRole("heading", { level: 2 })).toHaveText(en["post.review.liveTitle"]);
+    expect(Date.now()).toBeLessThanOrEqual(deadline);
+    await page.getByTestId("listing-share-open").click();
+    await expect(page.getByRole("dialog").getByTestId("listing-share-copy")).toBeVisible();
+  });
+
   test("PW-124 the phone box shows an example and a length hint per country", async ({ page }) => {
     const user = await signedInSeller(page);
     const leaf = await category();

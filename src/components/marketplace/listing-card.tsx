@@ -147,6 +147,7 @@ export function ListingCard({
           boxTestId="listing-card-picture"
           rounded=""
           fill
+          crop
           priority={priority}
         />
         {tierPill}

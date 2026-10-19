@@ -1,3 +1,4 @@
+import { adPageFixtures } from "./helpers/ad-page";
 import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
@@ -38,8 +39,10 @@ test.describe("FEED SCREENS", () => {
   const sellers: string[] = [];
   const regions: string[] = [];
   const branches: string[][] = [];
+  const { seedPhotos, cleanup: cleanupPhotos } = adPageFixtures();
 
   test.afterEach(async () => {
+    await cleanupPhotos();
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     for (const slug of regions.splice(0)) await destroyLocation(slug);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
@@ -711,6 +714,7 @@ test.describe("FEED SCREENS", () => {
       price_drop_at: new Date(Date.now() - 86_400_000).toISOString(),
     });
     await update(s, { status: "sold" });
+    for (const id of [r, p, s]) await seedPhotos(id, 1);
 
     await gotoReady(page, `/c/${leaf.slug}`);
     await expect.poll(async () => (await cardIds(page)).length).toBe(4);
@@ -726,5 +730,33 @@ test.describe("FEED SCREENS", () => {
     await expect(card(s).getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
     await expect(card(s).getByTestId("listing-card-price-was")).toHaveCount(0);
     await expect(card(n).getByTestId("listing-ribbon")).toHaveCount(0);
+    for (const id of [r, p, s]) {
+      const picture = card(id).getByTestId("listing-card-picture");
+      await expect(picture).toHaveAttribute("data-picture", "photo");
+      const image = picture.locator("img");
+      await expect(image).toBeVisible();
+      await expect
+        .poll(() =>
+          image.evaluate((img) => {
+            const photo = img as HTMLImageElement;
+            return photo.complete && photo.naturalWidth > 0;
+          }),
+        )
+        .toBe(true);
+      await expect(image).toHaveCSS("object-fit", "cover");
+      const fit = await picture.evaluate((box) => {
+        const img = box.querySelector("img");
+        if (img === null) throw new Error("FS-15: card photo disappeared");
+        const outer = box.getBoundingClientRect();
+        const inner = img.getBoundingClientRect();
+        return {
+          width: Math.abs(outer.width - inner.width),
+          height: Math.abs(outer.height - inner.height),
+          x: Math.abs(outer.x - inner.x),
+          y: Math.abs(outer.y - inner.y),
+        };
+      });
+      for (const difference of Object.values(fit)) expect(difference).toBeLessThanOrEqual(1);
+    }
   });
 });

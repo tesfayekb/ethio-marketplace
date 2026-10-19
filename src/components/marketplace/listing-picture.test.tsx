@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ListingPicture } from "./listing-picture";
@@ -33,4 +33,42 @@ describe("ListingPicture — the loading priority (DEC-195)", () => {
     expect(lazy).not.toHaveAttribute("fetchpriority", "high");
     expect(lazy).toHaveAttribute("decoding", "async");
   });
+});
+
+it("LP-11 crop fills the card with a tall seller photo; default and category pictures keep their whole shape", () => {
+  const loadTall = (image: HTMLElement) => {
+    Object.defineProperties(image, {
+      naturalWidth: { configurable: true, value: 600 },
+      naturalHeight: { configurable: true, value: 1200 },
+    });
+    fireEvent.load(image);
+  };
+  const { rerender } = render(
+    <ListingPicture photoUrl={PHOTO} categoryUrl={null} imgTestId="lp-11-img" crop />,
+  );
+  loadTall(screen.getByTestId("lp-11-img"));
+  const frame = screen.getByTestId("lp-11-img-frame");
+  expect(frame.style.aspectRatio).toBe("");
+  expect(frame.style.width).toBe("100%");
+  expect(frame.style.height).toBe("100%");
+  expect(screen.getByTestId("lp-11-img")).toHaveClass("object-cover");
+
+  rerender(<ListingPicture photoUrl={PHOTO} categoryUrl={null} imgTestId="lp-11-img" />);
+  loadTall(screen.getByTestId("lp-11-img"));
+  expect(frame.style.aspectRatio).toBe("0.5 / 1");
+  expect(frame.style.width).toBe("calc(37.5cqw)");
+  expect(frame.style.height).toBe("");
+  expect(screen.getByTestId("lp-11-img")).toHaveClass("object-contain");
+
+  rerender(<ListingPicture photoUrl={null} categoryUrl={PHOTO} imgTestId="lp-11-img" crop />);
+  loadTall(screen.getByTestId("lp-11-img"));
+  expect(frame.style.aspectRatio).toBe("0.5 / 1");
+  expect(frame.style.width).toBe("calc(37.5cqw)");
+  expect(frame.style.height).toBe("");
+  expect(screen.getByTestId("lp-11-img")).toHaveClass("object-contain");
+  rerender(<ListingPicture photoUrl={null} categoryUrl={null} imgTestId="lp-11-img" crop />);
+  expect(screen.queryByTestId("lp-11-img")).toBeNull();
+  expect(frame.style.aspectRatio).toBe("");
+  expect(frame.style.width).toBe("100%");
+  expect(frame.style.height).toBe("100%");
 });

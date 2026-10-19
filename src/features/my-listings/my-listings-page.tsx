@@ -230,6 +230,7 @@ export function MyListingsPage() {
         hasPhoto={row.coverPhotoId !== null}
         rounded="rounded-md"
         fill
+        crop
       />
     </div>
   );

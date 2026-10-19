@@ -46,6 +46,11 @@ const TAPE_INSET_Y = `${(TAPE_REACH * Math.sin(TAPE_RAD)).toFixed(2)}cqw`;
  * thinner beside a status ribbon; its words became "PHOTOS SOON". The band's ends are clipped by the picture's corners,
  * so at this size a word may be at most 10.6em wide (8.6em at the first size, 6cqw, which cut "Price reduced" — INC-675):
  * a ribbon word is at most 14 characters AND at most 10.0em in the site's bold (RB-1; the supervisor measures a new word).
+ *
+ * D220 (the operator's walk, 2026-10-18) — a tall photo's frame was narrow,
+ * so its ribbon was small. On cards the photo fills the 4:3 box (cropped at
+ * its edges, centred) and every ribbon is one size; the ad's own page keeps
+ * the whole photo. Category pictures and placeholders keep their old shape.
  */
 /** The band itself — one class set for every ribbon; a test proves no ribbon is drawn with another. */
 export const RIBBON_BAND_CLASS =
@@ -101,6 +106,7 @@ export function ListingPicture({
   dimCategory = false,
   rounded = "rounded-md",
   fill = false,
+  crop = false,
   ribbon = null,
   priority = false,
 }: {
@@ -120,6 +126,8 @@ export function ListingPicture({
   rounded?: string;
   /** A card fills its column; elsewhere the box is capped at 320 px. */
   fill?: boolean;
+  /** D220 — a seller photo fills the card's 4:3 box; category pictures stay whole. */
+  crop?: boolean;
   /** D180 — the ad's status word, drawn as the gold ribbon; null when it has none. */
   ribbon?: string | null;
   /** DEC-195 — the grid's first cards load at once with high fetch priority; the rest lazily. */
@@ -127,6 +135,7 @@ export function ListingPicture({
 }) {
   const { t } = useI18n();
   const source = photoUrl ?? categoryUrl;
+  const cropPhoto = crop && photoUrl !== null;
   const showRibbon = ribbon === null && photosSoon && !(hasPhoto ?? photoUrl !== null);
   /** The drawn picture's own ratio; 4:3 until the image says otherwise. */
   const [ratio, setRatio] = useState(4 / 3);
@@ -142,7 +151,7 @@ export function ListingPicture({
         className="@container relative overflow-hidden"
         data-testid={imgTestId === undefined ? undefined : `${imgTestId}-frame`}
         style={
-          source === null
+          source === null || cropPhoto
             ? { width: "100%", height: "100%" }
             : {
                 aspectRatio: String(ratio),
@@ -162,9 +171,10 @@ export function ListingPicture({
             decoding="async"
             onLoad={(event) => {
               const { naturalWidth, naturalHeight } = event.currentTarget;
-              if (naturalWidth > 0 && naturalHeight > 0) setRatio(naturalWidth / naturalHeight);
+              if (!cropPhoto && naturalWidth > 0 && naturalHeight > 0)
+                setRatio(naturalWidth / naturalHeight);
             }}
-            className={`block h-full w-full object-contain ${photoUrl === null && dimCategory ? "opacity-60" : ""}`}
+            className={`block h-full w-full ${cropPhoto ? "object-cover" : "object-contain"} ${photoUrl === null && dimCategory ? "opacity-60" : ""}`}
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
