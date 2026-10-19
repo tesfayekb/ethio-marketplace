@@ -899,7 +899,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           the footer inside the grid the rail could overhang it; ending the
           grid at the content row makes the rail's bottom stop exactly at the
           footer's top. Visually identical on mobile (stacked, full width). */}
-      <div className="flex min-h-screen flex-col bg-background pb-[var(--bottom-bar)]">
+      {/* INC-743 (turn 12) — the overflow guard on the shell's own outermost
+          box: every engine honours clip on an ordinary element, whatever its
+          root rule. clip, never hidden — this is no scroll container, so the
+          sticky sub-band keeps working; the fixed bars are not clipped by it. */}
+      <div className="flex min-h-screen flex-col overflow-x-clip bg-background pb-[var(--bottom-bar)]">
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}
