@@ -1,10 +1,19 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 509,
-  "dynamicCallSites": 379,
+  "scanned": 523,
+  "dynamicCallSites": 385,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
+    ],
+    "account.legal.body": [
+      "/account"
+    ],
+    "account.legal.open": [
+      "/account"
+    ],
+    "account.legal.title": [
+      "/account"
     ],
     "account.overview.alias": [
       "/account"
@@ -2540,6 +2549,9 @@
     "admin.legal.discarded": [
       "/admin/legal"
     ],
+    "admin.legal.emptyFacts": [
+      "/admin/legal/edit"
+    ],
     "admin.legal.error.load": [
       "/admin/legal",
       "/admin/legal/$versionId",
@@ -4272,6 +4284,9 @@
     "admin.users.legal.acceptedMeta": [
       "/admin/users/$userId"
     ],
+    "admin.users.legal.consent": [
+      "/admin/users/$userId"
+    ],
     "admin.users.legal.noAcceptances": [
       "/admin/users/$userId"
     ],
@@ -4509,7 +4524,8 @@
     "auth.signOut": [
       "(every page)",
       "/",
-      "/c/$slug"
+      "/c/$slug",
+      "/legal/accept"
     ],
     "auth.signUpButton": [
       "/auth"
@@ -4606,6 +4622,8 @@
     "common.loading": [
       "(every page)",
       "/account",
+      "/account/legal",
+      "/account/legal/$versionId",
       "/account/saved",
       "/admin/ai",
       "/admin/categories",
@@ -4617,6 +4635,7 @@
       "/admin/listings/$listingId/edit",
       "/admin/screening",
       "/admin/users/$userId",
+      "/legal/accept",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
@@ -4655,7 +4674,8 @@
       "/post/$listingId"
     ],
     "common.tryAgain": [
-      "(every page)"
+      "(every page)",
+      "/legal/accept"
     ],
     "error.pageFailed": [
       "(every page)"
@@ -4842,6 +4862,108 @@
     ],
     "language.label": [
       "(every page)"
+    ],
+    "legal.accept.hide": [
+      "/legal/accept"
+    ],
+    "legal.accept.lead": [
+      "/legal/accept"
+    ],
+    "legal.accept.liability": [
+      "/legal/accept"
+    ],
+    "legal.accept.loadError": [
+      "/legal/accept"
+    ],
+    "legal.accept.note": [
+      "/legal/accept"
+    ],
+    "legal.accept.read": [
+      "/legal/accept"
+    ],
+    "legal.accept.submit": [
+      "/legal/accept"
+    ],
+    "legal.accept.tick2": [
+      "/legal/accept"
+    ],
+    "legal.accept.title": [
+      "/legal/accept"
+    ],
+    "legal.accept.version": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/accept"
+    ],
+    "legal.kind.privacy": [
+      "(every page)",
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/accept",
+      "/privacy"
+    ],
+    "legal.kind.terms": [
+      "(every page)",
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/accept",
+      "/terms"
+    ],
+    "legal.lang.label": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.loadError": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.meta": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.none": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.print": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.showCurrent": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.showUpcoming": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
+    ],
+    "legal.page.upcoming": [
+      "/account/legal",
+      "/account/legal/$versionId",
+      "/legal/$kind",
+      "/privacy",
+      "/terms"
     ],
     "listing.photosSoon": [
       "(every page)",
@@ -5148,6 +5270,46 @@
     ],
     "mfa.verifyActivate": [
       "/settings"
+    ],
+    "myLegal.accepted": [
+      "/account/legal"
+    ],
+    "myLegal.acceptedMeta": [
+      "/account/legal"
+    ],
+    "myLegal.adult": [
+      "/account/legal"
+    ],
+    "myLegal.back": [
+      "/account/legal/$versionId"
+    ],
+    "myLegal.consent": [
+      "/account/legal"
+    ],
+    "myLegal.loadError": [
+      "/account/legal",
+      "/account/legal/$versionId"
+    ],
+    "myLegal.noAcceptances": [
+      "/account/legal"
+    ],
+    "myLegal.noNotices": [
+      "/account/legal"
+    ],
+    "myLegal.notFound": [
+      "/account/legal/$versionId"
+    ],
+    "myLegal.noticeMeta": [
+      "/account/legal"
+    ],
+    "myLegal.notices": [
+      "/account/legal"
+    ],
+    "myLegal.open": [
+      "/account/legal"
+    ],
+    "myLegal.title": [
+      "/account/legal"
     ],
     "myListings.action.copy": [
       "/my-listings",

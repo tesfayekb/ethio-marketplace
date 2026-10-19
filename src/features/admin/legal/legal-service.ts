@@ -33,18 +33,23 @@ export type LegalVersionDetail = LegalVersion & {
 };
 export const FACT_KEYS = [
   "operator_name",
+  "operator_details",
   "operator_address",
   "legal_email",
   "privacy_email",
+  "security_email",
+  "legal_phone",
   "governing_law",
-  "providers",
   "copyright_agent",
   "liability_limit_usd",
   "notice_days",
   "response_days",
   "response_extra_days",
+  "listed_ad_keep_months",
   "deleted_ad_keep_months",
   "dispute_keep_years",
+  "account_keep_months",
+  "technical_keep_months",
 ] as const;
 export type FactKey = (typeof FACT_KEYS)[number];
 export type LegalSettings = LegalFacts & { notice_days: number };
@@ -67,6 +72,7 @@ export type LegalHistoryRow = {
   language?: string;
   method?: string;
   adult_confirmed?: boolean;
+  data_consent?: boolean;
   sent_at?: string;
   status?: string;
 };
@@ -93,11 +99,20 @@ const refusals: Record<string, MessageKey> = {
   changelogRequired: "admin.legal.error.changelogRequired",
   noticeTooShort: "admin.legal.error.noticeTooShort",
   notDraft: "admin.legal.error.notDraft",
+  unknownFact: "admin.legal.error.unknownFact",
+  factMissing: "admin.legal.error.factMissing",
 };
 export function legalErrorKey(error: unknown): MessageKey {
   const message =
     typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
   return ownValue(refusals, message.trim().split(":")[0] ?? "") ?? "admin.legal.error.generic";
+}
+/** The part of a refusal after its first colon (the fact a publish refusal names), or "". */
+export function legalErrorName(error: unknown): string {
+  const message =
+    typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
+  const at = message.indexOf(":");
+  return at < 0 ? "" : message.slice(at + 1).trim();
 }
 function objectOf(data: unknown, door: string): Record<string, unknown> {
   if (!data || typeof data !== "object" || Array.isArray(data))

@@ -147,7 +147,11 @@ type Fixture = {
 };
 
 /** Seeds a scratch document with one published version (the service client's direct write, J3). */
-async function seedFixture(kind: string, country: string | null): Promise<Fixture> {
+async function seedFixture(
+  kind: string,
+  country: string | null,
+  snapshot: Record<string, unknown> = { seed: true },
+): Promise<Fixture> {
   const supabase = adminClient();
   const doc = await supabase
     .from("legal_documents")
@@ -168,7 +172,7 @@ async function seedFixture(kind: string, country: string | null): Promise<Fixtur
       material: false,
       effective_at: new Date(Date.now() - 60_000).toISOString(),
       published_at: new Date(Date.now() - 60_000).toISOString(),
-      settings_snapshot: { seed: true },
+      settings_snapshot: snapshot,
     })
     .select("id")
     .single();
@@ -1058,6 +1062,226 @@ test.describe("Legal doors", () => {
         if (["terms", "privacy", "publishing"].includes(docKind))
           expect(scratchSeen, "real kind before scratch kinds").toBe(false);
       }
+    } finally {
+      await destroyFixture(fixture);
+    }
+  });
+
+  test("LG-11 accept_legal and the consent: a Privacy Policy version needs the storage consent; the histories show it and a notice's version name", async ({
+    page,
+  }) => {
+    const terms = await seedFixture(`${RUN_TAG}-k-terms`, null);
+    const privacy = await seedFixture(`${RUN_TAG}-k-privacy`, null);
+    const person = await leaseUser();
+    try {
+      const caller = await asPerson(person);
+      const both = [terms.publishedId, privacy.publishedId];
+      const withoutConsent = await caller.rpc("accept_legal", {
+        p_version_ids: both,
+        p_language: "en",
+        p_adult: true,
+      });
+      expect(withoutConsent.error, "no consent given").toContain("consentRequired");
+      const consentFalse = await caller.rpc("accept_legal", {
+        p_version_ids: both,
+        p_language: "en",
+        p_adult: true,
+        p_data_consent: false,
+      });
+      expect(consentFalse.error, "consent refused").toContain("consentRequired");
+      const accepted = await caller.rpc("accept_legal", {
+        p_version_ids: both,
+        p_language: "en",
+        p_adult: true,
+        p_data_consent: true,
+      });
+      expect(accepted.error).toBeNull();
+
+      const rows = await adminClient()
+        .from("legal_acceptances")
+        .select("*")
+        .eq("user_id", person.id)
+        .in("version_id", both);
+      expect(rows.error).toBeNull();
+      const consentOf = (id: string) =>
+        (rows.data as Row[] | null)?.find((r) => r["version_id"] === id)?.["data_consent"];
+      expect(rows.data?.length, "both rows written").toBe(2);
+      expect(consentOf(privacy.publishedId), "the privacy row carries the consent").toBe(true);
+      expect(consentOf(terms.publishedId), "the terms row does not").toBe(false);
+
+      const recorded = await adminClient().rpc("record_legal_notice", {
+        p_user_id: person.id,
+        p_version_id: terms.publishedId,
+        p_channel: "email",
+        p_status: "sent",
+        p_provider_ref: `${RUN_TAG}-k-ref`,
+      });
+      expect(recorded.error).toBeNull();
+
+      const own = await caller.rpc("my_legal_history");
+      expect(own.error).toBeNull();
+      await useJobSuperAdmin(page);
+      const staff = await asToken(await superAdminToken(page));
+      const staffHistory = await staff.rpc("admin_user_legal_history", { p_user_id: person.id });
+      expect(staffHistory.error).toBeNull();
+      for (const [who, answer] of [
+        ["my_legal_history", own.data as Row],
+        ["admin_user_legal_history", staffHistory.data as Row],
+      ] as const) {
+        const acceptances = answer["acceptances"] as Row[];
+        const find = (id: string) => acceptances.find((a) => a["version_id"] === id);
+        expect(find(privacy.publishedId)?.["data_consent"], `${who}: privacy consent`).toBe(true);
+        expect(find(terms.publishedId)?.["data_consent"], `${who}: terms consent`).toBe(false);
+        const notices = answer["notices"] as Row[];
+        const notice = notices.find((n) => n["version_id"] === terms.publishedId);
+        expect(notice?.["label"], `${who}: the notice names its version`).toBe("v1");
+      }
+    } finally {
+      await destroyFixture(terms);
+      await destroyFixture(privacy);
+    }
+  });
+
+  test("LG-12 the frozen facts and legal_scheduled: the version in force and the one ahead of its date, each with its own facts and never the change log", async () => {
+    const kind = `${RUN_TAG}-l`;
+    const fixture = await seedFixture(kind, null, {
+      legal_email: "frozen-one@example.invalid",
+    });
+    const person = await leaseUser();
+    try {
+      const supabase = adminClient();
+      const ahead = await supabase
+        .from("legal_versions")
+        .insert({
+          document_id: fixture.documentId,
+          version: 2,
+          status: "published",
+          label: "v2",
+          body_en: "Next English",
+          body_am: "Next Amharic",
+          changelog: "secret next note",
+          material: true,
+          effective_at: new Date(Date.now() + 30 * 86_400_000).toISOString(),
+          published_at: new Date().toISOString(),
+          settings_snapshot: { legal_email: "frozen-two@example.invalid" },
+        })
+        .select("id")
+        .single();
+      if (ahead.error || !ahead.data)
+        throw new Error(`[e2e:legal] v2 seed: ${ahead.error?.message}`);
+      fixture.draftId = ahead.data.id as string;
+
+      const anon = await asAnon();
+      const inForce = await anon.rpc("legal_in_force", { p_kind: kind });
+      expect(inForce.error).toBeNull();
+      const now = inForce.data as Row;
+      expect(now["version_id"]).toBe(fixture.publishedId);
+      expect(now["settings_snapshot"]).toEqual({ legal_email: "frozen-one@example.invalid" });
+      expect("changelog" in now).toBe(false);
+
+      const scheduled = await anon.rpc("legal_scheduled", { p_kind: kind });
+      expect(scheduled.error).toBeNull();
+      const next = scheduled.data as Row;
+      expect(next["version_id"]).toBe(fixture.draftId);
+      expect(next["settings_snapshot"]).toEqual({ legal_email: "frozen-two@example.invalid" });
+      expect("changelog" in next).toBe(false);
+
+      const unknown = await anon.rpc("legal_scheduled", { p_kind: `${RUN_TAG}-none` });
+      expect(unknown.error).toBeNull();
+      expect(unknown.data, "an unknown scratch kind has nothing ahead").toBeNull();
+
+      const caller = await asPerson(person);
+      const own = await caller.rpc("my_legal_version", { p_version_id: fixture.publishedId });
+      expect(own.error).toBeNull();
+      expect((own.data as Row)["settings_snapshot"]).toEqual({
+        legal_email: "frozen-one@example.invalid",
+      });
+    } finally {
+      await destroyFixture(fixture);
+    }
+  });
+
+  test("LG-13 the new facts' refusals: phone, security e-mail and the three periods, each named; the row is never written", async ({
+    page,
+  }) => {
+    const supabase = adminClient();
+    const before = await supabase
+      .from("legal_settings")
+      .select("updated_at")
+      .eq("id", true)
+      .single();
+    if (before.error || !before.data)
+      throw new Error(`[e2e:legal] settings read: ${before.error?.message}`);
+    await useJobSuperAdmin(page);
+    const staff = await asToken(await superAdminToken(page));
+    const cases: [string, unknown][] = [
+      ["legal_phone", "abc"],
+      ["security_email", "nope"],
+      ["listed_ad_keep_months", 0],
+      ["account_keep_months", 121],
+      ["technical_keep_months", "x"],
+    ];
+    for (const [key, value] of cases) {
+      const refused = await staff.rpc("admin_set_legal_settings", { p_settings: { [key]: value } });
+      expect(refused.error, `${key} = ${String(value)}`).toContain(`badValue:${key}`);
+    }
+    const after = await supabase
+      .from("legal_settings")
+      .select("updated_at")
+      .eq("id", true)
+      .single();
+    expect(after.data?.updated_at, "the row was never written").toBe(before.data.updated_at);
+  });
+
+  test("LG-14 publish refuses a token without a fact: unknownFact for a name that is no fact, factMissing for an empty fact, published with a filled one", async ({
+    page,
+  }) => {
+    const supabase = adminClient();
+    const settings = await supabase.from("legal_settings").select("*").eq("id", true).single();
+    if (settings.error || !settings.data)
+      throw new Error(`[e2e:legal] settings read: ${settings.error?.message}`);
+    const row = settings.data as unknown as Row;
+    const empty = ["operator_details", "legal_phone", "copyright_agent"].find(
+      (key) => row[key] === null || row[key] === "",
+    );
+    if (!empty)
+      throw new Error(
+        "[e2e:legal] LG-14 needs one of operator_details, legal_phone and copyright_agent empty on ethio-staging.",
+      );
+    const kind = `${RUN_TAG}-n`;
+    const fixture = await seedFixture(kind, null);
+    try {
+      await useJobSuperAdmin(page);
+      const staff = await asToken(await superAdminToken(page));
+      const saved = await staff.rpc("admin_save_legal_draft", {
+        p_kind: kind,
+        p_country: null,
+        p_label: "v2",
+        p_body_en: "Write to {{nope_fact}}",
+        p_body_am: "Amharic two",
+        p_changelog: "Second version",
+      });
+      expect(saved.error).toBeNull();
+      const id = String((saved.data as Row)["version_id"]);
+      fixture.draftId = id;
+      const publish = () =>
+        staff.rpc("admin_publish_legal_version", { p_version_id: id, p_material: false });
+
+      expect((await publish()).error).toContain("unknownFact:nope_fact");
+
+      const toEmpty = await supabase
+        .from("legal_versions")
+        .update({ body_en: `Write to {{${empty}}}` })
+        .eq("id", id);
+      expect(toEmpty.error).toBeNull();
+      expect((await publish()).error).toContain(`factMissing:${empty}`);
+
+      const toFilled = await supabase
+        .from("legal_versions")
+        .update({ body_en: "Write to {{legal_email}}" })
+        .eq("id", id);
+      expect(toFilled.error).toBeNull();
+      expect((await publish()).error, "a filled fact publishes").toBeNull();
     } finally {
       await destroyFixture(fixture);
     }

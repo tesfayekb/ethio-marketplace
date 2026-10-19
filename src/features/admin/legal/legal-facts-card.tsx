@@ -31,7 +31,9 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
           const bounds = ownValue(FACT_BOUNDS, key);
           const fieldError = ownValue(errors, key);
           const value = ownValue(facts, key);
-          const multiline = ["operator_address", "providers", "copyright_agent"].includes(key);
+          const multiline = ["operator_address", "operator_details", "copyright_agent"].includes(
+            key,
+          );
           const fieldProps = {
             id: `legal-fact-${key}`,
             "data-testid": `legal-fact-input-${key}`,
@@ -42,7 +44,7 @@ export function LegalFactsCard({ facts, guard }: { facts: LegalSettings; guard: 
             className: "min-h-11 w-full",
             ...(bounds
               ? { type: "number", min: bounds[0], max: bounds[1], step: 1 }
-              : { type: key.endsWith("email") ? "email" : "text" }),
+              : { type: key.endsWith("email") ? "email" : key === "legal_phone" ? "tel" : "text" }),
           };
           return (
             <div key={key} className="min-w-0 space-y-1">

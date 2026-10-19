@@ -1115,6 +1115,7 @@ export type Database = {
         Row: {
           accepted_at: string
           adult_confirmed: boolean
+          data_consent: boolean
           home_country_code: string | null
           id: string
           language: string
@@ -1125,6 +1126,7 @@ export type Database = {
         Insert: {
           accepted_at?: string
           adult_confirmed?: boolean
+          data_consent?: boolean
           home_country_code?: string | null
           id?: string
           language: string
@@ -1135,6 +1137,7 @@ export type Database = {
         Update: {
           accepted_at?: string
           adult_confirmed?: boolean
+          data_consent?: boolean
           home_country_code?: string | null
           id?: string
           language?: string
@@ -1259,56 +1262,74 @@ export type Database = {
       }
       legal_settings: {
         Row: {
+          account_keep_months: number
           copyright_agent: string | null
           deleted_ad_keep_months: number
           dispute_keep_years: number
           governing_law: string
           id: boolean
           legal_email: string
+          legal_phone: string | null
           liability_limit_usd: number
+          listed_ad_keep_months: number
           notice_days: number
           operator_address: string
+          operator_details: string | null
           operator_name: string
           privacy_email: string
           providers: string
           response_days: number
           response_extra_days: number
+          security_email: string
+          technical_keep_months: number
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          account_keep_months?: number
           copyright_agent?: string | null
           deleted_ad_keep_months?: number
           dispute_keep_years?: number
           governing_law?: string
           id?: boolean
           legal_email?: string
+          legal_phone?: string | null
           liability_limit_usd?: number
+          listed_ad_keep_months?: number
           notice_days?: number
           operator_address?: string
+          operator_details?: string | null
           operator_name?: string
           privacy_email?: string
           providers?: string
           response_days?: number
           response_extra_days?: number
+          security_email?: string
+          technical_keep_months?: number
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          account_keep_months?: number
           copyright_agent?: string | null
           deleted_ad_keep_months?: number
           dispute_keep_years?: number
           governing_law?: string
           id?: boolean
           legal_email?: string
+          legal_phone?: string | null
           liability_limit_usd?: number
+          listed_ad_keep_months?: number
           notice_days?: number
           operator_address?: string
+          operator_details?: string | null
           operator_name?: string
           privacy_email?: string
           providers?: string
           response_days?: number
           response_extra_days?: number
+          security_email?: string
+          technical_keep_months?: number
           updated_at?: string
           updated_by?: string | null
         }
@@ -3158,7 +3179,12 @@ export type Database = {
     }
     Functions: {
       accept_legal: {
-        Args: { p_adult: boolean; p_language: string; p_version_ids: string[] }
+        Args: {
+          p_adult: boolean
+          p_data_consent?: boolean
+          p_language: string
+          p_version_ids: string[]
+        }
         Returns: Json
       }
       admin_accept_category_image: { Args: { p_id: string }; Returns: string }
@@ -4606,6 +4632,14 @@ export type Database = {
       legal_in_force: {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
+      }
+      legal_scheduled: {
+        Args: { p_country?: string; p_kind: string }
+        Returns: Json
+      }
+      legal_text_fact_problem: {
+        Args: { p_snapshot: Json; p_text: string }
+        Returns: string
       }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }

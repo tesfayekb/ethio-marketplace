@@ -16,7 +16,10 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MyListingsRouteImport } from './routes/my-listings'
 import { Route as PostRouteImport } from './routes/post'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AccountLegalRouteImport } from './routes/account_.legal'
 import { Route as AccountSavedRouteImport } from './routes/account_.saved'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAiRouteImport } from './routes/admin.ai'
@@ -46,8 +49,11 @@ import { Route as DevPrimitivesRouteImport } from './routes/dev.primitives'
 import { Route as DevStyleRouteImport } from './routes/dev.style'
 import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
+import { Route as LegalKindRouteImport } from './routes/legal.$kind'
+import { Route as LegalAcceptRouteImport } from './routes/legal.accept'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
+import { Route as AccountLegalVersionIdRouteImport } from './routes/account_.legal_.$versionId'
 import { Route as AdminImpersonationSessionIdRouteImport } from './routes/admin.impersonation_.$sessionId'
 import { Route as AdminLegalVersionIdRouteImport } from './routes/admin.legal_.$versionId'
 import { Route as AdminLegalEditRouteImport } from './routes/admin.legal_.edit'
@@ -124,9 +130,24 @@ const PostRoute = PostRouteImport.update({
   path: '/post',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountLegalRoute = AccountLegalRouteImport.update({
+  id: '/account_/legal',
+  path: '/account/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountSavedRoute = AccountSavedRouteImport.update({
@@ -274,6 +295,16 @@ const LSlugRoute = LSlugRouteImport.update({
   path: '/l/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LegalKindRoute = LegalKindRouteImport.update({
+  id: '/legal/$kind',
+  path: '/legal/$kind',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalAcceptRoute = LegalAcceptRouteImport.update({
+  id: '/legal/accept',
+  path: '/legal/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
   id: '/my-listings_/$listingId',
   path: '/my-listings/$listingId',
@@ -282,6 +313,11 @@ const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
 const PostListingIdRoute = PostListingIdRouteImport.update({
   id: '/post_/$listingId',
   path: '/post/$listingId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountLegalVersionIdRoute = AccountLegalVersionIdRouteImport.update({
+  id: '/account_/legal_/$versionId',
+  path: '/account/legal/$versionId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminImpersonationSessionIdRoute =
@@ -502,7 +538,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
+  '/account/legal': typeof AccountLegalRoute
   '/account/saved': typeof AccountSavedRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
@@ -531,9 +570,12 @@ export interface FileRoutesByFullPath {
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/$kind': typeof LegalKindRoute
+  '/legal/accept': typeof LegalAcceptRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/account/legal/$versionId': typeof AccountLegalVersionIdRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/legal/$versionId': typeof AdminLegalVersionIdRoute
   '/admin/legal/edit': typeof AdminLegalEditRoute
@@ -582,7 +624,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
+  '/account/legal': typeof AccountLegalRoute
   '/account/saved': typeof AccountSavedRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
@@ -611,9 +656,12 @@ export interface FileRoutesByTo {
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/$kind': typeof LegalKindRoute
+  '/legal/accept': typeof LegalAcceptRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
+  '/account/legal/$versionId': typeof AccountLegalVersionIdRoute
   '/admin/impersonation/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/legal/$versionId': typeof AdminLegalVersionIdRoute
   '/admin/legal/edit': typeof AdminLegalEditRoute
@@ -664,7 +712,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/my-listings': typeof MyListingsRoute
   '/post': typeof PostRoute
+  '/privacy': typeof PrivacyRoute
   '/settings': typeof SettingsRoute
+  '/terms': typeof TermsRoute
+  '/account_/legal': typeof AccountLegalRoute
   '/account_/saved': typeof AccountSavedRoute
   '/admin/ai': typeof AdminAiRoute
   '/admin/attributes': typeof AdminAttributesRoute
@@ -693,9 +744,12 @@ export interface FileRoutesById {
   '/dev/style': typeof DevStyleRoute
   '/dev/tall': typeof DevTallRoute
   '/l/$slug': typeof LSlugRoute
+  '/legal/$kind': typeof LegalKindRoute
+  '/legal/accept': typeof LegalAcceptRoute
   '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/account_/legal_/$versionId': typeof AccountLegalVersionIdRoute
   '/admin/impersonation_/$sessionId': typeof AdminImpersonationSessionIdRoute
   '/admin/legal_/$versionId': typeof AdminLegalVersionIdRoute
   '/admin/legal_/edit': typeof AdminLegalEditRoute
@@ -747,7 +801,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/my-listings'
     | '/post'
+    | '/privacy'
     | '/settings'
+    | '/terms'
+    | '/account/legal'
     | '/account/saved'
     | '/admin/ai'
     | '/admin/attributes'
@@ -776,9 +833,12 @@ export interface FileRouteTypes {
     | '/dev/style'
     | '/dev/tall'
     | '/l/$slug'
+    | '/legal/$kind'
+    | '/legal/accept'
     | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin/'
+    | '/account/legal/$versionId'
     | '/admin/impersonation/$sessionId'
     | '/admin/legal/$versionId'
     | '/admin/legal/edit'
@@ -827,7 +887,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/my-listings'
     | '/post'
+    | '/privacy'
     | '/settings'
+    | '/terms'
+    | '/account/legal'
     | '/account/saved'
     | '/admin/ai'
     | '/admin/attributes'
@@ -856,9 +919,12 @@ export interface FileRouteTypes {
     | '/dev/style'
     | '/dev/tall'
     | '/l/$slug'
+    | '/legal/$kind'
+    | '/legal/accept'
     | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin'
+    | '/account/legal/$versionId'
     | '/admin/impersonation/$sessionId'
     | '/admin/legal/$versionId'
     | '/admin/legal/edit'
@@ -908,7 +974,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/my-listings'
     | '/post'
+    | '/privacy'
     | '/settings'
+    | '/terms'
+    | '/account_/legal'
     | '/account_/saved'
     | '/admin/ai'
     | '/admin/attributes'
@@ -937,9 +1006,12 @@ export interface FileRouteTypes {
     | '/dev/style'
     | '/dev/tall'
     | '/l/$slug'
+    | '/legal/$kind'
+    | '/legal/accept'
     | '/my-listings_/$listingId'
     | '/post_/$listingId'
     | '/admin/'
+    | '/account_/legal_/$versionId'
     | '/admin/impersonation_/$sessionId'
     | '/admin/legal_/$versionId'
     | '/admin/legal_/edit'
@@ -990,7 +1062,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   MyListingsRoute: typeof MyListingsRoute
   PostRoute: typeof PostRoute
+  PrivacyRoute: typeof PrivacyRoute
   SettingsRoute: typeof SettingsRoute
+  TermsRoute: typeof TermsRoute
+  AccountLegalRoute: typeof AccountLegalRoute
   AccountSavedRoute: typeof AccountSavedRoute
   ApiFeedRoute: typeof ApiFeedRoute
   ApiGeoRoute: typeof ApiGeoRouteWithChildren
@@ -1004,8 +1079,11 @@ export interface RootRouteChildren {
   DevStyleRoute: typeof DevStyleRoute
   DevTallRoute: typeof DevTallRoute
   LSlugRoute: typeof LSlugRoute
+  LegalKindRoute: typeof LegalKindRoute
+  LegalAcceptRoute: typeof LegalAcceptRoute
   MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
+  AccountLegalVersionIdRoute: typeof AccountLegalVersionIdRoute
   ApiCatalogFindRoute: typeof ApiCatalogFindRoute
   ApiCategoriesTreeRoute: typeof ApiCategoriesTreeRoute
   ApiI18nLangRoute: typeof ApiI18nLangRoute
@@ -1087,11 +1165,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PostRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account_/legal': {
+      id: '/account_/legal'
+      path: '/account/legal'
+      fullPath: '/account/legal'
+      preLoaderRoute: typeof AccountLegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/account_/saved': {
@@ -1297,6 +1396,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/legal/$kind': {
+      id: '/legal/$kind'
+      path: '/legal/$kind'
+      fullPath: '/legal/$kind'
+      preLoaderRoute: typeof LegalKindRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/accept': {
+      id: '/legal/accept'
+      path: '/legal/accept'
+      fullPath: '/legal/accept'
+      preLoaderRoute: typeof LegalAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-listings_/$listingId': {
       id: '/my-listings_/$listingId'
       path: '/my-listings/$listingId'
@@ -1309,6 +1422,13 @@ declare module '@tanstack/react-router' {
       path: '/post/$listingId'
       fullPath: '/post/$listingId'
       preLoaderRoute: typeof PostListingIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account_/legal_/$versionId': {
+      id: '/account_/legal_/$versionId'
+      path: '/account/legal/$versionId'
+      fullPath: '/account/legal/$versionId'
+      preLoaderRoute: typeof AccountLegalVersionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/impersonation_/$sessionId': {
@@ -1685,7 +1805,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   MyListingsRoute: MyListingsRoute,
   PostRoute: PostRoute,
+  PrivacyRoute: PrivacyRoute,
   SettingsRoute: SettingsRoute,
+  TermsRoute: TermsRoute,
+  AccountLegalRoute: AccountLegalRoute,
   AccountSavedRoute: AccountSavedRoute,
   ApiFeedRoute: ApiFeedRoute,
   ApiGeoRoute: ApiGeoRouteWithChildren,
@@ -1699,8 +1822,11 @@ const rootRouteChildren: RootRouteChildren = {
   DevStyleRoute: DevStyleRoute,
   DevTallRoute: DevTallRoute,
   LSlugRoute: LSlugRoute,
+  LegalKindRoute: LegalKindRoute,
+  LegalAcceptRoute: LegalAcceptRoute,
   MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
+  AccountLegalVersionIdRoute: AccountLegalVersionIdRoute,
   ApiCatalogFindRoute: ApiCatalogFindRoute,
   ApiCategoriesTreeRoute: ApiCategoriesTreeRoute,
   ApiI18nLangRoute: ApiI18nLangRoute,

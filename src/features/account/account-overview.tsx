@@ -205,6 +205,14 @@ export function AccountOverview() {
               {t("account.overview.noNotifications")}
             </p>
           </Section>
+          <Section title={t("account.legal.title")} testid="account-legal-card">
+            <p className="mt-3 text-sm text-muted-foreground">{t("account.legal.body")}</p>
+            <Button asChild variant="outline" className="mt-4 min-h-11">
+              <Link to="/account/legal" data-testid="account-open-legal">
+                {t("account.legal.open")}
+              </Link>
+            </Button>
+          </Section>
           <Section title={t("account.overview.quickActions")} testid="account-actions-card">
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild>

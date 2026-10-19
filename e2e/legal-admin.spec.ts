@@ -116,7 +116,11 @@ async function fillDraft(page: Page, label: string, en: string, am: string, chan
   await page.getByTestId("legal-save-draft").click();
   await expect(page.getByTestId("legal-publish")).toBeEnabled();
 }
-async function accept(person: { email: string; password: string }, id: string) {
+async function accept(
+  person: { email: string; password: string },
+  id: string,
+  options: { consent?: boolean } = {},
+) {
   const session = await passwordGrant(person.email, person.password);
   const url = process.env["E2E_SUPABASE_URL"];
   const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
@@ -128,7 +132,12 @@ async function accept(person: { email: string; password: string }, id: string) {
       Authorization: `Bearer ${session.access_token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ p_version_ids: [id], p_language: "en", p_adult: true }),
+    body: JSON.stringify({
+      p_version_ids: [id],
+      p_language: "en",
+      p_adult: true,
+      p_data_consent: options.consent ?? false,
+    }),
   });
   if (!response.ok) throw new Error(`[e2e:legal-admin] accept refused: ${await response.text()}`);
 }
@@ -148,25 +157,33 @@ test.describe("Admin Legal", () => {
     ).toEqual(["legal-kind-terms", "legal-kind-privacy", "legal-kind-publishing"]);
     const keys = [
       "operator_name",
+      "operator_details",
       "operator_address",
       "legal_email",
       "privacy_email",
+      "security_email",
+      "legal_phone",
       "governing_law",
-      "providers",
       "copyright_agent",
       "liability_limit_usd",
       "notice_days",
       "response_days",
       "response_extra_days",
+      "listed_ad_keep_months",
       "deleted_ad_keep_months",
       "dispute_keep_years",
+      "account_keep_months",
+      "technical_keep_months",
     ] as const;
+    expect(keys.length, "the facts card shows the 18 facts").toBe(18);
+    const row = truth as unknown as Record<string, unknown>;
     for (const key of keys) {
-      const value = truth[key];
+      const value = row[key];
       await expect(page.getByTestId(`legal-fact-${key}`)).toHaveText(
-        value === "" || value === null ? "Not set" : String(value),
+        value === "" || value === null || value === undefined ? "Not set" : String(value),
       );
     }
+    await expect(page.getByTestId("legal-fact-providers")).toHaveCount(0);
     // The shared admin rail has viewport twins; inspect their href census, not a prefix .first().
     expect(await page.locator('a[href="/admin/legal"]').count()).toBeGreaterThan(0);
     const admin = await leaseUser();
@@ -201,9 +218,27 @@ test.describe("Admin Legal", () => {
       ).toBeVisible();
       await expect(page.getByTestId("legal-preview")).toContainText(settings.legal_email);
       await expect(page.getByTestId("legal-unknown-tokens")).toContainText("nope");
+      // Publishing refuses the token that is not a fact (M3b), and the row stays a draft.
       await page.getByTestId("legal-publish").click();
       await expect(page.getByTestId("legal-publish-first-note")).toBeVisible();
       await expect(page.getByTestId("legal-publish-material")).toHaveCount(0);
+      await page.getByTestId("legal-publish-confirm").click();
+      await expect(page.getByTestId("legal-publish-dialog").getByRole("alert")).toHaveText(
+        "The text uses nope, which is not a legal fact. Correct or remove it.",
+      );
+      expect((await version(kind)).status, "a refused publish leaves a draft").toBe("draft");
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("legal-publish-dialog")).toHaveCount(0);
+      // The English text is saved without {{nope}}; the publish then goes through.
+      const fixed = "## 1. First\n\n- an item\n\n{{legal_email}}";
+      await page.getByTestId("legal-mode-write").click();
+      await page.getByTestId("legal-tab-en").click();
+      await page.getByTestId("legal-field-body-en").fill(fixed);
+      await page.getByTestId("legal-save-draft").click();
+      await expect(page.getByTestId("legal-publish")).toBeEnabled();
+      expect((await version(kind)).body_en).toBe(fixed);
+      await page.getByTestId("legal-publish").click();
+      await expect(page.getByTestId("legal-publish-first-note")).toBeVisible();
       await page.getByTestId("legal-publish-confirm").click();
       await expect(page.getByTestId("legal-page")).toBeVisible();
       const published = await version(kind);
@@ -285,9 +320,13 @@ test.describe("Admin Legal", () => {
     await page.getByTestId("legal-facts-edit").click();
     await page.getByTestId("legal-fact-input-legal_email").fill("not-an-email");
     await page.getByTestId("legal-fact-input-notice_days").fill("400");
+    await page.getByTestId("legal-fact-input-legal_phone").fill("abc");
+    await page.getByTestId("legal-fact-input-listed_ad_keep_months").fill("0");
     await page.getByTestId("legal-facts-save").click();
     await expect(page.getByTestId("legal-fact-error-legal_email")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-notice_days")).toBeVisible();
+    await expect(page.getByTestId("legal-fact-error-legal_phone")).toBeVisible();
+    await expect(page.getByTestId("legal-fact-error-listed_ad_keep_months")).toBeVisible();
     expect((await facts()).updated_at).toBe(before.updated_at);
     await page.getByTestId("legal-facts-cancel").click();
     await expect(page.getByTestId("legal-fact-legal_email")).toHaveText(before.legal_email);
@@ -364,6 +403,21 @@ test.describe("Admin Legal", () => {
       await gotoReady(page, `/admin/users/${empty.id}`);
       await expect(page.getByTestId("user-legal-no-acceptances")).toBeVisible();
       await expect(page.getByTestId("user-legal-no-notices")).toBeVisible();
+    } finally {
+      await destroy(kind);
+    }
+  });
+  test("LGA-8 the user page shows the storage consent", async ({ page }) => {
+    const kind = scratch("h-privacy");
+    const person = await leaseUser();
+    try {
+      const id = await seed(kind);
+      await accept(person, id, { consent: true });
+      await useJobSuperAdmin(page);
+      await gotoReady(page, `/admin/users/${person.id}`);
+      const acceptance = page.getByTestId("user-legal-acceptance");
+      await expect(acceptance).toHaveCount(1);
+      await expect(acceptance.getByTestId("user-legal-consent")).toHaveCount(1);
     } finally {
       await destroy(kind);
     }

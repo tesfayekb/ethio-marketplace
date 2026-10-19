@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
-import { legalErrorKey } from "./legal-service";
+import { legalErrorKey, legalErrorName } from "./legal-service";
 import { earliestLegalDate, legalPublishDate } from "./publish-date";
 import { useLegalWrites } from "./use-legal";
 
@@ -34,6 +34,7 @@ export function LegalPublishDialog({
   const earliest = earliestLegalDate(now, noticeDays);
   const [date, setDate] = useState(earliest);
   const [error, setError] = useState<MessageKey | null>(null);
+  const [errorName, setErrorName] = useState("");
   const request = legalPublishDate(first, choice, date, now, noticeDays);
   return (
     <Dialog
@@ -106,7 +107,7 @@ export function LegalPublishDialog({
         )}
         {error ? (
           <p role="alert" className="text-destructive">
-            {t(error).replace("{date}", earliest)}
+            {t(error).replace("{date}", earliest).replace("{name}", errorName)}
           </p>
         ) : null}
         <div className="flex flex-wrap gap-2">
@@ -118,7 +119,10 @@ export function LegalPublishDialog({
               setError(null);
               void guard(() => publish.mutateAsync({ id, ...request }))
                 .then(onPublished)
-                .catch((failure: unknown) => setError(legalErrorKey(failure)));
+                .catch((failure: unknown) => {
+                  setErrorName(legalErrorName(failure));
+                  setError(legalErrorKey(failure));
+                });
             }}
           >
             {t("admin.legal.action.publish")}

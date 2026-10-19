@@ -46,6 +46,7 @@ import {
   useSessionPolicy,
   type SessionExpiryReason,
 } from "@/features/session/session-policy";
+import { useLegalGate } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -779,6 +780,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     }
     if (gatedRoute && (!ownSignIn || hadSession)) void navigate({ to: "/", replace: true });
   }, [authLoading, user, hadSession, gatedRoute, ownSignIn, navigate, queryClient]);
+
+  // Bundle 22 turn 3 — the acceptance at sign-in as a hard stop (src/features/legal/use-legal-gate.ts).
+  const searchStr = useRouterState({ select: (state) => state.location.searchStr });
+  useLegalGate({ user, signingOut, pathname, search: searchStr, navigate });
 
   /**
    * U0j-2 — TEST HOOK, dev-only. The E2E live-guard proof must fire a REAL

@@ -586,7 +586,7 @@ test.describe("app shell", () => {
     for (const height of heights) expect(height).toBeGreaterThanOrEqual(44);
     const rhythms = await navs.evaluateAll((els) =>
       els.map((nav) => {
-        const elements = Array.from(nav.querySelectorAll("h2, li > span"));
+        const elements = Array.from(nav.querySelectorAll("h2, li > span, li > a"));
         return elements.map((element) => {
           const range = document.createRange();
           range.selectNodeContents(element);
