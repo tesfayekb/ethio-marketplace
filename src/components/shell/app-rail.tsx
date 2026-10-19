@@ -296,7 +296,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         {node.path ? (
@@ -335,7 +335,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         <Collapsible
@@ -399,7 +399,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         <WithTooltip label={node.label}>
@@ -436,7 +436,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+          compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
         )}
       >
         <WithTooltip label={node.label}>
@@ -465,7 +465,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   return (
     <li
       className={cn(
-        compact && (hasChildren ? "flex min-h-0 flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
+        compact && (hasChildren ? "flex flex-1 flex-col" : "min-h-8 max-h-10 flex-1"),
       )}
     >
       <WithTooltip label={node.label}>
