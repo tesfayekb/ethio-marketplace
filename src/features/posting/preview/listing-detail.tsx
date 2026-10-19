@@ -108,7 +108,9 @@ export function currentListingSection(
 ): string {
   // INC-753 — at the end of the page the last section on screen is current: a section near the end can never reach the band.
   if (atEnd) {
-    const last = items.filter((item) => item.shown && item.top >= 0 && item.top < viewportHeight).at(-1);
+    const last = items
+      .filter((item) => item.shown && item.top >= 0 && item.top < viewportHeight)
+      .at(-1);
     if (last) return last.target;
   }
   const visible = items.filter((item) => item.inBand);
@@ -484,13 +486,23 @@ export function ListingDetail(view: ListingDetailView) {
         if (!section) return [];
         const target = id === "contact" ? "seller" : id.replace("ad-", "");
         const item = navRef.current?.querySelector(`[data-target="${target}"]`);
-        return [{ target, shown: item != null && item.getClientRects().length > 0,
-          top: section.getBoundingClientRect().top, inBand: visible.has(id) }];
+        return [
+          {
+            target,
+            shown: item != null && item.getClientRects().length > 0,
+            top: section.getBoundingClientRect().top,
+            inBand: visible.has(id),
+          },
+        ];
       });
       /* DEC-192 — tops within 8 px of the smallest are candidates;
          a current candidate stays, otherwise the first in bar order wins. */
-      const next = currentListingSection(items, currentSectionRef.current, window.innerHeight,
-        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2);
+      const next = currentListingSection(
+        items,
+        currentSectionRef.current,
+        window.innerHeight,
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2,
+      );
       if (next !== currentSectionRef.current) {
         currentSectionRef.current = next;
         setCurrentSection(next);
@@ -499,16 +511,19 @@ export function ListingDetail(view: ListingDetailView) {
     // An early scrollend may belong to the scroll preceding this tap; it never releases the pin.
     window.addEventListener("scrollend", decide);
     window.addEventListener("scroll", decide, { passive: true });
-    const observer = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) visible.add(entry.target.id);
-          else visible.delete(entry.target.id);
-        }
-        decide();
-      },
-      { rootMargin: "-180px 0px -45% 0px", threshold: 0 },
-    );
+    const observer =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                if (entry.isIntersecting) visible.add(entry.target.id);
+                else visible.delete(entry.target.id);
+              }
+              decide();
+            },
+            { rootMargin: "-180px 0px -45% 0px", threshold: 0 },
+          );
     for (const id of sectionIds.split(",")) {
       const section = article.querySelector(`#${id}`);
       if (section) observer?.observe(section);
