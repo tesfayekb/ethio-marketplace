@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
-import { legalErrorKey, validDocument } from "./legal-service";
+import { legalErrorKey, validDocument, versionStatus, type LegalVersion } from "./legal-service";
 it.each([
   "labelRequired",
   "labelTaken",
@@ -23,4 +23,52 @@ it("validates kind and optional uppercase country", () => {
   expect(validDocument("constructor")).toBe(false);
   expect(validDocument("terms", "et")).toBe(false);
   expect(validDocument("e2e-")).toBe(false);
+});
+
+const versions: LegalVersion[] = [
+  {
+    version_id: "old",
+    version: 1,
+    status: "published",
+    label: "old",
+    material: false,
+    effective_at: "2026-10-18T00:00:00Z",
+    published_at: "2026-10-18T00:00:00Z",
+    created_at: "2026-10-18T00:00:00Z",
+  },
+  {
+    version_id: "current",
+    version: 2,
+    status: "published",
+    label: "current",
+    material: false,
+    effective_at: "2026-10-19T00:00:00Z",
+    published_at: "2026-10-19T00:00:00Z",
+    created_at: "2026-10-19T00:00:00Z",
+  },
+  {
+    version_id: "future",
+    version: 3,
+    status: "published",
+    label: "future",
+    material: true,
+    effective_at: "2026-11-19T00:00:00Z",
+    published_at: "2026-10-19T00:00:00Z",
+    created_at: "2026-10-19T00:00:00Z",
+  },
+];
+it("classifies an older published version as replaced from the full version list", () => {
+  const row = versions.find((v) => v.version_id === "old");
+  if (!row) throw new Error("missing old fixture");
+  expect(versionStatus(row, versions, Date.parse("2026-10-19T08:09:00Z"))).toBe("replaced");
+});
+it("classifies the highest effective published version as in force", () => {
+  const row = versions.find((v) => v.version_id === "current");
+  if (!row) throw new Error("missing current fixture");
+  expect(versionStatus(row, versions, Date.parse("2026-10-19T08:09:00Z"))).toBe("inForce");
+});
+it("keeps a future published version scheduled until its effective instant", () => {
+  const row = versions.find((v) => v.version_id === "future");
+  if (!row) throw new Error("missing future fixture");
+  expect(versionStatus(row, versions, Date.parse("2026-10-19T08:09:00Z"))).toBe("scheduled");
 });

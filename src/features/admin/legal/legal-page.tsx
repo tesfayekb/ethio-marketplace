@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useLegalDocuments, useLegalSettings } from "./use-legal";
 
 export function LegalPage() {
   const { t, language } = useI18n();
+  const feedback = useSearch({ from: "/admin/legal" });
   const { permissions } = useAdminShell();
   const documents = useLegalDocuments();
   const settings = useLegalSettings();
@@ -162,6 +163,13 @@ export function LegalPage() {
       {(guard) => (
         <div data-testid="legal-page" className="min-w-0 space-y-4">
           <h1 className="text-lg font-semibold">{t("admin.section.legal.title")}</h1>
+          {feedback.outcome ? (
+            <p role="status">
+              {feedback.outcome === "discarded"
+                ? t("admin.legal.discarded")
+                : t("admin.legal.published").replace("{n}", String(feedback.version))}
+            </p>
+          ) : null}
           {documents.isPending || settings.isPending ? (
             <p role="status">{t("common.loading")}</p>
           ) : null}

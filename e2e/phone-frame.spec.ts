@@ -82,6 +82,7 @@ test.describe("phone frame sweep", () => {
       "/admin/attributes",
       "/admin/images",
       "/admin/translations",
+      "/admin/legal",
       "/admin/translations/am",
       `/admin/roles/${data.id}`,
       `/admin/users/${user.id}`,

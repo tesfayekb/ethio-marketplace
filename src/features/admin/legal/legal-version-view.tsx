@@ -6,17 +6,19 @@ import { useCountries } from "@/features/admin/users/use-admin-users";
 import { LegalText } from "@/features/legal/legal-text";
 import { useI18n } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
-import { FACT_KEYS, kindKey } from "./legal-service";
-import { useLegalSettings, useLegalVersion } from "./use-legal";
+import { FACT_KEYS, kindKey, versionStatus } from "./legal-service";
+import { useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
 
 export function LegalVersionView({ versionId }: { versionId: string }) {
   const { t, language } = useI18n();
   const { permissions } = useAdminShell();
   const version = useLegalVersion(versionId);
   const settings = useLegalSettings();
+  const documents = useLegalDocuments();
   const countries = useCountries();
   const [lang, setLang] = useState<"en" | "am">("en");
   const row = version.data;
+  const siblings = documents.data?.find((doc) => doc.document_id === row?.document_id)?.versions;
   const unknown =
     (version.error instanceof Error && version.error.message === "unknownVersion") ||
     (version.error as { message?: string } | null)?.message === "unknownVersion";
@@ -31,10 +33,10 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
       : "—";
   return (
     <div data-testid="legal-version-view" className="min-w-0 space-y-4">
-      {version.isPending ? <p role="status">{t("common.loading")}</p> : null}
+      {version.isPending || documents.isPending ? <p role="status">{t("common.loading")}</p> : null}
       {unknown ? (
         <p data-testid="legal-version-not-found">{t("admin.legal.notFound")}</p>
-      ) : version.error || settings.error ? (
+      ) : version.error || settings.error || documents.error ? (
         <p role="alert" className="text-destructive">
           {t("admin.legal.error.load")}
         </p>
@@ -53,15 +55,14 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
             {" · "}
             {row.label}
           </h1>
-          <p>
-            {t(
-              row.status === "draft"
-                ? "admin.legal.status.draft"
-                : new Date(row.effective_at ?? "").getTime() > Date.now()
-                  ? "admin.legal.status.scheduled"
-                  : "admin.legal.status.inForce",
-            ).replace("{date}", date(row.effective_at))}
-          </p>
+          {siblings ? (
+            <p>
+              {t(`admin.legal.status.${versionStatus(row, siblings, Date.now())}`).replace(
+                "{date}",
+                date(row.effective_at),
+              )}
+            </p>
+          ) : null}
           {row.status === "published" ? (
             <>
               <p>

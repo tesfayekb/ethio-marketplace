@@ -134,7 +134,7 @@ async function accept(person: { email: string; password: string }, id: string) {
 }
 
 test.describe("Admin Legal", () => {
-  test("AL-1 Legal cards, facts and the permission-gated admin menu", async ({ page }) => {
+  test("LGA-1 Legal cards, facts and the permission-gated admin menu", async ({ page }) => {
     await useJobSuperAdmin(page);
     const truth = await facts();
     await gotoReady(page, "/admin/legal");
@@ -173,10 +173,10 @@ test.describe("Admin Legal", () => {
     await grantRole(admin.id, "admin");
     await switchUser(page, admin.email, admin.password);
     await gotoReady(page, "/admin/legal");
-    await expect(page.getByTestId("admin-access-denied")).toBeVisible();
+    await expect(page.getByTestId("admin-access-notice")).toBeVisible();
     await expect(page.locator('a[href="/admin/legal"]')).toHaveCount(0);
   });
-  test("AL-2 bilingual draft round trip, preview and first-version publishing", async ({
+  test("LGA-2 bilingual draft round trip, preview and first-version publishing", async ({
     page,
   }) => {
     const kind = scratch("b");
@@ -227,7 +227,9 @@ test.describe("Admin Legal", () => {
       await destroy(kind);
     }
   });
-  test("AL-3 material version prefill, earliest UTC date and scheduled block", async ({ page }) => {
+  test("LGA-3 material version prefill, earliest UTC date and scheduled block", async ({
+    page,
+  }) => {
     const kind = scratch("c");
     try {
       await seed(kind);
@@ -274,7 +276,9 @@ test.describe("Admin Legal", () => {
       await destroy(kind);
     }
   });
-  test("AL-4 invalid facts refuse before any request; Cancel restores values", async ({ page }) => {
+  test("LGA-4 invalid facts refuse before any request; Cancel restores values", async ({
+    page,
+  }) => {
     await useJobSuperAdmin(page);
     const before = await facts();
     await gotoReady(page, "/admin/legal");
@@ -289,7 +293,7 @@ test.describe("Admin Legal", () => {
     await expect(page.getByTestId("legal-fact-legal_email")).toHaveText(before.legal_email);
     await expect(page.getByTestId("legal-fact-notice_days")).toHaveText(String(before.notice_days));
   });
-  test("AL-5 version view uses frozen facts, both languages and no editing actions", async ({
+  test("LGA-5 version view uses frozen facts, both languages and no editing actions", async ({
     page,
   }) => {
     const kind = scratch("e");
@@ -312,7 +316,7 @@ test.describe("Admin Legal", () => {
       await destroy(kind);
     }
   });
-  test("AL-6 saved draft discard returns to Legal and removes the draft", async ({ page }) => {
+  test("LGA-6 saved draft discard returns to Legal and removes the draft", async ({ page }) => {
     const kind = scratch("f");
     try {
       await useJobSuperAdmin(page);
@@ -333,7 +337,7 @@ test.describe("Admin Legal", () => {
       await destroy(kind);
     }
   });
-  test("AL-7 user Legal card shows acceptance and sent notice, then both empty states", async ({
+  test("LGA-7 user Legal card shows acceptance and sent notice, then both empty states", async ({
     page,
   }) => {
     const kind = scratch("g");
