@@ -165,7 +165,7 @@ test.describe("Legal public pages", () => {
       snapshot: { legal_email: "frozen@example.invalid" },
     });
     await gotoReady(page, `/legal/${kind}`);
-    const date = new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(effective);
+    const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(effective);
     await expect(page.getByTestId("legal-public-upcoming")).toContainText(date);
     await page.getByTestId("legal-public-lang-en").click();
     await page.getByTestId("legal-public-show-upcoming").click();

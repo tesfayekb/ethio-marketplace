@@ -59,3 +59,12 @@ export function legalDocName(
     new Intl.DisplayNames([language], { type: "region" }).of(row.country_code) ?? row.country_code;
   return `${name} · ${country}`;
 }
+
+/** A legal date in the page's language (dateStyle medium). */
+export function legalDate(value: string | null | undefined, language: string): string {
+  if (!value) return "";
+  return new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+    dateStyle: "medium",
+    timeZone: "UTC",
+  }).format(new Date(value));
+}

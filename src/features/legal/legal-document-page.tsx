@@ -2,6 +2,7 @@ import { useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
+import { legalDate } from "./legal-kinds";
 import { LegalText } from "./legal-text";
 import type { PublicLegalVersion } from "./legal-reader";
 
@@ -9,14 +10,6 @@ export type LegalPageAnswer = {
   inForce: PublicLegalVersion | null;
   scheduled: PublicLegalVersion | null;
 };
-
-export function legalDate(value: string | null | undefined, language: string): string {
-  if (!value) return "";
-  return new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
-    dateStyle: "medium",
-    timeZone: "UTC",
-  }).format(new Date(value));
-}
 
 /** The English / Amharic switch shared by the public page and the person's version page. */
 export function LegalLangSwitch({
