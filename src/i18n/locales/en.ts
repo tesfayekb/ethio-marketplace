@@ -178,7 +178,8 @@ export const en = {
   "myListings.ad.notFound": "This ad is not one of yours, or it no longer exists.",
   "myListings.ad.seen": "Buyers can see this ad.",
   "myListings.ad.hidden": "Buyers can't see this ad right now.",
-  "myListings.ad.soldSeen": "Buyers see it marked {word} for 30 days, and can't contact you.",
+  "myListings.ad.soldSeenDays":
+    "Buyers see it marked {word} for {days} days, and can't contact you.",
   "myListings.renewOff": "Renewing is switched off for now.",
   "myListings.action.reserve": "Mark as reserved",
   "myListings.action.unreserve": "Remove the reserved mark",
@@ -3189,6 +3190,7 @@ export const en = {
     "Keep sold and expired ads in the seller's list, months",
   "admin.legal.fact.account_keep_months": "Keep a closed account's identity, months",
   "admin.legal.fact.technical_keep_months": "Keep technical records, months",
+  "admin.legal.fact.sold_visible_days": "Days a sold ad stays visible to buyers",
   "admin.legal.error.labelRequired": "Give the version a name.",
   "admin.legal.error.labelTaken": "Another version of this document already has this name.",
   "admin.legal.error.bothLanguages": "Publishing needs both the English and the Amharic text.",

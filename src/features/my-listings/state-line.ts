@@ -50,11 +50,12 @@ export type Visibility = "seen" | "soldSeen" | "hidden";
 export function visibilityOf(
   row: Pick<MyListingRow, "status" | "soldAt">,
   now: number = Date.now(),
+  soldDays: number = SOLD_SHOWN_DAYS,
 ): Visibility {
   if (row.status === "active" || row.status === "reduced") return "seen";
   if (row.status === "sold" && row.soldAt !== null) {
     const soldAt = Date.parse(row.soldAt);
-    if (Number.isFinite(soldAt) && now - soldAt < SOLD_SHOWN_DAYS * 86_400_000) return "soldSeen";
+    if (Number.isFinite(soldAt) && now - soldAt < soldDays * 86_400_000) return "soldSeen";
   }
   return "hidden";
 }

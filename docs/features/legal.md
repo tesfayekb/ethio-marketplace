@@ -171,3 +171,11 @@ The phone-frame super admin route census includes `/admin/legal`.
 - **Cleanup (turn 7).** e2e/legal-certify.spec.ts and e2e/legal-doors.spec.ts clean their scratch rows in afterEach, a hook that survives a test's timeout (Knowledge J3).
 
 Publish no version of the Publishing statement before turn 4 is on production: the doors refuse every publish, edit and renew that does not carry the certification.
+
+## Turn 8 — the sold ad's shown days as a setting
+
+- **The setting.** legal_settings.sold_visible_days (default 30, 1 to 365), edited in Admin › Legal facts with the other periods; the Terms quote it as {{sold_visible_days}}; each published version freezes it (settings_snapshot).
+- **The reads.** sold_visible_days() answers the number and sold_cutoff() now() minus that many days; both stable, security definer, executable by anon, authenticated and service_role (the public policies call sold_cutoff() for every reader).
+- **Who reads it.** The policies listings_public_read, listing_photos_public_read and listing_locations_public_read; feed_index_refresh, feed_index_check, feed_index_check_sweep, feed_page, seller_feed_page, public_listing, count_listing_view, count_listing_share, save_listing, report_listing and my_saved_listings (each through `(SELECT public.sold_cutoff())`); the seller's ad page for its sentence.
+- **A change of the setting.** Applies at once to the ad pages, saves, reports, counts and policies. The feed's index keeps what it holds: a shorter period takes ads out at the next sweep; a longer one shows again an ad already swept out only when that ad is next refreshed.
+- **INC-777.** M8d restores reveal_listing_contact's 30-a-day refusal to answer the gate's own reset time.

@@ -14,6 +14,7 @@ const valid = {
   listed_ad_keep_months: "12",
   account_keep_months: "12",
   technical_keep_months: "12",
+  sold_visible_days: "30",
   liability_limit_usd: "0",
   notice_days: "30",
   response_days: "30",
@@ -31,6 +32,7 @@ it.each([
   ["listed_ad_keep_months", 1, 120],
   ["account_keep_months", 1, 120],
   ["technical_keep_months", 1, 120],
+  ["sold_visible_days", 1, 365],
 ] as const)("checks both bounds and integrality of %s", (key, min, max) => {
   for (const value of [String(min), String(max)])
     expect(validateLegalFacts({ ...valid, [key]: value })).toEqual({});

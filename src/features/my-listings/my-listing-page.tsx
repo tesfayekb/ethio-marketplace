@@ -57,6 +57,7 @@ import {
   readHistory,
   readListingCounts,
   readMyListing,
+  readSoldVisibleDays,
   runAction,
   sellerLines,
   STATUS_WORD,
@@ -65,7 +66,7 @@ import {
   type MyListing,
 } from "./my-listing";
 import { GROUP_LABEL, shareable } from "./my-listings";
-import { REASON_WORD, SOLD_ON, stateLine, visibilityOf } from "./state-line";
+import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -185,6 +186,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   // Bundle 22 turn 4 — Renew passes through the publishing statement's confirmation (CertifyConfirm).
   const [renewing, setRenewing] = useState(false);
   const navigate = useNavigate();
+
+  const soldDaysQuery = useQuery({
+    queryKey: ["sold-visible-days"],
+    queryFn: readSoldVisibleDays,
+    staleTime: 600_000,
+  });
+  const soldDays = soldDaysQuery.data ?? null;
 
   const query = useQuery({
     queryKey: adKey(listingId),
@@ -371,7 +379,10 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     reserved: row.reserved,
     priceReduced: reduced,
   })[0];
-  const seen = visibilityOf(row);
+  const seen =
+    soldDays === null && row.status === "sold"
+      ? null
+      : visibilityOf(row, Date.now(), soldDays ?? SOLD_SHOWN_DAYS);
 
   // Why an action is not there: an ad in review waits for its answer (call G); renewing may be switched off.
   const info =
@@ -550,24 +561,29 @@ export function MyListingPage({ listingId }: { listingId: string }) {
           <p data-testid="my-listing-state" className="text-sm text-muted-foreground">
             {stateLine(row, t, day)}
           </p>
-          <p
-            data-testid="my-listing-visibility"
-            data-visible={seen}
-            className="flex items-start gap-1.5 text-sm font-medium text-foreground"
-          >
-            {seen === "hidden" ? (
-              <EyeOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            ) : (
-              <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            )}
-            <span>
-              {seen === "seen"
-                ? t("myListings.ad.seen")
-                : seen === "soldSeen"
-                  ? fill(t("myListings.ad.soldSeen"), { word: t(SOLD_RIBBON[row.soldWord]) })
-                  : t("myListings.ad.hidden")}
-            </span>
-          </p>
+          {seen !== null ? (
+            <p
+              data-testid="my-listing-visibility"
+              data-visible={seen}
+              className="flex items-start gap-1.5 text-sm font-medium text-foreground"
+            >
+              {seen === "hidden" ? (
+                <EyeOff className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              ) : (
+                <Eye className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              )}
+              <span>
+                {seen === "seen"
+                  ? t("myListings.ad.seen")
+                  : seen === "soldSeen"
+                    ? fill(t("myListings.ad.soldSeenDays"), {
+                        word: t(SOLD_RIBBON[row.soldWord]),
+                        days: String(soldDays),
+                      })
+                    : t("myListings.ad.hidden")}
+              </span>
+            </p>
+          ) : null}
           <ul className="space-y-0.5 text-sm text-muted-foreground">
             {row.publishedFirstAt !== null ? (
               <li data-testid="my-listing-first-posted">
