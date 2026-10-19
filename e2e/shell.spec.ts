@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { STATE_FILE, type E2EUser } from "./global-setup";
-import { type Page } from "@playwright/test";
+import { type Locator, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";

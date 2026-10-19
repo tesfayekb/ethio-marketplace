@@ -925,7 +925,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     expect(new URL(page.url()).pathname, "PW-123: a draft address was carried").toBe("/post");
   });
 
-  test("PS-1 the end of posting offers Share: grey while in review, green once live", async ({
+  test("PS-1 the end of posting waits with the drawing diamond while in review, then offers Share once live", async ({
     page,
   }) => {
     const user = await signedInSeller(page, { homeConfirmed: false, named: true });
@@ -944,11 +944,13 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await page.getByTestId("post-publish").click();
     const review = page.getByTestId("post-in-review");
     await expect(review).toBeVisible({ timeout: 20_000 });
-    await expect(review.getByTestId("post-review-share-wait")).toBeVisible();
-    await expect(review.getByTestId("post-review-share-wait")).toBeDisabled();
-    await expect(review.getByTestId("post-review-share-note")).toHaveText(
-      en["post.review.shareWait"],
-    );
+    // D223 — while the ad is checked, the drawing diamond waits with its words;
+    // the grey button is gone for good.
+    const checking = review.getByTestId("post-review-share-checking");
+    await expect(checking).toBeVisible();
+    await expect(checking).toHaveText(en["post.review.shareChecking"]);
+    await expect(checking.getByTestId("spinner")).toBeVisible();
+    await expect(review.getByTestId("post-review-share-wait")).toHaveCount(0);
     await expect(page.getByTestId("listing-share-open")).toHaveCount(0);
     // Same service-client active-row shape as adPageFixtures().seed; update only
     // this test's published scratch ad, never insert a substitute or touch a real row.
@@ -975,6 +977,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await expect(page.getByTestId("listing-share-open")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("listing-share-open")).toBeEnabled();
     await expect(review.getByTestId("post-review-share-wait")).toHaveCount(0);
+    await expect(review.getByTestId("post-review-share-checking")).toHaveCount(0);
     await expect(review.getByRole("heading", { level: 2 })).toHaveText(en["post.review.liveTitle"]);
     expect(Date.now()).toBeLessThanOrEqual(deadline);
     await page.getByTestId("listing-share-open").click();
