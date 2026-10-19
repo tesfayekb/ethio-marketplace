@@ -638,7 +638,7 @@ SELECTS the language — a default you cannot see is not a default — and the
 setter REPLACES rather than appends, so the one-favourite invariant is
 structural rather than policed.
 
-A tap on the star sets it without selecting the row, and the menu stays open with the star filled (INC-748: Radix's menu item clicked itself on the pointerup and closed the menu first)."
+A tap on the star sets it without selecting the row, and the menu stays open with the star filled (INC-748: Radix's menu item clicked itself on the pointerup and closed the menu first).
 
 ### Precedence at boot
 
