@@ -57,6 +57,7 @@ import {
   BULK_ACTIONS,
   BULK_BODY_KEY,
   bulkLabelKey,
+  bulkNotice,
   bulkTargets,
   confirmKeys,
   copyable,
