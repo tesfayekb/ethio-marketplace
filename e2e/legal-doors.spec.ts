@@ -126,12 +126,17 @@ function pooledSuperAdminCredentials(): { email: string; password: string } {
   };
   const pool = state.superAdmins ?? [];
   if (pool.length === 0) {
-    throw new Error("[e2e:legal] the state file carries no pooled super admin — setup did not run.");
+    throw new Error(
+      "[e2e:legal] the state file carries no pooled super admin — setup did not run.",
+    );
   }
   return pool[0]!;
 }
 
-const RUN_TAG = `e2e-lg${Math.random().toString(36).slice(2, 8).replace(/[^a-z0-9]/g, "x")}`;
+const RUN_TAG = `e2e-lg${Math.random()
+  .toString(36)
+  .slice(2, 8)
+  .replace(/[^a-z0-9]/g, "x")}`;
 
 type Fixture = {
   documentId: string;
@@ -225,9 +230,10 @@ test.describe("Legal doors", () => {
       const globalAnswer = await anon.rpc("legal_in_force", { p_kind: kind });
       expect(globalAnswer.error, "global in-force read").toBeNull();
       const body = globalAnswer.data as Row;
-      expect(body["version_id"], "the version in force is the published one whose time has come").toBe(
-        fixture.publishedId,
-      );
+      expect(
+        body["version_id"],
+        "the version in force is the published one whose time has come",
+      ).toBe(fixture.publishedId);
       expect(body["version"]).toBe(1);
       expect("changelog" in body, "the change log is never returned").toBe(false);
 
@@ -259,7 +265,14 @@ test.describe("Legal doors", () => {
     try {
       const asPlain = await asPerson(plain);
       const asAdmin = await asPerson(admin);
-      const save = { p_kind: kind, p_country: null, p_label: "v2", p_body_en: "x", p_body_am: "x", p_changelog: "c" };
+      const save = {
+        p_kind: kind,
+        p_country: null,
+        p_label: "v2",
+        p_body_en: "x",
+        p_body_am: "x",
+        p_changelog: "c",
+      };
 
       for (const [who, caller] of [
         ["plain user", asPlain],
@@ -291,7 +304,10 @@ test.describe("Legal doors", () => {
 
       // Content refusals, each named by its code (D5).
       const noAmharic = await staff.rpc("admin_save_legal_draft", { ...save, p_body_am: null });
-      expect(noAmharic.error, "a draft saves without Amharic; the publish door refuses it").toBeNull();
+      expect(
+        noAmharic.error,
+        "a draft saves without Amharic; the publish door refuses it",
+      ).toBeNull();
       fixture.draftId = (noAmharic.data as Row)["version_id"] as string;
       const publishNoAm = await staff.rpc("admin_publish_legal_version", {
         p_version_id: fixture.draftId,
@@ -359,10 +375,7 @@ test.describe("Legal doors", () => {
       const extra = await seedFixture(kind, "DE");
       fixture.countryDocumentId = extra.documentId;
       fixture.countryPublishedId = extra.publishedId;
-      const deleted = await supabase
-        .from("legal_versions")
-        .delete()
-        .eq("id", extra.publishedId);
+      const deleted = await supabase.from("legal_versions").delete().eq("id", extra.publishedId);
       expect(deleted.error, "service-role cleanup of a scratch published row").toBeNull();
       fixture.countryPublishedId = null;
 
@@ -399,7 +412,9 @@ test.describe("Legal doors", () => {
       const refusePublished = await staff.rpc("admin_discard_legal_draft", {
         p_version_id: fixture.publishedId,
       });
-      expect(refusePublished.error, "a published version cannot be discarded").toContain("notDraft");
+      expect(refusePublished.error, "a published version cannot be discarded").toContain(
+        "notDraft",
+      );
     } finally {
       await destroyFixture(fixture);
     }
@@ -474,7 +489,8 @@ test.describe("Legal doors", () => {
         .insert({ document_id: fixture.documentId, version: 2, label: "draft", body_en: "x" })
         .select("id")
         .single();
-      if (draft.error || !draft.data) throw new Error(`[e2e:legal] draft seed: ${draft.error?.message}`);
+      if (draft.error || !draft.data)
+        throw new Error(`[e2e:legal] draft seed: ${draft.error?.message}`);
       fixture.draftId = draft.data.id as string;
       const notInForce = await caller.rpc("accept_legal", {
         p_version_ids: [fixture.draftId],
@@ -513,7 +529,9 @@ test.describe("Legal doors", () => {
             adult_confirmed: true,
           }),
         });
-        expect(insert.ok, `a direct insert as ${target === person.id ? "self" : "another"}`).toBe(false);
+        expect(insert.ok, `a direct insert as ${target === person.id ? "self" : "another"}`).toBe(
+          false,
+        );
       }
     } finally {
       await destroyFixture(fixture);
@@ -579,7 +597,10 @@ test.describe("Legal doors", () => {
       const mineIds = (mine.data as Row[]).map((r) => r["version_id"]);
       expect(mineIds).toContain(country.publishedId);
     } finally {
-      await adminClient().from("profiles").update({ home_country_code: null }).eq("user_id", person.id);
+      await adminClient()
+        .from("profiles")
+        .update({ home_country_code: null })
+        .eq("user_id", person.id);
       await destroyFixture(fixture);
     }
   });
@@ -723,14 +744,13 @@ test.describe("Legal doors", () => {
       const history = await caller.rpc("my_legal_history");
       expect(history.error).toBeNull();
       const h = history.data as Row;
-      expect((h["acceptances"] as Row[]).map((r) => r["version_id"])).toEqual([fixture.publishedId]);
+      expect((h["acceptances"] as Row[]).map((r) => r["version_id"])).toEqual([
+        fixture.publishedId,
+      ]);
 
       const otherCaller = await asPerson(bystander);
       const otherHistory = await otherCaller.rpc("my_legal_history");
-      expect(
-        (otherHistory.data as Row)["acceptances"],
-        "nobody else's rows",
-      ).toEqual([]);
+      expect((otherHistory.data as Row)["acceptances"], "nobody else's rows").toEqual([]);
 
       // The accepted version's whole text, before and after a newer version replaces it.
       const supabase = adminClient();
@@ -754,7 +774,8 @@ test.describe("Legal doors", () => {
         })
         .select("id")
         .single();
-      if (newer.error || !newer.data) throw new Error(`[e2e:legal] newer seed: ${newer.error?.message}`);
+      if (newer.error || !newer.data)
+        throw new Error(`[e2e:legal] newer seed: ${newer.error?.message}`);
       fixture.draftId = newer.data.id as string;
       const still = await caller.rpc("my_legal_version", { p_version_id: fixture.publishedId });
       expect(still.error, "an accepted version stays readable").toBeNull();
@@ -785,7 +806,8 @@ test.describe("Legal doors", () => {
         })
         .select("id")
         .single();
-      if (future.error || !future.data) throw new Error(`[e2e:legal] future seed: ${future.error?.message}`);
+      if (future.error || !future.data)
+        throw new Error(`[e2e:legal] future seed: ${future.error?.message}`);
       other.draftId = future.data.id as string;
       const notYours = await otherCaller.rpc("my_legal_version", { p_version_id: other.draftId });
       expect(notYours.error).toContain("notYours");
