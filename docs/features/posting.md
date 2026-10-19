@@ -393,6 +393,8 @@ feed until then.
 
 D218 (bundle 21 turn 15): the in-review screen offers Share. It reads the ad when it shows and every 10 seconds for two minutes; while the ad is in review the button is grey with 'Not ready to share yet. Check again later.'; once the ad is live it is the share button (the ad page's share sheet) and the heading says the ad is live. Staff editing another seller's ad see no Share.
 
+D223 (bundle 21 turn 17): while the ad is checked the screen waits with the drawing diamond and 'Checking your ad…'; the grey button is gone. Once live, Share opens the ad page's share sheet; if the reads stop without the ad going live, only the note 'Not ready to share yet. Check again later.' remains, with no button.
+
 ## The upload blocker, and the retry law (PP-10)
 
 CAUSE, from the published server's own log: every upload answered 500 with
