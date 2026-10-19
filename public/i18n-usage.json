@@ -5419,10 +5419,31 @@
       "/my-listings/$listingId"
     ],
     "myListings.bulk.done": [
-      "/my-listings"
+      "(every page)",
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "myListings.bulk.needsStatement": [
+      "(every page)",
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "myListings.bulk.refused": [
-      "/my-listings"
+      "(every page)",
+      "/admin/listings/$listingId/edit",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "myListings.bulk.title": [
       "/my-listings"
