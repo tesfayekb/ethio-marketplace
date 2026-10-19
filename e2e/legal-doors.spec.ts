@@ -670,7 +670,6 @@ test.describe("Legal doors", () => {
     const kind = `${RUN_TAG}-f`;
     const fixture = await seedFixture(kind, null);
     const person = await leaseUser();
-    const plain = await leaseUser();
     const admin = await leaseUser();
     await grantRole(admin.id, "admin");
     try {
@@ -691,8 +690,7 @@ test.describe("Legal doors", () => {
       expect(recorded.error, "the service role records a notice").toBeNull();
 
       // The same door refuses a signed-in user.
-      const asPlain = await asPerson(plain);
-      const refused = await asPlain.rpc("record_legal_notice", {
+      const refused = await caller.rpc("record_legal_notice", {
         p_user_id: person.id,
         p_version_id: fixture.publishedId,
         p_channel: "email",
@@ -714,7 +712,7 @@ test.describe("Legal doors", () => {
       expect(notices[0]!["channel"]).toBe("email");
       expect(notices[0]!["status"]).toBe("sent");
 
-      const plainRefused = await asPlain.rpc("admin_user_legal_history", { p_user_id: person.id });
+      const plainRefused = await caller.rpc("admin_user_legal_history", { p_user_id: person.id });
       expect(plainRefused.error, "a plain user is refused the staff history").toContain(
         "permission denied",
       );
