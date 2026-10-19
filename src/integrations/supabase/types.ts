@@ -4637,6 +4637,10 @@ export type Database = {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
       }
+      legal_text_fact_problem: {
+        Args: { p_snapshot: Json; p_text: string }
+        Returns: string
+      }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
