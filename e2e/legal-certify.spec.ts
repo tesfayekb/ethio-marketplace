@@ -26,7 +26,7 @@ import { adminClient, leaseUser } from "./helpers/users";
  * A statement for a listing is a scratch document of kind e2e-pub-<the listing id without dashes>; an owed
  * acceptance is a scratch document of kind e2e-acc-<the listing id without dashes>. Neither exists on
  * production, and no test creates a document of a real kind (G27). Every row is found by its own id (G28);
- * cleanup in finally: certifications, acceptances, versions, documents, then the seller's listings and the
+ * cleanup in afterEach: certifications, acceptances, versions, documents, then the seller's listings and the
  * scratch category (J3). At most two leased accounts a test (DEC-174).
  */
 
@@ -79,19 +79,28 @@ async function asPerson(person: { email: string; password: string }) {
 
 const hex = (listingId: string) => listingId.replaceAll("-", "");
 
-/** The rows a test made, removed in finally in the brief's order. */
+/** The rows a test made, removed in afterEach in the brief's order (J3). */
 type Scratch = {
   sellers: string[];
   categories: string[];
   listings: string[];
   documents: string[];
   versions: string[];
+  reveals: { viewerId: string; listingId: string }[];
 };
 function scratch(): Scratch {
-  return { sellers: [], categories: [], listings: [], documents: [], versions: [] };
+  return { sellers: [], categories: [], listings: [], documents: [], versions: [], reveals: [] };
 }
 async function destroy(s: Scratch) {
   const supabase = adminClient();
+  for (const reveal of s.reveals) {
+    const { error } = await supabase
+      .from("contact_reveals")
+      .delete()
+      .eq("viewer_id", reveal.viewerId)
+      .eq("listing_id", reveal.listingId);
+    await assertRevealCleanup(error);
+  }
   const failures: string[] = [];
   const step = (label: string, error: { message: string } | null) => {
     if (error) failures.push(`${label}: ${error.message}`);
@@ -259,11 +268,17 @@ async function renewAllowed(): Promise<void> {
 const sorted = (ids: unknown) => [...((ids as string[]) ?? [])].sort();
 
 test.describe("Legal certification", () => {
+  let s: Scratch;
+  test.beforeEach(() => {
+    s = scratch();
+  });
+  test.afterEach(async () => {
+    await destroy(s);
+  });
+
   test("LG-15 my_listing_certification lists the statements for all countries and the ad's countries, never another country's; another seller is refused", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
       const listingId = await draftOf(page, s, categoryId, cityId);
       const kind = `e2e-pub-${hex(listingId)}`;
@@ -287,16 +302,11 @@ test.describe("Legal certification", () => {
         p_listing_id: listingId,
       });
       expect(refused.error).toContain("not your listing");
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LG-16 publish_listing refuses without the exact certified set and records the certification; a draft with no statement publishes as today", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
       const listingId = await draftOf(page, s, categoryId, cityId);
       const kind = `e2e-pub-${hex(listingId)}`;
@@ -342,16 +352,11 @@ test.describe("Legal certification", () => {
       );
       expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
       expect(await certificationsOf(plain)).toHaveLength(0);
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LG-17 an owed acceptance refuses a certified publish until it is accepted", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
       const listingId = await draftOf(page, s, categoryId, cityId);
       const statement = await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, "Statement");
@@ -372,16 +377,11 @@ test.describe("Legal certification", () => {
       const ok = await me.rpc("publish_listing", args);
       expect(ok.error, JSON.stringify(ok)).toBeNull();
       expect(await statusOf(listingId)).toBe("screening");
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LG-18 edit_my_listing and renew_listing refuse without the certification and record it with it", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       await renewAllowed();
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
       const me = await asPerson(seller);
@@ -421,16 +421,11 @@ test.describe("Legal certification", () => {
       expect(renewed.error, JSON.stringify(renewed)).toBeNull();
       expect((renewed.data as Row)["ok"]).toBe(true);
       expect((await certificationsOf(old)).map((row) => row["action"])).toEqual(["renew"]);
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LGC-1 the review step shows the statement with one tick, Publish waits for it; a draft with no statement shows today's line", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { categoryId, cityId } = await sellerOnPage(page, s);
       const listingId = await draftOf(page, s, categoryId, cityId);
       const statementText = `Statement ${rand()}`;
@@ -454,16 +449,11 @@ test.describe("Legal certification", () => {
       await expect(page.getByTestId("post-publish-statement")).toBeVisible({ timeout: 20_000 });
       await expect(page.getByTestId("post-publish")).toBeEnabled();
       await expect(page.getByTestId("certify-block")).toHaveCount(0);
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LGC-2 Renew in My listings shows the statement; confirm waits for the tick and records the renewal", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       await renewAllowed();
       const { categoryId, cityId } = await sellerOnPage(page, s);
       const listingId = await draftOf(page, s, categoryId, cityId);
@@ -485,16 +475,11 @@ test.describe("Legal certification", () => {
       await yes.click();
       await expect.poll(() => statusOf(listingId), { timeout: 20_000 }).toBe("active");
       expect((await certificationsOf(listingId)).map((row) => row["action"])).toEqual(["renew"]);
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LGC-3 the staff card lists an ad's certification with the statement's name; an ad with none says so", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
       const certified = await draftOf(page, s, categoryId, cityId);
       const statement = await seedDocument(s, `e2e-pub-${hex(certified)}`, null, "Statement");
@@ -522,9 +507,6 @@ test.describe("Legal certification", () => {
       await expect(page.getByTestId("listing-certifications-none")).toBeVisible({
         timeout: 20_000,
       });
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LGC-4 bulk Renew renews the ads no statement applies to and names the one that needs it; nothing is certified", async ({
@@ -532,8 +514,6 @@ test.describe("Legal certification", () => {
   }) => {
     const width = page.viewportSize()?.width ?? 0;
     test.skip(width < 768, "ticks exist from 768 only (D128)");
-    const s = scratch();
-    try {
       await renewAllowed();
       const { categoryId, cityId } = await sellerOnPage(page, s);
       const a = await draftOf(page, s, categoryId, cityId);
@@ -574,15 +554,10 @@ test.describe("Legal certification", () => {
       await expect.poll(() => statusOf(a), { timeout: 20_000 }).toBe("expired");
       expect(await certificationsOf(a)).toHaveLength(0);
       expect(await certificationsOf(b)).toHaveLength(0);
-    } finally {
-      await destroy(s);
-    }
   });
   test("LG-19 a photo added to a published ad needs the certification; a draft's photo does not", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { categoryId, cityId } = await sellerOnPage(page, s);
       const a = await draftOf(page, s, categoryId, cityId);
       const token = await bearerOf(page);
@@ -614,20 +589,13 @@ test.describe("Legal certification", () => {
       expect(draftPhoto.payload["ok"], JSON.stringify(draftPhoto.payload)).toBe(true);
       expect(await photoRowsOf(b)).toHaveLength(1);
       expect(await certificationsOf(b)).toHaveLength(0);
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LG-20 the contact reveal answers acceptanceRequired to a viewer who owes an acceptance; the owner still sees his own", async ({
     page,
   }) => {
-    const s = scratch();
-    let buyerId: string | undefined;
-    let listingId: string | undefined;
-    try {
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
-      listingId = await draftOf(page, s, categoryId, cityId);
+      const listingId = await draftOf(page, s, categoryId, cityId);
       const token = await bearerOf(page);
       const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
       expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
@@ -642,7 +610,7 @@ test.describe("Legal certification", () => {
         throw new Error(`[e2e:certify] contact seed: ${stored.error?.message}`);
       const args = { p_public_id: String((stored.data as Row)["public_id"]) };
       const buyerPerson = await leaseUser();
-      buyerId = buyerPerson.id;
+      s.reveals.push({ viewerId: buyerPerson.id, listingId });
       const buyer = await asPerson(buyerPerson);
       const first = await buyer.rpc("reveal_listing_contact", args);
       expect(first.error).toBeNull();
@@ -654,27 +622,11 @@ test.describe("Legal certification", () => {
       const owner = await (await asPerson(seller)).rpc("reveal_listing_contact", args);
       expect(owner.error).toBeNull();
       expect((owner.data as Row)["ok"]).toBe(true);
-    } finally {
-      try {
-        if (buyerId && listingId) {
-          const { error } = await adminClient()
-            .from("contact_reveals")
-            .delete()
-            .eq("viewer_id", buyerId)
-            .eq("listing_id", listingId);
-          await assertRevealCleanup(error);
-        }
-      } finally {
-        await destroy(s);
-      }
-    }
   });
 
   test("LG-21 the statement is certified once per ad: edits, renewals and photos ask again only for a new version", async ({
     page,
   }) => {
-    const s = scratch();
-    try {
       const { seller, categoryId, cityId } = await sellerOnPage(page, s);
       const a = await draftOf(page, s, categoryId, cityId);
       const v1 = await seedDocument(s, `e2e-pub-${hex(a)}`, null, "Statement one");
@@ -719,14 +671,9 @@ test.describe("Legal certification", () => {
       expect(certified.error, JSON.stringify(certified)).toBeNull();
       expect((certified.data as Row)["ok"]).toBe(true);
       expect((await certificationsOf(a)).map((row) => row["action"])).toEqual(["publish", "edit"]);
-    } finally {
-      await destroy(s);
-    }
   });
 
   test("LGC-5 the photos step of a seller's edit waits for the statement", async ({ page }) => {
-    const s = scratch();
-    try {
       const { categoryId, cityId } = await sellerOnPage(page, s);
       const a = await draftOf(page, s, categoryId, cityId);
       const token = await bearerOf(page);
@@ -743,8 +690,5 @@ test.describe("Legal certification", () => {
       await page.getByTestId("certify-tick").click();
       await expect(page.getByTestId("post-photos-add")).toBeEnabled();
       await expect(page.getByTestId("post-photos-certify-wait")).toHaveCount(0);
-    } finally {
-      await destroy(s);
-    }
   });
 });
