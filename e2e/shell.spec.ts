@@ -3862,5 +3862,4 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
       await page.evaluate(() => document.getElementById("ov2-wide")?.remove());
     }
   });
-
 });

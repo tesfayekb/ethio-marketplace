@@ -43,7 +43,10 @@ export function AppFooter() {
             >
               <Logo variant="full" />
             </Link>
-            <p data-testid="footer-tagline" className="self-stretch ps-10 text-center text-sm text-muted-foreground">
+            <p
+              data-testid="footer-tagline"
+              className="self-stretch ps-10 text-center text-sm text-muted-foreground"
+            >
               {t("app.tagline")}
             </p>
           </div>
