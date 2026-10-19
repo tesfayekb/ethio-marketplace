@@ -19,6 +19,7 @@ import {
   signOutViaUi,
   settled,
   switchLanguage,
+  switchUser,
   waitForHydration,
 } from "./helpers/ui";
 import { anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
@@ -35,7 +36,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { destroyCountry } from "./helpers/countries";
-import { destroyCategory, scratchSlug } from "./helpers/categories";
+import { destroyCategory, grantRole, scratchSlug } from "./helpers/categories";
 import { adminClient, leaseUser } from "./helpers/users";
 import { distanceKm } from "../src/lib/geo-distance";
 
@@ -1005,6 +1006,115 @@ test.describe("mobile chrome", () => {
       expect(height).toBeGreaterThanOrEqual(31);
       expect(height).toBeLessThanOrEqual(41);
     }
+  });
+
+  // RL-1 (INC-755) — the phone rail fills when its rows fit and scrolls when
+  // they do not; no row is ever shorter than 32 px or overlaps another. Phones
+  // only, the way the strip tests skip from 768 px up.
+  test("RL-1 the phone rail fills when its rows fit and scrolls when they do not, never overlapping", async ({
+    page,
+  }) => {
+    test.skip((page.viewportSize()?.width ?? 0) >= 768, "phones only");
+    await page.setViewportSize({ width: 360, height: 640 });
+    const admin = await leaseUser();
+    await grantRole(admin.id, "admin");
+    await switchUser(page, admin.email, admin.password);
+    await gotoReady(page, "/admin");
+
+    type RowRect = { top: number; bottom: number; height: number; id: string };
+    const rowsOf = (box: Locator) =>
+      box.evaluate((el) =>
+        Array.from(el.querySelectorAll("li"))
+          .map((li) => li.firstElementChild)
+          .filter((child): child is Element => child !== null)
+          .map((child) => {
+            const rect = child.getBoundingClientRect();
+            return {
+              top: rect.top,
+              bottom: rect.bottom,
+              height: rect.height,
+              id: child.getAttribute("data-testid") ?? child.tagName,
+            };
+          })
+          .filter((rect) => rect.height > 0),
+      );
+    const checkVariant = async (
+      box: Locator,
+      panel: string,
+      variant: string,
+      mustScroll: boolean,
+    ) => {
+      const rows: RowRect[] = await rowsOf(box);
+      expect(rows.length, `${panel} ${variant}: no rows`).toBeGreaterThan(0);
+      for (const row of rows) {
+        expect(row.height, `${panel} ${variant}: ${row.id} shorter than 31 px`).toBeGreaterThanOrEqual(31);
+        expect(row.height, `${panel} ${variant}: ${row.id} taller than 41 px`).toBeLessThanOrEqual(41);
+      }
+      for (let i = 1; i < rows.length; i += 1) {
+        expect(
+          rows[i].top,
+          `${panel} ${variant}: ${rows[i].id} starts above ${rows[i - 1].id}'s bottom`,
+        ).toBeGreaterThanOrEqual(rows[i - 1].bottom - 1);
+      }
+      const metrics = await box.evaluate((el) => ({
+        client: el.clientHeight,
+        scroll: el.scrollHeight,
+        gap: parseFloat(getComputedStyle(el.querySelector("ul") ?? el).rowGap) || 0,
+      }));
+      if (!mustScroll) {
+        // Account's rows may fit: the scroll proof applies only when they do
+        // not (the strip test's capacity arithmetic).
+        const minimum = rows.length * 32 + Math.max(0, rows.length - 1) * metrics.gap;
+        if (minimum <= metrics.client) {
+          expect(
+            metrics.scroll - metrics.client,
+            `${panel} ${variant}: the rows fit yet the box scrolls`,
+          ).toBeLessThanOrEqual(1);
+          return;
+        }
+      }
+      expect(
+        metrics.scroll,
+        `${panel} ${variant}: the rows do not fit yet the box does not scroll`,
+      ).toBeGreaterThan(metrics.client);
+      await box.evaluate((el) => {
+        el.scrollTop = el.scrollHeight;
+      });
+      const last = (await rowsOf(box)).at(-1);
+      const after = await box.evaluate((el) => el.getBoundingClientRect());
+      if (!last) throw new Error(`${panel} ${variant}: no last row after scrolling to the end`);
+      expect(
+        last.bottom,
+        `${panel} ${variant}: ${last.id} hangs below the box's bottom`,
+      ).toBeLessThanOrEqual(after.bottom + 1);
+      expect(
+        last.top,
+        `${panel} ${variant}: ${last.id} sits above the box's top`,
+      ).toBeGreaterThanOrEqual(after.top - 1);
+    };
+
+    const strip = page.getByTestId("strip-scroll");
+    await expect(strip.locator("li").first()).toBeVisible({ timeout: 20_000 });
+    await checkVariant(strip, "Admin", "strip", true);
+    await page
+      .getByTestId("shell-topbar")
+      .getByRole("button", { name: en["shell.openMenu"] })
+      .click();
+    const menu = page.getByTestId("rail-scroll");
+    await expect(menu).toBeVisible();
+    await checkVariant(menu, "Admin", "menu", true);
+    await page.getByTestId("rail-menu-close").click();
+
+    await page.getByTestId("bottom-bar-account").click();
+    await expect(strip.locator("li").first()).toBeVisible({ timeout: 20_000 });
+    await checkVariant(strip, "Account", "strip", false);
+    await page
+      .getByTestId("shell-topbar")
+      .getByRole("button", { name: en["shell.openMenu"] })
+      .click();
+    await expect(menu).toBeVisible();
+    await checkVariant(menu, "Account", "menu", false);
+    await page.getByTestId("rail-menu-close").click();
   });
 
   test("RM-1 a tap on the strip opens the menu; the row under the finger opens the category", async ({
