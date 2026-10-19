@@ -686,6 +686,8 @@ REAL_ROW_FLOOR="${REAL_ROW_FLOOR:-20261007000000}"
 
 real_row_offenders() {
   # $1 = file. Prints one "<file>: <statement head>" per refused statement.
+  # INC-760: the head is trimmed of trailing spaces, as the allowlist fields are,
+  # so a statement whose 120-character cut ends on a space can be allowlisted.
   perl -0777 -ne '
     my $t = q{(?:auth\.users|public\.(?:user_roles|profiles|user_directory|locations|categories|attributes))\b};
     while (/\bDO\s+(\$\w*\$)(.*?)\1/sg) {
@@ -695,7 +697,8 @@ real_row_offenders() {
             || $st =~ /\bUPDATE\s+$t.*?\bWHERE\b/si
             || $st =~ /\bDELETE\s+FROM\s+$t.*?\bWHERE\b/si) {
           (my $head = $st) =~ s/\s+/ /g; $head =~ s/^ //;
-          print "$ARGV: " . substr($head, 0, 120) . "\n";
+          (my $cut = substr($head, 0, 120)) =~ s/ +$//;
+          print "$ARGV: $cut\n";
         }
       }
     }
@@ -741,12 +744,16 @@ BEGIN
   v := gen_random_uuid();
   UPDATE public.attributes SET depends_on = NULL WHERE id = v;
   SELECT id INTO v FROM public.profiles LIMIT 1;
+  SELECT id INTO v FROM public.user_roles LIMIT 1 ;
 END $proof$;
 SQL
 printf '%s\n' '29990101000000_rrrr1111.sql | UPDATE public.attributes SET depends_on = NULL WHERE id = v | self-test' > "$RR_DIR/allow.txt"
+printf '%s\n' '29990101000000_rrrr1111.sql | SELECT id INTO v FROM public.user_roles LIMIT 1 | self-test (INC-760: a head that ended in a space)' >> "$RR_DIR/allow.txt"
 rr_refused="$(real_row_split "$(real_row_offenders "$RR_DIR/29990101000000_rrrr1111.sql")" "$RR_DIR/allow.txt" 2>"$RR_DIR/skipped")"
 rr_fixture="$(real_row_split "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" "$RR_DIR/allow.txt" 2>/dev/null)"
 if ! grep -q 'UPDATE public.attributes' "$RR_DIR/skipped" \
+  || ! grep -q 'FROM public.user_roles' "$RR_DIR/skipped" \
+  || printf '%s' "$rr_refused" | grep -q 'FROM public.user_roles' \
   || printf '%s' "$rr_refused" | grep -q 'UPDATE public.attributes' \
   || ! printf '%s' "$rr_refused" | grep -q 'FROM public.profiles' \
   || [ -z "$rr_fixture" ]; then
