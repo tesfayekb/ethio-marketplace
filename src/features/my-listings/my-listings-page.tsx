@@ -74,12 +74,15 @@ import {
   LISTING_MARKS,
   readMyListings,
   SEARCH_MAX,
+  shareable,
   type GroupCounts,
   type ListingGroup,
   type ListingMark,
   type MyListingRow,
   type MyListingsFilters,
 } from "./my-listings";
+import { listingPath } from "@/features/ad-page/address";
+import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { stateLine } from "./state-line";
 
 /**
@@ -156,6 +159,8 @@ export function MyListingsPage() {
   const [asking, setAsking] = useState<Asking>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  // D224 — the row whose Share sheet is open; one ShareAd serves the whole list.
+  const [sharing, setSharing] = useState<MyListingRow | null>(null);
   const debouncedSearch = useDebounced(search);
   const filters: MyListingsFilters = { search: debouncedSearch, category, mark };
 
@@ -458,6 +463,16 @@ export function MyListingsPage() {
                       params: { listingId: row.id },
                     }),
                 },
+                // D224 — a live ad with a public address can be shared, right after Open.
+                ...(shareable(row)
+                  ? [
+                      {
+                        key: "share",
+                        label: t("adPage.share.open"),
+                        onSelect: () => setSharing(row),
+                      },
+                    ]
+                  : []),
                 ...offer
                   .filter((action) => action !== "delete")
                   .map((action) => ({
@@ -844,6 +859,31 @@ export function MyListingsPage() {
           </AlertDialogContent>
         ) : null}
       </AlertDialog>
+      {/* D224 — one ShareAd for the whole list, opened by the ⋯ menu's Share;
+          the same sheet the ad's own page shows. */}
+      {sharing !== null && shareable(sharing) ? (
+        <ShareAd
+          open
+          onOpenChange={(next) => {
+            if (!next) setSharing(null);
+          }}
+          publicId={sharing.publicId as string}
+          canonicalPath={listingPath(sharing.title ?? "", sharing.publicId as string)}
+          title={sharing.title ?? ""}
+          priceText={sharePriceText(
+            {
+              mode: sharing.priceMode ?? "contact",
+              amount: sharing.priceAmount,
+              currency: sharing.priceCurrency,
+              period: sharing.pricePeriod,
+              bp: sharing.priceBp,
+              unit: storedUnitNoun(sharing.priceUnit, sharing.priceUnitText, unitLabels, language),
+            },
+            t,
+            language,
+          )}
+        />
+      ) : null}
     </PageShell>
   );
 }

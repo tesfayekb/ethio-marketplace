@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Share2,
   Send,
@@ -38,6 +38,8 @@ export function ShareAd({
   title,
   priceText,
   prominent = false,
+  open,
+  onOpenChange,
 }: {
   publicId: string;
   canonicalPath: string;
@@ -45,9 +47,18 @@ export function ShareAd({
   priceText: string | null;
   /** D218 — a primary opener after posting; existing ad-page callers stay ghost. */
   prominent?: boolean;
+  /**
+   * D224 — OPTIONAL caller-held open state (My listings' ⋯ menu). With both
+   * given, ShareAd renders no opener button of its own; the open-time setup
+   * runs the same whichever way it opens. Without them, exactly as before.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { t } = useI18n();
-  const [open, setOpen] = useState(false);
+  const callerHeld = open !== undefined && onOpenChange !== undefined;
+  const [innerOpen, setInnerOpen] = useState(false);
+  const shown = callerHeld ? open : innerOpen;
   const [url, setUrl] = useState("");
   const [canShare, setCanShare] = useState(false);
   const [qr, setQr] = useState(false);
@@ -59,8 +70,18 @@ export function ShareAd({
       setQr(false);
       setStatus(null);
     }
-    setOpen(next);
+    if (callerHeld) onOpenChange(next);
+    else setInnerOpen(next);
   };
+  // D224 — a caller-held open mounts the sheet already open, so the open-time
+  // setup runs here as well as in changeOpen: the same either way it opens.
+  useEffect(() => {
+    if (!shown) return;
+    setUrl(window.location.origin + canonicalPath);
+    setCanShare(typeof navigator.share === "function");
+    setQr(false);
+    setStatus(null);
+  }, [shown, canonicalPath]);
   const key = priceText === null ? "adPage.share.textNoPrice" : "adPage.share.text";
   const text = fill(t(key), { title, price: priceText ?? "", url });
   const textWithoutUrl = fill(t(key), { title, price: priceText ?? "", url: "" })
@@ -79,20 +100,22 @@ export function ShareAd({
   const row = "min-h-11 w-full justify-start gap-3 whitespace-normal text-start";
   return (
     <>
-      <Button
-        variant={prominent ? "default" : "ghost"}
-        className={
-          prominent
-            ? "h-auto min-h-11 gap-2 font-semibold"
-            : "h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
-        }
-        data-testid="listing-share-open"
-        onClick={() => changeOpen(true)}
-      >
-        <Share2 className="size-5" aria-hidden="true" />
-        {t("adPage.share.open")}
-      </Button>
-      <Dialog open={open} onOpenChange={changeOpen}>
+      {!callerHeld && (
+        <Button
+          variant={prominent ? "default" : "ghost"}
+          className={
+            prominent
+              ? "h-auto min-h-11 gap-2 font-semibold"
+              : "h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+          }
+          data-testid="listing-share-open"
+          onClick={() => changeOpen(true)}
+        >
+          <Share2 className="size-5" aria-hidden="true" />
+          {t("adPage.share.open")}
+        </Button>
+      )}
+      <Dialog open={shown} onOpenChange={changeOpen}>
         <DialogContent
           aria-describedby={undefined}
           className="inset-x-0 bottom-0 top-auto grid max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-md sm:inset-x-auto sm:bottom-auto sm:start-1/2 sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-md"

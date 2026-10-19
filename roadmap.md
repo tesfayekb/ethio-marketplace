@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-21-turn-16.md (bundle 21 — turn 16: CI #1035's reds). Next: bundle 21's re-walk of the changed lines, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-21-turn-17.md (bundle 21 — turn 17: the walk of turns 14–16). Next: bundle 21's re-walk of the changed lines, then its records turn; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -400,6 +400,7 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
   - [ ] Turn 14 (docs/governance/briefs/bundle-21-turn-14-v2.md; no migration) — the walk's findings: every text field at least 16 px on phones (INC-747, the iPhone zoom); the search row in the sticky sub-band (INC-749); the language star takes on a tap and the menu stays open (INC-748); the peek on every page load (D216); «{category} ተወዳጅዎ ያድርጉ።» (D217); "Any area" for the country remembered as everywhere, the guess never over it (INC-750, D219)
   - [ ] Turn 15 (docs/governance/briefs/bundle-21-turn-15.md; no migration) — Share at the end of posting: green when the ad is live, grey with 'Not ready to share yet' while it is in review (D218); card photos fill their 4:3 box, the ad's page keeps the whole photo (D220)
   - [ ] Turn 16 (docs/governance/briefs/bundle-21-turn-16.md; no migration) — #1035's reds: FF-1 waits for each page's field (INC-752); a tapped tab on the ad page holds until its scroll ends, and at the page's end the last section on screen is current (INC-753)
+  - [ ] Turn 17 (docs/governance/briefs/bundle-21-turn-17.md; no migration) — the walk of turns 14–16 (2026-10-19, every line passed): the phone rail fills when its rows fit and scrolls when they do not, never overlapping (INC-755); while the ad is checked, the end of posting shows the drawing diamond and 'Waiting for your ad to be approved…', then Share or a note (D223); Share in the ⋯ menu of a live ad in My listings (D224)
   - [ ] Remove the ?overflow=1 probe — done in turn 13 (the operator's iPhone showed the page at the screen's width, 2026-10-18 20:39 local)
 - [ ] D207 (the operator, 2026-10-18) — the categories a person browses kept on the device, and on the account when signed in, to bring back the ones he returns to (the ★ favourite itself rides bundle 21). Owed: the spec.
 - [ ] D208 (the operator, 2026-10-18) — the category pictures: one bulk regeneration of every picture, with a record of which were regenerated (today a few at a time, and after many it is hard to tell which are new); each picture fills its 4:3 frame (D122). Owed: the spec; the spend is his call (one AI call a picture).

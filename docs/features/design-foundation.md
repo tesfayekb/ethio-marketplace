@@ -370,6 +370,8 @@ Below `md` (768 px) a fixed bottom bar (`bottom-bar`) holds the most-used destin
 
 Below 768px one top-bar menu control sits above the 48px strip and toggles the drawer. The strip holds only its section items: Home, Post and Sign out are not duplicated there. Rows share the available height at 28–44px; scrolling is permitted when the actual category census cannot fit at the 28px minimum (operator ruling). Admin appears after Account in the bottom bar for admins. The account menu remains at the top right at every width and owns Sign out. The footer paints behind both bars and its content starts beside the strip with balanced 16px content padding (operator ruling). Location controls share one 32px line with full selected names exposed accessibly. Every password field has an inline-end eye toggle and retains its input/form contract. The category step's two "Used before" choices also stay on one line; long names truncate visually while their full names remain accessible.
 
+Bundle 21 turn 17 (INC-755): below 768px the rail's lists (strip and drawer) fill when their rows fit and scroll when they do not — the compact branches size by flex, never by h-full/min-h-0 — so a row is never shorter than 32px and rows never overlap; RL-1 proves it on the Admin and Account panels.
+
 ### Three widths, one frame rule each (bundle 9 C2g/C2h)
 
 Bundle 21: one ☰ per width in the top-left corner (D115, D117), the logo after it over the menu’s labels; folded, the logo with its mark moves into the bar. Search is centred (D111); tables switch on the space they have (`tbl-md`). D204 supersedes the historical width rules below: from 768 the rail is open by default (224 px to 1023, 256 px from 1024), or 64 px when folded; only phones use the overlay.

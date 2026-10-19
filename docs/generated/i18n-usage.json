@@ -397,6 +397,7 @@
     "adPage.share.copy": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -405,6 +406,7 @@
     "adPage.share.download": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -413,6 +415,7 @@
     "adPage.share.facebook": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -421,6 +424,7 @@
     "adPage.share.more": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -429,6 +433,7 @@
     "adPage.share.open": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -437,6 +442,7 @@
     "adPage.share.qr": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -445,6 +451,7 @@
     "adPage.share.qrHint": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -453,6 +460,7 @@
     "adPage.share.title": [
       "/admin/listings/$listingId/edit",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -6481,6 +6489,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.review.shareChecking": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.review.shareWait": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
@@ -7155,6 +7169,7 @@
       "/admin/screening",
       "/l/$id/photo[/]jpg",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
@@ -7167,6 +7182,7 @@
       "/admin/screening",
       "/l/$id/photo[/]jpg",
       "/l/$slug",
+      "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",

@@ -1,7 +1,7 @@
 import { priceLine as sharedPriceLine } from "./price-line";
-import { useEffect, useId, useState } from "react";
-import { Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/brand/spinner";
 import { listingPath } from "@/features/ad-page/address";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { readMyListing, type MyListing } from "@/features/my-listings/my-listing";
@@ -203,7 +203,8 @@ export function StepReview({
   const [dateOn, setDateOn] = useState(values.posterExpiresAt !== "");
   const [inReview, setInReview] = useState(false);
   const [shareListing, setShareListing] = useState<MyListing | null>(null);
-  const shareNoteId = useId();
+  // D223 — true while the bounded reads below are still running.
+  const [shareWaiting, setShareWaiting] = useState(false);
   const shareRow = shareListing?.listing;
   const unitLabels = usePriceUnitLabels(shareRow !== undefined && shareRow.priceUnit !== null);
 
@@ -212,6 +213,7 @@ export function StepReview({
   // D218 — seller-only, bounded reads; a refusal or failure never enables Share.
   useEffect(() => {
     if (!inReview || staffEdit || listingId === null) return;
+    setShareWaiting(true);
     let cancelled = false;
     let stopped = false;
     let reading = false;
@@ -219,6 +221,7 @@ export function StepReview({
     const stop = () => {
       stopped = true;
       clearInterval(interval);
+      if (!cancelled) setShareWaiting(false);
     };
     const read = async () => {
       if (cancelled || stopped || reading) return;
@@ -483,26 +486,18 @@ export function StepReview({
                   language,
                 )}
               />
+            ) : shareWaiting ? (
+              // D223 — the operator, 2026-10-19: while the ad is checked the
+              // drawing diamond says it is waiting for approval; then Share, or
+              // a note that points to My listings — never a grey button left
+              // standing.
+              <div data-testid="post-review-share-checking">
+                <Spinner label={t("post.review.shareChecking")} />
+              </div>
             ) : (
-              <>
-                <Button
-                  variant="secondary"
-                  className="min-h-11 gap-2"
-                  data-testid="post-review-share-wait"
-                  disabled
-                  aria-describedby={shareNoteId}
-                >
-                  <Share2 className="size-5" aria-hidden="true" />
-                  {t("adPage.share.open")}
-                </Button>
-                <p
-                  id={shareNoteId}
-                  data-testid="post-review-share-note"
-                  className="text-sm text-muted-foreground"
-                >
-                  {t("post.review.shareWait")}
-                </p>
-              </>
+              <p data-testid="post-review-share-note" className="text-sm text-muted-foreground">
+                {t("post.review.shareWait")}
+              </p>
             )}
           </div>
         )}

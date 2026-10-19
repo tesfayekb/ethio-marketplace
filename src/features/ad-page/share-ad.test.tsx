@@ -97,3 +97,36 @@ describe("SH-5 Share sheet", () => {
     expect(countShare).toHaveBeenCalledExactlyOnceWith(props.publicId, "copy");
   });
 });
+
+describe("D224 the caller-opened way", () => {
+  it("renders no opener of its own and opens the sheet with the right address", () => {
+    const onOpenChange = vi.fn();
+    render(<ShareAd {...props} open onOpenChange={onOpenChange} />);
+    expect(screen.queryByTestId("listing-share-open")).toBeNull();
+    const url = window.location.origin + props.canonicalPath;
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("listing-share-telegram").getAttribute("href")).toContain(
+      encodeURIComponent(url),
+    );
+    fireEvent.click(screen.getByTestId("listing-share-copy"));
+    expect(onOpenChange).not.toHaveBeenCalled();
+  });
+
+  it("closed stays closed and the close path reports to the caller", () => {
+    const onOpenChange = vi.fn();
+    const { rerender } = render(<ShareAd {...props} open={false} onOpenChange={onOpenChange} />);
+    expect(screen.queryByTestId("listing-share-open")).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
+    rerender(<ShareAd {...props} open onOpenChange={onOpenChange} />);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    fireEvent.keyDown(document.body, { key: "Escape" });
+    expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  it("the default way is unchanged: its own opener opens the sheet", () => {
+    render(<ShareAd {...props} />);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    fireEvent.click(screen.getByTestId("listing-share-open"));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+});

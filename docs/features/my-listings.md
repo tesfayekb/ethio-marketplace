@@ -195,3 +195,5 @@ The operator (2026-10-16): "edit should have exact features and step and look as
 - Tests: EW-6 (use-edit-draft.test.ts); E2E per the turn's brief (AL-21's Back; a closed ad's tick).
 
 Bundle 19 turn 15 — a live ad's page carries the Share control (the buyer page's sheet; the shares count by channel).
+
+Bundle 21 turn 17 (D224) — a live ad's ⋯ menu carries Share, right after Open: one ShareAd serves the whole list, opened on the chosen row's own address. Share is offered only for an active ad with its public id (`shareable(row)`); review, draft, sold, closed and expired rows have no Share. MLP-8 proves the sheet opens on the ad's address; MLP-6's menu census lists it.
