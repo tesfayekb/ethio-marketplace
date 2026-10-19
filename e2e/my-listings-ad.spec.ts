@@ -880,8 +880,17 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await page.getByTestId("my-listing-action-sell").click();
     await page.getByTestId("my-listing-confirm-yes").click();
     await expect(line).toHaveAttribute("data-visible", "soldSeen", { timeout: 15000 });
+    const soldSettings = await adminClient()
+      .from("legal_settings")
+      .select("sold_visible_days")
+      .eq("id", true)
+      .single();
+    if (soldSettings.error || !soldSettings.data)
+      throw new Error(`[e2e:mla] sold setting read failed: ${soldSettings.error?.message}`);
     await expect(line).toHaveText(
-      en["myListings.ad.soldSeen"].replace("{word}", en["feed.ribbon.sold"]),
+      en["myListings.ad.soldSeenDays"]
+        .replace("{word}", en["feed.ribbon.sold"])
+        .replace("{days}", String(soldSettings.data.sold_visible_days)),
     );
     await expect(page.getByTestId("my-listing-sold-mark")).toHaveText(en["feed.ribbon.sold"]);
     await expect(seen.getByTestId("listing-ribbon-text")).toHaveText(en["feed.ribbon.sold"]);
