@@ -278,7 +278,7 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
   rows and widens in place to a 256px named menu from the top bar. The 52px bar, strip and
   tabs/breadcrumb band stay while the page scrolls; search opens a row over the page below the bar, from the strip's edge to the screen's edge, as the page (bundle 21 turn 9). Only this size minimizes the bar.
   `PHONE_STRIP=false` restores the header menu button and removes the strip offset.
-  A phone never widens the page (bundle 21 turns 10/12, INC-743): the shell's wrapper clips horizontal overflow (html `hidden`, body `clip` — turn 12; Safari's handling of a root clip is not assumed), person- and catalogue-written text breaks inside its box (wrap-anywhere on the ad and the listing card), and the breadcrumb stays one line, cutting its last crumb (the trail carries `min-w-0`). The `?overflow=1` probe (turn 12) is the operator's witness: one line of the screen's numbers, then the deepest elements past the edge.
+  A phone never widens the page (bundle 21 turns 10/12, INC-743): the shell's wrapper clips horizontal overflow (html hidden, body clip — turn 12; Safari's handling of a root clip is not assumed), person- and catalogue-written text breaks inside its box (wrap-anywhere on the ad and the listing card), and the breadcrumb stays one line, cutting its last crumb. The trail's nav is min-w-0, so its last crumb truncates (INC-745). `?overflow=1` shows a probe that names anything past the screen (bundle 21 turn 12; to be removed after the operator's iPhone check).
 
 - **Top bar** is minimal and evenly distributed at 360px, full at `md`+. On
   phones search is an icon that opens a row below the bar beside the strip (room for
