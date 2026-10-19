@@ -165,7 +165,13 @@ it("D218 stops at notYours and never enables sharing", async () => {
     view = await publishedReview();
     await act(() => vi.advanceTimersByTimeAsync(120_000));
     expect(readMyListing).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("post-review-share-wait")).toBeDisabled();
+    // D223 — the diamond is gone; only the note stands, never a grey button.
+    expect(screen.queryByTestId("post-review-share-checking")).toBeNull();
+    expect(screen.queryByTestId("post-review-share-wait")).toBeNull();
+    expect(screen.queryByTestId("listing-share-open")).toBeNull();
+    expect(screen.getByTestId("post-review-share-note")).toHaveTextContent(
+      en["post.review.shareWait"],
+    );
   } finally {
     view?.unmount();
     vi.useRealTimers();
@@ -183,7 +189,13 @@ it("D218 stops and warns exactly once on a thrown read, keeping Share disabled",
     await act(() => vi.advanceTimersByTimeAsync(120_000));
     expect(readMyListing).toHaveBeenCalledTimes(1);
     expect(warning).toHaveBeenCalledExactlyOnceWith("[post-review-share] read failed", failure);
-    expect(screen.getByTestId("post-review-share-wait")).toBeDisabled();
+    // D223 — a failed read ends the diamond; only the note stands.
+    expect(screen.queryByTestId("post-review-share-checking")).toBeNull();
+    expect(screen.queryByTestId("post-review-share-wait")).toBeNull();
+    expect(screen.queryByTestId("listing-share-open")).toBeNull();
+    expect(screen.getByTestId("post-review-share-note")).toHaveTextContent(
+      en["post.review.shareWait"],
+    );
   } finally {
     view?.unmount();
     warning.mockRestore();
