@@ -1,1 +1,3 @@
 post.specs.helpMoreMark | a mark, not words
+legal.page.showUpcoming | the brief's exact EN/AM text (B22 turn 3 Part G); the date is part of the label and no shorter text was given
+myLegal.back | the brief's exact EN/AM text (B22 turn 3 Part G); no shorter text was given
