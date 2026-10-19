@@ -3,8 +3,7 @@
 The legal documents' database: Terms, the Privacy Policy and the publishing statement, with numbered
 versions, an admin-only change log, the legal settings, each person's acceptances and the legal e-mails
 sent to him (the approved L1 v2 spec of 2026-10-04; brief
-docs/governance/briefs/bundle-22-turn-1-v2.md). The screens (/terms, /privacy, the acceptance screen,
-Admin › Legal) are Stage 1's turn 2; the publishing certification is turn 3.
+docs/governance/briefs/bundle-22-turn-1-v2.md). Admin › Legal is turn 2; /terms, /privacy, the acceptance screen and the person's legal history are turn 3; the publishing certification is turn 4.
 
 ## The model — five tables
 
@@ -59,7 +58,7 @@ Reader doors:
 
 Staff doors (each checks its own permission through `has_permission`; the mutating ones also call
 `require_step_up_if_needed('legal', <action>)`; every refusal of a missing or lesser caller is
-`permission denied` or the step-up refusal; `e2e-` scratch documents are excluded from the staff lists):
+`permission denied` or the step-up refusal; `e2e-` scratch documents follow the real kinds in the staff list):
 
 | Door                                      | Permission                       | Refusals                                                                                                     |
 | ----------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
@@ -79,3 +78,31 @@ The mutating staff doors write an audit row (`legal.draft_saved`, `legal.draft_d
 
 The resource is `legal` with actions `view` (no second factor), `edit` and `publish` (fresh second
 factor). No role holds any of them: the super admin holds every permission (`has_permission`).
+
+## Admin › Legal (turn 2)
+
+- `/admin/legal`: three kind cards (`legal-kind-*`), global then country document blocks
+  (`legal-doc-*`), current, scheduled and draft versions, newest-first history (`legal-history-*`),
+  country creation and Legal facts (`legal-facts`, `legal-fact-*`). Scratch documents occupy Other documents.
+- `/admin/legal/edit`: validated kind and country, draft or published-body prefill, bilingual write/preview,
+  name and staff-only change log (`legal-field-*`, `legal-tab-*`, `legal-mode-*`, `legal-preview`).
+  Save/discard/publish use the existing step-up gate; changed or unsaved drafts cannot publish.
+- Publishing (`legal-publish-*`): first versions and corrections publish immediately with material false.
+  Material changes begin unselected. The earliest choice is the UTC date of now plus the notice days;
+  choosing it omits the date so the door uses the precise notice-period instant. Later choices send
+  midnight UTC. Published versions are final.
+- `/admin/legal/<version id>` (`legal-version-view`, `legal-view-*`): bilingual text, table of contents,
+  staff change log and frozen publishing facts; drafts use current facts and offer permission-gated editing.
+- Facts edits send all 13 keys. Integer bounds: liability 0–1,000,000; notice 0–365; response 1–90;
+  extra 0–90; deleted ads 1–120 months; disputes 0–20 years. Texts are required except the copyright
+  agent; both e-mails are validated. Invalid forms send no request, Cancel restores read-only values.
+- User detail (`user-legal-*`): newest-first acceptances and e-mail notices, named empty/error/loading
+  states, version links only when the viewer holds legal:view.
+
+LegalText renders React nodes only, never HTML: h1–h3, paragraph lines joined by spaces, single-level
+bullet/number lists with indented continuations, trimmed pipe tables, bold, inline code, safe explicit
+links, bare https links and e-mail addresses. Tokens use own-key facts; multiline values join with
+commas and unknown tokens stay literal. h2 ids `s-1` onward drive the optional contents list.
+Phone tables scroll within their own box; external links use a new tab and noopener/noreferrer.
+
+Next: turn 3 public Terms and Privacy, the 18+ acceptance at sign-in and the person's legal history.

@@ -923,4 +923,62 @@ test.describe("Legal doors", () => {
       await destroyFixture(fixture);
     }
   });
+  test("LG-10 admin_legal_documents lists a scratch document with each version's publisher and acceptance count, newest version first, after the real kinds", async ({
+    page,
+  }) => {
+    const kind = `${RUN_TAG}-j`;
+    const fixture = await seedFixture(kind, null);
+    const person = await leaseUser();
+    try {
+      const job = await useJobSuperAdmin(page);
+      const staff = await asToken(await superAdminToken(page));
+      const saved = await staff.rpc("admin_save_legal_draft", {
+        p_kind: kind,
+        p_country: null,
+        p_label: "v2",
+        p_body_en: "English two",
+        p_body_am: "Amharic two",
+        p_changelog: "Second version",
+      });
+      expect(saved.error).toBeNull();
+      const id = String((saved.data as Row)["version_id"]);
+      fixture.draftId = id;
+      const published = await staff.rpc("admin_publish_legal_version", {
+        p_version_id: id,
+        p_material: false,
+      });
+      expect(published.error).toBeNull();
+      const caller = await asPerson(person);
+      const accepted = await caller.rpc("accept_legal", {
+        p_version_ids: [id],
+        p_language: "en",
+        p_adult: true,
+      });
+      expect(accepted.error).toBeNull();
+      const profile = await adminClient()
+        .from("profiles")
+        .select("display_name")
+        .eq("user_id", job.user.id)
+        .single();
+      expect(profile.error).toBeNull();
+      const answer = await staff.rpc("admin_legal_documents");
+      expect(answer.error).toBeNull();
+      const documents = answer.data as Row[];
+      const own = documents.find((d) => d["kind"] === kind);
+      expect(own, "scratch document returned").toBeDefined();
+      const versions = own?.["versions"] as Row[];
+      expect(versions.map((v) => v["version"])).toEqual([2, 1]);
+      expect(versions[0]?.["published_by_name"]).toBe(profile.data?.display_name);
+      expect(versions[0]?.["acceptances"]).toBe(1);
+      let scratchSeen = false;
+      for (const doc of documents) {
+        const docKind = String(doc["kind"]);
+        if (docKind.startsWith("e2e-")) scratchSeen = true;
+        if (["terms", "privacy", "publishing"].includes(docKind))
+          expect(scratchSeen, "real kind before scratch kinds").toBe(false);
+      }
+    } finally {
+      await destroyFixture(fixture);
+    }
+  });
 });
