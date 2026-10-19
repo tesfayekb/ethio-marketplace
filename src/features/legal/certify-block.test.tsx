@@ -17,7 +17,8 @@ vi.mock("@/i18n", async (original) => {
     }),
   };
 });
-import { CertifyBlock, type CertifyState } from "./certify-block";
+import { CertifyBlock } from "./certify-block";
+import type { CertifyState } from "./certify-refusal";
 
 const GLOBAL = {
   version_id: "v-global",
