@@ -279,8 +279,8 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   // Bundle 22 (Stage 1) turn 1 — a lease's legal acceptances and legal e-mails never carry into the next.
   const accepts = await supabase.from("legal_acceptances").delete().eq("user_id", id);
   if (accepts.error) fail("legal acceptances", accepts.error.message);
-  const notices = await supabase.from("legal_notices").delete().eq("user_id", id);
-  if (notices.error) fail("legal notices", notices.error.message);
+  const legalNotices = await supabase.from("legal_notices").delete().eq("user_id", id);
+  if (legalNotices.error) fail("legal notices", legalNotices.error.message);
 
   const base = await supabase.from("roles").select("id").eq("name", "user").single();
   if (base.error || !base.data) fail("base role", base.error?.message ?? "no row");
