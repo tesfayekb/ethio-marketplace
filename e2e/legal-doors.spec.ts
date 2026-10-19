@@ -144,6 +144,8 @@ type Fixture = {
   publishedId: string;
   countryDocumentId: string | null;
   countryPublishedId: string | null;
+  extraVersionIds: string[];
+  homeReset: { userId: string; code: string | null } | null;
 };
 
 /** Seeds a scratch document with one published version (the service client's direct write, J3). */
@@ -184,6 +186,8 @@ async function seedFixture(
     publishedId: published.data.id as string,
     countryDocumentId: null,
     countryPublishedId: null,
+    extraVersionIds: [],
+    homeReset: null,
   };
   seeded.push(fixture);
   return fixture;
@@ -199,6 +203,33 @@ async function destroyFixture(fixture: Fixture) {
   const step = (label: string, error: { message: string } | null) => {
     if (error) failures.push(`${label}: ${error.message}`);
   };
+  if (fixture.homeReset) {
+    step(
+      "home country",
+      (
+        await supabase
+          .from("profiles")
+          .update({ home_country_code: fixture.homeReset.code })
+          .eq("user_id", fixture.homeReset.userId)
+      ).error,
+    );
+  }
+  if (fixture.extraVersionIds.length > 0) {
+    step(
+      "extra acceptances",
+      (await supabase.from("legal_acceptances").delete().in("version_id", fixture.extraVersionIds))
+        .error,
+    );
+    step(
+      "extra notices",
+      (await supabase.from("legal_notices").delete().in("version_id", fixture.extraVersionIds))
+        .error,
+    );
+    step(
+      "extra versions",
+      (await supabase.from("legal_versions").delete().in("id", fixture.extraVersionIds)).error,
+    );
+  }
   const versionIds = [fixture.publishedId, fixture.draftId, fixture.countryPublishedId].filter(
     (id): id is string => id !== null,
   );
@@ -586,146 +617,129 @@ test.describe("Legal doors", () => {
     const fixture = await seedFixture(kind, null);
     const person = await leaseUser();
     const supabase = adminClient();
-    const extraVersionIds: string[] = [];
-    try {
-      const caller = await asPerson(person);
-      const before = await caller.rpc("my_legal_status", { p_kinds: [kind] });
-      expect(before.error).toBeNull();
-      const beforeRows = before.data as Row[];
-      expect(beforeRows.map((r) => r["version_id"])).toContain(fixture.publishedId);
+    const caller = await asPerson(person);
+    const before = await caller.rpc("my_legal_status", { p_kinds: [kind] });
+    expect(before.error).toBeNull();
+    const beforeRows = before.data as Row[];
+    expect(beforeRows.map((r) => r["version_id"])).toContain(fixture.publishedId);
 
-      // Two published versions in force yield one row: the newer version.
-      const correction = await supabase
-        .from("legal_versions")
-        .insert({
-          document_id: fixture.documentId,
-          version: 2,
-          status: "published",
-          label: "v2",
-          body_en: "Corrected English",
-          body_am: "Corrected Amharic",
-          changelog: "correction",
-          material: false,
-          effective_at: new Date(Date.now() - 30_000).toISOString(),
-          published_at: new Date(Date.now() - 30_000).toISOString(),
-          settings_snapshot: { seed: true },
-        })
-        .select("id")
-        .single();
-      if (correction.error || !correction.data)
-        throw new Error(`[e2e:legal] correction seed: ${correction.error?.message}`);
-      extraVersionIds.push(correction.data.id);
-      const newest = await caller.rpc("my_legal_status", { p_kinds: [kind] });
-      expect(newest.error).toBeNull();
-      const newestRows = newest.data as Row[];
-      expect(
-        newestRows,
-        "one row for the scratch document, not every published version",
-      ).toHaveLength(1);
-      expect(newestRows[0]?.["version_id"]).toBe(correction.data.id);
-      expect(newestRows[0]?.["version"]).toBe(2);
+    // Two published versions in force yield one row: the newer version.
+    const correction = await supabase
+      .from("legal_versions")
+      .insert({
+        document_id: fixture.documentId,
+        version: 2,
+        status: "published",
+        label: "v2",
+        body_en: "Corrected English",
+        body_am: "Corrected Amharic",
+        changelog: "correction",
+        material: false,
+        effective_at: new Date(Date.now() - 30_000).toISOString(),
+        published_at: new Date(Date.now() - 30_000).toISOString(),
+        settings_snapshot: { seed: true },
+      })
+      .select("id")
+      .single();
+    if (correction.error || !correction.data)
+      throw new Error(`[e2e:legal] correction seed: ${correction.error?.message}`);
+    fixture.extraVersionIds.push(correction.data.id);
+    const newest = await caller.rpc("my_legal_status", { p_kinds: [kind] });
+    expect(newest.error).toBeNull();
+    const newestRows = newest.data as Row[];
+    expect(
+      newestRows,
+      "one row for the scratch document, not every published version",
+    ).toHaveLength(1);
+    expect(newestRows[0]?.["version_id"]).toBe(correction.data.id);
+    expect(newestRows[0]?.["version"]).toBe(2);
 
-      const accepted = await caller.rpc("accept_legal", {
-        p_version_ids: [correction.data.id],
-        p_language: "en",
-        p_adult: true,
-      });
-      expect(accepted.error).toBeNull();
-      const after = await caller.rpc("my_legal_status", { p_kinds: [kind] });
-      expect(after.error).toBeNull();
-      expect((after.data as Row[]).length, "accepted: the kind is no longer listed").toBe(0);
+    const accepted = await caller.rpc("accept_legal", {
+      p_version_ids: [correction.data.id],
+      p_language: "en",
+      p_adult: true,
+    });
+    expect(accepted.error).toBeNull();
+    const after = await caller.rpc("my_legal_status", { p_kinds: [kind] });
+    expect(after.error).toBeNull();
+    expect((after.data as Row[]).length, "accepted: the kind is no longer listed").toBe(0);
 
-      // A published material version still ahead must not ask the person again.
-      const future = await supabase
-        .from("legal_versions")
-        .insert({
-          document_id: fixture.documentId,
-          version: 4,
-          status: "published",
-          label: "v4",
-          body_en: "Future English",
-          body_am: "Future Amharic",
-          changelog: "future material change",
-          material: true,
-          effective_at: new Date(Date.now() + 86_400_000).toISOString(),
-          published_at: new Date().toISOString(),
-          settings_snapshot: { seed: true },
-        })
-        .select("id")
-        .single();
-      if (future.error || !future.data)
-        throw new Error(`[e2e:legal] future material seed: ${future.error?.message}`);
-      extraVersionIds.push(future.data.id);
-      const ahead = await caller.rpc("my_legal_status", { p_kinds: [kind] });
-      expect(ahead.error).toBeNull();
-      expect(
-        ahead.data,
-        "accepted version stays accepted while the material version is ahead",
-      ).toEqual([]);
+    // A published material version still ahead must not ask the person again.
+    const future = await supabase
+      .from("legal_versions")
+      .insert({
+        document_id: fixture.documentId,
+        version: 4,
+        status: "published",
+        label: "v4",
+        body_en: "Future English",
+        body_am: "Future Amharic",
+        changelog: "future material change",
+        material: true,
+        effective_at: new Date(Date.now() + 86_400_000).toISOString(),
+        published_at: new Date().toISOString(),
+        settings_snapshot: { seed: true },
+      })
+      .select("id")
+      .single();
+    if (future.error || !future.data)
+      throw new Error(`[e2e:legal] future material seed: ${future.error?.message}`);
+    fixture.extraVersionIds.push(future.data.id);
+    const ahead = await caller.rpc("my_legal_status", { p_kinds: [kind] });
+    expect(ahead.error).toBeNull();
+    expect(
+      ahead.data,
+      "accepted version stays accepted while the material version is ahead",
+    ).toEqual([]);
 
-      // A material version whose time has passed lists the kind again.
-      const material = await supabase
-        .from("legal_versions")
-        .insert({
-          document_id: fixture.documentId,
-          version: 3,
-          status: "published",
-          label: "v3",
-          body_en: "New English",
-          body_am: "New Amharic",
-          changelog: "material change",
-          material: true,
-          effective_at: new Date(Date.now() - 60_000).toISOString(),
-          published_at: new Date(Date.now() - 60_000).toISOString(),
-          settings_snapshot: { seed: true },
-        })
-        .select("id")
-        .single();
-      if (material.error || !material.data)
-        throw new Error(`[e2e:legal] material seed: ${material.error?.message}`);
-      fixture.draftId = material.data.id as string;
-      const relisted = await caller.rpc("my_legal_status", { p_kinds: [kind] });
-      expect(relisted.error).toBeNull();
-      expect((relisted.data as Row[]).map((r) => r["version_id"])).toContain(fixture.draftId);
-      expect(relisted.data, "only the material version already in force is returned").toHaveLength(
-        1,
-      );
+    // A material version whose time has passed lists the kind again.
+    const material = await supabase
+      .from("legal_versions")
+      .insert({
+        document_id: fixture.documentId,
+        version: 3,
+        status: "published",
+        label: "v3",
+        body_en: "New English",
+        body_am: "New Amharic",
+        changelog: "material change",
+        material: true,
+        effective_at: new Date(Date.now() - 60_000).toISOString(),
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+        settings_snapshot: { seed: true },
+      })
+      .select("id")
+      .single();
+    if (material.error || !material.data)
+      throw new Error(`[e2e:legal] material seed: ${material.error?.message}`);
+    fixture.draftId = material.data.id as string;
+    const relisted = await caller.rpc("my_legal_status", { p_kinds: [kind] });
+    expect(relisted.error).toBeNull();
+    expect((relisted.data as Row[]).map((r) => r["version_id"])).toContain(fixture.draftId);
+    expect(relisted.data, "only the material version already in force is returned").toHaveLength(1);
 
-      // A country document applies only to a matching home country.
-      const country = await seedFixture(kind, "DE");
-      fixture.countryDocumentId = country.documentId;
-      fixture.countryPublishedId = country.publishedId;
-      const notMine = await caller.rpc("my_legal_status", { p_kinds: [`${RUN_TAG}-none`] });
-      expect(notMine.error).toBeNull();
-      const home = await supabase
-        .from("profiles")
-        .update({ home_country_code: "DE" })
-        .eq("user_id", person.id);
-      expect(home.error).toBeNull();
-      const mine = await caller.rpc("my_legal_status", { p_kinds: [kind] });
-      const mineIds = (mine.data as Row[]).map((r) => r["version_id"]);
-      expect(mineIds).toContain(country.publishedId);
-    } finally {
-      await adminClient()
-        .from("profiles")
-        .update({ home_country_code: null })
-        .eq("user_id", person.id);
-      await (async () => {
-        if (extraVersionIds.length === 0) return;
-        const acceptances = await supabase
-          .from("legal_acceptances")
-          .delete()
-          .in("version_id", extraVersionIds);
-        if (acceptances.error) throw acceptances.error;
-        const notices = await supabase
-          .from("legal_notices")
-          .delete()
-          .in("version_id", extraVersionIds);
-        if (notices.error) throw notices.error;
-        const versions = await supabase.from("legal_versions").delete().in("id", extraVersionIds);
-        if (versions.error) throw versions.error;
-      })();
-    }
+    // A country document applies only to a matching home country.
+    const country = await seedFixture(kind, "DE");
+    fixture.countryDocumentId = country.documentId;
+    fixture.countryPublishedId = country.publishedId;
+    const notMine = await caller.rpc("my_legal_status", { p_kinds: [`${RUN_TAG}-none`] });
+    expect(notMine.error).toBeNull();
+    const previousHome = await supabase
+      .from("profiles")
+      .select("home_country_code")
+      .eq("user_id", person.id)
+      .single();
+    if (previousHome.error || !previousHome.data)
+      throw new Error(`[e2e:legal] home country read: ${previousHome.error?.message}`);
+    fixture.homeReset = { userId: person.id, code: previousHome.data.home_country_code };
+    const home = await supabase
+      .from("profiles")
+      .update({ home_country_code: "DE" })
+      .eq("user_id", person.id);
+    expect(home.error).toBeNull();
+    const mine = await caller.rpc("my_legal_status", { p_kinds: [kind] });
+    const mineIds = (mine.data as Row[]).map((r) => r["version_id"]);
+    expect(mineIds).toContain(country.publishedId);
   });
 
   test("LG-6 the settings doors: the seeded row for the super admin, refusals for every lesser caller and every bad value; the row is never written", async ({
