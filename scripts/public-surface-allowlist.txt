@@ -100,8 +100,9 @@ admin_listing_reports | the listing's reports for listings:review (B19 M4)
 admin_open_report_counts | open-report counts per listing for the console's rows, listings:review, at most 100 ids (B19 M4)
 seller_feed_page | the seller's live ads by his public key (the alias lower-cased, never an id) for the seller's ads page (D201 §12): anonymous and signed in, feed_page's card shape and order (B19 M8)
 legal_in_force | the in-force legal texts are public (anon read); never the change log (B22 Stage 1 turn 1)
+legal_scheduled | the next legal version not yet in force is public ahead of its date (anon read); never the change log (B22 Stage 1 turn 3)
 my_legal_status | the caller's own legal standing (acceptance screen, turn 2); signed in, own rows only
-accept_legal | the caller accepts versions for himself; signed in, own rows only, adult statement and language required
+accept_legal | the caller accepts versions for himself; signed in, own rows only, adult statement and language required, and the separate storage consent for a Privacy Policy version
 my_legal_history | the caller's own acceptances and legal e-mails; signed in, own rows only
 my_legal_version | the whole text of a version the caller accepted, was sent or that is in force; signed in
 admin_legal_documents | staff list of documents and versions; checks legal:view inside

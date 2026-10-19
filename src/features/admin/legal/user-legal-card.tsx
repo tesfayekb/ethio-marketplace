@@ -71,6 +71,11 @@ export function UserLegalCard({ userId }: { userId: string }) {
                 )
                 .replace("{method}", row.method ?? "")}
             </p>
+            {row.data_consent ? (
+              <p data-testid="user-legal-consent" className="text-muted-foreground">
+                {t("admin.users.legal.consent")}
+              </p>
+            ) : null}
           </li>
         ))}
       </ul>

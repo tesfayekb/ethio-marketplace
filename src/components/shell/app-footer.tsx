@@ -6,10 +6,16 @@ import type { MessageKey } from "@/i18n";
 
 type FooterColumn = { headingKey: MessageKey; items: MessageKey[] };
 
+const ROUTED: Partial<Record<MessageKey, { to: "/terms" | "/privacy"; testid: string }>> = {
+  "footer.terms": { to: "/terms", testid: "footer-terms" },
+  "footer.privacy": { to: "/privacy", testid: "footer-privacy" },
+};
+
 /**
  * D116 / D135: full-width footer with a brand block and three equal link columns.
- * TODO(footer-links): About / Safety / Terms / Privacy / Contact have no routes
- * yet; they remain non-navigating text with a 44px target.
+ * Bundle 22 turn 3: Terms and Privacy have routes (/terms, /privacy) and are links;
+ * About, Contact and Safety have no routes yet and remain non-navigating text with a
+ * 44px target.
  */
 const COLUMNS: FooterColumn[] = [
   { headingKey: "footer.sectionCompany", items: ["footer.about", "footer.contact"] },
@@ -61,11 +67,20 @@ export function AppFooter() {
               {t(column.headingKey)}
             </h2>
             <ul className="flex flex-col items-center md:items-start">
-              {column.items.map((item) => (
-                <li key={item} className="-my-2">
-                  <span className={LINK}>{t(item)}</span>
-                </li>
-              ))}
+              {column.items.map((item) => {
+                const route = ROUTED[item];
+                return (
+                  <li key={item} className="-my-2">
+                    {route ? (
+                      <Link to={route.to} data-testid={route.testid} className={LINK}>
+                        {t(item)}
+                      </Link>
+                    ) : (
+                      <span className={LINK}>{t(item)}</span>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         ))}

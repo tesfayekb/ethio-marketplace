@@ -16,6 +16,7 @@ import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { LegalText } from "@/features/legal/legal-text";
 import { unknownTokens } from "@/features/legal/legal-markdown";
+import { ownValue } from "@/lib/own-key";
 import {
   kindKey,
   legalErrorKey,
@@ -72,6 +73,17 @@ export function LegalEditorForm({
   const changed = JSON.stringify(values) !== JSON.stringify(savedValues);
   const mayEdit = permissions.includes("legal:edit");
   const tokens = unknownTokens(lang === "en" ? values.body_en : values.body_am, facts);
+  // Bundle 22 turn 3 — tokens whose fact is empty today: publishing refuses them (factMissing).
+  const emptyFacts = [
+    ...new Set(
+      [...(lang === "en" ? values.body_en : values.body_am).matchAll(/\{\{([a-z_]+)\}\}/g)].map(
+        (m) => m[1] ?? "",
+      ),
+    ),
+  ].filter((name) => {
+    const fact = ownValue(facts, name);
+    return fact === null || (fact !== undefined && String(fact).trim() === "");
+  });
   const count = (value: string, max: number) =>
     t("admin.legal.count").replace("{count}", String(value.length)).replace("{max}", String(max));
   return (
@@ -161,6 +173,11 @@ export function LegalEditorForm({
               {tokens.length ? (
                 <p data-testid="legal-unknown-tokens">
                   {t("admin.legal.unknownTokens").replace("{tokens}", tokens.join(", "))}
+                </p>
+              ) : null}
+              {emptyFacts.length ? (
+                <p data-testid="legal-empty-facts">
+                  {t("admin.legal.emptyFacts").replace("{tokens}", emptyFacts.join(", "))}
                 </p>
               ) : null}
               <LegalText text={lang === "en" ? values.body_en : values.body_am} facts={facts} />

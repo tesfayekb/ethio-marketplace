@@ -98,7 +98,16 @@ export const AREAS: Area[] = [
   {
     // Bundle 22 (Stage 1) — the legal documents' database and, from turn 2, its screens.
     name: "legal",
-    src: ["src/features/legal/**", "src/features/admin/legal/**", "src/routes/admin.legal*"],
+    src: [
+      "src/features/legal/**",
+      "src/features/admin/legal/**",
+      "src/routes/admin.legal*",
+      "src/routes/legal.*",
+      "src/routes/terms.tsx",
+      "src/routes/privacy.tsx",
+      "src/routes/account_.legal*",
+      "src/server/legal-page.ts",
+    ],
     specs: ["e2e/legal-*.spec.ts"],
   },
   {

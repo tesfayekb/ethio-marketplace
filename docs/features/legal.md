@@ -47,29 +47,30 @@ only); all reads and writes go through the doors below.
 
 Reader doors:
 
-| Door                                               | Caller                                            | Refusals                                                                            |
-| -------------------------------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `legal_in_force(p_kind, p_country)`                | anyone (anon + authenticated)                     | — (answers NULL when nothing is in force)                                           |
-| `my_legal_status(p_kinds)`                         | signed in, own standing                           | not authenticated                                                                   |
-| `accept_legal(p_version_ids, p_language, p_adult)` | signed in, own rows                               | not authenticated, emptyList, adultRequired, badLanguage, notInForce, notApplicable |
-| `my_legal_history()`                               | signed in, own rows                               | not authenticated                                                                   |
-| `my_legal_version(p_version_id)`                   | signed in; accepted, noticed or in-force versions | not authenticated, notYours                                                         |
-| `record_legal_notice(...)`                         | service role only                                 | permission denied, notPublished                                                     |
+| Door                                                               | Caller                                            | Refusals                                                                                             |
+| ------------------------------------------------------------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `legal_in_force(p_kind, p_country)`                                | anyone (anon + authenticated)                     | — (answers NULL when nothing is in force)                                                            |
+| `legal_scheduled(p_kind, p_country)`                               | anyone (anon + authenticated)                     | — (NULL when no published version is ahead of its date)                                              |
+| `my_legal_status(p_kinds)`                                         | signed in, own standing                           | not authenticated                                                                                    |
+| `accept_legal(p_version_ids, p_language, p_adult, p_data_consent)` | signed in, own rows                               | not authenticated, emptyList, adultRequired, badLanguage, notInForce, notApplicable, consentRequired |
+| `my_legal_history()`                                               | signed in, own rows                               | not authenticated                                                                                    |
+| `my_legal_version(p_version_id)`                                   | signed in; accepted, noticed or in-force versions | not authenticated, notYours                                                                          |
+| `record_legal_notice(...)`                                         | service role only                                 | permission denied, notPublished                                                                      |
 
 Staff doors (each checks its own permission through `has_permission`; the mutating ones also call
 `require_step_up_if_needed('legal', <action>)`; every refusal of a missing or lesser caller is
 `permission denied` or the step-up refusal; `e2e-` scratch documents follow the real kinds in the staff list):
 
-| Door                                      | Permission                       | Refusals                                                                                                     |
-| ----------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `admin_legal_documents()`                 | legal:view                       | —                                                                                                            |
-| `admin_legal_version(p_version_id)`       | legal:view (change log included) | unknownVersion                                                                                               |
-| `admin_save_legal_draft(...)`             | legal:edit + step-up             | badValue:kind, badValue:country, labelRequired, labelTaken                                                   |
-| `admin_discard_legal_draft(p_version_id)` | legal:edit + step-up             | unknownVersion, notDraft                                                                                     |
-| `admin_publish_legal_version(...)`        | legal:publish + step-up          | badValue:material, unknownVersion, notDraft, labelRequired, bothLanguages, changelogRequired, noticeTooShort |
-| `admin_legal_settings()`                  | legal:view                       | —                                                                                                            |
-| `admin_set_legal_settings(p_settings)`    | legal:edit + step-up             | badValue:&lt;field&gt; (bad e-mail, out-of-range number, over-long text, unknown key)                        |
-| `admin_user_legal_history(p_user_id)`     | profiles:view                    | unknownUser                                                                                                  |
+| Door                                      | Permission                       | Refusals                                                                                                                               |
+| ----------------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `admin_legal_documents()`                 | legal:view                       | —                                                                                                                                      |
+| `admin_legal_version(p_version_id)`       | legal:view (change log included) | unknownVersion                                                                                                                         |
+| `admin_save_legal_draft(...)`             | legal:edit + step-up             | badValue:kind, badValue:country, labelRequired, labelTaken                                                                             |
+| `admin_discard_legal_draft(p_version_id)` | legal:edit + step-up             | unknownVersion, notDraft                                                                                                               |
+| `admin_publish_legal_version(...)`        | legal:publish + step-up          | badValue:material, unknownVersion, notDraft, labelRequired, bothLanguages, changelogRequired, noticeTooShort, unknownFact, factMissing |
+| `admin_legal_settings()`                  | legal:view                       | —                                                                                                                                      |
+| `admin_set_legal_settings(p_settings)`    | legal:edit + step-up             | badValue:&lt;field&gt; (bad e-mail, out-of-range number, over-long text, unknown key)                                                  |
+| `admin_user_legal_history(p_user_id)`     | profiles:view                    | unknownUser                                                                                                                            |
 
 The mutating staff doors write an audit row (`legal.draft_saved`, `legal.draft_discarded`,
 `legal.published`, `legal.settings_set`).
@@ -109,8 +110,7 @@ document stays absent while a material version is ahead, and returns when a mate
   extra 0–90; deleted ads 1–120 months; disputes 0–20 years. Texts are required except the copyright
   agent; both e-mails are validated. Invalid forms send no request, Cancel restores read-only values.
 - User detail (`user-legal-*`): newest-first acceptances and e-mail notices, named empty/error/loading
-  states, version links only when the viewer holds legal:view. Notices show Version n without a
-  version name because the existing history door does not return one.
+  states, version links only when the viewer holds legal:view.
 
 LegalText renders React nodes only, never HTML: h1–h3, paragraph lines joined by spaces, single-level
 bullet/number lists with indented continuations, trimmed pipe tables, bold, inline code, safe explicit
@@ -122,3 +122,31 @@ Next: turn 3 public Terms and Privacy, the 18+ acceptance at sign-in and the per
 
 Tests: LG-1…LG-10 exercise the doors; LGA-1…LGA-7 exercise Admin › Legal and the user card.
 The phone-frame super admin route census includes `/admin/legal`.
+
+## Turn 3 — the public pages, the acceptance and the person's documents
+
+- Routes: `/terms` and `/privacy` (public, SSR, canonical and og URLs from the root origin) show the
+  version in force with its meta line, an English/Amharic switch, Print and the contents list; a
+  published version ahead of its date (`legal_scheduled`) is announced with its date and can be shown
+  instead. `/legal/terms` and `/legal/privacy` redirect there; `/legal/<e2e kind>` exists only in E2E
+  builds (noindex); every other `/legal/<x>` is not found.
+- The gate (`useLegalGate`, called once by the shell): while a person is signed in and not signing out,
+  it reads `my_legal_status` for terms and privacy; anything listed sends him, replacing the entry, to
+  `/legal/accept?next=<path>`. Exempt: `/legal/accept`, `/terms`, `/privacy`, anything under `/legal/`
+  and `/auth`. A failed read redirects nobody and logs `[client-error] legal gate read failed`; the
+  doors stay the authority. Only E2E builds (`isE2E`) may add scratch kinds through
+  `window.__ethioLegalKinds`; production asks for exactly terms and privacy.
+- The acceptance screen: one row per listed version with Read/Hide in place; tick 1 is the 18+
+  statement with the Terms and/or the Privacy Policy (recorded as `adult_confirmed`), tick 2 appears
+  only for a Privacy Policy version and is the separate consent to storage in the United States
+  (recorded as `data_consent`; the door refuses consentRequired without it). Sign out leaves without
+  any record. A notInForce refusal re-reads the list and clears the ticks.
+- `/account/legal` lists the person's acceptances (with consent) and legal e-mails, newest first;
+  `/account/legal/<version id>` shows one version with its frozen facts, the language switch and Print.
+  Printing shows only the element marked `data-print-root`.
+- Six new facts: operator_details, security_email, legal_phone, listed_ad_keep_months,
+  account_keep_months, technical_keep_months (18 in all; providers is no longer shown). Notices show
+  their version's name.
+- Publishing refuses a token that is not a fact (unknownFact:<name>) or whose fact is empty today
+  (factMissing:<name>); the editor's preview lists the empty-fact tokens.
+- Never publish a version of a real kind (terms, privacy) on ethio-staging: every E2E account would meet the acceptance screen.
