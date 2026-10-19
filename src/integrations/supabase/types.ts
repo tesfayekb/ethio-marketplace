@@ -4721,6 +4721,10 @@ export type Database = {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
       }
+      legal_listing_certified: {
+        Args: { p_ids: string[]; p_listing_id: string }
+        Returns: boolean
+      }
       legal_listing_countries: {
         Args: { p_listing_id: string }
         Returns: string[]
@@ -4901,7 +4905,9 @@ export type Database = {
       register_listing_photo: {
         Args: {
           p_bytes: number
+          p_certified?: string[]
           p_height: number
+          p_language?: string
           p_listing_id: string
           p_paths: Json
           p_photo_id: string
@@ -4929,7 +4935,9 @@ export type Database = {
       replace_listing_photo: {
         Args: {
           p_bytes: number
+          p_certified?: string[]
           p_height: number
+          p_language?: string
           p_listing_id: string
           p_old_photo_id: string
           p_paths: Json
