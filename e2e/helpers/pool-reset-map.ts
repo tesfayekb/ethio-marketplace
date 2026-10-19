@@ -32,6 +32,10 @@ export const POOL_RESET_TABLES = {
     "viewer_id rows deleted (B19 M5 — a day's sellers-cap flags never carry into a later lease)",
   alias_history: "user_id rows deleted (a pooled account's past names never block a later test)",
   seller_places: "user_id row deleted (a saved shop place never carries into a later lease)",
+  legal_acceptances:
+    "user_id rows deleted (a lease's legal acceptances never carry into a later lease; bundle 22 turn 1)",
+  legal_notices:
+    "user_id rows deleted (a lease's legal e-mails never carry into a later lease; bundle 22 turn 1)",
 } as const;
 
 export const POOL_EXEMPT_TABLES = {
@@ -50,6 +54,9 @@ export const POOL_EXEMPT_TABLES = {
     "decided_by is attribution on a photo's review; the account's own reviews cascade with its photos and listings (bundle 16 turn 4a)",
   listing_policy: "updated_by is attribution on the global renew setting row (bundle 16)",
   screening_verdicts: "reviewer is attribution; the account's own verdicts cascade with listings",
+  legal_versions:
+    "created_by / published_by are attribution on version history; published scratch rows are never pooled (bundle 22 turn 1)",
+  legal_settings: "updated_by is attribution on the global legal-facts row (bundle 22 turn 1)",
   ui_translation_revisions: "changed_by is attribution on revision history",
   ui_translations: "updated_by / approved_by are attribution",
 } as const;
