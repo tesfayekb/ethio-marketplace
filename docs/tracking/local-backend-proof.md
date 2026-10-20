@@ -1,27 +1,27 @@
 # Local backend proof (non-gating)
 
-- Commit: `17e867e2e28f169f11c2436dd4cbc4a4db316a7c`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39441214257
+- Commit: `1a5b21bd789cf8edbd4ac303dcedd65e83d39304`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39450658576
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 880 | 116 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
-| 1 | not run | 359 | applied 329/329 | 0 | 0 | 0 | 0 | 0 |
-| 2 | 1022 | 109 | applied 329/329 | 146 | 0 | 0 | 1 | 147 |
-| 3 | 665 | 103 | applied 329/329 | 174 | 1 | 0 | 2 | 177 |
-| 4 | 743 | 117 | applied 329/329 | 168 | 0 | 2 | 6 | 176 |
-| 5 | 854 | 117 | applied 329/329 | 151 | 0 | 0 | 1 | 152 |
-| 6 | 707 | 118 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
-| 7 | 1020 | 105 | applied 329/329 | 158 | 0 | 1 | 3 | 162 |
-| 8 | 1158 | 119 | applied 329/329 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 718 | 100 | applied 329/329 | 162 | 0 | 0 | 6 | 168 |
-| 10 | 850 | 106 | applied 329/329 | 168 | 0 | 2 | 6 | 176 |
-| 11 | 768 | 86 | applied 329/329 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 588 | 105 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 1925 | 1 | 5 | 148 | 2079 |
+| smoke | 831 | 98 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
+| 1 | 1166 | 117 | applied 329/329 | 187 | 0 | 1 | 6 | 194 |
+| 2 | 973 | 98 | applied 329/329 | 146 | 0 | 0 | 1 | 147 |
+| 3 | 733 | 107 | applied 329/329 | 175 | 0 | 0 | 2 | 177 |
+| 4 | 749 | 112 | applied 329/329 | 168 | 0 | 2 | 6 | 176 |
+| 5 | 779 | 103 | applied 329/329 | 151 | 0 | 0 | 1 | 152 |
+| 6 | 682 | 104 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
+| 7 | 1041 | 121 | applied 329/329 | 158 | 0 | 1 | 3 | 162 |
+| 8 | 1126 | 104 | applied 329/329 | 170 | 0 | 0 | 1 | 171 |
+| 9 | 787 | 110 | applied 329/329 | 162 | 0 | 0 | 6 | 168 |
+| 10 | 661 | 89 | applied 329/329 | 168 | 0 | 2 | 6 | 176 |
+| 11 | 886 | 103 | applied 329/329 | 190 | 0 | 0 | 2 | 192 |
+| 12 | 585 | 118 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2113 | 0 | 6 | 154 | 2273 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
 
-- Slowest lane: 8 1158 s
+- Slowest lane: 1 1166 s
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -44,10 +44,7 @@ API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
 ## Lane 1
-- No JSON results; smoke cancelled
-
-## Lane 3
-- legal-certify.spec.ts / Legal certification / LGC-3 the staff card lists an ad's certification with the statement's name; an ad with none says so / mobile-360 — Error: [render-leak] gotoReady(/admin/listings/[account id]) rendered “undefined” at listing-history-what < listing-history-entry-0 < listing-history (p): “Status: undefined → Waiting for review”
+- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-41 the page's remaining lines / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
 
 ## Lane 4
 - my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
