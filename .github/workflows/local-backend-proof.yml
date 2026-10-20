@@ -491,6 +491,21 @@ jobs:
               text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
               text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
               return text
+          def mask_json(value):
+              if isinstance(value, str):
+                  return redact(value)
+              if isinstance(value, list):
+                  return [mask_json(item) for item in value]
+              if isinstance(value, dict):
+                  return {redact(key): mask_json(item) for key, item in value.items()}
+              return value
+          # Self-check (INC-794): synthetic strings through the results path must stay valid JSON.
+          probe_hex = ('ab' * 20) if os.environ['GITHUB_SHA'] != 'ab' * 20 else ('cd' * 20)
+          probe = {'body': 'line\nuser@example.invalid', 'ansi': '\u001b[2mtoken', 'hex': probe_hex}
+          checked = json.loads(json.dumps(mask_json(json.loads(json.dumps(probe))), ensure_ascii=False))
+          if checked['body'] != 'line\n[e-mail]' or checked['hex'] != '[masked hex]':
+              raise SystemExit('results masking self-check: FAILED')
+          print('results masking self-check: OK')
           env = os.environ
           lane = env['PROOF_LANE']
           lines = ['- Lane: ' + lane, '# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0', '- Seconds — job: ' + env.get('JOB_SECONDS', 'not run')]
@@ -551,7 +566,13 @@ jobs:
           def safe(text):
               return redact(re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text))
           Path('local-backend-proof-' + lane + '.md').write_text(safe('\n'.join(lines)) + '\n')
-          for artifact in (results, Path('local-backend-lane-' + lane + '.log'), *Path('test-results').rglob('error-context.md')):
+          # INC-794: the results file is masked as data, string by string, so it stays valid JSON.
+          if results.exists():
+              try:
+                  results.write_text(json.dumps(mask_json(json.loads(results.read_text())), ensure_ascii=False))
+              except ValueError:
+                  results.write_text(redact(results.read_text(errors='replace')))
+          for artifact in (Path('local-backend-lane-' + lane + '.log'), *Path('test-results').rglob('error-context.md')):
               if artifact.exists():
                   artifact.write_text(redact(artifact.read_text(errors='replace')))
           lane_log = Path('local-backend-lane-' + lane + '.log')

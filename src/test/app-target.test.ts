@@ -75,8 +75,8 @@ describe("INC-464 — assertAppTargetsStaging", () => {
   });
 
   it("refuses the local URL without the local flag", () => {
-    expect(messageOf({ VITE_SUPABASE_URL: "http://127.0.0.1:54321" })).toContain(
-      "(VITE_SUPABASE_URL = http://127.0.0.1:54321)",
+    expect(messageOf({ VITE_SUPABASE_URL: "https://127.0.0.1:54321" })).toContain(
+      "(VITE_SUPABASE_URL = https://127.0.0.1:54321)",
     );
   });
 });
