@@ -522,6 +522,10 @@ builds the E2E app against that stack, and runs the same four smoke files and bo
 viewport projects as staging CI. The runner disposes the backend after the run.
 The prerequisite census and phase 2 gaps are in `docs/features/ci-local-backend.md`.
 
+The proof's working copy carries named fixes (one skipped never-applied file, three
+patches, six fixtures; the list in `docs/features/ci-local-backend.md`), never edits
+to landed migrations. DEC-209 criterion (1) counts the migrations hosted applied.
+
 Evidence (timings, migration result and CLI error tail, smoke counts and failing
 test titles) lands only on ci-evidence at `docs/tracking/local-backend-proof.md`;
 the workflow also keeps the JSON reporter output and prints a notice. No hosted
