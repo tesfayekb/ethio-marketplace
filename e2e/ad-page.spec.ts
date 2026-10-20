@@ -1044,6 +1044,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await sellerItem.click();
     await sampleScroll("seller");
     await expect(sellerItem).toHaveAttribute("aria-current", "true");
+    await page.waitForTimeout(600);
+    await expect(sellerItem).toHaveAttribute("aria-current", "true");
     await expect
       .poll(async () => {
         const seller = await page
@@ -1056,6 +1058,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
     await sampleScroll("location");
+    await expect(locationItem).toHaveAttribute("aria-current", "true");
+    await page.waitForTimeout(600);
     await expect(locationItem).toHaveAttribute("aria-current", "true");
     await expect
       .poll(async () => {
