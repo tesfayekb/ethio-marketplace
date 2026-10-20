@@ -140,7 +140,7 @@ test.describe("Legal acceptance", () => {
     const submit = page.getByTestId("legal-accept-submit");
     await expect(submit).toBeDisabled();
     await expect(page.getByTestId("legal-accept-screen")).toContainText(
-      "I am 18 or older. I agree to the Terms of Service, and I have read the Privacy Policy.",
+      "I am 18 or older. I have read and agree to the Terms of Service and the Privacy Policy.",
     );
     await page.getByTestId("legal-accept-tick").click();
     const privacyRow = page.locator(`[data-testid="legal-accept-doc"][data-kind="${tag}-privacy"]`);
@@ -170,7 +170,7 @@ test.describe("Legal acceptance", () => {
     await page.goto("/account");
     await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
     await expect(page.getByTestId("legal-accept-screen")).toContainText(
-      "I am 18 or older. I agree to the Terms of Service.",
+      "I am 18 or older. I have read and agree to the Terms of Service.",
     );
     await page.getByTestId("legal-accept-tick").click();
     await page.getByTestId("legal-accept-submit").click();
@@ -241,7 +241,7 @@ test.describe("Legal acceptance", () => {
     await expect(row).toHaveAttribute("data-kind", `${tag}-terms`);
     await expect(row).toContainText("Version 2");
     await expect(page.getByTestId("legal-accept-screen")).toContainText(
-      "I agree to the new Terms of Service.",
+      "I have read and agree to the updated Terms of Service.",
     );
     await expect(page.getByTestId("legal-accept-screen")).not.toContainText("18 or older");
     await page.getByTestId("legal-accept-tick").click();
