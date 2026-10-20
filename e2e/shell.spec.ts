@@ -93,6 +93,16 @@ async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]
   expect(box!.height, `${name} height`).toBeGreaterThanOrEqual(44);
 }
 
+async function gapY(a: Locator, b: Locator): Promise<number> {
+  const [boxA, boxB] = await Promise.all([a.boundingBox(), b.boundingBox()]);
+  return boxA && boxB ? Math.abs(boxA.y - boxB.y) : Number.POSITIVE_INFINITY;
+}
+
+async function gapHeight(a: Locator, b: Locator): Promise<number> {
+  const [boxA, boxB] = await Promise.all([a.boundingBox(), b.boundingBox()]);
+  return boxA && boxB ? Math.abs(boxA.height - boxB.height) : Number.POSITIVE_INFINITY;
+}
+
 /**
  * U0i FOOTER-CLAMP LAW (md+). The aside's top is pinned under the 3.5rem band,
  * and its bottom follows whichever comes first: the viewport bottom, or the
@@ -3831,15 +3841,29 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
         "aria-label",
         new RegExp(escapeRe(en["shell.favouriteBadge"])),
       );
-      const stripBox = await stripRow.boundingBox();
-      if (!stripBox) throw new Error("FV-1 missing strip favourite bounds");
-      expect(Math.abs(stripBox.y - favouriteBox.y)).toBeLessThanOrEqual(1);
-      expect(Math.abs(stripBox.height - favouriteBox.height)).toBeLessThanOrEqual(1);
+      await expect
+        .poll(() => gapY(stripRow, row), {
+          message: "FV-1 the strip's favourite row level with the menu's",
+        })
+        .toBeLessThanOrEqual(1);
+      await expect
+        .poll(() => gapHeight(stripRow, row), {
+          message: "FV-1 the strip's favourite row as tall as the menu's",
+        })
+        .toBeLessThanOrEqual(1);
       for (const mainSlug of mainSlugs) {
-        const menuBox = await scope.getByTestId(`rail-category-${mainSlug}`).boundingBox();
-        const paintedBox = await strip.getByTestId(`strip-category-${mainSlug}`).boundingBox();
-        if (!menuBox || !paintedBox) throw new Error(`FV-1 missing ${mainSlug} bounds`);
-        expect(Math.abs(menuBox.y - paintedBox.y)).toBeLessThanOrEqual(1);
+        await expect
+          .poll(
+            () =>
+              gapY(
+                scope.getByTestId(`rail-category-${mainSlug}`),
+                strip.getByTestId(`strip-category-${mainSlug}`),
+              ),
+            {
+              message: `FV-1 ${mainSlug} level in the menu and the strip`,
+            },
+          )
+          .toBeLessThanOrEqual(1);
       }
       await page.getByTestId("rail-menu-close").click();
     }
