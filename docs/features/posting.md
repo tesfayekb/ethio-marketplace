@@ -127,6 +127,8 @@ Both wait for the CLIENT-fed level list to render before counting, because the t
 read runs after hydration (J7) — but neither polls over repeated visits any more:
 that polling was covering the staleness this fix removed.
 
+INC-788 — ONE HELD TREE FOR THE WHOLE PAGE. Each mount used to copy the tree into its own state, so a mount made later (the phone menu, opened after the strip) could show a newer catalogue than the mounts before it — the strip and the menu then listed different rows, and a row under the finger could open a different category (D205; FV-1, RM-1). The held tree is now one store every reader subscribes to: every mount still asks, a moved version reaches every reader at once, an unmoved one keeps the same object.
+
 Search-to-leaf over the ONE shared tree reader
 (`src/features/categories/category-tree.ts`, lifted out of the feed so both
 
