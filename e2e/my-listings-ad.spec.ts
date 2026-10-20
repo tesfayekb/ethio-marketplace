@@ -211,15 +211,17 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   });
 
   /** A scratch seller with a public name and its own category branch and place. */
-  async function scratchSeller() {
+  async function scratchSeller(options: { served?: boolean } = {}) {
     const seller = await leaseSeller({ alias: true, named: true });
     sellers.push(seller.id);
     const { parent, leaf } = await seedCategoryBranch();
     branches.push([parent.slug as string, leaf.slug as string]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug as string);
-    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
-    await waitForServedTree("ET", chain.subCity.slug as string);
+    if (options.served === true) {
+      // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+      await waitForServedTree("ET", chain.subCity.slug as string);
+    }
     return {
       ...seller,
       leafId: leaf.id as string,
@@ -1102,7 +1104,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   test("MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659)", async ({
     page,
   }) => {
-    const A = await scratchSeller();
+    const A = await scratchSeller({ served: true });
     const second = await seedScratchChain("ET");
     // INC-659 — a second scratch city at a distinct point, for the map-centre assertion.
     const farPoint = { lat: 7.05, lng: 37.59 };
@@ -1282,7 +1284,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   test("MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it", async ({
     page,
   }) => {
-    const A = await scratchSeller();
+    const A = await scratchSeller({ served: true });
     const second = await seedScratchChain("ET");
     // Reaped in afterEach after the listings, so no place row still points at it.
     regions.push(second.region.slug as string);

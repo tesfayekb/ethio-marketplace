@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { destroyLocation, seedScratchChain, waitForServedTree } from "./helpers/locations";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   bearerOf,
   completeDraft,
@@ -250,8 +250,6 @@ test.describe("POSTING WIZARD — WRITE-IN DETAILS", () => {
     specs.push(set.select.attrKey, set.multi.attrKey);
     const chain = await seedScratchChain("ET");
     places.push(chain.region.slug);
-    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
-    await waitForServedTree("ET", chain.subCity.slug);
     const [held, kept] = set.optionValues as [string, string];
     const saved = await postRoute(
       page,

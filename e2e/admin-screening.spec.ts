@@ -6,7 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
-import { destroyLocation, seedScratchChain, waitForServedTree } from "./helpers/locations";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   BUCKET,
   clearUploadCounter,
@@ -213,8 +213,6 @@ test.describe("ADMIN SCREENING", () => {
     branches.push([parent.slug, leaf.slug]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
-    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
-    await waitForServedTree("ET", chain.subCity.slug);
     const title = options.title ?? `e2e-screen-${RUN}-${rand()}`;
     const { data, error } = await adminClient()
       .from("listings")

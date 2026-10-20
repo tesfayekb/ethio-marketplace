@@ -1223,7 +1223,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
   });
 
   test("AP-41 the page's remaining lines", async ({ page }) => {
-    const seller = await scratchSeller();
+    const seller = await scratchSeller({ served: true });
     const today = await seed(seller, "active", { publishedAt: 0, pin: true });
     const long = Array.from({ length: 40 }, (_, i) => `Scratch description line ${i + 1}`).join(
       "\n",

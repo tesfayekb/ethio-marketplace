@@ -53,15 +53,17 @@ export function adPageFixtures() {
   }
 
   /** A scratch seller with a public name and its own category branch and place. */
-  async function scratchSeller() {
+  async function scratchSeller(options: { served?: boolean } = {}) {
     const seller = await leaseSeller({ alias: true, named: true });
     sellers.push(seller.id);
     const { parent, leaf } = await seedCategoryBranch();
     branches.push([parent.slug as string, leaf.slug as string]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug as string);
-    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
-    await waitForServedTree("ET", chain.subCity.slug as string);
+    if (options.served === true) {
+      // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+      await waitForServedTree("ET", chain.subCity.slug as string);
+    }
     const { data: profile, error } = await adminClient()
       .from("profiles")
       .select("seller_alias")
