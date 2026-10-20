@@ -14,17 +14,20 @@ permissions:
 
 jobs:
   proof:
-    name: Smoke on temporary Supabase (non-gating)
+    name: Lane ${{ matrix.lane }} on temporary Supabase (non-gating)
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    # GitHub permissions are job-scoped; only the publish step receives this
-    # token. Checkout deliberately persists no write credential.
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [smoke, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
     permissions:
-      contents: write
+      contents: read
     env:
       SUPABASE_PROJECT_ID: ethio-ci-local
       E2E_LOCAL_BACKEND: "1"
-      E2E_SHARD: localproof
+      E2E_SHARD: ${{ matrix.lane == 'smoke' && 'localproof' || format('local-{0}', matrix.lane) }}
+      PROOF_LANE: ${{ matrix.lane }}
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
@@ -402,18 +405,23 @@ jobs:
           if [ -n "${BROWSER_BEGIN:-}" ]; then
             echo "BROWSER_SECONDS=$(( $(date +%s) - BROWSER_BEGIN ))" >> "$GITHUB_ENV"
           fi
-      - name: Smoke tier (same files and projects as CI)
+      - name: Run proof lane
         id: smoke
         run: |
           begin=$(date +%s)
           set +e
           set -o pipefail
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts 2>&1 | tee local-backend-smoke.log
+          if [ "$PROOF_LANE" = smoke ]; then
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts > "local-backend-lane-$PROOF_LANE.log" 2>&1
+          else
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/12" > "local-backend-lane-$PROOF_LANE.log" 2>&1
+          fi
           result=$?
           set -e
           echo "TEST_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
+          echo "JOB_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
           exit "$result"
-      - name: Write proof evidence and notice
+      - name: Write lane evidence
         if: always()
         env:
           PROOF_STATUS: ${{ job.status }}
@@ -436,7 +444,8 @@ jobs:
               text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
               return text
           env = os.environ
-          lines = ['# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0']
+          lane = env['PROOF_LANE']
+          lines = ['- Lane: ' + lane, '# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0', '- Seconds — job: ' + env.get('JOB_SECONDS', 'not run')]
           for label, key in [('checkout', 'CHECKOUT_SECONDS'), ('install', 'INSTALL_SECONDS'), ('CLI install', 'CLI_SECONDS'), ('working copy', 'PREPARE_SECONDS'), ('start (migrations included)', 'START_SECONDS'), ('build', 'BUILD_SECONDS'), ('browser install', 'BROWSER_SECONDS'), ('tests', 'TEST_SECONDS')]:
               lines.append('- Seconds — ' + label + ': ' + env.get(key, 'not run'))
           ok = env.get('MIGRATIONS_OK') == '1'
@@ -490,20 +499,133 @@ jobs:
           if failures:
               lines += ['', '## Failing/flaky tests and setup errors', *['- ' + redact(f) for f in failures]]
           lines += ['', 'DEC-209: compare with staging CI on this same commit; two consecutive dev proofs required. No automatic proceed verdict.']
-          Path('docs/tracking/local-backend-proof.md').write_text(redact('\n'.join(lines)) + '\n')
-          print('::notice title=local-backend-proof::start=' + env.get('START_SECONDS', 'not run') + 's; migrations=' + ('ok' if ok else 'failed/not confirmed') + '; smoke=' + str(counts['passed']) + '/' + str(total) + '; fixtures ' + str(fixture_count))
+          # Account ids and raw test artifacts must not escape into public evidence.
+          def safe(text):
+              return redact(re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text))
+          Path('local-backend-proof-' + lane + '.md').write_text(safe('\n'.join(lines)) + '\n')
+          for artifact in (results, Path('local-backend-lane-' + lane + '.log')):
+              if artifact.exists():
+                  artifact.write_text(safe(artifact.read_text(errors='replace')))
           PY
-      - name: Keep smoke JSON and proof evidence
+      - name: Keep lane JSON, log and proof evidence
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: local-backend-proof
+          name: local-proof-${{ matrix.lane }}
           path: |
             test-results/results.json
-            docs/tracking/local-backend-proof.md
+            local-backend-proof-${{ matrix.lane }}.md
+            local-backend-lane-${{ matrix.lane }}.log
           if-no-files-found: warn
           retention-days: 7
           overwrite: true
+      - name: Dispose temporary backend
+        if: always()
+        run: |
+          if command -v supabase >/dev/null && [ -f .ci-local/supabase/config.toml ]; then
+            supabase stop --workdir .ci-local --no-backup > /dev/null 2>&1 || echo "::warning::local backend stop failed; runner disposal removes it"
+          fi
+
+  summary:
+    name: Summarize temporary backend proof (non-gating)
+    needs: proof
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: local-proof-*
+          path: local-proof-artifacts
+      - name: Write proof summary and notice
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import os, re
+          from pathlib import Path
+          def redact(text):
+              for key in ('E2E_SUPABASE_PUBLISHABLE_KEY', 'E2E_SUPABASE_SERVICE_ROLE_KEY'):
+                  value = os.environ.get(key)
+                  if value:
+                      text = text.replace(value, '[masked]')
+              text = re.sub(r'\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', '[masked JWT]', text)
+              text = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', text)
+              text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', text)
+              text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
+              text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
+              return text
+          lanes = ['smoke', *map(str, range(1, 13))]
+          fragments = {}
+          for path in sorted(Path('local-proof-artifacts').rglob('local-backend-proof-*.md')):
+              text = path.read_text(errors='replace')
+              match = re.search(r'^- Lane: (smoke|[1-9]|1[0-2])$', text, re.M)
+              if match:
+                  if match[1] in fragments:
+                      raise SystemExit('duplicate lane evidence: ' + match[1])
+                  fragments[match[1]] = text.splitlines()
+          def field(lines, prefix, default='not run'):
+              return next((line[len(prefix):] for line in lines if line.startswith(prefix)), default)
+          def section(lines, heading):
+              if heading not in lines:
+                  return [heading, 'not written']
+              start = lines.index(heading)
+              end = start + 1
+              while end < len(lines) and lines[end] and not lines[end].startswith(('- Seconds', '- Parity:', '- Status:', '- Step failure:', '- Smoke:', '- Job conclusion', '- Backend/', '## ')):
+                  end += 1
+              return lines[start:end]
+          env = os.environ
+          lines = ['# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '', '| Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |', '| --- | --- | --- | --- | --- | --- | --- | --- | --- |']
+          totals = dict.fromkeys(['passed', 'failed', 'flaky', 'skipped'], 0)
+          slowest_lane, slowest = 'none', 0
+          details = []
+          for lane in lanes:
+              fragment = fragments.get(lane)
+              if fragment is None:
+                  lines.append('| ' + lane + ' | no evidence (job did not finish) | — | — | — | — | — | — | — |')
+                  continue
+              job = field(fragment, '- Seconds — job: ')
+              start = field(fragment, '- Seconds — start (migrations included): ')
+              migrations = field(fragment, '- Migrations: ', 'not confirmed')
+              count_line = field(fragment, '- Smoke: ', '')
+              counts = {key: int(value) for value, key in re.findall(r'(\d+) (passed|failed|flaky|skipped)', count_line)}
+              if set(counts) != set(totals):
+                  raise SystemExit('invalid count evidence for lane ' + lane)
+              for key in totals:
+                  totals[key] += counts[key]
+              total = sum(counts.values())
+              lines.append('| ' + ' | '.join([lane, job, start, migrations.replace('|', '\\|'), *[str(counts[key]) for key in totals], str(total)]) + ' |')
+              if job.isdigit() and int(job) > slowest:
+                  slowest_lane, slowest = lane, int(job)
+              failures = section(fragment, '- Step failure:')
+              if failures[1:] and failures[1:] != ['not written']:
+                  details += ['', '## Lane ' + lane, *failures]
+              heading = '## Failing/flaky tests and setup errors'
+              if heading in fragment:
+                  if not (failures[1:] and failures[1:] != ['not written']):
+                      details += ['', '## Lane ' + lane]
+                  index = fragment.index(heading) + 1
+                  while index < len(fragment) and fragment[index].startswith('- '):
+                      details.append(fragment[index])
+                      index += 1
+              heading = '## Migration/start failure'
+              if heading in fragment:
+                  details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s']
+          smoke = fragments.get('smoke', [])
+          for heading in ('- Working copy:', '- Parity:', '- Status:'):
+              lines += section(smoke, heading)
+          lines += details
+          lines += ['', 'DEC-211: compare every lane with staging CI on this same commit; two consecutive full-suite dev proofs required. Email-serial stays on staging. No automatic switch verdict.']
+          text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', '\n'.join(lines))
+          Path('docs/tracking').mkdir(parents=True, exist_ok=True)
+          Path('docs/tracking/local-backend-proof.md').write_text(redact(text) + '\n')
+          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/13; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
+          PY
       - name: Publish only proof evidence
         if: always()
         env:
@@ -516,9 +638,3 @@ jobs:
           export GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
           export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth"
           bash scripts/publish-evidence.sh "local backend proof ${GITHUB_SHA:0:8}" docs/tracking/local-backend-proof.md
-      - name: Dispose temporary backend
-        if: always()
-        run: |
-          if command -v supabase >/dev/null && [ -f .ci-local/supabase/config.toml ]; then
-            supabase stop --workdir .ci-local --no-backup > /dev/null 2>&1 || echo "::warning::local backend stop failed; runner disposal removes it"
-          fi

@@ -469,6 +469,28 @@ Versions (ordered):
 20261020041607
 ```
 
+## Phase 2 — the full suite (turn 15)
+
+DEC-209 VERDICT — PROCEED: proof #4 (`efb581af`) and proof #5 (`3f064e01`)
+both applied every migration hosted applied (329/329 with the working copy),
+started in 106 s and 99 s, and ran the smoke tier 186 passed, 0 failed, 0 flaky,
+60 skipped of 246 (733 s and 637 s, against about 22 minutes on staging).
+Staging's smoke tier on the same commit `3f064e01` passed (run 1065, 09:52Z);
+each of the 60 local skips is a viewport or project skip in the four smoke specs,
+none depending on the backend. Every smoke test that passed on staging passed on
+the temporary backend. This verdict is the operator's frozen brief; the published
+CI evidence read at the start of turn 15 still named run 1063.
+
+The non-gating proof now runs thirteen lanes: smoke and shards 1–12, each on its
+own temporary backend, with its own unchanged migration working copy, build and
+Chromium. The smoke lane keeps `E2E_SHARD=localproof`; shards use `local-<n>`.
+The shard lanes use twelve slices of the two CI viewport projects, excluding
+`@global-state|@a11y`. `email-serial` is not run. Only the summary job publishes:
+it gathers lane fragments, JSON results and logs, lists missing evidence, totals
+the counts and names the slowest lane. Hosted staging CI continues to gate.
+
+DEC-211 — THE RULE FOR SWITCHING, fixed before any number exists: CI's gating E2E moves from hosted staging to temporary backends (turn 16, which also retires the account pool for CI) when TWO CONSECUTIVE full-suite proof runs on dev commits show: (1) every lane's backend started and applied every migration hosted applied; (2) every test that passed in the same commit's staging CI run passes on the temporary backends, or is named in docs/features/ci-local-backend.md with its cause and the turn that fixes it — at most 10 tests so named; (3) the slowest lane, start included, finishes within 25 minutes. The e-mail lane (project email-serial) stays on staging until its own proof. The named gaps are fixed in the proof's working copy, its seed or the test helpers (turns 15b, 15c), never by weakening a test (G38). ABANDON phase 2 (staging stays the CI backend; the proof stays non-gating) if two fix turns still leave more than 10 named gaps.
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,

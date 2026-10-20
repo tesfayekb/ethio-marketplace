@@ -5,14 +5,17 @@
  * in its pointer's order, and any `other-` row is last wherever it sits. The
  * breadcrumb's home is the FIRST pointer — the primary one.
  */
-import { describe, expect, it } from "vitest";
+import { cleanup, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   buildTree,
   childrenOf,
+  forgetCategoryTree,
   isPostable,
   pathOf,
   rootsOf,
+  useCategoryTree,
   type CategoryNode,
 } from "./category-tree";
 
@@ -51,6 +54,66 @@ const pointers = [
 ];
 
 const tree = buildTree(rows, pointers);
+
+describe("the page's held category tree", () => {
+  beforeEach(() => forgetCategoryTree());
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  function answer(version: string, ids: string[]): Response {
+    return new Response(
+      JSON.stringify({
+        version,
+        nodes: ids.map((id, index) => ({
+          id,
+          name_en: id,
+          name_am: null,
+          slug: id,
+          icon: null,
+          allow_listings: true,
+          is_catchall: false,
+          image_url: null,
+          image_thumb_url: null,
+          display_order: index,
+        })),
+        pointers: [],
+      }),
+    );
+  }
+
+  it("INC-788 — a later mount's newer tree reaches an earlier mount", async () => {
+    const fetchTree = vi
+      .fn()
+      .mockResolvedValueOnce(answer("v1", ["A"]))
+      .mockResolvedValueOnce(answer("v2", ["A", "B"]));
+    vi.stubGlobal("fetch", fetchTree);
+    const first = renderHook(() => useCategoryTree());
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+    expect(first.result.current.tree.nodes.map((row) => row.id)).toEqual(["A"]);
+    const second = renderHook(() => useCategoryTree());
+    await waitFor(() => expect(second.result.current.tree.byId.has("B")).toBe(true));
+    expect(fetchTree).toHaveBeenCalledTimes(2);
+    expect(first.result.current.tree.byId.has("B")).toBe(true);
+  });
+
+  it("an unmoved version keeps the same tree object for every reader", async () => {
+    const fetchTree = vi
+      .fn()
+      .mockResolvedValueOnce(answer("v1", ["A"]))
+      .mockResolvedValueOnce(answer("v1", ["A"]));
+    vi.stubGlobal("fetch", fetchTree);
+    const first = renderHook(() => useCategoryTree());
+    await waitFor(() => expect(first.result.current.isLoading).toBe(false));
+    const held = first.result.current.tree;
+    const second = renderHook(() => useCategoryTree());
+    await waitFor(() => expect(fetchTree).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(second.result.current.isLoading).toBe(false));
+    expect(first.result.current.tree).toBe(held);
+    expect(second.result.current.tree).toBe(held);
+  });
+});
 
 describe("a level's order", () => {
   it("puts the host's own children first, the guest next and other- last", () => {
