@@ -256,31 +256,61 @@ jobs:
           set -e
           echo "START_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           echo "START_EXIT=$result" >> "$GITHUB_ENV"
+          : > local-backend-failure.txt
           if [ "$result" -ne 0 ]; then
             # Raw log is never printed: the evidence step redacts credentials.
             exit "$result"
           fi
-          supabase status --workdir .ci-local -o env > "$RUNNER_TEMP/local-backend.env"
-          # Never eval the CLI output. Parse only the three required fields.
+          set +e
+          supabase status --workdir .ci-local -o env > "$RUNNER_TEMP/local-backend.env" 2> "$RUNNER_TEMP/local-backend-status.err"
+          status_result=$?
+          set -e
+          if [ "$status_result" -ne 0 ]; then
+            python3 - "$status_result" <<'PY'
+          import os, re, sys
+          from pathlib import Path
+          err = Path(os.environ['RUNNER_TEMP'], 'local-backend-status.err').read_text(errors='replace')
+          err = re.sub(r'\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', '[masked JWT]', err)
+          err = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', err)
+          err = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', err)
+          err = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', err)
+          err = re.sub(r'[0-9a-fA-F]{32,}', '[masked hex]', err)
+          err = ' '.join(err.split())[:300]
+          with open('local-backend-failure.txt', 'a') as out:
+              out.write('status: exit ' + sys.argv[1] + ' ' + err + '\n')
+          PY
+            exit "$status_result"
+          fi
+          # Never eval the CLI output. Parse NAME=value lines; accept either key-name pair.
           python3 - <<'PY'
           import os, re
           from pathlib import Path
+          def fail(message):
+              with open('local-backend-failure.txt', 'a') as out:
+                  out.write('status parse: ' + message + '\n')
+              raise SystemExit(message)
           values = {}
           for line in Path(os.environ['RUNNER_TEMP'], 'local-backend.env').read_text().splitlines():
-              match = re.fullmatch(r'(API_URL|ANON_KEY|SERVICE_ROLE_KEY)="([^"]+)"', line)
+              match = re.fullmatch(r'([A-Z0-9_]+)="?([^"\n]*)"?', line)
               if match:
                   values[match[1]] = match[2]
-          for name in ('API_URL', 'ANON_KEY', 'SERVICE_ROLE_KEY'):
-              if not values.get(name):
-                  raise RuntimeError('CLI status omitted ' + name)
-          if values['API_URL'] != 'http://127.0.0.1:54321':
-              raise RuntimeError('CLI status did not report exact local API URL')
-          for name in ('ANON_KEY', 'SERVICE_ROLE_KEY'):
-              print('::add-mask::' + values[name])
+          if values.get('API_URL') != 'http://127.0.0.1:54321':
+              fail('CLI status did not report exact local API URL')
+          browser = 'ANON_KEY' if values.get('ANON_KEY') else 'PUBLISHABLE_KEY'
+          server = 'SERVICE_ROLE_KEY' if values.get('SERVICE_ROLE_KEY') else 'SECRET_KEY'
+          if not values.get(browser):
+              fail('CLI status printed neither ANON_KEY nor PUBLISHABLE_KEY')
+          if not values.get(server):
+              fail('CLI status printed neither SERVICE_ROLE_KEY nor SECRET_KEY')
+          print('::add-mask::' + values[browser])
+          print('::add-mask::' + values[server])
+          with open('local-backend-status.txt', 'w') as out:
+              out.write('Status variables: ' + ', '.join(sorted(values)) + '\n')
+              out.write('Keys used: ' + browser + ', ' + server + '\n')
           aliases = {
               'API_URL': ['E2E_SUPABASE_URL', 'VITE_SUPABASE_URL', 'SUPABASE_URL'],
-              'ANON_KEY': ['E2E_SUPABASE_PUBLISHABLE_KEY', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_PUBLISHABLE_KEY'],
-              'SERVICE_ROLE_KEY': ['E2E_SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY'],
+              browser: ['E2E_SUPABASE_PUBLISHABLE_KEY', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_PUBLISHABLE_KEY'],
+              server: ['E2E_SUPABASE_SERVICE_ROLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY'],
           }
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               for name, targets in aliases.items():
@@ -293,21 +323,41 @@ jobs:
           import subprocess
           from pathlib import Path
           import os
+          def fail(message):
+              with open('local-backend-failure.txt', 'a') as out:
+                  out.write('ledger check: ' + message + '\n')
+              raise SystemExit(message)
           command = ['docker', 'exec', 'supabase_db_ethio-ci-local', 'psql', '-U', 'postgres', '-d', 'postgres', '-Atc', 'select version from supabase_migrations.schema_migrations order by version']
-          result = subprocess.run(command, check=True, capture_output=True, text=True)
+          result = subprocess.run(command, capture_output=True, text=True)
+          if result.returncode != 0:
+              fail('docker exec exit ' + str(result.returncode) + ': ' + result.stderr[:300])
           applied = set(result.stdout.splitlines())
           expected = {p.name.split('_', 1)[0] for p in Path('supabase/migrations').glob('*.sql')} - {'20260922120000'}
           expected |= {p.name.split('_', 1)[0] for p in Path('.ci-local/supabase/migrations').glob('*_ci_local_*.sql')}
           missing = sorted(expected - applied)
           Path('local-backend-migrations.txt').write_text('applied ' + str(len(expected)) + '/' + str(len(expected)) if not missing else 'missing: ' + ', '.join(missing))
           if missing:
-              raise RuntimeError('repository migration versions missing from local ledger')
+              fail('repository migration versions missing from local ledger: ' + ', '.join(missing))
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write('MIGRATIONS_OK=1\n')
           PY
           # Local twins of the hosted default-grant and RLS census.
-          docker exec supabase_db_ethio-ci-local psql -U postgres -d postgres -Atc "select 'RLS on ' || count(*) filter (where relrowsecurity) || ' of ' || count(*) || ' public tables' from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r', 'p');" > local-backend-parity.txt
-          docker exec supabase_db_ethio-ci-local psql -U postgres -d postgres -Atc "select 'Default grants in public: ' || coalesce(string_agg(role || ' | ' || defaclobjtype || ' | ' || defaclacl, '; ' order by role, defaclobjtype), 'none') from (select pg_get_userbyid(defaclrole) as role, defaclobjtype::text, defaclacl::text from pg_default_acl where defaclnamespace = 'public'::regnamespace) as grants;" >> local-backend-parity.txt
+          set +e
+          docker exec supabase_db_ethio-ci-local psql -U postgres -d postgres -Atc "select 'RLS on ' || count(*) filter (where relrowsecurity) || ' of ' || count(*) || ' public tables' from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r', 'p');" > local-backend-parity.txt 2> "$RUNNER_TEMP/parity.err"
+          parity_result=$?
+          set -e
+          if [ "$parity_result" -ne 0 ]; then
+            echo "parity: exit $parity_result" >> local-backend-failure.txt
+            exit "$parity_result"
+          fi
+          set +e
+          docker exec supabase_db_ethio-ci-local psql -U postgres -d postgres -Atc "select 'Default grants in public: ' || coalesce(string_agg(role || ' | ' || defaclobjtype || ' | ' || defaclacl, '; ' order by role, defaclobjtype), 'none') from (select pg_get_userbyid(defaclrole) as role, defaclobjtype::text, defaclacl::text from pg_default_acl where defaclnamespace = 'public'::regnamespace) as grants;" >> local-backend-parity.txt 2>> "$RUNNER_TEMP/parity.err"
+          parity_result=$?
+          set -e
+          if [ "$parity_result" -ne 0 ]; then
+            echo "parity: exit $parity_result" >> local-backend-failure.txt
+            exit "$parity_result"
+          fi
       - name: Build E2E app against local backend
         id: build
         run: |
@@ -366,6 +416,8 @@ jobs:
               text = re.sub(r'\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b', '[masked JWT]', text)
               text = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', text)
               text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', text)
+              text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
+              text = re.sub(r'[0-9a-fA-F]{32,}', '[masked hex]', text)
               return text
           env = os.environ
           lines = ['# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0']
@@ -378,6 +430,11 @@ jobs:
           parity = Path('local-backend-parity.txt')
           working_lines = working_copy.read_text().splitlines() if working_copy.exists() else ['not written']
           lines += ['- Working copy:', *working_lines, '- Parity:', *(parity.read_text().splitlines() if parity.exists() else ['not written'])]
+          status_file = Path('local-backend-status.txt')
+          failure_file = Path('local-backend-failure.txt')
+          status_lines = status_file.read_text().splitlines() if status_file.exists() else ['not written']
+          failure_lines = failure_file.read_text().splitlines() if failure_file.exists() else ['not written']
+          lines += ['- Status:', *[redact(line) for line in status_lines], '- Step failure:', *[redact(line) for line in failure_lines]]
           fixture_count = sum(line.startswith('- fixture ') for line in working_lines)
           start_log = Path('local-backend-start.log')
           if not ok and start_log.exists():

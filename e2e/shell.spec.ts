@@ -22,7 +22,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
+import { ANY_MENU_ROW, anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
 import {
   destroyLocation,
   readLocationById,
@@ -93,14 +93,51 @@ async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]
   expect(box!.height, `${name} height`).toBeGreaterThanOrEqual(44);
 }
 
-async function gapY(a: Locator, b: Locator): Promise<number> {
-  const [boxA, boxB] = await Promise.all([a.boundingBox(), b.boundingBox()]);
-  return boxA && boxB ? Math.abs(boxA.y - boxB.y) : Number.POSITIVE_INFINITY;
-}
+/**
+ * INC-773/INC-784 — a menu row against its strip row under the 1-px rule. A
+ * failure carries the gap, both rows, both scroll containers and every row's
+ * height in each list, so a steady sub-2-px offset names its layout state.
+ * The rail rows' selector comes from the one menu reader (INC-170's class).
+ */
+const ROW_PAIR_ROWS = `[data-testid^="strip-category-"], ${ANY_MENU_ROW}, [data-testid="strip-favourite"], [data-testid="rail-favourite"]`;
 
-async function gapHeight(a: Locator, b: Locator): Promise<number> {
-  const [boxA, boxB] = await Promise.all([a.boundingBox(), b.boundingBox()]);
-  return boxA && boxB ? Math.abs(boxA.height - boxB.height) : Number.POSITIVE_INFINITY;
+async function rowPair(menuRow: Locator, stripRow: Locator, what: "y" | "height"): Promise<string> {
+  const [menuBox, stripBox] = await Promise.all([menuRow.boundingBox(), stripRow.boundingBox()]);
+  if (!menuBox) return "missing menu row";
+  if (!stripBox) return "missing strip row";
+  const gap = Math.abs(
+    (what === "y" ? menuBox.y : menuBox.height) - (what === "y" ? stripBox.y : stripBox.height),
+  );
+  if (gap <= 1) return "level";
+  const describe = (row: Locator) =>
+    row.evaluate((el, rowsSelector) => {
+      const round = (n: number) => Math.round(n * 100) / 100;
+      const rect = el.getBoundingClientRect();
+      const container = el.closest('[data-testid="strip-scroll"], [data-testid="rail-scroll"]');
+      const containerRect = container?.getBoundingClientRect();
+      const rows = container
+        ? Array.from(container.querySelectorAll(rowsSelector)).map(
+            (rowEl) =>
+              `${rowEl.getAttribute("data-testid")}:${round(rowEl.getBoundingClientRect().height)}`,
+          )
+        : [];
+      return {
+        testid: el.getAttribute("data-testid"),
+        top: round(rect.top),
+        height: round(rect.height),
+        container:
+          container && containerRect
+            ? {
+                top: round(containerRect.top),
+                clientHeight: round((container as HTMLElement).clientHeight),
+                scrollTop: round((container as HTMLElement).scrollTop),
+              }
+            : null,
+        rows,
+      };
+    }, ROW_PAIR_ROWS);
+  const [menu, strip] = await Promise.all([describe(menuRow), describe(stripRow)]);
+  return JSON.stringify({ what, gap: Math.round(gap * 1000) / 1000, menu, strip });
 }
 
 /**
@@ -1191,10 +1228,16 @@ test.describe("mobile chrome", () => {
     await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
     await expect(menuRow).toBeVisible();
-    const menuBox = await menuRow.boundingBox();
-    if (!menuBox) throw new Error("Missing category menu row bounds");
-    expect(Math.abs(menuBox.y - rowBox.y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(menuBox.height - rowBox.height)).toBeLessThanOrEqual(1);
+    await expect
+      .poll(() => rowPair(menuRow, row, "y"), {
+        message: "RM-1 the menu row level with the strip row",
+      })
+      .toBe("level");
+    await expect
+      .poll(() => rowPair(menuRow, row, "height"), {
+        message: "RM-1 the menu row as tall as the strip row",
+      })
+      .toBe("level");
     await page.mouse.click(tap.x, tap.y);
     await expect(page).toHaveURL(new RegExp(`/c/${category.slug}$`));
     await expect(row).toHaveAttribute("aria-current", "true");
@@ -1274,10 +1317,17 @@ test.describe("mobile chrome", () => {
     const slug = slugOfRow(testid);
     const stripRow = page.getByTestId(`strip-category-${slug}`);
     const rowBox = await row.boundingBox();
-    const stripBox = await stripRow.boundingBox();
-    if (!rowBox || !stripBox) throw new Error("Missing aligned category rows");
-    expect(Math.abs(rowBox.y - stripBox.y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(rowBox.height - stripBox.height)).toBeLessThanOrEqual(1);
+    if (!rowBox) throw new Error("Missing first menu row bounds");
+    await expect
+      .poll(() => rowPair(row, stripRow, "y"), {
+        message: "the menu opens in place: the first row level with its strip row",
+      })
+      .toBe("level");
+    await expect
+      .poll(() => rowPair(row, stripRow, "height"), {
+        message: "the menu opens in place: the first row as tall as its strip row",
+      })
+      .toBe("level");
     expect(rowBox.height).toBeGreaterThanOrEqual(31);
     expect(rowBox.height).toBeLessThanOrEqual(41);
     const iconBox = await row.locator("svg:nth-of-type(1)").boundingBox();
@@ -3842,28 +3892,29 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
         new RegExp(escapeRe(en["shell.favouriteBadge"])),
       );
       await expect
-        .poll(() => gapY(stripRow, row), {
+        .poll(() => rowPair(row, stripRow, "y"), {
           message: "FV-1 the strip's favourite row level with the menu's",
         })
-        .toBeLessThanOrEqual(1);
+        .toBe("level");
       await expect
-        .poll(() => gapHeight(stripRow, row), {
+        .poll(() => rowPair(row, stripRow, "height"), {
           message: "FV-1 the strip's favourite row as tall as the menu's",
         })
-        .toBeLessThanOrEqual(1);
+        .toBe("level");
       for (const mainSlug of mainSlugs) {
         await expect
           .poll(
             () =>
-              gapY(
+              rowPair(
                 scope.getByTestId(`rail-category-${mainSlug}`),
                 strip.getByTestId(`strip-category-${mainSlug}`),
+                "y",
               ),
             {
               message: `FV-1 ${mainSlug} level in the menu and the strip`,
             },
           )
-          .toBeLessThanOrEqual(1);
+          .toBe("level");
       }
       await page.getByTestId("rail-menu-close").click();
     }
