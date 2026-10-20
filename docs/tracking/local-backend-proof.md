@@ -1,16 +1,16 @@
 # Local backend proof (non-gating)
 
-- Commit: `efb581af6ccd1287940c59e19f2616817edeeee4`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39395682134
+- Commit: `3f064e01bec13fed823c0266df4be092dc20239a`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39398856282
 - CLI version: 2.120.0
 - Seconds — checkout: 2
-- Seconds — install: 9
-- Seconds — CLI install: 9
-- Seconds — working copy: 0
-- Seconds — start (migrations included): 106
-- Seconds — build: 13
-- Seconds — browser install: 32
-- Seconds — tests: 733
+- Seconds — install: 6
+- Seconds — CLI install: 4
+- Seconds — working copy: 1
+- Seconds — start (migrations included): 99
+- Seconds — build: 7
+- Seconds — browser install: 14
+- Seconds — tests: 637
 - Migrations: applied 329/329
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -27,9 +27,9 @@
 RLS on 76 of 76 public tables
 Default grants in public: postgres | f | {postgres=X/postgres,service_role=X/postgres}; postgres | r | {postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}; postgres | S | {postgres=rwU/postgres,service_role=rwU/postgres}; supabase_admin | f | {postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}; supabase_admin | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}; supabase_admin | S | {postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}
 - Status:
-Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECRET, LINKED_PROJECT_REF, MAILPIT_URL, PUBLISHABLE_KEY, REST_URL, S3_PROTOCOL_ACCESS_KEY_ID, S3_PROTOCOL_ACCESS_KEY_SECRET, S3_PROTOCOL_REGION, SECRET_KEY, SERVICE_ROLE_KEY, STORAGE_S3_URL
+Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECRET, MAILPIT_URL, PUBLISHABLE_KEY, REST_URL, S3_PROTOCOL_ACCESS_KEY_ID, S3_PROTOCOL_ACCESS_KEY_SECRET, S3_PROTOCOL_REGION, SECRET_KEY, SERVICE_ROLE_KEY, STORAGE_S3_URL
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
-Database container: supabase_db_zwmvxvzzvjvtdcfcwiuf
+Database container: supabase_db_ethio-ci-local
 - Step failure:
 - Smoke: 186 passed · 0 failed · 0 flaky · 60 skipped · total 246
 - Job conclusion before evidence publication: success
