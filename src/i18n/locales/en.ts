@@ -3069,16 +3069,18 @@ export const en = {
   "legal.accept.version": "Version {n} · {label}",
   "legal.accept.read": "Read",
   "legal.accept.hide": "Hide",
-  "legal.accept.tickFirst.both":
-    "I am 18 or older. I agree to the Terms of Service, and I have read the Privacy Policy.",
-  "legal.accept.tickFirst.terms": "I am 18 or older. I agree to the Terms of Service.",
-  "legal.accept.tickFirst.privacy": "I am 18 or older. I have read the Privacy Policy.",
-  "legal.accept.tickFirst.docs": "I am 18 or older. I agree to the documents above.",
-  "legal.accept.tickNew.both":
-    "I agree to the new Terms of Service, and I have read the new Privacy Policy.",
-  "legal.accept.tickNew.terms": "I agree to the new Terms of Service.",
-  "legal.accept.tickNew.privacy": "I have read the new Privacy Policy.",
-  "legal.accept.tickNew.docs": "I agree to the documents above.",
+  "legal.accept.agreeFirst.both":
+    "I am 18 or older. I have read and agree to the Terms of Service and the Privacy Policy.",
+  "legal.accept.agreeFirst.terms":
+    "I am 18 or older. I have read and agree to the Terms of Service.",
+  "legal.accept.agreeFirst.privacy":
+    "I am 18 or older. I have read and agree to the Privacy Policy.",
+  "legal.accept.agreeFirst.docs": "I am 18 or older. I have read and agree to the documents above.",
+  "legal.accept.agreeUpdated.both":
+    "I have read and agree to the updated Terms of Service and the updated Privacy Policy.",
+  "legal.accept.agreeUpdated.terms": "I have read and agree to the updated Terms of Service.",
+  "legal.accept.agreeUpdated.privacy": "I have read and agree to the updated Privacy Policy.",
+  "legal.accept.agreeUpdated.docs": "I have read and agree to the updated documents above.",
   "legal.accept.submit": "Agree and continue",
   "legal.accept.decline": "Decline, sign out",
   "legal.accept.note":

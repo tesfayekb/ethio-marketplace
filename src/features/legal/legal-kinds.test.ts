@@ -21,16 +21,16 @@ describe("legalRole", () => {
 });
 describe("tickKey", () => {
   it("names both, one or other documents, with the 18+ statement the first time only", () => {
-    expect(tickKey(["terms", "privacy"], true)).toBe("legal.accept.tickFirst.both");
-    expect(tickKey(["terms"], true)).toBe("legal.accept.tickFirst.terms");
-    expect(tickKey(["privacy", "other"], true)).toBe("legal.accept.tickFirst.privacy");
-    expect(tickKey(["other"], true)).toBe("legal.accept.tickFirst.docs");
-    expect(tickKey([], true)).toBe("legal.accept.tickFirst.docs");
-    expect(tickKey(["terms", "privacy"], false)).toBe("legal.accept.tickNew.both");
-    expect(tickKey(["terms"], false)).toBe("legal.accept.tickNew.terms");
-    expect(tickKey(["privacy", "other"], false)).toBe("legal.accept.tickNew.privacy");
-    expect(tickKey(["other"], false)).toBe("legal.accept.tickNew.docs");
-    expect(tickKey([], false)).toBe("legal.accept.tickNew.docs");
+    expect(tickKey(["terms", "privacy"], true)).toBe("legal.accept.agreeFirst.both");
+    expect(tickKey(["terms"], true)).toBe("legal.accept.agreeFirst.terms");
+    expect(tickKey(["privacy", "other"], true)).toBe("legal.accept.agreeFirst.privacy");
+    expect(tickKey(["other"], true)).toBe("legal.accept.agreeFirst.docs");
+    expect(tickKey([], true)).toBe("legal.accept.agreeFirst.docs");
+    expect(tickKey(["terms", "privacy"], false)).toBe("legal.accept.agreeUpdated.both");
+    expect(tickKey(["terms"], false)).toBe("legal.accept.agreeUpdated.terms");
+    expect(tickKey(["privacy", "other"], false)).toBe("legal.accept.agreeUpdated.privacy");
+    expect(tickKey(["other"], false)).toBe("legal.accept.agreeUpdated.docs");
+    expect(tickKey([], false)).toBe("legal.accept.agreeUpdated.docs");
   });
 });
 describe("legalMoment", () => {

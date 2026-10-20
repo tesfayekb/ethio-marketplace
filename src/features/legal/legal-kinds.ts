@@ -15,15 +15,15 @@ export function tickKey(roles: LegalRole[], firstTime: boolean): MessageKey {
   const terms = roles.includes("terms");
   const privacy = roles.includes("privacy");
   if (firstTime) {
-    if (terms && privacy) return "legal.accept.tickFirst.both";
-    if (terms) return "legal.accept.tickFirst.terms";
-    if (privacy) return "legal.accept.tickFirst.privacy";
-    return "legal.accept.tickFirst.docs";
+    if (terms && privacy) return "legal.accept.agreeFirst.both";
+    if (terms) return "legal.accept.agreeFirst.terms";
+    if (privacy) return "legal.accept.agreeFirst.privacy";
+    return "legal.accept.agreeFirst.docs";
   }
-  if (terms && privacy) return "legal.accept.tickNew.both";
-  if (terms) return "legal.accept.tickNew.terms";
-  if (privacy) return "legal.accept.tickNew.privacy";
-  return "legal.accept.tickNew.docs";
+  if (terms && privacy) return "legal.accept.agreeUpdated.both";
+  if (terms) return "legal.accept.agreeUpdated.terms";
+  if (privacy) return "legal.accept.agreeUpdated.privacy";
+  return "legal.accept.agreeUpdated.docs";
 }
 export function gateKinds(extra: unknown): string[] {
   const kinds = ["terms", "privacy"];

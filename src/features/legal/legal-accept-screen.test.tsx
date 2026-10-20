@@ -50,7 +50,7 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findAllByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.tickFirst.both")).toBeInTheDocument();
+    expect(screen.getByText("legal.accept.agreeFirst.both")).toBeInTheDocument();
     expect(screen.getByTestId("legal-accept-signout")).toHaveTextContent("legal.accept.decline");
     expect(submit()).toBeDisabled();
     fireEvent.click(screen.getByTestId("legal-accept-tick"));
@@ -71,7 +71,7 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.tickNew.terms")).toBeInTheDocument();
+    expect(screen.getByText("legal.accept.agreeUpdated.terms")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     await waitFor(() =>
