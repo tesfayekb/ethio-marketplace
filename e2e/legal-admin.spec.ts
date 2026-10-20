@@ -106,6 +106,36 @@ async function seed(
   if (!result.data) throw new Error("[e2e:legal-admin] version not seeded");
   return result.data.id;
 }
+async function seedNext(
+  documentId: string,
+  input: {
+    body_en?: string;
+    body_am?: string;
+    changelog?: string;
+    snapshot?: Record<string, string>;
+  } = {},
+) {
+  const result = await adminClient()
+    .from("legal_versions")
+    .insert({
+      document_id: documentId,
+      version: 2,
+      status: "published",
+      label: "second",
+      body_en: input.body_en ?? "## First\nOriginal English",
+      body_am: input.body_am ?? "Original Amharic",
+      changelog: input.changelog ?? "Second change",
+      material: false,
+      effective_at: new Date(Date.now() - 60000).toISOString(),
+      published_at: new Date(Date.now() - 60000).toISOString(),
+      settings_snapshot: input.snapshot ?? { seed: "true" },
+    })
+    .select("id")
+    .single();
+  fail(result.error, "seed next version");
+  if (!result.data) throw new Error("[e2e:legal-admin] next version not seeded");
+  return result.data.id;
+}
 async function fillDraft(page: Page, label: string, en: string, am: string, changelog: string) {
   await expect(page.getByTestId("legal-editor")).toBeVisible();
   await page.getByTestId("legal-field-label").fill(label);
@@ -447,5 +477,112 @@ test.describe("Admin Legal", () => {
     await expect(first.getByTestId("user-legal-adult")).toHaveText("18 or older confirmed");
     await expect(second.getByTestId("user-legal-adult")).toHaveCount(0);
     await expect(first).toContainText(/\d{2}:\d{2}:\d{2}/);
+  });
+  test("LGA-10 every version is listed under its document, and the text in force reads in place", async ({
+    page,
+  }) => {
+    const kind = scratch("k");
+    await seed(kind);
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/legal");
+    const own = page.getByTestId(`legal-doc-${kind}-global`);
+    await expect(own.getByTestId("legal-history-row")).toHaveCount(1);
+    await own.getByTestId("legal-read").click();
+    await expect(own.getByTestId("legal-read-text")).toContainText("Original English");
+    await own.getByTestId("legal-read").click();
+    await expect(own.getByTestId("legal-read-text")).toHaveCount(0);
+  });
+  test("LGA-11 Compare with previous marks the removed and added lines; nothing to compare on the first version", async ({
+    page,
+  }) => {
+    const kind = scratch("l");
+    const firstId = await seed(kind, { body_en: "## First\nOriginal English", body_am: "Same Amharic" });
+    const doc = await adminClient().from("legal_documents").select("id").eq("kind", kind).single();
+    fail(doc.error, "document read");
+    if (!doc.data) throw new Error("[e2e:legal-admin] missing document");
+    const secondId = await seedNext(doc.data.id, {
+      body_en: "## First\nChanged English",
+      body_am: "Same Amharic",
+    });
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/legal/${secondId}`);
+    await page.getByTestId("legal-compare").click();
+    await expect(page.getByTestId("legal-diff")).toBeVisible();
+    await expect(page.getByTestId("legal-diff-removed")).toContainText("Original English");
+    await expect(page.getByTestId("legal-diff-added")).toContainText("Changed English");
+    await page.getByTestId("legal-view-tab-am").click();
+    await expect(page.getByTestId("legal-diff-none")).toBeVisible();
+    await gotoReady(page, `/admin/legal/${firstId}`);
+    await expect(page.getByTestId("legal-compare")).toHaveCount(0);
+  });
+  test("LGA-12 Download saves the shown language with the frozen facts; Print is offered", async ({
+    page,
+  }) => {
+    const kind = scratch("m");
+    const id = await seed(kind, {
+      body_en: "Write to {{legal_email}}",
+      snapshot: { legal_email: "snapshot@example.invalid" },
+    });
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/legal/${id}`);
+    const waited = page.waitForEvent("download");
+    await page.getByTestId("legal-download").click();
+    const download = await waited;
+    expect(download.suggestedFilename()).toBe(`ethio-${kind}-all-v1-en.md`);
+    const path = await download.path();
+    if (!path) throw new Error("[e2e:legal-admin] download has no path");
+    expect(await readFile(path, "utf8")).toBe("Write to snapshot@example.invalid");
+    await expect(page.getByTestId("legal-print")).toBeVisible();
+  });
+  test("LGA-13 Export acceptances saves a CSV of who accepted, never a name or e-mail", async ({
+    page,
+  }) => {
+    const kind = scratch("n");
+    const id = await seed(kind);
+    const first = await leaseUser();
+    const second = await leaseUser();
+    await accept(first, id);
+    await accept(second, id);
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/legal/${id}`);
+    const waited = page.waitForEvent("download");
+    await page.getByTestId("legal-export").click();
+    const download = await waited;
+    expect(download.suggestedFilename()).toBe(`ethio-${kind}-all-v1-acceptances.csv`);
+    const path = await download.path();
+    if (!path) throw new Error("[e2e:legal-admin] download has no path");
+    const csv = await readFile(path, "utf8");
+    const lines = csv.split("\n").filter((line) => line.trim() !== "");
+    expect(lines[0]).toBe(
+      "account_id,accepted_at,language,method,home_country,adult_confirmed,data_consent",
+    );
+    expect(lines.length).toBe(3);
+    expect(lines.some((line) => line.includes(first.id))).toBe(true);
+    expect(lines.some((line) => line.includes(second.id))).toBe(true);
+    expect(csv).not.toContain(first.email);
+    expect(csv).not.toContain(second.email);
+    await expect(page.getByTestId("legal-export-done")).toHaveText("Exported 2 acceptances.");
+    const audit = await adminClient()
+      .from("audit_log")
+      .select("id")
+      .eq("action", "legal.acceptances_exported")
+      .eq("entity_id", id);
+    fail(audit.error, "audit read");
+    expect(audit.data?.length).toBe(1);
+  });
+  test("LGA-14 a draft's text is filled from a file", async ({ page }) => {
+    const kind = scratch("o");
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/legal/edit?kind=${kind}`);
+    await page.getByTestId("legal-import-en").setInputFiles({
+      name: "terms.md",
+      mimeType: "text/markdown",
+      buffer: Buffer.from("## Imported\nFrom a file"),
+    });
+    await expect(page.getByTestId("legal-field-body-en")).toHaveValue("## Imported\nFrom a file");
+    await expect(page.getByTestId("legal-import-done")).toContainText("terms.md");
+    const docs = await adminClient().from("legal_documents").select("id").eq("kind", kind);
+    fail(docs.error, "unsaved document read");
+    expect(docs.data).toEqual([]);
   });
 });
