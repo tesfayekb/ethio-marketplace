@@ -998,3 +998,6 @@
 
 - 2026-10-20 — Bundle 22 turn 14e, after the close (no migration; no string): the promote job and sync-main write main with the repository secret `PROMOTE_TOKEN` (a fine-grained token, this repository only, Contents and Workflows) and fail by name without it — the workflow token could not carry the new workflow file (INC-787, DEC-210); the temporary backend is named `ethio-ci-local`, never after production's ref (D228, DEC-209).
 - 2026-10-20 — Bundle 22 turn 15, after the close (no migration; no string): the category tree is one held store every reader subscribes to, so the phone strip and menu (and every other reader on a page) never show two versions of the catalogue (INC-788; INC-773, INC-784); the temporary-backend proof runs the whole suite — the smoke lane and twelve shard lanes, each on its own backend — with a summary job, non-gating (D228, DEC-209, DEC-211).
+
+<!-- prettier-ignore -->
+- 2026-10-20 — Bundle 22 turn 15b, after the close (no migration; no string): the temporary-backend proof's summary runs CI's own failure reporter over its thirteen lanes and publishes `local-backend-last-failure.md` (never the shared flake ledger); G-1 asserts the project's own auth server instead of a hosted domain; a read-only census of staging's reference data (D228, DEC-211).

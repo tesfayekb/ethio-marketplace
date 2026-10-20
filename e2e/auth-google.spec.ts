@@ -16,6 +16,7 @@ import { waitForHydration } from "./helpers/ui";
  *
  * The intercepted request is FULFILLED (204), never aborted, so the click's navigation
  * resolves cleanly and Google is never loaded.
+ * The authorize request must reach the configured project's own auth server.
  */
 const AUTHORIZE_GLOB = "**/auth/v1/authorize*";
 
@@ -38,7 +39,7 @@ test("G-1: our authorization request carries only the three intended scopes", as
 
   const url = new URL(authorizeUrl as unknown as string);
   expect(url.pathname.endsWith("/auth/v1/authorize")).toBe(true);
-  expect(url.host.endsWith(".supabase.co")).toBe(true);
+  expect(url.host).toBe(new URL(process.env["E2E_SUPABASE_URL"] ?? "").host);
   expect(url.searchParams.get("provider")).toBe("google");
 
   const scopes = (url.searchParams.get("scopes") ?? "").split(/[\s+]+/).filter(Boolean);
