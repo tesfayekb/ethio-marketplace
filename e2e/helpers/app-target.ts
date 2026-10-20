@@ -13,7 +13,10 @@ export function assertAppTargetsStaging(
 ): void {
   const vite = env["VITE_SUPABASE_URL"] ?? "";
   const server = env["SUPABASE_URL"];
-  const ok = vite.includes(stagingRef) && (server === undefined || server.includes(stagingRef));
+  const local = env["E2E_LOCAL_BACKEND"] === "1";
+  const ok = local
+    ? vite === "http://127.0.0.1:54321" && (server === undefined || server === "http://127.0.0.1:54321")
+    : vite.includes(stagingRef) && (server === undefined || server.includes(stagingRef));
   if (!ok) {
     throw new Error(
       `[e2e:setup] the app under test does not point at ethio-staging (VITE_SUPABASE_URL = ${vite || "(unset)"}). Start local runs with: bun run e2e:local`,

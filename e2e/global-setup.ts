@@ -401,8 +401,14 @@ export default async function globalSetup() {
   console.log(
     `[e2e:setup] E2E_SUPABASE_SERVICE_ROLE_KEY present = ${keyLength > 0} (length ${keyLength})`,
   );
-  console.log(`[e2e:setup] target ref is staging (${STAGING_REF}) = ${url.includes(STAGING_REF)}`);
-  if (!url.includes(STAGING_REF)) {
+  const localBackend = process.env["E2E_LOCAL_BACKEND"] === "1";
+  const targetOk = localBackend ? url === "http://127.0.0.1:54321" : url.includes(STAGING_REF);
+  if (localBackend && targetOk) {
+    console.log("[e2e:setup] target is the temporary local backend (D228) = true");
+  } else {
+    console.log(`[e2e:setup] target ref is staging (${STAGING_REF}) = ${url.includes(STAGING_REF)}`);
+  }
+  if (!targetOk) {
     throw new Error(
       `[e2e:setup] E2E_SUPABASE_URL does not point at ethio-staging (${STAGING_REF}). Got: ${url || "(unset)"}`,
     );
