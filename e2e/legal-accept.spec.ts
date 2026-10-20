@@ -122,7 +122,9 @@ async function acceptanceRows(userId: string, versionIds: string[]) {
 }
 
 test.describe("Legal acceptance", () => {
-  test("LAC-1 the hard stop and the two ticks", async ({ page }) => {
+  test("LAC-1 the hard stop and the one tick, with the 18+ statement the first time", async ({
+    page,
+  }) => {
     const tag = tagOf("a");
     const terms = await seed(`${tag}-terms`);
     const privacy = await seed(`${tag}-privacy`);
@@ -137,13 +139,14 @@ test.describe("Legal acceptance", () => {
     await expect(page.getByTestId("legal-accept-doc")).toHaveCount(2);
     const submit = page.getByTestId("legal-accept-submit");
     await expect(submit).toBeDisabled();
-    await page.getByTestId("legal-accept-adult").click();
-    await expect(submit, "tick 1 alone is not enough").toBeDisabled();
+    await expect(page.getByTestId("legal-accept-screen")).toContainText(
+      "I am 18 or older. I agree to the Terms of Service, and I have read the Privacy Policy.",
+    );
+    await page.getByTestId("legal-accept-tick").click();
     const privacyRow = page.locator(`[data-testid="legal-accept-doc"][data-kind="${tag}-privacy"]`);
     await privacyRow.getByTestId("legal-accept-read").click();
     await expect(page.getByTestId("legal-accept-text")).toContainText("Scratch English text 1");
-    await expect(page.getByTestId("legal-accept-adult")).toBeChecked();
-    await page.getByTestId("legal-accept-consent").click();
+    await expect(page.getByTestId("legal-accept-tick")).toBeChecked();
     await expect(submit).toBeEnabled();
     await submit.click();
     await expect(page).toHaveURL(/\/account$/);
@@ -153,15 +156,13 @@ test.describe("Legal acceptance", () => {
     for (const row of rows) {
       expect(row["adult_confirmed"]).toBe(true);
       expect(row["language"]).toBe("en");
-      expect(row["data_consent"], `consent on ${String(row["version_id"])}`).toBe(
-        row["version_id"] === privacy.versionId,
-      );
+      expect(row["data_consent"], "no separate storage consent").toBe(false);
     }
     await gotoReady(page, "/my-listings");
     await expect(page).toHaveURL(/\/my-listings$/);
   });
 
-  test("LAC-2 only a terms document: the Terms-only tick and no consent", async ({ page }) => {
+  test("LAC-2 only a terms document: the Terms-only tick", async ({ page }) => {
     const tag = tagOf("b");
     const terms = await seed(`${tag}-terms`);
     const person = await leaseUser();
@@ -169,10 +170,9 @@ test.describe("Legal acceptance", () => {
     await page.goto("/account");
     await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
     await expect(page.getByTestId("legal-accept-screen")).toContainText(
-      "I am 18 or older and I agree to the Terms of Service.",
+      "I am 18 or older. I agree to the Terms of Service.",
     );
-    await expect(page.getByTestId("legal-accept-consent")).toHaveCount(0);
-    await page.getByTestId("legal-accept-adult").click();
+    await page.getByTestId("legal-accept-tick").click();
     await page.getByTestId("legal-accept-submit").click();
     await expect(page).toHaveURL(/\/account$/);
     const rows = await acceptanceRows(person.id, [terms.versionId]);
@@ -180,7 +180,7 @@ test.describe("Legal acceptance", () => {
     expect(rows[0]!["data_consent"]).toBe(false);
   });
 
-  test("LAC-3 the exempt pages stay; other pages redirect; Sign out records nothing", async ({
+  test("LAC-3 the exempt pages stay; other pages redirect; Decline, sign out records nothing", async ({
     page,
   }) => {
     const tag = tagOf("c");
@@ -197,6 +197,7 @@ test.describe("Legal acceptance", () => {
       await expect(page, `${path} redirects`).toHaveURL(/\/legal\/accept\?next=/);
       await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
     }
+    await expect(page.getByTestId("legal-accept-signout")).toHaveText("Decline, sign out");
     await page.getByTestId("legal-accept-signout").click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByTestId("legal-accept-screen")).toHaveCount(0);
@@ -205,7 +206,9 @@ test.describe("Legal acceptance", () => {
     expect(await acceptanceRows(person.id, [terms.versionId])).toEqual([]);
   });
 
-  test("LAC-4 a material change brings the screen back with version 2", async ({ page }) => {
+  test("LAC-4 a material change brings the screen back with version 2, asking no 18+ statement again", async ({
+    page,
+  }) => {
     const tag = tagOf("d");
     const terms = await seed(`${tag}-terms`);
     const person = await leaseUser();
@@ -229,7 +232,7 @@ test.describe("Legal acceptance", () => {
     });
     if (!accepted.ok)
       throw new Error(`[e2e:legal-accept] v1 accept refused: ${await accepted.text()}`);
-    await seedVersion(terms.documentId, 2, true, Date.now() - 30_000);
+    const v2 = await seedVersion(terms.documentId, 2, true, Date.now() - 30_000);
     await signIn(page, person, [`${tag}-terms`]);
     await page.goto("/account");
     await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
@@ -237,8 +240,18 @@ test.describe("Legal acceptance", () => {
     await expect(row).toHaveCount(1);
     await expect(row).toHaveAttribute("data-kind", `${tag}-terms`);
     await expect(row).toContainText("Version 2");
-    await page.getByTestId("legal-accept-adult").click();
+    await expect(page.getByTestId("legal-accept-screen")).toContainText(
+      "I agree to the new Terms of Service.",
+    );
+    await expect(page.getByTestId("legal-accept-screen")).not.toContainText("18 or older");
+    await page.getByTestId("legal-accept-tick").click();
     await page.getByTestId("legal-accept-submit").click();
     await expect(page).toHaveURL(/\/account$/);
+    const rows = await acceptanceRows(person.id, [terms.versionId, v2]);
+    expect(rows).toHaveLength(2);
+    expect(
+      rows.find((accepted) => accepted["version_id"] === terms.versionId)?.["adult_confirmed"],
+    ).toBe(true);
+    expect(rows.find((accepted) => accepted["version_id"] === v2)?.["adult_confirmed"]).toBe(false);
   });
 });

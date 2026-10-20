@@ -17,7 +17,7 @@ vi.mock("@/components/shell-context", () => ({ useShell: () => ({ requestSignOut
 vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (k: string) => k, language: "en" }) }));
 import { LegalAcceptScreen } from "./legal-accept-screen";
 
-const row = (kind: string, id: string) => ({
+const row = (kind: string, id: string, adult = false) => ({
   kind,
   country_code: null,
   version_id: id,
@@ -25,6 +25,7 @@ const row = (kind: string, id: string) => ({
   label: `${kind} one`,
   material: false,
   effective_at: "2026-10-01T00:00:00Z",
+  adult_confirmed: adult,
 });
 function mount() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -44,16 +45,15 @@ beforeEach(() => {
 const submit = () => screen.getByTestId("legal-accept-submit");
 
 describe("LegalAcceptScreen", () => {
-  it("needs both ticks with a privacy document, and sends versions, language, adult and consent", async () => {
+  it("the first time: one tick with the 18+ statement; sends versions, language, adult true and no consent", async () => {
     status.mockResolvedValue([row("terms", "t1"), row("privacy", "p1")]);
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findAllByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.tick1.both")).toBeInTheDocument();
+    expect(screen.getByText("legal.accept.tickFirst.both")).toBeInTheDocument();
+    expect(screen.getByTestId("legal-accept-signout")).toHaveTextContent("legal.accept.decline");
     expect(submit()).toBeDisabled();
-    fireEvent.click(screen.getByTestId("legal-accept-adult"));
-    expect(submit()).toBeDisabled();
-    fireEvent.click(screen.getByTestId("legal-accept-consent"));
+    fireEvent.click(screen.getByTestId("legal-accept-tick"));
     expect(submit()).toBeEnabled();
     fireEvent.click(submit());
     await waitFor(() =>
@@ -61,25 +61,26 @@ describe("LegalAcceptScreen", () => {
         versionIds: ["t1", "p1"],
         language: "en",
         adult: true,
-        dataConsent: true,
+        dataConsent: false,
       }),
     );
     await waitFor(() => expect(navigate).toHaveBeenCalledWith({ href: "/account", replace: true }));
   });
-  it("shows no second tick without a privacy document and sends consent false", async () => {
-    status.mockResolvedValue([row("terms", "t1")]);
+  it("after the 18+ statement was confirmed once: the new wording, and adult false", async () => {
+    status.mockResolvedValue([row("terms", "t1", true)]);
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findByTestId("legal-accept-doc");
-    expect(screen.queryByTestId("legal-accept-consent")).toBeNull();
-    expect(screen.getByText("legal.accept.tick1.terms")).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("legal-accept-adult"));
+    expect(screen.getByText("legal.accept.tickNew.terms")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     await waitFor(() =>
-      expect(accept).toHaveBeenCalledWith(expect.objectContaining({ dataConsent: false })),
+      expect(accept).toHaveBeenCalledWith(
+        expect.objectContaining({ adult: false, dataConsent: false }),
+      ),
     );
   });
-  it("keeps the ticks while a text is read", async () => {
+  it("keeps the tick while a text is read", async () => {
     status.mockResolvedValue([row("privacy", "p1")]);
     version.mockResolvedValue({
       ...row("privacy", "p1"),
@@ -89,19 +90,18 @@ describe("LegalAcceptScreen", () => {
     });
     mount();
     await screen.findByTestId("legal-accept-doc");
-    fireEvent.click(screen.getByTestId("legal-accept-adult"));
-    fireEvent.click(screen.getByTestId("legal-accept-consent"));
+    fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(screen.getByTestId("legal-accept-read"));
     expect(await screen.findByText("Hello text")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("legal-accept-read"));
     expect(submit()).toBeEnabled();
   });
-  it("clears the ticks and shows the changed sentence on notInForce", async () => {
+  it("clears the tick and shows the changed sentence on notInForce", async () => {
     status.mockResolvedValue([row("terms", "t1")]);
     accept.mockRejectedValue({ message: "notInForce" });
     mount();
     await screen.findByTestId("legal-accept-doc");
-    fireEvent.click(screen.getByTestId("legal-accept-adult"));
+    fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     expect(await screen.findByTestId("legal-accept-error")).toHaveTextContent(
       "legal.accept.changed",
@@ -109,12 +109,12 @@ describe("LegalAcceptScreen", () => {
     expect(submit()).toBeDisabled();
     expect(status).toHaveBeenCalledTimes(2);
   });
-  it("keeps the ticks on any other refusal", async () => {
+  it("keeps the tick on any other refusal", async () => {
     status.mockResolvedValue([row("terms", "t1")]);
     accept.mockRejectedValue({ message: "badLanguage" });
     mount();
     await screen.findByTestId("legal-accept-doc");
-    fireEvent.click(screen.getByTestId("legal-accept-adult"));
+    fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     expect(await screen.findByTestId("legal-accept-error")).toHaveTextContent("legal.accept.error");
     expect(submit()).toBeEnabled();

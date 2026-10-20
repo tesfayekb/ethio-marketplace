@@ -3069,14 +3069,18 @@ export const en = {
   "legal.accept.version": "Version {n} · {label}",
   "legal.accept.read": "Read",
   "legal.accept.hide": "Hide",
-  "legal.accept.tick1.both":
-    "I am 18 or older and I agree to the Terms of Service and the Privacy Policy.",
-  "legal.accept.tick1.terms": "I am 18 or older and I agree to the Terms of Service.",
-  "legal.accept.tick1.privacy": "I am 18 or older and I agree to the Privacy Policy.",
-  "legal.accept.tick1.docs": "I am 18 or older and I agree to the documents above.",
-  "legal.accept.tick2":
-    "I agree that my data is stored and processed in the United States, as section 8 of the Privacy Policy explains.",
+  "legal.accept.tickFirst.both":
+    "I am 18 or older. I agree to the Terms of Service, and I have read the Privacy Policy.",
+  "legal.accept.tickFirst.terms": "I am 18 or older. I agree to the Terms of Service.",
+  "legal.accept.tickFirst.privacy": "I am 18 or older. I have read the Privacy Policy.",
+  "legal.accept.tickFirst.docs": "I am 18 or older. I agree to the documents above.",
+  "legal.accept.tickNew.both":
+    "I agree to the new Terms of Service, and I have read the new Privacy Policy.",
+  "legal.accept.tickNew.terms": "I agree to the new Terms of Service.",
+  "legal.accept.tickNew.privacy": "I have read the new Privacy Policy.",
+  "legal.accept.tickNew.docs": "I agree to the documents above.",
   "legal.accept.submit": "Agree and continue",
+  "legal.accept.decline": "Decline, sign out",
   "legal.accept.note":
     "You cannot use your account until you accept. You can still browse ethio.com without signing in.",
   "legal.accept.error": "We could not record your acceptance. Try again.",
@@ -3210,8 +3214,8 @@ export const en = {
   "admin.users.legal.notices": "Legal e-mails",
   "admin.users.legal.noAcceptances": "Nothing accepted yet.",
   "admin.users.legal.noNotices": "No legal e-mail sent yet.",
-  "admin.users.legal.acceptedMeta":
-    "{date} · shown in {language} · signed in by {method} · 18 or older confirmed",
+  "admin.users.legal.acceptedAt": "{date} · shown in {language} · signed in by {method}",
+  "admin.users.legal.adult": "18 or older confirmed",
   "admin.users.legal.noticeMeta": "{date} · e-mail · {status}",
   "admin.users.legal.status.sent": "Sent",
   "admin.users.legal.status.failed": "Failed",

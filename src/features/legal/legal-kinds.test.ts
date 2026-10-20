@@ -3,9 +3,9 @@ import {
   gateExempt,
   gateKinds,
   legalDocName,
+  legalMoment,
   legalRole,
-  needsConsent,
-  tickOneKey,
+  tickKey,
 } from "./legal-kinds";
 
 describe("legalRole", () => {
@@ -19,21 +19,28 @@ describe("legalRole", () => {
     expect(legalRole("x-terms")).toBe("other");
   });
 });
-describe("tickOneKey", () => {
-  it("names both, one or other documents", () => {
-    expect(tickOneKey(["terms", "privacy"])).toBe("legal.accept.tick1.both");
-    expect(tickOneKey(["terms"])).toBe("legal.accept.tick1.terms");
-    expect(tickOneKey(["privacy", "other"])).toBe("legal.accept.tick1.privacy");
-    expect(tickOneKey(["other"])).toBe("legal.accept.tick1.docs");
-    expect(tickOneKey([])).toBe("legal.accept.tick1.docs");
+describe("tickKey", () => {
+  it("names both, one or other documents, with the 18+ statement the first time only", () => {
+    expect(tickKey(["terms", "privacy"], true)).toBe("legal.accept.tickFirst.both");
+    expect(tickKey(["terms"], true)).toBe("legal.accept.tickFirst.terms");
+    expect(tickKey(["privacy", "other"], true)).toBe("legal.accept.tickFirst.privacy");
+    expect(tickKey(["other"], true)).toBe("legal.accept.tickFirst.docs");
+    expect(tickKey([], true)).toBe("legal.accept.tickFirst.docs");
+    expect(tickKey(["terms", "privacy"], false)).toBe("legal.accept.tickNew.both");
+    expect(tickKey(["terms"], false)).toBe("legal.accept.tickNew.terms");
+    expect(tickKey(["privacy", "other"], false)).toBe("legal.accept.tickNew.privacy");
+    expect(tickKey(["other"], false)).toBe("legal.accept.tickNew.docs");
+    expect(tickKey([], false)).toBe("legal.accept.tickNew.docs");
   });
 });
-describe("needsConsent", () => {
-  it("is true only with a privacy role", () => {
-    expect(needsConsent([{ kind: "terms" }, { kind: "e2e-a-privacy" }])).toBe(true);
-    expect(needsConsent([{ kind: "privacy" }])).toBe(true);
-    expect(needsConsent([{ kind: "terms" }, { kind: "e2e-a-terms" }])).toBe(false);
-    expect(needsConsent([])).toBe(false);
+describe("legalMoment", () => {
+  it("shows a UTC moment in the viewer's time zone, with the zone named", () => {
+    const at = "2026-10-20T03:24:26Z";
+    expect(legalMoment(at, "en", "Africa/Addis_Ababa")).toBe("20 Oct 2026, 06:24:26 GMT+3");
+    expect(legalMoment(at, "en", "America/New_York")).toBe("19 Oct 2026, 23:24:26 GMT-4");
+    const local = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    expect(legalMoment(at, "en")).toBe(legalMoment(at, "en", local));
+    expect(legalMoment(null, "en")).toBe("");
   });
 });
 describe("gateKinds", () => {

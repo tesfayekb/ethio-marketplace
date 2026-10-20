@@ -10,6 +10,7 @@ export type LegalStatusRow = {
   label: string;
   material: boolean | null;
   effective_at: string | null;
+  adult_confirmed: boolean;
 };
 export type MyLegalAcceptance = {
   version_id: string;
@@ -83,7 +84,10 @@ export async function myLegalStatus(kinds: string[]): Promise<LegalStatusRow[]> 
   const { data, error } = await supabase.rpc("my_legal_status", { p_kinds: kinds });
   if (error) throw error;
   if (!Array.isArray(data)) throw new Error("my_legal_status: invalid answer");
-  for (const raw of data) versionRow(raw, "my_legal_status");
+  for (const raw of data) {
+    if (typeof versionRow(raw, "my_legal_status").adult_confirmed !== "boolean")
+      throw new Error("my_legal_status: invalid answer");
+  }
   return data as unknown as LegalStatusRow[];
 }
 export async function acceptLegal(input: {

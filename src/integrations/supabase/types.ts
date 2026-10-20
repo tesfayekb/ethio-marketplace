@@ -3387,6 +3387,15 @@ export type Database = {
         | { Args: never; Returns: Json }
         | { Args: { p_scope_slug: string }; Returns: Json }
       admin_export_categories: { Args: { p_scope?: string }; Returns: Json }
+      admin_export_legal_acceptances: {
+        Args: {
+          p_after_at?: string
+          p_after_id?: string
+          p_limit?: number
+          p_version_id: string
+        }
+        Returns: Json
+      }
       admin_export_locations: { Args: { p_scope?: string }; Returns: Json }
       admin_export_translations: {
         Args: { p_after?: string; p_lang: string; p_limit?: number }

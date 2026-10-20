@@ -6,7 +6,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n, type MessageKey } from "@/i18n";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ownValue } from "@/lib/own-key";
-import { legalDate } from "./legal-kinds";
+import { legalMoment } from "./legal-kinds";
 import { legalDocName } from "./legal-kinds";
 import { myLegalHistory } from "./legal-reader";
 
@@ -69,7 +69,7 @@ export function MyLegalPage() {
                       </p>
                       <p className="break-words text-sm text-muted-foreground">
                         {t("myLegal.acceptedMeta")
-                          .replace("{date}", legalDate(row.accepted_at, language))
+                          .replace("{date}", legalMoment(row.accepted_at, language))
                           .replace(
                             "{language}",
                             row.language === "en" || row.language === "am"
@@ -113,7 +113,7 @@ export function MyLegalPage() {
                         <p className="break-words text-sm text-muted-foreground">
                           {t("myLegal.noticeMeta")
                             .replace("{status}", status ? t(status) : row.status)
-                            .replace("{date}", legalDate(row.sent_at, language))}
+                            .replace("{date}", legalMoment(row.sent_at, language))}
                         </p>
                         {open(row.version_id)}
                       </li>

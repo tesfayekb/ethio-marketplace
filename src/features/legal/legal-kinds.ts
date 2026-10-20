@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
 
-/** Bundle 22 turn 3 — pure rules of the acceptance gate (the door's consent rule uses the same patterns). */
+/** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */
 export type LegalRole = "terms" | "privacy" | "other";
 const SCRATCH_TERMS = /^e2e-[a-z0-9-]*-terms$/;
 const SCRATCH_PRIVACY = /^e2e-[a-z0-9-]*-privacy$/;
@@ -11,16 +11,19 @@ export function legalRole(kind: string): LegalRole {
   if (kind === "privacy" || SCRATCH_PRIVACY.test(kind)) return "privacy";
   return "other";
 }
-export function tickOneKey(roles: LegalRole[]): MessageKey {
+export function tickKey(roles: LegalRole[], firstTime: boolean): MessageKey {
   const terms = roles.includes("terms");
   const privacy = roles.includes("privacy");
-  if (terms && privacy) return "legal.accept.tick1.both";
-  if (terms) return "legal.accept.tick1.terms";
-  if (privacy) return "legal.accept.tick1.privacy";
-  return "legal.accept.tick1.docs";
-}
-export function needsConsent(rows: { kind: string }[]): boolean {
-  return rows.some((row) => legalRole(row.kind) === "privacy");
+  if (firstTime) {
+    if (terms && privacy) return "legal.accept.tickFirst.both";
+    if (terms) return "legal.accept.tickFirst.terms";
+    if (privacy) return "legal.accept.tickFirst.privacy";
+    return "legal.accept.tickFirst.docs";
+  }
+  if (terms && privacy) return "legal.accept.tickNew.both";
+  if (terms) return "legal.accept.tickNew.terms";
+  if (privacy) return "legal.accept.tickNew.privacy";
+  return "legal.accept.tickNew.docs";
 }
 export function gateKinds(extra: unknown): string[] {
   const kinds = ["terms", "privacy"];
@@ -65,6 +68,21 @@ export function legalDate(value: string | null | undefined, language: string): s
   if (!value) return "";
   return new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
     dateStyle: "medium",
-    timeZone: "UTC",
+  }).format(new Date(value));
+}
+/**
+ * Turn 12: an acceptance's or an e-mail's moment, stored in UTC, shown in the viewer's own time zone
+ * with the zone named. `timeZone` is for tests only; the screens pass none.
+ */
+export function legalMoment(
+  value: string | null | undefined,
+  language: string,
+  timeZone?: string,
+): string {
+  if (!value) return "";
+  return new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+    dateStyle: "medium",
+    timeStyle: "long",
+    timeZone,
   }).format(new Date(value));
 }

@@ -1070,7 +1070,7 @@ test.describe("Legal doors", () => {
     }
   });
 
-  test("LG-11 accept_legal and the consent: a Privacy Policy version needs the storage consent; the histories show it and a notice's version name", async ({
+  test("LG-11 accept_legal with no separate storage consent: Terms and Privacy accepted together and no consent recorded; the histories show it and a notice's version name", async ({
     page,
   }) => {
     const terms = await seedFixture(`${RUN_TAG}-k-terms`, null);
@@ -1078,24 +1078,10 @@ test.describe("Legal doors", () => {
     const person = await leaseUser();
     const caller = await asPerson(person);
     const both = [terms.publishedId, privacy.publishedId];
-    const withoutConsent = await caller.rpc("accept_legal", {
-      p_version_ids: both,
-      p_language: "en",
-      p_adult: true,
-    });
-    expect(withoutConsent.error, "no consent given").toContain("consentRequired");
-    const consentFalse = await caller.rpc("accept_legal", {
-      p_version_ids: both,
-      p_language: "en",
-      p_adult: true,
-      p_data_consent: false,
-    });
-    expect(consentFalse.error, "consent refused").toContain("consentRequired");
     const accepted = await caller.rpc("accept_legal", {
       p_version_ids: both,
       p_language: "en",
       p_adult: true,
-      p_data_consent: true,
     });
     expect(accepted.error).toBeNull();
 
@@ -1108,7 +1094,7 @@ test.describe("Legal doors", () => {
     const consentOf = (id: string) =>
       (rows.data as Row[] | null)?.find((r) => r["version_id"] === id)?.["data_consent"];
     expect(rows.data?.length, "both rows written").toBe(2);
-    expect(consentOf(privacy.publishedId), "the privacy row carries the consent").toBe(true);
+    expect(consentOf(privacy.publishedId), "no separate storage consent").toBe(false);
     expect(consentOf(terms.publishedId), "the terms row does not").toBe(false);
 
     const recorded = await adminClient().rpc("record_legal_notice", {
@@ -1132,7 +1118,7 @@ test.describe("Legal doors", () => {
     ] as const) {
       const acceptances = answer["acceptances"] as Row[];
       const find = (id: string) => acceptances.find((a) => a["version_id"] === id);
-      expect(find(privacy.publishedId)?.["data_consent"], `${who}: privacy consent`).toBe(true);
+      expect(find(privacy.publishedId)?.["data_consent"], `${who}: privacy consent`).toBe(false);
       expect(find(terms.publishedId)?.["data_consent"], `${who}: terms consent`).toBe(false);
       const notices = answer["notices"] as Row[];
       const notice = notices.find((n) => n["version_id"] === terms.publishedId);
@@ -1274,5 +1260,172 @@ test.describe("Legal doors", () => {
       .eq("id", id);
     expect(toFilled.error).toBeNull();
     expect((await publish()).error, "a filled fact publishes").toBeNull();
+  });
+  test("LG-23 the 18+ statement once: accept_legal refuses adultRequired until the caller has confirmed it, then accepts without it and records adult_confirmed as sent; my_legal_status carries adult_confirmed", async () => {
+    const w = await seedFixture(`${RUN_TAG}-w`, null);
+    const x = await seedFixture(`${RUN_TAG}-x`, null);
+    const person = await leaseUser();
+    const caller = await asPerson(person);
+    const statusArgs = { p_kinds: [`${RUN_TAG}-w`, `${RUN_TAG}-x`] };
+    const initial = await caller.rpc("my_legal_status", statusArgs);
+    expect(initial.error).toBeNull();
+    expect(initial.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ version_id: w.publishedId, adult_confirmed: false }),
+        expect.objectContaining({ version_id: x.publishedId, adult_confirmed: false }),
+      ]),
+    );
+    expect(initial.data).toHaveLength(2);
+    const refused = await caller.rpc("accept_legal", {
+      p_version_ids: [w.publishedId],
+      p_language: "en",
+      p_adult: false,
+    });
+    expect(refused.error).toContain("adultRequired");
+    const first = await caller.rpc("accept_legal", {
+      p_version_ids: [w.publishedId],
+      p_language: "en",
+      p_adult: true,
+    });
+    expect(first.error).toBeNull();
+    const pending = await caller.rpc("my_legal_status", statusArgs);
+    expect(pending.error).toBeNull();
+    expect(pending.data).toEqual([
+      expect.objectContaining({ version_id: x.publishedId, adult_confirmed: true }),
+    ]);
+    const later = await caller.rpc("accept_legal", {
+      p_version_ids: [x.publishedId],
+      p_language: "en",
+      p_adult: false,
+    });
+    expect(later.error).toBeNull();
+    const rows = await adminClient()
+      .from("legal_acceptances")
+      .select("version_id,adult_confirmed")
+      .eq("user_id", person.id)
+      .in("version_id", [w.publishedId, x.publishedId]);
+    expect(rows.error).toBeNull();
+    expect(rows.data).toHaveLength(2);
+    expect(rows.data?.find((row) => row.version_id === w.publishedId)?.adult_confirmed).toBe(true);
+    expect(rows.data?.find((row) => row.version_id === x.publishedId)?.adult_confirmed).toBe(false);
+    const done = await caller.rpc("my_legal_status", statusArgs);
+    expect(done.error).toBeNull();
+    expect(done.data).toEqual([]);
+  });
+
+  test("LG-24 admin_export_legal_acceptances: refused for an anonymous caller, a plain user, an admin by role and a stale second factor; the super admin reads a published version's acceptances page by page — account id, time, language, method, home country and the two flags, never a name or e-mail — with one audit row", async ({
+    page,
+  }) => {
+    const kind = `${RUN_TAG}-y`;
+    const fixture = await seedFixture(kind, null);
+    const plain = await leaseUser();
+    const admin = await leaseUser();
+    await grantRole(admin.id, "admin");
+    const plainCaller = await asPerson(plain);
+    const adminCaller = await asPerson(admin);
+    for (const [caller, language] of [
+      [plainCaller, "en"],
+      [adminCaller, "am"],
+    ] as const) {
+      const accepted = await caller.rpc("accept_legal", {
+        p_version_ids: [fixture.publishedId],
+        p_language: language,
+        p_adult: true,
+      });
+      expect(accepted.error).toBeNull();
+    }
+    const args = { p_version_id: fixture.publishedId };
+    const anon = await asAnon();
+    for (const caller of [anon, plainCaller, adminCaller]) {
+      expect((await caller.rpc("admin_export_legal_acceptances", args)).error).toContain(
+        "permission denied",
+      );
+    }
+    const stale = await asPerson(pooledSuperAdminCredentials());
+    const staleAnswer = await stale.rpc("admin_export_legal_acceptances", args);
+    expect(staleAnswer.error).not.toBeNull();
+    expect(staleAnswer.error).not.toContain("permission denied");
+    await useJobSuperAdmin(page);
+    const staff = await asToken(await superAdminToken(page));
+    for (const limit of [0, 5001]) {
+      expect(
+        (await staff.rpc("admin_export_legal_acceptances", { ...args, p_limit: limit })).error,
+      ).toContain("badValue:limit");
+    }
+    expect(
+      (
+        await staff.rpc("admin_export_legal_acceptances", {
+          ...args,
+          p_after_at: new Date().toISOString(),
+        })
+      ).error,
+    ).toContain("badValue:after");
+    expect(
+      (await staff.rpc("admin_export_legal_acceptances", { p_version_id: crypto.randomUUID() }))
+        .error,
+    ).toContain("unknownVersion");
+    type ExportPage = {
+      version: number;
+      kind: string;
+      country_code: string | null;
+      rows: Row[];
+      next: { at: string; id: string } | null;
+    };
+    const pageOne = await staff.rpc("admin_export_legal_acceptances", { ...args, p_limit: 1 });
+    expect(pageOne.error).toBeNull();
+    const one = pageOne.data as ExportPage;
+    expect(one.version).toBe(1);
+    expect(one.kind).toBe(kind);
+    expect(one.country_code).toBeNull();
+    expect(one.rows).toHaveLength(1);
+    expect(one.next).not.toBeNull();
+    if (!one.next) throw new Error("[e2e:legal] export page 1 has no cursor");
+    const pageTwo = await staff.rpc("admin_export_legal_acceptances", {
+      ...args,
+      p_limit: 1,
+      p_after_at: one.next.at,
+      p_after_id: one.next.id,
+    });
+    expect(pageTwo.error).toBeNull();
+    const two = pageTwo.data as ExportPage;
+    expect(two.rows).toHaveLength(1);
+    expect(two.next).not.toBeNull();
+    if (!two.next) throw new Error("[e2e:legal] export page 2 has no cursor");
+    const pageThree = await staff.rpc("admin_export_legal_acceptances", {
+      ...args,
+      p_limit: 1,
+      p_after_at: two.next.at,
+      p_after_id: two.next.id,
+    });
+    expect(pageThree.error).toBeNull();
+    const three = pageThree.data as ExportPage;
+    expect(three.rows).toEqual([]);
+    expect(three.next).toBeNull();
+    const rows = [...one.rows, ...two.rows];
+    expect(rows.map((row) => row["account_id"]).sort()).toEqual([plain.id, admin.id].sort());
+    expect(rows.find((row) => row["account_id"] === plain.id)?.["language"]).toBe("en");
+    expect(rows.find((row) => row["account_id"] === admin.id)?.["language"]).toBe("am");
+    for (const row of rows) {
+      expect(Object.keys(row).sort()).toEqual([
+        "accepted_at",
+        "account_id",
+        "adult_confirmed",
+        "data_consent",
+        "home_country",
+        "language",
+        "method",
+      ]);
+      expect(row["adult_confirmed"]).toBe(true);
+      expect(row["data_consent"]).toBe(false);
+      expect(typeof row["accepted_at"]).toBe("string");
+      expect(typeof row["method"]).toBe("string");
+    }
+    const audit = await adminClient()
+      .from("audit_log")
+      .select("id")
+      .eq("action", "legal.acceptances_exported")
+      .eq("entity_id", fixture.publishedId);
+    expect(audit.error).toBeNull();
+    expect(audit.data).toHaveLength(1);
   });
 });

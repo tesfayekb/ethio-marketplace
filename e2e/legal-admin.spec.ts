@@ -119,7 +119,7 @@ async function fillDraft(page: Page, label: string, en: string, am: string, chan
 async function accept(
   person: { email: string; password: string },
   id: string,
-  options: { consent?: boolean } = {},
+  options: { consent?: boolean; adult?: boolean } = {},
 ) {
   const session = await passwordGrant(person.email, person.password);
   const url = process.env["E2E_SUPABASE_URL"];
@@ -135,7 +135,7 @@ async function accept(
     body: JSON.stringify({
       p_version_ids: [id],
       p_language: "en",
-      p_adult: true,
+      p_adult: options.adult ?? true,
       p_data_consent: options.consent ?? false,
     }),
   });
@@ -398,6 +398,9 @@ test.describe("Admin Legal", () => {
       await expect(page.getByTestId("user-legal-acceptance")).toHaveCount(1);
       await expect(page.getByTestId("user-legal-acceptance")).toContainText(kind);
       await expect(page.getByTestId("user-legal-acceptance")).toContainText("first");
+      await expect(
+        page.getByTestId("user-legal-acceptance").getByTestId("user-legal-adult"),
+      ).toHaveCount(1);
       await expect(page.getByTestId("user-legal-notice")).toHaveCount(1);
       await expect(page.getByTestId("user-legal-notice")).toContainText("Sent");
       await gotoReady(page, `/admin/users/${empty.id}`);
@@ -421,5 +424,28 @@ test.describe("Admin Legal", () => {
     } finally {
       await destroy(kind);
     }
+  });
+  test("LGA-9 the user Legal card: 18 or older confirmed only on the acceptance that confirmed it, each time with seconds", async ({
+    page,
+  }) => {
+    const firstKind = scratch("i");
+    const secondKind = scratch("j");
+    const firstId = await seed(firstKind);
+    const secondId = await seed(secondKind);
+    const person = await leaseUser();
+    await accept(person, firstId);
+    await accept(person, secondId, { adult: false });
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/users/${person.id}`);
+    const rows = page.getByTestId("user-legal-acceptance");
+    await expect(rows).toHaveCount(2);
+    const first = rows.filter({ hasText: firstKind });
+    const second = rows.filter({ hasText: secondKind });
+    await expect(first).toHaveCount(1);
+    await expect(second).toHaveCount(1);
+    await expect(first.getByTestId("user-legal-adult")).toHaveCount(1);
+    await expect(first.getByTestId("user-legal-adult")).toHaveText("18 or older confirmed");
+    await expect(second.getByTestId("user-legal-adult")).toHaveCount(0);
+    await expect(first).toContainText(/\d{2}:\d{2}:\d{2}/);
   });
 });

@@ -4298,7 +4298,10 @@
     "admin.users.legal.accepted": [
       "/admin/users/$userId"
     ],
-    "admin.users.legal.acceptedMeta": [
+    "admin.users.legal.acceptedAt": [
+      "/admin/users/$userId"
+    ],
+    "admin.users.legal.adult": [
       "/admin/users/$userId"
     ],
     "admin.users.legal.consent": [
@@ -4541,8 +4544,7 @@
     "auth.signOut": [
       "(every page)",
       "/",
-      "/c/$slug",
-      "/legal/accept"
+      "/c/$slug"
     ],
     "auth.signUpButton": [
       "/auth"
@@ -4886,6 +4888,9 @@
     "language.label": [
       "(every page)"
     ],
+    "legal.accept.decline": [
+      "/legal/accept"
+    ],
     "legal.accept.hide": [
       "/legal/accept"
     ],
@@ -4905,9 +4910,6 @@
       "/legal/accept"
     ],
     "legal.accept.submit": [
-      "/legal/accept"
-    ],
-    "legal.accept.tick2": [
       "/legal/accept"
     ],
     "legal.accept.title": [
