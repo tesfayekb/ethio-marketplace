@@ -135,7 +135,7 @@ async function rowPair(menuRow: Locator, stripRow: Locator, what: "y" | "height"
             : null,
         rows,
       };
-    });
+    }, ROW_PAIR_ROWS);
   const [menu, strip] = await Promise.all([describe(menuRow), describe(stripRow)]);
   return JSON.stringify({ what, gap: Math.round(gap * 1000) / 1000, menu, strip });
 }
