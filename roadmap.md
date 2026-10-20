@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-22-turn-14d.md (bundle 22 — turn 14d, after the close: the proof finds its database container; D228, DEC-209). Next: the proof's verdict and the Flake check's diagnosis, then turn 15 (phase 2) or a further fix; then the no-escape turn (D227); the Publish and the one walk of bundle 22; the operator's approval of the Terms and Privacy v2 texts, then their Amharic, import and publish; the banned-items and safety pages after the curator's research; the flake-and-cleanup turn; bundle 23 — the business-name rule (D222) after reserved-names v5.2; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-22-turn-14e.md (bundle 22 — turn 14e, after the close: main updates again with `PROMOTE_TOKEN`; the temporary backend's own project id; INC-787, DEC-210, D228, DEC-209). Next: the second passing proof and the Flake check's diagnosis, then turn 15 (phase 2); then the no-escape turn (D227); the Publish and the one walk of bundle 22; the operator's approval of the Terms and Privacy v2 texts, then their Amharic, import and publish; the banned-items and safety pages after the curator's research; the flake-and-cleanup turn; bundle 23 — the business-name rule (D222) after reserved-names v5.2; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
@@ -429,6 +429,8 @@ The operator's answers of 2026-10-06 and the cross-check that nothing identified
 
   <!-- prettier-ignore -->
   - [ ] Turn 14d (docs/governance/briefs/bundle-22-turn-14d.md; no migration; no string) — the proof's start step finds the single supabase_db_ container instead of assuming its name; the evidence keeps its own commit unmasked (D228, DEC-209)
+
+  - [ ] Turn 14e (docs/governance/briefs/bundle-22-turn-14e.md; no migration; no string) — the promote job and sync-main write main with the repository secret `PROMOTE_TOKEN` (INC-787, DEC-210); the proof job sets `SUPABASE_PROJECT_ID` to `ethio-ci-local` (D228, DEC-209)
 
   - [ ] Turn 15 (owed, after DEC-209 says proceed) — phase 2: the reference-data seed; every E2E shard on its own temporary backend, twelve shards; staging for the nightly run and the walks
   - [ ] Turn 16 (owed) — phase 3: the account pool retired for CI; the staging tidy-up (compact feed_index and listings; the test accounts' audit rows on staging only); the docs
