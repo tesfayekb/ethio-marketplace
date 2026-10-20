@@ -425,27 +425,27 @@ test.describe("Admin Legal", () => {
       await destroy(kind);
     }
   });
-});
-test("LGA-9 the user Legal card: 18 or older confirmed only on the acceptance that confirmed it, each time with seconds", async ({
-  page,
-}) => {
-  const firstKind = scratch("i");
-  const secondKind = scratch("j");
-  const firstId = await seed(firstKind);
-  const secondId = await seed(secondKind);
-  const person = await leaseUser();
-  await accept(person, firstId);
-  await accept(person, secondId, { adult: false });
-  await useJobSuperAdmin(page);
-  await gotoReady(page, `/admin/users/${person.id}`);
-  const rows = page.getByTestId("user-legal-acceptance");
-  await expect(rows).toHaveCount(2);
-  const first = rows.filter({ hasText: firstKind });
-  const second = rows.filter({ hasText: secondKind });
-  await expect(first).toHaveCount(1);
-  await expect(second).toHaveCount(1);
-  await expect(first.getByTestId("user-legal-adult")).toHaveCount(1);
-  await expect(first.getByTestId("user-legal-adult")).toHaveText("18 or older confirmed");
-  await expect(second.getByTestId("user-legal-adult")).toHaveCount(0);
-  await expect(first).toContainText(/\d{2}:\d{2}:\d{2}/);
+  test("LGA-9 the user Legal card: 18 or older confirmed only on the acceptance that confirmed it, each time with seconds", async ({
+    page,
+  }) => {
+    const firstKind = scratch("i");
+    const secondKind = scratch("j");
+    const firstId = await seed(firstKind);
+    const secondId = await seed(secondKind);
+    const person = await leaseUser();
+    await accept(person, firstId);
+    await accept(person, secondId, { adult: false });
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/users/${person.id}`);
+    const rows = page.getByTestId("user-legal-acceptance");
+    await expect(rows).toHaveCount(2);
+    const first = rows.filter({ hasText: firstKind });
+    const second = rows.filter({ hasText: secondKind });
+    await expect(first).toHaveCount(1);
+    await expect(second).toHaveCount(1);
+    await expect(first.getByTestId("user-legal-adult")).toHaveCount(1);
+    await expect(first.getByTestId("user-legal-adult")).toHaveText("18 or older confirmed");
+    await expect(second.getByTestId("user-legal-adult")).toHaveCount(0);
+    await expect(first).toContainText(/\d{2}:\d{2}:\d{2}/);
+  });
 });
