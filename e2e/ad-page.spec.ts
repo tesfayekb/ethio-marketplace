@@ -1008,7 +1008,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         .locator('[data-testid="listing-section-nav-item"]:visible')
         .evaluateAll((items) => items.map((item) => item.getAttribute("data-target"))),
     ).toEqual(["details", "description", "seller", "location"]);
-    const sampleScroll = async (target: string) => {
+    const sampleScroll = async (target: string, stillMs = 300) => {
       const started = Date.now();
       let stillSince = started;
       let previousY = await page.evaluate(() => window.scrollY);
@@ -1028,7 +1028,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
               previousY = sample.y;
               stillSince = now;
             }
-            return now - stillSince >= 300;
+            return now - stillSince >= stillMs;
           },
           { intervals: [50] },
         )
@@ -1044,8 +1044,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await sellerItem.click();
     await sampleScroll("seller");
     await expect(sellerItem).toHaveAttribute("aria-current", "true");
-    await page.waitForTimeout(600);
-    await expect(sellerItem).toHaveAttribute("aria-current", "true");
+    // INC-779 — the page is already still: every sample for 600 ms more is still the tapped tab.
+    await sampleScroll("seller", 600);
     await expect
       .poll(async () => {
         const seller = await page
@@ -1059,8 +1059,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await locationItem.click();
     await sampleScroll("location");
     await expect(locationItem).toHaveAttribute("aria-current", "true");
-    await page.waitForTimeout(600);
-    await expect(locationItem).toHaveAttribute("aria-current", "true");
+    // INC-779 — the page is already still: every sample for 600 ms more is still the tapped tab.
+    await sampleScroll("location", 600);
     await expect
       .poll(async () => {
         const heading = await page
