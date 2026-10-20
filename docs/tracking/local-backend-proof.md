@@ -1,13 +1,13 @@
 # Local backend proof (non-gating)
 
-- Commit: `7464c799de3a7efbe0f3f2d837aa3b437ea607c8`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39385861649
+- Commit: `[masked hex]`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39392431913
 - CLI version: 2.120.0
 - Seconds — checkout: 2
-- Seconds — install: 8
-- Seconds — CLI install: 7
+- Seconds — install: 5
+- Seconds — CLI install: 5
 - Seconds — working copy: 0
-- Seconds — start (migrations included): 106
+- Seconds — start (migrations included): 100
 - Seconds — build: not run
 - Seconds — browser install: not run
 - Seconds — tests: not run
@@ -25,10 +25,18 @@
 - fixture 20260929201600: the sub-city Bole under Addis Ababa
 - Parity:
 not written
+- Status:
+Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECRET, LINKED_PROJECT_REF, MAILPIT_URL, PUBLISHABLE_KEY, REST_URL, S3_PROTOCOL_ACCESS_KEY_ID, S3_PROTOCOL_ACCESS_KEY_SECRET, S3_PROTOCOL_REGION, SECRET_KEY, SERVICE_ROLE_KEY, STORAGE_S3_URL
+Keys used: ANON_KEY, SERVICE_ROLE_KEY
+- Step failure:
+ledger check: docker exec exit 1: Error response from daemon: No such container: supabase_db_ethio-ci-local
+
 
 ## Migration/start failure
 Last migration line: Applying migration 20261020041607_c88f99d5-b2cd-495f-93c1-8c9de328a1db.sql...
 ```text
+Applying migration 20261018165306_40c06cd4-7cd6-4582-934e-5eca916909a7.sql...
+Applying migration 20261018165354_7dce9a57-93a9-4c10-a5d7-ff36e88fde91.sql...
 Applying migration 20261019063500_1bb93282-5a6f-4557-b00b-781967b410c6.sql...
 Applying migration 20261019063635_0e901b95-3cfb-4daf-bb72-6a6d3f691897.sql...
 Applying migration 20261019084720_0bad8634-24d0-4c7c-bd3e-f2f736dab99d.sql...
@@ -78,8 +86,8 @@ Started supabase local development setup.
 │ 📦 Storage (S3)                                                               │
 ├────────────┬──────────────────────────────────────────────────────────────────┤
 │ URL        │ http://127.0.0.1:54321/storage/v1/s3                             │
-│ Access Key │ 625729a08b95bf1b7ff351a663f3a23c                                 │
-│ Secret Key │ 850181e4652dd023b7a98c58ae0d2d34bd487ee0cc3254aed6eda37307425907 │
+│ Access Key │ [masked]                                 │
+│ Secret Key │ [masked] │
 │ Region     │ local                                                            │
 ╰────────────┴──────────────────────────────────────────────────────────────────╯
 Local dev security notice
@@ -87,8 +95,6 @@ All services bind to 0.0.0.0 (network-accessible, not just localhost)
 API keys and JWT secrets are shared defaults. Do not use in production
 Studio, pgMeta (/pg/*), and analytics have no authentication
 
-A new version of Supabase CLI is available: v2.121.0 (currently installed v2.120.0)
-We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
 ```
 - Smoke: 0 passed · 0 failed · 0 flaky · 0 skipped · total 0
 - Job conclusion before evidence publication: failure
