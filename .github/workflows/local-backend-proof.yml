@@ -22,6 +22,7 @@ jobs:
     permissions:
       contents: write
     env:
+      SUPABASE_PROJECT_ID: ethio-ci-local
       E2E_LOCAL_BACKEND: "1"
       E2E_SHARD: localproof
       VITE_E2E: "1"

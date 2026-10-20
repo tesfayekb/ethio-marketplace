@@ -221,12 +221,21 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
     steps:
+      - name: Promote token present (DEC-210)
+        env:
+          PROMOTE_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          if ! test -n "$PROMOTE_TOKEN"; then
+            echo "::error::PROMOTE_TOKEN is not set — the repository secret that writing main needs (INC-787, DEC-210)"
+            exit 1
+          fi
       - uses: actions/checkout@v7
         with:
           ref: dev
           fetch-depth: 0
+          token: ${{ secrets.PROMOTE_TOKEN }}
 
       - name: Show what will be overwritten
         run: |

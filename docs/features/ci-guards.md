@@ -550,6 +550,8 @@ tested HEAD (`git merge-base --is-ancestor`), and then pushes
 `HEAD:main`. Fast-forward is the only allowed motion: never a merge, never a
 rebase — a divergence is a manual reconcile, per the decision record.
 
+DEC-210 (2026-10-20, INC-787): the workflow token cannot write a range that adds or changes a workflow file to main, so the promote job and sync-main check out with the repository secret `PROMOTE_TOKEN` — a fine-grained personal access token for this repository only, Contents and Workflows read/write, 90 days (renew before 2027-01-18; the operator holds a reminder). Both jobs fail by name when the secret is missing and never fall back to the workflow token; their own `permissions` are `contents: read`. No workflow runs on a push to main, so the token's writes to main start nothing.
+
 Known mechanics:
 
 - DEC-098: the reporters' `[skip ci]` evidence commits (`ci-status.md`,

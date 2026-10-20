@@ -75,6 +75,8 @@ Turn 14c: the start step records the reason of any failure after `supabase start
 <!-- prettier-ignore -->
 Turn 14d: proof #3 (a4dee36c) applied every migration in 100 s; the CLI printed both key pairs (ANON_KEY and SERVICE_ROLE_KEY were used); the ledger check failed on an assumed container name — the step now finds the single supabase_db_ container. The evidence keeps its own commit unmasked.
 
+Turn 14e: proof #4 (efb581af) passed — applied 329/329, start 106 s, smoke 186 passed / 0 failed / 60 skipped of 246 in 733 s, RLS on 76 of 76; the stack had been named after production's ref (the CLI read `SUPABASE_PROJECT_ID` from the repository's .env), now set to `ethio-ci-local` in the proof job's env.
+
 ### Hosted read-backs (turn 14b; SELECT only)
 
 B1 — owner: `postgres`; `def` (the executable copy lives in the workflow):

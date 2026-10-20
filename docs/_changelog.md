@@ -995,3 +995,5 @@
 
 <!-- prettier-ignore -->
 - 2026-10-20 — Bundle 22 turn 14d, after the close (no migration; no string): the temporary backend's start step finds its database container (the single supabase_db_ container) instead of assuming its name, and the proof's evidence keeps its own commit unmasked (D228, DEC-209).
+
+- 2026-10-20 — Bundle 22 turn 14e, after the close (no migration; no string): the promote job and sync-main write main with the repository secret `PROMOTE_TOKEN` (a fine-grained token, this repository only, Contents and Workflows) and fail by name without it — the workflow token could not carry the new workflow file (INC-787, DEC-210); the temporary backend is named `ethio-ci-local`, never after production's ref (D228, DEC-209).
