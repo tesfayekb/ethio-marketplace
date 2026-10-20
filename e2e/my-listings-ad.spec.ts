@@ -2,7 +2,12 @@ import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { destroyLocation, seedGuessFixture, seedScratchChain } from "./helpers/locations";
+import {
+  destroyLocation,
+  seedGuessFixture,
+  seedScratchChain,
+  waitForServedTree,
+} from "./helpers/locations";
 import {
   destroyCategoryBranch,
   destroyListingsOf,
@@ -213,6 +218,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     branches.push([parent.slug as string, leaf.slug as string]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug as string);
+    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+    await waitForServedTree("ET", chain.subCity.slug as string);
     return {
       ...seller,
       leafId: leaf.id as string,
@@ -1103,6 +1110,10 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     // Reaped in afterEach after the listings, so no place row still points at it.
     regions.push(second.region.slug as string);
     regions.push(guess.region.slug as string);
+    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+    await waitForServedTree("ET", second.subCity.slug as string);
+    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+    await waitForServedTree("ET", guess.city.slug as string);
     {
       const X = await seed(A, "active");
       // INC-659 — an old pin at the scratch chain's own point, for the map to leave.
@@ -1275,6 +1286,8 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     const second = await seedScratchChain("ET");
     // Reaped in afterEach after the listings, so no place row still points at it.
     regions.push(second.region.slug as string);
+    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+    await waitForServedTree("ET", second.subCity.slug as string);
     const X = await seed(A, "active");
     const placesOf = async () => {
       const located = await adminClient()
