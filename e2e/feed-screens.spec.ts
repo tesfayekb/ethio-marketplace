@@ -9,6 +9,7 @@ import {
   destroyLocation,
   scratchSlug,
   seedScratchChain,
+  waitForServedTree,
   waitForTreeSlug,
 } from "./helpers/locations";
 import {
@@ -64,6 +65,8 @@ test.describe("FEED SCREENS", () => {
   async function chain() {
     const c = await seedScratchChain("ET");
     regions.push(c.region.slug);
+    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+    await waitForServedTree("ET", c.subCity.slug);
     return c;
   }
 
