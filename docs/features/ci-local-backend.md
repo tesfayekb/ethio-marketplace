@@ -72,6 +72,8 @@ Supervisor's replay, 2026-10-20: a local PostgreSQL 16 stand-in applied the 322 
 
 Turn 14c: the start step records the reason of any failure after `supabase start` (local-backend-failure.txt), the status variables' names and the key names it used (local-backend-status.txt); proof run #2 (7464c799) applied every migration in 106 s and then failed with no reason recorded.
 
+Turn 14d: proof #3 (a4dee36c) applied every migration in 100 s; the CLI printed both key pairs (ANON_KEY and SERVICE_ROLE_KEY were used); the ledger check failed on an assumed container name — the step now finds the single supabase_db_ container. The evidence keeps its own commit unmasked.
+
 ### Hosted read-backs (turn 14b; SELECT only)
 
 B1 — owner: `postgres`; `def` (the executable copy lives in the workflow):
