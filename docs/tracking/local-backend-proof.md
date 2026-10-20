@@ -1,26 +1,27 @@
 # Local backend proof (non-gating)
 
-- Commit: `244b1e717db7f2ac3a71e7293322ae10906deaf8`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39406911749
+- Commit: `78b96e259c820ab45786cb34a34d8b7b69da4792`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39411681777
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 883 | 118 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
-| 1 | 1191 | 104 | applied 329/329 | 179 | 7 | 2 | 6 | 194 |
-| 2 | 1058 | 107 | applied 329/329 | 145 | 1 | 0 | 1 | 147 |
-| 3 | 634 | 98 | applied 329/329 | 172 | 2 | 1 | 2 | 177 |
-| 4 | 1101 | 101 | applied 329/329 | 163 | 6 | 1 | 6 | 176 |
-| 5 | 742 | 99 | applied 329/329 | 150 | 1 | 0 | 1 | 152 |
-| 6 | 711 | 109 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
-| 7 | 1033 | 112 | applied 329/329 | 149 | 9 | 1 | 3 | 162 |
-| 8 | 1163 | 116 | applied 329/329 | 169 | 1 | 0 | 1 | 171 |
-| 9 | 834 | 103 | applied 329/329 | 160 | 2 | 0 | 6 | 168 |
-| 10 | 1251 | 112 | applied 329/329 | 162 | 6 | 2 | 6 | 176 |
-| 11 | 861 | 115 | applied 329/329 | 189 | 1 | 0 | 2 | 192 |
-| 12 | 527 | 90 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2076 | 36 | 7 | 154 | 2273 |
+| smoke | 770 | 89 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
+| 1 | 1225 | 104 | applied 329/329 | 179 | 6 | 3 | 6 | 194 |
+| 2 | 1057 | 105 | applied 329/329 | 145 | 1 | 0 | 1 | 147 |
+| 3 | 637 | 95 | applied 329/329 | 174 | 1 | 0 | 2 | 177 |
+| 4 | 1040 | 104 | applied 329/329 | 163 | 6 | 1 | 6 | 176 |
+| 5 | 824 | 105 | applied 329/329 | 150 | 1 | 0 | 1 | 152 |
+| 6 | 661 | 101 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
+| 7 | 1179 | 122 | applied 329/329 | 151 | 6 | 2 | 3 | 162 |
+| 8 | 1021 | 99 | applied 329/329 | 169 | 1 | 0 | 1 | 171 |
+| 9 | 708 | 100 | applied 329/329 | 161 | 1 | 0 | 6 | 168 |
+| 10 | 1063 | 88 | applied 329/329 | 162 | 6 | 2 | 6 | 176 |
+| 11 | 844 | 104 | applied 329/329 | 189 | 1 | 0 | 2 | 192 |
+| 12 | 569 | 104 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2081 | 30 | 8 | 154 | 2273 |
+- Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
 
-- Slowest lane: 10 1251 s
+- Slowest lane: 1 1225 s
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -55,9 +56,7 @@ Database container: supabase_db_ethio-ci-local
 - admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
 
 ## Lane 3
-- auth-google.spec.ts / G-1: our authorization request carries only the three intended scopes / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
 - feed-screens.spec.ts / FEED SCREENS / FS-15 the card's ribbon and the old price (D173, D175 1, D180) / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
-- legal-certify.spec.ts / Legal certification / LGC-3 the staff card lists an ad's certification with the statement's name; an ad with none says so / mobile-360 — Error: [render-leak] gotoReady(/admin/listings/[account id]) rendered “undefined”
 
 ## Lane 4
 - my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
@@ -80,15 +79,12 @@ Database container: supabase_db_ethio-ci-local
 - ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-49 the feed's first page asks no second request for its photos (DEC-195) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoMatch[2m([22m[32mexpected[39m[2m)[22m
 - ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-48 the thumbnails' arrows (INC-717, INC-720) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
 - admin-attributes-import.spec.ts / C3 attributes console / AT-27 an edited read-only cell is ignored while the row's real change applies / desktop-1280 — Error: {"error":"tooManyRequests"}
-- admin-attributes-import.spec.ts / C3 attributes console / AT-70 a direct rank held twice in the end state is refused as rankClash / desktop-1280 — Error: {"error":"tooManyRequests"}
-- admin-attributes-import.spec.ts / C3 attributes console / AT-71 removing an option value still in use is refused as optionInUse / desktop-1280 — Error: {"error":"tooManyRequests"}
 
 ## Lane 8
 - admin-translations-console.spec.ts / U4b translations console / TR-6 coverage gate: empty and incomplete catalogs both refuse publication / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
 
 ## Lane 9
 - feed-screens.spec.ts / FEED SCREENS / FS-15 the card's ribbon and the old price (D173, D175 1, D180) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
-- legal-certify.spec.ts / Legal certification / LGC-3 the staff card lists an ad's certification with the statement's name; an ad with none says so / desktop-1280 — Error: [render-leak] gotoReady(/admin/listings/[account id]) rendered “undefined”
 
 ## Lane 10
 - my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
