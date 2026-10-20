@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39381352993
-- Commit: `cf1dc2ed8fc702943c5595bbe61a6db1b6651761`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39392539925
+- Commit: `a4dee36c0f82bc86a70a5e15fb7460b28faa8ad1`
 - Attempt: 1
-- Written (UTC): 2026-10-20T07:39:12.789Z
-- Passed: 43 · Skipped: 24 · Failed: 5
-- Gating failures: 5 · Quarantined (@global-state, INC-117, non-gating): 0
+- Written (UTC): 2026-10-20T09:22:01.950Z
+- Passed: 38 · Skipped: 24 · Failed: 10
+- Gating failures: 10 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): flake
 - Sources without results: none
@@ -33,31 +33,31 @@ Results read: flake · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| flake | 2026-10-20T07:37:26.361Z | 1.7 min |
+| flake | 2026-10-20T09:20:22.789Z | 1.6 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 72 | 9.9 min | flake |
+| `shell.spec.ts` | 72 | 8.8 min | flake |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 24.7 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 22.8 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 22.8 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 22.7 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 21.8 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 21.1 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 20.2 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 19.5 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 19.4 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 19.1 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 18.8 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 18.1 s |
 | `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 18.0 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | desktop-1280 | 16.4 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | desktop-1280 | 15.7 s |
-| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | desktop-1280 | 15.2 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 17.8 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 17.6 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 17.5 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 17.5 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 16.8 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 16.6 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 16.3 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 16.2 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 15.6 s |
+| `shell.spec.ts` › FV-1 one device favourite leads every main list and survives reload | mobile-360 | 15.3 s |
+| `shell.spec.ts` › RM-1 a tap on the strip opens the menu; the row under the finger opens the category | mobile-360 | 15.1 s |
+| `shell.spec.ts` › RM-1 a tap on the strip opens the menu; the row under the finger opens the category | mobile-360 | 15.0 s |
+| `shell.spec.ts` › RM-1 a tap on the strip opens the menu; the row under the finger opens the category | mobile-360 | 15.0 s |
 
 ## Post-test errors: flake
 
@@ -66,7 +66,7 @@ flake: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 39381352993-flake
+[e2e:teardown] deleted 3 user(s) owned by process 39392539925-flake
 ```
 
 ## shell.spec.ts › FV-1 one device favourite leads every main list and survives reload
@@ -77,36 +77,36 @@ flake: every test's verdict stands — these lines were printed OUTSIDE any test
 ```text
 Error: FV-1 electronics level in the menu and the strip
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":1.672,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":124.67,\"height\":32.83,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-favourite:32.83\",\"rail-category-vehicles:32.84\",\"rail-category-electronics:32.83\",\"rail-category-fashion:32.84\",\"rail-category-home-garden:32.83\",\"rail-category-beauty-personal-care:32.84\",\"rail-category-real-estate:32.83\",\"rail-category-services:32.84\",\"rail-category-sports-leisure:32.83\",\"rail-category-construction:32.84\",\"rail-category-travel:32.83\",\"rail-category-agriculture-farming:32.84\",\"rail-category-pets-animals:32.83\",\"rail-category-babies-kids:32.83\",\"rail-category-commercial-equipment:32.83\",\"rail-category-e2e-post-5-1-9lxv7q:32.83\",\"rail-category-e2e-post-2-1-s4bit1:32.83\",\"rail-category-e2e-post-4-1-0pudr9:32.83\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":123,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-favourite:32\",\"strip-category-vehicles:32\",\"strip-category-electronics:32\",\"strip-category-fashion:32\",\"strip-category-home-garden:32\",\"strip-category-beauty-personal-care:32\",\"strip-category-real-estate:32\",\"strip-category-services:32\",\"strip-category-sports-leisure:32\",\"strip-category-construction:32\",\"strip-category-travel:32\",\"strip-category-agriculture-farming:32\",\"strip-category-pets-animals:32\",\"strip-category-babies-kids:32\",\"strip-category-commercial-equipment:32\",\"strip-category-e2e-post-5-1-9lxv7q:32\",\"strip-category-e2e-post-2-1-s4bit1:32\",\"strip-category-e2e-post-4-1-0pudr9:32\",\"strip-category-e2e-post-1-1-zrdnyd:32\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 --- further error 1 ---
 Error: FV-1 electronics level in the menu and the strip
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":1.672,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":124.67,\"height\":32.83,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-favourite:32.83\",\"rail-category-vehicles:32.84\",\"rail-category-electronics:32.83\",\"rail-category-fashion:32.84\",\"rail-category-home-garden:32.83\",\"rail-category-beauty-personal-care:32.84\",\"rail-category-real-estate:32.83\",\"rail-category-services:32.84\",\"rail-category-sports-leisure:32.83\",\"rail-category-construction:32.84\",\"rail-category-travel:32.83\",\"rail-category-agriculture-farming:32.84\",\"rail-category-pets-animals:32.83\",\"rail-category-babies-kids:32.83\",\"rail-category-commercial-equipment:32.83\",\"rail-category-e2e-post-5-1-9lxv7q:32.83\",\"rail-category-e2e-post-2-1-s4bit1:32.83\",\"rail-category-e2e-post-4-1-0pudr9:32.83\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":123,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-favourite:32\",\"strip-category-vehicles:32\",\"strip-category-electronics:32\",\"strip-category-fashion:32\",\"strip-category-home-garden:32\",\"strip-category-beauty-personal-care:32\",\"strip-category-real-estate:32\",\"strip-category-services:32\",\"strip-category-sports-leisure:32\",\"strip-category-construction:32\",\"strip-category-travel:32\",\"strip-category-agriculture-farming:32\",\"strip-category-pets-animals:32\",\"strip-category-babies-kids:32\",\"strip-category-commercial-equipment:32\",\"strip-category-e2e-post-5-1-9lxv7q:32\",\"strip-category-e2e-post-2-1-s4bit1:32\",\"strip-category-e2e-post-4-1-0pudr9:32\",\"strip-category-e2e-post-1-1-zrdnyd:32\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 
-  3853 |         .toBeLessThanOrEqual(1);
-  3854 |       for (const mainSlug of mainSlugs) {
-> 3855 |         await expect
+  3903 |         .toBe("level");
+  3904 |       for (const mainSlug of mainSlugs) {
+> 3905 |         await expect
        |         ^
-  3856 |           .poll(
-  3857 |             () =>
-  3858 |               gapY(
-    at checkFavourite (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3855:9)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3875:3
+  3906 |           .poll(
+  3907 |             () =>
+  3908 |               rowPair(
+    at checkFavourite (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3905:9)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3922:3
 ```
 
-Context: context file not found for `shell-FV-1-one-device-favourite-leads-every-main-list-and-survives-reload-mobile-360` — Playwright's name `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360`; this run carried 5 context file(s); of the same spec: `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat3`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat8`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat4`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat1`
+Context: context file not found for `shell-FV-1-one-device-favourite-leads-every-main-list-and-survives-reload-mobile-360` — Playwright's name `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360`; this run carried 10 context file(s); of the same spec: `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat9`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat10`
 
 ## shell.spec.ts › FV-1 one device favourite leads every main list and survives reload
 
@@ -116,142 +116,524 @@ Context: context file not found for `shell-FV-1-one-device-favourite-leads-every
 ```text
 Error: FV-1 electronics level in the menu and the strip
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":1.672,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":124.67,\"height\":32.83,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-favourite:32.83\",\"rail-category-vehicles:32.84\",\"rail-category-electronics:32.83\",\"rail-category-fashion:32.84\",\"rail-category-home-garden:32.83\",\"rail-category-beauty-personal-care:32.84\",\"rail-category-real-estate:32.83\",\"rail-category-services:32.84\",\"rail-category-sports-leisure:32.83\",\"rail-category-construction:32.84\",\"rail-category-travel:32.83\",\"rail-category-agriculture-farming:32.84\",\"rail-category-pets-animals:32.83\",\"rail-category-babies-kids:32.83\",\"rail-category-commercial-equipment:32.83\",\"rail-category-e2e-post-5-1-9lxv7q:32.83\",\"rail-category-e2e-post-2-1-s4bit1:32.83\",\"rail-category-e2e-post-4-1-0pudr9:32.83\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":123,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-favourite:32\",\"strip-category-vehicles:32\",\"strip-category-electronics:32\",\"strip-category-fashion:32\",\"strip-category-home-garden:32\",\"strip-category-beauty-personal-care:32\",\"strip-category-real-estate:32\",\"strip-category-services:32\",\"strip-category-sports-leisure:32\",\"strip-category-construction:32\",\"strip-category-travel:32\",\"strip-category-agriculture-farming:32\",\"strip-category-pets-animals:32\",\"strip-category-babies-kids:32\",\"strip-category-commercial-equipment:32\",\"strip-category-e2e-post-5-1-9lxv7q:32\",\"strip-category-e2e-post-2-1-s4bit1:32\",\"strip-category-e2e-post-4-1-0pudr9:32\",\"strip-category-e2e-post-1-1-zrdnyd:32\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 --- further error 1 ---
 Error: FV-1 electronics level in the menu and the strip
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":1.672,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":124.67,\"height\":32.83,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-favourite:32.83\",\"rail-category-vehicles:32.84\",\"rail-category-electronics:32.83\",\"rail-category-fashion:32.84\",\"rail-category-home-garden:32.83\",\"rail-category-beauty-personal-care:32.84\",\"rail-category-real-estate:32.83\",\"rail-category-services:32.84\",\"rail-category-sports-leisure:32.83\",\"rail-category-construction:32.84\",\"rail-category-travel:32.83\",\"rail-category-agriculture-farming:32.84\",\"rail-category-pets-animals:32.83\",\"rail-category-babies-kids:32.83\",\"rail-category-commercial-equipment:32.83\",\"rail-category-e2e-post-5-1-9lxv7q:32.83\",\"rail-category-e2e-post-2-1-s4bit1:32.83\",\"rail-category-e2e-post-4-1-0pudr9:32.83\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":123,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-favourite:32\",\"strip-category-vehicles:32\",\"strip-category-electronics:32\",\"strip-category-fashion:32\",\"strip-category-home-garden:32\",\"strip-category-beauty-personal-care:32\",\"strip-category-real-estate:32\",\"strip-category-services:32\",\"strip-category-sports-leisure:32\",\"strip-category-construction:32\",\"strip-category-travel:32\",\"strip-category-agriculture-farming:32\",\"strip-category-pets-animals:32\",\"strip-category-babies-kids:32\",\"strip-category-commercial-equipment:32\",\"strip-category-e2e-post-5-1-9lxv7q:32\",\"strip-category-e2e-post-2-1-s4bit1:32\",\"strip-category-e2e-post-4-1-0pudr9:32\",\"strip-category-e2e-post-1-1-zrdnyd:32\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 
-  3853 |         .toBeLessThanOrEqual(1);
-  3854 |       for (const mainSlug of mainSlugs) {
-> 3855 |         await expect
+  3903 |         .toBe("level");
+  3904 |       for (const mainSlug of mainSlugs) {
+> 3905 |         await expect
        |         ^
-  3856 |           .poll(
-  3857 |             () =>
-  3858 |               gapY(
-    at checkFavourite (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3855:9)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3875:3
+  3906 |           .poll(
+  3907 |             () =>
+  3908 |               rowPair(
+    at checkFavourite (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3905:9)
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3922:3
 ```
 
-Context: context file not found for `shell-FV-1-one-device-favourite-leads-every-main-list-and-survives-reload-mobile-360` — Playwright's name `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360`; this run carried 5 context file(s); of the same spec: `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat3`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat8`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat4`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat1`
+Context: context file not found for `shell-FV-1-one-device-favourite-leads-every-main-list-and-survives-reload-mobile-360` — Playwright's name `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360`; this run carried 10 context file(s); of the same spec: `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat9`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat10`
 
-## shell.spec.ts › FV-1 one device favourite leads every main list and survives reload
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
 
 - Source: `flake`
 - Project: `mobile-360`
 
 ```text
-Error: FV-1 electronics level in the menu and the strip
+Error: RM-1 the menu row level with the strip row
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: FV-1 electronics level in the menu and the strip
+Error: RM-1 the menu row level with the strip row
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 
-  3853 |         .toBeLessThanOrEqual(1);
-  3854 |       for (const mainSlug of mainSlugs) {
-> 3855 |         await expect
-       |         ^
-  3856 |           .poll(
-  3857 |             () =>
-  3858 |               gapY(
-    at checkFavourite (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3855:9)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3875:3
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
 ```
 
-Context: context file not found for `shell-FV-1-one-device-favourite-leads-every-main-list-and-survives-reload-mobile-360` — Playwright's name `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360`; this run carried 5 context file(s); of the same spec: `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat3`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat8`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat4`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat1`
+Context:
 
-## shell.spec.ts › FV-1 one device favourite leads every main list and survives reload
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
 
 - Source: `flake`
 - Project: `mobile-360`
 
 ```text
-Error: FV-1 electronics level in the menu and the strip
+Error: RM-1 the menu row level with the strip row
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: FV-1 electronics level in the menu and the strip
+Error: RM-1 the menu row level with the strip row
 
-expect(received).toBeLessThanOrEqual(expected)
+expect(received).toBe(expected) // Object.is equality
 
-Expected: <= 1
-Received:    1.671875
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
 
 Call Log:
 - Timeout 10000ms exceeded while waiting on the predicate
 
-  3853 |         .toBeLessThanOrEqual(1);
-  3854 |       for (const mainSlug of mainSlugs) {
-> 3855 |         await expect
-       |         ^
-  3856 |           .poll(
-  3857 |             () =>
-  3858 |               gapY(
-    at checkFavourite (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3855:9)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:3871:3
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
 ```
 
-Context: context file not found for `shell-FV-1-one-device-favourite-leads-every-main-list-and-survives-reload-mobile-360` — Playwright's name `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360`; this run carried 5 context file(s); of the same spec: `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat3`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat8`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat4`, `shell-FV-1-one-device-favo-b5bb6-in-list-and-survives-reload-mobile-360-repeat1`
+Context:
 
-## shell.spec.ts › mobile chrome › the menu opens in place
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
 
 - Source: `flake`
 - Project: `mobile-360`
 
 ```text
-Error: expect(received).toBeLessThanOrEqual(expected)
+Error: RM-1 the menu row level with the strip row
 
-Expected: <= 1
-Received:    2.328125
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":2.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":87,\"height\":33,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:33\",\"rail-category-electronics:33\",\"rail-category-fashion:33\",\"rail-category-home-garden:33\",\"rail-category-beauty-personal-care:33\",\"rail-category-real-estate:33\",\"rail-category-services:33\",\"rail-category-sports-leisure:33\",\"rail-category-construction:33\",\"rail-category-travel:33\",\"rail-category-agriculture-farming:33\",\"rail-category-pets-animals:33\",\"rail-category-babies-kids:33\",\"rail-category-commercial-equipment:33\",\"rail-category-e2e-post-4-1-rh5aj3:33\",\"rail-category-e2e-post-4-0-c7whzm:33\",\"rail-category-e2e-post-1-1-m24cdz:33\",\"rail-category-e2e-post-1-1-ru8ubg:33\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
 --- further error 1 ---
-Error: expect(received).toBeLessThanOrEqual(expected)
+Error: RM-1 the menu row level with the strip row
 
-Expected: <= 1
-Received:    2.328125
+expect(received).toBe(expected) // Object.is equality
 
-  1278 |     if (!rowBox || !stripBox) throw new Error("Missing aligned category rows");
-  1279 |     expect(Math.abs(rowBox.y - stripBox.y)).toBeLessThanOrEqual(1);
-> 1280 |     expect(Math.abs(rowBox.height - stripBox.height)).toBeLessThanOrEqual(1);
-       |                                                       ^
-  1281 |     expect(rowBox.height).toBeGreaterThanOrEqual(31);
-  1282 |     expect(rowBox.height).toBeLessThanOrEqual(41);
-  1283 |     const iconBox = await row.locator("svg:nth-of-type(1)").boundingBox();
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1280:55
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":2.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":87,\"height\":33,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:33\",\"rail-category-electronics:33\",\"rail-category-fashion:33\",\"rail-category-home-garden:33\",\"rail-category-beauty-personal-care:33\",\"rail-category-real-estate:33\",\"rail-category-services:33\",\"rail-category-sports-leisure:33\",\"rail-category-construction:33\",\"rail-category-travel:33\",\"rail-category-agriculture-farming:33\",\"rail-category-pets-animals:33\",\"rail-category-babies-kids:33\",\"rail-category-commercial-equipment:33\",\"rail-category-e2e-post-4-1-rh5aj3:33\",\"rail-category-e2e-post-4-0-c7whzm:33\",\"rail-category-e2e-post-1-1-m24cdz:33\",\"rail-category-e2e-post-1-1-ru8ubg:33\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
 ```
 
-Context: context file not found for `shell-mobile-chrome-the-menu-opens-in-place-mobile-360` — Playwright's name `shell-mobile-chrome-the-menu-opens-in-place-mobile-360`; this run carried 5 context file(s); of the same spec: `shell-mobile-chrome-the-menu-opens-in-place-mobile-360-repeat7`
+Context:
+
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
+
+- Source: `flake`
+- Project: `mobile-360`
+
+```text
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
+```
+
+Context:
+
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
+
+- Source: `flake`
+- Project: `mobile-360`
+
+```text
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
+```
+
+Context:
+
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
+
+- Source: `flake`
+- Project: `mobile-360`
+
+```text
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
+```
+
+Context:
+
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
+
+- Source: `flake`
+- Project: `mobile-360`
+
+```text
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
+```
+
+Context:
+
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
+
+## shell.spec.ts › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category
+
+- Source: `flake`
+- Project: `mobile-360`
+
+```text
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+--- further error 1 ---
+Error: RM-1 the menu row level with the strip row
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: "level"
+Received: "{\"what\":\"y\",\"gap\":3.047,\"menu\":{\"testid\":\"rail-category-electronics\",\"top\":86,\"height\":32,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"rail-category-vehicles:32\",\"rail-category-electronics:32\",\"rail-category-fashion:32\",\"rail-category-home-garden:32\",\"rail-category-beauty-personal-care:32\",\"rail-category-real-estate:32\",\"rail-category-services:32\",\"rail-category-sports-leisure:32\",\"rail-category-construction:32\",\"rail-category-travel:32\",\"rail-category-agriculture-farming:32\",\"rail-category-pets-animals:32\",\"rail-category-babies-kids:32\",\"rail-category-commercial-equipment:32\",\"rail-category-e2e-post-2-1-8h9zk1:32\",\"rail-category-e2e-post-4-1-rh5aj3:32\",\"rail-category-e2e-post-4-0-c7whzm:32\",\"rail-category-e2e-post-1-1-m24cdz:32\",\"rail-category-e2e-post-4-0-ug2ch6:32\"]},\"strip\":{\"testid\":\"strip-category-electronics\",\"top\":89.05,\"height\":35.06,\"container\":{\"top\":52,\"clientHeight\":628,\"scrollTop\":0},\"rows\":[\"strip-category-vehicles:35.05\",\"strip-category-electronics:35.06\",\"strip-category-fashion:35.05\",\"strip-category-home-garden:35.06\",\"strip-category-beauty-personal-care:35.05\",\"strip-category-real-estate:35.06\",\"strip-category-services:35.05\",\"strip-category-sports-leisure:35.06\",\"strip-category-construction:35.06\",\"strip-category-travel:35.06\",\"strip-category-agriculture-farming:35.06\",\"strip-category-pets-animals:35.06\",\"strip-category-babies-kids:35.06\",\"strip-category-commercial-equipment:35.06\",\"strip-category-e2e-post-2-1-8h9zk1:35.06\",\"strip-category-e2e-post-4-1-rh5aj3:35.06\",\"strip-category-e2e-post-1-1-m24cdz:35.06\"]}}"
+
+Call Log:
+- Timeout 10000ms exceeded while waiting on the predicate
+
+  1229 |     const menuRow = menu.getByTestId(`rail-category-${category.slug}`);
+  1230 |     await expect(menuRow).toBeVisible();
+> 1231 |     await expect
+       |     ^
+  1232 |       .poll(() => rowPair(menuRow, row, "y"), {
+  1233 |         message: "RM-1 the menu row level with the strip row",
+  1234 |       })
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/shell.spec.ts:1231:5
+```
+
+Context:
+
+```text
+          - listitem [ref=e400]:
+            - generic [ref=e401]: About
+          - listitem [ref=e402]:
+            - generic [ref=e403]: Contact
+      - navigation "Help" [ref=e404]:
+        - heading "Help" [level=2] [ref=e405]
+        - list [ref=e406]:
+          - listitem [ref=e407]:
+            - generic [ref=e408]: Safety
+      - navigation "Legal" [ref=e409]:
+        - heading "Legal" [level=2] [ref=e410]
+        - list [ref=e411]:
+          - listitem [ref=e412]:
+            - link "Terms" [ref=e413] [cursor=pointer]:
+              - /url: /terms
+          - listitem [ref=e414]:
+            - link "Privacy" [ref=e415] [cursor=pointer]:
+              - /url: /privacy
+    - paragraph [ref=e417]: © 2026 ethio.com — All rights reserved.
+```
+```
 
 ## Server errors: flake
 
