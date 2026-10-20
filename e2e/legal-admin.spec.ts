@@ -497,7 +497,10 @@ test.describe("Admin Legal", () => {
     page,
   }) => {
     const kind = scratch("l");
-    const firstId = await seed(kind, { body_en: "## First\nOriginal English", body_am: "Same Amharic" });
+    const firstId = await seed(kind, {
+      body_en: "## First\nOriginal English",
+      body_am: "Same Amharic",
+    });
     const doc = await adminClient().from("legal_documents").select("id").eq("kind", kind).single();
     fail(doc.error, "document read");
     if (!doc.data) throw new Error("[e2e:legal-admin] missing document");
