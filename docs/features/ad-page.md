@@ -177,3 +177,5 @@ Turn 32 — AP-45 now checks that every other tab is not current after a tap; IN
 Bundle 21 turn 16 (INC-753): a tapped tab holds until the scroll it started has stopped (200 ms without movement, 3 s at most); a scrollend that comes earlier does not end it. At the end of the page the last section on screen is current, because a section near the end can never reach the watcher's band.
 
 Turn 34 — the Maps search names the full place, from the ad's place up to the country, in English (the deepest place common to the ad's places — INC-730); on an iPhone home-screen app, where an outside link opens in an in-app window that cannot hand a Google Maps web link to the app, both Maps links offer "Google Maps app" (Google's own app address) or "Open in browser" (INC-731); elsewhere the links open as before.
+
+INC-779 (bundle 22 turn 10): after a tap on the section bar, the tapped tab stays current once its own scroll has stopped, until the reader moves the page; AP-37 checks that the choice holds.

@@ -982,3 +982,5 @@
 
 - 2026-10-19 — Bundle 22 (Stage 1) turn 8 (four migrations, M8a–M8d; two strings): the sold ad's shown days are the legal setting sold_visible_days (default 30; Admin › Legal facts; the Terms' {{sold_visible_days}}); sold_visible_days() and sold_cutoff(); three public policies and eleven functions read it; the seller's sentence says the days; INC-777's correction (M8d); LG-22. apply f4f10b49 → expect mark 20261020080000; apply fee22f72 → 20261020090000; apply b947bfda → 20261020100000; apply a93ea697 → 20261020110000.
 - 2026-10-19 — Bundle 22 (Stage 1) turn 9 (one migration, M9; no string): turns 6 to 8 concluded from CI; INC-778's correction (admin_set_legal_settings trims operator_details and legal_phone again); LG-5's cleanup in afterEach (J3). apply 2240482e → expect mark 20261020120000.
+
+- 2026-10-20 — Bundle 22 (Stage 1) turn 10 (no migration; no string): turns 6 to 9 concluded from CI; INC-779 — the ad page's tapped section tab stays current until the reader moves the page (AP-37).

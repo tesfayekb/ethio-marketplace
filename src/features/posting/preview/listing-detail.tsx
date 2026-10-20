@@ -422,6 +422,8 @@ export function ListingDetail(view: ListingDetailView) {
   const navRef = useRef<HTMLElement | null>(null);
   const pinnedRef = useRef<string | null>(null);
   const pinTimerRef = useRef<number | null>(null);
+  // INC-779 — where the tap's own scroll stopped: the tapped tab stays current until the page moves from here.
+  const heldYRef = useRef<number | null>(null);
   const sections: { target: string; id: string; label: MessageKey }[] = [
     ...(facts.length > 0
       ? [{ target: "details", id: "ad-details", label: "post.preview.detailsLabel" as const }]
@@ -475,12 +477,17 @@ export function ListingDetail(view: ListingDetailView) {
     if (!article || !showSections || sectionIds === "") return;
     const endPin = () => {
       pinnedRef.current = null;
+      heldYRef.current = null;
       if (pinTimerRef.current !== null) window.clearTimeout(pinTimerRef.current);
       pinTimerRef.current = null;
     };
     const visible = new Set<string>();
     const decide = () => {
       if (pinnedRef.current !== null) return;
+      if (heldYRef.current !== null) {
+        if (Math.abs(window.scrollY - heldYRef.current) < 2) return;
+        heldYRef.current = null;
+      }
       const items = sectionIds.split(",").flatMap((id) => {
         const section = article.querySelector(`#${id}`);
         if (!section) return [];
@@ -971,8 +978,9 @@ export function ListingDetail(view: ListingDetailView) {
                   section.target === "seller" ? "@min-[57.5rem]:hidden" : ""
                 } ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
                 onClick={() => {
-                  // INC-753 — the tap's choice holds until its own scroll has stopped (200 ms still, 3 s at most): a fixed 1 s pin, or the first scrollend, handed 'current' to another tab while a slow smooth scroll was still moving.
+                  // INC-753 — the tap's choice holds until its own scroll has stopped (200 ms still, 3 s at most): a fixed 1 s pin, or the first scrollend, handed 'current' to another tab while a slow smooth scroll was still moving. INC-779 — then it stays current until the reader moves the page.
                   pinnedRef.current = section.target;
+                  heldYRef.current = null;
                   if (pinTimerRef.current !== null) window.clearTimeout(pinTimerRef.current);
                   currentSectionRef.current = section.target;
                   setCurrentSection(section.target);
@@ -986,6 +994,7 @@ export function ListingDetail(view: ListingDetailView) {
                       stillSince = now;
                     }
                     if (now - stillSince >= 200 || now - started >= 3000) {
+                      heldYRef.current = window.scrollY;
                       pinnedRef.current = null;
                       pinTimerRef.current = null;
                       return;
