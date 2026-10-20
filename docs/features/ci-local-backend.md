@@ -549,6 +549,8 @@ Turn 15f (proof #10, `17e867e2`): the guard named LGC-3's element — the staff 
 
 Turn 15g (proof #11, `1a5b21bd`): 2,113 passed, 0 failed, 6 flaky, 154 skipped of 2,273; every lane 329/329; the slowest lane 1,166 s; LGC-3 green (INC-795). Under DEC-211 proof #11 counts, the first of two. Its retried passes — MLA-15, MLA-17 and AP-41, in both projects and in every proof since #7 — opened a page before the public tree's 15-second copy carried the fixture's new places; every fixture now waits for the route to serve them first (INC-797).
 
+Turn 15h (proof #12, `99e4e619`): 2,119 passed, 0 failed, 0 flaky of 2,273 — every test at its first attempt — but the slowest lane took 1,771 s: turn 15g's route wait (up to the route's 15-second copy) ran in about 115 test calls per project, where only a few read the served place. Under DEC-211 proof #12 does not count (criterion 3) and the pair restarts. A test now waits for the route only when its outcome reads output built from the served place tree; the factories take the wait as an option.
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,

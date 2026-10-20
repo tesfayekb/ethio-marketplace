@@ -572,6 +572,7 @@ export async function readServedNodes(countryCode: string): Promise<
  * INC-235 — WAIT FOR THE ROUTE TO SERVE THE MARKET before the where step opens.
  * Bounded at 20 s like every other tree wait (the cache window is 15 s) and the
  * refusal names what the route did return, never a bare timeout.
+ * Called only where the test's outcome reads output built from the served tree (INC-797, turn 15h); a test that only renders a page showing places does not wait.
  */
 export async function waitForServedTree(countryCode: string, slug: string) {
   let seen: { status: number; slugs: string[] } = { status: 0, slugs: [] };
