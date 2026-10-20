@@ -105,11 +105,11 @@ describe("listing history (turn L3)", () => {
 
   it("INC-795 every listing status has its staff label in English and Amharic", () => {
     const sql = readFileSync(STATUS_CHECK, "utf8");
-    const match = /ADD CONSTRAINT listings_status_check\s+CHECK \(status IN \(([^)]*)\)\)/.exec(sql);
+    const match = /ADD CONSTRAINT listings_status_check\s+CHECK \(status IN \(([^)]*)\)\)/.exec(
+      sql,
+    );
     if (!match) throw new Error("no listings_status_check list");
-    const statuses = (match[1] ?? "")
-      .split(",")
-      .map((item) => item.trim().replace(/^'|'$/g, ""));
+    const statuses = (match[1] ?? "").split(",").map((item) => item.trim().replace(/^'|'$/g, ""));
     expect(statuses).toHaveLength(10);
     const catalogues: Record<string, Record<string, string>> = { en, am };
     for (const status of statuses) {
