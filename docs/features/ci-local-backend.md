@@ -53,7 +53,7 @@ nothing; hosted staging remains unchanged. CLI version: **2.120.0**.
 
 | (j) Default grants in public | B3: all six rows in the hosted read-back below | Local twin: proof's `Default grants in public:` parity line | Compare the local image's defaults; no browser-role default table/sequence grants in the fixture. |
 | (k) Platform RLS event trigger | B1 owner `postgres`; B2 `ensure_rls`, `ddl_command_end`, enabled `O`, tags `CREATE TABLE`, `CREATE TABLE AS`, `SELECT INTO`, function `rls_auto_enable()` | Function body copied exactly into the workflow; one event trigger | B4: RLS on 76 of 76 public tables; local twin in the proof's parity line. Other platform triggers are not copied. |
-| (l) Hosted migration ledger | B5: 322 rows; both version differences in the hosted read-back below | Repository versions except `20260922120000`, plus every runtime `*_ci_local_*.sql` version | Literal hosted/repository timestamps differ beyond the never-applied file; report them, do not rewrite landed migrations. |
+| (l) Hosted migration ledger | B5: 322 rows; both version differences in the hosted read-back below | Repository versions except `20260922120000`, plus every runtime `*_ci_local_*.sql` version | Literal hosted/repository timestamps differ beyond the never-applied file; report them, do not rewrite landed migrations. The supervisor's tracing (2026-10-20; `git log --all --name-status -- supabase/migrations`): four pairs are one file each, renamed by the platform after the tool recorded its first stamp — 20260729110912/…110913, 20260822050500/…050200, 20260822065530/…065542, 20260822073000/…072304 (R100 renames, same SQL). Three hosted versions have files only on the platform's side branches, never on dev — 20260830084410 and 20260830084458 (lovable-sync; service_role grant sweeps that 20260830091427 and 20260830091455 restate on dev) and 20260907065759 (lovable-sync-1788764600; public.admin_export_attributes, redefined on dev by 20260907173330, 20260907181251 and 20260907221756; its mark 20260907070000 exists on hosted only). 20260922120000 never applied anywhere (INC-266). 20261004212627, 20261015110000 and 20261017044823 were applied by the operator from the raw file (G39), which writes no tool-ledger row. No SQL ran on hosted that dev's files do not hold. |
 
 ## The working copy (turn 14b)
 
@@ -69,6 +69,8 @@ nothing; hosted staging remains unchanged. CLI version: **2.120.0**.
 - Fixture `20260929201600`: active Bole sub-city under Addis Ababa; `20260929201601` otherwise refuses `PROOF setup failed: places`.
 
 Supervisor's replay, 2026-10-20: a local PostgreSQL 16 stand-in applied the 322 migrations hosted applied, in order, each in one transaction, with these fixes and no others, in 132 to 143 seconds; RLS on 76 of 76 public tables. Unproven there: the CLI's Postgres 17 image, its default grants, event-trigger privilege, the real Auth and Storage schemas.
+
+Turn 14c: the start step records the reason of any failure after `supabase start` (local-backend-failure.txt), the status variables' names and the key names it used (local-backend-status.txt); proof run #2 (7464c799) applied every migration in 106 s and then failed with no reason recorded.
 
 ### Hosted read-backs (turn 14b; SELECT only)
 
