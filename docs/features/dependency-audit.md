@@ -138,3 +138,12 @@ the runtime tree.
 - Resolved: `brace-expansion@1.1.21` in `bun.lock`, one copy in the tree.
 - Verification: `eslint .` runs with 0 errors. `bun audit` 404s in the build
   sandbox, so the clean-audit verdict comes from the CI `dependency-audit` job.
+
+## 2026-10-20 Audit — launch-editor and vite (GHSA-587h-7wmj-h5pm), REMEDIATED (INC-800, DEC-213)
+
+- Advisory: GHSA-587h-7wmj-h5pm (CVE-2026-112942), 2 high — on Windows, launch-editor's `fs.existsSync()` check can be bypassed by a crafted path (the dev server's open-in-editor tooling; not in the production serve path).
+- Paths: `vite` itself (>=8.0.0 <8.1.6), and `@lovable.dev/vite-tanstack-config` › `@tanstack/devtools-vite` › `launch-editor` (<=2.14.1).
+- Remediation: `vite` ^8.0.16 → ^8.1.6 (package.json); `overrides` gains `"launch-editor": "^2.14.2"`.
+- Resolved: `vite@8.1.6`, `launch-editor@2.14.2`.
+- Rule (DEC-213, fixed before the run): keep when the commit's CI and proof runs pass; revert when a failure's body names vite, nitro, the build or the dev middleware.
+- The clean-audit verdict comes from CI's `dependency-audit` job (the build sandbox cannot reach the advisory service).
