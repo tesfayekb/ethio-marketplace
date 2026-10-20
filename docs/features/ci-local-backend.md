@@ -471,6 +471,54 @@ Versions (ordered):
 
 ## Phase 2 — the full suite (turn 15)
 
+Proof #6 (`244b1e71`): every lane 329/329; start 90–118 s; slowest lane 1,251 s;
+2,076 passed, 36 failed, 7 flaky, 154 skipped of 2,273 — 23 tests in nine causes:
+the ad page and photo pipeline (AP-9, AP-19, AP-36, AP-41, AP-48, AP-49, AP-50,
+PP-12, PP-21, PP-22, PP-23, PP-27, PP-28); the attributes import's per-user preview
+budget (AT-27, AT-70, AT-71); the translations coverage gate (TR-6); Google sign-in
+(G-1); the card ribbon (FS-15); the staff listing card (LGC-3); Edit's place
+(MLA-15, MLA-17); and the price page (PW-162). These are the brief's named causes,
+not yet reporter-body diagnoses; its enumeration contains eight groups and 24
+distinct test IDs, despite its stated nine causes and 23 tests. The summary now
+runs CI's failure reporter (`docs/tracking/local-backend-last-failure.md`).
+
+### Reference data — staging and the temporary backend
+
+Read-only staging census at turn 15b, with the URL checked against the exact
+staging reference before any select. Only reference fields and aggregate counts
+were read; no profile, account or listing text. The local side is the supervisor's
+migration replay, not a local query. Scratch reference rows are observations,
+not a mandate to seed them. Legal publication is marked by `legal_versions.status`.
+
+| Reference data      | Staging                                                                                                                                                  | Temporary backend (supervisor)           |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Languages           | 15: am, en (base), om, ti, zxa, zxx, zxx-d, zxx-de, zxx-m, zxx-mo, zxy, zxy-d, zxy-de, zxy-m, zxy-mo; all admin-enabled; only am/en public-enabled       | 4: am, en (base), om, ti                 |
+| `ui_translations`   | am/en: 2,938 approved each; om/ti: 2,938 untranslated each; zxa: 2,861 machine and 75 untranslated; each of the ten zxx/zxy variants: 2,805 untranslated | 0 rows                                   |
+| Active countries    | ET, US                                                                                                                                                   | ET, US                                   |
+| ET active locations | country 1; region 8; city 11; `sub_city` 2; inactive 0                                                                                                   | region 6; city 9; one `sub_city` fixture |
+| US active locations | country 1; region 6; city 9; inactive 0                                                                                                                  | region 6; city 9                         |
+| Legal documents     | 3 scratch kinds, global (`country_code` null), one document each; no terms/privacy document                                                              | 0                                        |
+| Legal versions      | 3 published, one per scratch kind; publication column `status`                                                                                           | 0                                        |
+| `rate_dials`        | 14 (below)                                                                                                                                               | 14 from migrations                       |
+| `rate_overrides`    | 0                                                                                                                                                        | Not supplied by the supervisor           |
+
+| Action                   | Staging `max_count` | Staging `window_seconds` |
+| ------------------------ | ------------------- | ------------------------ |
+| `alias_check`            | 60                  | 3600                     |
+| `contact_reveal`         | 30                  | 86400                    |
+| `contact_reveal_sellers` | 10                  | 86400                    |
+| `draft`                  | 600                 | 3600                     |
+| `identity`               | 20                  | 86400                    |
+| `listing_read`           | 600                 | 3600                     |
+| `options_read`           | 400                 | 3600                     |
+| `post`                   | 10                  | 86400                    |
+| `report`                 | 10                  | 86400                    |
+| `review_reveal`          | 60                  | 3600                     |
+| `revise`                 | 120                 | 3600                     |
+| `save`                   | 200                 | 86400                    |
+| `schema_read`            | 120                 | 3600                     |
+| `viewing_place`          | 60                  | 3600                     |
+
 DEC-209 VERDICT — PROCEED: proof #4 (`efb581af`) and proof #5 (`3f064e01`)
 both applied every migration hosted applied (329/329 with the working copy),
 started in 106 s and 99 s, and ran the smoke tier 186 passed, 0 failed, 0 flaky,

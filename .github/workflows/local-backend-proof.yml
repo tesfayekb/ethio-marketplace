@@ -433,6 +433,7 @@ jobs:
           import json, os, re
           from pathlib import Path
           def redact(text):
+              text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text)
               for key in ('E2E_SUPABASE_PUBLISHABLE_KEY', 'E2E_SUPABASE_SERVICE_ROLE_KEY'):
                   value = os.environ.get(key)
                   if value:
@@ -503,9 +504,12 @@ jobs:
           def safe(text):
               return redact(re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text))
           Path('local-backend-proof-' + lane + '.md').write_text(safe('\n'.join(lines)) + '\n')
-          for artifact in (results, Path('local-backend-lane-' + lane + '.log')):
+          for artifact in (results, Path('local-backend-lane-' + lane + '.log'), *Path('test-results').rglob('error-context.md')):
               if artifact.exists():
-                  artifact.write_text(safe(artifact.read_text(errors='replace')))
+                  artifact.write_text(redact(artifact.read_text(errors='replace')))
+          lane_log = Path('local-backend-lane-' + lane + '.log')
+          if lane_log.exists():
+              Path(lane + '.log').write_text(redact(lane_log.read_text(errors='replace')))
           PY
       - name: Keep lane JSON, log and proof evidence
         if: always()
@@ -519,6 +523,33 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
           overwrite: true
+      - name: Upload lane results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-results-${{ matrix.lane }}
+          path: test-results/results.json
+          overwrite: true
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload lane log
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-log-${{ matrix.lane }}
+          path: ${{ matrix.lane }}.log
+          overwrite: true
+          if-no-files-found: warn
+          retention-days: 7
+      - name: Upload lane error contexts
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: e2e-context-${{ matrix.lane }}
+          path: test-results/**/error-context.md
+          overwrite: true
+          if-no-files-found: warn
+          retention-days: 7
       - name: Dispose temporary backend
         if: always()
         run: |
@@ -542,6 +573,51 @@ jobs:
         with:
           pattern: local-proof-*
           path: local-proof-artifacts
+      - uses: oven-sh/setup-bun@v2
+        if: always()
+        with:
+          bun-version: 1.3.14
+      - name: Download lane results
+        if: always()
+        uses: actions/download-artifact@v7
+        continue-on-error: true
+        with:
+          pattern: e2e-results-*
+          path: lane-results
+      - name: Download lane logs
+        if: always()
+        uses: actions/download-artifact@v7
+        continue-on-error: true
+        with:
+          pattern: e2e-log-*
+          path: lane-logs
+      - name: Download lane error contexts
+        if: always()
+        uses: actions/download-artifact@v7
+        continue-on-error: true
+        with:
+          pattern: e2e-context-*
+          path: lane-contexts
+      - name: Report full lane failures
+        if: always()
+        env:
+          E2E_RESULTS_DIR: lane-results
+          E2E_LOGS_DIR: lane-logs
+          E2E_CONTEXT_DIR: lane-contexts
+          E2E_EXPECTED_SOURCES: smoke,1,2,3,4,5,6,7,8,9,10,11,12
+          E2E_GREEN: ${{ needs.proof.result == 'success' && '1' || '0' }}
+          E2E_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          E2E_OUT_PATH: docs/tracking/local-backend-last-failure.md
+          E2E_VERDICT_PATH: /tmp/local-verdict.txt
+          E2E_FLAKE_LEDGER: /tmp/local-flake-ledger-unused.md
+        run: |
+          set +e
+          bun scripts/e2e-failure-report.ts
+          result=$?
+          set -e
+          if [ "$result" -ne 0 ]; then
+            echo "::warning::local backend failure reporter exited $result; evidence publication continues"
+          fi
       - name: Write proof summary and notice
         if: always()
         run: |
@@ -549,6 +625,7 @@ jobs:
           import os, re
           from pathlib import Path
           def redact(text):
+              text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', text)
               for key in ('E2E_SUPABASE_PUBLISHABLE_KEY', 'E2E_SUPABASE_SERVICE_ROLE_KEY'):
                   value = os.environ.get(key)
                   if value:
@@ -615,7 +692,7 @@ jobs:
               heading = '## Migration/start failure'
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
-          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s']
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the thirteen lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s']
           smoke = fragments.get('smoke', [])
           for heading in ('- Working copy:', '- Parity:', '- Status:'):
               lines += section(smoke, heading)
@@ -624,6 +701,9 @@ jobs:
           text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', '\n'.join(lines))
           Path('docs/tracking').mkdir(parents=True, exist_ok=True)
           Path('docs/tracking/local-backend-proof.md').write_text(redact(text) + '\n')
+          full_evidence = Path('docs/tracking/local-backend-last-failure.md')
+          if full_evidence.exists():
+              full_evidence.write_text(redact(full_evidence.read_text(errors='replace')))
           print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/13; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
           PY
       - name: Publish only proof evidence
@@ -637,4 +717,4 @@ jobs:
           export GIT_CONFIG_COUNT=1
           export GIT_CONFIG_KEY_0=http.https://github.com/.extraheader
           export GIT_CONFIG_VALUE_0="AUTHORIZATION: basic $auth"
-          bash scripts/publish-evidence.sh "local backend proof ${GITHUB_SHA:0:8}" docs/tracking/local-backend-proof.md
+          bash scripts/publish-evidence.sh "local backend proof ${GITHUB_SHA:0:8}" docs/tracking/local-backend-proof.md docs/tracking/local-backend-last-failure.md
