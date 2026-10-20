@@ -32,6 +32,7 @@ import { DeleteLanguageDialog } from "./delete-language-dialog";
 import { LanguagePicker } from "./language-picker";
 import { PseudoBar } from "./pseudo-bar";
 import {
+  coverageAgainstBase,
   serverMessage,
   translationErrorKey,
   type EntityTranslationStats,
