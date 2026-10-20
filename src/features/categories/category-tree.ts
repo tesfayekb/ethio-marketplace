@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { entityName, type EntityBundle } from "@/i18n";
 
@@ -98,6 +98,14 @@ interface Held {
 
 let cache: Held | null = null;
 let inFlight: Promise<CategoryTree> | null = null;
+const readers = new Set<() => void>();
+
+function subscribe(reader: () => void): () => void {
+  readers.add(reader);
+  return () => {
+    readers.delete(reader);
+  };
+}
 
 /** Tests reset the module between cases; nothing in the app calls this. */
 export function forgetCategoryTree(): void {
@@ -295,6 +303,9 @@ export function loadCategoryTree(): Promise<CategoryTree> {
       const settled = previous !== null && previous.version === version ? previous.tree : tree;
       cache = { tree: settled, version };
       inFlight = null;
+      if (previous?.tree !== settled) {
+        for (const reader of readers) reader();
+      }
       return settled;
     },
     (error: unknown) => {
@@ -396,9 +407,10 @@ export interface UseCategoryTreeResult {
  * but the read still runs: that is what makes an import visible without closing
  * the tab. A revalidation that finds the version unmoved hands back the SAME
  * object, so this sets state to a value React treats as unchanged.
+ * INC-788 — one held tree for the whole page: every mount asks, and the answer reaches every reader at once, so two readers never show two versions.
  */
 export function useCategoryTree(): UseCategoryTreeResult {
-  const [tree, setTree] = useState<CategoryTree>(cache?.tree ?? EMPTY_TREE);
+  const tree = useSyncExternalStore(subscribe, () => cache?.tree ?? EMPTY_TREE, () => EMPTY_TREE);
   const [isLoading, setIsLoading] = useState(cache === null);
   const [error, setError] = useState(false);
 
@@ -408,9 +420,8 @@ export function useCategoryTree(): UseCategoryTreeResult {
     setError(false);
 
     void loadCategoryTree().then(
-      (rows) => {
+      () => {
         if (cancelled) return;
-        setTree(rows);
         setIsLoading(false);
       },
       () => {
@@ -419,7 +430,6 @@ export function useCategoryTree(): UseCategoryTreeResult {
         // kept — a failed revalidation never empties a screen that had rows.
         if (cancelled) return;
         if (cache === null) {
-          setTree(EMPTY_TREE);
           setError(true);
         }
         setIsLoading(false);
