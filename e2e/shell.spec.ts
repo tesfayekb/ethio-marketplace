@@ -22,7 +22,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
+import { ANY_MENU_ROW, anyMenuRows, catalogueRows, slugOfRow } from "./helpers/category-menu";
 import {
   destroyLocation,
   readLocationById,
@@ -97,7 +97,10 @@ async function expectTapTarget(page: Page, locator: ReturnType<Page["getByRole"]
  * INC-773/INC-784 — a menu row against its strip row under the 1-px rule. A
  * failure carries the gap, both rows, both scroll containers and every row's
  * height in each list, so a steady sub-2-px offset names its layout state.
+ * The rail rows' selector comes from the one menu reader (INC-170's class).
  */
+const ROW_PAIR_ROWS = `[data-testid^="strip-category-"], ${ANY_MENU_ROW}, [data-testid="strip-favourite"], [data-testid="rail-favourite"]`;
+
 async function rowPair(menuRow: Locator, stripRow: Locator, what: "y" | "height"): Promise<string> {
   const [menuBox, stripBox] = await Promise.all([menuRow.boundingBox(), stripRow.boundingBox()]);
   if (!menuBox) return "missing menu row";
@@ -107,17 +110,13 @@ async function rowPair(menuRow: Locator, stripRow: Locator, what: "y" | "height"
   );
   if (gap <= 1) return "level";
   const describe = (row: Locator) =>
-    row.evaluate((el) => {
+    row.evaluate((el, rowsSelector) => {
       const round = (n: number) => Math.round(n * 100) / 100;
       const rect = el.getBoundingClientRect();
       const container = el.closest('[data-testid="strip-scroll"], [data-testid="rail-scroll"]');
       const containerRect = container?.getBoundingClientRect();
       const rows = container
-        ? Array.from(
-            container.querySelectorAll(
-              '[data-testid^="strip-category-"], [data-testid^="rail-category-"], [data-testid="strip-favourite"], [data-testid="rail-favourite"]',
-            ),
-          ).map(
+        ? Array.from(container.querySelectorAll(rowsSelector)).map(
             (rowEl) =>
               `${rowEl.getAttribute("data-testid")}:${round(rowEl.getBoundingClientRect().height)}`,
           )
