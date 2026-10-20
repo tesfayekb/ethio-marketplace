@@ -185,7 +185,11 @@ export async function assertNoStringifiedLeak(page: Page, where: string) {
       };
     }
     const text = document.body.innerText ?? "";
-    return { a: "spans elements", b: "spans elements", c: around(text, Math.max(0, indexIn(text))) };
+    return {
+      a: "spans elements",
+      b: "spans elements",
+      c: around(text, Math.max(0, indexIn(text))),
+    };
   }, found);
   throw new Error(
     `[render-leak] ${where} rendered “${found}” at ${place.a} (${place.b}): “${place.c}”\n${body.slice(0, 2000)}`.trimEnd(),
