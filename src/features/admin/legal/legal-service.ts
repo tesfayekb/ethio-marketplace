@@ -210,3 +210,148 @@ export function versionStatus(
     .sort((a, b) => b.version - a.version)[0];
   return inForce?.version_id === version.version_id ? "inForce" : "replaced";
 }
+
+/** Bundle 22 turn 13 — a version's text with its facts filled in, for Download (an unknown or empty fact stays as written). */
+export function fillFacts(text: string, facts: LegalFacts): string {
+  return text.replace(/\{\{([a-z_]+)\}\}/g, (raw: string, name: string) => {
+    const fact = ownValue(facts, name);
+    return fact === undefined || fact === null || String(fact).trim() === "" ? raw : String(fact);
+  });
+}
+
+export type DiffLine = { kind: "same" | "added" | "removed"; text: string };
+/** Turn 13 — Compare: a line diff of two texts by their longest common run of lines. */
+export function lineDiff(before: string, after: string): DiffLine[] {
+  const a = before.split(/\r?\n/);
+  const b = after.split(/\r?\n/);
+  const n = a.length;
+  const m = b.length;
+  if (n * m > 9_000_000) {
+    return [
+      ...a.map((text): DiffLine => ({ kind: "removed", text })),
+      ...b.map((text): DiffLine => ({ kind: "added", text })),
+    ];
+  }
+  const width = m + 1;
+  const run = new Uint32Array((n + 1) * width);
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      run[i * width + j] =
+        a[i] === b[j]
+          ? (run[(i + 1) * width + j + 1] ?? 0) + 1
+          : Math.max(run[(i + 1) * width + j] ?? 0, run[i * width + j + 1] ?? 0);
+    }
+  }
+  const out: DiffLine[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < n && j < m) {
+    if (a[i] === b[j]) {
+      out.push({ kind: "same", text: a[i] ?? "" });
+      i++;
+      j++;
+    } else if ((run[(i + 1) * width + j] ?? 0) >= (run[i * width + j + 1] ?? 0)) {
+      out.push({ kind: "removed", text: a[i] ?? "" });
+      i++;
+    } else {
+      out.push({ kind: "added", text: b[j] ?? "" });
+      j++;
+    }
+  }
+  while (i < n) out.push({ kind: "removed", text: a[i++] ?? "" });
+  while (j < m) out.push({ kind: "added", text: b[j++] ?? "" });
+  return out;
+}
+
+export type AcceptanceExportRow = {
+  account_id: string;
+  accepted_at: string;
+  language: string;
+  method: string;
+  home_country: string | null;
+  adult_confirmed: boolean;
+  data_consent: boolean;
+};
+export type AcceptanceExport = {
+  version: number;
+  kind: string;
+  country_code: string | null;
+  rows: AcceptanceExportRow[];
+};
+/** Turn 13 — every acceptance of a published version, page by page through the export door (D226). */
+export async function exportLegalAcceptances(versionId: string): Promise<AcceptanceExport> {
+  const rows: AcceptanceExportRow[] = [];
+  let after: { at: string; id: string } | null = null;
+  for (let page = 0; page < 1000; page++) {
+    const { data, error } = await supabase.rpc("admin_export_legal_acceptances", {
+      p_version_id: versionId,
+      p_limit: 1000,
+      ...(after ? { p_after_at: after.at, p_after_id: after.id } : {}),
+    });
+    if (error) throw error;
+    const answer = objectOf(data, "admin_export_legal_acceptances");
+    if (
+      !Array.isArray(answer.rows) ||
+      typeof answer.version !== "number" ||
+      typeof answer.kind !== "string"
+    )
+      throw new Error("admin_export_legal_acceptances: invalid answer");
+    rows.push(...(answer.rows as AcceptanceExportRow[]));
+    const next = answer.next as { at?: unknown; id?: unknown } | null | undefined;
+    if (!next)
+      return {
+        version: answer.version,
+        kind: answer.kind,
+        country_code: typeof answer.country_code === "string" ? answer.country_code : null,
+        rows,
+      };
+    if (typeof next.at !== "string" || typeof next.id !== "string")
+      throw new Error("admin_export_legal_acceptances: invalid next");
+    after = { at: next.at, id: next.id };
+  }
+  throw new Error("admin_export_legal_acceptances: too many pages");
+}
+const CSV_COLUMNS = [
+  "account_id",
+  "accepted_at",
+  "language",
+  "method",
+  "home_country",
+  "adult_confirmed",
+  "data_consent",
+] as const;
+/** Turn 13 — the export as CSV: a header row, then one row per acceptance; a cell that a spreadsheet could read as a formula is quoted with a leading apostrophe. */
+export function acceptancesCsv(rows: AcceptanceExportRow[]): string {
+  const cell = (value: unknown) => {
+    let text = value === null || value === undefined ? "" : String(value);
+    if (/^[=+\-@]/.test(text)) text = `'${text}`;
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  return (
+    [
+      CSV_COLUMNS.join(","),
+      ...rows.map((row) => CSV_COLUMNS.map((key) => cell(row[key])).join(",")),
+    ].join("\r\n") + "\r\n"
+  );
+}
+/** Turn 13 — a download's file name: ethio-<kind>-<country or all>-v<n>-<what>.<ext>. */
+export function legalFileName(
+  kind: string,
+  country: string | null,
+  version: number,
+  what: string,
+): string {
+  const part = (s: string) => s.toLowerCase().replace(/[^a-z0-9-]+/g, "-");
+  return `ethio-${part(kind)}-${part(country ?? "all")}-v${version}-${what}`;
+}
+/** Turn 13 — saves text as a file in the browser. */
+export function saveTextFile(name: string, text: string, type: string): void {
+  const href = URL.createObjectURL(new Blob([text], { type }));
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.download = name;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(href);
+}

@@ -69,6 +69,9 @@ export function LegalEditorForm({
   const [saving, setSaving] = useState(false);
   const [discarding, setDiscarding] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  // Bundle 22 turn 13 — a draft's text filled from a file (.md or .txt), one language at a time.
+  const [imported, setImported] = useState<{ lang: "en" | "am"; file: string } | null>(null);
+  const [importError, setImportError] = useState<MessageKey | null>(null);
   const document = `${kindKey(kind) ? t(kindKey(kind) as MessageKey) : kind} · ${country ? (countries.data?.find((c) => c.code === country)?.nameEn ?? country) : t("admin.legal.scope.global")}`;
   const changed = JSON.stringify(values) !== JSON.stringify(savedValues);
   const mayEdit = permissions.includes("legal:edit");
@@ -164,6 +167,54 @@ export function LegalEditorForm({
                   <p className="text-sm text-muted-foreground">
                     {count(l === "en" ? values.body_en : values.body_am, 200000)}
                   </p>
+                  {mayEdit ? (
+                    <div className="space-y-1">
+                      <label htmlFor={`legal-import-${l}`} className="block text-sm">
+                        {t("admin.legal.import.label")}
+                      </label>
+                      <input
+                        id={`legal-import-${l}`}
+                        data-testid={`legal-import-${l}`}
+                        type="file"
+                        accept=".md,.txt,text/markdown,text/plain"
+                        className="block w-full min-w-0 text-sm"
+                        disabled={saving || writes.save.isPending}
+                        onChange={(e) => {
+                          const input = e.currentTarget;
+                          const file = input.files?.[0];
+                          input.value = "";
+                          if (!file) return;
+                          setImported(null);
+                          setImportError(null);
+                          file
+                            .text()
+                            .then((body) => {
+                              if (body.length > 200000) {
+                                setImportError("admin.legal.import.tooBig");
+                                return;
+                              }
+                              setValues((v) => ({
+                                ...v,
+                                [l === "en" ? "body_en" : "body_am"]: body,
+                              }));
+                              setSaved(false);
+                              setImported({ lang: l, file: file.name });
+                            })
+                            .catch(() => setImportError("admin.legal.import.failed"));
+                        }}
+                      />
+                      {imported?.lang === l ? (
+                        <p role="status" data-testid="legal-import-done" className="text-sm">
+                          {t("admin.legal.import.done").replace("{file}", imported.file)}
+                        </p>
+                      ) : null}
+                      {importError ? (
+                        <p role="alert" className="text-sm text-destructive">
+                          {t(importError).replace("{max}", "200000")}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               ))}
               <p className="text-sm text-muted-foreground">{t("admin.legal.field.bodyHelp")}</p>

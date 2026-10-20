@@ -1,11 +1,18 @@
 import { expect, it, vi } from "vitest";
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
+import { supabase } from "@/integrations/supabase/client";
 import {
   FACT_KEYS,
+  acceptancesCsv,
+  exportLegalAcceptances,
+  fillFacts,
   legalErrorKey,
   legalErrorName,
+  legalFileName,
+  lineDiff,
   validDocument,
   versionStatus,
+  type AcceptanceExportRow,
   type LegalVersion,
 } from "./legal-service";
 it.each([
@@ -109,4 +116,87 @@ it("keeps a future published version scheduled until its effective instant", () 
   const row = versions.find((v) => v.version_id === "future");
   if (!row) throw new Error("missing future fixture");
   expect(versionStatus(row, versions, Date.parse("2026-10-19T08:09:00Z"))).toBe("scheduled");
+});
+it("fills the facts for Download and keeps an unknown or empty fact as written (turn 13)", () => {
+  expect(
+    fillFacts("Write to {{legal_email}} at {{operator_name}} {{nope}} {{legal_phone}}.", {
+      legal_email: "legal@example.invalid",
+      operator_name: "Ethio.com LLC",
+      legal_phone: "",
+    }),
+  ).toBe("Write to legal@example.invalid at Ethio.com LLC {{nope}} {{legal_phone}}.");
+});
+it("compares two texts line by line (turn 13)", () => {
+  expect(lineDiff("a\nb\nc", "a\nc\nd")).toEqual([
+    { kind: "same", text: "a" },
+    { kind: "removed", text: "b" },
+    { kind: "same", text: "c" },
+    { kind: "added", text: "d" },
+  ]);
+  expect(lineDiff("same", "same")).toEqual([{ kind: "same", text: "same" }]);
+});
+it("pages the export through next and stops when next is null (turn 13)", async () => {
+  const row = (id: string): AcceptanceExportRow => ({
+    account_id: id,
+    accepted_at: "2026-10-20T03:24:26Z",
+    language: "en",
+    method: "email",
+    home_country: "ET",
+    adult_confirmed: true,
+    data_consent: false,
+  });
+  const rpc = vi
+    .fn()
+    .mockResolvedValueOnce({
+      data: {
+        version: 2,
+        kind: "terms",
+        country_code: null,
+        rows: [row("a")],
+        next: { at: "t1", id: "i1" },
+      },
+      error: null,
+    })
+    .mockResolvedValueOnce({
+      data: { version: 2, kind: "terms", country_code: null, rows: [row("b")], next: null },
+      error: null,
+    });
+  (supabase as unknown as { rpc: unknown }).rpc = rpc;
+  const answer = await exportLegalAcceptances("v2");
+  expect(answer.rows.map((r) => r.account_id)).toEqual(["a", "b"]);
+  expect(answer.kind).toBe("terms");
+  expect(rpc).toHaveBeenNthCalledWith(1, "admin_export_legal_acceptances", {
+    p_version_id: "v2",
+    p_limit: 1000,
+  });
+  expect(rpc).toHaveBeenNthCalledWith(2, "admin_export_legal_acceptances", {
+    p_version_id: "v2",
+    p_limit: 1000,
+    p_after_at: "t1",
+    p_after_id: "i1",
+  });
+});
+it("writes the export as CSV, quoting commas and quotes and defusing formula starts (turn 13)", () => {
+  expect(
+    acceptancesCsv([
+      {
+        account_id: "u1",
+        accepted_at: "2026-10-20T03:24:26Z",
+        language: "am",
+        method: '=cmd,"x"',
+        home_country: null,
+        adult_confirmed: false,
+        data_consent: false,
+      },
+    ]),
+  ).toBe(
+    "account_id,accepted_at,language,method,home_country,adult_confirmed,data_consent\r\n" +
+      'u1,2026-10-20T03:24:26Z,am,"\'=cmd,""x""",,false,false\r\n',
+  );
+});
+it("names a download file (turn 13)", () => {
+  expect(legalFileName("terms", null, 3, "en.md")).toBe("ethio-terms-all-v3-en.md");
+  expect(legalFileName("privacy", "ET", 1, "acceptances.csv")).toBe(
+    "ethio-privacy-et-v1-acceptances.csv",
+  );
 });
