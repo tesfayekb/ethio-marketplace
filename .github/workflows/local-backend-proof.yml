@@ -318,6 +318,21 @@ jobs:
                       output.write(target + '=' + values[name] + '\n')
           Path(os.environ['RUNNER_TEMP'], 'local-backend.env').unlink()
           PY
+          # Discover the CLI's database container rather than assuming its name.
+          running_containers=$(docker ps --format '{{.Names}}')
+          database_containers=()
+          while IFS= read -r name; do
+            if [[ "$name" == supabase_db_* ]]; then
+              database_containers+=("$name")
+            fi
+          done <<< "$running_containers"
+          if [ "${#database_containers[@]}" -ne 1 ]; then
+            container_names=$(printf '%s\n' "$running_containers" | paste -sd ',' -)
+            echo "container: found ${#database_containers[@]} supabase_db_ containers among: $container_names" >> local-backend-failure.txt
+            exit 1
+          fi
+          export DATABASE_CONTAINER="${database_containers[0]}"
+          echo "Database container: $DATABASE_CONTAINER" >> local-backend-status.txt
           # Verify every repository migration version against the local ledger.
           python3 - <<'PY'
           import subprocess
@@ -327,7 +342,7 @@ jobs:
               with open('local-backend-failure.txt', 'a') as out:
                   out.write('ledger check: ' + message + '\n')
               raise SystemExit(message)
-          command = ['docker', 'exec', 'supabase_db_ethio-ci-local', 'psql', '-U', 'postgres', '-d', 'postgres', '-Atc', 'select version from supabase_migrations.schema_migrations order by version']
+          command = ['docker', 'exec', os.environ['DATABASE_CONTAINER'], 'psql', '-U', 'postgres', '-d', 'postgres', '-Atc', 'select version from supabase_migrations.schema_migrations order by version']
           result = subprocess.run(command, capture_output=True, text=True)
           if result.returncode != 0:
               fail('docker exec exit ' + str(result.returncode) + ': ' + result.stderr[:300])
@@ -343,7 +358,7 @@ jobs:
           PY
           # Local twins of the hosted default-grant and RLS census.
           set +e
-          docker exec supabase_db_ethio-ci-local psql -U postgres -d postgres -Atc "select 'RLS on ' || count(*) filter (where relrowsecurity) || ' of ' || count(*) || ' public tables' from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r', 'p');" > local-backend-parity.txt 2> "$RUNNER_TEMP/parity.err"
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -Atc "select 'RLS on ' || count(*) filter (where relrowsecurity) || ' of ' || count(*) || ' public tables' from pg_class where relnamespace = 'public'::regnamespace and relkind in ('r', 'p');" > local-backend-parity.txt 2> "$RUNNER_TEMP/parity.err"
           parity_result=$?
           set -e
           if [ "$parity_result" -ne 0 ]; then
@@ -351,7 +366,7 @@ jobs:
             exit "$parity_result"
           fi
           set +e
-          docker exec supabase_db_ethio-ci-local psql -U postgres -d postgres -Atc "select 'Default grants in public: ' || coalesce(string_agg(role || ' | ' || defaclobjtype || ' | ' || defaclacl, '; ' order by role, defaclobjtype), 'none') from (select pg_get_userbyid(defaclrole) as role, defaclobjtype::text, defaclacl::text from pg_default_acl where defaclnamespace = 'public'::regnamespace) as grants;" >> local-backend-parity.txt 2>> "$RUNNER_TEMP/parity.err"
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -Atc "select 'Default grants in public: ' || coalesce(string_agg(role || ' | ' || defaclobjtype || ' | ' || defaclacl, '; ' order by role, defaclobjtype), 'none') from (select pg_get_userbyid(defaclrole) as role, defaclobjtype::text, defaclacl::text from pg_default_acl where defaclnamespace = 'public'::regnamespace) as grants;" >> local-backend-parity.txt 2>> "$RUNNER_TEMP/parity.err"
           parity_result=$?
           set -e
           if [ "$parity_result" -ne 0 ]; then
@@ -417,7 +432,7 @@ jobs:
               text = re.sub(r'\bsb_(?:secret|publishable)_[A-Za-z0-9_-]+\b', '[masked key]', text)
               text = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}', '[e-mail]', text)
               text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
-              text = re.sub(r'[0-9a-fA-F]{32,}', '[masked hex]', text)
+              text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
               return text
           env = os.environ
           lines = ['# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0']
