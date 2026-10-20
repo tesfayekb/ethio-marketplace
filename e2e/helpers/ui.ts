@@ -144,6 +144,10 @@ export async function waitForHydration(page: Page) {
  * defect of the same family as "[object Object]" in the options column. Every
  * navigation and every twin-row assertion checks the rendered body text for
  * those three tokens and fails with a dump naming what was on the page.
+ *
+ * INC-796: the first line also names WHERE the token is (nearest data-testids,
+ * the element, the text around it) — the token can sit past the first 2 000
+ * characters, and the failure report shows fewer lines than that.
  */
 export async function assertNoStringifiedLeak(page: Page, where: string) {
   const body = await page.evaluate(() => document.body.innerText ?? "");
@@ -153,7 +157,43 @@ export async function assertNoStringifiedLeak(page: Page, where: string) {
     : undefined;
   const found = leak ?? undefinedToken;
   if (found === undefined) return;
-  throw new Error(`[render-leak] ${where} rendered “${found}”\n${body.slice(0, 2000)}`.trimEnd());
+  const place = await page.evaluate((token) => {
+    const undefinedRe = /(^|[\s>[("'])undefined([\s<\])"'.,:;!?]|$)/;
+    const indexIn = (text: string): number => {
+      if (token !== "undefined") return text.indexOf(token);
+      const m = undefinedRe.exec(text);
+      return m === null ? -1 : m.index + m[1].length;
+    };
+    const around = (text: string, at: number): string => {
+      const start = Math.max(0, at + Math.floor(token.length / 2) - 60);
+      return text.slice(start, start + 120);
+    };
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
+      const own = (node.textContent ?? "").replace(/\s+/g, " ");
+      const at = indexIn(own);
+      if (at < 0) continue;
+      const ids: string[] = [];
+      for (let el = node.parentElement; el !== null && ids.length < 3; el = el.parentElement) {
+        const id = el.getAttribute("data-testid");
+        if (id !== null) ids.push(id);
+      }
+      return {
+        a: ids.length > 0 ? ids.join(" < ") : "no data-testid",
+        b: node.parentElement?.tagName.toLowerCase() ?? "no element",
+        c: around(own, at),
+      };
+    }
+    const text = document.body.innerText ?? "";
+    return {
+      a: "spans elements",
+      b: "spans elements",
+      c: around(text, Math.max(0, indexIn(text))),
+    };
+  }, found);
+  throw new Error(
+    `[render-leak] ${where} rendered “${found}” at ${place.a} (${place.b}): “${place.c}”\n${body.slice(0, 2000)}`.trimEnd(),
+  );
 }
 
 export async function gotoReady(page: Page, path: string) {

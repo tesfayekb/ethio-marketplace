@@ -543,6 +543,8 @@ Turn 15c (proof #7, `78b96e25`, the first with failure bodies): 2,081 passed, 30
 
 Turn 15d (proof #8, `6baac306`): 2,112 passed, 1 failed, 6 flaky, 154 skipped of 2,273; every lane 329/329; the slowest lane 1,143 s. Proof #7's four causes are gone. The flaky tests (AP-41, MLA-15, MLA-17) flake on staging too. The one failure, LGC-3 at 360, rendered “undefined” on the staff ad page; its body was lost because the lane masked its results file as raw text and the e-mail rule broke a JSON escape (INC-794). The lane now masks that file as data, string by string. Under DEC-211 proof #8 does not count: LGC-3's cause could not be named.
 
+Turn 15e (proof #9, `643b49b6`): 2,111 passed, 1 failed, 7 flaky, 154 skipped of 2,273; every lane 329/329; the slowest lane 1,120 s; every lane's results reached the report (INC-794 fixed). LGC-3 failed at 1280 and passed on retry at 360: the staff ad page rendered “undefined” (INC-795), and the guard's page text ended before the token, so the guard now names the element (INC-796). Under DEC-211 proof #9 does not count: LGC-3's cause could not yet be named.
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,

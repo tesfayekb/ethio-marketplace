@@ -189,7 +189,10 @@ may not contain `[object Object]`, a standalone `undefined` token or `NaN`.
 This is a CLASS rule, not one bug's patch — a stringified object reaching the
 screen (the attributes Options column joined its option objects) is the same
 defect family as an undefined slot or a NaN price. The failure names the token
-and dumps the first 2 000 characters of the page text.
+and dumps the first 2 000 characters of the page text. INC-796 (2026-10-20): its
+first line also names where the token is — the nearest data-testids, the element
+and the text around it — because the token can sit past the dump and the failure
+report shows fewer lines.
 
 ## DEC-048 — the `E2E_UI_LOGIN` knob is deleted
 
