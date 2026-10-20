@@ -412,9 +412,9 @@ jobs:
           set +e
           set -o pipefail
           if [ "$PROOF_LANE" = smoke ]; then
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts 2>&1 | tee "local-backend-lane-$PROOF_LANE.log"
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts > "local-backend-lane-$PROOF_LANE.log" 2>&1
           else
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/12" 2>&1 | tee "local-backend-lane-$PROOF_LANE.log"
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/12" > "local-backend-lane-$PROOF_LANE.log" 2>&1
           fi
           result=$?
           set -e
