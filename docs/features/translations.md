@@ -98,6 +98,8 @@ complete — when the base catalog holds zero keys the server refuses first with
 `catalog empty — sync keys before publishing a language`, and the console's
 public switch is disabled with the sync-first tooltip.
 
+INC-790 (2026-10-20): the console judges a language exactly as the door does — against the base catalogue's live keys, never against the language's own rows (`coverageAgainstBase`, translations-service.ts). A language holding no rows reads 0 of N, not 0 of 0, and its switch stays closed with the gate's line; the base language keeps its own counts.
+
 ## Machine translation (U4c)
 
 Provider decision: **Google Cloud Translation v3**, wrapped in an edge

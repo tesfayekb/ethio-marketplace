@@ -45,6 +45,27 @@ export interface TranslationStats {
   reviewable: number;
 }
 
+/**
+ * INC-790 — a language's completeness, judged as the door judges it.
+ * `admin_set_language_flags` refuses the public switch unless every live key
+ * of the BASE catalogue holds an approved row in that language; a language's
+ * own rows are not the universe, so a language with no rows reads 0 of N,
+ * never a complete 0 of 0. The base language keeps its own counts.
+ */
+export function coverageAgainstBase(
+  stats: TranslationStats | undefined,
+  baseTotal: number,
+  isBase: boolean,
+): { total: number; approved: number; remaining: number } {
+  if (isBase) {
+    const total = stats?.total ?? 0;
+    const approved = stats?.approved ?? 0;
+    return { total, approved, remaining: Math.max(0, total - approved) };
+  }
+  const approved = Math.min(stats?.approved ?? 0, baseTotal);
+  return { total: baseTotal, approved, remaining: Math.max(0, baseTotal - approved) };
+}
+
 export type TranslationStatus = "untranslated" | "machine" | "edited" | "approved";
 
 export interface TranslationRow {

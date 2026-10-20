@@ -402,7 +402,7 @@ export default async function globalSetup() {
     `[e2e:setup] E2E_SUPABASE_SERVICE_ROLE_KEY present = ${keyLength > 0} (length ${keyLength})`,
   );
   const localBackend = process.env["E2E_LOCAL_BACKEND"] === "1";
-  const targetOk = localBackend ? url === "http://127.0.0.1:54321" : url.includes(STAGING_REF);
+  const targetOk = localBackend ? url === "https://127.0.0.1:54321" : url.includes(STAGING_REF);
   if (localBackend && targetOk) {
     console.log("[e2e:setup] target is the temporary local backend (D228) = true");
   } else {

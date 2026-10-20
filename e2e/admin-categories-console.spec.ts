@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { withinPreviewBudget } from "./helpers/rate-window";
 
 import { en } from "../src/i18n/locales/en";
 import { CATEGORY_ICON_NAMES, CATCHALL_ICON_NAME } from "../src/lib/category-icon-names";
@@ -866,17 +867,20 @@ test.describe("C2 categories console", () => {
       `\uFEFF${[`${COLUMNS.join(",")},action`, ...rows].join("\r\n")}\r\n`;
 
     async function importPost(token: string, body: Record<string, unknown>) {
-      const response = await page.request.post("/api/admin/categories/import", {
-        headers: { Authorization: `Bearer ${token}` },
-        data: body,
-      });
-      let payload: Record<string, unknown> = {};
-      try {
-        payload = (await response.json()) as Record<string, unknown>;
-      } catch {
-        payload = {};
-      }
-      return { status: response.status(), payload };
+      const send = async () => {
+        const response = await page.request.post("/api/admin/categories/import", {
+          headers: { Authorization: `Bearer ${token}` },
+          data: body,
+        });
+        let payload: Record<string, unknown> = {};
+        try {
+          payload = (await response.json()) as Record<string, unknown>;
+        } catch {
+          payload = {};
+        }
+        return { status: response.status(), payload };
+      };
+      return withinPreviewBudget(send, "CT console import");
     }
 
     /** A scratch node written through the service client (J3), never a real row. */

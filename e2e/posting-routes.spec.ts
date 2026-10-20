@@ -5,7 +5,7 @@ import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { passwordGrant } from "./helpers/session";
-import { inOneWindow } from "./helpers/rate-window";
+import { inOneWindow, withinPreviewBudget } from "./helpers/rate-window";
 import { purgeListingObjects, reasons, uploadPhoto } from "./helpers/photos";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
@@ -666,16 +666,17 @@ test.describe("POSTING ROUTES", () => {
       allow_listings: "true",
     };
     const file = `\uFEFF${header.join(",")}\r\n${header.map((c) => values[c] ?? "").join(",")}\r\n`;
-    const post = async (body: Record<string, unknown>) => {
-      const response = await page.request.post("/api/admin/categories/import", {
-        headers,
-        data: body,
-      });
-      return {
-        status: response.status(),
-        payload: (await response.json()) as Record<string, unknown>,
-      };
-    };
+    const post = (body: Record<string, unknown>) =>
+      withinPreviewBudget(async () => {
+        const response = await page.request.post("/api/admin/categories/import", {
+          headers,
+          data: body,
+        });
+        return {
+          status: response.status(),
+          payload: (await response.json()) as Record<string, unknown>,
+        };
+      }, "PR categories import");
     const preview = await post({ mode: "preview", categories: file });
     expect(preview.status, JSON.stringify(preview.payload)).toBe(200);
     const commit = await post({

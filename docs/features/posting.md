@@ -257,6 +257,8 @@ the air, that autosave's follow-up pass carries the claim; if the door refuses
 it, `saveAt` returns false even though its own run then finds nothing queued.
 Before this, Next advanced past a refusal (PW-103).
 
+INC-791 (2026-10-20; INC-698's class, second occurrence) — ONE CLAIM, ONE SEND. A run queued before a Next (a debounce, a change, a retry, a dial resume) never carries it: each run notes the claims made when it is queued and, when its turn comes, sends nothing if a newer claim was made since; that claim's own run sends the latest answers once. A follow-up is sent inside the run that received the answer, never by a timer. A Next answered by a transport failure therefore stays on its step until its own retry or another press.
+
 INC-357 N1 — a single admissible "Other" keeps its write-in: the one-answer
 fill compares the chosen value, so `{ value: "other", text }` is never flattened
 back to `"other"` (PW-102). Tests: `e2e/post-wizard-details.spec.ts`.

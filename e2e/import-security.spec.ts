@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { withinPreviewBudget } from "./helpers/rate-window";
 import {
   rand,
   bandOnly,
@@ -312,7 +313,8 @@ async function bearerOf(page: import("@playwright/test").Page): Promise<string> 
 
 for (const family of FAMILIES) {
   test.describe(`IMPORT-GATE ${family.id}`, () => {
-    async function post(
+    /** The raw sender: IG-3's limit loop alone uses it (the 429 is its assertion). */
+    async function rawPost(
       page: import("@playwright/test").Page,
       token: string,
       body: Record<string, unknown>,
@@ -328,6 +330,14 @@ for (const family of FAMILIES) {
         payload = {};
       }
       return { status: response.status(), payload };
+    }
+
+    function post(
+      page: import("@playwright/test").Page,
+      token: string,
+      body: Record<string, unknown>,
+    ) {
+      return withinPreviewBudget(() => rawPost(page, token, body), `IMPORT-GATE ${family.id}`);
     }
 
     const file = (rows: string[]) => `${family.header}\r\n${rows.join("\r\n")}\r\n`;
@@ -824,7 +834,7 @@ for (const family of FAMILIES) {
       // door answers 429, and refusing costs nothing (no plan, no write).
       let limited = 0;
       for (let attempt = 0; attempt < 45; attempt += 1) {
-        const answer = await post(page, token, { [family.field]: text });
+        const answer = await rawPost(page, token, { [family.field]: text });
         if (answer.status === 429) {
           expect(answer.payload["error"]).toBe("tooManyRequests");
           limited += 1;
@@ -915,19 +925,20 @@ test.describe("IMPORT-GATE attributes-links", () => {
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
 
-    const post = async (links: string) => {
-      const response = await page.request.post("/api/admin/attributes/import", {
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        data: { mode: "preview", digest: true, links },
-      });
-      let payload: Record<string, unknown> = {};
-      try {
-        payload = (await response.json()) as Record<string, unknown>;
-      } catch {
-        payload = {};
-      }
-      return { status: response.status(), payload };
-    };
+    const post = (links: string) =>
+      withinPreviewBudget(async () => {
+        const response = await page.request.post("/api/admin/attributes/import", {
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          data: { mode: "preview", digest: true, links },
+        });
+        let payload: Record<string, unknown> = {};
+        try {
+          payload = (await response.json()) as Record<string, unknown>;
+        } catch {
+          payload = {};
+        }
+        return { status: response.status(), payload };
+      }, "IG-5");
 
     // A MADE-UP COLUMN — refused whole, and the refusal says which one.
     const evil = await post(`${LINK_HEADER},allowed_options,evil_when\r\n`);
@@ -1022,16 +1033,26 @@ test.describe("IMPORT-GATE audit", () => {
     await gotoReady(page, "/admin/attributes");
     const token = await bearerOf(page);
     const adminBefore = await importRows(admin.id, "import.preview", "import:attributes");
-    const response = await page.request.post("/api/admin/attributes/import", {
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      data: {
-        mode: "preview",
-        digest: true,
-        links:
-          "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n",
-      },
-    });
-    expect(response.status(), `IG-6 the admin's preview: ${await response.text()}`).toBe(200);
+    const answer = await withinPreviewBudget(async () => {
+      const response = await page.request.post("/api/admin/attributes/import", {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        data: {
+          mode: "preview",
+          digest: true,
+          links:
+            "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n",
+        },
+      });
+      const text = await response.text();
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = JSON.parse(text) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload, text };
+    }, "IG-6");
+    expect(answer.status, `IG-6 the admin's preview: ${answer.text}`).toBe(200);
     await expect
       .poll(() => importRows(admin.id, "import.preview", "import:attributes"), {
         message: "IG-6 the admin's preview wrote no audit row",

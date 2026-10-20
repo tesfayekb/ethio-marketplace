@@ -32,6 +32,7 @@ import { DeleteLanguageDialog } from "./delete-language-dialog";
 import { LanguagePicker } from "./language-picker";
 import { PseudoBar } from "./pseudo-bar";
 import {
+  coverageAgainstBase,
   serverMessage,
   translationErrorKey,
   type EntityTranslationStats,
@@ -173,12 +174,6 @@ export function AdminTranslationsLanguagesPage() {
   );
 }
 
-function coverageOf(stats: TranslationStats | undefined) {
-  const total = stats?.total ?? 0;
-  const approved = stats?.approved ?? 0;
-  return { total, approved, remaining: Math.max(0, total - approved) };
-}
-
 function LanguagesTable({
   rows,
   statsByLang,
@@ -225,7 +220,7 @@ function LanguagesTable({
 
   // Source-catalog size drives the publication gate's empty-set branch.
   const baseCode = ordered.find((row) => row.isBase)?.code ?? "en";
-  const baseKeyCount = coverageOf(statsByLang.get(baseCode)).total;
+  const baseKeyCount = statsByLang.get(baseCode)?.total ?? 0;
 
   const apply = (row: LanguageRow, next: { admin?: boolean; public?: boolean }) => {
     setErrorKey(null);
@@ -380,7 +375,11 @@ function LanguagesTable({
       priority: "primary",
       card: "meta",
       cardCell: (row) => {
-        const { total, approved } = coverageOf(statsByLang.get(row.code));
+        const { total, approved } = coverageAgainstBase(
+          statsByLang.get(row.code),
+          baseKeyCount,
+          row.isBase,
+        );
         return cardMeter(
           `lang-coverage-${row.code}`,
           t("admin.translations.col.coverage"),
@@ -391,7 +390,11 @@ function LanguagesTable({
       },
       width: "w-auto",
       cell: (row) => {
-        const { total, approved } = coverageOf(statsByLang.get(row.code));
+        const { total, approved } = coverageAgainstBase(
+          statsByLang.get(row.code),
+          baseKeyCount,
+          row.isBase,
+        );
         const pct = total === 0 ? 0 : Math.round((approved / total) * 100);
         return (
           <span className="block min-w-0" data-testid={`lang-coverage-${row.code}`}>
@@ -498,7 +501,11 @@ function LanguagesTable({
       // Bundle 11 G3d — room for the gate's line under the switch (it broke inside words at w-16).
       width: "w-36",
       cell: (row) => {
-        const { total, remaining } = coverageOf(statsByLang.get(row.code));
+        const { total, remaining } = coverageAgainstBase(
+          statsByLang.get(row.code),
+          baseKeyCount,
+          row.isBase,
+        );
         // EMPTY-SET LAW (INC-095h): an empty catalog is not vacuously complete.
         // The server refuses it explicitly; the switch says so before the click.
         const catalogEmpty = baseKeyCount === 0;
