@@ -511,3 +511,31 @@ PR-26 passed on retry three times in seven days. Two first-attempt bodies were r
 
 - **`staleStepUpOnClient(page)` and `afterTotpStep(spentStep)`** (e2e/helpers/ui.ts; `totpStep()` in e2e/helpers/totp.ts) replace `clearStepUpFreshness`, which wrote a stamp nothing has read since INC-167 (INC-620). The first makes the next guarded action open the modal over an injected aal2 session; the second waits, by polling the clock, for the TOTP step after the one the injected session spent, and grows the test's budget by that wait (at most one step). The rule: docs/features/step-up-auth.md, "Bundle 14 turn 2".
 - **`awaitConsole(page)`** (e2e/helpers/countries.ts; `awaitRoster` calls it, and so does CO-2) waits 20 s for the countries console's search box, as before. When it does not come, the failure carries `[country-dump]` lines: the address, which of the table's states the page was in (`admin-section-countries`, `data-table-loading`, `data-table-error`, `step-up-modal`) and the start of the main text. INC-623: CO-5 passed on retry three times in seven days and CO-1 twice on 2026-10-14, each after 20 s without the box, with a snapshot ending in the footer; the next retried pass names the state, and the fix follows from it.
+
+## Temporary test backends (D228, DEC-209) — phase 1
+
+The separate `.github/workflows/local-backend-proof.yml` runs on dev pushes and
+manual dispatch, gates nothing, and changes no existing CI or promotion job. It
+starts a temporary Supabase CLI 2.120.0 stack, replays every repository migration
+unchanged (with two operator-created buckets inserted in its working copy first),
+builds the E2E app against that stack, and runs the same four smoke files and both
+viewport projects as staging CI. The runner disposes the backend after the run.
+The prerequisite census and phase 2 gaps are in `docs/features/ci-local-backend.md`.
+
+Evidence (timings, migration result and CLI error tail, smoke counts and failing
+test titles) lands only on ci-evidence at `docs/tracking/local-backend-proof.md`;
+the workflow also keeps the JSON reporter output and prints a notice. No hosted
+service credentials are used; local keys are masked. Actions permissions are
+job-scoped: the one evidence-producing job has contents write, but checkout
+persists no credential and only the publication step receives the write token.
+
+The staging fence retains its default. Only `E2E_LOCAL_BACKEND=1` permits the
+exact `http://127.0.0.1:54321` service/client URL; an explicitly configured server
+URL must match it too. With that flag, staging-looking and production URLs are
+refused with the unchanged messages. The CI-only config lives in the proof
+workflow, never the platform-owned `supabase/config.toml`.
+
+**DEC-209 — the rule, fixed before any number exists:** PROCEED to phase 2 when the proof's evidence file (docs/tracking/local-backend-proof.md on ci-evidence) shows, for two consecutive proof runs on dev commits: (1) every repository migration applied on the temporary backend; (2) every smoke-tier test that passes on staging in the CI run of the same commit passes on the temporary backend, or is named in the census with its cause; (3) the backend's start, migrations included, within 300 seconds. A failure of (1) or (2) with a named cause is fixed in turn 14b inside the proof's own working copy — never by editing a landed migration. ABANDON (staging stays the CI backend; the proof workflow is removed) if (3) still exceeds 300 seconds after those fixes, or if more than one smoke-tier spec file cannot run on a temporary backend at all.
+
+This turn is a CI wait, not an end-to-end conclusion. The next brief reads the
+proof evidence; the operator dispatches the separate FV-1 Flake check (DEC-184).
