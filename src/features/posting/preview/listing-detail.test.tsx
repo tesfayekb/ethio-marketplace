@@ -827,6 +827,10 @@ it("LD-23 a tapped tab stays current through its scroll and, once released (200 
     observer.report(["ad-details"]);
     expect(item("description")).toHaveAttribute("aria-current", "true");
     act(() => vi.advanceTimersByTime(1));
+    // INC-779 — released at the stop, the tab holds while the page has not moved.
+    observer.report(["ad-details"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    y += 2;
     observer.report(["ad-details"]);
     expect(item("details")).toHaveAttribute("aria-current", "true");
 
@@ -838,6 +842,10 @@ it("LD-23 a tapped tab stays current through its scroll and, once released (200 
     observer.report(["ad-details"]);
     expect(item("location")).toHaveAttribute("aria-current", "true");
     act(() => vi.advanceTimersByTime(50));
+    // INC-779 — released at the stop, the tab holds while the page has not moved.
+    observer.report(["ad-details"]);
+    expect(item("location")).toHaveAttribute("aria-current", "true");
+    y += 2;
     observer.report(["ad-details"]);
     expect(item("details")).toHaveAttribute("aria-current", "true");
 
@@ -850,6 +858,10 @@ it("LD-23 a tapped tab stays current through its scroll and, once released (200 
     }
     y += 1;
     act(() => vi.advanceTimersByTime(50));
+    // INC-779 — released at the 3 s ceiling, the tab holds until the page moves 2 px from there.
+    observer.report(["ad-details"]);
+    expect(item("location")).toHaveAttribute("aria-current", "true");
+    y += 2;
     observer.report(["ad-details"]);
     expect(item("details")).toHaveAttribute("aria-current", "true");
   } finally {
