@@ -1,17 +1,17 @@
 # Local backend proof (non-gating)
 
-- Commit: `[masked hex]`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39392431913
+- Commit: `efb581af6ccd1287940c59e19f2616817edeeee4`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39395682134
 - CLI version: 2.120.0
 - Seconds — checkout: 2
-- Seconds — install: 5
-- Seconds — CLI install: 5
+- Seconds — install: 9
+- Seconds — CLI install: 9
 - Seconds — working copy: 0
-- Seconds — start (migrations included): 100
-- Seconds — build: not run
-- Seconds — browser install: not run
-- Seconds — tests: not run
-- Migrations: not confirmed; backend failure
+- Seconds — start (migrations included): 106
+- Seconds — build: 13
+- Seconds — browser install: 32
+- Seconds — tests: 733
+- Migrations: applied 329/329
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -24,83 +24,15 @@
 - fixture 20260927045939: home country ET for the three plain accounts
 - fixture 20260929201600: the sub-city Bole under Addis Ababa
 - Parity:
-not written
+RLS on 76 of 76 public tables
+Default grants in public: postgres | f | {postgres=X/postgres,service_role=X/postgres}; postgres | r | {postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}; postgres | S | {postgres=rwU/postgres,service_role=rwU/postgres}; supabase_admin | f | {postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}; supabase_admin | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}; supabase_admin | S | {postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}
 - Status:
 Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECRET, LINKED_PROJECT_REF, MAILPIT_URL, PUBLISHABLE_KEY, REST_URL, S3_PROTOCOL_ACCESS_KEY_ID, S3_PROTOCOL_ACCESS_KEY_SECRET, S3_PROTOCOL_REGION, SECRET_KEY, SERVICE_ROLE_KEY, STORAGE_S3_URL
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
+Database container: supabase_db_zwmvxvzzvjvtdcfcwiuf
 - Step failure:
-ledger check: docker exec exit 1: Error response from daemon: No such container: supabase_db_ethio-ci-local
-
-
-## Migration/start failure
-Last migration line: Applying migration 20261020041607_c88f99d5-b2cd-495f-93c1-8c9de328a1db.sql...
-```text
-Applying migration 20261018165306_40c06cd4-7cd6-4582-934e-5eca916909a7.sql...
-Applying migration 20261018165354_7dce9a57-93a9-4c10-a5d7-ff36e88fde91.sql...
-Applying migration 20261019063500_1bb93282-5a6f-4557-b00b-781967b410c6.sql...
-Applying migration 20261019063635_0e901b95-3cfb-4daf-bb72-6a6d3f691897.sql...
-Applying migration 20261019084720_0bad8634-24d0-4c7c-bd3e-f2f736dab99d.sql...
-Applying migration 20261019103558_df2b6472-8b61-4c4b-a074-94b1e69e3724.sql...
-Applying migration 20261019103756_2bd8e360-a732-41b7-a610-c6daf13d917a.sql...
-Applying migration 20261019115742_844b64b2-424a-47fe-97d5-5523663fdba3.sql...
-Applying migration 20261019115951_9e3ecfc4-409a-4c68-ae90-9b85964f5e91.sql...
-Applying migration 20261019140533_709c3922-984d-4e4d-a62a-a89543f08e83.sql...
-Applying migration 20261019222105_f4f10b49-3bcb-44a4-a847-4c7ac1e202bc.sql...
-Applying migration 20261019223105_fee22f72-e321-4aa2-9f6a-9c2a066e9e7a.sql...
-Applying migration 20261019223222_b947bfda-3636-493b-b9b5-8a0225eb0f21.sql...
-Applying migration 20261019224505_a93ea697-cdf9-4d5a-b3b9-e1e65e0549f6.sql...
-Applying migration 20261019232513_2240482e-4359-4f8d-b926-24411bd13096.sql...
-Applying migration 20261020041607_c88f99d5-b2cd-495f-93c1-8c9de328a1db.sql...
-Starting containers...
-Waiting for health checks...
-Started supabase local development setup.
-
-╭──────────────────────────────────╮
-│ 🔧 Development Tools             │
-├─────────┬────────────────────────┤
-│ Mailpit │ http://127.0.0.1:54324 │
-╰─────────┴────────────────────────╯
-
-╭─────────────────────────────────────────────────╮
-│ 🌐 APIs                                         │
-├─────────────┬───────────────────────────────────┤
-│ Project URL │ http://127.0.0.1:54321            │
-│ REST        │ http://127.0.0.1:54321/rest/v1    │
-│ GraphQL     │ http://127.0.0.1:54321/graphql/v1 │
-╰─────────────┴───────────────────────────────────╯
-
-╭───────────────────────────────────────────────────────────────╮
-│ ⛁ Database                                                    │
-├─────┬─────────────────────────────────────────────────────────┤
-│ URL │ postgresql://postgres:postgres@127.0.0.1:54322/postgres │
-╰─────┴─────────────────────────────────────────────────────────╯
-
-╭──────────────────────────────────────────────────────────────╮
-│ 🔑 Authentication Keys                                       │
-├─────────────┬────────────────────────────────────────────────┤
-│ Publishable │ [masked key] │
-│ Secret      │ [masked key]      │
-╰─────────────┴────────────────────────────────────────────────╯
-
-╭───────────────────────────────────────────────────────────────────────────────╮
-│ 📦 Storage (S3)                                                               │
-├────────────┬──────────────────────────────────────────────────────────────────┤
-│ URL        │ http://127.0.0.1:54321/storage/v1/s3                             │
-│ Access Key │ [masked]                                 │
-│ Secret Key │ [masked] │
-│ Region     │ local                                                            │
-╰────────────┴──────────────────────────────────────────────────────────────────╯
-Local dev security notice
-All services bind to 0.0.0.0 (network-accessible, not just localhost)
-API keys and JWT secrets are shared defaults. Do not use in production
-Studio, pgMeta (/pg/*), and analytics have no authentication
-
-```
-- Smoke: 0 passed · 0 failed · 0 flaky · 0 skipped · total 0
-- Job conclusion before evidence publication: failure
-- Backend/build/smoke: failure/skipped/skipped
-
-## Failing/flaky tests and setup errors
-- No JSON results; smoke skipped
+- Smoke: 186 passed · 0 failed · 0 flaky · 60 skipped · total 246
+- Job conclusion before evidence publication: success
+- Backend/build/smoke: success/success/success
 
 DEC-209: compare with staging CI on this same commit; two consecutive dev proofs required. No automatic proceed verdict.
