@@ -541,6 +541,8 @@ DEC-211 — THE RULE FOR SWITCHING, fixed before any number exists: CI's gating 
 
 Turn 15c (proof #7, `78b96e25`, the first with failure bodies): 2,081 passed, 30 failed, 8 flaky, 154 skipped of 2,273. The 30 failures were 16 tests in four causes: the API answered over http while the app keeps only https photo links (INC-789 — the temporary backend now serves https from a certificate authority made for each run, trusted by Chromium through the runner's NSS database and by Node and Bun through `NODE_EXTRA_CA_CERTS`); the languages page measured a language by its own rows (INC-790); a save run queued before a Next carried it (INC-791); the attributes import spec outpaced the preview budget (INC-792). None is a named gap under DEC-211.
 
+Turn 15d (proof #8, `6baac306`): 2,112 passed, 1 failed, 6 flaky, 154 skipped of 2,273; every lane 329/329; the slowest lane 1,143 s. Proof #7's four causes are gone. The flaky tests (AP-41, MLA-15, MLA-17) flake on staging too. The one failure, LGC-3 at 360, rendered “undefined” on the staff ad page; its body was lost because the lane masked its results file as raw text and the e-mail rule broke a JSON escape (INC-794). The lane now masks that file as data, string by string. Under DEC-211 proof #8 does not count: LGC-3's cause could not be named.
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,
