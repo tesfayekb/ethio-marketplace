@@ -709,7 +709,7 @@ it("LD-22 the sign-in return focuses Show contact and highlights the seller card
   }
 });
 
-it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after 200 ms still, with a 3 s ceiling (INC-753)", () => {
+it("LD-23 a tapped tab stays current through its scroll and, once released (200 ms still, 3 s ceiling), until the page moves; then fresh tops decide (INC-753, INC-779)", () => {
   const observers: TestObserver[] = [];
   class TestObserver implements IntersectionObserver {
     readonly root = null;
@@ -806,6 +806,10 @@ it("LD-23 a tapped tab stays current through its scroll; fresh tops decide after
     observer.report(["ad-details"]);
     expect(item("description")).toHaveAttribute("aria-current", "true");
     act(() => vi.advanceTimersByTime(1));
+    // INC-779 — released at the stop, the tab holds while the page has not moved.
+    observer.report(["ad-details"]);
+    expect(item("description")).toHaveAttribute("aria-current", "true");
+    y += 2;
     // Release itself makes no decision; the next report reads fresh, equal tops.
     observer.report(["ad-details", "ad-description", "ad-location"]);
     expect(item("description")).toHaveAttribute("aria-current", "true");
