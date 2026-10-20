@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 527,
-  "dynamicCallSites": 389,
+  "dynamicCallSites": 393,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2495,8 +2495,14 @@
       "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
+    "admin.legal.action.compare": [
+      "/admin/legal/$versionId"
+    ],
     "admin.legal.action.discardDraft": [
       "/admin/legal/edit"
+    ],
+    "admin.legal.action.download": [
+      "/admin/legal/$versionId"
     ],
     "admin.legal.action.editDraft": [
       "/admin/legal/$versionId"
@@ -2504,8 +2510,11 @@
     "admin.legal.action.editFacts": [
       "/admin/legal"
     ],
-    "admin.legal.action.history": [
-      "/admin/legal"
+    "admin.legal.action.export": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.action.print": [
+      "/admin/legal/$versionId"
     ],
     "admin.legal.action.publish": [
       "/admin/legal/edit"
@@ -2528,6 +2537,9 @@
     "admin.legal.addCountry.label": [
       "/admin/legal"
     ],
+    "admin.legal.allVersions": [
+      "/admin/legal"
+    ],
     "admin.legal.badDocument": [
       "/admin/legal/edit"
     ],
@@ -2536,6 +2548,12 @@
     ],
     "admin.legal.change.material": [
       "/admin/legal/edit"
+    ],
+    "admin.legal.compare.none": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.compare.title": [
+      "/admin/legal/$versionId"
     ],
     "admin.legal.count": [
       "/admin/legal/edit"
@@ -2552,11 +2570,17 @@
     "admin.legal.emptyFacts": [
       "/admin/legal/edit"
     ],
+    "admin.legal.error.generic": [
+      "/admin/legal/$versionId"
+    ],
     "admin.legal.error.load": [
       "/admin/legal",
       "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/users/$userId"
+    ],
+    "admin.legal.export.done": [
+      "/admin/legal/$versionId"
     ],
     "admin.legal.facts.help": [
       "/admin/legal"
@@ -2584,6 +2608,12 @@
       "/admin/legal/edit"
     ],
     "admin.legal.field.labelHelp": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.import.done": [
+      "/admin/legal/edit"
+    ],
+    "admin.legal.import.label": [
       "/admin/legal/edit"
     ],
     "admin.legal.lang.am": [
@@ -4602,6 +4632,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5156,6 +5187,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5176,6 +5208,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5232,6 +5265,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5251,6 +5285,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5270,6 +5305,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5289,6 +5325,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5309,6 +5346,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -5328,6 +5366,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -8394,6 +8433,7 @@
       "/admin/countries",
       "/admin/coverage",
       "/admin/legal",
+      "/admin/legal/$versionId",
       "/admin/legal/edit",
       "/admin/listings",
       "/admin/listings/$listingId",
