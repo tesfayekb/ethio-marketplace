@@ -1,27 +1,27 @@
 # Local backend proof (non-gating)
 
-- Commit: `1a5b21bd789cf8edbd4ac303dcedd65e83d39304`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39450658576
+- Commit: `99e4e619758701da59bb6caaccc7acaddaf95548`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39477384439
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 831 | 98 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
-| 1 | 1166 | 117 | applied 329/329 | 187 | 0 | 1 | 6 | 194 |
-| 2 | 973 | 98 | applied 329/329 | 146 | 0 | 0 | 1 | 147 |
-| 3 | 733 | 107 | applied 329/329 | 175 | 0 | 0 | 2 | 177 |
-| 4 | 749 | 112 | applied 329/329 | 168 | 0 | 2 | 6 | 176 |
-| 5 | 779 | 103 | applied 329/329 | 151 | 0 | 0 | 1 | 152 |
-| 6 | 682 | 104 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
-| 7 | 1041 | 121 | applied 329/329 | 158 | 0 | 1 | 3 | 162 |
-| 8 | 1126 | 104 | applied 329/329 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 787 | 110 | applied 329/329 | 162 | 0 | 0 | 6 | 168 |
-| 10 | 661 | 89 | applied 329/329 | 168 | 0 | 2 | 6 | 176 |
-| 11 | 886 | 103 | applied 329/329 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 585 | 118 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2113 | 0 | 6 | 154 | 2273 |
+| smoke | 881 | 112 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
+| 1 | 1770 | 107 | applied 329/329 | 188 | 0 | 0 | 6 | 194 |
+| 2 | 1771 | 111 | applied 329/329 | 146 | 0 | 0 | 1 | 147 |
+| 3 | 913 | 96 | applied 329/329 | 175 | 0 | 0 | 2 | 177 |
+| 4 | 1180 | 116 | applied 329/329 | 170 | 0 | 0 | 6 | 176 |
+| 5 | 818 | 109 | applied 329/329 | 151 | 0 | 0 | 1 | 152 |
+| 6 | 669 | 112 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
+| 7 | 1640 | 106 | applied 329/329 | 159 | 0 | 0 | 3 | 162 |
+| 8 | 1603 | 91 | applied 329/329 | 170 | 0 | 0 | 1 | 171 |
+| 9 | 998 | 98 | applied 329/329 | 162 | 0 | 0 | 6 | 168 |
+| 10 | 1202 | 111 | applied 329/329 | 170 | 0 | 0 | 6 | 176 |
+| 11 | 794 | 104 | applied 329/329 | 190 | 0 | 0 | 2 | 192 |
+| 12 | 557 | 109 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2119 | 0 | 0 | 154 | 2273 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
 
-- Slowest lane: 1 1166 s
+- Slowest lane: 2 1771 s
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -42,19 +42,5 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
-
-## Lane 1
-- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-41 the page's remaining lines / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 4
-- my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
-- my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 7
-- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-41 the page's remaining lines / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 10
-- my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
-- my-listings-ad.spec.ts / MY LISTINGS — one ad's page (bundle 16 turn 3) / MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveValue[2m([22m[32mexpected[39m[2m)[22m failed
 
 DEC-211: compare every lane with staging CI on this same commit; two consecutive full-suite dev proofs required. Email-serial stays on staging. No automatic switch verdict.
