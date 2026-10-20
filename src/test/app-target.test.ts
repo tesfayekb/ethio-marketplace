@@ -44,17 +44,33 @@ describe("INC-464 — assertAppTargetsStaging", () => {
     for (const env of envs) expect(messageOf(env)).not.toContain(KEY);
   });
   it("passes the exact local URL with E2E_LOCAL_BACKEND=1", () => {
-    expect(messageOf({ E2E_LOCAL_BACKEND: "1", VITE_SUPABASE_URL: "http://127.0.0.1:54321", SUPABASE_URL: "http://127.0.0.1:54321" })).toBe("");
+    expect(
+      messageOf({
+        E2E_LOCAL_BACKEND: "1",
+        VITE_SUPABASE_URL: "http://127.0.0.1:54321",
+        SUPABASE_URL: "http://127.0.0.1:54321",
+      }),
+    ).toBe("");
   });
 
   it("refuses staging-looking and production URLs with the local flag", () => {
     for (const url of [STAGING, PROD, "http://127.0.0.1:54321.evil.invalid"]) {
-      expect(messageOf({ E2E_LOCAL_BACKEND: "1", VITE_SUPABASE_URL: url })).toContain(`(VITE_SUPABASE_URL = ${url})`);
+      expect(messageOf({ E2E_LOCAL_BACKEND: "1", VITE_SUPABASE_URL: url })).toContain(
+        `(VITE_SUPABASE_URL = ${url})`,
+      );
     }
-    expect(messageOf({ E2E_LOCAL_BACKEND: "1", VITE_SUPABASE_URL: "http://127.0.0.1:54321", SUPABASE_URL: PROD })).not.toBe("");
+    expect(
+      messageOf({
+        E2E_LOCAL_BACKEND: "1",
+        VITE_SUPABASE_URL: "http://127.0.0.1:54321",
+        SUPABASE_URL: PROD,
+      }),
+    ).not.toBe("");
   });
 
   it("refuses the local URL without the local flag", () => {
-    expect(messageOf({ VITE_SUPABASE_URL: "http://127.0.0.1:54321" })).toContain("(VITE_SUPABASE_URL = http://127.0.0.1:54321)");
+    expect(messageOf({ VITE_SUPABASE_URL: "http://127.0.0.1:54321" })).toContain(
+      "(VITE_SUPABASE_URL = http://127.0.0.1:54321)",
+    );
   });
 });

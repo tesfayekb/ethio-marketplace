@@ -3841,19 +3841,29 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
         "aria-label",
         new RegExp(escapeRe(en["shell.favouriteBadge"])),
       );
-      await expect.poll(() => gapY(stripRow, row), {
-        message: "FV-1 the strip's favourite row level with the menu's",
-      }).toBeLessThanOrEqual(1);
-      await expect.poll(() => gapHeight(stripRow, row), {
-        message: "FV-1 the strip's favourite row as tall as the menu's",
-      }).toBeLessThanOrEqual(1);
+      await expect
+        .poll(() => gapY(stripRow, row), {
+          message: "FV-1 the strip's favourite row level with the menu's",
+        })
+        .toBeLessThanOrEqual(1);
+      await expect
+        .poll(() => gapHeight(stripRow, row), {
+          message: "FV-1 the strip's favourite row as tall as the menu's",
+        })
+        .toBeLessThanOrEqual(1);
       for (const mainSlug of mainSlugs) {
-        await expect.poll(() => gapY(
-          scope.getByTestId(`rail-category-${mainSlug}`),
-          strip.getByTestId(`strip-category-${mainSlug}`),
-        ), {
-          message: `FV-1 ${mainSlug} level in the menu and the strip`,
-        }).toBeLessThanOrEqual(1);
+        await expect
+          .poll(
+            () =>
+              gapY(
+                scope.getByTestId(`rail-category-${mainSlug}`),
+                strip.getByTestId(`strip-category-${mainSlug}`),
+              ),
+            {
+              message: `FV-1 ${mainSlug} level in the menu and the strip`,
+            },
+          )
+          .toBeLessThanOrEqual(1);
       }
       await page.getByTestId("rail-menu-close").click();
     }

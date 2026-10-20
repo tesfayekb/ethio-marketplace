@@ -406,7 +406,9 @@ export default async function globalSetup() {
   if (localBackend && targetOk) {
     console.log("[e2e:setup] target is the temporary local backend (D228) = true");
   } else {
-    console.log(`[e2e:setup] target ref is staging (${STAGING_REF}) = ${url.includes(STAGING_REF)}`);
+    console.log(
+      `[e2e:setup] target ref is staging (${STAGING_REF}) = ${url.includes(STAGING_REF)}`,
+    );
   }
   if (!targetOk) {
     throw new Error(
