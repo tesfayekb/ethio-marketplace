@@ -28,7 +28,7 @@ A file never gets past a step it failed.
 8. **Duplicate identity** — judged at the gate, or deferred to the planner when
    the family's law is lifecycle- or inheritance-aware (declared per file).
 9. **Rate limit** — one preview/commit in flight per operator, 30 previews a
-   minute.
+   minute. Tests honour it: a preview answered 429 is sent again every 5 s (`withinPreviewBudget`, e2e/helpers/rate-window.ts); only IG-3 drives the limit (INC-792).
 10. **Payload** — the planner RPC receives typed rows, never raw CSV text. The
     RPC remains the only authority on meaning and on permission (F3, E7).
 11. **Audit** — one `import.preview` / `import.commit` / `import.undo` row per

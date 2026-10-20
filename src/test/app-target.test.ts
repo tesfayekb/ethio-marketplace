@@ -47,14 +47,14 @@ describe("INC-464 — assertAppTargetsStaging", () => {
     expect(
       messageOf({
         E2E_LOCAL_BACKEND: "1",
-        VITE_SUPABASE_URL: "http://127.0.0.1:54321",
-        SUPABASE_URL: "http://127.0.0.1:54321",
+        VITE_SUPABASE_URL: "https://127.0.0.1:54321",
+        SUPABASE_URL: "https://127.0.0.1:54321",
       }),
     ).toBe("");
   });
 
   it("refuses staging-looking and production URLs with the local flag", () => {
-    for (const url of [STAGING, PROD, "http://127.0.0.1:54321.evil.invalid"]) {
+    for (const url of [STAGING, PROD, "https://127.0.0.1:54321.evil.invalid"]) {
       expect(messageOf({ E2E_LOCAL_BACKEND: "1", VITE_SUPABASE_URL: url })).toContain(
         `(VITE_SUPABASE_URL = ${url})`,
       );
@@ -62,10 +62,16 @@ describe("INC-464 — assertAppTargetsStaging", () => {
     expect(
       messageOf({
         E2E_LOCAL_BACKEND: "1",
-        VITE_SUPABASE_URL: "http://127.0.0.1:54321",
+        VITE_SUPABASE_URL: "https://127.0.0.1:54321",
         SUPABASE_URL: PROD,
       }),
     ).not.toBe("");
+  });
+
+  it("INC-789 refuses the plain-http local URL with the local flag", () => {
+    expect(
+      messageOf({ E2E_LOCAL_BACKEND: "1", VITE_SUPABASE_URL: "http://127.0.0.1:54321" }),
+    ).toContain("(VITE_SUPABASE_URL = http://127.0.0.1:54321)");
   });
 
   it("refuses the local URL without the local flag", () => {

@@ -196,6 +196,11 @@ jobs:
           extra_search_path = ["public", "extensions"]
           max_rows = 1000
 
+          [api.tls]
+          enabled = true
+          cert_path = "certs/api.pem"
+          key_path = "certs/api.key"
+
           [db]
           port = 54322
           shadow_port = 54320
@@ -250,6 +255,47 @@ jobs:
           enabled = false
           TOML
           echo "PREPARE_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
+      - name: Make the temporary backend's certificate
+        run: |
+          # INC-789 — the app keeps only https photo links, so the API serves https
+          # from a certificate authority made for this run only. Nothing here is printed.
+          begin=$(date +%s)
+          ca_dir="$RUNNER_TEMP/ethio-ci-local-ca"
+          certs=.ci-local/supabase/certs
+          mkdir -p "$ca_dir" "$certs"
+          openssl req -x509 -newkey rsa:2048 -sha256 -days 2 -nodes \
+            -keyout "$ca_dir/ca.key" -out "$ca_dir/ca.pem" -subj "/CN=ethio-ci-local CA" \
+            -addext "basicConstraints=critical,CA:TRUE" \
+            -addext "keyUsage=critical,keyCertSign,cRLSign" 2> /dev/null
+          openssl req -newkey rsa:2048 -sha256 -nodes \
+            -keyout "$certs/api.key" -out "$ca_dir/api.csr" -subj "/CN=localhost" 2> /dev/null
+          printf '%s\n' "basicConstraints=critical,CA:FALSE" \
+            "keyUsage=critical,digitalSignature,keyEncipherment" \
+            "extendedKeyUsage=serverAuth" \
+            "subjectAltName=DNS:localhost,IP:127.0.0.1" > "$ca_dir/api.ext"
+          openssl x509 -req -in "$ca_dir/api.csr" -CA "$ca_dir/ca.pem" -CAkey "$ca_dir/ca.key" \
+            -CAcreateserial -CAserial "$ca_dir/ca.srl" -days 2 -sha256 \
+            -extfile "$ca_dir/api.ext" -out "$ca_dir/api-leaf.pem" 2> /dev/null
+          rm -f "$ca_dir/ca.key" "$ca_dir/api.csr" "$ca_dir/ca.srl" "$ca_dir/api.ext"
+          if [ "$(openssl verify -CAfile "$ca_dir/ca.pem" "$ca_dir/api-leaf.pem" 2>&1)" != "$ca_dir/api-leaf.pem: OK" ]; then
+            echo "::error::the API certificate does not verify against this run's authority"
+            exit 1
+          fi
+          cat "$ca_dir/api-leaf.pem" "$ca_dir/ca.pem" > "$certs/api.pem"
+          if command -v certutil > /dev/null; then
+            echo "certutil: present" >> local-backend-status.txt
+          else
+            sudo apt-get update > /dev/null
+            sudo apt-get install -y libnss3-tools > /dev/null
+            echo "certutil: installed" >> local-backend-status.txt
+          fi
+          mkdir -p "$HOME/.pki/nssdb"
+          if [ ! -f "$HOME/.pki/nssdb/cert9.db" ]; then
+            certutil -d "sql:$HOME/.pki/nssdb" -N --empty-password
+          fi
+          certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n ethio-ci-local -i "$ca_dir/ca.pem"
+          echo "NODE_EXTRA_CA_CERTS=$ca_dir/ca.pem" >> "$GITHUB_ENV"
+          echo "CERT_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Start backend and apply all migrations
         id: backend
         run: |
@@ -298,8 +344,8 @@ jobs:
               match = re.fullmatch(r'([A-Z0-9_]+)="?([^"\n]*)"?', line)
               if match:
                   values[match[1]] = match[2]
-          if values.get('API_URL') != 'http://127.0.0.1:54321':
-              fail('CLI status did not report exact local API URL')
+          if values.get('API_URL') != 'https://127.0.0.1:54321':
+              fail('CLI status did not report the exact local https API URL')
           browser = 'ANON_KEY' if values.get('ANON_KEY') else 'PUBLISHABLE_KEY'
           server = 'SERVICE_ROLE_KEY' if values.get('SERVICE_ROLE_KEY') else 'SECRET_KEY'
           if not values.get(browser):
@@ -308,9 +354,10 @@ jobs:
               fail('CLI status printed neither SERVICE_ROLE_KEY nor SECRET_KEY')
           print('::add-mask::' + values[browser])
           print('::add-mask::' + values[server])
-          with open('local-backend-status.txt', 'w') as out:
+          with open('local-backend-status.txt', 'a') as out:
               out.write('Status variables: ' + ', '.join(sorted(values)) + '\n')
               out.write('Keys used: ' + browser + ', ' + server + '\n')
+              out.write('API: https://127.0.0.1:54321 (per-run certificate authority)\n')
           aliases = {
               'API_URL': ['E2E_SUPABASE_URL', 'VITE_SUPABASE_URL', 'SUPABASE_URL'],
               browser: ['E2E_SUPABASE_PUBLISHABLE_KEY', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_PUBLISHABLE_KEY'],
@@ -447,7 +494,7 @@ jobs:
           env = os.environ
           lane = env['PROOF_LANE']
           lines = ['- Lane: ' + lane, '# Local backend proof (non-gating)', '', '- Commit: `' + env['GITHUB_SHA'] + '`', '- Run: https://github.com/' + env['GITHUB_REPOSITORY'] + '/actions/runs/' + env['GITHUB_RUN_ID'], '- CLI version: 2.120.0', '- Seconds — job: ' + env.get('JOB_SECONDS', 'not run')]
-          for label, key in [('checkout', 'CHECKOUT_SECONDS'), ('install', 'INSTALL_SECONDS'), ('CLI install', 'CLI_SECONDS'), ('working copy', 'PREPARE_SECONDS'), ('start (migrations included)', 'START_SECONDS'), ('build', 'BUILD_SECONDS'), ('browser install', 'BROWSER_SECONDS'), ('tests', 'TEST_SECONDS')]:
+          for label, key in [('checkout', 'CHECKOUT_SECONDS'), ('install', 'INSTALL_SECONDS'), ('CLI install', 'CLI_SECONDS'), ('working copy', 'PREPARE_SECONDS'), ('certificate', 'CERT_SECONDS'), ('start (migrations included)', 'START_SECONDS'), ('build', 'BUILD_SECONDS'), ('browser install', 'BROWSER_SECONDS'), ('tests', 'TEST_SECONDS')]:
               lines.append('- Seconds — ' + label + ': ' + env.get(key, 'not run'))
           ok = env.get('MIGRATIONS_OK') == '1'
           migrations = Path('local-backend-migrations.txt')

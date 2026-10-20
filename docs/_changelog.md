@@ -1001,3 +1001,4 @@
 
 <!-- prettier-ignore -->
 - 2026-10-20 — Bundle 22 turn 15b, after the close (no migration; no string): the temporary-backend proof's summary runs CI's own failure reporter over its thirteen lanes and publishes `local-backend-last-failure.md` (never the shared flake ledger); G-1 asserts the project's own auth server instead of a hosted domain; a read-only census of staging's reference data (D228, DEC-211).
+- 2026-10-20 — Bundle 22 turn 15c, after the close (no migration; no string): the temporary backend serves its API over https from a per-run certificate authority (INC-789); the languages page judges publication against the base catalogue, as the door does (INC-790); a draft save run queued before a Next never carries it, and follow-ups are sent by the run that got the answer (INC-791); import previews in tests wait out the door's per-user budget (INC-792) (D228, DEC-211).

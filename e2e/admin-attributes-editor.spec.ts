@@ -1,5 +1,6 @@
 import { parseCsvGrid } from "../src/server/imports/gate";
 import { expect, test } from "./fixtures";
+import { withinPreviewBudget } from "./helpers/rate-window";
 import { gotoReady, stepUpIfPrompted, switchUser } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { stripScratchRows } from "./helpers/exports";
@@ -122,17 +123,20 @@ test.describe("C3 attributes console", () => {
     token: string,
     body: Record<string, unknown>,
   ) {
-    const response = await page.request.post("/api/admin/attributes/import", {
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      data: body,
-    });
-    let payload: Record<string, unknown> = {};
-    try {
-      payload = (await response.json()) as Record<string, unknown>;
-    } catch {
-      payload = {};
-    }
-    return { status: response.status(), payload };
+    const send = async () => {
+      const response = await page.request.post("/api/admin/attributes/import", {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        data: body,
+      });
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = (await response.json()) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload };
+    };
+    return withinPreviewBudget(send, "AT editor import");
   }
 
   /**

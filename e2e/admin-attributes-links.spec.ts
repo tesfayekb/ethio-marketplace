@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { withinPreviewBudget } from "./helpers/rate-window";
 import { en } from "../src/i18n/locales/en";
 import { awaitGuardedOutcome, gotoReady, stepUpIfPrompted } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
@@ -113,17 +114,20 @@ test.describe("C3 attributes console", () => {
     token: string,
     body: Record<string, unknown>,
   ) {
-    const response = await page.request.post("/api/admin/attributes/import", {
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      data: body,
-    });
-    let payload: Record<string, unknown> = {};
-    try {
-      payload = (await response.json()) as Record<string, unknown>;
-    } catch {
-      payload = {};
-    }
-    return { status: response.status(), payload };
+    const send = async () => {
+      const response = await page.request.post("/api/admin/attributes/import", {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        data: body,
+      });
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = (await response.json()) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload };
+    };
+    return withinPreviewBudget(send, "AT links import");
   }
 
   /**

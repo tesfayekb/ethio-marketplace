@@ -174,13 +174,22 @@ export function useDraft(initialListingId: string | null): UseDraft {
    *
    * A save carries the version it was built from. When it returns, the pending
    * work is cleared ONLY if nothing changed while it was in the air; otherwise
-   * the newer answers are still pending and another pass runs at once. Without
+   * the newer answers are still pending and the same run sends them at once
+   * (INC-791: the run that got the answer, never a timer). Without
    * this, a `Next` that lands on top of an in-flight autosave was dropped on the
    * floor — the seller's last edit never reached the door and the step never
    * advanced, which is exactly the lost work this hook exists to prevent.
    */
   const versionRef = useRef(0);
   const followUpRef = useRef(false);
+  /**
+   * INC-791 (INC-698's class, second occurrence) — CLAIMS MADE. `saveAt` and
+   * `rewindTo` add one before queueing their own run; `goTo` does not (leaving a
+   * step ends a claim and makes none). A run notes this when it is queued and
+   * sends nothing if a newer claim was made since: that claim's own run sends
+   * the latest answers once, and every field travels on every save.
+   */
+  const claimsMadeRef = useRef(0);
   /**
    * INC-228 — WHOSE SAVE IS IT? An AUTOSAVE is a backup of work in progress and
    * is sent at the LAST COMPLETED step, so a half-filled step is never judged
@@ -370,23 +379,18 @@ export function useDraft(initialListingId: string | null): UseDraft {
       }
       setRefusals([]);
       // "Saved" unless the seller has typed something newer than what went out —
-      // and when they have, ANOTHER PASS IS ARMED HERE. Relying on the debounce
-      // timer alone left the caption stuck on "Not saved yet" when the newer
-      // answer arrived while this request was in the air.
+      // and when they have, the follow-up flag set above makes THIS RUN send
+      // again (INC-791: drained by `flush`, never by a timer, so it cannot
+      // reach the chain after a Next and carry it).
       if (versionRef.current === sent) {
         setSaveState("saved");
       } else if (superseded) {
         setSaveState("unsaved");
       } else {
         // The seller typed while this request was in the air: THE STEP IS QUEUED
-        // AGAIN and another pass armed here. Leaving it to the debounce timer left
-        // the caption stuck on "Not saved yet" with nothing on its way.
+        // AGAIN, and the run that received this answer drains it.
         setSaveState("unsaved");
         pendingStepRef.current = Math.max(pendingStepRef.current ?? 0, forStep);
-        if (retryRef.current) clearTimeout(retryRef.current);
-        retryRef.current = setTimeout(() => {
-          void flushRef.current?.();
-        }, 0);
       }
       return true;
     }
@@ -474,14 +478,25 @@ export function useDraft(initialListingId: string | null): UseDraft {
    * so a `Next` that arrives on top of an in-flight autosave WAITS for it and
    * then sends the latest answers, instead of being dropped (which lost the
    * seller's last edit and left the step behind).
+   *
+   * INC-791 (INC-698's class) — ONE CLAIM, ONE SEND. A run notes the claims
+   * made when it is queued; when its turn comes it sends nothing, and answers
+   * true, if a newer claim was made since — that claim's own run carries it.
+   * Follow-ups are drained inside the run that received the answer, with the
+   * same check before each extra pass; a failed pass ends the run (its own
+   * retry timer is already armed).
    */
   const chainRef = useRef<Promise<boolean>>(Promise.resolve(true));
   const flush = useCallback((): Promise<boolean> => {
+    const noted = claimsMadeRef.current;
+    const newer = () => claimsMadeRef.current !== noted;
     const run = chainRef.current.then(async () => {
-      const took = await pass();
-      if (followUpRef.current) {
+      if (newer()) return true;
+      let took = await pass();
+      while (took && followUpRef.current) {
         followUpRef.current = false;
-        return pass();
+        if (newer()) return true;
+        took = await pass();
       }
       return took;
     });
@@ -541,6 +556,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
       // INC-228 — the STRICT save: `Next` names the step on screen and its
       // refusals are the ones the seller is shown.
       strictRef.current = forStep;
+      claimsMadeRef.current += 1;
       claimSeqRef.current += 1;
       const mine = claimSeqRef.current;
       claimTokenRef.current = mine;
@@ -564,6 +580,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
     async (forStep: number) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       strictRef.current = forStep;
+      claimsMadeRef.current += 1;
       claimSeqRef.current += 1;
       claimTokenRef.current = claimSeqRef.current;
       pendingStepRef.current = forStep;

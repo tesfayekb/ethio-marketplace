@@ -1,5 +1,6 @@
 import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { withinPreviewBudget } from "./helpers/rate-window";
 
 import { en } from "../src/i18n/locales/en";
 import { fillOf, isRedFill } from "./helpers/colors";
@@ -880,17 +881,20 @@ test.describe("CAT-IE categories import/export", () => {
     token: string,
     body: Record<string, unknown>,
   ) {
-    const response = await page.request.post("/api/admin/categories/import", {
-      headers: { Authorization: `Bearer ${token}` },
-      data: body,
-    });
-    let payload: Record<string, unknown> = {};
-    try {
-      payload = (await response.json()) as Record<string, unknown>;
-    } catch {
-      payload = {};
-    }
-    return { status: response.status(), payload };
+    const send = async () => {
+      const response = await page.request.post("/api/admin/categories/import", {
+        headers: { Authorization: `Bearer ${token}` },
+        data: body,
+      });
+      let payload: Record<string, unknown> = {};
+      try {
+        payload = (await response.json()) as Record<string, unknown>;
+      } catch {
+        payload = {};
+      }
+      return { status: response.status(), payload };
+    };
+    return withinPreviewBudget(send, "CT lifecycle import");
   }
 
   /**

@@ -316,6 +316,133 @@ describe("useDraft — a Next is judged at its own step (INC-455)", () => {
     await expect(price).resolves.toBe(false);
     expect(result.current.nextBlockedByTransport).toBe(true);
   });
+
+  it("INC-791 a follow-up armed before a Next never carries it", async () => {
+    vi.useFakeTimers();
+    try {
+      pending.length = 0;
+      sent.length = 0;
+      const { result, unmount } = renderHook(() => useDraft(null));
+      let outcome: boolean | undefined;
+      await act(async () => {
+        result.current.change({ categoryId: "c-1", title: "a" }, true);
+        await settle();
+        result.current.change({ title: "ab" }, false);
+        pending[0]!(took());
+        await settle();
+      });
+      expect(pending).toHaveLength(2);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(0);
+        void result.current.saveAt(5).then((answer) => {
+          outcome = answer;
+        });
+        await settle();
+        pending[1]!(took());
+        await settle();
+      });
+      await act(async () => {
+        pending[2]!(unreachable());
+        await settle();
+      });
+      expect(outcome).toBe(false);
+      expect(sent.filter((step) => step === 5)).toHaveLength(1);
+      expect(result.current.nextBlockedByTransport).toBe(true);
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("INC-791 a debounce queued behind a save in the air never carries a later Next", async () => {
+    vi.useFakeTimers();
+    try {
+      pending.length = 0;
+      sent.length = 0;
+      const { result, unmount } = renderHook(() => useDraft(null));
+      let outcome: boolean | undefined;
+      await act(async () => {
+        result.current.change({ categoryId: "c-1", title: "a" }, true);
+        await settle();
+        result.current.change({ title: "ab" }, false);
+        await vi.advanceTimersByTimeAsync(2_000);
+        void result.current.saveAt(5).then((answer) => {
+          outcome = answer;
+        });
+        await settle();
+        pending[0]!(took());
+        await settle();
+      });
+      await act(async () => {
+        pending[1]!(unreachable());
+        await settle();
+      });
+      expect(outcome).toBe(false);
+      expect(sent.filter((step) => step === 5)).toHaveLength(1);
+      expect(result.current.nextBlockedByTransport).toBe(true);
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("INC-791 positive control: an edit made while an autosave is in the air goes out in the same run and the caption reaches saved", async () => {
+    vi.useFakeTimers();
+    try {
+      pending.length = 0;
+      sent.length = 0;
+      const { result, unmount } = renderHook(() => useDraft(null));
+      await act(async () => {
+        result.current.change({ categoryId: "c-1", title: "a" }, true);
+        await settle();
+        result.current.change({ title: "ab" }, false);
+        pending[0]!(took());
+        await settle();
+      });
+      expect(sent).toHaveLength(2);
+      await act(async () => {
+        pending[1]!(took());
+        await settle();
+      });
+      expect(result.current.saveState).toBe("saved");
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("INC-791 positive control: a Next answered by a transport failure is re-sent by its own retry, and the retry's success clears the block (INC-679)", async () => {
+    vi.useFakeTimers();
+    try {
+      pending.length = 0;
+      sent.length = 0;
+      const { result, unmount } = renderHook(() => useDraft(null));
+      let first: boolean | undefined;
+      await act(async () => {
+        void result.current.saveAt(5).then((answer) => {
+          first = answer;
+        });
+        await settle();
+        pending[0]!(unreachable());
+        await settle();
+      });
+      expect(first).toBe(false);
+      expect(result.current.nextBlockedByTransport).toBe(true);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(4_000);
+        await settle();
+      });
+      expect(sent).toEqual([5, 5]);
+      await act(async () => {
+        pending[1]!(took());
+        await settle();
+      });
+      expect(result.current.nextBlockedByTransport).toBe(false);
+      unmount();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 /**
