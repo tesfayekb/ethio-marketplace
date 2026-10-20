@@ -16,7 +16,10 @@ jobs:
   proof:
     name: Lane ${{ matrix.lane }} on temporary Supabase (non-gating)
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # A slow runner's lane is recorded whole instead of cancelled (proof #10's lane 1:
+    # start 359 s, cancelled at 45 minutes after 165 of 194 tests); DEC-211's
+    # criterion (3) still judges each lane at 25 minutes.
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:

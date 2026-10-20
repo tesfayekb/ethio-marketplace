@@ -943,6 +943,7 @@ export const en = {
   "admin.listings.status.rejected": "Rejected",
   "admin.listings.status.removed": "Removed",
   "admin.listings.status.closed": "Closed",
+  "admin.listings.status.draft": "Draft",
   "admin.listings.reports.title": "Reports",
   "admin.listings.reports.count": "Reports: {count}",
   "admin.listings.reports.none": "No reports",
