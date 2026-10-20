@@ -545,6 +545,8 @@ Turn 15d (proof #8, `6baac306`): 2,112 passed, 1 failed, 6 flaky, 154 skipped of
 
 Turn 15e (proof #9, `643b49b6`): 2,111 passed, 1 failed, 7 flaky, 154 skipped of 2,273; every lane 329/329; the slowest lane 1,120 s; every lane's results reached the report (INC-794 fixed). LGC-3 failed at 1280 and passed on retry at 360: the staff ad page rendered “undefined” (INC-795), and the guard's page text ended before the token, so the guard now names the element (INC-796). Under DEC-211 proof #9 does not count: LGC-3's cause could not yet be named.
 
+Turn 15f (proof #10, `17e867e2`): the guard named LGC-3's element — the staff history printed “Status: undefined → Waiting for review” because no label existed for the draft status (INC-795, fixed with its key and a test that every status has one). Staging hid it: its history usually arrives after the page is checked. Lane 1 ran on a slow runner (start 359 s) and was cancelled at 45 minutes; lanes now have 60, and DEC-211's criterion (3) still judges each at 25. Under DEC-211 proof #10 does not count (criterion 3).
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,

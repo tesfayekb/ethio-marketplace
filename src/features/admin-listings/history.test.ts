@@ -1,7 +1,14 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+
+import am from "@/i18n/locales/am";
+import en from "@/i18n/locales/en";
 
 import { changesOf, groupOf, groupsOf, summarize } from "./history";
 import { detailOf, type AdminListingHistoryEntry } from "./use-admin-listing";
+
+/** The newest declaration of listings_status_check (B3 census, turn 15f). */
+const STATUS_CHECK = "supabase/migrations/20261014194317_840e5db2-b7c8-417b-ae45-0e9f4f4f8e0e.sql";
 
 /**
  * Bundle 11, turn L3 (D138, D139) — a listing's history as a person reads it:
@@ -94,5 +101,23 @@ describe("listing history (turn L3)", () => {
     });
     expect(detail.history[0]).toMatchObject({ by: "system", byName: null, reason: null });
     expect(detail.historyTotal).toBe(1);
+  });
+
+  it("INC-795 every listing status has its staff label in English and Amharic", () => {
+    const sql = readFileSync(STATUS_CHECK, "utf8");
+    const match = /ADD CONSTRAINT listings_status_check\s+CHECK \(status IN \(([^)]*)\)\)/.exec(
+      sql,
+    );
+    if (!match) throw new Error("no listings_status_check list");
+    const statuses = (match[1] ?? "").split(",").map((item) => item.trim().replace(/^'|'$/g, ""));
+    expect(statuses).toHaveLength(10);
+    const catalogues: Record<string, Record<string, string>> = { en, am };
+    for (const status of statuses) {
+      for (const [lang, catalogue] of Object.entries(catalogues)) {
+        const value = catalogue[`admin.listings.status.${status}`];
+        expect(value, `${lang} admin.listings.status.${status}`).toBeTruthy();
+        expect((value ?? "").trim().length, `${lang} ${status}`).toBeGreaterThan(0);
+      }
+    }
   });
 });

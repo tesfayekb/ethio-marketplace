@@ -909,6 +909,7 @@ export const am: Messages = {
   "admin.listings.status.rejected": "ውድቅ የተደረገ",
   "admin.listings.status.removed": "የተወገደ",
   "admin.listings.status.closed": "የተዘጋ",
+  "admin.listings.status.draft": "ረቂቅ",
   "admin.listings.reports.title": "ሪፖርቶች",
   "admin.listings.reports.count": "ሪፖርቶች፦ {count}",
   "admin.listings.reports.none": "ምንም ሪፖርት የለም",
