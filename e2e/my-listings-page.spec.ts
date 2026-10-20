@@ -2,7 +2,7 @@ import { type Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import { destroyLocation, seedScratchChain, waitForServedTree } from "./helpers/locations";
 import {
   destroyCategoryBranch,
   destroyListingsOf,
@@ -173,6 +173,8 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     branches.push([parent.slug as string, leaf.slug as string]);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug as string);
+    // INC-797 — the route serves its tree from a 15-second copy: wait until it carries this chain (J7)
+    await waitForServedTree("ET", chain.subCity.slug as string);
     return {
       ...seller,
       leafId: leaf.id as string,
