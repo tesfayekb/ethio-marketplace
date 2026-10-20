@@ -410,7 +410,11 @@ export interface UseCategoryTreeResult {
  * INC-788 — one held tree for the whole page: every mount asks, and the answer reaches every reader at once, so two readers never show two versions.
  */
 export function useCategoryTree(): UseCategoryTreeResult {
-  const tree = useSyncExternalStore(subscribe, () => cache?.tree ?? EMPTY_TREE, () => EMPTY_TREE);
+  const tree = useSyncExternalStore(
+    subscribe,
+    () => cache?.tree ?? EMPTY_TREE,
+    () => EMPTY_TREE,
+  );
   const [isLoading, setIsLoading] = useState(cache === null);
   const [error, setError] = useState(false);
 

@@ -84,7 +84,8 @@ describe("the page's held category tree", () => {
   }
 
   it("INC-788 — a later mount's newer tree reaches an earlier mount", async () => {
-    const fetchTree = vi.fn()
+    const fetchTree = vi
+      .fn()
       .mockResolvedValueOnce(answer("v1", ["A"]))
       .mockResolvedValueOnce(answer("v2", ["A", "B"]));
     vi.stubGlobal("fetch", fetchTree);
@@ -98,7 +99,8 @@ describe("the page's held category tree", () => {
   });
 
   it("an unmoved version keeps the same tree object for every reader", async () => {
-    const fetchTree = vi.fn()
+    const fetchTree = vi
+      .fn()
       .mockResolvedValueOnce(answer("v1", ["A"]))
       .mockResolvedValueOnce(answer("v1", ["A"]));
     vi.stubGlobal("fetch", fetchTree);
