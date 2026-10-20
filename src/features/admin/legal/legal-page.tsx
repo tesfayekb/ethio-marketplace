@@ -5,11 +5,33 @@ import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
+import { LegalText } from "@/features/legal/legal-text";
 import { useI18n } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { LEGAL_KINDS, kindKey, versionStatus, type LegalDocument } from "./legal-service";
 import { LegalFactsCard } from "./legal-facts-card";
-import { useLegalDocuments, useLegalSettings } from "./use-legal";
+import { useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
+
+/** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
+function InForceText({ id }: { id: string }) {
+  const { t, language } = useI18n();
+  const version = useLegalVersion(id);
+  if (version.isPending) return <p role="status">{t("common.loading")}</p>;
+  if (version.error)
+    return (
+      <p role="alert" className="text-destructive">
+        {t("admin.legal.error.load")}
+      </p>
+    );
+  return (
+    <div data-testid="legal-read-text" className="rounded-md bg-muted/40 p-3">
+      <LegalText
+        text={language === "am" ? version.data.body_am : version.data.body_en}
+        facts={version.data.settings_snapshot ?? {}}
+      />
+    </div>
+  );
+}
 
 export function LegalPage() {
   const { t, language } = useI18n();
@@ -18,7 +40,7 @@ export function LegalPage() {
   const documents = useLegalDocuments();
   const settings = useLegalSettings();
   const countries = useCountries();
-  const [history, setHistory] = useState<Set<string>>(new Set());
+  const [reading, setReading] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Record<string, string>>({});
   const mayEdit = permissions.includes("legal:edit");
   const now = Date.now();
@@ -26,7 +48,6 @@ export function LegalPage() {
     value
       ? new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
           dateStyle: "medium",
-          timeZone: "UTC",
         }).format(new Date(value))
       : "—";
   const scope = (code: string | null) =>
@@ -100,6 +121,30 @@ export function LegalPage() {
                     <p>
                       {t("admin.legal.acceptedBy").replace("{count}", String(v.acceptances ?? 0))}
                     </p>
+                    {status === "inForce" ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          data-testid="legal-read"
+                          aria-expanded={reading.has(v.version_id)}
+                          onClick={() =>
+                            setReading((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(v.version_id)) next.delete(v.version_id);
+                              else next.add(v.version_id);
+                              return next;
+                            })
+                          }
+                        >
+                          {t(
+                            reading.has(v.version_id)
+                              ? "admin.legal.action.hide"
+                              : "admin.legal.action.read",
+                          )}
+                        </Button>
+                        {reading.has(v.version_id) ? <InForceText id={v.version_id} /> : null}
+                      </>
+                    ) : null}
                   </>
                 ) : mayEdit ? (
                   editorLink(doc.kind, doc.country_code, "legal-edit-draft", true)
@@ -108,23 +153,11 @@ export function LegalPage() {
             );
           })}
         {!draft && mayEdit ? editorLink(doc.kind, doc.country_code, "legal-new-version") : null}
-        <Button
-          variant="ghost"
-          data-testid="legal-history-toggle"
-          aria-expanded={history.has(doc.document_id)}
-          onClick={() =>
-            setHistory((prev) => {
-              const next = new Set(prev);
-              if (next.has(doc.document_id)) next.delete(doc.document_id);
-              else next.add(doc.document_id);
-              return next;
-            })
-          }
-        >
-          {t("admin.legal.action.history")}
-        </Button>
-        {history.has(doc.document_id) ? (
-          <ul className="space-y-2">
+        {doc.versions.length ? (
+          <h4 className="text-sm font-medium">{t("admin.legal.allVersions")}</h4>
+        ) : null}
+        {doc.versions.length ? (
+          <ul data-testid="legal-history" className="space-y-2">
             {doc.versions.map((v) => (
               <li
                 key={v.version_id}
