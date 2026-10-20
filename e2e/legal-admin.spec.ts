@@ -556,7 +556,9 @@ test.describe("Admin Legal", () => {
     const path = await download.path();
     if (!path) throw new Error("[e2e:legal-admin] download has no path");
     const csv = await readFile(path, "utf8");
-    const lines = csv.split("\n").filter((line) => line.trim() !== "");
+    expect(csv.endsWith("\r\n")).toBe(true);
+    expect(csv.replace(/\r\n/g, "").includes("\n")).toBe(false);
+    const lines = csv.split("\r\n").filter((line) => line !== "");
     expect(lines[0]).toBe(
       "account_id,accepted_at,language,method,home_country,adult_confirmed,data_consent",
     );
