@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -38,9 +38,27 @@ function setup(props: Partial<Parameters<typeof useLegalGate>[0]>) {
 beforeEach(() => {
   status.mockClear();
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  focusManager.setFocused(undefined);
+  vi.restoreAllMocks();
+});
 
 describe("useLegalGate", () => {
+  it("reads again on the window's return once its answer is five minutes old (turn 12)", async () => {
+    status.mockResolvedValue([]);
+    const start = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(start);
+    setup({});
+    await waitFor(() => expect(status).toHaveBeenCalledTimes(1));
+    focusManager.setFocused(false);
+    focusManager.setFocused(true);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(status, "a fresh answer is not read again").toHaveBeenCalledTimes(1);
+    clock.mockReturnValue(start + 5 * 60 * 1000 + 1);
+    focusManager.setFocused(false);
+    focusManager.setFocused(true);
+    await waitFor(() => expect(status).toHaveBeenCalledTimes(2));
+  });
   it("keeps no entry once its last observer unmounts (INC-769)", async () => {
     status.mockResolvedValue([]);
     const { view, client } = setup({});

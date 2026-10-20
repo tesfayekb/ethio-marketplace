@@ -33,6 +33,8 @@ export type GateNavigate = (options: {
  * gcTime 0 — the entry evaporates the moment its last observer unmounts (SO-4).
  * Turn 4 (INC-770): `pathname` and `search` come from ONE location (LegalGate reads both from the
  * router's state.location), so `next` never folds an earlier redirect's search into itself.
+ * Turn 12: an open app reads again when its window regains focus once the answer is five minutes old,
+ * so a version that comes into force while the app is open brings the screen at the person's return.
  */
 export function useLegalGate({
   userId,
@@ -51,7 +53,7 @@ export function useLegalGate({
     queryFn: () => myLegalStatus(kinds),
     staleTime: 5 * 60 * 1000,
     gcTime: 0,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     retry: false,
   });
   const failed = status.isError;

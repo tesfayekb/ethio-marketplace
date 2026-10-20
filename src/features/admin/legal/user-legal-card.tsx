@@ -16,8 +16,7 @@ export function UserLegalCard({ userId }: { userId: string }) {
     value
       ? new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
           dateStyle: "medium",
-          timeStyle: "short",
-          timeZone: "UTC",
+          timeStyle: "long",
         }).format(new Date(value))
       : "—";
   const caption = (row: LegalHistoryRow) => {
@@ -61,7 +60,7 @@ export function UserLegalCard({ userId }: { userId: string }) {
           >
             {document(row)}
             <p className="break-words text-muted-foreground">
-              {t("admin.users.legal.acceptedMeta")
+              {t("admin.users.legal.acceptedAt")
                 .replace("{date}", date(row.accepted_at))
                 .replace(
                   "{language}",
@@ -71,6 +70,11 @@ export function UserLegalCard({ userId }: { userId: string }) {
                 )
                 .replace("{method}", row.method ?? "")}
             </p>
+            {row.adult_confirmed ? (
+              <p data-testid="user-legal-adult" className="text-muted-foreground">
+                {t("admin.users.legal.adult")}
+              </p>
+            ) : null}
             {row.data_consent ? (
               <p data-testid="user-legal-consent" className="text-muted-foreground">
                 {t("admin.users.legal.consent")}

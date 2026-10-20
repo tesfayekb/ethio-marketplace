@@ -8,7 +8,7 @@ import { useShell } from "@/components/shell-context";
 import { useI18n, type MessageKey } from "@/i18n";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { safeReturnPath } from "@/lib/return-path";
-import { legalDocName, legalRole, needsConsent, tickOneKey } from "./legal-kinds";
+import { legalDocName, legalRole, tickKey } from "./legal-kinds";
 import { acceptLegal, legalRefusal, myLegalStatus, myLegalVersion } from "./legal-reader";
 import { LegalText } from "./legal-text";
 import { legalStatusKey } from "./use-legal-gate";
@@ -37,7 +37,7 @@ function DocText({ id }: { id: string }) {
   );
 }
 
-/** Bundle 22 turn 3 — the acceptance screen: Agree and continue, or Sign out (the operator's hard stop). */
+/** Bundle 22 turn 3 — the acceptance screen: Agree and continue, or Decline, sign out (the operator's hard stop). */
 export function LegalAcceptScreen({
   userId,
   kinds,
@@ -60,13 +60,12 @@ export function LegalAcceptScreen({
     retry: false,
   });
   const [open, setOpen] = useState<Record<string, boolean>>({});
-  const [adult, setAdult] = useState(false);
-  const [consent, setConsent] = useState(false);
+  const [agreed, setAgreed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<MessageKey | null>(null);
   const rows = status.data ?? [];
-  const consentShown = needsConsent(rows);
-  const ready = adult && (!consentShown || consent) && !busy && rows.length > 0;
+  const firstTime = rows.some((row) => !row.adult_confirmed);
+  const ready = agreed && !busy && rows.length > 0;
   const left = useRef(false);
   const leave = () => {
     if (left.current) return;
@@ -133,24 +132,20 @@ export function LegalAcceptScreen({
             </ul>
             <label className="flex min-h-11 items-start gap-3">
               <Checkbox
-                data-testid="legal-accept-adult"
-                checked={adult}
-                onCheckedChange={(value) => setAdult(value === true)}
+                data-testid="legal-accept-tick"
+                checked={agreed}
+                onCheckedChange={(value) => setAgreed(value === true)}
                 className="mt-1"
               />
-              <span>{t(tickOneKey(rows.map((row) => legalRole(row.kind))))}</span>
+              <span>
+                {t(
+                  tickKey(
+                    rows.map((row) => legalRole(row.kind)),
+                    firstTime,
+                  ),
+                )}
+              </span>
             </label>
-            {consentShown ? (
-              <label className="flex min-h-11 items-start gap-3">
-                <Checkbox
-                  data-testid="legal-accept-consent"
-                  checked={consent}
-                  onCheckedChange={(value) => setConsent(value === true)}
-                  className="mt-1"
-                />
-                <span>{t("legal.accept.tick2")}</span>
-              </label>
-            ) : null}
             {error ? (
               <p role="alert" data-testid="legal-accept-error" className="text-destructive">
                 {t(error)}
@@ -167,8 +162,8 @@ export function LegalAcceptScreen({
                   acceptLegal({
                     versionIds: rows.map((row) => row.version_id),
                     language,
-                    adult: true,
-                    dataConsent: consentShown ? consent : false,
+                    adult: firstTime,
+                    dataConsent: false,
                   })
                     .then(async () => {
                       client.setQueryData(key, []);
@@ -178,8 +173,7 @@ export function LegalAcceptScreen({
                     .catch(async (failure: unknown) => {
                       console.error("[client-error] accept_legal", legalRefusal(failure));
                       if (legalRefusal(failure) === "notInForce") {
-                        setAdult(false);
-                        setConsent(false);
+                        setAgreed(false);
                         setError("legal.accept.changed");
                         await status.refetch();
                       } else setError("legal.accept.error");
@@ -195,7 +189,7 @@ export function LegalAcceptScreen({
                 data-testid="legal-accept-signout"
                 onClick={requestSignOut}
               >
-                {t("auth.signOut")}
+                {t("legal.accept.decline")}
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">{t("legal.accept.note")}</p>
