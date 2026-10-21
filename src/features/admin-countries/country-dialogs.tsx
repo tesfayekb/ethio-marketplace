@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { errorText } from "@/lib/error-text";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ export function useCountryError() {
       setRefusal(abort === null ? null : { key: abort as MessageKey, raw: null });
       return;
     }
-    setRefusal(countryErrorKey(error instanceof Error ? error.message : String(error ?? "")));
+    setRefusal(countryErrorKey(error === null || error === undefined ? "" : errorText(error)));
   };
   const render = (message: MessageKey) => setRefusal({ key: message, raw: null });
   return { refusal, clear, fail, render };

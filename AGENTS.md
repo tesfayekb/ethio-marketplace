@@ -19,14 +19,14 @@ Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only
 - The database tool applies its input at once: check a scratch copy, then submit FINAL text once (never a stub, comment or draft); remove scratch drafts.
 - Text attributes are validated by preset allowlist (`attr_preset_ok`), never free regex; option records use the strict shape `value, label_en, label_am, parent, active, bounds, aliases` — unknown keys refused, defaults omitted (DEC-050).
 - A console save never drops a field it does not show: editors round-trip every stored field (INC-188).
-- E2E tests needing only a signed-in account use `leaseUser()` (lane pool, reaped at lease); `createUser()` only for a new identity or a target account. Why: deleted users still count as MAU (DEC-097).
+- E2E tests needing only a signed-in account use `leaseUser()` (lane pool, reaped at lease); `createUser()` only for a new identity or a target account. Why: deleted users count as MAU (DEC-097).
 - CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, then e2e-last-failure.md and guards-last-failure.md; never dev/main copies or a git fetch of it (DEC-098, S87).
 - Market-neutral wording (DEC-094): where a statement depends on the market, name no single country; use {country}. Cultural facts (teff, the Ethiopian calendar, brands) are not market statements.
-- Data-API lists use `readAllPages` (src/lib/read-all-pages.ts): keyset paging on a unique key, never positional (INC-452).
+- Data-API lists use `readAllPages` (src/lib/read-all-pages.ts): keyset paging, never positional (INC-452).
 - Lint workflows with `actionlint -shellcheck= -pyflakes=`, as CI does (INC-457, INC-460).
 - Browser tests start only with `bun run e2e:local` or `bun run e2e:changed`, never plain `playwright test` (production `.env`, INC-464); targets: ethio-staging or CI's temporary backend (`E2E_LOCAL_BACKEND=1`: https, hosted-like auth and mail), CI's only gate (local-backend-proof.yml, DEC-218); never supabase/config.toml (D228).
-- CI lanes run 2 test workers, smoke and email 1 (DEC-217); cross-worker interference or a new flaky test returns them to 1. Why: one worker made a lane take 19 min.
-- Scanner output in CI logs and ci-evidence is counts only; details stay in the Security tab (DEC-132).
+- CI lanes run 2 test workers, smoke and email 1 (DEC-217); after INC-813 (DEC-230), cross-worker interference or a new flaky test returns them to 1. Why: one worker made a lane take 19 min.
+- Scanner output in CI logs and ci-evidence is counts only; details in the Security tab (DEC-132).
 - Action labels: two or three words, no article or bracketed remark, every language; explanations go in help text, never a button (D81). A label scripts/list-action-labels.test.ts flags takes the brief's shorter text; its allowlist needs a reason.
 - A brief's string text is copied by key, character for character; no Amharic of your own (bundle 7 turn 5).
 - When a door gains a refusal, the census names every caller and the order each reaches it (INC-481).

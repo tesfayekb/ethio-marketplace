@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+
+import { useLocationError } from "./location-dialogs";
+
+vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 
 import { deleteBlockedKey, LISTED_LEVELS, LOCATION_LEVELS } from "./locations-service";
 
@@ -27,5 +32,27 @@ describe("LISTED_LEVELS", () => {
   it("PL-2 leaves out the country (its anchor is Admin › Countries'), keeps every other level in order", () => {
     expect(LISTED_LEVELS).not.toContain("country");
     expect(LISTED_LEVELS).toEqual(LOCATION_LEVELS.filter((level) => level !== "country"));
+  });
+});
+
+describe("useLocationError", () => {
+  it("PL-3 reads a database refusal object by its own message", () => {
+    const { result } = renderHook(() => useLocationError());
+    act(() =>
+      result.current.fail({ message: "badLevel", code: "P0001", details: null, hint: null }),
+    );
+    expect(result.current.refusal).toMatchObject({
+      key: "admin.locations.error.badLevel",
+      raw: null,
+    });
+    act(() =>
+      result.current.fail({ message: "something new", code: "P0001", details: null, hint: null }),
+    );
+    expect(result.current.refusal).toMatchObject({
+      key: "admin.locations.error.unknown",
+      raw: "something new",
+    });
+    act(() => result.current.fail(undefined));
+    expect(result.current.refusal?.raw).toBeNull();
   });
 });

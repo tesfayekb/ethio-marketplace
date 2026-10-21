@@ -441,3 +441,5 @@ From 768 to 1023 px the admin rail is icons only; » / « opens the in-place men
 ## Menu alerts (bundle 22 turn 20, DEC-219)
 
 A section in `src/features/admin/sections.ts` may name an `alert`. `useNavAlerts` (`src/features/admin/nav-alerts.ts`) reads each alert as one server boolean — today `legalReview`, from `legal_review_overdue()`, for users with legal:view — and the rail draws a dot on that section's icon, with the alert's words in the entry's accessible name and `data-alert="true"` on the row. Never a count; the server decides.
+
+Each alert's read lives in nav-alerts.ts itself (a query on the server boolean, under the admin legal query key), so the first paint carries no admin feature code.

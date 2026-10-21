@@ -216,13 +216,6 @@ export async function markLegalReviewed(input: {
   });
   if (error) throw error;
 }
-/** Turn 20 — whether a legal document's review is due (the admin menu's mark); never defaulted. */
-export async function getLegalReviewOverdue(): Promise<boolean> {
-  const { data, error } = await supabase.rpc("legal_review_overdue");
-  if (error) throw error;
-  if (typeof data !== "boolean") throw new Error("legal_review_overdue: invalid answer");
-  return data;
-}
 /** Turn 20 — a document's review state at `now`: none without a due date, overdue once it is reached. */
 export function reviewState(review: LegalReview | null, now: number): "none" | "due" | "overdue" {
   if (!review || review.due_at === null) return "none";

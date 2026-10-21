@@ -177,7 +177,7 @@ function ErrorContent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   useEffect(() => {
     // The router hands `unknown`; narrow before reading the message.
-    reportLovableError(error instanceof Error ? error : new Error(String(error)), {
+    reportLovableError(error instanceof Error ? error : new Error(errorText(error)), {
       boundary: "tanstack_root_error_component",
     });
   }, [error]);

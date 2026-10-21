@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { errorText } from "@/lib/error-text";
 
 import type { EntityBundleMap } from "./entity";
 
@@ -107,9 +108,7 @@ export async function fetchUiBundle(lang: string): Promise<BundleResult> {
     console.warn(`[i18n] bundle route ${lang} → ${response.status}; falling back to rpc`);
   } catch (error) {
     console.warn(
-      `[i18n] bundle route ${lang} unreachable (${
-        error instanceof Error ? error.message : String(error)
-      }); falling back to rpc`,
+      `[i18n] bundle route ${lang} unreachable (${errorText(error)}); falling back to rpc`,
     );
   }
 

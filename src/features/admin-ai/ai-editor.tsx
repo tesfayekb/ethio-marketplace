@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { errorText } from "@/lib/error-text";
 
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -44,7 +45,7 @@ export function AiEditorDialog({
       setRefusal(abort === null ? null : { key: abort as MessageKey, raw: null });
       return;
     }
-    setRefusal(aiErrorKey(error instanceof Error ? error.message : String(error ?? "")));
+    setRefusal(aiErrorKey(error === null || error === undefined ? "" : errorText(error)));
   };
 
   const submit = (input: SetAiFeatureInput) => {
