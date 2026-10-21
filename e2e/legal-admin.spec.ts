@@ -938,6 +938,19 @@ test.describe("Admin Legal", () => {
     await gotoReady(page, `/admin/legal/${saved.id}`);
     await page.getByTestId(`legal-view-tab-${code}`).click();
     await expect(page.getByTestId("legal-text")).toContainText("Fence text");
+    // A corrected third-language draft follows the same save and publish path successfully.
+    await page.getByTestId("legal-edit-draft").click();
+    await page.getByTestId(`legal-tab-${code}`).click();
+    await page.getByTestId(`legal-field-body-${code}`).fill("Corrected fence text");
+    await page.getByTestId("legal-save-draft").click();
+    await expect(page.getByTestId("legal-publish")).toBeEnabled();
+    await page.getByTestId("legal-publish").click();
+    await page.getByTestId("legal-publish-confirm").click();
+    await expect(page.getByTestId("legal-page")).toBeVisible();
+    expect((await version(kind)).status).toBe("published");
+    await gotoReady(page, `/admin/legal/${saved.id}`);
+    await page.getByTestId(`legal-view-tab-${code}`).click();
+    await expect(page.getByTestId("legal-text")).toHaveText("Corrected fence text");
   });
 
   test("LGA-20 published translation saves once; a stale second panel shows translationExists", async ({

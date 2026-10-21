@@ -13,6 +13,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import {
   legalErrorKey,
+  legalErrorName,
   FACT_KEYS,
   acceptancesCsv,
   exportLegalAcceptances,
@@ -120,6 +121,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
   const [translationLanguage, setTranslationLanguage] = useState("");
   const [translationBody, setTranslationBody] = useState("");
   const [translationError, setTranslationError] = useState<MessageKey | null>(null);
+  const [translationErrorName, setTranslationErrorName] = useState("");
   const [translationSaved, setTranslationSaved] = useState(false);
   const [translationSaving, setTranslationSaving] = useState(false);
   const [importedFile, setImportedFile] = useState<string | null>(null);
@@ -426,6 +428,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
                             })
                             .catch((failure: unknown) => {
                               console.error("[client-error] legal translation save", failure);
+                              setTranslationErrorName(legalErrorName(failure));
                               setTranslationError(legalErrorKey(failure));
                             })
                             .finally(() => setTranslationSaving(false));
@@ -435,7 +438,9 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
                       </Button>
                       {translationError ? (
                         <p role="alert" className="text-destructive">
-                          {t(translationError).replace("{max}", "200000")}
+                          {t(translationError)
+                            .replace("{max}", "200000")
+                            .replace("{name}", translationErrorName)}
                         </p>
                       ) : null}
                     </div>

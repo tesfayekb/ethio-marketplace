@@ -6,6 +6,7 @@ import {
   acceptancesCsv,
   exportLegalAcceptances,
   fillFacts,
+  getLegalVersion,
   legalErrorKey,
   legalErrorName,
   legalFileName,
@@ -29,6 +30,17 @@ it.each([
 ])("maps refusal %s", (message) => {
   expect(legalErrorKey({ message })).toBe(`admin.legal.error.${message}`);
 });
+it.each([null, undefined, [], "text", { om: 42 }])(
+  "staff version parser refuses invalid texts %j",
+  async (texts) => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: { version_id: "e2e-version", kind: "e2e-texts", version: 1, body_en: "en", body_am: "am", settings_snapshot: {}, texts },
+      error: null,
+    });
+    (supabase as unknown as { rpc: unknown }).rpc = rpc;
+    await expect(getLegalVersion("e2e-version")).rejects.toThrow();
+  },
+);
 it("maps the publish fact refusals and reads the fact they name", () => {
   expect(legalErrorKey({ message: "unknownFact:nope_fact" })).toBe("admin.legal.error.unknownFact");
   expect(legalErrorKey({ message: "factMissing:legal_phone" })).toBe(

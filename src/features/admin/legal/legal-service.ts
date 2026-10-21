@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import type { LegalFacts } from "@/features/legal/legal-markdown";
 import { errorText } from "@/lib/error-text";
+import { parseLegalVersion } from "@/features/legal/legal-reader";
 
 export const LEGAL_KINDS = ["terms", "privacy", "publishing"] as const;
 export type LegalVersion = {
@@ -171,6 +172,7 @@ export async function getLegalVersion(id: string): Promise<LegalVersionDetail> {
     typeof row.kind !== "string"
   )
     throw new Error("admin_legal_version: invalid version");
+  parseLegalVersion(row, "admin_legal_version");
   return row as LegalVersionDetail;
 }
 export async function saveLegalDraft(input: DraftInput): Promise<DraftResult> {
