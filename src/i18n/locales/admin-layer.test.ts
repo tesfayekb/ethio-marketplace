@@ -172,6 +172,12 @@ function judge(): { mayMove: string[]; mustStay: Map<string, string[]> } {
   const mustStay = new Map<string, string[]>();
   for (const key of catalogueKeys("en.ts")) {
     if (!key.startsWith("admin.")) continue;
+    // admin.loading is the gate's own waiting line: the gate renders it
+    // before the admin strings arrive, so it stays in the base part.
+    if (key === "admin.loading") {
+      mustStay.set(key, ["(the gate's waiting line — DEC-231)"]);
+      continue;
+    }
     const files = namingFiles(key, c);
     if (files.length === 0) mayMove.push(key);
     else mustStay.set(key, files);
