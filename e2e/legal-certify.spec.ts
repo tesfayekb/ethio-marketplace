@@ -87,9 +87,10 @@ type Scratch = {
   documents: string[];
   versions: string[];
   reveals: { viewerId: string; listingId: string }[];
+  photoListings: { sellerId: string; listingId: string }[];
 };
 function scratch(): Scratch {
-  return { sellers: [], categories: [], listings: [], documents: [], versions: [], reveals: [] };
+  return { sellers: [], categories: [], listings: [], documents: [], versions: [], reveals: [], photoListings: [] };
 }
 async function destroy(s: Scratch) {
   const supabase = adminClient();
@@ -105,6 +106,19 @@ async function destroy(s: Scratch) {
   const step = (label: string, error: { message: string } | null) => {
     if (error) failures.push(`${label}: ${error.message}`);
   };
+  for (const photo of s.photoListings) {
+    const bucket = supabase.storage.from("listing-photos");
+    const prefix = `default/${photo.sellerId}/${photo.listingId}`;
+    const dirs = await bucket.list(prefix, { limit: 100 });
+    step("photo directories", dirs.error);
+    const keys: string[] = [];
+    for (const dir of dirs.data ?? []) {
+      const files = await bucket.list(`${prefix}/${dir.name}`, { limit: 100 });
+      step("photo objects", files.error);
+      for (const file of files.data ?? []) keys.push(`${prefix}/${dir.name}/${file.name}`);
+    }
+    if (keys.length) step("photo objects removed", (await bucket.remove(keys)).error);
+  }
   if (s.listings.length > 0)
     step(
       "certifications",
@@ -815,6 +829,7 @@ test.describe("Legal certification", () => {
   }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
     const listingId = await draftOf(page, s, categoryId, cityId);
+    s.photoListings.push({ sellerId: seller.id, listingId });
     const token = await bearerOf(page);
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");

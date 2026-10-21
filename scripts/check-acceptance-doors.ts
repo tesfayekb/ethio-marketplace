@@ -58,10 +58,12 @@ function inspect(catalogue: string, allowlist: string) {
 }
 
 if (process.env["SELF_TEST"] === "1") {
-  const result = inspect(
-    readFileSync("scripts/fixtures/acceptance-doors-bad.tsv", "utf8"),
-    "e2e_acceptance_absent() | helper | An absent fixture function, intentionally stale.",
-  );
+  // The bad fixture separates its catalogue and allowance with one blank line.
+  const [catalogue, allowance] = readFileSync(
+    "scripts/fixtures/acceptance-doors-bad.tsv",
+    "utf8",
+  ).split(/\r?\n\r?\n/);
+  const result = inspect(catalogue ?? "", allowance ?? "");
   if (
     !result.failures.some((failure) => failure.startsWith("e2e_acceptance_unchecked(): missing")) ||
     !result.failures.some((failure) => failure.startsWith("e2e_acceptance_absent(): stale"))

@@ -124,17 +124,18 @@ async function signupUser(email: string) {
 }
 test.afterEach(async () => {
   const client = adminClient();
+  const failures: string[] = [];
   const fail = (error: { message: string } | null, phase: string) => {
-    if (error) throw new Error(`[e2e:su3] cleanup ${phase}: ${error.message}`);
+    if (error) failures.push(`${phase}: ${error.message}`);
   };
   if (acceptanceEmail) {
     const user = await signupUser(acceptanceEmail);
     if (user) {
+      fail((await client.auth.admin.deleteUser(user.id)).error, "account");
       fail(
         (await client.from("legal_acceptances").delete().eq("user_id", user.id)).error,
         "acceptances",
       );
-      fail((await client.auth.admin.deleteUser(user.id)).error, "account");
     }
     acceptanceEmail = undefined;
   }
@@ -157,6 +158,7 @@ test.afterEach(async () => {
     }
     acceptanceKinds.delete(kind);
   }
+  if (failures.length) throw new Error(`[e2e:su3] cleanup failed: ${failures.join("; ")}`);
 });
 
 test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () => {
@@ -251,9 +253,9 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       await page.goto("/auth");
       await waitForHydration(page);
       await page.getByTestId("auth-toggle-view").click();
-      await page.getByRole("textbox", { name: /email/i }).pressSequentially(email);
-      await page.locator("#auth-password").pressSequentially(password);
-      await page.locator("#auth-password-confirm").pressSequentially(password);
+      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+      await fillUntilStable(page.locator("#auth-password"), password, "password");
+      await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
       await page
         .getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") })
         .click();
@@ -274,8 +276,8 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
         throw new Error(`[e2e:su3] email confirmation: ${confirmed.error.message}`);
       await page.goto("/auth");
       await waitForHydration(page);
-      await page.getByRole("textbox", { name: /email/i }).pressSequentially(email);
-      await page.locator("#auth-password").pressSequentially(password);
+      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+      await fillUntilStable(page.locator("#auth-password"), password, "password");
       await page
         .getByRole("button", { name: new RegExp(`^${en["auth.signInButton"]}$`, "i") })
         .click();
