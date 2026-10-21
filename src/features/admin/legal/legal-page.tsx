@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
+import { legalTextFor } from "@/features/legal/legal-reader";
 import { LegalText } from "@/features/legal/legal-text";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
@@ -32,10 +33,12 @@ function InForceText({ id }: { id: string }) {
         {t("admin.legal.error.load")}
       </p>
     );
+  const selected = legalTextFor(version.data, language);
   return (
     <div data-testid="legal-read-text" className="rounded-md bg-muted/40 p-3">
+      {selected.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
       <LegalText
-        text={language === "am" ? version.data.body_am : version.data.body_en}
+        text={selected.text}
         facts={version.data.settings_snapshot ?? {}}
       />
     </div>

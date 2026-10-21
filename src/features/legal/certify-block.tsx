@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useI18n } from "@/i18n";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { certifyKey, refreshers, type CertifyState } from "./certify-refusal";
-import { myListingCertification } from "./legal-reader";
+import { legalTextFor, myListingCertification } from "./legal-reader";
 import { LegalText } from "./legal-text";
 
 /** The statements that apply to an ad, with ONE tick, "I certify the above." (L1 v2 item 4). */
@@ -83,7 +83,9 @@ export function CertifyBlock({
     <section data-testid="certify-block" className="space-y-3">
       <h3 className="text-base font-semibold text-foreground">{t("legal.certify.title")}</h3>
       <p className="text-sm text-muted-foreground">{t("legal.certify.leadOnce")}</p>
-      {statements.map((s) => (
+      {statements.map((s) => {
+        const selected = legalTextFor(s, language);
+        return (
         <div
           key={s.version_id}
           data-testid="certify-statement"
@@ -99,12 +101,13 @@ export function CertifyBlock({
               )}
             </h4>
           ) : null}
+          {selected.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
           <LegalText
-            text={language === "am" ? s.body_am : s.body_en}
+            text={selected.text}
             facts={s.settings_snapshot ?? {}}
           />
         </div>
-      ))}
+      ); })}
       <label className="flex min-h-11 items-start gap-3 text-sm text-foreground">
         <Checkbox
           data-testid="certify-tick"
