@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * for an off-list answer, and fallback: false for a listed one.
  */
 const answer = { value: "" as unknown };
+/** When set, the model call throws a GeminiError with this message and status. */
+const thrown = { value: null as { message: string; status: number } | null };
 /** D158 — the switch the route asks first, and the meter it writes. */
 const meter = { gate: { on: true } as { on: boolean; reason?: string }, spent: [] as string[] };
 const asked = { count: 0 };
