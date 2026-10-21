@@ -1,7 +1,17 @@
 /** DEC-215 / D227: the live catalogue, not a hand-count, defines signed-in write doors. */
 import { readFileSync } from "node:fs";
 
-const classes = ["legal", "account", "staff", "draft", "signal", "helper", "owed", "guarded", "takedown"] as const;
+const classes = [
+  "legal",
+  "account",
+  "staff",
+  "draft",
+  "signal",
+  "helper",
+  "owed",
+  "guarded",
+  "takedown",
+] as const;
 type Class = (typeof classes)[number];
 type Door = { fn: string; volatility: string; checks: boolean };
 type Allowance = { fn: string; className: string; reason: string };

@@ -293,10 +293,20 @@ const sorted = (ids: unknown) => [...((ids as string[]) ?? [])].sort();
 async function guardedTruth(listingId: string) {
   const client = adminClient();
   const listing = await client.from("listings").select("*").eq("id", listingId).single();
-  const photos = await client.from("listing_photos").select("*").eq("listing_id", listingId).order("id");
-  const revisions = await client.from("listing_revisions").select("*").eq("listing_id", listingId).order("id");
+  const photos = await client
+    .from("listing_photos")
+    .select("*")
+    .eq("listing_id", listingId)
+    .order("id");
+  const revisions = await client
+    .from("listing_revisions")
+    .select("*")
+    .eq("listing_id", listingId)
+    .order("id");
   if (listing.error || photos.error || revisions.error || !listing.data)
-    throw new Error(`[e2e:certify] guarded truth: ${listing.error?.message ?? photos.error?.message ?? revisions.error?.message}`);
+    throw new Error(
+      `[e2e:certify] guarded truth: ${listing.error?.message ?? photos.error?.message ?? revisions.error?.message}`,
+    );
   return { listing: listing.data, photos: photos.data ?? [], revisions: revisions.data ?? [] };
 }
 
@@ -317,12 +327,19 @@ async function twoPhotos(page: Page, s: Scratch, sellerId: string, listingId: st
 }
 
 const priceArgs = (listingId: string, amount: number) => ({
-  p_listing_id: listingId, p_price_mode: "fixed", p_price_amount: amount,
-  p_price_currency: "ETB", p_price_period: "once",
+  p_listing_id: listingId,
+  p_price_mode: "fixed",
+  p_price_amount: amount,
+  p_price_currency: "ETB",
+  p_price_period: "once",
 });
 const pinArgs = (listingId: string) => ({
-  p_listing_id: listingId, p_lat: 9.012345, p_lng: 38.765432,
-  p_precision: "exact", p_street: "e2e scratch street", p_zoom: 15,
+  p_listing_id: listingId,
+  p_lat: 9.012345,
+  p_lng: 38.765432,
+  p_precision: "exact",
+  p_street: "e2e scratch street",
+  p_zoom: 15,
   p_directions: "e2e scratch gate",
 });
 
@@ -897,7 +914,9 @@ test.describe("Legal certification", () => {
     expect(await photoRowsOf(listingId)).toHaveLength(before.length + 1);
   });
 
-  test("LG-28 while an acceptance is owed, the table guard refuses the seller's own changes to a live ad and nothing is written", async ({ page }) => {
+  test("LG-28 while an acceptance is owed, the table guard refuses the seller's own changes to a live ad and nothing is written", async ({
+    page,
+  }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
     const me = await asPerson(seller);
     const live = await draftOf(page, s, categoryId, cityId);
@@ -911,27 +930,49 @@ test.describe("Legal certification", () => {
       { fn: "set_listing_price", args: priceArgs(live, 90) },
       { fn: "set_listing_pin", args: pinArgs(live) },
       { fn: "set_listing_reserved", args: { p_listing_id: live, p_reserved: true } },
-      { fn: "set_listing_photos_soon", args: { p_listing_id: live, p_on: !before.listing.photos_soon } },
+      {
+        fn: "set_listing_photos_soon",
+        args: { p_listing_id: live, p_on: !before.listing.photos_soon },
+      },
       { fn: "set_cover_photo", args: { p_listing_id: live, p_photo_id: photos.second } },
-      { fn: "move_listing_photo", args: { p_listing_id: live, p_photo_id: photos.second, p_position: 0 } },
-      { fn: "edit_listing", args: {
-        p_listing_id: live, p_category_id: categoryId, p_title: `E2E edited listing ${rand().replace(/[0-9]/g, "q")}`,
-        p_description: "e2e scratch listing for the seller's doors", p_video_url: null,
-        p_attributes: {}, p_price_mode: "fixed", p_price_amount: 100,
-        p_price_currency: "ETB", p_price_period: "once", p_poster_expires_at: null,
-        p_coverage: [cityId], p_contact_pref: { messages: true },
-      } },
+      {
+        fn: "move_listing_photo",
+        args: { p_listing_id: live, p_photo_id: photos.second, p_position: 0 },
+      },
+      {
+        fn: "edit_listing",
+        args: {
+          p_listing_id: live,
+          p_category_id: categoryId,
+          p_title: `E2E edited listing ${rand().replace(/[0-9]/g, "q")}`,
+          p_description: "e2e scratch listing for the seller's doors",
+          p_video_url: null,
+          p_attributes: {},
+          p_price_mode: "fixed",
+          p_price_amount: 100,
+          p_price_currency: "ETB",
+          p_price_period: "once",
+          p_poster_expires_at: null,
+          p_coverage: [cityId],
+          p_contact_pref: { messages: true },
+        },
+      },
     ];
     for (const call of calls) {
       const refused = await me.rpc(call.fn, call.args);
-      expect(refused.error, `${call.fn}: ${JSON.stringify(refused)}`).toContain("acceptanceRequired");
+      expect(refused.error, `${call.fn}: ${JSON.stringify(refused)}`).toContain(
+        "acceptanceRequired",
+      );
       expect(await guardedTruth(live), call.fn).toEqual(before);
     }
     const sold = await draftOf(page, s, categoryId, cityId);
     const soldPublish = await me.rpc("publish_listing", { p_listing_id: sold });
     expect(soldPublish.error, JSON.stringify(soldPublish)).toBeNull();
     await makeState(sold, "active");
-    const soldSeed = await adminClient().from("listings").update({ status: "sold", sold_at: new Date().toISOString() }).eq("id", sold);
+    const soldSeed = await adminClient()
+      .from("listings")
+      .update({ status: "sold", sold_at: new Date().toISOString() })
+      .eq("id", sold);
     if (soldSeed.error) throw new Error(`[e2e:certify] sold seed: ${soldSeed.error.message}`);
     await seedDocument(s, `e2e-acc-${hex(sold)}`, null, "Terms to accept");
     const soldBefore = await guardedTruth(sold);
@@ -944,23 +985,35 @@ test.describe("Legal certification", () => {
     const closedPublish = await me.rpc("publish_listing", { p_listing_id: closed });
     expect(closedPublish.error, JSON.stringify(closedPublish)).toBeNull();
     await makeState(closed, "active");
-    const close = await me.rpc("transition_listing", { p_listing_id: closed, p_new_status: "closed" });
+    const close = await me.rpc("transition_listing", {
+      p_listing_id: closed,
+      p_new_status: "closed",
+    });
     expect(close.error, JSON.stringify(close)).toBeNull();
     await seedDocument(s, `e2e-acc-${hex(closed)}`, null, "Terms to accept");
     const closedBefore = await guardedTruth(closed);
-    const reopen = await me.rpc("transition_listing", { p_listing_id: closed, p_new_status: "active" });
+    const reopen = await me.rpc("transition_listing", {
+      p_listing_id: closed,
+      p_new_status: "active",
+    });
     expect(reopen.error, JSON.stringify(reopen)).toContain("acceptanceRequired");
     expect(await guardedTruth(closed)).toEqual(closedBefore);
     expect(await statusOf(closed)).toBe("closed");
 
-    const accepted = await me.rpc("accept_legal", { p_version_ids: [owed.id], p_language: "en", p_adult: true });
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
     const changed = await me.rpc("set_listing_price", priceArgs(live, 90));
     expect(changed.error, JSON.stringify(changed)).toBeNull();
     expect((await guardedTruth(live)).listing.price_amount).toBe(90);
   });
 
-  test("LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo", async ({ page }) => {
+  test("LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo", async ({
+    page,
+  }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
     const me = await asPerson(seller);
     const ads: { id: string; version: string }[] = [];
@@ -978,18 +1031,32 @@ test.describe("Legal certification", () => {
       ads.push({ id, version: owed.id });
     }
     const [sold, closed, removed, photoAd] = ads;
-    if (!sold || !closed || !removed || !photoAd || !photoPair) throw new Error("[e2e:certify] takedown fixtures missing");
+    if (!sold || !closed || !removed || !photoAd || !photoPair)
+      throw new Error("[e2e:certify] takedown fixtures missing");
     const calls = [
       { fn: "mark_sold", args: { p_listing_id: sold.id }, id: sold.id, status: "sold" },
-      { fn: "transition_listing", args: { p_listing_id: closed.id, p_new_status: "closed" }, id: closed.id, status: "closed" },
-      { fn: "transition_listing", args: { p_listing_id: removed.id, p_new_status: "removed" }, id: removed.id, status: "removed" },
+      {
+        fn: "transition_listing",
+        args: { p_listing_id: closed.id, p_new_status: "closed" },
+        id: closed.id,
+        status: "closed",
+      },
+      {
+        fn: "transition_listing",
+        args: { p_listing_id: removed.id, p_new_status: "removed" },
+        id: removed.id,
+        status: "removed",
+      },
     ];
     for (const call of calls) {
       const answer = await me.rpc(call.fn, call.args);
       expect(answer.error, JSON.stringify(answer)).toBeNull();
       expect(await statusOf(call.id)).toBe(call.status);
     }
-    const removedPhoto = await me.rpc("remove_listing_photo", { p_listing_id: photoAd.id, p_photo_id: photoPair.first });
+    const removedPhoto = await me.rpc("remove_listing_photo", {
+      p_listing_id: photoAd.id,
+      p_photo_id: photoPair.first,
+    });
     expect(removedPhoto.error, JSON.stringify(removedPhoto)).toBeNull();
     const truth = await guardedTruth(photoAd.id);
     expect(truth.photos.map((row) => row.id)).toEqual([photoPair.second]);
@@ -998,13 +1065,20 @@ test.describe("Legal certification", () => {
       const pending = await me.rpc("my_listing_certification", { p_listing_id: ad.id });
       expect(pending.error, JSON.stringify(pending)).toBeNull();
       expect((pending.data as Row)["acceptance_pending"]).toBe(true);
-      const accepted = await adminClient().from("legal_acceptances").select("id").eq("version_id", ad.version).eq("user_id", seller.id);
-      if (accepted.error) throw new Error(`[e2e:certify] takedown acceptance truth: ${accepted.error.message}`);
+      const accepted = await adminClient()
+        .from("legal_acceptances")
+        .select("id")
+        .eq("version_id", ad.version)
+        .eq("user_id", seller.id);
+      if (accepted.error)
+        throw new Error(`[e2e:certify] takedown acceptance truth: ${accepted.error.message}`);
       expect(accepted.data).toEqual([]);
     }
   });
 
-  test("LG-30 a draft stays the seller's own while an acceptance is owed: its price, pin and photo order change", async ({ page }) => {
+  test("LG-30 a draft stays the seller's own while an acceptance is owed: its price, pin and photo order change", async ({
+    page,
+  }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
     const id = await draftOf(page, s, categoryId, cityId);
     const photos = await twoPhotos(page, s, seller.id, id);
@@ -1037,23 +1111,41 @@ test.describe("Legal certification", () => {
     const { seller } = await sellerOnPage(page, s);
     const me = await asPerson(seller);
     const read = async () => {
-      const result = await adminClient().from("profiles").select("seller_alias, seller_type").eq("user_id", seller.id).single();
-      if (result.error || !result.data) throw new Error(`[e2e:certify] seller name truth: ${result.error?.message}`);
+      const result = await adminClient()
+        .from("profiles")
+        .select("seller_alias, seller_type")
+        .eq("user_id", seller.id)
+        .single();
+      if (result.error || !result.data)
+        throw new Error(`[e2e:certify] seller name truth: ${result.error?.message}`);
       return result.data;
     };
     const before = await read();
     const owed = await seedDocument(s, `e2e-acc-u${hex(seller.id)}`, null, "Terms to accept");
     const alias = `e2eacc${hex(seller.id).replace(/[0-9]/g, "q").slice(0, 16)}${rand().replace(/[0-9]/g, "q")}`;
-    const refused = await me.rpc("save_posting_identity", { p_alias: alias, p_seller_type: "person" });
+    const refused = await me.rpc("save_posting_identity", {
+      p_alias: alias,
+      p_seller_type: "person",
+    });
     expect(refused.error, JSON.stringify(refused)).toContain("acceptanceRequired");
     expect(await read()).toEqual(before);
-    const unchanged = await me.rpc("save_posting_identity", { p_alias: before.seller_alias, p_seller_type: before.seller_type });
+    const unchanged = await me.rpc("save_posting_identity", {
+      p_alias: before.seller_alias,
+      p_seller_type: before.seller_type,
+    });
     expect(unchanged.error, JSON.stringify(unchanged)).toBeNull();
     expect((unchanged.data as Row)["ok"]).toBe(true);
     expect(await read()).toEqual(before);
-    const accepted = await me.rpc("accept_legal", { p_version_ids: [owed.id], p_language: "en", p_adult: true });
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
-    const changed = await me.rpc("save_posting_identity", { p_alias: alias, p_seller_type: "person" });
+    const changed = await me.rpc("save_posting_identity", {
+      p_alias: alias,
+      p_seller_type: "person",
+    });
     expect(changed.error, JSON.stringify(changed)).toBeNull();
     expect((changed.data as Row)["ok"]).toBe(true);
     expect((await read()).seller_alias).toBe(alias);
