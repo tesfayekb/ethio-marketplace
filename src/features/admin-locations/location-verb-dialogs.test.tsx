@@ -52,6 +52,9 @@ function place(id: string, slug: string, displayOrder: number): LocationNode {
     source: "test",
     path: `Ethiopia › ${slug}`,
     childCount: 0,
+    listingCount: 0,
+    coverageCount: 0,
+    profileDefaultCount: 0,
     depth: 1,
     key: `ethiopia/${slug}`,
   };

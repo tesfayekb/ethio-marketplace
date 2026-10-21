@@ -59,6 +59,7 @@ function root(id: string, slug: string, displayOrder: number): CategoryRow {
     hasImage: false,
     attributeCount: 0,
     cardAttributeCount: 0,
+    secondaryParentNames: [],
   };
 }
 
