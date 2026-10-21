@@ -2678,6 +2678,9 @@
       "/admin/listings/$listingId",
       "/admin/users/$userId"
     ],
+    "admin.legal.signedInUnaccepted": [
+      "/admin/legal"
+    ],
     "admin.legal.unknownTokens": [
       "/admin/legal/edit"
     ],

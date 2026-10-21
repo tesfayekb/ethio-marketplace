@@ -3,7 +3,7 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { netRetryLedgerFile } from "./helpers/net-retry";
 import { accountLedgerFile } from "./helpers/users";
 
-import { adminClient, processId, STATE_FILE, type E2EUser } from "./global-setup";
+import { adminClient, authErrorText, processId, STATE_FILE, type E2EUser } from "./global-setup";
 
 const NAMESPACE = "@ethio-e2e.invalid";
 const STALE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -14,7 +14,8 @@ async function listAll(supabase: ReturnType<typeof adminClient>): Promise<Listed
   const all: ListedUser[] = [];
   for (let page = 1; page <= 50; page += 1) {
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
-    if (error) throw new Error(`[e2e:teardown] listUsers page ${page} failed: ${error.message}`);
+    if (error)
+      throw new Error(`[e2e:teardown] listUsers page ${page} failed: ${authErrorText(error)}`);
     const users = data?.users ?? [];
     all.push(...users.map((u) => ({ id: u.id, email: u.email, created_at: u.created_at })));
     if (users.length < 200) break;
@@ -76,7 +77,7 @@ export default async function globalTeardown() {
     }
     try {
       const { error } = await supabase.auth.admin.deleteUser(user.id);
-      if (error) throw new Error(error.message);
+      if (error) throw new Error(authErrorText(error));
       deleted += 1;
     } catch (error) {
       faults.push(`${user.id}: ${error instanceof Error ? error.message : String(error)}`);
@@ -118,7 +119,7 @@ export async function sweepStaleUsers(): Promise<number> {
       throw new Error(`[e2e:sweep] refusing to delete out-of-namespace user ${user.id}`);
     }
     const { error } = await supabase.auth.admin.deleteUser(user.id);
-    if (error) throw new Error(`[e2e:sweep] failed to delete ${user.id}: ${error.message}`);
+    if (error) throw new Error(`[e2e:sweep] failed to delete ${user.id}: ${authErrorText(error)}`);
     deleted += 1;
   }
 

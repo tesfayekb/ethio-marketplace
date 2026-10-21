@@ -171,6 +171,15 @@ export function adminClient() {
   });
 }
 
+/** INC-808 — retain the auth error's class and status, even when its message is "{}". */
+export function authErrorText(error: unknown): string {
+  if (!error || typeof error !== "object") return "no error object";
+  const value = error as { name?: unknown; status?: unknown; message?: unknown };
+  const name = typeof value.name === "string" ? value.name : error.constructor.name;
+  const status = typeof value.status === "number" && value.status > 0 ? ` ${value.status}` : "";
+  return `${name}${status}: ${String(value.message ?? "")}`;
+}
+
 /**
  * DEC-036 — every user id in the reserved, non-deliverable e2e namespace
  * (`e2e+*@ethio-e2e.invalid`, the same namespace the teardown guards). The
@@ -188,7 +197,8 @@ export async function listE2EUserIds(
   for (let page = 1; ; page += 1) {
     if (page > 500) throw new Error("[e2e:setup] listUsers exceeded 500 pages (100,000 users)");
     const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 200 });
-    if (error) throw new Error(`[e2e:setup] listUsers page ${page} failed: ${error.message}`);
+    if (error)
+      throw new Error(`[e2e:setup] listUsers page ${page} failed: ${authErrorText(error)}`);
     const users = data?.users ?? [];
     for (const user of users) {
       liveUserIds?.add(user.id);
@@ -289,7 +299,7 @@ async function mintPooledSuperAdmin(
   });
   if (error || !data?.user?.id) {
     throw new Error(
-      `[e2e:setup] pooled super admin create failed for ${email}: ${error?.message ?? "no user id"}`,
+      `[e2e:setup] pooled super admin create failed for ${email}: ${error ? authErrorText(error) : "no user id"}`,
     );
   }
   const id = data.user.id;
@@ -360,7 +370,7 @@ async function mintPooledSuperAdmin(
     userId: id,
   });
   if (factorError) {
-    throw new Error(`[e2e:setup] pooled factor read failed: ${factorError.message}`);
+    throw new Error(`[e2e:setup] pooled factor read failed: ${authErrorText(factorError)}`);
   }
   const totpFactors = (factors?.factors ?? []).filter((f) => f.factor_type === "totp");
   const verified = totpFactors.filter((f) => f.status === "verified");
@@ -439,8 +449,7 @@ export default async function globalSetup() {
   });
   if (error || !data?.user?.id) {
     throw new Error(
-      `[e2e:setup] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}` +
-        (error?.status ? ` (status ${error.status})` : ""),
+      `[e2e:setup] admin.createUser failed for ${email}: ${error ? authErrorText(error) : "no user id returned"}`,
     );
   }
   const userId = data.user.id;
@@ -450,7 +459,7 @@ export default async function globalSetup() {
   const { data: readBack, error: readError } = await supabase.auth.admin.getUserById(userId);
   if (readError || !readBack?.user) {
     throw new Error(
-      `[e2e:setup] user ${userId} not found after create: ${readError?.message ?? "no user returned"}`,
+      `[e2e:setup] user ${userId} not found after create: ${readError ? authErrorText(readError) : "no user returned"}`,
     );
   }
   if (!readBack.user.email_confirmed_at) {
