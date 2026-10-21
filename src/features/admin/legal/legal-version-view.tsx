@@ -1,13 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { useLanguages } from "@/features/admin/translations/use-translations";
+import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
+import { unknownTokens } from "@/features/legal/legal-markdown";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { LegalText } from "@/features/legal/legal-text";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import {
+  legalErrorKey,
   FACT_KEYS,
   acceptancesCsv,
   exportLegalAcceptances,
@@ -18,7 +23,7 @@ import {
   saveTextFile,
   versionStatus,
 } from "./legal-service";
-import { useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
+import { useLegalWrites, useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
 import { errorText } from "@/lib/error-text";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
@@ -27,11 +32,13 @@ function CompareText({
   previousNumber,
   text,
   lang,
+  languageName,
 }: {
   previousId: string;
   previousNumber: number;
   text: string;
-  lang: "en" | "am";
+  lang: string;
+  languageName: string;
 }) {
   const { t } = useI18n();
   const previous = useLegalVersion(previousId);
@@ -42,14 +49,15 @@ function CompareText({
         {t("admin.legal.error.load")}
       </p>
     );
-  const lines = lineDiff(lang === "en" ? previous.data.body_en : previous.data.body_am, text);
+  const previousText = lang === "en" ? previous.data.body_en : lang === "am" ? previous.data.body_am : ownValue(previous.data.texts, lang) ?? "";
+  const lines = lineDiff(previousText, text);
   const changed = lines.some((line) => line.kind !== "same");
   return (
     <section data-testid="legal-diff" className="min-w-0 space-y-2">
       <h2 className="font-semibold">
         {t("admin.legal.compare.title")
           .replace("{n}", String(previousNumber))
-          .replace("{language}", t(`admin.legal.lang.${lang}`))}
+          .replace("{language}", languageName)}
       </h2>
       {changed ? (
         <div className="space-y-0.5 rounded-md border border-border p-2 font-mono text-sm">
@@ -96,12 +104,23 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
   const settings = useLegalSettings();
   const documents = useLegalDocuments();
   const countries = useCountries();
-  const [lang, setLang] = useState<"en" | "am">("en");
+  const languages = useLanguages();
+  const writes = useLegalWrites();
+  const [lang, setLang] = useState("en");
   const [comparing, setComparing] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<number | null>(null);
   const [exportFailed, setExportFailed] = useState(false);
+  const [addingTranslation, setAddingTranslation] = useState(false);
+  const [translationLanguage, setTranslationLanguage] = useState("");
+  const [translationBody, setTranslationBody] = useState("");
+  const [translationError, setTranslationError] = useState<MessageKey | null>(null);
+  const [translationSaved, setTranslationSaved] = useState(false);
+  const [translationSaving, setTranslationSaving] = useState(false);
+  const [importedFile, setImportedFile] = useState<string | null>(null);
   const row = version.data;
+  const availableLanguages = languages.data?.filter((l) => l.enabledAdmin && l.code !== "en" && l.code !== "am" && l.code !== PSEUDO_LANG && (!row || ownValue(row.texts, l.code) === undefined)) ?? [];
+  const languageName = (l: string) => l === "en" || l === "am" ? t(`admin.legal.lang.${l}`) : languages.data?.find((item) => item.code === l)?.nameEn ?? l;
   const siblings = documents.data?.find((doc) => doc.document_id === row?.document_id)?.versions;
   const previous = row
     ? siblings?.filter((v) => v.version < row.version).sort((a, b) => b.version - a.version)[0]
@@ -109,7 +128,12 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
   const unknown = version.error != null && errorText(version.error) === "unknownVersion";
   const kind = row ? kindKey(row.kind) : null;
   const facts = row?.status === "published" ? (row.settings_snapshot ?? {}) : (settings.data ?? {});
-  const text = row ? (lang === "en" ? row.body_en : row.body_am) : "";
+  const text = row ? (lang === "en" ? row.body_en : lang === "am" ? row.body_am : ownValue(row.texts, lang) ?? "") : "";
+  const tokens = unknownTokens(translationBody, facts);
+  const emptyFacts = [...new Set([...translationBody.matchAll(/\{\{([a-z_]+)\}\}/g)].map((m) => m[1] ?? ""))].filter((name) => {
+    const fact = ownValue(facts, name);
+    return fact === null || (fact !== undefined && String(fact).trim() === "");
+  });
   const date = (value: string | null) =>
     value
       ? new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
@@ -170,7 +194,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
                   </p>
                 </section>
                 <div className="flex flex-wrap gap-2 print:hidden">
-                  {(["en", "am"] as const).map((l) => (
+                  {["en", "am", ...Object.keys(row.texts)].map((l) => (
                     <Button
                       key={l}
                       data-testid={`legal-view-tab-${l}`}
@@ -178,7 +202,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
                       aria-pressed={lang === l}
                       onClick={() => setLang(l)}
                     >
-                      {t(`admin.legal.lang.${l}`)}
+                      {languageName(l)}
                     </Button>
                   ))}
                   <span className="grow" />
@@ -220,11 +244,58 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
                       previousNumber={previous.version}
                       text={text}
                       lang={lang}
+                      languageName={languageName(lang)}
                     />
                   </div>
                 ) : null}
                 <LegalText text={text} facts={facts} toc />
               </div>
+              {row.status === "published" && permissions.includes("legal:publish") ? (
+                <section className="min-w-0 space-y-3 print:hidden">
+                  <Button data-testid="legal-translation-add" variant="outline" aria-expanded={addingTranslation} onClick={() => { setAddingTranslation((open) => !open); setTranslationSaved(false); setTranslationError(null); }}>
+                    {t("admin.legal.translation.add")}
+                  </Button>
+                  {addingTranslation ? (
+                    <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
+                      {languages.error ? <p role="alert" className="text-destructive">{t("admin.legal.error.load")}</p> : languages.isPending ? <p role="status">{t("common.loading")}</p> : null}
+                      <label htmlFor="legal-translation-language">{t("language.label")}</label>
+                      <select id="legal-translation-language" data-testid="legal-translation-language" className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-base" value={translationLanguage} disabled={translationSaving} onChange={(e) => { setTranslationLanguage(e.target.value); setTranslationSaved(false); setTranslationError(null); }}>
+                        <option value="">{t("language.label")}</option>
+                        {availableLanguages.map((l) => <option key={l.code} value={l.code}>{l.nameEn}</option>)}
+                      </select>
+                      <label htmlFor="legal-translation-body">{t("admin.legal.field.textOptional").replace("{language}", languageName(translationLanguage))}</label>
+                      <Textarea id="legal-translation-body" data-testid="legal-translation-body" className="min-h-72 text-base" value={translationBody} disabled={translationSaving} onChange={(e) => { setTranslationBody(e.target.value); setTranslationSaved(false); setTranslationError(null); }} />
+                      <p className="text-sm text-muted-foreground">{t("admin.legal.count").replace("{count}", String(translationBody.length)).replace("{max}", "200000")}</p>
+                      <label htmlFor="legal-translation-import" className="block text-sm">{t("admin.legal.import.label")}</label>
+                      <input id="legal-translation-import" data-testid="legal-translation-import" type="file" accept=".md,.txt,text/markdown,text/plain" className="block w-full min-w-0 text-sm" disabled={translationSaving} onChange={(e) => {
+                        const input = e.currentTarget;
+                        const file = input.files?.[0];
+                        input.value = "";
+                        if (!file) return;
+                        setImportedFile(null); setTranslationError(null); setTranslationSaved(false);
+                        void file.text().then((body) => {
+                          if (body.length > 200000) { setTranslationError("admin.legal.import.tooBig"); return; }
+                          setTranslationBody(body); setImportedFile(file.name);
+                        }).catch((failure: unknown) => { console.error("[client-error] legal translation import", failure); setTranslationError("admin.legal.import.failed"); });
+                      }} />
+                      {importedFile ? <p role="status">{t("admin.legal.import.done").replace("{file}", importedFile)}</p> : null}
+                      {tokens.length ? <p data-testid="legal-unknown-tokens">{t("admin.legal.unknownTokens").replace("{tokens}", tokens.join(", "))}</p> : null}
+                      {emptyFacts.length ? <p data-testid="legal-empty-facts">{t("admin.legal.emptyFacts").replace("{tokens}", emptyFacts.join(", "))}</p> : null}
+                      <LegalText text={translationBody} facts={facts} />
+                      <p className="text-sm text-muted-foreground">{t("admin.legal.translation.hint")}</p>
+                      <Button data-testid="legal-translation-save" disabled={translationSaving || !translationLanguage || !translationBody.trim() || languages.isPending || Boolean(languages.error)} onClick={() => {
+                        setTranslationError(null); setTranslationSaved(false);
+                        if (translationBody.length > 200000) { setTranslationError("admin.legal.error.tooLong"); return; }
+                        const input = { versionId: row.version_id, language: translationLanguage, body: translationBody };
+                        setTranslationSaving(true);
+                        void guard(() => writes.translation.mutateAsync(input)).then(() => { setLang(input.language); setTranslationSaved(true); setAddingTranslation(false); setTranslationLanguage(""); setTranslationBody(""); setImportedFile(null); }).catch((failure: unknown) => { console.error("[client-error] legal translation save", failure); setTranslationError(legalErrorKey(failure)); }).finally(() => setTranslationSaving(false));
+                      }}>{t("admin.legal.translation.save")}</Button>
+                      {translationError ? <p role="alert" className="text-destructive">{t(translationError).replace("{max}", "200000")}</p> : null}
+                    </div>
+                  ) : null}
+                  {translationSaved ? <p role="status">{t("admin.legal.translation.saved")}</p> : null}
+                </section>
+              ) : null}
               {row.status === "published" && permissions.includes("legal:export") ? (
                 <section data-testid="legal-export-section" className="space-y-2 print:hidden">
                   <Button
