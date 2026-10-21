@@ -108,7 +108,14 @@ function literalsOf(source: string): { exact: string[]; prefixes: string[] } {
   const prefixes: string[] = [];
   for (const match of source.matchAll(/"([^"\\\n]*)"|'([^'\\\n]*)'|`([^`]*)`/g)) {
     let text = (match[1] ?? match[2] ?? match[3]) as string;
-    if (match[3] !== undefined) text = text.split("${")[0] as string;
+    if (match[3] !== undefined) {
+      // A template swallows the quotes inside its ${…} interpolations; scan
+      // the whole template text so an inner t("key") still names its key.
+      for (const inner of text.matchAll(/"([^"\\\n]*)"|'([^'\\\n]*)'/g)) {
+        exact.push(inner[1] ?? (inner[2] as string));
+      }
+      text = text.split("${")[0] as string;
+    }
     if (text.endsWith(".")) prefixes.push(text);
     else exact.push(text);
   }
