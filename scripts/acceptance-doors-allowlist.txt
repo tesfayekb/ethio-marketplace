@@ -1,0 +1,115 @@
+# DEC-215 — THE WRITE-DOOR GUARD, its rules fixed before any number: every function in schema public that the role `authenticated` may EXECUTE, that is VOLATILE, returns no trigger and belongs to no extension, either names `legal_acceptance_pending(` or `legal_certify(` in its definition, or has one line in scripts/acceptance-doors-allowlist.txt with a class and its own reason. STABLE and IMMUTABLE functions cannot write and pass. A line whose function no longer exists, is not VOLATILE or now checks is stale and fails.
+# The classes, and only these: `legal` (the acceptance doors themselves); `account` (the caller's own account, sign-in, security, preferences and privacy rights — they stay open while an acceptance is owed); `staff` (doors gated inside by a staff permission; staff meet the acceptance screen like everyone); `draft` (writes only the caller's own unpublished draft, which no one else sees; the publish door checks); `signal` (private buyer signals and safety reports: save, unsave, report — D227 keeps them open); `helper` (an internal check, rebuild or counter that changes nothing a person sees); `owed` (a door that creates or changes what other people can see and lacks the check — each names INC-807; turn 17b adds the check and removes the line).
+# The guard runs in CI's smoke lane against the temporary backend built from every migration, so it judges exactly what production carries.
+accept_legal(uuid[],text,boolean,boolean) | legal | Inserts the caller’s legal_acceptances for in-force versions, including adult and data consent; this is the acceptance door itself
+admin_accept_category_image(uuid) | staff | Writes categories; rejects callers lacking categories:assets before its mutations
+admin_add_category_pointer(uuid,uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
+admin_allow_listing_photo(uuid) | staff | Writes listing_photos, listing_photo_reviews, audit_log; rejects callers lacking listings:review before its mutations
+admin_approve_all_entity_translations(text) | staff | Delegates entity_translations approval and revision writes to approve_all_entity_translations_impl; rejects callers lacking translations:approve first
+admin_approve_all_translations(text) | staff | Delegates ui_translations approval and revision writes to approve_all_translations_impl; rejects callers lacking translations:approve first
+admin_commit_attribute_import(jsonb,jsonb,text,text) | staff | Writes attributes, attribute_import_revisions, category_attribute_links, entity_translations; rejects callers lacking categories:import before its mutations
+admin_commit_category_import(jsonb,text,text) | staff | Writes categories, category_import_revisions, entity_translations; rejects callers lacking categories:import before its mutations
+admin_commit_location_import(jsonb,jsonb,text,text) | staff | Writes countries, location_import_revisions, locations, entity_translations, country_root_order; rejects callers lacking locations:import before its mutations
+admin_create_category(text,text,text,uuid,boolean,boolean,integer,timestamp with time zone,timestamp with time zone) | staff | Writes categories, category_tree_pointers; rejects callers lacking categories:create before its mutations
+admin_create_role(text,text,text) | staff | Writes roles; rejects callers lacking roles:create before its mutations
+admin_delete_attribute(uuid,text) | staff | Writes attributes; rejects callers lacking categories:restructure before its mutations
+admin_delete_category(uuid,text) | staff | Writes category_tree_pointers, category_country_exclusions, category_attributes, entity_translations, categories; rejects callers lacking categories:restructure before its mutations
+admin_delete_language(text) | staff | Writes ui_translation_revisions, ui_translations, entity_translations, translator_languages, languages; rejects callers lacking translations:manage before its mutations
+admin_delete_location(uuid,text) | staff | Writes entity_translations, locations; rejects callers lacking locations:restructure before its mutations
+admin_delete_role(uuid) | staff | Writes role_permissions, roles; rejects callers lacking roles:delete before its mutations
+admin_discard_legal_draft(uuid) | staff | Writes legal_versions, audit_log; rejects callers lacking legal:edit before its mutations
+admin_edit_listing(uuid,jsonb,text,text) | staff | Writes listings, listing_photos, listing_revisions, audit_log, seller_notices; rejects callers lacking listings:enforce before its mutations
+admin_export_legal_acceptances(uuid,timestamp with time zone,uuid,integer) | staff | Writes audit_log; rejects callers lacking legal:export before its mutations
+admin_import_translations(text,jsonb) | staff | Writes ui_translation_revisions, ui_translations; rejects callers lacking translations:update before its mutations
+admin_link_attribute(uuid,uuid,boolean,boolean,integer,text[],jsonb,jsonb) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
+admin_machine_entity_translation(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:machine before its mutations
+admin_machine_translation(text,text,text) | staff | Writes ui_translation_revisions, ui_translations; rejects callers lacking translations:machine before its mutations
+admin_merge_attributes(uuid,uuid[]) | staff | Delegates attribute and category-link merges and audits to merge_attributes_impl; rejects callers lacking categories:restructure first
+admin_move_category_pointer(uuid,uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
+admin_move_listing(uuid,text,text,text) | staff | Writes audit_log, seller_notices; rejects callers lacking listings:enforce before its mutations
+admin_move_location(uuid,uuid) | staff | Writes locations; rejects callers lacking locations:restructure before its mutations
+admin_publish_legal_version(uuid,boolean,timestamp with time zone) | staff | Writes legal_versions, audit_log; rejects callers lacking legal:publish before its mutations
+admin_reactivate_category(uuid) | staff | Writes categories; rejects callers lacking categories:restructure before its mutations
+admin_remove_category_pointer(uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
+admin_reorder_categories(uuid,uuid[]) | staff | Writes category_tree_pointers; rejects callers lacking categories:update before its mutations
+admin_reorder_locations(uuid,uuid[]) | staff | Writes locations; rejects callers lacking locations:update before its mutations
+admin_retire_category(uuid,uuid) | staff | Writes listings, categories; rejects callers lacking categories:restructure before its mutations
+admin_reveal_listing_contact(uuid,text) | staff | Writes audit_log; rejects callers lacking listings:review before its mutations
+admin_review_photo_change(uuid) | staff | Writes listing_photo_changes, audit_log; rejects callers lacking listings:review before its mutations
+admin_save_entity_translation(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:update before its mutations
+admin_save_legal_draft(text,character,text,text,text,text) | staff | Writes legal_documents, legal_versions, audit_log; rejects callers lacking legal:edit before its mutations
+admin_save_translation(text,text,text) | staff | Writes ui_translation_revisions, ui_translations; rejects callers lacking translations:update before its mutations
+admin_set_account_status(uuid,text,text) | staff | Writes profiles; rejects callers lacking profiles:update before its mutations
+admin_set_ai_feature(text,boolean,integer,integer) | staff | Writes ai_features, audit_log; rejects callers lacking services:manage before its mutations
+admin_set_attribute_link_order(uuid,uuid[]) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
+admin_set_card_attributes(uuid,uuid[]) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
+admin_set_category_images(uuid,text,text,text,text) | staff | Writes categories; rejects callers lacking categories:assets before its mutations
+admin_set_category_window(uuid,timestamp with time zone,timestamp with time zone) | staff | Writes categories; rejects callers lacking categories:update before its mutations
+admin_set_country_active(text,boolean,boolean) | staff | Writes countries, locations; rejects callers lacking countries:activate before its mutations
+admin_set_country_exclusions(uuid,text[]) | staff | Writes category_country_exclusions; rejects callers lacking categories:update before its mutations
+admin_set_country_root_order(text,uuid[]) | staff | Writes country_root_order; rejects callers lacking countries:update before its mutations
+admin_set_coverage_plan(text,integer,integer,integer,boolean,smallint) | staff | Writes coverage_plans; rejects callers lacking coverage:update before its mutations
+admin_set_entity_translation_status(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:approve before its mutations
+admin_set_fact_attributes(uuid,uuid[]) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
+admin_set_key_context(text,text) | staff | Writes ui_translations; rejects callers lacking translations:manage before its mutations
+admin_set_language_flags(text,boolean,boolean) | staff | Writes languages; rejects callers lacking translations:manage before its mutations
+admin_set_language_order(text[]) | staff | Delegates languages ordering to set_language_order_impl; rejects callers lacking translations:manage first
+admin_set_legal_settings(jsonb) | staff | Writes legal_settings, audit_log; rejects callers lacking legal:edit before its mutations
+admin_set_listing_policy(boolean,integer) | staff | Writes listing_policy, audit_log; rejects callers lacking listings:enforce before its mutations
+admin_set_location_active(uuid,boolean) | staff | Writes locations; rejects callers lacking locations:update before its mutations
+admin_set_primary_pointer(uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
+admin_set_role_permission(uuid,uuid,boolean) | staff | Writes role_permissions; rejects callers lacking roles:update before its mutations
+admin_set_translation_status(text,text,text) | staff | Writes ui_translations; rejects callers lacking translations:approve before its mutations
+admin_set_translator_languages(uuid,text[]) | staff | Writes translator_languages; rejects callers lacking translations:manage before its mutations
+admin_sync_ui_keys(jsonb,jsonb) | staff | Writes ui_translations; rejects callers lacking translations:manage before its mutations
+admin_undo_attribute_import(uuid) | staff | Writes attributes, category_attribute_links, attribute_import_revisions, entity_translations; rejects callers lacking categories:import before its mutations
+admin_undo_category_import(uuid) | staff | Writes entity_translations, categories, category_attribute_links, category_import_revisions; rejects callers lacking categories:import before its mutations
+admin_undo_import(uuid) | staff | Writes ui_translation_revisions, ui_translations; rejects callers lacking translations:manage before its mutations
+admin_undo_listing_edit(uuid,timestamp with time zone,text) | staff | Delegates listing restoration and revision writes to admin_edit_listing; rejects callers lacking listings:enforce first
+admin_undo_location_import(uuid) | staff | Writes countries, country_root_order, locations, entity_translations, location_import_revisions; rejects callers lacking locations:import before its mutations
+admin_unlink_attribute(uuid) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
+admin_update_attribute_link(uuid,boolean,boolean,text[],jsonb,jsonb,text[]) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
+admin_update_category(uuid,text,text,integer,boolean,boolean,integer) | staff | Writes categories; rejects callers lacking categories:update before its mutations
+admin_update_profile(uuid,text,text,character,text) | staff | Writes profiles, alias_history; rejects callers lacking profiles:update before its mutations
+admin_update_role(uuid,text,text) | staff | Writes roles; rejects callers lacking roles:update before its mutations
+admin_upsert_attribute(uuid,text,text,text,jsonb,text,text,text,text,text,text,smallint,text,text,integer,text) | staff | Writes attributes; rejects callers lacking categories:update before its mutations
+admin_upsert_country(text,text,text,text,integer) | staff | Writes countries; rejects callers lacking countries:update before its mutations
+admin_upsert_language(text,text,text,boolean,text[]) | staff | Writes languages; rejects callers lacking translations:manage before its mutations
+admin_upsert_location(uuid,uuid,text,text,text,text,text[],integer,double precision,double precision) | staff | Writes locations; rejects callers lacking locations:create, locations:update before its mutations
+assign_role(uuid,text,character) | staff | Writes user_roles; rejects callers lacking roles:assign before its mutations
+begin_impersonation(uuid,text) | staff | Writes impersonation_sessions; rejects callers lacking super-admin before its mutations
+catalog_find_rebuild() | staff | Calls catalog_find_refresh(true) to rebuild catalogue search data; browser callers must have categories:import, categories:update or translations:update
+change_home_country(character) | account | Updates the caller’s declared home country in user_directory and profiles and records an audit event; account jurisdiction preference, not an ad place
+check_seller_alias(text) | helper | Writes only the alias_check rate meter and returns alias_verdict; does not assign an alias or alter public identity
+clear_seller_place() | account | Deletes only the caller’s seller_places reusable posting preset, read solely by my_seller_place for that caller; no public listing is changed
+confirm_home_country(character) | account | Updates only the caller’s initially unconfirmed home country/source in user_directory and profiles; account jurisdiction confirmation remains open
+copy_my_listing(uuid) | draft | Inserts a new caller-owned draft with copied content and coverage plus a create revision; explicitly inserts status draft and does not publish the copy
+delete_draft(uuid) | draft | Deletes only an ownership-checked draft and its photos, coverage and revisions; rejects every non-draft status
+edit_listing(uuid,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | owed | Updates a posted listing’s content, price, contact choice, coverage and status to screening and writes its edit revision; ownership and rate checks are not acceptance gates — INC-807, the check comes in turn 17b
+end_impersonation(uuid) | account | Ends only an impersonation_sessions row whose actor_id is auth.uid() and audits the end; caller’s own security-session exit stays open
+get_attribute_options(uuid) | helper | Writes only the options_read rate meter and returns attribute options/version; no catalogue content is changed
+get_posting_schema(uuid) | helper | Writes only the schema_read rate meter and returns posting schema and plan caps; no listing or schema content is changed
+import_gate_audit(text,text,uuid,jsonb) | staff | Inserts a sanitized import audit_log event only after checking the mapped categories:import, locations:import or translations:manage permission
+mark_sold(uuid) | owed | Sets the caller’s posted listing status to sold, clears kept-clock fields and inserts a state revision; changes public status/contact availability without acceptance — INC-807, the check comes in turn 17b
+move_listing_photo(uuid,uuid,integer) | owed | Reorders listing_photos and replaces cover_photo_id; live listings are not excluded, so public photos change without acceptance — INC-807, the check comes in turn 17b
+promote_to_super_admin(uuid) | staff | Inserts the target’s super_admin user_roles membership and audits promotion only after is_super_admin(auth.uid()) succeeds
+public_listing(text) | helper | Writes only the listing_read rate meter and returns the existing public listing projection; does not change the ad or reveal an extra contact
+relist_listing(uuid) | owed | Changes the caller’s sold listing to screening and inserts a state revision; re-enters the publication pipeline without acceptance — INC-807, the check comes in turn 17b
+remove_listing_photo(uuid,uuid) | owed | Deletes a listing photo, replaces its cover and records live-photo removal for review; allows public ads, so public imagery changes without acceptance — INC-807, the check comes in turn 17b
+remove_own_password() | account | Clears only auth.uid()’s encrypted_password after verifying another sign-in provider exists; own sign-in/security remains available
+report_listing(text,text,text) | signal | Inserts the caller’s private listing_reports safety report after validation and rate limiting; D227 explicitly keeps report open
+revoke_role(uuid,text) | staff | Writes user_roles; rejects callers lacking roles:assign before its mutations
+save_listing(text) | signal | Inserts the caller’s saved_listings buyer bookmark and returns the aggregate count; D227 explicitly keeps save open
+save_posting_identity(text,text,text,text,text,jsonb,character) | owed | Updates the caller’s seller alias, seller type, business name and contact preferences in profiles and alias_history; public seller identity can change without acceptance — INC-807, the check comes in turn 17b
+save_seller_place(uuid) | account | Upserts only the caller’s reusable seller_places posting preset from an owned listing, read solely by my_seller_place for that caller; no public listing is changed
+set_cover_photo(uuid,uuid) | owed | Reorders listing_photos and updates cover_photo_id on an owned listing without a draft-only restriction; public cover changes without acceptance — INC-807, the check comes in turn 17b
+set_listing_photos_soon(uuid,boolean) | owed | Updates photos_soon and inserts an edit revision for drafts and posted listings; changes the public photo promise without acceptance — INC-807, the check comes in turn 17b
+set_listing_pin(uuid,numeric,numeric,text,text,smallint,text) | owed | Updates listing pin, coordinates, zoom, street and directions and inserts an edit revision; accepts live listings, changing public place without acceptance — INC-807, the check comes in turn 17b
+set_listing_price(uuid,text,numeric,character,text,integer,boolean) | owed | Updates listing price fields and records price_was/price_drop_at; changes public price and price-drop presentation without acceptance — INC-807, the check comes in turn 17b
+set_listing_reserved(uuid,boolean) | owed | Sets or clears reserved_at on active/reduced listings and inserts a state revision; changes a live ad’s Reserved ribbon without acceptance — INC-807, the check comes in turn 17b
+submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | draft | Creates or updates an ownership-checked status-draft listing, coverage and revisions; rejects existing non-drafts and never publishes even at step 8
+suggest_seller_aliases(text,text,text,uuid) | helper | Writes only the alias_check rate meter and computes available alias suggestions; does not save public identity or alias history
+transition_listing(uuid,text) | owed | Updates listing status, publication/expiry/clock/deletion fields and inserts a state revision; owner paths publish, close or reopen without a mandatory staff or acceptance gate — INC-807, the check comes in turn 17b
+unsave_listing(text) | signal | Deletes only the caller’s saved_listings bookmark and returns the aggregate count; D227 explicitly keeps unsave open
+user_set_preferred_language(text) | account | Updates only the caller’s preferred_language in profiles and writes an audit event; own UI language preference remains open
+user_set_viewing_location(uuid) | account | Updates only the caller’s viewing_location_id and viewing_location_at after validation and rate limiting; own browsing preference does not move an ad
