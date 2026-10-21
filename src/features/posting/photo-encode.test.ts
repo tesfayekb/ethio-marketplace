@@ -106,4 +106,18 @@ describe("the device's photo encoder (INC-599, D157)", () => {
       ["image/jpeg", 0.82],
     ]);
   });
+
+  it("PE-3 names a decoder's plain-object refusal by its message, never [object Object] (INC-815)", async () => {
+    stubCanvas(true);
+    vi.stubGlobal(
+      "createImageBitmap",
+      vi.fn(async () => {
+        throw { message: "decode refused", code: "P0001", details: null, hint: null };
+      }),
+    );
+    const { encodeVariants } = await import("./photo-encode");
+    await expect(
+      encodeVariants(new File([new Uint8Array([1])], "a.jpg", { type: "image/jpeg" })),
+    ).rejects.toThrow("the device could not decode this file: decode refused");
+  });
 });

@@ -8,8 +8,8 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { listCategories } from "@/features/admin-categories/categories-service";
 import type { CategoryRow } from "@/features/admin-categories/categories-service";
 import type { CountryRow } from "./countries-service";
-import { setCountryRootOrder } from "./countries-service";
-import { CountryRailOrderDialog } from "./country-verb-dialogs";
+import { setCountryActive, setCountryRootOrder } from "./countries-service";
+import { CountryActiveDialog, CountryRailOrderDialog } from "./country-verb-dialogs";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
@@ -34,6 +34,7 @@ vi.mock("@/features/admin-categories/categories-service", async (importOriginal)
 vi.mock("./countries-service", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./countries-service")>()),
   setCountryRootOrder: vi.fn(),
+  setCountryActive: vi.fn(),
 }));
 
 const guard: GuardFn = (action) => Promise.resolve(action());
@@ -109,5 +110,37 @@ describe("CountryRailOrderDialog (INC-814)", () => {
     // The root gone from the fresh read is gone from the list.
     await waitFor(() => expect(screen.queryByTestId("country-rail-cat-a")).not.toBeInTheDocument());
     expect(screen.getByTestId("country-rail-cat-b")).toBeInTheDocument();
+  });
+});
+
+describe("CountryActiveDialog (INC-815)", () => {
+  it("closing a market refused scopedRolesExist shows the force-close choice and the refusal line", async () => {
+    vi.mocked(setCountryActive).mockRejectedValue({
+      message: "scopedRolesExist",
+      code: "P0001",
+      details: null,
+      hint: null,
+    });
+
+    render(
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <CountryActiveDialog
+          row={{ ...country, scopedRoleCount: 2 }}
+          guard={guard}
+          onClose={() => {}}
+        />
+      </QueryClientProvider>,
+    );
+
+    fireEvent.click(screen.getByTestId("country-active-confirm"));
+
+    // The refusal is a plain object, not an Error: the force-close choice must still appear.
+    expect(await screen.findByTestId("country-close-force")).toBeInTheDocument();
+    expect(screen.getByTestId("country-verb-error")).toBeInTheDocument();
+    expect(vi.mocked(setCountryActive)).toHaveBeenCalledWith(
+      expect.objectContaining({ code: "ET", active: false, forceHide: false }),
+    );
   });
 });
