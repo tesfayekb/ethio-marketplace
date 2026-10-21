@@ -23,16 +23,24 @@ vi.mock("@/server/ai/meter", () => ({
     meter.spent.push(feature);
   },
 }));
-vi.mock("@/server/category-images/gemini", () => ({
-  isFakeMode: () => false,
-  suggestIconName: async () => {
-    asked.count += 1;
-    return answer.value;
-  },
-  GeminiError: class extends Error {
-    status = 500;
-  },
-}));
+vi.mock("@/server/category-images/gemini", () => {
+  class GeminiError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  }
+  return {
+    isFakeMode: () => false,
+    suggestIconName: async () => {
+      asked.count += 1;
+      if (thrown.value !== null) throw new GeminiError(thrown.value.message, thrown.value.status);
+      return answer.value;
+    },
+    GeminiError,
+  };
+});
 
 const { Route } = await import("@/routes/api/admin/categories/suggest-icon");
 
