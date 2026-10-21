@@ -24,6 +24,8 @@ it.each([
   "changelogRequired",
   "noticeTooShort",
   "notDraft",
+  "translationExists",
+  "badLanguage",
 ])("maps refusal %s", (message) => {
   expect(legalErrorKey({ message })).toBe(`admin.legal.error.${message}`);
 });

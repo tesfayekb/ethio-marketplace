@@ -5,7 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const read = vi.hoisted(() => vi.fn());
 const lang = vi.hoisted(() => ({ value: "en" }));
-vi.mock("./legal-reader", () => ({ myListingCertification: (id: string) => read(id) }));
+vi.mock("./legal-reader", async (original) => ({
+  ...(await original<typeof import("./legal-reader")>()),
+  myListingCertification: (id: string) => read(id),
+}));
 vi.mock("@/i18n", async (original) => {
   const real = await original<typeof import("@/i18n")>();
   const { en } = await import("@/i18n/locales/en");
@@ -28,6 +31,7 @@ const GLOBAL = {
   label: "one",
   body_en: "Global English",
   body_am: "Global Amharic",
+  texts: {},
   settings_snapshot: {},
 };
 const KENYA = { ...GLOBAL, version_id: "v-ke", country_code: "KE", body_en: "Kenya English" };

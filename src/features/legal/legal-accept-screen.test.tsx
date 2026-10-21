@@ -6,7 +6,8 @@ const status = vi.fn();
 const accept = vi.fn();
 const version = vi.fn();
 const navigate = vi.fn();
-vi.mock("./legal-reader", () => ({
+vi.mock("./legal-reader", async (original) => ({
+  ...(await original<typeof import("./legal-reader")>()),
   myLegalStatus: (k: string[]) => status(k),
   acceptLegal: (i: unknown) => accept(i),
   myLegalVersion: (id: string) => version(id),
@@ -86,6 +87,7 @@ describe("LegalAcceptScreen", () => {
       ...row("privacy", "p1"),
       body_en: "Hello text",
       body_am: "a",
+      texts: {},
       settings_snapshot: {},
     });
     mount();
