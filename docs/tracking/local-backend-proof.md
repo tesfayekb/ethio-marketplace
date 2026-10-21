@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `e0dcb2b98018324404ee96960b51f1a69ef77daf`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39686642749
+- Commit: `6b2da3a510a8315cd6ee6b4cf118f840e04f7b0e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39695060583
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 765 | 89 | applied 335/335 | 186 | 0 | 0 | 60 | 246 |
-| email | 154 | 106 | applied 335/335 | 4 | 0 | 0 | 0 | 4 |
-| 1 | 683 | 110 | applied 335/335 | 125 | 0 | 0 | 4 | 129 |
-| 2 | 925 | 99 | applied 335/335 | 129 | 0 | 0 | 3 | 132 |
-| 3 | 802 | 99 | applied 335/335 | 125 | 0 | 0 | 0 | 125 |
-| 4 | 545 | 114 | applied 335/335 | 141 | 0 | 0 | 2 | 143 |
-| 5 | 511 | 105 | applied 335/335 | 111 | 0 | 0 | 6 | 117 |
-| 6 | 795 | 119 | applied 335/335 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 555 | 117 | applied 335/335 | 119 | 0 | 0 | 0 | 119 |
-| 8 | 586 | 92 | applied 335/335 | 108 | 0 | 0 | 30 | 138 |
-| 9 | 643 | 100 | applied 335/335 | 127 | 0 | 0 | 2 | 129 |
-| 10 | 981 | 117 | applied 335/335 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 880 | 98 | applied 335/335 | 115 | 0 | 0 | 1 | 116 |
-| 12 | 456 | 98 | applied 335/335 | 130 | 0 | 0 | 5 | 135 |
-| 13 | 744 | 96 | applied 335/335 | 148 | 0 | 0 | 4 | 152 |
-| 14 | 508 | 99 | applied 335/335 | 94 | 0 | 0 | 3 | 97 |
-| 15 | 590 | 114 | applied 335/335 | 130 | 0 | 0 | 1 | 131 |
-| 16 | not run | 52 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2053 | 0 | 0 | 124 | 2177 |
+| smoke | 816 | 104 | applied 335/335 | 186 | 0 | 0 | 60 | 246 |
+| email | 152 | 98 | applied 335/335 | 4 | 0 | 0 | 0 | 4 |
+| 1 | 735 | 108 | applied 335/335 | 125 | 0 | 0 | 4 | 129 |
+| 2 | 861 | 94 | applied 335/335 | 129 | 0 | 0 | 3 | 132 |
+| 3 | 818 | 100 | applied 335/335 | 128 | 0 | 0 | 0 | 128 |
+| 4 | 541 | 103 | applied 335/335 | 140 | 0 | 0 | 2 | 142 |
+| 5 | 544 | 114 | applied 335/335 | 112 | 0 | 0 | 6 | 118 |
+| 6 | 668 | 93 | applied 335/335 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 535 | 123 | applied 335/335 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 590 | 112 | applied 335/335 | 96 | 0 | 0 | 30 | 126 |
+| 9 | 750 | 113 | applied 335/335 | 127 | 0 | 0 | 2 | 129 |
+| 10 | 826 | 95 | applied 335/335 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 921 | 109 | applied 335/335 | 115 | 0 | 0 | 1 | 116 |
+| 12 | 532 | 110 | applied 335/335 | 132 | 0 | 0 | 5 | 137 |
+| 13 | 777 | 116 | applied 335/335 | 149 | 0 | 0 | 4 | 153 |
+| 14 | 627 | 114 | applied 335/335 | 94 | 0 | 0 | 3 | 97 |
+| 15 | 462 | 89 | applied 335/335 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 566 | 114 | applied 335/335 | 92 | 0 | 0 | 30 | 122 |
+| TOTAL | — | — | — | 2151 | 0 | 0 | 154 | 2305 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 10 981 s
+- Slowest lane: 11 921 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39686642749-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 39686642749-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 39686642749-local-1
-  - 2: [e2e:teardown] deleted 6 user(s) owned by process 39686642749-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 39686642749-local-3
-  - 4: [e2e:teardown] deleted 12 user(s) owned by process 39686642749-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 39686642749-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39686642749-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 39686642749-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 39686642749-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 39686642749-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 39686642749-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 39686642749-local-11
-  - 12: [e2e:teardown] deleted 12 user(s) owned by process 39686642749-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 39686642749-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 39686642749-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 39686642749-local-15
-  - 16: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39695060583-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 39695060583-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 39695060583-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 39695060583-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 39695060583-local-3
+  - 4: [e2e:teardown] deleted 12 user(s) owned by process 39695060583-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 39695060583-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39695060583-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 39695060583-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 39695060583-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 39695060583-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 39695060583-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 39695060583-local-11
+  - 12: [e2e:teardown] deleted 12 user(s) owned by process 39695060583-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 39695060583-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 39695060583-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 39695060583-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 39695060583-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -66,74 +66,5 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
-
-## Lane 16
-- No JSON results; smoke skipped
-
-## Lane 16
-## Migration/start failure
-Last migration line: no migration reached
-```text
-8d0d2729c399: Download complete
-0b67f6a8a496: Verifying Checksum
-0b67f6a8a496: Download complete
-f0bff0b17bb6: Pull complete
-2a7fe997b3bc: Pull complete
-531e3bd93090: Pull complete
-814dd06d26c7: Pull complete
-a089d1f2d97d: Pull complete
-Digest: sha256:[masked hex]
-Status: Downloaded newer image for public.ecr.aws/supabase/kong:2.8.1
-public.ecr.aws/supabase/kong:2.8.1
-bf5074c0b7fa: Pull complete
-76bc8d85aed0: Pull complete
-8039b21a00ac: Pull complete
-0c91f59dd719: Pull complete
-6a5c742fadca: Pull complete
-b594b09cdd92: Pull complete
-018eaf08b9fd: Pull complete
-ac0658ef7013: Pull complete
-61cdca7212db: Pull complete
-c7702d9346eb: Pull complete
-1af9995b8d71: Pull complete
-2f8950e7369c: Pull complete
-f4c8c0988961: Pull complete
-b72d0b0c7819: Pull complete
-887d4dcfbb60: Pull complete
-b4770aa5855a: Pull complete
-f48c9b774cf3: Pull complete
-031bc7c39c03: Pull complete
-532d14cf7b90: Pull complete
-d0b84d5f07f5: Pull complete
-2271b8d67cdb: Pull complete
-92c57cef4d95: Pull complete
-9bad77f51394: Pull complete
-6d07fafc16fc: Pull complete
-02b1eb22dea5: Pull complete
-95e2e129052b: Pull complete
-3bc958d77632: Pull complete
-c91d81325bd0: Pull complete
-434c95230705: Pull complete
-4bc1415e9b24: Pull complete
-8d0d2729c399: Pull complete
-0b67f6a8a496: Pull complete
-Digest: sha256:[masked hex]
-Status: Downloaded newer image for public.ecr.aws/supabase/postgres:17.11.0.004
-public.ecr.aws/supabase/postgres:17.11.0.004
-fb772985a92d: Pull complete
-2923bc55a2bd: Pull complete
-23af072915d6: Pull complete
-9f5e13364d13: Pull complete
-4c76576d4885: Pull complete
-fb9dd83d9835: Pull complete
-Digest: sha256:[masked hex]
-Status: Downloaded newer image for public.ecr.aws/supabase/storage-api:v1.79.36
-public.ecr.aws/supabase/storage-api:v1.79.36
-Starting database...
-Stopping containers...
-failed to start docker container "supabase_db_ethio-ci-local": Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint supabase_db_ethio-ci-local ([masked hex]): failed to bind host port for 0.0.0.0:54322:172.18.0.2:5432/tcp: address already in use
-Error: failed to start containers: [masked hex]
-Try rerunning the command with --debug to troubleshoot the error.
-```
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
