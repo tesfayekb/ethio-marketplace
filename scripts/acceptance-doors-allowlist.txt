@@ -26,6 +26,7 @@ admin_import_translations(text,jsonb) | staff | Writes ui_translation_revisions,
 admin_link_attribute(uuid,uuid,boolean,boolean,integer,text[],jsonb,jsonb) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
 admin_machine_entity_translation(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:machine before its mutations
 admin_machine_translation(text,text,text) | staff | Writes ui_translation_revisions, ui_translations; rejects callers lacking translations:machine before its mutations
+admin_mark_legal_reviewed(uuid,text) | staff | Writes legal_reviews, audit_log; rejects callers lacking legal:edit before its mutations
 admin_merge_attributes(uuid,uuid[]) | staff | Delegates attribute and category-link merges and audits to merge_attributes_impl; rejects callers lacking categories:restructure first
 admin_move_category_pointer(uuid,uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
 admin_move_listing(uuid,text,text,text) | staff | Writes audit_log, seller_notices; rejects callers lacking listings:enforce before its mutations
