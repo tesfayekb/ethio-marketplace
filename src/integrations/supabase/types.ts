@@ -4746,6 +4746,10 @@ export type Database = {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
       }
+      legal_signed_in_unaccepted: {
+        Args: { p_version_id: string }
+        Returns: number
+      }
       legal_text_fact_problem: {
         Args: { p_snapshot: Json; p_text: string }
         Returns: string
