@@ -1,43 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `8cdb5963a718cbed0b58f74978c65c0a60066ac8`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39619317310
+- Commit: `63242a6baf4de76be3ff4664c1861183335ab1f2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39624675249
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 868 | 106 | applied 333/333 | 186 | 0 | 0 | 60 | 246 |
-| email | 170 | 116 | applied 333/333 | 4 | 0 | 0 | 0 | 4 |
-| 1 | 1080 | 91 | applied 333/333 | 188 | 0 | 0 | 6 | 194 |
-| 2 | 990 | 97 | applied 333/333 | 160 | 0 | 0 | 1 | 161 |
-| 3 | 604 | 116 | applied 333/333 | 172 | 0 | 0 | 2 | 174 |
-| 4 | 668 | 102 | applied 333/333 | 170 | 0 | 0 | 6 | 176 |
-| 5 | 828 | 116 | applied 333/333 | 149 | 0 | 0 | 1 | 150 |
-| 6 | 666 | 97 | applied 333/333 | 150 | 0 | 0 | 30 | 180 |
-| 7 | 1022 | 116 | applied 333/333 | 159 | 0 | 0 | 3 | 162 |
-| 8 | 975 | 99 | applied 333/333 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 832 | 113 | applied 333/333 | 173 | 0 | 0 | 6 | 179 |
-| 10 | 849 | 112 | applied 333/333 | 170 | 0 | 0 | 6 | 176 |
-| 11 | 777 | 99 | applied 333/333 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 560 | 105 | applied 333/333 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2145 | 0 | 0 | 154 | 2299 |
-- Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the fourteen lanes)
+| smoke | 890 | 117 | applied 333/333 | 186 | 0 | 0 | 60 | 246 |
+| email | 149 | 97 | applied 333/333 | 4 | 0 | 0 | 0 | 4 |
+| 1 | 792 | 105 | applied 333/333 | 124 | 0 | 1 | 4 | 129 |
+| 2 | 881 | 97 | applied 333/333 | 129 | 0 | 0 | 3 | 132 |
+| 3 | 854 | 113 | applied 333/333 | 125 | 0 | 0 | 0 | 125 |
+| 4 | 475 | 90 | applied 333/333 | 141 | 0 | 0 | 2 | 143 |
+| 5 | 555 | 115 | applied 333/333 | 111 | 0 | 0 | 6 | 117 |
+| 6 | 786 | 112 | applied 333/333 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 641 | 106 | applied 333/333 | 119 | 0 | 0 | 0 | 119 |
+| 8 | 617 | 113 | applied 333/333 | 108 | 0 | 0 | 30 | 138 |
+| 9 | 741 | 109 | applied 333/333 | 127 | 0 | 0 | 2 | 129 |
+| 10 | 932 | 94 | applied 333/333 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 934 | 108 | applied 333/333 | 115 | 0 | 0 | 1 | 116 |
+| 12 | 580 | 103 | applied 333/333 | 130 | 0 | 0 | 5 | 135 |
+| 13 | 852 | 108 | applied 333/333 | 148 | 0 | 0 | 4 | 152 |
+| 14 | 641 | 113 | applied 333/333 | 94 | 0 | 0 | 3 | 97 |
+| 15 | 526 | 99 | applied 333/333 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 609 | 119 | applied 333/333 | 92 | 0 | 0 | 30 | 122 |
+| TOTAL | — | — | — | 2144 | 0 | 1 | 154 | 2299 |
+- Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 1 1080 s
+- Slowest lane: 11 934 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39619317310-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 39619317310-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 39619317310-local-1
-  - 2: [e2e:teardown] deleted 15 user(s) owned by process 39619317310-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 39619317310-local-3
-  - 4: [e2e:teardown] deleted 20 user(s) owned by process 39619317310-local-4
-  - 5: [e2e:teardown] deleted 2 user(s) owned by process 39619317310-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39619317310-local-6
-  - 7: [e2e:teardown] deleted 9 user(s) owned by process 39619317310-local-7
-  - 8: [e2e:teardown] deleted 5 user(s) owned by process 39619317310-local-8
-  - 9: [e2e:teardown] deleted 22 user(s) owned by process 39619317310-local-9
-  - 10: [e2e:teardown] deleted 20 user(s) owned by process 39619317310-local-10
-  - 11: [e2e:teardown] deleted 2 user(s) owned by process 39619317310-local-11
-  - 12: [e2e:teardown] deleted 3 user(s) owned by process 39619317310-local-12
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39624675249-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 39624675249-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 39624675249-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 39624675249-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 39624675249-local-3
+  - 4: [e2e:teardown] deleted 12 user(s) owned by process 39624675249-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 39624675249-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39624675249-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 39624675249-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 39624675249-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 39624675249-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 39624675249-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 39624675249-local-11
+  - 12: [e2e:teardown] deleted 12 user(s) owned by process 39624675249-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 39624675249-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 39624675249-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 39624675249-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 39624675249-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -59,4 +67,7 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-DEC-211, DEC-218: every gating browser test runs here — fourteen lanes, the email lane included; two consecutive full dev runs judge each change.
+## Lane 1
+- ad-page.spec.ts / AD PAGE — the phone page never widens (bundle 21 turn 10) / OVW-1 long unbroken words keep the ad page the screen's width / mobile-360 — Error: {"innerWidth":390,"scrollWidth":390,"bottomBar":-1,"band":390,"furthest":382,"furthestText":"E2E Ephrwmgnnauacbjfhdzbdeefsptnqylqmdezkkailpzhddor","furthestElement":"breadcrumb-ad","crumbHeight":20}
+
+DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
