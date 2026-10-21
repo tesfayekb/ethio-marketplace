@@ -655,3 +655,7 @@ temporary backend.
 ## Turn 22 — one worker per lane again (DEC-230)
 
 Run 1088 (39588958890, db01a7fd): CO-6 failed in lane 2 on both tries — a test in the lane's other worker removed a root category while CO-6 saved the rail order, and the dialog's cached root list sent it again (INC-814). DEC-230's rule (the operator, 2026-10-21) applied with no further exception: every lane runs one test worker (local-backend-proof.yml, E2E_WORKERS). DEC-217's measurement: a lane takes about 19 minutes with one worker.
+
+## Turn 22c — 16 lanes of one worker (DEC-232)
+
+With one worker a lane (DEC-230) a run took about 22 minutes (run 39598287446: lane 8 1,226 s). The numbered lanes go from 12 to 16 (local-backend-proof.yml's matrix and --shard, and E2E_EXPECTED_SOURCES in both workflows), each still one worker. DEC-232's rule, frozen before any number: KEEP when each of the first two CI runs has its slowest numbered lane at most 1,000 s, no lane failed by the layout itself, and the whole run at most 18 minutes from its commit; REVERT to 12 lanes when either run misses the first or the third.

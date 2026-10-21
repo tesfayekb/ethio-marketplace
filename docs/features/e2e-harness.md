@@ -546,3 +546,7 @@ workflow, never the platform-owned `supabase/config.toml`.
 
 This turn is a CI wait, not an end-to-end conclusion. The next brief reads the
 proof evidence; the operator dispatches the separate FV-1 Flake check (DEC-184).
+
+## INC-817 — a scratch market's code comes from the worker's own slot
+
+scratchCountryCode draws from the user-assigned codes whose position modulo 8 equals the worker's TEST_PARALLEL_INDEX, so two workers running at the same moment never pick the same market (CO-7 collided on XR with two workers, bundle 22 turn 22b). CI runs one worker a lane; local runs default to two.

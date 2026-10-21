@@ -371,7 +371,7 @@ jobs:
         run: bash scripts/audit-gate.sh
 
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
-  # Fourteen temporary-backend lanes, the email lane included (DEC-211, DEC-218);
+  # Eighteen temporary-backend lanes, the email lane included (DEC-211, DEC-218, DEC-232);
   # the staging preflight keeps ethio-staging level for in-turn runs.
   # One merged verdict keeps the historical name
   # so the CI status
@@ -424,7 +424,7 @@ jobs:
 
   e2e-lanes:
     name: E2E lanes
-    # D228 / DEC-211 / DEC-218 — the gating browser tests: fourteen lanes, each on its own
+    # D228 / DEC-211 / DEC-218 / DEC-232 — the gating browser tests: eighteen lanes, each on its own
     # throwaway Supabase built from the repository's migrations; no secrets.
     # contents: write is for the lanes' summary, which publishes its evidence.
     permissions:
@@ -434,7 +434,7 @@ jobs:
   e2e:
     # HISTORICAL NAME PRESERVED: docs/tracking/ci-status.md lists one row per
     # job, and downstream reads key off this exact string. It is now the MERGED
-    # verdict of the fourteen temporary-backend lanes, the email lane included (DEC-211, DEC-218).
+    # verdict of the eighteen temporary-backend lanes, the email lane included (DEC-211, DEC-218, DEC-232).
     name: E2E (Playwright, ethio-staging)
     needs: [e2e-lanes]
     if: always()
@@ -523,7 +523,7 @@ jobs:
           E2E_LOGS_DIR: shard-logs
           E2E_CONTEXT_DIR: shard-contexts
           # DEC-211, DEC-218: every temporary-backend lane, the email lane included, is required.
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
 
           E2E_GREEN: ${{ needs.e2e-lanes.result == 'success' && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
