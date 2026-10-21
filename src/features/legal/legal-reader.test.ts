@@ -25,13 +25,25 @@ describe("legalTextFor (DEC-228)", () => {
     expect(legalTextFor(version, language)).toEqual({ text, shown: language, fallback: false });
   });
   it("a language with a text picks it and records that language", () => {
-    expect(legalTextFor(version, "om")).toEqual({ text: "Oromo text", shown: "om", fallback: false });
+    expect(legalTextFor(version, "om")).toEqual({
+      text: "Oromo text",
+      shown: "om",
+      fallback: false,
+    });
   });
   it("a missing language gives English and records English", () => {
-    expect(legalTextFor(version, "ti")).toEqual({ text: "English text", shown: "en", fallback: true });
+    expect(legalTextFor(version, "ti")).toEqual({
+      text: "English text",
+      shown: "en",
+      fallback: true,
+    });
   });
   it("constructor is not a stored language text", () => {
-    expect(legalTextFor(version, "constructor")).toEqual({ text: "English text", shown: "en", fallback: true });
+    expect(legalTextFor(version, "constructor")).toEqual({
+      text: "English text",
+      shown: "en",
+      fallback: true,
+    });
   });
 });
 
@@ -49,7 +61,10 @@ describe("legal reader text shapes", () => {
   it.each([null, undefined, [], "text", 42, { om: 42 }, { om: null }])(
     "certification parser refuses invalid texts %j",
     async (texts) => {
-      rpc.mockResolvedValue({ data: { statements: [{ ...version, texts }], acceptance_pending: false }, error: null });
+      rpc.mockResolvedValue({
+        data: { statements: [{ ...version, texts }], acceptance_pending: false },
+        error: null,
+      });
       await expect(myListingCertification("e2e-listing")).rejects.toThrow();
     },
   );

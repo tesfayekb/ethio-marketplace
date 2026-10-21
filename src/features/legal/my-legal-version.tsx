@@ -54,7 +54,11 @@ export function MyLegalVersion({ versionId }: { versionId: string }) {
                   .replace("{n}", String(version.data.version))
                   .replace("{label}", version.data.label)}
               </p>
-              {selected?.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
+              {selected?.fallback ? (
+                <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                  {t("legal.fallbackNote")}
+                </p>
+              ) : null}
               <LegalText
                 toc
                 text={selected?.text ?? ""}

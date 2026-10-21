@@ -87,8 +87,16 @@ export function LegalDocumentPage({
               {shown ? (
                 // Bundle 22 turn 20 (C8) — the site's language only; no switch, no print button.
                 <>
-                  {selected?.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
-                  <LegalText toc text={selected?.text ?? ""} facts={shown.settings_snapshot ?? {}} />
+                  {selected?.fallback ? (
+                    <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                      {t("legal.fallbackNote")}
+                    </p>
+                  ) : null}
+                  <LegalText
+                    toc
+                    text={selected?.text ?? ""}
+                    facts={shown.settings_snapshot ?? {}}
+                  />
                 </>
               ) : null}
             </Section>

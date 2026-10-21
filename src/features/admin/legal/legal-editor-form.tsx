@@ -48,7 +48,10 @@ export function LegalEditorForm({
   const { permissions } = useAdminShell();
   const countries = useCountries();
   const languages = useLanguages();
-  const extraLanguages = languages.data?.filter((l) => l.enabledAdmin && l.code !== "en" && l.code !== "am" && l.code !== PSEUDO_LANG) ?? [];
+  const extraLanguages =
+    languages.data?.filter(
+      (l) => l.enabledAdmin && l.code !== "en" && l.code !== "am" && l.code !== PSEUDO_LANG,
+    ) ?? [];
   const languageCodes = ["en", "am", ...extraLanguages.map((l) => l.code)];
   const navigate = useNavigate();
   const writes = useLegalWrites();
@@ -81,16 +84,18 @@ export function LegalEditorForm({
   const document = `${kindKey(kind) ? t(kindKey(kind) as MessageKey) : kind} · ${country ? (countries.data?.find((c) => c.code === country)?.nameEn ?? country) : t("admin.legal.scope.global")}`;
   const changed = JSON.stringify(values) !== JSON.stringify(savedValues);
   const mayEdit = permissions.includes("legal:edit");
-  const bodyFor = (l: string) => l === "en" ? values.body_en : l === "am" ? values.body_am : ownValue(values.texts, l) ?? "";
-  const updateBody = (v: DraftInput, l: string, body: string): DraftInput => l === "en" ? { ...v, body_en: body } : l === "am" ? { ...v, body_am: body } : { ...v, texts: { ...v.texts, [l]: body } };
+  const bodyFor = (l: string) =>
+    l === "en" ? values.body_en : l === "am" ? values.body_am : (ownValue(values.texts, l) ?? "");
+  const updateBody = (v: DraftInput, l: string, body: string): DraftInput =>
+    l === "en"
+      ? { ...v, body_en: body }
+      : l === "am"
+        ? { ...v, body_am: body }
+        : { ...v, texts: { ...v.texts, [l]: body } };
   const tokens = unknownTokens(bodyFor(lang), facts);
   // Bundle 22 turn 3 — tokens whose fact is empty today: publishing refuses them (factMissing).
   const emptyFacts = [
-    ...new Set(
-      [...bodyFor(lang).matchAll(/\{\{([a-z_]+)\}\}/g)].map(
-        (m) => m[1] ?? "",
-      ),
-    ),
+    ...new Set([...bodyFor(lang).matchAll(/\{\{([a-z_]+)\}\}/g)].map((m) => m[1] ?? "")),
   ].filter((name) => {
     const fact = ownValue(facts, name);
     return fact === null || (fact !== undefined && String(fact).trim() === "");
@@ -126,7 +131,13 @@ export function LegalEditorForm({
             />
             <p className="text-sm text-muted-foreground">{t("admin.legal.field.labelHelp")}</p>
           </div>
-          {languages.error ? <p role="alert" className="text-destructive">{t("admin.legal.error.load")}</p> : languages.isPending ? <p role="status">{t("common.loading")}</p> : null}
+          {languages.error ? (
+            <p role="alert" className="text-destructive">
+              {t("admin.legal.error.load")}
+            </p>
+          ) : languages.isPending ? (
+            <p role="status">{t("common.loading")}</p>
+          ) : null}
           <div role="group" className="flex flex-wrap gap-2">
             {languageCodes.map((l) => (
               <Button
@@ -136,7 +147,9 @@ export function LegalEditorForm({
                 aria-pressed={lang === l}
                 onClick={() => setLang(l)}
               >
-                {l === "en" || l === "am" ? t(`admin.legal.lang.${l}`) : extraLanguages.find((language) => language.code === l)?.nameEn ?? l}
+                {l === "en" || l === "am"
+                  ? t(`admin.legal.lang.${l}`)
+                  : (extraLanguages.find((language) => language.code === l)?.nameEn ?? l)}
               </Button>
             ))}
             <span className="grow" />
@@ -157,7 +170,12 @@ export function LegalEditorForm({
               {languageCodes.map((l) => (
                 <div key={l} hidden={lang !== l} className="space-y-2">
                   <label htmlFor={`legal-body-${l}`}>
-                    {l === "en" || l === "am" ? t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm") : t("admin.legal.field.textOptional").replace("{language}", extraLanguages.find((language) => language.code === l)?.nameEn ?? l)}
+                    {l === "en" || l === "am"
+                      ? t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm")
+                      : t("admin.legal.field.textOptional").replace(
+                          "{language}",
+                          extraLanguages.find((language) => language.code === l)?.nameEn ?? l,
+                        )}
                   </label>
                   <Textarea
                     id={`legal-body-${l}`}
@@ -170,9 +188,7 @@ export function LegalEditorForm({
                       setSaved(false);
                     }}
                   />
-                  <p className="text-sm text-muted-foreground">
-                    {count(bodyFor(l), 200000)}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{count(bodyFor(l), 200000)}</p>
                   {mayEdit ? (
                     <div className="space-y-1">
                       <label htmlFor={`legal-import-${l}`} className="block text-sm">
@@ -256,14 +272,21 @@ export function LegalEditorForm({
               <>
                 <Button
                   data-testid="legal-save-draft"
-                  disabled={saving || writes.save.isPending || languages.isPending || Boolean(languages.error)}
+                  disabled={
+                    saving ||
+                    writes.save.isPending ||
+                    languages.isPending ||
+                    Boolean(languages.error)
+                  }
                   onClick={() => {
                     setError(null);
                     setSaved(false);
                     const exceeded =
                       values.label.length > 60
                         ? 60
-                        : values.body_en.length > 200000 || values.body_am.length > 200000 || Object.values(values.texts).some((body) => body.length > 200000)
+                        : values.body_en.length > 200000 ||
+                            values.body_am.length > 200000 ||
+                            Object.values(values.texts).some((body) => body.length > 200000)
                           ? 200000
                           : values.changelog.length > 10000
                             ? 10000

@@ -79,7 +79,16 @@ describe("LegalDocumentPage", () => {
   });
   it("selects English with a fallback when the reader language has no text", () => {
     site.language = "om";
-    render(<LegalDocumentPage kind="terms" title="T" data={{ inForce: v(1, "English body", "Amharic body", "", "2026-10-01T00:00:00Z"), scheduled: null }} />);
+    render(
+      <LegalDocumentPage
+        kind="terms"
+        title="T"
+        data={{
+          inForce: v(1, "English body", "Amharic body", "", "2026-10-01T00:00:00Z"),
+          scheduled: null,
+        }}
+      />,
+    );
     expect(screen.getByTestId("legal-text")).toHaveTextContent("English body");
     expect(screen.getByTestId("legal-fallback-note")).toBeInTheDocument();
   });
@@ -87,9 +96,10 @@ describe("LegalDocumentPage", () => {
     site.language = "om";
     const version = v(1, "English body", "Amharic body", "", "2026-10-01T00:00:00Z");
     version.texts = { om: "Oromo body" };
-    render(<LegalDocumentPage kind="terms" title="T" data={{ inForce: version, scheduled: null }} />);
+    render(
+      <LegalDocumentPage kind="terms" title="T" data={{ inForce: version, scheduled: null }} />,
+    );
     expect(screen.getByTestId("legal-text")).toHaveTextContent("Oromo body");
     expect(screen.queryByTestId("legal-fallback-note")).toBeNull();
   });
-
 });

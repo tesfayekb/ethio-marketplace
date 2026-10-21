@@ -36,11 +36,12 @@ function InForceText({ id }: { id: string }) {
   const selected = legalTextFor(version.data, language);
   return (
     <div data-testid="legal-read-text" className="rounded-md bg-muted/40 p-3">
-      {selected.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
-      <LegalText
-        text={selected.text}
-        facts={version.data.settings_snapshot ?? {}}
-      />
+      {selected.fallback ? (
+        <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+          {t("legal.fallbackNote")}
+        </p>
+      ) : null}
+      <LegalText text={selected.text} facts={version.data.settings_snapshot ?? {}} />
     </div>
   );
 }

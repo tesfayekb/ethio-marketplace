@@ -189,7 +189,11 @@ export async function saveLegalDraft(input: DraftInput): Promise<DraftResult> {
     throw new Error("admin_save_legal_draft: invalid result");
   return row as DraftResult;
 }
-export async function addLegalTranslation(versionId: string, language: string, body: string): Promise<void> {
+export async function addLegalTranslation(
+  versionId: string,
+  language: string,
+  body: string,
+): Promise<void> {
   const { error } = await supabase.rpc("admin_add_legal_translation", {
     p_version_id: versionId,
     p_language: language,

@@ -86,28 +86,30 @@ export function CertifyBlock({
       {statements.map((s) => {
         const selected = legalTextFor(s, language);
         return (
-        <div
-          key={s.version_id}
-          data-testid="certify-statement"
-          data-kind={s.kind}
-          data-country={s.country_code ?? "global"}
-          className="rounded-md bg-muted/40 p-3"
-        >
-          {s.country_code ? (
-            <h4 className="mb-2 text-sm font-semibold text-foreground">
-              {t("legal.certify.forCountry").replace(
-                "{country}",
-                regions.of(s.country_code) ?? s.country_code,
-              )}
-            </h4>
-          ) : null}
-          {selected.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
-          <LegalText
-            text={selected.text}
-            facts={s.settings_snapshot ?? {}}
-          />
-        </div>
-      ); })}
+          <div
+            key={s.version_id}
+            data-testid="certify-statement"
+            data-kind={s.kind}
+            data-country={s.country_code ?? "global"}
+            className="rounded-md bg-muted/40 p-3"
+          >
+            {s.country_code ? (
+              <h4 className="mb-2 text-sm font-semibold text-foreground">
+                {t("legal.certify.forCountry").replace(
+                  "{country}",
+                  regions.of(s.country_code) ?? s.country_code,
+                )}
+              </h4>
+            ) : null}
+            {selected.fallback ? (
+              <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                {t("legal.fallbackNote")}
+              </p>
+            ) : null}
+            <LegalText text={selected.text} facts={s.settings_snapshot ?? {}} />
+          </div>
+        );
+      })}
       <label className="flex min-h-11 items-start gap-3 text-sm text-foreground">
         <Checkbox
           data-testid="certify-tick"
