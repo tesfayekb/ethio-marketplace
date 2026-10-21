@@ -34,16 +34,21 @@ export function useAdminCountries(options?: { enabled?: boolean }) {
  * dialog reorders. Read through the categories console's own seam (B1/B3), so
  * there is exactly one client definition of what a root is.
  */
+export const ROOT_CATEGORIES_KEY = [AUTH_DERIVED_ROOT, "admin", "categories", "roots"] as const;
+
 export function useRootCategories() {
   return useQuery({
-    queryKey: [AUTH_DERIVED_ROOT, "admin", "categories", "roots"],
+    queryKey: ROOT_CATEGORIES_KEY,
     queryFn: async () => {
       const roster = toRoster(await listCategories());
       return roster
         .filter((row) => row.depth === 0 && row.isActive)
         .map((row) => ({ id: row.id, slug: row.slug, nameEn: row.nameEn }));
     },
-    staleTime: 60_000,
+    // INC-814: the rail-order dialog sends this whole list to a door that
+    // refuses a set that has changed — read it fresh each time it opens.
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 }
 

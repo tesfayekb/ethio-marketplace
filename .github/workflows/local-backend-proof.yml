@@ -26,7 +26,7 @@ jobs:
       E2E_LOCAL_BACKEND: "1"
       E2E_SHARD: ${{ matrix.lane == 'smoke' && 'localproof' || format('local-{0}', matrix.lane) }}
       PROOF_LANE: ${{ matrix.lane }}
-      E2E_WORKERS: ${{ (matrix.lane == 'smoke' || matrix.lane == 'email') && '1' || '2' }}
+      E2E_WORKERS: "1"
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
