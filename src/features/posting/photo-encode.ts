@@ -31,6 +31,8 @@
  * knowledge of the routes.
  */
 
+import { errorText } from "@/lib/error-text";
+
 export const EDGES = { cover: 1600, mid: 960, card: 480, thumb: 160 } as const;
 const JPEG_QUALITY = 0.82;
 /** D157 — the judge's verdict: the smallest quality with SSIM ≥ 0.95 on every photo. */
@@ -120,7 +122,7 @@ export async function encodeVariants(file: File): Promise<EncodedVariants> {
     bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
   } catch (error) {
     throw new EncodeError(
-      `the device could not decode this file: ${error instanceof Error ? error.message : ""}`,
+      `the device could not decode this file: ${error === null || error === undefined ? "" : errorText(error)}`,
     );
   }
   return encodeBitmap(bitmap);

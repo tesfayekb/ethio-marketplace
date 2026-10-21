@@ -19,6 +19,7 @@ export function describeError(error: unknown): string {
   const parts: string[] = [];
   let current: unknown = error;
   for (let depth = 0; depth < CAUSE_DEPTH_LIMIT && current != null; depth++) {
+    // eslint-disable-next-line no-restricted-syntax -- the stack and cause chain need an Error
     if (!(current instanceof Error)) {
       parts.push(typeof current === "string" ? current : safeStringify(current));
       break;
@@ -46,6 +47,7 @@ function safeStringify(value: unknown): string {
 }
 
 function isErrorLike(value: unknown): value is Error {
+  // eslint-disable-next-line no-restricted-syntax -- this is the Error type guard itself
   return value instanceof Error;
 }
 
