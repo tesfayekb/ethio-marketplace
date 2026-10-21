@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-const site = vi.hoisted(() => ({ language: "en" as "en" | "am" }));
+const site = vi.hoisted(() => ({ language: "en" }));
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (k: string) => k, language: site.language }),
 }));
@@ -20,6 +20,7 @@ const v = (n: number, en: string, am: string, email: string, at: string) => ({
   label: `L${n}`,
   body_en: en,
   body_am: am,
+  texts: {} as Record<string, string>,
   material: n > 1,
   effective_at: at,
   published_at: at,
@@ -76,4 +77,19 @@ describe("LegalDocumentPage", () => {
     render(<LegalDocumentPage kind="terms" title="T" data={null} />);
     expect(screen.getByTestId("legal-public-load-error")).toBeInTheDocument();
   });
+  it("selects English with a fallback when the reader language has no text", () => {
+    site.language = "om";
+    render(<LegalDocumentPage kind="terms" title="T" data={{ inForce: v(1, "English body", "Amharic body", "", "2026-10-01T00:00:00Z"), scheduled: null }} />);
+    expect(screen.getByTestId("legal-text")).toHaveTextContent("English body");
+    expect(screen.getByTestId("legal-fallback-note")).toBeInTheDocument();
+  });
+  it("selects the reader language text without a fallback", () => {
+    site.language = "om";
+    const version = v(1, "English body", "Amharic body", "", "2026-10-01T00:00:00Z");
+    version.texts = { om: "Oromo body" };
+    render(<LegalDocumentPage kind="terms" title="T" data={{ inForce: version, scheduled: null }} />);
+    expect(screen.getByTestId("legal-text")).toHaveTextContent("Oromo body");
+    expect(screen.queryByTestId("legal-fallback-note")).toBeNull();
+  });
+
 });

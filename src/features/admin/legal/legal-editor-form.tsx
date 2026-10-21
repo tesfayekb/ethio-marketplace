@@ -11,6 +11,8 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { useAdminShell } from "@/features/admin/admin-context";
+import { useLanguages } from "@/features/admin/translations/use-translations";
+import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -45,6 +47,9 @@ export function LegalEditorForm({
   const { t } = useI18n();
   const { permissions } = useAdminShell();
   const countries = useCountries();
+  const languages = useLanguages();
+  const extraLanguages = languages.data?.filter((l) => l.enabledAdmin && l.code !== "en" && l.code !== "am" && l.code !== PSEUDO_LANG) ?? [];
+  const languageCodes = ["en", "am", ...extraLanguages.map((l) => l.code)];
   const navigate = useNavigate();
   const writes = useLegalWrites();
   const initial: DraftInput = {
@@ -53,6 +58,7 @@ export function LegalEditorForm({
     label: draft ? (source?.label ?? "") : "",
     body_en: source?.body_en ?? "",
     body_am: source?.body_am ?? "",
+    texts: { ...source?.texts },
     changelog: draft ? (source?.changelog ?? "") : "",
   };
   const [values, setValues] = useState(initial);
@@ -61,7 +67,7 @@ export function LegalEditorForm({
   const [version, setVersion] = useState(
     draft ? (source?.version ?? 1) : (source?.version ?? 0) + 1,
   );
-  const [lang, setLang] = useState<"en" | "am">("en");
+  const [lang, setLang] = useState("en");
   const [mode, setMode] = useState<"write" | "preview">("write");
   const [error, setError] = useState<MessageKey | null>(null);
   const [limit, setLimit] = useState(0);
@@ -70,16 +76,18 @@ export function LegalEditorForm({
   const [discarding, setDiscarding] = useState(false);
   const [publishing, setPublishing] = useState(false);
   // Bundle 22 turn 13 — a draft's text filled from a file (.md or .txt), one language at a time.
-  const [imported, setImported] = useState<{ lang: "en" | "am"; file: string } | null>(null);
+  const [imported, setImported] = useState<{ lang: string; file: string } | null>(null);
   const [importError, setImportError] = useState<MessageKey | null>(null);
   const document = `${kindKey(kind) ? t(kindKey(kind) as MessageKey) : kind} · ${country ? (countries.data?.find((c) => c.code === country)?.nameEn ?? country) : t("admin.legal.scope.global")}`;
   const changed = JSON.stringify(values) !== JSON.stringify(savedValues);
   const mayEdit = permissions.includes("legal:edit");
-  const tokens = unknownTokens(lang === "en" ? values.body_en : values.body_am, facts);
+  const bodyFor = (l: string) => l === "en" ? values.body_en : l === "am" ? values.body_am : ownValue(values.texts, l) ?? "";
+  const updateBody = (v: DraftInput, l: string, body: string): DraftInput => l === "en" ? { ...v, body_en: body } : l === "am" ? { ...v, body_am: body } : { ...v, texts: { ...v.texts, [l]: body } };
+  const tokens = unknownTokens(bodyFor(lang), facts);
   // Bundle 22 turn 3 — tokens whose fact is empty today: publishing refuses them (factMissing).
   const emptyFacts = [
     ...new Set(
-      [...(lang === "en" ? values.body_en : values.body_am).matchAll(/\{\{([a-z_]+)\}\}/g)].map(
+      [...bodyFor(lang).matchAll(/\{\{([a-z_]+)\}\}/g)].map(
         (m) => m[1] ?? "",
       ),
     ),
@@ -118,8 +126,9 @@ export function LegalEditorForm({
             />
             <p className="text-sm text-muted-foreground">{t("admin.legal.field.labelHelp")}</p>
           </div>
+          {languages.error ? <p role="alert" className="text-destructive">{t("admin.legal.error.load")}</p> : languages.isPending ? <p role="status">{t("common.loading")}</p> : null}
           <div role="group" className="flex flex-wrap gap-2">
-            {(["en", "am"] as const).map((l) => (
+            {languageCodes.map((l) => (
               <Button
                 key={l}
                 variant={lang === l ? "default" : "outline"}
@@ -127,7 +136,7 @@ export function LegalEditorForm({
                 aria-pressed={lang === l}
                 onClick={() => setLang(l)}
               >
-                {t(`admin.legal.lang.${l}`)}
+                {l === "en" || l === "am" ? t(`admin.legal.lang.${l}`) : extraLanguages.find((language) => language.code === l)?.nameEn ?? l}
               </Button>
             ))}
             <span className="grow" />
@@ -145,27 +154,24 @@ export function LegalEditorForm({
           </div>
           {mode === "write" ? (
             <>
-              {(["en", "am"] as const).map((l) => (
+              {languageCodes.map((l) => (
                 <div key={l} hidden={lang !== l} className="space-y-2">
                   <label htmlFor={`legal-body-${l}`}>
-                    {t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm")}
+                    {l === "en" || l === "am" ? t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm") : t("admin.legal.field.textOptional").replace("{language}", extraLanguages.find((language) => language.code === l)?.nameEn ?? l)}
                   </label>
                   <Textarea
                     id={`legal-body-${l}`}
                     data-testid={`legal-field-body-${l}`}
                     className="min-h-72 text-base"
-                    value={l === "en" ? values.body_en : values.body_am}
+                    value={bodyFor(l)}
                     disabled={!mayEdit || saving || writes.save.isPending}
                     onChange={(e) => {
-                      setValues((v) => ({
-                        ...v,
-                        [l === "en" ? "body_en" : "body_am"]: e.target.value,
-                      }));
+                      setValues((v) => updateBody(v, l, e.target.value));
                       setSaved(false);
                     }}
                   />
                   <p className="text-sm text-muted-foreground">
-                    {count(l === "en" ? values.body_en : values.body_am, 200000)}
+                    {count(bodyFor(l), 200000)}
                   </p>
                   {mayEdit ? (
                     <div className="space-y-1">
@@ -193,10 +199,7 @@ export function LegalEditorForm({
                                 setImportError("admin.legal.import.tooBig");
                                 return;
                               }
-                              setValues((v) => ({
-                                ...v,
-                                [l === "en" ? "body_en" : "body_am"]: body,
-                              }));
+                              setValues((v) => updateBody(v, l, body));
                               setSaved(false);
                               setImported({ lang: l, file: file.name });
                             })
@@ -231,7 +234,7 @@ export function LegalEditorForm({
                   {t("admin.legal.emptyFacts").replace("{tokens}", emptyFacts.join(", "))}
                 </p>
               ) : null}
-              <LegalText text={lang === "en" ? values.body_en : values.body_am} facts={facts} />
+              <LegalText text={bodyFor(lang)} facts={facts} />
             </div>
           )}
           <div className="space-y-2">
@@ -253,14 +256,14 @@ export function LegalEditorForm({
               <>
                 <Button
                   data-testid="legal-save-draft"
-                  disabled={saving || writes.save.isPending}
+                  disabled={saving || writes.save.isPending || languages.isPending || Boolean(languages.error)}
                   onClick={() => {
                     setError(null);
                     setSaved(false);
                     const exceeded =
                       values.label.length > 60
                         ? 60
-                        : values.body_en.length > 200000 || values.body_am.length > 200000
+                        : values.body_en.length > 200000 || values.body_am.length > 200000 || Object.values(values.texts).some((body) => body.length > 200000)
                           ? 200000
                           : values.changelog.length > 10000
                             ? 10000
