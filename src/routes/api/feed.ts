@@ -100,28 +100,28 @@ async function handleGet(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
 
   const category = params.get("category");
-  if (category !== null && !UUID.test(category)) return fail("badCategory", 400);
+  if (category !== null && !UUID.test(category)) return clientFailure("badCategory", 400);
   const place = params.get("place");
-  if (place !== null && !UUID.test(place)) return fail("badPlace", 400);
+  if (place !== null && !UUID.test(place)) return clientFailure("badPlace", 400);
 
   const sizeRaw = params.get("size");
   let size = 20;
   if (sizeRaw !== null) {
-    if (!/^\d+$/.test(sizeRaw)) return fail("badSize", 400);
+    if (!/^\d+$/.test(sizeRaw)) return clientFailure("badSize", 400);
     size = Number(sizeRaw);
-    if (size < 1 || size > 50) return fail("badSize", 400);
+    if (size < 1 || size > 50) return clientFailure("badSize", 400);
   }
 
   const afterRaw = params.get("after");
   let after: Record<string, unknown> | null = null;
   if (afterRaw !== null) {
     after = fromCursor(afterRaw);
-    if (after === null) return fail("badCursor", 400);
+    if (after === null) return clientFailure("badCursor", 400);
   }
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail("supabase server env missing", 500);
+  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
 
   const supabase = createClient<Database>(url, publishable, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -139,13 +139,13 @@ async function handleGet(request: Request): Promise<Response> {
 
   if (error) {
     const message = error.message ?? "";
-    for (const name of NOT_FOUND) {
-      if (message.includes(name)) return fail(name.slice("feed_page: ".length), 404);
+    for (const [name, code] of Object.entries(NOT_FOUND)) {
+      if (message.includes(name)) return clientFailure(code, 404);
     }
-    for (const name of BAD) {
-      if (message.includes(name)) return fail(name.slice("feed_page: ".length), 400);
+    for (const [name, code] of Object.entries(BAD)) {
+      if (message.includes(name)) return clientFailure(code, 400);
     }
-    return fail(message, 502);
+    return serverFailure(message, 502);
   }
 
   const page = data as {
@@ -163,7 +163,7 @@ async function handleGet(request: Request): Promise<Response> {
     !Array.isArray(page.ladder) ||
     !Array.isArray(page.steps)
   ) {
-    return fail("feed_page returned no page", 502);
+    return serverFailure("feed_page returned no page", 502);
   }
   const body: Record<string, unknown> = {
     cards: page.cards,
@@ -216,7 +216,7 @@ export const Route = createFileRoute("/api/feed")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(errorText(error), 500);
+          return serverFailure(errorText(error), 500);
         }
       },
     },

@@ -91,18 +91,18 @@ async function handleGet(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
 
   const key = params.get("key");
-  if (key === null || key.length > 60) return fail("badKey", 400);
+  if (key === null || key.length > 60) return clientFailure("badKey", 400);
 
   const afterRaw = params.get("after");
   let after: Record<string, unknown> | null = null;
   if (afterRaw !== null) {
     after = fromCursor(afterRaw);
-    if (after === null) return fail("badCursor", 400);
+    if (after === null) return clientFailure("badCursor", 400);
   }
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail("supabase server env missing", 500);
+  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
 
   const supabase = createClient<Database>(url, publishable, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -119,11 +119,13 @@ async function handleGet(request: Request): Promise<Response> {
 
   if (error) {
     const message = error.message ?? "";
-    if (message.includes("seller_feed_page: unknownSeller")) return fail("unknownSeller", 404);
-    for (const name of BAD) {
-      if (message.includes(name)) return fail(name.slice("seller_feed_page: ".length), 400);
+    if (message.includes("seller_feed_page: unknownSeller")) {
+      return clientFailure("unknownSeller", 404);
     }
-    return fail(message, 502);
+    for (const [name, code] of Object.entries(BAD)) {
+      if (message.includes(name)) return clientFailure(code, 400);
+    }
+    return serverFailure(message, 502);
   }
 
   const page = data as {
@@ -134,7 +136,7 @@ async function handleGet(request: Request): Promise<Response> {
   // F4 — an answer without cards and without an error is a failure, never an
   // empty page.
   if (page === null || typeof page !== "object" || !Array.isArray(page.cards)) {
-    return fail("seller_feed_page returned no page", 502);
+    return serverFailure("seller_feed_page returned no page", 502);
   }
   const body = {
     seller: page.seller ?? null,
@@ -160,7 +162,7 @@ export const Route = createFileRoute("/api/seller")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(errorText(error), 500);
+          return serverFailure(errorText(error), 500);
         }
       },
     },
