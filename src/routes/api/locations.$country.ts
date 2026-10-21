@@ -65,11 +65,22 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
-function fail(error: string, status: number): Response {
-  if (status >= 500) logRouteError(error);
+/** INC-802 — every client refusal this route sends, as a closed set. */
+type ClientCode = "badCountry" | "closedOrUnknownMarket";
+
+/** INC-802 — a server failure: logged whole, answered with a fixed text. */
+function serverFailure(detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -120,7 +131,7 @@ function shapeNode(row: TreeNode): TreeNode {
 }
 
 async function handleGet(request: Request, rawCountry: string): Promise<Response> {
-  if (!COUNTRY_RE.test(rawCountry.trim())) return fail("badCountry", 400);
+  if (!COUNTRY_RE.test(rawCountry.trim())) return clientFailure("badCountry", 400);
   const country = rawCountry.trim().toUpperCase();
 
   const now = Date.now();
@@ -129,7 +140,7 @@ async function handleGet(request: Request, rawCountry: string): Promise<Response
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail("supabase server env missing", 500);
+  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
 
   const supabase = createClient<Database>(url, publishable, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -138,7 +149,7 @@ async function handleGet(request: Request, rawCountry: string): Promise<Response
   const { data: version, error: versionError } = await supabase.rpc("get_location_tree_version", {
     p_country_code: country,
   });
-  if (versionError) return fail(versionError.message, 502);
+  if (versionError) return serverFailure(versionError.message, 502);
 
   const resolved = typeof version === "string" ? version : "";
   const etag = bundleEtag(`loc-${country}`, resolved);
@@ -158,13 +169,13 @@ async function handleGet(request: Request, rawCountry: string): Promise<Response
   }
 
   const { data, error } = await supabase.rpc("get_location_tree", { p_country_code: country });
-  if (error) return fail(error.message, 502);
+  if (error) return serverFailure(error.message, 502);
 
   const rows = Array.isArray(data) ? (data as TreeNode[]) : [];
   // Zero rows is the read's own answer for a closed or unknown market.
   if (rows.length === 0) {
     treeCache.delete(country);
-    return fail("closedOrUnknownMarket", 404);
+    return clientFailure("closedOrUnknownMarket", 404);
   }
 
   const entry: CacheEntry = {
@@ -185,7 +196,7 @@ export const Route = createFileRoute("/api/locations/$country")({
           return await handleGet(request, params.country);
         } catch (error) {
           logRouteError(error);
-          return fail(errorText(error), 500);
+          return serverFailure(errorText(error), 500);
         }
       },
     },

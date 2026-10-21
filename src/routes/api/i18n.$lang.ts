@@ -46,11 +46,22 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
-function fail(error: string, status: number): Response {
-  if (status >= 500) logRouteError(error);
+/** INC-802 — every client refusal this route sends, as a closed set. */
+type ClientCode = "invalid language code";
+
+/** INC-802 — a server failure: logged whole, answered with a fixed text. */
+function serverFailure(detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
@@ -106,7 +117,7 @@ function respond(request: Request, entry: CacheEntry): Response {
 
 async function handleGet(request: Request, lang: string): Promise<Response> {
   const code = lang.trim().toLowerCase();
-  if (!LANG_RE.test(code)) return fail("invalid language code", 400);
+  if (!LANG_RE.test(code)) return clientFailure("invalid language code", 400);
 
   const now = Date.now();
   const cached = bundleCache.get(code);
@@ -114,7 +125,7 @@ async function handleGet(request: Request, lang: string): Promise<Response> {
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail("supabase server env missing", 500);
+  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
 
   const supabase = createClient<Database>(url, publishable, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -123,7 +134,7 @@ async function handleGet(request: Request, lang: string): Promise<Response> {
   const { data: version, error: versionError } = await supabase.rpc("get_ui_bundle_version", {
     p_lang: code,
   });
-  if (versionError) return fail(versionError.message, 502);
+  if (versionError) return serverFailure(versionError.message, 502);
 
   const resolved = typeof version === "string" ? version : "";
   const etag = bundleEtag(code, resolved);
@@ -143,7 +154,7 @@ async function handleGet(request: Request, lang: string): Promise<Response> {
   }
 
   const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: code });
-  if (error) return fail(error.message, 502);
+  if (error) return serverFailure(error.message, 502);
 
   const entry: CacheEntry = {
     version: resolved,
@@ -163,7 +174,7 @@ export const Route = createFileRoute("/api/i18n/$lang")({
           return await handleGet(request, params.lang);
         } catch (error) {
           logRouteError(error);
-          return fail(errorText(error), 500);
+          return serverFailure(errorText(error), 500);
         }
       },
     },
