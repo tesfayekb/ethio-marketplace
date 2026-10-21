@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [smoke, email, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
+        lane: [smoke, email, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]
     permissions:
       contents: read
     env:
@@ -488,7 +488,7 @@ jobs:
           elif [ "$PROOF_LANE" = email ]; then
             E2E_EMAIL_SINK=1 bunx playwright test --project=email-serial --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           else
-            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/12" > "local-backend-lane-$PROOF_LANE.log" 2>&1
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/16" > "local-backend-lane-$PROOF_LANE.log" 2>&1
           fi
           result=$?
           set -e
@@ -705,7 +705,7 @@ jobs:
           E2E_RESULTS_DIR: lane-results
           E2E_LOGS_DIR: lane-logs
           E2E_CONTEXT_DIR: lane-contexts
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
           E2E_GREEN: ${{ needs.proof.result == 'success' && '1' || '0' }}
           E2E_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           E2E_OUT_PATH: docs/tracking/local-backend-last-failure.md
@@ -737,11 +737,11 @@ jobs:
               text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
               text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
               return text
-          lanes = ['smoke', 'email', *map(str, range(1, 13))]
+          lanes = ['smoke', 'email', *map(str, range(1, 17))]
           fragments = {}
           for path in sorted(Path('local-proof-artifacts').rglob('local-backend-proof-*.md')):
               text = path.read_text(errors='replace')
-              match = re.search(r'^- Lane: (smoke|email|[1-9]|1[0-2])$', text, re.M)
+              match = re.search(r'^- Lane: (smoke|email|[1-9]|1[0-6])$', text, re.M)
               if match:
                   if match[1] in fragments:
                       raise SystemExit('duplicate lane evidence: ' + match[1])
@@ -793,13 +793,13 @@ jobs:
               heading = '## Migration/start failure'
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
-          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the fourteen lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s']
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the eighteen lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s']
           lines += ['- Teardown:', *['  - ' + lane + ': ' + field(fragments.get(lane, []), '- Teardown: ', 'no evidence') for lane in lanes]]
           smoke = fragments.get('smoke', [])
           for heading in ('- Working copy:', '- Parity:', '- Status:'):
               lines += section(smoke, heading)
           lines += details
-          lines += ['', 'DEC-211, DEC-218: every gating browser test runs here — fourteen lanes, the email lane included; two consecutive full dev runs judge each change.']
+          lines += ['', 'DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.']
           text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', '\n'.join(lines))
           Path('docs/tracking').mkdir(parents=True, exist_ok=True)
           Path('docs/tracking/local-backend-proof.md').write_text(redact(text) + '\n')
