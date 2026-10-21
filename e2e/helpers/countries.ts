@@ -1,8 +1,11 @@
 import { type Locator, type Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
+import { countrySlotCodes, userAssignedCodes } from "./country-slot";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { adminClient } from "./users";
+
+export { userAssignedCodes } from "./country-slot";
 
 /**
  * LOCATIONS ERA L2b-C1 — SHARED COUNTRIES-CONSOLE HELPERS.
@@ -16,22 +19,9 @@ import { adminClient } from "./users";
  * a real country, so a fixture can never collide with a market the product
  * cares about; its NAME carries the `E2E-Scratch-` prefix the reaper and the
  * human eye both read.
+ * INC-817 — concurrent workers use disjoint slots by TEST_PARALLEL_INDEX,
+ * so two read-then-pick calls cannot choose the same market (CO-7 on XR).
  */
-
-/** Every code the standard leaves to private use — the whole scratch universe. */
-export function userAssignedCodes(): string[] {
-  const letters = (from: string, to: string) => {
-    const out: string[] = [];
-    for (let code = from.charCodeAt(0); code <= to.charCodeAt(0); code += 1) {
-      out.push(String.fromCharCode(code));
-    }
-    return out;
-  };
-  return [
-    ...letters("M", "Z").map((second) => `Q${second}`),
-    ...letters("A", "Z").map((second) => `X${second}`),
-  ];
-}
 
 export function isUserAssigned(code: string): boolean {
   return userAssignedCodes().includes(code.toUpperCase());
@@ -39,12 +29,14 @@ export function isUserAssigned(code: string): boolean {
 
 /** A free user-assigned code, asserted ABSENT from `countries` before use. */
 export async function scratchCountryCode(): Promise<string> {
-  const pool = userAssignedCodes();
+  const parallelIndex = Number(process.env["TEST_PARALLEL_INDEX"] ?? "0");
+  const slot = parallelIndex % 8;
+  const pool = countrySlotCodes(parallelIndex);
   const { data, error } = await adminClient().from("countries").select("code").in("code", pool);
   if (error) throw new Error(`[e2e:l2b] reading the scratch pool failed: ${error.message}`);
   const taken = new Set((data ?? []).map((row) => row.code));
   const free = pool.filter((code) => !taken.has(code));
-  if (free.length === 0) throw new Error("[e2e:l2b] every user-assigned code is taken");
+  if (free.length === 0) throw new Error(`[e2e:l2b] every user-assigned code in slot ${slot} is taken`);
   const picked = free[Math.floor(Math.random() * free.length)] as string;
   return picked;
 }
