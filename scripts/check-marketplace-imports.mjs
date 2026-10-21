@@ -77,10 +77,7 @@ while (queue.length > 0) {
   }
 
   const source = readFileSync(file, "utf8");
-  const specs = [
-    ...source.matchAll(IMPORT_FROM),
-    ...source.matchAll(EXPORT_FROM),
-  ].map((m) => m[1]);
+  const specs = [...source.matchAll(IMPORT_FROM), ...source.matchAll(EXPORT_FROM)].map((m) => m[1]);
 
   for (const spec of specs) {
     const bare = spec.split("/")[0].startsWith("@")

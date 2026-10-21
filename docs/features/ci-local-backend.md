@@ -651,3 +651,7 @@ fragment. They are visible even on green runs in
 in the five affected specs now use `authErrorText` without changing their
 existing failure behavior; SU-2 and SU-3 also exercise the account list on the
 temporary backend.
+
+## Turn 22 — one worker per lane again (DEC-230)
+
+Run 1088 (39588958890, db01a7fd): CO-6 failed in lane 2 on both tries — a test in the lane's other worker removed a root category while CO-6 saved the rail order, and the dialog's cached root list sent it again (INC-814). DEC-230's rule (the operator, 2026-10-21) applied with no further exception: every lane runs one test worker (local-backend-proof.yml, E2E_WORKERS). DEC-217's measurement: a lane takes about 19 minutes with one worker.

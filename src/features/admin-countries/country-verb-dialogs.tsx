@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { errorText } from "@/lib/error-text";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { CountryDialogActions, CountryErrorLine, useCountryError } from "./country-dialogs";
@@ -160,7 +161,7 @@ export function CountryRailOrderDialog({
         // INC-814: the door refused a root that is no longer there — re-read
         // the roots and rebuild the list from the fresh read; the refusal
         // line stays until the next save.
-        if (error instanceof Error && error.message.startsWith("notARoot")) {
+        if (errorText(error).startsWith("notARoot")) {
           await refreshAfterWrite(queryClient, { queryKey: ROOT_CATEGORIES_KEY });
           setOrder(null);
         }

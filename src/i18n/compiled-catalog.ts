@@ -29,13 +29,13 @@ const adminLoaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = 
  * every object inherits ("constructor", "toString") answers undefined, like any
  * code without a compiled catalog.
  */
-export function compiledCatalogLoader(code: string): (() => Promise<Partial<Messages>>) | undefined {
+export function compiledCatalogLoader(
+  code: string,
+): (() => Promise<Partial<Messages>>) | undefined {
   return Object.prototype.hasOwnProperty.call(loaders, code) ? loaders[code] : undefined;
 }
 
 /** The admin layer's loader, under the same own-key law as compiledCatalogLoader. */
-export function compiledAdminLoader(
-  code: string,
-): (() => Promise<Partial<Messages>>) | undefined {
+export function compiledAdminLoader(code: string): (() => Promise<Partial<Messages>>) | undefined {
   return Object.prototype.hasOwnProperty.call(adminLoaders, code) ? adminLoaders[code] : undefined;
 }

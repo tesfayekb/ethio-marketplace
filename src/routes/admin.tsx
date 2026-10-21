@@ -8,7 +8,8 @@ import { AdminShellProvider } from "@/features/admin/admin-context";
 import { sectionForPath } from "@/features/admin/sections";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
-import { useI18n } from "@/i18n";
+import { useAdminStrings, useI18n } from "@/i18n";
+import { Button } from "@/components/ui/button";
 
 /**
  * The admin LAYOUT (Phase U0). This route file IS the admin chunk: it is the
@@ -42,6 +43,9 @@ function AdminGate() {
   const { user, authLoading } = useShell();
   const { permissions, loading } = usePermissions({ enabled: user !== null });
   const pending = authLoading || loading;
+  // DEC-231 — ask for the admin strings layer before any return; the gate
+  // waits for it (its own waiting line rides in the first-paint part).
+  const adminStrings = useAdminStrings();
 
   // INC-581 — the admin section follows the page the body shows.
   const pathname = useShownPathname();
@@ -79,6 +83,36 @@ function AdminGate() {
 
   // No flash of sections while the permission read settles.
   if (pending || signedOut || !allowed || !sectionAllowed) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex min-h-40 items-center justify-center text-sm text-muted-foreground"
+      >
+        {t("admin.loading")}
+      </div>
+    );
+  }
+
+  // DEC-231 — the admin strings layer failed to load: say so, with a retry;
+  // the base strings still answer, so this line is never blank (F4).
+  if (adminStrings.state === "failed") {
+    return (
+      <div
+        role="alert"
+        data-testid="admin-strings-failed"
+        className="flex min-h-40 flex-col items-center justify-center gap-3 text-sm text-muted-foreground"
+      >
+        {t("auth.errorGeneric")}
+        <Button data-testid="admin-strings-retry" onClick={adminStrings.retry}>
+          {t("common.tryAgain")}
+        </Button>
+      </div>
+    );
+  }
+
+  // The layer is on its way: the same waiting line as the permission read.
+  if (adminStrings.state !== "ready") {
     return (
       <div
         role="status"
