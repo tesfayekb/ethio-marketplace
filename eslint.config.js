@@ -66,6 +66,27 @@ export default tseslint.config(
           message:
             "DEC-025: pass the generated schema — createClient<Database>(…). An untyped client makes every table, column and RPC argument `any`.",
         },
+        {
+          selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
+          message:
+            "INC-815: a caught error may be a plain { message } object (a Supabase door's refusal), not an Error. Read it with errorText (src/lib/error-text.ts). A line that truly needs an Error instance carries an eslint-disable-next-line comment with its reason.",
+        },
+      ],
+    },
+  },
+  {
+    // INC-815 — a later block replaces the rule for its files: tests may assert
+    // on Error instances, and the platform's lovable-error-reporting.ts stays as
+    // it is. These files keep the DEC-025 selector alone.
+    files: ["src/**/*.test.{ts,tsx}", "src/lib/lovable-error-reporting.ts"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.name='createClient']:not([typeArguments])",
+          message:
+            "DEC-025: pass the generated schema — createClient<Database>(…). An untyped client makes every table, column and RPC argument `any`.",
+        },
       ],
     },
   },
