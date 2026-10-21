@@ -12,7 +12,12 @@ function inspect(catalogue: string, allowlist: string) {
   for (const line of catalogue.split(/\r?\n/).filter((line) => line.trim())) {
     const parts = line.split("\t");
     const [fn, volatility, checks] = parts;
-    if (parts.length !== 3 || !fn || !["v", "s", "i"].includes(volatility ?? "") || !["t", "f"].includes(checks ?? "")) {
+    if (
+      parts.length !== 3 ||
+      !fn ||
+      !["v", "s", "i"].includes(volatility ?? "") ||
+      !["t", "f"].includes(checks ?? "")
+    ) {
       failures.push(`${fn ?? "catalogue"}: malformed catalogue row`);
       continue;
     }
@@ -35,7 +40,8 @@ function inspect(catalogue: string, allowlist: string) {
     const knownClass = classes.find((name) => name === className);
     if (!knownClass) failures.push(`${fn}: unknown class ${className}`);
     else counts.set(knownClass, (counts.get(knownClass) ?? 0) + 1);
-    if (className === "owed" && !reason.includes("INC-807")) failures.push(`${fn}: owed allowance must name INC-807`);
+    if (className === "owed" && !reason.includes("INC-807"))
+      failures.push(`${fn}: owed allowance must name INC-807`);
     const door = doors.get(fn);
     if (!door) failures.push(`${fn}: stale allowance (function absent)`);
     else if (door.volatility !== "v") failures.push(`${fn}: stale allowance (not VOLATILE)`);
@@ -43,7 +49,8 @@ function inspect(catalogue: string, allowlist: string) {
   }
   const writes = [...doors.values()].filter((door) => door.volatility === "v");
   for (const door of writes) {
-    if (!door.checks && !allowances.has(door.fn)) failures.push(`${door.fn}: missing acceptance check and allowance`);
+    if (!door.checks && !allowances.has(door.fn))
+      failures.push(`${door.fn}: missing acceptance check and allowance`);
   }
   const checked = writes.filter((door) => door.checks).length;
   const summary = `Acceptance-doors guard OK (${writes.length} write doors: ${checked} check, ${allowances.size} allowlisted — legal ${counts.get("legal")}, account ${counts.get("account")}, staff ${counts.get("staff")}, draft ${counts.get("draft")}, signal ${counts.get("signal")}, helper ${counts.get("helper")}; owed ${counts.get("owed")})`;
@@ -51,17 +58,29 @@ function inspect(catalogue: string, allowlist: string) {
 }
 
 if (process.env["SELF_TEST"] === "1") {
-  const result = inspect(readFileSync("scripts/fixtures/acceptance-doors-bad.tsv", "utf8"), "e2e_acceptance_absent() | helper | An absent fixture function, intentionally stale.");
-  if (!result.failures.some((failure) => failure.startsWith("e2e_acceptance_unchecked(): missing")) || !result.failures.some((failure) => failure.startsWith("e2e_acceptance_absent(): stale"))) {
-    console.error("Acceptance-doors self-test FAILED: bad fixture was not refused for both functions");
+  const result = inspect(
+    readFileSync("scripts/fixtures/acceptance-doors-bad.tsv", "utf8"),
+    "e2e_acceptance_absent() | helper | An absent fixture function, intentionally stale.",
+  );
+  if (
+    !result.failures.some((failure) => failure.startsWith("e2e_acceptance_unchecked(): missing")) ||
+    !result.failures.some((failure) => failure.startsWith("e2e_acceptance_absent(): stale"))
+  ) {
+    console.error(
+      "Acceptance-doors self-test FAILED: bad fixture was not refused for both functions",
+    );
     process.exit(1);
   }
-  for (const failure of result.failures) console.log(`Acceptance-doors self-test refused: ${failure}`);
+  for (const failure of result.failures)
+    console.log(`Acceptance-doors self-test refused: ${failure}`);
   console.log("Acceptance-doors self-test OK: both bad fixture functions refused");
 } else {
   const path = process.argv[2];
   if (!path) throw new Error("Acceptance-doors guard requires a catalogue TSV path");
-  const result = inspect(readFileSync(path, "utf8"), readFileSync("scripts/acceptance-doors-allowlist.txt", "utf8"));
+  const result = inspect(
+    readFileSync(path, "utf8"),
+    readFileSync("scripts/acceptance-doors-allowlist.txt", "utf8"),
+  );
   if (result.failures.length) {
     for (const failure of result.failures) console.error(`Acceptance-doors guard FAIL: ${failure}`);
     process.exit(1);

@@ -730,7 +730,9 @@ test.describe("Legal certification", () => {
     expect(hidden.data).toBeNull();
   });
 
-  test("LG-25 an owed acceptance refuses edit_my_listing until it is accepted; nothing is written while refused", async ({ page }) => {
+  test("LG-25 an owed acceptance refuses edit_my_listing until it is accepted; nothing is written while refused", async ({
+    page,
+  }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
     const listingId = await draftOf(page, s, categoryId, cityId);
     const token = await bearerOf(page);
@@ -741,8 +743,15 @@ test.describe("Legal certification", () => {
     const me = await asPerson(seller);
     const read = async () => {
       const listing = await adminClient().from("listings").select("*").eq("id", listingId).single();
-      const revisions = await adminClient().from("listing_revisions").select("*").eq("listing_id", listingId).order("id");
-      if (listing.error || revisions.error) throw new Error(`[e2e:certify] edit truth: ${listing.error?.message ?? revisions.error?.message}`);
+      const revisions = await adminClient()
+        .from("listing_revisions")
+        .select("*")
+        .eq("listing_id", listingId)
+        .order("id");
+      if (listing.error || revisions.error)
+        throw new Error(
+          `[e2e:certify] edit truth: ${listing.error?.message ?? revisions.error?.message}`,
+        );
       return { listing: listing.data, revisions: revisions.data };
     };
     const before = await read();
@@ -751,7 +760,11 @@ test.describe("Legal certification", () => {
     const refused = await me.rpc("edit_my_listing", args);
     expect(refused.error).toContain("acceptanceRequired");
     expect(await read()).toEqual(before);
-    const accepted = await me.rpc("accept_legal", { p_version_ids: [owed.id], p_language: "en", p_adult: true });
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
     const edited = await me.rpc("edit_my_listing", args);
     expect(edited.error, JSON.stringify(edited)).toBeNull();
@@ -770,15 +783,24 @@ test.describe("Legal certification", () => {
     const owed = await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
     const me = await asPerson(seller);
     const read = async () => {
-      const result = await adminClient().from("listings").select("status, expires_at").eq("id", listingId).single();
-      if (result.error || !result.data) throw new Error(`[e2e:certify] renew truth: ${result.error?.message}`);
+      const result = await adminClient()
+        .from("listings")
+        .select("status, expires_at")
+        .eq("id", listingId)
+        .single();
+      if (result.error || !result.data)
+        throw new Error(`[e2e:certify] renew truth: ${result.error?.message}`);
       return result.data;
     };
     const before = await read();
     const refused = await me.rpc("renew_listing", { p_listing_id: listingId });
     expect(refused.error).toContain("acceptanceRequired");
     expect(await read()).toEqual(before);
-    const accepted = await me.rpc("accept_legal", { p_version_ids: [owed.id], p_language: "en", p_adult: true });
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
     const renewed = await me.rpc("renew_listing", { p_listing_id: listingId });
     expect(renewed.error, JSON.stringify(renewed)).toBeNull();
@@ -788,7 +810,9 @@ test.describe("Legal certification", () => {
     expect(Date.parse(after.expires_at ?? "")).toBeGreaterThan(Date.now());
   });
 
-  test("LG-27 an owed acceptance refuses a photo added to a published ad; no photo row is written", async ({ page }) => {
+  test("LG-27 an owed acceptance refuses a photo added to a published ad; no photo row is written", async ({
+    page,
+  }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
     const listingId = await draftOf(page, s, categoryId, cityId);
     const token = await bearerOf(page);
@@ -802,7 +826,11 @@ test.describe("Legal certification", () => {
     expect(refused.status).toBe(409);
     expect(reasons(refused.payload)).toEqual([{ field: "legal", reason: "acceptanceRequired" }]);
     expect(await photoRowsOf(listingId)).toEqual(before);
-    const accepted = await me.rpc("accept_legal", { p_version_ids: [owed.id], p_language: "en", p_adult: true });
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
     const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
     expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
