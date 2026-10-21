@@ -52,6 +52,7 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
+import { errorText } from "@/lib/error-text";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
@@ -239,7 +240,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       })
       // A thrown call must not stop the saves that follow it (F4: logged, never swallowed).
       .catch((error: unknown) => {
-        console.warn(`[location] the account place was not saved: ${String(error)}`);
+        console.warn(`[location] the account place was not saved: ${errorText(error)}`);
       });
     return accountSavesRef.current;
   }, []);
@@ -513,7 +514,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         }
       })
       .catch((error: unknown) => {
-        console.warn(`[location] the account place was not read: ${String(error)}`);
+        console.warn(`[location] the account place was not read: ${errorText(error)}`);
       })
       .finally(() => {
         if (carriedForRef.current === userId) setAccountPlace("done");

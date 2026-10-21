@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { errorText } from "@/lib/error-text";
 
 /**
  * U3 / DEC-016 — IMPERSONATION v1 client seam.
@@ -121,6 +122,6 @@ export async function listImpersonatedListings(
 
 /** True when the server refused because the 15-minute box has closed. */
 export function isExpiredSessionError(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error ?? "");
+  const message = error === null || error === undefined ? "" : errorText(error);
   return message.includes("impersonation session expired");
 }

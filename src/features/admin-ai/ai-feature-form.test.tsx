@@ -1,16 +1,26 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { AiEditorDialog } from "./ai-editor";
 import { AiFeatureForm } from "./ai-feature-form";
 import type { AiFeatureRow } from "./ai-service";
+import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
-    t: (key: string) => key,
+    t: (key: string) => (key === "admin.ai.error.reason" ? "Reason: {reason}" : key),
     language: "en",
     setLanguage: () => {},
     publicLanguages: [],
   }),
+}));
+
+const save = vi.hoisted(() => vi.fn());
+vi.mock("./use-ai-features", () => ({
+  useSetAiFeature: () => ({ mutateAsync: save, isPending: false }),
+}));
+vi.mock("@/features/admin-categories/category-dialogs", () => ({
+  CategoryModal: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }));
 
 const ROW: AiFeatureRow = {
@@ -162,5 +172,43 @@ describe("AiFeatureForm (D158)", () => {
     expect((screen.getByTestId("ai-editor-save") as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByTestId("ai-editor-cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AiEditorDialog refusals", () => {
+  it("AIF-4 reads a database refusal object by its own message", async () => {
+    const guard: GuardFn = async (run) => run();
+    const cases = [
+      [
+        { message: "overBudget", code: "P0001", details: null, hint: null },
+        "admin.ai.error.overBudget",
+        false,
+      ],
+      [
+        { message: "something new", code: "P0001", details: null, hint: null },
+        "admin.ai.error.unknown",
+        true,
+      ],
+      [undefined, "admin.ai.error.unknown", false],
+    ] as const;
+    for (const [error, key, reason] of cases) {
+      save.mockRejectedValueOnce(error);
+      const view = render(
+        <AiEditorDialog
+          row={ROW}
+          name="Writing help"
+          guard={guard}
+          openedBy="test"
+          onClose={() => {}}
+        />,
+      );
+      fireEvent.click(screen.getByTestId("ai-editor-save"));
+      await waitFor(() => expect(screen.getByTestId("ai-editor-error").textContent).toBe(key));
+      if (reason)
+        expect(screen.getByTestId("ai-editor-error-reason").textContent).toContain("something new");
+      else expect(screen.queryByTestId("ai-editor-error-reason")).toBeNull();
+      expect(document.body.textContent).not.toContain("[object Object]");
+      view.unmount();
+    }
   });
 });

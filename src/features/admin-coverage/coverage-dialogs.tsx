@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { errorText } from "@/lib/error-text";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -28,7 +29,7 @@ export function useCoverageError() {
       setRefusal(abort === null ? null : { key: abort as MessageKey, raw: null });
       return;
     }
-    setRefusal(coverageErrorKey(error instanceof Error ? error.message : String(error ?? "")));
+    setRefusal(coverageErrorKey(error === null || error === undefined ? "" : errorText(error)));
   };
   const render = (message: MessageKey) => setRefusal({ key: message, raw: null });
   return { refusal, clear, fail, render };

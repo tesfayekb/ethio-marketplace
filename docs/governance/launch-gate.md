@@ -132,7 +132,7 @@ Every line above stands as written; the status notes and new lines below come fr
 - [ ] The privacy-request inbox (D229: the in-app request form and the logged e-mails, due dates, flags, answered or not) — NOT DONE; before launch (the operator, 2026-10-21).
 - [ ] A one-page breach plan: who decides, the clocks (72 hours to the authority under the EU, Ethiopian and Kenyan rules; "without unreasonable delay" under US state laws), message templates and contacts — NOT DONE; drafted by the supervisor, approved by the operator.
 - [ ] Every sentence of the published Terms and Privacy Policy is true on launch day (in-app messages and blocking, promoted-ad labels, the logs of staff help and of access to hidden copies, the idle session timeout are described as built): build each, or change its wording in a new version before opening — NOT DONE (DEC-221: published before launch at the operator's choice).
-- [ ] Each legal document's review date (DEC-219) and the six-monthly legal watch (DEC-220, a scheduled task from 2027-04-15) — the review dates NOT DONE (turn 20); the watch scheduled 2026-10-21.
+- [x] Each legal document's review date (DEC-219) and the six-monthly legal watch (DEC-220, a scheduled task from 2027-04-15) — the review dates built in bundle 22 turn 20 (M16); the watch scheduled 2026-10-21.
 
 ## Added 2026-10-21 (bundle 22 turn 20)
 
