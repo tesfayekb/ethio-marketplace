@@ -1,27 +1,27 @@
 # Local backend proof (non-gating)
 
-- Commit: `edfa9c802abaf4bf55294904a6a6e34631646b77`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39543458264
+- Commit: `038e191213077270ec1e3a70978760b4a26960a6`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39550301544
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 844 | 92 | applied 330/330 | 186 | 0 | 0 | 60 | 246 |
-| 1 | 1093 | 117 | applied 330/330 | 188 | 0 | 0 | 6 | 194 |
-| 2 | 946 | 98 | applied 330/330 | 146 | 0 | 0 | 1 | 147 |
-| 3 | 616 | 88 | applied 330/330 | 182 | 0 | 0 | 2 | 184 |
-| 4 | 606 | 96 | applied 330/330 | 170 | 0 | 0 | 6 | 176 |
-| 5 | 811 | 109 | applied 330/330 | 149 | 0 | 0 | 1 | 150 |
-| 6 | 737 | 120 | applied 330/330 | 150 | 0 | 0 | 30 | 180 |
-| 7 | 1054 | 120 | applied 330/330 | 159 | 0 | 0 | 3 | 162 |
-| 8 | 1156 | 101 | applied 330/330 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 762 | 113 | applied 330/330 | 169 | 0 | 0 | 6 | 175 |
-| 10 | 842 | 111 | applied 330/330 | 170 | 0 | 0 | 6 | 176 |
-| 11 | 948 | 114 | applied 330/330 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 579 | 116 | applied 330/330 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2133 | 0 | 0 | 154 | 2287 |
+| smoke | 870 | 115 | applied 331/331 | 186 | 0 | 0 | 60 | 246 |
+| 1 | 1045 | 93 | applied 331/331 | 188 | 0 | 0 | 6 | 194 |
+| 2 | 925 | 102 | applied 331/331 | 146 | 0 | 0 | 1 | 147 |
+| 3 | 622 | 87 | applied 331/331 | 182 | 0 | 0 | 2 | 184 |
+| 4 | 802 | 116 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
+| 5 | 727 | 98 | applied 331/331 | 149 | 0 | 0 | 1 | 150 |
+| 6 | 696 | 107 | applied 331/331 | 150 | 0 | 0 | 30 | 180 |
+| 7 | 1036 | 117 | applied 331/331 | 159 | 0 | 0 | 3 | 162 |
+| 8 | 1031 | 100 | applied 331/331 | 170 | 0 | 0 | 1 | 171 |
+| 9 | 848 | 120 | applied 331/331 | 169 | 0 | 0 | 6 | 175 |
+| 10 | 829 | 105 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
+| 11 | 1002 | 112 | applied 331/331 | 189 | 1 | 0 | 2 | 192 |
+| 12 | 581 | 120 | applied 331/331 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2132 | 1 | 0 | 154 | 2287 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
 
-- Slowest lane: 8 1156 s
+- Slowest lane: 1 1045 s
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -42,5 +42,8 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
+
+## Lane 11
+- post-wizard-specs.spec.ts / POSTING WIZARD / PW-153 a settled range hides its number and the review and buyer sheet show the range / desktop-1280 — Error: PW-153: the review did not show the range
 
 DEC-211: compare every lane with staging CI on this same commit; two consecutive full-suite dev proofs required. Email-serial stays on staging. No automatic switch verdict.
