@@ -1,20 +1,15 @@
 name: Local backend proof
 
 on:
-  push:
-    branches: [dev]
   workflow_dispatch:
-
-concurrency:
-  group: local-backend-proof-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
 
 permissions:
   contents: read
 
 jobs:
   proof:
-    name: Lane ${{ matrix.lane }} on temporary Supabase (non-gating)
+    name: Lane ${{ matrix.lane }} on temporary Supabase
     runs-on: ubuntu-24.04
     # A slow runner's lane is recorded whole instead of cancelled (proof #10's lane 1:
     # start 359 s, cancelled at 45 minutes after 165 of 194 tests); DEC-211's
@@ -619,7 +614,7 @@ jobs:
           name: e2e-context-${{ matrix.lane }}
           path: test-results/**/error-context.md
           overwrite: true
-          if-no-files-found: warn
+          if-no-files-found: ignore
           retention-days: 7
       - name: Dispose temporary backend
         if: always()
@@ -629,7 +624,10 @@ jobs:
           fi
 
   summary:
-    name: Summarize temporary backend proof (non-gating)
+    name: Summarize temporary backend lanes
+    # Tables and evidence are reporting; CI's merged E2E job owns the verdict,
+    # and a bookkeeping failure must never block main.
+    continue-on-error: true
     needs: proof
     if: always()
     runs-on: ubuntu-24.04

@@ -5,8 +5,8 @@
 # Usage: bash scripts/check-promote-needs.sh [workflow.yml]
 set -euo pipefail
 FILE="${1:-.github/workflows/ci.yml}"
-# DEC-023-B: the changed-spec fast lane is signal-only; it never holds main back.
-SIGNAL_ONLY=(e2e-changed)
+# DEC-023-B's fast lane was retired by turn 16 (D228); every CI job now gates main.
+SIGNAL_ONLY=()
 
 [ -f "$FILE" ] || { echo "check-promote-needs: no such file $FILE" >&2; exit 2; }
 

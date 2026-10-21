@@ -553,6 +553,31 @@ Turn 15h (proof #12, `99e4e619`): 2,119 passed, 0 failed, 0 flaky of 2,273 — e
 
 Proof #14 (`cbc98cba`, turn 15j v3): 2,119 passed, 0 failed, 0 flaky of 2,273; every lane 329/329; the slowest lane 1,139 s. With proof #13 it is DEC-211's second consecutive proof, and run 1074 on the same commit passed: the switch is decided (turn 16).
 
+## Phase 3 — the switch (turn 16)
+
+DEC-211 VERDICT — SWITCH: proofs #13 (`54dbf7ad`) and #14 (`cbc98cba`)
+each applied 329/329 in every lane; 2,118 and 2,119 passed, zero failed;
+the slowest lanes took 1,170 s and 1,139 s. The same commits' staging runs
+passed their browser tests. These are the two consecutive qualifying proofs.
+
+CI now calls `local-backend-proof.yml` as `e2e-lanes`: thirteen lanes, smoke
+and slices 1–12, each on its own throwaway Supabase built from the repository's
+migrations, without hosted secrets. The staging email job remains, with its
+staging preflight and shared build. The merged `e2e` verdict requires every
+temporary-backend lane and email to succeed, carries smoke, email and 1–12 in
+its report, and gates the fast-forward promotion of main.
+
+The staging smoke tier, six staging shards and changed-spec fast lane are
+retired. The account pool is retired for hosted CI browser coverage; DEC-097
+keeps it for the nightly, email job and manual Flake check. Temporary lanes
+create their own accounts through the existing lane-scoped helper. Staging
+keeps the nightly full run and the operator's walks.
+
+DEC-214 — THE SWITCH'S KEEP RULE, fixed before any run: KEEP when the CI run on this turn's commit and the next completed run each (1) carry every source in the merged report — smoke, email, 1 to 12, none missing; (2) give a verdict that agrees with the jobs (green only when every lane and the email job are green); (3) promote main on an all-green run. REVERT (git revert of this turn's commits; staging gating comes back whole) when a WIRING failure — a missing source, a verdict that disagrees with its jobs, promote skipped on an all-green run, a lane that fails before its tests start for a reason outside the tests — happens in two of the first three runs. A test that fails is a test failure, fixed as always, not a wiring failure.
+
+Owed later turn: move the email tests to the temporary backend's inbox; until
+that proof, email is the last gating browser coverage still on hosted staging.
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,

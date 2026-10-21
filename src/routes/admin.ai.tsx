@@ -8,6 +8,17 @@ import { AdminAiPage } from "@/features/admin-ai/ai-page";
  * inside its door (F3).
  */
 export const Route = createFileRoute("/admin/ai")({
+  head: () => ({
+    meta: [
+      { title: "AI — ethio.com Admin" },
+      { name: "description", content: "AI in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "AI — ethio.com Admin" },
+      { property: "og:description", content: "AI in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminAiRoute,
 });
 

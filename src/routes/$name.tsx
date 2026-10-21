@@ -38,8 +38,13 @@ export const Route = createFileRoute("/$name")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.name} — ethio.com` },
+      { name: "description", content: `Ads by ${params.name} on ethio.com.` },
       // Bundle 19 turn 17 — noindex until the store spec ([6.19]) keeps the address.
       { name: "robots", content: "noindex" },
+      { property: "og:title", content: `${params.name} — ethio.com` },
+      { property: "og:description", content: `Ads by ${params.name} on ethio.com.` },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: SellerRoute,
