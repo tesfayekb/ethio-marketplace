@@ -1257,7 +1257,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(page.getByTestId("listing-places-maps")).toHaveAttribute(
       "href",
-      /^https:\/\/www.google.com\/maps\/search\/\?api=1&query=/,
+      /^https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=/,
     );
     await expect(page.getByTestId("listing-places-maps")).toHaveAttribute("target", "_blank");
     await expect(page.getByTestId("listing-map-google")).toHaveAttribute(
