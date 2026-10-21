@@ -40,6 +40,7 @@ import {
 import { ownValue } from "@/lib/own-key";
 import { useFollowingDraft } from "@/lib/use-following-draft";
 import { useSettling } from "@/lib/use-settling";
+import { errorText } from "@/lib/error-text";
 
 /** U4k — the Data scope's own status chips (entity rows carry no flag). */
 const DATA_STATUS_CHIPS = [
@@ -179,7 +180,7 @@ export function DataScope({
         data-rows={String((stats.data ?? []).length)}
         data-untranslated={langStats ? String(langStats.untranslated) : "unknown"}
         data-total={langStats ? String(langStats.total) : "unknown"}
-        data-error={stats.error instanceof Error ? stats.error.message : ""}
+        data-error={stats.error === null || stats.error === undefined ? "" : errorText(stats.error)}
       />
       <p data-testid="data-coverage" className="text-sm text-muted-foreground">
         {t("admin.translations.data.coverage")

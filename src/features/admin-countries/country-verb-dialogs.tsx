@@ -49,7 +49,7 @@ export function CountryActiveDialog({
         onClose();
       } catch (error) {
         // The one refusal an operator can answer: the door names the grants.
-        if (error instanceof Error && error.message.startsWith("scopedRolesExist")) {
+        if (errorText(error).startsWith("scopedRolesExist")) {
           setForced(true);
         }
         fail(error);
