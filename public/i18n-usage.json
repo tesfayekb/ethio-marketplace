@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 527,
-  "dynamicCallSites": 393,
+  "scanned": 528,
+  "dynamicCallSites": 395,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2513,6 +2513,9 @@
     "admin.legal.action.export": [
       "/admin/legal/$versionId"
     ],
+    "admin.legal.action.markReviewed": [
+      "/admin/legal"
+    ],
     "admin.legal.action.print": [
       "/admin/legal/$versionId"
     ],
@@ -2523,6 +2526,9 @@
       "/admin/legal/edit"
     ],
     "admin.legal.action.saveFacts": [
+      "/admin/legal"
+    ],
+    "admin.legal.action.saveReview": [
       "/admin/legal"
     ],
     "admin.legal.action.view": [
@@ -2664,6 +2670,33 @@
     ],
     "admin.legal.publishedOn": [
       "/admin/legal/$versionId"
+    ],
+    "admin.legal.review.due": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.help": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.lastBy": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.lastOn": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.note": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.noteLabel": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.overdue": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.saved": [
+      "/admin/legal"
+    ],
+    "admin.legal.review.title": [
+      "/admin/legal"
     ],
     "admin.legal.saveFirst": [
       "/admin/legal/edit"
@@ -5026,50 +5059,32 @@
       "/privacy",
       "/terms"
     ],
-    "legal.lang.label": [
-      "/account/legal/$versionId",
-      "/legal/$kind",
-      "/privacy",
-      "/terms"
-    ],
     "legal.page.loadError": [
-      "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.meta": [
-      "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.none": [
-      "/account/legal/$versionId",
-      "/legal/$kind",
-      "/privacy",
-      "/terms"
-    ],
-    "legal.page.print": [
-      "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.showCurrent": [
-      "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.showUpcoming": [
-      "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"
     ],
     "legal.page.upcoming": [
-      "/account/legal/$versionId",
       "/legal/$kind",
       "/privacy",
       "/terms"

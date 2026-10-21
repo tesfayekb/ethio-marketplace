@@ -15,6 +15,7 @@ export const FACT_BOUNDS: Partial<Record<FactKey, readonly [number, number]>> = 
   claims_limit_months: [1, 60],
   talk_first_days: [1, 90],
   complaint_ack_days: [1, 90],
+  review_months: [1, 24],
 };
 /** Facts that may be empty (sent as "", stored as nothing). */
 export const OPTIONAL_FACTS: readonly FactKey[] = [

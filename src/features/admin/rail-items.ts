@@ -78,6 +78,7 @@ function toItem(section: AdminSection): NavItem {
     icon: SECTION_ICONS[section.id],
     path: section.path,
     requiredPermission: section.permission,
+    ...("alert" in section ? { alert: section.alert } : {}),
   };
 }
 

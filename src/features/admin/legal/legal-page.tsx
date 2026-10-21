@@ -2,15 +2,24 @@ import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { LegalText } from "@/features/legal/legal-text";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
-import { LEGAL_KINDS, kindKey, versionStatus, type LegalDocument } from "./legal-service";
+import {
+  LEGAL_KINDS,
+  kindKey,
+  legalErrorKey,
+  reviewState,
+  versionStatus,
+  type LegalDocument,
+} from "./legal-service";
 import { LegalFactsCard } from "./legal-facts-card";
-import { useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
+import { useLegalDocuments, useLegalSettings, useLegalVersion, useLegalWrites } from "./use-legal";
 
 /** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
 function InForceText({ id }: { id: string }) {
@@ -43,6 +52,12 @@ export function LegalPage() {
   const [reading, setReading] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Record<string, string>>({});
   const mayEdit = permissions.includes("legal:edit");
+  const writes = useLegalWrites();
+  // Bundle 22 turn 20 (DEC-219) — the one review dialog: the document under review, the note, the error line.
+  const [reviewing, setReviewing] = useState<string | null>(null);
+  const [reviewNote, setReviewNote] = useState("");
+  const [reviewError, setReviewError] = useState<MessageKey | null>(null);
+  const [reviewSaved, setReviewSaved] = useState(false);
   const now = Date.now();
   const date = (value: string | null) =>
     value
@@ -70,6 +85,49 @@ export function LegalPage() {
         className="min-w-0 space-y-3"
       >
         <h3 className="font-semibold">{scope(doc.country_code)}</h3>
+        {doc.review ? (
+          <div
+            data-testid="legal-review"
+            data-state={reviewState(doc.review, now)}
+            data-due-at={doc.review.due_at ?? ""}
+            className="space-y-1 text-sm"
+          >
+            <p>
+              {(doc.review.by_name
+                ? t("admin.legal.review.lastBy").replace("{name}", doc.review.by_name)
+                : t("admin.legal.review.lastOn")
+              ).replace("{date}", date(doc.review.at))}
+            </p>
+            {doc.review.kind === "review" && doc.review.note ? (
+              <p className="break-words">
+                {t("admin.legal.review.note").replace("{note}", doc.review.note)}
+              </p>
+            ) : null}
+            {reviewState(doc.review, now) === "overdue" ? (
+              <p data-testid="legal-review-overdue" className="text-destructive">
+                {t("admin.legal.review.overdue").replace("{date}", date(doc.review.due_at))}
+              </p>
+            ) : reviewState(doc.review, now) === "due" ? (
+              <p data-testid="legal-review-due">
+                {t("admin.legal.review.due").replace("{date}", date(doc.review.due_at))}
+              </p>
+            ) : null}
+            {mayEdit ? (
+              <Button
+                variant="outline"
+                data-testid="legal-review-mark"
+                onClick={() => {
+                  setReviewing(doc.document_id);
+                  setReviewNote("");
+                  setReviewError(null);
+                  setReviewSaved(false);
+                }}
+              >
+                {t("admin.legal.action.markReviewed")}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
         {doc.versions
           .filter((v) =>
             ["inForce", "scheduled", "draft"].includes(versionStatus(v, doc.versions, now)),
@@ -211,6 +269,11 @@ export function LegalPage() {
                 : t("admin.legal.published").replace("{n}", String(feedback.version))}
             </p>
           ) : null}
+          {reviewSaved ? (
+            <p role="status" data-testid="legal-review-saved">
+              {t("admin.legal.review.saved")}
+            </p>
+          ) : null}
           {documents.isPending || settings.isPending ? (
             <p role="status">{t("common.loading")}</p>
           ) : null}
@@ -299,6 +362,71 @@ export function LegalPage() {
             </PageCard>
           ) : null}
           {settings.data ? <LegalFactsCard facts={settings.data} guard={guard} /> : null}
+          <Dialog
+            open={reviewing !== null}
+            onOpenChange={(open) => {
+              if (!open && !writes.review.isPending) setReviewing(null);
+            }}
+          >
+            <DialogContent
+              data-testid="legal-review-dialog"
+              className="max-h-[85dvh] overflow-y-auto"
+            >
+              <DialogTitle>{t("admin.legal.review.title")}</DialogTitle>
+              <DialogDescription>
+                {t("admin.legal.review.help").replace(
+                  "{months}",
+                  String(settings.data?.review_months ?? ""),
+                )}
+              </DialogDescription>
+              <label className="block text-sm font-medium" htmlFor="legal-review-note">
+                {t("admin.legal.review.noteLabel")}
+              </label>
+              <Textarea
+                id="legal-review-note"
+                data-testid="legal-review-note"
+                maxLength={2000}
+                value={reviewNote}
+                onChange={(e) => setReviewNote(e.target.value)}
+              />
+              {reviewError ? (
+                <p role="alert" data-testid="legal-review-error" className="text-destructive">
+                  {t(reviewError)}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  data-testid="legal-review-save"
+                  disabled={writes.review.isPending}
+                  onClick={() => {
+                    const note = reviewNote.trim();
+                    const documentId = reviewing;
+                    if (!documentId) return;
+                    if (!note) {
+                      setReviewError("admin.legal.error.noteRequired");
+                      return;
+                    }
+                    setReviewError(null);
+                    void guard(() => writes.review.mutateAsync({ documentId, note }))
+                      .then(() => {
+                        setReviewing(null);
+                        setReviewSaved(true);
+                      })
+                      .catch((failure: unknown) => setReviewError(legalErrorKey(failure)));
+                  }}
+                >
+                  {t("admin.legal.action.saveReview")}
+                </Button>
+                <Button
+                  variant="outline"
+                  data-testid="legal-review-cancel"
+                  onClick={() => setReviewing(null)}
+                >
+                  {t("common.cancel")}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </StepUpGate>

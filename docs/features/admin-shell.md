@@ -437,3 +437,7 @@ Below 768 px: fixed top bar, 48 px icon strip (not on the posting wizard), and t
 Admins have a fifth bottom-bar entry after Account, linking to `/admin` and current on the Admin panel. Helpers use that entry when the bar is present, retaining the drawer path on the posting wizard. The desktop rail remains unchanged.
 
 From 768 to 1023 px the admin rail is icons only; » / « opens the in-place menu with names. The current row uses `bg-nav-active` (bundle 9 C2h).
+
+## Menu alerts (bundle 22 turn 20, DEC-219)
+
+A section in `src/features/admin/sections.ts` may name an `alert`. `useNavAlerts` (`src/features/admin/nav-alerts.ts`) reads each alert as one server boolean — today `legalReview`, from `legal_review_overdue()`, for users with legal:view — and the rail draws a dot on that section's icon, with the alert's words in the entry's accessible name and `data-alert="true"` on the row. Never a count; the server decides.

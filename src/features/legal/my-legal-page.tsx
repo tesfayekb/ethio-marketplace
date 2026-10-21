@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { PageShell } from "@/components/layout/page-shell";
+import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/use-auth";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -49,8 +50,7 @@ export function MyLegalPage() {
           </p>
         ) : (
           <>
-            <section className="space-y-3">
-              <h2 className="text-lg font-semibold">{t("myLegal.accepted")}</h2>
+            <Section title={t("myLegal.accepted")} className="space-y-3">
               {history.data.acceptances.length === 0 ? (
                 <p data-testid="my-legal-no-acceptances" className="text-muted-foreground">
                   {t("myLegal.noAcceptances")}
@@ -90,9 +90,8 @@ export function MyLegalPage() {
                   ))}
                 </ul>
               )}
-            </section>
-            <section className="space-y-3">
-              <h2 className="text-lg font-semibold">{t("myLegal.notices")}</h2>
+            </Section>
+            <Section title={t("myLegal.notices")} className="space-y-3">
               {history.data.notices.length === 0 ? (
                 <p data-testid="my-legal-no-notices" className="text-muted-foreground">
                   {t("myLegal.noNotices")}
@@ -121,7 +120,7 @@ export function MyLegalPage() {
                   })}
                 </ul>
               )}
-            </section>
+            </Section>
           </>
         )}
       </div>

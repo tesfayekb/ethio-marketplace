@@ -17,10 +17,18 @@ export type LegalVersion = {
   signed_in_unaccepted?: number | null;
   created_at: string;
 };
+export type LegalReview = {
+  at: string;
+  kind: "publish" | "review";
+  by_name: string | null;
+  note: string | null;
+  due_at: string | null;
+};
 export type LegalDocument = {
   document_id: string;
   kind: string;
   country_code: string | null;
+  review: LegalReview | null;
   versions: LegalVersion[];
 };
 export type LegalVersionDetail = LegalVersion & {
@@ -56,6 +64,7 @@ export const FACT_KEYS = [
   "claims_limit_months",
   "talk_first_days",
   "complaint_ack_days",
+  "review_months",
 ] as const;
 export type FactKey = (typeof FACT_KEYS)[number];
 export type LegalSettings = LegalFacts & { notice_days: number };
@@ -107,6 +116,7 @@ const refusals: Record<string, MessageKey> = {
   notDraft: "admin.legal.error.notDraft",
   unknownFact: "admin.legal.error.unknownFact",
   factMissing: "admin.legal.error.factMissing",
+  nothingToReview: "admin.legal.error.nothingToReview",
 };
 export function legalErrorKey(error: unknown): MessageKey {
   const message =
@@ -194,6 +204,29 @@ export async function publishLegalVersion(input: {
 export async function setLegalSettings(facts: LegalFacts): Promise<void> {
   const { error } = await supabase.rpc("admin_set_legal_settings", { p_settings: facts });
   if (error) throw error;
+}
+/** Bundle 22 turn 20 (DEC-219) — "Reviewed — no change" for a document, with a note. */
+export async function markLegalReviewed(input: {
+  documentId: string;
+  note: string;
+}): Promise<void> {
+  const { error } = await supabase.rpc("admin_mark_legal_reviewed", {
+    p_document_id: input.documentId,
+    p_note: input.note,
+  });
+  if (error) throw error;
+}
+/** Turn 20 — whether a legal document's review is due (the admin menu's mark); never defaulted. */
+export async function getLegalReviewOverdue(): Promise<boolean> {
+  const { data, error } = await supabase.rpc("legal_review_overdue");
+  if (error) throw error;
+  if (typeof data !== "boolean") throw new Error("legal_review_overdue: invalid answer");
+  return data;
+}
+/** Turn 20 — a document's review state at `now`: none without a due date, overdue once it is reached. */
+export function reviewState(review: LegalReview | null, now: number): "none" | "due" | "overdue" {
+  if (!review || review.due_at === null) return "none";
+  return Date.parse(review.due_at) <= now ? "overdue" : "due";
 }
 export async function getUserLegalHistory(userId: string): Promise<LegalHistory> {
   const { data, error } = await supabase.rpc("admin_user_legal_history", { p_user_id: userId });

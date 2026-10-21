@@ -3,10 +3,12 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import {
   discardLegalDraft,
+  getLegalReviewOverdue,
   getLegalSettings,
   getLegalVersion,
   getUserLegalHistory,
   listLegalDocuments,
+  markLegalReviewed,
   publishLegalVersion,
   saveLegalDraft,
   setLegalSettings,
@@ -59,5 +61,19 @@ export function useLegalWrites() {
       mutationFn: setLegalSettings,
       onSuccess: refresh,
     }),
+    review: useMutation({
+      mutationKey: ADMIN_LEGAL_KEY,
+      mutationFn: markLegalReviewed,
+      onSuccess: refresh,
+    }),
   };
+}
+/** Bundle 22 turn 20 (DEC-219) — the admin menu's mark; under ADMIN_LEGAL_KEY so every legal write re-reads it. */
+export function useLegalReviewOverdue(enabled: boolean) {
+  return useQuery({
+    queryKey: [...ADMIN_LEGAL_KEY, "reviewOverdue"],
+    queryFn: getLegalReviewOverdue,
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
 }

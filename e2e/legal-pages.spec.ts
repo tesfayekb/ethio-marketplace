@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-import { gotoReady } from "./helpers/ui";
+import { gotoReady, switchLanguage } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
@@ -131,7 +131,7 @@ test.describe("Legal public pages", () => {
     await expect(page.getByTestId("legal-public-page")).toBeVisible();
   });
 
-  test("LGP-2 a scratch document's page: meta, contents, frozen facts, Amharic, Print, then the version ahead of its date", async ({
+  test("LGP-2 a scratch document's page: meta, contents, frozen facts, the site's language, then the version ahead of its date", async ({
     page,
   }) => {
     const kind = scratch("b");
@@ -150,9 +150,14 @@ test.describe("Legal public pages", () => {
     await expect(page.getByTestId("legal-public-meta")).toContainText("Version 1 · first");
     await expect(page.getByTestId("legal-toc").getByRole("link")).toHaveCount(2);
     await expect(page.getByTestId("legal-text")).toContainText("frozen@example.invalid");
-    await page.getByTestId("legal-public-lang-am").click();
+    await switchLanguage(page, "am");
     await expect(page.getByTestId("legal-text")).toContainText("Amharic current text");
-    await expect(page.getByTestId("legal-public-print")).toBeVisible();
+    await expect(page.getByTestId("legal-public-print")).toHaveCount(0);
+    await expect(page.getByTestId("legal-public-lang-am")).toHaveCount(0);
+    // Back to English before the next page load, whose date line is read in English; the
+    // language menu closes before it is opened again (a click while it closes is lost).
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await switchLanguage(page, "en");
 
     const effective = new Date(Date.now() + 30 * 86_400_000);
     await seedVersion(documentId, {
@@ -167,7 +172,6 @@ test.describe("Legal public pages", () => {
     await gotoReady(page, `/legal/${kind}`);
     const date = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(effective);
     await expect(page.getByTestId("legal-public-upcoming")).toContainText(date);
-    await page.getByTestId("legal-public-lang-en").click();
     await page.getByTestId("legal-public-show-upcoming").click();
     await expect(page.getByTestId("legal-text")).toContainText("Upcoming English text");
     await page.getByTestId("legal-public-show-current").click();
