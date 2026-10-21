@@ -34,7 +34,15 @@ it.each([null, undefined, [], "text", { om: 42 }])(
   "staff version parser refuses invalid texts %j",
   async (texts) => {
     const rpc = vi.fn().mockResolvedValue({
-      data: { version_id: "e2e-version", kind: "e2e-texts", version: 1, body_en: "en", body_am: "am", settings_snapshot: {}, texts },
+      data: {
+        version_id: "e2e-version",
+        kind: "e2e-texts",
+        version: 1,
+        body_en: "en",
+        body_am: "am",
+        settings_snapshot: {},
+        texts,
+      },
       error: null,
     });
     (supabase as unknown as { rpc: unknown }).rpc = rpc;
