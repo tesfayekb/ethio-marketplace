@@ -33,6 +33,9 @@ export function useAdminCategories() {
     queryKey: [...ADMIN_CATEGORIES_KEY, "list"],
     queryFn: listCategories,
     staleTime: 30_000,
+    // INC-814's class: the console re-reads the roster fresh each time it
+    // opens, so a row removed meanwhile is never sent to the reorder door.
+    refetchOnMount: "always",
   });
 }
 

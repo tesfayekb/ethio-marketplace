@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
@@ -6,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { LocationDialogActions, LocationErrorLine, useLocationError } from "./location-dialogs";
 import { levelRank, type LocationNode } from "./locations-service";
 import {
+  ADMIN_LOCATIONS_KEY,
   useDeleteLocation,
   useMoveLocation,
   useReorderLocations,
