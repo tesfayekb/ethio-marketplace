@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39581997762
-- Commit: `e683cc0f2738fc096607af89ad1b7267d29add53`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39588958890
+- Commit: `db01a7fd088b75c30a57b7466da87e675632604f`
 - Attempt: 1
-- Written (UTC): 2026-10-21T10:21:18.870Z
+- Written (UTC): 2026-10-21T11:17:32.815Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -22,53 +22,53 @@ No warning step ran in this run.
 
 ```text
        8.1 KiB  dist/client/assets/utils-DXalBF5w.js
-       7.7 KiB  dist/client/assets/useQuery-B_qT0Lur.js
-       5.7 KiB  dist/client/assets/Combination-dqokyV7Y.js
-       2.9 KiB  dist/client/assets/link-Bjoey2hj.js
-       2.5 KiB  dist/client/assets/dist-D6CfG40B.js
-       2.4 KiB  dist/client/assets/dist-BGEIaUIY.js
-       2.3 KiB  dist/client/assets/useSelector-C_YmgJVP.js
-       1.8 KiB  dist/client/assets/useMutation-BIDxPAxN.js
-       1.6 KiB  dist/client/assets/dist-C-SjSDJd.js
-       1.5 KiB  dist/client/assets/lazyRouteComponent-CuWlXy97.js
-       1.4 KiB  dist/client/assets/category-tree-BTiV0rbB.js
-       1.3 KiB  dist/client/assets/react-dom-B3orZOK1.js
-       1.1 KiB  dist/client/assets/mfa-service-C7rCjIH1.js
-       1.0 KiB  dist/client/assets/dist-BS0mZhe5.js
-       0.8 KiB  dist/client/assets/post-prefill-DiraP3aB.js
-       0.7 KiB  dist/client/assets/legal-reader-BBini6EF.js
-       0.7 KiB  dist/client/assets/createLucideIcon-C8RRMTIK.js
+       7.7 KiB  dist/client/assets/useQuery-CxFAbXcM.js
+       5.7 KiB  dist/client/assets/Combination-BX5jJN-6.js
+       2.9 KiB  dist/client/assets/link-Vk1ouQf3.js
+       2.5 KiB  dist/client/assets/dist-8OZscRma.js
+       2.4 KiB  dist/client/assets/dist-YtJwCAQJ.js
+       2.3 KiB  dist/client/assets/useSelector-Dl1uomi4.js
+       1.7 KiB  dist/client/assets/useMutation-Vjzo8Nv2.js
+       1.6 KiB  dist/client/assets/dist-DYw4uv7F.js
+       1.5 KiB  dist/client/assets/lazyRouteComponent-5Sx92n0r.js
+       1.4 KiB  dist/client/assets/category-tree-DNPIlsWp.js
+       1.3 KiB  dist/client/assets/react-dom-DR_LbxJG.js
+       1.1 KiB  dist/client/assets/mfa-service-Bms3ePxN.js
+       1.0 KiB  dist/client/assets/dist-DrSBnlwU.js
+       0.8 KiB  dist/client/assets/post-prefill-DqbsJUvO.js
+       0.7 KiB  dist/client/assets/legal-reader-DDswU3PW.js
+       0.7 KiB  dist/client/assets/createLucideIcon-BsMeATGv.js
        0.6 KiB  dist/client/assets/legal-kinds-Dp8JdwOw.js
-       0.5 KiB  dist/client/assets/cut-text-CMRBscGg.js
+       0.5 KiB  dist/client/assets/cut-text-D0LtYeF5.js
        0.4 KiB  dist/client/assets/rolldown-runtime-QTnfLwEv.js
-       0.4 KiB  dist/client/assets/useMatch-Bz8NYX0n.js
-       0.4 KiB  dist/client/assets/dist-CsAj_9aC2.js
-       0.3 KiB  dist/client/assets/package-BFGr4uXn.js
-       0.2 KiB  dist/client/assets/shield-check-8VOn-qxs.js
-       0.2 KiB  dist/client/assets/map-pin-TdjJP7WV.js
+       0.4 KiB  dist/client/assets/useMatch-B5ZNUzEn.js
+       0.4 KiB  dist/client/assets/dist-BRxzimgZ2.js
+       0.3 KiB  dist/client/assets/package-BDSxYVC-.js
+       0.2 KiB  dist/client/assets/shield-check-N--Z-1xf.js
+       0.2 KiB  dist/client/assets/map-pin-Ci9J_Lp2.js
+       0.2 KiB  dist/client/assets/heart-D3fTVRoM.js
+       0.2 KiB  dist/client/assets/useNavigate-qTs2HIr2.js
+       0.2 KiB  dist/client/assets/useRouterState-Cea3xWwZ.js
+       0.2 KiB  dist/client/assets/useSearch-DgB0e1ZZ.js
+       0.2 KiB  dist/client/assets/ellipsis-Wf-Pjs9W.js
+       0.2 KiB  dist/client/assets/useRouter-CNWE4PNO.js
 
 First-paint budget exceeded. Either code-split the addition behind a dynamic import,
 or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states why.
-       0.2 KiB  dist/client/assets/heart-DipqqW1q.js
-       0.2 KiB  dist/client/assets/useNavigate-fgamBQk3.js
-       0.2 KiB  dist/client/assets/useRouterState-Cb3AcaiL.js
-       0.2 KiB  dist/client/assets/useSearch-BQW0p76E.js
-       0.2 KiB  dist/client/assets/ellipsis-IFh50SFp.js
-       0.2 KiB  dist/client/assets/useRouter-CNOK2L6b.js
-       0.1 KiB  dist/client/assets/chevron-right-DkmrbH3Z.js
-       0.1 KiB  dist/client/assets/check-CwvOBFbQ.js
+       0.1 KiB  dist/client/assets/chevron-right-B6kFZruf.js
+       0.1 KiB  dist/client/assets/check-DHuU2kT4.js
        0.1 KiB  dist/client/assets/not-found-i5RsCZif.js
        0.1 KiB  dist/client/assets/own-key-Dmr7B1jV.js
        0.1 KiB  dist/client/assets/refresh-after-write-BCMPRWUC.js
        0.1 KiB  dist/client/assets/query-keys-DQ_pMCo4.js
        0.1 KiB  dist/client/assets/root-DLTE-HSj.js
-JS: 321.9 KiB / 320 KiB — OVER BUDGET
+JS: 320.0 KiB / 320 KiB — OVER BUDGET
 CSS: 20.5 KiB / 40 KiB — ok
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/092cbec1-849b-4fd4-8546-24a1e46e2e0e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/c1ad1d23-5cb7-40e6-ae0c-72b5da0ac4c2' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -100,6 +100,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
@@ -110,10 +113,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39581997762
-  E2E_HEAD_COMMIT_MESSAGE: Added legal review pages
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39588958890
+  E2E_HEAD_COMMIT_MESSAGE: Added fetch payload to bundle 22
 
-X-Lovable-Edit-ID: edt-63b0c6be-a39c-40b3-a299-8350bf58d447
+X-Lovable-Edit-ID: edt-3711805c-857a-4d06-9b3b-c08fe635d8d3
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -127,10 +130,7 @@ ok — R1a a11y never states zero with a gap
 ok — R1b census: all N logs read
 ok — R1b a11y: all N logs read
 Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (14/14 source(s) with usable results, 4 context file(s) found).
-Flake ledger: appended 2 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
-Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 2 already there for this run (INC-495).
-Flake ledger: appended 2 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Wrote docs/tracking/e2e-last-failure.md (14/14 source(s) with usable results, 2 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -147,7 +147,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/a5a3f3bf-10ea-4d4d-a292-d02afc8fa054' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/f33e53f1-6fd5-4167-9275-5c0654fce82c' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
