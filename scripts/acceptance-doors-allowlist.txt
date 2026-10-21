@@ -6,6 +6,7 @@
 accept_legal(uuid[],text,boolean,boolean) | legal | Inserts the caller’s legal_acceptances for in-force versions, including adult and data consent; this is the acceptance door itself
 admin_accept_category_image(uuid) | staff | Writes categories; rejects callers lacking categories:assets before its mutations
 admin_add_category_pointer(uuid,uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
+admin_add_legal_translation(uuid,text,text) | staff | Writes legal_version_texts, audit_log; rejects callers lacking legal:publish before its mutations
 admin_allow_listing_photo(uuid) | staff | Writes listing_photos, listing_photo_reviews, audit_log; rejects callers lacking listings:review before its mutations
 admin_approve_all_entity_translations(text) | staff | Delegates entity_translations approval and revision writes to approve_all_entity_translations_impl; rejects callers lacking translations:approve first
 admin_approve_all_translations(text) | staff | Delegates ui_translations approval and revision writes to approve_all_translations_impl; rejects callers lacking translations:approve first
@@ -40,7 +41,7 @@ admin_retire_category(uuid,uuid) | staff | Writes listings, categories; rejects 
 admin_reveal_listing_contact(uuid,text) | staff | Writes audit_log; rejects callers lacking listings:review before its mutations
 admin_review_photo_change(uuid) | staff | Writes listing_photo_changes, audit_log; rejects callers lacking listings:review before its mutations
 admin_save_entity_translation(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:update before its mutations
-admin_save_legal_draft(text,character,text,text,text,text) | staff | Writes legal_documents, legal_versions, audit_log; rejects callers lacking legal:edit before its mutations
+admin_save_legal_draft(text,character,text,text,text,text,jsonb) | staff | Writes legal_documents, legal_versions, legal_version_texts, audit_log; rejects callers lacking legal:edit before its mutations
 admin_save_translation(text,text,text) | staff | Writes ui_translation_revisions, ui_translations; rejects callers lacking translations:update before its mutations
 admin_set_account_status(uuid,text,text) | staff | Writes profiles; rejects callers lacking profiles:update before its mutations
 admin_set_ai_feature(text,boolean,integer,integer) | staff | Writes ai_features, audit_log; rejects callers lacking services:manage before its mutations
