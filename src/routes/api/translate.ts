@@ -119,7 +119,8 @@ function logRouteError(error: unknown): void {
 
 function fail5xx(error: string, status: number): Response {
   logRouteError(error);
-  return json({ error }, status);
+  // INC-802 — the reply carries a fixed code; the true text stays in the log.
+  return json({ error: "internal error" }, status);
 }
 
 /** Cold-start cache of the provider's supported targets (code + English name). */
