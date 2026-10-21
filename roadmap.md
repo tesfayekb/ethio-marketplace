@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/bundle-22-turn-15j-v3.md (bundle 22 — turn 15j, after the close: the dependency audit green again — vite 8.1.6, launch-editor 2.14.2; INC-800, DEC-213). Next: DEC-211's verdict on proofs #13 and #14 (this turn's), the staff history's reason label (INC-799), then turn 16 (phase 3); then the no-escape turn (D227); the Publish and the one walk of bundle 22; the operator's approval of the Terms and Privacy v2 texts, then their Amharic, import and publish; the banned-items and safety pages after the curator's research; the flake-and-cleanup turn; bundle 23 — the business-name rule (D222) after reserved-names v5.2; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
+The brief in force: docs/governance/briefs/bundle-22-turn-15k.md (bundle 22 — turn 15k, after the close: a server's failure replies a fixed text, the staff history's reason reads its label, the view-session id is a UUID; INC-802, INC-803, INC-804). Next: turn 16 (phase 3); then the no-escape turn (D227); the Publish and the one walk of bundle 22; the operator's approval of the Terms and Privacy v2 texts, then their Amharic, import and publish; the banned-items and safety pages after the curator's research; the flake-and-cleanup turn; bundle 23 — the business-name rule (D222) after reserved-names v5.2; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
