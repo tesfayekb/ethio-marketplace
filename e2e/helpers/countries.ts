@@ -36,7 +36,8 @@ export async function scratchCountryCode(): Promise<string> {
   if (error) throw new Error(`[e2e:l2b] reading the scratch pool failed: ${error.message}`);
   const taken = new Set((data ?? []).map((row) => row.code));
   const free = pool.filter((code) => !taken.has(code));
-  if (free.length === 0) throw new Error(`[e2e:l2b] every user-assigned code in slot ${slot} is taken`);
+  if (free.length === 0)
+    throw new Error(`[e2e:l2b] every user-assigned code in slot ${slot} is taken`);
   const picked = free[Math.floor(Math.random() * free.length)] as string;
   return picked;
 }
