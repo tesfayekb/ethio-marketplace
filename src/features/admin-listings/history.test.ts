@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import type { MessageKey } from "@/i18n";
+
 import am from "@/i18n/locales/am";
 import en from "@/i18n/locales/en";
 
