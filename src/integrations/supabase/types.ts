@@ -1260,6 +1260,55 @@ export type Database = {
           },
         ]
       }
+      legal_reviews: {
+        Row: {
+          document_id: string
+          home_country_code: string | null
+          id: string
+          note: string
+          reviewed_at: string
+          reviewed_by: string | null
+        }
+        Insert: {
+          document_id: string
+          home_country_code?: string | null
+          id?: string
+          note: string
+          reviewed_at?: string
+          reviewed_by?: string | null
+        }
+        Update: {
+          document_id?: string
+          home_country_code?: string | null
+          id?: string
+          note?: string
+          reviewed_at?: string
+          reviewed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_reviews_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "legal_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_reviews_home_country_code_fkey"
+            columns: ["home_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "legal_reviews_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       legal_settings: {
         Row: {
           account_keep_months: number
@@ -1283,6 +1332,7 @@ export type Database = {
           providers: string
           response_days: number
           response_extra_days: number
+          review_months: number
           security_email: string
           sold_visible_days: number
           talk_first_days: number
@@ -1312,6 +1362,7 @@ export type Database = {
           providers?: string
           response_days?: number
           response_extra_days?: number
+          review_months?: number
           security_email?: string
           sold_visible_days?: number
           talk_first_days?: number
@@ -1341,6 +1392,7 @@ export type Database = {
           providers?: string
           response_days?: number
           response_extra_days?: number
+          review_months?: number
           security_email?: string
           sold_visible_days?: number
           talk_first_days?: number
@@ -3878,6 +3930,10 @@ export type Database = {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
+      admin_mark_legal_reviewed: {
+        Args: { p_document_id: string; p_note: string }
+        Returns: Json
+      }
       admin_merge_attributes: {
         Args: { p_sources: string[]; p_target: string }
         Returns: Json
@@ -4754,6 +4810,8 @@ export type Database = {
         Returns: string[]
       }
       legal_publishing_set: { Args: { p_listing_id: string }; Returns: Json }
+      legal_review_due: { Args: { p_document_id: string }; Returns: string }
+      legal_review_overdue: { Args: never; Returns: boolean }
       legal_scheduled: {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
