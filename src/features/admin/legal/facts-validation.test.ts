@@ -12,9 +12,13 @@ const valid = {
   legal_phone: "",
   copyright_agent: "",
   listed_ad_keep_months: "12",
-  account_keep_months: "12",
+  account_keep_months: "120",
   technical_keep_months: "12",
   sold_visible_days: "30",
+  appeal_months: "6",
+  claims_limit_months: "1",
+  talk_first_days: "30",
+  complaint_ack_days: "30",
   liability_limit_usd: "0",
   notice_days: "30",
   response_days: "30",
@@ -33,6 +37,10 @@ it.each([
   ["account_keep_months", 1, 120],
   ["technical_keep_months", 1, 120],
   ["sold_visible_days", 1, 365],
+  ["appeal_months", 1, 24],
+  ["claims_limit_months", 1, 60],
+  ["talk_first_days", 1, 90],
+  ["complaint_ack_days", 1, 90],
 ] as const)("checks both bounds and integrality of %s", (key, min, max) => {
   for (const value of [String(min), String(max)])
     expect(validateLegalFacts({ ...valid, [key]: value })).toEqual({});
@@ -42,6 +50,15 @@ it.each([
       min,
       max,
     });
+});
+it("keeps a closed account's identity at least as long as the claims limit", () => {
+  expect(
+    validateLegalFacts({ ...valid, account_keep_months: "12", claims_limit_months: "24" })
+      .account_keep_months,
+  ).toEqual({ type: "shorterThanClaims", min: 24 });
+  expect(
+    validateLegalFacts({ ...valid, account_keep_months: "24", claims_limit_months: "24" }),
+  ).toEqual({});
 });
 it.each(["legal_email", "privacy_email", "security_email"] as const)(
   "requires an email in %s",

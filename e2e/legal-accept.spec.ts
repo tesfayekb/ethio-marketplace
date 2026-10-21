@@ -136,6 +136,9 @@ test.describe("Legal acceptance", () => {
       "/account",
     );
     await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
+    await expect(page.getByTestId("legal-accept-liability")).toHaveText(
+      "The Terms limit our liability, set a time limit for claims, and make you responsible for your ads and deals, including claims they cause against us. The main points are at the top of the Terms.",
+    );
     await expect(page.getByTestId("legal-accept-doc")).toHaveCount(2);
     const submit = page.getByTestId("legal-accept-submit");
     await expect(submit).toBeDisabled();

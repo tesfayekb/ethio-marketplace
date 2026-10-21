@@ -11,6 +11,10 @@ export const FACT_BOUNDS: Partial<Record<FactKey, readonly [number, number]>> = 
   account_keep_months: [1, 120],
   technical_keep_months: [1, 120],
   sold_visible_days: [1, 365],
+  appeal_months: [1, 24],
+  claims_limit_months: [1, 60],
+  talk_first_days: [1, 90],
+  complaint_ack_days: [1, 90],
 };
 /** Facts that may be empty (sent as "", stored as nothing). */
 export const OPTIONAL_FACTS: readonly FactKey[] = [
@@ -21,7 +25,7 @@ export const OPTIONAL_FACTS: readonly FactKey[] = [
 const EMAIL_FACTS: readonly FactKey[] = ["legal_email", "privacy_email", "security_email"];
 const PHONE = /^\+?[0-9][0-9 ()-]{4,37}[0-9]$/;
 export type FactError = {
-  type: "required" | "badEmail" | "badPhone" | "range" | "tooLong";
+  type: "required" | "badEmail" | "badPhone" | "range" | "tooLong" | "shorterThanClaims";
   min?: number;
   max?: number;
 };
@@ -49,5 +53,9 @@ export function validateLegalFacts(
     else if (value.length > 2000 && !EMAIL_FACTS.includes(key))
       errors[key] = { type: "tooLong", max: 2000 };
   }
+  const accountMonths = Number(ownValue(values, "account_keep_months"));
+  const claimsMonths = Number(ownValue(values, "claims_limit_months"));
+  if (!errors.account_keep_months && !errors.claims_limit_months && accountMonths < claimsMonths)
+    errors.account_keep_months = { type: "shorterThanClaims", min: claimsMonths };
   return errors;
 }

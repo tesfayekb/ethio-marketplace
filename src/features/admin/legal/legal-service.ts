@@ -52,6 +52,10 @@ export const FACT_KEYS = [
   "account_keep_months",
   "technical_keep_months",
   "sold_visible_days",
+  "appeal_months",
+  "claims_limit_months",
+  "talk_first_days",
+  "complaint_ack_days",
 ] as const;
 export type FactKey = (typeof FACT_KEYS)[number];
 export type LegalSettings = LegalFacts & { notice_days: number };

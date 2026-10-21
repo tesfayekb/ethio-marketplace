@@ -206,8 +206,13 @@ test.describe("Admin Legal", () => {
       "dispute_keep_years",
       "account_keep_months",
       "technical_keep_months",
+      "sold_visible_days",
+      "appeal_months",
+      "claims_limit_months",
+      "talk_first_days",
+      "complaint_ack_days",
     ] as const;
-    expect(keys.length, "the facts card shows the 18 facts").toBe(18);
+    expect(keys.length, "the facts card shows the 23 facts").toBe(23);
     const row = truth as unknown as Record<string, unknown>;
     for (const key of keys) {
       const value = row[key];
@@ -354,15 +359,32 @@ test.describe("Admin Legal", () => {
     await page.getByTestId("legal-fact-input-notice_days").fill("400");
     await page.getByTestId("legal-fact-input-legal_phone").fill("abc");
     await page.getByTestId("legal-fact-input-listed_ad_keep_months").fill("0");
+    await page.getByTestId("legal-fact-input-appeal_months").fill("0");
     await page.getByTestId("legal-facts-save").click();
     await expect(page.getByTestId("legal-fact-error-legal_email")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-notice_days")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-legal_phone")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-listed_ad_keep_months")).toBeVisible();
+    await expect(page.getByTestId("legal-fact-error-appeal_months")).toBeVisible();
     expect((await facts()).updated_at).toBe(before.updated_at);
     await page.getByTestId("legal-facts-cancel").click();
     await expect(page.getByTestId("legal-fact-legal_email")).toHaveText(before.legal_email);
     await expect(page.getByTestId("legal-fact-notice_days")).toHaveText(String(before.notice_days));
+    await page.getByTestId("legal-facts-edit").click();
+    await page.getByTestId("legal-fact-input-claims_limit_months").fill("24");
+    await page.getByTestId("legal-fact-input-account_keep_months").fill("12");
+    await page.getByTestId("legal-facts-save").click();
+    await expect(page.getByTestId("legal-fact-error-account_keep_months")).toHaveText(
+      "At least the claims limit: 24 months.",
+    );
+    expect((await facts()).updated_at).toBe(before.updated_at);
+    await page.getByTestId("legal-facts-cancel").click();
+    await expect(page.getByTestId("legal-fact-account_keep_months")).toHaveText(
+      String(before.account_keep_months),
+    );
+    await expect(page.getByTestId("legal-fact-claims_limit_months")).toHaveText(
+      String(before.claims_limit_months),
+    );
   });
   test("LGA-5 version view uses frozen facts, both languages and no editing actions", async ({
     page,
