@@ -1,3 +1,4 @@
+import type { NavAlertId } from "@/config/panels.types";
 import type { MessageKey } from "@/i18n";
 
 /**
@@ -25,6 +26,8 @@ type AdminSectionShape = {
    * sub-item keeps its own gate (law F3 unchanged).
    */
   readonly group?: AdminGroupId;
+  /** Bundle 22 turn 20 (DEC-219) — the menu alert the server raises for this section. */
+  readonly alert?: NavAlertId;
 };
 
 /** The admin nav's groups. Brands and Tags join `categories` when they land. */
@@ -153,6 +156,7 @@ export const ADMIN_SECTIONS = [
     permission: "legal:view",
     titleKey: "admin.section.legal.title",
     bodyKey: "admin.section.legal.body",
+    alert: "legalReview",
   },
   {
     id: "ai",

@@ -4,8 +4,8 @@ import { expect, test } from "./fixtures";
 import { authErrorText } from "./global-setup";
 import { grantRole } from "./helpers/categories";
 import { passwordGrant } from "./helpers/session";
-import { gotoReady, useJobSuperAdmin, switchUser } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
 
 // J1: each kind includes run, worker, project and test axes; no real legal document is written.
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -173,6 +173,45 @@ async function accept(
   });
   if (!response.ok) throw new Error(`[e2e:legal-admin] accept refused: ${await response.text()}`);
 }
+/** Turn 20 — a door called as this person (accept()'s fetch shape); the status and the parsed body. */
+async function rpcAs(
+  person: { email: string; password: string },
+  fn: string,
+  args: Record<string, unknown> = {},
+): Promise<{ status: number; body: unknown }> {
+  const session = await passwordGrant(person.email, person.password);
+  const url = process.env["E2E_SUPABASE_URL"];
+  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
+  if (!url || !key) throw new Error("[e2e:legal-admin] missing staging config");
+  const response = await fetch(`${url}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${session.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
+  });
+  const text = await response.text();
+  return { status: response.status, body: text ? (JSON.parse(text) as unknown) : null };
+}
+async function documentId(kind: string): Promise<string> {
+  const doc = await adminClient().from("legal_documents").select("id").eq("kind", kind).single();
+  fail(doc.error, "document id read");
+  if (!doc.data) throw new Error("[e2e:legal-admin] missing document");
+  return doc.data.id;
+}
+async function dueAt(id: string): Promise<string> {
+  const result = await adminClient().rpc("legal_review_due", { p_document_id: id });
+  fail(result.error, "review due read");
+  if (typeof result.data !== "string") throw new Error("[e2e:legal-admin] no review due date");
+  return result.data;
+}
+async function reviewRows(id: string) {
+  const result = await adminClient().from("legal_reviews").select("*").eq("document_id", id);
+  fail(result.error, "reviews read");
+  return result.data ?? [];
+}
 
 test.describe("Admin Legal", () => {
   test("LGA-1 Legal cards, facts and the permission-gated admin menu", async ({ page }) => {
@@ -211,8 +250,9 @@ test.describe("Admin Legal", () => {
       "claims_limit_months",
       "talk_first_days",
       "complaint_ack_days",
+      "review_months",
     ] as const;
-    expect(keys.length, "the facts card shows the 23 facts").toBe(23);
+    expect(keys.length, "the facts card shows the 24 facts").toBe(24);
     const row = truth as unknown as Record<string, unknown>;
     for (const key of keys) {
       const value = row[key];
@@ -360,14 +400,19 @@ test.describe("Admin Legal", () => {
     await page.getByTestId("legal-fact-input-legal_phone").fill("abc");
     await page.getByTestId("legal-fact-input-listed_ad_keep_months").fill("0");
     await page.getByTestId("legal-fact-input-appeal_months").fill("0");
+    await page.getByTestId("legal-fact-input-review_months").fill("25");
     await page.getByTestId("legal-facts-save").click();
     await expect(page.getByTestId("legal-fact-error-legal_email")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-notice_days")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-legal_phone")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-listed_ad_keep_months")).toBeVisible();
     await expect(page.getByTestId("legal-fact-error-appeal_months")).toBeVisible();
+    await expect(page.getByTestId("legal-fact-error-review_months")).toBeVisible();
     expect((await facts()).updated_at).toBe(before.updated_at);
     await page.getByTestId("legal-facts-cancel").click();
+    await expect(page.getByTestId("legal-fact-review_months")).toHaveText(
+      String(before.review_months),
+    );
     await expect(page.getByTestId("legal-fact-legal_email")).toHaveText(before.legal_email);
     await expect(page.getByTestId("legal-fact-notice_days")).toHaveText(String(before.notice_days));
     await page.getByTestId("legal-facts-edit").click();
@@ -663,5 +708,182 @@ test.describe("Admin Legal", () => {
     const other = page.getByTestId(`legal-doc-${kind2}-global`).getByTestId("legal-in-force");
     await expect(other).toContainText("Accepted by 0");
     await expect(other.getByTestId("legal-signed-in-unaccepted")).toHaveCount(0);
+  });
+  test("LGA-16 a document's review: its publish counts; Reviewed — no change with a note moves the due date and is audited; a blank note sends nothing; the door refuses a person without legal:edit", async ({
+    page,
+  }) => {
+    const kind = scratch("rev");
+    await seed(kind);
+    const id = await documentId(kind);
+    const months = (await facts()).review_months;
+    const published = (await version(kind)).published_at;
+    if (!published) throw new Error("[e2e:legal-admin] seeded version has no publish time");
+    const firstDue = await dueAt(id);
+    const day = 86_400_000;
+    expect(Date.parse(firstDue) - Date.parse(published)).toBeGreaterThanOrEqual(28 * months * day);
+    expect(Date.parse(firstDue) - Date.parse(published)).toBeLessThanOrEqual(
+      (31 * months + 1) * day,
+    );
+    const { user: staff } = await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/legal");
+    const block = page.getByTestId(`legal-doc-${kind}-global`).getByTestId("legal-review");
+    await expect(block).toHaveAttribute("data-state", "due");
+    expect(Date.parse((await block.getAttribute("data-due-at")) ?? "")).toBe(Date.parse(firstDue));
+    await block.getByTestId("legal-review-mark").click();
+    await page.getByTestId("legal-review-save").click();
+    await expect(page.getByTestId("legal-review-error")).toBeVisible();
+    expect(await reviewRows(id)).toHaveLength(0);
+    await page.getByTestId("legal-review-note").fill("LGA-16 read, no change");
+    await page.getByTestId("legal-review-save").click();
+    await expect(page.getByTestId("legal-review-saved")).toBeVisible();
+    const rows = await reviewRows(id);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.note).toBe("LGA-16 read, no change");
+    expect(rows[0]?.reviewed_by).toBe(staff.id);
+    const audit = await adminClient()
+      .from("audit_log")
+      .select("id")
+      .eq("action", "legal.reviewed")
+      .eq("entity_id", id);
+    fail(audit.error, "audit read");
+    expect(audit.data ?? []).toHaveLength(1);
+    const secondDue = await dueAt(id);
+    expect(Date.parse(secondDue)).toBeGreaterThan(Date.parse(firstDue));
+    await expect(block).toContainText("LGA-16 read, no change");
+    await expect
+      .poll(async () => Date.parse((await block.getAttribute("data-due-at")) ?? ""))
+      .toBe(Date.parse(secondDue));
+    const person = await leaseUser();
+    const refused = await rpcAs(person, "admin_mark_legal_reviewed", {
+      p_document_id: id,
+      p_note: "not allowed",
+    });
+    expect(refused.status).toBeGreaterThanOrEqual(400);
+    expect(JSON.stringify(refused.body)).toContain("permission denied");
+    expect(await reviewRows(id)).toHaveLength(1);
+  });
+  test("LGA-17 an overdue review: the card says overdue and the admin menu's Legal entry carries the mark for its own reader; a review clears both; a person without legal:view reads false", async ({
+    page,
+  }) => {
+    const { user: staff } = await useJobSuperAdmin(page);
+    const kind = `e2e-rev-u${staff.id.replace(/-/g, "")}`;
+    await destroy(kind);
+    kinds.add(kind);
+    const real = await adminClient()
+      .from("legal_documents")
+      .select("id, kind")
+      .in("kind", ["terms", "privacy", "publishing"]);
+    fail(real.error, "real documents read");
+    for (const doc of real.data ?? []) {
+      const due = await adminClient().rpc("legal_review_due", { p_document_id: doc.id });
+      fail(due.error, "real review due read");
+      if (typeof due.data === "string" && Date.parse(due.data) <= Date.now())
+        throw new Error(
+          "[e2e:legal-admin] a real legal document is due on this backend; LGA-17 cannot judge the admin menu's mark",
+        );
+    }
+    const doc = await adminClient()
+      .from("legal_documents")
+      .insert({ kind, country_code: null })
+      .select("id")
+      .single();
+    fail(doc.error, "overdue document");
+    if (!doc.data) throw new Error("[e2e:legal-admin] overdue document not seeded");
+    const longAgo = new Date(Date.now() - 25 * 31 * 86_400_000).toISOString();
+    fail(
+      (
+        await adminClient()
+          .from("legal_versions")
+          .insert({
+            document_id: doc.data.id,
+            version: 1,
+            status: "published",
+            label: "first",
+            body_en: "## First\nOverdue English",
+            body_am: "Overdue Amharic",
+            changelog: "First change",
+            material: false,
+            effective_at: longAgo,
+            published_at: longAgo,
+            settings_snapshot: { seed: "true" },
+          })
+      ).error,
+      "overdue version",
+    );
+    const marked = '[data-testid="rail-item-ad-legal"][data-alert="true"]';
+    await gotoReady(page, "/admin/legal");
+    const block = page.getByTestId(`legal-doc-${kind}-global`).getByTestId("legal-review");
+    await expect(block).toHaveAttribute("data-state", "overdue");
+    await expect(block.getByTestId("legal-review-overdue")).toBeVisible();
+    let scope = await openRailScope(page);
+    await expect.poll(() => scope.locator(marked).count()).toBeGreaterThan(0);
+    const rows = scope.locator(marked);
+    for (let i = 0; i < (await rows.count()); i++)
+      await expect(rows.nth(i).getByTestId("rail-alert")).toHaveCount(1);
+    await page.keyboard.press("Escape");
+    expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(true);
+    await block.getByTestId("legal-review-mark").click();
+    await page.getByTestId("legal-review-note").fill("LGA-17 read, no change");
+    await page.getByTestId("legal-review-save").click();
+    await expect(page.getByTestId("legal-review-saved")).toBeVisible();
+    await expect(block).toHaveAttribute("data-state", "due");
+    scope = await openRailScope(page);
+    await expect
+      .poll(() => scope.locator('[data-testid="rail-item-ad-legal"]').count())
+      .toBeGreaterThan(0);
+    await expect(page.locator(marked)).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    expect((await rpcAs(staff, "legal_review_overdue")).body).toBe(false);
+    const person = await leaseUser();
+    expect((await rpcAs(person, "legal_review_overdue")).body).toBe(false);
+  });
+  test("LGA-18 INC-812: the account of someone who published a legal version can be deleted; the version keeps its text and loses only the name", async () => {
+    const person = await createUser({ confirmed: true });
+    const kind = scratch("del");
+    const client = adminClient();
+    const doc = await client
+      .from("legal_documents")
+      .insert({ kind, country_code: null })
+      .select("id")
+      .single();
+    fail(doc.error, "publisher document");
+    if (!doc.data) throw new Error("[e2e:legal-admin] publisher document not seeded");
+    const at = new Date(Date.now() - 60000).toISOString();
+    const inserted = await client
+      .from("legal_versions")
+      .insert({
+        document_id: doc.data.id,
+        version: 1,
+        status: "published",
+        label: "first",
+        body_en: "LGA-18 English",
+        body_am: "LGA-18 Amharic",
+        changelog: "First change",
+        material: false,
+        effective_at: at,
+        published_at: at,
+        published_by: person.id,
+        created_by: person.id,
+        settings_snapshot: { seed: "true" },
+      })
+      .select("id")
+      .single();
+    fail(inserted.error, "publisher version");
+    if (!inserted.data) throw new Error("[e2e:legal-admin] publisher version not seeded");
+    const deleted = await client.auth.admin.deleteUser(person.id);
+    if (deleted.error)
+      throw new Error(`[e2e:legal-admin] deleteUser: ${authErrorText(deleted.error)}`);
+    const after = await client
+      .from("legal_versions")
+      .select("published_by, created_by, status, body_en")
+      .eq("id", inserted.data.id)
+      .single();
+    fail(after.error, "publisher version read-back");
+    expect(after.data).toEqual({
+      published_by: null,
+      created_by: null,
+      status: "published",
+      body_en: "LGA-18 English",
+    });
   });
 });

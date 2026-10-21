@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (k: string) => k, language: "en" }) }));
+const site = vi.hoisted(() => ({ language: "en" as "en" | "am" }));
+vi.mock("@/i18n", () => ({
+  useI18n: () => ({ t: (k: string) => k, language: site.language }),
+}));
 vi.mock("@/components/layout/page-shell", () => ({
   PageShell: ({ children, ...rest }: { children: React.ReactNode }) => (
     <main {...rest}>{children}</main>
@@ -28,8 +31,9 @@ describe("LegalDocumentPage", () => {
     render(<LegalDocumentPage kind="terms" title="T" data={{ inForce: null, scheduled: null }} />);
     expect(screen.getByTestId("legal-public-none")).toHaveTextContent("legal.page.none");
   });
-  it("switches language and between the version in force and the next, with each version's facts", () => {
-    render(
+  it("shows the site's language only and switches between the version in force and the next, with each version's facts", () => {
+    site.language = "en";
+    const page = () => (
       <LegalDocumentPage
         kind="e2e-x"
         title="T"
@@ -49,14 +53,20 @@ describe("LegalDocumentPage", () => {
             "2026-11-01T00:00:00Z",
           ),
         }}
-      />,
+      />
     );
+    const { rerender } = render(page());
     const text = () => screen.getByTestId("legal-text").textContent;
     expect(text()).toContain("One a@example.invalid");
     expect(screen.getByTestId("legal-public-upcoming")).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("legal-public-lang-am"));
+    site.language = "am";
+    rerender(page());
     expect(text()).toContain("Amharic one");
-    fireEvent.click(screen.getByTestId("legal-public-lang-en"));
+    expect(screen.queryByTestId("legal-public-lang-am")).toBeNull();
+    expect(screen.queryByTestId("legal-public-lang-en")).toBeNull();
+    expect(screen.queryByTestId("legal-public-print")).toBeNull();
+    site.language = "en";
+    rerender(page());
     fireEvent.click(screen.getByTestId("legal-public-show-upcoming"));
     expect(text()).toContain("Two b@example.invalid");
     fireEvent.click(screen.getByTestId("legal-public-show-current"));

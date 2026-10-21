@@ -12,6 +12,9 @@ export type PanelId = "marketplace" | "my-listings" | "account" | "admin";
  */
 export type Permission = string;
 
+/** Bundle 22 turn 20 (DEC-219) — the admin menu's alerts. */
+export type NavAlertId = "legalReview";
+
 export interface NavItem {
   id: string;
   labelKey: MessageKey;
@@ -48,6 +51,10 @@ export interface NavItem {
    * never be mistaken for a section item.
    */
   testid?: string;
+  /**
+   * A section the server says needs attention: the rail draws a dot on its icon and adds the alert's words to its accessible name. Never a count.
+   */
+  alert?: NavAlertId;
 }
 
 export interface Panel {

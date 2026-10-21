@@ -1,7 +1,7 @@
 import { expect, test } from "./fixtures";
 
 import { passwordGrant } from "./helpers/session";
-import { gotoReady, signInViaSession } from "./helpers/ui";
+import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -157,7 +157,7 @@ test.describe("My legal documents", () => {
     await expect(notices).toContainText("sent");
   });
 
-  test("LGH-2 one version: frozen facts, language switch, Print, Back; a version not his is not found", async ({
+  test("LGH-2 one version: frozen facts, the site's language, Back; a version not his is not found", async ({
     page,
   }) => {
     const tag = tagOf("b");
@@ -172,10 +172,13 @@ test.describe("My legal documents", () => {
     await expect(page).toHaveURL(new RegExp(`/account/legal/${termsId}$`));
     await expect(page.getByTestId("my-legal-version")).toBeVisible();
     await expect(page.getByTestId("legal-text")).toContainText("frozen-history@example.invalid");
-    await page.getByTestId("my-legal-lang-am").click();
+    await switchLanguage(page, "am");
     await expect(page.getByTestId("legal-text")).toContainText("Amharic history text");
-    await page.getByTestId("my-legal-lang-en").click();
-    await expect(page.getByTestId("my-legal-print")).toBeVisible();
+    // The language menu closes before it is opened again (a click while it closes is lost).
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await switchLanguage(page, "en");
+    await expect(page.getByTestId("my-legal-print")).toHaveCount(0);
+    await expect(page.getByTestId("my-legal-lang-am")).toHaveCount(0);
     await page.getByTestId("my-legal-back").click();
     await expect(page).toHaveURL(/\/account\/legal$/);
     await expect(page.getByTestId("my-legal-page")).toBeVisible();

@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useShell } from "@/components/shell-context";
@@ -79,124 +80,127 @@ export function LegalAcceptScreen({
   if (nothingToAccept) return null;
   return (
     <PageShell as="main" width="wide" data-testid="legal-accept-screen">
-      <div className="mx-auto w-full max-w-2xl min-w-0 space-y-4">
-        <h1 className="text-2xl font-semibold text-foreground">{t("legal.accept.title")}</h1>
-        <p>{t("legal.accept.lead")}</p>
-        <p data-testid="legal-accept-liability" className="text-sm text-muted-foreground">
-          {t("legal.accept.liabilityLimits")}
-        </p>
-        {status.isPending ? (
-          <p role="status">{t("common.loading")}</p>
-        ) : status.error ? (
-          <div data-testid="legal-accept-load-error" className="space-y-2">
-            <p role="alert" className="text-destructive">
-              {t("legal.accept.loadError")}
-            </p>
-            <Button variant="outline" className="min-h-11" onClick={() => void status.refetch()}>
-              {t("common.tryAgain")}
-            </Button>
-          </div>
-        ) : (
-          <>
-            <ul className="space-y-3">
-              {rows.map((row) => (
-                <li
-                  key={row.version_id}
-                  data-testid="legal-accept-doc"
-                  data-kind={row.kind}
-                  className="min-w-0 space-y-2"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="break-words font-medium">{legalDocName(row, t, language)}</p>
-                      <p className="break-words text-sm text-muted-foreground">
-                        {t("legal.accept.version")
-                          .replace("{n}", String(row.version))
-                          .replace("{label}", row.label)}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="min-h-11"
-                      data-testid="legal-accept-read"
-                      aria-expanded={Boolean(open[row.version_id])}
-                      onClick={() =>
-                        setOpen((prev) => ({ ...prev, [row.version_id]: !prev[row.version_id] }))
-                      }
-                    >
-                      {open[row.version_id] ? t("legal.accept.hide") : t("legal.accept.read")}
-                    </Button>
-                  </div>
-                  {open[row.version_id] ? <DocText id={row.version_id} /> : null}
-                </li>
-              ))}
-            </ul>
-            <label className="flex min-h-11 items-start gap-3">
-              <Checkbox
-                data-testid="legal-accept-tick"
-                checked={agreed}
-                onCheckedChange={(value) => setAgreed(value === true)}
-                className="mt-1"
-              />
-              <span>
-                {t(
-                  tickKey(
-                    rows.map((row) => legalRole(row.kind)),
-                    firstTime,
-                  ),
-                )}
-              </span>
-            </label>
-            {error ? (
-              <p role="alert" data-testid="legal-accept-error" className="text-destructive">
-                {t(error)}
+      <div className="mx-auto w-full max-w-2xl min-w-0">
+        {/* Bundle 22 turn 20 (C9) — one card holding the whole screen, as the sign-in card does. */}
+        <PageCard className="space-y-4">
+          <h1 className="text-2xl font-semibold text-foreground">{t("legal.accept.title")}</h1>
+          <p>{t("legal.accept.lead")}</p>
+          <p data-testid="legal-accept-liability" className="text-sm text-muted-foreground">
+            {t("legal.accept.liabilityLimits")}
+          </p>
+          {status.isPending ? (
+            <p role="status">{t("common.loading")}</p>
+          ) : status.error ? (
+            <div data-testid="legal-accept-load-error" className="space-y-2">
+              <p role="alert" className="text-destructive">
+                {t("legal.accept.loadError")}
               </p>
-            ) : null}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                data-testid="legal-accept-submit"
-                className="min-h-11"
-                disabled={!ready}
-                onClick={() => {
-                  setBusy(true);
-                  setError(null);
-                  acceptLegal({
-                    versionIds: rows.map((row) => row.version_id),
-                    language,
-                    adult: firstTime,
-                    dataConsent: false,
-                  })
-                    .then(async () => {
-                      client.setQueryData(key, []);
-                      await refreshAfterWrite(client, { queryKey: key });
-                      leave();
-                    })
-                    .catch(async (failure: unknown) => {
-                      console.error("[client-error] accept_legal", legalRefusal(failure));
-                      if (legalRefusal(failure) === "notInForce") {
-                        setAgreed(false);
-                        setError("legal.accept.changed");
-                        await status.refetch();
-                      } else setError("legal.accept.error");
-                    })
-                    .finally(() => setBusy(false));
-                }}
-              >
-                {t("legal.accept.submit")}
-              </Button>
-              <Button
-                variant="outline"
-                className="min-h-11"
-                data-testid="legal-accept-signout"
-                onClick={requestSignOut}
-              >
-                {t("legal.accept.decline")}
+              <Button variant="outline" className="min-h-11" onClick={() => void status.refetch()}>
+                {t("common.tryAgain")}
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">{t("legal.accept.note")}</p>
-          </>
-        )}
+          ) : (
+            <>
+              <ul className="space-y-3">
+                {rows.map((row) => (
+                  <li
+                    key={row.version_id}
+                    data-testid="legal-accept-doc"
+                    data-kind={row.kind}
+                    className="min-w-0 space-y-2"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="break-words font-medium">{legalDocName(row, t, language)}</p>
+                        <p className="break-words text-sm text-muted-foreground">
+                          {t("legal.accept.version")
+                            .replace("{n}", String(row.version))
+                            .replace("{label}", row.label)}
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="min-h-11"
+                        data-testid="legal-accept-read"
+                        aria-expanded={Boolean(open[row.version_id])}
+                        onClick={() =>
+                          setOpen((prev) => ({ ...prev, [row.version_id]: !prev[row.version_id] }))
+                        }
+                      >
+                        {open[row.version_id] ? t("legal.accept.hide") : t("legal.accept.read")}
+                      </Button>
+                    </div>
+                    {open[row.version_id] ? <DocText id={row.version_id} /> : null}
+                  </li>
+                ))}
+              </ul>
+              <label className="flex min-h-11 items-start gap-3">
+                <Checkbox
+                  data-testid="legal-accept-tick"
+                  checked={agreed}
+                  onCheckedChange={(value) => setAgreed(value === true)}
+                  className="mt-1"
+                />
+                <span>
+                  {t(
+                    tickKey(
+                      rows.map((row) => legalRole(row.kind)),
+                      firstTime,
+                    ),
+                  )}
+                </span>
+              </label>
+              {error ? (
+                <p role="alert" data-testid="legal-accept-error" className="text-destructive">
+                  {t(error)}
+                </p>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  data-testid="legal-accept-submit"
+                  className="min-h-11"
+                  disabled={!ready}
+                  onClick={() => {
+                    setBusy(true);
+                    setError(null);
+                    acceptLegal({
+                      versionIds: rows.map((row) => row.version_id),
+                      language,
+                      adult: firstTime,
+                      dataConsent: false,
+                    })
+                      .then(async () => {
+                        client.setQueryData(key, []);
+                        await refreshAfterWrite(client, { queryKey: key });
+                        leave();
+                      })
+                      .catch(async (failure: unknown) => {
+                        console.error("[client-error] accept_legal", legalRefusal(failure));
+                        if (legalRefusal(failure) === "notInForce") {
+                          setAgreed(false);
+                          setError("legal.accept.changed");
+                          await status.refetch();
+                        } else setError("legal.accept.error");
+                      })
+                      .finally(() => setBusy(false));
+                  }}
+                >
+                  {t("legal.accept.submit")}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="min-h-11"
+                  data-testid="legal-accept-signout"
+                  onClick={requestSignOut}
+                >
+                  {t("legal.accept.decline")}
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">{t("legal.accept.note")}</p>
+            </>
+          )}
+        </PageCard>
       </div>
     </PageShell>
   );

@@ -38,6 +38,7 @@ import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
+import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
 
 /** FIX-SCAN-1 ISSUE 4 — the glyph map now lives in category-glyphs.ts, the one
  *  allowlist the server suggester validates against; re-exported here so the
@@ -201,7 +202,8 @@ type RailNode = {
   /** C3-UX-2 — a group that renders expanded on its first frame. */
   defaultOpen?: boolean;
   /** A visual cluster with always-present sub-items; its header may own a page. */
-  group?: boolean;
+  group?: boolean; /** Bundle 22 turn 20 (DEC-219) — the server says this section needs attention: a dot on its icon. */
+  alert?: boolean;
 };
 
 /**
@@ -239,13 +241,22 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const inner = (
     <>
       {Icon ? (
-        node.favourite ? (
+        node.favourite || node.alert ? (
           <span className={cn("relative shrink-0", compact ? "h-6 w-6" : "h-5 w-5")}>
             <Icon className="h-full w-full" aria-hidden="true" />
-            <Star
-              className="absolute -end-1 -top-1 h-3 w-3 fill-gold text-gold"
-              aria-hidden="true"
-            />
+            {node.favourite ? (
+              <Star
+                className="absolute -end-1 -top-1 h-3 w-3 fill-gold text-gold"
+                aria-hidden="true"
+              />
+            ) : null}
+            {node.alert ? (
+              <span
+                aria-hidden="true"
+                data-testid="rail-alert"
+                className="absolute -end-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive"
+              />
+            ) : null}
           </span>
         ) : (
           <Icon className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")} aria-hidden="true" />
@@ -266,6 +277,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       >
         <span
           data-testid={testid}
+          data-alert={node.alert ? "true" : undefined}
           aria-label={node.accessibleLabel ?? node.label}
           aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
           style={pad}
@@ -311,6 +323,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             to={node.path}
             onClick={node.onSelect}
             data-testid={testid}
+            data-alert={node.alert ? "true" : undefined}
             aria-label={node.accessibleLabel ?? node.label}
             aria-current={node.active ? "page" : containsActive(node) ? "true" : undefined}
             style={pad}
@@ -321,6 +334,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         ) : (
           <div
             data-testid={testid}
+            data-alert={node.alert ? "true" : undefined}
             aria-label={node.accessibleLabel ?? node.label}
             aria-current={containsActive(node) ? "true" : undefined}
             style={pad}
@@ -419,6 +433,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             preload={node.preload}
             onClick={node.onSelect}
             data-testid={testid}
+            data-alert={node.alert ? "true" : undefined}
             aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
             aria-label={node.accessibleLabel ?? node.label}
             style={pad}
@@ -454,6 +469,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             type="button"
             onClick={node.onSelect}
             data-testid={testid}
+            data-alert={node.alert ? "true" : undefined}
             aria-current={node.active ? "true" : undefined}
             aria-label={node.accessibleLabel ?? node.label}
             style={pad}
@@ -482,6 +498,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         <span
           style={pad}
           data-testid={testid}
+          data-alert={node.alert ? "true" : undefined}
           className={cn(itemBase, "text-muted-foreground", compactClass)}
           aria-disabled="true"
           aria-label={node.accessibleLabel ?? node.label}
@@ -656,6 +673,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   const hide = useHide();
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
+  const alerts = useNavAlerts(activePanel === "admin", auth.permissions);
   const items = visibleItems(PANELS[activePanel].items, auth).filter(
     (item) => !compact || item.id !== "post-entry",
   );
@@ -684,6 +702,12 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     key: item.id,
     testid: item.testid ?? `rail-item-${item.id}`,
     label: t(item.labelKey),
+    ...(item.alert && alerts.has(item.alert)
+      ? {
+          alert: true,
+          accessibleLabel: `${t(item.labelKey)} — ${t(NAV_ALERT_LABELS[item.alert])}`,
+        }
+      : {}),
     icon: item.icon,
     path: item.path,
     hash: item.hash,

@@ -10,9 +10,11 @@ import {
   legalErrorName,
   legalFileName,
   lineDiff,
+  reviewState,
   validDocument,
   versionStatus,
   type AcceptanceExportRow,
+  type LegalReview,
   type LegalVersion,
 } from "./legal-service";
 it.each([
@@ -33,7 +35,7 @@ it("maps the publish fact refusals and reads the fact they name", () => {
   expect(legalErrorName({ message: "factMissing:legal_phone" })).toBe("legal_phone");
   expect(legalErrorName({ message: "notDraft" })).toBe("");
 });
-it("lists the 23 facts in order, without providers", () => {
+it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([
     "operator_name",
     "operator_details",
@@ -58,7 +60,23 @@ it("lists the 23 facts in order, without providers", () => {
     "claims_limit_months",
     "talk_first_days",
     "complaint_ack_days",
+    "review_months",
   ]);
+});
+const NOW = Date.parse("2026-10-21T09:00:00Z");
+const review = (due_at: string | null): LegalReview => ({
+  at: "2026-04-21T09:00:00Z",
+  kind: "publish",
+  by_name: null,
+  note: null,
+  due_at,
+});
+it("reads a document's review state", () => {
+  expect(reviewState(null, NOW)).toBe("none");
+  expect(reviewState(review(null), NOW)).toBe("none");
+  expect(reviewState(review(new Date(NOW + 60_000).toISOString()), NOW)).toBe("due");
+  expect(reviewState(review(new Date(NOW).toISOString()), NOW)).toBe("overdue");
+  expect(reviewState(review(new Date(NOW - 86_400_000).toISOString()), NOW)).toBe("overdue");
 });
 it("maps all other failures to the generic sentence", () => {
   expect(legalErrorKey({ message: "permission denied" })).toBe("admin.legal.error.generic");
