@@ -1,6 +1,7 @@
 export {
   I18nProvider,
   useI18n,
+  useAdminStrings,
   LANGUAGE_STORAGE_KEY,
   LANGUAGE_STAR_STORAGE_KEY,
   LANGUAGE_STAR_COOKIE,

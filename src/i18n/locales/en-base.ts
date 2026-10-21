@@ -1,4 +1,3 @@
-
 export const enBase = {
   "app.name": "ethio.com",
   "app.tagline": "Buy and sell",

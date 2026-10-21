@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 528,
+  "scanned": 532,
   "dynamicCallSites": 395,
   "keys": {
     "account.deactivatedBanner": [
@@ -4525,6 +4525,9 @@
       "/auth",
       "/settings"
     ],
+    "auth.errorGeneric": [
+      "/admin"
+    ],
     "auth.forgotPassword": [
       "/auth"
     ],
@@ -4761,6 +4764,7 @@
     ],
     "common.tryAgain": [
       "(every page)",
+      "/admin",
       "/admin/listings/$listingId/edit",
       "/legal/accept",
       "/my-listings",

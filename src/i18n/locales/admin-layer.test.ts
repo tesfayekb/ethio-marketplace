@@ -3,6 +3,8 @@ import { dirname, join, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { en } from "./en";
+
 /**
  * DEC-231 (bundle 22 turn 22) — THE ADMIN-LAYER JUDGE.
  *
@@ -170,7 +172,7 @@ function judge(): { mayMove: string[]; mustStay: Map<string, string[]> } {
   const c = census();
   const mayMove: string[] = [];
   const mustStay = new Map<string, string[]>();
-  for (const key of catalogueKeys("en.ts")) {
+  for (const key of Object.keys(en)) {
     if (!key.startsWith("admin.")) continue;
     // admin.loading is the gate's own waiting line: the gate renders it
     // before the admin strings arrive, so it stays in the base part.
@@ -205,7 +207,7 @@ describe("the admin strings layer (DEC-231)", () => {
     expect(violations).toEqual([]);
   });
 
-  it('holds only admin.* keys in enAdmin', () => {
+  it("holds only admin.* keys in enAdmin", () => {
     const misplaced = catalogueKeys("en-admin.ts").filter((key) => !key.startsWith("admin."));
     expect(misplaced).toEqual([]);
   });
@@ -219,7 +221,7 @@ describe("the admin strings layer (DEC-231)", () => {
     const admin = catalogueKeys("en-admin.ts");
     const shared = base.filter((key) => admin.includes(key));
     expect(shared).toEqual([]);
-    expect([...base, ...admin].sort()).toEqual(catalogueKeys("en.ts").sort());
+    expect([...base, ...admin].sort()).toEqual(Object.keys(en).sort());
   });
 
   it("mirrors the split in Amharic", () => {

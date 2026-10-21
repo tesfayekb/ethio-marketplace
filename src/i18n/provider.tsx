@@ -13,11 +13,20 @@ import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/a
 import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
 
+import { errorText } from "@/lib/error-text";
+
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
-import { en } from "./locales/en";
-import { compiledCatalogLoader } from "./compiled-catalog";
+import { enBase } from "./locales/en-base";
+import { compiledAdminLoader, compiledCatalogLoader } from "./compiled-catalog";
 import { type Language, type MessageKey, type Messages } from "./types";
+
+/**
+ * DEC-231 — the English FIRST-PAINT part, typed as the full catalog so the
+ * provider's state and fallback chain keep their shape. The admin.* keys are
+ * undefined until the admin gate's layer loads; the gate waits for them (E4).
+ */
+const enFirstPaint = enBase as unknown as Messages;
 
 export const LANGUAGE_STORAGE_KEY = "ethio.lang";
 
@@ -203,6 +212,10 @@ type I18nValue = {
   star: string | null;
   /** U4h — star a language: it becomes the device default AND the active language. */
   setStar: (code: Language) => void;
+  /** DEC-231 — the admin strings layer: idle until the admin gate asks for it. */
+  adminStrings: "idle" | "loading" | "ready" | "failed";
+  /** DEC-231 — ask for the admin strings layer; also the retry after a failure. */
+  requestAdminStrings: () => void;
 };
 
 const I18nContext = createContext<I18nValue | null>(null);
@@ -261,7 +274,16 @@ function useAuthIdentity(): { settled: boolean; userId: string | null } {
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(BASE_LANGUAGE);
-  const [messages, setMessages] = useState<Messages>(en);
+  const [messages, setMessages] = useState<Messages>(enFirstPaint);
+  // DEC-231 — the admin strings layer loads only when the admin gate asks
+  // (useAdminStrings). adminRequest is the retry counter: each request, first
+  // or repeated, re-runs the load effect.
+  const [adminStrings, setAdminStrings] = useState<"idle" | "loading" | "ready" | "failed">("idle");
+  const [adminRequest, setAdminRequest] = useState(0);
+  const requestAdminStrings = useCallback(() => {
+    setAdminRequest((n) => n + 1);
+    setAdminStrings((current) => (current === "ready" ? current : "loading"));
+  }, []);
   // U4d — entity names for the active language. Identity is stable while the
   // language is unchanged and the fetch is pending (INC-090 identity law).
   const [entities, setEntities] = useState<EntityBundle>(EMPTY_ENTITY_BUNDLE);
@@ -480,23 +502,36 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [gateReady, bootRead, isPublic, language, star]);
 
-  // Load the active locale only.
+  // Load the active locale only; the admin layer joins it once the gate asks.
   useEffect(() => {
     let cancelled = false;
+    const wantAdmin = adminRequest > 0;
 
     /**
      * D3 runtime flip (U4b), corrected by INC-095: the DB bundle is an OVERLAY
      * on the compiled ACTIVE catalog, never a replacement. The chain is
      * additive and applied lowest-first:
      *
-     *   compiled.en  ▸  compiled[lang]  ▸  DB[lang]
+     *   en-base  ▸  en-admin  ▸  compiled[lang]  ▸  compiled[lang]-admin  ▸  DB[lang]
      *
-     * so an empty, partial or failing bundle is INVISIBLE: the compiled active
-     * catalog still answers every key, and compiled English is the last resort.
+     * (DEC-231: the two admin layers enter the chain only once the admin gate
+     * asked for them; until then the first paint is en-base ▸ compiled[lang]
+     * ▸ DB[lang]) so an empty, partial or failing bundle is INVISIBLE: the
+     * compiled active catalog still answers every key, and compiled English
+     * is the last resort.
      */
-    const applyWithBundle = (compiled: Partial<Messages>) => {
+    const applyWithBundle = (
+      compiled: Partial<Messages>,
+      enAdmin: Partial<Messages> | null,
+      langAdmin: Partial<Messages> | null,
+    ) => {
       if (cancelled) return;
-      const base = { ...en, ...compiled } as Messages;
+      const base = {
+        ...enFirstPaint,
+        ...(enAdmin ?? {}),
+        ...compiled,
+        ...(langAdmin ?? {}),
+      } as Messages;
       setMessages(base);
       // Same settle rule as the gate/entity reads (INC-101b): the compiled
       // catalog answers every key meanwhile, so the wait is invisible.
@@ -511,30 +546,48 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       });
     };
 
-    if (language === BASE_LANGUAGE) {
-      applyWithBundle(en);
-      return () => {
-        cancelled = true;
-      };
-    }
-    // INC-107 — a missing compiled layer is empty, not fatal: a published,
-    // DB-only language loads compiled.en underneath and DB[lang] on top.
-    const loader = compiledCatalogLoader(language);
-    if (!loader) {
-      if (!warnedMissingRef.current.has(language)) {
-        warnedMissingRef.current.add(language);
-        console.warn(`[i18n] no compiled catalog for ${language}; DB-only`);
+    const run = async () => {
+      // The compiled base layer for the active language (English is en-base).
+      let compiled: Partial<Messages> = {};
+      if (language !== BASE_LANGUAGE) {
+        // INC-107 — a missing compiled layer is empty, not fatal: a published,
+        // DB-only language loads the English first-paint part underneath and
+        // DB[lang] on top.
+        const loader = compiledCatalogLoader(language);
+        if (!loader) {
+          if (!warnedMissingRef.current.has(language)) {
+            warnedMissingRef.current.add(language);
+            console.warn(`[i18n] no compiled catalog for ${language}; DB-only`);
+          }
+        } else {
+          compiled = await loader();
+        }
       }
-      applyWithBundle(en);
-      return () => {
-        cancelled = true;
-      };
-    }
-    void loader().then(applyWithBundle);
+      if (cancelled) return;
+      if (!wantAdmin) {
+        applyWithBundle(compiled, null, null);
+        return;
+      }
+      try {
+        const enAdminLoader = compiledAdminLoader(BASE_LANGUAGE);
+        const enAdmin = enAdminLoader ? await enAdminLoader() : {};
+        const langAdminLoader =
+          language === BASE_LANGUAGE ? undefined : compiledAdminLoader(language);
+        const langAdmin = langAdminLoader ? await langAdminLoader() : null;
+        applyWithBundle(compiled, enAdmin, langAdmin);
+        if (!cancelled) setAdminStrings("ready");
+      } catch (reason) {
+        // F4 — never silent, never blank: the base messages still apply.
+        console.error(`[i18n] admin strings for ${language} failed: ${errorText(reason)}`);
+        applyWithBundle(compiled, null, null);
+        if (!cancelled) setAdminStrings((current) => (current === "ready" ? current : "failed"));
+      }
+    };
+    void run();
     return () => {
       cancelled = true;
     };
-  }, [language, authSettled]);
+  }, [language, authSettled, adminRequest]);
 
   // U4h — `lang` AND `dir` follow the active language; direction comes from the
   // gate row, so a future RTL language needs no code change here. The server
@@ -564,13 +617,25 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({
       language,
       setLanguage,
-      t: (key: MessageKey) => messages[key] ?? en[key],
+      t: (key: MessageKey) => messages[key] ?? enFirstPaint[key],
       entities,
       publicLanguages,
       star,
       setStar,
+      adminStrings,
+      requestAdminStrings,
     }),
-    [language, setLanguage, messages, entities, publicLanguages, star, setStar],
+    [
+      language,
+      setLanguage,
+      messages,
+      entities,
+      publicLanguages,
+      star,
+      setStar,
+      adminStrings,
+      requestAdminStrings,
+    ],
   );
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -580,4 +645,21 @@ export function useI18n(): I18nValue {
   const ctx = useContext(I18nContext);
   if (!ctx) throw new Error("useI18n must be used within <I18nProvider>");
   return ctx;
+}
+
+/**
+ * DEC-231 — the admin gate's ask for the admin strings layer: requests it
+ * once on mount and reports where the load stands. retry asks again.
+ */
+export function useAdminStrings(): {
+  state: "idle" | "loading" | "ready" | "failed";
+  retry: () => void;
+} {
+  const ctx = useContext(I18nContext);
+  if (!ctx) throw new Error("useAdminStrings must be used within <I18nProvider>");
+  const { adminStrings, requestAdminStrings } = ctx;
+  useEffect(() => {
+    requestAdminStrings();
+  }, [requestAdminStrings]);
+  return { state: adminStrings, retry: requestAdminStrings };
 }

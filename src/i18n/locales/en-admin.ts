@@ -1,4 +1,3 @@
-
 export const enAdmin = {
   "admin.title": "Admin",
   "admin.body": "Staff tools land here as each admin feature ships.",

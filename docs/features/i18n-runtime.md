@@ -65,3 +65,7 @@ The header uses logical properties only (`ps-*`, `pe-*`), per law C5.
 ## The compiled-catalog lookup reads own keys only (Bundle 7 Part H1)
 
 `compiledCatalogLoader(code)` (src/i18n/compiled-catalog.ts) answers a loader only for a code that is one of the registry's own keys; a code naming an inherited member (`toString`, `valueOf`) answers undefined, so the provider takes the "no compiled catalog" branch and the gate falls back to the base language. Lookups by an outside key elsewhere read through `ownValue` (src/lib/own-key.ts). Proven by src/test/own-key-sites.test.ts and IB-3 (e2e/i18n-bundle.spec.ts).
+
+## The admin strings layer (DEC-231, bundle 22 turn 22)
+
+The English and Amharic catalogues are each two files. en-base.ts / am-base.ts hold every key a visitor's page can show and ride in the first paint; en-admin.ts / am-admin.ts hold the admin.\* keys that only admin-only files use, and load when the admin gate asks (useAdminStrings) — the gate shows its waiting line until they are in, and an error line with Try again if they fail. en.ts / am.ts join both for tests, scripts and the strings console's sync. src/i18n/locales/admin-layer.test.ts decides which keys may live in the admin layer; the marketplace weight guard keeps the joins and the admin parts off the first paint. Measured at the split: the first paint 320.0 → 296.8 KiB.
