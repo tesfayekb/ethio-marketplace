@@ -25,7 +25,14 @@ import { useI18n, type MessageKey } from "@/i18n";
 
 import en from "@/i18n/locales/en";
 
-import { changesOf, GROUP_LABEL, groupOf, reasonLabel, summarize, type FieldGroup } from "./history";
+import {
+  changesOf,
+  GROUP_LABEL,
+  groupOf,
+  reasonLabel,
+  summarize,
+  type FieldGroup,
+} from "./history";
 import { ListingPhotos } from "./listing-photos";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";

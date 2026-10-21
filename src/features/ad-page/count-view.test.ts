@@ -20,7 +20,9 @@ describe("view session counting (turn 23)", () => {
     expect(sessionStorage.getItem("ethio.viewSession")).toBeNull();
     await countView(ID);
     const created = sessionStorage.getItem("ethio.viewSession");
-    expect(created).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(created).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
     expect(lastBody()).toEqual({ publicId: ID, session: created });
     await countView(ID);
     expect(lastBody()).toEqual({ publicId: ID, session: created });
