@@ -424,11 +424,17 @@ jobs:
             exit "$parity_result"
           fi
       # DEC-215 / D227: every signed-in write door checks acceptance or names its reason.
-      - name: Acceptance-doors guard (DEC-215)
+      - name: Acceptance-doors guard (DEC-215, DEC-216)
         if: matrix.lane == 'smoke'
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'legal_acceptance_pending\(|legal_certify\(' as checks from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/acceptance-doors.tsv"
           bun scripts/check-acceptance-doors.ts "$RUNNER_TEMP/acceptance-doors.tsv"
+          guard_count=$(docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -Atc "select count(*) from pg_trigger where tgname = 'acceptance_guard' and not tgisinternal and tgenabled = 'O' and tgrelid in ('public.listings'::regclass, 'public.listing_photos'::regclass, 'public.profiles'::regclass)")
+          echo "$guard_count"
+          if [ "$guard_count" != 3 ]; then
+            echo "::error::the acceptance_guard triggers are not all there (DEC-216)"
+            exit 1
+          fi
       - name: Build E2E app against local backend
         id: build
         run: |

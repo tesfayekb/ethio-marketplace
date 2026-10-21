@@ -1,3 +1,5 @@
 e2e_acceptance_unchecked()	v	f
+e2e_acceptance_guarded()	v	f
 
 e2e_acceptance_absent() | helper | An absent fixture function, intentionally stale.
+e2e_acceptance_guarded() | guarded | DEC-216 without a test id, intentionally invalid.
