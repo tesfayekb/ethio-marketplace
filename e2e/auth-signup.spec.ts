@@ -255,7 +255,11 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       await page.getByTestId("auth-toggle-view").click();
       await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
       await fillUntilStable(page.locator("#auth-password"), password, "password");
-      await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
+      await fillUntilStable(
+        page.locator("#auth-password-confirm"),
+        password,
+        "password confirmation",
+      );
       await page
         .getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") })
         .click();

@@ -90,7 +90,15 @@ type Scratch = {
   photoListings: { sellerId: string; listingId: string }[];
 };
 function scratch(): Scratch {
-  return { sellers: [], categories: [], listings: [], documents: [], versions: [], reveals: [], photoListings: [] };
+  return {
+    sellers: [],
+    categories: [],
+    listings: [],
+    documents: [],
+    versions: [],
+    reveals: [],
+    photoListings: [],
+  };
 }
 async function destroy(s: Scratch) {
   const supabase = adminClient();
