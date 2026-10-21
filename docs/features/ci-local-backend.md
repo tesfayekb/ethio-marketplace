@@ -617,3 +617,37 @@ INC-808 evidence: all thirteen lanes in runs 1079 and 1080 reported `[e2e:teardo
 **Hypothesis, not an observed auth-server diagnosis:** the fixture's four manually inserted auth.users accounts leave text columns NULL where the auth server expects strings; admin list reads those fixture rows, unlike sign-in for another account. The CI working-copy fixture now sets each listed text column to `''` where NULL, only if the column exists in that backend's schema. Hosted auth-created accounts already use empty strings. This changes no landed migration or hosted account.
 
 The harness's `authErrorText` retains class, positive HTTP status and message for every auth-admin error it prints in setup, teardown and user helpers; existing WARNING/throw behavior is unchanged. The next CI run proves the fixture change: every lane's post-test band must say `[e2e:teardown] deleted N user(s) owned by process …`, or name the error's class and status. E1/E2 are CI-only; staging checks do not establish their result.
+
+## Turn 18 — the e-mail tests on the temporary backend (DEC-218, D228 phase 4)
+
+D228 requires every gating browser test to run on a throwaway backend, without
+staging dependence or hosted secrets. Until this turn, the remaining staging
+email job ran the four tests of `e2e/auth-signup.spec.ts` in the `email-serial`
+project (A-1+A-2, SU-3, SU-1, SU-2), consuming the shared staging build alone.
+That job and build are removed; the merged verdict requires `e2e-lanes` alone.
+The staging migration preflight remains, including DEC-171's wait.
+
+DEC-218 adds a fourteenth lane, `email`, with its own temporary backend and one
+worker. `E2E_EMAIL_SINK=1` enables the unchanged tests: mail goes to the backend's
+own recipient-agnostic Inbucket inbox. The temporary backend now uses
+`enable_confirmations = true` for parity with hosted sign-up: A-1 reaches the
+check-email view and SU-3 confirms before signing in. Other accounts are created
+by the service client with `email_confirm: true`. `auth.rate_limit.email_sent = 30`
+replaces the CLI's default of two sends per hour; the email lane sends three
+(A-1's sign-up and resend, SU-3's sign-up).
+
+KEEP when the first two completed runs on dev after it each run the four tests of e2e/auth-signup.spec.ts in the email lane — none skipped — and pass them without a retry; REVERT (e2e-build and e2e-email restored from 6a175a74's ci.yml, the email lane removed) when, after one fix turn, a run still fails an email-lane test for a cause in the temporary backend's mail or auth settings rather than in the app.
+
+Ethio-staging is now used by in-turn runs and the preflight only, not by any
+gating browser job. The sandbox has no Docker; the next CI run is the proof of
+the temporary backend's email/auth settings and workflow graph, while the same
+four tests are exercised on staging during this turn.
+
+INC-808: every lane fragment includes the last deleted-users or WARNING teardown
+line, redacted like other evidence, or `not found`. The proof summary lists these
+under `- Teardown:` in smoke, email, 1–12 order, using `no evidence` for a missing
+fragment. They are visible even on green runs in
+`docs/tracking/local-backend-proof.md`. The nine auth-admin error-only messages
+in the five affected specs now use `authErrorText` without changing their
+existing failure behavior; SU-2 and SU-3 also exercise the account list on the
+temporary backend.

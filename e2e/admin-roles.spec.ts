@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
+import { authErrorText } from "./global-setup";
 
 import {
   useJobSuperAdmin,
@@ -332,13 +333,14 @@ test.describe("U2 roles console", () => {
       // authority — the gate re-reads auth.mfa_factors).
       const { data: factorList, error: factorError } =
         await adminClient().auth.admin.mfa.listFactors({ userId: user.id });
-      if (factorError) throw new Error(`[e2e:u2] listing factors failed: ${factorError.message}`);
+      if (factorError)
+        throw new Error(`[e2e:u2] listing factors failed: ${authErrorText(factorError)}`);
       for (const factor of factorList?.factors ?? []) {
         const { error } = await adminClient().auth.admin.mfa.deleteFactor({
           id: factor.id,
           userId: user.id,
         });
-        if (error) throw new Error(`[e2e:u2] deleting factor failed: ${error.message}`);
+        if (error) throw new Error(`[e2e:u2] deleting factor failed: ${authErrorText(error)}`);
       }
 
       expect(

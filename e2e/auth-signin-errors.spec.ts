@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures";
 import { readFileSync } from "node:fs";
 
 import { en } from "../src/i18n/locales/en";
-import { STATE_FILE, testEmail, type E2EUser } from "./global-setup";
+import { authErrorText, STATE_FILE, testEmail, type E2EUser } from "./global-setup";
 import { injectSession, passwordGrant } from "./helpers/session";
 import { attemptSignIn, expectSignedIn, expectSignedOut, signIn } from "./helpers/ui";
 import { adminClient, createUser } from "./helpers/users";
@@ -84,7 +84,7 @@ test("B-5: one sign-in after a 12h-expired prior session lands with a session", 
 
   // Server-side retirement: the refresh token this browser holds is now dead.
   const { error } = await adminClient().auth.admin.signOut(session.access_token, "global");
-  if (error) throw new Error(`[e2e:B-5] could not retire the grant: ${error.message}`);
+  if (error) throw new Error(`[e2e:B-5] could not retire the grant: ${authErrorText(error)}`);
 
   await injectSession(page, {
     ...session,
