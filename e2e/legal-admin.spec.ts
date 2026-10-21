@@ -591,4 +591,51 @@ test.describe("Admin Legal", () => {
     fail(docs.error, "unsaved document read");
     expect(docs.data).toEqual([]);
   });
+  test("LGA-15 Admin › Legal counts, for a version in force, the people who signed in after it took effect without accepting it (D227)", async ({
+    page,
+  }) => {
+    const person = await leaseUser();
+    const kind = `e2e-acc-u${person.id.replace(/-/g, "")}`;
+    kinds.add(kind);
+    const id = await seed(kind);
+    const url = process.env["E2E_SUPABASE_URL"];
+    const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
+    if (!url || !key) throw new Error("[e2e:legal-admin] missing staging config");
+    // A fresh grant, never passwordGrant's cache: last_sign_in_at must follow the seed.
+    const signedIn = await fetch(`${url}/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: { apikey: key, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: person.email, password: person.password }),
+    });
+    expect(signedIn.ok, "fresh password sign-in succeeds").toBe(true);
+    const readBack = await adminClient().auth.admin.getUserById(person.id);
+    fail(readBack.error, "fresh sign-in read-back");
+    const effective = (await version(kind)).effective_at;
+    const lastSignIn = readBack.data.user?.last_sign_in_at;
+    if (!effective || !lastSignIn)
+      throw new Error("[e2e:legal-admin] missing effective time or last sign-in");
+    expect(Date.parse(lastSignIn)).toBeGreaterThanOrEqual(Date.parse(effective));
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/legal");
+    const inForce = page.getByTestId(`legal-doc-${kind}-global`).getByTestId("legal-in-force");
+    await expect(inForce).toContainText("Accepted by 0");
+    await expect(inForce.getByTestId("legal-signed-in-unaccepted")).toHaveText(
+      "Signed in since it took effect, not accepted: 1",
+    );
+
+    await accept(person, id);
+    await gotoReady(page, "/admin/legal");
+    await expect(inForce).toContainText("Accepted by 1");
+    await expect(inForce.getByTestId("legal-signed-in-unaccepted")).toHaveText(
+      "Signed in since it took effect, not accepted: 0",
+    );
+
+    const kind2 = scratch("p");
+    await seed(kind2);
+    await gotoReady(page, "/admin/legal");
+    const other = page.getByTestId(`legal-doc-${kind2}-global`).getByTestId("legal-in-force");
+    await expect(other).toContainText("Accepted by 0");
+    await expect(other.getByTestId("legal-signed-in-unaccepted")).toHaveCount(0);
+  });
 });

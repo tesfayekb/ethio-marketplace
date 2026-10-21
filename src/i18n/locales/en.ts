@@ -3117,6 +3117,7 @@ export const en = {
   "admin.legal.publishedOn": "Published {date}",
   "admin.legal.publishedBy": "Published {date} by {name}",
   "admin.legal.acceptedBy": "Accepted by {count}",
+  "admin.legal.signedInUnaccepted": "Signed in since it took effect, not accepted: {count}",
   "admin.legal.action.newVersion": "New version",
   "admin.legal.action.editDraft": "Edit draft",
   "admin.legal.action.view": "View",

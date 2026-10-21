@@ -26,6 +26,7 @@ jobs:
       E2E_LOCAL_BACKEND: "1"
       E2E_SHARD: ${{ matrix.lane == 'smoke' && 'localproof' || format('local-{0}', matrix.lane) }}
       PROOF_LANE: ${{ matrix.lane }}
+      E2E_WORKERS: ${{ matrix.lane == 'smoke' && '1' || '2' }}
       VITE_E2E: "1"
       E2E_SERVE_BUILT: "1"
       E2E_FAKE_TRANSLATE: "1"
@@ -144,12 +145,22 @@ jobs:
           INSERT INTO auth.users (instance_id, id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
           SELECT '00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', e, now(), now(), '{}'::jsonb, '{}'::jsonb
           FROM unnest(ARRAY['ci-local-1@example.invalid', 'ci-local-2@example.invalid', 'ci-local-3@example.invalid']) AS e;
+          -- INC-808: the auth server writes '' (never NULL) in the text columns it reads back as strings, and its admin list of users fails on a NULL there; each column only if this backend's auth schema has it.
+          DO $$
+          DECLARE c text;
+          BEGIN
+            FOREACH c IN ARRAY ARRAY['confirmation_token', 'recovery_token', 'email_change_token_new', 'email_change_token_current', 'email_change', 'phone_change', 'phone_change_token', 'reauthentication_token'] LOOP
+              IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'auth' AND table_name = 'users' AND column_name = c) THEN
+                EXECUTE format('UPDATE auth.users SET %I = %L WHERE %I IS NULL', c, '', c);
+              END IF;
+            END LOOP;
+          END $$;
           SQL
           bootstrap_email=$(grep -o "auth.users WHERE email = '[^']*'" supabase/migrations/20260809010130_05add65c-4963-4df2-95bd-b1cc855820c0.sql | head -1 | sed "s/.*= '//; s/'\$//")
           bootstrap_id=$(grep -o "v_uid   uuid := '[0-9a-f-]*'" supabase/migrations/20260917210349_c23b6c76-b29b-4cfe-b559-0d4abc728a9f.sql | head -1 | sed "s/.*:= '//; s/'\$//")
           if [ -z "$bootstrap_email" ] || [ -z "$bootstrap_id" ]; then echo "::error::the bootstrap account was not found in its landed migrations"; exit 1; fi
           sed -i "s/__BOOTSTRAP_EMAIL__/$bootstrap_email/; s/__BOOTSTRAP_ID__/$bootstrap_id/" "$wc/20260809010129_ci_local_accounts.sql"
-          fixture 20260809010129 "four accounts: the bootstrap account by its landed e-mail and id, and three plain ones (ci-local-N@example.invalid)"
+          fixture 20260809010129 "four accounts: the bootstrap account by its landed e-mail and id, and three plain ones (ci-local-N@example.invalid); the auth server's text columns '' (INC-808)"
           # (6) The open countries' currencies (set on hosted through the admin): 20260917112956's P5b defaults ET's.
           cat > "$wc/20260917112955_ci_local_country_currencies.sql" <<'SQL'
           -- D228 turn 14b: 20260917112956's P5b reads ET's currency ("refusals: price_currency required" without it).

@@ -605,3 +605,15 @@ passes locally, or has a named cause here; and startup including migrations is
 within 300 seconds. Fix named migration/smoke causes in turn 14b, in the proof's
 working copy only. Abandon if startup still exceeds 300 seconds after fixes, or
 more than one smoke-tier spec cannot run locally at all. No verdict exists yet.
+
+## Turn 17c — two workers per lane (DEC-217) and the fixture accounts (INC-808)
+
+DEC-217 — lanes run two workers, smoke stays serial (DEC-024). Scratch identities carry run × shard × worker × project × test, and pool seats are per worker. Baseline run 1080: slowest lane 8 1,156 s; lane 1 1,093 s; lane 7 1,054 s. The next two CI runs judge the change, under the rule frozen before any number:
+
+KEEP when the first two CI runs after it have 0 failed lane tests, no test retried that did not retry in runs 1076/1077 (0 flaky then), and the slowest lane's job ≤ 900 s; REVERT to 1 worker (DEC-024's rule) at the first cross-worker interference failure or a new flaky test, or if the slowest lane does not drop below 1,000 s.
+
+INC-808 evidence: all thirteen lanes in runs 1079 and 1080 reported `[e2e:teardown] WARNING could not list users for process <run>-<lane>: [e2e:teardown] listUsers page 1 failed: {} — the nightly sweep will reap them.` No lane deleted its accounts. Auth-js 2.110.9 maps HTTP 500–504 to AuthRetryableFetchError with the Response stringified as `{}`, hiding the auth server's reason.
+
+**Hypothesis, not an observed auth-server diagnosis:** the fixture's four manually inserted auth.users accounts leave text columns NULL where the auth server expects strings; admin list reads those fixture rows, unlike sign-in for another account. The CI working-copy fixture now sets each listed text column to `''` where NULL, only if the column exists in that backend's schema. Hosted auth-created accounts already use empty strings. This changes no landed migration or hosted account.
+
+The harness's `authErrorText` retains class, positive HTTP status and message for every auth-admin error it prints in setup, teardown and user helpers; existing WARNING/throw behavior is unchanged. The next CI run proves the fixture change: every lane's post-test band must say `[e2e:teardown] deleted N user(s) owned by process …`, or name the error's class and status. E1/E2 are CI-only; staging checks do not establish their result.

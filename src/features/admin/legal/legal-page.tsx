@@ -121,6 +121,14 @@ export function LegalPage() {
                     <p>
                       {t("admin.legal.acceptedBy").replace("{count}", String(v.acceptances ?? 0))}
                     </p>
+                    {typeof v.signed_in_unaccepted === "number" ? (
+                      <p data-testid="legal-signed-in-unaccepted">
+                        {t("admin.legal.signedInUnaccepted").replace(
+                          "{count}",
+                          String(v.signed_in_unaccepted),
+                        )}
+                      </p>
+                    ) : null}
                     {status === "inForce" ? (
                       <>
                         <Button

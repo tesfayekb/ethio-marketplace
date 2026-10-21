@@ -2966,6 +2966,7 @@ export const am: Messages = {
   "admin.legal.publishedOn": "{date} ታትሟል",
   "admin.legal.publishedBy": "{date} በ{name} ታትሟል",
   "admin.legal.acceptedBy": "የተቀበሉ፦ {count}",
+  "admin.legal.signedInUnaccepted": "በሥራ ላይ ከዋለ ወዲህ ገብተው ያልተቀበሉ፦ {count}",
   "admin.legal.action.newVersion": "አዲስ ስሪት",
   "admin.legal.action.editDraft": "ረቂቁን አርትዕ",
   "admin.legal.action.view": "ተመልከት",

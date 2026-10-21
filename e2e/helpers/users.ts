@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 
 import { test } from "@playwright/test";
 
-import { adminClient, authFetch, processId, STATE_FILE } from "../global-setup";
+import { adminClient, authErrorText, authFetch, processId, STATE_FILE } from "../global-setup";
 import { chunkByLength } from "./chunk-by-length";
 
 export { adminClient } from "../global-setup";
@@ -67,7 +67,7 @@ export async function createUser({ confirmed }: { confirmed: boolean }): Promise
   });
   if (error || !data?.user?.id) {
     throw new Error(
-      `[e2e:users] admin.createUser failed for ${email}: ${error?.message ?? "no user id returned"}`,
+      `[e2e:users] admin.createUser failed for ${email}: ${error ? authErrorText(error) : "no user id returned"}`,
     );
   }
 
@@ -94,7 +94,7 @@ export async function mintConfirmationLink(user: {
   const link = data?.properties?.action_link;
   if (error || !link) {
     throw new Error(
-      `[e2e:users] generateLink failed for ${user.email}: ${error?.message ?? "no action_link returned"}`,
+      `[e2e:users] generateLink failed for ${user.email}: ${error ? authErrorText(error) : "no action_link returned"}`,
     );
   }
   return link;
@@ -114,7 +114,7 @@ export async function mintRecoveryLink(email: string): Promise<string> {
   const link = data?.properties?.action_link;
   if (error || !link) {
     throw new Error(
-      `[e2e:users] recovery generateLink failed for ${email}: ${error?.message ?? "no action_link returned"}`,
+      `[e2e:users] recovery generateLink failed for ${email}: ${error ? authErrorText(error) : "no action_link returned"}`,
     );
   }
   return link;
@@ -125,7 +125,7 @@ export async function identityProviders(userId: string): Promise<string[]> {
   const supabase = adminClient();
   const { data, error } = await supabase.auth.admin.getUserById(userId);
   if (error || !data?.user) {
-    throw new Error(`[e2e:users] getUserById failed: ${error?.message ?? "no user"}`);
+    throw new Error(`[e2e:users] getUserById failed: ${error ? authErrorText(error) : "no user"}`);
   }
   return (data.user.identities ?? []).map((identity) => identity.provider).sort();
 }
@@ -224,8 +224,8 @@ async function ensurePoolAccount(email: string, password: string): Promise<strin
   });
   if (error || !data?.user?.id) {
     throw new Error(
-      `[e2e:pool] creating pool account ${email} failed: ${error?.message ?? "no user id"}` +
-        (found.error ? ` (lookup: ${found.error.message})` : ""),
+      `[e2e:pool] creating pool account ${email} failed: ${error ? authErrorText(error) : "no user id"}` +
+        (found.error ? ` (lookup: ${authErrorText(found.error)})` : ""),
     );
   }
   seatIds.set(email, data.user.id);
@@ -366,10 +366,10 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   if (directory.error) fail("directory", directory.error.message);
 
   const factors = await supabase.auth.admin.mfa.listFactors({ userId: id });
-  if (factors.error) fail("factors", factors.error.message);
+  if (factors.error) fail("factors", authErrorText(factors.error));
   for (const factor of factors.data?.factors ?? []) {
     const removed = await supabase.auth.admin.mfa.deleteFactor({ id: factor.id, userId: id });
-    if (removed.error) fail("factor delete", removed.error.message);
+    if (removed.error) fail("factor delete", authErrorText(removed.error));
   }
 
   const updated = await supabase.auth.admin.updateUserById(id, {
@@ -380,7 +380,7 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
     user_metadata: { country_guess: "ET" },
     app_metadata: {},
   });
-  if (updated.error) fail("password", updated.error.message);
+  if (updated.error) fail("password", authErrorText(updated.error));
 
   // Revoke every session the previous holder left behind.
   const grantAnswer = await authFetch("/token?grant_type=password", {
@@ -440,7 +440,7 @@ export async function releaseStaleScratchAlias(alias: string): Promise<string[]>
   for (const id of holders) {
     const { data, error } = await supabase.auth.admin.getUserById(id);
     if (error || !data?.user) {
-      kept.push(`${id} (unreadable: ${error?.message ?? "no user"})`);
+      kept.push(`${id} (unreadable: ${error ? authErrorText(error) : "no user"})`);
       continue;
     }
     const email = data.user.email ?? "";

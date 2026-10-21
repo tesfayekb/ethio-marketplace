@@ -14,6 +14,7 @@ export type LegalVersion = {
   published_at: string | null;
   published_by_name?: string | null;
   acceptances?: number;
+  signed_in_unaccepted?: number | null;
   created_at: string;
 };
 export type LegalDocument = {
