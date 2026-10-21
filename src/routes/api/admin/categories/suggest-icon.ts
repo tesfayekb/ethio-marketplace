@@ -77,7 +77,17 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
           console.error(`[ssr-error] ${PATH} icon_suggest_failed stage=model-call ${message}`);
           if (error instanceof GeminiError) {
             if (error.status >= 500) return fail5xx(PATH, error.message, 502);
-            return json({ error: error.message }, error.status);
+            // INC-804 — the reply carries a fixed code by the provider's
+            // status; the full upstream text stays in the log line above.
+            const code =
+              error.status === 400 || error.status === 422
+                ? "modelRefused"
+                : error.status === 401 || error.status === 403
+                  ? "modelKeyRefused"
+                  : error.status === 429
+                    ? "modelRateLimited"
+                    : "modelCallFailed";
+            return json({ error: code }, error.status);
           }
           return fail5xx(PATH, message);
         }

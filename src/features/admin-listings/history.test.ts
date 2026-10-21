@@ -1,10 +1,14 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import type { MessageKey } from "@/i18n";
+
 import am from "@/i18n/locales/am";
 import en from "@/i18n/locales/en";
 
-import { changesOf, groupOf, groupsOf, summarize } from "./history";
+import { changesOf, groupOf, groupsOf, reasonLabel, summarize } from "./history";
+
+const labelT = (key: MessageKey): string => en[key];
 import { detailOf, type AdminListingHistoryEntry } from "./use-admin-listing";
 
 /** The newest declaration of listings_status_check (B3 census, turn 15f). */
@@ -101,6 +105,18 @@ describe("listing history (turn L3)", () => {
     });
     expect(detail.history[0]).toMatchObject({ by: "system", byName: null, reason: null });
     expect(detail.historyTotal).toBe(1);
+  });
+
+  it("INC-799 a known reason reads its label", () => {
+    expect(reasonLabel("duplicate", labelT, en)).toBe("Duplicate ad");
+  });
+
+  it("INC-799 an unknown reason reads its code, never undefined", () => {
+    expect(reasonLabel("a_reason_no_door_has_yet", labelT, en)).toBe("a_reason_no_door_has_yet");
+  });
+
+  it("INC-799 an inherited name is not a key", () => {
+    expect(reasonLabel("constructor", labelT, en)).toBe("constructor");
   });
 
   it("INC-795 every listing status has its staff label in English and Amharic", () => {

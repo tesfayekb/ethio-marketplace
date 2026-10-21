@@ -24,8 +24,25 @@ import { PHOTO_LINK_SECONDS, readAndSignPhotoLinks } from "@/server/media/links"
 
 const PATH = "/api/feed";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const NOT_FOUND = ["feed_page: unknownCategory", "feed_page: unknownPlace"] as const;
-const BAD = ["feed_page: badCursor", "feed_page: badSize"] as const;
+
+/** INC-804 — every client refusal this route sends, as a closed set. */
+type ClientCode =
+  | "badCategory"
+  | "badPlace"
+  | "badSize"
+  | "badCursor"
+  | "unknownCategory"
+  | "unknownPlace";
+
+/** The database's error names mapped to this route's fixed codes. */
+const NOT_FOUND: Readonly<Record<string, ClientCode>> = {
+  "feed_page: unknownCategory": "unknownCategory",
+  "feed_page: unknownPlace": "unknownPlace",
+};
+const BAD: Readonly<Record<string, ClientCode>> = {
+  "feed_page: badCursor": "badCursor",
+  "feed_page: badSize": "badSize",
+};
 
 function logRouteError(error: unknown): void {
   // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
@@ -39,11 +56,19 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
-function fail(error: string, status: number): Response {
-  if (status >= 500) logRouteError(error);
+/** INC-804 — a server failure: logged whole, answered with a fixed text. */
+function serverFailure(detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-804 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -75,28 +100,28 @@ async function handleGet(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
 
   const category = params.get("category");
-  if (category !== null && !UUID.test(category)) return fail("badCategory", 400);
+  if (category !== null && !UUID.test(category)) return clientFailure("badCategory", 400);
   const place = params.get("place");
-  if (place !== null && !UUID.test(place)) return fail("badPlace", 400);
+  if (place !== null && !UUID.test(place)) return clientFailure("badPlace", 400);
 
   const sizeRaw = params.get("size");
   let size = 20;
   if (sizeRaw !== null) {
-    if (!/^\d+$/.test(sizeRaw)) return fail("badSize", 400);
+    if (!/^\d+$/.test(sizeRaw)) return clientFailure("badSize", 400);
     size = Number(sizeRaw);
-    if (size < 1 || size > 50) return fail("badSize", 400);
+    if (size < 1 || size > 50) return clientFailure("badSize", 400);
   }
 
   const afterRaw = params.get("after");
   let after: Record<string, unknown> | null = null;
   if (afterRaw !== null) {
     after = fromCursor(afterRaw);
-    if (after === null) return fail("badCursor", 400);
+    if (after === null) return clientFailure("badCursor", 400);
   }
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail("supabase server env missing", 500);
+  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
 
   const supabase = createClient<Database>(url, publishable, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -114,13 +139,13 @@ async function handleGet(request: Request): Promise<Response> {
 
   if (error) {
     const message = error.message ?? "";
-    for (const name of NOT_FOUND) {
-      if (message.includes(name)) return fail(name.slice("feed_page: ".length), 404);
+    for (const [name, code] of Object.entries(NOT_FOUND)) {
+      if (message.includes(name)) return clientFailure(code, 404);
     }
-    for (const name of BAD) {
-      if (message.includes(name)) return fail(name.slice("feed_page: ".length), 400);
+    for (const [name, code] of Object.entries(BAD)) {
+      if (message.includes(name)) return clientFailure(code, 400);
     }
-    return fail(message, 502);
+    return serverFailure(message, 502);
   }
 
   const page = data as {
@@ -138,7 +163,7 @@ async function handleGet(request: Request): Promise<Response> {
     !Array.isArray(page.ladder) ||
     !Array.isArray(page.steps)
   ) {
-    return fail("feed_page returned no page", 502);
+    return serverFailure("feed_page returned no page", 502);
   }
   const body: Record<string, unknown> = {
     cards: page.cards,
@@ -191,7 +216,7 @@ export const Route = createFileRoute("/api/feed")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(errorText(error), 500);
+          return serverFailure(errorText(error), 500);
         }
       },
     },

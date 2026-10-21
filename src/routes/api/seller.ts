@@ -25,7 +25,15 @@ import { errorText } from "@/lib/error-text";
  */
 
 const PATH = "/api/seller";
-const BAD = ["seller_feed_page: badCursor", "seller_feed_page: badSize"] as const;
+
+/** INC-802 — every client refusal this route sends, as a closed set. */
+type ClientCode = "badKey" | "badCursor" | "badSize" | "unknownSeller";
+
+/** The database's error names mapped to this route's fixed codes. */
+const BAD: Readonly<Record<string, ClientCode>> = {
+  "seller_feed_page: badCursor": "badCursor",
+  "seller_feed_page: badSize": "badSize",
+};
 
 function logRouteError(error: unknown): void {
   // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
@@ -39,11 +47,19 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
-function fail(error: string, status: number): Response {
-  if (status >= 500) logRouteError(error);
+/** INC-802 — a server failure: logged whole, answered with a fixed text. */
+function serverFailure(detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -75,18 +91,18 @@ async function handleGet(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
 
   const key = params.get("key");
-  if (key === null || key.length > 60) return fail("badKey", 400);
+  if (key === null || key.length > 60) return clientFailure("badKey", 400);
 
   const afterRaw = params.get("after");
   let after: Record<string, unknown> | null = null;
   if (afterRaw !== null) {
     after = fromCursor(afterRaw);
-    if (after === null) return fail("badCursor", 400);
+    if (after === null) return clientFailure("badCursor", 400);
   }
 
   const url = serverEnv("SUPABASE_URL");
   const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail("supabase server env missing", 500);
+  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
 
   const supabase = createClient<Database>(url, publishable, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -103,11 +119,13 @@ async function handleGet(request: Request): Promise<Response> {
 
   if (error) {
     const message = error.message ?? "";
-    if (message.includes("seller_feed_page: unknownSeller")) return fail("unknownSeller", 404);
-    for (const name of BAD) {
-      if (message.includes(name)) return fail(name.slice("seller_feed_page: ".length), 400);
+    if (message.includes("seller_feed_page: unknownSeller")) {
+      return clientFailure("unknownSeller", 404);
     }
-    return fail(message, 502);
+    for (const [name, code] of Object.entries(BAD)) {
+      if (message.includes(name)) return clientFailure(code, 400);
+    }
+    return serverFailure(message, 502);
   }
 
   const page = data as {
@@ -118,7 +136,7 @@ async function handleGet(request: Request): Promise<Response> {
   // F4 — an answer without cards and without an error is a failure, never an
   // empty page.
   if (page === null || typeof page !== "object" || !Array.isArray(page.cards)) {
-    return fail("seller_feed_page returned no page", 502);
+    return serverFailure("seller_feed_page returned no page", 502);
   }
   const body = {
     seller: page.seller ?? null,
@@ -144,7 +162,7 @@ export const Route = createFileRoute("/api/seller")({
           return await handleGet(request);
         } catch (error) {
           logRouteError(error);
-          return fail(errorText(error), 500);
+          return serverFailure(errorText(error), 500);
         }
       },
     },

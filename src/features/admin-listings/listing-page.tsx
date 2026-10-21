@@ -23,7 +23,16 @@ import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import { changesOf, GROUP_LABEL, groupOf, summarize, type FieldGroup } from "./history";
+import en from "@/i18n/locales/en";
+
+import {
+  changesOf,
+  GROUP_LABEL,
+  groupOf,
+  reasonLabel,
+  summarize,
+  type FieldGroup,
+} from "./history";
 import { ListingPhotos } from "./listing-photos";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
@@ -711,7 +720,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                             >
                               {t("admin.listings.history.reason").replace(
                                 "{reason}",
-                                t(`admin.listings.reason.${entry.reason}` as MessageKey),
+                                reasonLabel(entry.reason, t, en),
                               )}
                             </p>
                           ) : null}

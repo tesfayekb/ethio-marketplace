@@ -174,9 +174,22 @@ function failure(error: unknown, probe: boolean): Response {
   const message = errorText(error); // INC-625
   const status = error instanceof ModelCallError ? error.status : 500;
   console.error(`[ssr-error] ${PATH} image_generate_failed stage=model-call ${message}`);
-  if (status >= 400 && status < 500)
-    return noStore({ error: message, stage: "model-call" }, status);
-  // ADMIN-GATED PROBE ONLY carries the true message; POST keeps the generic body.
+  if (status >= 400 && status < 500) {
+    // INC-803 — the POST's reply carries a fixed code by the provider's
+    // status; the full upstream text stays in the log line above.
+    const code =
+      status === 400 || status === 422
+        ? "modelRefused"
+        : status === 401 || status === 403
+          ? "modelKeyRefused"
+          : status === 429
+            ? "modelRateLimited"
+            : "modelCallFailed";
+    return noStore({ error: code, stage: "model-call" }, status);
+  }
+  // INC-803 — THE ONE REVIEWED SITE where an upstream text reaches a reply:
+  // the staff-gated probe (GET ?probe=1) keeps the true message, by design;
+  // POST keeps the generic body.
   return noStore({ error: probe ? message : "server error", stage: "model-call" }, 502);
 }
 

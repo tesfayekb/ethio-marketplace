@@ -3,15 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 const VIEW_SESSION_KEY = "ethio.viewSession";
 
 /** Turn 23 — this tab's stable view-session id, or null when storage is
-    unavailable and cannot be written (private windows, blocked storage). */
+    unavailable and cannot be written (private windows, blocked storage).
+    INC-805 — the id comes from the platform's own UUID generator: it is a
+    de-duplication id, not a secret, and the generator removes the modulo
+    question a hand-rolled alphabet mapping would carry. */
 export function viewSessionId(): string | null {
   try {
     const existing = sessionStorage.getItem(VIEW_SESSION_KEY);
     if (existing) return existing;
-    const bytes = crypto.getRandomValues(new Uint8Array(22));
-    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let id = "";
-    for (const byte of bytes) id += alphabet[byte % alphabet.length];
+    const id = crypto.randomUUID();
     sessionStorage.setItem(VIEW_SESSION_KEY, id);
     return id;
   } catch {

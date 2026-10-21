@@ -5,6 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * for an off-list answer, and fallback: false for a listed one.
  */
 const answer = { value: "" as unknown };
+/** When set, the model call throws a GeminiError with this message and status. */
+const thrown = { value: null as { message: string; status: number } | null };
 /** D158 — the switch the route asks first, and the meter it writes. */
 const meter = { gate: { on: true } as { on: boolean; reason?: string }, spent: [] as string[] };
 const asked = { count: 0 };
@@ -21,16 +23,24 @@ vi.mock("@/server/ai/meter", () => ({
     meter.spent.push(feature);
   },
 }));
-vi.mock("@/server/category-images/gemini", () => ({
-  isFakeMode: () => false,
-  suggestIconName: async () => {
-    asked.count += 1;
-    return answer.value;
-  },
-  GeminiError: class extends Error {
-    status = 500;
-  },
-}));
+vi.mock("@/server/category-images/gemini", () => {
+  class GeminiError extends Error {
+    status: number;
+    constructor(message: string, status: number) {
+      super(message);
+      this.status = status;
+    }
+  }
+  return {
+    isFakeMode: () => false,
+    suggestIconName: async () => {
+      asked.count += 1;
+      if (thrown.value !== null) throw new GeminiError(thrown.value.message, thrown.value.status);
+      return answer.value;
+    },
+    GeminiError,
+  };
+});
 
 const { Route } = await import("@/routes/api/admin/categories/suggest-icon");
 
@@ -66,6 +76,7 @@ async function call(): Promise<Record<string, unknown>> {
 describe("POST /api/admin/categories/suggest-icon (bundle 2 step 18)", () => {
   beforeEach(() => {
     answer.value = "";
+    thrown.value = null;
     meter.gate = { on: true };
     meter.spent = [];
     asked.count = 0;
@@ -101,5 +112,23 @@ describe("POST /api/admin/categories/suggest-icon (bundle 2 step 18)", () => {
     expect(await call()).toEqual({ icon: "Sofa", fallback: false, fake: false });
     expect(asked.count).toBe(1);
     expect(meter.spent).toEqual(["category_icons"]);
+  });
+
+  it("INC-804 a provider refusal replies a fixed code and no detail", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    thrown.value = { message: "marker-text-that-must-not-travel", status: 400 };
+    const response = await post();
+    expect(response.status).toBe(400);
+    const text = await response.text();
+    expect(JSON.parse(text)).toEqual({ error: "modelRefused" });
+    expect(text).not.toContain("marker-text-that-must-not-travel");
+  });
+
+  it("INC-804 a provider rate limit keeps its status and its fixed code", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    thrown.value = { message: "quota exceeded for the day", status: 429 };
+    const response = await post();
+    expect(response.status).toBe(429);
+    expect(await response.json()).toEqual({ error: "modelRateLimited" });
   });
 });

@@ -143,4 +143,19 @@ describe("/api/feed — the cover links (DEC-195)", () => {
     expect("coverLinks" in body).toBe(false);
     expect(state.signedWith).toBeNull();
   });
+
+  it("INC-804 a database failure replies 'internal error' and no detail", async () => {
+    state.rpcError = { message: "feed_page: marker-text-that-must-not-travel" };
+    const response = await get();
+    expect(response.status).toBe(502);
+    const text = await response.text();
+    expect(JSON.parse(text)).toEqual({ error: "internal error" });
+    expect(text).not.toContain("marker-text-that-must-not-travel");
+  });
+
+  it("INC-804 a known refusal keeps its code", async () => {
+    const response = await get("?size=0");
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "badSize" });
+  });
 });
