@@ -1,13 +1,20 @@
 import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
+import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { CountryDialogActions, CountryErrorLine, useCountryError } from "./country-dialogs";
 import type { CountryRow } from "./countries-service";
-import { useRootCategories, useSetCountryActive, useSetCountryRootOrder } from "./use-countries";
+import {
+  ROOT_CATEGORIES_KEY,
+  useRootCategories,
+  useSetCountryActive,
+  useSetCountryRootOrder,
+} from "./use-countries";
 
 /**
  * L2b-C1 — THE COUNTRY VERBS: opening and closing a market, and the rail order.
@@ -142,6 +149,7 @@ export function CountryRailOrderDialog({
     setOrder(next);
   };
 
+  const queryClient = useQueryClient();
   const submit = (categoryIds: string[]) => {
     clear();
     void guard(async () => {
@@ -149,6 +157,13 @@ export function CountryRailOrderDialog({
         await save.mutateAsync({ code: row.code, categoryIds });
         onClose();
       } catch (error) {
+        // INC-814: the door refused a root that is no longer there — re-read
+        // the roots and rebuild the list from the fresh read; the refusal
+        // line stays until the next save.
+        if (error instanceof Error && error.message.startsWith("notARoot")) {
+          await refreshAfterWrite(queryClient, { queryKey: ROOT_CATEGORIES_KEY });
+          setOrder(null);
+        }
         fail(error);
       }
     }).catch(fail);

@@ -58,6 +58,9 @@ export function useCategoryLinks(categoryId: string | null) {
     queryFn: () => listCategoryLinks(categoryId as string),
     enabled: categoryId !== null,
     staleTime: 10_000,
+    // INC-814's class: the dialog re-reads the links fresh each time it opens,
+    // so a link removed meanwhile is never sent to the order/fact/card doors.
+    refetchOnMount: "always",
   });
 }
 

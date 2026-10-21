@@ -494,7 +494,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
      * so an empty, partial or failing bundle is INVISIBLE: the compiled active
      * catalog still answers every key, and compiled English is the last resort.
      */
-    const applyWithBundle = (compiled: Messages) => {
+    const applyWithBundle = (compiled: Partial<Messages>) => {
       if (cancelled) return;
       const base = { ...en, ...compiled } as Messages;
       setMessages(base);
