@@ -551,6 +551,8 @@ Turn 15g (proof #11, `1a5b21bd`): 2,113 passed, 0 failed, 6 flaky, 154 skipped o
 
 Turn 15h (proof #12, `99e4e619`): 2,119 passed, 0 failed, 0 flaky of 2,273 — every test at its first attempt — but the slowest lane took 1,771 s: turn 15g's route wait (up to the route's 15-second copy) ran in about 115 test calls per project, where only a few read the served place. Under DEC-211 proof #12 does not count (criterion 3) and the pair restarts. A test now waits for the route only when its outcome reads output built from the served place tree; the factories take the wait as an option.
 
+Proof #14 (`cbc98cba`, turn 15j v3): 2,119 passed, 0 failed, 0 flaky of 2,273; every lane 329/329; the slowest lane 1,139 s. With proof #13 it is DEC-211's second consecutive proof, and run 1074 on the same commit passed: the switch is decided (turn 16).
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,
