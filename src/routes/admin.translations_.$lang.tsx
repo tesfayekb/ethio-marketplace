@@ -13,6 +13,17 @@ import {
  * shareable and reproducible. validateSearch is the single parse point.
  */
 export const Route = createFileRoute("/admin/translations_/$lang")({
+  head: () => ({
+    meta: [
+      { title: "Language strings — ethio.com Admin" },
+      { name: "description", content: "Language strings in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Language strings — ethio.com Admin" },
+      { property: "og:description", content: "Language strings in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>): StringsSearch => ({
     ...(typeof search["status"] === "string" ? { status: search["status"] } : {}),
     ...(search["flagged"] === true || search["flagged"] === "true" ? { flagged: true } : {}),

@@ -14,6 +14,17 @@ import { useI18n } from "@/i18n";
  * theme is applied to every panel as it is built.
  */
 export const Route = createFileRoute("/admin/")({
+  head: () => ({
+    meta: [
+      { title: "Overview — ethio.com Admin" },
+      { name: "description", content: "Overview in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Overview — ethio.com Admin" },
+      { property: "og:description", content: "Overview in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminLanding,
 });
 

@@ -540,10 +540,10 @@ see [client-error] lines`. Readiness is never inferred from framework
 
 CI's push trigger targets `dev` only. A final `promote` job
 ("Promote to main (fast-forward on green)") needs EVERY job in the workflow —
-`build-and-check`, `secrets-scan`, `migration-lint`, `string-scan`,
-`listing-write-seam`, `browse-path-guard`, `marketplace-weight`,
-`bundle-budget`, `dependency-audit`, `e2e-preflight`, `e2e-smoke`,
-`e2e-shard`, `e2e-email`, `e2e` — and runs only when
+`build-and-check`, `component-tests`, `i18n-usage-map`, `import-gate`,
+`secrets-scan`, `migration-lint`, `string-scan`, `listing-write-seam`,
+`browse-path-guard`, `marketplace-weight`, `bundle-budget`, `dependency-audit`,
+`semgrep`, `e2e-preflight`, `e2e-build`, `e2e-lanes`, `e2e-email`, `e2e` — and runs only when
 `github.ref == 'refs/heads/dev' && success()`. It fetches `origin/main`,
 refuses with a named `::error::` unless `origin/main` is an ancestor of the
 tested HEAD (`git merge-base --is-ancestor`), and then pushes
@@ -586,6 +586,9 @@ nothing else, then dispatches. Any other divergence — real work stranded on
 main — is a manual reconcile, never this button.
 
 ## DEC-023-B — the changed-spec fast lane (signal only)
+
+Historical wiring below: turn 16 (D228, DEC-211) retired this job. Today's
+merged verdict needs `e2e-lanes` and `e2e-email`; every lane and email gate main.
 
 `ci.yml`'s `e2e-changed` job ("E2E changed specs (fast lane)") runs after
 `e2e-preflight`. It computes the spec files this branch touched with
@@ -684,16 +687,16 @@ remedy is exactly that bump.
 
 ## DEC-028 — global-state specs are serial-only and non-gating (2026-09-01)
 
-Tests that mutate shared global state (`@global-state`) never run in the
-parallel matrix or the fast lane; they run in the serial nightly only.
+Tests that mutate shared global state (`@global-state`) never run in CI's
+temporary-backend lanes; they run in the serial nightly only.
 Quarantined failures are reported, labeled, and non-gating until DEC-026
 component coverage lands; un-quarantining requires a green nightly streak of 7
 and a DEC note.
 
 MECHANICS:
 
-- `.github/workflows/ci.yml` — the smoke tier, the four-way shard matrix and
-  the changed-spec fast lane all pass `--grep-invert "@global-state"`, so a
+- `.github/workflows/ci.yml` calls `local-backend-proof.yml` — its smoke lane
+  and twelve slices all exclude `@global-state`, so a
   tagged spec cannot execute next to a sibling mutating the same surface.
 - `.github/workflows/nightly-e2e.yml` — after the real-elapsed-time cases, one
   step runs the FULL suite (`--workers=1`, both projects) including the tagged
@@ -715,7 +718,7 @@ MECHANICS:
 
 ## DEC-030 — flake ledger: retries are evidence, not concealment (2026-09-01)
 
-The parallel matrix (smoke tier, four-way shard matrix, changed-spec fast lane)
+The parallel matrix (smoke and twelve temporary-backend slices) and staging email
 runs with `retries: 1` so ONE infrastructural blip does not red a whole push.
 The serial nightly keeps `retries: 0` — acceptance measurement needs the
 unretried truth. LAW: **a test flaky 3× in 7 days gets an INC and root-cause
@@ -802,6 +805,10 @@ wall-clocks for THIS push are only readable from the Actions run it triggers;
 the numbers above are the observed shape, not a projection.
 
 ### DEC-029-E — injection is PARKED; the knob remains the standing rollback
+
+Historical implementation below: turn 16 (D228, DEC-211) replaced the staging
+smoke, shard and changed-spec jobs with thirteen temporary-backend lanes.
+The staging `e2e-build` now serves email only; the injection rollback stays parked.
 
 `E2E_UI_LOGIN: "1"` is set in all four E2E jobs (`e2e-smoke`, `e2e-changed`,
 `e2e-shard`, `e2e-email`) per the pre-committed DEC-029 rule: two successive
@@ -933,8 +940,8 @@ without a regen. Fix is the regen and the commit, never a guard relaxation.
 `scripts/check-promote-needs.sh [workflow]` (default `.github/workflows/ci.yml`)
 lists the job ids under `jobs:` and fails, naming the job, when a job other than
 `promote` and the script's SIGNAL_ONLY list is missing from `promote.needs`, or
-when `promote.needs` names a job that does not exist. SIGNAL_ONLY holds
-`e2e-changed` (DEC-023-B: the fast lane is signal-only). Self-test fixture
+when `promote.needs` names a job that does not exist. SIGNAL_ONLY is empty:
+turn 16 (D228) retired DEC-023-B's fast lane; every CI job gates main. Self-test fixture
 `scripts/fixtures/ci-promote-needs-bad.yml` (its promote omits one job) must make
 the script exit non-zero. Wired as "Promote needs every job (with self-test)" in
 `build-and-check`. Rule (DEC-137): a job gates promotion unless SIGNAL_ONLY names
@@ -993,6 +1000,10 @@ A census of every script under scripts/ against the CI workflows and the unit te
 - **The same reading gap twice:** the guard, like the test-id check (TI-5, docs/features/test-ids.md), read a title only on the line that opens `test(`, so a title the formatter wrapped onto the next line was not read. Both read it now; the guard's self-test plants a wrapped title (X-3) and fails if it is not flagged. These are the two readers of test titles in source text.
 
 ## DEC-172's verdict — six shards again, unweighted (bundle 11 turn C11, 2026-10-12)
+
+Historical verdict below: turn 16 (D228, DEC-211) retired the hosted six-shard
+matrix. Current CI gates on thirteen independent temporary-backend lanes and
+staging email, with required report sources smoke, email and 1–12.
 
 DEC-172's rule, frozen before the numbers: over the five green runs on dev after it landed, a median wall time of 30 minutes or less keeps eight weighted shards; above 30 minutes returns the matrix to six shards and removes the weights. The five green runs (each run's own start to its end; for 88c6ed8c its second attempt, after the staging apply): f7638ec8 31.9, 88c6ed8c 31.8, ea8c54d9 33.4, 3c94ec65 34.9, 4913e366 32.8 minutes — median 32.8. The verdict was due at the fifth (4913e366, 2026-10-12 03:38 UTC) and was read late (S180). Every green run since also passed 30 minutes (30.1 to 37.9).
 

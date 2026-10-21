@@ -71,11 +71,11 @@ jobs:
             // failure's true lines the TAIL still carries them; the regex is
             // widened by INC, never silently.
             //
-            // The four Playwright job families below are the E2E failure
+            // The staging email job and every temporary-backend lane are the E2E failure
             // reporter's own sources — duplicating them here would give the
             // supervisor two disagreeing copies of one failure.
             // ---------------------------------------------------------------
-            const PLAYWRIGHT_SOURCES = /^E2E (smoke tier|shard \d+\/\d+|email|changed specs)/;
+            const PLAYWRIGHT_SOURCES = /^E2E (email|lanes)/;
             const EVIDENCE =
               /error TS\d+|\[warn\]|✖|##\[error\]|\bERROR\b|Error:|FAIL\b|failed\b|exit code [1-9]/;
             // INC-419 — an ESLint error line ("  12:5  error  …  rule") has no

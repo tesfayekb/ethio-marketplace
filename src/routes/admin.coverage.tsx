@@ -8,6 +8,17 @@ import { AdminCoveragePage } from "@/features/admin-coverage/coverage-page";
  * inside the door (F3).
  */
 export const Route = createFileRoute("/admin/coverage")({
+  head: () => ({
+    meta: [
+      { title: "Coverage — ethio.com Admin" },
+      { name: "description", content: "Coverage in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Coverage — ethio.com Admin" },
+      { property: "og:description", content: "Coverage in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminCoverageRoute,
 });
 

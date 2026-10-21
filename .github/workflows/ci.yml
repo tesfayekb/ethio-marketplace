@@ -368,9 +368,9 @@ jobs:
         run: bash scripts/audit-gate.sh
 
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
-  # One preflight, ONE SHARED BUILD (DEC-029), one fast smoke tier, six
-  # parallel shards (DEC-172's rule returned them from eight, 2026-10-12), one merged
-  # verdict. The merged job keeps the historical name so the CI status
+  # Thirteen temporary-backend lanes (DEC-211); staging preflight and shared
+  # build remain for email only. One merged verdict keeps the historical name
+  # so the CI status
   # reporter's table row ("E2E (Playwright, ethio-staging)") is unchanged.
 
   e2e-preflight:
@@ -464,420 +464,14 @@ jobs:
           retention-days: 1
           overwrite: true
 
-  e2e-smoke:
-    name: E2E smoke tier
-    needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-24.04
-    env:
-      # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
-      # the shard id is what makes each process's fixtures its own.
-      E2E_SHARD: smoke
-      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
-      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      # DEC-018 — the suite runs against the BUILT app, with the test
-      # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
-      # VITE_E2E is set here and by `bun run build:e2e` only.
-      VITE_E2E: "1"
-      E2E_SERVE_BUILT: "1"
-      # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
-      # needs no provider key and spends nothing. PROD is unaffected.
-      E2E_FAKE_TRANSLATE: "1"
-      E2E_FAKE_GEOCODE: "1"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-      - name: Cache bun install
-        id: bun-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Bun cache hit?
-        run: echo "bun cache-hit=${{ steps.bun-cache.outputs.cache-hit }}"
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Resolve Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: pw-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - name: Playwright cache hit?
-        run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
-      - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
-      # DEC-029 (lever 2) — the dist comes from the shared `e2e-build` job.
-      - name: Download the shared e2e dist
-        uses: actions/download-artifact@v7
-        with:
-          name: e2e-dist
-          path: dist
-      - name: Verify e2e build output
-        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
-      # The smoke tier is a FILE LIST, not a title grep: tagging shell.spec.ts
-      # and auth-signout.spec.ts would edit specs outside this task's scope, and
-      # a file list carries the same meaning with zero test-logic change.
-      - name: Run the smoke tier (fail fast)
-        run: |
-          set -o pipefail
-          # DEC-028 — @global-state specs mutate a surface every concurrent
-          # project shares; they run in the SERIAL nightly only, never here.
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts 2>&1 | tee smoke.log
-      # INC-081: the smoke tier used to upload nothing, so its failures never
-      # reached docs/tracking/e2e-last-failure.md ("0 failed" while red).
-      - name: Upload smoke results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-results-smoke
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/results.json
-          if-no-files-found: warn
-          retention-days: 7
-      # If Playwright never wrote results, the log tail is the only evidence.
-      - name: Capture smoke log tail
-        # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-log-smoke
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: smoke.log
-          if-no-files-found: warn
-          retention-days: 7
-      # U2a / INC-083 rule 2: Playwright writes a page snapshot per failure at
-      # test-results/<slug>/error-context.md — the only diagnosable evidence for
-      # a timeout. The reporter quotes it, so it must travel out of the job.
-      # DEC-078: uploaded on EVERY outcome — a test that failed then passed on
-      # retry leaves its first attempt's context in a GREEN job; an empty
-      # test-results tree uploads nothing (ignore), never an alarm.
-      - name: Upload error contexts
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-context-smoke
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/**/error-context.md
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Upload HTML report on failure
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-report-smoke
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: playwright-report/
-          retention-days: 7
-
-  # ── DEC-023-B — CHANGED-SPEC FAST LANE ────────────────────────────────────
-  # SIGNAL ONLY. This job is a plan-gated substitute for the local authenticated
-  # runs the executor cannot perform (no prod/staging secrets in its
-  # environment): it re-runs just the spec files this branch touched so a spec
-  # edit gets an authed verdict in minutes instead of a full matrix.
-  # AUTHORITY IS UNCHANGED: the merged verdict job below `needs:` exactly the
-  # full matrix (e2e-smoke, e2e-shard, e2e-email). This lane is never in that
-  # needs list and can never turn a red matrix green — or a green matrix red.
-  # Auto-retire: if executor-side staging secrets ever arrive (DEC-023), delete
-  # this job; local runs then carry the same signal at zero CI cost.
-  e2e-changed:
-    name: E2E changed specs (fast lane)
-    needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-24.04
-    # signal-only per DEC-023-B — surfaces in logs/report, never gates verdict or promote;
-    # a lane-only failure with a green matrix is contention noise by definition
-    continue-on-error: true
-    env:
-      E2E_SHARD: changed
-      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
-      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_E2E: "1"
-      E2E_SERVE_BUILT: "1"
-      E2E_FAKE_TRANSLATE: "1"
-      E2E_FAKE_GEOCODE: "1"
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-      # The changed set is computed against the merge-base with origin/main, so
-      # it names what THIS branch touched, not what main moved on to.
-      - name: Compute changed spec files
-        id: changed
-        run: |
-          set -u
-          git fetch --no-tags --depth=200 origin main || true
-          base="$(git merge-base origin/main HEAD 2>/dev/null || true)"
-          if [ -z "$base" ]; then
-            echo "No merge-base with origin/main — skipping cleanly."
-            echo "specs=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          files="$(git diff --name-only --diff-filter=d "$base"...HEAD -- 'e2e/*.spec.ts' | tr '\n' ' ')"
-          count="$(echo $files | wc -w)"
-          if [ "$count" -eq 0 ]; then
-            echo "No changed e2e specs — skipping cleanly."
-            echo "specs=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          if [ "$count" -gt 5 ]; then
-            echo "$count changed specs (> cap 5) — the full matrix already covers this; skipping cleanly."
-            echo "specs=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          echo "Changed specs: $files"
-          echo "specs=$files" >> "$GITHUB_OUTPUT"
-      - name: Cache bun install
-        if: steps.changed.outputs.specs != ''
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        if: steps.changed.outputs.specs != ''
-        run: bun install --frozen-lockfile
-      - name: Resolve Playwright version
-        if: steps.changed.outputs.specs != ''
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        if: steps.changed.outputs.specs != ''
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - name: Install Chromium
-        if: steps.changed.outputs.specs != ''
-        run: bunx playwright install --with-deps chromium
-      # DEC-029 (lever 2) — shared dist, no per-job build.
-      - name: Download the shared e2e dist
-        if: steps.changed.outputs.specs != ''
-        uses: actions/download-artifact@v7
-        with:
-          name: e2e-dist
-          path: dist
-      - name: Verify e2e build output
-        if: steps.changed.outputs.specs != ''
-        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; exit 1; }
-      - name: Run the changed specs (both projects, one job)
-        if: steps.changed.outputs.specs != ''
-        run: |
-          set -o pipefail
-          # DEC-028 — @global-state specs mutate a surface every concurrent
-          # project shares; they run in the SERIAL nightly only, never here.
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --workers=2 --grep-invert "@global-state" ${{ steps.changed.outputs.specs }} 2>&1 | tee changed.log
-      - name: Upload changed-lane results
-        if: always() && steps.changed.outputs.specs != ''
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-results-changed
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/results.json
-          if-no-files-found: warn
-          retention-days: 7
-      - name: Capture changed-lane log tail
-        if: always() && steps.changed.outputs.specs != ''
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-log-changed
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: changed.log
-          if-no-files-found: warn
-          retention-days: 7
-      # DEC-078: every outcome, so a retry-recovered test's context travels too.
-      - name: Upload error contexts
-        if: always() && steps.changed.outputs.specs != ''
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-context-changed
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/**/error-context.md
-          if-no-files-found: ignore
-          retention-days: 7
-
-  e2e-shard:
-    name: E2E shard ${{ matrix.shard }}/6
-    needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        # DEC-172's verdict (2026-10-12): eight weighted shards ran a median
-        # 32.8 minutes over five green runs (31.9, 31.8, 33.4, 34.9, 32.8)
-        # against its 30-minute rule, so the matrix is six again, unweighted
-        # (docs/features/ci-guards.md). e2e/shell.spec.ts's location grid holds
-        # six shard rows and refuses another number (INC-573).
-        shard: [1, 2, 3, 4, 5, 6]
-    env:
-      # INC-080: fixture ownership boundary. All shards share GITHUB_RUN_ID, so
-      # the shard id is what makes each process's fixtures its own.
-      E2E_SHARD: ${{ matrix.shard }}
-      # DEC-024: shards run 2 workers — safe by construction under the
-      # scratch-key identity law (run×shard×worker×project×test). REVERT RULE:
-      # any cross-worker interference class returns this to "1" before the
-      # class is even diagnosed. Smoke and email-serial stay serial by design.
-      E2E_WORKERS: "2"
-      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
-      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      # DEC-018 — the suite runs against the BUILT app, with the test
-      # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
-      # VITE_E2E is set here and by `bun run build:e2e` only.
-      VITE_E2E: "1"
-      E2E_SERVE_BUILT: "1"
-      # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
-      # needs no provider key and spends nothing. PROD is unaffected.
-      E2E_FAKE_TRANSLATE: "1"
-      E2E_FAKE_GEOCODE: "1"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-      - name: Cache bun install
-        id: bun-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Bun cache hit?
-        run: echo "bun cache-hit=${{ steps.bun-cache.outputs.cache-hit }}"
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Resolve Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: pw-cache
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - name: Playwright cache hit?
-        run: echo "playwright cache-hit=${{ steps.pw-cache.outputs.cache-hit }}"
-      - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
-      # DEC-029 (lever 2) — the dist comes from the shared `e2e-build` job.
-      - name: Download the shared e2e dist
-        uses: actions/download-artifact@v7
-        with:
-          name: e2e-dist
-          path: dist
-      - name: Verify e2e build output
-        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
-      - name: Run E2E shard (built app, served on node — DEC-018/DEC-019)
-        # DEC-172's verdict (2026-10-12): no PWTEST_SHARD_WEIGHTS — equal slices.
-        run: |
-          set -o pipefail
-          # DEC-028 — @global-state specs mutate a surface every concurrent
-          # project shares; they run in the SERIAL nightly only, never here.
-          bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard=${{ matrix.shard }}/6 2>&1 | tee ${{ matrix.shard }}.log
-      - name: Capture shard log tail
-        # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-log-${{ matrix.shard }}
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: ${{ matrix.shard }}.log
-          if-no-files-found: warn
-          retention-days: 7
-      # Every shard uploads its JSON reporter output, pass or fail — the merged
-      # report must see ALL failures, not only those of the first red shard.
-      - name: Upload shard results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-results-${{ matrix.shard }}
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/results.json
-          if-no-files-found: warn
-          retention-days: 7
-      # U2a / INC-083 rule 2: Playwright writes a page snapshot per failure at
-      # test-results/<slug>/error-context.md — the only diagnosable evidence for
-      # a timeout. The reporter quotes it, so it must travel out of the job.
-      # DEC-078: uploaded on EVERY outcome — a test that failed then passed on
-      # retry leaves its first attempt's context in a GREEN job; an empty
-      # test-results tree uploads nothing (ignore), never an alarm.
-      - name: Upload error contexts
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-context-${{ matrix.shard }}
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/**/error-context.md
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Upload HTML report on failure
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-report-${{ matrix.shard }}
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: playwright-report/
-          retention-days: 7
+  e2e-lanes:
+    name: E2E lanes
+    # D228 / DEC-211 — the gating browser tests: thirteen lanes, each on its own
+    # throwaway Supabase built from the repository's migrations; no secrets.
+    # contents: write is for the lanes' summary, which publishes its evidence.
+    permissions:
+      contents: write
+    uses: ./.github/workflows/local-backend-proof.yml
 
   e2e-email:
     # INC-082 — EMAIL QUOTA JOB. The Auth email/signup rate limit is per-project
@@ -988,9 +582,9 @@ jobs:
   e2e:
     # HISTORICAL NAME PRESERVED: docs/tracking/ci-status.md lists one row per
     # job, and downstream reads key off this exact string. It is now the MERGED
-    # verdict for the four shards.
+    # verdict of the temporary-backend lanes and staging email job (DEC-211).
     name: E2E (Playwright, ethio-staging)
-    needs: [e2e-smoke, e2e-shard, e2e-email]
+    needs: [e2e-lanes, e2e-email]
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -1076,12 +670,10 @@ jobs:
           E2E_RESULTS_DIR: shard-results
           E2E_LOGS_DIR: shard-logs
           E2E_CONTEXT_DIR: shard-contexts
-          # DEC-023-B: `changed?` is OPTIONAL — labelled like any source when the
-          # fast lane ran, silently omitted when it skipped. The lane is signal
-          # only; this job's `needs:` and E2E_GREEN stay the full matrix.
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,changed?
+          # DEC-211: every temporary-backend lane and staging email are required.
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12
 
-          E2E_GREEN: ${{ (needs.e2e-shard.result == 'success' && needs.e2e-smoke.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
+          E2E_GREEN: ${{ (needs.e2e-lanes.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           # INC-088 — platform-origin label: Lovable's auto-pushes carry a fixed
           # commit subject, and the reporter prefixes a PLATFORM-ORIGIN? hint
@@ -1131,24 +723,23 @@ jobs:
           fi
           exit 0
 
-      # Law F4 — the merged job's conclusion IS the E2E verdict. A red shard or
-      # a red smoke tier reddens this row; bookkeeping never masks it.
+      # Law F4 — the merged job's conclusion IS the E2E verdict. A red lane or
+      # email job reddens this row; bookkeeping never masks it.
       - name: Verdict
         run: |
-          echo "smoke=${{ needs.e2e-smoke.result }} email=${{ needs.e2e-email.result }} shards=${{ needs.e2e-shard.result }}"
-          if [ "${{ needs.e2e-smoke.result }}" != "success" ] || [ "${{ needs.e2e-shard.result }}" != "success" ] || [ "${{ needs.e2e-email.result }}" != "success" ]; then
+          echo "lanes=${{ needs.e2e-lanes.result }} email=${{ needs.e2e-email.result }}"
+          if [ "${{ needs.e2e-lanes.result }}" != "success" ] || [ "${{ needs.e2e-email.result }}" != "success" ]; then
             echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
             exit 1
           fi
-          echo "All E2E shards and the smoke tier passed."
+          echo "Every temporary-backend lane and the email job passed."
 
   # DEC-020 — main advances ONLY here: a fast-forward from dev, solely on full
   # green. `needs:` enumerates EVERY job above, and `success()` is true only
   # when all of them succeeded (the merged `e2e` job has `if: always()`, so it
   # always reports a verdict; its own red already blocks promotion). Red never
-  # lands on main; main is the certified-green record. The one job not listed
-  # is `e2e-changed` (DEC-023-B, signal-only); scripts/check-promote-needs.sh
-  # proves the list.
+  # lands on main; main is the certified-green record.
+  # scripts/check-promote-needs.sh proves every job is in the list (D228).
   promote:
     name: Promote to main (fast-forward on green)
     needs:
@@ -1168,8 +759,7 @@ jobs:
         semgrep,
         e2e-preflight,
         e2e-build,
-        e2e-smoke,
-        e2e-shard,
+        e2e-lanes,
         e2e-email,
         e2e,
       ]

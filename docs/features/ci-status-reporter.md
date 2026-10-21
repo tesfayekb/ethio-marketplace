@@ -25,8 +25,9 @@ never a red job. The copies on dev are frozen until stage 2.
 ## guards-last-failure.md (DEC-066)
 
 So a red build or guard never needs a log paste, the reporter downloads the log of
-**every failed job whose name is not one of the four Playwright families** — `E2E smoke
-tier`, `E2E shard N/M`, `E2E email`, `E2E changed specs` — because those are the E2E
+**every failed job whose name does not match `/^E2E (email|lanes)/`** — the staging
+`E2E email` job and `E2E lanes / Lane … on temporary Supabase` (including its
+reporting summary) — because those are the E2E
 failure reporter's own sources and two copies of one failure would disagree.
 
 Per failed job it writes two blocks:

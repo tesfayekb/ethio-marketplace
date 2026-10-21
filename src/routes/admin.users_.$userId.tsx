@@ -9,6 +9,17 @@ import { AdminUserDetailPage } from "@/features/admin/users/user-detail";
  * this file renders the body only.
  */
 export const Route = createFileRoute("/admin/users_/$userId")({
+  head: () => ({
+    meta: [
+      { title: "User — ethio.com Admin" },
+      { name: "description", content: "User in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "User — ethio.com Admin" },
+      { property: "og:description", content: "User in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminUserDetailRoute,
 });
 

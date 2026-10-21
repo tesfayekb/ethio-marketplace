@@ -29,6 +29,8 @@ export const Route = createFileRoute("/admin")({
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Admin — ethio.com" },
       { property: "og:description", content: "Administration panel for ethio.com staff." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AdminGate,
