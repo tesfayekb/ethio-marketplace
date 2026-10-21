@@ -146,3 +146,4 @@ The page's heading ("Countries") leads the header row, whose actions are icon ti
 
 - Bundle 11 G3c (INC-558's class, G29 — an admin control that sends values computed from a read (a whole record, an ordered list, a set), or opens a form seeded from it, waits while that read is re-reading or a write keyed to it is in flight (`useSettling`, src/lib/use-settling.ts)): Edit and Rail order (the row's menu and the editor's verb bar) wait while the countries read settles — the editor sends the whole record, the rail order opens on the market's stored order.
   The rail-order dialog reads the root categories fresh each time it opens and again when a save is refused notARoot, so a root removed meanwhile drops out of the list (INC-814).
+  Closing a market that role grants still point at is refused scopedRolesExist and the dialog offers the force-close choice; it reads the refusal with errorText, so the choice appears for the door's own answer (INC-815).

@@ -1036,3 +1036,7 @@ Under G22, with its judge frozen first.
 ## DEC-231 — the first-paint ceiling at 305 KiB; the weight guard walks from the root and refuses the catalogue joins
 
 The admin strings left the first paint (bundle 22 turn 22); the ceiling dropped from 320 to 305 KiB. The weight guard (scripts/check-marketplace-imports.mjs) walks from src/routes/\_\_root.tsx too, follows export-from lines, skips type-only imports, and fails when the walk reaches src/i18n/locales/en.ts, am.ts, en-admin.ts, am-admin.ts or am-base.ts — proven red on db01a7fd (provider.tsx reached en.ts) and green after the split.
+
+## INC-815 — lint refuses `instanceof Error` on a caught error
+
+A Supabase door's refusal reaches the app as a plain { message, code, details, hint } object, not an Error, so `error instanceof Error && error.message …` never sees it (INC-625, INC-813, INC-815 — three occurrences). eslint.config.js refuses `instanceof Error` in src; a caught error is read with errorText (src/lib/error-text.ts). The error machinery that needs an Error instance (error-text, error-capture, error-page, the server's error line, the root error report) carries an eslint-disable-next-line comment with its reason; tests and the platform's lovable-error-reporting.ts are outside the rule.
