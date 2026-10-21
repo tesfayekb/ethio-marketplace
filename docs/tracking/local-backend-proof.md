@@ -1,27 +1,27 @@
 # Local backend proof (non-gating)
 
-- Commit: `c23972471f6aa93047db1799e28094dbb80d381f`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39526592327
+- Commit: `4333517cbbc3c2e7901957547ecc37c468115eea`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39531742474
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 865 | 103 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
-| 1 | 1141 | 106 | applied 329/329 | 188 | 0 | 0 | 6 | 194 |
-| 2 | 1044 | 114 | applied 329/329 | 146 | 0 | 0 | 1 | 147 |
-| 3 | 738 | 118 | applied 329/329 | 175 | 0 | 0 | 2 | 177 |
-| 4 | 697 | 98 | applied 329/329 | 170 | 0 | 0 | 6 | 176 |
-| 5 | 824 | 116 | applied 329/329 | 151 | 0 | 0 | 1 | 152 |
-| 6 | 658 | 107 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
-| 7 | 998 | 106 | applied 329/329 | 159 | 0 | 0 | 3 | 162 |
-| 8 | 1077 | 97 | applied 329/329 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 818 | 117 | applied 329/329 | 162 | 0 | 0 | 6 | 168 |
-| 10 | 839 | 110 | applied 329/329 | 170 | 0 | 0 | 6 | 176 |
-| 11 | 959 | 119 | applied 329/329 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 581 | 115 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
+| smoke | 876 | 114 | applied 329/329 | 186 | 0 | 0 | 60 | 246 |
+| 1 | 1133 | 109 | applied 329/329 | 188 | 0 | 0 | 6 | 194 |
+| 2 | 989 | 116 | applied 329/329 | 146 | 0 | 0 | 1 | 147 |
+| 3 | 752 | 115 | applied 329/329 | 175 | 0 | 0 | 2 | 177 |
+| 4 | 794 | 115 | applied 329/329 | 170 | 0 | 0 | 6 | 176 |
+| 5 | 867 | 115 | applied 329/329 | 151 | 0 | 0 | 1 | 152 |
+| 6 | 636 | 107 | applied 329/329 | 148 | 0 | 0 | 30 | 178 |
+| 7 | 1013 | 104 | applied 329/329 | 159 | 0 | 0 | 3 | 162 |
+| 8 | 1045 | 99 | applied 329/329 | 170 | 0 | 0 | 1 | 171 |
+| 9 | 737 | 112 | applied 329/329 | 162 | 0 | 0 | 6 | 168 |
+| 10 | 820 | 110 | applied 329/329 | 170 | 0 | 0 | 6 | 176 |
+| 11 | 962 | 106 | applied 329/329 | 190 | 0 | 0 | 2 | 192 |
+| 12 | 587 | 116 | applied 329/329 | 104 | 0 | 0 | 30 | 134 |
 | TOTAL | — | — | — | 2119 | 0 | 0 | 154 | 2273 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
 
-- Slowest lane: 1 1141 s
+- Slowest lane: 1 1133 s
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
