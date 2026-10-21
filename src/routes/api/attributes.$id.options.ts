@@ -69,11 +69,22 @@ function logRouteError(id: string, error: unknown): void {
   console.error("[ssr-error]", `/api/attributes/${id}/options`, errorText(error));
 }
 
-function fail(id: string, error: string, status: number): Response {
-  if (status >= 500) logRouteError(id, error);
+/** INC-802 — every client refusal this route sends, as a closed set. */
+type ClientCode = "unknown attribute" | "not signed in" | "rateLimited";
+
+/** INC-802 — a server failure: logged whole (with the id), answered with a fixed text. */
+function serverFailure(id: string, detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(id, detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
@@ -100,15 +111,16 @@ function respond(request: Request, entry: CacheEntry): Response {
 }
 
 async function handleGet(request: Request, id: string): Promise<Response> {
-  if (!UUID_RE.test(id)) return fail(id, "unknown attribute", 404);
+  if (!UUID_RE.test(id)) return clientFailure("unknown attribute", 404);
 
   // INC-397 — the options are not handed out: the bearer is verified first, and
   // the reads run as the caller (anon no longer holds EXECUTE).
   const caller = await userClientFromRequest(request);
   if (caller.reason !== null || caller.supabase === null) {
     // INC-574 — the auth server did not answer: 503, never "not signed in".
-    if (caller.reason === "upstream") return fail(id, caller.message, 503);
-    return fail(id, "not signed in", caller.reason === "serverEnv" ? 500 : 401);
+    if (caller.reason === "upstream") return serverFailure(id, caller.message, 503);
+    if (caller.reason === "serverEnv") return serverFailure(id, "not signed in", 500);
+    return clientFailure("not signed in", 401);
   }
   const supabase = caller.supabase;
 
@@ -117,9 +129,9 @@ async function handleGet(request: Request, id: string): Promise<Response> {
   if (hit && now - hit.checkedAt < CACHE_TTL_MS) return respond(request, hit);
 
   const version = await supabase.rpc("get_attribute_options_version", { p_attribute_id: id });
-  if (version.error) return fail(id, version.error.message, 502);
+  if (version.error) return serverFailure(id, version.error.message, 502);
   const stamp = typeof version.data === "string" ? version.data : "";
-  if (stamp === "") return fail(id, "unknown attribute", 404);
+  if (stamp === "") return clientFailure("unknown attribute", 404);
 
   // The version is unchanged: the body already held is still the answer, and no
   // second read is paid for.
@@ -131,11 +143,13 @@ async function handleGet(request: Request, id: string): Promise<Response> {
 
   const { data, error } = await supabase.rpc("get_attribute_options", { p_attribute_id: id });
   if (error) {
-    if (error.message.includes("attributeNotFound")) return fail(id, "unknown attribute", 404);
+    if (error.message.includes("attributeNotFound")) {
+      return clientFailure("unknown attribute", 404);
+    }
     // Bundle 4 step 20 — the door meters reads (rate_gate('options_read')); a
     // refusal is the caller's limit, answered in plain words, as the schema read is.
-    if (error.message.includes("rateLimited")) return fail(id, "rateLimited", 429);
-    return fail(id, error.message, 502);
+    if (error.message.includes("rateLimited")) return clientFailure("rateLimited", 429);
+    return serverFailure(id, error.message, 502);
   }
 
   const entry: CacheEntry = {
@@ -156,7 +170,7 @@ export const Route = createFileRoute("/api/attributes/$id/options")({
           return await handleGet(request, id);
         } catch (error) {
           logRouteError(id, error);
-          return fail(id, errorText(error), 500);
+          return serverFailure(id, errorText(error), 500);
         }
       },
     },
