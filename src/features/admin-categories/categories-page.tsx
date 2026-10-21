@@ -70,6 +70,7 @@ import {
   useReactivateCategory,
   useReorderCategories,
 } from "./use-categories";
+import { errorText } from "@/lib/error-text";
 
 /**
  * C2-UI — THE CATEGORIES CONSOLE.
@@ -777,7 +778,7 @@ export function AdminCategoriesPage() {
         generated += 1;
       } catch (error) {
         const stage = error instanceof CategoryImageError && error.stage ? ` ${error.stage}` : "";
-        const detail = error instanceof Error ? error.message : "";
+        const detail = error === null || error === undefined ? "" : errorText(error);
         failures.push(`${row.slug}: ${t("admin.categories.image.stageLabel")}${stage} ${detail}`);
       }
       setBulkProgress({ done: index + 1, total: batch.length });

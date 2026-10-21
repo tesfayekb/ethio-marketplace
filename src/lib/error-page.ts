@@ -18,6 +18,7 @@ function sanitizeForMarkup(message: string): string {
 }
 
 function describe(error: unknown): string {
+  // eslint-disable-next-line no-restricted-syntax -- the line names the Error's name
   if (error instanceof Error) return `${error.name}: ${error.message}`;
   if (typeof error === "string") return error;
   try {

@@ -30,8 +30,10 @@ function logSsrError(request: Request, error: unknown) {
     // Keep the raw URL; a malformed one is itself evidence.
   }
   // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
+  // eslint-disable-next-line no-restricted-syntax -- the line names the Error's name
   const message = error instanceof Error ? `${error.name}: ${errorText(error)}` : errorText(error);
   const stack =
+    // eslint-disable-next-line no-restricted-syntax -- only an Error has a stack
     error instanceof Error ? (error.stack ?? "").split("\n").slice(1, 4).join("\n") : "";
   console.error("[ssr-error]", where, message, stack);
   console.error(error);

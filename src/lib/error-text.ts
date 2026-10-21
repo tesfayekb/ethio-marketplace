@@ -30,6 +30,7 @@ function rawText(error: unknown): string | null {
   if (typeof error === "number" || typeof error === "bigint" || typeof error === "boolean") {
     return String(error);
   }
+  // eslint-disable-next-line no-restricted-syntax -- an Error with no message falls back to its name
   if (error instanceof Error) {
     if (error.message.trim() !== "") return error.message;
     return error.name.trim() === "" ? null : error.name;
@@ -63,6 +64,7 @@ export function errorText(error: unknown): string {
 
 /** The same text, with the first line of an Error's stack after it (the routes' I4 format). */
 export function errorWithStack(error: unknown): string {
+  // eslint-disable-next-line no-restricted-syntax -- only an Error has a stack
   if (!(error instanceof Error)) return errorText(error);
   return `${errorText(error)} | ${(error.stack ?? "").split("\n")[1]?.trim() ?? "no stack"}`;
 }

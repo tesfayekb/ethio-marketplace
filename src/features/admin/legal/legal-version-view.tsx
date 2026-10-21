@@ -19,6 +19,7 @@ import {
   versionStatus,
 } from "./legal-service";
 import { useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
+import { errorText } from "@/lib/error-text";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -105,9 +106,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
   const previous = row
     ? siblings?.filter((v) => v.version < row.version).sort((a, b) => b.version - a.version)[0]
     : undefined;
-  const unknown =
-    (version.error instanceof Error && version.error.message === "unknownVersion") ||
-    (version.error as { message?: string } | null)?.message === "unknownVersion";
+  const unknown = version.error != null && errorText(version.error) === "unknownVersion";
   const kind = row ? kindKey(row.kind) : null;
   const facts = row?.status === "published" ? (row.settings_snapshot ?? {}) : (settings.data ?? {});
   const text = row ? (lang === "en" ? row.body_en : row.body_am) : "";

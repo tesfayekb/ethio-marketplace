@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
+import { errorText } from "@/lib/error-text";
 
 /**
  * C5b — the client seam for the two FROZEN C5a routes.
@@ -128,7 +129,7 @@ export async function generateCategoryImage(input: {
       throw new CategoryImageError(error.message, error.status, error.stage ?? "model-call");
     }
     throw new CategoryImageError(
-      error instanceof Error ? error.message : "network error",
+      error === null || error === undefined ? "network error" : errorText(error),
       0,
       "model-call",
     );
@@ -145,7 +146,7 @@ export async function generateCategoryImage(input: {
     variants = await makeVariants(new Blob([bytes as BlobPart]));
   } catch (error) {
     throw new CategoryImageError(
-      error instanceof Error ? error.message : "image processing failed",
+      error === null || error === undefined ? "image processing failed" : errorText(error),
       0,
       "process",
     );
@@ -198,7 +199,7 @@ export async function generateCategoryImage(input: {
     }
   } catch (error) {
     console.error(
-      `[category-images] image_prune_failed ${error instanceof Error ? error.message : "unknown"}`,
+      `[category-images] image_prune_failed ${error === null || error === undefined ? "unknown" : errorText(error)}`,
     );
   }
 

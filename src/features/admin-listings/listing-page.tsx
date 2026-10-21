@@ -46,6 +46,7 @@ import {
   type AdminListingHistoryEntry,
 } from "./use-admin-listing";
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
+import { errorText } from "@/lib/error-text";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -178,7 +179,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     );
   }
   if (query.error || detail === null) {
-    const missing = query.error instanceof Error && query.error.message === "listing not found";
+    const missing = query.error != null && errorText(query.error) === "listing not found";
     return (
       <div data-testid="admin-listing-detail" className="space-y-3">
         <BackLink />

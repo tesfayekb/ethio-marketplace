@@ -13,6 +13,7 @@ import {
   type GeneratedAssets,
   loadCategoryImages,
 } from "./category-images-service";
+import { errorText } from "@/lib/error-text";
 
 /**
  * C5b PART A — THE IMAGE SURFACE.
@@ -243,7 +244,7 @@ export function CategoryImagePanel({
       onAccepted?.();
     })
       .catch((error: unknown) => {
-        const raw = error instanceof Error ? error.message : "";
+        const raw = error === null || error === undefined ? "" : errorText(error);
         if (raw.startsWith("admin.categories.error.")) {
           setMessage(t(raw as Parameters<typeof t>[0]));
           return;
