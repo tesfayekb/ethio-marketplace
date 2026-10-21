@@ -2,7 +2,7 @@
 
 The brief in force: docs/governance/briefs/bundle-22-turn-17b-v2.md (bundle 22 — turn 17b, after the close: the acceptance guard on the tables — no one changes what others see before accepting, and taking down is never held; D227, DEC-216, INC-807). Next: turn 17c (Admin › Legal's per-version counts); the Publish and the one walk of bundle 22; the operator's approval of the Terms and Privacy v2 texts, then their Amharic, import and publish; the banned-items and safety pages after the curator's research; the flake-and-cleanup turn; bundle 23 — the business-name rule (D222) after reserved-names v5.2; D199 (discount / sale) after the peer research and the operator's rulings; D200's state.
 
-- [ ] Turn 17b S353 ruling — LG-29 proves each scratch acceptance is still owed through service-client truth; LG-30 uses draft pin, photos-soon, cover and submit_listing save, not set_listing_price; rerun the whole certification file and LAC-1 on both projects, then checks and the CI wait report. M13 remains unchanged.
+- [x] Turn 17b S353 ruling — LG-29 proves each scratch acceptance is still owed through service-client truth; LG-30 uses draft pin, photos-soon, cover and submit_listing save, not set_listing_price; whole certification file 39 passed / 1 existing skip and LAC-1 2 passed on both projects, zero retries; required checks passed. M13 remains unchanged; the CI wait report closes this turn, with GitHub's replay still pending.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4
 
