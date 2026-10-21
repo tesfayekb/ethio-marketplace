@@ -1263,6 +1263,9 @@ export type Database = {
       legal_settings: {
         Row: {
           account_keep_months: number
+          appeal_months: number
+          claims_limit_months: number
+          complaint_ack_days: number
           copyright_agent: string | null
           deleted_ad_keep_months: number
           dispute_keep_years: number
@@ -1282,12 +1285,16 @@ export type Database = {
           response_extra_days: number
           security_email: string
           sold_visible_days: number
+          talk_first_days: number
           technical_keep_months: number
           updated_at: string
           updated_by: string | null
         }
         Insert: {
           account_keep_months?: number
+          appeal_months?: number
+          claims_limit_months?: number
+          complaint_ack_days?: number
           copyright_agent?: string | null
           deleted_ad_keep_months?: number
           dispute_keep_years?: number
@@ -1307,12 +1314,16 @@ export type Database = {
           response_extra_days?: number
           security_email?: string
           sold_visible_days?: number
+          talk_first_days?: number
           technical_keep_months?: number
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
           account_keep_months?: number
+          appeal_months?: number
+          claims_limit_months?: number
+          complaint_ack_days?: number
           copyright_agent?: string | null
           deleted_ad_keep_months?: number
           dispute_keep_years?: number
@@ -1332,6 +1343,7 @@ export type Database = {
           response_extra_days?: number
           security_email?: string
           sold_visible_days?: number
+          talk_first_days?: number
           technical_keep_months?: number
           updated_at?: string
           updated_by?: string | null
