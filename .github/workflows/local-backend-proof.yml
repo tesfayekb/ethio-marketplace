@@ -826,7 +826,7 @@ jobs:
           full_evidence = Path('docs/tracking/local-backend-last-failure.md')
           if full_evidence.exists():
               full_evidence.write_text(redact(full_evidence.read_text(errors='replace')))
-          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/14; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
+          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/18; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
           PY
       - name: Publish only proof evidence
         if: always()
