@@ -25,7 +25,15 @@ import { errorText } from "@/lib/error-text";
  */
 
 const PATH = "/api/seller";
-const BAD = ["seller_feed_page: badCursor", "seller_feed_page: badSize"] as const;
+
+/** INC-802 — every client refusal this route sends, as a closed set. */
+type ClientCode = "badKey" | "badCursor" | "badSize" | "unknownSeller";
+
+/** The database's error names mapped to this route's fixed codes. */
+const BAD: Readonly<Record<string, ClientCode>> = {
+  "seller_feed_page: badCursor": "badCursor",
+  "seller_feed_page: badSize": "badSize",
+};
 
 function logRouteError(error: unknown): void {
   // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
@@ -39,11 +47,19 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
-function fail(error: string, status: number): Response {
-  if (status >= 500) logRouteError(error);
+/** INC-802 — a server failure: logged whole, answered with a fixed text. */
+function serverFailure(detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });

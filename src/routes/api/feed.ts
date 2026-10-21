@@ -24,8 +24,25 @@ import { PHOTO_LINK_SECONDS, readAndSignPhotoLinks } from "@/server/media/links"
 
 const PATH = "/api/feed";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const NOT_FOUND = ["feed_page: unknownCategory", "feed_page: unknownPlace"] as const;
-const BAD = ["feed_page: badCursor", "feed_page: badSize"] as const;
+
+/** INC-804 — every client refusal this route sends, as a closed set. */
+type ClientCode =
+  | "badCategory"
+  | "badPlace"
+  | "badSize"
+  | "badCursor"
+  | "unknownCategory"
+  | "unknownPlace";
+
+/** The database's error names mapped to this route's fixed codes. */
+const NOT_FOUND: Readonly<Record<string, ClientCode>> = {
+  "feed_page: unknownCategory": "unknownCategory",
+  "feed_page: unknownPlace": "unknownPlace",
+};
+const BAD: Readonly<Record<string, ClientCode>> = {
+  "feed_page: badCursor": "badCursor",
+  "feed_page: badSize": "badSize",
+};
 
 function logRouteError(error: unknown): void {
   // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
@@ -39,11 +56,19 @@ function serverEnv(name: string): string {
   return process.env[name] ?? "";
 }
 
-function fail(error: string, status: number): Response {
-  if (status >= 500) logRouteError(error);
+/** INC-804 — a server failure: logged whole, answered with a fixed text. */
+function serverFailure(detail: string, status: 500 | 502 | 503): Response {
+  logRouteError(detail);
   // INC-447 — a server failure is logged whole; the reply names no raw message.
-  const shown = status >= 500 ? "internal error" : error;
-  return new Response(JSON.stringify({ error: shown }), {
+  return new Response(JSON.stringify({ error: "internal error" }), {
+    status,
+    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/** INC-804 — a client refusal: its code is one of the route's fixed codes. */
+function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
+  return new Response(JSON.stringify({ error: code }), {
     status,
     headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
   });
