@@ -108,6 +108,59 @@ async function assertNoSignUpError(page: Page, limit: ReturnType<typeof watchAut
 
 const EMAIL_SINK = process.env["E2E_EMAIL_SINK"] === "1";
 
+const acceptanceKinds = new Set<string>();
+let acceptanceEmail: string | undefined;
+async function signupUser(email: string) {
+  for (let pageNo = 1; pageNo <= 20; pageNo += 1) {
+    const result = await adminClient().auth.admin.listUsers({ page: pageNo, perPage: 1000 });
+    if (result.error) throw new Error(`[e2e:su3] users read: ${result.error.message}`);
+    const user = result.data.users.find(
+      (user) => user.email?.toLowerCase() === email.toLowerCase(),
+    );
+    if (user) return user;
+    if (result.data.users.length < 1000) return undefined;
+  }
+  throw new Error("[e2e:su3] user lookup exceeded the catalogue bound");
+}
+test.afterEach(async () => {
+  const client = adminClient();
+  const failures: string[] = [];
+  const fail = (error: { message: string } | null, phase: string) => {
+    if (error) failures.push(`${phase}: ${error.message}`);
+  };
+  if (acceptanceEmail) {
+    const user = await signupUser(acceptanceEmail);
+    if (user) {
+      fail((await client.auth.admin.deleteUser(user.id)).error, "account");
+      fail(
+        (await client.from("legal_acceptances").delete().eq("user_id", user.id)).error,
+        "acceptances",
+      );
+    }
+    acceptanceEmail = undefined;
+  }
+  for (const kind of acceptanceKinds) {
+    const docs = await client.from("legal_documents").select("id").eq("kind", kind);
+    fail(docs.error, "documents read");
+    for (const doc of docs.data ?? []) {
+      const versions = await client.from("legal_versions").select("id").eq("document_id", doc.id);
+      fail(versions.error, "versions read");
+      const ids = (versions.data ?? []).map((version) => version.id);
+      if (ids.length) {
+        fail(
+          (await client.from("legal_acceptances").delete().in("version_id", ids)).error,
+          "version acceptances",
+        );
+        fail((await client.from("legal_notices").delete().in("version_id", ids)).error, "notices");
+        fail((await client.from("legal_versions").delete().in("id", ids)).error, "versions");
+      }
+      fail((await client.from("legal_documents").delete().eq("id", doc.id)).error, "document");
+    }
+    acceptanceKinds.delete(kind);
+  }
+  if (failures.length) throw new Error(`[e2e:su3] cleanup failed: ${failures.join("; ")}`);
+});
+
 test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () => {
   test.skip(
     !EMAIL_SINK,
@@ -151,6 +204,113 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
   });
+  test(
+    "SU-3 a brand-new account made through the sign-up form meets the acceptance before any page",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const info = test.info();
+      const tag =
+        `e2e-su3-${RUN_ID.replace(/[^a-z0-9]/gi, "").slice(-8)}-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "").slice(0, 5)}-${info.workerIndex}-email-${Math.random().toString(36).slice(2, 7)}`.toLowerCase();
+      const kinds = [`${tag}-terms`, `${tag}-privacy`];
+      const versions: string[] = [];
+      for (const kind of kinds) {
+        acceptanceKinds.add(kind);
+        const doc = await adminClient()
+          .from("legal_documents")
+          .insert({ kind, country_code: null })
+          .select("id")
+          .single();
+        if (doc.error || !doc.data)
+          throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
+        const version = await adminClient()
+          .from("legal_versions")
+          .insert({
+            document_id: doc.data.id,
+            version: 1,
+            status: "published",
+            label: "v1",
+            body_en: "## Scratch\nScratch English text 1",
+            body_am: "Scratch Amharic text 1",
+            changelog: "scratch change",
+            material: false,
+            effective_at: new Date(Date.now() - 60_000).toISOString(),
+            published_at: new Date(Date.now() - 60_000).toISOString(),
+            settings_snapshot: { seed: "true" },
+          })
+          .select("id")
+          .single();
+        if (version.error || !version.data)
+          throw new Error(`[e2e:su3] version seed: ${version.error?.message}`);
+        versions.push(version.data.id);
+      }
+      await page.addInitScript((list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      }, kinds);
+      const email = testEmail(RUN_ID, 193);
+      acceptanceEmail = email;
+      const password = "Pw-193-aX9!qmzT";
+      const limit = watchAuthRateLimit(page);
+      await page.goto("/auth");
+      await waitForHydration(page);
+      await page.getByTestId("auth-toggle-view").click();
+      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+      await fillUntilStable(page.locator("#auth-password"), password, "password");
+      await fillUntilStable(
+        page.locator("#auth-password-confirm"),
+        password,
+        "password confirmation",
+      );
+      await page
+        .getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") })
+        .click();
+      await assertNoSignUpError(page, limit);
+      await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible();
+      await expect(
+        page.getByText(en["auth.checkEmailSentTo"].replace("{email}", email), { exact: false }),
+      ).toBeVisible();
+      expect(limit.hit(), limit.reason()).toBe(false);
+      limit.disarm();
+      const user = await signupUser(email);
+      if (!user) throw new Error("[e2e:su3] signup account missing");
+      // Only the mail-link step is done for the person; signup and sign-in use the real forms.
+      const confirmed = await adminClient().auth.admin.updateUserById(user.id, {
+        email_confirm: true,
+      });
+      if (confirmed.error)
+        throw new Error(`[e2e:su3] email confirmation: ${confirmed.error.message}`);
+      await page.goto("/auth");
+      await waitForHydration(page);
+      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+      await fillUntilStable(page.locator("#auth-password"), password, "password");
+      await page
+        .getByRole("button", { name: new RegExp(`^${en["auth.signInButton"]}$`, "i") })
+        .click();
+      await expect(page).toHaveURL(/\/legal\/accept(?:\?|$)/);
+      await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
+      await expect(page.getByTestId("legal-accept-doc")).toHaveCount(2);
+      for (const path of ["/", "/post", "/account"]) {
+        await page.goto(path);
+        await expect(page, `${path} meets acceptance first`).toHaveURL(/\/legal\/accept(?:\?|$)/);
+        await expect(page.getByTestId("legal-accept-screen")).toBeVisible();
+      }
+      await page.getByTestId("legal-accept-tick").click();
+      await page.getByTestId("legal-accept-submit").click();
+      await expect(page).toHaveURL(/\/account$/);
+      const rows = await adminClient()
+        .from("legal_acceptances")
+        .select("version_id, adult_confirmed")
+        .eq("user_id", user.id)
+        .in("version_id", versions);
+      if (rows.error) throw new Error(`[e2e:su3] acceptance read: ${rows.error.message}`);
+      expect(rows.data).toHaveLength(2);
+      for (const versionId of versions)
+        expect(rows.data?.filter((row) => row.version_id === versionId)).toHaveLength(1);
+      expect(rows.data?.every((row) => row.adult_confirmed)).toBe(true);
+      await page.goto("/");
+      await expect(page).toHaveURL(/\/$/);
+      await expect(page.getByTestId("legal-accept-screen")).toHaveCount(0);
+    },
+  );
 });
 
 /**

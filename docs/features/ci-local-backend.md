@@ -578,6 +578,8 @@ DEC-214 — THE SWITCH'S KEEP RULE, fixed before any run: KEEP when the CI run o
 Owed later turn: move the email tests to the temporary backend's inbox; until
 that proof, email is the last gating browser coverage still on hosted staging.
 
+Turn 17: the smoke lane also runs the write-door guard (DEC-215) against the temporary backend, before its tests.
+
 ## Phase 2 plan
 
 1. Read-only capture and review the clean reference-data graph, real RBAC/dials,

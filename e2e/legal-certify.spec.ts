@@ -87,9 +87,18 @@ type Scratch = {
   documents: string[];
   versions: string[];
   reveals: { viewerId: string; listingId: string }[];
+  photoListings: { sellerId: string; listingId: string }[];
 };
 function scratch(): Scratch {
-  return { sellers: [], categories: [], listings: [], documents: [], versions: [], reveals: [] };
+  return {
+    sellers: [],
+    categories: [],
+    listings: [],
+    documents: [],
+    versions: [],
+    reveals: [],
+    photoListings: [],
+  };
 }
 async function destroy(s: Scratch) {
   const supabase = adminClient();
@@ -105,6 +114,19 @@ async function destroy(s: Scratch) {
   const step = (label: string, error: { message: string } | null) => {
     if (error) failures.push(`${label}: ${error.message}`);
   };
+  for (const photo of s.photoListings) {
+    const bucket = supabase.storage.from("listing-photos");
+    const prefix = `default/${photo.sellerId}/${photo.listingId}`;
+    const dirs = await bucket.list(prefix, { limit: 100 });
+    step("photo directories", dirs.error);
+    const keys: string[] = [];
+    for (const dir of dirs.data ?? []) {
+      const files = await bucket.list(`${prefix}/${dir.name}`, { limit: 100 });
+      step("photo objects", files.error);
+      for (const file of files.data ?? []) keys.push(`${prefix}/${dir.name}/${file.name}`);
+    }
+    if (keys.length) step("photo objects removed", (await bucket.remove(keys)).error);
+  }
   if (s.listings.length > 0)
     step(
       "certifications",
@@ -728,6 +750,114 @@ test.describe("Legal certification", () => {
     const hidden = await anonRead("public_listing", args);
     expect(hidden.error).toBeNull();
     expect(hidden.data).toBeNull();
+  });
+
+  test("LG-25 an owed acceptance refuses edit_my_listing until it is accepted; nothing is written while refused", async ({
+    page,
+  }) => {
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(listingId, "active");
+    const owed = await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
+    const me = await asPerson(seller);
+    const read = async () => {
+      const listing = await adminClient().from("listings").select("*").eq("id", listingId).single();
+      const revisions = await adminClient()
+        .from("listing_revisions")
+        .select("*")
+        .eq("listing_id", listingId)
+        .order("id");
+      if (listing.error || revisions.error)
+        throw new Error(
+          `[e2e:certify] edit truth: ${listing.error?.message ?? revisions.error?.message}`,
+        );
+      return { listing: listing.data, revisions: revisions.data };
+    };
+    const before = await read();
+    const title = `e2e acceptance edited ${rand()}`;
+    const args = { p_listing_id: listingId, p_changes: { title } };
+    const refused = await me.rpc("edit_my_listing", args);
+    expect(refused.error).toContain("acceptanceRequired");
+    expect(await read()).toEqual(before);
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
+    expect(accepted.error, JSON.stringify(accepted)).toBeNull();
+    const edited = await me.rpc("edit_my_listing", args);
+    expect(edited.error, JSON.stringify(edited)).toBeNull();
+    expect((edited.data as Row)["ok"]).toBe(true);
+    expect((await read()).listing?.title).toBe(title);
+  });
+
+  test("LG-26 an owed acceptance refuses renew_listing until it is accepted", async ({ page }) => {
+    await renewAllowed();
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(listingId, "expired");
+    const owed = await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
+    const me = await asPerson(seller);
+    const read = async () => {
+      const result = await adminClient()
+        .from("listings")
+        .select("status, expires_at")
+        .eq("id", listingId)
+        .single();
+      if (result.error || !result.data)
+        throw new Error(`[e2e:certify] renew truth: ${result.error?.message}`);
+      return result.data;
+    };
+    const before = await read();
+    const refused = await me.rpc("renew_listing", { p_listing_id: listingId });
+    expect(refused.error).toContain("acceptanceRequired");
+    expect(await read()).toEqual(before);
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
+    expect(accepted.error, JSON.stringify(accepted)).toBeNull();
+    const renewed = await me.rpc("renew_listing", { p_listing_id: listingId });
+    expect(renewed.error, JSON.stringify(renewed)).toBeNull();
+    expect((renewed.data as Row)["ok"]).toBe(true);
+    const after = await read();
+    expect(after.status).toBe("active");
+    expect(Date.parse(after.expires_at ?? "")).toBeGreaterThan(Date.now());
+  });
+
+  test("LG-27 an owed acceptance refuses a photo added to a published ad; no photo row is written", async ({
+    page,
+  }) => {
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const listingId = await draftOf(page, s, categoryId, cityId);
+    s.photoListings.push({ sellerId: seller.id, listingId });
+    const token = await bearerOf(page);
+    const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
+    expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
+    await makeState(listingId, "active");
+    const owed = await seedDocument(s, `e2e-acc-${hex(listingId)}`, null, "Terms to accept");
+    const me = await asPerson(seller);
+    const before = await photoRowsOf(listingId);
+    const refused = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
+    expect(refused.status).toBe(409);
+    expect(reasons(refused.payload)).toEqual([{ field: "legal", reason: "acceptanceRequired" }]);
+    expect(await photoRowsOf(listingId)).toEqual(before);
+    const accepted = await me.rpc("accept_legal", {
+      p_version_ids: [owed.id],
+      p_language: "en",
+      p_adult: true,
+    });
+    expect(accepted.error, JSON.stringify(accepted)).toBeNull();
+    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
+    expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    expect(await photoRowsOf(listingId)).toHaveLength(before.length + 1);
   });
 
   test("LGC-5 the photos step of a seller's edit waits for the statement", async ({ page }) => {
