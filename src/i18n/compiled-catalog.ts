@@ -9,7 +9,7 @@ import type { Messages } from "./types";
  * code, and a lookup miss means "the compiled layer for this language is `{}`"
  * — the chain becomes compiled.en ▸ {} ▸ DB[lang], never a throw.
  */
-const loaders: Partial<Record<string, () => Promise<Messages>>> = {
+const loaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
   am: () => import("./locales/am-base").then((m) => m.amBase),
 };
 
