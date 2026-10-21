@@ -1410,6 +1410,45 @@ export type Database = {
           },
         ]
       }
+      legal_version_texts: {
+        Row: {
+          body: string
+          created_at: string
+          language: string
+          updated_at: string
+          version_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          language: string
+          updated_at?: string
+          version_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          language?: string
+          updated_at?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_version_texts_language_fkey"
+            columns: ["language"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "legal_version_texts_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_versions: {
         Row: {
           body_am: string | null
@@ -3324,6 +3363,10 @@ export type Database = {
         Args: { p_child_id: string; p_parent_id: string }
         Returns: string
       }
+      admin_add_legal_translation: {
+        Args: { p_body: string; p_language: string; p_version_id: string }
+        Returns: Json
+      }
       admin_ai_features: { Args: never; Returns: Json }
       admin_ai_spend_days: { Args: { p_days?: number }; Returns: Json }
       admin_allow_listing_photo: { Args: { p_photo_id: string }; Returns: Json }
@@ -4022,6 +4065,7 @@ export type Database = {
           p_country: string
           p_kind: string
           p_label: string
+          p_texts?: Json
         }
         Returns: Json
       }
