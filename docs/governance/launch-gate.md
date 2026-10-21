@@ -126,3 +126,10 @@ Every line above stands as written; the status notes and new lines below come fr
 - [x] INC-480 and INC-482 (the line of 2026-10-07 above) — DONE: M14 on ethio-prod since 2026-10-07 22:22Z; read back there — postgres's default privileges in schema public hand nothing to the two browser roles, the third database lint counts 12 (the named doors), and the migration check refuses a new function without its REVOKE. Re-read at the launch round with the five lint counts.
 - [ ] Every Amharic text of the interface has been read by a person who reads Amharic — the admin countries console's is unreadable in many places (INC-489) and the script guard sees code points, not words — NOT DONE; the full read of `src/i18n/locales/am.ts` is in the tidy-up round, and the public pages' texts are read first.
 - [ ] After the last Publish before opening: "Sync keys" pressed and the live text store compared with the code (INC-488) — NOT DONE; at the launch round.
+
+## Added 2026-10-21 (bundle 22 turn 19)
+
+- [ ] The privacy-request inbox (D229: the in-app request form and the logged e-mails, due dates, flags, answered or not) — NOT DONE; before launch (the operator, 2026-10-21).
+- [ ] A one-page breach plan: who decides, the clocks (72 hours to the authority under the EU, Ethiopian and Kenyan rules; "without unreasonable delay" under US state laws), message templates and contacts — NOT DONE; drafted by the supervisor, approved by the operator.
+- [ ] Every sentence of the published Terms and Privacy Policy is true on launch day (in-app messages and blocking, promoted-ad labels, the logs of staff help and of access to hidden copies, the idle session timeout are described as built): build each, or change its wording in a new version before opening — NOT DONE (DEC-221: published before launch at the operator's choice).
+- [ ] Each legal document's review date (DEC-219) and the six-monthly legal watch (DEC-220, a scheduled task from 2027-04-15) — the review dates NOT DONE (turn 20); the watch scheduled 2026-10-21.

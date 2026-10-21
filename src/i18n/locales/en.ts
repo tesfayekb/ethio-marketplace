@@ -3065,8 +3065,8 @@ export const en = {
   "legal.accept.title": "Before you continue",
   "legal.accept.lead":
     "We have Terms of Service and a Privacy Policy. Please read them and accept to continue.",
-  "legal.accept.liability":
-    "The Terms limit our liability and set out your responsibility for your ads and deals (section 12).",
+  "legal.accept.liabilityLimits":
+    "The Terms limit our liability, set a time limit for claims, and make you responsible for your ads and deals, including claims they cause against us. The main points are at the top of the Terms.",
   "legal.accept.version": "Version {n} · {label}",
   "legal.accept.read": "Read",
   "legal.accept.hide": "Hide",
@@ -3177,6 +3177,7 @@ export const en = {
   "admin.legal.facts.required": "Required.",
   "admin.legal.facts.range": "A whole number from {min} to {max}.",
   "admin.legal.facts.badPhone": "Enter a phone number: digits, spaces, + ( ) and -.",
+  "admin.legal.facts.shorterThanClaims": "At least the claims limit: {min} months.",
   "admin.legal.fact.operator_name": "Operator's legal name",
   "admin.legal.fact.operator_address": "Operator's address",
   "admin.legal.fact.legal_email": "Legal e-mail",
@@ -3198,6 +3199,10 @@ export const en = {
   "admin.legal.fact.account_keep_months": "Keep a closed account's identity, months",
   "admin.legal.fact.technical_keep_months": "Keep technical records, months",
   "admin.legal.fact.sold_visible_days": "Days a sold ad stays visible to buyers",
+  "admin.legal.fact.appeal_months": "Appeal a decision within, months",
+  "admin.legal.fact.claims_limit_months": "Bring a claim within, months",
+  "admin.legal.fact.talk_first_days": "Time to settle before a claim, days",
+  "admin.legal.fact.complaint_ack_days": "Confirm a privacy complaint within, days",
   "admin.legal.error.labelRequired": "Give the version a name.",
   "admin.legal.error.labelTaken": "Another version of this document already has this name.",
   "admin.legal.error.bothLanguages": "Publishing needs both the English and the Amharic text.",

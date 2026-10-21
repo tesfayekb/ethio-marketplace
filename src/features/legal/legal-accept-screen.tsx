@@ -82,7 +82,9 @@ export function LegalAcceptScreen({
       <div className="mx-auto w-full max-w-2xl min-w-0 space-y-4">
         <h1 className="text-2xl font-semibold text-foreground">{t("legal.accept.title")}</h1>
         <p>{t("legal.accept.lead")}</p>
-        <p className="text-sm text-muted-foreground">{t("legal.accept.liability")}</p>
+        <p data-testid="legal-accept-liability" className="text-sm text-muted-foreground">
+          {t("legal.accept.liabilityLimits")}
+        </p>
         {status.isPending ? (
           <p role="status">{t("common.loading")}</p>
         ) : status.error ? (
