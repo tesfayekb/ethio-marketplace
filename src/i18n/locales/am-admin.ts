@@ -1,6 +1,13 @@
 import type { enAdmin } from "./en-admin";
 
 export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
+  "admin.legal.field.textOptional": "የ{language} ጽሑፍ (አማራጭ)",
+  "admin.legal.translation.add": "ትርጉም ጨምር",
+  "admin.legal.translation.hint": "በታተመ ስሪት ላይ የሚጨመር ትርጉም የመጨረሻ ነው። ከእንግሊዝኛው ቢለይ የእንግሊዝኛው ይሠራል።",
+  "admin.legal.translation.save": "ትርጉሙን አስቀምጥ",
+  "admin.legal.translation.saved": "ትርጉሙ ታክሏል።",
+  "admin.legal.error.translationExists": "ይህ ስሪት በዚያ ቋንቋ ጽሑፍ አስቀድሞ አለው።",
+  "admin.legal.error.badLanguage": "ያ ቋንቋ የሕግ ጽሑፍ መቀበል አይችልም።",
   "admin.title": "አስተዳደር",
   "admin.body": "የሠራተኞች መሣሪያዎች እያንዳንዱ የአስተዳደር ገጽታ ሲጠናቀቅ እዚህ ይታያሉ።",
 

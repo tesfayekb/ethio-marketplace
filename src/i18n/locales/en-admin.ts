@@ -1,4 +1,11 @@
 export const enAdmin = {
+  "admin.legal.field.textOptional": "{language} text (optional)",
+  "admin.legal.translation.add": "Add translation",
+  "admin.legal.translation.hint": "A translation added to a published version is final. If it differs from the English, the English applies.",
+  "admin.legal.translation.save": "Save translation",
+  "admin.legal.translation.saved": "Translation added.",
+  "admin.legal.error.translationExists": "This version already has a text in that language.",
+  "admin.legal.error.badLanguage": "That language cannot take a legal text.",
   "admin.title": "Admin",
   "admin.body": "Staff tools land here as each admin feature ships.",
 

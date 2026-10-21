@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import {
+  addLegalTranslation,
   discardLegalDraft,
   getLegalSettings,
   getLegalVersion,
@@ -40,6 +41,12 @@ export function useLegalWrites() {
   const client = useQueryClient();
   const refresh = () => refreshAfterWrite(client, { queryKey: ADMIN_LEGAL_KEY });
   return {
+    translation: useMutation({
+      mutationKey: ADMIN_LEGAL_KEY,
+      mutationFn: (input: { versionId: string; language: string; body: string }) =>
+        addLegalTranslation(input.versionId, input.language, input.body),
+      onSuccess: refresh,
+    }),
     save: useMutation({
       mutationKey: ADMIN_LEGAL_KEY,
       mutationFn: saveLegalDraft,
