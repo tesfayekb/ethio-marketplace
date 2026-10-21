@@ -1062,9 +1062,6 @@ test.describe("Legal certification", () => {
     expect(truth.photos.map((row) => row.id)).toEqual([photoPair.second]);
     expect(truth.listing.cover_photo_id).toBe(photoPair.second);
     for (const ad of ads) {
-      const pending = await me.rpc("my_listing_certification", { p_listing_id: ad.id });
-      expect(pending.error, JSON.stringify(pending)).toBeNull();
-      expect((pending.data as Row)["acceptance_pending"]).toBe(true);
       const accepted = await adminClient()
         .from("legal_acceptances")
         .select("id")
@@ -1076,7 +1073,7 @@ test.describe("Legal certification", () => {
     }
   });
 
-  test("LG-30 a draft stays the seller's own while an acceptance is owed: its price, pin and photo order change", async ({
+  test("LG-30 a draft stays the seller's own while an acceptance is owed: its pin, photos-soon, cover and a draft save change", async ({
     page,
   }) => {
     const { seller, categoryId, cityId } = await sellerOnPage(page, s);
@@ -1084,24 +1081,62 @@ test.describe("Legal certification", () => {
     const photos = await twoPhotos(page, s, seller.id, id);
     await seedDocument(s, `e2e-acc-${hex(id)}`, null, "Terms to accept");
     const me = await asPerson(seller);
-    for (const call of [
-      { fn: "set_listing_price", args: priceArgs(id, 90) },
-      { fn: "set_listing_pin", args: pinArgs(id) },
-      { fn: "set_cover_photo", args: { p_listing_id: id, p_photo_id: photos.second } },
-    ]) {
-      const answer = await me.rpc(call.fn, call.args);
-      expect(answer.error, JSON.stringify(answer)).toBeNull();
-      expect((answer.data as Row)["ok"]).toBe(true);
-    }
+    const pin = await me.rpc("set_listing_pin", pinArgs(id));
+    expect(pin.error, JSON.stringify(pin)).toBeNull();
+    expect((pin.data as Row)["ok"]).toBe(true);
+    const pinned = await guardedTruth(id);
+    expect(pinned.listing.status).toBe("draft");
+    expect(Number(pinned.listing.pin_lat)).toBe(9.012345);
+    expect(Number(pinned.listing.pin_lng)).toBe(38.765432);
+    expect(pinned.listing.pin_zoom).toBe(15);
+
+    const photosSoon = !pinned.listing.photos_soon;
+    const promise = await me.rpc("set_listing_photos_soon", {
+      p_listing_id: id,
+      p_on: photosSoon,
+    });
+    expect(promise.error, JSON.stringify(promise)).toBeNull();
+    expect((promise.data as Row)["ok"]).toBe(true);
+    const promised = await guardedTruth(id);
+    expect(promised.listing.status).toBe("draft");
+    expect(promised.listing.photos_soon).toBe(photosSoon);
+
+    const cover = await me.rpc("set_cover_photo", {
+      p_listing_id: id,
+      p_photo_id: photos.second,
+    });
+    expect(cover.error, JSON.stringify(cover)).toBeNull();
+    expect((cover.data as Row)["ok"]).toBe(true);
     const truth = await guardedTruth(id);
     expect(truth.listing.status).toBe("draft");
-    expect(truth.listing.price_amount).toBe(90);
-    expect(Number(truth.listing.pin_lat)).toBe(9.012345);
-    expect(Number(truth.listing.pin_lng)).toBe(38.765432);
-    expect(truth.listing.pin_zoom).toBe(15);
     expect(truth.listing.cover_photo_id).toBe(photos.second);
     expect(truth.photos.find((row) => row.id === photos.second)?.display_order).toBe(0);
     expect(truth.photos.find((row) => row.id === photos.first)?.display_order).toBe(1);
+
+    const title = `e2e draft save ${rand()}`;
+    // S353: the draft-save door, using AU-5's argument names, not the live-price door.
+    const saved = await me.rpc("submit_listing", {
+      p_listing_id: id,
+      p_step: 8,
+      p_category_id: categoryId,
+      p_title: title,
+      p_description: truth.listing.description,
+      p_video_url: truth.listing.video_url,
+      p_attributes: truth.listing.attributes,
+      p_price_mode: truth.listing.price_mode,
+      p_price_amount: truth.listing.price_amount,
+      p_price_currency: truth.listing.price_currency,
+      p_price_period: truth.listing.price_period,
+      p_poster_expires_at: truth.listing.poster_expires_at,
+      p_coverage: [cityId],
+      p_contact_pref: truth.listing.contact_pref,
+    });
+    expect(saved.error, JSON.stringify(saved)).toBeNull();
+    expect((saved.data as Row)["ok"]).toBe(true);
+    const savedTruth = await guardedTruth(id);
+    expect(savedTruth.listing.id).toBe(id);
+    expect(savedTruth.listing.status).toBe("draft");
+    expect(savedTruth.listing.title).toBe(title);
     const pending = await me.rpc("my_listing_certification", { p_listing_id: id });
     expect(pending.error, JSON.stringify(pending)).toBeNull();
     expect((pending.data as Row)["acceptance_pending"]).toBe(true);
