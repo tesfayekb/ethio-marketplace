@@ -1,27 +1,43 @@
 # Local backend proof (non-gating)
 
-- Commit: `6a175a74c425d9060d7050cd800c11a3259fdc77`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39551842111
+- Commit: `efb378f946cfa0c8be0ca5dcb65108c6185fc452`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39556647691
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 815 | 103 | applied 331/331 | 186 | 0 | 0 | 60 | 246 |
-| 1 | 771 | 118 | applied 331/331 | 188 | 0 | 0 | 6 | 194 |
-| 2 | 740 | 114 | applied 331/331 | 160 | 0 | 0 | 1 | 161 |
-| 3 | 449 | 115 | applied 331/331 | 169 | 0 | 0 | 2 | 171 |
-| 4 | 562 | 116 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
-| 5 | 588 | 116 | applied 331/331 | 151 | 0 | 0 | 1 | 152 |
-| 6 | 540 | 108 | applied 331/331 | 148 | 0 | 0 | 30 | 178 |
-| 7 | 703 | 103 | applied 331/331 | 159 | 0 | 0 | 3 | 162 |
-| 8 | 627 | 97 | applied 331/331 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 548 | 106 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
-| 10 | 497 | 105 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
-| 11 | 544 | 102 | applied 331/331 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 460 | 114 | applied 331/331 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2135 | 0 | 0 | 154 | 2289 |
-- Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
+| smoke | 774 | 98 | applied 331/331 | 186 | 0 | 0 | 60 | 246 |
+| email | 175 | 114 | applied 331/331 | 4 | 0 | 0 | 0 | 4 |
+| 1 | 722 | 118 | applied 331/331 | 188 | 0 | 0 | 6 | 194 |
+| 2 | 741 | 96 | applied 331/331 | 160 | 0 | 0 | 1 | 161 |
+| 3 | 454 | 119 | applied 331/331 | 169 | 0 | 0 | 2 | 171 |
+| 4 | 554 | 118 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
+| 5 | 480 | 99 | applied 331/331 | 151 | 0 | 0 | 1 | 152 |
+| 6 | 448 | 98 | applied 331/331 | 148 | 0 | 0 | 30 | 178 |
+| 7 | 764 | 109 | applied 331/331 | 159 | 0 | 0 | 3 | 162 |
+| 8 | 785 | 116 | applied 331/331 | 170 | 0 | 0 | 1 | 171 |
+| 9 | 554 | 102 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
+| 10 | 552 | 93 | applied 331/331 | 170 | 0 | 0 | 6 | 176 |
+| 11 | 637 | 121 | applied 331/331 | 190 | 0 | 0 | 2 | 192 |
+| 12 | 404 | 103 | applied 331/331 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2139 | 0 | 0 | 154 | 2293 |
+- Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the fourteen lanes)
 
-- Slowest lane: smoke 815 s
+- Slowest lane: 8 785 s
+- Teardown:
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39556647691-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 39556647691-local-email
+  - 1: [e2e:teardown] deleted 10 user(s) owned by process 39556647691-local-1
+  - 2: [e2e:teardown] deleted 16 user(s) owned by process 39556647691-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 39556647691-local-3
+  - 4: [e2e:teardown] deleted 21 user(s) owned by process 39556647691-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 39556647691-local-5
+  - 6: [e2e:teardown] deleted 4 user(s) owned by process 39556647691-local-6
+  - 7: [e2e:teardown] deleted 10 user(s) owned by process 39556647691-local-7
+  - 8: [e2e:teardown] deleted 6 user(s) owned by process 39556647691-local-8
+  - 9: [e2e:teardown] deleted 23 user(s) owned by process 39556647691-local-9
+  - 10: [e2e:teardown] deleted 21 user(s) owned by process 39556647691-local-10
+  - 11: [e2e:teardown] deleted 3 user(s) owned by process 39556647691-local-11
+  - 12: [e2e:teardown] deleted 4 user(s) owned by process 39556647691-local-12
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -43,4 +59,4 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-DEC-211: compare every lane with staging CI on this same commit; two consecutive full-suite dev proofs required. Email-serial stays on staging. No automatic switch verdict.
+DEC-211, DEC-218: every gating browser test runs here — fourteen lanes, the email lane included; two consecutive full dev runs judge each change.
