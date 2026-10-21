@@ -1,43 +1,43 @@
 # Local backend proof (non-gating)
 
-- Commit: `39214d2c72c9a5bde34367afddb719dd50022640`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39595338155
+- Commit: `0f7df46339a80aae0852ca82635608564fd5f997`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39598287446
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 880 | 105 | applied 333/333 | 186 | 0 | 0 | 60 | 246 |
-| email | 170 | 115 | applied 333/333 | 4 | 0 | 0 | 0 | 4 |
-| 1 | 1128 | 116 | applied 333/333 | 188 | 0 | 0 | 6 | 194 |
-| 2 | 1213 | 105 | applied 333/333 | 158 | 2 | 0 | 1 | 161 |
-| 3 | 647 | 104 | applied 333/333 | 171 | 1 | 0 | 2 | 174 |
-| 4 | 725 | 101 | applied 333/333 | 170 | 0 | 0 | 6 | 176 |
-| 5 | 846 | 118 | applied 333/333 | 149 | 0 | 0 | 1 | 150 |
-| 6 | 650 | 105 | applied 333/333 | 150 | 0 | 0 | 30 | 180 |
-| 7 | 1064 | 117 | applied 333/333 | 159 | 0 | 0 | 3 | 162 |
-| 8 | 1205 | 100 | applied 333/333 | 168 | 2 | 0 | 1 | 171 |
-| 9 | 793 | 106 | applied 333/333 | 172 | 1 | 0 | 6 | 179 |
-| 10 | 845 | 106 | applied 333/333 | 170 | 0 | 0 | 6 | 176 |
-| 11 | 952 | 106 | applied 333/333 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 511 | 89 | applied 333/333 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2139 | 6 | 0 | 154 | 2299 |
+| smoke | 814 | 109 | applied 333/333 | 186 | 0 | 0 | 60 | 246 |
+| email | 177 | 113 | applied 333/333 | 4 | 0 | 0 | 0 | 4 |
+| 1 | 1149 | 111 | applied 333/333 | 188 | 0 | 0 | 6 | 194 |
+| 2 | 1159 | 104 | applied 333/333 | 160 | 0 | 0 | 1 | 161 |
+| 3 | 633 | 111 | applied 333/333 | 172 | 0 | 0 | 2 | 174 |
+| 4 | 795 | 104 | applied 333/333 | 170 | 0 | 0 | 6 | 176 |
+| 5 | 832 | 115 | applied 333/333 | 149 | 0 | 0 | 1 | 150 |
+| 6 | 635 | 106 | applied 333/333 | 150 | 0 | 0 | 30 | 180 |
+| 7 | 1017 | 105 | applied 333/333 | 159 | 0 | 0 | 3 | 162 |
+| 8 | 1226 | 98 | applied 333/333 | 169 | 0 | 1 | 1 | 171 |
+| 9 | 820 | 114 | applied 333/333 | 173 | 0 | 0 | 6 | 179 |
+| 10 | 844 | 111 | applied 333/333 | 170 | 0 | 0 | 6 | 176 |
+| 11 | 832 | 101 | applied 333/333 | 190 | 0 | 0 | 2 | 192 |
+| 12 | 577 | 116 | applied 333/333 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2144 | 0 | 1 | 154 | 2299 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the fourteen lanes)
 
-- Slowest lane: 2 1213 s
+- Slowest lane: 8 1226 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39595338155-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 39595338155-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 39595338155-local-1
-  - 2: [e2e:teardown] deleted 15 user(s) owned by process 39595338155-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 39595338155-local-3
-  - 4: [e2e:teardown] deleted 20 user(s) owned by process 39595338155-local-4
-  - 5: [e2e:teardown] deleted 2 user(s) owned by process 39595338155-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39595338155-local-6
-  - 7: [e2e:teardown] deleted 9 user(s) owned by process 39595338155-local-7
-  - 8: [e2e:teardown] deleted 5 user(s) owned by process 39595338155-local-8
-  - 9: [e2e:teardown] deleted 22 user(s) owned by process 39595338155-local-9
-  - 10: [e2e:teardown] deleted 20 user(s) owned by process 39595338155-local-10
-  - 11: [e2e:teardown] deleted 2 user(s) owned by process 39595338155-local-11
-  - 12: [e2e:teardown] deleted 3 user(s) owned by process 39595338155-local-12
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39598287446-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 39598287446-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 39598287446-local-1
+  - 2: [e2e:teardown] deleted 15 user(s) owned by process 39598287446-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 39598287446-local-3
+  - 4: [e2e:teardown] deleted 20 user(s) owned by process 39598287446-local-4
+  - 5: [e2e:teardown] deleted 2 user(s) owned by process 39598287446-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39598287446-local-6
+  - 7: [e2e:teardown] deleted 9 user(s) owned by process 39598287446-local-7
+  - 8: [e2e:teardown] deleted 5 user(s) owned by process 39598287446-local-8
+  - 9: [e2e:teardown] deleted 22 user(s) owned by process 39598287446-local-9
+  - 10: [e2e:teardown] deleted 20 user(s) owned by process 39598287446-local-10
+  - 11: [e2e:teardown] deleted 2 user(s) owned by process 39598287446-local-11
+  - 12: [e2e:teardown] deleted 3 user(s) owned by process 39598287446-local-12
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -59,18 +59,7 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-## Lane 2
-- admin-roles.spec.ts / U2 roles console / RP-8 Amharic + no horizontal overflow / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-- admin-roles.spec.ts / U2 roles console / RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 3
-- i18n-coverage.spec.ts / i18n chrome coverage (Amharic) / the roles permission matrix renders no raw English vocabulary / mobile-360 — Error: matrix vocabulary: raw English actions/resources rendered
-
 ## Lane 8
-- admin-roles.spec.ts / U2 roles console / RP-8 Amharic + no horizontal overflow / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-- admin-roles.spec.ts / U2 roles console / RP-12 DEC-017: a user-baseline row badges instead of toggling; a normal row still toggles / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 9
-- i18n-coverage.spec.ts / i18n chrome coverage (Amharic) / the roles permission matrix renders no raw English vocabulary / desktop-1280 — Error: matrix vocabulary: raw English actions/resources rendered
+- admin-listings.spec.ts / ADMIN LISTINGS — the console's doors / AL-18 The listing's page with listings:view alone: no e-mail, no moves, a staff line without a name, drafts not found / desktop-1280 — [31mTest timeout of 60000ms exceeded.[39m
 
 DEC-211, DEC-218: every gating browser test runs here — fourteen lanes, the email lane included; two consecutive full dev runs judge each change.
