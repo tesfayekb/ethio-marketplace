@@ -1,27 +1,27 @@
 # Local backend proof (non-gating)
 
-- Commit: `ed68d24b819136da4f9dbbf275385668370b20df`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39541158830
+- Commit: `9cb65e4f610f6854f1366fd9c5a9848de821d68e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39542085480
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 870 | 127 | applied 330/330 | 186 | 0 | 0 | 60 | 246 |
-| 1 | 1172 | 116 | applied 330/330 | 188 | 0 | 0 | 6 | 194 |
-| 2 | 1006 | 91 | applied 330/330 | 146 | 0 | 0 | 1 | 147 |
-| 3 | 712 | 94 | applied 330/330 | 178 | 0 | 0 | 2 | 180 |
-| 4 | 820 | 119 | applied 330/330 | 170 | 0 | 0 | 6 | 176 |
-| 5 | 911 | 111 | applied 330/330 | 191 | 0 | 0 | 1 | 192 |
-| 6 | 592 | 100 | applied 330/330 | 108 | 0 | 0 | 30 | 138 |
-| 7 | 896 | 99 | applied 330/330 | 159 | 0 | 0 | 3 | 162 |
-| 8 | 950 | 99 | applied 330/330 | 170 | 0 | 0 | 1 | 171 |
-| 9 | 731 | 98 | applied 330/330 | 165 | 0 | 0 | 6 | 171 |
-| 10 | 672 | 98 | applied 330/330 | 170 | 0 | 0 | 6 | 176 |
-| 11 | 955 | 112 | applied 330/330 | 190 | 0 | 0 | 2 | 192 |
-| 12 | 583 | 117 | applied 330/330 | 104 | 0 | 0 | 30 | 134 |
-| TOTAL | — | — | — | 2125 | 0 | 0 | 154 | 2279 |
+| smoke | 858 | 106 | applied 330/330 | 186 | 0 | 0 | 60 | 246 |
+| 1 | 1155 | 102 | applied 330/330 | 188 | 0 | 0 | 6 | 194 |
+| 2 | 1076 | 108 | applied 330/330 | 146 | 0 | 0 | 1 | 147 |
+| 3 | 626 | 95 | applied 330/330 | 180 | 2 | 0 | 2 | 184 |
+| 4 | 616 | 85 | applied 330/330 | 170 | 0 | 0 | 6 | 176 |
+| 5 | 801 | 114 | applied 330/330 | 149 | 0 | 0 | 1 | 150 |
+| 6 | 665 | 107 | applied 330/330 | 150 | 0 | 0 | 30 | 180 |
+| 7 | 1014 | 114 | applied 330/330 | 159 | 0 | 0 | 3 | 162 |
+| 8 | 1167 | 107 | applied 330/330 | 170 | 0 | 0 | 1 | 171 |
+| 9 | 708 | 95 | applied 330/330 | 167 | 2 | 0 | 6 | 175 |
+| 10 | 873 | 119 | applied 330/330 | 170 | 0 | 0 | 6 | 176 |
+| 11 | 832 | 107 | applied 330/330 | 190 | 0 | 0 | 2 | 192 |
+| 12 | 575 | 107 | applied 330/330 | 104 | 0 | 0 | 30 | 134 |
+| TOTAL | — | — | — | 2129 | 4 | 0 | 154 | 2287 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the thirteen lanes)
 
-- Slowest lane: 1 1172 s
+- Slowest lane: 8 1167 s
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -42,5 +42,13 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
+
+## Lane 3
+- legal-certify.spec.ts / Legal certification / LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo / mobile-360 — Error: {"data":null,"error":"not your listing"}
+- legal-certify.spec.ts / Legal certification / LG-30 a draft stays the seller's own while an acceptance is owed: its price, pin and photo order change / mobile-360 — Error: {"data":null,"error":"the price of this listing is changed through its edit"}
+
+## Lane 9
+- legal-certify.spec.ts / Legal certification / LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo / desktop-1280 — Error: {"data":null,"error":"not your listing"}
+- legal-certify.spec.ts / Legal certification / LG-30 a draft stays the seller's own while an acceptance is owed: its price, pin and photo order change / desktop-1280 — Error: {"data":null,"error":"the price of this listing is changed through its edit"}
 
 DEC-211: compare every lane with staging CI on this same commit; two consecutive full-suite dev proofs required. Email-serial stays on staging. No automatic switch verdict.
