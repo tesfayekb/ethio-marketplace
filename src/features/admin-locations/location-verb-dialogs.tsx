@@ -203,12 +203,19 @@ export function LocationReorderDialog({
   const { t } = useI18n();
   const reorder = useReorderLocations();
   const { refusal, clear, fail } = useLocationError();
-  const [order, setOrder] = useState<LocationNode[]>(() =>
-    roster.filter((peer) => peer.parentId === row.parentId),
-  );
+  const queryClient = useQueryClient();
+  const [order, setOrder] = useState<LocationNode[] | null>(null);
+
+  // INC-814's class: the list is read fresh when the dialog opens, so a peer
+  // removed meanwhile never enters the order the save sends.
+  useEffect(() => {
+    void refreshAfterWrite(queryClient, { queryKey: ADMIN_LOCATIONS_KEY });
+  }, [queryClient]);
+
+  const peers = order ?? roster.filter((peer) => peer.parentId === row.parentId);
 
   const swap = (index: number, delta: number) => {
-    const next = [...order];
+    const next = [...peers];
     const target = index + delta;
     const a = next[index];
     const b = next[target];
@@ -225,10 +232,17 @@ export function LocationReorderDialog({
       try {
         await reorder.mutateAsync({
           parentId: row.parentId as string,
-          ids: order.map((peer) => peer.id),
+          ids: peers.map((peer) => peer.id),
         });
         onClose();
       } catch (error) {
+        // INC-814's class: the door refused a peer that is no longer there —
+        // re-read the roster and rebuild the list from the fresh read; the
+        // refusal line stays until the next save.
+        if (error instanceof Error && error.message.startsWith("notAChild")) {
+          await refreshAfterWrite(queryClient, { queryKey: ADMIN_LOCATIONS_KEY });
+          setOrder(null);
+        }
         fail(error);
       }
     }).catch(fail);
@@ -243,7 +257,7 @@ export function LocationReorderDialog({
     >
       <p className="text-sm text-muted-foreground">{t("admin.locations.reorder.hint")}</p>
       <ol className="flex flex-col gap-2" data-testid="location-reorder-list">
-        {order.map((peer, index) => (
+        {peers.map((peer, index) => (
           <li
             key={peer.id}
             data-testid={`location-reorder-item-${index}`}
@@ -266,7 +280,7 @@ export function LocationReorderDialog({
                 variant="outline"
                 size="touch"
                 data-testid={`location-reorder-down-${index}`}
-                disabled={index === order.length - 1}
+                disabled={index === peers.length - 1}
                 onClick={() => swap(index, 1)}
               >
                 {t("admin.locations.reorder.down")}
