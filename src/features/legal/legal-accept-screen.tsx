@@ -10,7 +10,13 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { safeReturnPath } from "@/lib/return-path";
 import { legalDocName, legalRole, tickKey } from "./legal-kinds";
-import { acceptLegal, legalRefusal, myLegalStatus, myLegalVersion } from "./legal-reader";
+import {
+  acceptLegal,
+  legalTextFor,
+  legalRefusal,
+  myLegalStatus,
+  myLegalVersion,
+} from "./legal-reader";
 import { LegalText } from "./legal-text";
 import { legalStatusKey } from "./use-legal-gate";
 
@@ -28,12 +34,15 @@ function DocText({ id }: { id: string }) {
         {t("legal.accept.loadError")}
       </p>
     );
+  const selected = legalTextFor(version.data, language);
   return (
     <div data-testid="legal-accept-text" className="rounded-md bg-muted/40 p-3">
-      <LegalText
-        text={language === "am" ? version.data.body_am : version.data.body_en}
-        facts={version.data.settings_snapshot ?? {}}
-      />
+      {selected.fallback ? (
+        <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+          {t("legal.fallbackNote")}
+        </p>
+      ) : null}
+      <LegalText text={selected.text} facts={version.data.settings_snapshot ?? {}} />
     </div>
   );
 }

@@ -1,4 +1,6 @@
 export const enBase = {
+  "legal.fallbackNote":
+    "This text is not yet available in your language, so it is shown in English.",
   "app.name": "ethio.com",
   "app.tagline": "Buy and sell",
   "language.label": "Language",

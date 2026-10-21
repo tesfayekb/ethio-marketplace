@@ -2562,6 +2562,7 @@
       "/admin/legal/$versionId"
     ],
     "admin.legal.count": [
+      "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
     "admin.legal.discardBody": [
@@ -2574,6 +2575,7 @@
       "/admin/legal"
     ],
     "admin.legal.emptyFacts": [
+      "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
     "admin.legal.error.generic": [
@@ -2616,10 +2618,16 @@
     "admin.legal.field.labelHelp": [
       "/admin/legal/edit"
     ],
+    "admin.legal.field.textOptional": [
+      "/admin/legal/$versionId",
+      "/admin/legal/edit"
+    ],
     "admin.legal.import.done": [
+      "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
     "admin.legal.import.label": [
+      "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
     "admin.legal.lang.am": [
@@ -2714,7 +2722,20 @@
     "admin.legal.signedInUnaccepted": [
       "/admin/legal"
     ],
+    "admin.legal.translation.add": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.translation.hint": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.translation.save": [
+      "/admin/legal/$versionId"
+    ],
+    "admin.legal.translation.saved": [
+      "/admin/legal/$versionId"
+    ],
     "admin.legal.unknownTokens": [
+      "/admin/legal/$versionId",
       "/admin/legal/edit"
     ],
     "admin.legal.version": [
@@ -4957,7 +4978,8 @@
       "/admin/users/$userId"
     ],
     "language.label": [
-      "(every page)"
+      "(every page)",
+      "/admin/legal/$versionId"
     ],
     "legal.accept.decline": [
       "/legal/accept"
@@ -5044,6 +5066,20 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
+    ],
+    "legal.fallbackNote": [
+      "/account/legal/$versionId",
+      "/admin/legal",
+      "/admin/listings/$listingId/edit",
+      "/legal/$kind",
+      "/legal/accept",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/privacy",
+      "/terms"
     ],
     "legal.kind.privacy": [
       "(every page)",

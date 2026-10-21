@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { legalDate } from "./legal-kinds";
 import { LegalText } from "./legal-text";
-import type { PublicLegalVersion } from "./legal-reader";
+import { legalTextFor, type PublicLegalVersion } from "./legal-reader";
 
 export type LegalPageAnswer = {
   inForce: PublicLegalVersion | null;
@@ -24,6 +24,7 @@ export function LegalDocumentPage({
   const { t, language } = useI18n();
   const [showUpcoming, setShowUpcoming] = useState(false);
   const shown = showUpcoming && data?.scheduled ? data.scheduled : (data?.inForce ?? null);
+  const selected = shown ? legalTextFor(shown, language) : null;
   return (
     <PageShell as="main" width="wide" data-testid="legal-public-page">
       <div data-print-root className="min-w-0 space-y-4">
@@ -85,11 +86,18 @@ export function LegalDocumentPage({
               ) : null}
               {shown ? (
                 // Bundle 22 turn 20 (C8) — the site's language only; no switch, no print button.
-                <LegalText
-                  toc
-                  text={language === "am" ? shown.body_am : shown.body_en}
-                  facts={shown.settings_snapshot ?? {}}
-                />
+                <>
+                  {selected?.fallback ? (
+                    <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                      {t("legal.fallbackNote")}
+                    </p>
+                  ) : null}
+                  <LegalText
+                    toc
+                    text={selected?.text ?? ""}
+                    facts={shown.settings_snapshot ?? {}}
+                  />
+                </>
               ) : null}
             </Section>
           </>

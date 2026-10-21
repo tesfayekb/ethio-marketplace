@@ -1,6 +1,7 @@
 import type { enBase } from "./en-base";
 
 export const amBase: { [K in keyof typeof enBase]: string } = {
+  "legal.fallbackNote": "ይህ ጽሑፍ በቋንቋዎ ገና ስላልተዘጋጀ በእንግሊዝኛ ቀርቧል።",
   "app.name": "ethio.com",
   "app.tagline": "ይግዙ እና ይሽጡ",
   "language.label": "ቋንቋ",

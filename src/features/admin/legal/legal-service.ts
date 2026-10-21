@@ -2,6 +2,8 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import type { LegalFacts } from "@/features/legal/legal-markdown";
+import { errorText } from "@/lib/error-text";
+import { parseLegalVersion } from "@/features/legal/legal-reader";
 
 export const LEGAL_KINDS = ["terms", "privacy", "publishing"] as const;
 export type LegalVersion = {
@@ -37,6 +39,7 @@ export type LegalVersionDetail = LegalVersion & {
   country_code: string | null;
   body_en: string;
   body_am: string;
+  texts: Record<string, string>;
   changelog: string;
   settings_snapshot: LegalFacts | null;
 };
@@ -74,6 +77,7 @@ export type DraftInput = {
   label: string;
   body_en: string;
   body_am: string;
+  texts: Record<string, string>;
   changelog: string;
 };
 export type DraftResult = { document_id: string; version_id: string; version: number };
@@ -117,16 +121,16 @@ const refusals: Record<string, MessageKey> = {
   unknownFact: "admin.legal.error.unknownFact",
   factMissing: "admin.legal.error.factMissing",
   nothingToReview: "admin.legal.error.nothingToReview",
+  translationExists: "admin.legal.error.translationExists",
+  badLanguage: "admin.legal.error.badLanguage",
 };
 export function legalErrorKey(error: unknown): MessageKey {
-  const message =
-    typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
+  const message = errorText(error);
   return ownValue(refusals, message.trim().split(":")[0] ?? "") ?? "admin.legal.error.generic";
 }
 /** The part of a refusal after its first colon (the fact a publish refusal names), or "". */
 export function legalErrorName(error: unknown): string {
-  const message =
-    typeof error === "string" ? error : ((error as { message?: string } | null)?.message ?? "");
+  const message = errorText(error);
   const at = message.indexOf(":");
   return at < 0 ? "" : message.slice(at + 1).trim();
 }
@@ -168,6 +172,7 @@ export async function getLegalVersion(id: string): Promise<LegalVersionDetail> {
     typeof row.kind !== "string"
   )
     throw new Error("admin_legal_version: invalid version");
+  parseLegalVersion(row, "admin_legal_version");
   return row as LegalVersionDetail;
 }
 export async function saveLegalDraft(input: DraftInput): Promise<DraftResult> {
@@ -178,12 +183,25 @@ export async function saveLegalDraft(input: DraftInput): Promise<DraftResult> {
     p_body_en: input.body_en,
     p_body_am: input.body_am,
     p_changelog: input.changelog,
+    p_texts: Object.fromEntries(Object.entries(input.texts).filter(([, body]) => body.trim())),
   });
   if (error) throw error;
   const row = objectOf(data, "admin_save_legal_draft");
   if (typeof row.version_id !== "string" || typeof row.version !== "number")
     throw new Error("admin_save_legal_draft: invalid result");
   return row as DraftResult;
+}
+export async function addLegalTranslation(
+  versionId: string,
+  language: string,
+  body: string,
+): Promise<void> {
+  const { error } = await supabase.rpc("admin_add_legal_translation", {
+    p_version_id: versionId,
+    p_language: language,
+    p_body: body,
+  });
+  if (error) throw error;
 }
 export async function discardLegalDraft(id: string): Promise<void> {
   const { error } = await supabase.rpc("admin_discard_legal_draft", { p_version_id: id });

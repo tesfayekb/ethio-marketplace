@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { LegalFacts } from "./legal-markdown";
+import { ownValue } from "@/lib/own-key";
 
 /** Bundle 22 turn 3 — the browser's legal reads; every answer is shape-checked (a wrong shape throws). */
 export type LegalStatusRow = {
@@ -43,6 +44,7 @@ export type PublicLegalVersion = {
   label: string;
   body_en: string;
   body_am: string;
+  texts: Record<string, string>;
   material: boolean | null;
   effective_at: string;
   published_at: string | null;
@@ -68,9 +70,28 @@ export function parseLegalVersion(value: unknown, door: string): PublicLegalVers
   const row = versionRow(value, door);
   if (typeof row.body_en !== "string" || typeof row.body_am !== "string")
     throw new Error(`${door}: invalid text`);
+  parseLegalTexts(row.texts, door);
   if (row.settings_snapshot !== null && typeof row.settings_snapshot !== "object")
     throw new Error(`${door}: invalid facts`);
   return row as PublicLegalVersion;
+}
+
+function parseLegalTexts(value: unknown, door: string): void {
+  const texts = record(value, door);
+  if (Object.values(texts).some((text) => typeof text !== "string"))
+    throw new Error(`${door}: invalid texts`);
+}
+
+export function legalTextFor(
+  version: { body_en: string; body_am: string; texts: Record<string, string> },
+  language: string,
+): { text: string; shown: string; fallback: boolean } {
+  if (language === "en") return { text: version.body_en, shown: "en", fallback: false };
+  if (language === "am") return { text: version.body_am, shown: "am", fallback: false };
+  const text = ownValue(version.texts, language);
+  return text === undefined
+    ? { text: version.body_en, shown: "en", fallback: true }
+    : { text, shown: language, fallback: false };
 }
 
 /** The refusal's word: the door's message up to its first colon. */
@@ -136,6 +157,7 @@ export type CertifyStatement = {
   label: string;
   body_en: string;
   body_am: string;
+  texts: Record<string, string>;
   settings_snapshot: LegalFacts | null;
 };
 export type ListingCertification = {
@@ -152,6 +174,7 @@ export async function myListingCertification(listingId: string): Promise<Listing
     throw new Error("my_listing_certification: invalid answer");
   for (const s of row.statements) {
     const r = versionRow(s, "my_listing_certification");
+    parseLegalTexts(r.texts, "my_listing_certification");
     if (
       typeof r.body_en !== "string" ||
       typeof r.body_am !== "string" ||

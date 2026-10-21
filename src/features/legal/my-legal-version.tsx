@@ -7,7 +7,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n } from "@/i18n";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { legalDocName } from "./legal-kinds";
-import { legalRefusal, myLegalVersion } from "./legal-reader";
+import { legalRefusal, legalTextFor, myLegalVersion } from "./legal-reader";
 import { LegalText } from "./legal-text";
 
 /** Bundle 22 turn 3 — one version the person accepted or was sent. */
@@ -27,6 +27,7 @@ export function MyLegalVersion({ versionId }: { versionId: string }) {
       </Link>
     </Button>
   );
+  const selected = version.data ? legalTextFor(version.data, language) : null;
   const refusal = version.error ? legalRefusal(version.error) : "";
   return (
     <PageShell as="main" width="wide" data-testid="my-legal-version">
@@ -53,9 +54,14 @@ export function MyLegalVersion({ versionId }: { versionId: string }) {
                   .replace("{n}", String(version.data.version))
                   .replace("{label}", version.data.label)}
               </p>
+              {selected?.fallback ? (
+                <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                  {t("legal.fallbackNote")}
+                </p>
+              ) : null}
               <LegalText
                 toc
-                text={language === "am" ? version.data.body_am : version.data.body_en}
+                text={selected?.text ?? ""}
                 facts={version.data.settings_snapshot ?? {}}
               />
             </div>
