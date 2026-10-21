@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { authErrorText } from "./global-setup";
 
 import {
   enrollAndStepUp,
@@ -190,7 +191,7 @@ async function destroyScratchWithAliases(userId: string) {
   const history = await supabase.from("alias_history").delete().eq("user_id", userId);
   if (history.error) throw new Error(`[AU-12] alias_history cleanup: ${history.error.message}`);
   const gone = await supabase.auth.admin.deleteUser(userId);
-  if (gone.error) throw new Error(`[AU-12] scratch user cleanup: ${gone.error.message}`);
+  if (gone.error) throw new Error(`[AU-12] scratch user cleanup: ${authErrorText(gone.error)}`);
 }
 
 test.describe("U1 admin users", () => {

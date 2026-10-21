@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { authErrorText } from "./global-setup";
 import { grantRole } from "./helpers/categories";
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, useJobSuperAdmin, switchUser } from "./helpers/ui";
@@ -609,7 +610,10 @@ test.describe("Admin Legal", () => {
     });
     expect(signedIn.ok, "fresh password sign-in succeeds").toBe(true);
     const readBack = await adminClient().auth.admin.getUserById(person.id);
-    fail(readBack.error, "fresh sign-in read-back");
+    fail(
+      readBack.error ? { message: authErrorText(readBack.error) } : null,
+      "fresh sign-in read-back",
+    );
     const effective = (await version(kind)).effective_at;
     const lastSignIn = readBack.data.user?.last_sign_in_at;
     if (!effective || !lastSignIn)

@@ -2,7 +2,7 @@ import { type Page, type Response } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
-import { testEmail } from "./global-setup";
+import { authErrorText, testEmail } from "./global-setup";
 import { fillUntilStable, waitForHydration } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
@@ -113,7 +113,7 @@ let acceptanceEmail: string | undefined;
 async function signupUser(email: string) {
   for (let pageNo = 1; pageNo <= 20; pageNo += 1) {
     const result = await adminClient().auth.admin.listUsers({ page: pageNo, perPage: 1000 });
-    if (result.error) throw new Error(`[e2e:su3] users read: ${result.error.message}`);
+    if (result.error) throw new Error(`[e2e:su3] users read: ${authErrorText(result.error)}`);
     const user = result.data.users.find(
       (user) => user.email?.toLowerCase() === email.toLowerCase(),
     );
@@ -131,7 +131,8 @@ test.afterEach(async () => {
   if (acceptanceEmail) {
     const user = await signupUser(acceptanceEmail);
     if (user) {
-      fail((await client.auth.admin.deleteUser(user.id)).error, "account");
+      const removed = await client.auth.admin.deleteUser(user.id);
+      fail(removed.error ? { message: authErrorText(removed.error) } : null, "account");
       fail(
         (await client.from("legal_acceptances").delete().eq("user_id", user.id)).error,
         "acceptances",
@@ -277,7 +278,7 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
         email_confirm: true,
       });
       if (confirmed.error)
-        throw new Error(`[e2e:su3] email confirmation: ${confirmed.error.message}`);
+        throw new Error(`[e2e:su3] email confirmation: ${authErrorText(confirmed.error)}`);
       await page.goto("/auth");
       await waitForHydration(page);
       await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
@@ -389,7 +390,7 @@ test("SU-2 a throwaway mail address is refused at sign-up, in words, and no acco
       page: pageNo,
       perPage: 1000,
     });
-    if (error) throw new Error(`[e2e:su2] listing users failed: ${error.message}`);
+    if (error) throw new Error(`[e2e:su2] listing users failed: ${authErrorText(error)}`);
     found.push(...data.users.filter((u) => u.email?.toLowerCase() === email).map((u) => u.id));
     if (data.users.length < 1000) break;
   }

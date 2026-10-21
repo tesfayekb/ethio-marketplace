@@ -371,8 +371,9 @@ jobs:
         run: bash scripts/audit-gate.sh
 
   # ── E2E TIERS ──────────────────────────────────────────────────────────────
-  # Thirteen temporary-backend lanes (DEC-211); staging preflight and shared
-  # build remain for email only. One merged verdict keeps the historical name
+  # Fourteen temporary-backend lanes, the email lane included (DEC-211, DEC-218);
+  # the staging preflight keeps ethio-staging level for in-turn runs.
+  # One merged verdict keeps the historical name
   # so the CI status
   # reporter's table row ("E2E (Playwright, ethio-staging)") is unchanged.
 
@@ -421,173 +422,21 @@ jobs:
           done
           exit 1
 
-  # DEC-029 (lever 2) — ONE SHARED BUILD. Every E2E job used to run
-  # `bun run build:e2e` itself; the build is identical in all of them (VITE_E2E=1
-  # plus the staging VITE_SUPABASE_* pair, which are literals/vars, never
-  # per-job values), so it is done ONCE here and downloaded as `e2e-dist`.
-  # The serve scripts never build — `scripts/serve-e2e-node.ts` only executes
-  # dist/server/index.mjs — so a downloaded dist is served unchanged.
-  e2e-build:
-    name: E2E build (shared dist)
-    needs: e2e-preflight
-    runs-on: ubuntu-24.04
-    env:
-      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_E2E: "1"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-      - name: Cache bun install
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Build the app in E2E mode (VITE_E2E=1)
-        run: bun run build:e2e
-      # INC-085e — a missing artifact must name itself here, not as an ENOENT
-      # in some downstream job's serve step.
-      - name: Verify e2e build output
-        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
-      # INC-100's re-run contract applies to this artifact too: `overwrite: true`
-      # so attempt >= 2 never serves attempt 1's bytes.
-      - name: Upload the shared e2e dist
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-dist
-          path: dist
-          retention-days: 1
-          overwrite: true
-
   e2e-lanes:
     name: E2E lanes
-    # D228 / DEC-211 — the gating browser tests: thirteen lanes, each on its own
+    # D228 / DEC-211 / DEC-218 — the gating browser tests: fourteen lanes, each on its own
     # throwaway Supabase built from the repository's migrations; no secrets.
     # contents: write is for the lanes' summary, which publishes its evidence.
     permissions:
       contents: write
     uses: ./.github/workflows/local-backend-proof.yml
 
-  e2e-email:
-    # INC-082 — EMAIL QUOTA JOB. The Auth email/signup rate limit is per-project
-    # and per-hour, so every email-sending spec runs here, in ONE process, and
-    # never inside the shard matrix or the smoke tier.
-    name: E2E email (serial, quota-bound)
-    needs: [e2e-preflight, e2e-build]
-    runs-on: ubuntu-24.04
-    env:
-      E2E_SHARD: email
-      E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
-      E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      VITE_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
-      SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
-      # DEC-018 — the suite runs against the BUILT app, with the test
-      # instruments compiled in (src/lib/env-flags.ts). PROD is unaffected:
-      # VITE_E2E is set here and by `bun run build:e2e` only.
-      VITE_E2E: "1"
-      E2E_SERVE_BUILT: "1"
-      # U4c — FAKE MODE: the /api/translate route skips Google entirely, so CI
-      # needs no provider key and spends nothing. PROD is unaffected.
-      E2E_FAKE_TRANSLATE: "1"
-      E2E_FAKE_GEOCODE: "1"
-    steps:
-      - uses: actions/checkout@v5
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.3.14
-      - name: Cache bun install
-        uses: actions/cache@v5
-        with:
-          path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
-          restore-keys: bun-${{ runner.os }}-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Resolve Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
-      - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
-      # DEC-029 (lever 2) — the dist comes from the shared `e2e-build` job.
-      - name: Download the shared e2e dist
-        uses: actions/download-artifact@v7
-        with:
-          name: e2e-dist
-          path: dist
-      - name: Verify e2e build output
-        run: test -f dist/server/index.mjs || { echo "::error::e2e build did not emit dist/server/index.mjs — nitro target drift"; echo "--- emitted tree ---"; find dist .output -maxdepth 3 -type f 2>/dev/null | head -60; exit 1; }
-      - name: Run the email-serial project (single instance)
-        run: |
-          set -o pipefail
-          bunx playwright test --project=email-serial --workers=1 2>&1 | tee email.log
-      - name: Upload email results
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-results-email
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/results.json
-          if-no-files-found: warn
-          retention-days: 7
-      # U2a / INC-083 rule 2: Playwright writes a page snapshot per failure at
-      # test-results/<slug>/error-context.md — the only diagnosable evidence for
-      # a timeout. The reporter quotes it, so it must travel out of the job.
-      # DEC-078: uploaded on EVERY outcome — a test that failed then passed on
-      # retry leaves its first attempt's context in a GREEN job; an empty
-      # test-results tree uploads nothing (ignore), never an alarm.
-      - name: Upload error contexts
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-context-email
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: test-results/**/error-context.md
-          if-no-files-found: ignore
-          retention-days: 7
-      - name: Capture email log tail
-        # DEC-083/084 — the census and the a11y summary read every source's log on every outcome.
-        if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: e2e-log-email
-          # INC-100 — evidence artifacts are OVERWRITE-ON-RERUN: without this,
-          # upload-artifact@v4 refuses a same-named artifact on attempt >= 2 and
-          # the merged reporter reads attempt 1 or nothing at all.
-          overwrite: true
-          path: email.log
-          if-no-files-found: warn
-          retention-days: 7
-
   e2e:
     # HISTORICAL NAME PRESERVED: docs/tracking/ci-status.md lists one row per
     # job, and downstream reads key off this exact string. It is now the MERGED
-    # verdict of the temporary-backend lanes and staging email job (DEC-211).
+    # verdict of the fourteen temporary-backend lanes, the email lane included (DEC-211, DEC-218).
     name: E2E (Playwright, ethio-staging)
-    needs: [e2e-lanes, e2e-email]
+    needs: [e2e-lanes]
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -673,10 +522,10 @@ jobs:
           E2E_RESULTS_DIR: shard-results
           E2E_LOGS_DIR: shard-logs
           E2E_CONTEXT_DIR: shard-contexts
-          # DEC-211: every temporary-backend lane and staging email are required.
+          # DEC-211, DEC-218: every temporary-backend lane, the email lane included, is required.
           E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12
 
-          E2E_GREEN: ${{ (needs.e2e-lanes.result == 'success' && needs.e2e-email.result == 'success') && '1' || '0' }}
+          E2E_GREEN: ${{ needs.e2e-lanes.result == 'success' && '1' || '0' }}
           E2E_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           # INC-088 — platform-origin label: Lovable's auto-pushes carry a fixed
           # commit subject, and the reporter prefixes a PLATFORM-ORIGIN? hint
@@ -726,16 +575,16 @@ jobs:
           fi
           exit 0
 
-      # Law F4 — the merged job's conclusion IS the E2E verdict. A red lane or
-      # email job reddens this row; bookkeeping never masks it.
+      # Law F4 — the merged job's conclusion IS the E2E verdict. A red lane
+      # reddens this row; bookkeeping never masks it.
       - name: Verdict
         run: |
-          echo "lanes=${{ needs.e2e-lanes.result }} email=${{ needs.e2e-email.result }}"
-          if [ "${{ needs.e2e-lanes.result }}" != "success" ] || [ "${{ needs.e2e-email.result }}" != "success" ]; then
+          echo "lanes=${{ needs.e2e-lanes.result }}"
+          if [ "${{ needs.e2e-lanes.result }}" != "success" ]; then
             echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"
             exit 1
           fi
-          echo "Every temporary-backend lane and the email job passed."
+          echo "Every temporary-backend lane passed (the email lane included)."
 
   # DEC-020 — main advances ONLY here: a fast-forward from dev, solely on full
   # green. `needs:` enumerates EVERY job above, and `success()` is true only
@@ -761,9 +610,7 @@ jobs:
         dependency-audit,
         semgrep,
         e2e-preflight,
-        e2e-build,
         e2e-lanes,
-        e2e-email,
         e2e,
       ]
     if: github.ref == 'refs/heads/dev' && success()
