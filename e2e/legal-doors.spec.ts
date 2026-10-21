@@ -161,6 +161,16 @@ async function seedFixture(
     .select("id")
     .single();
   if (doc.error || !doc.data) throw new Error(`[e2e:legal] document seed: ${doc.error?.message}`);
+  const fixture: Fixture = {
+    documentId: doc.data.id as string,
+    draftId: null,
+    publishedId: "",
+    countryDocumentId: null,
+    countryPublishedId: null,
+    extraVersionIds: [],
+    homeReset: null,
+  };
+  seeded.push(fixture);
   const published = await supabase
     .from("legal_versions")
     .insert({
@@ -180,21 +190,13 @@ async function seedFixture(
     .single();
   if (published.error || !published.data)
     throw new Error(`[e2e:legal] version seed: ${published.error?.message}`);
-  const fixture: Fixture = {
-    documentId: doc.data.id as string,
-    draftId: null,
-    publishedId: published.data.id as string,
-    countryDocumentId: null,
-    countryPublishedId: null,
-    extraVersionIds: [],
-    homeReset: null,
-  };
-  seeded.push(fixture);
+  fixture.publishedId = published.data.id as string;
   return fixture;
 }
 
 /** The fixtures this test seeded; afterEach destroys them, newest first (J3). */
 const seeded: Fixture[] = [];
+const scratchLanguages = new Set<string>();
 
 /** Cleanup order (J3): acceptances and notices, then versions, then documents; throws on any failure. */
 async function destroyFixture(fixture: Fixture) {
@@ -230,9 +232,20 @@ async function destroyFixture(fixture: Fixture) {
       (await supabase.from("legal_versions").delete().in("id", fixture.extraVersionIds)).error,
     );
   }
-  const versionIds = [fixture.publishedId, fixture.draftId, fixture.countryPublishedId].filter(
-    (id): id is string => id !== null,
-  );
+  const discovered = await supabase
+    .from("legal_versions")
+    .select("id")
+    .in(
+      "document_id",
+      [fixture.documentId, fixture.countryDocumentId].filter((id): id is string => id !== null),
+    );
+  step("cleanup versions census", discovered.error);
+  const versionIds = [
+    ...(discovered.data ?? []).map((row) => row.id),
+    fixture.publishedId,
+    fixture.draftId,
+    fixture.countryPublishedId,
+  ].filter((id): id is string => id !== null && id !== "");
   step(
     "acceptances",
     (await supabase.from("legal_acceptances").delete().in("version_id", versionIds)).error,
@@ -243,7 +256,7 @@ async function destroyFixture(fixture: Fixture) {
   );
   step("versions", (await supabase.from("legal_versions").delete().in("id", versionIds)).error);
   const documentIds = [fixture.documentId, fixture.countryDocumentId].filter(
-    (id): id is string => id !== null,
+    (id): id is string => id !== null && id !== "",
   );
   step("documents", (await supabase.from("legal_documents").delete().in("id", documentIds)).error);
   if (failures.length > 0) throw new Error(`[e2e:legal] cleanup failed: ${failures.join("; ")}`);
@@ -251,6 +264,7 @@ async function destroyFixture(fixture: Fixture) {
 
 test.describe("Legal doors", () => {
   test.afterEach(async () => {
+    test.setTimeout(60_000);
     const failures: string[] = [];
     while (seeded.length > 0) {
       const fixture = seeded.pop() as Fixture;
@@ -259,6 +273,11 @@ test.describe("Legal doors", () => {
       } catch (error) {
         failures.push(error instanceof Error ? error.message : String(error));
       }
+    }
+    for (const code of [...scratchLanguages]) {
+      const result = await adminClient().from("languages").delete().eq("code", code);
+      if (result.error) failures.push(`language ${code}: ${result.error.message}`);
+      else scratchLanguages.delete(code);
     }
     if (failures.length > 0) throw new Error(failures.join("; "));
   });
@@ -1427,5 +1446,48 @@ test.describe("Legal doors", () => {
       .eq("entity_id", fixture.publishedId);
     expect(audit.error).toBeNull();
     expect(audit.data).toHaveLength(1);
+  });
+  test("LG-32 acceptance records the language actually shown, version by version", async () => {
+    const info = test.info();
+    const stem = `${RUN_TAG}-${info.workerIndex}-${info.project.name}-${info.retry}-texts`;
+    const code = `${stem}-lang`;
+    scratchLanguages.add(code);
+    const supabase = adminClient();
+    const language = await supabase.from("languages").insert({
+      code,
+      name_en: `E2E ${code}`,
+      name_native: "E2E",
+      enabled_admin: true,
+      enabled_public: true,
+    });
+    expect(language.error, "scratch public language seed").toBeNull();
+    const translated = await seedFixture(`${stem}-with`, null);
+    const fallback = await seedFixture(`${stem}-without`, null);
+    const text = await supabase.from("legal_version_texts").insert({
+      version_id: translated.publishedId,
+      language: code,
+      body: "Scratch public text",
+    });
+    expect(text.error, "scratch translation seed").toBeNull();
+    const person = await leaseUser();
+    const caller = await asPerson(person);
+    const ids = [translated.publishedId, fallback.publishedId];
+    const accepted = await caller.rpc("accept_legal", {
+      p_version_ids: ids,
+      p_language: code,
+      p_adult: true,
+    });
+    expect(accepted.error).toBeNull();
+    const rows = await supabase
+      .from("legal_acceptances")
+      .select("version_id, language")
+      .eq("user_id", person.id)
+      .in("version_id", ids);
+    expect(rows.error).toBeNull();
+    expect(rows.data).toHaveLength(2);
+    expect(rows.data?.find((row) => row.version_id === translated.publishedId)?.language).toBe(
+      code,
+    );
+    expect(rows.data?.find((row) => row.version_id === fallback.publishedId)?.language).toBe("en");
   });
 });

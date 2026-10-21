@@ -4,12 +4,14 @@ import { expect, test } from "./fixtures";
 import { authErrorText } from "./global-setup";
 import { grantRole } from "./helpers/categories";
 import { passwordGrant } from "./helpers/session";
+import { ensureFenceLanguage } from "./helpers/translations";
 import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 
 // J1: each kind includes run, worker, project and test axes; no real legal document is written.
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
 const kinds = new Set<string>();
+const languages = new Set<string>();
 function scratch(tag: string) {
   const info = test.info();
   const project = info.project.name.startsWith("mobile") ? "m" : "d";
@@ -53,7 +55,21 @@ async function destroy(kind: string) {
   kinds.delete(kind);
 }
 test.afterEach(async () => {
-  for (const kind of [...kinds]) await destroy(kind);
+  test.setTimeout(60_000);
+  const failures: string[] = [];
+  for (const kind of [...kinds]) {
+    try {
+      await destroy(kind);
+    } catch (error) {
+      failures.push(String(error));
+    }
+  }
+  for (const code of [...languages]) {
+    const result = await adminClient().from("languages").delete().eq("code", code);
+    if (result.error) failures.push(`language ${code}: ${result.error.message}`);
+    else languages.delete(code);
+  }
+  if (failures.length) throw new Error(failures.join("; "));
 });
 async function version(kind: string) {
   const doc = await adminClient().from("legal_documents").select("id").eq("kind", kind).single();
@@ -885,5 +901,84 @@ test.describe("Admin Legal", () => {
       status: "published",
       body_en: "LGA-18 English",
     });
+  });
+  test("LGA-19 extra-language draft round trip and unknownFact publish refusal", async ({
+    page,
+  }) => {
+    const kind = scratch("texts");
+    const code = `${kind}-lang`;
+    languages.add(code); // Register before the first write: afterEach also runs on timeout.
+    await ensureFenceLanguage(code);
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/legal/edit?kind=${kind}`);
+    await fillDraft(page, "translated", "Scratch English", "Scratch Amharic", "Scratch change");
+    await page.getByTestId(`legal-tab-${code}`).click();
+    const body = "Fence text {{nope}}";
+    await page.getByTestId(`legal-field-body-${code}`).fill(body);
+    await page.getByTestId("legal-save-draft").click();
+    await expect(page.getByTestId("legal-publish")).toBeEnabled();
+    const saved = await version(kind);
+    const texts = await adminClient()
+      .from("legal_version_texts")
+      .select("language, body")
+      .eq("version_id", saved.id);
+    fail(texts.error, "draft texts read");
+    expect(texts.data).toEqual([{ language: code, body }]);
+    await page.getByTestId("legal-publish").click();
+    const response = page.waitForResponse(
+      (r) =>
+        r.url().endsWith("/rpc/admin_publish_legal_version") && r.request().method() === "POST",
+    );
+    await page.getByTestId("legal-publish-confirm").click();
+    expect(await (await response).text()).toContain("unknownFact");
+    await expect(page.getByTestId("legal-publish-dialog").getByRole("alert")).toHaveText(
+      "The text uses nope, which is not a legal fact. Correct or remove it.",
+    );
+    expect((await version(kind)).status).toBe("draft");
+    await gotoReady(page, `/admin/legal/${saved.id}`);
+    await page.getByTestId(`legal-view-tab-${code}`).click();
+    await expect(page.getByTestId("legal-text")).toContainText("Fence text");
+  });
+
+  test("LGA-20 published translation saves once; a stale second panel shows translationExists", async ({
+    page,
+    context,
+  }) => {
+    const kind = scratch("add-text");
+    const code = `${kind}-lang`;
+    languages.add(code);
+    await ensureFenceLanguage(code);
+    const id = await seed(kind);
+    await useJobSuperAdmin(page);
+    await gotoReady(page, `/admin/legal/${id}`);
+    // Both panels predate the insert: the normal refreshed select excludes existing texts.
+    const stale = await context.newPage();
+    await gotoReady(stale, `/admin/legal/${id}`);
+    for (const reader of [page, stale]) {
+      await reader.getByTestId("legal-translation-add").click();
+      await expect(reader.getByTestId("legal-translation-panel")).toBeVisible();
+      await reader.getByTestId("legal-translation-language").selectOption(code);
+      await reader.getByTestId("legal-translation-body").fill("Published fence text");
+    }
+    await page.getByTestId("legal-translation-save").click();
+    await expect(page.getByRole("status").filter({ hasText: "Translation added." })).toBeVisible();
+    await page.getByTestId(`legal-view-tab-${code}`).click();
+    await expect(page.getByTestId("legal-text")).toHaveText("Published fence text");
+    const response = stale.waitForResponse(
+      (r) =>
+        r.url().endsWith("/rpc/admin_add_legal_translation") && r.request().method() === "POST",
+    );
+    await stale.getByTestId("legal-translation-save").click();
+    expect(await (await response).text()).toContain("translationExists");
+    await expect(stale.getByTestId("legal-translation-panel").getByRole("alert")).toHaveText(
+      "This version already has a text in that language.",
+    );
+    const texts = await adminClient()
+      .from("legal_version_texts")
+      .select("language, body")
+      .eq("version_id", id);
+    fail(texts.error, "published texts read");
+    expect(texts.data).toEqual([{ language: code, body: "Published fence text" }]);
+    await stale.close();
   });
 });
