@@ -1026,3 +1026,4 @@
 
 - 2026-10-22 — Bundle 22 turn 25, after the close (M18; one string): answer options translatable in Admin › Translations in any language, as the attribute's entity rows `option:<value>` (DEC-229, DEC-233); a price label keeps the reader's language when English is missing (INC-819).
 - 2026-10-22 — Bundle 22 turn 26, after the close (M19; no string): answer options leave the Amharic view of Admin › Translations and its totals, and the save and AI doors refuse an option field in Amharic; an option's Amharic comes only from the catalogue (INC-820).
+- 2026-10-22 — Bundle 22 turn 27, after the close (no migration; no string): OVW-1 and OVW-2 measure the phone bar only once it is there (INC-818); PW-153's review row instrumented with its stored model, INC-809 remains open pending eligible Flake check evidence (ruling r1); the two-worker-era flake INCs closed under DEC-232 with a reopen rule (DEC-234).

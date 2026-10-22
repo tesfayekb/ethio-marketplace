@@ -1946,9 +1946,10 @@ test.describe("POSTING WIZARD", () => {
     );
 
     await openAtReview(page, listingId, user.id, "PW-153");
+    const storedModel = (await attributesOf(listingId))[model];
     await expect(
       page.getByTestId("post-review-preview").locator(`[data-key="${battery}"]`),
-      "PW-153: the review did not show the range",
+      `PW-153: the review did not show the range (stored model: ${storedModel})`,
     ).toHaveText("4,056–4,288 mAh", { timeout: 20_000 });
     await page.getByTestId("post-preview-open").click();
     await expect(
