@@ -39,6 +39,6 @@ Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only
 - Legal (bundle 22): texts render only via `LegalText`, never as HTML, chosen by `legalTextFor`; facts are {{setting}} tokens frozen per version; languages beyond en/am are legal_version_texts rows, each added once (DEC-228).
 - Admin menu alerts (DEC-219): a section's `alert` (sections.ts) is read by `useNavAlerts` (nav-alerts.ts) as one server boolean; the rail draws a dot.
 - Strings (DEC-231): keys only admin-only files use go in en-admin.ts/am-admin.ts (the admin gate loads them), others in en-base.ts/am-base.ts; en.ts/am.ts join them; admin-layer.test.ts judges.
-- Dates and numbers: `formatLocale` (src/lib/format-locale.ts); names via catalogText, entityName, optionLabel; options translate as entity rows `option:<value>` (DEC-229, DEC-233).
+- Dates and numbers: `formatLocale` (src/lib/format-locale.ts); names via catalogText, entityName, optionLabel; options translate as entity rows `option:<value>` beyond en/am (DEC-233, INC-820).
 - Page-wide data (the category tree) is one subscribed store (`useSyncExternalStore`), never a per-mount copy (INC-788).
 - Draft saves: a run armed before a Next never carries it; a follow-up is sent by the run that got the answer (INC-791).
