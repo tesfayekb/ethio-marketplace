@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `122343deafca749e637ee6c7ff03028d2aec90ec`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39711964713
+- Commit: `b313b06d98ac0706cda5ecf026f8a4cfeaac0511`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39712610532
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 822 | 109 | applied 337/337 | 186 | 0 | 0 | 60 | 246 |
-| email | 179 | 117 | applied 337/337 | 4 | 0 | 0 | 0 | 4 |
-| 1 | 621 | 90 | applied 337/337 | 125 | 0 | 0 | 4 | 129 |
-| 2 | 959 | 118 | applied 337/337 | 129 | 0 | 0 | 3 | 132 |
-| 3 | 954 | 117 | applied 337/337 | 126 | 0 | 0 | 0 | 126 |
-| 4 | 582 | 114 | applied 337/337 | 143 | 0 | 0 | 2 | 145 |
-| 5 | 508 | 106 | applied 337/337 | 112 | 0 | 0 | 6 | 118 |
-| 6 | 807 | 117 | applied 337/337 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 534 | 103 | applied 337/337 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 614 | 116 | applied 337/337 | 96 | 0 | 0 | 30 | 126 |
-| 9 | 738 | 104 | applied 337/337 | 127 | 0 | 0 | 2 | 129 |
-| 10 | 866 | 93 | applied 337/337 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 881 | 112 | applied 337/337 | 116 | 0 | 0 | 1 | 117 |
-| 12 | 477 | 88 | applied 337/337 | 131 | 0 | 1 | 5 | 137 |
-| 13 | 784 | 119 | applied 337/337 | 149 | 0 | 0 | 4 | 153 |
-| 14 | 627 | 119 | applied 337/337 | 94 | 0 | 0 | 3 | 97 |
-| 15 | 467 | 88 | applied 337/337 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 501 | 96 | applied 337/337 | 92 | 0 | 0 | 30 | 122 |
-| TOTAL | — | — | — | 2152 | 0 | 1 | 154 | 2307 |
+| smoke | 827 | 110 | applied 337/337 | 186 | 0 | 0 | 60 | 246 |
+| email | 150 | 101 | applied 337/337 | 4 | 0 | 0 | 0 | 4 |
+| 1 | 736 | 112 | applied 337/337 | 125 | 0 | 0 | 4 | 129 |
+| 2 | 956 | 117 | applied 337/337 | 129 | 0 | 0 | 3 | 132 |
+| 3 | 970 | 119 | applied 337/337 | 126 | 0 | 0 | 0 | 126 |
+| 4 | 520 | 116 | applied 337/337 | 143 | 0 | 0 | 2 | 145 |
+| 5 | 579 | 120 | applied 337/337 | 112 | 0 | 0 | 6 | 118 |
+| 6 | 718 | 114 | applied 337/337 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 507 | 106 | applied 337/337 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 562 | 95 | applied 337/337 | 96 | 0 | 0 | 30 | 126 |
+| 9 | 792 | 120 | applied 337/337 | 127 | 0 | 0 | 2 | 129 |
+| 10 | 961 | 113 | applied 337/337 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 802 | 103 | applied 337/337 | 116 | 0 | 0 | 1 | 117 |
+| 12 | 553 | 115 | applied 337/337 | 132 | 0 | 0 | 5 | 137 |
+| 13 | 607 | 89 | applied 337/337 | 149 | 0 | 0 | 4 | 153 |
+| 14 | 643 | 118 | applied 337/337 | 94 | 0 | 0 | 3 | 97 |
+| 15 | 516 | 107 | applied 337/337 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 554 | 110 | applied 337/337 | 92 | 0 | 0 | 30 | 122 |
+| TOTAL | — | — | — | 2153 | 0 | 0 | 154 | 2307 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 2 959 s
+- Slowest lane: 3 970 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39711964713-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 39711964713-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 39711964713-local-1
-  - 2: [e2e:teardown] deleted 6 user(s) owned by process 39711964713-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 39711964713-local-3
-  - 4: [e2e:teardown] deleted 12 user(s) owned by process 39711964713-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 39711964713-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39711964713-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 39711964713-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 39711964713-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 39711964713-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 39711964713-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 39711964713-local-11
-  - 12: [e2e:teardown] deleted 12 user(s) owned by process 39711964713-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 39711964713-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 39711964713-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 39711964713-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 39711964713-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 39712610532-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 39712610532-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 39712610532-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 39712610532-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 39712610532-local-3
+  - 4: [e2e:teardown] deleted 12 user(s) owned by process 39712610532-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 39712610532-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 39712610532-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 39712610532-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 39712610532-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 39712610532-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 39712610532-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 39712610532-local-11
+  - 12: [e2e:teardown] deleted 12 user(s) owned by process 39712610532-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 39712610532-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 39712610532-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 39712610532-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 39712610532-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -66,8 +66,5 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
-
-## Lane 12
-- i18n-coverage.spec.ts / i18n chrome coverage (Amharic) / the admin shell renders no English fallback / desktop-1280 — Error: admin shell: keys fell back to English
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
