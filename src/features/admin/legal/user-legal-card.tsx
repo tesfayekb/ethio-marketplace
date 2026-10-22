@@ -7,9 +7,10 @@ import { ownValue } from "@/lib/own-key";
 import { kindKey, type LegalHistoryRow } from "./legal-service";
 import { useUserLegalHistory } from "./use-legal";
 import { formatLocale } from "@/lib/format-locale";
+import { languageRowName } from "@/lib/format-locale";
 
 export function UserLegalCard({ userId }: { userId: string }) {
-  const { t, language } = useI18n();
+  const { t, language, publicLanguages } = useI18n();
   const { permissions } = useAdminShell();
   const history = useUserLegalHistory(userId);
   const countries = useCountries();
@@ -67,7 +68,9 @@ export function UserLegalCard({ userId }: { userId: string }) {
                   "{language}",
                   row.language === "en" || row.language === "am"
                     ? t(`admin.legal.lang.${row.language}`)
-                    : (row.language ?? ""),
+                    : row.language
+                      ? languageRowName(row.language, publicLanguages)
+                      : "",
                 )
                 .replace("{method}", row.method ?? "")}
             </p>

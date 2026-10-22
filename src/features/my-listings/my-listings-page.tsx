@@ -88,6 +88,7 @@ import { formatLocale } from "@/lib/format-locale";
 import { listingPath } from "@/features/ad-page/address";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { stateLine } from "./state-line";
+import { catalogText, entityName } from "@/i18n/entity";
 
 /**
  * Bundle 16 turn 2 — THE MY LISTINGS PAGE (D138; D173–D175; docs/features/my-listings.md).
@@ -148,7 +149,7 @@ type Asking = { action: ListingAction; rows: MyListingRow[]; bulk: boolean } | n
 type Notice = { text: string; tone: "done" | "error" } | null;
 
 export function MyListingsPage() {
-  const { t, language } = useI18n();
+  const { t, language, entities } = useI18n();
   const { tree } = useCategoryTree();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -216,10 +217,12 @@ export function MyListingsPage() {
     );
   const roots = rootsOf(tree);
   const both = (en: string | null, am: string | null) =>
-    language === "am" && am !== null ? am : (en ?? "—");
+    en === null ? "—" : catalogText(en, am, language);
   const categoryName = (id: string) => {
     const node = tree.byId.get(id);
-    return node ? both(node.nameEn, node.nameAm) : id;
+    return node
+      ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
+      : id;
   };
 
   const reset = () => {

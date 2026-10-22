@@ -48,6 +48,8 @@ import {
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
 import { errorText } from "@/lib/error-text";
 import { formatLocale } from "@/lib/format-locale";
+import { catalogText, entityName } from "@/i18n/entity";
+import { languageRowName } from "@/lib/format-locale";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -119,7 +121,7 @@ function Fact({ label, value, testid }: { label: string; value: ReactNode; testi
 }
 
 export function AdminListingPage({ listingId }: { listingId: string }) {
-  const { t, language } = useI18n();
+  const { t, language, entities } = useI18n();
   const { permissions } = useAdminShell();
   const mayEnforce = permissions.includes("listings:enforce");
   const mayViewAs = permissions.includes("impersonation:use");
@@ -162,14 +164,16 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const momentFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
   const day = (iso: string | null) => (iso === null ? "—" : dayFmt.format(new Date(iso)));
   const both = (en: string | null, am: string | null) =>
-    language === "am" && am !== null ? am : (en ?? "—");
+    en === null ? "—" : catalogText(en, am, language);
   const statusLabel = (status: string) => t(`admin.listings.status.${status}` as MessageKey);
   const tierLabel = (tier: string) =>
     tier === "regular" ? t("admin.listings.tier.regular") : t(`tier.${tier}` as MessageKey);
   const categoryName = (id: unknown) => {
     if (typeof id !== "string") return "—";
     const node = tree.byId.get(id);
-    return node ? both(node.nameEn, node.nameAm) : "—";
+    return node
+      ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
+      : "—";
   };
 
   if (query.isLoading) {
@@ -874,7 +878,7 @@ export default AdminListingPage;
  * version only for a viewer holding legal:view (the door there checks again).
  */
 function CertificationsCard({ listingId }: { listingId: string }) {
-  const { t, language } = useI18n();
+  const { t, language, publicLanguages } = useI18n();
   const { permissions } = useAdminShell();
   const mayViewLegal = permissions.includes("legal:view");
   const query = useAdminListingCertifications(listingId);
@@ -921,7 +925,9 @@ function CertificationsCard({ listingId }: { listingId: string }) {
                   .replace("{date}", row.certifiedAt ? when.format(new Date(row.certifiedAt)) : "")
                   .replace(
                     "{language}",
-                    row.language === "am" ? t("admin.legal.lang.am") : t("admin.legal.lang.en"),
+                    row.language === "en" || row.language === "am"
+                      ? t(`admin.legal.lang.${row.language}`)
+                      : languageRowName(row.language, publicLanguages),
                   )
                   .replace("{countries}", row.countries.join(", "))}
               </p>

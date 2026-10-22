@@ -60,6 +60,7 @@ import {
   type ScreeningRow,
 } from "./use-screening";
 import { formatLocale } from "@/lib/format-locale";
+import { catalogText } from "@/i18n/entity";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (D109); bundle 11 A2 — on the agreed blocks
@@ -159,7 +160,7 @@ export function AdminScreeningPage({
   const schema = useScreeningSchema(previewRow?.categoryId ?? null);
 
   const named = (value: ScreeningRow["category"]) =>
-    value === null ? "—" : language === "am" && value.name_am ? value.name_am : value.name_en;
+    value === null ? "—" : catalogText(value.name_en, value.name_am, language);
 
   const sentAt = (iso: string) =>
     new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "short", timeStyle: "short" }).format(

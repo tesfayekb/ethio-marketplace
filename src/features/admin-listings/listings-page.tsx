@@ -55,6 +55,7 @@ import {
   type ListingView,
 } from "./use-admin-listings";
 import { formatLocale } from "@/lib/format-locale";
+import { catalogText } from "@/i18n/entity";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
@@ -192,7 +193,7 @@ export function AdminListingsPage() {
     );
   };
   const both = (en: string | null, am: string | null) =>
-    language === "am" && am !== null ? am : (en ?? "—");
+    en === null ? "—" : catalogText(en, am, language);
 
   const marketName = (code: string) => {
     const market = markets.markets.find((m) => m.code === code);
@@ -208,7 +209,9 @@ export function AdminListingsPage() {
   const roots = rootsOf(tree);
   const categoryName = (id: string) => {
     const node = tree.byId.get(id);
-    return node ? both(node.nameEn, node.nameAm) : id;
+    return node
+      ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
+      : id;
   };
   const tierLabel = (value: string) =>
     value === "regular" ? t("admin.listings.tier.regular") : t(`tier.${value}` as MessageKey);

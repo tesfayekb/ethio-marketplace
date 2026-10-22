@@ -2,6 +2,7 @@ import { shapeAttrOption } from "@/features/posting/attribute-options";
 import { shapeDeal, shapePostingSchema } from "@/features/posting/posting-service";
 import type { ListingDetailView } from "@/features/posting/preview/listing-detail";
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
+import { catalogText } from "@/i18n/entity";
 
 type PublicValue =
   | string
@@ -96,7 +97,7 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
   const basisLabel =
     doc.price.unit === "other"
       ? doc.price.unit_text
-      : (language === "am" && label?.am ? label.am : label?.en) || null;
+      : (label?.en ? catalogText(label.en, label.am, language) : null);
   return {
     actor: "buyer",
     title: doc.title,

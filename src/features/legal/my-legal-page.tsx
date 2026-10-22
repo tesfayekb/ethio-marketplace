@@ -10,6 +10,7 @@ import { ownValue } from "@/lib/own-key";
 import { legalMoment } from "./legal-kinds";
 import { legalDocName } from "./legal-kinds";
 import { myLegalHistory } from "./legal-reader";
+import { languageRowName } from "@/lib/format-locale";
 
 const STATUS_KEYS: Record<string, MessageKey> = {
   sent: "myLegal.status.sent",
@@ -74,7 +75,7 @@ export function MyLegalPage() {
                             "{language}",
                             row.language === "en" || row.language === "am"
                               ? t(`legal.lang.${row.language}`)
-                              : row.language,
+                              : languageRowName(row.language, publicLanguages),
                           )}
                       </p>
                       {row.adult_confirmed ? (
