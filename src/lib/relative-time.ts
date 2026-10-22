@@ -1,3 +1,4 @@
+import { formatLocale } from "@/lib/format-locale";
 /**
  * Relative time formatting — the single source of truth (law B2).
  *
@@ -18,7 +19,7 @@ export function relativeTime(iso: string, language: string): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return "";
   const seconds = Math.round((then - Date.now()) / 1000);
-  const formatter = new Intl.RelativeTimeFormat(language, { numeric: "auto" });
+  const formatter = new Intl.RelativeTimeFormat(formatLocale(language), { numeric: "auto" });
   for (const [unit, size] of UNITS) {
     if (Math.abs(seconds) >= size) return formatter.format(Math.round(seconds / size), unit);
   }

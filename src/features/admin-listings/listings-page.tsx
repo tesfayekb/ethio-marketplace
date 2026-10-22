@@ -40,7 +40,7 @@ import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
-import { entityName } from "@/i18n/entity";
+import { catalogText, entityName } from "@/i18n/entity";
 
 import { ListingSettings } from "./listing-settings";
 import { MoveDialog } from "./move-dialog";
@@ -54,6 +54,7 @@ import {
   type AdminListingRow,
   type ListingView,
 } from "./use-admin-listings";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
@@ -169,7 +170,7 @@ export function AdminListingsPage() {
     paging.setPage(0);
     setSelected([]);
   };
-  const locale = language === "am" ? "am-ET" : "en-GB";
+  const locale = formatLocale(language);
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
   const fullFmt = new Intl.DateTimeFormat(locale, { dateStyle: "full" });
   const shortFmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
@@ -191,7 +192,7 @@ export function AdminListingsPage() {
     );
   };
   const both = (en: string | null, am: string | null) =>
-    language === "am" && am !== null ? am : (en ?? "—");
+    en === null ? "—" : catalogText(en, am, language);
 
   const marketName = (code: string) => {
     const market = markets.markets.find((m) => m.code === code);
@@ -207,7 +208,9 @@ export function AdminListingsPage() {
   const roots = rootsOf(tree);
   const categoryName = (id: string) => {
     const node = tree.byId.get(id);
-    return node ? both(node.nameEn, node.nameAm) : id;
+    return node
+      ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
+      : id;
   };
   const tierLabel = (value: string) =>
     value === "regular" ? t("admin.listings.tier.regular") : t(`tier.${value}` as MessageKey);

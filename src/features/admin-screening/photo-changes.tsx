@@ -19,6 +19,7 @@ import {
   type PhotoChangeKind,
 } from "./use-photo-changes";
 import { ADMIN_SCREENING_KEY } from "./use-screening";
+import { formatLocale } from "@/lib/format-locale";
 
 const KIND_LABEL: Record<PhotoChangeKind, MessageKey> = {
   added: "admin.screening.changes.added",
@@ -60,9 +61,10 @@ export function PhotoChanges({
   if (!mayReview) return null;
 
   const when = (iso: string) =>
-    new Intl.DateTimeFormat(language, { dateStyle: "short", timeStyle: "short" }).format(
-      new Date(iso),
-    );
+    new Intl.DateTimeFormat(formatLocale(language), {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
 
   const review = async (row: PhotoChange) => {
     setBusy(row.id);

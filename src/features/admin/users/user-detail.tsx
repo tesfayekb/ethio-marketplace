@@ -26,6 +26,7 @@ import {
   useSetAccountStatus,
   useUpdateProfile,
 } from "./use-admin-users";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * The per-user detail (Phase U1). Buttons are hidden without the matching
@@ -51,7 +52,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   const [reasonError, setReasonError] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
 
-  const fmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+  const fmt = new Intl.DateTimeFormat(formatLocale(language), {
     dateStyle: "medium",
     timeStyle: "short",
   });

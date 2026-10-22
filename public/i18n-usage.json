@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 532,
-  "dynamicCallSites": 395,
+  "scanned": 533,
+  "dynamicCallSites": 396,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2629,12 +2629,6 @@
     "admin.legal.import.label": [
       "/admin/legal/$versionId",
       "/admin/legal/edit"
-    ],
-    "admin.legal.lang.am": [
-      "/admin/listings/$listingId"
-    ],
-    "admin.legal.lang.en": [
-      "/admin/listings/$listingId"
     ],
     "admin.legal.none": [
       "/admin/legal"

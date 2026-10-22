@@ -10,6 +10,7 @@ import { ownValue } from "@/lib/own-key";
 import { legalMoment } from "./legal-kinds";
 import { legalDocName } from "./legal-kinds";
 import { myLegalHistory } from "./legal-reader";
+import { languageRowName } from "@/lib/format-locale";
 
 const STATUS_KEYS: Record<string, MessageKey> = {
   sent: "myLegal.status.sent",
@@ -19,7 +20,7 @@ const STATUS_KEYS: Record<string, MessageKey> = {
 
 /** Bundle 22 turn 3 — the person's legal documents: what he accepted and the legal e-mails sent to him. */
 export function MyLegalPage() {
-  const { t, language } = useI18n();
+  const { t, language, publicLanguages } = useI18n();
   const { user } = useAuth();
   const history = useQuery({
     queryKey: [AUTH_DERIVED_ROOT, "legal", "history", user?.id ?? ""],
@@ -74,7 +75,7 @@ export function MyLegalPage() {
                             "{language}",
                             row.language === "en" || row.language === "am"
                               ? t(`legal.lang.${row.language}`)
-                              : row.language,
+                              : languageRowName(row.language, publicLanguages),
                           )}
                       </p>
                       {row.adult_confirmed ? (

@@ -39,3 +39,27 @@ export function compiledCatalogLoader(
 export function compiledAdminLoader(code: string): (() => Promise<Partial<Messages>>) | undefined {
   return Object.prototype.hasOwnProperty.call(adminLoaders, code) ? adminLoaders[code] : undefined;
 }
+
+/**
+ * INC-816 (bundle 22 turn 24) — which admin parts apply after a load, and the
+ * admin layer's state. `enAdmin` is the English admin part loaded this run or
+ * kept from an earlier run (null when none was ever loaded); `langAdmin` is the
+ * language's own admin part (null when it failed or the language has none).
+ * With the English part in hand the layer is ready — a failed language part
+ * leaves admin text in English, never blank. Without it the base applies alone
+ * and the state is failed, unless it was already ready.
+ */
+export function adminLayerOutcome(input: {
+  enAdmin: Partial<Messages> | null;
+  langAdmin: Partial<Messages> | null;
+  wasReady: boolean;
+}): {
+  enAdmin: Partial<Messages> | null;
+  langAdmin: Partial<Messages> | null;
+  state: "ready" | "failed";
+} {
+  if (input.enAdmin === null) {
+    return { enAdmin: null, langAdmin: null, state: input.wasReady ? "ready" : "failed" };
+  }
+  return { enAdmin: input.enAdmin, langAdmin: input.langAdmin, state: "ready" };
+}

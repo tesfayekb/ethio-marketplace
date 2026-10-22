@@ -2,6 +2,8 @@ import type { MessageKey } from "@/i18n";
 import { basisNoun, formatCommission } from "./price-basis";
 import { fill } from "./refusal-text";
 import { ownValue } from "@/lib/own-key";
+import { catalogText } from "@/i18n/entity";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 4 step 10 — THE ONE PRICE LINE. The card, the wizard's preview, the
@@ -45,7 +47,7 @@ export function priceLine(
   if (input.mode === "free") return t("price.free");
   if (input.mode === "contact") return t("price.contact");
   if (input.amount === null) return empty;
-  const amount = input.amount.toLocaleString("en-US");
+  const amount = input.amount.toLocaleString(formatLocale(language ?? "en"));
   const currency = input.currency ?? "";
   if (input.unit !== null && input.unit.trim() !== "") {
     return fill(t("post.review.pricePer"), { amount, currency, basis: input.unit.trim() });
@@ -83,6 +85,6 @@ export function storedUnitNoun(
   }
   const entry = labels?.[token];
   if (entry === undefined) return null;
-  const label = (language === "am" ? entry.am : null) ?? entry.en ?? null;
-  return label === null ? null : basisNoun(label);
+  if (entry.en === null || entry.en === undefined) return null;
+  return basisNoun(catalogText(entry.en, entry.am, language));
 }

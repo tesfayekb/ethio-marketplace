@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
+import { formatLocale } from "@/lib/format-locale";
 
 /** Mirrors the server's password rule; the server remains the authority. */
 const MIN_PASSWORD_LENGTH = 8;
@@ -403,7 +404,7 @@ function SettingsScreen() {
               <dt className="text-muted-foreground">{t("settings.memberSince")}</dt>
               <dd className="text-foreground">
                 {memberSince
-                  ? new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(
+                  ? new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
                       new Date(memberSince),
                     )
                   : "—"}

@@ -18,7 +18,7 @@ import { errorText } from "@/lib/error-text";
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { enBase } from "./locales/en-base";
-import { compiledAdminLoader, compiledCatalogLoader } from "./compiled-catalog";
+import { adminLayerOutcome, compiledAdminLoader, compiledCatalogLoader } from "./compiled-catalog";
 import { type Language, type MessageKey, type Messages } from "./types";
 
 /**
@@ -309,6 +309,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const carriedForRef = useRef<string | null>(null);
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
+  /** INC-816 — the English admin part, once loaded, is kept for later runs. */
+  const enAdminRef = useRef<Partial<Messages> | null>(null);
   const { settled: authSettled, userId } = useAuthIdentity();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
@@ -568,19 +570,36 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         applyWithBundle(compiled, null, null);
         return;
       }
+      // INC-816 — two separate tries: the English admin part (kept once loaded)
+      // and the language's own part; a failed language part never blanks admin text.
+      let enAdmin: Partial<Messages> | null = enAdminRef.current;
       try {
         const enAdminLoader = compiledAdminLoader(BASE_LANGUAGE);
-        const enAdmin = enAdminLoader ? await enAdminLoader() : {};
-        const langAdminLoader =
-          language === BASE_LANGUAGE ? undefined : compiledAdminLoader(language);
-        const langAdmin = langAdminLoader ? await langAdminLoader() : null;
-        applyWithBundle(compiled, enAdmin, langAdmin);
-        if (!cancelled) setAdminStrings("ready");
+        const loaded = enAdminLoader ? await enAdminLoader() : {};
+        enAdminRef.current = loaded;
+        enAdmin = loaded;
       } catch (reason) {
-        // F4 — never silent, never blank: the base messages still apply.
-        console.error(`[i18n] admin strings for ${language} failed: ${errorText(reason)}`);
-        applyWithBundle(compiled, null, null);
-        if (!cancelled) setAdminStrings((current) => (current === "ready" ? current : "failed"));
+        // F4 — never silent: the kept part, if any, still applies.
+        console.error(`[i18n] admin strings for ${BASE_LANGUAGE} failed: ${errorText(reason)}`);
+      }
+      let langAdmin: Partial<Messages> | null = null;
+      if (language !== BASE_LANGUAGE) {
+        try {
+          const langAdminLoader = compiledAdminLoader(language);
+          langAdmin = langAdminLoader ? await langAdminLoader() : null;
+        } catch (reason) {
+          // F4 — never silent, never blank: the English admin part still applies.
+          console.error(`[i18n] admin strings for ${language} failed: ${errorText(reason)}`);
+        }
+      }
+      if (cancelled) return;
+      const outcome = adminLayerOutcome({ enAdmin, langAdmin, wasReady: false });
+      applyWithBundle(compiled, outcome.enAdmin, outcome.langAdmin);
+      if (!cancelled) {
+        setAdminStrings(
+          (current) =>
+            adminLayerOutcome({ enAdmin, langAdmin, wasReady: current === "ready" }).state,
+        );
       }
     };
     void run();
