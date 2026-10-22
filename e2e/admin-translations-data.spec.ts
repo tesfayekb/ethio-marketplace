@@ -738,7 +738,7 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
     scratchKey = null;
   });
 
-  test("TR-42 the Data scope saves and approves an answer option, excluding switched-off options", async ({
+  test("TR-42 the Data scope saves and approves an answer option, excluding switched-off options and Amharic (INC-820)", async ({
     page,
   }) => {
     test.setTimeout(120_000);
@@ -819,6 +819,59 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
       { id, fence },
     );
     expect(refusal).toBe("unknown entity");
+    const optionListCount = async (language: string) => {
+      const rows = await page.evaluate(
+        async ({ language, source }) => {
+          const browser = window as unknown as {
+            __ethioSupabase: {
+              rpc: (
+                fn: string,
+                args: Record<string, unknown>,
+              ) => Promise<{
+                data: Array<{ entity_id: string; field: string }> | null;
+                error: { message: string } | null;
+              }>;
+            };
+          };
+          const result = await browser.__ethioSupabase.rpc("admin_list_entity_translations", {
+            p_lang: language,
+            p_search: source,
+            p_limit: 50,
+            p_offset: 0,
+          });
+          if (result.error) throw new Error(result.error.message);
+          return result.data ?? [];
+        },
+        { language, source },
+      );
+      return rows.filter((entry) => entry.entity_id === id && entry.field === "option:a").length;
+    };
+    expect(await optionListCount(fence)).toBe(1);
+    expect(await optionListCount("am")).toBe(0);
+    for (const fn of ["admin_save_entity_translation", "admin_machine_entity_translation"]) {
+      const amharicRefusal = await page.evaluate(
+        async ({ fn, id }) => {
+          const browser = window as unknown as {
+            __ethioSupabase: {
+              rpc: (
+                fn: string,
+                args: Record<string, unknown>,
+              ) => Promise<{ error: { message: string } | null }>;
+            };
+          };
+          const result = await browser.__ethioSupabase.rpc(fn, {
+            p_type: "attribute",
+            p_id: id,
+            p_field: "option:a",
+            p_lang: "am",
+            p_value: "e2e-am-option",
+          });
+          return result.error?.message ?? "unexpected success";
+        },
+        { fn, id },
+      );
+      expect(amharicRefusal).toBe("unknown entity field");
+    }
     await page.getByTestId("data-search").fill(offSource);
     await expect
       .poll(async () => {
