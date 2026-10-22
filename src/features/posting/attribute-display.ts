@@ -58,7 +58,8 @@ export function attributeDisplayValue(
       optionLabel(option, definition.attributeId, entities, tokens),
     ]),
   );
-  for (const option of options) labels.set(option.value, optionLabel(option, definition.attributeId, entities, tokens));
+  for (const option of options)
+    labels.set(option.value, optionLabel(option, definition.attributeId, entities, tokens));
   const renderOne = (entry: unknown): string => {
     if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
       const other = entry as { value?: unknown; text?: unknown };

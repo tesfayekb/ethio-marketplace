@@ -103,9 +103,17 @@ describe("optionLabel (DEC-233)", () => {
   const option = shapeAttrOption({ value: "a", label_en: "Alpha", label_am: "አልፋ" });
   const drawn = { country: "Market", categoryPath: () => null };
   it("the approved bundle entry wins and draws its tokens", () => {
-    expect(optionLabel(option, "a1", {
-      lang: "om", map: { attribute: { a1: { "option:a": "Translated {country}" } } },
-    }, drawn)).toBe("Translated Market");
+    expect(
+      optionLabel(
+        option,
+        "a1",
+        {
+          lang: "om",
+          map: { attribute: { a1: { "option:a": "Translated {country}" } } },
+        },
+        drawn,
+      ),
+    ).toBe("Translated Market");
   });
   it("no bundle entry reads catalogue English", () => {
     expect(optionLabel(option, "a1", { lang: "om", map: {} }, drawn)).toBe("Alpha");
@@ -114,8 +122,16 @@ describe("optionLabel (DEC-233)", () => {
     expect(optionLabel(option, "a1", { lang: "am", map: {} }, drawn)).toBe("አልፋ");
   });
   it("a constructor option with no own entry reads the catalogue", () => {
-    expect(optionLabel({ ...option, value: "constructor" }, "a1", {
-      lang: "om", map: { attribute: { a1: {} } },
-    }, drawn)).toBe("Alpha");
+    expect(
+      optionLabel(
+        { ...option, value: "constructor" },
+        "a1",
+        {
+          lang: "om",
+          map: { attribute: { a1: {} } },
+        },
+        drawn,
+      ),
+    ).toBe("Alpha");
   });
 });

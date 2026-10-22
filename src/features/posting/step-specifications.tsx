@@ -866,7 +866,10 @@ export function StepSpecifications({
         setUndoOffer({
           values: snapshot,
           prefills: heldPrefills,
-          model: option === undefined || parentDef === null ? "" : optionLabel(option, parentDef.attributeId, entities, catalogScope),
+          model:
+            option === undefined || parentDef === null
+              ? ""
+              : optionLabel(option, parentDef.attributeId, entities, catalogScope),
         });
       }
       if (result.changed) {

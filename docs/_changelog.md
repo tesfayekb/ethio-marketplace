@@ -1023,3 +1023,5 @@
 - 2026-10-21 — Bundle 22 turn 22c, after the close (no migration; no string): the CI tests split over 16 lanes of one worker each (DEC-232); a scratch market's code comes from the worker's own slot (INC-817).
 - 2026-10-21 — Bundle 22 turn 23, after the close (M17; eight strings): the legal texts in every enabled language — a text per language in legal_version_texts, added once to a published version; English with a one-line note where a language has none; the acceptance records the language shown (DEC-228).
 - 2026-10-22 — Bundle 22 turn 24, after the close (no migration; no string): dates and numbers in the reader's language through formatLocale, names through the shared resolvers, an acceptance's language named for any language (DEC-229); the admin strings keep their English part under a failed language part (INC-816).
+
+- 2026-10-22 — Bundle 22 turn 25, after the close (M18; one string): answer options translatable in Admin › Translations in any language, as the attribute's entity rows `option:<value>` (DEC-229, DEC-233); a price label keeps the reader's language when English is missing (INC-819).
