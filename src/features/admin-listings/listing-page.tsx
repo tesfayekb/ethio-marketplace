@@ -47,9 +47,8 @@ import {
 } from "./use-admin-listing";
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
 import { errorText } from "@/lib/error-text";
-import { formatLocale } from "@/lib/format-locale";
 import { catalogText, entityName } from "@/i18n/entity";
-import { languageRowName } from "@/lib/format-locale";
+import { formatLocale, languageRowName } from "@/lib/format-locale";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S

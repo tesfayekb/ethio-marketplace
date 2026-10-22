@@ -20,7 +20,7 @@ const STATUS_KEYS: Record<string, MessageKey> = {
 
 /** Bundle 22 turn 3 — the person's legal documents: what he accepted and the legal e-mails sent to him. */
 export function MyLegalPage() {
-  const { t, language } = useI18n();
+  const { t, language, publicLanguages } = useI18n();
   const { user } = useAuth();
   const history = useQuery({
     queryKey: [AUTH_DERIVED_ROOT, "legal", "history", user?.id ?? ""],

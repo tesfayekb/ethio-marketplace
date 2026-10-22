@@ -40,7 +40,7 @@ import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
-import { entityName } from "@/i18n/entity";
+import { catalogText, entityName } from "@/i18n/entity";
 
 import { ListingSettings } from "./listing-settings";
 import { MoveDialog } from "./move-dialog";
@@ -55,7 +55,6 @@ import {
   type ListingView,
 } from "./use-admin-listings";
 import { formatLocale } from "@/lib/format-locale";
-import { catalogText } from "@/i18n/entity";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
