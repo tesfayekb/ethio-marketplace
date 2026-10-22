@@ -1039,7 +1039,7 @@ export function StepSpecifications({
     identityKey,
     scopeInput,
     allowedListOf,
-    entities.lang,
+    entities,
     catalogScope,
     visibleOptionsOf,
     emit,
