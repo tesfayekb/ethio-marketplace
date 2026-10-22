@@ -309,6 +309,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const carriedForRef = useRef<string | null>(null);
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
+  /** INC-816 — the English admin part, once loaded, is kept for later runs. */
+  const enAdminRef = useRef<Partial<Messages> | null>(null);
   const { settled: authSettled, userId } = useAuthIdentity();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
