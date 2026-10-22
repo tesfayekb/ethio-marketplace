@@ -121,3 +121,8 @@ my_listing_certification | the seller's own ad: the publishing statements that a
 admin_listing_certifications | an ad's certification record for staff; checks listings:view inside (B22 Stage 1 turn 4)
 sold_visible_days | the sold ad's shown days (bundle 22 turn 8, M8a): a number from legal_settings, read by the seller's ad page and quoted by the Terms; no personal data
 sold_cutoff | now() minus the sold ad's shown days (bundle 22 turn 8, M8a): called by the three public row-level policies for every reader; no personal data
+entity_source_value | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the English source of a category, place, attribute or answer-option name for the translations console; catalogue words already public
+admin_list_entity_translations | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's roster, answer options added; translations:view checked inside
+admin_entity_translation_stats | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's counts, answer options added; translations:view checked inside
+admin_save_entity_translation | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): saves one content translation, answer options added; translations:update and the step-up checked inside
+admin_machine_entity_translation | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): writes one machine translation, answer options added; translations:machine and the step-up checked inside
