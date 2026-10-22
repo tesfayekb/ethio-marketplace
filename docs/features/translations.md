@@ -1086,3 +1086,5 @@ The "Delete language" confirmation is drawn red (`destructive`), as every button
 ## Answer options (DEC-233, bundle 22 turn 25)
 
 An answer option's words in any language other than English and Amharic are the attribute's entity translation with field `option:<value>`: listed in Admin › Translations' Data scope as 'Answer option' with the option's English as the source, filled by AI or by hand and approved like category names; get_entity_bundle carries them, and optionLabel reads the reader's language first, then the catalogue's English or Amharic. The curator's files and the importer keep only English and Amharic. A switched-off option is not listed; its translation stays and answers again if the option comes back.
+
+Amharic is not one of those languages (INC-820, M19): an option's Amharic is the catalogue's label_am, from the curator's files through the importer. The Amharic Data view lists no option row, its totals count none, and the save and AI doors refuse an option field in Amharic with 'unknown entity field'.
