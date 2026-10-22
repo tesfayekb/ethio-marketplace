@@ -61,9 +61,10 @@ export function PhotoChanges({
   if (!mayReview) return null;
 
   const when = (iso: string) =>
-    new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "short", timeStyle: "short" }).format(
-      new Date(iso),
-    );
+    new Intl.DateTimeFormat(formatLocale(language), {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
 
   const review = async (row: PhotoChange) => {
     setBusy(row.id);

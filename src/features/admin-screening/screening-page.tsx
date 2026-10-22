@@ -163,9 +163,10 @@ export function AdminScreeningPage({
     value === null ? "—" : catalogText(value.name_en, value.name_am, language);
 
   const sentAt = (iso: string) =>
-    new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "short", timeStyle: "short" }).format(
-      new Date(iso),
-    );
+    new Intl.DateTimeFormat(formatLocale(language), {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(new Date(iso));
 
   const marketName = (code: string) => {
     const market = markets.markets.find((m) => m.code === code);

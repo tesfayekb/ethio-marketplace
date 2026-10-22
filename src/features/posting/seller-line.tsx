@@ -34,7 +34,9 @@ export function SellerLine({
   const sinceText =
     since === null || Number.isNaN(since.getTime())
       ? null
-      : new Intl.DateTimeFormat(formatLocale(language), { month: "long", year: "numeric" }).format(since);
+      : new Intl.DateTimeFormat(formatLocale(language), { month: "long", year: "numeric" }).format(
+          since,
+        );
   return (
     <>
       <p className="text-sm font-medium text-foreground" data-testid={`${testId}-name`}>

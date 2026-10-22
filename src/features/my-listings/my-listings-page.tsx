@@ -202,7 +202,9 @@ export function MyListingsPage() {
   const day = (iso: string | null) =>
     iso === null
       ? ""
-      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(new Date(iso));
+      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
+          new Date(iso),
+        );
   const tableDay = (iso: string | null) =>
     iso === null ? (
       <span className="text-muted-foreground">—</span>

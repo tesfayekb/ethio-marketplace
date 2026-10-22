@@ -265,11 +265,14 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const day = (iso: string | null) =>
     iso === null
       ? ""
-      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(new Date(iso));
+      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
+          new Date(iso),
+        );
   const moment = (iso: string) =>
-    new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium", timeStyle: "short" }).format(
-      new Date(iso),
-    );
+    new Intl.DateTimeFormat(formatLocale(language), {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(iso));
 
   const reload = async () => {
     await refreshAfterWrite(queryClient, { queryKey: adKey(listingId) });
