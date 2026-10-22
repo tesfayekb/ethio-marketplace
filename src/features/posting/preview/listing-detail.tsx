@@ -342,6 +342,7 @@ export function ListingDetail(view: ListingDetailView) {
           t("post.review.no"),
           t("post.specs.yearEcSuffix"),
           scope,
+          entities,
         );
   };
   const highlighted = keyFacts(facts).filter(

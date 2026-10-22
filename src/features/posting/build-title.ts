@@ -1,3 +1,4 @@
+import type { EntityBundle } from "@/i18n/entity";
 import { catalogPieces, catalogText, type CatalogTokens } from "@/i18n";
 
 import { attributeDisplayValue } from "./attribute-display";
@@ -49,8 +50,9 @@ export function buildTitle(input: {
   dealKeys: ReadonlySet<string>;
   yearSuffix: string;
   tokens: CatalogTokens;
+  entities?: EntityBundle;
 }): string {
-  const { definitions, answers, options, language, dealKeys, yearSuffix, tokens } = input;
+  const { definitions, answers, options, language, dealKeys, yearSuffix, tokens, entities } = input;
   const ranked = definitions
     .filter((def) => def.cardRank !== null && !dealKeys.has(def.attrKey))
     .filter((def) => conditionMet(def, answers))
@@ -111,6 +113,7 @@ export function buildTitle(input: {
       "",
       yearSuffix,
       tokens,
+      entities,
     ).trim();
     if (part === "") continue;
     const next = title === "" ? part : `${title} ${part}`;

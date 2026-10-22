@@ -181,8 +181,9 @@ export function StepDetails({
         dealKeys: dealSet,
         yearSuffix: t("post.specs.yearEcSuffix"),
         tokens: scope,
+        entities,
       }),
-    [definitions, attributes, titleOptions, language, dealSet, t, scope],
+    [definitions, attributes, titleOptions, language, dealSet, t, scope, entities],
   );
   const [lastBuilt, setLastBuilt] = useState<string | null>(null);
   useEffect(() => {

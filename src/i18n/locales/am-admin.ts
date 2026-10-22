@@ -628,6 +628,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.translations.entity.category": "ምድብ",
   "admin.translations.entity.location": "ቦታ",
   "admin.translations.entity.attribute": "ባህሪ",
+  "admin.translations.entity.option": "የመልስ አማራጭ",
   "admin.translations.history.open": "ታሪክ",
   "admin.translations.history.title": "የለውጥ ታሪክ",
   "admin.translations.history.loading": "ታሪክ በመጫን ላይ…",

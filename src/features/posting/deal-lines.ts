@@ -67,6 +67,7 @@ export function dealLines(input: {
         t("post.review.no"),
         t("post.specs.yearEcSuffix"),
         tokens,
+        entities,
       ),
     };
   };

@@ -8,6 +8,7 @@ import {
 import type { AttrDef } from "./posting-service";
 import { conditionMet } from "./visible-when";
 import { catalogWords, type CatalogTokens } from "@/i18n";
+import type { EntityBundle } from "@/i18n/entity";
 import { formatLocale } from "@/lib/format-locale";
 
 /**
@@ -43,6 +44,7 @@ export function attributeDisplayValue(
   no: string,
   yearSuffix: string,
   tokens: CatalogTokens,
+  entities: EntityBundle = { lang: language, map: {} },
 ): string {
   if (definition.attrType === "boolean") return value === true ? yes : no;
   if (definition.format === "year" && typeof value === "number") {
@@ -53,10 +55,10 @@ export function attributeDisplayValue(
   const labels = new Map(
     retiredAttributeOptions(definition.attributeId).map((option) => [
       option.value,
-      optionLabel(option, language, tokens),
+      optionLabel(option, definition.attributeId, entities, tokens),
     ]),
   );
-  for (const option of options) labels.set(option.value, optionLabel(option, language, tokens));
+  for (const option of options) labels.set(option.value, optionLabel(option, definition.attributeId, entities, tokens));
   const renderOne = (entry: unknown): string => {
     if (entry !== null && typeof entry === "object" && !Array.isArray(entry)) {
       const other = entry as { value?: unknown; text?: unknown };
