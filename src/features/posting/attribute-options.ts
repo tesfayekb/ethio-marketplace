@@ -14,6 +14,9 @@
  */
 
 import { catalogWords, type CatalogTokens } from "@/i18n";
+import { drawCatalog } from "@/i18n/catalog-tokens";
+import type { EntityBundle } from "@/i18n/entity";
+import { ownValue } from "@/lib/own-key";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AttrOption {
@@ -205,11 +208,20 @@ export async function loadAttributeOptions(
 }
 
 /**
- * AN OPTION LABEL IN THE SELLER'S LANGUAGE. Option records are not entities in
- * the translation bundle — they live inside the definition's `options` array — so
- * their overlay is the record's own Amharic label with the English one beneath
- * it. One resolver, here, so no control writes its own language ternary (B2).
+ * AN OPTION LABEL IN THE READER'S LANGUAGE. Approved option:<value> entity
+ * translations overlay the catalogue's English and Amharic words (DEC-233).
  */
-export function optionLabel(option: AttrOption, lang: string, tokens: CatalogTokens): string {
-  return catalogWords(option.labelEn, option.labelAm, lang, tokens);
+export function optionLabel(
+  option: AttrOption,
+  attributeId: string,
+  entities: EntityBundle,
+  tokens: CatalogTokens,
+): string {
+  const attributes = ownValue(entities.map, "attribute");
+  const fields = attributes === undefined ? undefined : ownValue(attributes, attributeId);
+  const translated = fields === undefined ? undefined : ownValue(fields, `option:${option.value}`);
+  if (typeof translated === "string" && translated.trim() !== "") {
+    return drawCatalog(translated, tokens);
+  }
+  return catalogWords(option.labelEn, option.labelAm, entities.lang, tokens);
 }

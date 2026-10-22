@@ -1082,3 +1082,7 @@ The "Delete language" confirmation is drawn red (`destructive`), as every button
 - The footer: the range, the page size (kept per browser: `ethio.admin.strings.pageSize`, `ethio.admin.data.pageSize`) and the pages.
 - Unchanged: the approve-all, AI and transfer bars, the editors, the history drawer.
 - Tests: TR-5 (the status through the panel, kept after a reload as a chip), TR-26 (the counts read on the panel's pills), TR-21 (the orphaned pill), and every editor test opens the editor by the row's Edit (`chooseFilter` in e2e/helpers/translations.ts).
+
+## Answer options (DEC-233, bundle 22 turn 25)
+
+An answer option's words in any language other than English and Amharic are the attribute's entity translation with field `option:<value>`: listed in Admin › Translations' Data scope as 'Answer option' with the option's English as the source, filled by AI or by hand and approved like category names; get_entity_bundle carries them, and optionLabel reads the reader's language first, then the catalogue's English or Amharic. The curator's files and the importer keep only English and Amharic. A switched-off option is not listed; its translation stays and answers again if the option comes back.

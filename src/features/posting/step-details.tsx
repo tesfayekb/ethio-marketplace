@@ -108,7 +108,7 @@ export function StepDetails({
   /** D193 — THE MIRROR: `["title"]` while the title is blank (the door's `required`, step 5). */
   onMissing?: (fields: string[]) => void;
 }) {
-  const { t, language } = useI18n();
+  const { t, language, entities } = useI18n();
   const scope = useCatalogScope();
   const titleBlank = title.trim() === "";
   useEffect(() => {
@@ -181,8 +181,9 @@ export function StepDetails({
         dealKeys: dealSet,
         yearSuffix: t("post.specs.yearEcSuffix"),
         tokens: scope,
+        entities,
       }),
-    [definitions, attributes, titleOptions, language, dealSet, t, scope],
+    [definitions, attributes, titleOptions, language, dealSet, t, scope, entities],
   );
   const [lastBuilt, setLastBuilt] = useState<string | null>(null);
   useEffect(() => {

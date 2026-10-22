@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { catalogWords, type CatalogTokens } from "@/i18n";
+import type { EntityBundle } from "@/i18n/entity";
+import { catalogWords, useI18n, type CatalogTokens } from "@/i18n";
 
 import { loadAttributeOptions, optionLabel } from "./attribute-options";
 import { readPostingSchema, type PostingSchema } from "./posting-service";
@@ -141,6 +142,7 @@ async function fit(
   matches: FinderMatch[],
   lang: string,
   tokens: CatalogTokens,
+  entities: EntityBundle,
 ): Promise<Fitted[]> {
   if (matches.length === 0) return [];
   const schema = await schemaOf(leafId);
@@ -162,7 +164,7 @@ async function fit(
       key: def.attrKey,
       type: def.attrType,
       attributeLabel: catalogWords(def.nameEn, def.nameAm, lang, tokens),
-      optionLabel: optionLabel(option, lang, tokens),
+      optionLabel: optionLabel(option, def.attributeId, entities, tokens),
       value: option.value,
     });
   }
@@ -174,11 +176,12 @@ export async function prefillFromMatches(
   leafId: string,
   matches: FinderMatch[],
   lang: string,
+  entities: EntityBundle = { lang, map: {} },
 ): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = {};
   // Only the values are used here; the labels are never drawn.
   const unseen: CatalogTokens = { country: "", categoryPath: () => null };
-  for (const entry of await fit(leafId, matches, lang, unseen)) {
+  for (const entry of await fit(leafId, matches, lang, unseen, entities)) {
     if (entry.type === "multi_select") {
       const held = Array.isArray(out[entry.key]) ? (out[entry.key] as string[]) : [];
       out[entry.key] = [...held, entry.value];
@@ -196,13 +199,14 @@ export function useMatchLine(
   lang: string,
   tokens: CatalogTokens,
 ): { attribute: string; option: string } | null {
+  const { entities } = useI18n();
   const [line, setLine] = useState<{ attribute: string; option: string } | null>(null);
   const signature = matches.map((entry) => `${entry.key}=${entry.value}`).join("|");
   useEffect(() => {
     let cancelled = false;
     setLine(null);
     if (signature === "") return;
-    void fit(leafId, matches, lang, tokens).then((kept) => {
+    void fit(leafId, matches, lang, tokens, entities).then((kept) => {
       if (cancelled) return;
       const first = kept[0];
       setLine(
@@ -214,6 +218,6 @@ export function useMatchLine(
     };
     // `signature` stands for `matches` (a fresh array each render).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [leafId, signature, lang, tokens]);
+  }, [leafId, signature, lang, tokens, entities]);
   return line;
 }

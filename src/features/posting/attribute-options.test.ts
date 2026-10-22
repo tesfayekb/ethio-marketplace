@@ -12,6 +12,8 @@ import {
   forgetAttributeOptions,
   loadAttributeOptions,
   retiredAttributeOptions,
+  optionLabel,
+  shapeAttrOption,
 } from "./attribute-options";
 import type { AttrDef } from "./posting-service";
 
@@ -94,5 +96,42 @@ describe("freshOnly (K4)", () => {
       vi.fn(async () => new Response("", { status: 500 })),
     );
     expect((await loadAttributeOptions("a1", { freshOnly: true }))?.length).toBe(1);
+  });
+});
+
+describe("optionLabel (DEC-233)", () => {
+  const option = shapeAttrOption({ value: "a", label_en: "Alpha", label_am: "አልፋ" });
+  const drawn = { country: "Market", categoryPath: () => null };
+  it("the approved bundle entry wins and draws its tokens", () => {
+    expect(
+      optionLabel(
+        option,
+        "a1",
+        {
+          lang: "om",
+          map: { attribute: { a1: { "option:a": "Translated {country}" } } },
+        },
+        drawn,
+      ),
+    ).toBe("Translated Market");
+  });
+  it("no bundle entry reads catalogue English", () => {
+    expect(optionLabel(option, "a1", { lang: "om", map: {} }, drawn)).toBe("Alpha");
+  });
+  it("no bundle entry reads catalogue Amharic for an Amharic reader", () => {
+    expect(optionLabel(option, "a1", { lang: "am", map: {} }, drawn)).toBe("አልፋ");
+  });
+  it("a constructor option with no own entry reads the catalogue", () => {
+    expect(
+      optionLabel(
+        { ...option, value: "constructor" },
+        "a1",
+        {
+          lang: "om",
+          map: { attribute: { a1: {} } },
+        },
+        drawn,
+      ),
+    ).toBe("Alpha");
   });
 });

@@ -255,6 +255,7 @@ export function ListingPreview({
                         t("post.review.no"),
                         t("post.specs.yearEcSuffix"),
                         scope,
+                        entities,
                       )}
                 </dd>
               </div>

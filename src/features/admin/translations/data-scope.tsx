@@ -359,7 +359,11 @@ function dataColumns(
       width: "w-[14%]",
       cell: (row) => (
         <span className="block truncate text-xs text-muted-foreground">
-          {t(ownValue(ENTITY_LABELS, row.entityType) ?? "admin.translations.entity.category")}
+          {t(
+            row.field.startsWith("option:")
+              ? "admin.translations.entity.option"
+              : (ownValue(ENTITY_LABELS, row.entityType) ?? "admin.translations.entity.category"),
+          )}
         </span>
       ),
     },

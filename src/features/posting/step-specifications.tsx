@@ -866,7 +866,10 @@ export function StepSpecifications({
         setUndoOffer({
           values: snapshot,
           prefills: heldPrefills,
-          model: option === undefined ? "" : optionLabel(option, entities.lang, catalogScope),
+          model:
+            option === undefined || parentDef === null
+              ? ""
+              : optionLabel(option, parentDef.attributeId, entities, catalogScope),
         });
       }
       if (result.changed) {
@@ -1036,7 +1039,7 @@ export function StepSpecifications({
     identityKey,
     scopeInput,
     allowedListOf,
-    entities.lang,
+    entities,
     catalogScope,
     visibleOptionsOf,
     emit,
@@ -1529,13 +1532,13 @@ export function StepSpecifications({
                   const kept = findHeldOption(chosen, [], def.attributeId);
                   return kept === undefined ? null : (
                     <option value={chosen} disabled data-retired="1">
-                      {optionLabel(kept, entities.lang, catalogScope)}
+                      {optionLabel(kept, def.attributeId, entities, catalogScope)}
                     </option>
                   );
                 })()}
                 {shown.map((option) => (
                   <option key={option.value} value={option.value}>
-                    {optionLabel(option, entities.lang, catalogScope)}
+                    {optionLabel(option, def.attributeId, entities, catalogScope)}
                   </option>
                 ))}
               </select>
@@ -1552,7 +1555,7 @@ export function StepSpecifications({
                 data-attr={def.attrKey}
               >
                 {colourOptions.map(({ option, swatch }) => {
-                  const label = optionLabel(option, entities.lang, catalogScope);
+                  const label = optionLabel(option, def.attributeId, entities, catalogScope);
                   return (
                     <button
                       key={option.value}
@@ -1670,7 +1673,7 @@ export function StepSpecifications({
                             )
                           }
                         />
-                        <span>{optionLabel(option, entities.lang, catalogScope)}</span>
+                        <span>{optionLabel(option, def.attributeId, entities, catalogScope)}</span>
                       </label>
                     </li>
                   );

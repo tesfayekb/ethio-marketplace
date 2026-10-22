@@ -342,6 +342,7 @@ export function StepReview({
       t("post.review.no"),
       t("post.specs.yearEcSuffix"),
       scope,
+      entities,
     )}`;
   };
   const attrLine = Object.entries(values.attributes)

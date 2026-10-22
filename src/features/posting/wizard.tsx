@@ -653,9 +653,9 @@ function WizardShell({
               ? undefined
               : findHeldOption(basisValue, basisOptions, basisDef.attributeId);
           // INC-297 — the NOUN, derived once here: templates keep their own "per".
-          return found === undefined
+          return found === undefined || basisDef === null
             ? basisValue
-            : basisNoun(optionLabel(found, language, catalogScope));
+            : basisNoun(optionLabel(found, basisDef.attributeId, entities, catalogScope));
         })();
 
   /**
@@ -1434,6 +1434,7 @@ function WizardShell({
                                   nextCategoryId,
                                   matches,
                                   entities.lang,
+                                  entities,
                                 ).then((prefill) => chooseLeaf(nextCategoryId, prefill));
                                 return;
                               }
