@@ -49,6 +49,9 @@ describe("bundle 4 step 10 — the stored unit's noun", () => {
   it("falls back to English when the language has no label", () => {
     expect(storedUnitNoun("by_lot", null, labels, "am")).toBe(null);
   });
+  it("a third language with no label of its own reads the English (catalogText)", () => {
+    expect(storedUnitNoun("per_kg", null, labels, "om")).toBe("kg");
+  });
   it("a label with no noun gives no unit", () => {
     expect(storedUnitNoun("by_lot", null, labels, "en")).toBe(null);
   });

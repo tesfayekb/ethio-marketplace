@@ -74,6 +74,11 @@ describe("ad page view mapping", () => {
     doc.price.unit_label = null;
     expect(adPageView(doc, "am").basisLabel).toBeNull();
   });
+  it("AV-1b a third language with no label of its own reads the English (catalogText)", () => {
+    const doc = document();
+    doc.price.unit = "piece";
+    expect(adPageView(doc, "om").basisLabel).toBe("piece");
+  });
   it("AV-2 contact preferences carry shown channel names and no values", () => {
     const doc = document();
     doc.contact_channels = ["phone", "telegram"];
