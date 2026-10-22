@@ -69,3 +69,7 @@ The header uses logical properties only (`ps-*`, `pe-*`), per law C5.
 ## The admin strings layer (DEC-231, bundle 22 turn 22)
 
 The English and Amharic catalogues are each two files. en-base.ts / am-base.ts hold every key a visitor's page can show and ride in the first paint; en-admin.ts / am-admin.ts hold the admin.\* keys that only admin-only files use, and load when the admin gate asks (useAdminStrings) — the gate shows its waiting line until they are in, and an error line with Try again if they fail. en.ts / am.ts join both for tests, scripts and the strings console's sync. src/i18n/locales/admin-layer.test.ts decides which keys may live in the admin layer; the marketplace weight guard keeps the joins and the admin parts off the first paint. Measured at the split: the first paint 320.0 → 296.8 KiB.
+
+## One language rule (DEC-229, bundle 22 turn 24)
+
+Dates and numbers format with formatLocale(language) (src/lib/format-locale.ts): am-ET for Amharic, en-GB for English, the language's own code where the runtime knows it, else English. Names stored in English and Amharic columns go through catalogText, or entityName when the row is a category or place with its id, so a translation added in Admin › Translations shows in any language. An acceptance's or certification's language is named for any language from the public language list. The admin strings layer keeps its English part under a failed language part (INC-816).
