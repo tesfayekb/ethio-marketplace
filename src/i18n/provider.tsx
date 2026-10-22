@@ -570,19 +570,36 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         applyWithBundle(compiled, null, null);
         return;
       }
+      // INC-816 — two separate tries: the English admin part (kept once loaded)
+      // and the language's own part; a failed language part never blanks admin text.
+      let enAdmin: Partial<Messages> | null = enAdminRef.current;
       try {
         const enAdminLoader = compiledAdminLoader(BASE_LANGUAGE);
-        const enAdmin = enAdminLoader ? await enAdminLoader() : {};
-        const langAdminLoader =
-          language === BASE_LANGUAGE ? undefined : compiledAdminLoader(language);
-        const langAdmin = langAdminLoader ? await langAdminLoader() : null;
-        applyWithBundle(compiled, enAdmin, langAdmin);
-        if (!cancelled) setAdminStrings("ready");
+        const loaded = enAdminLoader ? await enAdminLoader() : {};
+        enAdminRef.current = loaded;
+        enAdmin = loaded;
       } catch (reason) {
-        // F4 — never silent, never blank: the base messages still apply.
-        console.error(`[i18n] admin strings for ${language} failed: ${errorText(reason)}`);
-        applyWithBundle(compiled, null, null);
-        if (!cancelled) setAdminStrings((current) => (current === "ready" ? current : "failed"));
+        // F4 — never silent: the kept part, if any, still applies.
+        console.error(`[i18n] admin strings for ${BASE_LANGUAGE} failed: ${errorText(reason)}`);
+      }
+      let langAdmin: Partial<Messages> | null = null;
+      if (language !== BASE_LANGUAGE) {
+        try {
+          const langAdminLoader = compiledAdminLoader(language);
+          langAdmin = langAdminLoader ? await langAdminLoader() : null;
+        } catch (reason) {
+          // F4 — never silent, never blank: the English admin part still applies.
+          console.error(`[i18n] admin strings for ${language} failed: ${errorText(reason)}`);
+        }
+      }
+      if (cancelled) return;
+      const outcome = adminLayerOutcome({ enAdmin, langAdmin, wasReady: false });
+      applyWithBundle(compiled, outcome.enAdmin, outcome.langAdmin);
+      if (!cancelled) {
+        setAdminStrings(
+          (current) =>
+            adminLayerOutcome({ enAdmin, langAdmin, wasReady: current === "ready" }).state,
+        );
       }
     };
     void run();
