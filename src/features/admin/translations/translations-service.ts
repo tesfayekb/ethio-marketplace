@@ -725,8 +725,9 @@ export async function listTranslationRevisions(input: {
 
 /**
  * U4j — the DATA coverage meter. Same universe as
- * `admin_list_entity_translations` (active categories + active locations,
- * field `name`), so the meter and the list can never disagree.
+ * `admin_list_entity_translations` (active categories and locations by name,
+ * every attribute by label, and every active answer option (`option:<value>`)
+ * in every language but Amharic (INC-820)), so the meter and the list can never disagree.
  */
 export interface EntityTranslationStats {
   langCode: string;
