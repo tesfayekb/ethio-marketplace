@@ -18,7 +18,7 @@ import { errorText } from "@/lib/error-text";
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { enBase } from "./locales/en-base";
-import { compiledAdminLoader, compiledCatalogLoader } from "./compiled-catalog";
+import { adminLayerOutcome, compiledAdminLoader, compiledCatalogLoader } from "./compiled-catalog";
 import { type Language, type MessageKey, type Messages } from "./types";
 
 /**
