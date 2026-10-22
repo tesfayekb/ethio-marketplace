@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39711964713
-- Commit: `122343deafca749e637ee6c7ff03028d2aec90ec`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39712610532
+- Commit: `b313b06d98ac0706cda5ecf026f8a4cfeaac0511`
 - Attempt: 1
-- Written (UTC): 2026-10-22T02:50:14.650Z
+- Written (UTC): 2026-10-22T03:09:55.945Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -15,7 +15,7 @@ No warning step ran in this run.
 
 ```text
 ConnectionClosed: audit request failed
-Timeout: audit request failed
+ConnectionClosed: audit request failed
 ConnectionClosed: audit request failed
 ##[error]'bun audit' could not reach the advisory service. This gate did NOT run.
 ##[error]Process completed with exit code 1.
@@ -50,7 +50,7 @@ ConnectionClosed: audit request failed
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-543 packages installed [3.41s]
+543 packages installed [4.77s]
 ##[group]Run bash scripts/audit-gate.sh
 [36;1mbash scripts/audit-gate.sh[0m
 shell: /usr/bin/bash -e {0}
@@ -59,11 +59,11 @@ shell: /usr/bin/bash -e {0}
 [0m[1mbun audit [0m[2mv1.3.14 (0d9b296a)[0m
 ConnectionClosed: audit request failed
 ##[warning]'bun audit' transport failure (attempt 1/3); retrying in 20s.
-[0.03ms] ".env"
+[0.02ms] ".env"
 [0m[1mbun audit [0m[2mv1.3.14 (0d9b296a)[0m
-Timeout: audit request failed
+ConnectionClosed: audit request failed
 ##[warning]'bun audit' transport failure (attempt 2/3); retrying in 20s.
-[0.03ms] ".env"
+[0.02ms] ".env"
 [0m[1mbun audit [0m[2mv1.3.14 (0d9b296a)[0m
 ConnectionClosed: audit request failed
 ##[error]'bun audit' could not reach the advisory service. This gate did NOT run.
@@ -71,7 +71,7 @@ ConnectionClosed: audit request failed
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/01cd20dc-5734-405a-a33d-1e39fe30b46c' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/a68b92ba-dc6b-4266-aaca-0d45773a894d' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
