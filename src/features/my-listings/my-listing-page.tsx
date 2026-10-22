@@ -67,6 +67,7 @@ import {
 } from "./my-listing";
 import { GROUP_LABEL, shareable } from "./my-listings";
 import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -264,9 +265,9 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const day = (iso: string | null) =>
     iso === null
       ? ""
-      : new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(new Date(iso));
+      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(new Date(iso));
   const moment = (iso: string) =>
-    new Intl.DateTimeFormat(language, { dateStyle: "medium", timeStyle: "short" }).format(
+    new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium", timeStyle: "short" }).format(
       new Date(iso),
     );
 

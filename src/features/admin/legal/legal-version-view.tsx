@@ -26,6 +26,7 @@ import {
 } from "./legal-service";
 import { useLegalWrites, useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
 import { errorText } from "@/lib/error-text";
+import { formatLocale } from "@/lib/format-locale";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -162,7 +163,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
   });
   const date = (value: string | null) =>
     value
-      ? new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+      ? new Intl.DateTimeFormat(formatLocale(language), {
           dateStyle: "medium",
         }).format(new Date(value))
       : "—";

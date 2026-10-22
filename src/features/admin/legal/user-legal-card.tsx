@@ -6,6 +6,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { kindKey, type LegalHistoryRow } from "./legal-service";
 import { useUserLegalHistory } from "./use-legal";
+import { formatLocale } from "@/lib/format-locale";
 
 export function UserLegalCard({ userId }: { userId: string }) {
   const { t, language } = useI18n();
@@ -14,7 +15,7 @@ export function UserLegalCard({ userId }: { userId: string }) {
   const countries = useCountries();
   const date = (value?: string) =>
     value
-      ? new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+      ? new Intl.DateTimeFormat(formatLocale(language), {
           dateStyle: "medium",
           timeStyle: "long",
         }).format(new Date(value))

@@ -24,6 +24,7 @@ import { useI18n } from "@/i18n";
 
 import type { AuditRow } from "./audit-service";
 import { useAuditFacets, useAuditList, useAuditStats } from "./use-audit";
+import { formatLocale } from "@/lib/format-locale";
 
 const TABLE_ID = "admin-audit";
 const LOCKED = ["action"];
@@ -125,12 +126,12 @@ export function AdminAuditPage() {
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
 
-  const timeFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+  const timeFmt = new Intl.DateTimeFormat(formatLocale(language), {
     dateStyle: "short",
     timeStyle: "short",
   });
 
-  const dayFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+  const dayFmt = new Intl.DateTimeFormat(formatLocale(language), {
     day: "numeric",
     month: "short",
   });

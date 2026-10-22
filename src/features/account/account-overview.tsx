@@ -18,6 +18,7 @@ import {
   totalOf,
   type GroupCounts,
 } from "@/features/my-listings/my-listings";
+import { formatLocale } from "@/lib/format-locale";
 
 type Profile = {
   seller_alias: string | null;
@@ -119,7 +120,7 @@ export function AccountOverview() {
                 <dt className="text-muted-foreground">{t("account.overview.memberSince")}</dt>
                 <dd className="text-foreground">
                   {state.memberSince
-                    ? new Intl.DateTimeFormat(language, { dateStyle: "medium" }).format(
+                    ? new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
                         new Date(state.memberSince),
                       )
                     : t("account.overview.notSet")}

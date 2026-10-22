@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import { formatLocale } from "@/lib/format-locale";
 
 /** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */
 export type LegalRole = "terms" | "privacy" | "other";
@@ -66,7 +67,7 @@ export function legalDocName(
 /** A legal date in the page's language (dateStyle medium). */
 export function legalDate(value: string | null | undefined, language: string): string {
   if (!value) return "";
-  return new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+  return new Intl.DateTimeFormat(formatLocale(language), {
     dateStyle: "medium",
   }).format(new Date(value));
 }
@@ -80,7 +81,7 @@ export function legalMoment(
   timeZone?: string,
 ): string {
   if (!value) return "";
-  return new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+  return new Intl.DateTimeFormat(formatLocale(language), {
     dateStyle: "medium",
     timeStyle: "long",
     timeZone,

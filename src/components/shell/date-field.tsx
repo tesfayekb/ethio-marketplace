@@ -7,6 +7,7 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { isoDay, parseDay } from "./date-day";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 11, turn L1b (INC-549) — THE HOUSE DATE FIELD.
@@ -56,7 +57,7 @@ export function DateField({
   const { t, language } = useI18n();
   const calendarId = useId();
   const [open, setOpen] = useState(false);
-  const locale = language === "am" ? "am-ET" : "en-GB";
+  const locale = formatLocale(language);
   const selected = parseDay(value);
   const earliest = min === undefined ? null : parseDay(min);
   const latest = max === undefined ? null : parseDay(max);

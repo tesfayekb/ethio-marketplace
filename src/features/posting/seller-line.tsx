@@ -1,5 +1,6 @@
 import { useI18n } from "@/i18n";
 import { fill } from "./refusal-text";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 3 step 20 — THE SELLER LINE, drawn in one place.
@@ -33,7 +34,7 @@ export function SellerLine({
   const sinceText =
     since === null || Number.isNaN(since.getTime())
       ? null
-      : new Intl.DateTimeFormat(language, { month: "long", year: "numeric" }).format(since);
+      : new Intl.DateTimeFormat(formatLocale(language), { month: "long", year: "numeric" }).format(since);
   return (
     <>
       <p className="text-sm font-medium text-foreground" data-testid={`${testId}-name`}>

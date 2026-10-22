@@ -47,6 +47,7 @@ import {
 } from "./use-admin-listing";
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
 import { errorText } from "@/lib/error-text";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -156,7 +157,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
         )),
   );
 
-  const locale = language === "am" ? "am-ET" : "en-GB";
+  const locale = formatLocale(language);
   const dayFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
   const momentFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
   const day = (iso: string | null) => (iso === null ? "—" : dayFmt.format(new Date(iso)));
@@ -878,7 +879,7 @@ function CertificationsCard({ listingId }: { listingId: string }) {
   const mayViewLegal = permissions.includes("legal:view");
   const query = useAdminListingCertifications(listingId);
   const regions = new Intl.DisplayNames([language], { type: "region" });
-  const when = new Intl.DateTimeFormat(language, {
+  const when = new Intl.DateTimeFormat(formatLocale(language), {
     dateStyle: "medium",
     timeStyle: "short",
     timeZone: "UTC",

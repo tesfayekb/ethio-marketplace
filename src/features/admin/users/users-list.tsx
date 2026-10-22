@@ -20,6 +20,7 @@ import { useI18n } from "@/i18n";
 
 import type { AdminUserRow } from "./admin-users-service";
 import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
+import { formatLocale } from "@/lib/format-locale";
 
 const TABLE_ID = "admin-users";
 const LOCKED = ["name"];
@@ -105,7 +106,7 @@ export function AdminUsersList() {
 
   const users = data?.users ?? [];
   const total = data?.totalCount ?? 0;
-  const dateFmt = new Intl.DateTimeFormat(language === "am" ? "am-ET" : "en-GB", {
+  const dateFmt = new Intl.DateTimeFormat(formatLocale(language), {
     // Short format keeps the detail column narrow (no-overflow law).
     dateStyle: "short",
   });

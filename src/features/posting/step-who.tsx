@@ -27,6 +27,7 @@ import {
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel, normalizeTelegram } from "./validate";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -96,7 +97,7 @@ function formatDay(value: string, lang: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? value
-    : new Intl.DateTimeFormat(lang, { dateStyle: "medium" }).format(date);
+    : new Intl.DateTimeFormat(formatLocale(lang), { dateStyle: "medium" }).format(date);
 }
 
 function channelOf(
@@ -859,7 +860,7 @@ export function StepWho({
                     lineFacts.correctionUntil !== null &&
                     new Date(lineFacts.correctionUntil).getTime() > Date.now()
                   ? fill(t("post.who.aliasCorrectionWindow"), {
-                      when: new Intl.DateTimeFormat(language, {
+                      when: new Intl.DateTimeFormat(formatLocale(language), {
                         dateStyle: "medium",
                         timeStyle: "short",
                       }).format(new Date(lineFacts.correctionUntil)),

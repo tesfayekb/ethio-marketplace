@@ -54,6 +54,7 @@ import {
   type AdminListingRow,
   type ListingView,
 } from "./use-admin-listings";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
@@ -169,7 +170,7 @@ export function AdminListingsPage() {
     paging.setPage(0);
     setSelected([]);
   };
-  const locale = language === "am" ? "am-ET" : "en-GB";
+  const locale = formatLocale(language);
   const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
   const fullFmt = new Intl.DateTimeFormat(locale, { dateStyle: "full" });
   const shortFmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
