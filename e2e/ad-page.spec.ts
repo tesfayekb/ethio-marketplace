@@ -1822,8 +1822,9 @@ test.describe("AD PAGE — the phone page never widens (bundle 21 turn 10)", () 
       .eq("id", ad.id);
     if (listing.error) throw new Error(`[e2e:ov1] ad update failed: ${listing.error.message}`);
     const publicId = await publicIdOf(ad.id);
-    await page.goto(listingPath(title, publicId));
+    await gotoReady(page, listingPath(title, publicId));
     await expect(page.getByTestId("listing-detail-title")).toHaveText(title);
+    await expect(page.getByTestId("bottom-bar")).toBeVisible();
 
     const measured = await page.evaluate(() => {
       const width = (id: string) =>

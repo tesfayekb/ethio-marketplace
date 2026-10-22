@@ -4182,6 +4182,7 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
     test.skip(testInfo.project.name === "desktop-1280", "phone emulation, run once");
     await page.goto("/");
     await expect(page.locator("main#main")).toBeVisible();
+    await expect(page.getByTestId("bottom-bar")).toBeVisible();
     try {
       await page.evaluate(() => {
         const wide = document.createElement("div");
