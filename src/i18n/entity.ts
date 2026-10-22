@@ -54,9 +54,13 @@ const NAME_FIELD: Record<EntityType, string> = {
 };
 
 /** One fallback law for catalog-authored English and Amharic text. */
-export function catalogText(en: string, am: string | null | undefined, lang: string): string {
+export function catalogText(
+  en: string | null | undefined,
+  am: string | null | undefined,
+  lang: string,
+): string {
   if (lang === "am" && am !== null && am !== undefined && am.trim() !== "") return am;
-  return en;
+  return en !== null && en !== undefined && en.trim() !== "" ? en : "";
 }
 
 /** The single name resolver, over each type's translated field. */

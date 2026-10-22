@@ -97,9 +97,7 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
   const basisLabel =
     doc.price.unit === "other"
       ? doc.price.unit_text
-      : label?.en
-        ? catalogText(label.en, label.am, language)
-        : null;
+      : catalogText(label?.en, label?.am, language) || null;
   return {
     actor: "buyer",
     title: doc.title,

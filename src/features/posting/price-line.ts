@@ -85,6 +85,6 @@ export function storedUnitNoun(
   }
   const entry = labels?.[token];
   if (entry === undefined) return null;
-  if (entry.en === null || entry.en === undefined) return null;
-  return basisNoun(catalogText(entry.en, entry.am, language));
+  const label = catalogText(entry.en, entry.am, language);
+  return label === "" ? null : basisNoun(label);
 }
