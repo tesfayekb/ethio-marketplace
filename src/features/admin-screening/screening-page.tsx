@@ -59,6 +59,7 @@ import {
   useScreeningSchema,
   type ScreeningRow,
 } from "./use-screening";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (D109); bundle 11 A2 — on the agreed blocks
@@ -161,7 +162,7 @@ export function AdminScreeningPage({
     value === null ? "—" : language === "am" && value.name_am ? value.name_am : value.name_en;
 
   const sentAt = (iso: string) =>
-    new Intl.DateTimeFormat(language, { dateStyle: "short", timeStyle: "short" }).format(
+    new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "short", timeStyle: "short" }).format(
       new Date(iso),
     );
 

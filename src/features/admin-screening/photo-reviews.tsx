@@ -22,6 +22,7 @@ import {
   type PhotoReviewRow,
 } from "./use-photo-reviews";
 import { ADMIN_SCREENING_KEY } from "./use-screening";
+import { formatLocale } from "@/lib/format-locale";
 
 /**
  * Bundle 16 turn 4b — D178 (the operator, 2026-10-14): "FAILED PHOTO WILL NOT GO
@@ -63,7 +64,7 @@ export function PhotoReviews({
   if (!mayReview) return null;
 
   const when = (iso: string) =>
-    new Intl.DateTimeFormat(language, { dateStyle: "short", timeStyle: "short" }).format(
+    new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "short", timeStyle: "short" }).format(
       new Date(iso),
     );
 
