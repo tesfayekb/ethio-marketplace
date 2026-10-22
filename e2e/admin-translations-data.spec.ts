@@ -728,3 +728,99 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
     }
   });
 });
+
+test.describe("TR-42 answer-option translations (DEC-233)", () => {
+  let scratchId: string | null = null;
+  test.afterEach(async () => {
+    if (scratchId === null) return;
+    const client = adminClient();
+    const id = scratchId;
+    const translations = await client.from("entity_translations").delete()
+      .eq("entity_type", "attribute").eq("entity_id", id);
+    if (translations.error) throw new Error(`TR-42 translation cleanup: ${translations.error.message}`);
+    const attribute = await client.from("attributes").delete().eq("id", id);
+    if (attribute.error) throw new Error(`TR-42 attribute cleanup: ${attribute.error.message}`);
+    scratchId = null;
+  });
+
+  test("TR-42 the Data scope saves and approves an answer option, excluding switched-off options", async ({ page }) => {
+    test.setTimeout(120_000);
+    const client = adminClient();
+    const axes = scratchAxes("tr42");
+    const fence = bulkFence();
+    await ensureFenceLanguage(fence);
+    const source = `E2E Option ${axes}`;
+    const offSource = `E2E Off ${axes}`;
+    const seeded = await client.from("attributes").insert({
+      attr_key: `e2e_attr_${axes.replace(/[^a-zA-Z0-9_]/g, "_")}`,
+      name_en: `E2E Attribute ${axes}`,
+      attr_type: "single_select",
+      options: [
+        { value: "a", label_en: source },
+        { value: "b", label_en: offSource, active: false },
+      ],
+    }).select("id").single();
+    if (seeded.error || !seeded.data) throw new Error(`TR-42 seed: ${seeded.error?.message}`);
+    const id = seeded.data.id;
+    scratchId = id;
+    const { secret } = await signInAsSuperAdmin(page);
+    await gotoReady(page, `/admin/translations/${fence}?scope=data`);
+    await expect(page.getByTestId("admin-translations-data")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("data-search").fill(source);
+    const stem = `attribute-${id}-option:a`;
+    const row = entityRow(page, stem);
+    await expect(row).toBeVisible({ timeout: 20000 });
+    await expect(row).toContainText(source);
+    await expect(row).toContainText("Answer option");
+    await surfaceControl(page, `entity-actions-${stem}-edit`).click();
+    const editor = surfaceControl(page, `entity-editor-${stem}`);
+    await expect(editor.getByTestId(`entity-source-${stem}`)).toHaveText(source);
+    const value = `E2E translated ${axes}`;
+    await editor.getByTestId(`entity-input-${stem}`).fill(value);
+    await editor.getByTestId(`entity-save-${stem}`).click();
+    await stepUpIfPrompted(page, secret);
+    const truth = async () => {
+      const result = await client.from("entity_translations").select("value,status")
+        .eq("entity_type", "attribute").eq("entity_id", id)
+        .eq("field", "option:a").eq("lang_code", fence).maybeSingle();
+      if (result.error) throw new Error(`TR-42 truth: ${result.error.message}`);
+      return result.data;
+    };
+    await expect.poll(truth, { timeout: 20000 }).toEqual({ value, status: "edited" });
+    await editor.getByTestId(`entity-approve-${stem}`).click();
+    await stepUpIfPrompted(page, secret);
+    await expect.poll(truth, { timeout: 20000 }).toEqual({ value, status: "approved" });
+    await expect(entityRow(page, stem)).toContainText(value);
+
+    const refusal = await page.evaluate(async ({ id, fence }) => {
+      const browser = window as unknown as {
+        __ethioSupabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{
+          error: { message: string } | null;
+        }> };
+      };
+      const result = await browser.__ethioSupabase.rpc("admin_save_entity_translation", {
+        p_type: "attribute", p_id: id, p_field: "option:z", p_lang: fence, p_value: "e2e-missing",
+      });
+      return result.error?.message ?? "unexpected success";
+    }, { id, fence });
+    expect(refusal).toBe("unknown entity");
+    await page.getByTestId("data-search").fill(offSource);
+    await expect.poll(async () => {
+      const result = await page.evaluate(async ({ fence, offSource }) => {
+        const browser = window as unknown as {
+          __ethioSupabase: { rpc: (fn: string, args: Record<string, unknown>) => Promise<{
+            data: Array<{ entity_id: string; field: string }> | null;
+            error: { message: string } | null;
+          }> };
+        };
+        const response = await browser.__ethioSupabase.rpc("admin_list_entity_translations", {
+          p_lang: fence, p_search: offSource, p_limit: 50, p_offset: 0,
+        });
+        if (response.error) throw new Error(response.error.message);
+        return response.data ?? [];
+      }, { fence, offSource });
+      return result.filter((entry) => entry.entity_id === id && entry.field === "option:b").length;
+    }).toBe(0);
+    await expect(entityRow(page, `attribute-${id}-option:b`)).toHaveCount(0);
+  });
+});
