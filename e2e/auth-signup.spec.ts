@@ -394,15 +394,10 @@ test("SU-5 the tick missing: Create account is drawn closed, a tap refuses, and 
   await page.goto("/auth");
   await waitForHydration(page);
   await page.getByTestId("auth-toggle-view").click();
-  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-  await fillUntilStable(page.locator("#auth-password"), "Pw-195-aX9!qmzT", "password");
-  await fillUntilStable(
-    page.locator("#auth-password-confirm"),
-    "Pw-195-aX9!qmzT",
-    "password confirmation",
-  );
+  // Unticked from the start: the action is drawn closed, never disabled.
   await expect(create).toHaveAttribute("data-closed", "1");
-  await create.click();
+  // agree: false — the driver fills the three fields and taps the closed action.
+  await signUpThroughForm(page, { email, password: "Pw-195-aX9!qmzT", agree: false });
   const tick = page.getByTestId("auth-agree-tick");
   await expect(tick).toHaveAttribute("aria-invalid", "true");
   await expect(page.getByTestId("agree-message")).toHaveText(en["legal.agree.required"]);
