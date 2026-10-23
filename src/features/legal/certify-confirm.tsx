@@ -78,7 +78,7 @@ export function CertifyConfirm({
               </AlertDialogCancel>
               <Button
                 type="button"
-                className="min-h-11"
+                className="min-h-11 data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80"
                 data-testid="certify-confirm-yes"
                 disabled={certify.state === "loading"}
                 data-closed={certify.state === "ready" && !certify.ticked ? "1" : undefined}

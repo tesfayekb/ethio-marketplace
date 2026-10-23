@@ -215,6 +215,9 @@ function WizardShell({
   // Bundle 22 turn 4 — a seller's edit save carries the publishing certification (L1 v2 item 4).
   const sellerEdit = edit !== null && edit.actor === "seller" && listingId !== null;
   const [certify, setCertify] = useState<CertifyState>(CERTIFY_LOADING);
+  // Bundle 22 turn 32 (D231) — the seller edit's Next is drawn closed while its certification is unticked;
+  // a tap bumps the block's `tried`, which marks the tick refused.
+  const [certifyTried, setCertifyTried] = useState(0);
   const setEditCertification = edit?.setCertification;
   useEffect(() => {
     setEditCertification?.(certifyArgs(certify, language));
@@ -877,9 +880,15 @@ function WizardShell({
   // server reads them as this seller and signs their images itself.
   const assistPhotoIds = draft.photos.map((row) => row.id).slice(0, 3);
 
+  const certifyClosed = sellerEdit && certify.state === "ready" && !certify.ticked;
+
   function goNext() {
     void (async () => {
       if (submitted) return;
+      if (sellerEdit && !certifyAllows(certify)) {
+        if (certify.state === "ready") setCertifyTried((n) => n + 1);
+        return;
+      }
       if (missing.length > 0) {
         setTried(true);
         focusFirstRefusal(
@@ -1365,6 +1374,10 @@ function WizardShell({
                                     specFields,
                                     priceFields,
                                   );
+                                  return;
+                                }
+                                if (sellerEdit && !certifyAllows(certify)) {
+                                  if (certify.state === "ready") setCertifyTried((n) => n + 1);
                                   return;
                                 }
                                 // Rulings 3 — the contact step refuses at its own controls.
