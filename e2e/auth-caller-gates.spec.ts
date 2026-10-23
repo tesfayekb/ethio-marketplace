@@ -62,12 +62,15 @@ test.afterEach(async ({ page }) => {
   }
   legalDocIds.length = 0;
   await fixtures.cleanup();
+  const adminRole = await admin.from("roles").select("id").eq("name", "admin").single();
+  if (adminRole.error || !adminRole.data)
+    throw new Error(`[CG] admin role read: ${adminRole.error?.message}`);
   for (const id of staffIds) {
     const roles = await admin
       .from("user_roles")
       .delete()
       .eq("user_id", id)
-      .eq("scope_type", "global");
+      .eq("role_id", adminRole.data.id);
     if (roles.error) throw new Error(`[CG] staff role cleanup: ${roles.error.message}`);
     const factors = await admin.auth.admin.mfa.listFactors({ userId: id });
     if (factors.error) throw new Error(`[CG] staff factor read: ${factors.error.message}`);
