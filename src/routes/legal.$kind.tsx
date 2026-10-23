@@ -6,6 +6,10 @@ import { isE2E } from "@/lib/env-flags";
 
 const SCRATCH_KIND = /^e2e-[a-z0-9-]{1,40}$/;
 const COUNTRY = /^[A-Z]{2}$/;
+/** The page's country: two capital letters, else none (the root passes raw search through). */
+function shapedCountry(value: unknown): string | undefined {
+  return typeof value === "string" && COUNTRY.test(value) ? value : undefined;
+}
 
 const scratchPageFn = createServerFn({ method: "GET" })
   .inputValidator((input: { kind: string; country?: string }) => {
@@ -50,7 +54,7 @@ export const Route = createFileRoute("/legal/$kind")({
         ? search.country
         : undefined,
   }),
-  loaderDeps: ({ search }) => ({ country: search.country }),
+  loaderDeps: ({ search }) => ({ country: shapedCountry(search.country) }),
   loader: async ({ params, deps }) => {
     if (params.kind === "terms" || params.kind === "privacy")
       throw redirect({ href: `/${params.kind}`, statusCode: 301 });
@@ -97,7 +101,7 @@ function useTitle(kind: string): string {
 }
 function LegalKindPage() {
   const { kind } = Route.useParams();
-  const { country } = Route.useSearch();
+  const country = shapedCountry(Route.useSearch().country);
   const title = useTitle(kind);
   return (
     <LegalDocumentPage
