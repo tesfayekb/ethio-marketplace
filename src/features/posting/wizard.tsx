@@ -245,7 +245,7 @@ function WizardShell({
    * sent. The door still decides (F3) — a mirror that falls short lets a save
    * through to be refused there, exactly as before; a mirror that says "missing"
    * for an answer the door would take is a defect of the mirror, never a rule.
-   * The contact step (7) keeps its own gate (`whoQueue`); step 1 keeps `needsLeaf`.
+   * Contact joins the mirror; its pending identity/alias gate stays in whoQueue.
    */
   const stepRef = useRef(draft.step);
   stepRef.current = draft.step;
@@ -283,6 +283,11 @@ function WizardShell({
     (fields: string[]) => reportMissing("pricing", fields),
     [reportMissing],
   );
+  const onMissingWho = useCallback(
+    (fields: string[]) => reportMissing("who", fields),
+    [reportMissing],
+  );
+  const [submitted, setSubmitted] = useState(false);
   /** A tap on the closed Next: the missing answers are marked until they are given. */
   const [tried, setTried] = useState(false);
   useEffect(() => {
@@ -600,7 +605,7 @@ function WizardShell({
       }
       if (cancelled) return;
       const kept = keepListedAnswers({ answers, categoryId, read: questionRead, optionsByKey });
-      if (kept !== answers) changeDraft({ attributes: kept }, false);
+      if (kept !== answers) changeDraft({ attributes: kept }, false, answers);
     })();
     return () => {
       cancelled = true;
@@ -796,6 +801,7 @@ function WizardShell({
       if (saved) draft.goTo(3);
     })();
   };
+  const leafChoiceRef = useRef(0);
 
   /**
    * D119 — the invite's category, once, on a new post that has no category yet.
@@ -873,6 +879,17 @@ function WizardShell({
 
   function goNext() {
     void (async () => {
+      if (submitted) return;
+      if (missing.length > 0) {
+        setTried(true);
+        focusFirstRefusal(
+          missing.map((field) => ({ field, reason: "required" })),
+          draft.step,
+          specFields,
+          priceFields,
+        );
+        return;
+      }
       if (draft.step === 7 && whoSaveRef.current !== null && !(await whoSaveRef.current())) return;
       const saved = await draft.saveAt(draft.step);
       if (!saved) return;
@@ -932,6 +949,7 @@ function WizardShell({
                      * draft.goTo); a step not reached yet stays plain text.
                      */
                     const reachable =
+                      !submitted &&
                       !(edit !== null && edit.locked.includes(entry.step)) &&
                       (current ||
                         isStepFinished(entry.step, {
@@ -1063,12 +1081,14 @@ function WizardShell({
                    * number and not a button — an affordance that leads nowhere is a
                    * lie about the wizard's shape.
                    */}
-                  <MobileStepStrip
-                    step={draft.step}
-                    draftStep={draft.draftStep}
-                    photosCount={draft.photos.length}
-                    onGoTo={draft.goTo}
-                  />
+                  {!submitted && (
+                    <MobileStepStrip
+                      step={draft.step}
+                      draftStep={draft.draftStep}
+                      photosCount={draft.photos.length}
+                      onGoTo={draft.goTo}
+                    />
+                  )}
                   {edit === null ? (
                     <p
                       className="text-xs text-muted-foreground"
@@ -1109,7 +1129,7 @@ function WizardShell({
                       {fill(t("post.save.paused"), { seconds: draft.pauseSeconds })}
                     </p>
                   )}
-                  {draft.saveState === "unsaved" && (
+                  {!submitted && draft.saveState === "unsaved" && (
                     <button
                       type="button"
                       data-testid="post-save-retry"
@@ -1133,14 +1153,16 @@ function WizardShell({
                         .map((node) => entityName("category", node, entities))
                         .join(" › ")}
                     </span>
-                    <button
-                      type="button"
-                      data-testid="post-category-chip-change"
-                      className="text-xs font-medium text-primary underline"
-                      onClick={() => draft.goTo(1)}
-                    >
-                      {t("post.category.change")}
-                    </button>
+                    {!submitted && (
+                      <button
+                        type="button"
+                        data-testid="post-category-chip-change"
+                        className="text-xs font-medium text-primary underline"
+                        onClick={() => draft.goTo(1)}
+                      >
+                        {t("post.category.change")}
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -1210,9 +1232,10 @@ function WizardShell({
 
                 <FormLayout
                   footer={
-                    <div
-                      className="space-y-1"
-                      /* INC-332 — A TAP ON NEXT OR BACK IS NEVER LOST. Pressing a
+                    submitted ? null : (
+                      <div
+                        className="space-y-1"
+                        /* INC-332 — A TAP ON NEXT OR BACK IS NEVER LOST. Pressing a
                        button used to blur the field first; its on-blur judgement
                        then rendered a message that moved the button out from
                        under the finger, and the click landed elsewhere. The press
@@ -1220,98 +1243,98 @@ function WizardShell({
                        the click itself then blurs the field (its judgement still
                        shows) AFTER it has registered. One rule for every step's
                        on-blur field and every layout of this bar. */
-                      data-testid="post-actions"
-                      onMouseDown={(event) => {
-                        if ((event.target as HTMLElement).closest("button") !== null) {
-                          event.preventDefault();
-                        }
-                      }}
-                      onClickCapture={(event) => {
-                        if ((event.target as HTMLElement).closest("button") === null) return;
-                        const active = document.activeElement;
-                        if (
-                          active instanceof HTMLElement &&
-                          !event.currentTarget.contains(active)
-                        ) {
-                          active.blur();
-                        }
-                      }}
-                    >
-                      {sellerEdit && listingId !== null && draft.step < TOTAL_STEPS ? (
-                        <CertifyBlock listingId={listingId} onChange={setCertify} />
-                      ) : null}
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          data-testid="post-back"
-                          /* U6-C1-R3b-1 STEP 3 — SECONDARY TOKENS, not a bare
+                        data-testid="post-actions"
+                        onMouseDown={(event) => {
+                          if ((event.target as HTMLElement).closest("button") !== null) {
+                            event.preventDefault();
+                          }
+                        }}
+                        onClickCapture={(event) => {
+                          if ((event.target as HTMLElement).closest("button") === null) return;
+                          const active = document.activeElement;
+                          if (
+                            active instanceof HTMLElement &&
+                            !event.currentTarget.contains(active)
+                          ) {
+                            active.blur();
+                          }
+                        }}
+                      >
+                        {sellerEdit && listingId !== null && draft.step < TOTAL_STEPS ? (
+                          <CertifyBlock listingId={listingId} onChange={setCertify} />
+                        ) : null}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            data-testid="post-back"
+                            /* U6-C1-R3b-1 STEP 3 — SECONDARY TOKENS, not a bare
                            outline: on the card the old transparent Back read as
                            disabled next to the filled Next. */
-                          className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
-                          disabled={
-                            photosSendingNow ||
-                            (draft.step === 1 &&
-                              categoryCursor === null &&
-                              categoryTerm.trim() === "")
-                          }
-                          onClick={() => {
-                            // INC-277 — while the filter holds a term the tree shows hits,
-                            // not the level: Back first clears the filter (visibly),
-                            // instead of moving a cursor nobody can see or doing nothing.
-                            if (draft.step === 1 && categoryTerm.trim() !== "") {
-                              setCategoryTerm("");
-                              return;
-                            }
-                            // STEP 5 — inside the tree, Back climbs one level; at the
-                            // roots it leaves the step, as it always did.
-                            if (draft.step === 1 && categoryCursor !== null) {
-                              setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
-                              return;
-                            }
-                            // D194 — in edit mode Back is the way back to the Review; C15 — what
-                            // was typed on the step is dropped, so the Review shows the ad as saved.
-                            if (edit !== null) {
-                              edit.discard(draft.step);
-                              draft.goTo(TOTAL_STEPS);
-                              return;
-                            }
-                            draft.goTo(prevOf(draft.step));
-                          }}
-                        >
-                          {t("post.action.back")}
-                        </button>
-                        {/*
-                         * U6-C1-R3b-1 STEP 2a — THE WAY BACK FROM AN EDIT. `Next`
-                         * already returns to review, but a seller who decides the
-                         * field was fine after all had to press Next (and be judged)
-                         * to get back. This returns without claiming anything.
-                         * Secondary-button tokens, not a bare link: it sits on the
-                         * card beside Next and has to be readable there.
-                         */}
-                        {returnToReview && draft.step < TOTAL_STEPS ? (
-                          <button
-                            type="button"
-                            data-testid="post-back-to-review"
                             className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
-                            disabled={photosSendingNow}
+                            disabled={
+                              photosSendingNow ||
+                              (draft.step === 1 &&
+                                categoryCursor === null &&
+                                categoryTerm.trim() === "")
+                            }
                             onClick={() => {
-                              if (edit === null) setReturnToReview(false);
-                              else edit.discard(draft.step);
-                              draft.goTo(TOTAL_STEPS);
+                              // INC-277 — while the filter holds a term the tree shows hits,
+                              // not the level: Back first clears the filter (visibly),
+                              // instead of moving a cursor nobody can see or doing nothing.
+                              if (draft.step === 1 && categoryTerm.trim() !== "") {
+                                setCategoryTerm("");
+                                return;
+                              }
+                              // STEP 5 — inside the tree, Back climbs one level; at the
+                              // roots it leaves the step, as it always did.
+                              if (draft.step === 1 && categoryCursor !== null) {
+                                setCategoryCursor(tree.parentOf.get(categoryCursor) ?? null);
+                                return;
+                              }
+                              // D194 — in edit mode Back is the way back to the Review; C15 — what
+                              // was typed on the step is dropped, so the Review shows the ad as saved.
+                              if (edit !== null) {
+                                edit.discard(draft.step);
+                                draft.goTo(TOTAL_STEPS);
+                                return;
+                              }
+                              draft.goTo(prevOf(draft.step));
                             }}
                           >
-                            {t("post.action.backToReview")}
+                            {t("post.action.back")}
                           </button>
-                        ) : null}
-                        {draft.step < TOTAL_STEPS ? (
-                          <button
-                            type="button"
-                            data-testid="post-next"
-                            /* INC-671 — a closed Next keeps full-contrast text: the secondary
+                          {/*
+                           * U6-C1-R3b-1 STEP 2a — THE WAY BACK FROM AN EDIT. `Next`
+                           * already returns to review, but a seller who decides the
+                           * field was fine after all had to press Next (and be judged)
+                           * to get back. This returns without claiming anything.
+                           * Secondary-button tokens, not a bare link: it sits on the
+                           * card beside Next and has to be readable there.
+                           */}
+                          {returnToReview && draft.step < TOTAL_STEPS ? (
+                            <button
+                              type="button"
+                              data-testid="post-back-to-review"
+                              className={`${navButtonClass} border border-input bg-secondary text-secondary-foreground hover:bg-secondary/80`}
+                              disabled={photosSendingNow}
+                              onClick={() => {
+                                if (edit === null) setReturnToReview(false);
+                                else edit.discard(draft.step);
+                                draft.goTo(TOTAL_STEPS);
+                              }}
+                            >
+                              {t("post.action.backToReview")}
+                            </button>
+                          ) : null}
+                          {draft.step < TOTAL_STEPS ? (
+                            <button
+                              type="button"
+                              data-testid="post-next"
+                              /* INC-671 — a closed Next keeps full-contrast text: the secondary
                              tokens (grey, dark text), never a dimmed primary, which failed
                              the colour-contrast audit (A11Y-2, run 963). */
-                            className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80`}
-                            /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
+                              className={`${navButtonClass} bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80`}
+                              /* U6-C1-R3a-2 — STEP 1 HAS ONE ANSWER and it is a leaf:
                              with none chosen there is nothing to send, so Next is
                              closed and says why underneath. D193 — every later
                              step is closed the same way while a required answer
@@ -1322,80 +1345,87 @@ function WizardShell({
                              a dead control, and the line underneath says why
                              before any tap. With the mirror satisfied the step is
                              sent and the door judges (F3). */
-                            disabled={
-                              needsLeaf ||
-                              photosBlockNext ||
-                              photosSendingNow ||
-                              (sellerEdit && !certifyAllows(certify))
-                            }
-                            data-closed={missing.length > 0 ? "1" : undefined}
-                            onClick={() => {
-                              if (missing.length > 0) {
-                                setTried(true);
-                                focusFirstRefusal(
-                                  missing.map((field) => ({ field, reason: "required" })),
-                                  draft.step,
-                                  specFields,
-                                  priceFields,
-                                );
-                                return;
+                              disabled={
+                                needsLeaf ||
+                                photosBlockNext ||
+                                photosSendingNow ||
+                                (sellerEdit && !certifyAllows(certify))
                               }
-                              // Rulings 3 — the contact step refuses at its own controls.
-                              if (draft.step === 7 && whoQueue.gate === "pending") {
-                                whoQueue.queue();
-                                return;
-                              }
-                              if (draft.step === 7 && whoQueue.gate === "blocked") {
-                                setWhoTried((n) => n + 1);
-                                return;
-                              }
-                              goNext();
-                            }}
+                              data-closed={missing.length > 0 ? "1" : undefined}
+                              onClick={() => {
+                                if (missing.length > 0) {
+                                  setTried(true);
+                                  focusFirstRefusal(
+                                    missing.map((field) => ({ field, reason: "required" })),
+                                    draft.step,
+                                    specFields,
+                                    priceFields,
+                                  );
+                                  return;
+                                }
+                                // Rulings 3 — the contact step refuses at its own controls.
+                                if (draft.step === 7 && whoQueue.gate === "pending") {
+                                  whoQueue.queue();
+                                  return;
+                                }
+                                if (draft.step === 7 && whoQueue.gate === "blocked") {
+                                  setWhoTried((n) => n + 1);
+                                  return;
+                                }
+                                goNext();
+                              }}
+                            >
+                              {edit === null ? t("post.action.next") : t("myListings.editBox.save")}
+                            </button>
+                          ) : null}
+                        </div>
+                        {/* D58 — a Next whose save never reached the door says so HERE. */}
+                        {draft.nextBlockedByTransport && (
+                          <p
+                            data-testid="post-next-unreachable"
+                            className="text-sm text-destructive"
                           >
-                            {edit === null ? t("post.action.next") : t("myListings.editBox.save")}
-                          </button>
-                        ) : null}
+                            {t("post.save.unsaved")}
+                          </p>
+                        )}
+                        {needsLeaf && (
+                          <p
+                            className="text-xs text-muted-foreground"
+                            data-testid="post-next-blocked"
+                          >
+                            {t("post.category.nextBlocked")}
+                          </p>
+                        )}
+                        {/* D193 — the closed Next says why, before any tap; the tap names which. */}
+                        {!needsLeaf && missing.length > 0 && draft.step < TOTAL_STEPS && (
+                          <p
+                            className="text-xs text-muted-foreground"
+                            data-testid="post-next-blocked"
+                            data-missing={missing.join(" ")}
+                          >
+                            {t("post.nextBlocked.required")}
+                          </p>
+                        )}
+                        {/* INC-605 — the photos on their way are sent before Next or Back. */}
+                        {photosSendingNow && (
+                          <p
+                            className="text-xs text-muted-foreground"
+                            data-testid="post-nav-photos-sending"
+                          >
+                            {t("post.photos.waitSending")}
+                          </p>
+                        )}
+                        {/* INC-585 — a photo that was not added is removed before Next. */}
+                        {photosBlockNext && (
+                          <p
+                            className="text-xs text-destructive"
+                            data-testid="post-next-photos-held"
+                          >
+                            {t("post.photos.nextHeld")}
+                          </p>
+                        )}
                       </div>
-                      {/* D58 — a Next whose save never reached the door says so HERE. */}
-                      {draft.nextBlockedByTransport && (
-                        <p data-testid="post-next-unreachable" className="text-sm text-destructive">
-                          {t("post.save.unsaved")}
-                        </p>
-                      )}
-                      {needsLeaf && (
-                        <p
-                          className="text-xs text-muted-foreground"
-                          data-testid="post-next-blocked"
-                        >
-                          {t("post.category.nextBlocked")}
-                        </p>
-                      )}
-                      {/* D193 — the closed Next says why, before any tap; the tap names which. */}
-                      {!needsLeaf && missing.length > 0 && draft.step < TOTAL_STEPS && (
-                        <p
-                          className="text-xs text-muted-foreground"
-                          data-testid="post-next-blocked"
-                          data-missing={missing.join(" ")}
-                        >
-                          {t("post.nextBlocked.required")}
-                        </p>
-                      )}
-                      {/* INC-605 — the photos on their way are sent before Next or Back. */}
-                      {photosSendingNow && (
-                        <p
-                          className="text-xs text-muted-foreground"
-                          data-testid="post-nav-photos-sending"
-                        >
-                          {t("post.photos.waitSending")}
-                        </p>
-                      )}
-                      {/* INC-585 — a photo that was not added is removed before Next. */}
-                      {photosBlockNext && (
-                        <p className="text-xs text-destructive" data-testid="post-next-photos-held">
-                          {t("post.photos.nextHeld")}
-                        </p>
-                      )}
-                    </div>
+                    )
                   }
                 >
                   <div data-span="full" className="min-w-0 space-y-4">
@@ -1426,6 +1456,7 @@ function WizardShell({
                             selectedId={categoryId}
                             invalid={triedWithoutLeaf && categoryId === null}
                             onChoose={(nextCategoryId, matches) => {
+                              const choice = ++leafChoiceRef.current;
                               // D37-2 — a finder hit carries proposed answers; they are
                               // revalidated against the leaf's schema and options first
                               // (the finder is a hint), then land as editable prefills.
@@ -1435,7 +1466,10 @@ function WizardShell({
                                   matches,
                                   entities.lang,
                                   entities,
-                                ).then((prefill) => chooseLeaf(nextCategoryId, prefill));
+                                ).then((prefill) => {
+                                  if (choice !== leafChoiceRef.current) return;
+                                  chooseLeaf(nextCategoryId, prefill);
+                                });
                                 return;
                               }
                               chooseLeaf(nextCategoryId, {});
@@ -1592,8 +1626,9 @@ function WizardShell({
                           <StepWho
                             listingId={draft.listingId}
                             contactPref={draft.values.contactPref}
-                            refusals={draft.refusals}
+                            refusals={shownRefusals}
                             itemCountry={itemCountry}
+                            onMissing={onMissingWho}
                             onChange={(contactPref, immediate) =>
                               draft.change({ contactPref }, immediate)
                             }
@@ -1605,6 +1640,7 @@ function WizardShell({
                         )}
                         {draft.step === 8 && (
                           <StepReview
+                            onPublished={() => setSubmitted(true)}
                             placeCountry={itemCountry}
                             listingId={draft.listingId}
                             categoryPath={categoryPath}

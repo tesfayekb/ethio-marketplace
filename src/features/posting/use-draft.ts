@@ -107,7 +107,11 @@ export interface UseDraft {
   saveState: SaveState;
   refusals: Refusal[];
   /** Queue a change: `immediate` for a tap or Next, else the 2-second debounce. */
-  change: (patch: Partial<DraftValues>, immediate: boolean) => void;
+  change: (
+    patch: Partial<DraftValues>,
+    immediate: boolean,
+    answerSource?: DraftValues["attributes"],
+  ) => void;
   /** Save the current answers at a given step and answer whether it took. */
   saveAt: (step: number) => Promise<boolean>;
   /**
@@ -319,13 +323,19 @@ export function useDraft(initialListingId: string | null): UseDraft {
     const sent = versionRef.current;
     setSaveState("saving");
 
+    const sentAnswers = valuesRef.current.attributes;
     let answer = await saveDraft(bodyFor(forStep));
 
     // Bundle 7 D5 rule 2 (INC-479) — THE DOOR'S OWN WORD HEALS A STALE FORM. A
     // refusal naming an answer the catalogue no longer has (unknownAttribute /
     // unknownOption) drops exactly what it named and the SAME step and claim go
     // ONCE more. A second refusal takes the ordinary path below; never a loop.
-    if (aliveRef.current && !answer.ok && !answer.unreachable) {
+    if (
+      aliveRef.current &&
+      !answer.ok &&
+      !answer.unreachable &&
+      valuesRef.current.attributes === sentAnswers
+    ) {
       const healed = dropRefusedAnswers(valuesRef.current.attributes, answer.refusals);
       if (healed !== null) {
         const next = { ...valuesRef.current, attributes: healed };
@@ -512,7 +522,10 @@ export function useDraft(initialListingId: string | null): UseDraft {
   }, [flush]);
 
   const change = useCallback(
-    (patch: Partial<DraftValues>, immediate: boolean) => {
+    (patch: Partial<DraftValues>, immediate: boolean, answerSource?: DraftValues["attributes"]) => {
+      // An awaited catalogue read can finish before React cleans up its old
+      // render. Reject that producer against the synchronous save source.
+      if (answerSource !== undefined && answerSource !== valuesRef.current.attributes) return;
       /*
        * THE REF IS WRITTEN HERE, NOT IN THE UPDATER. React runs a state updater
        * when it renders, not when it is queued, so a save fired in the same turn

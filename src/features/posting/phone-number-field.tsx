@@ -48,6 +48,8 @@ export function PhoneNumberField({
   onCountry,
   onPending,
   lib,
+  refused = false,
+  requiredEmpty = false,
 }: {
   id: string;
   testId: string;
@@ -62,6 +64,8 @@ export function PhoneNumberField({
   onPending?: (pending: boolean) => void;
   /** Step 11 — the loaded phone library (null while it loads or after a failure). */
   lib: PhoneLib | null;
+  refused?: boolean;
+  requiredEmpty?: boolean;
 }) {
   const { t, language } = useI18n();
   const listId = useId();
@@ -188,7 +192,12 @@ export function PhoneNumberField({
         ref={wrapRef}
         data-testid={`${testId}-row`}
         className={
-          "relative flex min-h-11 items-stretch rounded-md border border-input bg-background " +
+          "relative flex min-h-11 items-stretch rounded-md border bg-background " +
+          (refused
+            ? "border-destructive ring-1 ring-destructive "
+            : requiredEmpty
+              ? "border-destructive "
+              : "border-input ") +
           "focus-within:ring-2 focus-within:ring-ring"
         }
         onBlur={(event) => {
@@ -227,6 +236,7 @@ export function PhoneNumberField({
           ref={numberRef}
           id={id}
           data-testid={testId}
+          aria-invalid={refused || undefined}
           className="min-w-0 grow rounded-e-md bg-transparent px-3 py-2 text-base text-foreground focus-visible:outline-none"
           inputMode="tel"
           autoComplete="tel-national"

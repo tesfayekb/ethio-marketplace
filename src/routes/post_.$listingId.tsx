@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { PostingWizard } from "@/features/posting/wizard";
 import { supabase } from "@/integrations/supabase/client";
+import { readDraft, mayResumePosting } from "@/features/posting/posting-service";
 
 /**
  * U6-C1a/C2a — `/post/<id>`: RESUMING a draft.
@@ -35,6 +36,10 @@ export const Route = createFileRoute("/post_/$listingId")({
         to: "/auth",
         search: { return: `/post/${encodeURIComponent(params.listingId)}` },
       });
+    }
+    const found = await readDraft(params.listingId);
+    if (found !== null && !mayResumePosting(found.draft.status)) {
+      throw redirect({ to: "/my-listings/$listingId", params: { listingId: params.listingId } });
     }
   },
   head: () => ({

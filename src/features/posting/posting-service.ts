@@ -21,6 +21,10 @@ import type { PlaceFact } from "./where-seed";
  */
 
 /** The bearer the routes demand; absent means "not signed in" and the route 401s. */
+export function mayResumePosting(status: string): boolean {
+  return status === "draft";
+}
+
 async function bearer(): Promise<string | null> {
   const { data } = await supabase.auth.getSession();
   return data.session?.access_token ?? null;

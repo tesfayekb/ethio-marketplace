@@ -322,16 +322,25 @@ export function useEditDraft(
     [locked],
   );
 
-  const change = useCallback((patch: Partial<DraftValues>) => {
-    valuesRef.current = { ...valuesRef.current, ...patch };
-    setValues(valuesRef.current);
-    const of = stepOfPatch(patch);
-    if (of !== null) {
-      const same = fieldsOfStep(of);
-      setRefusals((current) => current.filter((refusal) => !same(refusal.field)));
-    }
-    setSaveState((current) => (current === "saved" ? "idle" : current));
-  }, []);
+  const change = useCallback(
+    (
+      patch: Partial<DraftValues>,
+      _immediate?: boolean,
+      answerSource?: DraftValues["attributes"],
+    ) => {
+      // The shared wizard's catalogue cleanup must not replace a newer edit.
+      if (answerSource !== undefined && answerSource !== valuesRef.current.attributes) return;
+      valuesRef.current = { ...valuesRef.current, ...patch };
+      setValues(valuesRef.current);
+      const of = stepOfPatch(patch);
+      if (of !== null) {
+        const same = fieldsOfStep(of);
+        setRefusals((current) => current.filter((refusal) => !same(refusal.field)));
+      }
+      setSaveState((current) => (current === "saved" ? "idle" : current));
+    },
+    [],
+  );
 
   const setPlaceText = useCallback((text: { street: string | null; directions: string | null }) => {
     placeTextRef.current = { streetAddress: text.street, directions: text.directions };

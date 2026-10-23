@@ -8,7 +8,20 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-import { call, SAVE_TIMEOUT_MS, shapePostingSchema, uploadPhoto } from "./posting-service";
+import {
+  call,
+  mayResumePosting,
+  SAVE_TIMEOUT_MS,
+  shapePostingSchema,
+  uploadPhoto,
+} from "./posting-service";
+
+it("INC-824 only a draft resumes posting", () => {
+  expect(mayResumePosting("draft")).toBe(true);
+  for (const status of ["screening", "active", "sold", "expired", "removed", "rejected", ""]) {
+    expect(mayResumePosting(status)).toBe(false);
+  }
+});
 
 let afterEachRestore: () => void = () => {};
 

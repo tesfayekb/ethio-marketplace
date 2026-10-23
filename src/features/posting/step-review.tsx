@@ -143,6 +143,7 @@ export function StepReview({
   deal = null,
   lockedSteps = [],
   edit = null,
+  onPublished,
 }: {
   listingId: string | null;
   /** The chosen category's full path, in the seller's language. */
@@ -163,6 +164,7 @@ export function StepReview({
   onGoTo: (step: number) => void;
   /** D22 — the plan's photo cap from the posting document; `null` = not read. */
   maxPhotos: number | null;
+  onPublished?: () => void;
   /** U6-C1-R3b-4 — the saved pin, so the buyer's-eye preview draws what the door holds. */
   pin?: {
     lat: number;
@@ -521,16 +523,15 @@ export function StepReview({
           data-testid="post-review-mylistings"
           className="inline-flex min-h-11 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
         >
-          {t("post.review.myListings")}
+          {t("nav.myListings")}
         </Link>
         {/* W3 — a fresh post at step 1; a full load so no draft state is carried. */}
         <Link
-          to="/post"
-          reloadDocument
-          data-testid="post-review-another"
+          to="/"
+          data-testid="post-review-home"
           className="ms-2 inline-flex min-h-11 items-center rounded-md border border-input px-4 text-sm font-medium text-foreground"
         >
-          {t("post.review.postAnother")}
+          {t("nav.home")}
         </Link>
       </div>
     );
@@ -880,6 +881,7 @@ export function StepReview({
                 setPublishing(false);
                 if (answer.ok) {
                   setInReview(true);
+                  onPublished?.();
                   return;
                 }
                 // A refusal is the door's judgement and is shown; unreachability is

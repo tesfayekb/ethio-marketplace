@@ -736,8 +736,34 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const city = await activeCityOf("ET");
     await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await expect(page.getByTestId("post-who-first")).toBeVisible({ timeout: 20_000 });
+    const firstName = page.getByTestId("post-who-first");
+    await expect(page.getByTestId("post-next")).toHaveAttribute("data-closed", "1");
+    const savedBefore = await adminClient()
+      .from("listings")
+      .select("draft_step,attributes")
+      .eq("seller_id", user.id)
+      .single();
+    if (savedBefore.error) throw savedBefore.error;
+    await page.getByTestId("post-next").scrollIntoViewIfNeeded();
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7"), "PW-148: Next left with no names").toBeVisible();
+    await expect(firstName).toBeFocused();
+    await expect(firstName).toHaveAttribute("aria-invalid", "true");
+    await expect(firstName).toHaveClass(/border-destructive/);
+    await expect
+      .poll(async () => {
+        const box = await firstName.boundingBox();
+        const size = page.viewportSize();
+        return box !== null && size !== null && box.y >= 0 && box.y + box.height <= size.height;
+      })
+      .toBe(true);
+    const savedAfter = await adminClient()
+      .from("listings")
+      .select("draft_step,attributes")
+      .eq("seller_id", user.id)
+      .single();
+    if (savedAfter.error) throw savedAfter.error;
+    expect(savedAfter.data).toEqual(savedBefore.data);
     await expect(page.getByTestId("post-who-first-refusal")).toBeVisible();
     await expect(page.getByTestId("post-who-last-refusal")).toBeVisible();
     await expect(page.getByTestId("post-who-alias-refusal")).toBeVisible();
@@ -897,13 +923,15 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     ).toHaveAttribute("data-iso", "ET", { timeout: 20_000 });
   });
 
-  test("PW-123 Post another ad opens step 1 with no draft carried", async ({ page }) => {
+  test("PW-123 INC-824 Publish offers Home and My listings with no return to posting", async ({
+    page,
+  }) => {
     // Exercises the country control, so its seller's home country is unconfirmed.
     // M5 — publishing needs a named seller; the alias is still typed on screen.
     const user = await signedInSeller(page, { homeConfirmed: false, named: true });
     const leaf = await category();
     const city = await activeCityOf("ET");
-    await openDraft(page, user.id, leaf.id, 6, [city.id]);
+    const listingId = await openDraft(page, user.id, leaf.id, 6, [city.id]);
     await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
     await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
     // Bundle 3 step 12 — the guessed home country is confirmed on the contact step.
@@ -918,11 +946,18 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     await page.getByTestId("post-publish").click();
     await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("post-review-mylistings")).toBeVisible();
-    await page.getByTestId("post-review-another").click();
-    await expect(page.getByTestId("post-step-1"), "PW-123: not on step 1").toBeVisible({
-      timeout: 20_000,
-    });
-    expect(new URL(page.url()).pathname, "PW-123: a draft address was carried").toBe("/post");
+    await expect(page.getByTestId("post-back")).toHaveCount(0);
+    await expect(page.getByTestId("post-next")).toHaveCount(0);
+    await expect(page.getByTestId("post-review-mylistings")).toHaveAttribute(
+      "href",
+      "/my-listings",
+    );
+    await expect(page.getByTestId("post-review-home")).toHaveAttribute("href", "/");
+    await page.getByTestId("post-review-home").click();
+    await expect(page).toHaveURL(/\/$/);
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(page).toHaveURL(new RegExp(`/my-listings/${listingId}$`));
+    await expect(page.getByTestId("post-step-7")).toHaveCount(0);
   });
 
   test("PS-1 the end of posting waits with the drawing diamond while in review, then offers Share once live", async ({

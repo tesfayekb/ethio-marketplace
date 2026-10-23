@@ -5689,11 +5689,19 @@
       "/c/$slug"
     ],
     "nav.home": [
-      "(every page)"
+      "(every page)",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "nav.myListings": [
+      "/admin/listings/$listingId/edit",
       "/my-listings",
-      "/my-listings/$listingId"
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "nav.postListing": [
       "/",
@@ -6944,12 +6952,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.review.myListings": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
     "post.review.no": [
       "(every page)",
       "/admin/categories",
@@ -7001,12 +7003,6 @@
       "/post/$listingId"
     ],
     "post.review.placesCount": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.review.postAnother": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",
