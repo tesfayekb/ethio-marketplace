@@ -38,7 +38,7 @@ rls_closer_ok() {
   flat=$(tr '\n' ' ' < "$closer")
   while IFS= read -r tbl; do
     [ -z "$tbl" ] && continue
-    printf '%s' "$flat" | grep -qiE "create[[:space:]]+policy[^;]*[[:space:]]on[[:space:]]+(public\.)?${tbl}([[:space:]]|$)" \
+    grep -qiE "create[[:space:]]+policy[^;]*[[:space:]]on[[:space:]]+(public\.)?${tbl}([[:space:]]|$)" <<<"$flat" \
       || return 1
   done < <(grep -oiE 'create[[:space:]]+table[[:space:]]+(if[[:space:]]+not[[:space:]]+exists[[:space:]]+)?(public\.)?[a-z0-9_]+' "$file" \
     | sed -E 's/.*[[:space:].]([a-zA-Z0-9_]+)$/\1/' | sort -u)
@@ -65,7 +65,9 @@ check_file() {
   if ! grep -qiE 'create[[:space:]]+table' "$file"; then
     return 0
   fi
-  if ! strip_proof_scratch_tables "$file" | grep -qiE 'create[[:space:]]+table'; then
+  local stripped
+  stripped="$(strip_proof_scratch_tables "$file")"
+  if ! grep -qiE 'create[[:space:]]+table' <<<"$stripped"; then
     echo "Scratch table in a proof block (created and dropped there): $(basename "$file")" >&2
     return 0
   fi
@@ -160,6 +162,22 @@ if check_file "$BAD_FIXTURE" >/dev/null 2>&1; then
   exit 1
 fi
 echo "Self-test OK: a proof block's scratch table passes only when created, dropped and namespaced there (no drop, no namespace, top-level table all flagged)."
+
+
+# INC-832: a top-level table must be judged even beyond a pipe buffer.
+BIG_DIR="$(mktemp -d)"
+{
+  printf '%s\n' 'CREATE TABLE public.e2e_big_table (id int);' 'GRANT SELECT ON public.e2e_big_table TO authenticated;'
+  for ((i = 0; i < 4000; i++)); do
+    printf '%s\n' '-- padding line for the pipe-buffer self-test (INC-832)'
+  done
+} > "$BIG_DIR/big.sql"
+if check_file "$BIG_DIR/big.sql" >/dev/null 2>&1; then
+  echo "GUARD SELF-TEST FAILED: a large file was not judged (INC-832)"
+  rm -rf "$BIG_DIR"; exit 1
+fi
+rm -rf "$BIG_DIR"
+echo "Self-test OK: a large file is judged (INC-832)."
 
 # --- Real scan ---
 if [ ! -d "$MIGRATIONS_DIR" ]; then
@@ -341,7 +359,7 @@ if [ "$allow_rc" -ne 0 ]; then
   rm -rf "$ALLOW_TEST_DIR"
   exit 1
 fi
-if ! printf '%s' "$allow_out" | grep -q 'allowlisted files (each cites its closer)'; then
+if ! grep -q 'allowlisted files (each cites its closer)' <<<"$allow_out"; then
   echo "GUARD SELF-TEST FAILED: allowlisted file was skipped but not printed"
   rm -rf "$ALLOW_TEST_DIR"
   exit 1
@@ -753,9 +771,9 @@ rr_refused="$(real_row_split "$(real_row_offenders "$RR_DIR/29990101000000_rrrr1
 rr_fixture="$(real_row_split "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" "$RR_DIR/allow.txt" 2>/dev/null)"
 if ! grep -q 'UPDATE public.attributes' "$RR_DIR/skipped" \
   || ! grep -q 'FROM public.user_roles' "$RR_DIR/skipped" \
-  || printf '%s' "$rr_refused" | grep -q 'FROM public.user_roles' \
-  || printf '%s' "$rr_refused" | grep -q 'UPDATE public.attributes' \
-  || ! printf '%s' "$rr_refused" | grep -q 'FROM public.profiles' \
+  || grep -q 'FROM public.user_roles' <<<"$rr_refused" \
+  || grep -q 'UPDATE public.attributes' <<<"$rr_refused" \
+  || ! grep -q 'FROM public.profiles' <<<"$rr_refused" \
   || [ -z "$rr_fixture" ]; then
   echo "Real-row proof guard self-test FAILED: the allowlist skipped the wrong statement."
   rm -rf "$RR_DIR"; exit 1

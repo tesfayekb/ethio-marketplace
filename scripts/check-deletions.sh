@@ -59,7 +59,9 @@ run_guard() {
   fi
 
   # DOOR 1 — the commit-message marker.
-  if git log --format=%B "${before}..${head}" | grep -qF "$MARKER"; then
+  local log
+  log="$(git log --format=%B "${before}..${head}")"
+  if grep -qF "$MARKER" <<<"$log"; then
     echo "Deletions declared with ${MARKER}:"
     echo "$deleted"
     return 0
@@ -72,7 +74,7 @@ run_guard() {
   local path
   while IFS= read -r path; do
     [ -z "$path" ] && continue
-    if ! printf '%s\n' "$added" | grep -qxF "$path"; then
+    if ! grep -qxF "$path" <<<"$added"; then
       undeclared="${undeclared}${path}"$'\n'
     fi
   done <<< "$deleted"
