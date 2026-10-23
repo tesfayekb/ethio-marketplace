@@ -1261,7 +1261,11 @@ function WizardShell({
                         }}
                       >
                         {sellerEdit && listingId !== null && draft.step < TOTAL_STEPS ? (
-                          <CertifyBlock listingId={listingId} onChange={setCertify} />
+                          <CertifyBlock
+                            listingId={listingId}
+                            onChange={setCertify}
+                            tried={certifyTried}
+                          />
                         ) : null}
                         <div className="flex gap-2">
                           <button
@@ -1349,9 +1353,9 @@ function WizardShell({
                                 needsLeaf ||
                                 photosBlockNext ||
                                 photosSendingNow ||
-                                (sellerEdit && !certifyAllows(certify))
+                                (sellerEdit && certify.state === "loading")
                               }
-                              data-closed={missing.length > 0 ? "1" : undefined}
+                              data-closed={missing.length > 0 || certifyClosed ? "1" : undefined}
                               onClick={() => {
                                 if (missing.length > 0) {
                                   setTried(true);
