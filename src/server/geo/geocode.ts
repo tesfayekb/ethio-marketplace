@@ -18,6 +18,7 @@
  */
 
 import { errorText } from "@/lib/error-text";
+import { aiFakeMode } from "@/server/ai/meter";
 
 export interface GeoPlace {
   label: string;
@@ -57,7 +58,7 @@ export function cachePut(key: string, value: GeoPlace[]): void {
 }
 
 export function isFakeGeocode(): boolean {
-  return process.env["E2E_FAKE_GEOCODE"] === "1";
+  return aiFakeMode("E2E_FAKE_GEOCODE");
 }
 
 /**
