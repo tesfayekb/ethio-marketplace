@@ -994,4 +994,75 @@ test.describe("Admin Legal", () => {
     expect(texts.data).toEqual([{ language: code, body: "Published fence text" }]);
     await stale.close();
   });
+
+  /** Turn 32 F5 (INC-825) — the in-force card's actions follow legal:publish. */
+  test("LGA-21 the in-force card shows View to every legal:view reader and Add translation only with legal:publish", async ({
+    page,
+  }) => {
+    const kind = scratch("card");
+    await seed(kind);
+    const versionId = (await version(kind)).id;
+    const supabase = adminClient();
+    const { data: perms, error: permsError } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in("resources.name", ["admin_panel", "legal"]);
+    fail(permsError, "permissions read");
+    const picked = (names: string[]) =>
+      (perms ?? []).filter((p) =>
+        names.includes(`${(p as unknown as { resources: { name: string } }).resources.name}:${p.action}`),
+      );
+    const makeRole = async (tag: string, names: string[]) => {
+      const roleName = `${RUN_TAG}-role-${tag}`;
+      const { data: role, error: roleError } = await supabase
+        .from("roles")
+        .insert({ name: roleName, display_name: roleName, priority: 1 })
+        .select("id")
+        .single();
+      if (roleError || !role)
+        throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
+      const rows = picked(names);
+      expect(rows.length, `LGA-21 expected ${names.join(" + ")}`).toBe(names.length);
+      const granted = await supabase
+        .from("role_permissions")
+        .insert(rows.map((p) => ({ role_id: role.id, permission_id: p.id })));
+      fail(granted.error, "role permissions grant");
+      return role.id;
+    };
+    const publisherRole = await makeRole("pub", [
+      "admin_panel:access",
+      "legal:view",
+      "legal:publish",
+    ]);
+    const viewerRole = await makeRole("view", ["admin_panel:access", "legal:view"]);
+    const publisher = await leaseUser();
+    const viewer = await leaseUser();
+    try {
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: publisher.id, role_id: publisherRole, scope_type: "global" });
+      await supabase
+        .from("user_roles")
+        .insert({ user_id: viewer.id, role_id: viewerRole, scope_type: "global" });
+      await useJobSuperAdmin(page);
+      await switchUser(page, publisher.email, publisher.password);
+      await gotoReady(page, "/admin/legal");
+      const card = page.getByTestId(`legal-doc-${kind}-global`);
+      await expect(card.getByTestId("legal-view-inforce")).toBeVisible();
+      await card.getByTestId("legal-translate-inforce").click();
+      await expect(page).toHaveURL(new RegExp(`/admin/legal/${versionId}\\?translate=1$`));
+      await expect(page.getByTestId("legal-translation-panel")).toBeVisible();
+      await switchUser(page, viewer.email, viewer.password);
+      await gotoReady(page, "/admin/legal");
+      const viewerCard = page.getByTestId(`legal-doc-${kind}-global`);
+      await expect(viewerCard.getByTestId("legal-view-inforce")).toBeVisible();
+      await expect(viewerCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
+    } finally {
+      for (const roleId of [publisherRole, viewerRole]) {
+        await supabase.from("role_permissions").delete().eq("role_id", roleId);
+        await supabase.from("user_roles").delete().eq("role_id", roleId);
+        await supabase.from("roles").delete().eq("id", roleId);
+      }
+    }
+  });
 });
