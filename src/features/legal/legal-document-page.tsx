@@ -16,10 +16,13 @@ export type LegalPageAnswer = {
 export function LegalDocumentPage({
   title,
   data,
+  countryCode,
 }: {
   kind: string;
   title: string;
   data: LegalPageAnswer | null;
+  /** Bundle 22 turn 32 — a country's publishing statement names its country under the title. */
+  countryCode?: string;
 }) {
   const { t, language } = useI18n();
   const [showUpcoming, setShowUpcoming] = useState(false);
@@ -29,6 +32,14 @@ export function LegalDocumentPage({
     <PageShell as="main" width="wide" data-testid="legal-public-page">
       <div data-print-root className="min-w-0 space-y-4">
         <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+        {countryCode ? (
+          <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
+            {t("legal.certify.forCountry").replace(
+              "{country}",
+              new Intl.DisplayNames([language], { type: "region" }).of(countryCode) ?? countryCode,
+            )}
+          </p>
+        ) : null}
         {data === null ? (
           <p role="alert" data-testid="legal-public-load-error" className="text-destructive">
             {t("legal.page.loadError")}
