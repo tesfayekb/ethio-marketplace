@@ -13,13 +13,14 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { inOneWindow } from "./helpers/rate-window";
+// INC-844: CG-5 (the password_remove dial) is withdrawn — rate_gate counts inside the door's own transaction, so every RAISE-style refusal rolls the count back; the dial row and rate_gate('password_remove') call stay (proven by M20's B8 proof).
 
 // DEC-241/242: scratch targets only; pooled accounts are consumers, never deactivated.
 const fixtures = adPageFixtures();
 const freshIds: string[] = [];
 const consumerIds: string[] = [];
 const staffIds: string[] = [];
+const legalDocIds: string[] = [];
 
 function bearerClient(token: string) {
   const url = process.env["E2E_SUPABASE_URL"];
@@ -53,13 +54,23 @@ test.afterEach(async ({ page }) => {
     const meters = await admin.from("rate_limits").delete().eq("key", id);
     if (meters.error) throw new Error(`[CG] rate cleanup: ${meters.error.message}`);
   }
+  for (const id of legalDocIds) {
+    const versions = await admin.from("legal_versions").delete().eq("document_id", id);
+    if (versions.error) throw new Error(`[CG] legal version cleanup: ${versions.error.message}`);
+    const docs = await admin.from("legal_documents").delete().eq("id", id);
+    if (docs.error) throw new Error(`[CG] legal document cleanup: ${docs.error.message}`);
+  }
+  legalDocIds.length = 0;
   await fixtures.cleanup();
+  const adminRole = await admin.from("roles").select("id").eq("name", "admin").single();
+  if (adminRole.error || !adminRole.data)
+    throw new Error(`[CG] admin role read: ${adminRole.error?.message}`);
   for (const id of staffIds) {
     const roles = await admin
       .from("user_roles")
       .delete()
       .eq("user_id", id)
-      .eq("scope_type", "global");
+      .eq("role_id", adminRole.data.id);
     if (roles.error) throw new Error(`[CG] staff role cleanup: ${roles.error.message}`);
     const factors = await admin.auth.admin.mfa.listFactors({ userId: id });
     if (factors.error) throw new Error(`[CG] staff factor read: ${factors.error.message}`);
@@ -89,6 +100,13 @@ test(
       leafId: scaffold.leafId,
       cityId: scaffold.cityId,
     });
+    // save_listing refuses the owner (D201 §5), so the saved row under test sits
+    // on a second ad owned by the scaffold seller.
+    const savedListing = await fixtures.seed({
+      id: scaffold.id,
+      leafId: scaffold.leafId,
+      cityId: scaffold.cityId,
+    });
     await fixtures.seedPhotos(listing.id, 1);
     const admin = adminClient();
     const photo = await admin
@@ -105,16 +123,49 @@ test(
     if (before.error || !before.data) throw new Error(`[CG] cover read: ${before.error?.message}`);
     const session = await passwordGrant(scratch.email, scratch.password);
     const caller = bearerClient(session.access_token);
-    const publicId = await fixtures.publicIdOf(listing.id);
-    expect((await caller.rpc("save_listing", { p_public_id: publicId })).error).toBeNull();
+    const publicId = await fixtures.publicIdOf(savedListing.id);
+    const saved = await caller.rpc("save_listing", { p_public_id: publicId });
+    expect(saved.error).toBeNull();
+    expect((saved.data as { ok?: unknown } | null)?.ok, "the save took").toBe(true);
+    // Staging carries no in-force "terms"/"privacy" documents, so CG-1 seeds its
+    // own namespaced kinds (J1) the way legal-doors.spec.ts does, then reads them
+    // back through the same legal_in_force → accept_legal path the design names.
+    const runTag = `e2e-cg1${Math.random().toString(36).slice(2, 8)}`;
     const versionIds: string[] = [];
-    for (const kind of ["terms", "privacy"]) {
-      const answer = await caller.rpc("legal_in_force", { p_kind: kind, p_country: "ET" });
+    for (const suffix of ["terms", "privacy"]) {
+      const kind = `${runTag}-${suffix}`;
+      const doc = await admin
+        .from("legal_documents")
+        .insert({ kind, country_code: null })
+        .select("id")
+        .single();
+      if (doc.error || !doc.data) throw new Error(`[CG] document seed: ${doc.error?.message}`);
+      legalDocIds.push(doc.data.id as string);
+      const version = await admin
+        .from("legal_versions")
+        .insert({
+          document_id: doc.data.id,
+          version: 1,
+          status: "published",
+          label: "v1",
+          body_en: "English body",
+          body_am: "Amharic body",
+          changelog: "first version",
+          material: false,
+          effective_at: new Date(Date.now() - 60_000).toISOString(),
+          published_at: new Date(Date.now() - 60_000).toISOString(),
+          settings_snapshot: { seed: true },
+        })
+        .select("id")
+        .single();
+      if (version.error || !version.data)
+        throw new Error(`[CG] version seed: ${version.error?.message}`);
+      const answer = await caller.rpc("legal_in_force", { p_kind: kind });
       if (answer.error) throw new Error(`[CG] in-force read: ${answer.error.message}`);
       const body = answer.data as { version_id?: unknown } | null;
-      if (typeof body?.version_id !== "string")
-        throw new Error(`[CG] ${kind} has no in-force version`);
-      versionIds.push(body.version_id);
+      if (body?.version_id !== version.data.id)
+        throw new Error(`[CG] ${kind} in-force read did not answer the seeded version`);
+      versionIds.push(version.data.id as string);
     }
     const staff = await leaseUser();
     staffIds.push(staff.id);
@@ -144,13 +195,13 @@ test(
       .single();
     expect(after.error).toBeNull();
     expect(after.data?.cover_photo_id).toBe(before.data.cover_photo_id);
-    const saved = await admin
+    const savedRows = await admin
       .from("saved_listings")
       .select("listing_id")
       .eq("user_id", scratch.id)
-      .eq("listing_id", listing.id);
-    expect(saved.error).toBeNull();
-    expect(saved.data).toEqual([{ listing_id: listing.id }]);
+      .eq("listing_id", savedListing.id);
+    expect(savedRows.error).toBeNull();
+    expect(savedRows.data).toEqual([{ listing_id: savedListing.id }]);
     const acceptances = await admin
       .from("legal_acceptances")
       .select("version_id")
@@ -172,8 +223,8 @@ test("CG-2 the three retired doors are closed to a signed-in account", async () 
   const caller = bearerClient(session.access_token);
   for (const [fn, args] of [
     ["delete_draft", { p_listing_id: draft.id }],
-    ["confirm_home_country", { p_code: "ET" }],
-    ["promote_to_super_admin", { p_target: user.id }],
+    ["confirm_home_country", { p_country: "ET" }],
+    ["promote_to_super_admin", { p_target_user: user.id }],
   ] as const) {
     const { error } = await caller.rpc(fn, args);
     expect(error?.code).toBe("42501");
@@ -190,10 +241,12 @@ test(
   { tag: "@private-identity" },
   async () => {
     const user = await fresh();
-    const session = await passwordGrant(user.email, user.password);
+    const session = await passwordGrant(user.email, user.password, { fresh: true });
     const result = await bearerClient(session.access_token).rpc("remove_own_password");
     expect(result.error?.message).toContain("recent sign-in required");
-    expect((await passwordGrant(user.email, user.password)).user?.id).toBe(user.id);
+    expect((await passwordGrant(user.email, user.password, { fresh: true })).user?.id).toBe(
+      user.id,
+    );
   },
 );
 
@@ -202,26 +255,14 @@ test(
   { tag: "@private-identity" },
   async () => {
     const user = await fresh();
-    const first = await passwordGrant(user.email, user.password);
-    await passwordGrant(user.email, user.password);
+    const first = await passwordGrant(user.email, user.password, { fresh: true });
+    await passwordGrant(user.email, user.password, { fresh: true });
     const result = await bearerClient(first.access_token).rpc("remove_own_password");
     expect(result.error?.message).toMatch(/last sign-in method/i);
-    expect((await passwordGrant(user.email, user.password)).user?.id).toBe(user.id);
+    expect((await passwordGrant(user.email, user.password, { fresh: true })).user?.id).toBe(
+      user.id,
+    );
   },
 );
 
-test("CG-5 the dial", { tag: "@private-identity" }, async () => {
-  const user = await fresh();
-  const session = await passwordGrant(user.email, user.password);
-  const override = await adminClient()
-    .from("rate_overrides")
-    .insert({ user_id: user.id, action: "password_remove", max_count: 2 });
-  if (override.error) throw new Error(`[CG] dial override: ${override.error.message}`);
-  await inOneWindow(3600, 15000, "CG-5 password removal");
-  const caller = bearerClient(session.access_token);
-  for (let call = 0; call < 2; call++)
-    expect((await caller.rpc("remove_own_password")).error?.message).toContain(
-      "recent sign-in required",
-    );
-  expect((await caller.rpc("remove_own_password")).error?.message).toContain("rateLimited");
-});
+// INC-844: CG-5 (the password_remove dial) is withdrawn — rate_gate counts inside the door's own transaction, so every RAISE-style refusal rolls the count back; the dial row and rate_gate('password_remove') call stay (proven by M20's B8 proof).
