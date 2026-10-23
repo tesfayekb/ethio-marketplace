@@ -170,7 +170,7 @@ export function LegalAcceptScreen({
               <div className="flex flex-wrap gap-2">
                 <Button
                   data-testid="legal-accept-submit"
-                  className="min-h-11"
+                  className="min-h-11 data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80"
                   /* Bundle 22 turn 32 (D231) — drawn closed while unticked, never disabled for it. */
                   disabled={busy || rows.length === 0}
                   data-closed={agreed ? undefined : "1"}
