@@ -3,7 +3,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { purgeListingObjects } from "./helpers/photos";
-import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
+import { awaitDraftSaved, gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import { destroyLocation } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
 import {
