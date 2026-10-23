@@ -7,7 +7,13 @@ function inspect(catalogue: string, allowlist: string) {
   for (const line of catalogue.split(/\r?\n/).filter((line) => line.trim())) {
     const parts = line.split("\t");
     const [fn, volatility, gated] = parts;
-    if (parts.length !== 3 || !fn || !/^[^|\t]+\(.*\)$/.test(fn) || !["v", "s", "i"].includes(volatility ?? "") || !["t", "f"].includes(gated ?? "")) {
+    if (
+      parts.length !== 3 ||
+      !fn ||
+      !/^[^|\t]+\(.*\)$/.test(fn) ||
+      !["v", "s", "i"].includes(volatility ?? "") ||
+      !["t", "f"].includes(gated ?? "")
+    ) {
       failures.push(`${fn ?? "catalogue"}: malformed catalogue row`);
       continue;
     }
@@ -29,7 +35,8 @@ function inspect(catalogue: string, allowlist: string) {
     allowances.add(fn);
     if (/^\d{4}-\d{2}-\d{2}$/.test(until)) {
       const date = new Date(`${until}T00:00:00Z`);
-      if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== until) failures.push(`${fn}: invalid until date`);
+      if (!Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== until)
+        failures.push(`${fn}: invalid until date`);
       else if (until < today) failures.push(`${fn}: expired allowance (${until})`);
     } else if (!/^(INC|DEC)-\d+$/.test(until)) failures.push(`${fn}: invalid until marker`);
     const door = doors.get(fn);
@@ -38,15 +45,26 @@ function inspect(catalogue: string, allowlist: string) {
     else if (door.gated) failures.push(`${fn}: stale allowance (now gated)`);
   }
   const writes = [...doors.entries()].filter(([, door]) => door.volatility === "v");
-  for (const [fn, door] of writes) if (!door.gated && !allowances.has(fn)) failures.push(`${fn}: no caller gate and no allowance`);
+  for (const [fn, door] of writes)
+    if (!door.gated && !allowances.has(fn)) failures.push(`${fn}: no caller gate and no allowance`);
   const gated = writes.filter(([, door]) => door.gated).length;
-  return { failures, summary: `Caller-gates guard OK (${writes.length} write doors: ${gated} gated, ${allowances.size} allowlisted)` };
+  return {
+    failures,
+    summary: `Caller-gates guard OK (${writes.length} write doors: ${gated} gated, ${allowances.size} allowlisted)`,
+  };
 }
 
 if (process.env["SELF_TEST"] === "1") {
-  const [catalogue, allowance] = readFileSync("scripts/fixtures/caller-gates-bad.tsv", "utf8").split(/\r?\n\r?\n/);
+  const [catalogue, allowance] = readFileSync(
+    "scripts/fixtures/caller-gates-bad.tsv",
+    "utf8",
+  ).split(/\r?\n\r?\n/);
   const result = inspect(catalogue ?? "", allowance ?? "");
-  if (!result.failures.some((line) => line.startsWith("e2e_gate_unchecked(): no caller")) || !result.failures.some((line) => line.startsWith("e2e_gate_absent(): stale")) || !result.failures.some((line) => line.startsWith("e2e_gate_expired(): expired"))) {
+  if (
+    !result.failures.some((line) => line.startsWith("e2e_gate_unchecked(): no caller")) ||
+    !result.failures.some((line) => line.startsWith("e2e_gate_absent(): stale")) ||
+    !result.failures.some((line) => line.startsWith("e2e_gate_expired(): expired"))
+  ) {
     console.error("Caller-gates self-test FAILED: not all planted cases refused");
     process.exit(1);
   }
@@ -54,7 +72,10 @@ if (process.env["SELF_TEST"] === "1") {
 } else {
   const path = process.argv[2];
   if (!path) throw new Error("Caller-gates guard requires a catalogue TSV path");
-  const result = inspect(readFileSync(path, "utf8"), readFileSync("scripts/caller-gates-allowlist.txt", "utf8"));
+  const result = inspect(
+    readFileSync(path, "utf8"),
+    readFileSync("scripts/caller-gates-allowlist.txt", "utf8"),
+  );
   if (result.failures.length) {
     for (const line of result.failures) console.error(`Caller-gates guard FAIL: ${line}`);
     process.exit(1);

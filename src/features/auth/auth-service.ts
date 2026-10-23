@@ -331,7 +331,8 @@ async function currentPasswordProof(currentPassword: string) {
     email,
     password: currentPassword,
   });
-  if (verifyError) return { ok: false as const, errorKey: "auth.errorWrongCurrentPassword" as const };
+  if (verifyError)
+    return { ok: false as const, errorKey: "auth.errorWrongCurrentPassword" as const };
   return { ok: true as const, release: () => verifier.auth.signOut({ scope: "local" }) };
 }
 
@@ -508,7 +509,8 @@ export async function removeOwnPassword(currentPassword: string): Promise<AuthRe
       if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
       return { ok: true };
     }
-    if (/last sign-in method/i.test(error.message ?? "")) return { ok: false, errorKey: "auth.errorLastMethod" };
+    if (/last sign-in method/i.test(error.message ?? ""))
+      return { ok: false, errorKey: "auth.errorLastMethod" };
     return failure(error);
   } finally {
     if (!removed) {

@@ -44,7 +44,11 @@ describe("the AI meter (D158)", () => {
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const path = join(dir, entry.name);
         if (entry.isDirectory()) visit(path);
-        else if (!entry.name.endsWith(".test.ts") && /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE)"\]/.test(readFileSync(path, "utf8"))) matches.push(relative(process.cwd(), path));
+        else if (
+          !entry.name.endsWith(".test.ts") &&
+          /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE)"\]/.test(readFileSync(path, "utf8"))
+        )
+          matches.push(relative(process.cwd(), path));
       }
     }
     visit(join(process.cwd(), "src"));

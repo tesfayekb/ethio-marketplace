@@ -39,7 +39,8 @@ describe("compareLints", () => {
 describe("parseLints", () => {
   it("DEC-240 parses three TSV lint rows", () => {
     expect(parseLintTsv("a_error\tERROR\t2\nb_warn\tWARN\t3\nc_error\tERROR\t0\n")).toEqual([
-      ...at(2, 3), { name: "c_error", level: "ERROR", count: 0 },
+      ...at(2, 3),
+      { name: "c_error", level: "ERROR", count: 0 },
     ]);
   });
   it("DEC-240 refuses a TSV non-integer count", () => {
