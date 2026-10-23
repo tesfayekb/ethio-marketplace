@@ -86,9 +86,7 @@ catalog_find_rebuild() | staff | Calls catalog_find_refresh(true) to rebuild cat
 change_home_country(character) | account | Updates the caller’s declared home country in user_directory and profiles and records an audit event; account jurisdiction preference, not an ad place
 check_seller_alias(text) | helper | Writes only the alias_check rate meter and returns alias_verdict; does not assign an alias or alter public identity
 clear_seller_place() | account | Deletes only the caller’s seller_places reusable posting preset, read solely by my_seller_place for that caller; no public listing is changed
-confirm_home_country(character) | account | Updates only the caller’s initially unconfirmed home country/source in user_directory and profiles; account jurisdiction confirmation remains open
 copy_my_listing(uuid) | draft | Inserts a new caller-owned draft with copied content and coverage plus a create revision; explicitly inserts status draft and does not publish the copy
-delete_draft(uuid) | draft | Deletes only an ownership-checked draft and its photos, coverage and revisions; rejects every non-draft status
 edit_listing(uuid,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | guarded | Updates a posted listing’s content, price, contact choice, coverage and screening status through acceptance_guard before its edit revision — DEC-216, LG-28
 end_impersonation(uuid) | account | Ends only an impersonation_sessions row whose actor_id is auth.uid() and audits the end; caller’s own security-session exit stays open
 get_attribute_options(uuid) | helper | Writes only the options_read rate meter and returns attribute options/version; no catalogue content is changed
@@ -96,7 +94,6 @@ get_posting_schema(uuid) | helper | Writes only the schema_read rate meter and r
 import_gate_audit(text,text,uuid,jsonb) | staff | Inserts a sanitized import audit_log event only after checking the mapped categories:import, locations:import or translations:manage permission
 mark_sold(uuid) | takedown | Sets the caller’s posted listing to sold, clears kept-clock fields and inserts a state revision; taking down passes acceptance_guard — DEC-216, LG-29
 move_listing_photo(uuid,uuid,integer) | guarded | Reorders listing_photos and replaces cover_photo_id; photo row writes pass acceptance_guard — DEC-216, LG-28
-promote_to_super_admin(uuid) | staff | Inserts the target’s super_admin user_roles membership and audits promotion only after is_super_admin(auth.uid()) succeeds
 public_listing(text) | helper | Writes only the listing_read rate meter and returns the existing public listing projection; does not change the ad or reveal an extra contact
 relist_listing(uuid) | guarded | Changes the caller’s sold listing to screening through acceptance_guard before inserting a state revision — DEC-216, LG-28
 remove_listing_photo(uuid,uuid) | takedown | Deletes a listing photo, replaces its cover and records live-photo removal for review; removal and its cover/stamp changes pass acceptance_guard — DEC-216, LG-29
