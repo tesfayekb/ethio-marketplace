@@ -97,6 +97,13 @@ test(
       leafId: scaffold.leafId,
       cityId: scaffold.cityId,
     });
+    // save_listing refuses the owner (D201 §5), so the saved row under test sits
+    // on a second ad owned by the scaffold seller.
+    const savedListing = await fixtures.seed({
+      id: scaffold.id,
+      leafId: scaffold.leafId,
+      cityId: scaffold.cityId,
+    });
     await fixtures.seedPhotos(listing.id, 1);
     const admin = adminClient();
     const photo = await admin
@@ -113,8 +120,10 @@ test(
     if (before.error || !before.data) throw new Error(`[CG] cover read: ${before.error?.message}`);
     const session = await passwordGrant(scratch.email, scratch.password);
     const caller = bearerClient(session.access_token);
-    const publicId = await fixtures.publicIdOf(listing.id);
-    expect((await caller.rpc("save_listing", { p_public_id: publicId })).error).toBeNull();
+    const publicId = await fixtures.publicIdOf(savedListing.id);
+    const saved = await caller.rpc("save_listing", { p_public_id: publicId });
+    expect(saved.error).toBeNull();
+    expect((saved.data as { ok?: unknown } | null)?.ok, "the save took").toBe(true);
     // Staging carries no in-force "terms"/"privacy" documents, so CG-1 seeds its
     // own namespaced kinds (J1) the way legal-doors.spec.ts does, then reads them
     // back through the same legal_in_force → accept_legal path the design names.
