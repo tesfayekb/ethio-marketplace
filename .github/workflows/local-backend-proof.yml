@@ -123,6 +123,8 @@ jobs:
           -- (a) Public objects are born without grants to the browser roles: 20260810075629's P5 ("home_country_code update was permitted") passed on hosted only because authenticated held no table-wide UPDATE on profiles.
           ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;
           ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON SEQUENCES FROM anon, authenticated;
+          -- (c) INC-846: the hosted default ACL for functions is postgres=X/postgres alone (ci-local-backend.md B3); without this line a function created before any default-ACL row exists keeps PUBLIC's built-in EXECUTE on the built backend, which anon inherits.
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC;
           -- (b) The platform's row-level-security event trigger, read from ethio-prod (census rows j and k).
           CREATE OR REPLACE FUNCTION public.rls_auto_enable()
            RETURNS event_trigger
@@ -478,8 +480,15 @@ jobs:
         continue-on-error: true
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
-          bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv" \
-            || { echo "::warning::Database security lints differ from the baseline on the temporary backend (INC-846; DEC-240: a warning until the difference is named)"; exit 1; }
+          if ! bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"; then
+            # INC-846 (turn 32): name the difference. DEC-132 keeps the log to counts, so the names and
+            # ACLs of anon-executable functions outside the allowlist go to the lane's kept evidence.
+            allowed=$(grep -vE '^[[:space:]]*(#|$)' scripts/public-surface-allowlist.txt | cut -d'|' -f1 | tr -d ' ' | paste -sd, -)
+            docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -v allowed="$allowed" -c "select p.oid::regprocedure::text, coalesce(p.proacl::text, '(default)') from pg_proc p where p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('anon', p.oid, 'EXECUTE') and p.proname <> all (string_to_array(:'allowed', ',')) order by 1;" > "local-backend-anon-functions-${{ matrix.lane }}.tsv"
+            echo "anon-executable functions outside the allowlist: $(grep -c . "local-backend-anon-functions-${{ matrix.lane }}.tsv") (names in the local-proof-${{ matrix.lane }} artifact)"
+            echo "::warning::Database security lints differ from the baseline on the temporary backend (INC-846; DEC-240: a warning until the difference is named)"
+            exit 1
+          fi
       - name: Caller-gates guard (DEC-241)
         if: matrix.lane == 'smoke'
         run: |
