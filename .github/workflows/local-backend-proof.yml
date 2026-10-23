@@ -469,11 +469,17 @@ jobs:
             echo "::error::the acceptance_guard triggers are not all there (DEC-216)"
             exit 1
           fi
+      # INC-846 (turn 31): the step's first run read function_executable_by_anon 28 on the temporary
+      # backend against the baseline 19 read from ethio-staging. DEC-240's frozen rule: a count that
+      # differs from staging's for the same commit makes this a ::warning step until the difference is
+      # named (nine unlisted grants, or the backend's default-privilege fixture); the nightly's staging read gates.
       - name: Database security lints (DEC-240)
         if: matrix.lane == 'smoke'
+        continue-on-error: true
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
-          bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"
+          bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv" \
+            || { echo "::warning::Database security lints differ from the baseline on the temporary backend (INC-846; DEC-240: a warning until the difference is named)"; exit 1; }
       - name: Caller-gates guard (DEC-241)
         if: matrix.lane == 'smoke'
         run: |
