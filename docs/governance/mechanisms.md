@@ -41,4 +41,3 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 - Locale: no lint for `Intl` sites, pinned locales or SQL language literals — lands with `locale.ts`/`format.ts` (row 16).
 - Guards: no `scripts/conformance/wired.test.ts` naming every guard's caller (G55) — the conformance kit, the Foundations bundle's first turn.
 - Allowlists: rows 2 and 8 and the RLS/definer allowlists carry no `until` (G55 format) — migrated by the door manifest and the conformance kit.
-
