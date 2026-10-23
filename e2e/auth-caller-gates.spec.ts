@@ -192,13 +192,13 @@ test(
       .single();
     expect(after.error).toBeNull();
     expect(after.data?.cover_photo_id).toBe(before.data.cover_photo_id);
-    const saved = await admin
+    const savedRows = await admin
       .from("saved_listings")
       .select("listing_id")
       .eq("user_id", scratch.id)
-      .eq("listing_id", listing.id);
-    expect(saved.error).toBeNull();
-    expect(saved.data).toEqual([{ listing_id: listing.id }]);
+      .eq("listing_id", savedListing.id);
+    expect(savedRows.error).toBeNull();
+    expect(savedRows.data).toEqual([{ listing_id: savedListing.id }]);
     const acceptances = await admin
       .from("legal_acceptances")
       .select("version_id")
