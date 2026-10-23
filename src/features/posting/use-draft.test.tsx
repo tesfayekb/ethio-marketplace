@@ -72,7 +72,7 @@ it("INC-809 the last answer chosen is the one stored", async () => {
   bodies.length = 0;
 });
 
-it("INC-809 an old option refusal cannot remove a newer answer", async () => {
+it("INC-809 an old catalogue refusal cannot remove a newer answer", async () => {
   pending.length = 0;
   sent.length = 0;
   bodies.length = 0;
@@ -83,7 +83,7 @@ it("INC-809 an old option refusal cannot remove a newer answer", async () => {
     result.current.change({ attributes: { model: "m1" } }, false);
     pending[0]?.({
       ...refused(),
-      refusals: [{ field: "attributes.model", reason: "unknownOption" }],
+      refusals: [{ field: "model", reason: "unknownAttribute" }],
     });
     await settle();
   });
