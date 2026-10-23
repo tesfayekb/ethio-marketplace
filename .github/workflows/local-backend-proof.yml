@@ -483,8 +483,8 @@ jobs:
           if ! bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"; then
             # INC-846 (turn 32): name the difference. DEC-132 keeps the log to counts, so the names and
             # ACLs of anon-executable functions outside the allowlist go to the lane's kept evidence.
-            allowed=$(grep -vE '^[[:space:]]*(#|$)' scripts/public-surface-allowlist.txt | cut -d'|' -f1 | tr -d ' ' | paste -sd, -)
-            docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -v allowed="$allowed" -c "select p.oid::regprocedure::text, coalesce(p.proacl::text, '(default)') from pg_proc p where p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('anon', p.oid, 'EXECUTE') and p.proname <> all (string_to_array(:'allowed', ',')) order by 1;" > "local-backend-anon-functions-${{ matrix.lane }}.tsv"
+            allowed=$(grep -vE '^[[:space:]]*(#|$)' scripts/public-surface-allowlist.txt | cut -d'|' -f1 | tr -d ' ' | sed "s/.*/'&'/" | paste -sd, -)
+            docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text, coalesce(p.proacl::text, '(default)') from pg_proc p where p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('anon', p.oid, 'EXECUTE') and p.proname not in ($allowed) order by 1;" > "local-backend-anon-functions-${{ matrix.lane }}.tsv"
             echo "anon-executable functions outside the allowlist: $(grep -c . "local-backend-anon-functions-${{ matrix.lane }}.tsv") (names in the local-proof-${{ matrix.lane }} artifact)"
             echo "::warning::Database security lints differ from the baseline on the temporary backend (INC-846; DEC-240: a warning until the difference is named)"
             exit 1
@@ -663,6 +663,7 @@ jobs:
             test-results/results.json
             local-backend-proof-${{ matrix.lane }}.md
             local-backend-lane-${{ matrix.lane }}.log
+            local-backend-anon-functions-${{ matrix.lane }}.tsv
           if-no-files-found: warn
           retention-days: 7
           overwrite: true
