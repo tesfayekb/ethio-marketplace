@@ -54,6 +54,13 @@ test.afterEach(async ({ page }) => {
     const meters = await admin.from("rate_limits").delete().eq("key", id);
     if (meters.error) throw new Error(`[CG] rate cleanup: ${meters.error.message}`);
   }
+  for (const id of legalDocIds) {
+    const versions = await admin.from("legal_versions").delete().eq("document_id", id);
+    if (versions.error) throw new Error(`[CG] legal version cleanup: ${versions.error.message}`);
+    const docs = await admin.from("legal_documents").delete().eq("id", id);
+    if (docs.error) throw new Error(`[CG] legal document cleanup: ${docs.error.message}`);
+  }
+  legalDocIds.length = 0;
   await fixtures.cleanup();
   for (const id of staffIds) {
     const roles = await admin
