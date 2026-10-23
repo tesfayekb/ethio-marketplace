@@ -31,12 +31,12 @@ Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only
 - A brief's string text is copied by key, character for character; no Amharic of your own (bundle 7 turn 5).
 - A door's new refusal: the census names every caller and the order each reaches it (INC-481).
 - A map indexed by an outside key is read through `ownValue`, never `map[key]` (INC-485).
-- Cut names use CutText; crowded-row captions use useLabelRoom on their own row; action-focus modality installs once at hydration.
+- CutText for cut names; useLabelRoom per crowded row; action-focus modality installs once at hydration.
 - Flake-fix proofs use manual Flake check, separate from CI/promotion: no local browsers (DEC-184).
 - Import previews in tests use `withinPreviewBudget`; only IG-3 drives the limit, never raised (INC-792).
-- QR encoding stays in `src/server/qr.ts`; public QR routes check the id's shape without database reads; a guard keeps the encoder off first paint.
-- Shell (bundle 21): cards take `CARD_SURFACE`: no 1-px border, state borders on top; one ☰ per width, top-left (rail-menu below 768, folds the menu from 768); md tables use `tbl-md:` (D135, D115, D204).
-- Legal (bundle 22): texts render only via `LegalText`, never as HTML, chosen by `legalTextFor`; facts are {{setting}} tokens frozen per version; languages beyond en/am are legal_version_texts rows, each added once (DEC-228).
+- QR: the encoder lives only in `src/server/qr.ts`, kept off first paint by a guard; public QR routes check the id's shape, no database read.
+- Shell (bundle 21): cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:` (D135, D115, D204).
+- Legal (bundle 22): texts render only via `LegalText`/`legalTextFor`, never as HTML; facts are {{setting}} tokens frozen per version; other languages are legal_version_texts rows (DEC-228); every agreement tick is `AgreeToDocument` (agree-to-document.tsx); its census test refuses another Checkbox under a legal key.
 - Admin menu alerts (DEC-219): a section's `alert` (sections.ts) is read by `useNavAlerts` (nav-alerts.ts) as one server boolean; the rail draws a dot.
 - Strings (DEC-231): keys only admin-only files use go in en-admin.ts/am-admin.ts (the admin gate loads them), others in en-base.ts/am-base.ts; en.ts/am.ts join them; admin-layer.test.ts judges.
 - Dates and numbers: `formatLocale` (src/lib/format-locale.ts); names via catalogText, entityName, optionLabel; options translate as entity rows `option:<value>` beyond en/am (DEC-233, INC-820).
