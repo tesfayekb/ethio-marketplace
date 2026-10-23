@@ -771,8 +771,10 @@ rr_refused="$(real_row_split "$(real_row_offenders "$RR_DIR/29990101000000_rrrr1
 rr_fixture="$(real_row_split "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" "$RR_DIR/allow.txt" 2>/dev/null)"
 if ! grep -q 'UPDATE public.attributes' "$RR_DIR/skipped" \
   || ! grep -q 'FROM public.user_roles' "$RR_DIR/skipped" \
-  || grep -q 'FROM public.user_roles' <<<"$rr_refused" \
-  || grep -q 'UPDATE public.attributes' <<<"$rr_refused" \
+  ||
+  grep -q 'FROM public.user_roles' <<<"$rr_refused" \
+  ||
+  grep -q 'UPDATE public.attributes' <<<"$rr_refused" \
   || ! grep -q 'FROM public.profiles' <<<"$rr_refused" \
   || [ -z "$rr_fixture" ]; then
   echo "Real-row proof guard self-test FAILED: the allowlist skipped the wrong statement."

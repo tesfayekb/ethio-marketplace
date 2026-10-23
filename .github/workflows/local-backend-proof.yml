@@ -469,6 +469,16 @@ jobs:
             echo "::error::the acceptance_guard triggers are not all there (DEC-216)"
             exit 1
           fi
+      - name: Database security lints (DEC-240)
+        if: matrix.lane == 'smoke'
+        run: |
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
+          bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"
+      - name: Caller-gates guard (DEC-241)
+        if: matrix.lane == 'smoke'
+        run: |
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'assert_caller_active\(|rate_gate\(|has_permission\(|is_super_admin\(' as gated from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/caller-gates.tsv"
+          bun scripts/check-caller-gates.ts "$RUNNER_TEMP/caller-gates.tsv"
       - name: Build E2E app against local backend
         id: build
         run: |

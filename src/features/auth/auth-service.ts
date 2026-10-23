@@ -308,13 +308,21 @@ export async function changePassword(
  * (D143): Remove password asks for it too.
  */
 async function verifyCurrentPassword(currentPassword: string): Promise<AuthResult> {
+  const proof = await currentPasswordProof(currentPassword);
+  if (!proof.ok) return proof;
+  const { error } = await proof.release();
+  if (error) console.warn("[auth] password verifier release failed", error.message);
+  return { ok: true };
+}
+
+async function currentPasswordProof(currentPassword: string) {
   const { data: userData } = await supabase.auth.getUser();
   const email = userData.user?.email;
-  if (!email) return { ok: false, errorKey: "auth.errorGeneric" };
+  if (!email) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
 
   const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
   const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-  if (!url || !key) return { ok: false, errorKey: "auth.errorGeneric" };
+  if (!url || !key) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
 
   const verifier = createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
@@ -323,9 +331,9 @@ async function verifyCurrentPassword(currentPassword: string): Promise<AuthResul
     email,
     password: currentPassword,
   });
-  await verifier.auth.signOut({ scope: "local" });
-  if (verifyError) return { ok: false, errorKey: "auth.errorWrongCurrentPassword" };
-  return { ok: true };
+  if (verifyError)
+    return { ok: false as const, errorKey: "auth.errorWrongCurrentPassword" as const };
+  return { ok: true as const, release: () => verifier.auth.signOut({ scope: "local" }) };
 }
 
 /**
@@ -489,15 +497,27 @@ export async function hasPassword(): Promise<PasswordStateResult> {
  * identity remains; that refusal is surfaced as `auth.errorLastMethod`.
  */
 export async function removeOwnPassword(currentPassword: string): Promise<AuthResult> {
-  // Bundle 11 turn C4 (D143) — the password is confirmed before it is removed.
-  const verified = await verifyCurrentPassword(currentPassword);
+  // DEC-242: keep GoTrue's password-proof session alive until the door answers.
+  const verified = await currentPasswordProof(currentPassword);
   if (!verified.ok) return verified;
-  const { error } = await supabase.rpc("remove_own_password");
-  if (!error) return { ok: true };
-  if (/last sign-in method/i.test(error.message ?? "")) {
-    return { ok: false, errorKey: "auth.errorLastMethod" };
+  let removed = false;
+  try {
+    const { error } = await supabase.rpc("remove_own_password");
+    if (!error) {
+      removed = true;
+      const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
+      if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
+      return { ok: true };
+    }
+    if (/last sign-in method/i.test(error.message ?? ""))
+      return { ok: false, errorKey: "auth.errorLastMethod" };
+    return failure(error);
+  } finally {
+    if (!removed) {
+      const { error } = await verified.release();
+      if (error) console.warn("[auth] password verifier release failed", error.message);
+    }
   }
-  return failure(error);
 }
 
 /** Where Supabase sends the user after they click a password-reset link. */

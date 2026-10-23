@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { compareLints, parseLints, type LintCount } from "./security-lints";
+import { compareLints, parseLints, parseLintTsv, type LintCount } from "./security-lints";
 
 const base = { a_error: 2, b_warn: 3 };
 const at = (a: number, b: number): LintCount[] => [
@@ -37,6 +37,15 @@ describe("compareLints", () => {
 });
 
 describe("parseLints", () => {
+  it("DEC-240 parses three TSV lint rows", () => {
+    expect(parseLintTsv("a_error\tERROR\t2\nb_warn\tWARN\t3\nc_error\tERROR\t0\n")).toEqual([
+      ...at(2, 3),
+      { name: "c_error", level: "ERROR", count: 0 },
+    ]);
+  });
+  it("DEC-240 refuses a TSV non-integer count", () => {
+    expect(() => parseLintTsv("a_error\tERROR\t2.5\n")).toThrow("non-integer count");
+  });
   it("refuses an answer that is not an array", () => {
     expect(() => parseLints({})).toThrow();
   });

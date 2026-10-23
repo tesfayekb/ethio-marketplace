@@ -2,6 +2,7 @@
  * Bundle 7 ES7 — the nightly database lints (DEC-132 layer B, option ii;
  * DEC-148 — the rule was frozen before the numbers existed).
  *
+ * DEC-240: reads counts through REST or --tsv from CI's temporary backend.
  * Reads the five counts of public.security_lints() from ethio-staging through
  * the service-role REST the global setup already uses (E2E_SUPABASE_URL,
  * E2E_SUPABASE_SERVICE_ROLE_KEY), prints `name level count` lines and compares
@@ -80,36 +81,66 @@ export function compareLints(current: LintCount[], baseline: Baseline): Verdict 
 export function parseLints(raw: unknown): LintCount[] {
   if (!Array.isArray(raw)) throw new Error("security_lints() did not answer an array");
   return raw.map((entry: unknown) => {
+    if (!entry || typeof entry !== "object")
+      throw new Error("security_lints() answered a malformed entry");
     const row = entry as { name?: unknown; level?: unknown; count?: unknown };
     if (typeof row.name !== "string" || (row.level !== "ERROR" && row.level !== "WARN")) {
       throw new Error("security_lints() answered an entry without a name or level");
     }
-    return { name: row.name, level: row.level, count: Number(row.count) };
+    const count =
+      typeof row.count === "number"
+        ? row.count
+        : typeof row.count === "string" && /^\d+$/.test(row.count)
+          ? Number(row.count)
+          : Number.NaN;
+    if (!Number.isSafeInteger(count) || count < 0)
+      throw new Error("security_lints() answered a non-integer count");
+    return { name: row.name, level: row.level, count };
   });
 }
 
+/** psql -At -F tab output follows the same validation as REST. */
+export function parseLintTsv(text: string): LintCount[] {
+  const lines = text.replace(/\r?\n$/, "").split(/\r?\n/);
+  return parseLints(
+    lines.map((line) => {
+      const parts = line.split("\t");
+      if (parts.length !== 3) throw new Error("security_lints() answered a malformed TSV row");
+      const [name, level, count] = parts;
+      return { name, level, count };
+    }),
+  );
+}
+
 async function main(): Promise<number> {
-  const url = process.env["E2E_SUPABASE_URL"] ?? "";
-  const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
-  if (url === "" || key === "") {
-    console.error("::error::E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_ROLE_KEY must be set.");
-    return 1;
+  let current: LintCount[];
+  if (process.argv[2] === "--tsv") {
+    const path = process.argv[3];
+    if (!path || process.argv.length !== 4) throw new Error("--tsv requires one path");
+    current = parseLintTsv(readFileSync(path, "utf8"));
+  } else {
+    const url = process.env["E2E_SUPABASE_URL"] ?? "";
+    const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
+    if (url === "" || key === "") {
+      console.error("::error::E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_ROLE_KEY must be set.");
+      return 1;
+    }
+    if (url.includes(PROD_REF)) {
+      console.error("::error::Refusing to read lints from ethio-prod; point at staging.");
+      return 1;
+    }
+    const response = await fetch(`${url.replace(/\/$/, "")}/rest/v1/rpc/security_lints`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: "{}",
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      console.error(`::error::security_lints() answered HTTP ${response.status}`);
+      return 1;
+    }
+    current = parseLints(await response.json());
   }
-  if (url.includes(PROD_REF)) {
-    console.error("::error::Refusing to read lints from ethio-prod; point at staging.");
-    return 1;
-  }
-  const response = await fetch(`${url.replace(/\/$/, "")}/rest/v1/rpc/security_lints`, {
-    method: "POST",
-    headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: "{}",
-    cache: "no-store",
-  });
-  if (!response.ok) {
-    console.error(`::error::security_lints() answered HTTP ${response.status}`);
-    return 1;
-  }
-  const current = parseLints(await response.json());
   const here = dirname(fileURLToPath(import.meta.url));
   const baseline = JSON.parse(
     readFileSync(join(here, "security-lints-baseline.json"), "utf8"),
@@ -119,7 +150,7 @@ async function main(): Promise<number> {
   return verdict.failed ? 1 : 0;
 }
 
-if (process.argv[1] && process.argv[1].includes("security-lints")) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   main()
     .then((code) => process.exit(code))
     .catch((err: unknown) => {

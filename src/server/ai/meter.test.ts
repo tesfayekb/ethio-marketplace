@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { readFileSync, readdirSync } from "node:fs";
+import { join, relative } from "node:path";
 
 const build = vi.hoisted(() => ({ isE2E: false }));
 vi.mock("@/lib/env-flags", () => build);
@@ -36,12 +38,29 @@ beforeEach(() => {
 });
 
 describe("the AI meter (D158)", () => {
+  it("INC-839 every stand-in environment read uses the shared helper", () => {
+    const matches: string[] = [];
+    function visit(dir: string) {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) visit(path);
+        else if (
+          !entry.name.endsWith(".test.ts") &&
+          /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE)"\]/.test(readFileSync(path, "utf8"))
+        )
+          matches.push(relative(process.cwd(), path));
+      }
+    }
+    visit(join(process.cwd(), "src"));
+    expect(matches.sort()).toEqual(["src/server/ai/meter.ts"]);
+  });
   it("INC-828 a stand-in exists only in the test build", () => {
     const flags = [
       "E2E_FAKE_PHOTO_POLICY",
       "E2E_FAKE_ASSIST",
       "E2E_FAKE_BACKGROUND",
       "E2E_FAKE_TRANSLATE",
+      "E2E_FAKE_GEOCODE",
       "GEMINI_FAKE",
     ];
     for (const flag of flags) vi.stubEnv(flag, "1");

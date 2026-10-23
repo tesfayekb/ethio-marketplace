@@ -38,7 +38,7 @@ import {
  *   4 the SHAPE — label/lat/lng and nothing else. The upstream's payload never
  *     reaches the browser verbatim.
  *
- * `E2E_FAKE_GEOCODE=1` answers from a fixed table instead of the network, so the
+ * Only the E2E build's shared aiFakeMode helper enables the fixed table, so the
  * suite proves the wiring without making the tests depend on an upstream service
  * (I1 — the fixture is the table, not a captured HTTP body).
  */
