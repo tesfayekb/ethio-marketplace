@@ -195,65 +195,57 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
   });
+  /** Turn 32 F4 — the scratch document seed SU-3 and SU-4 share (J1 namespaced kinds). */
+  async function seedAcceptanceKinds(kinds: string[]) {
+    const versions: string[] = [];
+    for (const kind of kinds) {
+      acceptanceKinds.add(kind);
+      const doc = await adminClient()
+        .from("legal_documents")
+        .insert({ kind, country_code: null })
+        .select("id")
+        .single();
+      if (doc.error || !doc.data)
+        throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
+      const version = await adminClient()
+        .from("legal_versions")
+        .insert({
+          document_id: doc.data.id,
+          version: 1,
+          status: "published",
+          label: "v1",
+          body_en: "## Scratch\nScratch English text 1",
+          body_am: "Scratch Amharic text 1",
+          changelog: "scratch change",
+          material: false,
+          effective_at: new Date(Date.now() - 60_000).toISOString(),
+          published_at: new Date(Date.now() - 60_000).toISOString(),
+          settings_snapshot: { seed: "true" },
+        })
+        .select("id")
+        .single();
+      if (version.error || !version.data)
+        throw new Error(`[e2e:su3] version seed: ${version.error?.message}`);
+      versions.push(version.data.id);
+    }
+    return versions;
+  }
+
   test(
-    "SU-3 a brand-new account made through the sign-up form meets the acceptance before any page",
+    "SU-3 a document published after the form's tick and before the first sign-in meets the acceptance before any page",
     { tag: "@private-identity" },
     async ({ page }) => {
       const info = test.info();
       const tag =
         `e2e-su3-${RUN_ID.replace(/[^a-z0-9]/gi, "").slice(-8)}-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "").slice(0, 5)}-${info.workerIndex}-email-${Math.random().toString(36).slice(2, 7)}`.toLowerCase();
       const kinds = [`${tag}-terms`, `${tag}-privacy`];
-      const versions: string[] = [];
-      for (const kind of kinds) {
-        acceptanceKinds.add(kind);
-        const doc = await adminClient()
-          .from("legal_documents")
-          .insert({ kind, country_code: null })
-          .select("id")
-          .single();
-        if (doc.error || !doc.data)
-          throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
-        const version = await adminClient()
-          .from("legal_versions")
-          .insert({
-            document_id: doc.data.id,
-            version: 1,
-            status: "published",
-            label: "v1",
-            body_en: "## Scratch\nScratch English text 1",
-            body_am: "Scratch Amharic text 1",
-            changelog: "scratch change",
-            material: false,
-            effective_at: new Date(Date.now() - 60_000).toISOString(),
-            published_at: new Date(Date.now() - 60_000).toISOString(),
-            settings_snapshot: { seed: "true" },
-          })
-          .select("id")
-          .single();
-        if (version.error || !version.data)
-          throw new Error(`[e2e:su3] version seed: ${version.error?.message}`);
-        versions.push(version.data.id);
-      }
-      await page.addInitScript((list) => {
-        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
-      }, kinds);
       const email = testEmail(RUN_ID, 193);
       acceptanceEmail = email;
       const password = "Pw-193-aX9!qmzT";
       const limit = watchAuthRateLimit(page);
-      await page.goto("/auth");
-      await waitForHydration(page);
-      await page.getByTestId("auth-toggle-view").click();
-      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-      await fillUntilStable(page.locator("#auth-password"), password, "password");
-      await fillUntilStable(
-        page.locator("#auth-password-confirm"),
-        password,
-        "password confirmation",
-      );
-      await page
-        .getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") })
-        .click();
+      // The form finds nothing to record: the scratch versions are seeded ONLY
+      // after the sign-up succeeds, so the gate owes them at the first sign-in.
+      await signUpThroughForm(page, { email, password, agree: true });
       await assertNoSignUpError(page, limit);
       await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible();
       await expect(
@@ -261,6 +253,10 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       ).toBeVisible();
       expect(limit.hit(), limit.reason()).toBe(false);
       limit.disarm();
+      const versions = await seedAcceptanceKinds(kinds);
+      await page.addInitScript((list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      }, kinds);
       const user = await signupUser(email);
       if (!user) throw new Error("[e2e:su3] signup account missing");
       // Only the mail-link step is done for the person; signup and sign-in use the real forms.
