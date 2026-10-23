@@ -126,3 +126,6 @@ admin_list_entity_translations | restated grant (not a new surface), bundle 22 t
 admin_entity_translation_stats | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's counts, answer options added; translations:view checked inside
 admin_save_entity_translation | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): saves one content translation, answer options added; translations:update and the step-up checked inside
 admin_machine_entity_translation | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): writes one machine translation, answer options added; translations:machine and the step-up checked inside
+user_set_preferred_language | restated grant (not a new surface); the caller's own preferred language, audited (M20)
+end_impersonation | restated grant (not a new surface); ends the caller's own impersonation session, audited (M20)
+remove_own_password | restated grant (not a new surface); the caller's own password, after a fresh password proof, rate-gated password_remove, audited (M20, DEC-242)

@@ -3,3 +3,4 @@
 20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql | D37-1 finder tables; deny-all policies added by the E1 corrective | 37a1e9bc
 20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql | D37-1 idempotent re-land of the finder tables; same E1 corrective | 37a1e9bc
 20261003215007_b9aa66a4-fa1e-4ef5-910b-31bbfc65b211.sql | M1 server-only tables; deny-all policies landed in the follow-up | bb808e1a
+20261015110000_ed5dcaf6-f56d-41f7-94d4-eb1a1bad15d0.sql | INC-832: two server-only tables shipped without deny-all policies while the guard skipped the file; M20 adds them | a09c454f
