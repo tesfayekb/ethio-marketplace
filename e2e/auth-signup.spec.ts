@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
 import { authErrorText, testEmail } from "./global-setup";
+import { signUpThroughForm } from "./helpers/auth-form";
 import { fillUntilStable, waitForHydration } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
@@ -64,18 +65,7 @@ function watchAuthRateLimit(page: Page) {
 /** Drives the real sign-up form to the check-email view. Returns the address used. */
 async function signUpFresh(page: Page, n: number) {
   const email = testEmail(RUN_ID, n);
-  const password = `Pw-${n}-aX9!qmzT`;
-
-  await page.goto("/auth");
-  await waitForHydration(page);
-  await page.getByTestId("auth-toggle-view").click();
-
-  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-  await fillUntilStable(page.locator("#auth-password"), password, "password");
-  // Bundle 11 C4 (D143) — sign-up asks for the password twice.
-  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
-
+  await signUpThroughForm(page, { email, password: `Pw-${n}-aX9!qmzT` });
   return email;
 }
 
@@ -205,65 +195,56 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
     await expect(throttled).toBeVisible({ timeout: 15000 });
     await expect(throttled).toBeDisabled();
   });
+  /** Turn 32 F4 — the scratch document seed SU-3 and SU-4 share (J1 namespaced kinds). */
+  async function seedAcceptanceKinds(kinds: string[]) {
+    const versions: string[] = [];
+    for (const kind of kinds) {
+      acceptanceKinds.add(kind);
+      const doc = await adminClient()
+        .from("legal_documents")
+        .insert({ kind, country_code: null })
+        .select("id")
+        .single();
+      if (doc.error || !doc.data) throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
+      const version = await adminClient()
+        .from("legal_versions")
+        .insert({
+          document_id: doc.data.id,
+          version: 1,
+          status: "published",
+          label: "v1",
+          body_en: "## Scratch\nScratch English text 1",
+          body_am: "Scratch Amharic text 1",
+          changelog: "scratch change",
+          material: false,
+          effective_at: new Date(Date.now() - 60_000).toISOString(),
+          published_at: new Date(Date.now() - 60_000).toISOString(),
+          settings_snapshot: { seed: "true" },
+        })
+        .select("id")
+        .single();
+      if (version.error || !version.data)
+        throw new Error(`[e2e:su3] version seed: ${version.error?.message}`);
+      versions.push(version.data.id);
+    }
+    return versions;
+  }
+
   test(
-    "SU-3 a brand-new account made through the sign-up form meets the acceptance before any page",
+    "SU-3 a document published after the form's tick and before the first sign-in meets the acceptance before any page",
     { tag: "@private-identity" },
     async ({ page }) => {
       const info = test.info();
       const tag =
         `e2e-su3-${RUN_ID.replace(/[^a-z0-9]/gi, "").slice(-8)}-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "").slice(0, 5)}-${info.workerIndex}-email-${Math.random().toString(36).slice(2, 7)}`.toLowerCase();
       const kinds = [`${tag}-terms`, `${tag}-privacy`];
-      const versions: string[] = [];
-      for (const kind of kinds) {
-        acceptanceKinds.add(kind);
-        const doc = await adminClient()
-          .from("legal_documents")
-          .insert({ kind, country_code: null })
-          .select("id")
-          .single();
-        if (doc.error || !doc.data)
-          throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
-        const version = await adminClient()
-          .from("legal_versions")
-          .insert({
-            document_id: doc.data.id,
-            version: 1,
-            status: "published",
-            label: "v1",
-            body_en: "## Scratch\nScratch English text 1",
-            body_am: "Scratch Amharic text 1",
-            changelog: "scratch change",
-            material: false,
-            effective_at: new Date(Date.now() - 60_000).toISOString(),
-            published_at: new Date(Date.now() - 60_000).toISOString(),
-            settings_snapshot: { seed: "true" },
-          })
-          .select("id")
-          .single();
-        if (version.error || !version.data)
-          throw new Error(`[e2e:su3] version seed: ${version.error?.message}`);
-        versions.push(version.data.id);
-      }
-      await page.addInitScript((list) => {
-        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
-      }, kinds);
       const email = testEmail(RUN_ID, 193);
       acceptanceEmail = email;
       const password = "Pw-193-aX9!qmzT";
       const limit = watchAuthRateLimit(page);
-      await page.goto("/auth");
-      await waitForHydration(page);
-      await page.getByTestId("auth-toggle-view").click();
-      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-      await fillUntilStable(page.locator("#auth-password"), password, "password");
-      await fillUntilStable(
-        page.locator("#auth-password-confirm"),
-        password,
-        "password confirmation",
-      );
-      await page
-        .getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") })
-        .click();
+      // The form finds nothing to record: the scratch versions are seeded ONLY
+      // after the sign-up succeeds, so the gate owes them at the first sign-in.
+      await signUpThroughForm(page, { email, password, agree: true });
       await assertNoSignUpError(page, limit);
       await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible();
       await expect(
@@ -271,6 +252,10 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       ).toBeVisible();
       expect(limit.hit(), limit.reason()).toBe(false);
       limit.disarm();
+      const versions = await seedAcceptanceKinds(kinds);
+      await page.addInitScript((list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      }, kinds);
       const user = await signupUser(email);
       if (!user) throw new Error("[e2e:su3] signup account missing");
       // Only the mail-link step is done for the person; signup and sign-in use the real forms.
@@ -312,6 +297,76 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       await expect(page.getByTestId("legal-accept-screen")).toHaveCount(0);
     },
   );
+
+  test(
+    "SU-4 the form's tick records the acceptance at sign-up; the first sign-in lands on the return path",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const info = test.info();
+      const tag =
+        `e2e-su4-${RUN_ID.replace(/[^a-z0-9]/gi, "").slice(-8)}-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "").slice(0, 5)}-${info.workerIndex}-email-${Math.random().toString(36).slice(2, 7)}`.toLowerCase();
+      const kinds = [`${tag}-terms`, `${tag}-privacy`];
+      // Seeded BEFORE the sign-up, so the form's tick records them (M21).
+      const versions = await seedAcceptanceKinds(kinds);
+      await page.addInitScript((list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      }, kinds);
+      const email = testEmail(RUN_ID, 194);
+      acceptanceEmail = email;
+      const password = "Pw-194-aX9!qmzT";
+      const limit = watchAuthRateLimit(page);
+      await signUpThroughForm(page, { email, password, agree: true });
+      await assertNoSignUpError(page, limit);
+      await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible();
+      expect(limit.hit(), limit.reason()).toBe(false);
+      limit.disarm();
+      const user = await signupUser(email);
+      if (!user) throw new Error("[e2e:su4] signup account missing");
+      // Only the mail-link step is done for the person; signup and sign-in use the real forms.
+      const confirmed = await adminClient().auth.admin.updateUserById(user.id, {
+        email_confirm: true,
+      });
+      if (confirmed.error)
+        throw new Error(`[e2e:su4] email confirmation: ${authErrorText(confirmed.error)}`);
+      // Every main-frame path after the sign-in click, in order (as LAC-5).
+      const seen: string[] = [];
+      page.on("framenavigated", (frame) => {
+        if (frame === page.mainFrame()) seen.push(new URL(frame.url()).pathname);
+      });
+      await page.goto("/auth?return=%2Faccount");
+      await waitForHydration(page);
+      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+      await fillUntilStable(page.locator("#auth-password"), password, "password");
+      await page
+        .getByRole("button", { name: new RegExp(`^${en["auth.signInButton"]}$`, "i") })
+        .click();
+      await expect(page).toHaveURL(/\/account$/, { timeout: 20_000 });
+      expect(seen, `SU-4: the landings were ${JSON.stringify(seen)}`).not.toContain(
+        "/legal/accept",
+      );
+      const rows = await adminClient()
+        .from("legal_acceptances")
+        .select("version_id, method, adult_confirmed, language, home_country_code")
+        .eq("user_id", user.id)
+        .in("version_id", versions);
+      if (rows.error) throw new Error(`[e2e:su4] acceptance read: ${rows.error.message}`);
+      expect(rows.data).toHaveLength(2);
+      for (const versionId of versions) {
+        const row = rows.data?.find((accepted) => accepted.version_id === versionId);
+        expect(row, `SU-4: no signup acceptance for ${versionId}`).toBeTruthy();
+        expect(row?.method).toBe("signup");
+        expect(row?.adult_confirmed).toBe(true);
+        // The site's language at the tick (the form's metadata carries it).
+        expect(row?.language).toBe("en");
+        // No country_guess in a form sign-up.
+        expect(row?.home_country_code).toBeNull();
+      }
+      // Opened by hand, the acceptance screen has nothing owed and sends the person on.
+      await page.goto("/legal/accept");
+      await expect(page).toHaveURL(/\/$/);
+      await expect(page.getByTestId("legal-accept-screen")).toHaveCount(0);
+    },
+  );
 });
 
 /**
@@ -319,6 +374,40 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
  * passwords that differ are refused on the form and no sign-up request leaves.
  * Needs no mail sink: nothing is sent.
  */
+/**
+ * Turn 32 F4 (D230) — the tick missing: Create account is drawn closed, a tap
+ * marks the tick refused, and NO sign-up request leaves. Needs no mail sink:
+ * nothing is sent.
+ */
+test("SU-5 the tick missing: Create account is drawn closed, a tap refuses, and nothing leaves", async ({
+  page,
+}) => {
+  const signups: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/auth/v1/signup")) signups.push(request.url());
+  });
+  const email = testEmail(RUN_ID, 195);
+  const create = page.getByRole("button", {
+    name: new RegExp(`^${en["auth.signUpButton"]}$`, "i"),
+  });
+  await page.goto("/auth");
+  await waitForHydration(page);
+  await page.getByTestId("auth-toggle-view").click();
+  // Unticked from the start: the action is drawn closed, never disabled.
+  await expect(create).toHaveAttribute("data-closed", "1");
+  // agree: false — the driver fills the three fields and taps the closed action.
+  await signUpThroughForm(page, { email, password: "Pw-195-aX9!qmzT", agree: false });
+  const tick = page.getByTestId("auth-agree-tick");
+  await expect(tick).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByTestId("agree-message")).toHaveText(en["legal.agree.required"]);
+  await expect(page.getByTestId("agree-to-document")).toHaveAttribute("data-refused", "1");
+  expect(signups, "SU-5 an unticked form sent a sign-up request").toEqual([]);
+  expect(
+    await signupUser(email),
+    "SU-5 an account exists for the unticked sign-up",
+  ).toBeUndefined();
+});
+
 test("SU-1 sign-up asks for the password twice, and a mismatch sends nothing", async ({ page }) => {
   const signups: string[] = [];
   page.on("request", (request) => {
@@ -327,21 +416,13 @@ test("SU-1 sign-up asks for the password twice, and a mismatch sends nothing", a
   await page.goto("/auth");
   await waitForHydration(page);
   await expect(page.locator("#auth-password-confirm")).toHaveCount(0);
-  await page.getByTestId("auth-toggle-view").click();
+  await signUpThroughForm(page, {
+    email: testEmail(RUN_ID, 191),
+    password: "Pw-191-aX9!qmzT",
+    confirmPassword: "Pw-191-aX9!qmzt",
+    agree: true,
+  });
   await expect(page.locator("#auth-password-confirm")).toBeVisible();
-
-  await fillUntilStable(
-    page.getByRole("textbox", { name: /email/i }),
-    testEmail(RUN_ID, 191),
-    "email",
-  );
-  await fillUntilStable(page.locator("#auth-password"), "Pw-191-aX9!qmzT", "password");
-  await fillUntilStable(
-    page.locator("#auth-password-confirm"),
-    "Pw-191-aX9!qmzt",
-    "password confirmation",
-  );
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
   expect(signups, "SU-1 a mismatch sent a sign-up request").toEqual([]);
 });
@@ -355,13 +436,7 @@ test("SU-2 a throwaway mail address is refused at sign-up, in words, and no acco
 }) => {
   const email = `e2e-su2-${RUN_ID}-${Date.now().toString(36)}@mailinator.com`;
   const password = "Pw-192-aX9!qmzT";
-  await page.goto("/auth");
-  await waitForHydration(page);
-  await page.getByTestId("auth-toggle-view").click();
-  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-  await fillUntilStable(page.locator("#auth-password"), password, "password");
-  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
+  await signUpThroughForm(page, { email, password, agree: true });
 
   const heading = page.getByRole("heading", { name: en["auth.checkEmail"] });
   const outcome = await expect

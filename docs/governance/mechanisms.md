@@ -31,6 +31,7 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 | 23 | The admin rail shows one alert per section from one reader | `useNavAlerts` (`src/features/admin/nav-alerts.ts`; DEC-219) | the first-paint weight guard (no admin-service import on the first paint — INC-813) | — | — | — |
 | 24 | One card surface, one menu, one shell | `CARD_SURFACE` and the layout primitives (`src/components/layout/surface.ts`; bundle 21) | the house-style spec (e2e/house-style.spec.ts) | — | — | Button's 36-px default at 122 sites → the primitive (the Foundations bundle) |
 | 25 | A public QR route checks the id's shape without a database read | `src/server/qr.ts` | a guard keeps QR encoding in that module (AGENTS.md) | — | — | — |
+| 26 | An agreement to a document (the tick, its links, the required styling, the record) | `AgreeToDocument` (`src/features/legal/agree-to-document.tsx`; bundle 22 turn 32) — consumers: the sign-up form, the acceptance screen, the certify block (review, seller edit, Renew); the record: `handle_new_user` (M21, metadata) and `accept_legal` / `legal_certify` | `src/features/legal/agree-to-document.test.tsx` — tree census: `<Checkbox` beside a `legal.` key only in the component | — | languages and kinds as rows; a statement set as links | the landing after a sign-in: `landAfterSignIn` (use-legal-gate.ts), six callers, unit census |
 
 ## Guard debt (G0.4; each open class with the test it owes)
 
