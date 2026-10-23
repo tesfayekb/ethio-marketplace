@@ -4,6 +4,7 @@ import { en } from "../src/i18n/locales/en";
 import { adPageFixtures } from "./helpers/ad-page";
 import { grantRole } from "./helpers/categories";
 import { passwordGrant } from "./helpers/session";
+import { stopPageBeforePurge } from "./helpers/posting";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import {
   enrollAndStepUp,
@@ -11,7 +12,6 @@ import {
   stepUpIfPrompted,
   switchUser,
   waitForHydration,
-  stopPageBeforePurge,
 } from "./helpers/ui";
 import { inOneWindow } from "./helpers/rate-window";
 
