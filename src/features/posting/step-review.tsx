@@ -857,7 +857,9 @@ export function StepReview({
       {edit === null && (
         <>
           {/* Bundle 22 turn 4 — the publishing statements that apply, with one tick (L1 v2 item 4). */}
-          {listingId !== null ? <CertifyBlock listingId={listingId} onChange={setCertify} tried={certifyTried} /> : null}
+          {listingId !== null ? (
+            <CertifyBlock listingId={listingId} onChange={setCertify} tried={certifyTried} />
+          ) : null}
           {/* Bundle 4 step 19 — the seller's statement; shown while no publishing statement applies.
           publish_listing stamps attested_at on every successful publish. */}
           {certify.state === "none" ? (

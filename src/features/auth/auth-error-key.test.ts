@@ -83,7 +83,11 @@ describe("toErrorKey — a confirmation e-mail that cannot be sent (bundle 22 tu
   });
   it("another 500 stays generic", () => {
     expect(
-      toErrorKey({ message: "Database error saving new user", code: "unexpected_failure", status: 500 }),
+      toErrorKey({
+        message: "Database error saving new user",
+        code: "unexpected_failure",
+        status: 500,
+      }),
     ).toBe("auth.errorGeneric");
   });
 });

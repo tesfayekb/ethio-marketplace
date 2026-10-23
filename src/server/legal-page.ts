@@ -21,7 +21,10 @@ export async function legalPage(kind: string, country?: string): Promise<LegalPa
   const started = performance.now();
   const [inForce, scheduled] = await Promise.all([
     client.rpc("legal_in_force", country ? { p_kind: kind, p_country: country } : { p_kind: kind }),
-    client.rpc("legal_scheduled", country ? { p_kind: kind, p_country: country } : { p_kind: kind }),
+    client.rpc(
+      "legal_scheduled",
+      country ? { p_kind: kind, p_country: country } : { p_kind: kind },
+    ),
   ]);
   if (performance.now() - started > 5000) console.error(`[slow-rpc] /${kind} legal_page`);
   for (const answer of [inForce, scheduled]) {

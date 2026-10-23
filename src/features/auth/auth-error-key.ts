@@ -29,8 +29,7 @@ function onlyLeaked(error: AuthErrorLike): boolean {
  * from supabase/auth internal/api/mail.go (:346/:350/:354 confirmation, :424/:429/:433 recovery,
  * :509/:513/:517 magic link); no wildcard broader than those messages.
  */
-const MAIL_SEND_FAILED =
-  /^Error sending (confirmation email|recovery email|magic link email)$/i;
+const MAIL_SEND_FAILED = /^Error sending (confirmation email|recovery email|magic link email)$/i;
 
 /** Map a Supabase auth error onto a translation key. Raw errors never reach the UI. */
 export function toErrorKey(error: AuthErrorLike): MessageKey {
