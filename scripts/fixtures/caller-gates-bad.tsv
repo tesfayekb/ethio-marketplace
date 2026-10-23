@@ -1,0 +1,6 @@
+e2e_gate_unchecked()	v	f
+e2e_gate_expired()	v	f
+e2e_gate_control()	v	t
+
+e2e_gate_absent() | planted absent function | INC-837
+e2e_gate_expired() | planted expired exception | 2026-01-01

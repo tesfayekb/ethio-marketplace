@@ -1,0 +1,7 @@
+# DEC-241: every VOLATILE function authenticated may EXECUTE names one of
+# assert_caller_active(, rate_gate(, has_permission(, is_super_admin( in its
+# definition, or has a line here:
+# <fn with argument types> | <reason> | <until: YYYY-MM-DD or INC-###/DEC-###>
+# A missing reason, malformed line, stale line or expired date fails.
+# CI's smoke lane reads the temporary backend built from every migration.
+# M20's live catalogue requires no allowances.

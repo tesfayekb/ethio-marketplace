@@ -10,7 +10,7 @@ scan() {
 if [ "${SELF_TEST:-}" = "1" ]; then
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
-  printf '%s\n' 'producer | grep -q needle' > "$tmp/bad.sh"
+  printf 'producer |%s\n' ' grep -q needle' > "$tmp/bad.sh"
   if scan "$tmp" > "$tmp/refused"; then
     echo "Shell-pipes self-test FAILED: planted pipe passed"; exit 1
   fi
