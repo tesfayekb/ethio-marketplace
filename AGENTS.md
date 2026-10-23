@@ -13,7 +13,7 @@
 
 ## Project constitution (all agents)
 
-Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits; search before creating; no duplicates. 360px-first, logical RTL CSS; no literal UI text (EN+AM keys). Tables: RLS/policies/GRANTs in the same append-only migration; personal data: home_country_code. UTC timestamps; integer money; no secrets in code/commits. Server/RLS alone authorizes. No silent catch-and-continue. Public pages: SSR, absolute canonical/og URLs. Structural edits update /docs/features/<name>.md + \_changelog.md together.
+Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits. Tables: RLS/policies/GRANTs in the same append-only migration. Integer money. Server/RLS alone authorizes. No silent catch-and-continue. Public pages: SSR, absolute canonical/og URLs.
 
 - New tables, sequences and functions in schema public are born closed to browser roles: the migration names each GRANT (a browser grant needs its line in scripts/public-surface-allowlist.txt); each new function restates REVOKE … FROM PUBLIC (bundle 8). A finality trigger lets its own ON DELETE SET NULL keys through (INC-812). Owner writes to ads, photos and seller names pass the acceptance_guard trigger (DEC-216; takedowns pass); other signed-in write doors check acceptance or are in scripts/acceptance-doors-allowlist.txt (D227).
 - The database tool applies its input at once: check a scratch copy, then submit FINAL text once (never a stub, comment or draft); remove scratch drafts.
@@ -42,3 +42,4 @@ Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only
 - Dates and numbers: `formatLocale` (src/lib/format-locale.ts); names via catalogText, entityName, optionLabel; options translate as entity rows `option:<value>` beyond en/am (DEC-233, INC-820).
 - Page-wide data (the category tree) is one subscribed store (`useSyncExternalStore`), never a per-mount copy (INC-788).
 - Draft saves: a run armed before a Next never carries it; a follow-up is sent by the run that got the answer (INC-791).
+- Guards (DEC-240/241, INC-832): every VOLATILE signed-in door names one of the four caller gates (scripts/caller-gates-allowlist.txt header) or has a line there `fn | reason | until`; shell guards capture, then grep — never `| grep -q`.
