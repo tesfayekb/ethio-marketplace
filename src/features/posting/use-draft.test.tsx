@@ -72,6 +72,25 @@ it("INC-809 the last answer chosen is the one stored", async () => {
   bodies.length = 0;
 });
 
+it("INC-809 an old option refusal cannot remove a newer answer", async () => {
+  pending.length = 0;
+  sent.length = 0;
+  bodies.length = 0;
+  const { result, unmount } = renderHook(() => useDraft(null));
+  await act(async () => {
+    result.current.change({ categoryId: "c-1", attributes: { model: "m2" } }, true);
+    await settle();
+    result.current.change({ attributes: { model: "m1" } }, false);
+    pending[0]?.({ ...refused(), refusals: [{ field: "attributes.model", reason: "unknownOption" }] });
+    await settle();
+  });
+  expect(result.current.values.attributes["model"]).toBe("m1");
+  unmount();
+  pending.length = 0;
+  sent.length = 0;
+  bodies.length = 0;
+});
+
 function refused(): DoorAnswer {
   return {
     ok: false,
