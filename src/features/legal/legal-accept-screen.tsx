@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useShell } from "@/components/shell-context";
 import { useI18n, type MessageKey } from "@/i18n";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { safeReturnPath } from "@/lib/return-path";
+import { AgreeToDocument } from "./agree-to-document";
 import { legalDocName, legalRole, tickKey } from "./legal-kinds";
 import {
   acceptLegal,
@@ -71,11 +71,12 @@ export function LegalAcceptScreen({
   });
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [agreed, setAgreed] = useState(false);
+  const [agreeTried, setAgreeTried] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<MessageKey | null>(null);
   const rows = status.data ?? [];
   const firstTime = rows.some((row) => !row.adult_confirmed);
-  const ready = agreed && !busy && rows.length > 0;
+  const roles = rows.map((row) => legalRole(row.kind));
   const left = useRef(false);
   const leave = () => {
     if (left.current) return;
@@ -144,22 +145,23 @@ export function LegalAcceptScreen({
                   </li>
                 ))}
               </ul>
-              <label className="flex min-h-11 items-start gap-3">
-                <Checkbox
-                  data-testid="legal-accept-tick"
-                  checked={agreed}
-                  onCheckedChange={(value) => setAgreed(value === true)}
-                  className="mt-1"
-                />
-                <span>
-                  {t(
-                    tickKey(
-                      rows.map((row) => legalRole(row.kind)),
-                      firstTime,
-                    ),
-                  )}
-                </span>
-              </label>
+              <AgreeToDocument
+                id="acceptance"
+                testId="legal-accept-tick"
+                sentence={tickKey(roles, firstTime)}
+                links={[
+                  ...(roles.includes("terms")
+                    ? [{ label: t("legal.kind.terms"), href: "/terms" }]
+                    : []),
+                  ...(roles.includes("privacy")
+                    ? [{ label: t("legal.kind.privacy"), href: "/privacy" }]
+                    : []),
+                ]}
+                checked={agreed}
+                onCheckedChange={setAgreed}
+                refused={agreeTried && !agreed}
+                message="legal.agree.required"
+              />
               {error ? (
                 <p role="alert" data-testid="legal-accept-error" className="text-destructive">
                   {t(error)}
@@ -169,8 +171,14 @@ export function LegalAcceptScreen({
                 <Button
                   data-testid="legal-accept-submit"
                   className="min-h-11"
-                  disabled={!ready}
+                  /* Bundle 22 turn 32 (D231) — drawn closed while unticked, never disabled for it. */
+                  disabled={busy || rows.length === 0}
+                  data-closed={agreed ? undefined : "1"}
                   onClick={() => {
+                    if (!agreed) {
+                      setAgreeTried(true);
+                      return;
+                    }
                     setBusy(true);
                     setError(null);
                     acceptLegal({
