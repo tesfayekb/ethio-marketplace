@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 533,
-  "dynamicCallSites": 396,
+  "scanned": 534,
+  "dynamicCallSites": 397,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2717,6 +2717,7 @@
       "/admin/legal"
     ],
     "admin.legal.translation.add": [
+      "/admin/legal",
       "/admin/legal/$versionId"
     ],
     "admin.legal.translation.hint": [
@@ -5017,11 +5018,14 @@
     ],
     "legal.certify.forCountry": [
       "/admin/listings/$listingId/edit",
+      "/legal/$kind",
       "/my-listings",
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
-      "/post/$listingId"
+      "/post/$listingId",
+      "/privacy",
+      "/terms"
     ],
     "legal.certify.leadOnce": [
       "/admin/listings/$listingId/edit",
@@ -5045,14 +5049,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "legal.certify.tick": [
-      "/admin/listings/$listingId/edit",
-      "/my-listings",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
     "legal.certify.title": [
       "/admin/listings/$listingId/edit",
       "/my-listings",
@@ -5064,14 +5060,8 @@
     "legal.fallbackNote": [
       "/account/legal/$versionId",
       "/admin/legal",
-      "/admin/listings/$listingId/edit",
       "/legal/$kind",
       "/legal/accept",
-      "/my-listings",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId",
       "/privacy",
       "/terms"
     ],
@@ -5079,15 +5069,30 @@
       "(every page)",
       "/account/legal",
       "/account/legal/$versionId",
+      "/auth",
+      "/auth/callback",
+      "/auth/reset",
       "/legal/$kind",
       "/legal/accept",
       "/privacy",
       "/terms"
     ],
+    "legal.kind.publishing": [
+      "/admin/listings/$listingId/edit",
+      "/legal/$kind",
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "legal.kind.terms": [
       "(every page)",
       "/account/legal",
       "/account/legal/$versionId",
+      "/auth",
+      "/auth/callback",
+      "/auth/reset",
       "/legal/$kind",
       "/legal/accept",
       "/privacy",
@@ -6070,6 +6075,10 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/auth",
+      "/legal/accept",
+      "/my-listings",
+      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -6186,6 +6195,10 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/auth",
+      "/legal/accept",
+      "/my-listings",
+      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -6904,6 +6917,10 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/auth",
+      "/legal/accept",
+      "/my-listings",
+      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -6912,6 +6929,10 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/auth",
+      "/legal/accept",
+      "/my-listings",
+      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"

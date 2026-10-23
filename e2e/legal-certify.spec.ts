@@ -1229,7 +1229,9 @@ test.describe("Legal certification", () => {
   }) => {
     // Scratch statements only (G27): the test's own e2e-pub- kind is read by the same loader path as
     // /legal/publishing, with and without ?country=.
-    const kind = `e2e-pub-lgc6${rand().toLowerCase().replace(/[^a-z0-9]/g, "")}`.slice(0, 44);
+    const kind = `e2e-pub-lgc6${rand()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")}`.slice(0, 44);
     const globalText = `Global statement ${rand()}`;
     const countryText = `Country statement ${rand()}`;
     await seedDocument(s, kind, null, globalText);
