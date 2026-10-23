@@ -48,6 +48,10 @@ const FIELD_LABEL_KEYS: Record<string, MessageKey> = {
   telegram: "post.who.channel.telegram",
   whatsapp: "post.who.channel.whatsapp",
   alias: "post.who.aliasLabel",
+  first_name: "post.who.firstNameLabel",
+  last_name: "post.who.lastNameLabel",
+  business_name: "post.who.businessLabel",
+  home_country_code: "post.who.countryLabel",
   // U6-C1-R3a — the contact door names its fields with the object's own path
   // (`listing_contact_refusals`), so those names carry labels too.
   "contact_pref.messages": "post.who.channel.messages",
@@ -91,6 +95,9 @@ const FIELD_STEPS: Record<string, number> = {
   telegram: 7,
   whatsapp: 7,
   alias: 7,
+  first_name: 7,
+  last_name: 7,
+  "contact_pref.phone2": 7,
   seller_type: 7,
   business_name: 7,
   home_country_code: 7,
@@ -207,7 +214,20 @@ export function Field({
  */
 function fieldTarget(field: string): HTMLElement | null {
   const kebab = field.replace(/_/g, "-");
+  const who: Record<string, string> = {
+    first_name: "first",
+    last_name: "last",
+    business_name: "business",
+    alias: "alias",
+    home_country_code: "country",
+    "contact_pref.phone": "value-phone",
+    "contact_pref.phone2": "value-phone2",
+    "contact_pref.telegram": "value-telegram",
+    "contact_pref.whatsapp": "value-whatsapp",
+  };
+  const contact = ownValue(who, field);
   return (
+    (contact === undefined ? null : document.getElementById(`post-who-${contact}`)) ??
     document.getElementById(field) ??
     document.getElementById(`post-${kebab}`) ??
     document.getElementById(`post-attr-${field}`) ??

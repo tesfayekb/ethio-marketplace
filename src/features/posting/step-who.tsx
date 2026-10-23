@@ -7,7 +7,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 
-import { RequiredMark } from "./field";
+import { RequiredMark, controlClass } from "./field";
 import { PhoneNumberField } from "./phone-number-field";
 import { loadPhoneLib, type PhoneLib } from "./phone-parse";
 import { ALIAS_RULE_REASON, NON_LATIN_RE, aliasRuleLocal } from "./alias-rules";
@@ -138,6 +138,7 @@ export function StepWho({
   itemCountry = null,
   nextTried = 0,
   onBlocked,
+  onMissing,
   saveRef,
   categoryId = null,
 }: {
@@ -155,6 +156,7 @@ export function StepWho({
    * "pending" while the read is outstanding, then "blocked" or "open".
    */
   onBlocked?: (gate: "pending" | "blocked" | "open") => void;
+  onMissing?: (fields: string[]) => void;
   /**
    * Bundle 3 step 19 — checking is not claiming: the wizard calls this before it
    * leaves the step, and a checked name is claimed only then. False keeps the step.
@@ -563,6 +565,42 @@ export function StepWho({
   const unreadPhone = phoneLibFailed && pendingPhones.length > 0;
   const blocked = !countryLocked || unreadPhone;
   const identityPending = identity === null && !identityFailed;
+  const missing = useMemo(() => {
+    if (identityPending) return [];
+    const fields: string[] = [];
+    if (sellerType === "business") {
+      if (businessName.trim() === "") fields.push("business_name");
+    } else {
+      if (firstName.trim() === "") fields.push("first_name");
+      if (lastName.trim() === "") fields.push("last_name");
+    }
+    if (alias.trim() === "") fields.push("alias");
+    for (const channel of CHANNELS) {
+      const entry = channelOf(contactPref, channel);
+      if (entry.show && entry.value.trim() === "") fields.push(`contact_pref.${channel}`);
+    }
+    if (!countryLocked) fields.push("home_country_code");
+    return fields;
+  }, [
+    identityPending,
+    sellerType,
+    businessName,
+    firstName,
+    lastName,
+    alias,
+    contactPref,
+    countryLocked,
+  ]);
+  useEffect(() => {
+    onMissing?.(missing);
+  }, [onMissing, missing]);
+  useEffect(() => {
+    if (
+      !identityPending &&
+      missing.some((field) => ["first_name", "last_name", "business_name", "alias"].includes(field))
+    )
+      setEditing(true);
+  }, [identityPending, missing]);
   const gate = identityPending ? "pending" : blocked ? "blocked" : "open";
   const onBlockedRef = useRef(onBlocked);
   onBlockedRef.current = onBlocked;
@@ -571,12 +609,21 @@ export function StepWho({
   }, [gate]);
   const showRequired = nextTried > 0;
 
-  const aliasRefusal = refusalFor(identityRefusals, "alias");
+  const aliasRefusal = refusalFor(refusals, "alias") ?? refusalFor(identityRefusals, "alias");
   const shownAliasRefusal = aliasCheckRefusal ?? aliasRefusal;
   const typeRefusal = refusalFor(identityRefusals, "seller_type");
-  const businessRefusal = refusalFor(identityRefusals, "business_name");
-  const firstRefusal = refusalFor(identityRefusals, "first_name");
-  const lastRefusal = refusalFor(identityRefusals, "last_name");
+  const businessRefusal =
+    sellerType === "business"
+      ? (refusalFor(refusals, "business_name") ?? refusalFor(identityRefusals, "business_name"))
+      : null;
+  const firstRefusal =
+    sellerType === "person"
+      ? (refusalFor(refusals, "first_name") ?? refusalFor(identityRefusals, "first_name"))
+      : null;
+  const lastRefusal =
+    sellerType === "person"
+      ? (refusalFor(refusals, "last_name") ?? refusalFor(identityRefusals, "last_name"))
+      : null;
   const countryRefusal =
     refusalFor(identityRefusals, "home_country_code") ?? refusalFor(refusals, "home_country_code");
   /** The door names a channel refusal on the channel's own key. */
@@ -705,11 +752,13 @@ export function StepWho({
             <div className="space-y-1">
               <label htmlFor="post-who-business" className="text-sm font-medium text-foreground">
                 {t("post.who.businessLabel")}
+                <RequiredMark />
               </label>
               <input
                 id="post-who-business"
                 data-testid="post-who-business"
-                className={fieldClass}
+                className={controlClass(businessRefusal !== null, businessName.trim() === "")}
+                aria-invalid={businessRefusal !== null || undefined}
                 value={businessName}
                 onChange={(event) => setBusinessName(event.target.value)}
                 onBlur={() => {
@@ -740,11 +789,16 @@ export function StepWho({
             <div className="space-y-1">
               <label htmlFor="post-who-first" className="text-sm font-medium text-foreground">
                 {t("post.who.firstNameLabel")}
+                {sellerType === "person" && <RequiredMark />}
               </label>
               <input
                 id="post-who-first"
                 data-testid="post-who-first"
-                className={fieldClass}
+                className={controlClass(
+                  firstRefusal !== null,
+                  sellerType === "person" && firstName.trim() === "",
+                )}
+                aria-invalid={firstRefusal !== null || undefined}
                 value={firstName}
                 autoComplete="given-name"
                 onChange={(event) => setFirstName(event.target.value)}
@@ -762,11 +816,16 @@ export function StepWho({
             <div className="space-y-1">
               <label htmlFor="post-who-last" className="text-sm font-medium text-foreground">
                 {t("post.who.lastNameLabel")}
+                {sellerType === "person" && <RequiredMark />}
               </label>
               <input
                 id="post-who-last"
                 data-testid="post-who-last"
-                className={fieldClass}
+                className={controlClass(
+                  lastRefusal !== null,
+                  sellerType === "person" && lastName.trim() === "",
+                )}
+                aria-invalid={lastRefusal !== null || undefined}
                 value={lastName}
                 autoComplete="family-name"
                 onChange={(event) => setLastName(event.target.value)}
@@ -793,6 +852,7 @@ export function StepWho({
           <div className="space-y-1">
             <label htmlFor="post-who-alias" className="text-sm font-medium text-foreground">
               {t("post.who.aliasLabel")}
+              <RequiredMark />
             </label>
             <p className="text-xs text-muted-foreground" data-testid="post-who-alias-buyer-line">
               {t("post.who.aliasBuyerLine")}
@@ -800,7 +860,8 @@ export function StepWho({
             <input
               id="post-who-alias"
               data-testid="post-who-alias"
-              className={fieldClass}
+              className={controlClass(shownAliasRefusal !== null, alias.trim() === "")}
+              aria-invalid={shownAliasRefusal !== null || undefined}
               value={alias}
               inputMode="text"
               autoCapitalize="none"
@@ -829,28 +890,26 @@ export function StepWho({
             )}
             {/* Walk fix 4 — the Latin line IS the refusal for a non-Latin name,
                 shown in place of the general shape message. */}
-            {aliasState === "refused" && shownAliasRefusal?.reason === "aliasLatinOnly" && (
+            {shownAliasRefusal?.reason === "aliasLatinOnly" && (
               <p className="text-sm text-destructive" data-testid="post-who-alias-latin">
                 {t("post.who.aliasLatinOnly")}
               </p>
             )}
-            {aliasState === "refused" &&
-              shownAliasRefusal !== null &&
-              shownAliasRefusal.reason !== "aliasLatinOnly" && (
-                <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
-                  {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
+            {shownAliasRefusal !== null && shownAliasRefusal.reason !== "aliasLatinOnly" && (
+              <p className="text-sm text-destructive" data-testid="post-who-alias-refusal">
+                {/* U6-C1-R2 — the imitation check names WHAT the alias resembles,
                       so the seller can tell a coincidence from a rejection. */}
-                  {shownAliasRefusal.reason === "aliasImitatesBrand"
-                    ? fill(t("post.refusal.aliasImitatesBrand"), {
-                        name: shownAliasRefusal.detail ?? "",
+                {shownAliasRefusal.reason === "aliasImitatesBrand"
+                  ? fill(t("post.refusal.aliasImitatesBrand"), {
+                      name: shownAliasRefusal.detail ?? "",
+                    })
+                  : shownAliasRefusal.reason === "aliasTooSoon"
+                    ? fill(t("post.refusal.aliasTooSoon"), {
+                        date: formatDay(shownAliasRefusal.detail ?? "", language),
                       })
-                    : shownAliasRefusal.reason === "aliasTooSoon"
-                      ? fill(t("post.refusal.aliasTooSoon"), {
-                          date: formatDay(shownAliasRefusal.detail ?? "", language),
-                        })
-                      : t(draftRefusalKey(shownAliasRefusal.reason))}
-                </p>
-              )}
+                    : t(draftRefusalKey(shownAliasRefusal.reason))}
+              </p>
+            )}
             {/* Walk fix 3 — ONE STATE LINE under the name box: the change rule
                 in one of four states, from `my_seller_line()` (M4). */}
             <p className="text-xs text-muted-foreground" data-testid="post-who-alias-change-rule">
@@ -996,7 +1055,8 @@ export function StepWho({
                   <input
                     id={`post-who-value-${channel}`}
                     data-testid={`post-who-value-${channel}`}
-                    className={`${fieldClass} min-w-[16.5rem] grow basis-0`}
+                    className={`${controlClass(refusal !== null, current.show && current.value.trim() === "")} min-w-[16.5rem] grow basis-0`}
+                    aria-invalid={refusal !== null || undefined}
                     value={current.value}
                     inputMode="text"
                     onBlur={(event) => leaveChannel(channel, event.target.value, current.show)}
@@ -1020,6 +1080,8 @@ export function StepWho({
                     onLeave={(next) => leaveChannel(channel, next, current.show)}
                     onCountry={channel === "phone" ? setFirstPhoneIso : undefined}
                     lib={phoneLib}
+                    refused={refusal !== null}
+                    requiredEmpty={current.show && current.value.trim() === ""}
                     onPending={(pending) => setPhonePending(channel, pending)}
                   />
                 )}
@@ -1071,7 +1133,11 @@ export function StepWho({
         <select
           id="post-who-country"
           data-testid="post-who-country"
-          className={fieldClass}
+          className={controlClass(
+            countryRefusal !== null || (showRequired && !countryLocked),
+            !countryLocked,
+          )}
+          aria-invalid={countryRefusal !== null || (showRequired && !countryLocked) || undefined}
           value={country}
           disabled={identityPending || markets.isLoading || (countryLocked && !countryChanging)}
           onChange={(event) => {

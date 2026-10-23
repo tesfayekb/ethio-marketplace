@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import type { saveDraft } from "./posting-service";
+import type { DraftBody, saveDraft } from "./posting-service";
 
 type DoorAnswer = Awaited<ReturnType<typeof saveDraft>>;
 
@@ -12,19 +12,65 @@ type DoorAnswer = Awaited<ReturnType<typeof saveDraft>>;
  */
 const pending: Array<(answer: DoorAnswer) => void> = [];
 const sent: number[] = [];
+const bodies: DraftBody[] = [];
 
 vi.mock("./posting-service", () => ({
   readDraft: vi.fn(async () => null),
   saveDraft: vi.fn(
-    (body: { step: number }) =>
+    (body: DraftBody) =>
       new Promise<DoorAnswer>((resolve) => {
         sent.push(body.step);
+        bodies.push(structuredClone(body));
         pending.push(resolve);
       }),
   ),
 }));
 
 const { useDraft } = await import("./use-draft");
+
+it("INC-809 the last answer chosen is the one stored", async () => {
+  pending.length = 0;
+  sent.length = 0;
+  bodies.length = 0;
+  const { result, unmount } = renderHook(() => useDraft(null));
+  await act(async () => {
+    result.current.goTo(3);
+    result.current.change({ categoryId: "c-1", attributes: { model: "m2", removed: true } }, true);
+    await settle();
+  });
+  await act(async () => {
+    result.current.change({ attributes: { model: "m1", removed: true } }, false);
+    result.current.change({ attributes: { model: "m2", removed: true } }, false);
+  });
+  // The catalogue read was armed on m2. It finishes after the last choice,
+  // before React has committed that choice and cancelled the read's effect.
+  const readFrom = result.current.values.attributes;
+  let outcome: Promise<boolean> | undefined;
+  await act(async () => {
+    result.current.change({ attributes: { model: "m1", removed: true } }, false);
+    outcome = result.current.saveAt(3);
+    pending[0]?.(took());
+    await settle();
+    // The actual answer writer receives both the filtered map and its source.
+    result.current.change({ attributes: { model: "m2" } }, false, readFrom);
+    await settle();
+  });
+  expect((bodies.at(-1)?.attributes as Record<string, unknown>)["model"]).toBe("m1");
+  await act(async () => {
+    for (let index = 1; index < pending.length; index += 1) {
+      pending[index]?.(took());
+      await settle();
+    }
+  });
+  if (outcome === undefined) throw new Error("Next did not start");
+  await expect(outcome).resolves.toBe(true);
+  expect((bodies.at(-1)?.attributes as Record<string, unknown>)["model"]).toBe("m1");
+  expect(result.current.values.attributes["model"]).toBe("m1");
+  unmount();
+  pending.length = 0;
+  sent.length = 0;
+  bodies.length = 0;
+});
 
 function refused(): DoorAnswer {
   return {

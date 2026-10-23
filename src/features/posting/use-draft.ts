@@ -107,7 +107,11 @@ export interface UseDraft {
   saveState: SaveState;
   refusals: Refusal[];
   /** Queue a change: `immediate` for a tap or Next, else the 2-second debounce. */
-  change: (patch: Partial<DraftValues>, immediate: boolean) => void;
+  change: (
+    patch: Partial<DraftValues>,
+    immediate: boolean,
+    answerSource?: DraftValues["attributes"],
+  ) => void;
   /** Save the current answers at a given step and answer whether it took. */
   saveAt: (step: number) => Promise<boolean>;
   /**
@@ -512,7 +516,10 @@ export function useDraft(initialListingId: string | null): UseDraft {
   }, [flush]);
 
   const change = useCallback(
-    (patch: Partial<DraftValues>, immediate: boolean) => {
+    (patch: Partial<DraftValues>, immediate: boolean, answerSource?: DraftValues["attributes"]) => {
+      // An awaited catalogue read can finish before React cleans up its old
+      // render. Reject that producer against the synchronous save source.
+      if (answerSource !== undefined && answerSource !== valuesRef.current.attributes) return;
       /*
        * THE REF IS WRITTEN HERE, NOT IN THE UPDATER. React runs a state updater
        * when it renders, not when it is queued, so a save fired in the same turn

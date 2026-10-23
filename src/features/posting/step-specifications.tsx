@@ -1919,7 +1919,7 @@ export function StepSpecifications({
               // D46 — undoing an identity reset restores the identity itself too.
               const restored = identityBefore.current ?? offer.values;
               identityBefore.current = undefined;
-              onChange(restored, true);
+              emit(restored, true);
               setUndoOffer(null);
             }}
           >
