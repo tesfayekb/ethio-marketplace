@@ -1,9 +1,11 @@
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { completePasswordReset, hasSessionRehydrating } from "@/features/auth/auth-service";
+import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -52,6 +54,7 @@ const secondaryButtonClass =
 function ResetScreen() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const client = useQueryClient();
 
   const [checking, setChecking] = useState(true);
   const [hasRecoverySession, setHasRecoverySession] = useState(false);

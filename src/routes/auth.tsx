@@ -155,12 +155,13 @@ function AuthScreen() {
     if (onCheckEmail) return;
     let active = true;
     void (async () => {
-      if ((await hasSessionRehydrating()) && active) land(afterSignIn);
+      if ((await hasSessionRehydrating()) && active)
+        void landAfterSignIn({ navigate, href: afterSignIn, client });
     })();
     return () => {
       active = false;
     };
-  }, [onCheckEmail, navigate, afterSignIn]);
+  }, [onCheckEmail, navigate, afterSignIn, client]);
 
   /** Session-smart: if already signed in, go home instead of to a sign-in form. */
   async function handleAlreadyConfirmed() {

@@ -1,7 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { completeEmailVerification } from "@/features/auth/auth-service";
+import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import { safeReturnPath } from "@/lib/return-path";
 
@@ -26,6 +28,7 @@ const primaryButtonClass =
 function AuthCallback() {
   const { t } = useI18n();
   const navigate = useNavigate();
+  const client = useQueryClient();
   /**
    * "checking" until the landing URL has been processed and a session re-checked.
    * "confirmed"  — verification succeeded AND/OR a session exists here.
@@ -65,7 +68,7 @@ function AuthCallback() {
     return () => {
       cancelled = true;
     };
-  }, [navigate, target]);
+  }, [navigate, target, client]);
 
   if (status === "checking") {
     return (
