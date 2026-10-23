@@ -885,10 +885,6 @@ function WizardShell({
   function goNext() {
     void (async () => {
       if (submitted) return;
-      if (sellerEdit && !certifyAllows(certify)) {
-        if (certify.state === "ready") setCertifyTried((n) => n + 1);
-        return;
-      }
       if (missing.length > 0) {
         setTried(true);
         focusFirstRefusal(
