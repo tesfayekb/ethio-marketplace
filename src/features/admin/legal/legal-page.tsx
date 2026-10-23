@@ -213,6 +213,28 @@ export function LegalPage() {
                               : "admin.legal.action.read",
                           )}
                         </Button>
+                        {/* Bundle 22 turn 32 (INC-825) — open the version in force, or add a language to it. */}
+                        <Button asChild variant="outline">
+                          <Link
+                            to="/admin/legal/$versionId"
+                            params={{ versionId: v.version_id }}
+                            data-testid="legal-view-inforce"
+                          >
+                            {t("admin.legal.action.view")}
+                          </Link>
+                        </Button>
+                        {permissions.includes("legal:publish") ? (
+                          <Button asChild variant="outline">
+                            <Link
+                              to="/admin/legal/$versionId"
+                              params={{ versionId: v.version_id }}
+                              search={{ translate: "1" }}
+                              data-testid="legal-translate-inforce"
+                            >
+                              {t("admin.legal.translation.add")}
+                            </Link>
+                          </Button>
+                        ) : null}
                         {reading.has(v.version_id) ? <InForceText id={v.version_id} /> : null}
                       </>
                     ) : null}
