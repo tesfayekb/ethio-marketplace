@@ -2,7 +2,7 @@ import { expect, test } from "../fixtures";
 
 import { en } from "../../src/i18n/locales/en";
 import { testEmail } from "../global-setup";
-import { fillUntilStable, waitForHydration } from "../helpers/ui";
+import { signUpThroughForm } from "../helpers/auth-form";
 
 const RUN_ID = process.env["GITHUB_RUN_ID"] ?? "local";
 
@@ -14,18 +14,7 @@ test.setTimeout(300_000);
 /** Drives the real sign-up form to the check-email view. Returns the address used. */
 async function signUpFresh(page: import("@playwright/test").Page, n: number) {
   const email = testEmail(RUN_ID, n);
-  const password = `Pw-${n}-aX9!qmzT`;
-
-  await page.goto("/auth");
-  await waitForHydration(page);
-  await page.getByTestId("auth-toggle-view").click();
-
-  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-  await fillUntilStable(page.locator("#auth-password"), password, "password");
-  // Bundle 11 C4 (D143) — sign-up asks for the password twice.
-  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
-
+  await signUpThroughForm(page, { email, password: `Pw-${n}-aX9!qmzT` });
   return email;
 }
 
