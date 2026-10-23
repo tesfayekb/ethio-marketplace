@@ -58,3 +58,36 @@ describe("toErrorKey — a throwaway mail domain (bundle 16 turn S2, D185)", () 
     );
   });
 });
+
+describe("toErrorKey — a confirmation e-mail that cannot be sent (bundle 22 turn 32, INC-822)", () => {
+  // Quoted verbatim from supabase/auth internal/api/mail.go.
+  for (const message of [
+    "Error sending confirmation email",
+    "Error sending recovery email",
+    "Error sending magic link email",
+  ]) {
+    it(`"${message}" answers the mail word`, () => {
+      expect(toErrorKey({ message, code: "unexpected_failure", status: 500 })).toBe(
+        "auth.errorMailSend",
+      );
+    });
+  }
+  it("an address the mail server will not send to answers the mail word", () => {
+    expect(
+      toErrorKey({
+        message: 'Email address "a@example.com" cannot be used as it is not authorized',
+        code: "email_address_not_authorized",
+        status: 400,
+      }),
+    ).toBe("auth.errorMailSend");
+  });
+  it("another 500 stays generic", () => {
+    expect(
+      toErrorKey({
+        message: "Database error saving new user",
+        code: "unexpected_failure",
+        status: 500,
+      }),
+    ).toBe("auth.errorGeneric");
+  });
+});

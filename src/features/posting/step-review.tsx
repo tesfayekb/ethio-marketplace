@@ -208,6 +208,7 @@ export function StepReview({
   const [publishing, setPublishing] = useState(false);
   const [refusals, setRefusals] = useState<Refusal[]>([]);
   const [certify, setCertify] = useState<CertifyState>(CERTIFY_LOADING);
+  const [certifyTried, setCertifyTried] = useState(0);
   const navigate = useNavigate();
   const [failed, setFailed] = useState(false);
   // Step 16 — the date box shows while the switch is on; a saved date opens it.
@@ -856,7 +857,9 @@ export function StepReview({
       {edit === null && (
         <>
           {/* Bundle 22 turn 4 — the publishing statements that apply, with one tick (L1 v2 item 4). */}
-          {listingId !== null ? <CertifyBlock listingId={listingId} onChange={setCertify} /> : null}
+          {listingId !== null ? (
+            <CertifyBlock listingId={listingId} onChange={setCertify} tried={certifyTried} />
+          ) : null}
           {/* Bundle 4 step 19 — the seller's statement; shown while no publishing statement applies.
           publish_listing stamps attested_at on every successful publish. */}
           {certify.state === "none" ? (
@@ -867,10 +870,22 @@ export function StepReview({
           <button
             type="button"
             data-testid="post-publish"
-            disabled={publishing || listingId === null || !certifyAllows(certify)}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60"
+            /* Bundle 22 turn 32 (D231, DEC-236) — drawn closed while the certification is unticked, never
+            disabled for it: a tap marks the tick refused and sends nothing. */
+            disabled={
+              publishing ||
+              listingId === null ||
+              certify.state === "loading" ||
+              certify.state === "error"
+            }
+            data-closed={certify.state === "ready" && !certify.ticked ? "1" : undefined}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-60 data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80"
             onClick={() => {
               if (listingId === null) return;
+              if (!certifyAllows(certify)) {
+                if (certify.state === "ready") setCertifyTried((n) => n + 1);
+                return;
+              }
               setPublishing(true);
               setFailed(false);
               setRefusals([]);

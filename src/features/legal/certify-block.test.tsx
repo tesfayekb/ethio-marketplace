@@ -62,15 +62,20 @@ describe("CertifyBlock (bundle 22 turn 4)", () => {
     expect(view.container.innerHTML).toBe("");
     expect(read).toHaveBeenCalledWith("l-1");
   });
-  it("renders two statements in order with the country heading, and one unticked tick", async () => {
+  it("turn 32 (DEC-236): one link per statement, no statement text, and one unticked tick", async () => {
     read.mockResolvedValue({ statements: [GLOBAL, KENYA], acceptance_pending: false });
     const { reports } = mount();
-    await waitFor(() => expect(screen.getAllByTestId("certify-statement")).toHaveLength(2));
-    const boxes = screen.getAllByTestId("certify-statement");
-    expect(boxes.map((b) => b.getAttribute("data-country"))).toEqual(["global", "KE"]);
-    expect(boxes[0]?.textContent).toContain("Global English");
-    expect(boxes[1]?.textContent).toContain("For Kenya");
-    expect(boxes[1]?.textContent).toContain("Kenya English");
+    await waitFor(() => expect(screen.getAllByTestId("agree-link")).toHaveLength(2));
+    const links = screen.getAllByTestId("agree-link");
+    expect(links.map((a) => a.getAttribute("href"))).toEqual([
+      "/legal/publishing",
+      "/legal/publishing?country=KE",
+    ]);
+    expect(links[0]?.textContent).toBe("Publishing statement");
+    expect(links[1]?.textContent).toBe("Publishing statement — For Kenya");
+    expect(screen.queryByTestId("certify-statement")).toBeNull();
+    expect(screen.queryByText("Global English")).toBeNull();
+    expect(screen.getByText("I certify the publishing statement.", { exact: false })).toBeTruthy();
     expect(last(reports)).toEqual({
       state: "ready",
       versionIds: ["v-global", "v-ke"],
@@ -80,13 +85,20 @@ describe("CertifyBlock (bundle 22 turn 4)", () => {
     fireEvent.click(screen.getByTestId("certify-tick"));
     await waitFor(() => expect(last(reports)?.ticked).toBe(true));
   });
-  it("shows body_am in Amharic", async () => {
-    lang.value = "am";
+  it("turn 32 (D231): a bumped `tried` marks the unticked tick refused", async () => {
     read.mockResolvedValue({ statements: [GLOBAL], acceptance_pending: false });
-    mount();
-    await waitFor(() =>
-      expect(screen.getByTestId("certify-statement").textContent).toContain("Global Amharic"),
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
     );
+    const view = render(<CertifyBlock listingId="l-1" onChange={() => {}} tried={0} />, {
+      wrapper,
+    });
+    await screen.findByTestId("certify-tick");
+    expect(screen.queryByTestId("agree-message")).toBeNull();
+    view.rerender(<CertifyBlock listingId="l-1" onChange={() => {}} tried={1} />);
+    expect(screen.getByTestId("agree-message").textContent).toBe("Tick the box to continue.");
+    expect(screen.getByTestId("certify-tick").getAttribute("aria-invalid")).toBe("true");
   });
   it("shows the load error and reports error", async () => {
     read.mockRejectedValue(new Error("boom"));

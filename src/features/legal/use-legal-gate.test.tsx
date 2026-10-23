@@ -119,3 +119,54 @@ describe("useLegalGate", () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 });
+
+describe("landAfterSignIn (bundle 22 turn 32, INC-823)", () => {
+  const session = vi.hoisted(() => ({ value: { user: { id: "u1" } } as unknown }));
+  vi.mock("@/integrations/supabase/client", () => ({
+    supabase: { auth: { getSession: async () => ({ data: { session: session.value } }) } },
+  }));
+  async function land(deadlineMs?: number) {
+    const { landAfterSignIn } = await import("./use-legal-gate");
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const navigate = vi.fn();
+    await landAfterSignIn({ navigate, href: "/post?category=x", client, deadlineMs });
+    return navigate;
+  }
+  it("an owed acceptance lands on the accept screen with the return path", async () => {
+    status.mockResolvedValueOnce([ROW]);
+    const navigate = await land();
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith({
+      href: `/legal/accept?next=${encodeURIComponent("/post?category=x")}`,
+    });
+  });
+  it("nothing owed lands on the return path", async () => {
+    status.mockResolvedValueOnce([]);
+    expect(await land()).toHaveBeenCalledWith({ href: "/post?category=x" });
+  });
+  it("a failed read lands on the return path", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    status.mockRejectedValueOnce(new Error("down"));
+    expect(await land()).toHaveBeenCalledWith({ href: "/post?category=x" });
+    expect(error).toHaveBeenCalledWith("[client-error] legal landing read failed");
+    error.mockRestore();
+  });
+  it("the deadline lands on the return path", async () => {
+    status.mockImplementationOnce(() => new Promise(() => {}));
+    expect(await land(20)).toHaveBeenCalledWith({ href: "/post?category=x" });
+  });
+  it("census: no sign-in route navigates by href outside landAfterSignIn", async () => {
+    const { readdirSync, readFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const dir = join(process.cwd(), "src/routes");
+    const hits = readdirSync(dir)
+      .filter((name) => /^auth.*\.tsx$/.test(name))
+      .flatMap((name) =>
+        readFileSync(join(dir, name), "utf8")
+          .split("\n")
+          .map((line, i) => (line.includes("navigate({ href") ? `${name}:${i + 1}` : null))
+          .filter((hit): hit is string => hit !== null),
+      );
+    expect(hits).toEqual([]);
+  });
+});

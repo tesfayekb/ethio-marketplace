@@ -142,6 +142,20 @@ export async function myLegalHistory(): Promise<MyLegalHistory> {
   }
   return row as unknown as MyLegalHistory;
 }
+/**
+ * Bundle 22 turn 32 (D230) — the ids of the versions in force for the gate's kinds, read anonymously for the
+ * sign-up form's tick; a null answer contributes nothing. The signup trigger records only those it can prove.
+ */
+export async function legalInForceIds(kinds: string[]): Promise<string[]> {
+  const answers = await Promise.all(
+    kinds.map(async (kind) => {
+      const { data, error } = await supabase.rpc("legal_in_force", { p_kind: kind });
+      if (error) throw error;
+      return data == null ? null : parseLegalVersion(data, "legal_in_force").version_id;
+    }),
+  );
+  return answers.filter((id): id is string => id !== null);
+}
 export async function myLegalVersion(id: string): Promise<PublicLegalVersion> {
   const { data, error } = await supabase.rpc("my_legal_version", { p_version_id: id });
   if (error) throw error;

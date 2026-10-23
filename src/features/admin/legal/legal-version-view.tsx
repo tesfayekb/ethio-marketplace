@@ -104,7 +104,14 @@ function CompareText({
   );
 }
 
-export function LegalVersionView({ versionId }: { versionId: string }) {
+export function LegalVersionView({
+  versionId,
+  openTranslation = false,
+}: {
+  versionId: string;
+  /** Bundle 22 turn 32 (INC-825) — the card's Add translation opens the panel on arrival. */
+  openTranslation?: boolean;
+}) {
   const { t, language } = useI18n();
   const { permissions } = useAdminShell();
   const version = useLegalVersion(versionId);
@@ -118,7 +125,7 @@ export function LegalVersionView({ versionId }: { versionId: string }) {
   const [exporting, setExporting] = useState(false);
   const [exported, setExported] = useState<number | null>(null);
   const [exportFailed, setExportFailed] = useState(false);
-  const [addingTranslation, setAddingTranslation] = useState(false);
+  const [addingTranslation, setAddingTranslation] = useState(openTranslation);
   const [translationLanguage, setTranslationLanguage] = useState("");
   const [translationBody, setTranslationBody] = useState("");
   const [translationError, setTranslationError] = useState<MessageKey | null>(null);

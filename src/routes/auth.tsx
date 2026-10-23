@@ -1,5 +1,6 @@
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -9,6 +10,9 @@ import {
   signInWithGoogle,
 } from "@/features/auth/auth-service";
 import { useAuth } from "@/features/auth/use-auth";
+import { AgreeToDocument } from "@/features/legal/agree-to-document";
+import { legalInForceIds } from "@/features/legal/legal-reader";
+import { currentGateKinds, landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { supabase } from "@/integrations/supabase/client";
 import { safeReturnPath } from "@/lib/return-path";
 import { PageShell } from "@/components/layout/page-shell";
@@ -84,8 +88,9 @@ const secondaryButtonClass =
   "hover:bg-accent disabled:opacity-60";
 
 function AuthScreen() {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const navigate = useNavigate();
+  const client = useQueryClient();
   const { view, return: returnParam, reason } = Route.useSearch();
   /** Where a successful sign-in of ANY door lands (D20); `/` when unset or unsafe. */
   const afterSignIn = safeReturnPath(returnParam);
@@ -116,6 +121,27 @@ function AuthScreen() {
   const onForgot = view === "forgot";
   const isSignIn = view !== "sign-up";
 
+  /**
+   * Bundle 22 turn 32 (D230) — the sign-up form's agreement tick. Create account is drawn closed until it
+   * is ticked (D231); never persisted, cleared when the view toggles. The ids in force travel as sign-up
+   * metadata for the signup trigger (M21) to record; when the read fails or finds none the sign-up goes
+   * without them and the acceptance screen asks after sign-in (the designed behaviour, not an error).
+   */
+  const [agreed, setAgreed] = useState(false);
+  const [agreeTried, setAgreeTried] = useState(false);
+  useEffect(() => {
+    setAgreed(false);
+    setAgreeTried(false);
+  }, [view]);
+  const inForce = useQuery({
+    queryKey: ["legal", "signup-in-force", currentGateKinds()],
+    queryFn: () => legalInForceIds(currentGateKinds()),
+    enabled: view === "sign-up",
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+  const land = (href: string) => void landAfterSignIn({ navigate, href, client });
+
   useEffect(() => {
     if (!onCheckEmail) return;
     setPendingEmail(window.sessionStorage.getItem(PENDING_EMAIL_KEY));
@@ -129,12 +155,13 @@ function AuthScreen() {
     if (onCheckEmail) return;
     let active = true;
     void (async () => {
-      if ((await hasSessionRehydrating()) && active) void navigate({ href: afterSignIn });
+      if ((await hasSessionRehydrating()) && active)
+        void landAfterSignIn({ navigate, href: afterSignIn, client });
     })();
     return () => {
       active = false;
     };
-  }, [onCheckEmail, navigate, afterSignIn]);
+  }, [onCheckEmail, navigate, afterSignIn, client]);
 
   /** Session-smart: if already signed in, go home instead of to a sign-in form. */
   async function handleAlreadyConfirmed() {
@@ -143,7 +170,7 @@ function AuthScreen() {
     setBusy(false);
     if (signedIn) {
       window.sessionStorage.removeItem(PENDING_EMAIL_KEY);
-      void navigate({ href: afterSignIn });
+      land(afterSignIn);
       return;
     }
     void navigate({ to: "/auth", search: {} });
@@ -212,6 +239,10 @@ function AuthScreen() {
     setResendSent(false);
     setCanResend(false);
 
+    if (!isSignIn && !agreed) {
+      setAgreeTried(true);
+      return;
+    }
     if (!email.trim() || !password) {
       setErrorKey("auth.errorMissingFields");
       return;
@@ -228,7 +259,12 @@ function AuthScreen() {
     setBusy(true);
     const result = isSignIn
       ? await signIn({ email: address, password })
-      : await signUp({ email: address, password });
+      : await signUp(
+          { email: address, password },
+          inForce.data && inForce.data.length > 0
+            ? { versionIds: inForce.data, language }
+            : undefined,
+        );
     setBusy(false);
 
     if (!result.ok) {
@@ -244,7 +280,7 @@ function AuthScreen() {
     }
     // D20 — back to the page that asked for the session. INC-530 — by `href`, so a
     // return path's query string stays a query string (D119's /post?category=…).
-    void navigate({ href: afterSignIn });
+    land(afterSignIn);
   }
 
   /** Resends to `address` only: the form's own email, or the stored sign-up email. */
@@ -571,6 +607,22 @@ function AuthScreen() {
             </div>
           )}
 
+          {!isSignIn ? (
+            <AgreeToDocument
+              id="agreement"
+              testId="auth-agree-tick"
+              sentence="legal.accept.agreeFirst.both"
+              links={[
+                { label: t("legal.kind.terms"), href: "/terms" },
+                { label: t("legal.kind.privacy"), href: "/privacy" },
+              ]}
+              checked={agreed}
+              onCheckedChange={setAgreed}
+              refused={agreeTried && !agreed}
+              message="legal.agree.required"
+            />
+          ) : null}
+
           {errorKey ? (
             <p role="alert" className="text-sm text-destructive">
               {t(errorKey)}
@@ -594,7 +646,12 @@ function AuthScreen() {
             </button>
           ) : null}
 
-          <button type="submit" disabled={busy} className={primaryButtonClass}>
+          <button
+            type="submit"
+            disabled={busy}
+            data-closed={!isSignIn && !agreed ? "1" : undefined}
+            className={`${primaryButtonClass} data-[closed=1]:border data-[closed=1]:border-input data-[closed=1]:bg-secondary data-[closed=1]:text-secondary-foreground data-[closed=1]:hover:bg-secondary/80`}
+          >
             {busy ? t("auth.working") : isSignIn ? t("auth.signInButton") : t("auth.signUpButton")}
           </button>
         </form>

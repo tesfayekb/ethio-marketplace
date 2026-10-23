@@ -1,10 +1,11 @@
+import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
 import { gotoReady, switchLanguage } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
- * Bundle 22 (Stage 1), turn 3 — THE PUBLIC LEGAL PAGES (LGP-1..LGP-3).
+ * Bundle 22 (Stage 1), turn 3 — THE PUBLIC LEGAL PAGES (LGP-1..LGP-3); turn 32 — /legal/publishing (LGP-4).
  *
  * /terms and /privacy show the version in force (nothing of a real kind is
  * published on ethio-staging, so both show their "soon" state); a scratch
@@ -129,6 +130,21 @@ test.describe("Legal public pages", () => {
     await page.getByTestId("footer-privacy").click();
     await expect(page).toHaveURL(/\/privacy$/);
     await expect(page.getByTestId("legal-public-page")).toBeVisible();
+  });
+
+  test("LGP-4 /legal/publishing with no statement in force shows its soon state and carries the publishing title (DEC-236)", async ({
+    page,
+  }) => {
+    // Real kinds are never published on ethio-staging (as LGP-1 holds for /terms and /privacy).
+    await gotoReady(page, "/legal/publishing");
+    const shown = page.getByTestId("legal-public-page");
+    await expect(shown).toBeVisible();
+    await expect(shown.getByRole("heading", { level: 1 })).toHaveText("Publishing statement");
+    await expect(page.getByTestId("legal-public-none")).toHaveText(
+      en["legal.page.none"].replace("{document}", en["legal.kind.publishing"]),
+    );
+    await expect(page).toHaveTitle("Publishing statement — ethio.com");
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
   });
 
   test("LGP-2 a scratch document's page: meta, contents, frozen facts, the site's language, then the version ahead of its date", async ({

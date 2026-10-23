@@ -82,6 +82,8 @@ export const enBase = {
   "auth.errorRateLimited": "Too many attempts. Wait a moment and try again.",
   "auth.errorMissingFields": "Enter your email and password.",
   "auth.errorGeneric": "Something went wrong. Please try again.",
+  "auth.errorMailSend":
+    "We couldn't send the confirmation email. Try again in a minute, or use another email address.",
   "settings.navLabel": "Settings",
   "settings.title": "Settings",
   "settings.identity": "Your account",
@@ -1380,7 +1382,8 @@ export const enBase = {
   "legal.certify.leadOnce":
     "Read the statement below. You confirm it once for this ad, and again only if it changes.",
   "legal.certify.forCountry": "For {country}",
-  "legal.certify.tick": "I certify the above.",
+  "legal.certify.tickStatement": "I certify the publishing statement.",
+  "legal.agree.required": "Tick the box to continue.",
   "legal.certify.changed": "The statement has just changed. Read it and tick again.",
   "legal.certify.loadError": "The statement could not be loaded. Try again.",
   "legal.certify.photosWait": "Tick the statement below before you add or change a photo.",

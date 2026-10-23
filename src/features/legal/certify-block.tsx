@@ -1,20 +1,25 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useI18n } from "@/i18n";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { certifyKey, refreshers, type CertifyState } from "./certify-refusal";
-import { legalTextFor, myListingCertification } from "./legal-reader";
-import { LegalText } from "./legal-text";
+import { AgreeToDocument } from "./agree-to-document";
+import { myListingCertification } from "./legal-reader";
 
-/** The statements that apply to an ad, with ONE tick, "I certify the above." (L1 v2 item 4). */
+/**
+ * The statements that apply to an ad, with ONE tick (L1 v2 item 4). Bundle 22 turn 32 (DEC-236, D231): the
+ * statements are not printed here; the tick is AgreeToDocument with one link per applying statement to its
+ * public page, and `tried` — bumped by the screen's closed action — marks the tick refused while unticked.
+ */
 export function CertifyBlock({
   listingId,
   onChange,
+  tried = 0,
 }: {
   listingId: string;
   onChange: (value: CertifyState) => void;
+  tried?: number;
 }) {
   const { t, language } = useI18n();
   const client = useQueryClient();
@@ -28,6 +33,7 @@ export function CertifyBlock({
   });
   const [ticked, setTicked] = useState(false);
   const [changed, setChanged] = useState(false);
+  const [triedAtTick, setTriedAtTick] = useState(0);
 
   useEffect(() => {
     const refresh = () => {
@@ -83,45 +89,30 @@ export function CertifyBlock({
     <section data-testid="certify-block" className="space-y-3">
       <h3 className="text-base font-semibold text-foreground">{t("legal.certify.title")}</h3>
       <p className="text-sm text-muted-foreground">{t("legal.certify.leadOnce")}</p>
-      {statements.map((s) => {
-        const selected = legalTextFor(s, language);
-        return (
-          <div
-            key={s.version_id}
-            data-testid="certify-statement"
-            data-kind={s.kind}
-            data-country={s.country_code ?? "global"}
-            className="rounded-md bg-muted/40 p-3"
-          >
-            {s.country_code ? (
-              <h4 className="mb-2 text-sm font-semibold text-foreground">
-                {t("legal.certify.forCountry").replace(
-                  "{country}",
-                  regions.of(s.country_code) ?? s.country_code,
-                )}
-              </h4>
-            ) : null}
-            {selected.fallback ? (
-              <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
-                {t("legal.fallbackNote")}
-              </p>
-            ) : null}
-            <LegalText text={selected.text} facts={s.settings_snapshot ?? {}} />
-          </div>
-        );
-      })}
-      <label className="flex min-h-11 items-start gap-3 text-sm text-foreground">
-        <Checkbox
-          data-testid="certify-tick"
-          checked={ticked}
-          onCheckedChange={(value) => {
-            setTicked(value === true);
-            if (value === true) setChanged(false);
-          }}
-          className="mt-1"
-        />
-        <span>{t("legal.certify.tick")}</span>
-      </label>
+      <AgreeToDocument
+        id="certification"
+        testId="certify-tick"
+        sentence="legal.certify.tickStatement"
+        links={statements.map((s) => ({
+          label: s.country_code
+            ? `${t("legal.kind.publishing")} — ${t("legal.certify.forCountry").replace(
+                "{country}",
+                regions.of(s.country_code) ?? s.country_code,
+              )}`
+            : t("legal.kind.publishing"),
+          href: s.country_code
+            ? `/legal/publishing?country=${encodeURIComponent(s.country_code)}`
+            : "/legal/publishing",
+        }))}
+        checked={ticked}
+        onCheckedChange={(value) => {
+          setTicked(value);
+          setTriedAtTick(tried);
+          if (value) setChanged(false);
+        }}
+        refused={tried > triedAtTick && !ticked}
+        message="legal.agree.required"
+      />
       {changed ? (
         <p data-testid="certify-changed" role="alert" className="text-sm text-destructive">
           {t("legal.certify.changed")}
