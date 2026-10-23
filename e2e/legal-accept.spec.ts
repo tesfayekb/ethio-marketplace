@@ -1,13 +1,15 @@
 import { type Page } from "@playwright/test";
 
+import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
 import { passwordGrant, storageKey } from "./helpers/session";
 import { gotoReady, signInViaSession } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, createUser, leaseUser } from "./helpers/users";
 
 /**
- * Bundle 22 (Stage 1), turn 3 — THE ACCEPTANCE AT SIGN-IN (LAC-1..LAC-4).
+ * Bundle 22 (Stage 1), turn 3 — THE ACCEPTANCE AT SIGN-IN (LAC-1..LAC-4); turn 32 — the landing after a
+ * sign-in through the form (LAC-5, LAC-6: fresh createUser identities, J9 — the form's own password).
  *
  * The gate sends a signed-in person with a document to accept to
  * /legal/accept. Real kinds are never published on ethio-staging, so each test
@@ -271,5 +273,63 @@ test.describe("Legal acceptance", () => {
       rows.find((accepted) => accepted["version_id"] === terms.versionId)?.["adult_confirmed"],
     ).toBe(true);
     expect(rows.find((accepted) => accepted["version_id"] === v2)?.["adult_confirmed"]).toBe(false);
+  });
+
+  /** Turn 32 (INC-823) — every main-frame path after the sign-in click, in order. */
+  async function signInThroughForm(page: Page, person: { email: string; password: string }) {
+    await gotoReady(page, "/auth?return=%2Faccount");
+    await page.locator("#auth-email").fill(person.email);
+    await page.locator("#auth-password").fill(person.password);
+    const seen: string[] = [];
+    page.on("framenavigated", (frame) => {
+      if (frame === page.mainFrame()) seen.push(new URL(frame.url()).pathname);
+    });
+    await page.locator('form button[type="submit"]').click();
+    return seen;
+  }
+
+  test("LAC-5 a sign-in through the form with an acceptance owed lands on the screen first, no page between (INC-823)", async ({
+    page,
+  }) => {
+    const tag = tagOf("e");
+    await seed(`${tag}-terms`);
+    const person = await createUser({ confirmed: true });
+    await page.addInitScript(
+      (list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      },
+      [`${tag}-terms`],
+    );
+    const seen = await signInThroughForm(page, person);
+    await expect(page.getByTestId("legal-accept-screen")).toBeVisible({ timeout: 20_000 });
+    const after = seen.filter((path) => path !== "/auth");
+    expect(after[0], `LAC-5: the landings were ${JSON.stringify(seen)}`).toBe("/legal/accept");
+    expect(new URL(page.url()).searchParams.get("next")).toBe("/account");
+  });
+
+  test("LAC-6 with nothing owed the same sign-in lands on the return path directly", async ({
+    page,
+  }) => {
+    const tag = tagOf("f");
+    const terms = await seed(`${tag}-terms`);
+    const person = await createUser({ confirmed: true });
+    const accepted = await adminClient().from("legal_acceptances").insert({
+      user_id: person.id,
+      version_id: terms.versionId,
+      language: "en",
+      method: "email",
+      adult_confirmed: true,
+      data_consent: false,
+    });
+    fail(accepted.error, "LAC-6 seed acceptance");
+    await page.addInitScript(
+      (list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      },
+      [`${tag}-terms`],
+    );
+    const seen = await signInThroughForm(page, person);
+    await expect(page).toHaveURL(/\/account$/, { timeout: 20_000 });
+    expect(seen, "LAC-6: an acceptance screen appeared").not.toContain("/legal/accept");
   });
 });
