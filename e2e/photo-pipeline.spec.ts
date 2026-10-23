@@ -342,6 +342,66 @@ test.describe("PHOTO PIPELINE", () => {
     }
   });
 
+  test("PP-34 another account's DELETE on an active ad's photo changes nothing", async ({
+    page,
+  }) => {
+    const { user, token } = await seller(page);
+    const leaf = await seedPostableCategory();
+    categories.push(leaf.slug);
+    const chain = await seedScratchChain("ET");
+    regions.push(chain.region.slug);
+    const { data: seeded, error: seedError } = await adminClient()
+      .from("listings")
+      .insert({
+        category_id: leaf.id,
+        seller_id: user.id,
+        location_id: chain.city.id,
+        home_country_code: "ET",
+        title: `e2e-delete-pp34-${RUN}-${rand()}`,
+        description: "e2e scratch listing for PP-34",
+        status: "active",
+        published_at: new Date(Date.now() - 60_000).toISOString(),
+      })
+      .select("id")
+      .single();
+    if (seedError || !seeded) {
+      throw new Error(`[e2e:pp34] active listing seed failed: ${seedError?.message ?? "no row"}`);
+    }
+    const listingId = String(seeded.id);
+    objects.push({ userId: user.id, listingId });
+    const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
+    expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
+    const before = await photoRowsOf(listingId);
+    expect(before, "PP-34: one photo uploaded").toHaveLength(1);
+    const photo = before[0];
+    if (!photo) throw new Error("[e2e:pp34] uploaded photo missing");
+    expect(photo.id).toBe(uploaded.payload["photoId"]);
+    const keys = await objectsUnder(user.id, listingId);
+    expect(keys.length, "PP-34: objects stored before the refusal").toBeGreaterThan(0);
+    for (const variant of ["cover", "card", "thumb"] as const) {
+      expect(keys).toContain(keyOf(photo, variant));
+    }
+    for (const key of keys) expect(await objectExists(key), `PP-34: ${key} stored`).toBe(true);
+
+    const intruder = await leaseUser();
+    expect(intruder.id).not.toBe(user.id);
+    sellers.push(intruder.id);
+    await signInViaSession(page, intruder.email, intruder.password);
+    await gotoReady(page, "/");
+    const removed = await photoAction(page, photo.id, "delete", await bearerOf(page));
+    expect(removed.status, JSON.stringify(removed.payload)).toBe(403);
+    expect(reasons(removed.payload)).toEqual([{ field: "id", reason: "notYourListing" }]);
+    expect(await photoRowsOf(listingId), "PP-34: refused DELETE leaves the row unchanged").toEqual(
+      before,
+    );
+    expect(
+      (await objectsUnder(user.id, listingId)).sort(),
+      "PP-34: refused DELETE leaves every key",
+    ).toEqual([...keys].sort());
+    for (const key of keys) expect(await objectExists(key), `PP-34: ${key} preserved`).toBe(true);
+  });
+
   test("PP-9 the upload dial refuses once the seller's hourly ceiling is reached", async ({
     page,
   }) => {

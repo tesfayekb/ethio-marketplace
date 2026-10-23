@@ -149,7 +149,8 @@ const FAKE_LANGUAGES: ProviderLanguage[] = [
 async function loadSupportedLanguages(apiKey: string): Promise<ProviderLanguage[]> {
   if (supportedLanguages) return supportedLanguages;
   const response = await fetch(
-    `https://translation.googleapis.com/language/translate/v2/languages?target=en&key=${encodeURIComponent(apiKey)}`,
+    "https://translation.googleapis.com/language/translate/v2/languages?target=en",
+    { headers: { "x-goog-api-key": apiKey } },
   );
   if (!response.ok) throw new Error(`language list unavailable (${response.status})`);
   const payload = (await response.json()) as {
@@ -261,14 +262,11 @@ async function googleTranslate(
   const masked = chunk.map((item) => maskTokens(item.source, true));
   for (const entry of masked) body.append("q", entry.text);
 
-  const response = await fetch(
-    `https://translation.googleapis.com/language/translate/v2?key=${encodeURIComponent(apiKey)}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
-    },
-  );
+  const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded", "x-goog-api-key": apiKey },
+    body,
+  });
   if (!response.ok) {
     const detail = await response.text();
     // The key is never echoed: only the provider's status and its own message.
@@ -409,7 +407,7 @@ async function handlePost(request: Request): Promise<Response> {
   // Machine translation is asked for only while `translations` is switched on
   // (off: 409; a switch that could not be read: 503), and the characters the
   // provider (or fake mode) was sent are metered once the chunks have answered.
-  const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
+  const { aiFakeMode, aiGate, recordAiSpend } = await import("@/server/ai/meter");
   const meterLog = (message: string) => logRouteError(message);
   const gate = await aiGate("translations", meterLog);
   if (!gate.on) {
@@ -420,7 +418,7 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // ---- PROVIDER --------------------------------------------------
-  const fake = serverEnv("E2E_FAKE_TRANSLATE") === "1";
+  const fake = aiFakeMode("E2E_FAKE_TRANSLATE");
   const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
   if (!fake && apiKey === "") {
     return fail5xx("translation provider is not configured", 503);
@@ -549,7 +547,8 @@ async function handleGet(request: Request): Promise<Response> {
   if (manageError) return fail5xx(manageError.message, 500);
   if (mayManage !== true) return json({ error: "permission denied" }, 403);
 
-  if (serverEnv("E2E_FAKE_TRANSLATE") === "1") {
+  const { aiFakeMode } = await import("@/server/ai/meter");
+  if (aiFakeMode("E2E_FAKE_TRANSLATE")) {
     return json({ languages: FAKE_LANGUAGES }, 200);
   }
 

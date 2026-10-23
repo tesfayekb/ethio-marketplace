@@ -16,7 +16,7 @@ import {
 } from "@/server/supabase/user-client";
 import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
 import { withUntrustedRule } from "@/lib/untrusted-text";
-import { aiGate, recordAiSpend } from "@/server/ai/meter";
+import { aiFakeMode, aiGate, recordAiSpend } from "@/server/ai/meter";
 import { signPhotoRows } from "@/server/media/links";
 import { errorText } from "@/lib/error-text";
 
@@ -382,7 +382,7 @@ async function handlePost(request: Request): Promise<Response> {
   // FAKE MODE: `E2E_FAKE_ASSIST=1`, or the harness's standing `E2E_FAKE_TRANSLATE=1`
   // (the flag every e2e job already exports — the translate route's own switch),
   // so a test run never spends provider credit and never reaches the network.
-  if (serverEnv("E2E_FAKE_ASSIST") === "1" || serverEnv("E2E_FAKE_TRANSLATE") === "1") {
+  if (aiFakeMode("E2E_FAKE_ASSIST")) {
     const fake = fakeAssist(
       category.slug,
       facts,

@@ -31,6 +31,12 @@
  */
 
 import { errorText } from "@/lib/error-text";
+import { isE2E } from "@/lib/env-flags";
+
+/** INC-828 — runtime flags cannot enable stand-ins in a normal build. */
+export function aiFakeMode(flag: string): boolean {
+  return isE2E && (process.env[flag] === "1" || process.env["E2E_FAKE_TRANSLATE"] === "1");
+}
 
 export const AI_FEATURES = [
   "photo_screen",

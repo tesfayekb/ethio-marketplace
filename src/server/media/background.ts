@@ -31,6 +31,7 @@
  * network.
  */
 import { errorText } from "@/lib/error-text";
+import { aiFakeMode } from "@/server/ai/meter";
 
 /** D159 — once per ad, plus one retry. */
 export const BACKGROUND_TRIES = 2;
@@ -53,7 +54,7 @@ export interface Cutout {
 type Log = (message: string) => void;
 
 export function isBackgroundFake(): boolean {
-  return process.env["E2E_FAKE_BACKGROUND"] === "1" || process.env["E2E_FAKE_TRANSLATE"] === "1";
+  return aiFakeMode("E2E_FAKE_BACKGROUND");
 }
 
 /** The provider's key, read inside the handler and never echoed (F1). */

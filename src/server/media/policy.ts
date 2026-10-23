@@ -2,6 +2,7 @@ import { cleanUntrusted, untrustedText, withUntrustedRule } from "@/lib/untruste
 
 import type { ImageFormat } from "./strip";
 import { errorText } from "@/lib/error-text";
+import { aiFakeMode } from "@/server/ai/meter";
 
 /**
  * U6-B1 — THE UPLOAD-TIME POLICY PASS (spec §12 D15).
@@ -246,7 +247,7 @@ function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
  * the upload route's site day cap counts paid screens only, so it reads this too.
  */
 export function photoPolicyFake(): boolean {
-  return serverEnv("E2E_FAKE_PHOTO_POLICY") === "1" || serverEnv("E2E_FAKE_TRANSLATE") === "1";
+  return aiFakeMode("E2E_FAKE_PHOTO_POLICY");
 }
 
 export async function screenPhotoPolicy(

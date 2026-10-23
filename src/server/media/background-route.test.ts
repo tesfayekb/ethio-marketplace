@@ -73,7 +73,9 @@ vi.mock("@/server/supabase/user-client", () => {
     routeJson,
   };
 });
-vi.mock("@/server/ai/meter", () => ({
+vi.mock("@/lib/env-flags", () => ({ isE2E: true }));
+vi.mock("@/server/ai/meter", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/ai/meter")>()),
   aiGate: async () => state.gate,
   recordAiSpend: async (feature: string) => {
     state.spent.push(feature);
