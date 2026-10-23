@@ -141,11 +141,26 @@ test.describe("Legal acceptance", () => {
     );
     await expect(page.getByTestId("legal-accept-doc")).toHaveCount(2);
     const submit = page.getByTestId("legal-accept-submit");
-    await expect(submit).toBeDisabled();
     await expect(page.getByTestId("legal-accept-screen")).toContainText(
       "I am 18 or older. I have read and agree to the Terms of Service and the Privacy Policy.",
     );
-    await page.getByTestId("legal-accept-tick").click();
+    // Turn 32 (D230, D231): one link per document under the sentence; Submit drawn closed, never disabled.
+    const links = page.getByTestId("agree-link");
+    await expect(links).toHaveCount(2);
+    await expect(links.nth(0)).toHaveAttribute("href", "/terms");
+    await expect(links.nth(1)).toHaveAttribute("href", "/privacy");
+    await expect(submit).toHaveAttribute("data-closed", "1");
+    await submit.click();
+    const tick = page.getByTestId("legal-accept-tick");
+    await expect(tick).toHaveAttribute("aria-invalid", "true");
+    await expect(page.getByTestId("agree-message")).toHaveText(en["legal.agree.required"]);
+    await expect(page.getByTestId("agree-to-document")).toHaveAttribute("data-refused", "1");
+    expect(
+      await acceptanceRows(person.id, [terms.versionId, privacy.versionId]),
+      "LAC-1: a tap on the closed Submit recorded an acceptance",
+    ).toEqual([]);
+    await tick.click();
+    await expect(submit).not.toHaveAttribute("data-closed", "1");
     const privacyRow = page.locator(`[data-testid="legal-accept-doc"][data-kind="${tag}-privacy"]`);
     await privacyRow.getByTestId("legal-accept-read").click();
     await expect(page.getByTestId("legal-accept-text")).toContainText("Scratch English text 1");
