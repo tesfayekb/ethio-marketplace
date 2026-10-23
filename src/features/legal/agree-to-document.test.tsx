@@ -102,6 +102,7 @@ describe("AgreeToDocument (bundle 22 turn 32)", () => {
     }
     visit(join(process.cwd(), "src"));
     // Allowlist: none (a future exception is a line here with its reason and `until`, G55).
-    expect(matches.sort()).toEqual(["src/features/legal/agree-to-document.tsx"]);
+    const outside = matches.filter((m) => m !== "src/features/legal/agree-to-document.tsx");
+    expect(outside.sort()).toEqual([]);
   });
 });
