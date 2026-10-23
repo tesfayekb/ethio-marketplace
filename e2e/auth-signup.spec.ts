@@ -375,6 +375,45 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
  * passwords that differ are refused on the form and no sign-up request leaves.
  * Needs no mail sink: nothing is sent.
  */
+/**
+ * Turn 32 F4 (D230) — the tick missing: Create account is drawn closed, a tap
+ * marks the tick refused, and NO sign-up request leaves. Needs no mail sink:
+ * nothing is sent.
+ */
+test("SU-5 the tick missing: Create account is drawn closed, a tap refuses, and nothing leaves", async ({
+  page,
+}) => {
+  const signups: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/auth/v1/signup")) signups.push(request.url());
+  });
+  const email = testEmail(RUN_ID, 195);
+  const create = page.getByRole("button", {
+    name: new RegExp(`^${en["auth.signUpButton"]}$`, "i"),
+  });
+  await page.goto("/auth");
+  await waitForHydration(page);
+  await page.getByTestId("auth-toggle-view").click();
+  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+  await fillUntilStable(page.locator("#auth-password"), "Pw-195-aX9!qmzT", "password");
+  await fillUntilStable(
+    page.locator("#auth-password-confirm"),
+    "Pw-195-aX9!qmzT",
+    "password confirmation",
+  );
+  await expect(create).toHaveAttribute("data-closed", "1");
+  await create.click();
+  const tick = page.getByTestId("auth-agree-tick");
+  await expect(tick).toHaveAttribute("aria-invalid", "true");
+  await expect(page.getByTestId("agree-message")).toHaveText(en["legal.agree.required"]);
+  await expect(page.getByTestId("agree-to-document")).toHaveAttribute("data-refused", "1");
+  expect(signups, "SU-5 an unticked form sent a sign-up request").toEqual([]);
+  expect(
+    await signupUser(email),
+    "SU-5 an account exists for the unticked sign-up",
+  ).toBeUndefined();
+});
+
 test("SU-1 sign-up asks for the password twice, and a mismatch sends nothing", async ({ page }) => {
   const signups: string[] = [];
   page.on("request", (request) => {
@@ -383,21 +422,13 @@ test("SU-1 sign-up asks for the password twice, and a mismatch sends nothing", a
   await page.goto("/auth");
   await waitForHydration(page);
   await expect(page.locator("#auth-password-confirm")).toHaveCount(0);
-  await page.getByTestId("auth-toggle-view").click();
+  await signUpThroughForm(page, {
+    email: testEmail(RUN_ID, 191),
+    password: "Pw-191-aX9!qmzT",
+    confirmPassword: "Pw-191-aX9!qmzt",
+    agree: true,
+  });
   await expect(page.locator("#auth-password-confirm")).toBeVisible();
-
-  await fillUntilStable(
-    page.getByRole("textbox", { name: /email/i }),
-    testEmail(RUN_ID, 191),
-    "email",
-  );
-  await fillUntilStable(page.locator("#auth-password"), "Pw-191-aX9!qmzT", "password");
-  await fillUntilStable(
-    page.locator("#auth-password-confirm"),
-    "Pw-191-aX9!qmzt",
-    "password confirmation",
-  );
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
   await expect(page.getByRole("alert")).toHaveText(en["auth.errorPasswordMismatch"]);
   expect(signups, "SU-1 a mismatch sent a sign-up request").toEqual([]);
 });
