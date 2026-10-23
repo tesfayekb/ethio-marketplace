@@ -7,6 +7,7 @@
  * straight through), never swallowed into a fake success.
  */
 import { UNTRUSTED_RULE, untrustedText } from "@/lib/untrusted-text";
+import { aiFakeMode } from "@/server/ai/meter";
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -15,22 +16,11 @@ export function serverEnv(name: string, fallback = ""): string {
 }
 
 /**
- * PART A — MODE PRECEDENCE, decided in exactly one place:
- *   GEMINI_FAKE=1  ⇒ fake
- *   else key present ⇒ real
- *   else ⇒ fake (fail-safe; warned once on the [ssr-error] channel).
- * No caller may throw for a missing key.
+ * INC-828 — stand-ins require the test build and an explicit harness flag.
+ * Without that permission the provider path reports a missing key normally.
  */
-let keylessWarned = false;
-
 export function isFakeMode(): boolean {
-  if (serverEnv("GEMINI_FAKE") === "1") return true;
-  if (serverEnv("GEMINI_API_KEY").trim() !== "") return false;
-  if (!keylessWarned) {
-    keylessWarned = true;
-    console.error("[ssr-error] category-images: no GEMINI_API_KEY — fake mode");
-  }
-  return true;
+  return aiFakeMode("GEMINI_FAKE");
 }
 
 export function imageModel(): string {

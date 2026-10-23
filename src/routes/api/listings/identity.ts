@@ -14,7 +14,7 @@ import {
   upstreamUnavailable,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
-import { aiGate, recordAiSpend } from "@/server/ai/meter";
+import { aiFakeMode, aiGate, recordAiSpend } from "@/server/ai/meter";
 import { untrustedText, withUntrustedRule } from "@/lib/untrusted-text";
 import { errorText } from "@/lib/error-text";
 
@@ -91,9 +91,7 @@ interface Imitation {
 }
 
 async function imitationOf(alias: string): Promise<Imitation> {
-  const fake =
-    (process.env["E2E_FAKE_ASSIST"] ?? "") === "1" ||
-    (process.env["E2E_FAKE_TRANSLATE"] ?? "") === "1";
+  const fake = aiFakeMode("E2E_FAKE_ASSIST");
   if (fake) return { of: alias.includes("cocacola") ? "Coca-Cola" : null, checked: true };
 
   const key = process.env["GEMINI_API_KEY"] ?? "";

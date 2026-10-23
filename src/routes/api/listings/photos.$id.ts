@@ -32,8 +32,7 @@ import { errorText } from "@/lib/error-text";
  * The doors (`remove_listing_photo`, `set_cover_photo`, `move_listing_photo`) are
  * the authority: each checks `seller_id = auth.uid()` itself, and each is called
  * AS THE CALLER.
- * The route's only extra work is the storage objects, deleted BEFORE the row so
- * a failure leaves a row pointing at nothing rather than an unreachable object.
+ * Storage cleanup runs only after the caller-scoped door has answered ok.
  */
 
 const PATH = "/api/listings/photos/$id";
@@ -41,15 +40,24 @@ const PATH = "/api/listings/photos/$id";
 async function ownedPhoto(
   supabase: NonNullable<Awaited<ReturnType<typeof userClientFromRequest>>["supabase"]>,
   photoId: string,
+  userId: string,
 ) {
-  // Read AS THE CALLER: `listing_photos_seller_read` means a photo that is not
-  // the caller's simply is not there (F3).
+  // Read both rows AS THE CALLER and explicitly compare the listing's owner:
+  // public photo visibility is not ownership, regardless of the policy used.
   const { data, error } = await supabase
     .from("listing_photos")
     .select("id, listing_id, paths, storage_path")
     .eq("id", photoId)
     .maybeSingle();
   if (error) throw new Error(`photo read: ${error.message}`);
+  if (!data) return null;
+  const { data: listing, error: listingError } = await supabase
+    .from("listings")
+    .select("seller_id")
+    .eq("id", data.listing_id)
+    .maybeSingle();
+  if (listingError) throw new Error(`listing read: ${listingError.message}`);
+  if (listing?.seller_id !== userId) return null;
   return data;
 }
 
@@ -57,8 +65,9 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
   const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
-  const supabase = caller.supabase!;
-  const userId = caller.userId!;
+  const supabase = caller.supabase;
+  const userId = caller.userId;
+  if (!supabase || !userId) return refusal("id", "notYourListing");
 
   // Bundle 16 turn S1 (the operator, 2026-10-15) — removals have their own limit per
   // seller across every ad, an hour and a day, as uploads do: an add-and-remove loop
@@ -78,20 +87,9 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
   );
   if (!daily.allowed) return refusal("photos", "rateLimited", daily.resetsAt ?? undefined);
 
-  const photo = await ownedPhoto(supabase, photoId);
+  const photo = await ownedPhoto(supabase, photoId, userId);
   if (!photo) {
     return routeJson({ ok: false, refusals: [{ field: "id", reason: "notYourListing" }] }, 403);
-  }
-
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  for (const ref of objectRefsOf(photo.paths, photo.storage_path)) {
-    try {
-      await deleteObject(supabaseAdmin, ref.partition, ref.key);
-    } catch (error) {
-      // The object is gone or unreachable; the row must still go, so the failure
-      // is named rather than swallowed (F4) and the removal continues.
-      logRouteError(PATH, `object delete ${ref.key}: ${errorText(error)}`);
-    }
   }
 
   const { data, error, status } = await supabase.rpc("remove_listing_photo", {
@@ -106,6 +104,18 @@ async function handleDelete(request: Request, photoId: string): Promise<Response
     logRouteError(PATH, `remove: ${error.message}`);
     return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
   }
+  if (data && typeof data === "object" && !Array.isArray(data) && data["ok"] === true) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    for (const ref of objectRefsOf(photo.paths, photo.storage_path)) {
+      try {
+        await deleteObject(supabaseAdmin, ref.partition, ref.key);
+      } catch (error) {
+        // The door has completed the removal; log each cleanup failure without
+        // turning that completed action into a refusal (the upload replace order).
+        logRouteError(PATH, `object delete ${ref.key}: ${errorText(error)}`);
+      }
+    }
+  }
   return routeJson(data, 200);
 }
 
@@ -113,7 +123,9 @@ async function handlePost(request: Request, photoId: string): Promise<Response> 
   const caller = await userClientFromRequest(request);
   const refused = refuseUserClient(PATH, caller);
   if (refused !== null) return refused;
-  const supabase = caller.supabase!;
+  const supabase = caller.supabase;
+  const userId = caller.userId;
+  if (!supabase || !userId) return refusal("id", "notYourListing");
 
   const body = await readJsonBody(request);
   const action = body["action"] ?? "cover";
@@ -129,7 +141,7 @@ async function handlePost(request: Request, photoId: string): Promise<Response> 
     return refusal("position", "badValue");
   }
 
-  const photo = await ownedPhoto(supabase, photoId);
+  const photo = await ownedPhoto(supabase, photoId, userId);
   if (!photo) {
     return routeJson({ ok: false, refusals: [{ field: "id", reason: "notYourListing" }] }, 403);
   }

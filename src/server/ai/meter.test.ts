@@ -1,4 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const build = vi.hoisted(() => ({ isE2E: false }));
+vi.mock("@/lib/env-flags", () => build);
 
 /**
  * Bundle 13, turn 1 — the AI meter's server side (D158, INC-600). The doors
@@ -20,7 +23,12 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const { AI_FEATURES, aiGate, recordAiSpend } = await import("./meter");
+const { AI_FEATURES, aiFakeMode, aiGate, recordAiSpend } = await import("./meter");
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  build.isE2E = false;
+});
 
 beforeEach(() => {
   calls.length = 0;
@@ -28,6 +36,30 @@ beforeEach(() => {
 });
 
 describe("the AI meter (D158)", () => {
+  it("INC-828 a stand-in exists only in the test build", () => {
+    const flags = [
+      "E2E_FAKE_PHOTO_POLICY",
+      "E2E_FAKE_ASSIST",
+      "E2E_FAKE_BACKGROUND",
+      "E2E_FAKE_TRANSLATE",
+      "GEMINI_FAKE",
+    ];
+    for (const flag of flags) vi.stubEnv(flag, "1");
+    for (const flag of flags) expect(aiFakeMode(flag)).toBe(false);
+    build.isE2E = true;
+    for (const flag of flags) expect(aiFakeMode(flag)).toBe(true);
+    for (const flag of flags) vi.stubEnv(flag, undefined);
+    for (const flag of flags) expect(aiFakeMode(flag)).toBe(false);
+    for (const flag of flags) {
+      vi.stubEnv(flag, "1");
+      expect(aiFakeMode(flag)).toBe(true);
+      vi.stubEnv(flag, undefined);
+    }
+    vi.stubEnv("E2E_FAKE_TRANSLATE", "1");
+    for (const flag of flags) expect(aiFakeMode(flag)).toBe(true);
+    build.isE2E = false;
+    for (const flag of flags) expect(aiFakeMode(flag)).toBe(false);
+  });
   it("AIM-1 the gate answers on, or off with its reason", async () => {
     const log = vi.fn();
     next.answer = async () => ({ data: { on: true, off_reason: null }, error: null });
