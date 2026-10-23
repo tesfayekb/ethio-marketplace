@@ -13,7 +13,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { inOneWindow } from "./helpers/rate-window";
+// INC-844: CG-5 (the password_remove dial) is withdrawn — rate_gate counts inside the door's own transaction, so every RAISE-style refusal rolls the count back; the dial row and rate_gate('password_remove') call stay (proven by M20's B8 proof).
 
 // DEC-241/242: scratch targets only; pooled accounts are consumers, never deactivated.
 const fixtures = adPageFixtures();
