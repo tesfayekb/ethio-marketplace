@@ -29,7 +29,5 @@ export async function signUpThroughForm(
     "password confirmation",
   );
   if (input.agree !== false) await page.getByTestId("auth-agree-tick").click();
-  await page
-    .getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") })
-    .click();
+  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
 }

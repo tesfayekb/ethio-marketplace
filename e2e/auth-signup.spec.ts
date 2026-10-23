@@ -205,8 +205,7 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
         .insert({ kind, country_code: null })
         .select("id")
         .single();
-      if (doc.error || !doc.data)
-        throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
+      if (doc.error || !doc.data) throw new Error(`[e2e:su3] document seed: ${doc.error?.message}`);
       const version = await adminClient()
         .from("legal_versions")
         .insert({

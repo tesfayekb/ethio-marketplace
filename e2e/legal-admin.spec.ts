@@ -1010,7 +1010,9 @@ test.describe("Admin Legal", () => {
     fail(permsError, "permissions read");
     const picked = (names: string[]) =>
       (perms ?? []).filter((p) =>
-        names.includes(`${(p as unknown as { resources: { name: string } }).resources.name}:${p.action}`),
+        names.includes(
+          `${(p as unknown as { resources: { name: string } }).resources.name}:${p.action}`,
+        ),
       );
     const makeRole = async (tag: string, names: string[]) => {
       const roleName = `${RUN_TAG}-role-${tag}`;
