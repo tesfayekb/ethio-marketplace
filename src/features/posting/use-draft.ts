@@ -323,13 +323,19 @@ export function useDraft(initialListingId: string | null): UseDraft {
     const sent = versionRef.current;
     setSaveState("saving");
 
+    const sentAnswers = valuesRef.current.attributes;
     let answer = await saveDraft(bodyFor(forStep));
 
     // Bundle 7 D5 rule 2 (INC-479) — THE DOOR'S OWN WORD HEALS A STALE FORM. A
     // refusal naming an answer the catalogue no longer has (unknownAttribute /
     // unknownOption) drops exactly what it named and the SAME step and claim go
     // ONCE more. A second refusal takes the ordinary path below; never a loop.
-    if (aliveRef.current && !answer.ok && !answer.unreachable) {
+    if (
+      aliveRef.current &&
+      !answer.ok &&
+      !answer.unreachable &&
+      valuesRef.current.attributes === sentAnswers
+    ) {
       const healed = dropRefusedAnswers(valuesRef.current.attributes, answer.refusals);
       if (healed !== null) {
         const next = { ...valuesRef.current, attributes: healed };

@@ -1497,7 +1497,7 @@ The list itself — docs/data/reserved-names-v4.csv, 762 organisations — is se
 
 ## INC-809 — the last answer chosen is the one stored (bundle 22 turn 28)
 
-An awaited catalogue cleanup could replace all answers from an older render before its effect cleanup ran; the deferred-save unit test reproduces m1 being sent and then m2 being sent by that stale producer. Cleanup now supplies its source answer object to the synchronous draft writer, which refuses it if the current answers have moved; the shared Edit writer uses the same check. This establishes the stale-write defect and its protection, but does not establish that PW-153's fixture encountered that precise window.
+An awaited catalogue cleanup could replace all answers from an older render before its effect cleanup ran; the deferred-save unit test reproduces m1 being sent and then m2 being sent by that stale producer. Cleanup now supplies its source answer object to the synchronous draft writer, which refuses it if the current answers have moved; shared Edit applies the same check, specification Undo uses the latest-answer emitter, older finder selections cannot finish after newer selections, and refusal healing applies only to unchanged sent answers. This establishes the stale-write defect and its protection, but does not establish that PW-153's fixture encountered that precise window.
 
 ## D231 — every required answer is marked and Next stays closed (bundle 22 turn 28)
 
