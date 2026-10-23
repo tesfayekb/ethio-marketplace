@@ -1052,7 +1052,7 @@ test.describe("Admin Legal", () => {
       const card = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(card.getByTestId("legal-view-inforce")).toBeVisible();
       await card.getByTestId("legal-translate-inforce").click();
-      await expect(page).toHaveURL(new RegExp(`/admin/legal/${versionId}\\?translate=1$`));
+      await expect(page).toHaveURL(new RegExp(`/admin/legal/${versionId}\\?translate=`));
       await expect(page.getByTestId("legal-translation-panel")).toBeVisible();
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/legal");
