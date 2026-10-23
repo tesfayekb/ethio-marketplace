@@ -89,7 +89,7 @@ export async function passwordGrant(
 ): Promise<PersistedSession> {
   const cacheKey = `${email}\u0000${password}`;
   const cached = grants.get(cacheKey);
-  if (cached && isFresh(cached)) return cached;
+  if (!opts.fresh && cached && isFresh(cached)) return cached;
 
   const response = await fetch(`${supabaseUrl()}/auth/v1/token?grant_type=password`, {
     method: "POST",
@@ -118,7 +118,7 @@ export async function passwordGrant(
     refresh_token: typeof body["refresh_token"] === "string" ? body["refresh_token"] : "",
     user: (body["user"] as Record<string, unknown>) ?? {},
   };
-  grants.set(cacheKey, session);
+  if (!opts.fresh) grants.set(cacheKey, session);
   return session;
 }
 
