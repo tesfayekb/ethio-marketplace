@@ -1,88 +1,13 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39941354154  **PLATFORM-ORIGIN?**
-- Commit: `277bb1d513a8df6234e7d5e781b0dcfb5b4887b1`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39942129628
+- Commit: `225594a14c8b74e1f2ff5ee55ccb8ad43b3362e0`
 - Attempt: 1
-- Written (UTC): 2026-10-23T11:13:11.187Z
+- Written (UTC): 2026-10-23T11:34:53.750Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
-
-## Build, typecheck, lint — failure
-
-### Evidence lines
-
-```text
-[36;1m  *) echo "::error::promote-needs self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
-[36;1m  *) echo "::error::actionlint self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-+ @tanstack/router-plugin@1.168.42
-+ @types/pngjs@6.0.5
-+ class-variance-authority@0.7.1
-+ clsx@2.1.1
-+ cmdk@1.1.1
-+ date-fns@4.1.0
-+ embla-carousel-react@8.6.0
-+ input-otp@1.4.2
-+ jpeg-js@0.4.4
-+ leaflet@1.9.4
-+ libphonenumber-js@1.11.18
-+ lucide-react@0.575.0
-+ pngjs@7.0.0
-+ qrcode-generator@2.0.4
-+ react@19.2.5
-+ react-day-picker@9.14.0
-+ react-dom@19.2.5
-+ react-hook-form@7.73.1
-+ react-resizable-panels@4.10.0
-+ recharts@2.15.4
-+ sonner@2.0.7
-+ tailwind-merge@3.5.0
-+ tailwindcss@4.2.4
-+ tw-animate-css@1.4.0
-+ vaul@1.1.2
-+ vite-tsconfig-paths@6.1.1
-+ zod@3.25.76
-
-543 packages installed [3.91s]
-##[group]Run bun run typecheck
-[36;1mbun run typecheck[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-$ tsc --noEmit
-##[group]Run bun run format:check
-[36;1mbun run format:check[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-$ prettier --check "src/**" "e2e/**" "docs/**" "*.{json,js,ts,md}"
-Checking formatting...
-[[33mwarn[39m] docs/features/e2e-harness.md
-[[33mwarn[39m] Code style issues found in the above file. Run Prettier with --write to fix.
-error: script "format:check" exited with code 1
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/b531d782-4488-472c-860b-7bb154a56a59' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -101,6 +26,8 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
@@ -109,12 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39941354154
-  E2E_HEAD_COMMIT_MESSAGE: Lovable update
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39942129628
+  E2E_HEAD_COMMIT_MESSAGE: Fixed cleanup import in e2e file
 
-Background task agent_id=sub_k4v9d54x project=b0521dfa-0e8c-4bc6-a635-16d3246b540f completed
-
-X-Lovable-Edit-ID: edt-2ea4a7d2-acd2-4966-906f-7d9d7c163976
+X-Lovable-Edit-ID: edt-c12b104e-b857-4a03-93bc-441ffa225c48
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -131,7 +56,7 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (18/18 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (17/18 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -148,7 +73,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/89d8ca9c-1ffc-4362-bca0-85398e498bbc' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/3a38b7ea-66cb-4203-99d7-dca7fc711dd0' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
