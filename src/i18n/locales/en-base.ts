@@ -1382,7 +1382,6 @@ export const enBase = {
   "legal.certify.leadOnce":
     "Read the statement below. You confirm it once for this ad, and again only if it changes.",
   "legal.certify.forCountry": "For {country}",
-  "legal.certify.tick": "I certify the above.",
   "legal.certify.tickStatement": "I certify the publishing statement.",
   "legal.agree.required": "Tick the box to continue.",
   "legal.certify.changed": "The statement has just changed. Read it and tick again.",

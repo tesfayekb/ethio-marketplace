@@ -77,8 +77,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "auth.errorRateLimited": "ብዙ ሙከራዎች ተደርገዋል። ትንሽ ቆይተው እንደገና ይሞክሩ።",
   "auth.errorMissingFields": "ኢሜይልዎንና የይለፍ ቃልዎን ያስገቡ።",
   "auth.errorGeneric": "የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።",
-  "auth.errorMailSend":
-    "የማረጋገጫ ኢሜይል መላክ አልተቻለም። ከአንድ ደቂቃ በኋላ እንደገና ይሞክሩ፣ ወይም ሌላ የኢሜይል አድራሻ ይጠቀሙ።",
+  "auth.errorMailSend": "የማረጋገጫ ኢሜይል መላክ አልተቻለም። ከአንድ ደቂቃ በኋላ እንደገና ይሞክሩ፣ ወይም ሌላ የኢሜይል አድራሻ ይጠቀሙ።",
   "settings.navLabel": "ቅንብሮች",
   "settings.title": "ቅንብሮች",
   "settings.identity": "የእርስዎ አካውንት",
@@ -1303,7 +1302,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "legal.certify.leadOnce":
     "ከታች ያለውን ማረጋገጫ ያንብቡ። ለዚህ ማስታወቂያ አንድ ጊዜ ያረጋግጡታል፤ ማረጋገጫው ከተቀየረ ብቻ እንደገና ይጠየቃሉ።",
   "legal.certify.forCountry": "ለ{country}",
-  "legal.certify.tick": "ከላይ ያለውን አረጋግጣለሁ።",
   "legal.certify.tickStatement": "የማስታወቂያ ማረጋገጫ ቃሉን አረጋግጣለሁ።",
   "legal.agree.required": "ለመቀጠል ሳጥኑን ምልክት ያድርጉ።",
   "legal.certify.changed": "ማረጋገጫው አሁን ተለውጧል። ያንብቡት፤ እንደገና ምልክት ያድርጉ።",
