@@ -204,6 +204,18 @@ export async function gotoReady(page: Page, path: string) {
 }
 
 /**
+ * INC-809: the wizard saves a change only after a two-second debounce
+ * (use-draft.ts DEBOUNCE_MS). A test waits for the saved state before it
+ * reads database truth or navigates after a wizard change. change() sets
+ * "unsaved" synchronously, so this wait cannot pass on a stale "saved".
+ */
+export async function awaitDraftSaved(page: Page, timeout = 20_000) {
+  await expect(page.getByTestId("post-save-state")).toHaveAttribute("data-state", "saved", {
+    timeout,
+  });
+}
+
+/**
  * The shell moved the signed-in controls (identity, profile, settings, sign
  * out) into the header account menu. Opening it is now a prerequisite for
  * asserting any of them.

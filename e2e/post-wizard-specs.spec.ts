@@ -1728,6 +1728,7 @@ test.describe("POSTING WIZARD", () => {
 
   /** Record a scratch draft as past contact (service client, this row only) and open it. */
   async function openAtReview(page: Page, listingId: string, userId: string, tag: string) {
+    await awaitDraftSaved(page);
     const { error } = await adminClient()
       .from("listings")
       .update({ draft_step: 7 })
@@ -1938,6 +1939,7 @@ test.describe("POSTING WIZARD", () => {
       timeout: 20_000,
     });
     await control(model).selectOption(m1);
+    await awaitDraftSaved(page);
     await expect
       .poll(async () => (await attributesOf(listingId))[model], { timeout: 20_000 })
       .toBe(m1);
