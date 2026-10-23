@@ -190,10 +190,12 @@ test(
   { tag: "@private-identity" },
   async () => {
     const user = await fresh();
-    const session = await passwordGrant(user.email, user.password);
+    const session = await passwordGrant(user.email, user.password, { fresh: true });
     const result = await bearerClient(session.access_token).rpc("remove_own_password");
     expect(result.error?.message).toContain("recent sign-in required");
-    expect((await passwordGrant(user.email, user.password)).user?.id).toBe(user.id);
+    expect((await passwordGrant(user.email, user.password, { fresh: true })).user?.id).toBe(
+      user.id,
+    );
   },
 );
 
@@ -202,26 +204,14 @@ test(
   { tag: "@private-identity" },
   async () => {
     const user = await fresh();
-    const first = await passwordGrant(user.email, user.password);
-    await passwordGrant(user.email, user.password);
+    const first = await passwordGrant(user.email, user.password, { fresh: true });
+    await passwordGrant(user.email, user.password, { fresh: true });
     const result = await bearerClient(first.access_token).rpc("remove_own_password");
     expect(result.error?.message).toMatch(/last sign-in method/i);
-    expect((await passwordGrant(user.email, user.password)).user?.id).toBe(user.id);
+    expect((await passwordGrant(user.email, user.password, { fresh: true })).user?.id).toBe(
+      user.id,
+    );
   },
 );
 
-test("CG-5 the dial", { tag: "@private-identity" }, async () => {
-  const user = await fresh();
-  const session = await passwordGrant(user.email, user.password);
-  const override = await adminClient()
-    .from("rate_overrides")
-    .insert({ user_id: user.id, action: "password_remove", max_count: 2 });
-  if (override.error) throw new Error(`[CG] dial override: ${override.error.message}`);
-  await inOneWindow(3600, 15000, "CG-5 password removal");
-  const caller = bearerClient(session.access_token);
-  for (let call = 0; call < 2; call++)
-    expect((await caller.rpc("remove_own_password")).error?.message).toContain(
-      "recent sign-in required",
-    );
-  expect((await caller.rpc("remove_own_password")).error?.message).toContain("rateLimited");
-});
+// INC-844: CG-5 (the password_remove dial) is withdrawn — rate_gate counts inside the door's own transaction, so every RAISE-style refusal rolls the count back; the dial row and rate_gate('password_remove') call stay (proven by M20's B8 proof).
