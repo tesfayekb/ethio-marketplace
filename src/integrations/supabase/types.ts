@@ -3358,6 +3358,7 @@ export type Database = {
         }
         Returns: Json
       }
+      account_is_deactivated: { Args: { p_user_id: string }; Returns: boolean }
       admin_accept_category_image: { Args: { p_id: string }; Returns: string }
       admin_add_category_pointer: {
         Args: { p_child_id: string; p_parent_id: string }
@@ -4346,6 +4347,7 @@ export type Database = {
         Returns: Json
       }
       approve_all_translations_impl: { Args: { p_lang: string }; Returns: Json }
+      assert_caller_active: { Args: never; Returns: undefined }
       assert_parent_not_catchall: {
         Args: { p_parent_id: string }
         Returns: undefined
@@ -5083,6 +5085,7 @@ export type Database = {
         Args: { p_note?: string; p_public_id: string; p_reason: string }
         Returns: Json
       }
+      require_recent_password: { Args: { p_window?: string }; Returns: string }
       require_step_up_if_needed: {
         Args: { p_action: string; p_resource: string }
         Returns: undefined
