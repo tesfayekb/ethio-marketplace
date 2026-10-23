@@ -514,8 +514,8 @@ test.describe("Legal certification", () => {
     await expect(block).not.toContainText(statementText);
     const links = block.getByTestId("agree-link");
     await expect(links).toHaveCount(1);
-    await expect(links.first()).toHaveAttribute("href", "/legal/publishing");
-    await expect(links.first()).toHaveText(en["legal.kind.publishing"]);
+    await expect(links.nth(0)).toHaveAttribute("href", "/legal/publishing");
+    await expect(links.nth(0)).toHaveText(en["legal.kind.publishing"]);
     await expect(page.getByTestId("post-publish-statement")).toHaveCount(0);
     const publish = page.getByTestId("post-publish");
     // D231: drawn closed, never disabled; a tap refuses at the tick and sends nothing.
