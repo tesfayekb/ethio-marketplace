@@ -131,6 +131,23 @@ test.describe("Legal public pages", () => {
     await expect(page.getByTestId("legal-public-page")).toBeVisible();
   });
 
+  test("LGP-4 /legal/publishing with no statement in force shows its soon state and carries the publishing title (DEC-236)", async ({
+    page,
+  }) => {
+    // Real kinds are never published on ethio-staging (as LGP-1 holds for /terms and /privacy).
+    await gotoReady(page, "/legal/publishing");
+    const shown = page.getByTestId("legal-public-page");
+    await expect(shown).toBeVisible();
+    await expect(shown.getByRole("heading", { level: 1 })).toHaveText("Publishing statement");
+    await expect(page.getByTestId("legal-public-none")).toHaveText(
+      "Publishing statement will be published here soon.".length > 0
+        ? /Publishing statement/
+        : /./,
+    );
+    await expect(page).toHaveTitle("Publishing statement — ethio.com");
+    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+  });
+
   test("LGP-2 a scratch document's page: meta, contents, frozen facts, the site's language, then the version ahead of its date", async ({
     page,
   }) => {
