@@ -51,11 +51,21 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findAllByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.agreeFirst.both")).toBeInTheDocument();
+    expect(screen.getByText("legal.accept.agreeFirst.both", { exact: false })).toBeInTheDocument();
+    expect(screen.getAllByTestId("agree-link").map((a) => a.getAttribute("href"))).toEqual([
+      "/terms",
+      "/privacy",
+    ]);
     expect(screen.getByTestId("legal-accept-signout")).toHaveTextContent("legal.accept.decline");
-    expect(submit()).toBeDisabled();
-    fireEvent.click(screen.getByTestId("legal-accept-tick"));
+    // Turn 32 (D231): drawn closed, never disabled; a tap refuses and sends nothing.
     expect(submit()).toBeEnabled();
+    expect(submit()).toHaveAttribute("data-closed", "1");
+    fireEvent.click(submit());
+    expect(screen.getByTestId("agree-message")).toHaveTextContent("legal.agree.required");
+    expect(screen.getByTestId("legal-accept-tick")).toHaveAttribute("aria-invalid", "true");
+    expect(accept).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId("legal-accept-tick"));
+    expect(submit()).not.toHaveAttribute("data-closed");
     fireEvent.click(submit());
     await waitFor(() =>
       expect(accept).toHaveBeenCalledWith({
@@ -72,7 +82,9 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.agreeUpdated.terms")).toBeInTheDocument();
+    expect(
+      screen.getByText("legal.accept.agreeUpdated.terms", { exact: false }),
+    ).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     await waitFor(() =>
@@ -96,7 +108,7 @@ describe("LegalAcceptScreen", () => {
     fireEvent.click(screen.getByTestId("legal-accept-read"));
     expect(await screen.findByText("Hello text")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("legal-accept-read"));
-    expect(submit()).toBeEnabled();
+    expect(submit()).not.toHaveAttribute("data-closed");
   });
   it("clears the tick and shows the changed sentence on notInForce", async () => {
     status.mockResolvedValue([row("terms", "t1")]);
@@ -108,7 +120,7 @@ describe("LegalAcceptScreen", () => {
     expect(await screen.findByTestId("legal-accept-error")).toHaveTextContent(
       "legal.accept.changed",
     );
-    expect(submit()).toBeDisabled();
+    expect(submit()).toHaveAttribute("data-closed", "1");
     expect(status).toHaveBeenCalledTimes(2);
   });
   it("keeps the tick on any other refusal", async () => {
@@ -119,7 +131,7 @@ describe("LegalAcceptScreen", () => {
     fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     expect(await screen.findByTestId("legal-accept-error")).toHaveTextContent("legal.accept.error");
-    expect(submit()).toBeEnabled();
+    expect(submit()).not.toHaveAttribute("data-closed");
   });
   it("goes on to next when nothing is listed", async () => {
     status.mockResolvedValue([]);
