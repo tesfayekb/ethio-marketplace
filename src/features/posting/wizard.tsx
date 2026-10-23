@@ -1358,7 +1358,8 @@ function WizardShell({
                                 needsLeaf ||
                                 photosBlockNext ||
                                 photosSendingNow ||
-                                (sellerEdit && certify.state === "loading")
+                                (sellerEdit &&
+                                  (certify.state === "loading" || certify.state === "error"))
                               }
                               data-closed={missing.length > 0 || certifyClosed ? "1" : undefined}
                               onClick={() => {
