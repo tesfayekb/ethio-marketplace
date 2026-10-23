@@ -298,6 +298,76 @@ test.describe("A: sign-up + resend (needs a recipient-agnostic mail sink)", () =
       await expect(page.getByTestId("legal-accept-screen")).toHaveCount(0);
     },
   );
+
+  test(
+    "SU-4 the form's tick records the acceptance at sign-up; the first sign-in lands on the return path",
+    { tag: "@private-identity" },
+    async ({ page }) => {
+      const info = test.info();
+      const tag =
+        `e2e-su4-${RUN_ID.replace(/[^a-z0-9]/gi, "").slice(-8)}-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "").slice(0, 5)}-${info.workerIndex}-email-${Math.random().toString(36).slice(2, 7)}`.toLowerCase();
+      const kinds = [`${tag}-terms`, `${tag}-privacy`];
+      // Seeded BEFORE the sign-up, so the form's tick records them (M21).
+      const versions = await seedAcceptanceKinds(kinds);
+      await page.addInitScript((list) => {
+        (window as unknown as { __ethioLegalKinds?: string[] }).__ethioLegalKinds = list;
+      }, kinds);
+      const email = testEmail(RUN_ID, 194);
+      acceptanceEmail = email;
+      const password = "Pw-194-aX9!qmzT";
+      const limit = watchAuthRateLimit(page);
+      await signUpThroughForm(page, { email, password, agree: true });
+      await assertNoSignUpError(page, limit);
+      await expect(page.getByRole("heading", { name: en["auth.checkEmail"] })).toBeVisible();
+      expect(limit.hit(), limit.reason()).toBe(false);
+      limit.disarm();
+      const user = await signupUser(email);
+      if (!user) throw new Error("[e2e:su4] signup account missing");
+      // Only the mail-link step is done for the person; signup and sign-in use the real forms.
+      const confirmed = await adminClient().auth.admin.updateUserById(user.id, {
+        email_confirm: true,
+      });
+      if (confirmed.error)
+        throw new Error(`[e2e:su4] email confirmation: ${authErrorText(confirmed.error)}`);
+      // Every main-frame path after the sign-in click, in order (as LAC-5).
+      const seen: string[] = [];
+      page.on("framenavigated", (frame) => {
+        if (frame === page.mainFrame()) seen.push(new URL(frame.url()).pathname);
+      });
+      await page.goto("/auth?return=%2Faccount");
+      await waitForHydration(page);
+      await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
+      await fillUntilStable(page.locator("#auth-password"), password, "password");
+      await page
+        .getByRole("button", { name: new RegExp(`^${en["auth.signInButton"]}$`, "i") })
+        .click();
+      await expect(page).toHaveURL(/\/account$/, { timeout: 20_000 });
+      expect(seen, `SU-4: the landings were ${JSON.stringify(seen)}`).not.toContain(
+        "/legal/accept",
+      );
+      const rows = await adminClient()
+        .from("legal_acceptances")
+        .select("version_id, method, adult_confirmed, language, home_country_code")
+        .eq("user_id", user.id)
+        .in("version_id", versions);
+      if (rows.error) throw new Error(`[e2e:su4] acceptance read: ${rows.error.message}`);
+      expect(rows.data).toHaveLength(2);
+      for (const versionId of versions) {
+        const row = rows.data?.find((accepted) => accepted.version_id === versionId);
+        expect(row, `SU-4: no signup acceptance for ${versionId}`).toBeTruthy();
+        expect(row?.method).toBe("signup");
+        expect(row?.adult_confirmed).toBe(true);
+        // The site's language at the tick (the form's metadata carries it).
+        expect(row?.language).toBe("en");
+        // No country_guess in a form sign-up.
+        expect(row?.home_country_code).toBeNull();
+      }
+      // Opened by hand, the acceptance screen has nothing owed and sends the person on.
+      await page.goto("/legal/accept");
+      await expect(page).toHaveURL(/\/$/);
+      await expect(page.getByTestId("legal-accept-screen")).toHaveCount(0);
+    },
+  );
 });
 
 /**
