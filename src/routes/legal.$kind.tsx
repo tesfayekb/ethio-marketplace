@@ -43,10 +43,13 @@ const PUBLISHING_DESCRIPTION =
  * publishing kind reads the same way, so the E2E proof reads its own statements (G27).
  */
 export const Route = createFileRoute("/legal/$kind")({
-  validateSearch: (search: Record<string, unknown>): { country?: string } =>
-    typeof search.country === "string" && COUNTRY.test(search.country)
-      ? { country: search.country }
-      : {},
+  // An unshaped country is dropped explicitly: the root passes raw search through, so `{}` would keep it.
+  validateSearch: (search: Record<string, unknown>): { country?: string } => ({
+    country:
+      typeof search.country === "string" && COUNTRY.test(search.country)
+        ? search.country
+        : undefined,
+  }),
   loaderDeps: ({ search }) => ({ country: search.country }),
   loader: async ({ params, deps }) => {
     if (params.kind === "terms" || params.kind === "privacy")
