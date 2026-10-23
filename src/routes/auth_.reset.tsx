@@ -122,7 +122,7 @@ function ResetScreen() {
         </p>
         <button
           type="button"
-          onClick={() => void navigate({ to: "/" })}
+          onClick={() => void landAfterSignIn({ navigate, href: "/", client })}
           className={`${primaryButtonClass} mt-6`}
         >
           {t("auth.continue")}

@@ -56,11 +56,33 @@ export function getCaptchaToken(): string | undefined {
   return undefined;
 }
 
-export async function signUp({ email, password }: Credentials): Promise<AuthResult> {
+/**
+ * Bundle 22 turn 32 (D230) — `legalAccept`: the sign-up form's tick, sent as metadata in the signup
+ * trigger's shape (M21); the trigger records only versions in force of the gate's kinds.
+ */
+export async function signUp(
+  { email, password }: Credentials,
+  legalAccept?: { versionIds: string[]; language: string },
+): Promise<AuthResult> {
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: emailRedirectUrl(), captchaToken: getCaptchaToken() },
+    options: {
+      emailRedirectTo: emailRedirectUrl(),
+      captchaToken: getCaptchaToken(),
+      ...(legalAccept
+        ? {
+            data: {
+              legal_accept: {
+                version_ids: legalAccept.versionIds,
+                language: legalAccept.language,
+                adult: true,
+                data_consent: false,
+              },
+            },
+          }
+        : {}),
+    },
   });
   if (error) return failure(error);
   return { ok: true };

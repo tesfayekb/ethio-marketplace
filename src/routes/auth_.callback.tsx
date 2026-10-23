@@ -58,7 +58,7 @@ function AuthCallback() {
       // A session AND a destination: there is nothing to confirm by hand.
       if (settled === "confirmed" && target !== "/") {
         // INC-530 — by `href`: the return path's query string stays a query string.
-        void navigate({ href: target, replace: true });
+        void landAfterSignIn({ navigate, href: target, replace: true, client });
       }
     })();
 
@@ -82,7 +82,7 @@ function AuthCallback() {
         <p className="mt-2 text-sm text-muted-foreground">{t("auth.confirmedBody")}</p>
         <button
           type="button"
-          onClick={() => void navigate({ href: target })}
+          onClick={() => void landAfterSignIn({ navigate, href: target, client })}
           className={`${primaryButtonClass} mt-6`}
         >
           {t("auth.continue")}
