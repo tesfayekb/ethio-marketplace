@@ -24,7 +24,7 @@ needs=$(awk '
 ' "$FILE" | tr '[],' '   ' | tr -s ' \t' '\n' | grep -v '^$' || true)
 
 [ -n "$jobs" ] || { echo "check-promote-needs: no jobs found in $FILE" >&2; exit 2; }
-echo "$jobs" | grep -qx promote || { echo "check-promote-needs: no promote job in $FILE" >&2; exit 1; }
+grep -qx promote <<<"$jobs" || { echo "check-promote-needs: no promote job in $FILE" >&2; exit 1; }
 
 fail=0
 while IFS= read -r j; do
@@ -32,13 +32,13 @@ while IFS= read -r j; do
   skip=0
   for s in "${SIGNAL_ONLY[@]}"; do [ "$j" = "$s" ] && skip=1; done
   [ "$skip" = 1 ] && continue
-  if ! echo "$needs" | grep -qx "$j"; then
+  if ! grep -qx "$j" <<<"$needs"; then
     echo "::error::promote.needs does not name job '$j' ($FILE; DEC-137)"; fail=1
   fi
 done <<< "$jobs"
 while IFS= read -r n; do
   [ -z "$n" ] && continue
-  if ! echo "$jobs" | grep -qx "$n"; then
+  if ! grep -qx "$n" <<<"$jobs"; then
     echo "::error::promote.needs names '$n', which is not a job in $FILE (DEC-137)"; fail=1
   fi
 done <<< "$needs"

@@ -93,15 +93,15 @@ EOF
   status=$?
   echo "$out"
   rm -rf "$tmp"
-  if [ "$status" -eq 0 ] || ! echo "$out" | grep -q "X-1"; then
+  if [ "$status" -eq 0 ] || ! grep -q "X-1" <<<"$out"; then
     echo "[identity-tags] SELF-TEST FAILED: the guard did not flag the violation"
     exit 1
   fi
-  if ! echo "$out" | grep -q "X-3"; then
+  if ! grep -q "X-3" <<<"$out"; then
     echo "[identity-tags] SELF-TEST FAILED: the guard did not read the wrapped title"
     exit 1
   fi
-  if echo "$out" | grep -q "X-2"; then
+  if grep -q "X-2" <<<"$out"; then
     echo "[identity-tags] SELF-TEST FAILED: the guard flagged the tagged control"
     exit 1
   fi
