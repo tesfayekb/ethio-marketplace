@@ -81,7 +81,10 @@ it("INC-809 an old option refusal cannot remove a newer answer", async () => {
     result.current.change({ categoryId: "c-1", attributes: { model: "m2" } }, true);
     await settle();
     result.current.change({ attributes: { model: "m1" } }, false);
-    pending[0]?.({ ...refused(), refusals: [{ field: "attributes.model", reason: "unknownOption" }] });
+    pending[0]?.({
+      ...refused(),
+      refusals: [{ field: "attributes.model", reason: "unknownOption" }],
+    });
     await settle();
   });
   expect(result.current.values.attributes["model"]).toBe("m1");
