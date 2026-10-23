@@ -1506,3 +1506,7 @@ Contact reports missing person names, business name, public name, shown channel 
 ## INC-824 — nothing leads back into a submitted ad (bundle 22 turn 28)
 
 After Publish the posting wizard removes its navigation controls and offers Home and My listings. The resume route reads the owner's listing through its existing scoped read and redirects every non-draft status to the owner's ad page; seller and staff Edit routes remain separate.
+
+## The certification in the link form (bundle 22 turn 32, DEC-236)
+
+The review step's certification is the shared AgreeToDocument: "I certify the [publishing statement]", the statement hyperlinked to the public page /legal/publishing, with the standard required styling. Publish (and the seller-edit Next) is drawn closed — never disabled — until ticked; in the block's loading or error state the button is disabled. The seller-edit keyboard Next path is unchanged.
