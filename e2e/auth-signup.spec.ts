@@ -442,13 +442,7 @@ test("SU-2 a throwaway mail address is refused at sign-up, in words, and no acco
 }) => {
   const email = `e2e-su2-${RUN_ID}-${Date.now().toString(36)}@mailinator.com`;
   const password = "Pw-192-aX9!qmzT";
-  await page.goto("/auth");
-  await waitForHydration(page);
-  await page.getByTestId("auth-toggle-view").click();
-  await fillUntilStable(page.getByRole("textbox", { name: /email/i }), email, "email");
-  await fillUntilStable(page.locator("#auth-password"), password, "password");
-  await fillUntilStable(page.locator("#auth-password-confirm"), password, "password confirmation");
-  await page.getByRole("button", { name: new RegExp(`^${en["auth.signUpButton"]}$`, "i") }).click();
+  await signUpThroughForm(page, { email, password, agree: true });
 
   const heading = page.getByRole("heading", { name: en["auth.checkEmail"] });
   const outcome = await expect
