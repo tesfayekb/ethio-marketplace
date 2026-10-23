@@ -499,7 +499,7 @@ test.describe("Legal certification", () => {
     expect((await certificationsOf(old)).map((row) => row["action"])).toEqual(["renew"]);
   });
 
-  test("LGC-1 the review step shows the statement with one tick, Publish waits for it; a draft with no statement shows today's line", async ({
+  test("LGC-1 the review step shows the statement as a link with one tick, Publish is closed until it; a draft with no statement shows today's line", async ({
     page,
   }) => {
     const { categoryId, cityId } = await sellerOnPage(page, s);
@@ -510,12 +510,25 @@ test.describe("Legal certification", () => {
     await gotoReady(page, `/post/${listingId}`);
     const block = page.getByTestId("certify-block");
     await expect(block).toBeVisible({ timeout: 20_000 });
-    await expect(block.getByTestId("certify-statement")).toContainText(statementText);
+    // Turn 32 (DEC-236): no statement text on the step; one link per statement.
+    await expect(block).not.toContainText(statementText);
+    const links = block.getByTestId("agree-link");
+    await expect(links).toHaveCount(1);
+    await expect(links.first()).toHaveAttribute("href", "/legal/publishing");
+    await expect(links.first()).toHaveText(en["legal.kind.publishing"]);
     await expect(page.getByTestId("post-publish-statement")).toHaveCount(0);
     const publish = page.getByTestId("post-publish");
-    await expect(publish).toBeDisabled();
-    await page.getByTestId("certify-tick").click();
+    // D231: drawn closed, never disabled; a tap refuses at the tick and sends nothing.
     await expect(publish).toBeEnabled();
+    await expect(publish).toHaveAttribute("data-closed", "1");
+    await publish.click();
+    await expect(page.getByTestId("certify-tick")).toHaveAttribute("aria-invalid", "true");
+    await expect(block.getByTestId("agree-message")).toHaveText(en["legal.agree.required"]);
+    await expect(block.getByTestId("agree-to-document")).toHaveAttribute("data-refused", "1");
+    expect(await statusOf(listingId), "LGC-1: a closed Publish published").toBe("draft");
+    expect(await certificationsOf(listingId), "LGC-1: a closed Publish certified").toEqual([]);
+    await page.getByTestId("certify-tick").click();
+    await expect(publish).not.toHaveAttribute("data-closed", "1");
     await publish.click();
     await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
@@ -545,9 +558,15 @@ test.describe("Legal certification", () => {
     await expect(dialog).toBeVisible({ timeout: 20_000 });
     await expect(dialog.getByTestId("certify-block")).toBeVisible();
     const yes = dialog.getByTestId("certify-confirm-yes");
-    await expect(yes).toBeDisabled();
-    await dialog.getByTestId("certify-tick").click();
+    // Turn 32 (D231): Yes is drawn closed; a tap refuses at the tick and renews nothing.
     await expect(yes).toBeEnabled();
+    await expect(yes).toHaveAttribute("data-closed", "1");
+    await yes.click();
+    await expect(dialog.getByTestId("certify-tick")).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.getByTestId("agree-message")).toHaveText(en["legal.agree.required"]);
+    expect(await statusOf(listingId), "LGC-2: a closed Yes renewed").toBe("expired");
+    await dialog.getByTestId("certify-tick").click();
+    await expect(yes).not.toHaveAttribute("data-closed", "1");
     await yes.click();
     await expect.poll(() => statusOf(listingId), { timeout: 20_000 }).toBe("active");
     expect((await certificationsOf(listingId)).map((row) => row["action"])).toEqual(["renew"]);
@@ -1203,5 +1222,37 @@ test.describe("Legal certification", () => {
     await page.getByTestId("certify-tick").click();
     await expect(page.getByTestId("post-photos-add")).toBeEnabled();
     await expect(page.getByTestId("post-photos-certify-wait")).toHaveCount(0);
+  });
+
+  test("LGC-6 a statement's public page shows the global statement, and the country's with its country line; anyone may read it (DEC-236)", async ({
+    page,
+  }) => {
+    // Scratch statements only (G27): the test's own e2e-pub- kind is read by the same loader path as
+    // /legal/publishing, with and without ?country=.
+    const kind = `e2e-pub-lgc6${rand().toLowerCase().replace(/[^a-z0-9]/g, "")}`.slice(0, 44);
+    const globalText = `Global statement ${rand()}`;
+    const countryText = `Country statement ${rand()}`;
+    await seedDocument(s, kind, null, globalText);
+    await seedDocument(s, kind, "ET", countryText);
+
+    await gotoReady(page, `/legal/${kind}`);
+    await expect(page.getByTestId("legal-public-meta")).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
+    await expect(page.getByTestId("legal-fallback-note")).toHaveCount(0);
+    await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
+
+    await gotoReady(page, `/legal/${kind}?country=ET`);
+    await expect(page.getByTestId("legal-public-page")).toContainText(countryText);
+    await expect(page.getByTestId("legal-public-country")).toHaveText(
+      en["legal.certify.forCountry"].replace("{country}", "Ethiopia"),
+    );
+
+    await gotoReady(page, `/legal/${kind}?country=zz`);
+    await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
+    await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
+
+    await gotoReady(page, "/legal/publishing");
+    await expect(page.getByTestId("legal-public-page")).toBeVisible();
+    await expect(page).toHaveTitle("Publishing statement — ethio.com");
   });
 });
