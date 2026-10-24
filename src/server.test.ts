@@ -65,6 +65,27 @@ describe("abandoned requests (INC-871)", () => {
   });
 });
 
+describe("clientAborted (INC-871 part 2)", () => {
+  it("ABT-4 a live request answers null and logs nothing", async () => {
+    const { clientAborted } = await import("@/server/answer");
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    expect(clientAborted(new Request("https://example.test/api/example"))).toBeNull();
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  it("ABT-5 an aborted request answers 499 with an empty body", async () => {
+    const { clientAborted } = await import("@/server/answer");
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const controller = new AbortController();
+    controller.abort();
+    const out = clientAborted(
+      new Request("https://example.test/api/example", { signal: controller.signal }),
+    );
+    expect(out?.status).toBe(499);
+    expect(await out?.text()).toBe("");
+  });
+});
+
 describe("normalizeCatastrophicSsrResponse (INC-421)", () => {
   it("passes a 5xx JSON answer through with its body byte for byte", async () => {
     const body = JSON.stringify({
