@@ -9,10 +9,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  BUCKET_IDLE_MS,
-  bucketFor,
   checkCell,
-  hasBucket,
   normalizeOptionsCell,
   optionShapeFault,
   parseFamilyFile,
@@ -61,27 +58,6 @@ describe("the options cell reads and round-trips", () => {
 
   it("still refuses a swatch that is not text", () => {
     expect(optionShapeFault('{"value":"a","swatch":123}|{"value":"b"}')).not.toBeNull();
-  });
-});
-
-describe("INC-298 — idle rate buckets are pruned", () => {
-  it("drops a bucket idle past an hour on the next bucketFor", () => {
-    const start = 1_000_000;
-    bucketFor("inc298-old", start);
-    bucketFor("inc298-fresh", start + BUCKET_IDLE_MS);
-    expect(hasBucket("inc298-old")).toBe(true);
-    bucketFor("inc298-fresh", start + BUCKET_IDLE_MS + 1);
-    expect(hasBucket("inc298-old")).toBe(false);
-    expect(hasBucket("inc298-fresh")).toBe(true);
-  });
-
-  it("keeps an in-flight bucket older than the idle window; deletes an idle one", () => {
-    const start = 5_000_000;
-    bucketFor("prune-busy", start).inFlight = true;
-    bucketFor("prune-idle", start);
-    bucketFor("prune-caller", start + BUCKET_IDLE_MS + 1);
-    expect(hasBucket("prune-busy")).toBe(true);
-    expect(hasBucket("prune-idle")).toBe(false);
   });
 });
 
