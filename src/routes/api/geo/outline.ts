@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { GEOCODE_PER_HOUR, isFakeGeocode, nominatim } from "@/server/geo/geocode";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
+import { isFakeGeocode, nominatim } from "@/server/geo/geocode";
 import {
-  consumeRate,
   logRouteError,
   refusal,
   refuseUserClient,
@@ -51,7 +52,7 @@ async function handleGet(request: Request): Promise<Response> {
     return withCache(routeJson({ ok: true, outline: held.outline, cached: true }, 200));
   }
 
-  const rate = await consumeRate("geocode", caller.userId!, GEOCODE_PER_HOUR, "1 hour");
+  const rate = await spend(DIALS.geocode, caller.userId!);
   if (!rate.allowed) return refusal("geocode", "rateLimited", rate.resetsAt ?? undefined);
 
   let outline: unknown = null;

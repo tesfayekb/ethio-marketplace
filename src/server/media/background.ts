@@ -34,10 +34,6 @@ import { upstream } from "@/server/upstream";
 import { errorText } from "@/lib/error-text";
 import { aiFakeMode } from "@/server/ai/meter";
 
-/** D159 — once per ad, plus one retry. */
-export const BACKGROUND_TRIES = 2;
-/** The per-ad count is a ledger, not a throttle (the writing helper's form). */
-export const BACKGROUND_WINDOW = "10 years";
 
 export const PHOTOROOM_SEGMENT_URL = "https://sdk.photoroom.com/v1/segment";
 

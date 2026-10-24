@@ -8,6 +8,7 @@ import { verdict } from "@/server/answer";
 import { doorCall } from "@/server/door";
 import { ownListing } from "@/server/listings/own-listing";
 import { deleteObject, objectRefsOf } from "@/server/media/storage";
+import { DIALS } from "@/lib/dials";
 import { defineRoute, type RateSpec } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
 import { errorText } from "@/lib/error-text";
@@ -71,17 +72,13 @@ const notYours = () => verdict([{ field: "id", reason: "notYourListing" }], 403)
  */
 const REMOVE_DIALS: RateSpec[] = [
   {
-    action: "photo-remove",
+    dial: DIALS.photoRemoveHour,
     key: "user",
-    limit: { env: "RATE_LIMIT_PHOTO_REMOVE_PER_HOUR", fallback: 30 },
-    windowSeconds: 3600,
     refuseAs: { verdict: { field: "photos" } },
   },
   {
-    action: "photo-remove:day",
+    dial: DIALS.photoRemoveDay,
     key: "user",
-    limit: { env: "RATE_LIMIT_PHOTO_REMOVE_PER_DAY", fallback: 100 },
-    windowSeconds: 86400,
     refuseAs: { verdict: { field: "photos" } },
   },
 ];

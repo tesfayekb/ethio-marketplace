@@ -1,16 +1,11 @@
 import { isPublicId } from "@/features/ad-page/address";
 import type { PublicListingDoc } from "@/features/ad-page/public-listing";
 import { clientAddress } from "@/server/catalog-find.server";
-import {
-  anonymousClient,
-  consumeRate,
-  envDial,
-  logRouteError,
-} from "@/server/supabase/user-client";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
+import { anonymousClient, logRouteError } from "@/server/supabase/user-client";
 import { signPhotoRows } from "@/server/media/links";
 import { ownValue } from "@/lib/own-key";
-
-export const PHOTO_LIMIT_PER_HOUR = 600;
 
 function photoRefusal(status: number, text: string): Response {
   return new Response(text, {
@@ -27,12 +22,7 @@ function photoRefusal(status: number, text: string): Response {
 export async function adPhotoResponse(request: Request, id: string): Promise<Response> {
   if (!isPublicId(id)) return photoRefusal(404, "not found");
   const path = `/l/${id}/photo.jpg`;
-  const rate = await consumeRate(
-    "listing-photo:address",
-    clientAddress(request),
-    envDial("RATE_LIMIT_LISTING_PHOTO_PER_HOUR", PHOTO_LIMIT_PER_HOUR),
-    "1 hour",
-  );
+  const rate = await spend(DIALS.listingPhotoAddress, clientAddress(request));
   if (!rate.allowed) return photoRefusal(429, "rate limited");
   const client = anonymousClient();
   if (client === null) {

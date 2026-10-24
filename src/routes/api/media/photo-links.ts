@@ -4,6 +4,8 @@ import { z } from "zod";
 import { uuid } from "@/lib/schemas/primitives";
 import { ok, serverError, upstreamUnavailable, verdict } from "@/server/answer";
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
 import { defineRoute, type RouteContext } from "@/server/route";
 import {
   photoIdsOf,
@@ -11,7 +13,7 @@ import {
   readAndSignPhotoLinks,
   variantsOf,
 } from "@/server/media/links";
-import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
+import { logRouteError } from "@/server/supabase/user-client";
 
 /**
  * INC-588 / D151 — LINKS TO STORED PHOTOS.
@@ -68,12 +70,7 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
 
   if (ctx.userId === null) {
     // dial in the handler: anonymous callers only — INC-859
-    const rate = await consumeRate(
-      "photo-links:address",
-      hashAddress(clientAddress(ctx.request)),
-      envDial("RATE_LIMIT_PHOTO_LINKS_PER_HOUR", 600),
-      "1 hour",
-    );
+    const rate = await spend(DIALS.photoLinksAddress, hashAddress(clientAddress(ctx.request)));
     if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
   }
   const supabase = ctx.supabase;

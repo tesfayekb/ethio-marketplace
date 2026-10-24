@@ -7,8 +7,10 @@ import { z } from "zod";
 
 import { ok, verdict } from "@/server/answer";
 import { ownListing } from "@/server/listings/own-listing";
+import { DIALS } from "@/lib/dials";
+import { peek, spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
-import { consumeRate, logRouteError, peekRate } from "@/server/supabase/user-client";
+import { logRouteError } from "@/server/supabase/user-client";
 import { upstream, UpstreamTimeout } from "@/server/upstream";
 import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
 import { withUntrustedRule } from "@/lib/untrusted-text";
@@ -81,9 +83,6 @@ const PATH = "/api/listings/assist";
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 1200;
-/** U6-C1-R2 — the per-listing writing budget. */
-const ASSIST_TRIES = 5;
-const ASSIST_WINDOW = "10 years";
 const MAX_PHOTOS_SENT = 3;
 
 function serverEnv(name: string): string {
@@ -139,7 +138,7 @@ async function photoLinks(supabase: SupabaseClient<Database>, raw: unknown): Pro
 function previousPairs(raw: unknown): { title: string; description: string }[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .slice(0, ASSIST_TRIES)
+    .slice(0, DIALS.assistListing.limit.fallback)
     .map((entry) => {
       const record = (entry ?? {}) as Record<string, unknown>;
       return {
@@ -329,7 +328,7 @@ async function handleGet(
   if (listingId === "") return verdict([{ field: "listingId", reason: "required" }]);
   const notOwn = await ownListingRefusal(supabase, userId, listingId);
   if (notOwn !== null) return notOwn;
-  const budget = await peekRate("assist:listing", listingId, ASSIST_TRIES, ASSIST_WINDOW);
+  const budget = await peek(DIALS.assistListing, listingId);
   return ok({ ok: true, triesLeft: budget.remaining });
 }
 
@@ -380,7 +379,7 @@ async function handlePost(
   let triesLeft: number | null = null;
   if (listingId !== "") {
     // dial in the handler: conditional, keyed by the listing, read for its remaining count — INC-859
-    const budget = await consumeRate("assist:listing", listingId, ASSIST_TRIES, ASSIST_WINDOW);
+    const budget = await spend(DIALS.assistListing, listingId);
     if (!budget.allowed) return verdict([{ field: "assist", reason: "assistBudgetSpent" }]);
     // INC-299 — the count comes from the rate-limit answer, never a table read.
     triesLeft = budget.remaining;
@@ -432,18 +431,14 @@ async function handlePost(
 
 const ASSIST_DIALS = [
   {
-    action: "assist",
+    dial: DIALS.assistHour,
     key: "user" as const,
-    limit: { env: "RATE_LIMIT_ASSIST_PER_HOUR", fallback: 30 },
-    windowSeconds: 3600,
     when: "beforeParse" as const,
     refuseAs: { verdict: { field: "rate" } },
   },
   {
-    action: "assist:day",
+    dial: DIALS.assistDay,
     key: "user" as const,
-    limit: { env: "RATE_LIMIT_ASSIST_PER_DAY", fallback: 60 },
-    windowSeconds: 86400,
     when: "beforeParse" as const,
     refuseAs: { verdict: { field: "rate" } },
   },

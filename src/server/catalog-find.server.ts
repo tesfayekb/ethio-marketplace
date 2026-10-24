@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
 
 import type { Database } from "@/integrations/supabase/types";
+import { DIALS } from "@/lib/dials";
 import { isE2E } from "@/lib/env-flags";
 import { errorText } from "@/lib/error-text";
 
-export const CATALOG_FIND_LIMIT = 120;
 export const CATALOG_FIND_TTL_MS = 60_000;
 export const CATALOG_FIND_MAX_ROWS = 8;
 export const CATALOG_FIND_MAX_BYTES = 2_048;
@@ -68,7 +68,7 @@ export async function catalogSearch(
     lang,
     lim: CATALOG_FIND_MAX_ROWS,
     p_rate_key: hashAddress(clientAddress(request)),
-    p_rate_limit: isE2E ? 2 : CATALOG_FIND_LIMIT,
+    p_rate_limit: isE2E ? 2 : dialLimit(DIALS.catalogFind),
   });
   if (error) throw new Error(`catalog search: ${error.message}`);
   const searchMs = performance.now() - started;
