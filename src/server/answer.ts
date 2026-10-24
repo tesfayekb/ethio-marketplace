@@ -167,11 +167,15 @@ export function download(text: string, init: { filename: string; contentType: st
     name === "" ||
     [...name].some((character) => {
       const code = character.charCodeAt(0);
-      return character === '"' || character === "\\" || character === "/" || code < 32 || code === 127;
+      return (
+        character === '"' || character === "\\" || character === "/" || code < 32 || code === 127
+      );
     })
   )
     throw new Error("invalid download filename");
-  const ascii = [...name].map((character) => (character.charCodeAt(0) > 126 ? "_" : character)).join("");
+  const ascii = [...name]
+    .map((character) => (character.charCodeAt(0) > 126 ? "_" : character))
+    .join("");
   const encoded = encodeURIComponent(name).replace(
     /['()*]/g,
     (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,

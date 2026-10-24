@@ -71,7 +71,9 @@ vi.mock("@/server/supabase/user-client", () => {
     doorAnswer: (data: unknown) => data,
     // Foundations turn 11 — the one staff check, as the real one calls it (PRM-1 pins it).
     callerHasPermission: async (
-      supabase: { rpc: (name: string, args: unknown) => Promise<{ data: unknown; error: unknown }> },
+      supabase: {
+        rpc: (name: string, args: unknown) => Promise<{ data: unknown; error: unknown }>;
+      },
       userId: string,
       permission: string,
     ) => {

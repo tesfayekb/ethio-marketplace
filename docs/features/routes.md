@@ -191,11 +191,11 @@ The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), usi
 
 ## The admin exports (Foundations turn 11, INC-860 part 1)
 
-| Route | Auth | Query | 200 | Refusals |
-| ----- | ---- | ----- | --- | -------- |
-| `GET /api/admin/categories/export` | staff `categories:view` | `scope?` | `download` text/csv; charset=utf-8, no-store, nosniff | 401 / 403 `forbidden` / 400 `badScope` / 404 `unknown category scope` / readFailure |
-| `GET /api/admin/attributes/export` | staff `categories:view` | `file` definitions\|links, `scope?` | as above | 400 `file must be definitions or links`, else as above |
-| `GET /api/admin/locations/export` | staff `locations:view` | `file` countries\|locations, `scope?` | as above | 400 `file must be countries or locations`, 404 `unknown country scope`, else as above |
+| Route                              | Auth                    | Query                                 | 200                                                   | Refusals                                                                              |
+| ---------------------------------- | ----------------------- | ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GET /api/admin/categories/export` | staff `categories:view` | `scope?`                              | `download` text/csv; charset=utf-8, no-store, nosniff | 401 / 403 `forbidden` / 400 `badScope` / 404 `unknown category scope` / readFailure   |
+| `GET /api/admin/attributes/export` | staff `categories:view` | `file` definitions\|links, `scope?`   | as above                                              | 400 `file must be definitions or links`, else as above                                |
+| `GET /api/admin/locations/export`  | staff `locations:view`  | `file` countries\|locations, `scope?` | as above                                              | 400 `file must be countries or locations`, 404 `unknown country scope`, else as above |
 
 Changes: (5) a caller without view is refused 403 `{error:"forbidden"}` by the
 boundary; an anonymous request with a bad `file` answers 401 (the caller first);

@@ -20,7 +20,10 @@ describe("toCsv", () => {
         { name: "a", header: "a" },
         { name: "b", header: "b (read-only)" },
       ],
-      [{ a: "1", b: null }, { a: undefined, b: 2 }],
+      [
+        { a: "1", b: null },
+        { a: undefined, b: 2 },
+      ],
     );
     expect(text).toBe("\ufeffa,b (read-only)\r\n1,\r\n,2\r\n");
   });

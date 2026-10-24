@@ -38,9 +38,9 @@ describe("callerHasPermission", () => {
 
   it("PRM-2 an rpc error throws, never a pass", async () => {
     const failing = client({ data: true, error: { message: "boom" } });
-    await expect(callerHasPermission(failing.supabase, "user-1", "categories:view")).rejects.toEqual(
-      { message: "boom" },
-    );
+    await expect(
+      callerHasPermission(failing.supabase, "user-1", "categories:view"),
+    ).rejects.toEqual({ message: "boom" });
   });
 
   it("PRM-3 a malformed permission throws before any call", async () => {

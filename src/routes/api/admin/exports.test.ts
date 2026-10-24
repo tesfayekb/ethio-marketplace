@@ -79,7 +79,7 @@ const CATEGORY_ROWS = [
   { category_slug: "+plus" },
 ];
 const CATEGORY_BYTES_AT_START =
-  "\ufeffcategory_path (read-only),category_slug,parent_slug,name_en,name_am,display_order,is_active,allow_listings,is_catchall (read-only),price_enabled,capabilities,default_price_period,price_period_locked,expiry_days,icon,visible_from,visible_until,excluded_country_codes,secondary_parents,listing_count (read-only),origin_scope (read-only)\r\nVehicles > Cars,cars,vehicles,\"'=Cars, \"\"new\"\"\",መኪናዎች,3,true,true,,false,price|photos,,,,car,\"line\nbreak\",,,,'-4,'@global\r\n,'+plus,,,,,,,,,,,,,,,,,,,\r\n";
+  '\ufeffcategory_path (read-only),category_slug,parent_slug,name_en,name_am,display_order,is_active,allow_listings,is_catchall (read-only),price_enabled,capabilities,default_price_period,price_period_locked,expiry_days,icon,visible_from,visible_until,excluded_country_codes,secondary_parents,listing_count (read-only),origin_scope (read-only)\r\nVehicles > Cars,cars,vehicles,"\'=Cars, ""new""",መኪናዎች,3,true,true,,false,price|photos,,,,car,"line\nbreak",,,,\'-4,\'@global\r\n,\'+plus,,,,,,,,,,,,,,,,,,,\r\n';
 
 beforeEach(() => {
   process.env["SUPABASE_URL"] = "https://example.supabase.co";

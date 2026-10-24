@@ -88,9 +88,9 @@ describe("the staff file doors", () => {
     expect(importDoorFindings("planted/import.ts", "await request.json();")).toEqual([
       { file: "planted/import.ts", line: 1, what: "never calls authorizeImport" },
     ]);
-    expect(permissionFindings("planted.ts", 'await supabase.rpc(\n  "has_permission", {});')).toEqual([
-      { file: "planted.ts", line: 1, what: "calls has_permission" },
-    ]);
+    expect(
+      permissionFindings("planted.ts", 'await supabase.rpc(\n  "has_permission", {});'),
+    ).toEqual([{ file: "planted.ts", line: 1, what: "calls has_permission" }]);
     expect(exportFindings("planted/export.ts", "createFileRoute(PATH)")).toHaveLength(1);
   });
 });

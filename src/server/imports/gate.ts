@@ -984,8 +984,7 @@ export function exportScope(
   const family = familyOf(familyId);
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
-  const scope =
-    scopeParam === undefined || scopeParam.trim() === "" ? null : scopeParam.trim();
+  const scope = scopeParam === undefined || scopeParam.trim() === "" ? null : scopeParam.trim();
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
