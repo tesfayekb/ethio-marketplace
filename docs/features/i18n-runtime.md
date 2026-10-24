@@ -35,8 +35,17 @@ is fetched through `import()` only when selected, so a browser downloads exactly
 one locale file. English users never pay for Amharic bytes.
 
 Selection persists in `localStorage` under `ethio.lang` and is restored after
-hydration (SSR always renders `en` first to avoid a hydration mismatch). The
-active language is mirrored onto `<html lang>`.
+hydration (SSR always renders `en` first to avoid a hydration mismatch).
+
+**The declared language (INC-872, Foundations turn 10).** `<html lang|dir>`
+follows the APPLIED catalog, never the selection: the provider's
+`appliedLanguage` is set in the same update as the messages it describes, and
+the one lang/dir effect keys on it (ILA-1…4). The server renders the base
+catalog for every visitor, so the first byte declares the base language and its
+direction from the gate rows (`serverShellLanguage`, ILA-5) — CHANGE (1); the
+client switches both once the star language's catalog is applied. A failed
+catalog load leaves both the text and the declaration in the base language.
+Rendering the star language on the server is a roadmap study (Foundations #6).
 
 ## Adding a language later
 

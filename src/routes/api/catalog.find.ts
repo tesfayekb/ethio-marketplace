@@ -1,43 +1,52 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
+import { langCodeLoose } from "@/lib/schemas/primitives";
+import { clientError, ok } from "@/server/answer";
 import { catalogSearch, CATALOG_FIND_TTL_MS } from "@/server/catalog-find.server";
-import { logRouteError, routeJson } from "@/server/supabase/user-client";
+import { defineRoute, type RouteContext } from "@/server/route";
+
+/**
+ * GET /api/catalog/find?q=<2–64 characters>&lang=<2–3 letters> → { ok:true, results }
+ *
+ * Foundations turn 10 (INC-862): on `defineRoute` (`auth: "anon"`); the q and
+ * lang rules as before (`langCodeLoose` capped at three characters is exactly
+ * `^[a-z]{2,3}$`); a bad shape is 400 `bad query`, a spent dial 429 `rateLimited`.
+ */
 
 const PATH = "/api/catalog/find";
-const LANG = /^[a-z]{2,3}$/;
+const FindQuery = z.object({
+  q: z.string().trim().min(2).max(64),
+  lang: langCodeLoose.pipe(z.string().max(3)).default("en"),
+});
 
-async function handleGet(request: Request): Promise<Response> {
-  const url = new URL(request.url);
-  const query = (url.searchParams.get("q") ?? "").trim();
-  const lang = (url.searchParams.get("lang") ?? "en").trim().toLowerCase();
-  if (query.length < 2) return routeJson({ error: "bad query" }, 400);
-  if (query.length > 64 || !LANG.test(lang)) return routeJson({ error: "bad query" }, 400);
-  const answer = await catalogSearch(request, query, lang);
-  if (answer === null) return routeJson({ error: "rateLimited" }, 429);
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof FindQuery>>,
+): Promise<Response> {
+  const answer = await catalogSearch(ctx.request, ctx.query.q, ctx.query.lang);
+  if (answer === null) return clientError("rateLimited", 429);
   // One call carries rate + version + rows, so one stage is timed; rebuild is
   // always 0 because a search never rebuilds (INC-273).
   const timing = [`search;dur=${answer.timing.find.toFixed(1)}`, `rebuild;dur=0.0`].join(", ");
-  return new Response(JSON.stringify({ ok: true, results: answer.rows }), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": `public, max-age=${CATALOG_FIND_TTL_MS / 1000}`,
-      "Server-Timing": timing,
+  return ok(
+    { ok: true, results: answer.rows },
+    {
+      cache: `public, max-age=${CATALOG_FIND_TTL_MS / 1000}`,
+      headers: { "Server-Timing": timing },
     },
-  });
+  );
 }
 
 export const Route = createFileRoute("/api/catalog/find")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "anon",
+        query: FindQuery,
+        badShape: () => clientError("bad query", 400),
+        handler,
+      }),
     },
   },
 });

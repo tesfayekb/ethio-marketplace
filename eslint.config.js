@@ -120,11 +120,6 @@ export default tseslint.config(
       "src/routes/api/admin/categories/suggest-icon.ts", // until INC-861
       "src/server/category-images/gate.ts", // until INC-861
       "src/server/category-images/gemini.ts", // until INC-861
-      "src/routes/api/catalog.find.ts", // until INC-862
-      "src/routes/api/map/tiles.ts", // until INC-862
-      "src/routes/l.$id.photo[[].[]]jpg.ts", // until INC-862
-      "src/routes/l.$id.qr[[].[]]svg.ts", // until INC-862
-      "src/server/ad-photo.ts", // until INC-862
       "src/routes/__root.tsx", // until INC-863
       "src/routes/l.$slug.tsx", // until INC-863
       "src/routes/$name.tsx", // until INC-863

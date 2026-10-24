@@ -274,6 +274,10 @@ function useAuthIdentity(): { settled: boolean; userId: string | null } {
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [language, setLanguageState] = useState<Language>(BASE_LANGUAGE);
   const [messages, setMessages] = useState<Messages>(enFirstPaint);
+  // INC-872 — the language whose compiled layer `messages` holds: the ONE source
+  // of `<html lang|dir>`. `language` is the selection; this follows it only when
+  // its catalog is applied, so the page never declares text it does not carry.
+  const [appliedLanguage, setAppliedLanguage] = useState<Language>(BASE_LANGUAGE);
   // DEC-231 — the admin strings layer loads only when the admin gate asks
   // (useAdminStrings). adminRequest is the retry counter: each request, first
   // or repeated, re-runs the load effect.
@@ -534,6 +538,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         ...(langAdmin ?? {}),
       } as Messages;
       setMessages(base);
+      setAppliedLanguage(language);
       // Same settle rule as the gate/entity reads (INC-101b): the compiled
       // catalog answers every key meanwhile, so the wait is invisible.
       if (!authSettled) return;
@@ -607,14 +612,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     };
   }, [language, authSettled, adminRequest]);
 
-  // U4h — `lang` AND `dir` follow the active language; direction comes from the
-  // gate row, so a future RTL language needs no code change here. The server
-  // already emitted both from the star cookie; this is the reconciliation.
+  // INC-872 — `lang` AND `dir` follow the APPLIED catalog, never the selection:
+  // they change in the same commit as the text. Direction comes from the gate
+  // row, so a future RTL language needs no code change here. The server
+  // declared the base language it renders; this is the switch.
   useEffect(() => {
-    const rtl = publicLanguages.find((row) => row.code === language)?.rtl ?? false;
-    document.documentElement.lang = language;
+    const rtl = publicLanguages.find((row) => row.code === appliedLanguage)?.rtl ?? false;
+    document.documentElement.lang = appliedLanguage;
     document.documentElement.dir = rtl ? "rtl" : "ltr";
-  }, [language, publicLanguages]);
+  }, [appliedLanguage, publicLanguages]);
 
   // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored
   // state only: nothing in the app reads it, and it is written, never watched.

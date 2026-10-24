@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
 import { DIALS } from "@/lib/dials";
 import { spend } from "@/server/dials";
-import { errorText } from "@/lib/error-text";
+import { ok } from "@/server/answer";
+import { defineRoute, type RouteContext } from "@/server/route";
+import { logRouteError } from "@/server/supabase/user-client";
 
 /**
  * W6b-2 C1/C2 — THE MAP'S TILE TEMPLATES.
@@ -84,45 +87,45 @@ function esriPlan(key: string): TilePlan {
   };
 }
 
-function json(payload: unknown, status: number, cache: string): Response {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: { "Content-Type": "application/json", "Cache-Control": cache },
-  });
-}
-
 const REASON = /^[a-z0-9_-]{1,24}$/;
+const PATH = "/api/map/tiles";
+const FallbackBody = z.object({ reason: z.string() }).partial();
 
 export const Route = createFileRoute("/api/map/tiles")({
   server: {
     handlers: {
-      GET: () => {
-        try {
-          const key = process.env["ESRI_API_KEY"] ?? "";
-          const plan = key === "" ? osmPlan() : esriPlan(key);
-          return json(plan, 200, "private, max-age=3600");
-        } catch (error) {
-          console.error("[ssr-error]", "/api/map/tiles", errorText(error));
-          return json(osmPlan(), 200, "no-store");
-        }
-      },
-      POST: async ({ request }) => {
-        try {
-          const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-          const raw = typeof body["reason"] === "string" ? body["reason"] : "";
+      GET: defineRoute({
+        path: PATH,
+        auth: "none",
+        handler: async () => {
+          try {
+            const key = process.env["ESRI_API_KEY"] ?? "";
+            const plan = key === "" ? osmPlan() : esriPlan(key);
+            return ok(plan, { cache: "private, max-age=3600" });
+          } catch (error) {
+            logRouteError(PATH, error);
+            return ok(osmPlan(), { cache: "no-store" });
+          }
+        },
+      }),
+      // CHANGE (4): an unreadable or non-JSON body is ok:false — no dial, no line.
+      POST: defineRoute({
+        path: PATH,
+        auth: "none",
+        body: FallbackBody,
+        badShape: () => ok({ ok: false }, { cache: "no-store" }),
+        handler: async (ctx: RouteContext<z.infer<typeof FallbackBody>>) => {
+          const raw = ctx.body.reason ?? "";
           const reason = REASON.test(raw) ? raw : "unknown";
           // INC-446 — an unsigned caller may write at most 60 lines an hour per
           // address; past that the answer is ok:false and no line is written.
-          const rate = await spend(DIALS.mapFallback, hashAddress(clientAddress(request)));
-          if (!rate.allowed) return json({ ok: false }, 200, "no-store");
+          const rate = await spend(DIALS.mapFallback, hashAddress(clientAddress(ctx.request)));
+          if (!rate.allowed) return ok({ ok: false }, { cache: "no-store" });
           // DEC-091 (next) counts these lines; the reason is a bounded token only.
           console.warn(`[map] fallback provider=osm reason=${reason}`);
-          return json({ ok: true }, 200, "no-store");
-        } catch (error) {
-          console.error("[ssr-error]", "/api/map/tiles", errorText(error));
-          return json({ ok: false }, 500, "no-store");
-        }
-      },
+          return ok({ ok: true }, { cache: "no-store" });
+        },
+      }),
     },
   },
 });

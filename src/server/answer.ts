@@ -111,6 +111,19 @@ export function clientError(
 }
 
 /**
+ * INC-871 — THE ONE ABANDONED-REQUEST ANSWER. A request whose client has gone
+ * (a navigation, a closed tab, a cancelled fetch) is not a server failure: one
+ * `[client-aborted]` line and an empty 499 — no incident, no `[ssr-error]`.
+ * Keyed on the request's own signal, never on an error's message text. Null on
+ * a live request.
+ */
+export function clientAborted(request: Request): Response | null {
+  if (!request.signal.aborted) return null;
+  console.error("[client-aborted]", request.method, new URL(request.url).pathname);
+  return new Response(null, { status: 499 });
+}
+
+/**
  * A throw the route did not declare: the client gets a generic line and an
  * incident id; the log gets the full stack under the SAME id — never the
  * error's message in the body.

@@ -19,6 +19,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/app-shell";
 import { I18nProvider, useI18n, LANGUAGE_STAR_COOKIE } from "../i18n";
+import { serverShellLanguage } from "../i18n/server-shell-language";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // TYPE ONLY — the judge itself is a server module (import protection keeps
 // `src/server/**` out of the client graph); the handler imports it dynamically.
@@ -320,17 +321,16 @@ function alternateLinks(data: SsrLangContext | undefined) {
 }
 
 function RootShell({ children }: { children: ReactNode }) {
-  // U4h — the FIRST byte already carries the device's language and direction:
-  // the star cookie is the only channel SSR can read, and it is validated by
-  // SHAPE alone here (the client reconciles it against the publication gate).
+  // INC-872 — the first byte declares the text it carries: the server renders
+  // the base catalog, so `<html lang|dir>` are the base language's. The client
+  // switches them once the star language's catalog is applied (provider.tsx).
   const data = useRouterState({
     select: (state) => state.matches[0]?.loaderData as SsrLangContext | undefined,
   });
-  const star = data?.star ?? null;
-  const dir = star && data?.languages.find((row) => row.code === star)?.rtl ? "rtl" : "ltr";
+  const { lang, dir } = serverShellLanguage(data?.languages ?? []);
 
   return (
-    <html lang={star ?? "en"} dir={dir} suppressHydrationWarning>
+    <html lang={lang} dir={dir} suppressHydrationWarning>
       <head>
         <HeadContent />
         {alternateLinks(data).map((link) => (

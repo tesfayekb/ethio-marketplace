@@ -1,4 +1,3 @@
-import { isPublicId } from "@/features/ad-page/address";
 import type { PublicListingDoc } from "@/features/ad-page/public-listing";
 import { clientAddress } from "@/server/catalog-find.server";
 import { DIALS } from "@/lib/dials";
@@ -6,21 +5,18 @@ import { spend } from "@/server/dials";
 import { anonymousClient, logRouteError } from "@/server/supabase/user-client";
 import { signPhotoRows } from "@/server/media/links";
 import { ownValue } from "@/lib/own-key";
+import { plain, redirect } from "@/server/answer";
 
+/** The photo route's plain-text refusals (plain() carries nosniff and no-store). */
 function photoRefusal(status: number, text: string): Response {
-  return new Response(text, {
-    status,
-    headers: {
-      "Content-Type": "text/plain; charset=utf-8",
-      "Cache-Control": "no-store",
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  return plain(text, status);
 }
 
-/** Only photos admitted by the anonymous public document can be signed. */
+/**
+ * Only photos admitted by the anonymous public document can be signed. The id
+ * arrives `publicId`-shaped: the route's schema checked it before anything else.
+ */
 export async function adPhotoResponse(request: Request, id: string): Promise<Response> {
-  if (!isPublicId(id)) return photoRefusal(404, "not found");
   const path = `/l/${id}/photo.jpg`;
   const rate = await spend(DIALS.listingPhotoAddress, clientAddress(request));
   if (!rate.allowed) return photoRefusal(429, "rate limited");
@@ -46,12 +42,5 @@ export async function adPhotoResponse(request: Request, id: string): Promise<Res
   );
   const link = ownValue(links, cover.id)?.card;
   if (link === undefined) return photoRefusal(404, "not found");
-  return new Response(null, {
-    status: 302,
-    headers: {
-      Location: link,
-      "Cache-Control": "private, max-age=1800",
-      "X-Content-Type-Options": "nosniff",
-    },
-  });
+  return redirect(link, { status: 302, cache: "private, max-age=1800" });
 }

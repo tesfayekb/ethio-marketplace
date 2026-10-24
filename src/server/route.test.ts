@@ -474,6 +474,27 @@ describe("defineRoute — the one boundary (B4)", () => {
     });
   });
 
+  it("RT-20 a handler that throws after the client left answers 499 with one client-aborted line", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const controller = new AbortController();
+    const route = makeRoute({
+      auth: "none",
+      body: undefined,
+      handler: async () => {
+        controller.abort();
+        throw new Error("The operation was aborted");
+      },
+    });
+    const response = await route({
+      request: new Request("http://local/api/test?x=1", { signal: controller.signal }),
+      params: {},
+    });
+    expect(response.status).toBe(499);
+    expect(await response.text()).toBe("");
+    expect(log.mock.calls).toEqual([["[client-aborted]", "GET", "/api/test"]]);
+    log.mockRestore();
+  });
+
   it("RT-19 a non-strict query strips unknown keys before the handler", async () => {
     const route = makeRoute({
       auth: "none",
