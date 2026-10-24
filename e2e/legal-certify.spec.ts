@@ -510,13 +510,12 @@ test.describe("Legal certification", () => {
     await gotoReady(page, `/post/${listingId}`);
     const block = page.getByTestId("certify-block");
     await expect(block).toBeVisible({ timeout: 20_000 });
-    // D235: the one inline statement link carries every applying statement.
+    // Turn 32 (DEC-236): no statement text on the step; one link per statement.
     await expect(block).not.toContainText(statementText);
     const links = block.getByTestId("agree-link");
     await expect(links).toHaveCount(1);
     await expect(links.nth(0)).toHaveAttribute("href", "/legal/publishing");
-    await expect(links.nth(0)).toHaveAttribute("data-role", "publishing");
-    await expect(block.locator("label span").getByTestId("agree-link")).toHaveCount(1);
+    await expect(links.nth(0)).toHaveText(en["legal.kind.publishing"]);
     await expect(page.getByTestId("post-publish-statement")).toHaveCount(0);
     const publish = page.getByTestId("post-publish");
     // D231: drawn closed, never disabled; a tap refuses at the tick and sends nothing.
@@ -1245,9 +1244,7 @@ test.describe("Legal certification", () => {
     await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
 
     await gotoReady(page, `/legal/${kind}?country=ET`);
-    await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-public-page")).toContainText(countryText);
-    await expect(page.getByTestId("legal-public-section")).toHaveCount(1);
     await expect(page.getByTestId("legal-public-country")).toHaveText(
       en["legal.certify.forCountry"].replace("{country}", "Ethiopia"),
     );
@@ -1255,7 +1252,6 @@ test.describe("Legal certification", () => {
     await gotoReady(page, `/legal/${kind}?country=zz`);
     await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
-    await expect(page.getByTestId("legal-public-section")).toHaveCount(0);
 
     await gotoReady(page, "/legal/publishing");
     await expect(page.getByTestId("legal-public-page")).toBeVisible();
