@@ -22,7 +22,8 @@ export function ok(body: unknown, init?: { status?: number; cache?: string }): R
 }
 
 /** A refusal the client renders: the door's or the schema's own vocabulary. */
-export type Refusal = { field: string; reason: string; detail?: string };
+/** `retry` (Foundations turn 4): the upload screen's provider refusals carry it. */
+export type Refusal = { field: string; reason: string; detail?: string; retry?: boolean };
 
 /** The posting contract: refusals at 200, `ok: false`. */
 export function verdict(refusals: Refusal[], status = 200): Response {

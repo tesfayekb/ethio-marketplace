@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { uuid } from "@/lib/schemas/primitives";
-import { serverError, upstreamFailed, upstreamUnavailable, verdict } from "@/server/answer";
+import {
+  ok,
+  serverError,
+  upstreamFailed,
+  upstreamUnavailable,
+  verdict as answerVerdict,
+} from "@/server/answer";
 import { doorCall } from "@/server/door";
 import { ownListing } from "@/server/listings/own-listing";
 import { defineRoute, type RouteContext } from "@/server/route";
@@ -146,7 +152,10 @@ async function planPhotoCap(userId: string): Promise<number> {
 
 /** One refusal in the posting verdict (the shape `refusal()` answered before). */
 const refusal = (field: string, reason: string, detail?: string) =>
-  verdict([{ field, reason, ...(detail === undefined ? {} : { detail }) }]);
+  answerVerdict([{ field, reason, ...(detail === undefined ? {} : { detail }) }]);
+/** The same refusal at a status other than 200 (403 / 409, as before). */
+const refusalAt = (field: string, reason: string, status: number) =>
+  answerVerdict([{ field, reason }], status);
 
 async function handlePost(ctx: RouteContext): Promise<Response> {
   // 1 the caller and 2 the hourly and daily dials ran in defineRoute (beforeParse),
@@ -342,7 +351,7 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
   }
   const plan = photoScreenPlan(gate);
   if (plan === "unavailable") {
-    return verdict([{ field: "cover", reason: "providerUnavailable", retry: true }]);
+    return answerVerdict([{ field: "cover", reason: "providerUnavailable", retry: true }]);
   }
   const held = plan === "hold";
   const cover = stripped.cover!;
