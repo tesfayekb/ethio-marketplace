@@ -104,10 +104,15 @@ export function verdict(refusals: Refusal[], status = 200): Response {
 /** The readers' contract: a machine code and its status, never a sentence. */
 export function clientError(
   code: string,
-  status: 400 | 401 | 403 | 404 | 413 | 415 | 429,
+  status: 400 | 401 | 403 | 404 | 409 | 413 | 415 | 429,
   extra?: Record<string, string | number>,
 ): Response {
   return routeJson({ error: code, ...extra }, status);
+}
+
+/** Foundations turn 12 — the step-up answer every staff door gives (428, P0009). */
+export function stepUpRequired(): Response {
+  return routeJson({ error: "step-up required", code: "P0009" }, 428);
 }
 
 /**
