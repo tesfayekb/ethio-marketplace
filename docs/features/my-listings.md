@@ -197,3 +197,9 @@ The operator (2026-10-16): "edit should have exact features and step and look as
 Bundle 19 turn 15 — a live ad's page carries the Share control (the buyer page's sheet; the shares count by channel).
 
 Bundle 21 turn 17 (D224) — a live ad's ⋯ menu carries Share, right after Open: one ShareAd serves the whole list, opened on the chosen row's own address. Share is offered only for an active ad with its public id (`shareable(row)`); review, draft, sold, closed and expired rows have no Share. MLP-8 proves the sheet opens on the ad's address; MLP-6's menu census lists it.
+
+## Bundle 22 turn 33 — reader failure diagnostics (INC-847)
+
+`readMyListings` and `readSellerIdentity` throw `ReaderError` carrying `readerFailure` (`src/lib/reader-failure.ts`), never discarding a door error as null. Auth, network, refused, server and malformed form a closed diagnostic set; the screen adds the class and optional status beside its translated error sentence. The class is English by design, a diagnostic code for the supervisor; the Foundations door mechanism replaces it with door codes. The reader-failure unit census rejects `if (error) return null` in feature readers. Remaining alternative null-on-error forms are recorded under the Foundations door item, not silently fixed outside scope.
+
+The QueryClient has no retry override: browser queries retry three times with exponential delay 1, 2 and 4 seconds (capped at 30 seconds); server queries do not retry. The observed initial delay's cause remains open. INC-849's wizard and review callers now catch identity failure; the contact step already catches it and My listing uses the query's error channel.
