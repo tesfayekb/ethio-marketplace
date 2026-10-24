@@ -116,8 +116,7 @@ export async function legalPageData(
   }
   return {
     inForce: inForce.data == null ? null : parseLegalVersion(inForce.data, "legal_in_force"),
-    scheduled:
-      scheduled.data == null ? null : parseLegalVersion(scheduled.data, "legal_scheduled"),
+    scheduled: scheduled.data == null ? null : parseLegalVersion(scheduled.data, "legal_scheduled"),
   };
 }
 

@@ -50,7 +50,11 @@ export function census(roots: string[]): Finding[] {
         });
     }
     for (const match of code.matchAll(/createSourceFile\(/g))
-      findings.push({ file: rel, line: lineOf(code, match.index), what: "calls createSourceFile(" });
+      findings.push({
+        file: rel,
+        line: lineOf(code, match.index),
+        what: "calls createSourceFile(",
+      });
   }
   return findings;
 }
@@ -90,7 +94,11 @@ describe("every tree walker goes through the conformance kit (DEC-244)", () => {
     );
     const findings = census([temp]);
     expect(findings).toEqual([
-      { file: relative(ROOT, join(temp, "planted.ts")).split("\\").join("/"), line: 1, what: "imports a tree enumerator" },
+      {
+        file: relative(ROOT, join(temp, "planted.ts")).split("\\").join("/"),
+        line: 1,
+        what: "imports a tree enumerator",
+      },
     ]);
   });
 });
