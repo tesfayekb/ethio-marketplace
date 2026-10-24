@@ -20,7 +20,7 @@ function findings(files: string[]): Finding[] {
         const callee = node.expression;
         if (
           (ts.isIdentifier(callee) && callee.text === "fetch") ||
-          (ts.isPropertyAccessExpression(callee) && callee.name.text === "fetch")
+          (ts.isPropertyAccessExpression(callee) && callee.name.text === "fetch" && ts.isIdentifier(callee.expression) && /^(?:window|globalThis|self)$/.test(callee.expression.text))
         )
           add("fetch");
         if (

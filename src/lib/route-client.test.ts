@@ -119,8 +119,8 @@ describe("browser route client", () => {
     });
     expect(names).toEqual(["scope-definitions.csv"]);
     expect(create).toHaveBeenCalledTimes(1);
-    expect(new Uint8Array(await create.mock.calls[0][0].arrayBuffer())).toEqual(
-      new TextEncoder().encode("\ufeffkey\r\nvalue\r\n"),
+    expect(Array.from(new Uint8Array(await create.mock.calls[0][0].arrayBuffer()))).toEqual(
+      Array.from(new TextEncoder().encode("\ufeffkey\r\nvalue\r\n")),
     );
     expect(revoke).toHaveBeenCalledExactlyOnceWith("blob:test");
     expect(document.querySelector('a[href="blob:test"]')).toBeNull();
