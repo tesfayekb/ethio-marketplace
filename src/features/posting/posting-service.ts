@@ -220,17 +220,7 @@ export function movePhoto(photoId: string, position: number): Promise<DoorAnswer
 
 /** `DELETE /api/listings/photos/$id`. */
 export async function deletePhoto(photoId: string): Promise<DoorAnswer> {
-  const token = await bearer();
-  if (token === null) return { ...UNREACHABLE, status: 401 };
-  try {
-    const response = await fetch(`/api/listings/photos/${photoId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return await readAnswer(response);
-  } catch {
-    return UNREACHABLE;
-  }
+  return doorAnswerOf(await callRoute(`/api/listings/photos/${photoId}`, { method: "DELETE" }));
 }
 
 export interface DraftRow {
@@ -1000,19 +990,11 @@ export function requestAssist(body: {
  * keeps its own count, as before.
  */
 export async function peekAssist(listingId: string): Promise<number | null> {
-  const token = await bearer();
-  if (token === null) return null;
-  try {
-    const response = await fetch(
-      `/api/listings/assist?listingId=${encodeURIComponent(listingId)}`,
-      { method: "GET", headers: { Authorization: `Bearer ${token}` } },
-    );
-    const answer = await readAnswer(response);
-    const left = answer.ok ? answer.payload["triesLeft"] : null;
-    return typeof left === "number" && Number.isInteger(left) && left >= 0 ? left : null;
-  } catch {
-    return null;
-  }
+  const answer = doorAnswerOf(
+    await callRoute(`/api/listings/assist?listingId=${encodeURIComponent(listingId)}`),
+  );
+  const left = answer.ok ? answer.payload["triesLeft"] : null;
+  return typeof left === "number" && Number.isInteger(left) && left >= 0 ? left : null;
 }
 
 /**
