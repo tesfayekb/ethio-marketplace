@@ -587,7 +587,7 @@ export function StepReview({
       <div className="space-y-2" data-testid="post-review-summary">
         {identityFailure ? (
           <p role="alert" className="text-destructive">
-            {t("post.who.loadFailed")}
+            {t("post.who.readFailed")}
             <span data-testid="post-review-identity-error-class">
               {` (${identityFailure.class}${identityFailure.status ? " " + identityFailure.status : ""})`}
             </span>
