@@ -40,7 +40,8 @@ beforeEach(() => {
             options: [{ value: "petrol", label_en: "Petrol", label_am: "ቤንዚን" }],
             retired: [{ value: "lpg", label_en: "Gas", label_am: "ጋዝ" }],
           }),
-          { status: 200 },
+          // The route client reads the envelope by content type; the stub names it.
+          { status: 200, headers: { "content-type": "application/json" } },
         ),
     ),
   );
