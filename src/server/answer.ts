@@ -57,7 +57,13 @@ export function redirect(
   init: { status?: 301 | 302 | 303 | 307 | 308; cache?: string; headers?: Record<string, string> },
 ): Response {
   // Backslashes and control characters can turn a local path into a foreign authority.
-  if ([...location].some((character) => character === "\\" || character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127)) throw new Error("invalid redirect location");
+  if (
+    [...location].some(
+      (character) =>
+        character === "\\" || character.charCodeAt(0) <= 32 || character.charCodeAt(0) === 127,
+    )
+  )
+    throw new Error("invalid redirect location");
   const local = location.startsWith("/") && !location.startsWith("//");
   if (!local) {
     const parsed = new URL(location);
