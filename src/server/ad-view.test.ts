@@ -76,6 +76,7 @@ describe("view count route", () => {
       expect.objectContaining({ p_viewer: "u1" }),
     );
     mocks.rpc.mockClear();
+    mocks.rate.mockClear();
     mocks.caller.mockResolvedValueOnce({
       supabase: null,
       userId: null,
