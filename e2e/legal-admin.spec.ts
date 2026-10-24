@@ -7,6 +7,7 @@ import { passwordGrant } from "./helpers/session";
 import { ensureFenceLanguage } from "./helpers/translations";
 import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
 
 // J1: each kind includes run, worker, project and test axes; no real legal document is written.
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -1098,7 +1099,7 @@ test.describe("Admin Legal", () => {
       // Only this test's version is written: cover every enabled language, never alter a real text.
       const enabled = await supabase.from("languages").select("code").eq("enabled_admin", true);
       fail(enabled.error, "enabled languages");
-      const extra = (enabled.data ?? []).filter((l) => !["en", "am", "qps-ploc"].includes(l.code));
+      const extra = (enabled.data ?? []).filter((l) => !["en", "am", PSEUDO_LANG].includes(l.code));
       fail(
         (
           await supabase
