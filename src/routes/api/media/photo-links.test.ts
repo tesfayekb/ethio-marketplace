@@ -101,9 +101,7 @@ describe("/api/media/photo-links on defineRoute (E2)", () => {
       refusals: [{ field: "rate", reason: "rateLimited", detail: "2026-10-24T13:00:00Z" }],
     });
     // The one address reader's value, hashed (never the raw address).
-    expect(state.rateCalls).toEqual([
-      { action: "photo-links:address", key: "hashed:203.0.113.9" },
-    ]);
+    expect(state.rateCalls).toEqual([{ action: "photo-links:address", key: "hashed:203.0.113.9" }]);
     expect(state.reads).toEqual([]);
   });
 
