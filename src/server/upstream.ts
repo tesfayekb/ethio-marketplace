@@ -32,8 +32,11 @@ export async function upstream(
     console.error(`[upstream] ${opts.label} ${response.status} ${Date.now() - started}ms`);
     return response;
   } catch (error) {
-    // eslint-disable-next-line no-restricted-syntax -- INC-815: only an Error carries .name; anything else is rethrown unchanged.
-    if (error instanceof Error && error.name === "AbortError") {
+    // Foundations turn 3 — AbortSignal.timeout rejects with a DOMException named
+    // "TimeoutError" (an "AbortError" from an older runtime); both are the deadline.
+    const name =
+      typeof error === "object" && error !== null ? (error as { name?: unknown }).name : null;
+    if (name === "TimeoutError" || name === "AbortError") {
       console.error(`[upstream] ${opts.label} timeout ${Date.now() - started}ms`);
       throw new UpstreamTimeout(opts.label, opts.timeoutMs);
     }

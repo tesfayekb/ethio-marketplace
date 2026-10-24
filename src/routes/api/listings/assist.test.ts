@@ -127,7 +127,7 @@ beforeEach(() => {
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async () => {
     state.fetches += 1;
-    if (state.fetchMode === "timeout") throw new DOMException("aborted", "AbortError");
+    if (state.fetchMode === "timeout") throw new DOMException("signal timed out", "TimeoutError");
     return new Response("{}", { status: 200 });
   });
 });

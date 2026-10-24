@@ -87,13 +87,13 @@ const REMOVE_DIALS: RateSpec[] = [
 export const Route = createFileRoute("/api/listings/photos/$id")({
   server: {
     handlers: {
-      DELETE: defineRoute<unknown, z.infer<typeof PhotoParams>>({
+      DELETE: defineRoute({
         path: PATH,
         auth: "user",
         params: PhotoParams,
         rate: REMOVE_DIALS,
         handler: async ({ supabase, userId, params }) => {
-          const photoId = params.id;
+          const photoId = (params as z.infer<typeof PhotoParams>).id;
           const photo = await ownedPhoto(supabase!, photoId, userId!);
           if (!photo) return notYours();
           let removed = false;
@@ -133,13 +133,13 @@ export const Route = createFileRoute("/api/listings/photos/$id")({
           return answer;
         },
       }),
-      POST: defineRoute<z.infer<typeof PhotoActionBody>, z.infer<typeof PhotoParams>>({
+      POST: defineRoute({
         path: PATH,
         auth: "user",
         params: PhotoParams,
         body: PhotoActionBody,
         handler: async ({ supabase, userId, params, body }) => {
-          const photoId = params.id;
+          const photoId = (params as z.infer<typeof PhotoParams>).id;
           const action = body.action ?? "cover";
           // D154 — a place is a whole number from 0; the door closes a place past the end to the last.
           const position = body.position;
