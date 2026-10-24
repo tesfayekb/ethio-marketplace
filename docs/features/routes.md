@@ -71,6 +71,12 @@ A dial goes in the spec unless its answer or its spending cannot be said there y
 - **share and view counters** — the spent answer is 200 `{counted:false}`, neither envelope.
 - **identity's imitation dial** (`identity:imitation`, 20 per 24 hours) — spent on one branch only (an alias is being named).
 - **assist's per-listing budget** (`assist:listing`, 5 per 10 years) — conditional, keyed by the listing, read for its remaining count (`triesLeft`).
+- **upload's draft week** (`upload:draft-week`, 50 per 7 days) — spent only for a draft (Foundations turn 4).
+- **upload's size dials** (`MAX_COVER_BYTES`, `MAX_MID_BYTES`, `MAX_CARD_BYTES`, `MAX_THUMB_BYTES`) — a byte budget per file, not a rate.
+- **upload's site screen budget** (`upload:screen`, key "site", 2000 per day) — site-wide, the AI gateway's (INC-861).
+- **background's daily dial** (`background:day`, 10 per day) — after the AI switch, so a switched-off tool spends none of the seller's tries (D158's order; BGR-5).
+- **background's per-listing tries** (`background:listing`, 2 per 10 years) — keyed by the listing, read for `x-tries-left`.
+- **photo-links' address dial** (`photo-links:address`, 600 per hour) — anonymous callers only; keyed by `hashAddress(clientAddress(request))`, the one address reader.
 
 ## The posting routes on the mechanism (INC-859 A)
 
@@ -82,3 +88,17 @@ A dial goes in the spec unless its answer or its spending cannot be said there y
 - **identity** (`POST /api/listings/identity`) — auth user; `{ homeCountryChange?, alias?, sellerType?, businessName?, firstName?, lastName?, homeCountryCode?, contactPref? }`; `change_home_country` alone, or the imitation dial (handler) → the imitation check (`upstream()`, 15 s; the model's name cut at 200 characters, INC-866) → the contact validator → `save_posting_identity` through `doorCall`.
 - **assist** (`GET`/`POST /api/listings/assist`) — auth user; GET `?listingId`, POST the twelve AssistBody keys; dials `assist` (RATE_LIMIT_ASSIST_PER_HOUR, 30, 1 hour) and `assist:day` (RATE_LIMIT_ASSIST_PER_DAY, 60, 1 day) declared beforeParse with `refuseAs` `rate`; the per-listing budget in the handler; ownership through `ownListing`; the provider and photo fetches through `upstream()` (20 s / 10 s), a timeout answering `assist`/`providerUnavailable`.
 - **photos.$id** (`DELETE`/`POST /api/listings/photos/$id`) — auth user; params `{ id: uuid }` (a non-uuid is the badShape verdict); POST `{ action?, position? }`; DELETE dials `photo-remove` (30 / hour) and `photo-remove:day` (100 / day) with `refuseAs` `photos`; the photo read then `ownListing` (403 `id`/`notYourListing`); doors through `doorCall` raw; storage cleanup only after the door's ok.
+
+## The media routes on the mechanism (INC-859 B, Foundations turn 4)
+
+- **upload/photo** (`POST /api/upload/photo`) — auth user; `form: { maxBytes: 2 MiB }` — the one byte ceiling, over the sum of the four size dials (1.63 MiB), by Content-Length before the caller and by the counting reader after; a non-multipart body is 415, an unreadable multipart body the `body`/`badShape` verdict; dials `upload` (RATE_LIMIT_UPLOAD_PER_HOUR, 60, 1 hour) and `upload:day` (RATE_LIMIT_UPLOAD_PER_DAY, 200, 1 day) beforeParse with `refuseAs` `rate`; the fields read from `ctx.form` (`replaces` and `certified` by the one `uuid`); ownership through `ownListing` (403 `listingId`/`notYourListing`, 409 `status`/`listingNotOpenForPhotos`); the register/replace door's error through `doorCall` raw after the rollback of the objects just written; every 500 through `serverError`.
+- **background** (`POST /api/listings/background`) — auth user; `{ listingId: uuid, photoId: uuid }` strict (a malformed id is the badShape verdict); the AI switch, then the daily and per-listing dials in the handler; ownership through `ownListing`; the cut-out through `bytes()` (no-store, `x-tries-left`).
+- **media/photo-links** (`POST /api/media/photo-links`) — auth optional (a bearer is read as the caller and refused 401/403 as before; none is the anonymous client); `{ photoIds, variants? }` strict, judged by links.ts's `photoIdsOf`/`variantsOf` so a refusal names the key, and every id a UUID (a non-UUID id is `photoIds`/`badShape`, no longer a 503); the address dial for anonymous callers in the handler; a failed read or signature is 503.
+
+## The four media deadlines (Foundations turn 4)
+
+Each through `upstream()`; a timeout takes the branch a network error takes:
+
+- `src/server/media/policy.ts` — the Gemini photo screen, 20 s (`gemini photo_screen`) → `providerUnavailable` with `retry`.
+- `src/server/media/background.ts` — the source photo, 10 s (`photo source`) → null; Photoroom, 30 s (`photoroom segment`) → null; both `providerUnavailable`.
+- `src/server/media/storage.ts` — every R2 request, 15 s (`r2 <method>`; never the key or the signed URL) → the put or delete throws, as a network error does.
