@@ -55,4 +55,14 @@ describe("shell guards run by the unit tests (INC-563)", () => {
     },
     TREE_SCAN_MS,
   );
+
+  it(
+    "GW-3 the publish-evidence self-test passes against its temporary bare repository (INC-855)",
+    () => {
+      const result = run("scripts/publish-evidence.selftest.sh", []);
+      expect(result.out).toContain("publish-evidence self-test: ALL PASS");
+      expect(result.status).toBe(0);
+    },
+    TREE_SCAN_MS,
+  );
 });

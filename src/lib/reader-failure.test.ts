@@ -1,6 +1,7 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { walkFiles } from "../../scripts/conformance/kit";
 import { readerFailure, ReaderError } from "./reader-failure";
 
 describe("INC-847 reader failure classes", () => {
@@ -24,20 +25,10 @@ describe("INC-847 reader failure classes", () => {
     expect(readerFailure(new ReaderError(failure))).toBe(failure);
   });
   it("census: no bare door error returns null in features", () => {
-    const found: string[] = [];
-    const walk = (dir: string) => {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) walk(path);
-        else if (
-          /\.tsx?$/.test(entry.name) &&
-          !/\.test\.tsx?$/.test(entry.name) &&
-          /if\s*\(error\)\s*(?:\{\s*)?return null/.test(readFileSync(path, "utf8"))
-        )
-          found.push(relative(process.cwd(), path));
-      }
-    };
-    walk(resolve("src/features"));
+    // DEC-244: the walk is the conformance kit's; the census assertion is unchanged.
+    const found = walkFiles([resolve("src/features")], { ext: ["ts", "tsx"], skipTests: true })
+      .filter((path) => /if\s*\(error\)\s*(?:\{\s*)?return null/.test(readFileSync(path, "utf8")))
+      .map((path) => relative(process.cwd(), path));
     expect(found).toEqual([]);
   });
 });
