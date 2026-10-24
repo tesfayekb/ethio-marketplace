@@ -12,6 +12,7 @@ import { adminClient, createUser, leaseUser } from "./helpers/users";
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
 const kinds = new Set<string>();
 const languages = new Set<string>();
+const scratchRoles = new Set<string>();
 function scratch(tag: string) {
   const info = test.info();
   const project = info.project.name.startsWith("mobile") ? "m" : "d";
@@ -68,6 +69,15 @@ test.afterEach(async () => {
     const result = await adminClient().from("languages").delete().eq("code", code);
     if (result.error) failures.push(`language ${code}: ${result.error.message}`);
     else languages.delete(code);
+  }
+  for (const roleId of [...scratchRoles]) {
+    for (const table of ["role_permissions", "user_roles"] as const) {
+      const result = await adminClient().from(table).delete().eq("role_id", roleId);
+      if (result.error) failures.push(`${table} ${roleId}: ${result.error.message}`);
+    }
+    const result = await adminClient().from("roles").delete().eq("id", roleId);
+    if (result.error) failures.push(`role ${roleId}: ${result.error.message}`);
+    else scratchRoles.delete(roleId);
   }
   if (failures.length) throw new Error(failures.join("; "));
 });
@@ -1003,6 +1013,10 @@ test.describe("Admin Legal", () => {
     await seed(kind);
     const versionId = (await version(kind)).id;
     const supabase = adminClient();
+    const code = scratch("lang");
+    const languageName = `E2E ${code}`;
+    languages.add(code);
+    fail((await supabase.from("languages").insert({ code, name_en: languageName, name_native: languageName, enabled_admin: true, enabled_public: false })).error, "scratch language insert");
     const { data: perms, error: permsError } = await supabase
       .from("permissions")
       .select("id, action, resources!inner(name)")
@@ -1023,6 +1037,7 @@ test.describe("Admin Legal", () => {
         .single();
       if (roleError || !role)
         throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
+      scratchRoles.add(role.id);
       const rows = picked(names);
       expect(rows.length, `LGA-21 expected ${names.join(" + ")}`).toBe(names.length);
       const granted = await supabase
@@ -1040,31 +1055,37 @@ test.describe("Admin Legal", () => {
     const publisher = await leaseUser();
     const viewer = await leaseUser();
     try {
-      await supabase
+      fail((await supabase
         .from("user_roles")
-        .insert({ user_id: publisher.id, role_id: publisherRole, scope_type: "global" });
-      await supabase
+        .insert({ user_id: publisher.id, role_id: publisherRole, scope_type: "global" })).error, "publisher role insert");
+      fail((await supabase
         .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: viewerRole, scope_type: "global" });
+        .insert({ user_id: viewer.id, role_id: viewerRole, scope_type: "global" })).error, "viewer role insert");
       await useJobSuperAdmin(page);
       await switchUser(page, publisher.email, publisher.password);
       await gotoReady(page, "/admin/legal");
       const card = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(card.getByTestId("legal-view-inforce")).toBeVisible();
+      await expect(card.getByTestId("legal-translate-inforce")).toContainText(languageName);
       await card.getByTestId("legal-translate-inforce").click();
       await expect(page).toHaveURL(new RegExp(`/admin/legal/${versionId}\\?translate=`));
-      await expect(page.getByTestId("legal-translation-panel")).toBeVisible();
+      await expect(page.getByTestId("legal-translation-panel")).toBeInViewport();
+      await expect(page.getByTestId("legal-translation-language")).toBeFocused();
+      const enabled = await supabase.from("languages").select("code").eq("enabled_admin", true);
+      fail(enabled.error, "enabled languages read");
+      const missing = (enabled.data ?? []).filter((l) => l.code !== "en" && l.code !== "am" && l.code !== "pseudo");
+      fail((await supabase.from("legal_version_texts").insert(missing.map((l) => ({ version_id: versionId, language: l.code, body: `E2E ${l.code} text` })))).error, "scratch version translations insert");
+      await gotoReady(page, "/admin/legal");
+      const translatedCard = page.getByTestId(`legal-doc-${kind}-global`);
+      await expect(translatedCard.getByTestId("legal-view-inforce")).toBeVisible();
+      await expect(translatedCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/legal");
       const viewerCard = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(viewerCard.getByTestId("legal-view-inforce")).toBeVisible();
       await expect(viewerCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
     } finally {
-      for (const roleId of [publisherRole, viewerRole]) {
-        await supabase.from("role_permissions").delete().eq("role_id", roleId);
-        await supabase.from("user_roles").delete().eq("role_id", roleId);
-        await supabase.from("roles").delete().eq("id", roleId);
-      }
+      // J3: afterEach owns cleanup and throws on failure, including after a timeout.
     }
   });
 });
