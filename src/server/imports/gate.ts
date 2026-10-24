@@ -144,14 +144,15 @@ export function parseCsvGrid(text: string): string[][] {
 /**
  * FORMULA LAW, both directions. The export NEUTRALISES a dangerous cell with a
  * leading apostrophe, so `'=Wide` is legitimate export output and round-trips;
- * a RAW `=…`, `+…`, `-…`, `@…` cell was hand-authored and is refused.
+ * a RAW `=…`, `+…`, `-…`, `@…`, tab- or carriage-return-led cell was
+ * hand-authored and is refused (OWASP CSV injection; Foundations turn 12).
  */
 export function isFormulaCell(raw: string): boolean {
-  return /^[=+\-@]/.test(raw);
+  return /^[=+\-@\t\r]/.test(raw);
 }
 
 export function unneutralize(raw: string): string {
-  return /^'[=+\-@]/.test(raw) ? raw.slice(1) : raw;
+  return /^'[=+\-@\t\r]/.test(raw) ? raw.slice(1) : raw;
 }
 
 /** The export labels derived columns " (read-only)"; both spellings import. */

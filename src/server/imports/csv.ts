@@ -33,7 +33,7 @@ export function exportColumns(file: FileSpec): ExportColumn[] {
 
 /** The leading characters `isFormulaCell` refuses and `unneutralize` strips (gate.ts). */
 function neutralize(value: string): string {
-  return /^[=+\-@]/.test(value) ? `'${value}` : value;
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
 function csvCell(raw: unknown): string {
