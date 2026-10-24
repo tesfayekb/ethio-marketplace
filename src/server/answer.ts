@@ -60,12 +60,14 @@ export function bytes(
   contentType: string,
   init?: { status?: number; headers?: Record<string, string> },
 ): Response {
-  // A fresh ArrayBuffer-backed copy: the Blob owns its bytes.
-  const copy = new Uint8Array(body instanceof ArrayBuffer ? body.slice(0) : body.slice());
+  // A fresh ArrayBuffer-backed copy: the answer owns its bytes.
+  const source = body instanceof ArrayBuffer ? new Uint8Array(body) : body;
+  const copy = new Uint8Array(source.byteLength);
+  copy.set(source);
   const headers = new Headers(init?.headers ?? {});
   headers.set("Content-Type", contentType);
   if (!headers.has("Cache-Control")) headers.set("Cache-Control", "no-store");
-  return new Response(new Blob([copy]), { status: init?.status ?? 200, headers });
+  return new Response(copy, { status: init?.status ?? 200, headers });
 }
 
 export { doorAnswer, upstreamFailed, upstreamUnavailable };
