@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import { doorRefusal } from "@/features/posting/door-error";
@@ -172,7 +173,7 @@ export const IdentityBody = z
 type IdentityInput = z.infer<typeof IdentityBody>;
 
 async function handle(
-  supabase: NonNullable<Parameters<Parameters<typeof defineRoute>[0]["handler"]>[0]["supabase"]>,
+  supabase: SupabaseClient<Database>,
   userId: string,
   body: IdentityInput,
 ): Promise<Response> {
