@@ -224,7 +224,7 @@ describe("defineRoute — the one boundary (B4)", () => {
   it("RT-6 beforeParse consumes before the body is read — a bad body still cost one", async () => {
     const route = makeRoute({
       rate: [
-        { action: "upload", key: "address", limit: 3, windowSeconds: 60, when: "beforeParse" },
+        { dial: { action: "upload", limit: { fallback: 3 }, windowSeconds: 60 }, key: "address", when: "beforeParse" },
       ],
     });
     const response = await route({ request: post(JSON.stringify({ listingId: "x" })), params: {} });
@@ -321,10 +321,8 @@ describe("defineRoute — the one boundary (B4)", () => {
     const asVerdict = makeRoute({
       rate: [
         {
-          action: "assist",
+          dial: { action: "assist", limit: { fallback: 5 }, windowSeconds: 3600 },
           key: "user",
-          limit: 5,
-          windowSeconds: 3600,
           refuseAs: { verdict: { field: "rate" } },
         },
       ],
@@ -342,10 +340,8 @@ describe("defineRoute — the one boundary (B4)", () => {
     const withReason = makeRoute({
       rate: [
         {
-          action: "assist",
+          dial: { action: "assist", limit: { fallback: 5 }, windowSeconds: 3600 },
           key: "user",
-          limit: 5,
-          windowSeconds: 3600,
           refuseAs: { verdict: { field: "photos", reason: "tooMany" } },
         },
       ],
@@ -376,7 +372,7 @@ describe("defineRoute — the one boundary (B4)", () => {
 
   it("RT-14 beforeParse dials are spent before the body is read", async () => {
     const route = makeRoute({
-      rate: [{ action: "assist", key: "user", limit: 5, windowSeconds: 3600, when: "beforeParse" }],
+      rate: [{ dial: { action: "assist", limit: { fallback: 5 }, windowSeconds: 3600 }, key: "user", when: "beforeParse" }],
     });
     const response = await route({
       request: countedPost(JSON.stringify({ listingId: LISTING })),

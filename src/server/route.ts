@@ -29,7 +29,7 @@ import {
  *                             is declared; over the ceiling → 413
  *   5  the shape            → params, query, body through their schemas;
  *                             a failure is the route's declared badShape answer
- *   6  the afterParse dials → consumeRate after the parse (the default)
+ *   6  the afterParse dials → spend (src/server/dials.ts) after the parse (the default)
  *   7  the handler          → typed ctx in, an answer.ts Response out
  *
  * No byte of a body is buffered for a caller the route has not accepted
