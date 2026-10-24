@@ -26,9 +26,12 @@ export function walkFiles(
 }
 export function codeOf(text: string): string {
   const blank = (s: string) => s.replace(/[^\n]/g, " ");
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, blank)
-    .replace(/(^|[^:"'`\\])(\/\/.*)$/gm, (_m, lead: string, rest: string) => lead + blank(rest));
+  // One pass, left to right: a string literal is never a comment, and a `/*`
+  // inside a `//` comment (e.g. the glob `e2e/*.spec.ts`) opens no block.
+  return text.replace(
+    /\/\*[\s\S]*?\*\/|\/\/[^\n]*|"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/g,
+    (match) => (match.startsWith("//") || match.startsWith("/*") ? blank(match) : match),
+  );
 }
 export function visitTs(file: string, visit: (node: ts.Node, source: ts.SourceFile) => void): void {
   const source = ts.createSourceFile(

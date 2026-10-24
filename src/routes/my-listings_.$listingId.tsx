@@ -1,7 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { MyListingPage } from "@/features/my-listings/my-listing-page";
-import { supabase } from "@/integrations/supabase/client";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 /**
  * Bundle 16 turn 3 — /my-listings/<id>, one of the seller's own ads (D138; D173–D176):
@@ -16,9 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/my-listings_/$listingId")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getSession();
-    if ((data.session?.user ?? null) === null)
-      throw redirect({ to: "/auth", search: { return: `/my-listings/${params.listingId}` } });
+    await requireSignedIn(`/my-listings/${encodeURIComponent(params.listingId)}`);
   },
   head: () => ({
     meta: [

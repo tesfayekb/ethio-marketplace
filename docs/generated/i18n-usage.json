@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 535,
+  "scanned": 537,
   "dynamicCallSites": 397,
   "keys": {
     "account.deactivatedBanner": [
@@ -5018,6 +5018,7 @@
     ],
     "legal.certify.forCountry": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
@@ -5056,6 +5057,7 @@
       "/admin/legal",
       "/legal/$kind",
       "/legal/accept",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
@@ -5068,11 +5070,12 @@
       "/auth/reset",
       "/legal/$kind",
       "/legal/accept",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.kind.publishing": [
-      "/legal/$kind"
+      "/legal/publishing"
     ],
     "legal.kind.terms": [
       "(every page)",
@@ -5083,36 +5086,43 @@
       "/auth/reset",
       "/legal/$kind",
       "/legal/accept",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.page.loadError": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.page.meta": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.page.none": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.page.showCurrent": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.page.showUpcoming": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],
     "legal.page.upcoming": [
       "/legal/$kind",
+      "/legal/publishing",
       "/privacy",
       "/terms"
     ],

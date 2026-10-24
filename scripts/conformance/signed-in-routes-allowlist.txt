@@ -1,0 +1,1 @@
+# INC-852: every signed-in screen's door-step is requireSignedIn (src/lib/signed-in-route.ts); a route whose code reads auth.getSession( itself is a breach, and ssr: false without requireSignedIn needs a line here. <path> | <reason> | <until>

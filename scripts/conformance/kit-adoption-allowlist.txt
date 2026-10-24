@@ -1,0 +1,22 @@
+# DEC-244: every census guard walks the tree through scripts/conformance/kit.ts; a walker here is a guard not yet moved (until its turn's INC) or an enumerator that is not a guard (until DEC-244). <path> | <reason> | <until>
+src/lib/error-text.test.ts | guard not yet moved (route-boundary turn) | INC-856
+src/lib/untrusted-text.test.ts | guard not yet moved (route-boundary turn) | INC-856
+src/lib/env-flags.test.ts | guard not yet moved (route-boundary turn) | INC-856
+src/server/ai/meter.test.ts | guard not yet moved (route-boundary turn) | INC-856
+src/look-law.test.ts | guard not yet moved (form-kit turn) | INC-857
+scripts/admin-tables.ts | guard not yet moved (form-kit turn) | INC-857
+scripts/destructive-red.ts | guard not yet moved (form-kit turn) | INC-857
+scripts/list-action-labels.ts | guard not yet moved (form-kit turn) | INC-857
+src/features/legal/agree-to-document.test.tsx | guard not yet moved (form-kit turn) | INC-857
+src/features/legal/use-legal-gate.test.tsx | guard not yet moved (form-kit turn) | INC-857
+scripts/e2e-leases.ts | guard not yet moved (door turn) | INC-858
+scripts/test-ids.ts | guard not yet moved (door turn) | INC-858
+scripts/check-root-routes.ts | guard not yet moved (door turn) | INC-858
+src/lib/refresh-after-write.test.ts | guard not yet moved (door turn) | INC-858
+src/i18n/locales/admin-layer.test.ts | guard not yet moved (door turn) | INC-858
+scripts/e2e-select.ts | not a guard: picks the specs a run executes | DEC-244
+scripts/e2e-failure-report.ts | not a guard: reads the run's results | DEC-244
+scripts/e2e-migration-preflight.ts | not a guard: reads the migration marks | DEC-244
+scripts/i18n-usage-map.ts | not a guard: writes the usage map | DEC-244
+scripts/check-bundle-size.mjs | not a guard: reads the dist bundle | DEC-244
+src/features/posting/price-basis.test.ts | not a guard: a mirror test reading the latest migration | DEC-244

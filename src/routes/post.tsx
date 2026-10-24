@@ -1,8 +1,8 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { postReturnPath, postSearchOf, type PostSearch } from "@/features/posting/post-prefill";
 import { PostingWizard } from "@/features/posting/wizard";
-import { supabase } from "@/integrations/supabase/client";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 /**
  * U6-C2a — `/post`: the wizard for a listing that does not exist yet.
@@ -26,11 +26,7 @@ export const Route = createFileRoute("/post")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>): PostSearch => postSearchOf(search),
   beforeLoad: async ({ search }) => {
-    // C2e.2 — the session the browser holds; no auth-server round trip. RLS and
-    // the server routes stay the authority behind this screen choice.
-    const { data } = await supabase.auth.getSession();
-    if ((data.session?.user ?? null) === null)
-      throw redirect({ to: "/auth", search: { return: postReturnPath(search) } });
+    await requireSignedIn(postReturnPath(search));
   },
   head: () => ({
     meta: [

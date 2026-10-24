@@ -1,16 +1,12 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import { AccountOverview } from "@/features/account/account-overview";
-import { supabase } from "@/integrations/supabase/client";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 export const Route = createFileRoute("/account")({
   ssr: false,
   beforeLoad: async () => {
-    // C2e.2 — the session the browser holds; no auth-server round trip. RLS and
-    // the server routes stay the authority behind this screen choice.
-    const { data } = await supabase.auth.getSession();
-    if ((data.session?.user ?? null) === null)
-      throw redirect({ to: "/auth", search: { return: "/account" } });
+    await requireSignedIn("/account");
   },
   head: () => ({
     meta: [

@@ -2,8 +2,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { LegalAcceptScreen } from "@/features/legal/legal-accept-screen";
 import { myLegalStatus } from "@/features/legal/legal-reader";
 import { currentGateKinds, legalStatusKey } from "@/features/legal/use-legal-gate";
-import { supabase } from "@/integrations/supabase/client";
 import { safeReturnPath } from "@/lib/return-path";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 type AcceptSearch = { next?: string };
 
@@ -12,10 +12,8 @@ export const Route = createFileRoute("/legal/accept")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>): AcceptSearch =>
     typeof search.next === "string" ? { next: search.next } : {},
-  beforeLoad: async ({ context, search }) => {
-    const { data } = await supabase.auth.getSession();
-    const userId = data.session?.user.id;
-    if (!userId) throw redirect({ to: "/" });
+  beforeLoad: async ({ context, search, location }) => {
+    const { userId } = await requireSignedIn(`/legal/accept${location.searchStr}`);
     const kinds = currentGateKinds();
     const rows = await context.queryClient
       .fetchQuery({

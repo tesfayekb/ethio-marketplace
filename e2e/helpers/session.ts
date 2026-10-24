@@ -123,6 +123,27 @@ export async function passwordGrant(
 }
 
 /**
+ * The one anonymous REST helper (Foundations turn 1, D7): a door call with the
+ * publishable key only, answering the raw status and parsed body so a test can
+ * prove a refusal (M24's 42501) or a public answer.
+ */
+export async function anonRpc(
+  fn: string,
+  args: Record<string, unknown>,
+): Promise<{ status: number; body: unknown }> {
+  const response = await fetch(`${supabaseUrl()}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: {
+      apikey: publishableKey(),
+      Authorization: `Bearer ${publishableKey()}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(args),
+  });
+  return { status: response.status, body: (await response.json()) as unknown };
+}
+
+/**
  * INC-120 — WHY THIS IS ONE-SHOT AND HINT-CLEARING.
  *
  * The first implementation re-wrote the grant bytes on EVERY navigation

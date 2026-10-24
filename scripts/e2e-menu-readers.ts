@@ -8,10 +8,14 @@
  * strips it (`/^rail-category-/`) or a replace of it. An exact testid
  * (`rail-category-${slug}`, `rail-category-all`) is not a prefix and is
  * allowed. Run by the unit tests (scripts/e2e-menu-readers.test.ts).
+ *
+ * Foundations turn 1 (DEC-244): the walker and the comment blanking are the
+ * conformance kit's (scripts/conformance/kit.ts); no behaviour change.
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { codeOf, walkFiles } from "./conformance/kit";
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const HELPER = "e2e/helpers/category-menu.ts";
@@ -25,12 +29,7 @@ const HAND_BUILT = [
 export type Source = { file: string; text: string };
 
 /** The text with its comments blanked (lines kept): a comment that names a selector is not one. */
-export function codeOf(text: string): string {
-  const blank = (s: string) => s.replace(/[^\n]/g, " ");
-  return text
-    .replace(/\/\*[\s\S]*?\*\//g, blank)
-    .replace(/(^|[^:"'`\\])(\/\/.*)$/gm, (_m, lead: string, rest: string) => lead + blank(rest));
-}
+export { codeOf };
 
 /** Every hand-built menu row reader in one file: "<file>:<line> <what>". */
 export function readersIn(file: string, text: string): string[] {
@@ -46,21 +45,10 @@ export function readersIn(file: string, text: string): string[] {
 }
 
 export function readE2e(root = ROOT): Source[] {
-  const out: Source[] = [];
-  const walk = (dir: string) => {
-    for (const name of readdirSync(dir)) {
-      const full = join(dir, name);
-      if (statSync(full).isDirectory()) walk(full);
-      else if (name.endsWith(".ts")) {
-        out.push({
-          file: relative(root, full).split("\\").join("/"),
-          text: readFileSync(full, "utf8"),
-        });
-      }
-    }
-  };
-  walk(join(root, "e2e"));
-  return out;
+  return walkFiles([join(root, "e2e")], { ext: ["ts"] }).map((full) => ({
+    file: relative(root, full).split("\\").join("/"),
+    text: readFileSync(full, "utf8"),
+  }));
 }
 
 export function check(sources: Source[]): string[] {

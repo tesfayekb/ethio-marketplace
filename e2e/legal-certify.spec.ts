@@ -16,7 +16,7 @@ import {
   seedPostableCategory,
   statusOf,
 } from "./helpers/posting";
-import { passwordGrant } from "./helpers/session";
+import { anonRpc, passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -1238,7 +1238,7 @@ test.describe("Legal certification", () => {
     await expect(page.getByTestId("post-photos-certify-wait")).toHaveCount(0);
   });
 
-  test("LGC-6 a statement's public page shows the global statement, and the country's with its country line; anyone may read it (DEC-236)", async ({
+  test("LGC-6 a publishing statement is for signed-in people: the doors refuse a visitor, the page sends one to sign in, and a seller reads the global statement and the country's (D236, M24)", async ({
     page,
   }) => {
     // Scratch statements only (G27): the test's own e2e-pub- kind is read by the same loader path as
@@ -1251,24 +1251,44 @@ test.describe("Legal certification", () => {
     await seedDocument(s, kind, null, globalText);
     await seedDocument(s, kind, "ET", countryText);
 
-    await gotoReady(page, `/legal/${kind}`);
+    // (a) The doors refuse a visitor (M24); a public scratch kind still answers.
+    for (const fn of ["legal_in_force", "legal_scheduled"]) {
+      const refused = await anonRpc(fn, { p_kind: kind });
+      expect(refused.status, fn).toBe(403);
+      expect((refused.body as { code?: string }).code).toBe("42501");
+    }
+    const publicKind = await anonRpc("legal_in_force", { p_kind: "e2e-lgc6-public" });
+    expect(publicKind.status).toBe(200);
+
+    // (b) The page sends a visitor to sign in with the way back; the statement is never shown.
+    await gotoReady(page, `/legal/publishing?kind=${kind}&country=ET`);
+    await expect(page).toHaveURL(/\/auth\?/);
+    expect(new URL(page.url()).searchParams.get("return")).toBe(
+      `/legal/publishing?country=ET&kind=${kind}`,
+    );
+    await expect(page.getByText(globalText)).toHaveCount(0);
+
+    // (c) A seller reads the global statement and the country's, as today.
+    await sellerOnPage(page, s);
+    await gotoReady(page, `/legal/publishing?kind=${kind}`);
     await expect(page.getByTestId("legal-public-meta")).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-fallback-note")).toHaveCount(0);
     await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
 
-    await gotoReady(page, `/legal/${kind}?country=ET`);
+    await gotoReady(page, `/legal/publishing?kind=${kind}&country=ET`);
     await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-public-page")).toContainText(countryText);
     await expect(page.getByTestId("legal-public-country")).toHaveText(
       en["legal.certify.forCountry"].replace("{country}", "Ethiopia"),
     );
 
-    await gotoReady(page, `/legal/${kind}?country=zz`);
+    await gotoReady(page, `/legal/publishing?kind=${kind}&country=zz`);
     await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
     await expect(page.getByTestId("legal-public-page")).not.toContainText(countryText);
 
+    // (d) The real kind's page carries its title.
     await gotoReady(page, "/legal/publishing");
     await expect(page.getByTestId("legal-public-page")).toBeVisible();
     await expect(page).toHaveTitle("Publishing statement — ethio.com");
