@@ -20,12 +20,12 @@ Every server endpoint — a TanStack server route under `src/routes/api/` or a `
 
 ## The status table per route class
 
-| Class | bad shape | caller | dial | door | upstream |
-| --- | --- | --- | --- | --- | --- |
-| Posting (verdict) | 200 verdict | 401 | 429 | 200 verdict, the door's words | 503 |
-| Readers (clientError) | 400 | 401 | 429 | 404 | 503 |
-| Staff | 400 | 403 / 428 | 429 | 403 | 503 |
-| Uploads | 400 | 401 | 429 | the declared 403 / 409 | 503 |
+| Class                 | bad shape   | caller    | dial | door                          | upstream |
+| --------------------- | ----------- | --------- | ---- | ----------------------------- | -------- |
+| Posting (verdict)     | 200 verdict | 401       | 429  | 200 verdict, the door's words | 503      |
+| Readers (clientError) | 400         | 401       | 429  | 404                           | 503      |
+| Staff                 | 400         | 403 / 428 | 429  | 403                           | 503      |
+| Uploads               | 400         | 401       | 429  | the declared 403 / 409        | 503      |
 
 ## The allowlist's waves
 
@@ -46,7 +46,8 @@ export const Route = createFileRoute("/api/listings/example")({
           const { data, error, status } = await supabase!.rpc("example_door", {
             p_id: body.id,
           });
-          if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "example_door", status);
+          if (upstreamFailed(error, status))
+            return upstreamUnavailable(PATH, "example_door", status);
           if (error) return verdict([doorRefusal(error.message)]);
           return ok(data);
         },
