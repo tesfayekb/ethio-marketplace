@@ -1,16 +1,11 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { MyLegalVersion } from "@/features/legal/my-legal-version";
-import { supabase } from "@/integrations/supabase/client";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 export const Route = createFileRoute("/account_/legal_/$versionId")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session?.user == null)
-      throw redirect({
-        to: "/auth",
-        search: { return: `/account/legal/${encodeURIComponent(params.versionId)}` },
-      });
+    await requireSignedIn(`/account/legal/${encodeURIComponent(params.versionId)}`);
   },
   head: () => ({
     meta: [

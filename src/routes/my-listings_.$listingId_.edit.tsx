@@ -1,7 +1,7 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { EditWizard } from "@/features/posting/wizard";
-import { supabase } from "@/integrations/supabase/client";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 /**
  * Bundle 17 turn 2 (D194) — `/my-listings/<id>/edit`: THE EDIT IS THE WIZARD.
@@ -23,13 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/my-listings_/$listingId_/edit")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getSession();
-    if ((data.session?.user ?? null) === null) {
-      throw redirect({
-        to: "/auth",
-        search: { return: `/my-listings/${encodeURIComponent(params.listingId)}/edit` },
-      });
-    }
+    await requireSignedIn(`/my-listings/${encodeURIComponent(params.listingId)}/edit`);
   },
   head: () => ({
     meta: [
