@@ -2,19 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { bundleEtag } from "@/i18n/bundle";
-import { errorText } from "@/lib/error-text";
-import { ReaderError } from "@/lib/reader-failure";
+import { readFailed } from "@/lib/reader-failure";
 import { countryCodeLoose } from "@/lib/schemas/primitives";
-import {
-  clientError,
-  conditional,
-  notModified,
-  serverError,
-  upstreamUnavailable,
-} from "@/server/answer";
+import { clientError, conditional, notModified, readFailure } from "@/server/answer";
 import { defineRoute, type RouteContext } from "@/server/route";
 import { versionCache } from "@/server/version-cache";
-import { upstreamFailed } from "@/server/supabase/user-client";
 
 /**
  * L1c-C — THE PUBLIC PER-COUNTRY LOCATION TREE.
@@ -68,10 +60,6 @@ function shapeNode(row: TreeNode): TreeNode {
   };
 }
 
-function readFailed(error: unknown, status: number): ReaderError {
-  return new ReaderError({ class: "server", status, message: errorText(error) });
-}
-
 async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Promise<Response> {
   const supabase = ctx.supabase;
   if (supabase === null) throw new Error("anonymous client missing");
@@ -116,11 +104,7 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Prom
       cache: CACHE,
     });
   } catch (error) {
-    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
-    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
-      return upstreamUnavailable(PATH, "location tree read", status);
-    }
-    return serverError(PATH, error);
+    return readFailure(PATH, "location tree read", error);
   }
 }
 

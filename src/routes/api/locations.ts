@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { conditional, serverError, upstreamUnavailable } from "@/server/answer";
+import { conditional, readFailure } from "@/server/answer";
 import { defineRoute, type RouteContext } from "@/server/route";
 import { versionCache } from "@/server/version-cache";
-import { upstreamFailed } from "@/server/supabase/user-client";
-import { errorText } from "@/lib/error-text";
-import { ReaderError } from "@/lib/reader-failure";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * LOCATIONS ERA L4b — THE PUBLIC OPEN-MARKETS LIST.
@@ -78,7 +76,7 @@ async function handler(ctx: RouteContext): Promise<Response> {
       async () => String(Math.floor(Date.now() / BUCKET_MS)),
       async () => {
         const { data, error, status } = await supabase.rpc("get_open_countries");
-        if (error) throw new ReaderError({ class: "server", status, message: errorText(error) });
+        if (error) throw readFailed(error, status);
         const rows = Array.isArray(data) ? (data as OpenCountry[]) : [];
         const body = { countries: rows.map(shapeCountry) };
         return { body, etag: payloadEtag(JSON.stringify(body)) };
@@ -87,11 +85,7 @@ async function handler(ctx: RouteContext): Promise<Response> {
     if (held === null) throw new Error("open markets not built");
     return conditional(ctx.request, { etag: held.value.etag, body: held.value.body, cache: CACHE });
   } catch (error) {
-    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
-    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
-      return upstreamUnavailable(PATH, "open markets read", status);
-    }
-    return serverError(PATH, error);
+    return readFailure(PATH, "open markets read", error);
   }
 }
 

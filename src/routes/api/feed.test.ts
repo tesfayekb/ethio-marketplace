@@ -14,6 +14,7 @@ const CARD_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const CARD_C = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 
 const state = {
+  rpcCalls: 0,
   rpcData: null as unknown,
   rpcError: null as { message: string } | null,
   links: {} as Record<string, Record<string, string>>,
@@ -23,7 +24,10 @@ const state = {
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: () => ({
-    rpc: async () => ({ data: state.rpcData, error: state.rpcError }),
+    rpc: async () => {
+      state.rpcCalls += 1;
+      return { data: state.rpcData, error: state.rpcError, status: state.rpcError ? 500 : 200 };
+    },
   }),
 }));
 
@@ -83,6 +87,7 @@ async function get(query = ""): Promise<Response> {
 }
 
 beforeEach(() => {
+  state.rpcCalls = 0;
   state.rpcError = null;
   state.links = {};
   state.signThrows = false;
@@ -147,10 +152,34 @@ describe("/api/feed — the cover links (DEC-195)", () => {
   it("INC-804 a database failure replies 'internal error' and no detail", async () => {
     state.rpcError = { message: "feed_page: marker-text-that-must-not-travel" };
     const response = await get();
-    expect(response.status).toBe(502);
+    expect(response.status).toBe(500);
     const text = await response.text();
-    expect(JSON.parse(text)).toEqual({ error: "internal error" });
+    expect(JSON.parse(text)).toEqual({
+      error: "server error",
+      incident: expect.stringMatching(/^[0-9a-f-]{36}$/),
+    });
     expect(text).not.toContain("marker-text-that-must-not-travel");
+  });
+
+  it("FDR-1 invalid sizes answer badSize with no-store before rpc", async () => {
+    for (const size of ["0", "51", "x"]) {
+      const response = await get(`?size=${size}`);
+      expect(response.status).toBe(400);
+      expect(response.headers.get("Cache-Control")).toBe("no-store");
+      expect(await response.json()).toEqual({ error: "badSize" });
+    }
+    expect(state.rpcCalls).toBe(0);
+  });
+  it("FDR-2 garbage cursor is refused before rpc", async () => {
+    const response = await get("?after=garbage");
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "badCursor" });
+    expect(state.rpcCalls).toBe(0);
+  });
+  it("FDR-3 unknown query keys pass", async () => {
+    const response = await get("?unknown=value");
+    expect(response.status).toBe(200);
+    expect(state.rpcCalls).toBe(1);
   });
 
   it("INC-804 a known refusal keeps its code", async () => {

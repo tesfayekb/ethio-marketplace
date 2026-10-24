@@ -34,6 +34,8 @@ const BYPASS_PATTERNS: Array<{ re: RegExp; what: string }> = [
   { re: /createClient[<(]/, what: "constructs a Supabase client" },
   { re: /fetch\(/, what: "calls fetch" },
   { re: /typeof body\[/, what: "walks a body by hand" },
+  { re: /instanceof ReaderError\s*&&\s*upstreamFailed/, what: "maps a read failure by hand" },
+  { re: /function readFailed\(/, what: "declares its own read-failure factory" },
 ];
 
 const UUID_LITERAL = /\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-/;
@@ -49,12 +51,15 @@ function census(): string[] {
 }
 
 function conforms(file: string): boolean {
-  const code = codeOf(readFileSync(file, "utf8"));
+  return conformsCode(codeOf(readFileSync(file, "utf8")));
+}
+
+function conformsCode(code: string): boolean {
   if (code.includes("createServerFn(")) {
     // A server function conforms when its validator is a schema.
     return /\.inputValidator\(\s*(?:z\.|[A-Za-z_$][\w$]*Schema\b)/.test(code);
   }
-  return code.includes('from "@/server/route"') && code.includes("defineRoute(");
+  return code.includes('from "@/server/route"') && /\bdefineRoute\s*(?:<[^>]*>)?\s*\(/.test(code);
 }
 
 function bypasses(file: string): Array<{ file: string; line: number; what: string }> {
@@ -118,7 +123,8 @@ describe("the route boundary census (CF-RT)", () => {
       .split("// ROUTES-BOUNDARY-IGNORES-BEGIN")[1]
       ?.split("// ROUTES-BOUNDARY-IGNORES-END")[0];
     expect(block).toBeDefined();
-    const entries = [...block!.matchAll(/"(src\/[^"]+)"/g)].map((match) => match[1]);
+    if (block === undefined) throw new Error("route ignore block missing");
+    const entries = [...block.matchAll(/"(src\/[^"]+)"/g)].map((match) => match[1]);
     // The ignores are minimatch globs: a literal [ or ] in a filename is escaped [[] / []].
     const lintSet = new Set(
       entries
@@ -128,6 +134,22 @@ describe("the route boundary census (CF-RT)", () => {
     const allowSet = new Set(ALLOWED.keys());
     expect([...lintSet].filter((path) => !allowSet.has(path))).toEqual([]);
     expect([...allowSet].filter((path) => !lintSet.has(path))).toEqual([]);
+  });
+
+  it("CF-RT-6 generic calls conform only with the boundary import", () => {
+    const imported = 'import { defineRoute } from "@/server/route";\ndefineRoute<Ctx>({';
+    expect(conformsCode(imported)).toBe(true);
+    expect(conformsCode("defineRoute<Ctx>({")).toBe(false);
+  });
+
+  it("CF-RT-7 the scanner reports both planted read-failure copies once", () => {
+    for (const [code, expected] of [
+      ["error instanceof ReaderError && upstreamFailed(", "maps a read failure by hand"],
+      ["function readFailed(", "declares its own read-failure factory"],
+    ]) {
+      const hits = BYPASS_PATTERNS.filter(({ re }) => re.test(code)).map(({ what }) => what);
+      expect(hits).toEqual([expected]);
+    }
   });
 
   it("prints the allowance count", () => {

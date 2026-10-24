@@ -1,3 +1,4 @@
+import { ReaderError } from "@/lib/reader-failure";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -8,6 +9,7 @@ import {
   ok,
   plain,
   redirect,
+  readFailure,
   serverError,
   verdict,
 } from "@/server/answer";
@@ -143,6 +145,35 @@ describe("the route answers (B2)", () => {
     expect(line).toContain(body.incident);
     expect(line).toContain("secret postgres detail");
     logged.mockRestore();
+  });
+
+  it("ANS-10 readFailure maps typed and raw failures without detail", async () => {
+    const logged = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      for (const error of [
+        new ReaderError({ class: "server", status: 503, message: "database unavailable" }),
+        { message: "<!DOCTYPE html>gateway detail", status: 0 },
+      ]) {
+        const response = readFailure("/api/test", "database read", error);
+        expect(response.status).toBe(503);
+        expect(await response.json()).toEqual({ error: "upstream unavailable" });
+      }
+      for (const error of [
+        new ReaderError({ class: "server", status: 500, message: "secret detail" }),
+        new Error("secret detail"),
+      ]) {
+        const response = readFailure("/api/test", "database read", error);
+        expect(response.status).toBe(500);
+        const body = await response.json();
+        expect(body).toEqual({
+          error: "server error",
+          incident: expect.stringMatching(/^[0-9a-f-]{36}$/),
+        });
+        expect(JSON.stringify(body)).not.toContain("secret detail");
+      }
+    } finally {
+      logged.mockRestore();
+    }
   });
 
   it("ANS-5 bytes carries the body, the content type, no-store, and a given header", async () => {

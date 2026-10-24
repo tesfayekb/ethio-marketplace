@@ -1,7 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
-import type { Database } from "@/integrations/supabase/types";
+import { uuid } from "@/lib/schemas/primitives";
+import { cursor, encodeCursor } from "@/lib/schemas/cursor";
+import { readFailed } from "@/lib/reader-failure";
+import { clientError, ok, readFailure, serverError } from "@/server/answer";
+import { defineRoute, type RouteContext } from "@/server/route";
 import { errorText } from "@/lib/error-text";
 import { PHOTO_LINK_SECONDS, readAndSignPhotoLinks } from "@/server/media/links";
 
@@ -23,7 +27,17 @@ import { PHOTO_LINK_SECONDS, readAndSignPhotoLinks } from "@/server/media/links"
  */
 
 const PATH = "/api/feed";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const FeedQuery = z.object({
+  category: uuid.optional(),
+  place: uuid.optional(),
+  size: z
+    .string()
+    .regex(/^\d+$/)
+    .transform(Number)
+    .pipe(z.number().int().min(1).max(50))
+    .optional(),
+  after: cursor(z.record(z.string(), z.unknown())).optional(),
+});
 
 /** INC-804 — every client refusal this route sends, as a closed set. */
 type ClientCode =
@@ -44,91 +58,14 @@ const BAD: Readonly<Record<string, ClientCode>> = {
   "feed_page: badSize": "badSize",
 };
 
-function logRouteError(error: unknown): void {
-  // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
-  // log; an error with no message says so (src/lib/error-text.ts).
-  const message = errorText(error);
-  console.error("[ssr-error]", PATH, message);
-}
-
-function serverEnv(name: string): string {
-  // Read INSIDE the handler: workerd injects bindings per request (F1).
-  return process.env[name] ?? "";
-}
-
-/** INC-804 — a server failure: logged whole, answered with a fixed text. */
-function serverFailure(detail: string, status: 500 | 502 | 503): Response {
-  logRouteError(detail);
-  // INC-447 — a server failure is logged whole; the reply names no raw message.
-  return new Response(JSON.stringify({ error: "internal error" }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-/** INC-804 — a client refusal: its code is one of the route's fixed codes. */
-function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
-  return new Response(JSON.stringify({ error: code }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-function toBase64Url(text: string): string {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-/** The cursor object, or null when the value is not base64url of a JSON object. */
-function fromCursor(value: string): Record<string, unknown> | null {
-  if (!/^[A-Za-z0-9_-]+$/.test(value)) return null;
-  try {
-    const padded = value.replace(/-/g, "+").replace(/_/g, "/");
-    const binary = atob(padded + "=".repeat((4 - (padded.length % 4)) % 4));
-    const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
-    const parsed: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) return null;
-    return parsed as Record<string, unknown>;
-  } catch {
-    return null;
-  }
-}
-
-async function handleGet(request: Request): Promise<Response> {
-  const params = new URL(request.url).searchParams;
-
-  const category = params.get("category");
-  if (category !== null && !UUID.test(category)) return clientFailure("badCategory", 400);
-  const place = params.get("place");
-  if (place !== null && !UUID.test(place)) return clientFailure("badPlace", 400);
-
-  const sizeRaw = params.get("size");
-  let size = 20;
-  if (sizeRaw !== null) {
-    if (!/^\d+$/.test(sizeRaw)) return clientFailure("badSize", 400);
-    size = Number(sizeRaw);
-    if (size < 1 || size > 50) return clientFailure("badSize", 400);
-  }
-
-  const afterRaw = params.get("after");
-  let after: Record<string, unknown> | null = null;
-  if (afterRaw !== null) {
-    after = fromCursor(afterRaw);
-    if (after === null) return clientFailure("badCursor", 400);
-  }
-
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
-
-  const supabase = createClient<Database>(url, publishable, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof FeedQuery>>,
+): Promise<Response> {
+  const { category, place, after, size = 20 } = ctx.query;
+  const supabase = ctx.supabase;
+  if (supabase === null) throw new Error("anonymous client missing");
   const started = Date.now();
-  const { data, error } = await supabase.rpc("feed_page", {
+  const { data, error, status } = await supabase.rpc("feed_page", {
     p_category_id: category ?? undefined,
     p_location_id: place ?? undefined,
     p_after: (after ?? undefined) as never,
@@ -140,12 +77,12 @@ async function handleGet(request: Request): Promise<Response> {
   if (error) {
     const message = error.message ?? "";
     for (const [name, code] of Object.entries(NOT_FOUND)) {
-      if (message.includes(name)) return clientFailure(code, 404);
+      if (message.includes(name)) return clientError(code, 404);
     }
     for (const [name, code] of Object.entries(BAD)) {
-      if (message.includes(name)) return clientFailure(code, 400);
+      if (message.includes(name)) return clientError(code, 400);
     }
-    return serverFailure(message, 502);
+    return readFailure(PATH, "feed read", readFailed(error, status));
   }
 
   const page = data as {
@@ -163,14 +100,13 @@ async function handleGet(request: Request): Promise<Response> {
     !Array.isArray(page.ladder) ||
     !Array.isArray(page.steps)
   ) {
-    return serverFailure("feed_page returned no page", 502);
+    return serverError(PATH, new Error("feed_page returned no page"));
   }
   const body: Record<string, unknown> = {
     cards: page.cards,
     ladder: page.ladder,
     steps: page.steps,
-    next:
-      page.next === null || page.next === undefined ? null : toBase64Url(JSON.stringify(page.next)),
+    next: page.next === null || page.next === undefined ? null : encodeCursor(page.next),
   };
   // DEC-195 — the covers' card and thumb links ride INSIDE the answer, signed
   // for a visitor exactly as /api/media/photo-links signs them (one shared
@@ -198,27 +134,32 @@ async function handleGet(request: Request): Promise<Response> {
       console.error("[feed-links]", PATH, errorText(linksError));
     }
   }
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
-      Vary: "Accept-Encoding",
-    },
+  return ok(body, {
+    cache: "public, max-age=60, stale-while-revalidate=300",
+    headers: { Vary: "Accept-Encoding" },
   });
 }
 
 export const Route = createFileRoute("/api/feed")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(error);
-          return serverFailure(errorText(error), 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "anon",
+        query: FeedQuery,
+        badShape: (issue) =>
+          clientError(
+            issue.path === "category"
+              ? "badCategory"
+              : issue.path === "place"
+                ? "badPlace"
+                : issue.path === "size"
+                  ? "badSize"
+                  : "badCursor",
+            400,
+          ),
+        handler,
+      }),
     },
   },
 });

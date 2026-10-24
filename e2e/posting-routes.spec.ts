@@ -1428,7 +1428,8 @@ test.describe("POSTING ROUTES", () => {
         const options = await page.request.get(`/api/attributes/${attributeId}/options`, {
           headers,
         });
-        expect(options.status(), "PR-51: the options route").toBe(401);
+        expect(options.status(), "PR-51: the options route").toBe(403);
+        expect(await options.json()).toEqual({ error: "account is deactivated" });
       } finally {
         const reopened = await admin
           .from("profiles")

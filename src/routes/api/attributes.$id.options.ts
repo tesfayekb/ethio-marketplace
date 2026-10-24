@@ -1,178 +1,73 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { userClientFromRequest } from "@/server/supabase/user-client";
-import { errorText } from "@/lib/error-text";
-
-/**
- * U6-A2-C — THE LAZY OPTION LIST (DEC-053).
- *
- *   GET /api/attributes/<id>/options → { options: [...], version }
- *
- * A preset list can be thousands of rows (every make and model), so it is NEVER
- * shipped with the posting form: the form asks for one attribute's options when
- * the seller opens that control, and the answer is cached hard.
- *
- * Anon is allowed — an option label is public reference data, and both reads are
- * `SECURITY DEFINER` functions granted to `anon` (no bearer, no authority, F3).
- *
- * FRESHNESS, in three layers, the shape the locations and bundle routes use:
- *   1 `get_attribute_options_version` → an in-process cache good for 15 s
- *   2 the version IS the ETag, so a conditional request costs a 304
- *   3 `public, max-age=60, stale-while-revalidate=300` for the browser (INC-243)
- *
- * CENSUS NOTE: `attributes` carries no active flag of its own — an option row's
- * `active` field is what the door already filters — so 404 here means an id no
- * attribute has.
- */
+import { readFailed } from "@/lib/reader-failure";
+import { uuid } from "@/lib/schemas/primitives";
+import { clientError, conditional, readFailure } from "@/server/answer";
+import { defineRoute, type RouteContext } from "@/server/route";
+import { versionCache } from "@/server/version-cache";
 
 /**
- * INC-243 — A CURATOR'S COMMIT MUST REACH AN OPEN FORM. The version already moves
- * on a file commit (`admin_commit_attribute_import` writes `attributes.updated_at`,
- * which `get_attribute_options_version` hashes), so the stale seam was the FIVE
- * MINUTES a browser was told to keep the body without asking. A minute of
- * freshness with five of stale-while-revalidate keeps the list free on a tap and
- * costs a 304 after a change.
+ * U6-A2-C — the lazy option list (DEC-053), signed-in only (INC-397).
+ * The caller is checked before params and every cache hit. Both doors run as
+ * the caller. A curator's commit moves the version and reaches an open form
+ * after 15 seconds in process / 60 seconds in the browser (INC-243).
  */
-const MAX_AGE = 60;
-const SWR = 300;
-const CACHE_TTL_MS = 15_000;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-interface CacheEntry {
-  etag: string;
-  body: string;
-  checkedAt: number;
+const PATH = "/api/attributes/$id/options";
+const Params = z.object({ id: uuid }).strict();
+const OPTIONS = versionCache<string, { body: unknown; stamp: string }>({ ttlMs: 15_000, max: 512 });
+class OptionsRefusal extends Error {
+  readonly code = "rateLimited";
 }
 
-const cache = new Map<string, CacheEntry>();
-/** INC-298 — the cache is bounded; when full, the least recently checked entry leaves. */
-const CACHE_MAX = 512;
-
-function remember(id: string, entry: CacheEntry): void {
-  cache.delete(id);
-  if (cache.size >= CACHE_MAX) {
-    let oldestId: string | null = null;
-    let oldestAt = Number.POSITIVE_INFINITY;
-    for (const [key, value] of cache) {
-      if (value.checkedAt < oldestAt) {
-        oldestAt = value.checkedAt;
-        oldestId = key;
-      }
-    }
-    if (oldestId !== null) cache.delete(oldestId);
-  }
-  cache.set(id, entry);
-}
-
-function logRouteError(id: string, error: unknown): void {
-  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
-  console.error("[ssr-error]", `/api/attributes/${id}/options`, errorText(error));
-}
-
-/** INC-802 — every client refusal this route sends, as a closed set. */
-type ClientCode = "unknown attribute" | "not signed in" | "rateLimited";
-
-/** INC-802 — a server failure: logged whole (with the id), answered with a fixed text. */
-function serverFailure(id: string, detail: string, status: 500 | 502 | 503): Response {
-  logRouteError(id, detail);
-  // INC-447 — a server failure is logged whole; the reply names no raw message.
-  return new Response(JSON.stringify({ error: "internal error" }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
-function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
-  return new Response(JSON.stringify({ error: code }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-function respond(request: Request, entry: CacheEntry): Response {
-  // INC-397 — signed-in callers only, so no shared cache may hold the answer.
-  const cacheControl = `private, max-age=${MAX_AGE}, stale-while-revalidate=${SWR}`;
-  if (request.headers.get("If-None-Match") === entry.etag) {
-    return new Response(null, {
-      status: 304,
-      headers: { ETag: entry.etag, "Cache-Control": cacheControl },
+async function handler(ctx: RouteContext<unknown, z.infer<typeof Params>>): Promise<Response> {
+  const supabase = ctx.supabase;
+  if (supabase === null) throw new Error("caller client missing");
+  const id = ctx.params.id;
+  try {
+    const held = await OPTIONS.get(
+      id,
+      async () => {
+        const { data, error, status } = await supabase.rpc("get_attribute_options_version", {
+          p_attribute_id: id,
+        });
+        if (error) throw readFailed(error, status);
+        const stamp = typeof data === "string" ? data : "";
+        return stamp === "" ? null : stamp;
+      },
+      async (stamp) => {
+        const { data, error, status } = await supabase.rpc("get_attribute_options", {
+          p_attribute_id: id,
+        });
+        if (error) {
+          if (error.message.includes("attributeNotFound")) return null;
+          if (error.message.includes("rateLimited")) throw new OptionsRefusal();
+          throw readFailed(error, status);
+        }
+        return { body: data ?? { options: [], version: stamp }, stamp };
+      },
+    );
+    if (held === null) return clientError("unknown attribute", 404);
+    return conditional(ctx.request, {
+      etag: `"attr-options-2-${held.value.stamp}"`,
+      body: held.value.body,
+      cache: "private, max-age=60, stale-while-revalidate=300",
     });
+  } catch (error) {
+    if (error instanceof OptionsRefusal) return clientError(error.code, 429);
+    return readFailure(PATH, "attribute options read", error);
   }
-  return new Response(entry.body, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": cacheControl,
-      ETag: entry.etag,
-      Vary: "Accept-Encoding",
-    },
-  });
 }
-
-async function handleGet(request: Request, id: string): Promise<Response> {
-  if (!UUID_RE.test(id)) return clientFailure("unknown attribute", 404);
-
-  // INC-397 — the options are not handed out: the bearer is verified first, and
-  // the reads run as the caller (anon no longer holds EXECUTE).
-  const caller = await userClientFromRequest(request);
-  if (caller.reason !== null || caller.supabase === null) {
-    // INC-574 — the auth server did not answer: 503, never "not signed in".
-    if (caller.reason === "upstream") return serverFailure(id, caller.message, 503);
-    if (caller.reason === "serverEnv") return serverFailure(id, "not signed in", 500);
-    return clientFailure("not signed in", 401);
-  }
-  const supabase = caller.supabase;
-
-  const now = Date.now();
-  const hit = cache.get(id);
-  if (hit && now - hit.checkedAt < CACHE_TTL_MS) return respond(request, hit);
-
-  const version = await supabase.rpc("get_attribute_options_version", { p_attribute_id: id });
-  if (version.error) return serverFailure(id, version.error.message, 502);
-  const stamp = typeof version.data === "string" ? version.data : "";
-  if (stamp === "") return clientFailure("unknown attribute", 404);
-
-  // The version is unchanged: the body already held is still the answer, and no
-  // second read is paid for.
-  if (hit && hit.etag === `"attr-options-2-${stamp}"`) {
-    const entry: CacheEntry = { ...hit, checkedAt: now };
-    remember(id, entry);
-    return respond(request, entry);
-  }
-
-  const { data, error } = await supabase.rpc("get_attribute_options", { p_attribute_id: id });
-  if (error) {
-    if (error.message.includes("attributeNotFound")) {
-      return clientFailure("unknown attribute", 404);
-    }
-    // Bundle 4 step 20 — the door meters reads (rate_gate('options_read')); a
-    // refusal is the caller's limit, answered in plain words, as the schema read is.
-    if (error.message.includes("rateLimited")) return clientFailure("rateLimited", 429);
-    return serverFailure(id, error.message, 502);
-  }
-
-  const entry: CacheEntry = {
-    etag: `"attr-options-2-${stamp}"`,
-    body: JSON.stringify(data ?? { options: [], version: stamp }),
-    checkedAt: now,
-  };
-  remember(id, entry);
-  return respond(request, entry);
-}
-
 export const Route = createFileRoute("/api/attributes/$id/options")({
   server: {
     handlers: {
-      GET: async ({ request, params }) => {
-        const id = String(params.id ?? "");
-        try {
-          return await handleGet(request, id);
-        } catch (error) {
-          logRouteError(id, error);
-          return serverFailure(id, errorText(error), 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "user",
+        params: Params,
+        badShape: () => clientError("unknown attribute", 404),
+        handler,
+      }),
     },
   },
 });
