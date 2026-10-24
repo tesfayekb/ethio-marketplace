@@ -127,7 +127,10 @@ function queryObject(url: URL, schema: z.ZodTypeAny): Record<string, unknown> {
   return out;
 }
 
-function badShapeAnswer(mode: "verdict" | "clientError", issues: readonly z.core.$ZodIssue[]): Response {
+function badShapeAnswer(
+  mode: "verdict" | "clientError",
+  issues: readonly z.core.$ZodIssue[],
+): Response {
   if (mode === "clientError") return clientError("bad request", 400);
   const first = issues[0];
   return verdict([
