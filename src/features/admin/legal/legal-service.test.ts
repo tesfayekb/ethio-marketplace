@@ -89,12 +89,27 @@ it.each([undefined, null, "om", [42], [{}], [{ code: "om" }], [{ code: 1, name_e
     const rpc = vi.fn();
     (supabase as unknown as { rpc: unknown }).rpc = rpc;
     rpc.mockResolvedValue({
-      data: [{ document_id: "e2e-doc", kind: "e2e-list", versions: [{ languages: [], missing_languages }] }],
+      data: [
+        {
+          document_id: "e2e-doc",
+          kind: "e2e-list",
+          versions: [{ languages: [], missing_languages }],
+        },
+      ],
       error: null,
     });
     await expect(listLegalDocuments()).rejects.toThrow("invalid missing_languages");
     rpc.mockResolvedValue({
-      data: { version_id: "e2e-version", version: 1, kind: "e2e-list", body_en: "English", body_am: "Amharic", texts: {}, settings_snapshot: {}, missing_languages },
+      data: {
+        version_id: "e2e-version",
+        version: 1,
+        kind: "e2e-list",
+        body_en: "English",
+        body_am: "Amharic",
+        texts: {},
+        settings_snapshot: {},
+        missing_languages,
+      },
       error: null,
     });
     await expect(getLegalVersion("e2e-version")).rejects.toThrow("invalid missing_languages");
@@ -105,9 +120,32 @@ it.each([[], [{ code: "e2e-language", name_en: "Scratch language" }]])(
   async (missing_languages) => {
     const rpc = vi.fn();
     (supabase as unknown as { rpc: unknown }).rpc = rpc;
-    rpc.mockResolvedValue({ data: [{ document_id: "e2e-doc", kind: "e2e-list", versions: [{ languages: [], missing_languages }] }], error: null });
-    expect((await listLegalDocuments())[0]?.versions[0]?.missing_languages).toEqual(missing_languages);
-    rpc.mockResolvedValue({ data: { version_id: "e2e-version", version: 1, kind: "e2e-list", body_en: "English", body_am: "Amharic", texts: {}, settings_snapshot: {}, missing_languages }, error: null });
+    rpc.mockResolvedValue({
+      data: [
+        {
+          document_id: "e2e-doc",
+          kind: "e2e-list",
+          versions: [{ languages: [], missing_languages }],
+        },
+      ],
+      error: null,
+    });
+    expect((await listLegalDocuments())[0]?.versions[0]?.missing_languages).toEqual(
+      missing_languages,
+    );
+    rpc.mockResolvedValue({
+      data: {
+        version_id: "e2e-version",
+        version: 1,
+        kind: "e2e-list",
+        body_en: "English",
+        body_am: "Amharic",
+        texts: {},
+        settings_snapshot: {},
+        missing_languages,
+      },
+      error: null,
+    });
     expect((await getLegalVersion("e2e-version")).missing_languages).toEqual(missing_languages);
   },
 );

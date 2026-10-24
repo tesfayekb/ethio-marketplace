@@ -135,14 +135,7 @@ export function LegalVersionView({
   const focused = useRef(false);
   const row = version.data;
   useEffect(() => {
-    if (
-      !openTranslation ||
-      !addingTranslation ||
-      !row ||
-      focused.current ||
-      !panel.current
-    )
-      return;
+    if (!openTranslation || !addingTranslation || !row || focused.current || !panel.current) return;
     focused.current = true;
     const reduced =
       typeof window.matchMedia === "function" &&
@@ -409,9 +402,7 @@ export function LegalVersionView({
                         <Button
                           data-testid="legal-translation-save"
                           disabled={
-                            translationSaving ||
-                            !translationLanguage ||
-                            !translationBody.trim()
+                            translationSaving || !translationLanguage || !translationBody.trim()
                           }
                           onClick={() => {
                             setTranslationError(null);
