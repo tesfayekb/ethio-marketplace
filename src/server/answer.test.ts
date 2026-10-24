@@ -5,6 +5,7 @@ import {
   bytes,
   clientError,
   conditional,
+  download,
   notModified,
   ok,
   plain,
@@ -191,5 +192,40 @@ describe("the route answers (B2)", () => {
     });
     expect(cached.status).toBe(201);
     expect(cached.headers.get("Cache-Control")).toBe("public, max-age=60");
+  });
+});
+
+/** Foundations turn 11 (DEC-237) — the one download answer (DLA-1…3). */
+describe("download", () => {
+  it("DLA-1 an attachment in UTF-8 bytes, nosniff, never cached", async () => {
+    const answer = download("\ufeffa\r\n", {
+      filename: "ethio-categories-2026-10-24.csv",
+      contentType: "text/csv; charset=utf-8",
+    });
+    expect(answer.status).toBe(200);
+    expect(answer.headers.get("Content-Type")).toBe("text/csv; charset=utf-8");
+    expect(answer.headers.get("Content-Disposition")).toBe(
+      `attachment; filename="ethio-categories-2026-10-24.csv"; filename*=UTF-8''ethio-categories-2026-10-24.csv`,
+    );
+    expect(answer.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(answer.headers.get("Cache-Control")).toBe("no-store");
+    expect([...new Uint8Array(await answer.arrayBuffer())]).toEqual([
+      0xef, 0xbb, 0xbf, 0x61, 0x0d, 0x0a,
+    ]);
+  });
+
+  it("DLA-2 a non-ASCII name is RFC 5987 encoded, its ASCII fallback replaced", () => {
+    const answer = download("x", { filename: "ethio-መኪና-1.csv", contentType: "text/csv" });
+    expect(answer.headers.get("Content-Disposition")).toBe(
+      `attachment; filename="ethio-___-1.csv"; filename*=UTF-8''ethio-%E1%88%98%E1%8A%AA%E1%8A%93-1.csv`,
+    );
+  });
+
+  it("DLA-3 a quote, backslash, slash or control character in the name throws", () => {
+    for (const name of ['a".csv', "a\\b.csv", "a/b.csv", "a\r\nX: y.csv", ""]) {
+      expect(() => download("x", { filename: name, contentType: "text/csv" })).toThrow(
+        "invalid download filename",
+      );
+    }
   });
 });
