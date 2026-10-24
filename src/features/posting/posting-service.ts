@@ -144,9 +144,6 @@ export async function uploadPhoto(
   replaces?: string,
   certification?: Certification,
 ): Promise<DoorAnswer> {
-  const token = await bearer();
-  if (token === null) return { ...UNREACHABLE, status: 401 };
-
   const form = new FormData();
   form.set("listingId", listingId);
   if (replaces !== undefined) form.set("replaces", replaces);
@@ -159,33 +156,12 @@ export async function uploadPhoto(
     form.set(variant, variants[variant], `${variant}.${extension}`);
   }
 
-  return new Promise<DoorAnswer>((resolve) => {
-    const request = new XMLHttpRequest();
-    request.open("POST", "/api/upload/photo");
-    request.setRequestHeader("Authorization", `Bearer ${token}`);
-    request.upload.onprogress = (event) => {
-      if (!event.lengthComputable || !onProgress) return;
-      onProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
-    };
-    request.onerror = () => resolve(UNREACHABLE);
-    request.ontimeout = () => resolve(UNREACHABLE);
-    request.onload = () => {
-      let payload: Record<string, unknown> = {};
-      try {
-        payload = JSON.parse(request.responseText) as Record<string, unknown>;
-      } catch {
-        payload = {};
-      }
-      resolve({
-        status: request.status,
-        ok: payload["ok"] === true,
-        refusals: refusalsOf(payload),
-        payload,
-        unreachable: request.status >= 500 || request.status === 0,
-      });
-    };
-    request.send(form);
+  const answer = await uploadRoute("/api/upload/photo", form, {
+    onProgress: onProgress
+      ? (loaded, total) => onProgress(Math.min(99, Math.round((loaded / total) * 100)))
+      : undefined,
   });
+  return doorAnswerOf(answer);
 }
 
 /** Bundle 13 turn 12 (D155b / D159) — the background tool's answer. */
@@ -206,39 +182,23 @@ export async function removeBackground(
   listingId: string,
   photoId: string,
 ): Promise<BackgroundAnswer> {
-  const token = await bearer();
-  if (token === null) return { ok: false, reason: "", unreachable: true };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), BACKGROUND_TIMEOUT_MS);
-  try {
-    const response = await fetch("/api/listings/background", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ listingId, photoId }),
-      signal: controller.signal,
-    });
-    const type = response.headers.get("content-type") ?? "";
-    if (response.ok && type.startsWith("image/")) {
-      const left = Number(response.headers.get("x-tries-left"));
-      return {
-        ok: true,
-        picture: await response.blob(),
-        triesLeft: Number.isInteger(left) && left >= 0 ? left : null,
-      };
-    }
-    let payload: Record<string, unknown> = {};
-    try {
-      payload = (await response.json()) as Record<string, unknown>;
-    } catch {
-      payload = {};
-    }
-    const reason = refusalsOf(payload)[0]?.reason ?? "";
-    return { ok: false, reason, unreachable: reason === "" || response.status >= 500 };
-  } catch {
-    return { ok: false, reason: "", unreachable: true };
-  } finally {
-    clearTimeout(timer);
+  const answer = await callRoute("/api/listings/background", {
+    json: { listingId, photoId },
+    timeoutMs: BACKGROUND_TIMEOUT_MS,
+    expect: "bytes",
+  });
+  if (answer.kind !== "answered") return { ok: false, reason: "", unreachable: true };
+  const type = answer.headers.get("content-type") ?? "";
+  if (answer.ok && type.startsWith("image/") && answer.bytes !== null) {
+    const left = Number(answer.headers.get("x-tries-left"));
+    return {
+      ok: true,
+      picture: answer.bytes,
+      triesLeft: Number.isInteger(left) && left >= 0 ? left : null,
+    };
   }
+  const reason = refusalsOf(answer.payload ?? {})[0]?.reason ?? "";
+  return { ok: false, reason, unreachable: reason === "" || answer.status >= 500 };
 }
 
 /** `POST /api/listings/photos/$id { action: 'cover' }`. */
