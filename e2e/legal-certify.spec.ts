@@ -518,7 +518,12 @@ test.describe("Legal certification", () => {
     await expect(links.nth(0)).toHaveAttribute("data-role", "publishing");
     await expect(links.nth(0)).toHaveText("publishing statement");
     // Add a country statement before the certification: the same single link now carries both.
-    const country = await seedDocument(s, `e2e-pub-${hex(listingId)}`, "ET", `Country ${statementText}`);
+    const country = await seedDocument(
+      s,
+      `e2e-pub-${hex(listingId)}`,
+      "ET",
+      `Country ${statementText}`,
+    );
     await gotoReady(page, `/post/${listingId}`);
     await expect(links).toHaveCount(1);
     await expect(links.nth(0)).toHaveAttribute("href", "/legal/publishing?country=ET");
@@ -539,7 +544,9 @@ test.describe("Legal certification", () => {
     await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
     const certified = await certificationsOf(listingId);
-    expect(certified[0]?.version_ids).toEqual(expect.arrayContaining([global.versionId, country.versionId]));
+    expect(certified[0]?.version_ids).toEqual(
+      expect.arrayContaining([global.versionId, country.versionId]),
+    );
     expect(certified[0]?.version_ids).toHaveLength(2);
 
     const plain = await draftOf(page, s, categoryId, cityId);
