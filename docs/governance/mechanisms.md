@@ -38,6 +38,7 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 | 29 | A signed-in screen's door-step | `src/lib/signed-in-route.ts` requireSignedIn | signed-in-routes.test.ts | none | a new screen is one import | INC-852 |
 | 30 | A legal kind's audience | `public.legal_kind_signed_in_only(text)` (M24) + legal-kinds.ts signedInOnlyKind | the mirror test, LGC-6, the M24 proof | none | a kind is one predicate line, then a kinds table | D236 |
 | 31 | One language per device, every tab, carried to the account | provider.tsx setStar | language-records.test.ts | the ?lang= URL override (tab-only, never stars) | languages are rows | D237, INC-851 |
+| 32 | A rate dial (action, limit with its env override, window) is defined once and spent through one function | `src/lib/dials.ts` DIALS + `src/server/dials.ts` spend/peek/dialLimit (over consumeRate/peekRate/envDial) | `scripts/conformance/dials.test.ts` (DIAL-1…5) | none | a new dial is one registry line; an admin dials page reads the registry (DEC-091) | Foundations turn 8; the SQL doors' own counters (rate_gate, row 4) are a later concern |
 
 ## Guard debt (G0.4; each open class with the test it owes)
 
