@@ -235,8 +235,9 @@ export function ImportDialog({
     if (code === "") return null;
     const detail = (payload.detail ?? "").trim();
     // ES6 — a door key may carry a tail after its first colon ({count}, {detail}).
-    const words = doorKeyText(detail === "" ? code : `${code}:${detail}`, (key) =>
-      t(key as MessageKey) as string | undefined,
+    const words = doorKeyText(
+      detail === "" ? code : `${code}:${detail}`,
+      (key) => t(key as MessageKey) as string | undefined,
     );
     if (words !== null) return words;
     return detail === "" ? code : `${code} — ${detail}`;
@@ -249,8 +250,7 @@ export function ImportDialog({
     if (status === 428) return setError(t(key("error.stepUp")));
     if (named === "wrongFile") return setError(t(key("error.wrongFile")));
     if (status === 409 && named === "fileChanged") return setError(t(key("error.fileChanged")));
-    if (status === 409 && named === "import already running")
-      return setError(t(key("error.busy")));
+    if (status === 409 && named === "import already running") return setError(t(key("error.busy")));
     if (status === 413 || named === "fileTooLarge") return setError(t(key("error.tooLarge")));
     if (named === "tooManyRows") return setError(t(key("error.tooManyRows")));
     if (named === "badHeader") return setError(t(key("error.badHeader")));

@@ -780,8 +780,7 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
   const { caller, path, familyId, texts, scope } = input;
 
   const family = familyOf(familyId);
-  if (family === null)
-    return refuse(path, `unknown family ${familyId}`, 400, "unknownFamily");
+  if (family === null) return refuse(path, `unknown family ${familyId}`, 400, "unknownFamily");
 
   const supabase = caller.supabase;
   const userId = caller.userId;

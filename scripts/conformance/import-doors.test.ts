@@ -113,7 +113,10 @@ export function declaredWords(factory: string): Set<string> {
 }
 
 /** Every literal word the factory and the gate answer. */
-export function answeredWords(factory: string, gate: string): Array<{ file: string; word: string }> {
+export function answeredWords(
+  factory: string,
+  gate: string,
+): Array<{ file: string; word: string }> {
   const out: Array<{ file: string; word: string }> = [];
   for (const match of codeOf(factory).matchAll(/\bclientError\s*\(\s*"([^"]+)"/g))
     out.push({ file: FACTORY, word: match[1] });

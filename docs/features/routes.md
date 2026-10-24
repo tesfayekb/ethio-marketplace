@@ -206,11 +206,11 @@ countries drop it; the importer treats a trailing `action` as optional);
 
 ## The staff imports (Foundations turn 12, INC-860 closed)
 
-| Route                              | Factory call                          | Permission              | Metered modes |
-| ---------------------------------- | ------------------------------------- | ----------------------- | ------------- |
-| POST /api/admin/categories/import  | `defineImportRoute("categories", …)`  | `categories:import`     | preview       |
-| POST /api/admin/attributes/import  | `defineImportRoute("attributes", …)`  | `categories:import`     | preview       |
-| POST /api/admin/locations/import   | `defineImportRoute("locations", …)`   | `locations:import`      | preview       |
+| Route                               | Factory call                           | Permission            | Metered modes |
+| ----------------------------------- | -------------------------------------- | --------------------- | ------------- |
+| POST /api/admin/categories/import   | `defineImportRoute("categories", …)`   | `categories:import`   | preview       |
+| POST /api/admin/attributes/import   | `defineImportRoute("attributes", …)`   | `categories:import`   | preview       |
+| POST /api/admin/locations/import    | `defineImportRoute("locations", …)`    | `locations:import`    | preview       |
 | POST /api/admin/translations/import | `defineImportRoute("translations", …)` | `translations:update` | commit, undo  |
 
 The boundary itself gained two rules this turn: every JSON body is decoded
