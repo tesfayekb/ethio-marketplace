@@ -181,26 +181,22 @@ export async function loadAttributeOptions(
     return held ? held.options : null;
   }
   const payload = answer.payload ?? {};
-  {
-    const list = Array.isArray(payload["options"]) ? payload["options"] : null;
-    if (list === null) return held ? held.options : null;
-    const options = list
-      .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
-      .filter((option) => option.value !== "");
-    const retiredList = Array.isArray(payload["retired"]) ? payload["retired"] : [];
-    const retired = retiredList
-      .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
-      .filter((option) => option.value !== "");
-    cache.set(attributeId, {
-      options,
-      retired,
-      version: typeof payload["version"] === "string" ? payload["version"] : "",
-      at: Date.now(),
-    });
-    return options;
-  } catch {
-    return held ? held.options : null;
-  }
+  const list = Array.isArray(payload["options"]) ? payload["options"] : null;
+  if (list === null) return held ? held.options : null;
+  const options = list
+    .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
+    .filter((option) => option.value !== "");
+  const retiredList = Array.isArray(payload["retired"]) ? payload["retired"] : [];
+  const retired = retiredList
+    .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
+    .filter((option) => option.value !== "");
+  cache.set(attributeId, {
+    options,
+    retired,
+    version: typeof payload["version"] === "string" ? payload["version"] : "",
+    at: Date.now(),
+  });
+  return options;
 }
 
 /**
