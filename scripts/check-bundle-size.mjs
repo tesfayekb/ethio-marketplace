@@ -23,7 +23,8 @@ import { entryChunks, staticClosure } from "./bundle-closure.mjs";
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
   // DEC-231 (2026-10-21): the admin strings left the first paint (320.0 → 296.8 KiB in the supervisor's build of the split); the ceiling follows to 305.
-  js: 305,
+  // 2026-10-24: the agreement sentences carry link tokens (D235) and the publishing page its sections; 305.x measured
+  js: 306,
   css: 40,
 };
 
