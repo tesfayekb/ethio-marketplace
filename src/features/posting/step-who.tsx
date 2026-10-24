@@ -238,40 +238,42 @@ export function StepWho({
   /** The stored identity, read once as the owner. */
   useEffect(() => {
     let cancelled = false;
-    void readSellerIdentity().then((found) => {
-      if (cancelled) return;
-      if (found === null) {
+    void readSellerIdentity()
+      .then((found) => {
+        if (cancelled) return;
+        if (found === null) {
+          setIdentityFailed(true);
+          return;
+        }
+        setIdentity(found);
+        profileContactRef.current = found.contactPrefs;
+        setAlias(found.alias ?? "");
+        aliasBoxRef.current = found.alias ?? "";
+        checkedAliasRef.current = found.alias ?? "";
+        setSellerType(found.sellerType ?? "person");
+        setBusinessName(found.businessName ?? "");
+        setFirstName(found.firstName ?? "");
+        setLastName(found.lastName ?? "");
+        // A confirmed home country cannot be changed here (`countryAlreadyConfirmed`);
+        // an unset one is FILLED IN from the seller's own saved area and confirmed.
+        // Bundle 3 step 12 — only a CONFIRMED country locks; a guessed one is
+        // offered and the seller confirms it (publish_listing requires that).
+        if (found.homeCountryCode !== null && found.homeCountryConfirmed) {
+          setCountry(found.homeCountryCode);
+          setCountryLocked(true);
+        } else if (found.homeCountryCode !== null) {
+          setCountry(found.homeCountryCode);
+        } else {
+          setCountry(readAreaCookie()?.country ?? "");
+        }
+        setEditing(found.alias === null);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-who] identity read failed", error);
+        if (cancelled) return;
+        setIdentityFailure(readerFailure(error));
         setIdentityFailed(true);
-        return;
-      }
-      setIdentity(found);
-      profileContactRef.current = found.contactPrefs;
-      setAlias(found.alias ?? "");
-      aliasBoxRef.current = found.alias ?? "";
-      checkedAliasRef.current = found.alias ?? "";
-      setSellerType(found.sellerType ?? "person");
-      setBusinessName(found.businessName ?? "");
-      setFirstName(found.firstName ?? "");
-      setLastName(found.lastName ?? "");
-      // A confirmed home country cannot be changed here (`countryAlreadyConfirmed`);
-      // an unset one is FILLED IN from the seller's own saved area and confirmed.
-      // Bundle 3 step 12 — only a CONFIRMED country locks; a guessed one is
-      // offered and the seller confirms it (publish_listing requires that).
-      if (found.homeCountryCode !== null && found.homeCountryConfirmed) {
-        setCountry(found.homeCountryCode);
-        setCountryLocked(true);
-      } else if (found.homeCountryCode !== null) {
-        setCountry(found.homeCountryCode);
-      } else {
-        setCountry(readAreaCookie()?.country ?? "");
-      }
-      setEditing(found.alias === null);
-    }).catch((error: unknown) => {
-      console.error("[post-who] identity read failed", error);
-      if (cancelled) return;
-      setIdentityFailure(readerFailure(error));
-      setIdentityFailed(true);
-    });
+      });
     // Walk fix 3 — the change rule's dates, for the state line under the name.
     void readSellerLine()
       .then((facts) => {

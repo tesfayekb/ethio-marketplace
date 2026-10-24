@@ -1102,15 +1102,13 @@ test.describe("Admin Legal", () => {
       const extra = (enabled.data ?? []).filter((l) => !["en", "am", PSEUDO_LANG].includes(l.code));
       fail(
         (
-          await supabase
-            .from("legal_version_texts")
-            .insert(
-              extra.map((l) => ({
-                version_id: versionId,
-                language: l.code,
-                body: "Scratch translated statement",
-              })),
-            )
+          await supabase.from("legal_version_texts").insert(
+            extra.map((l) => ({
+              version_id: versionId,
+              language: l.code,
+              body: "Scratch translated statement",
+            })),
+          )
         ).error,
         "scratch version translations",
       );
