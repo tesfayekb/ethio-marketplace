@@ -1895,7 +1895,7 @@ test.describe("CAT-IE categories import/export", () => {
         categories,
         digest: "whatever",
       });
-      expect(deniedCommit.status).toBe(409);
+      expect(deniedCommit.status).toBe(403);
 
       // NO BEARER, NO DOOR.
       const anonymous = await page.request.post("/api/admin/categories/import", {

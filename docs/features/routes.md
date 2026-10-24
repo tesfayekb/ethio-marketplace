@@ -65,7 +65,7 @@ The local 502 `{error:"internal error"}` retires with each reader move: the cens
 
 ## The allowlist's waves
 
-`routes-allowlist.txt` holds 33 exceptions after Foundations turn 7 (36 after turn 6; feed, seller and attributes options left in turn 7): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
+`routes-allowlist.txt` holds 20 exceptions after Foundations turn 11 (23 after turn 10; the three admin exports left in turn 11; 33 after turn 7): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
 
 ## A new route
 
@@ -188,3 +188,18 @@ The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), usi
 - CHANGE (2): a route whose handler throws after the client left answers 499 + `[client-aborted]`, not serverError (RT-20).
 - CHANGE (3): catalog find's 400/429 come from clientError; routeJson already carried `no-store` and the charset, so the answers are byte-identical (CFR-1, CFR-4).
 - CHANGE (4): tiles POST — an unreadable or non-JSON body answers `{ok:false}` with no dial and no line (TIL-3).
+
+## The admin exports (Foundations turn 11, INC-860 part 1)
+
+| Route                              | Auth                    | Query                                 | 200                                                   | Refusals                                                                              |
+| ---------------------------------- | ----------------------- | ------------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GET /api/admin/categories/export` | staff `categories:view` | `scope?`                              | `download` text/csv; charset=utf-8, no-store, nosniff | 401 / 403 `forbidden` / 400 `badScope` / 404 `unknown category scope` / readFailure   |
+| `GET /api/admin/attributes/export` | staff `categories:view` | `file` definitions\|links, `scope?`   | as above                                              | 400 `file must be definitions or links`, else as above                                |
+| `GET /api/admin/locations/export`  | staff `locations:view`  | `file` countries\|locations, `scope?` | as above                                              | 400 `file must be countries or locations`, 404 `unknown country scope`, else as above |
+
+Changes: (5) a caller without view is refused 403 `{error:"forbidden"}` by the
+boundary; an anonymous request with a bad `file` answers 401 (the caller first);
+(6) every export carries the registry's columns except `action` (locations and
+countries drop it; the importer treats a trailing `action` as optional);
+(7) the filename is `ethio-<scope->-<file id>-YYYY-MM-DD.csv` (UTC), sent as
+`attachment; filename="…"; filename*=UTF-8''…`.

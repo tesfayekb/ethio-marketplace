@@ -15,6 +15,7 @@ import type { Dial } from "@/lib/dials";
 import { spend as spendDial } from "@/server/dials";
 import {
   anonymousClient,
+  callerHasPermission,
   refuseUserClient,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
@@ -223,13 +224,13 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         supabase = anonymousClient();
       }
       if (staff !== null && supabase !== null && userId !== null) {
-        const { data: allowed, error: permissionError } = await supabase.rpc("has_permission", {
-          p_user_id: userId,
-          p_resource: staff.resource,
-          p_action: staff.action,
-        });
-        if (permissionError) throw permissionError;
-        if (allowed !== true) return clientError("forbidden", 403);
+        // Foundations turn 11 — the one staff check (user-client.ts); an error throws.
+        const allowed = await callerHasPermission(
+          supabase,
+          userId,
+          `${staff.resource}:${staff.action}`,
+        );
+        if (!allowed) return clientError("forbidden", 403);
       }
 
       // (3b) the dials a route declares before the parse (the denial-of-service choice).

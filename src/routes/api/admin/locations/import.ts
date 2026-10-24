@@ -21,8 +21,8 @@ import { refreshNameFoldsAfterCommit } from "@/server/catalog-find.server";
 
 import {
   json,
+  authorizeImport,
   openImportGate,
-  requireBearer,
   releaseSlot,
   withRowValues,
   type Refusal,
@@ -49,8 +49,8 @@ export const Route = createFileRoute("/api/admin/locations/import")({
       POST: async ({ request }) => {
         // INGRESS: the bytes are read here so invalid UTF-8 and an oversized
         // body are refused before anything is parsed as JSON.
-        const anonymous = requireBearer(request);
-        if (anonymous !== null) return anonymous;
+        const door = await authorizeImport(request, PATH, "locations");
+        if (!door.ok) return door.response;
         const raw = await request.arrayBuffer();
         if (raw.byteLength > 4 * 1_048_576) {
           console.error(`[ssr-error] ${PATH} body too large`);
@@ -85,10 +85,9 @@ export const Route = createFileRoute("/api/admin/locations/import")({
         }
 
         const gate = await openImportGate({
-          request,
+          caller: { supabase: door.supabase, userId: door.userId },
           path: PATH,
           familyId: "locations",
-          body: body as unknown as Record<string, unknown>,
           texts: mode === "undo" ? {} : { countries: countriesText, locations: locationsText },
           mode,
           scope,

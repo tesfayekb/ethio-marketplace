@@ -1,0 +1,4 @@
+# Foundations turn 11 (IMD-3) — files that still call has_permission through .rpc( outside callerHasPermission.
+# key | reason | until
+src/routes/api/translate.ts | the machine-translation route checks translations:machine and translations:manage itself until it moves onto defineRoute | INC-861
+src/server/category-images/gate.ts | the category-image gate checks its assets permission itself until it moves onto defineRoute | INC-861

@@ -8,8 +8,10 @@
  * planner RPC, which remains the only authority on meaning (E7, F3).
  *
  * Order of judgement — a file never gets past a step it failed:
- *   1 bearer  → caller-context client (never the service role)
- *   2 family  → registry lookup (permission, step-up, identity, columns, caps)
+ *   1 door    → `authorizeImport`, before the body is read: the family, the
+ *               declared size, the caller (never the service role) and the
+ *               family's permission (Foundations turn 11)
+ *   2 family  → registry lookup (step-up, identity, columns, caps)
  *   3 ingress → ≤ 1 MB · valid UTF-8 (BOM stripped) · RFC-4180 · exact headers
  *   4 hygiene → NFC · trim · strip control/bidi/zero-width · refuse NUL ·
  *               refuse formula-leading · lengths · duplicate identities
@@ -23,7 +25,12 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { xliffUnits } from "@/features/admin/translations/io-formats";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import type { Database } from "@/integrations/supabase/types";
-import { userClientFromRequest } from "@/server/supabase/user-client";
+import { clientError } from "@/server/answer";
+import {
+  callerHasPermission,
+  refuseUserClient,
+  userClientFromRequest,
+} from "@/server/supabase/user-client";
 import {
   BOUND_RE,
   FAMILIES,
@@ -791,17 +798,48 @@ export function releaseSlot(userId: string): void {
  */
 export const PREVIEW_BUDGET = 30;
 
+/** The import routes' body ceiling (4 MiB), declared once for the door and the read. */
+export const IMPORT_BODY_BYTES = 4 * 1_048_576;
+
+export type ImportDoor =
+  | { ok: true; supabase: SupabaseClient<Database>; userId: string }
+  | { ok: false; response: Response };
+
 /**
- * IDENTITY BEFORE SHAPE — the one place a door may ask "is anyone there?"
- * before it has read a byte of the body, so an anonymous caller learns nothing
- * about the file's validity. The full gate still re-reads and verifies it.
+ * Foundations turn 11 (DEC-237, INC-860 part 1) — THE IMPORT DOOR. Who the
+ * caller is and whether they hold the family's permission are answered BEFORE
+ * a byte of the body is read, buffered, decoded, parsed or metered (ASVS
+ * V4.1/V13). In order: (i) the family; (ii) a declared Content-Length over the
+ * ceiling → 413 with nothing read; (iii) the shared caller (401 / 403
+ * deactivated / 503 / 500); (iv) `callerHasPermission` with the family's
+ * permission — false → 403 forbidden; an error throws (the route's boundary
+ * answers it, never a pass).
  */
-export function requireBearer(request: Request): Response | null {
-  const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
-    return json({ error: "missing bearer token" }, 401);
+export async function authorizeImport(
+  request: Request,
+  path: string,
+  familyId: string,
+): Promise<ImportDoor> {
+  const family = familyOf(familyId);
+  if (family === null)
+    return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
+
+  const declared = request.headers.get("content-length");
+  if (declared !== null && Number(declared) > IMPORT_BODY_BYTES) {
+    return refuse(path, "body too large", 413, { error: "fileTooLarge" });
   }
-  return null;
+
+  const caller = await userClientFromRequest(request);
+  const refused = refuseUserClient(path, caller);
+  if (refused !== null) return { ok: false, response: refused };
+  if (caller.supabase === null || caller.userId === null) {
+    return { ok: false, response: json({ error: "not signed in" }, 401) };
+  }
+
+  if (!(await callerHasPermission(caller.supabase, caller.userId, family.permission))) {
+    return { ok: false, response: clientError("forbidden", 403) };
+  }
+  return { ok: true, supabase: caller.supabase, userId: caller.userId };
 }
 
 export function takeSlot(
@@ -839,11 +877,10 @@ export async function digestOf(parts: string[]): Promise<string> {
 /* ---------------------------------- gate --------------------------------- */
 
 export interface GateInput {
-  request: Request;
+  /** The caller `authorizeImport` verified — the gate never re-authenticates. */
+  caller: { supabase: SupabaseClient<Database>; userId: string };
   path: string;
   familyId: string;
-  /** The already-read JSON body (routes read it once, the gate judges it). */
-  body: Record<string, unknown>;
   /** file id → the raw text the operator uploaded. */
   texts: Record<string, string>;
   mode: string;
@@ -851,30 +888,12 @@ export interface GateInput {
 }
 
 export async function openImportGate(input: GateInput): Promise<GateResult> {
-  const { request, path, familyId, texts, mode, scope } = input;
+  const { caller, path, familyId, texts, mode, scope } = input;
 
   const family = familyOf(familyId);
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
 
-  // U6-A2-C (B2/B3) — the SHARED user-scoped client; the wording and the status
-  // of each refusal stay this gate's own (no behaviour change).
-  const caller = await userClientFromRequest(request);
-  if (caller.reason === "serverEnv") {
-    return refuse(path, caller.message, 500, { error: "server error" });
-  }
-  if (caller.reason === "missingBearer") {
-    return { ok: false, response: json({ error: "missing bearer token" }, 401) };
-  }
-  // INC-574 — the auth server did not answer: 503, never "not signed in".
-  if (caller.reason === "upstream") {
-    return refuse(path, caller.message, 503, { error: "upstream unavailable" });
-  }
-  if (caller.supabase === null || caller.userId === null) {
-    const reason = caller.message === "" ? "" : ` ${errorText(caller.message)}`;
-    console.error(`[ssr-error] ${path} not signed in${reason}`);
-    return { ok: false, response: json({ error: "not signed in" }, 401) };
-  }
   const supabase = caller.supabase;
   const userId = caller.userId;
 
@@ -950,50 +969,22 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
 
 /* --------------------------------- export -------------------------------- */
 
-export interface ExportGateOk {
-  ok: true;
-  supabase: SupabaseClient<Database>;
-  userId: string;
-  scope: string | null;
-}
-
 /**
- * THE SAME DOOR FOR THE OTHER DIRECTION. An export hands the operator the exact
- * file the importer reads back, so it is gated identically: bearer →
- * caller-context client → `auth.getUser()` → `scope` must look like a slug
- * (its existence is the RPC's verdict). The RPC re-checks the permission.
+ * Foundations turn 11 (DEC-237) — THE EXPORT SCOPE LAW. The caller and the
+ * view permission are the boundary's (`defineRoute` with `auth: { staff }`);
+ * what is left here is the scope's FORMAT: it must look like a slug or a
+ * country code (its existence is the RPC's verdict, 404). A blank scope is
+ * every row.
  */
-export async function openExportGate(
-  request: Request,
-  path: string,
+export function exportScope(
   familyId: string,
-  scopeParam: string | null,
-): Promise<ExportGateOk | GateRefused> {
+  scopeParam: string | undefined,
+): { ok: true; scope: string | null } | { ok: false; response: Response } {
+  const path = `/api/admin/${familyId}/export`;
   const family = familyOf(familyId);
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
-
-  // U6-A2-C (B2/B3) — the SHARED user-scoped client; the wording and the status
-  // of each refusal stay this gate's own (no behaviour change).
-  const caller = await userClientFromRequest(request);
-  if (caller.reason === "serverEnv") {
-    return refuse(path, caller.message, 500, { error: "server error" });
-  }
-  if (caller.reason === "missingBearer") {
-    return { ok: false, response: json({ error: "missing bearer token" }, 401) };
-  }
-  // INC-574 — the auth server did not answer: 503, never "not signed in".
-  if (caller.reason === "upstream") {
-    return refuse(path, caller.message, 503, { error: "upstream unavailable" });
-  }
-  if (caller.supabase === null || caller.userId === null) {
-    const reason = caller.message === "" ? "" : ` ${errorText(caller.message)}`;
-    console.error(`[ssr-error] ${path} not signed in${reason}`);
-    return { ok: false, response: json({ error: "not signed in" }, 401) };
-  }
-  const supabase = caller.supabase;
-
-  const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
+  const scope = scopeParam === undefined || scopeParam.trim() === "" ? null : scopeParam.trim();
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
@@ -1001,6 +992,5 @@ export async function openExportGate(
   if (scope !== null && family.scope === "country-code" && !/^[A-Za-z]{2}$/.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
-
-  return { ok: true, supabase, userId: caller.userId, scope };
+  return { ok: true, scope };
 }

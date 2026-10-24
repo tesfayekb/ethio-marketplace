@@ -35,7 +35,7 @@ A file never gets past a step it failed.
     door through `import_gate_audit`; every failure logs `[ssr-error] <path>`.
     The function writes the row only for a caller who holds that family's own
     permission (attributes and categories `categories:import`, locations
-    `locations:import`, translations `translations:manage` — the registry's),
+    `locations:import`, translations `translations:manage` — the audit function's own list),
     and refuses anyone else with `42501` (bundle 12 turn T10; IG-6).
 
 A refused file is never stored anywhere. Preview writes nothing.
@@ -55,8 +55,11 @@ a NUL byte.
    file its identity header, ordered columns with a class per column
    (`identity` · `editable` · `read-only` · `action`), identity columns and the
    duplicate policy.
-2. Call `openImportGate` from the route (`openExportGate` for the matching
-   export) and hand `rows[fileId]` to the gated planner RPC. Release the slot in
+2. Call `authorizeImport(request, PATH, familyId)` before the body is read,
+   then `openImportGate({ caller, … })` from the route (the matching export is
+   a `defineRoute` with `auth: { staff: { resource, action: "view" } }` that
+   calls `exportScope` and answers `download(toCsv(exportColumns(file), rows))`)
+   and hand `rows[fileId]` to the gated planner RPC. Release the slot in
    a `finally`, and call `audit(...)` on each door.
 3. Add the family to `e2e/import-security.spec.ts`'s `FAMILIES` list — the
    hostile catalogue is parameterised, so a family gets no private test.
@@ -70,7 +73,7 @@ a NUL byte.
 | ------------ | -------------------- | --------------------- | ------- | ------------- |
 | attributes   | definitions, links   | `categories:import`   | commit  | category slug |
 | categories   | categories           | `categories:import`   | commit  | category slug |
-| translations | strings              | `translations:manage` | write   | language code |
+| translations | strings              | `translations:update` | write   | language code |
 | locations    | countries, locations | `locations:import`    | commit  | country code  |
 
 ## The declared vocabulary
@@ -402,3 +405,29 @@ attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,fo
 ```
 
 - Bundle 6 (C2): the idle prune of rate buckets (`bucketFor`) never deletes a bucket that is in flight, however long it has been idle.
+
+## The import door (Foundations turn 11, INC-860 part 1)
+
+`authorizeImport` (gate.ts) answers who the caller is and whether they hold
+the family's permission BEFORE a byte of the body is read, buffered, decoded,
+parsed or metered, in this order: an unknown family (400 `unknownFamily`); a
+declared `Content-Length` over 4 MiB (413 `fileTooLarge`, nothing read); the
+shared caller (`userClientFromRequest` + `refuseUserClient`: 401, 403
+deactivated, 503, 500); `callerHasPermission` with the registry's permission
+(false → 403 `forbidden`; an error throws, never a pass). `openImportGate`
+takes the verified caller and never re-authenticates (one `getUser` per
+import). The after-the-read 4 MiB check stays for a missing or lying header.
+
+Changes: (1) a caller without the permission is refused 403 `{error:"forbidden"}`
+before the body is read (CT-22's view-only commit answers 403, not 409);
+(2) a deactivated caller answers the shared 403 `{error:"account is deactivated"}`
+instead of 401; (3) an over-ceiling `Content-Length` is 413 before the caller
+check; (4) the translations family's permission is `translations:update`, the
+permission `admin_import_translations` checks (undo's RPC checks
+`translations:manage` itself). Guard: `scripts/conformance/import-doors.test.ts`
+(IMD-1…4) and `scripts/check-import-gate.sh`.
+
+Exports write through the one CSV writer (`src/server/imports/csv.ts`: the
+registry's columns without `action`, " (read-only)" for read-only columns, BOM,
+CRLF, RFC 4180, formula neutralisation mirroring `isFormulaCell`/`unneutralize`)
+and the one download answer (`download` in answer.ts).
