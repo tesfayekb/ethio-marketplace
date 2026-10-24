@@ -1,24 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type SupabaseClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
-import type { Database } from "@/integrations/supabase/types";
+import { uuid } from "@/lib/schemas/primitives";
+import { ok, serverError, upstreamUnavailable, verdict } from "@/server/answer";
+import { clientAddress, hashAddress } from "@/server/catalog-find.server";
+import { defineRoute, type RouteContext } from "@/server/route";
 import {
   photoIdsOf,
   PHOTO_LINK_SECONDS,
   readAndSignPhotoLinks,
   variantsOf,
 } from "@/server/media/links";
-import {
-  anonymousClient,
-  consumeRate,
-  envDial,
-  logRouteError,
-  readJsonBody,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
 
 /**
  * INC-588 / D151 — LINKS TO STORED PHOTOS.
@@ -42,79 +35,70 @@ import {
  * address may ask `RATE_LIMIT_PHOTO_LINKS_PER_HOUR` (600) times an hour. A
  * listing card asks for `["card", "thumb"]` only; a request that names no
  * variant gets every readable one.
+ *
+ * Foundations turn 4 — on defineRoute (`auth: "optional"`): a bearer is read as
+ * the caller (refused 401/403 as before), none is the anonymous client. The two
+ * keys are judged by links.ts's own readers so the answers keep their field
+ * names (`photoIds`, `variants`); every id is a UUID by the one shape.
  */
 
 const PATH = "/api/media/photo-links";
 
-/** The caller's address as the edge names it; one shared key when none is named. */
-function addressOf(request: Request): string {
-  const named =
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "";
-  return named === "" ? "unknown" : named;
-}
+/**
+ * The body every caller sends (use-photo-links.ts `{photoIds}`, use-card-photos.ts
+ * `{photoIds, variants}`, the e2e posts): two keys, judged in the handler by
+ * photoIdsOf / variantsOf so a refusal names the key, never `photoIds.0`.
+ */
+export const PhotoLinksBody = z
+  .object({ photoIds: z.unknown(), variants: z.unknown().optional() })
+  .strict();
+type Body = z.infer<typeof PhotoLinksBody>;
 
-async function readerOf(
-  request: Request,
-): Promise<{ supabase: SupabaseClient<Database> } | { refused: Response }> {
-  const signedIn = (request.headers.get("Authorization") ?? "").toLowerCase().startsWith("bearer ");
-  if (signedIn) {
-    const caller = await userClientFromRequest(request);
-    const refused = refuseUserClient(PATH, caller);
-    if (refused !== null) return { refused };
-    return { supabase: caller.supabase! };
-  }
-  const rate = await consumeRate(
-    "photo-links:address",
-    addressOf(request),
-    envDial("RATE_LIMIT_PHOTO_LINKS_PER_HOUR", 600),
-    "1 hour",
-  );
-  if (!rate.allowed) {
-    return { refused: refusal("rate", "rateLimited", rate.resetsAt ?? undefined) };
-  }
-  const supabase = anonymousClient();
-  if (supabase === null) {
-    logRouteError(PATH, "supabase server env missing");
-    return { refused: routeJson({ error: "server error" }, 500) };
-  }
-  return { supabase };
-}
+const refusal = (field: string, reason: string, detail?: string) =>
+  verdict([{ field, reason, ...(detail === undefined ? {} : { detail }) }]);
 
-async function handlePost(request: Request): Promise<Response> {
-  const reader = await readerOf(request);
-  if ("refused" in reader) return reader.refused;
-  const supabase = reader.supabase;
-
-  const body = await readJsonBody(request);
-  const photoIds = photoIdsOf(body["photoIds"]);
-  if (photoIds === null) return refusal("photoIds", "badShape");
-  const variants = variantsOf(body["variants"]);
+async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
+  const photoIds = photoIdsOf(ctx.body.photoIds);
+  // CHANGE (Foundations turn 4): a non-UUID id is the badShape verdict, not a 503.
+  if (photoIds === null || photoIds.some((id) => !uuid.safeParse(id).success)) {
+    return refusal("photoIds", "badShape");
+  }
+  const variants = variantsOf(ctx.body.variants);
   if (variants === null) return refusal("variants", "badShape");
+
+  if (ctx.userId === null) {
+    // dial in the handler: anonymous callers only — INC-859
+    const rate = await consumeRate(
+      "photo-links:address",
+      hashAddress(clientAddress(ctx.request)),
+      envDial("RATE_LIMIT_PHOTO_LINKS_PER_HOUR", 600),
+      "1 hour",
+    );
+    if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
+  }
+  const supabase = ctx.supabase;
+  if (supabase === null) return serverError(PATH, "supabase server env missing");
 
   // DEC-195 — the read-and-sign moved to src/server/media/links.ts whole
   // (G1: moved code, not behaviour); the feed route signs through the same door.
   try {
     const links = await readAndSignPhotoLinks(supabase, photoIds, variants);
-    return routeJson({ ok: true, links, expiresIn: PHOTO_LINK_SECONDS }, 200);
+    return ok({ ok: true, links, expiresIn: PHOTO_LINK_SECONDS });
   } catch (signError) {
     logRouteError(PATH, signError);
-    return routeJson({ error: "upstream unavailable" }, 503);
+    return upstreamUnavailable(PATH, "photo links", 503);
   }
 }
 
 export const Route = createFileRoute("/api/media/photo-links")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        try {
-          return await handlePost(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      POST: defineRoute({
+        path: PATH,
+        auth: "optional",
+        body: PhotoLinksBody,
+        handler: handlePost,
+      }),
     },
   },
 });
