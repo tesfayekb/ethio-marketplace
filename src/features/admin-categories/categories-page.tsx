@@ -46,7 +46,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { categoryFilterOptions, ancestorIds, subtreeCounts } from "@/lib/category-filter-options";
 import { useSettling } from "@/lib/use-settling";
-import { supabase } from "@/integrations/supabase/client";
+import { downloadRoute } from "@/lib/route-client";
 
 import { CategoryAttributesDialog } from "@/features/admin-attributes/category-attributes-dialog";
 import { needsCardAttributes } from "@/features/admin-attributes/attributes-service";
@@ -287,22 +287,12 @@ export function AdminCategoriesPage() {
     setExporting(true);
     setExportError(false);
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const token = session.session?.access_token ?? "";
       const query = scopeSlug === null ? "" : `?scope=${encodeURIComponent(scopeSlug)}`;
-      const response = await fetch(`/api/admin/categories/export${query}`, {
-        headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error(`export failed: ${response.status}`);
-      const blob = await response.blob();
-      const href = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = href;
-      anchor.download = scopeSlug === null ? "categories.csv" : `${scopeSlug}-categories.csv`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(href);
+      const answer = await downloadRoute(
+        `/api/admin/categories/export${query}`,
+        scopeSlug === null ? "categories.csv" : `${scopeSlug}-categories.csv`,
+      );
+      if (answer.kind !== "answered" || !answer.ok) setExportError(true);
     } catch (error) {
       console.error("[categories] export failed", error);
       setExportError(true);

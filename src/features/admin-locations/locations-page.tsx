@@ -19,7 +19,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
-import { supabase } from "@/integrations/supabase/client";
+import { downloadRoute } from "@/lib/route-client";
 
 import { LocationCreateDialog } from "./location-dialogs";
 import { LocationEditorDialog } from "./location-editor";
@@ -155,24 +155,14 @@ export function AdminLocationsPage() {
     setExporting(true);
     setExportError(false);
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const token = session.session?.access_token ?? "";
       // L2b-C1 — "All countries" carries NO scope: the route then exports every
       // market's places, and the file is named for the scope it was taken at.
       const scope = country === "" ? "" : `&scope=${encodeURIComponent(country)}`;
-      const response = await fetch(`/api/admin/locations/export?file=${file}${scope}`, {
-        headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error(`export failed: ${response.status}`);
-      const blob = await response.blob();
-      const href = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = href;
-      anchor.download = `${country === "" ? "all" : country}-${file}.csv`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(href);
+      const answer = await downloadRoute(
+        `/api/admin/locations/export?file=${file}${scope}`,
+        `${country === "" ? "all" : country}-${file}.csv`,
+      );
+      if (answer.kind !== "answered" || !answer.ok) setExportError(true);
     } catch (error) {
       console.error("[locations] export failed", error);
       setExportError(true);

@@ -19,7 +19,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
 import { useSettling } from "@/lib/use-settling";
-import { supabase } from "@/integrations/supabase/client";
+import { downloadRoute } from "@/lib/route-client";
 
 import { CountryFilters } from "./countries-toolbar";
 import { COUNTRY_COLUMN_PRIORITIES, filterCountries, type CountryRow } from "./countries-service";
@@ -104,21 +104,11 @@ export function AdminCountriesPage() {
     setExporting(true);
     setExportError(false);
     try {
-      const { data: session } = await supabase.auth.getSession();
-      const token = session.session?.access_token ?? "";
-      const response = await fetch("/api/admin/locations/export?file=countries", {
-        headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) throw new Error(`export failed: ${response.status}`);
-      const blob = await response.blob();
-      const href = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = href;
-      anchor.download = "countries.csv";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(href);
+      const answer = await downloadRoute(
+        "/api/admin/locations/export?file=countries",
+        "countries.csv",
+      );
+      if (answer.kind !== "answered" || !answer.ok) setExportError(true);
     } catch (error) {
       console.error("[countries] export failed", error);
       setExportError(true);

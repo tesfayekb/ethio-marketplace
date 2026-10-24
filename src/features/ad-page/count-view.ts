@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { callRoute } from "@/lib/route-client";
 
 const VIEW_SESSION_KEY = "ethio.viewSession";
 
@@ -21,16 +21,10 @@ export function viewSessionId(): string | null {
 
 export async function countView(publicId: string): Promise<void> {
   try {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token ?? null;
     const session = viewSessionId();
-    await fetch("/api/listings/view", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token === null ? {} : { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify(session ? { publicId, session } : { publicId }),
+    await callRoute("/api/listings/view", {
+      auth: "optional",
+      json: session ? { publicId, session } : { publicId },
     });
   } catch {
     // a counter never disturbs the page
@@ -41,15 +35,9 @@ export type ShareChannel = "telegram" | "whatsapp" | "facebook" | "copy" | "qr";
 
 export async function countShare(publicId: string, channel: ShareChannel): Promise<void> {
   try {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token ?? null;
-    await fetch("/api/listings/share", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token === null ? {} : { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify({ publicId, channel }),
+    await callRoute("/api/listings/share", {
+      auth: "optional",
+      json: { publicId, channel },
     });
   } catch {
     // a counter never disturbs the page

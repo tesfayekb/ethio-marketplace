@@ -3,6 +3,7 @@ import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import { callRoute } from "@/lib/route-client";
 
 import { PSEUDO_LANG, PSEUDO_LANG_NAME_EN, PSEUDO_LANG_NAME_NATIVE } from "./pseudo";
 
@@ -900,14 +901,6 @@ export interface ImportResult {
  */
 export const TRANSLATIONS_IMPORT_PATH = "/api/admin/translations/import";
 
-async function importHeaders(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token ?? "";
-  return token === ""
-    ? { "Content-Type": "application/json" }
-    : { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
-}
-
 /**
  * The route's named refusals, spoken as the messages this console maps (F4).
  * Foundations turn 12 — a named code is returned as itself whenever one came
@@ -922,14 +915,10 @@ function importFailure(status: number, named: string): Error {
 }
 
 async function postImport(body: Record<string, unknown>): Promise<Record<string, unknown>> {
-  const response = await fetch(TRANSLATIONS_IMPORT_PATH, {
-    method: "POST",
-    headers: await importHeaders(),
-    body: JSON.stringify(body),
-  });
-  const payload = (await response.json().catch(() => ({}))) as Record<string, unknown>;
-  if (!response.ok) throw importFailure(response.status, String(payload["error"] ?? ""));
-  return payload;
+  const answer = await callRoute(TRANSLATIONS_IMPORT_PATH, { json: body });
+  if (answer.kind !== "answered") throw new Error("import failed (0)");
+  if (!answer.ok) throw importFailure(answer.status, answer.error ?? "");
+  return answer.payload ?? {};
 }
 
 export async function importTranslations(input: {

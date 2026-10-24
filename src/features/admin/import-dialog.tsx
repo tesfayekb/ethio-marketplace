@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { callRoute, type RoutePath } from "@/lib/route-client";
 
 import { Button } from "@/components/ui/button";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -105,7 +105,7 @@ export interface ImportDialogProps {
   idPrefix: string;
   title?: string;
   /** The server route: preview / commit / undo all POST here. */
-  path: string;
+  path: RoutePath;
   /** The i18n namespace, e.g. `admin.categories.import`. */
   keyPrefix: string;
   files: ImportFileField[];
@@ -120,14 +120,6 @@ export interface ImportDialogProps {
   onClose: () => void;
   /** Called after a successful commit or undo, so the console refetches. */
   onWritten?: () => Promise<void> | void;
-}
-
-async function bearer(): Promise<Record<string, string>> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token ?? "";
-  return token === ""
-    ? { "Content-Type": "application/json" }
-    : { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 }
 
 export function ImportDialog({
@@ -259,20 +251,19 @@ export function ImportDialog({
   };
 
   const post = async (body: Record<string, unknown>): Promise<unknown | null> => {
-    const response = await fetch(path, {
-      method: "POST",
-      headers: await bearer(),
-      body: JSON.stringify(body),
-    });
-    const payload = (await response.json().catch(() => ({}))) as {
-      error?: string;
-      detail?: string;
-    };
-    if (!response.ok) {
-      failed(payload, response.status);
+    const answer = await callRoute(path, { json: body, auth: "required" });
+    if (answer.kind !== "answered") {
+      failed({}, 0);
       return null;
     }
-    return payload;
+    if (!answer.ok) {
+      failed(
+        { error: answer.error ?? undefined, detail: answer.detail ?? undefined },
+        answer.status,
+      );
+      return null;
+    }
+    return answer.payload ?? {};
   };
 
   const readFile = (field: string, file: File | undefined) => {
