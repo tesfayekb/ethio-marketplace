@@ -120,6 +120,8 @@ describe("authorizeImport", () => {
 
   it("IMA-3 a caller without the permission is 403 forbidden: no body, no meter slot, no other rpc", async () => {
     state.allowed = false;
+    // A user no earlier test has metered (afterEach's release creates user-1's bucket).
+    state.user = "user-3";
     const { request, untouched } = spiedRequest(BEARER);
     const door = await authorizeImport(request, PATH, "categories");
     expect(door.ok).toBe(false);
@@ -127,11 +129,11 @@ describe("authorizeImport", () => {
     expect(door.response.status).toBe(403);
     expect(await door.response.json()).toEqual({ error: "forbidden" });
     expect(untouched()).toBe(true);
-    expect(hasBucket("user-1")).toBe(false);
+    expect(hasBucket("user-3")).toBe(false);
     expect(state.rpc).toEqual([
       {
         name: "has_permission",
-        args: { p_user_id: "user-1", p_resource: "categories", p_action: "import" },
+        args: { p_user_id: "user-3", p_resource: "categories", p_action: "import" },
       },
     ]);
   });
