@@ -1,22 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
+import { DIALS } from "@/lib/dials";
+import { ok, verdict } from "@/server/answer";
 import {
-  cacheGet,
-  cachePut,
   fakeSearch,
+  geoCached,
+  GeocoderUnavailable,
   isFakeGeocode,
   nominatim,
   type GeoPlace,
 } from "@/server/geo/geocode";
-import { DIALS } from "@/lib/dials";
-import { spend } from "@/server/dials";
-import {
-  logRouteError,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 /**
  * U6-C1-R3b-4 — THE FORWARD GEOCODER'S ROUTE.
@@ -28,11 +23,11 @@ import {
  * set a User-Agent and a public proxy would be a free geocoder for the whole
  * internet. So the route owns four things, in this order:
  *
- *   1 the CALLER — a bearer and a real signed-in user, or 401 (never anonymous).
- *   2 the DIAL (DEC-071) — `consume_rate_limit('geocode', <user>, 60, '1 hour')`
- *     BEFORE any outbound call, so a flood costs one counter row and no upstream
+ *   1 the CALLER — defineRoute auth "user": a real signed-in user, or 401.
+ *   2 the DIAL (DEC-071) — DIALS.geocode, declared beforeParse,
+ *     so it is spent BEFORE any outbound call, so a flood costs one counter row and no upstream
  *     request. A spent dial is `rateLimited` in the door's own vocabulary (F4).
- *   3 the CACHE — 24 hours in process, keyed by the normalised query. A worker
+ *   3 the CACHE — geoCached (one versionCache), keyed by the normalised query. A worker
  *     that recycles simply re-asks; the cache is a courtesy to the upstream, not
  *     a store of record, so nothing depends on it surviving.
  *   4 the SHAPE — label/lat/lng and nothing else. The upstream's payload never
@@ -44,62 +39,68 @@ import {
  */
 
 const PATH = "/api/geo/search";
+const SearchQuery = z.object({ q: z.string().optional() });
 
-async function handleGet(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
+async function lookup(query: string): Promise<GeoPlace[]> {
+  if (isFakeGeocode()) return fakeSearch(query);
+  const payload = await nominatim("search", {
+    q: query,
+    format: "jsonv2",
+    limit: "5",
+    addressdetails: "0",
+  });
+  if (payload === null) throw new GeocoderUnavailable();
+  return (Array.isArray(payload) ? payload : [])
+    .map((entry) => {
+      const row = (entry ?? {}) as Record<string, unknown>;
+      const lat = Number(row["lat"]);
+      const lng = Number(row["lon"]);
+      const label = typeof row["display_name"] === "string" ? row["display_name"] : "";
+      return Number.isFinite(lat) && Number.isFinite(lng) && label !== ""
+        ? { label, lat, lng }
+        : null;
+    })
+    .filter((row): row is GeoPlace => row !== null);
+}
 
-  const rate = await spend(DIALS.geocode, caller.userId!);
-  if (!rate.allowed) return refusal("geocode", "rateLimited", rate.resetsAt ?? undefined);
-
-  const query = (new URL(request.url).searchParams.get("q") ?? "").trim();
-  if (query.length < 2) return routeJson({ ok: true, results: [] }, 200);
-  if (query.length > 120) return refusal("geocode", "queryTooLong", String(query.length));
-
-  const key = `search:${query.toLowerCase()}`;
-  const cached = cacheGet(key);
-  if (cached !== null) return routeJson({ ok: true, results: cached, cached: true }, 200);
-
-  let results: GeoPlace[];
-  if (isFakeGeocode()) {
-    results = fakeSearch(query);
-  } else {
-    const payload = await nominatim("search", {
-      q: query,
-      format: "jsonv2",
-      limit: "5",
-      addressdetails: "0",
-    });
-    if (payload === null) return refusal("geocode", "geocoderUnavailable");
-    results = (Array.isArray(payload) ? payload : [])
-      .map((entry) => {
-        const row = (entry ?? {}) as Record<string, unknown>;
-        const lat = Number(row["lat"]);
-        const lng = Number(row["lon"]);
-        const label = typeof row["display_name"] === "string" ? row["display_name"] : "";
-        return Number.isFinite(lat) && Number.isFinite(lng) && label !== ""
-          ? { label, lat, lng }
-          : null;
-      })
-      .filter((row): row is GeoPlace => row !== null);
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof SearchQuery>>,
+): Promise<Response> {
+  const query = (ctx.query.q ?? "").trim();
+  if (query.length < 2) return ok({ ok: true, results: [] });
+  if (query.length > 120) {
+    return verdict([{ field: "geocode", reason: "queryTooLong", detail: String(query.length) }]);
   }
-
-  cachePut(key, results);
-  return routeJson({ ok: true, results }, 200);
+  try {
+    const { value: results, cached } = await geoCached(`search:${query.toLowerCase()}`, () =>
+      lookup(query),
+    );
+    return ok({ ok: true, results, ...(cached ? { cached: true } : {}) });
+  } catch (error) {
+    if (error instanceof GeocoderUnavailable) {
+      return verdict([{ field: "geocode", reason: "geocoderUnavailable" }]);
+    }
+    throw error;
+  }
 }
 
 export const Route = createFileRoute("/api/geo/search")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "user",
+        query: SearchQuery,
+        rate: [
+          {
+            dial: DIALS.geocode,
+            key: "user",
+            when: "beforeParse",
+            refuseAs: { verdict: { field: "geocode" } },
+          },
+        ],
+        handler,
+      }),
     },
   },
 });

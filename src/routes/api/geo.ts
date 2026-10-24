@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { GEO_NONE, geoGuess, type GeoAnswer } from "@/server/geo/guess";
-import { errorText } from "@/lib/error-text";
+import { ok } from "@/server/answer";
+import { GEO_NONE, geoGuess } from "@/server/geo/guess";
+import { defineRoute } from "@/server/route";
+import { logRouteError } from "@/server/supabase/user-client";
 
 /**
  * LOCATIONS ERA L4b-2 — THE GEO-GUESS ROUTE.
@@ -16,24 +18,21 @@ import { errorText } from "@/lib/error-text";
  * persistence, and never a throw through the handler (GE-1..5).
  */
 
-function answer(payload: GeoAnswer): Response {
-  return new Response(JSON.stringify(payload), {
-    status: 200,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
-}
-
 export const Route = createFileRoute("/api/geo")({
   server: {
     handlers: {
-      GET: ({ request }) => {
-        try {
-          return answer(geoGuess(request));
-        } catch (error) {
-          console.error("[ssr-error]", "/api/geo", errorText(error));
-          return answer(GEO_NONE);
-        }
-      },
+      GET: defineRoute({
+        path: "/api/geo",
+        auth: "none",
+        handler: async ({ request }) => {
+          try {
+            return ok(geoGuess(request), { cache: "no-store" });
+          } catch (error) {
+            logRouteError("/api/geo", error);
+            return ok(GEO_NONE, { cache: "no-store" });
+          }
+        },
+      }),
     },
   },
 });

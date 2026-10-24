@@ -3,7 +3,7 @@
  *
  * Both geocoding routes — forward (`/api/geo/search`) and reverse
  * (`/api/geo/reverse`) — need the same four things: the dial's ceiling, the
- * 24-hour in-process cache, the identified outbound call, and the E2E table that
+ * 24-hour in-process cache (one versionCache), the identified outbound call, and the E2E table that
  * stands in for the network. They live here once so the two routes cannot drift.
  *
  * THE CACHE IS A COURTESY, NOT A STORE OF RECORD. A worker that recycles loses
@@ -17,7 +17,9 @@
  * "unavailable", never a request the seller waits on forever (F4).
  */
 
-import { errorText } from "@/lib/error-text";
+import { upstream } from "@/server/upstream";
+import { logRouteError } from "@/server/supabase/user-client";
+import { versionCache } from "@/server/version-cache";
 import { aiFakeMode } from "@/server/ai/meter";
 
 export interface GeoPlace {
@@ -31,27 +33,39 @@ const UPSTREAM_MS = 6000;
 const UPSTREAM = "https://nominatim.openstreetmap.org";
 const USER_AGENT = "ethio.com classifieds (+https://ethio.com; listings map pin)";
 
-interface CacheEntry {
-  at: number;
-  value: GeoPlace[];
+/**
+ * Foundations turn 9 — THE ONE GEOCODE CACHE (search, reverse and outline). The
+ * TTL is 24 hours from insertion; the version is the 24-hour UTC bucket, read
+ * only once the TTL has passed — by then the bucket has moved, so the entry
+ * rebuilds. A constant version would never let an entry expire. The bound is 800
+ * entries with least-recent eviction.
+ */
+const GEO_CACHE = versionCache<string, { value: unknown }>({ ttlMs: CACHE_MS, max: 800 });
+
+/** A cached build: a build that throws is never cached. */
+export async function geoCached<T>(
+  key: string,
+  build: () => Promise<T>,
+): Promise<{ value: T; cached: boolean }> {
+  let built = false;
+  const held = await GEO_CACHE.get(
+    key,
+    async () => String(Math.floor(Date.now() / CACHE_MS)),
+    async () => {
+      built = true;
+      return { value: await build() };
+    },
+  );
+  if (held === null) throw new Error("geocode cache answered nothing");
+  return { value: held.value.value as T, cached: !built };
 }
 
-const cache = new Map<string, CacheEntry>();
-
-export function cacheGet(key: string): GeoPlace[] | null {
-  const found = cache.get(key);
-  if (found === undefined) return null;
-  if (Date.now() - found.at > CACHE_MS) {
-    cache.delete(key);
-    return null;
+/** A build's typed sentinel: nominatim answered null, so nothing is cached. */
+export class GeocoderUnavailable extends Error {
+  constructor() {
+    super("geocoder unavailable");
+    this.name = "GeocoderUnavailable";
   }
-  return found.value;
-}
-
-export function cachePut(key: string, value: GeoPlace[]): void {
-  // A bound, so a worker that lives a long day cannot grow without end.
-  if (cache.size > 500) cache.clear();
-  cache.set(key, { at: Date.now(), value });
 }
 
 export function isFakeGeocode(): boolean {
@@ -88,22 +102,19 @@ export async function nominatim(
 ): Promise<unknown | null> {
   const url = new URL(`${UPSTREAM}/${endpoint}`);
   for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), UPSTREAM_MS);
   try {
-    const response = await fetch(url, {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
-      signal: controller.signal,
-    });
+    const response = await upstream(
+      url.toString(),
+      { headers: { "User-Agent": USER_AGENT, Accept: "application/json" } },
+      { timeoutMs: UPSTREAM_MS, label: `nominatim:${endpoint}` },
+    );
     if (!response.ok) {
-      console.error("[ssr-error]", `/api/geo/${endpoint}`, `upstream ${response.status}`);
+      logRouteError(`/api/geo/${endpoint}`, `upstream ${response.status}`);
       return null;
     }
     return (await response.json()) as unknown;
   } catch (error) {
-    console.error("[ssr-error]", `/api/geo/${endpoint}`, errorText(error));
+    logRouteError(`/api/geo/${endpoint}`, error);
     return null;
-  } finally {
-    clearTimeout(timer);
   }
 }

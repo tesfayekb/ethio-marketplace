@@ -106,6 +106,7 @@ A dial goes in the spec unless its answer or its spending cannot be said there y
 - **upload's site screen budget** (`upload:screen`, key "site", 2000 per day) — site-wide, the AI gateway's (INC-861).
 - **background's daily dial** (`background:day`, 10 per day) — after the AI switch, so a switched-off tool spends none of the seller's tries (D158's order; BGR-5).
 - **background's per-listing tries** (`background:listing`, 2 per 10 years) — keyed by the listing, read for `x-tries-left`.
+- **outline's geocode dial** (`geocode`, on a cache miss only) — a cached outline costs the seller nothing (Foundations turn 9).
 - **photo-links' address dial** (`photo-links:address`, 600 per hour) — anonymous callers only; keyed by `hashAddress(clientAddress(request))`, the one address reader.
 
 ## The cached public readers on the mechanism (INC-862 T2, Foundations turn 6)
@@ -158,3 +159,17 @@ The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), usi
 - CHANGE (2): options adopts missing bearer token / not signed in 401, account is deactivated 403 and upstream unavailable 503; PR-51 matches its draft/identity siblings; ATO-1/2 and PR-6 prove refusals.
 - CHANGE (3): options validates id after caller; signed-in non-uuid 404, signed-out non-uuid 401; ATO-3 proves caller-before-shape, PR-6's valid all-zero uuid stays 404.
 - CHANGE (4): every options request checks caller before any cache hit; ATO-5 proves two caller checks and one version read. The baseline already checked caller before cache; this is preserved, not a new order change.
+
+## The geo routes on the mechanism (INC-862 T4, Foundations turn 9)
+
+| Route              | Auth | Shape                                       | Cache / success                                                          | Refusals                                                                                                           |
+| ------------------ | ---- | ------------------------------------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `/api/geo`         | none | none                                        | no-store; the guess object; a thrown guess answers `GEO_NONE`            | none                                                                                                               |
+| `/api/geo/search`  | user | q optional; trimmed; under 2 → no results   | geoCached `search:<q>`; no-store; `{ok, results, cached?}`               | geocode rateLimited (dial beforeParse) · queryTooLong + length · geocoderUnavailable (not cached); caller refusals |
+| `/api/geo/reverse` | user | lat `coordinate(90)`, lng `coordinate(180)` | geoCached `reverse:<lat 4dp>,<lng 4dp>`; street trimmed to 200; no-store | geocode rateLimited (dial beforeParse) · badCoordinates · geocoderUnavailable; caller refusals                     |
+| `/api/geo/outline` | user | q trimmed 2–160                             | geoCached `outline:<q>`; private, max-age=604800; dial on a miss only    | geocode badQuery · rateLimited (not cached) · geocoderUnavailable; caller refusals                                 |
+
+- CHANGE (1): reverse refuses a missing or empty lat/lng as badCoordinates instead of looking up 0,0 (GRV-1).
+- CHANGE (2), corrected wording (operator ruling 2026-10-24; the saved brief is unchanged): the one geocode cache keeps the 24-hour lifetime from insertion — within the TTL no version is read; once it has passed the UTC bucket has necessarily moved and the entry rebuilds (GEC-4). The only real change is the bound: 800 entries with least-recent eviction instead of clear-all at 500 (geocode) or 300 (outline).
+- CHANGE (3): a request whose client has gone answers an empty 499 and logs `[client-aborted] <METHOD> <path>` instead of `[ssr-error]` + the 500 page (ABT-1…3; ci-guards.md).
+- A dial store failure on search/reverse is now the mechanism's 503 upstream unavailable (it was a 500); an undeclared throw is `serverError` with an incident id.

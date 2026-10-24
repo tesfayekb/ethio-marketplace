@@ -462,6 +462,15 @@ stack line>` and a best-effort titles-only failure list, then exits non-zero;
   Durable candidate registered: CI serves a production build (requires an E2E
   build mode for the DEV hooks) — ACT when the named evidence justifies it.
 
+- **Abandoned requests are not server errors (INC-871, Foundations turn 9).**
+  When `request.signal.aborted` is true (the browser navigated away, closed the
+  tab or cancelled the fetch), both last-resort paths in src/server.ts log one
+  `[client-aborted] <METHOD> <path>` line and answer an empty 499 instead of
+  `[ssr-error]` and the 500 page: the client is gone and reads nothing, and the
+  E2E report's `[ssr-error]` grep must only see real failures. The check keys on
+  the signal, never on an error's message. A live request that fails is
+  unchanged (ABT-1…3, src/server.test.ts).
+
 - **Built-app E2E (DEC-018, INC-085d).** CI no longer serves the Vite dev server.
   Every E2E job runs `bun run build:e2e` (a normal production build with
   `VITE_E2E=1`) and Playwright's `webServer` serves `dist/` through

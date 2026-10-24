@@ -1,15 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { cacheGet, cachePut, fakeReverse, isFakeGeocode, nominatim } from "@/server/geo/geocode";
 import { DIALS } from "@/lib/dials";
-import { spend } from "@/server/dials";
+import { coordinate } from "@/lib/schemas/primitives";
+import { ok, verdict } from "@/server/answer";
 import {
-  logRouteError,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+  fakeReverse,
+  geoCached,
+  GeocoderUnavailable,
+  isFakeGeocode,
+  nominatim,
+} from "@/server/geo/geocode";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 /**
  * U6-C1-R3b-4 — THE REVERSE GEOCODER'S ROUTE.
@@ -23,35 +25,13 @@ import {
  *
  * The coordinates are rounded to four decimals for the cache key — about eleven
  * metres, so nudging the marker inside one building is one lookup, not ten.
+ * Foundations turn 9: a missing or empty lat/lng is badCoordinates (never 0,0).
  */
 
 const PATH = "/api/geo/reverse";
+const ReverseQuery = z.object({ lat: coordinate(90), lng: coordinate(180) });
 
-function coord(value: string | null, limit: number): number | null {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed < -limit || parsed > limit) return null;
-  return parsed;
-}
-
-async function handleGet(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-
-  const rate = await spend(DIALS.geocode, caller.userId!);
-  if (!rate.allowed) return refusal("geocode", "rateLimited", rate.resetsAt ?? undefined);
-
-  const params = new URL(request.url).searchParams;
-  const lat = coord(params.get("lat"), 90);
-  const lng = coord(params.get("lng"), 180);
-  if (lat === null || lng === null) return refusal("geocode", "badCoordinates");
-
-  const key = `reverse:${lat.toFixed(4)},${lng.toFixed(4)}`;
-  const cached = cacheGet(key);
-  if (cached !== null) {
-    return routeJson({ ok: true, street: cached[0]?.label ?? null, cached: true }, 200);
-  }
-
+async function lookup(lat: number, lng: number): Promise<string | null> {
   let street: string | null;
   if (isFakeGeocode()) {
     street = fakeReverse().label;
@@ -62,30 +42,52 @@ async function handleGet(request: Request): Promise<Response> {
       format: "jsonv2",
       zoom: "18",
     });
-    if (payload === null) return refusal("geocode", "geocoderUnavailable");
+    if (payload === null) throw new GeocoderUnavailable();
     const row = (payload ?? {}) as Record<string, unknown>;
     const label = typeof row["display_name"] === "string" ? row["display_name"] : "";
     street = label === "" ? null : label;
   }
-
   // The door caps a street line at 200 characters; a long upstream label is
   // trimmed here rather than refused there.
-  const trimmed = street === null ? null : street.slice(0, 200);
-  cachePut(key, trimmed === null ? [] : [{ label: trimmed, lat, lng }]);
-  return routeJson({ ok: true, street: trimmed }, 200);
+  return street === null ? null : street.slice(0, 200);
+}
+
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof ReverseQuery>>,
+): Promise<Response> {
+  const { lat, lng } = ctx.query;
+  try {
+    const { value: street, cached } = await geoCached(
+      `reverse:${lat.toFixed(4)},${lng.toFixed(4)}`,
+      () => lookup(lat, lng),
+    );
+    return ok({ ok: true, street, ...(cached ? { cached: true } : {}) });
+  } catch (error) {
+    if (error instanceof GeocoderUnavailable) {
+      return verdict([{ field: "geocode", reason: "geocoderUnavailable" }]);
+    }
+    throw error;
+  }
 }
 
 export const Route = createFileRoute("/api/geo/reverse")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "user",
+        query: ReverseQuery,
+        badShape: () => verdict([{ field: "geocode", reason: "badCoordinates" }]),
+        rate: [
+          {
+            dial: DIALS.geocode,
+            key: "user",
+            when: "beforeParse",
+            refuseAs: { verdict: { field: "geocode" } },
+          },
+        ],
+        handler,
+      }),
     },
   },
 });
