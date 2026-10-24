@@ -545,7 +545,7 @@ test.describe("Legal certification", () => {
     await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
     const certified = await certificationsOf(listingId);
     expect(certified[0]?.version_ids).toEqual(
-      expect.arrayContaining([global.versionId, country.versionId]),
+      expect.arrayContaining([global.id, country.id]),
     );
     expect(certified[0]?.version_ids).toHaveLength(2);
 
