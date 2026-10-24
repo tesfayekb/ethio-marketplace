@@ -21,8 +21,6 @@ import {
 } from "./legal-service";
 import { LegalFactsCard } from "./legal-facts-card";
 import { useLegalDocuments, useLegalSettings, useLegalVersion, useLegalWrites } from "./use-legal";
-import { useLanguages } from "@/features/admin/translations/use-translations";
-import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
 import { formatLocale } from "@/lib/format-locale";
 
 /** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
@@ -56,7 +54,6 @@ export function LegalPage() {
   const documents = useLegalDocuments();
   const settings = useLegalSettings();
   const countries = useCountries();
-  const languages = useLanguages();
   const [reading, setReading] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Record<string, string>>({});
   const mayEdit = permissions.includes("legal:edit");
@@ -142,15 +139,6 @@ export function LegalPage() {
           )
           .map((v) => {
             const status = versionStatus(v, doc.versions, now);
-            const missingLanguages =
-              languages.data?.filter(
-                (l) =>
-                  l.enabledAdmin &&
-                  l.code !== "en" &&
-                  l.code !== "am" &&
-                  l.code !== PSEUDO_LANG &&
-                  ownValue(v.texts, l.code) === undefined,
-              ) ?? [];
             return (
               <div
                 key={v.version_id}
@@ -235,7 +223,7 @@ export function LegalPage() {
                             {t("admin.legal.action.view")}
                           </Link>
                         </Button>
-                        {permissions.includes("legal:publish") && missingLanguages.length > 0 ? (
+                        {permissions.includes("legal:publish") ? (
                           <Button asChild variant="outline">
                             <Link
                               to="/admin/legal/$versionId"
@@ -243,9 +231,7 @@ export function LegalPage() {
                               search={{ translate: "1" }}
                               data-testid="legal-translate-inforce"
                             >
-                              {t("admin.legal.translation.add") +
-                                ": " +
-                                missingLanguages.map((l) => l.nameEn).join(", ")}
+                              {t("admin.legal.translation.add")}
                             </Link>
                           </Button>
                         ) : null}
