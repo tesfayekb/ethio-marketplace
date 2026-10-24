@@ -46,10 +46,7 @@ describe("LanguageSwitcher — one choice per device (D237)", () => {
     render(<LanguageSwitcher />);
     openMenu();
 
-    expect(await screen.findByTestId("language-option-en")).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
+    expect(await screen.findByTestId("language-option-en")).toHaveAttribute("aria-checked", "true");
     expect(screen.getByTestId("language-option-am")).toHaveAttribute("aria-checked", "false");
     expect(screen.getByTestId("language-option-sw")).toHaveAttribute("aria-checked", "false");
   });
