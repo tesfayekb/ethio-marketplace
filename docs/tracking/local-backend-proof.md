@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `522230b3a7850a9e5629cc39da59941e2d0cf1ce`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40071930414
+- Commit: `4addd8a1d21a14fff6432eb3823c46ff018c2b4b`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40072128056
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 784 | 90 | applied 342/342 | 186 | 0 | 0 | 60 | 246 |
-| email | 179 | 116 | applied 342/342 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 741 | 106 | applied 342/342 | 134 | 0 | 0 | 4 | 138 |
-| 2 | 857 | 103 | applied 342/342 | 120 | 0 | 0 | 3 | 123 |
-| 3 | 833 | 101 | applied 342/342 | 130 | 0 | 0 | 0 | 130 |
-| 4 | 529 | 115 | applied 342/342 | 146 | 1 | 0 | 2 | 149 |
-| 5 | 503 | 102 | applied 342/342 | 113 | 1 | 0 | 6 | 120 |
-| 6 | 781 | 107 | applied 342/342 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 607 | 122 | applied 342/342 | 119 | 0 | 0 | 0 | 119 |
-| 8 | 583 | 102 | applied 342/342 | 108 | 0 | 0 | 30 | 138 |
-| 9 | 651 | 79 | applied 342/342 | 127 | 0 | 0 | 2 | 129 |
-| 10 | 959 | 112 | applied 342/342 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 779 | 94 | applied 342/342 | 120 | 0 | 0 | 1 | 121 |
-| 12 | 577 | 116 | applied 342/342 | 135 | 1 | 0 | 5 | 141 |
-| 13 | 498 | 99 | applied 342/342 | 115 | 1 | 0 | 4 | 120 |
-| 14 | 688 | 101 | applied 342/342 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 568 | 116 | applied 342/342 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 565 | 117 | applied 342/342 | 92 | 0 | 0 | 30 | 122 |
+| smoke | 905 | 119 | applied 342/342 | 186 | 0 | 0 | 60 | 246 |
+| email | 178 | 111 | applied 342/342 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 722 | 104 | applied 342/342 | 134 | 0 | 0 | 4 | 138 |
+| 2 | 800 | 99 | applied 342/342 | 120 | 0 | 0 | 3 | 123 |
+| 3 | 866 | 96 | applied 342/342 | 130 | 0 | 0 | 0 | 130 |
+| 4 | 528 | 110 | applied 342/342 | 146 | 1 | 0 | 2 | 149 |
+| 5 | 589 | 123 | applied 342/342 | 113 | 1 | 0 | 6 | 120 |
+| 6 | 793 | 103 | applied 342/342 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 454 | 99 | applied 342/342 | 119 | 0 | 0 | 0 | 119 |
+| 8 | 585 | 99 | applied 342/342 | 108 | 0 | 0 | 30 | 138 |
+| 9 | 778 | 120 | applied 342/342 | 127 | 0 | 0 | 2 | 129 |
+| 10 | 870 | 96 | applied 342/342 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 956 | 119 | applied 342/342 | 120 | 0 | 0 | 1 | 121 |
+| 12 | 510 | 111 | applied 342/342 | 135 | 1 | 0 | 5 | 141 |
+| 13 | 492 | 100 | applied 342/342 | 115 | 1 | 0 | 4 | 120 |
+| 14 | 769 | 109 | applied 342/342 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 595 | 115 | applied 342/342 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 525 | 86 | applied 342/342 | 92 | 0 | 0 | 30 | 122 |
 | TOTAL | — | — | — | 2171 | 4 | 0 | 154 | 2329 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 10 959 s
+- Slowest lane: 11 956 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40071930414-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40071930414-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40071930414-local-1
-  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40071930414-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40071930414-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40071930414-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40071930414-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40071930414-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40071930414-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40071930414-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40071930414-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40071930414-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40071930414-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40071930414-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40071930414-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40071930414-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40071930414-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40071930414-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40072128056-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40072128056-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40072128056-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40072128056-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40072128056-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40072128056-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40072128056-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40072128056-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40072128056-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40072128056-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40072128056-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40072128056-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40072128056-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40072128056-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40072128056-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40072128056-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40072128056-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40072128056-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -68,13 +68,13 @@ API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
 ## Lane 4
-- legal-certify.spec.ts / Legal certification / LGC-6 a statement's public page shows the global statement, and the country's with its country line; anyone may read it (DEC-236) / mobile-360 — Error: SSR error page twice for http://127.0.0.1:4173/legal/e2e-pub-lgc6t14g74?countries=%5B%5D: (no visible cause — production build without VITE_E2E)
+- legal-certify.spec.ts / Legal certification / LGC-6 a statement's public page shows the global statement, and the country's with its country line; anyone may read it (DEC-236) / mobile-360 — Error: SSR error page twice for http://127.0.0.1:4173/legal/e2e-pub-lgc6ikbanq?countries=%5B%5D: (no visible cause — production build without VITE_E2E)
 
 ## Lane 5
 - legal-pages.spec.ts / Legal public pages / LGP-4 /legal/publishing with no statement in force shows its soon state and carries the publishing title (DEC-236) / mobile-360 — Error: SSR error page twice for http://127.0.0.1:4173/legal/publishing?countries=%5B%5D: (no visible cause — production build without VITE_E2E)
 
 ## Lane 12
-- legal-certify.spec.ts / Legal certification / LGC-6 a statement's public page shows the global statement, and the country's with its country line; anyone may read it (DEC-236) / desktop-1280 — Error: SSR error page twice for http://127.0.0.1:4173/legal/e2e-pub-lgc6l92s69?countries=%5B%5D: (no visible cause — production build without VITE_E2E)
+- legal-certify.spec.ts / Legal certification / LGC-6 a statement's public page shows the global statement, and the country's with its country line; anyone may read it (DEC-236) / desktop-1280 — Error: SSR error page twice for http://127.0.0.1:4173/legal/e2e-pub-lgc6kjpvn3?countries=%5B%5D: (no visible cause — production build without VITE_E2E)
 
 ## Lane 13
 - legal-pages.spec.ts / Legal public pages / LGP-4 /legal/publishing with no statement in force shows its soon state and carries the publishing title (DEC-236) / desktop-1280 — Error: SSR error page twice for http://127.0.0.1:4173/legal/publishing?countries=%5B%5D: (no visible cause — production build without VITE_E2E)
