@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { callRoute } from "@/lib/route-client";
 import { supabase } from "@/integrations/supabase/client";
 
 /**

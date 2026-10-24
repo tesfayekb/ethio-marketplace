@@ -58,12 +58,13 @@ export async function findLeaves(
   signal: AbortSignal,
 ): Promise<FinderHit[]> {
   const params = new URLSearchParams({ q: term, lang });
-  const response = await fetch(`/api/catalog/find?${params.toString()}`, {
-    headers: { Accept: "application/json" },
+  const answer = await callRoute(`/api/catalog/find?${params.toString()}`, {
+    auth: "none",
     signal,
   });
-  if (!response.ok) throw new Error(`catalog finder answered ${response.status}`);
-  const body = (await response.json()) as { results?: unknown };
+  if (answer.kind !== "answered") throw new Error("catalog finder unreachable");
+  if (!answer.ok) throw new Error(`catalog finder answered ${answer.status}`);
+  const body = (answer.payload ?? {}) as { results?: unknown };
   const rows = Array.isArray(body.results) ? (body.results as Record<string, unknown>[]) : [];
   return rows
     .filter((row) => typeof row["leaf_id"] === "string")
