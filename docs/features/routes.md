@@ -19,13 +19,13 @@ A spent dial answers the 429 `clientError("rateLimited", { resetsAt })`, or — 
 
 ## Auth modes (Foundations turn 5)
 
-| Mode | Client / identity |
-| --- | --- |
-| `none` | No client, environment check or Authorization read; `supabase` and `userId` null. Lazy `service()` remains available for an explicitly privileged reader such as catalog.find. |
-| `anon` | `anonymousClient()`; missing server environment refused. |
-| `optional` | A present Authorization header is checked as the caller; otherwise the anonymous client. |
-| `user` | A verified caller and their RLS-scoped client. |
-| `{ staff }` | The verified caller's client checks `has_permission` before the handler. |
+| Mode        | Client / identity                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `none`      | No client, environment check or Authorization read; `supabase` and `userId` null. Lazy `service()` remains available for an explicitly privileged reader such as catalog.find. |
+| `anon`      | `anonymousClient()`; missing server environment refused.                                                                                                                       |
+| `optional`  | A present Authorization header is checked as the caller; otherwise the anonymous client.                                                                                       |
+| `user`      | A verified caller and their RLS-scoped client.                                                                                                                                 |
+| `{ staff }` | The verified caller's client checks `has_permission` before the handler.                                                                                                       |
 
 `badShape` also accepts `({ part, path, code }) => Response`: only the first issue, in params → query → body order; the path joined with dots and the zod code, never its message. The route returns its own answer through answer.ts. Malformed JSON passes `{ part: "body", path: "", code: "invalid_json" }`; unreadable multipart passes `{ part: "body", path: "body", code: "badShape" }`. Existing verdict/clientError defaults are unchanged.
 
