@@ -91,6 +91,99 @@ export default tseslint.config(
     },
   },
   {
+    // Foundations turn 2 (DEC-237) — THE ROUTE BOUNDARY. A route reads its body
+    // through defineRoute's schema, answers through src/server/answer.ts, calls
+    // out through upstream() and takes its clients from user-client.ts. The
+    // ignore list IS scripts/conformance/routes-allowlist.txt's paths (CF-RT-5
+    // checks both ways); as a wave moves its routes, both shrink in one edit.
+    files: ["src/routes/**/*.{ts,tsx}", "src/server/**/*.ts"],
+    ignores: [
+      "src/server/route.ts",
+      "src/server/answer.ts",
+      "src/server/upstream.ts",
+      "src/server/supabase/user-client.ts",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      // ROUTES-BOUNDARY-IGNORES-BEGIN
+      "src/routes/api/listings/draft.ts", // until INC-859
+      "src/routes/api/listings/identity.ts", // until INC-859
+      "src/routes/api/listings/alias.ts", // until INC-859
+      "src/routes/api/listings/assist.ts", // until INC-859
+      "src/routes/api/listings/background.ts", // until INC-859
+      "src/routes/api/listings/photos.$id.ts", // until INC-859
+      "src/routes/api/listings/share.ts", // until INC-859
+      "src/routes/api/listings/view.ts", // until INC-859
+      "src/routes/api/upload/photo.ts", // until INC-859
+      "src/routes/api/media/photo-links.ts", // until INC-859
+      "src/routes/api/admin/categories/import.ts", // until INC-860
+      "src/routes/api/admin/attributes/import.ts", // until INC-860
+      "src/routes/api/admin/locations/import.ts", // until INC-860
+      "src/routes/api/admin/translations/import.ts", // until INC-860
+      "src/routes/api/admin/categories/export.ts", // until INC-860
+      "src/routes/api/admin/attributes/export.ts", // until INC-860
+      "src/routes/api/admin/locations/export.ts", // until INC-860
+      "src/server/imports/gate.ts", // until INC-860
+      "src/routes/api/translate.ts", // until INC-861
+      "src/routes/api/admin/categories/generate-image.ts", // until INC-861
+      "src/routes/api/admin/categories/suggest-icon.ts", // until INC-861
+      "src/server/category-images/gate.ts", // until INC-861
+      "src/server/category-images/gemini.ts", // until INC-861
+      "src/routes/api/categories.tree.ts", // until INC-862
+      "src/routes/api/locations.ts", // until INC-862
+      "src/routes/api/locations.$country.ts", // until INC-862
+      "src/routes/api/i18n.$lang.ts", // until INC-862
+      "src/routes/api/feed.ts", // until INC-862
+      "src/routes/api/seller.ts", // until INC-862
+      "src/routes/api/attributes.$id.options.ts", // until INC-862
+      "src/routes/api/catalog.find.ts", // until INC-862
+      "src/routes/api/geo.ts", // until INC-862
+      "src/routes/api/geo/search.ts", // until INC-862
+      "src/routes/api/geo/reverse.ts", // until INC-862
+      "src/routes/api/geo/outline.ts", // until INC-862
+      "src/routes/api/map/tiles.ts", // until INC-862
+      "src/routes/l.$id.photo[.]jpg.ts", // until INC-862
+      "src/routes/l.$id.qr[.]svg.ts", // until INC-862
+      "src/server/ad-photo.ts", // until INC-862
+      "src/server/media/policy.ts", // until INC-862
+      "src/server/media/background.ts", // until INC-862
+      "src/server/media/storage.ts", // until INC-862
+      "src/server/geo/geocode.ts", // until INC-862
+      "src/routes/__root.tsx", // until INC-863
+      "src/routes/l.$slug.tsx", // until INC-863
+      "src/routes/$name.tsx", // until INC-863
+      "src/routes/terms.tsx", // until INC-863
+      "src/routes/privacy.tsx", // until INC-863
+      "src/routes/legal.$kind.tsx", // until INC-863
+      "src/components/shell/location-data.ts", // until INC-857
+      "src/components/shell/place-carry.ts", // until INC-857
+      "src/features/posting/post-prefill.ts", // until INC-857
+      "src/integrations/supabase/previewAuthStorage.ts", // until INC-857
+      // ROUTES-BOUNDARY-IGNORES-END
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "CallExpression[callee.object.name='request'][callee.property.name=/^(json|formData|arrayBuffer|text)$/]",
+          message: "a route reads its body through defineRoute's schema or form",
+        },
+        {
+          selector: "NewExpression[callee.name='Response']",
+          message: "answers come from src/server/answer.ts",
+        },
+        {
+          selector: "CallExpression[callee.name='fetch']",
+          message: "outside calls go through upstream()",
+        },
+        {
+          selector: "CallExpression[callee.name='createClient']",
+          message: "clients come from user-client.ts",
+        },
+      ],
+    },
+  },
+  {
     // DEC-027 — SPEC LINT. Three failure classes the e2e suite paid for more
     // than once; each is cheaper to catch here than in a CI run.
     files: ["e2e/**/*.ts"],
