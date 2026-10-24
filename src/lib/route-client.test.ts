@@ -56,25 +56,42 @@ describe("browser route client", () => {
   it("RCL-6 reads the 409 envelope without phantom success", async () => {
     fetchMock.mockResolvedValue(jsonAnswer({ error: "fileChanged", detail: "x" }, 409));
     expect(await callRoute("/api/x", { auth: "none" })).toEqual({
-      kind: "answered", status: 409, ok: false,
-      payload: { error: "fileChanged", detail: "x" }, error: "fileChanged", detail: "x",
+      kind: "answered",
+      status: 409,
+      ok: false,
+      payload: { error: "fileChanged", detail: "x" },
+      error: "fileChanged",
+      detail: "x",
     });
   });
   it("RCL-7 a non-JSON 502 preserves its status", async () => {
     fetchMock.mockResolvedValue(new Response("unavailable", { status: 502 }));
     expect(await callRoute("/api/x", { auth: "none" })).toEqual({
-      kind: "answered", status: 502, ok: false, payload: null, error: null, detail: null,
+      kind: "answered",
+      status: 502,
+      ok: false,
+      payload: null,
+      error: null,
+      detail: null,
     });
   });
   it("RCL-8 a thrown fetch is unreachable network", async () => {
     fetchMock.mockRejectedValue(new TypeError("Failed to fetch"));
-    expect(await callRoute("/api/x", { auth: "none" })).toEqual({ kind: "unreachable", reason: "network" });
+    expect(await callRoute("/api/x", { auth: "none" })).toEqual({
+      kind: "unreachable",
+      reason: "network",
+    });
   });
   it("RCL-9 deadline and caller abort remain distinct", async () => {
     vi.useFakeTimers();
-    fetchMock.mockImplementation((_path, init) => new Promise((_resolve, reject) => {
-      init.signal.addEventListener("abort", () => reject(new DOMException("Aborted", "AbortError")));
-    }));
+    fetchMock.mockImplementation(
+      (_path, init) =>
+        new Promise((_resolve, reject) => {
+          init.signal.addEventListener("abort", () =>
+            reject(new DOMException("Aborted", "AbortError")),
+          );
+        }),
+    );
     const deadline = callRoute("/api/x", { auth: "none", timeoutMs: 30 });
     await vi.advanceTimersByTimeAsync(30);
     expect(await deadline).toEqual({ kind: "unreachable", reason: "timeout" });
@@ -89,16 +106,27 @@ describe("browser route client", () => {
     const revoke = vi.fn();
     vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke }));
     const names: string[] = [];
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () { names.push(this.download); });
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function () {
+      names.push(this.download);
+    });
     fetchMock.mockResolvedValue(new Response("\ufeffkey\r\nvalue\r\n"));
-    expect(await downloadRoute("/api/x", "scope-definitions.csv", { auth: "none" })).toMatchObject({ kind: "answered", ok: true, payload: null });
+    expect(await downloadRoute("/api/x", "scope-definitions.csv", { auth: "none" })).toMatchObject({
+      kind: "answered",
+      ok: true,
+      payload: null,
+    });
     expect(names).toEqual(["scope-definitions.csv"]);
     expect(create).toHaveBeenCalledTimes(1);
     expect(await create.mock.calls[0][0].text()).toBe("\ufeffkey\r\nvalue\r\n");
     expect(revoke).toHaveBeenCalledExactlyOnceWith("blob:test");
     expect(document.querySelector('a[href="blob:test"]')).toBeNull();
     fetchMock.mockResolvedValue(jsonAnswer({ error: "forbidden" }, 403));
-    expect(await downloadRoute("/api/x", "no.csv", { auth: "none" })).toMatchObject({ kind: "answered", ok: false, status: 403, error: "forbidden" });
+    expect(await downloadRoute("/api/x", "no.csv", { auth: "none" })).toMatchObject({
+      kind: "answered",
+      ok: false,
+      status: 403,
+      error: "forbidden",
+    });
     expect(create).toHaveBeenCalledTimes(1);
     expect(click).toHaveBeenCalledTimes(1);
   });
