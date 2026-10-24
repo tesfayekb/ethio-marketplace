@@ -311,8 +311,8 @@ test.describe("app shell", () => {
     await expect(hidden).toBeHidden();
     await expect(shown).toHaveText(narrow ? en["language.enShort"] : en["language.english"]);
     await trigger.click();
-    await expect(page.getByRole("menuitem", { name: en["language.english"] })).toBeVisible();
-    await page.getByRole("menuitem", { name: en["language.amharic"] }).click();
+    await expect(page.getByRole("menuitemradio", { name: en["language.english"] })).toBeVisible();
+    await page.getByRole("menuitemradio", { name: en["language.amharic"] }).click();
 
     const amharicHeading = page.getByRole("heading", { level: 1 });
     await expect(amharicHeading).toBeVisible();
@@ -1618,6 +1618,8 @@ test.describe("mobile chrome", () => {
     await switchLanguage(page, "am");
     await expect(post).toHaveText(am["nav.postShort"]);
     await expect(post).toHaveAccessibleName(am["nav.postShort"]);
+    // D237: a signed-in pick syncs the account; the shared fixture user is left as found.
+    await switchLanguage(page, "en");
   });
 
   test("the posting wizard keeps the frame", async ({ page }) => {

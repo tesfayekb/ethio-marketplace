@@ -43,3 +43,15 @@ export function staticClosure(dir, entries) {
 export function entryChunks(names) {
   return names.filter((n) => /^(entry|index|main)[.-][^/]*\.js$/.test(n));
 }
+
+/**
+ * INC-864 (Foundations turn 1) — chunks that must NEVER reach the first paint,
+ * by file-name prefix. A page-only module that drifts into the entry's static
+ * closure fails the budget guard with its name, whatever the total weight.
+ */
+export const MUST_STAY_LAZY = ["reader-failure", "legal-page-data", "zod"];
+
+/** The first closure chunk name that must stay lazy, or null. */
+export function mustStayLazyViolation(closureNames) {
+  return closureNames.find((name) => MUST_STAY_LAZY.some((prefix) => name.startsWith(prefix))) ?? null;
+}

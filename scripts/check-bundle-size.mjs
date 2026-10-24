@@ -18,7 +18,7 @@ import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { basename, dirname, join, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 
-import { entryChunks, staticClosure } from "./bundle-closure.mjs";
+import { entryChunks, mustStayLazyViolation, staticClosure } from "./bundle-closure.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
@@ -96,8 +96,17 @@ const jsEntries = files.filter(
 );
 const eager = new Set();
 for (const entry of jsEntries) {
-  for (const name of staticClosure(dirname(entry), [basename(entry)]))
-    eager.add(join(dirname(entry), name));
+  const closure = staticClosure(dirname(entry), [basename(entry)]);
+  // INC-864: a must-stay-lazy chunk in the first-paint closure fails here,
+  // with its name, whatever the total weight — the same exit path as the ceiling.
+  const lazy = mustStayLazyViolation(closure);
+  if (lazy) {
+    console.error(
+      `Bundle budget: ${lazy} must stay lazy (INC-864) but sits in the first-paint closure of ${basename(entry)}.`,
+    );
+    process.exit(1);
+  }
+  for (const name of closure) eager.add(join(dirname(entry), name));
 }
 for (const file of files) {
   if (extname(file) === ".css" && isEntry(file)) eager.add(file);
