@@ -791,17 +791,48 @@ export function releaseSlot(userId: string): void {
  */
 export const PREVIEW_BUDGET = 30;
 
+/** The import routes' body ceiling (4 MiB), declared once for the door and the read. */
+export const IMPORT_BODY_BYTES = 4 * 1_048_576;
+
+export type ImportDoor =
+  | { ok: true; supabase: SupabaseClient<Database>; userId: string }
+  | { ok: false; response: Response };
+
 /**
- * IDENTITY BEFORE SHAPE — the one place a door may ask "is anyone there?"
- * before it has read a byte of the body, so an anonymous caller learns nothing
- * about the file's validity. The full gate still re-reads and verifies it.
+ * Foundations turn 11 (DEC-237, INC-860 part 1) — THE IMPORT DOOR. Who the
+ * caller is and whether they hold the family's permission are answered BEFORE
+ * a byte of the body is read, buffered, decoded, parsed or metered (ASVS
+ * V4.1/V13). In order: (i) the family; (ii) a declared Content-Length over the
+ * ceiling → 413 with nothing read; (iii) the shared caller (401 / 403
+ * deactivated / 503 / 500); (iv) `callerHasPermission` with the family's
+ * permission — false → 403 forbidden; an error throws (the route's boundary
+ * answers it, never a pass).
  */
-export function requireBearer(request: Request): Response | null {
-  const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
-    return json({ error: "missing bearer token" }, 401);
+export async function authorizeImport(
+  request: Request,
+  path: string,
+  familyId: string,
+): Promise<ImportDoor> {
+  const family = familyOf(familyId);
+  if (family === null)
+    return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
+
+  const declared = request.headers.get("content-length");
+  if (declared !== null && Number(declared) > IMPORT_BODY_BYTES) {
+    return refuse(path, "body too large", 413, { error: "fileTooLarge" });
   }
-  return null;
+
+  const caller = await userClientFromRequest(request);
+  const refused = refuseUserClient(path, caller);
+  if (refused !== null) return { ok: false, response: refused };
+  if (caller.supabase === null || caller.userId === null) {
+    return { ok: false, response: json({ error: "not signed in" }, 401) };
+  }
+
+  if (!(await callerHasPermission(caller.supabase, caller.userId, family.permission))) {
+    return { ok: false, response: clientError("forbidden", 403) };
+  }
+  return { ok: true, supabase: caller.supabase, userId: caller.userId };
 }
 
 export function takeSlot(
