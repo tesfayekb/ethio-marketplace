@@ -20,6 +20,11 @@ const state = {
   anonClient: { anon: true } as unknown,
   rates: [] as { action: string; key: string; limit: number; window: string }[],
   rateThrows: false,
+  rateAllowed: true,
+  rateResetsAt: null as string | null,
+  callerCalls: 0,
+  pulls: 0,
+  pullsAtRate: [] as number[],
   rpcCalls: [] as { name: string; args: unknown }[],
   rpcAnswer: true as boolean,
   logs: [] as string[],
@@ -37,7 +42,10 @@ vi.mock("@/server/supabase/user-client", () => {
     logRouteError: (path: string, message: unknown) => {
       state.logs.push(`${path} ${String(message)}`);
     },
-    userClientFromRequest: async () => state.caller,
+    userClientFromRequest: async () => {
+      state.callerCalls += 1;
+      return state.caller;
+    },
     refuseUserClient: (_path: string, answer: { reason: string | null }) => {
       if (answer.reason === null) return null;
       if (answer.reason === "serverEnv") return routeJson({ error: "server error" }, 500);
@@ -46,8 +54,9 @@ vi.mock("@/server/supabase/user-client", () => {
     anonymousClient: () => state.anonClient,
     consumeRate: async (action: string, key: string, limit: number, window: string) => {
       state.rates.push({ action, key, limit, window });
+      state.pullsAtRate.push(state.pulls);
       if (state.rateThrows) throw new Error("counting down");
-      return { allowed: true, resetsAt: null, remaining: 9 };
+      return { allowed: state.rateAllowed, resetsAt: state.rateResetsAt, remaining: 9 };
     },
     envDial: (_name: string, fallback: number) => fallback,
     upstreamUnavailable: (path: string, what: string, status: number) => {
@@ -95,11 +104,39 @@ beforeEach(() => {
   state.caller = { supabase: { rpc: rpcSpy }, userId: "user-1", reason: null, message: "" };
   state.rates = [];
   state.rateThrows = false;
+  state.rateAllowed = true;
+  state.rateResetsAt = null;
+  state.callerCalls = 0;
+  state.pulls = 0;
+  state.pullsAtRate = [];
   state.rpcCalls = [];
   state.rpcAnswer = true;
   state.logs = [];
   state.handlerCalls = 0;
 });
+
+/** A body stream whose every pull is counted — proof of what was (not) read. */
+function countedPost(text: string, headers: Record<string, string> = {}): Request {
+  const encoded = new TextEncoder().encode(text);
+  let sent = false;
+  const stream = new ReadableStream<Uint8Array>({
+    pull(controller) {
+      state.pulls += 1;
+      if (sent) {
+        controller.close();
+        return;
+      }
+      sent = true;
+      controller.enqueue(encoded);
+    },
+  });
+  return new Request("http://local/api/test", {
+    method: "POST",
+    headers: { "content-type": "application/json", ...headers },
+    body: stream,
+    duplex: "half",
+  } as RequestInit);
+}
 
 async function rpcSpy(name: string, args: unknown) {
   state.rpcCalls.push({ name, args });
@@ -124,12 +161,14 @@ describe("defineRoute — the one boundary (B4)", () => {
       rate: [{ action: "post", key: "user", limit: 5, windowSeconds: 86_400 }],
     });
     const response = await route({
-      request: post(JSON.stringify({ listingId: LISTING })),
+      request: countedPost(JSON.stringify({ listingId: LISTING })),
       params: {},
     });
     expect(response.status).toBe(401);
     expect(state.rates).toEqual([]);
     expect(state.handlerCalls).toBe(0);
+    // INC-865: a visitor's body is never read.
+    expect(state.pulls).toBe(0);
   });
 
   it("RT-3 a wrong content type answers 415", async () => {
@@ -249,6 +288,95 @@ describe("defineRoute — the one boundary (B4)", () => {
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "upstream unavailable" });
     expect(state.handlerCalls).toBe(0);
+  });
+
+  it("RT-11 a signed-in body over the ceiling without Content-Length answers 413 after the caller and before any dial", async () => {
+    const route = makeRoute({
+      limits: { bodyBytes: 10 },
+      rate: [{ action: "post", key: "user", limit: 5, windowSeconds: 86_400 }],
+    });
+    const request = countedPost(JSON.stringify({ listingId: LISTING }));
+    expect(request.headers.get("content-length")).toBeNull();
+    const response = await route({ request, params: {} });
+    expect(response.status).toBe(413);
+    expect(await response.json()).toEqual({ error: "payloadTooLarge" });
+    expect(state.callerCalls).toBe(1);
+    expect(state.rates).toEqual([]);
+    expect(state.handlerCalls).toBe(0);
+  });
+
+  it("RT-12 a spent dial with refuseAs answers the 200 verdict; with a reason that reason; without refuseAs 429", async () => {
+    state.rateAllowed = false;
+    state.rateResetsAt = "2026-10-24T11:00:00Z";
+    const asVerdict = makeRoute({
+      rate: [
+        {
+          action: "assist",
+          key: "user",
+          limit: 5,
+          windowSeconds: 3600,
+          refuseAs: { verdict: { field: "rate" } },
+        },
+      ],
+    });
+    const spent = await asVerdict({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
+    expect(spent.status).toBe(200);
+    expect(await spent.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "rate", reason: "rateLimited", detail: "2026-10-24T11:00:00Z" }],
+    });
+
+    const withReason = makeRoute({
+      rate: [
+        {
+          action: "assist",
+          key: "user",
+          limit: 5,
+          windowSeconds: 3600,
+          refuseAs: { verdict: { field: "photos", reason: "tooMany" } },
+        },
+      ],
+    });
+    const reasoned = await withReason({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
+    expect(await reasoned.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "photos", reason: "tooMany", detail: "2026-10-24T11:00:00Z" }],
+    });
+
+    const plain = makeRoute({
+      rate: [{ action: "assist", key: "user", limit: 5, windowSeconds: 3600 }],
+    });
+    const refused = await plain({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
+    expect(refused.status).toBe(429);
+    expect(await refused.json()).toEqual({
+      error: "rateLimited",
+      resetsAt: "2026-10-24T11:00:00Z",
+    });
+    expect(state.handlerCalls).toBe(0);
+  });
+
+  it("RT-14 beforeParse dials are spent before the body is read", async () => {
+    const route = makeRoute({
+      rate: [
+        { action: "assist", key: "user", limit: 5, windowSeconds: 3600, when: "beforeParse" },
+      ],
+    });
+    const response = await route({
+      request: countedPost(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
+    expect(response.status).toBe(200);
+    expect(state.pullsAtRate).toEqual([0]);
+    expect(state.pulls).toBeGreaterThan(0);
   });
 
   it("the declared clientError badShape answers 400 bad request", async () => {
