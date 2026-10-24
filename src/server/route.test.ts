@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
 import { uuid } from "@/lib/schemas/primitives";
+import type { RouteContext } from "@/server/route";
 
 /**
  * Foundations turn 2 (DEC-237) — THE BOUNDARY'S ORDER (RT-1…RT-10), on the
@@ -82,7 +83,7 @@ function makeRoute(overrides: Record<string, unknown> = {}) {
     path: "/api/test",
     auth: "user",
     body: Body,
-    handler: async (ctx) => {
+    handler: async (ctx: RouteContext) => {
       state.handlerCalls += 1;
       return ok({ got: ctx.body });
     },
