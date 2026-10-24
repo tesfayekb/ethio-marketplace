@@ -370,7 +370,8 @@ export const FAMILIES: Record<string, FamilySpec> = {
    */
   translations: {
     id: "translations",
-    permission: "translations:manage",
+    // Foundations turn 11 — the permission the write door checks (admin_import_translations); undo's RPC checks translations:manage itself.
+    permission: "translations:update",
     stepUp: "commit",
     scope: "language",
     // There is no preview door here: the import IS the write, so it is metered

@@ -8,8 +8,10 @@
  * planner RPC, which remains the only authority on meaning (E7, F3).
  *
  * Order of judgement — a file never gets past a step it failed:
- *   1 bearer  → caller-context client (never the service role)
- *   2 family  → registry lookup (permission, step-up, identity, columns, caps)
+ *   1 door    → `authorizeImport`, before the body is read: the family, the
+ *               declared size, the caller (never the service role) and the
+ *               family's permission (Foundations turn 11)
+ *   2 family  → registry lookup (step-up, identity, columns, caps)
  *   3 ingress → ≤ 1 MB · valid UTF-8 (BOM stripped) · RFC-4180 · exact headers
  *   4 hygiene → NFC · trim · strip control/bidi/zero-width · refuse NUL ·
  *               refuse formula-leading · lengths · duplicate identities
