@@ -83,9 +83,9 @@ it("M22 list preserves every language returned by the door, including the empty 
   (supabase as unknown as { rpc: unknown }).rpc = vi.fn().mockResolvedValue({ data, error: null });
   expect(await listLegalDocuments()).toEqual(data);
 });
-it.each([undefined, null, "om", [42], [{}], [{ code: "om" }], [{ code: 1, name_en: "Oromo" }]])(
+it.each([undefined, null, "om", [42], [{}], [{ code: "om" }], [{ code: 1, name_en: "Oromo" }]].map((missing_languages) => ({ missing_languages })))(
   "M23 both legal doors refuse missing or malformed missing_languages %j",
-  async (missing_languages) => {
+  async ({ missing_languages }) => {
     const rpc = vi.fn();
     (supabase as unknown as { rpc: unknown }).rpc = rpc;
     rpc.mockResolvedValue({
@@ -115,9 +115,9 @@ it.each([undefined, null, "om", [42], [{}], [{ code: "om" }], [{ code: 1, name_e
     await expect(getLegalVersion("e2e-version")).rejects.toThrow("invalid missing_languages");
   },
 );
-it.each([[], [{ code: "e2e-language", name_en: "Scratch language" }]])(
+it.each([[], [{ code: "e2e-language", name_en: "Scratch language" }]].map((missing_languages) => ({ missing_languages })))(
   "M23 both legal doors preserve the missing-language answer %j",
-  async (missing_languages) => {
+  async ({ missing_languages }) => {
     const rpc = vi.fn();
     (supabase as unknown as { rpc: unknown }).rpc = rpc;
     rpc.mockResolvedValue({
