@@ -1,45 +1,45 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readPhotoLinks } from "./use-photo-links";
 
-const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { auth: { getSession } },
-}));
+// The transport is the route client (Foundations turn 14); the tests mock IT —
+// the request bytes are route-client's own contract (RCL-1…15). The reader's
+// RESULTS stay byte for byte.
+const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));
+vi.mock("@/lib/route-client", () => ({ callRoute }));
+
 const links = { photo: { card: "https://example.com/photo.jpg" } };
-const fetchSpy = vi.fn();
+const answered = (status: number, payload: Record<string, unknown> | null) => ({
+  kind: "answered" as const,
+  status,
+  ok: status >= 200 && status < 300,
+  payload,
+  error: null,
+  detail: null,
+  headers: new Headers(),
+  bytes: null,
+});
 
 beforeEach(() => {
-  vi.stubGlobal("fetch", fetchSpy);
-  getSession.mockResolvedValue({ data: { session: null } });
-  fetchSpy.mockResolvedValue(new Response(JSON.stringify({ links }), { status: 200 }));
+  callRoute.mockReset().mockResolvedValue(answered(200, { links }));
 });
 afterEach(() => {
   vi.resetAllMocks();
-  vi.unstubAllGlobals();
 });
 
 describe("photo link reader", () => {
-  it("UPL-1 without a session the request carries no Authorization header and the links come back", async () => {
+  it("UPL-1 the request goes out with optional auth and the links come back", async () => {
     expect(await readPhotoLinks(["photo"])).toEqual(links);
-    expect(fetchSpy).toHaveBeenCalledExactlyOnceWith("/api/media/photo-links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ photoIds: ["photo"] }),
+    expect(callRoute).toHaveBeenCalledExactlyOnceWith("/api/media/photo-links", {
+      auth: "optional",
+      json: { photoIds: ["photo"] },
     });
   });
-  it("UPL-2 with a session the bearer travels", async () => {
-    getSession.mockResolvedValue({ data: { session: { access_token: "scratch-token" } } });
-    expect(await readPhotoLinks(["photo"])).toEqual(links);
-    expect(fetchSpy).toHaveBeenCalledExactlyOnceWith("/api/media/photo-links", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: "Bearer scratch-token" },
-      body: JSON.stringify({ photoIds: ["photo"] }),
-    });
-  });
-  it("UPL-3 a refused answer throws with its status and gives no links", async () => {
-    const json = vi.fn();
-    fetchSpy.mockResolvedValue({ ok: false, status: 403, json });
+  it("UPL-2 a refused answer throws with its status and gives no links", async () => {
+    callRoute.mockResolvedValue(answered(403, null));
     await expect(readPhotoLinks(["photo"])).rejects.toThrow("photo links: 403");
-    expect(json).not.toHaveBeenCalled();
+  });
+  it("UPL-3 an unreachable route throws and gives no links", async () => {
+    callRoute.mockResolvedValue({ kind: "unreachable", reason: "network" });
+    await expect(readPhotoLinks(["photo"])).rejects.toThrow("photo links: 0");
   });
 });
