@@ -116,7 +116,12 @@ describe("the route boundary census (CF-RT)", () => {
       ?.split("// ROUTES-BOUNDARY-IGNORES-END")[0];
     expect(block).toBeDefined();
     const entries = [...block!.matchAll(/"(src\/[^"]+)"/g)].map((match) => match[1]);
-    const lintSet = new Set(entries.filter((entry) => !HELPER_SET.has(entry)));
+    // The ignores are minimatch globs: a literal [ or ] in a filename is escaped [[] / []].
+    const lintSet = new Set(
+      entries
+        .map((entry) => entry.replaceAll("[[]", "[").replaceAll("[]]", "]"))
+        .filter((entry) => !HELPER_SET.has(entry)),
+    );
     const allowSet = new Set(ALLOWED.keys());
     expect([...lintSet].filter((path) => !allowSet.has(path))).toEqual([]);
     expect([...allowSet].filter((path) => !lintSet.has(path))).toEqual([]);

@@ -71,7 +71,8 @@ export type RouteSpec<B = unknown, P = unknown, Q = unknown> = {
   auth: RouteAuth;
   params?: z.ZodTypeAny;
   query?: z.ZodTypeAny;
-  body?: z.ZodTypeAny;
+  /** The body's shape; the handler's `body` is this schema's output type. */
+  body?: z.ZodType<B>;
   form?: { maxBytes: number };
   limits?: { bodyBytes?: number };
   /** verdict (the posting contract, default) or clientError (the readers'). */
@@ -127,7 +128,10 @@ function queryObject(url: URL, schema: z.ZodTypeAny): Record<string, unknown> {
   return out;
 }
 
-function badShapeAnswer(mode: "verdict" | "clientError", issues: readonly z.core.$ZodIssue[]): Response {
+function badShapeAnswer(
+  mode: "verdict" | "clientError",
+  issues: readonly z.core.$ZodIssue[],
+): Response {
   if (mode === "clientError") return clientError("bad request", 400);
   const first = issues[0];
   return verdict([
@@ -271,7 +275,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         const rebuilt = new Request(request.url, {
           method: request.method,
           headers: request.headers,
-          body: new Blob([bytes ?? new Uint8Array(0)]),
+          body: new Blob([new Uint8Array(bytes ?? new Uint8Array(0))]),
         });
         form = await rebuilt.formData();
       }

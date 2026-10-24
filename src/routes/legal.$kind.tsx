@@ -1,7 +1,7 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
-import { shapedCountries, signedInOnlyKind } from "@/features/legal/legal-page-data";
+import { shapedCountries, signedInOnlyKind } from "@/features/legal/legal-kinds";
 import { useI18n } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
 
