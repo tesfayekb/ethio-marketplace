@@ -35,11 +35,11 @@ Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only
 - Flake-fix proofs use manual Flake check, separate from CI/promotion: no local browsers (DEC-184).
 - Import previews in tests use `withinPreviewBudget`; only IG-3 drives the limit, never raised (INC-792).
 - QR: the encoder lives only in `src/server/qr.ts`, off first paint (a guard); public QR routes check the id's shape, no DB read.
-- Shell (bundle 21): cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:` (D135, D204).
-- Legal (bundle 22): texts only via `LegalText`/`legalTextFor`, never as HTML; facts are {{setting}} tokens frozen per version; other languages are legal_version_texts rows (DEC-228); every agreement tick is `AgreeToDocument`, its documents linked only by `[text](role)` tokens — two census tests (D235).
+- Shell (bundle 21): cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:` (D135).
+- Legal: texts only via `LegalText`/`legalTextFor`, never HTML; facts are {{setting}} tokens frozen per version; other languages are legal_version_texts rows (DEC-228); every agreement tick is `AgreeToDocument` with `[text](role)` link tokens (D235); page data via `legalPageData` (legal-page-data.ts), never on the first paint.
 - Admin menu alerts (DEC-219): a section's `alert` (sections.ts) is read by `useNavAlerts` as one server boolean; the rail draws a dot.
 - Strings (DEC-231): keys only admin files use go in en-admin.ts/am-admin.ts (loaded by the admin gate), others in en-base.ts/am-base.ts; en.ts/am.ts join them; admin-layer.test.ts judges.
 - Dates/numbers: `formatLocale` (src/lib/format-locale.ts); names via catalogText, entityName, optionLabel; options translate as entity rows `option:<value>` beyond en/am (DEC-233, INC-820).
-- Page-wide data (the category tree) is one subscribed store (`useSyncExternalStore`), never a per-mount copy (INC-788).
+- Page-wide data (the category tree) is one subscribed store, never a per-mount copy (INC-788).
 - Draft saves: a run armed before a Next never carries it; a follow-up is sent by the run that got the answer (INC-791).
 - Guards (DEC-240/241): a guard is a scripts/conformance census (kit.ts; allowlist `key | reason | until`, stale/expired fail; wired.test.ts names its caller); every VOLATILE signed-in door names a caller gate or has its caller-gates-allowlist line; shell guards capture, then grep — never `| grep -q`.
