@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { upstream, UpstreamTimeout } from "@/server/upstream";
 
 /**
- * Foundations turn 2 (DEC-237) — the one outside call (UP-1…UP-3).
+ * Foundations turn 2 (DEC-237) — the one outside call (UPS-1…UPS-3).
  * (src/server/supabase/upstream.test.ts is INC-574's test of a different
  * concern: judging the AUTH server's answers inside userClientFromRequest.)
  */
@@ -13,7 +13,7 @@ describe("upstream (B3)", () => {
     vi.restoreAllMocks();
   });
 
-  it("UP-1 a fetch that resolves answers through", async () => {
+  it("UPS-1 a fetch that resolves answers through", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("{}", { status: 200 })),
@@ -27,7 +27,7 @@ describe("upstream (B3)", () => {
     expect(response.status).toBe(200);
   });
 
-  it("UP-2 a fetch that never resolves times out with the label", async () => {
+  it("UPS-2 a fetch that never resolves times out with the label", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -52,7 +52,7 @@ describe("upstream (B3)", () => {
     expect((failure as UpstreamTimeout).timeoutMs).toBe(20);
   });
 
-  it("UP-3 the log line carries the label and never the URL", async () => {
+  it("UPS-3 the log line carries the label and never the URL", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response("{}", { status: 502 })),
