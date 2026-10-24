@@ -1,4 +1,4 @@
-import { readerFailure } from "@/lib/error-text";
+import { readerFailure } from "@/lib/reader-failure";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Eye, EyeOff, Pencil } from "lucide-react";
