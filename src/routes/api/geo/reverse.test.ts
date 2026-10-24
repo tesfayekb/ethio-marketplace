@@ -60,6 +60,11 @@ it("GRV-2 lat=91 is badCoordinates", async () => {
   expect(state.upstream).not.toHaveBeenCalled();
 });
 
+it("GRV-5 lat=abc is badCoordinates (NaN is not finite)", async () => {
+  expect(await (await get("?lat=abc&lng=38.79")).json()).toEqual(BAD);
+  expect(state.upstream).not.toHaveBeenCalled();
+});
+
 it("GRV-3 a valid pair answers the fake street and a second call is cached", async () => {
   process.env.E2E_FAKE_GEOCODE = "1";
   expect(await (await get("?lat=8.98&lng=38.79")).json()).toEqual({

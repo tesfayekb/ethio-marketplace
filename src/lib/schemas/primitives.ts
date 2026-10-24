@@ -47,7 +47,7 @@ export const positiveInt = (max: number) => z.number().int().min(0).max(max);
 
 /** A query-string coordinate within ±limit; missing or empty is refused (never 0). */
 export const coordinate = (limit: number) =>
-  z.string().trim().min(1).pipe(z.coerce.number().finite().min(-limit).max(limit));
+  z.string().trim().min(1).transform(Number).pipe(z.number().finite().min(-limit).max(limit));
 
 /** The parsed type of a schema, for clients that import `type` only. */
 export type Infer<T extends z.ZodTypeAny> = z.infer<T>;
