@@ -190,7 +190,10 @@ export function defineImportRoute(
     const rawScope = scopeKey === "lang" ? (body.lang ?? "") : (body.scope ?? null);
     const scope = rawScope === null || rawScope.trim() === "" ? null : rawScope.trim();
     const texts: Record<string, string> = {};
-    for (const id of fileKeys) texts[id] = ownValue(body, id) ?? "";
+    for (const id of fileKeys) {
+      const value = ownValue(body, id);
+      texts[id] = typeof value === "string" ? value : "";
+    }
 
     const batchId = body.batchId ?? "";
     if (mode === "undo") {
@@ -285,8 +288,8 @@ export function defineImportRoute(
     call: Rpc,
   ): Promise<Response> {
     const named = withRowValues(refusals, byFile(rows));
-    const written = Object.values(byFile(rows)).every((list) => list.length === 0);
-    if (written) {
+    const nothing = Object.values(byFile(rows)).every((list) => list.length === 0);
+    if (nothing) {
       if (named.length === 0) return clientError("emptyFile", 400);
       await audit("commit", null, { skipped: named.length, refusals: named.length });
       return ok({
