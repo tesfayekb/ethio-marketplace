@@ -43,27 +43,6 @@ function refusalsOf(payload: Record<string, unknown>): Refusal[] {
   });
 }
 
-async function readAnswer(response: Response): Promise<DoorAnswer> {
-  let payload: Record<string, unknown> = {};
-  try {
-    payload = (await response.json()) as Record<string, unknown>;
-  } catch {
-    payload = {};
-  }
-  const refusals = refusalsOf(payload);
-  return {
-    status: response.status,
-    ok: payload["ok"] === true,
-    refusals,
-    payload,
-    // A 5xx is not a verdict, it is a failure to reach one — the caller retries
-    // rather than showing a refusal that nobody made. A 200 with `ok:false` IS a
-    // verdict, refusals and all, and a 401/403/409 is one too (the route names
-    // the field), so only the server's own breakage counts as unreachable.
-    unreachable: response.status >= 500,
-  };
-}
-
 const UNREACHABLE: DoorAnswer = {
   status: 0,
   ok: false,
@@ -71,6 +50,29 @@ const UNREACHABLE: DoorAnswer = {
   payload: {},
   unreachable: true,
 };
+
+/**
+ * THE ONE ADAPTER from the route client's answer to a door's. A 5xx is not a
+ * verdict, it is a failure to reach one — the caller retries rather than
+ * showing a refusal that nobody made. A 200 with `ok:false` IS a verdict,
+ * refusals and all, and a 401/403/409 is one too (the route names the field),
+ * so only the server's own breakage counts as unreachable.
+ */
+function doorAnswerOf(answer: RouteAnswer): DoorAnswer {
+  // Today's no-token answer: the route would have 401'd, so the call never left.
+  if (answer.kind === "signedOut") return { ...UNREACHABLE, status: 401 };
+  // Offline, blocked, aborted: NOT a refusal. The caller keeps the form state
+  // in memory and retries (C4 — never a blank screen, never a phantom).
+  if (answer.kind === "unreachable") return UNREACHABLE;
+  const payload = answer.payload ?? {};
+  return {
+    status: answer.status,
+    ok: payload["ok"] === true,
+    refusals: refusalsOf(payload),
+    payload,
+    unreachable: answer.status >= 500,
+  };
+}
 
 /**
  * DEC-135 / INC-439 — a save that hangs is a transport failure, not a wait
@@ -84,21 +86,13 @@ export async function call(
   body: BodyInit,
   headers: HeadersInit,
 ): Promise<DoorAnswer> {
-  const token = await bearer();
-  if (token === null) return { ...UNREACHABLE, status: 401 };
-  try {
-    const response = await fetch(path, {
-      method: "POST",
-      headers: { ...headers, Authorization: `Bearer ${token}` },
-      body,
-      signal: AbortSignal.timeout(SAVE_TIMEOUT_MS),
-    });
-    return await readAnswer(response);
-  } catch {
-    // Offline, blocked, aborted: NOT a refusal. The caller keeps the form state
-    // in memory and retries (C4 — never a blank screen, never a phantom).
-    return UNREACHABLE;
-  }
+  // Every caller posts a JSON string; the route client sets its Content-Type.
+  void headers;
+  const answer = await callRoute(path as RoutePath, {
+    json: JSON.parse(String(body)) as unknown,
+    timeoutMs: SAVE_TIMEOUT_MS,
+  });
+  return doorAnswerOf(answer);
 }
 
 export interface DraftBody {
