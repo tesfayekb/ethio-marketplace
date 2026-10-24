@@ -49,7 +49,6 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
-
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /** D166 — the shared rule about a person's words closes the instruction. */

@@ -1,12 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  cacheGet,
-  cachePut,
-  fakeReverse,
-  isFakeGeocode,
-  nominatim,
-} from "@/server/geo/geocode";
+import { cacheGet, cachePut, fakeReverse, isFakeGeocode, nominatim } from "@/server/geo/geocode";
 import { DIALS } from "@/lib/dials";
 import { spend } from "@/server/dials";
 import {

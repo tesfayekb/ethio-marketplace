@@ -19,6 +19,9 @@ export function spend(dial: Dial, key: string): Promise<RateVerdict> {
   return consumeRate(dial.action, key, dialLimit(dial), `${dial.windowSeconds} seconds`);
 }
 
-export function peek(dial: Dial, key: string): Promise<Pick<RateVerdict, "remaining" | "resetsAt">> {
+export function peek(
+  dial: Dial,
+  key: string,
+): Promise<Pick<RateVerdict, "remaining" | "resetsAt">> {
   return peekRate(dial.action, key, dialLimit(dial), `${dial.windowSeconds} seconds`);
 }

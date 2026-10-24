@@ -79,9 +79,7 @@ describe("the dial census (Foundations turn 8)", () => {
     for (const dial of entries) {
       // A door-counted entry carries the door's own action (catalog_find, SQL).
       const shape =
-        dial.countedBy === "door"
-          ? /^[a-z][a-z0-9_]*$/
-          : /^[a-z][a-z0-9-]*(?::[a-z][a-z0-9-]*)?$/;
+        dial.countedBy === "door" ? /^[a-z][a-z0-9_]*$/ : /^[a-z][a-z0-9-]*(?::[a-z][a-z0-9-]*)?$/;
       expect(dial.action, dial.action).toMatch(shape);
       expect(Number.isInteger(dial.limit.fallback) && dial.limit.fallback >= 1).toBe(true);
     }
@@ -109,7 +107,9 @@ describe("the dial census (Foundations turn 8)", () => {
     ].join("\n");
     const found = dialBypasses("src/routes/api/planted.ts", planted);
     expect([...new Set(found.map((finding) => finding.line))]).toEqual([1, 2, 3, 4, 5]);
-    expect(dialBypasses(SPEND_HOME, "return consumeRate(dial.action, key, limit, window);")).toEqual([]);
+    expect(
+      dialBypasses(SPEND_HOME, "return consumeRate(dial.action, key, limit, window);"),
+    ).toEqual([]);
   });
 
   it("DIAL-5 src/lib/dials.ts imports nothing", () => {

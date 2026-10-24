@@ -29,7 +29,7 @@ afterEach(() => {
 });
 
 describe("src/server/dials.ts — spend and peek", () => {
-  it("DIAL-6 spend passes the action, the limit and \"<n> seconds\" to consumeRate", async () => {
+  it('DIAL-6 spend passes the action, the limit and "<n> seconds" to consumeRate', async () => {
     const verdict = await spend(TEST_DIAL, "key-1");
     expect(mocks.consume).toHaveBeenCalledWith("e2e-dial", "key-1", 7, "90 seconds");
     expect(verdict).toEqual({ allowed: true, resetsAt: null, remaining: 4 });

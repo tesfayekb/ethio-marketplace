@@ -34,7 +34,6 @@ import { upstream } from "@/server/upstream";
 import { errorText } from "@/lib/error-text";
 import { aiFakeMode } from "@/server/ai/meter";
 
-
 export const PHOTOROOM_SEGMENT_URL = "https://sdk.photoroom.com/v1/segment";
 
 /** The stored cover is at most 1 MB (MAX_COVER_BYTES); anything larger is not ours. */
