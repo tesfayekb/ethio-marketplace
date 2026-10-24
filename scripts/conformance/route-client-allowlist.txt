@@ -1,19 +1,6 @@
 src/features/admin/translations/translations-service.ts | Translate and provider-language clients move with the AI gateway | INC-861
 src/features/admin-categories/category-images-service.ts | Category-image client moves with the AI gateway | INC-861
-src/features/posting/posting-service.ts | Posting doors move onto callRoute next turn | INC-875
-src/features/posting/attribute-options.ts | Posting option reader moves next turn | INC-875
-src/features/posting/use-photo-links.ts | Posting photo-link reader moves next turn | INC-875
-src/features/posting/map/geocode.ts | Posting geocoder moves next turn | INC-875
-src/features/posting/step-where.tsx | Posting outline reader moves next turn | INC-875
-src/features/posting/pricing-data.ts | Posting pricing readers move next turn | INC-875
-src/features/posting/catalog-finder.ts | Posting catalogue finder moves next turn | INC-875
-src/features/posting/map/leaflet.ts | Route tile readers move next turn; outside tile-host fetch is not a route call | INC-875
-src/features/seller/use-seller-feed.ts | Seller feed reader moves next turn | INC-875
-src/features/categories/category-tree.ts | Shared category tree reader moves next turn | INC-875
-src/features/ad-page/similar.ts | Similar ads reader moves next turn | INC-875
-src/features/feed/use-card-photos.ts | Feed photo reader moves next turn | INC-875
-src/features/feed/use-feed.ts | Feed reader moves next turn | INC-875
-src/components/shell/location-data.ts | Shell location readers move next turn | INC-875
+src/features/posting/map/leaflet.ts | The tile-host probe fetches an outside host, not a route | INC-875
 src/features/posting/photo-editor.tsx | Fetch reads an object URL, not a route call | 2027-04-24
 src/features/admin/translations/use-translations.ts | Fetch reads a static asset, not a route call | 2027-04-24
 src/i18n/bundle.ts | Fetch reads a static language bundle, not a route call | 2027-04-24

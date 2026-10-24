@@ -74,6 +74,25 @@ describe("browser route-client conformance", () => {
     console.log(`[RCG-2] credential sites: ${hits.length}; allowlist: ${allowances.size}`);
     expect(report(hits.filter((hit) => !allowances.has(hit.file)))).toBe("");
   });
+  it("RCG-4 an undated allowance names a live INC, and the INC set is exactly the known two", () => {
+    const lines = readFileSync("scripts/conformance/route-client-allowlist.txt", "utf8")
+      .split("\n")
+      .filter((line) => line.trim() !== "");
+    const incs = new Set<string>();
+    for (const [index, line] of lines.entries()) {
+      const cells = line.split("|").map((cell) => cell.trim());
+      const until = cells[2] ?? "";
+      if (/^\d{4}-\d{2}-\d{2}$/.test(until)) continue;
+      expect(
+        /^INC-\d+$/.test(until),
+        `allowlist:${index + 1} an undated allowance must name an INC, got "${until}"`,
+      ).toBe(true);
+      incs.add(until);
+    }
+    // INC-861: the AI-gateway clients; INC-875: the outside tile-host probe.
+    // A new undated allowance fails here until its INC is named in this test.
+    expect([...incs].sort()).toEqual(["INC-861", "INC-875"]);
+  });
   it("RCG-3 both censuses report a planted browser bearer fetch", () => {
     const dir = mkdtempSync(join(tmpdir(), "route-client-"));
     const file = join(dir, "planted.ts");
