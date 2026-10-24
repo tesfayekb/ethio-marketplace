@@ -4,16 +4,17 @@ import { describe, expect, it, vi } from "vitest";
 import { LanguageSwitcher } from "./language-switcher";
 
 /**
- * DEC-026 — U4h, THE DEVICE ★.
+ * D237 (Foundations turn 1) — THE MENU IS THE ONE CHOICE.
  *
  * Three properties, each one a thing that would be expensive to learn from
  * production:
- *  * the star RENDERS its pressed state, so the operator can see which default
- *    is in force without opening settings;
- *  * ONE favourite — pressing a second language moves the star instead of
- *    adding one (the invariant is structural: the setter replaces);
- *  * a DB-only language (no compiled catalog) is starrable, because the option
- *    list is the publication gate's list, not the compiled registry (INC-107).
+ *  * the current language is the CHECKED item (aria-checked on exactly one),
+ *    so the operator can see the device default without a separate control;
+ *  * a pick calls the replacing star setter with the code and nothing else —
+ *    one choice per device, no second path that could drift (INC-851);
+ *  * a DB-only language (no compiled catalog) can be picked, because the
+ *    option list is the publication gate's list, not the compiled registry
+ *    (INC-107).
  */
 const publicLanguages = [
   { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
@@ -23,16 +24,13 @@ const publicLanguages = [
 ];
 
 const setStar = vi.fn();
-const setLanguage = vi.fn();
-let star: string | null = "am";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
     t: (key: string) => key,
     language: "en",
-    setLanguage,
     publicLanguages,
-    star,
+    star: "en",
     setStar,
   }),
 }));
@@ -43,50 +41,35 @@ function openMenu() {
   fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
 }
 
-describe("LanguageSwitcher — device star", () => {
-  it("renders the pressed state on exactly the starred language", async () => {
-    star = "am";
+describe("LanguageSwitcher — one choice per device (D237)", () => {
+  it("the current language is the checked item (aria-checked on exactly one)", async () => {
     render(<LanguageSwitcher />);
     openMenu();
 
-    expect(await screen.findByTestId("language-star-am")).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByTestId("language-star-en")).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByTestId("language-star-sw")).toHaveAttribute("aria-pressed", "false");
+    expect(await screen.findByTestId("language-option-en")).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    expect(screen.getByTestId("language-option-am")).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByTestId("language-option-sw")).toHaveAttribute("aria-checked", "false");
   });
 
-  it("keeps ONE favourite: starring another language calls the replacing setter", async () => {
-    star = "am";
+  it("a pick calls the replacing star setter with the code and nothing else", async () => {
     render(<LanguageSwitcher />);
     openMenu();
 
-    fireEvent.click(await screen.findByTestId("language-star-en"));
-    expect(setStar).toHaveBeenCalledWith("en");
-    // Starring must not ALSO fire the row's plain selection: the provider's
-    // star setter already selects, and a double-apply would fight it.
-    expect(setLanguage).not.toHaveBeenCalled();
+    fireEvent.click(await screen.findByTestId("language-option-am"));
+    expect(setStar).toHaveBeenCalledWith("am");
+    expect(setStar).toHaveBeenCalledTimes(1);
   });
 
-  it("a complete star press never selects the row and keeps the menu open", async () => {
-    star = "am";
-    render(<LanguageSwitcher />);
-    openMenu();
-    const control = await screen.findByTestId("language-star-en");
-    fireEvent.pointerDown(control, { button: 0, ctrlKey: false, pointerType: "touch" });
-    fireEvent.pointerUp(control, { button: 0, ctrlKey: false, pointerType: "touch" });
-    fireEvent.click(control);
-    expect(setStar).toHaveBeenCalledWith("en");
-    expect(setLanguage).not.toHaveBeenCalled();
-    expect(screen.getByTestId("language-star-am")).toBeInTheDocument();
-  });
-
-  it("lets a DB-only language be starred", async () => {
-    star = null;
+  it("a DB-only public language can be picked", async () => {
     render(<LanguageSwitcher />);
     openMenu();
 
-    const swStar = await screen.findByTestId("language-star-sw");
-    expect(swStar).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(swStar);
+    const option = await screen.findByTestId("language-option-sw");
+    expect(option).toHaveAttribute("aria-checked", "false");
+    fireEvent.click(option);
     expect(setStar).toHaveBeenCalledWith("sw");
   });
 });

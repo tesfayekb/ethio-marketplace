@@ -20,7 +20,6 @@ vi.mock("@/i18n", () => ({
   useI18n: () => ({
     t: (key: string) => key,
     language: "en",
-    setLanguage: () => {},
     publicLanguages,
     star: "en",
     setStar: () => {},
@@ -48,8 +47,6 @@ describe("LanguageSwitcher density", () => {
       expect(item.className).toContain("leading-none");
       expect(item.className).not.toContain("py-px");
       expect(item.className).not.toContain("py-1.5");
-      const code = item.getAttribute("data-testid")?.replace("language-option-", "") ?? "";
-      expect(item.querySelector(`[data-testid="language-star-${code}"]`)).not.toBeNull();
       expect(item.querySelector('[data-lucide="check"]')).toBeNull();
     }
 
