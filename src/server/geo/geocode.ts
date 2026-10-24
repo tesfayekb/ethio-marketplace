@@ -60,6 +60,14 @@ export async function geoCached<T>(
   return { value: held.value.value as T, cached: !built };
 }
 
+/** A build's typed sentinel: nominatim answered null, so nothing is cached. */
+export class GeocoderUnavailable extends Error {
+  constructor() {
+    super("geocoder unavailable");
+    this.name = "GeocoderUnavailable";
+  }
+}
+
 export function isFakeGeocode(): boolean {
   return aiFakeMode("E2E_FAKE_GEOCODE");
 }
