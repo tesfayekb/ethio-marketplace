@@ -395,7 +395,9 @@ describe("defineRoute — the one boundary (B4)", () => {
       return ok({ reached: true });
     });
     const route = makeRoute({ auth: "none", body: undefined, handler });
-    const request = new Request("http://local/api/test", { headers: { Authorization: "Bearer ignored" } });
+    const request = new Request("http://local/api/test", {
+      headers: { Authorization: "Bearer ignored" },
+    });
     const read = vi.spyOn(request.headers, "has");
     const response = await route({ request, params: {} });
     expect(await response.json()).toEqual({ reached: true });
@@ -407,7 +409,10 @@ describe("defineRoute — the one boundary (B4)", () => {
 
   it("RT-16 none reaches the handler with the server environment missing", async () => {
     state.anonClient = null;
-    const response = await makeRoute({ auth: "none", body: undefined })({ request: post("{}"), params: {} });
+    const response = await makeRoute({ auth: "none", body: undefined })({
+      request: post("{}"),
+      params: {},
+    });
     expect(response.status).toBe(200);
     expect(state.handlerCalls).toBe(1);
     expect(state.anonCalls).toBe(0);
@@ -417,24 +422,51 @@ describe("defineRoute — the one boundary (B4)", () => {
   it("RT-17 params passes its first issue to the route's own answer before query or body", async () => {
     const answer = clientError("badCountry", 400);
     const badShape = vi.fn(() => answer);
-    const route = makeRoute({ params: z.object({ id: uuid }).strict(), query: z.object({ q: z.string() }).strict(), badShape });
+    const route = makeRoute({
+      params: z.object({ id: uuid }).strict(),
+      query: z.object({ q: z.string() }).strict(),
+      badShape,
+    });
     const response = await route({ request: post("not-json"), params: { id: "x" } });
     expect(response).toBe(answer);
-    expect(badShape).toHaveBeenCalledExactlyOnceWith({ part: "params", path: "id", code: "invalid_format" });
+    expect(badShape).toHaveBeenCalledExactlyOnceWith({
+      part: "params",
+      path: "id",
+      code: "invalid_format",
+    });
     expect(state.handlerCalls).toBe(0);
   });
 
   it("RT-18 query passes only its first bad key to the route's answer", async () => {
     const badShape = vi.fn(() => clientError("badQuery", 400));
-    const route = makeRoute({ body: undefined, query: z.object({ first: uuid, second: uuid }).strict(), badShape });
-    const response = await route({ request: new Request("http://local/api/test?first=x&second=y"), params: {} });
+    const route = makeRoute({
+      body: undefined,
+      query: z.object({ first: uuid, second: uuid }).strict(),
+      badShape,
+    });
+    const response = await route({
+      request: new Request("http://local/api/test?first=x&second=y"),
+      params: {},
+    });
     expect(response.status).toBe(400);
-    expect(badShape).toHaveBeenCalledExactlyOnceWith({ part: "query", path: "first", code: "invalid_format" });
+    expect(badShape).toHaveBeenCalledExactlyOnceWith({
+      part: "query",
+      path: "first",
+      code: "invalid_format",
+    });
   });
 
   it("RT-19 a non-strict query strips unknown keys before the handler", async () => {
-    const route = makeRoute({ auth: "none", body: undefined, query: z.object({ q: z.string() }), handler: async (ctx: RouteContext) => ok(ctx.query) });
-    const response = await route({ request: new Request("http://local/api/test?q=hello&tracking=ignored"), params: {} });
+    const route = makeRoute({
+      auth: "none",
+      body: undefined,
+      query: z.object({ q: z.string() }),
+      handler: async (ctx: RouteContext) => ok(ctx.query),
+    });
+    const response = await route({
+      request: new Request("http://local/api/test?q=hello&tracking=ignored"),
+      params: {},
+    });
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ q: "hello" });
   });
@@ -443,7 +475,11 @@ describe("defineRoute — the one boundary (B4)", () => {
     const badShape = vi.fn(() => clientError("badBody", 400));
     const route = makeRoute({ badShape });
     await route({ request: post(JSON.stringify({ listingId: "x" })), params: {} });
-    expect(badShape).toHaveBeenLastCalledWith({ part: "body", path: "listingId", code: "invalid_format" });
+    expect(badShape).toHaveBeenLastCalledWith({
+      part: "body",
+      path: "listingId",
+      code: "invalid_format",
+    });
     await route({ request: post("not-json"), params: {} });
     expect(badShape).toHaveBeenLastCalledWith({ part: "body", path: "", code: "invalid_json" });
     expect(badShape).toHaveBeenCalledTimes(2);
@@ -452,9 +488,16 @@ describe("defineRoute — the one boundary (B4)", () => {
   it("an unreadable multipart body calls the custom badShape", async () => {
     const badShape = vi.fn(() => clientError("badForm", 400));
     const route = makeRoute({ body: undefined, form: { maxBytes: 1024 }, badShape });
-    const response = await route({ request: post("unreadable", { "content-type": "multipart/form-data" }), params: {} });
+    const response = await route({
+      request: post("unreadable", { "content-type": "multipart/form-data" }),
+      params: {},
+    });
     expect(response.status).toBe(400);
-    expect(badShape).toHaveBeenCalledExactlyOnceWith({ part: "body", path: "body", code: "badShape" });
+    expect(badShape).toHaveBeenCalledExactlyOnceWith({
+      part: "body",
+      path: "body",
+      code: "badShape",
+    });
   });
 
   it("the declared clientError badShape answers 400 bad request", async () => {
