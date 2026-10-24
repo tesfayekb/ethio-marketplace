@@ -1,15 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
 import { DIALS } from "@/lib/dials";
+import { ok, verdict } from "@/server/answer";
 import { spend } from "@/server/dials";
-import { isFakeGeocode, nominatim } from "@/server/geo/geocode";
-import {
-  logRouteError,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { geoCached, GeocoderUnavailable, isFakeGeocode, nominatim } from "@/server/geo/geocode";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 /**
  * W6b-2 C3 — A PLACE'S OUTLINE, THROUGH OUR GEOCODER PATTERN.
@@ -19,14 +15,21 @@ import {
  * The browser never calls Nominatim (C3): this route does, identified by the
  * shared helper, behind the caller check and the per-seller dial, with a
  * simplified `polygon_geojson` so a city's boundary stays a few kilobytes. The
- * answer is cached in-process for a day and sent with long cache headers — an
+ * answer is cached in-process for a day (geoCached; the dial is spent on a miss
+ * only — a cached outline costs the seller nothing) and sent with long cache headers — an
  * outline changes on the scale of years. With no outline (a point-only place,
  * the fake geocoder, an upstream refusal) the client draws a circle instead.
  */
 
 const PATH = "/api/geo/outline";
-const CACHE_MS = 24 * 60 * 60 * 1000;
-const cache = new Map<string, { at: number; outline: unknown }>();
+const OutlineQuery = z.object({ q: z.string().trim().min(2).max(160) });
+
+/** The dial was spent on a miss and refused: nothing is cached. */
+class OutlineRateLimited extends Error {
+  constructor(readonly resetsAt: string | null) {
+    super("outline rate limited");
+  }
+}
 
 function polygonOf(payload: unknown): unknown {
   const rows = Array.isArray(payload) ? payload : [];
@@ -38,57 +41,58 @@ function polygonOf(payload: unknown): unknown {
   return null;
 }
 
-async function handleGet(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-
-  const q = (new URL(request.url).searchParams.get("q") ?? "").trim();
-  if (q.length < 2 || q.length > 160) return refusal("geocode", "badQuery");
-  const key = q.toLowerCase();
-
-  const held = cache.get(key);
-  if (held !== undefined && Date.now() - held.at < CACHE_MS) {
-    return withCache(routeJson({ ok: true, outline: held.outline, cached: true }, 200));
-  }
-
-  const rate = await spend(DIALS.geocode, caller.userId!);
-  if (!rate.allowed) return refusal("geocode", "rateLimited", rate.resetsAt ?? undefined);
-
-  let outline: unknown = null;
-  if (!isFakeGeocode()) {
-    const payload = await nominatim("search", {
-      q,
-      format: "jsonv2",
-      polygon_geojson: "1",
-      polygon_threshold: "0.002",
-      limit: "3",
-    });
-    if (payload === null) return refusal("geocode", "geocoderUnavailable");
-    outline = polygonOf(payload);
-  }
-  if (cache.size > 300) cache.clear();
-  cache.set(key, { at: Date.now(), outline });
-  return withCache(routeJson({ ok: true, outline }, 200));
+async function lookup(q: string, userId: string): Promise<unknown> {
+  const rate = await spend(DIALS.geocode, userId);
+  if (!rate.allowed) throw new OutlineRateLimited(rate.resetsAt ?? null);
+  if (isFakeGeocode()) return null;
+  const payload = await nominatim("search", {
+    q,
+    format: "jsonv2",
+    polygon_geojson: "1",
+    polygon_threshold: "0.002",
+    limit: "3",
+  });
+  if (payload === null) throw new GeocoderUnavailable();
+  return polygonOf(payload);
 }
 
-function withCache(response: Response): Response {
-  const headers = new Headers(response.headers);
-  headers.set("Cache-Control", "private, max-age=604800");
-  return new Response(response.body, { status: response.status, headers });
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof OutlineQuery>>,
+): Promise<Response> {
+  const { q } = ctx.query;
+  const userId = ctx.userId;
+  if (userId === null) throw new Error("signed-in caller missing");
+  try {
+    const { value: outline, cached } = await geoCached(`outline:${q.toLowerCase()}`, () =>
+      lookup(q, userId),
+    );
+    return ok(
+      { ok: true, outline, ...(cached ? { cached: true } : {}) },
+      { cache: "private, max-age=604800" },
+    );
+  } catch (error) {
+    if (error instanceof OutlineRateLimited) {
+      return verdict([
+        { field: "geocode", reason: "rateLimited", detail: error.resetsAt ?? undefined },
+      ]);
+    }
+    if (error instanceof GeocoderUnavailable) {
+      return verdict([{ field: "geocode", reason: "geocoderUnavailable" }]);
+    }
+    throw error;
+  }
 }
 
 export const Route = createFileRoute("/api/geo/outline")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "user",
+        query: OutlineQuery,
+        badShape: () => verdict([{ field: "geocode", reason: "badQuery" }]),
+        handler,
+      }),
     },
   },
 });
