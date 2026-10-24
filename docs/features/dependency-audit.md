@@ -147,3 +147,12 @@ the runtime tree.
 - Resolved: `vite@8.1.6`, `launch-editor@2.14.2`.
 - Rule (DEC-213, fixed before the run): keep when the commit's CI and proof runs pass; revert when a failure's body names vite, nitro, the build or the dev middleware.
 - The clean-audit verdict comes from CI's `dependency-audit` job (the build sandbox cannot reach the advisory service).
+
+## 2026-10-24 Audit — zod and undici, REMEDIATED (DEC-243)
+
+- Advisories: GHSA-mrhx-c7xc-m3w5 (`zod` <4.6.6), GHSA-xjj6-f33q-929c (`undici` <8.12.2), both high.
+- Paths: `zod` is a direct dependency unused under `src/`, and is resolved by `@tanstack/router-generator`, `@tanstack/router-plugin` and `@tanstack/start-plugin-core`; `undici` is reached through `jsdom` (devDependency, unit/component test environment only). Neither is carried in the shipped application bundle.
+- Remediation: dependencies `"zod": "^3.24.2"` → `"zod": "^4.6.6"`; overrides `"undici": "^8.10.2"` → `"undici": "^8.12.2"`, plus `"zod": "^4.6.6"` so nested copies share the patched version.
+- Resolved: `zod@4.6.7`, `undici@8.12.3` in `bun.lock`. The nested `@tanstack/router-generator/zod` entry is deduplicated onto the root `zod` entry, as are the other two TanStack consumers. The lockfile resolves to the platform's cache (INC-420).
+- Rule (DEC-243, frozen before the run): keep when this commit's CI passes — build, unit and component tests, every lane; revert the whole turn when a failure's body names zod, the router generator, the start plugin, jsdom or the build.
+- The clean-audit verdict comes from CI's `dependency-audit` job (the build sandbox cannot reach the advisory service).
