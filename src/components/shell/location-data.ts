@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
+import { callRoute } from "@/lib/route-client";
 
 /**
  * LOCATIONS ERA L4b — THE SHELL'S GEOGRAPHY SEAM (B2: one utility, one concern).
