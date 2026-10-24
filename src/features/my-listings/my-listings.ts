@@ -1,3 +1,4 @@
+import { ReaderError, readerFailure } from "@/lib/error-text";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -220,21 +221,23 @@ export function filterArgs(filters: MyListingsFilters): {
   };
 }
 
-/** One page of one group, as the signed-in seller; null on a refusal or a malformed answer (F4). */
+/** One page of one group, as the signed-in seller; typed failure on a refusal or a malformed answer (F4). */
 export async function readMyListings(
   group: ListingGroup,
   limit: number,
   offset: number,
   filters: MyListingsFilters = NO_FILTERS,
-): Promise<MyListingsPage | null> {
+): Promise<MyListingsPage> {
   const { data, error } = await supabase.rpc("my_listings", {
     p_group: group,
     p_limit: limit,
     p_offset: offset,
     ...filterArgs(filters),
   });
-  if (error) return null;
-  return parseMyListings(data);
+  if (error) throw new ReaderError(readerFailure(error));
+  const page = parseMyListings(data);
+  if (page === null) throw new ReaderError({ class: "malformed", message: "my_listings malformed" });
+  return page;
 }
 
 /** The total of the six groups. */

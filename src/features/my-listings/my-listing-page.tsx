@@ -1,3 +1,4 @@
+import { readerFailure } from "@/lib/error-text";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Copy, Eye, EyeOff, Pencil } from "lucide-react";
@@ -614,6 +615,12 @@ export function MyListingPage({ listingId }: { listingId: string }) {
 
         <PageCard testid="my-listing-as-seen" className="min-w-0 space-y-3">
           <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
+          {identity.error ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t("myListings.ad.loadError")}
+              <span data-testid="my-listing-identity-error-class">{` (${readerFailure(identity.error).class}${readerFailure(identity.error).status ? " " + readerFailure(identity.error).status : ""})`}</span>
+            </p>
+          ) : null}
           {draft === null ? (
             <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
               {/* readDraft answers null for an ad that is not the caller's: a refusal, never a wait. */}

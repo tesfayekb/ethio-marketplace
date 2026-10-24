@@ -1,3 +1,4 @@
+import { readerFailure } from "@/lib/error-text";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
@@ -184,11 +185,11 @@ export function MyListingsPage() {
         paging.page * paging.pageSize,
         filters,
       );
-      if (page === null) throw new Error("my_listings refused or malformed");
       return page;
     },
     placeholderData: keepPreviousData,
   });
+  const failure = query.error ? readerFailure(query.error) : null;
   const rows = query.data?.rows ?? [];
   const counts = query.data?.counts ?? EMPTY_COUNTS;
   const renewAllowed = query.data?.renewAllowed ?? false;
@@ -695,6 +696,7 @@ export function MyListingsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <p role="alert" data-testid="my-listings-error" className="text-sm text-destructive">
                 {t("myListings.loadError")}
+                {failure ? <span data-testid="my-listings-error-class">{` (${failure.class}${failure.status ? " " + failure.status : ""})`}</span> : null}
               </p>
               <Button
                 type="button"

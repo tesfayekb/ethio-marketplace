@@ -1,3 +1,4 @@
+import { ReaderError, readerFailure } from "@/lib/error-text";
 import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 
@@ -1136,7 +1137,7 @@ export async function readSellerIdentity(): Promise<SellerIdentity | null> {
     )
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) return null;
+  if (error) throw new ReaderError(readerFailure(error));
   if (!data) {
     return {
       alias: null,
