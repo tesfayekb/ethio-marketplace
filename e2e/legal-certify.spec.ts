@@ -1252,9 +1252,12 @@ test.describe("Legal certification", () => {
     await seedDocument(s, kind, "ET", countryText);
 
     // (a) The doors refuse a visitor (M24); a public scratch kind still answers.
+    // PostgREST maps a 42501 raise to HTTP 401 for the anonymous role (signing
+    // in could change the answer) and 403 for a signed-in one — the refusal's
+    // proof is the 42501 body either way.
     for (const fn of ["legal_in_force", "legal_scheduled"]) {
       const refused = await anonRpc(fn, { p_kind: kind });
-      expect(refused.status, fn).toBe(403);
+      expect(refused.status, fn).toBe(401);
       expect((refused.body as { code?: string }).code).toBe("42501");
     }
     const publicKind = await anonRpc("legal_in_force", { p_kind: "e2e-lgc6-public" });
