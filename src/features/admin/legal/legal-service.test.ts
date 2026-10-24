@@ -7,6 +7,7 @@ import {
   exportLegalAcceptances,
   fillFacts,
   getLegalVersion,
+  listLegalDocuments,
   legalErrorKey,
   legalErrorName,
   legalFileName,
@@ -56,6 +57,27 @@ it("maps the publish fact refusals and reads the fact they name", () => {
   );
   expect(legalErrorName({ message: "factMissing:legal_phone" })).toBe("legal_phone");
   expect(legalErrorName({ message: "notDraft" })).toBe("");
+});
+it.each([undefined, null, "om", [42], {}])(
+  "M22 list refuses missing or malformed languages %j",
+  async (languages) => {
+    (supabase as unknown as { rpc: unknown }).rpc = vi.fn().mockResolvedValue({
+      data: [{ document_id: "e2e-doc", kind: "e2e-list", versions: [{ languages }] }],
+      error: null,
+    });
+    await expect(listLegalDocuments()).rejects.toThrow("invalid languages");
+  },
+);
+it("M22 list preserves every language returned by the door, including the empty set", async () => {
+  const data = [
+    {
+      document_id: "e2e-doc",
+      kind: "e2e-list",
+      versions: [{ languages: ["om", "ti"] }, { languages: [] }],
+    },
+  ];
+  (supabase as unknown as { rpc: unknown }).rpc = vi.fn().mockResolvedValue({ data, error: null });
+  expect(await listLegalDocuments()).toEqual(data);
 });
 it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([
@@ -117,6 +139,7 @@ it("validates kind and optional uppercase country", () => {
 const versions: LegalVersion[] = [
   {
     version_id: "old",
+    languages: [],
     version: 1,
     status: "published",
     label: "old",
@@ -127,6 +150,7 @@ const versions: LegalVersion[] = [
   },
   {
     version_id: "current",
+    languages: [],
     version: 2,
     status: "published",
     label: "current",
@@ -137,6 +161,7 @@ const versions: LegalVersion[] = [
   },
   {
     version_id: "future",
+    languages: [],
     version: 3,
     status: "published",
     label: "future",

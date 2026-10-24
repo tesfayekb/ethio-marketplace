@@ -505,17 +505,28 @@ test.describe("Legal certification", () => {
     const { categoryId, cityId } = await sellerOnPage(page, s);
     const listingId = await draftOf(page, s, categoryId, cityId);
     const statementText = `Statement ${rand()}`;
-    await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, statementText);
+    const global = await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, statementText);
 
     await gotoReady(page, `/post/${listingId}`);
     const block = page.getByTestId("certify-block");
     await expect(block).toBeVisible({ timeout: 20_000 });
-    // Turn 32 (DEC-236): no statement text on the step; one link per statement.
+    // D235: one inline link carries every applying statement, not a link per statement.
     await expect(block).not.toContainText(statementText);
     const links = block.getByTestId("agree-link");
     await expect(links).toHaveCount(1);
     await expect(links.nth(0)).toHaveAttribute("href", "/legal/publishing");
-    await expect(links.nth(0)).toHaveText(en["legal.kind.publishing"]);
+    await expect(links.nth(0)).toHaveAttribute("data-role", "publishing");
+    await expect(links.nth(0)).toHaveText("publishing statement");
+    // Add a country statement before the certification: the same single link now carries both.
+    const country = await seedDocument(
+      s,
+      `e2e-pub-${hex(listingId)}`,
+      "ET",
+      `Country ${statementText}`,
+    );
+    await gotoReady(page, `/post/${listingId}`);
+    await expect(links).toHaveCount(1);
+    await expect(links.nth(0)).toHaveAttribute("href", "/legal/publishing?country=ET");
     await expect(page.getByTestId("post-publish-statement")).toHaveCount(0);
     const publish = page.getByTestId("post-publish");
     // D231: drawn closed, never disabled; a tap refuses at the tick and sends nothing.
@@ -532,6 +543,9 @@ test.describe("Legal certification", () => {
     await publish.click();
     await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
+    const certified = await certificationsOf(listingId);
+    expect(certified[0]?.version_ids).toEqual(expect.arrayContaining([global.id, country.id]));
+    expect(certified[0]?.version_ids).toHaveLength(2);
 
     const plain = await draftOf(page, s, categoryId, cityId);
     await gotoReady(page, `/post/${plain}`);
@@ -1244,6 +1258,7 @@ test.describe("Legal certification", () => {
     await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
 
     await gotoReady(page, `/legal/${kind}?country=ET`);
+    await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-public-page")).toContainText(countryText);
     await expect(page.getByTestId("legal-public-country")).toHaveText(
       en["legal.certify.forCountry"].replace("{country}", "Ethiopia"),
@@ -1252,6 +1267,7 @@ test.describe("Legal certification", () => {
     await gotoReady(page, `/legal/${kind}?country=zz`);
     await expect(page.getByTestId("legal-public-page")).toContainText(globalText);
     await expect(page.getByTestId("legal-public-country")).toHaveCount(0);
+    await expect(page.getByTestId("legal-public-page")).not.toContainText(countryText);
 
     await gotoReady(page, "/legal/publishing");
     await expect(page.getByTestId("legal-public-page")).toBeVisible();

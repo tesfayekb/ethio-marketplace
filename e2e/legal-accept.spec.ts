@@ -146,11 +146,16 @@ test.describe("Legal acceptance", () => {
     await expect(page.getByTestId("legal-accept-screen")).toContainText(
       "I am 18 or older. I have read and agree to the Terms of Service and the Privacy Policy.",
     );
-    // Turn 32 (D230, D231): one link per document under the sentence; Submit drawn closed, never disabled.
-    const links = page.getByTestId("agree-link");
+    // D235: the named documents are links inside the tick's sentence, with no separate list.
+    const agreement = page.getByTestId("agree-to-document");
+    const links = agreement.locator("label > span").getByTestId("agree-link");
     await expect(links).toHaveCount(2);
     await expect(links.nth(0)).toHaveAttribute("href", "/terms");
+    await expect(links.nth(0)).toHaveAttribute("data-role", "terms");
     await expect(links.nth(1)).toHaveAttribute("href", "/privacy");
+    await expect(links.nth(1)).toHaveAttribute("data-role", "privacy");
+    await expect(agreement.locator("ul, ol")).toHaveCount(0);
+    await expect(agreement.getByTestId("agree-links")).toHaveCount(0);
     await expect(submit).toHaveAttribute("data-closed", "1");
     await submit.click();
     const tick = page.getByTestId("legal-accept-tick");

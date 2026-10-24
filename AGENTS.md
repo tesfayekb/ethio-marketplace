@@ -13,7 +13,7 @@
 
 ## Project constitution (all agents)
 
-Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits. Tables: RLS/policies/GRANTs in the same append-only migration. Integer money. Server/RLS alone authorizes. No silent catch-and-continue: a reader's door error is a typed `ReaderError` (src/lib/error-text.ts), never `if (error) return null` (INC-847). Public pages: SSR, absolute canonical/og URLs.
+Follow Lovable Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits. Tables: RLS/policies/GRANTs in the same append-only migration. Integer money. Server/RLS alone authorizes. No silent catch-and-continue: a reader's door error is a typed `ReaderError` (src/lib/reader-failure.ts), never `if (error) return null` (INC-847). Public pages: SSR, absolute canonical/og URLs.
 
 - New tables, sequences and functions in public are born closed to browser roles: the migration names each GRANT (a browser grant needs its scripts/public-surface-allowlist.txt line); each new function restates REVOKE … FROM PUBLIC (bundle 8). A finality trigger lets its own ON DELETE SET NULL keys through (INC-812). Owner writes to ads, photos and seller names pass acceptance_guard (DEC-216; takedowns pass); other signed-in write doors check acceptance or sit in scripts/acceptance-doors-allowlist.txt (D227).
 - The database tool applies its input at once: check a scratch copy, then submit FINAL text once (never a stub, comment or draft); remove the scratch.

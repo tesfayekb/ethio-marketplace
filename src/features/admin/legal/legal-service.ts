@@ -18,6 +18,7 @@ export type LegalVersion = {
   acceptances?: number;
   signed_in_unaccepted?: number | null;
   created_at: string;
+  languages: string[];
 };
 export type LegalReview = {
   at: string;
@@ -33,7 +34,7 @@ export type LegalDocument = {
   review: LegalReview | null;
   versions: LegalVersion[];
 };
-export type LegalVersionDetail = LegalVersion & {
+export type LegalVersionDetail = Omit<LegalVersion, "languages"> & {
   document_id: string;
   kind: string;
   country_code: string | null;
@@ -151,6 +152,14 @@ export async function listLegalDocuments(): Promise<LegalDocument[]> {
       !Array.isArray(row.versions)
     )
       throw new Error("admin_legal_documents: invalid document");
+    for (const rawVersion of row.versions) {
+      const version = objectOf(rawVersion, "admin_legal_documents");
+      if (
+        !Array.isArray(version.languages) ||
+        !version.languages.every((code: unknown) => typeof code === "string")
+      )
+        throw new Error("admin_legal_documents: invalid languages");
+    }
   }
   return data as unknown as LegalDocument[];
 }
@@ -248,7 +257,7 @@ export async function getUserLegalHistory(userId: string): Promise<LegalHistory>
   return row as LegalHistory;
 }
 export function versionStatus(
-  version: LegalVersion,
+  version: Omit<LegalVersion, "languages">,
   versions: LegalVersion[],
   now: number,
 ): "draft" | "scheduled" | "inForce" | "replaced" {

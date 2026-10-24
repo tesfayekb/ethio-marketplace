@@ -1,4 +1,4 @@
-import { ReaderError, readerFailure } from "@/lib/error-text";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 

@@ -1,4 +1,4 @@
-import { ReaderError, readerFailure } from "@/lib/error-text";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 
