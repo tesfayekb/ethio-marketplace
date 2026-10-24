@@ -1,20 +1,44 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    auth: {
-      getSession: async () => ({ data: { session: { access_token: "t" } }, error: null }),
-    },
-  },
+// The posting doors' transport is the route client (Foundations turn 14); the
+// tests mock IT, not fetch/XHR — the request bytes are route-client's own
+// contract (RCL-1…15). Assertions on RESULTS stay byte for byte.
+const { callRoute, uploadRoute } = vi.hoisted(() => ({
+  callRoute: vi.fn(),
+  uploadRoute: vi.fn(),
 }));
+vi.mock("@/lib/route-client", () => ({ callRoute, uploadRoute }));
 
 import {
   call,
   mayResumePosting,
+  publishListing,
+  removeBackground,
   SAVE_TIMEOUT_MS,
+  saveDraft,
   shapePostingSchema,
   uploadPhoto,
 } from "./posting-service";
+
+const UNREACHABLE = { status: 0, ok: false, refusals: [], payload: {}, unreachable: true };
+const answered = (status: number, payload: Record<string, unknown> | null, headers?: Headers) => ({
+  kind: "answered" as const,
+  status,
+  ok: status >= 200 && status < 300,
+  payload,
+  error: null,
+  detail: null,
+  headers: headers ?? new Headers(),
+  bytes: null,
+});
+
+beforeEach(() => {
+  callRoute.mockReset().mockResolvedValue(answered(200, { ok: true }));
+  uploadRoute.mockReset().mockResolvedValue(answered(200, { ok: true }));
+});
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 it("INC-824 only a draft resumes posting", () => {
   expect(mayResumePosting("draft")).toBe(true);
@@ -23,45 +47,76 @@ it("INC-824 only a draft resumes posting", () => {
   }
 });
 
-let afterEachRestore: () => void = () => {};
+describe("the door adapter (PSV)", () => {
+  it("PSV-1 signedOut is today's no-token answer", async () => {
+    callRoute.mockResolvedValue({ kind: "signedOut" });
+    expect(await saveDraft({ listingId: null, step: 1 })).toEqual({
+      ...UNREACHABLE,
+      status: 401,
+    });
+  });
+  it("PSV-2 a 200 refusal keeps its refusals, attr_key resolving to field", async () => {
+    callRoute.mockResolvedValue(
+      answered(200, { ok: false, refusals: [{ attr_key: "x", reason: "y" }] }),
+    );
+    const answer = await saveDraft({ listingId: null, step: 1 });
+    expect(answer.ok).toBe(false);
+    expect(answer.unreachable).toBe(false);
+    expect(answer.refusals).toEqual([{ field: "x", reason: "y" }]);
+  });
+  it("PSV-3 a 503 is unreachable, never a verdict", async () => {
+    callRoute.mockResolvedValue(answered(503, null));
+    const answer = await saveDraft({ listingId: null, step: 1 });
+    expect(answer).toEqual({ ...UNREACHABLE, status: 503 });
+  });
+  it("PSV-4 uploadPhoto reports Math.min(99, …) percents and a dropped upload is UNREACHABLE", async () => {
+    const image = new Blob(["photo"]);
+    const variants = { cover: image, mid: image, card: image, thumb: image };
+    const percents: number[] = [];
+    uploadRoute.mockImplementation(async (_path, _form, init) => {
+      init?.onProgress?.(1, 4);
+      init?.onProgress?.(4, 4);
+      return answered(200, { ok: true });
+    });
+    const answer = await uploadPhoto("listing", variants, "jpg", (p) => percents.push(p));
+    expect(percents).toEqual([25, 99]);
+    expect(answer.ok).toBe(true);
+    uploadRoute.mockResolvedValue({ kind: "unreachable", reason: "network" });
+    expect(await uploadPhoto("listing", variants, "jpg")).toEqual(UNREACHABLE);
+  });
+  it("PSV-5 removeBackground returns the image Blob and triesLeft, or the refusal's first reason", async () => {
+    const picture = new Blob(["cutout"], { type: "image/png" });
+    callRoute.mockResolvedValue({
+      ...answered(200, null, new Headers({ "content-type": "image/png", "x-tries-left": "2" })),
+      bytes: picture,
+    });
+    const cut = await removeBackground("l-1", "p-1");
+    expect(cut).toEqual({ ok: true, picture, triesLeft: 2 });
+    callRoute.mockResolvedValue(
+      answered(200, { ok: false, refusals: [{ attr_key: "photo", reason: "noTriesLeft" }] }),
+    );
+    expect(await removeBackground("l-1", "p-1")).toEqual({
+      ok: false,
+      reason: "noTriesLeft",
+      unreachable: false,
+    });
+  });
+  it("PSV-6 saveDraft passes SAVE_TIMEOUT_MS as timeoutMs", async () => {
+    await saveDraft({ listingId: null, step: 1 });
+    expect(callRoute).toHaveBeenCalledWith("/api/listings/draft", {
+      json: { listingId: null, step: 1 },
+      timeoutMs: SAVE_TIMEOUT_MS,
+    });
+  });
+});
 
 describe("call() — DEC-135 save timeout", () => {
-  afterEach(() => {
-    afterEachRestore();
-    vi.useRealTimers();
-    vi.unstubAllGlobals();
-  });
-
-  it("answers unreachable after SAVE_TIMEOUT_MS when the fetch never resolves", async () => {
-    vi.useFakeTimers();
-    // The runtime's own AbortSignal.timeout sits outside the fake clock; this
-    // stand-in aborts on the faked setTimeout so the test controls the clock.
-    const realTimeout = AbortSignal.timeout;
-    const seen: number[] = [];
-    AbortSignal.timeout = (ms: number) => {
-      seen.push(ms);
-      const controller = new AbortController();
-      setTimeout(() => controller.abort(new DOMException("timed out", "TimeoutError")), ms);
-      return controller.signal;
-    };
-    afterEachRestore = () => {
-      AbortSignal.timeout = realTimeout;
-    };
-    vi.stubGlobal(
-      "fetch",
-      (_path: string, init: RequestInit) =>
-        new Promise((_resolve, reject) => {
-          init.signal?.addEventListener("abort", () =>
-            reject(new DOMException("timed out", "TimeoutError")),
-          );
-        }),
-    );
-    const pending = call("/api/listings/draft", "{}", {});
-    await vi.advanceTimersByTimeAsync(SAVE_TIMEOUT_MS);
-    const answer = await pending;
+  it("an unreachable transport answer is UNREACHABLE, never a refusal", async () => {
+    callRoute.mockResolvedValue({ kind: "unreachable", reason: "timeout" });
+    const answer = await call("/api/listings/draft", "{}", {});
     expect(answer.unreachable).toBe(true);
     expect(answer.ok).toBe(false);
-    expect(seen).toEqual([SAVE_TIMEOUT_MS]);
+    expect(answer.refusals).toEqual([]);
   });
 });
 
@@ -104,20 +159,10 @@ describe("the publish route's certification (bundle 22 turn 4; the schema is the
     if (!missing.success) expect(missing.error.issues[0]?.path.join(".")).toBe("listingId");
   });
   it("publishListing sends certified and language only when given", async () => {
-    const { publishListing } = await import("./posting-service");
-    const bodies: string[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (_url: string, init: RequestInit) => {
-        bodies.push(String(init.body));
-        return new Response(JSON.stringify({ ok: true }), { status: 200 });
-      }),
-    );
     await publishListing("l-1");
     await publishListing("l-1", { certified: [ID], language: "en" });
-    vi.unstubAllGlobals();
-    expect(JSON.parse(bodies[0] ?? "{}")).toEqual({ listingId: "l-1" });
-    expect(JSON.parse(bodies[1] ?? "{}")).toEqual({
+    expect(callRoute.mock.calls[0][1].json).toEqual({ listingId: "l-1" });
+    expect(callRoute.mock.calls[1][1].json).toEqual({
       listingId: "l-1",
       certified: [ID],
       language: "en",
@@ -126,23 +171,8 @@ describe("the publish route's certification (bundle 22 turn 4; the schema is the
 });
 
 describe("photo upload certification (bundle 22 turn 6)", () => {
-  afterEach(() => vi.unstubAllGlobals());
   const ids = ["0b9a6c1e-2f3d-4e5a-8b7c-9d0e1f2a3b4c", "1b9a6c1e-2f3d-4e5a-8b7c-9d0e1f2a3b4c"];
   async function sent(certification?: { certified: string[]; language: string }) {
-    let body: FormData | undefined;
-    class RequestDouble {
-      upload = {};
-      status = 200;
-      responseText = '{"ok":true}';
-      onload?: () => void;
-      open() {}
-      setRequestHeader() {}
-      send(form: FormData) {
-        body = form;
-        this.onload?.();
-      }
-    }
-    vi.stubGlobal("XMLHttpRequest", RequestDouble);
     const image = new Blob(["photo"]);
     await uploadPhoto(
       "listing",
@@ -152,16 +182,16 @@ describe("photo upload certification (bundle 22 turn 6)", () => {
       undefined,
       certification,
     );
-    return body;
+    return uploadRoute.mock.calls[0][1] as FormData;
   }
   it("sends the exact version ids joined by commas and language when given", async () => {
     const form = await sent({ certified: ids, language: "en" });
-    expect(form?.get("certified")).toBe(ids.join(","));
-    expect(form?.get("language")).toBe("en");
+    expect(form.get("certified")).toBe(ids.join(","));
+    expect(form.get("language")).toBe("en");
   });
   it("omits both fields without certification", async () => {
     const form = await sent();
-    expect(form?.has("certified")).toBe(false);
-    expect(form?.has("language")).toBe(false);
+    expect(form.has("certified")).toBe(false);
+    expect(form.has("language")).toBe(false);
   });
 });

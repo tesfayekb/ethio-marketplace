@@ -1,4 +1,5 @@
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 
@@ -26,11 +27,6 @@ export function mayResumePosting(status: string): boolean {
   return status === "draft";
 }
 
-async function bearer(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
-}
-
 function refusalsOf(payload: Record<string, unknown>): Refusal[] {
   const list = Array.isArray(payload["refusals"]) ? payload["refusals"] : [];
   return list.map((entry) => {
@@ -47,27 +43,6 @@ function refusalsOf(payload: Record<string, unknown>): Refusal[] {
   });
 }
 
-async function readAnswer(response: Response): Promise<DoorAnswer> {
-  let payload: Record<string, unknown> = {};
-  try {
-    payload = (await response.json()) as Record<string, unknown>;
-  } catch {
-    payload = {};
-  }
-  const refusals = refusalsOf(payload);
-  return {
-    status: response.status,
-    ok: payload["ok"] === true,
-    refusals,
-    payload,
-    // A 5xx is not a verdict, it is a failure to reach one — the caller retries
-    // rather than showing a refusal that nobody made. A 200 with `ok:false` IS a
-    // verdict, refusals and all, and a 401/403/409 is one too (the route names
-    // the field), so only the server's own breakage counts as unreachable.
-    unreachable: response.status >= 500,
-  };
-}
-
 const UNREACHABLE: DoorAnswer = {
   status: 0,
   ok: false,
@@ -75,6 +50,29 @@ const UNREACHABLE: DoorAnswer = {
   payload: {},
   unreachable: true,
 };
+
+/**
+ * THE ONE ADAPTER from the route client's answer to a door's. A 5xx is not a
+ * verdict, it is a failure to reach one — the caller retries rather than
+ * showing a refusal that nobody made. A 200 with `ok:false` IS a verdict,
+ * refusals and all, and a 401/403/409 is one too (the route names the field),
+ * so only the server's own breakage counts as unreachable.
+ */
+function doorAnswerOf(answer: RouteAnswer): DoorAnswer {
+  // Today's no-token answer: the route would have 401'd, so the call never left.
+  if (answer.kind === "signedOut") return { ...UNREACHABLE, status: 401 };
+  // Offline, blocked, aborted: NOT a refusal. The caller keeps the form state
+  // in memory and retries (C4 — never a blank screen, never a phantom).
+  if (answer.kind === "unreachable") return UNREACHABLE;
+  const payload = answer.payload ?? {};
+  return {
+    status: answer.status,
+    ok: payload["ok"] === true,
+    refusals: refusalsOf(payload),
+    payload,
+    unreachable: answer.status >= 500,
+  };
+}
 
 /**
  * DEC-135 / INC-439 — a save that hangs is a transport failure, not a wait
@@ -88,21 +86,13 @@ export async function call(
   body: BodyInit,
   headers: HeadersInit,
 ): Promise<DoorAnswer> {
-  const token = await bearer();
-  if (token === null) return { ...UNREACHABLE, status: 401 };
-  try {
-    const response = await fetch(path, {
-      method: "POST",
-      headers: { ...headers, Authorization: `Bearer ${token}` },
-      body,
-      signal: AbortSignal.timeout(SAVE_TIMEOUT_MS),
-    });
-    return await readAnswer(response);
-  } catch {
-    // Offline, blocked, aborted: NOT a refusal. The caller keeps the form state
-    // in memory and retries (C4 — never a blank screen, never a phantom).
-    return UNREACHABLE;
-  }
+  // Every caller posts a JSON string; the route client sets its Content-Type.
+  void headers;
+  const answer = await callRoute(path as RoutePath, {
+    json: JSON.parse(String(body)) as unknown,
+    timeoutMs: SAVE_TIMEOUT_MS,
+  });
+  return doorAnswerOf(answer);
 }
 
 export interface DraftBody {
@@ -154,9 +144,6 @@ export async function uploadPhoto(
   replaces?: string,
   certification?: Certification,
 ): Promise<DoorAnswer> {
-  const token = await bearer();
-  if (token === null) return { ...UNREACHABLE, status: 401 };
-
   const form = new FormData();
   form.set("listingId", listingId);
   if (replaces !== undefined) form.set("replaces", replaces);
@@ -169,33 +156,12 @@ export async function uploadPhoto(
     form.set(variant, variants[variant], `${variant}.${extension}`);
   }
 
-  return new Promise<DoorAnswer>((resolve) => {
-    const request = new XMLHttpRequest();
-    request.open("POST", "/api/upload/photo");
-    request.setRequestHeader("Authorization", `Bearer ${token}`);
-    request.upload.onprogress = (event) => {
-      if (!event.lengthComputable || !onProgress) return;
-      onProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
-    };
-    request.onerror = () => resolve(UNREACHABLE);
-    request.ontimeout = () => resolve(UNREACHABLE);
-    request.onload = () => {
-      let payload: Record<string, unknown> = {};
-      try {
-        payload = JSON.parse(request.responseText) as Record<string, unknown>;
-      } catch {
-        payload = {};
-      }
-      resolve({
-        status: request.status,
-        ok: payload["ok"] === true,
-        refusals: refusalsOf(payload),
-        payload,
-        unreachable: request.status >= 500 || request.status === 0,
-      });
-    };
-    request.send(form);
+  const answer = await uploadRoute("/api/upload/photo", form, {
+    onProgress: onProgress
+      ? (loaded, total) => onProgress(Math.min(99, Math.round((loaded / total) * 100)))
+      : undefined,
   });
+  return doorAnswerOf(answer);
 }
 
 /** Bundle 13 turn 12 (D155b / D159) — the background tool's answer. */
@@ -216,39 +182,23 @@ export async function removeBackground(
   listingId: string,
   photoId: string,
 ): Promise<BackgroundAnswer> {
-  const token = await bearer();
-  if (token === null) return { ok: false, reason: "", unreachable: true };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), BACKGROUND_TIMEOUT_MS);
-  try {
-    const response = await fetch("/api/listings/background", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ listingId, photoId }),
-      signal: controller.signal,
-    });
-    const type = response.headers.get("content-type") ?? "";
-    if (response.ok && type.startsWith("image/")) {
-      const left = Number(response.headers.get("x-tries-left"));
-      return {
-        ok: true,
-        picture: await response.blob(),
-        triesLeft: Number.isInteger(left) && left >= 0 ? left : null,
-      };
-    }
-    let payload: Record<string, unknown> = {};
-    try {
-      payload = (await response.json()) as Record<string, unknown>;
-    } catch {
-      payload = {};
-    }
-    const reason = refusalsOf(payload)[0]?.reason ?? "";
-    return { ok: false, reason, unreachable: reason === "" || response.status >= 500 };
-  } catch {
-    return { ok: false, reason: "", unreachable: true };
-  } finally {
-    clearTimeout(timer);
+  const answer = await callRoute("/api/listings/background", {
+    json: { listingId, photoId },
+    timeoutMs: BACKGROUND_TIMEOUT_MS,
+    expect: "bytes",
+  });
+  if (answer.kind !== "answered") return { ok: false, reason: "", unreachable: true };
+  const type = answer.headers.get("content-type") ?? "";
+  if (answer.ok && type.startsWith("image/") && answer.bytes !== null) {
+    const left = Number(answer.headers.get("x-tries-left"));
+    return {
+      ok: true,
+      picture: answer.bytes,
+      triesLeft: Number.isInteger(left) && left >= 0 ? left : null,
+    };
   }
+  const reason = refusalsOf(answer.payload ?? {})[0]?.reason ?? "";
+  return { ok: false, reason, unreachable: reason === "" || answer.status >= 500 };
 }
 
 /** `POST /api/listings/photos/$id { action: 'cover' }`. */
@@ -270,17 +220,7 @@ export function movePhoto(photoId: string, position: number): Promise<DoorAnswer
 
 /** `DELETE /api/listings/photos/$id`. */
 export async function deletePhoto(photoId: string): Promise<DoorAnswer> {
-  const token = await bearer();
-  if (token === null) return { ...UNREACHABLE, status: 401 };
-  try {
-    const response = await fetch(`/api/listings/photos/${photoId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return await readAnswer(response);
-  } catch {
-    return UNREACHABLE;
-  }
+  return doorAnswerOf(await callRoute(`/api/listings/photos/${photoId}`, { method: "DELETE" }));
 }
 
 export interface DraftRow {
@@ -1050,19 +990,11 @@ export function requestAssist(body: {
  * keeps its own count, as before.
  */
 export async function peekAssist(listingId: string): Promise<number | null> {
-  const token = await bearer();
-  if (token === null) return null;
-  try {
-    const response = await fetch(
-      `/api/listings/assist?listingId=${encodeURIComponent(listingId)}`,
-      { method: "GET", headers: { Authorization: `Bearer ${token}` } },
-    );
-    const answer = await readAnswer(response);
-    const left = answer.ok ? answer.payload["triesLeft"] : null;
-    return typeof left === "number" && Number.isInteger(left) && left >= 0 ? left : null;
-  } catch {
-    return null;
-  }
+  const answer = doorAnswerOf(
+    await callRoute(`/api/listings/assist?listingId=${encodeURIComponent(listingId)}`),
+  );
+  const left = answer.ok ? answer.payload["triesLeft"] : null;
+  return typeof left === "number" && Number.isInteger(left) && left >= 0 ? left : null;
 }
 
 /**

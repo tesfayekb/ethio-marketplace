@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { callRoute, downloadRoute } from "./route-client";
+import { callRoute, downloadRoute, uploadRoute } from "./route-client";
 
 const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: { getSession } } }));
@@ -62,6 +62,8 @@ describe("browser route client", () => {
       payload: { error: "fileChanged", detail: "x" },
       error: "fileChanged",
       detail: "x",
+      headers: expect.any(Headers),
+      bytes: null,
     });
   });
   it("RCL-7 a non-JSON 502 preserves its status", async () => {
@@ -73,6 +75,8 @@ describe("browser route client", () => {
       payload: null,
       error: null,
       detail: null,
+      headers: expect.any(Headers),
+      bytes: null,
     });
   });
   it("RCL-8 a thrown fetch is unreachable network", async () => {
@@ -116,6 +120,7 @@ describe("browser route client", () => {
       kind: "answered",
       ok: true,
       payload: null,
+      bytes: null,
     });
     expect(names).toEqual(["scope-definitions.csv"]);
     expect(create).toHaveBeenCalledTimes(1);
@@ -133,5 +138,210 @@ describe("browser route client", () => {
     });
     expect(create).toHaveBeenCalledTimes(1);
     expect(click).toHaveBeenCalledTimes(1);
+  });
+  it("RCL-11 a JSON content type with an unparsable body is still answered", async () => {
+    fetchMock.mockResolvedValue(
+      new Response("not json at all", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    expect(await callRoute("/api/x", { auth: "none" })).toEqual({
+      kind: "answered",
+      status: 200,
+      ok: true,
+      payload: null,
+      error: null,
+      detail: null,
+      headers: expect.any(Headers),
+      bytes: null,
+    });
+    fetchMock.mockResolvedValue(
+      new Response("{broken", {
+        status: 409,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      }),
+    );
+    expect(await callRoute("/api/x", { auth: "none" })).toEqual({
+      kind: "answered",
+      status: 409,
+      ok: false,
+      payload: null,
+      error: null,
+      detail: null,
+      headers: expect.any(Headers),
+      bytes: null,
+    });
+  });
+  it("RCL-12 a form body sets no Content-Type and posts by default", async () => {
+    const form = new FormData();
+    form.set("listingId", "l-1");
+    await callRoute("/api/x", { auth: "none", form });
+    const init = fetchMock.mock.calls[0][1];
+    expect(init.method).toBe("POST");
+    expect(init.headers.has("Content-Type")).toBe(false);
+    expect(init.headers.get("Accept")).toBe("application/json");
+    expect(init.body).toBe(form);
+  });
+  it("RCL-13 expect bytes keeps an image body and headers; a JSON refusal still parses", async () => {
+    const imageBytes = new Uint8Array([137, 80, 78, 71]);
+    fetchMock.mockResolvedValue(
+      new Response(imageBytes, {
+        status: 200,
+        headers: { "Content-Type": "image/png", "x-tries-left": "2" },
+      }),
+    );
+    const answer = await callRoute("/api/x", { auth: "none", expect: "bytes" });
+    expect(answer.kind).toBe("answered");
+    if (answer.kind !== "answered") return;
+    expect(answer.headers.get("x-tries-left")).toBe("2");
+    expect(answer.payload).toBeNull();
+    expect(answer.bytes).not.toBeNull();
+    expect(Array.from(new Uint8Array(await answer.bytes!.arrayBuffer()))).toEqual(
+      Array.from(imageBytes),
+    );
+    fetchMock.mockResolvedValue(jsonAnswer({ error: "rateLimited", detail: "60" }, 429));
+    const refused = await callRoute("/api/x", { auth: "none", expect: "bytes" });
+    expect(refused).toEqual({
+      kind: "answered",
+      status: 429,
+      ok: false,
+      payload: { error: "rateLimited", detail: "60" },
+      error: "rateLimited",
+      detail: "60",
+      headers: expect.any(Headers),
+      bytes: null,
+    });
+  });
+  it("RCL-14 cache and keepalive reach fetch", async () => {
+    await callRoute("/api/x", { auth: "none", cache: "no-cache", keepalive: true });
+    const init = fetchMock.mock.calls[0][1];
+    expect(init.cache).toBe("no-cache");
+    expect(init.keepalive).toBe(true);
+    await callRoute("/api/x", { auth: "none" });
+    const plain = fetchMock.mock.calls[1][1];
+    expect("cache" in plain).toBe(false);
+    expect("keepalive" in plain).toBe(false);
+  });
+});
+
+describe("uploadRoute — the XHR transport", () => {
+  type Handler = (() => void) | null;
+  class XhrDouble {
+    static instances: XhrDouble[] = [];
+    upload: { onprogress: ((event: ProgressEvent) => void) | null } = { onprogress: null };
+    status = 200;
+    responseText = '{"ok":true}';
+    responseHeaders = "content-type: application/json\r\n";
+    onload: Handler = null;
+    onerror: Handler = null;
+    ontimeout: Handler = null;
+    onabort: Handler = null;
+    opened: { method: string; path: string } | null = null;
+    headers = new Map<string, string>();
+    sent: FormData | null = null;
+    aborted = false;
+    constructor() {
+      XhrDouble.instances.push(this);
+    }
+    open(method: string, path: string) {
+      this.opened = { method, path };
+    }
+    setRequestHeader(name: string, value: string) {
+      this.headers.set(name, value);
+    }
+    getResponseHeader(name: string) {
+      const line = this.responseHeaders
+        .split("\r\n")
+        .find((row) => row.toLowerCase().startsWith(`${name.toLowerCase()}:`));
+      return line ? line.slice(line.indexOf(":") + 1).trim() : null;
+    }
+    getAllResponseHeaders() {
+      return this.responseHeaders;
+    }
+    abort() {
+      this.aborted = true;
+    }
+    send(form: FormData) {
+      this.sent = form;
+    }
+  }
+
+  beforeEach(() => {
+    XhrDouble.instances = [];
+    vi.stubGlobal("XMLHttpRequest", XhrDouble);
+  });
+
+  const last = () => XhrDouble.instances[XhrDouble.instances.length - 1];
+
+  it("RCL-15 bearer once, progress as (loaded, total), a 200 JSON answer answered", async () => {
+    getSession.mockResolvedValue({ data: { session: { access_token: "test-token" } } });
+    const progress: [number, number][] = [];
+    const form = new FormData();
+    form.set("photo", new Blob(["x"]), "x.jpg");
+    const pending = uploadRoute("/api/upload/photo", form, {
+      onProgress: (loaded, total) => progress.push([loaded, total]),
+    });
+    // The bearer read is async; let it settle so the request is open.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const request = last();
+    expect(request.opened).toEqual({ method: "POST", path: "/api/upload/photo" });
+    expect(request.headers.get("Authorization")).toBe("Bearer test-token");
+    expect(request.headers.get("Accept")).toBe("application/json");
+    expect([...request.headers.keys()].filter((k) => k === "Authorization")).toHaveLength(1);
+    expect(request.sent).toBe(form);
+    request.upload.onprogress?.({ lengthComputable: true, loaded: 50, total: 100 } as ProgressEvent);
+    request.upload.onprogress?.({ lengthComputable: false, loaded: 0, total: 0 } as ProgressEvent);
+    request.onload?.();
+    expect(progress).toEqual([[50, 100]]);
+    const answer = await pending;
+    expect(answer).toEqual({
+      kind: "answered",
+      status: 200,
+      ok: true,
+      payload: { ok: true },
+      error: null,
+      detail: null,
+      headers: expect.any(Headers),
+      bytes: null,
+    });
+  });
+  it("RCL-15b status 0 is unreachable network", async () => {
+    const pending = uploadRoute("/api/upload/photo", new FormData(), { auth: "none" });
+    const request = last();
+    request.status = 0;
+    request.onload?.();
+    expect(await pending).toEqual({ kind: "unreachable", reason: "network" });
+    const failed = uploadRoute("/api/upload/photo", new FormData(), { auth: "none" });
+    last().onerror?.();
+    expect(await failed).toEqual({ kind: "unreachable", reason: "network" });
+  });
+  it("RCL-15c timeout and the deadline are unreachable timeout", async () => {
+    const timedOut = uploadRoute("/api/upload/photo", new FormData(), { auth: "none" });
+    last().ontimeout?.();
+    expect(await timedOut).toEqual({ kind: "unreachable", reason: "timeout" });
+    vi.useFakeTimers();
+    const deadline = uploadRoute("/api/upload/photo", new FormData(), {
+      auth: "none",
+      timeoutMs: 30,
+    });
+    await vi.advanceTimersByTimeAsync(30);
+    expect(await deadline).toEqual({ kind: "unreachable", reason: "timeout" });
+    expect(last().aborted).toBe(true);
+  });
+  it("RCL-15d the caller's abort is unreachable aborted", async () => {
+    const caller = new AbortController();
+    const pending = uploadRoute("/api/upload/photo", new FormData(), {
+      auth: "none",
+      signal: caller.signal,
+    });
+    caller.abort();
+    expect(await pending).toEqual({ kind: "unreachable", reason: "aborted" });
+    expect(last().aborted).toBe(true);
+  });
+  it("RCL-15e required without a session is signedOut and nothing opens", async () => {
+    expect(await uploadRoute("/api/upload/photo", new FormData())).toEqual({ kind: "signedOut" });
+    expect(XhrDouble.instances[0].opened).toBeNull();
+    expect(XhrDouble.instances[0].sent).toBeNull();
   });
 });
