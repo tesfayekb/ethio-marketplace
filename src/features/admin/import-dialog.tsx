@@ -224,33 +224,33 @@ export function ImportDialog({
   };
 
   /**
-   * INC-196 L2 — the server's own words, resolved. A message that IS a known
-   * translation key (`admin.<family>.error.*`) renders translated; anything else
-   * renders verbatim with the Postgres detail appended, so the exact reason can
-   * be pasted into an incident. Nothing here is interpreted as markup (F2).
+   * Foundations turn 12 (CHANGE 4) — the door's declared code, resolved. The
+   * route answers `error` (a machine code or a server literal, never database
+   * text) and an optional `detail`; a code that IS a door key
+   * (`admin.<family>.error.*`) renders translated with its detail as the tail,
+   * anything else renders as the code with the detail appended (F2: data).
    */
-  const reasonOf = (payload: { message?: string; detail?: string }): string | null => {
-    const message = (payload.message ?? "").trim();
-    if (message === "") return null;
-    // ES6 — a door key may carry a tail after its first colon ({count}, {detail});
-    // the shared helper reads it (T7: the categories console reads the same way).
-    const words = doorKeyText(message, (key) => t(key as MessageKey) as string | undefined);
-    if (words !== null) return words;
+  const reasonOf = (payload: { error?: string; detail?: string }): string | null => {
+    const code = (payload.error ?? "").trim();
+    if (code === "") return null;
     const detail = (payload.detail ?? "").trim();
-    return detail === "" ? message : `${message} — ${detail}`;
+    // ES6 — a door key may carry a tail after its first colon ({count}, {detail}).
+    const words = doorKeyText(detail === "" ? code : `${code}:${detail}`, (key) =>
+      t(key as MessageKey) as string | undefined,
+    );
+    if (words !== null) return words;
+    return detail === "" ? code : `${code} — ${detail}`;
   };
 
-  const failed = (
-    payload: { error?: string; message?: string; detail?: string },
-    status: number,
-  ) => {
+  const failed = (payload: { error?: string; detail?: string }, status: number) => {
     const named = payload.error ?? "";
     setReason(reasonOf(payload));
     if (status === 403) return setError(t(key("error.denied")));
     if (status === 428) return setError(t(key("error.stepUp")));
     if (named === "wrongFile") return setError(t(key("error.wrongFile")));
     if (status === 409 && named === "fileChanged") return setError(t(key("error.fileChanged")));
-    if (status === 409) return setError(t(key("error.busy")));
+    if (status === 409 && named === "import already running")
+      return setError(t(key("error.busy")));
     if (status === 413 || named === "fileTooLarge") return setError(t(key("error.tooLarge")));
     if (named === "tooManyRows") return setError(t(key("error.tooManyRows")));
     if (named === "badHeader") return setError(t(key("error.badHeader")));
@@ -266,7 +266,6 @@ export function ImportDialog({
     });
     const payload = (await response.json().catch(() => ({}))) as {
       error?: string;
-      message?: string;
       detail?: string;
     };
     if (!response.ok) {
