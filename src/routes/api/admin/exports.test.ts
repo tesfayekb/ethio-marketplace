@@ -140,9 +140,10 @@ describe("the three exports", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe("text/csv; charset=utf-8");
     expect(response.headers.get("Cache-Control")).toBe("no-store");
-    expect(new Uint8Array(await response.arrayBuffer())).toEqual(
-      new TextEncoder().encode(CATEGORY_BYTES_AT_START),
-    );
+    // Arrays, not Uint8Arrays: the test environment's realms differ.
+    expect([...new Uint8Array(await response.arrayBuffer())]).toEqual([
+      ...new TextEncoder().encode(CATEGORY_BYTES_AT_START),
+    ]);
   });
 
   it("EXR-5 the locations and countries headers carry no action (CHANGE 6)", async () => {
