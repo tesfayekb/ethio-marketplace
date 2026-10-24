@@ -1,182 +1,99 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
 import { bundleEtag } from "@/i18n/bundle";
-import type { Database } from "@/integrations/supabase/types";
-import { errorText, errorWithStack } from "@/lib/error-text";
+import { errorText } from "@/lib/error-text";
+import { ReaderError } from "@/lib/reader-failure";
+import { langCodeLoose } from "@/lib/schemas/primitives";
+import {
+  clientError,
+  conditional,
+  notModified,
+  serverError,
+  upstreamUnavailable,
+} from "@/server/answer";
+import { defineRoute, type RouteContext } from "@/server/route";
+import { versionCache } from "@/server/version-cache";
+import { upstreamFailed } from "@/server/supabase/user-client";
 
 /**
  * U4i ④ — THE CACHEABLE UI BUNDLE.
  *
- *   GET /api/i18n/:lang → { bundle: { key: value, … } }
+ *   GET /api/i18n/:lang → { lang, bundle: { key: value, … } }
  *
  * WHY A ROUTE AND NOT THE RPC: a PostgREST `rpc()` POST can never be cached by
- * a browser or an edge. This endpoint is a GET with a strong validator, so the
- * SECOND page view of a language costs one conditional request — or nothing at
- * all inside the freshness window.
+ * a browser or an edge; this GET carries a strong validator.
  *
- * THE VALIDATOR IS THE DATA'S OWN VERSION. `get_ui_bundle_version(lang)`
- * (migration 20260902090000) hashes `max(updated_at) + count` over exactly the
- * rows `get_ui_bundle` returns: approved, non-null, live. So APPROVING a row,
- * EDITING an approved row, SYNCING new keys or PUBLISHING a language all move
- * the ETag on their own — nothing has to remember to bust a cache.
+ * THE VALIDATOR IS THE DATA'S OWN VERSION: `get_ui_bundle_version(lang)` moves
+ * whenever an approved row, a sync or a publication changes the bundle.
  *
- * CACHE POLICY: `public, max-age=300, stale-while-revalidate=3600`. Public
- * because the payload is the anon bundle and carries no per-user data (the RPC
- * itself refuses an unpublished language with `{}`). The gate LIST stays
- * `no-store` in the provider (law I6) — only this endpoint is the cached path.
- *
- * SECURITY: anon publishable key, no service role, no caller token read. The
- * two RPCs are the same gated definers the browser already calls.
- *
- * INC-096b/c: every 5xx logs into the reporter-grepped [ssr-error] channel.
+ * Foundations turn 6 (INC-862 T2): on `defineRoute` with `auth: "anon"` (anon
+ * publishable key, no caller token read), the one `versionCache` (STAB-I18N
+ * INC-164's per-language hold, now bounded to 32 languages) and the one
+ * `conditional()` responder. The gate LIST stays `no-store` (law I6).
  */
 
-const LANG_RE = /^[a-z]{2,8}(-[a-z0-9]{2,8})?$/;
-const MAX_AGE = 300;
+const PATH = "/api/i18n/$lang";
+const CACHE = "public, max-age=300, stale-while-revalidate=3600";
 
-function logRouteError(error: unknown): void {
-  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
-  const message = errorWithStack(error);
-  console.error("[ssr-error]", "/api/i18n", message);
+const params = z.object({ lang: langCodeLoose }).strict();
+
+const BUNDLES = versionCache<string, { body: unknown }>({ ttlMs: 15_000, max: 32 });
+
+function readFailed(error: unknown, status: number): ReaderError {
+  return new ReaderError({ class: "server", status, message: errorText(error) });
 }
 
-function serverEnv(name: string): string {
-  // Read INSIDE the handler: workerd injects bindings per request (F1).
-  return process.env[name] ?? "";
-}
-
-/** INC-802 — every client refusal this route sends, as a closed set. */
-type ClientCode = "invalid language code";
-
-/** INC-802 — a server failure: logged whole, answered with a fixed text. */
-function serverFailure(detail: string, status: 500 | 502 | 503): Response {
-  logRouteError(detail);
-  // INC-447 — a server failure is logged whole; the reply names no raw message.
-  return new Response(JSON.stringify({ error: "internal error" }), {
-    status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
-}
-
-/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
-function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
-  return new Response(JSON.stringify({ error: code }), {
-    status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
-}
-
-/**
- * STAB-I18N (INC-164) — THE IN-PROCESS BUNDLE CACHE.
- *
- * Census: every request used to run BOTH RPCs (version + bundle). The bundle
- * query is an index scan over `ui_translations_lang_status_idx` (~19ms on prod
- * for `am`), paid on every cold client. The cache keeps ONE entry per language
- * keyed by the publication version, so:
- *   - inside the version TTL a request costs ZERO database round trips;
- *   - after the TTL a request costs ONE tiny version read, and only a CHANGED
- *     version rebuilds the bundle.
- * Invalidation is the data's own version — publishing/unpublishing a language
- * flips `enabled_public`, which flips `get_ui_bundle_version` between the
- * `|empty` hash and the real one, so no publish path has to remember to bust.
- */
-const VERSION_TTL_MS = 15_000;
-
-interface CacheEntry {
-  version: string;
-  etag: string;
-  body: string;
-  checkedAt: number;
-}
-
-const bundleCache = new Map<string, CacheEntry>();
-
-function cacheControlHeader(): string {
-  return `public, max-age=${MAX_AGE}, stale-while-revalidate=3600`;
-}
-
-function respond(request: Request, entry: CacheEntry): Response {
-  const cacheControl = cacheControlHeader();
-  if (request.headers.get("If-None-Match") === entry.etag) {
-    return new Response(null, {
-      status: 304,
-      headers: { ETag: entry.etag, "Cache-Control": cacheControl },
+async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Promise<Response> {
+  const supabase = ctx.supabase;
+  if (supabase === null) throw new Error("anonymous client missing");
+  const code = ctx.params.lang;
+  let seen: string | null = null;
+  try {
+    const held = await BUNDLES.get(
+      code,
+      async () => {
+        const { data, error, status } = await supabase.rpc("get_ui_bundle_version", {
+          p_lang: code,
+        });
+        if (error) throw readFailed(error, status);
+        seen = typeof data === "string" ? data : "";
+        return seen;
+      },
+      async (version) => {
+        // A cold conditional hit: the bundle is not read and nothing is held.
+        if (ctx.request.headers.get("If-None-Match") === bundleEtag(code, version)) return null;
+        const { data, error, status } = await supabase.rpc("get_ui_bundle", { p_lang: code });
+        if (error) throw readFailed(error, status);
+        return { body: { lang: code, bundle: data ?? {} } };
+      },
+    );
+    // build answers null only for the cold conditional hit (ruled, turn 6).
+    if (held === null) return notModified(bundleEtag(code, seen ?? ""), CACHE);
+    return conditional(ctx.request, {
+      etag: bundleEtag(code, held.version),
+      body: held.value.body,
+      cache: CACHE,
     });
+  } catch (error) {
+    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
+    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
+      return upstreamUnavailable(PATH, "ui bundle read", status);
+    }
+    return serverError(PATH, error);
   }
-  return new Response(entry.body, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": cacheControl,
-      ETag: entry.etag,
-      Vary: "Accept-Encoding",
-    },
-  });
-}
-
-async function handleGet(request: Request, lang: string): Promise<Response> {
-  const code = lang.trim().toLowerCase();
-  if (!LANG_RE.test(code)) return clientFailure("invalid language code", 400);
-
-  const now = Date.now();
-  const cached = bundleCache.get(code);
-  if (cached && now - cached.checkedAt < VERSION_TTL_MS) return respond(request, cached);
-
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
-
-  const supabase = createClient<Database>(url, publishable, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data: version, error: versionError } = await supabase.rpc("get_ui_bundle_version", {
-    p_lang: code,
-  });
-  if (versionError) return serverFailure(versionError.message, 502);
-
-  const resolved = typeof version === "string" ? version : "";
-  const etag = bundleEtag(code, resolved);
-
-  // Version unchanged → the cached body is still byte-correct; no bundle query.
-  if (cached && cached.version === resolved) {
-    cached.checkedAt = now;
-    return respond(request, cached);
-  }
-
-  // A conditional hit on a fresh version never touches the bundle query either.
-  if (request.headers.get("If-None-Match") === etag) {
-    return new Response(null, {
-      status: 304,
-      headers: { ETag: etag, "Cache-Control": cacheControlHeader() },
-    });
-  }
-
-  const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: code });
-  if (error) return serverFailure(error.message, 502);
-
-  const entry: CacheEntry = {
-    version: resolved,
-    etag,
-    body: JSON.stringify({ lang: code, bundle: data ?? {} }),
-    checkedAt: now,
-  };
-  bundleCache.set(code, entry);
-  return respond(request, entry);
 }
 
 export const Route = createFileRoute("/api/i18n/$lang")({
   server: {
     handlers: {
-      GET: async ({ request, params }) => {
-        try {
-          return await handleGet(request, params.lang);
-        } catch (error) {
-          logRouteError(error);
-          return serverFailure(errorText(error), 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "anon",
+        params,
+        badShape: () => clientError("invalid language code", 400),
+        handler,
+      }),
     },
   },
 });

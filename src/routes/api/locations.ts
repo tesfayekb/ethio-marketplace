@@ -1,32 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 
-import type { Database } from "@/integrations/supabase/types";
-import { errorText, errorWithStack } from "@/lib/error-text";
+import { conditional, serverError, upstreamUnavailable } from "@/server/answer";
+import { defineRoute, type RouteContext } from "@/server/route";
+import { versionCache } from "@/server/version-cache";
+import { upstreamFailed } from "@/server/supabase/user-client";
+import { errorText } from "@/lib/error-text";
+import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * LOCATIONS ERA L4b — THE PUBLIC OPEN-MARKETS LIST.
  *
  *   GET /api/locations → { countries: [{ code, name_en, unit_system,
- *                          currency_code, display_order, anchor_slug }] }
+ *                          currency_code, display_order, anchor_slug, anchor_id }] }
  *
- * Structurally the per-country tree route (`api/locations.$country.ts`): an
- * in-process cache, a strong validator, a 304 on a conditional request, and the
- * anon publishable client built INSIDE the handler because workerd injects
- * bindings per request (F1).
+ * Foundations turn 6 (INC-862 T2): on `defineRoute` with `auth: "anon"`
+ * (DEC-013 §10 — no bearer, no session), the one `versionCache` and the one
+ * `conditional()` responder. The read is `get_open_countries()` (migration
+ * efbee3c4); every visibility decision is settled there.
  *
- * The read is `get_open_countries()` (migration efbee3c4): every visibility
- * decision was settled there — only a market a visitor may browse comes back.
- *
- * DEC-013 §10 — THE PUBLIC PATH CARRIES NO AUTHORITY: no bearer, no session, no
- * `has_permission`.
- *
- * I4 — every throw and every deliberate 5xx logs one `[ssr-error]` line.
+ * The route has no version read: the "version" is a 15-second time bucket, so
+ * the held list rebuilds once per 15 s (versionCache reuses an unmoved version).
  */
 
-const MAX_AGE = 300;
-/** Same freshness window as the tree and bundle routes, deliberately. */
-const CACHE_TTL_MS = 15_000;
+const PATH = "/api/locations";
+const CACHE = "public, max-age=300, stale-while-revalidate=3600";
+const BUCKET_MS = 15_000;
 
 interface OpenCountry {
   code: string;
@@ -35,33 +33,19 @@ interface OpenCountry {
   currency_code: string | null;
   display_order: number | null;
   anchor_slug: string | null;
-  /**
-   * INC-217 — THE MARKET'S ANCHOR PLACE. A market's NAME on a public surface is
-   * the anchor location's name, so the picker can resolve it through the entity
-   * bundle (`entityName('location', anchor_id)`) instead of rendering `name_en`
-   * in English to everyone. The door gained this column in A2-M2.
-   */
+  /** INC-217 — the market's anchor place, so its name resolves through the entity bundle. */
   anchor_id: string | null;
 }
 
-interface CacheEntry {
-  etag: string;
-  body: string;
-  checkedAt: number;
-}
-
-let cached: CacheEntry | null = null;
-
-function logRouteError(error: unknown): void {
-  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
-  const message = errorWithStack(error);
-  console.error("[ssr-error]", "/api/locations", message);
-}
+const OPEN = versionCache<"open", { body: unknown; etag: string }>({
+  ttlMs: BUCKET_MS,
+  max: 1,
+});
 
 /**
  * The validator is a HASH OF THE PAYLOAD (FNV-1a, 32-bit): opening or closing a
- * market changes the body and therefore the tag, with nothing to remember to
- * bust. A weak tag is deliberate — the body is semantically, not byte, stable.
+ * market changes the body and therefore the tag. The tag is strong: the body is
+ * byte-identical for a given set of open markets.
  */
 function payloadEtag(body: string): string {
   let hash = 0x811c9dc5;
@@ -70,55 +54,6 @@ function payloadEtag(body: string): string {
     hash = Math.imul(hash, 0x01000193) >>> 0;
   }
   return `"open-markets-${hash.toString(16)}"`;
-}
-
-function serverEnv(name: string): string {
-  // Read INSIDE the handler: workerd injects bindings per request (F1).
-  return process.env[name] ?? "";
-}
-
-/** INC-802 — every client refusal this route sends, as a closed set (none today). */
-type ClientCode = never;
-
-/** INC-802 — a server failure: logged whole, answered with a fixed text. */
-function serverFailure(detail: string, status: 500 | 502 | 503): Response {
-  logRouteError(detail);
-  // INC-447 — a server failure is logged whole; the reply names no raw message.
-  return new Response(JSON.stringify({ error: "internal error" }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
-function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
-  return new Response(JSON.stringify({ error: code }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-function cacheControlHeader(): string {
-  return `public, max-age=${MAX_AGE}, stale-while-revalidate=3600`;
-}
-
-function respond(request: Request, entry: CacheEntry): Response {
-  const cacheControl = cacheControlHeader();
-  if (request.headers.get("If-None-Match") === entry.etag) {
-    return new Response(null, {
-      status: 304,
-      headers: { ETag: entry.etag, "Cache-Control": cacheControl },
-    });
-  }
-  return new Response(entry.body, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": cacheControl,
-      ETag: entry.etag,
-      Vary: "Accept-Encoding",
-    },
-  });
 }
 
 /** The published fields and nothing else — no private column travels. */
@@ -134,39 +69,32 @@ function shapeCountry(row: OpenCountry): OpenCountry {
   };
 }
 
-async function handleGet(request: Request): Promise<Response> {
-  const now = Date.now();
-  if (cached && now - cached.checkedAt < CACHE_TTL_MS) return respond(request, cached);
-
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
-
-  const supabase = createClient<Database>(url, publishable, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data, error } = await supabase.rpc("get_open_countries");
-  if (error) return serverFailure(error.message, 502);
-
-  const rows = Array.isArray(data) ? (data as OpenCountry[]) : [];
-  const body = JSON.stringify({ countries: rows.map(shapeCountry) });
-  const entry: CacheEntry = { etag: payloadEtag(body), body, checkedAt: now };
-  cached = entry;
-  return respond(request, entry);
+async function handler(ctx: RouteContext): Promise<Response> {
+  const supabase = ctx.supabase;
+  if (supabase === null) throw new Error("anonymous client missing");
+  try {
+    const held = await OPEN.get(
+      "open",
+      async () => String(Math.floor(Date.now() / BUCKET_MS)),
+      async () => {
+        const { data, error, status } = await supabase.rpc("get_open_countries");
+        if (error) throw new ReaderError({ class: "server", status, message: errorText(error) });
+        const rows = Array.isArray(data) ? (data as OpenCountry[]) : [];
+        const body = { countries: rows.map(shapeCountry) };
+        return { body, etag: payloadEtag(JSON.stringify(body)) };
+      },
+    );
+    if (held === null) throw new Error("open markets not built");
+    return conditional(ctx.request, { etag: held.value.etag, body: held.value.body, cache: CACHE });
+  } catch (error) {
+    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
+    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
+      return upstreamUnavailable(PATH, "open markets read", status);
+    }
+    return serverError(PATH, error);
+  }
 }
 
 export const Route = createFileRoute("/api/locations")({
-  server: {
-    handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(error);
-          return serverFailure(errorText(error), 500);
-        }
-      },
-    },
-  },
+  server: { handlers: { GET: defineRoute({ path: PATH, auth: "anon", handler }) } },
 });
