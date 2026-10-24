@@ -1,0 +1,19 @@
+// A hand-rolled route, planted for CF-RT-4: its own body read, its own UUID
+// regex and its own Response — every line a breach the census must name.
+import { createFileRoute } from "@tanstack/react-router";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const Route = createFileRoute("/api/bad-example")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const body = (await request.json()) as { id?: string };
+        if (typeof body.id !== "string" || !UUID.test(body.id)) {
+          return new Response(JSON.stringify({ error: "bad" }), { status: 400 });
+        }
+        return new Response(JSON.stringify({ ok: true }), { status: 200 });
+      },
+    },
+  },
+});
