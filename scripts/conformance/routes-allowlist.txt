@@ -1,8 +1,5 @@
 # The route boundary (Foundations turn 2): every server endpoint is a defineRoute; a line here is a route not yet moved (until its wave's INC) or a helper that implements the boundary. <path> | <reason> | <until>
 # INC-859 — the posting and media routes
-src/routes/api/listings/background.ts | posting route not yet on defineRoute | INC-859
-src/routes/api/upload/photo.ts | upload route not yet on defineRoute | INC-859
-src/routes/api/media/photo-links.ts | media route not yet on defineRoute (carries the second clientAddress copy :46-:52) | INC-859
 # INC-860 — the admin imports and exports
 src/routes/api/admin/categories/import.ts | import route not yet on defineRoute | INC-860
 src/routes/api/admin/attributes/import.ts | import route not yet on defineRoute | INC-860

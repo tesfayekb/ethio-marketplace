@@ -107,9 +107,6 @@ export default tseslint.config(
       "**/*.test.ts",
       "**/*.test.tsx",
       // ROUTES-BOUNDARY-IGNORES-BEGIN
-      "src/routes/api/listings/background.ts", // until INC-859
-      "src/routes/api/upload/photo.ts", // until INC-859
-      "src/routes/api/media/photo-links.ts", // until INC-859
       "src/routes/api/admin/categories/import.ts", // until INC-860
       "src/routes/api/admin/attributes/import.ts", // until INC-860
       "src/routes/api/admin/locations/import.ts", // until INC-860
