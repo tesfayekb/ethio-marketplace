@@ -1,4 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+
+import { uuid } from "@/lib/schemas/primitives";
+import { bytes, serverError, verdict } from "@/server/answer";
+import { ownListing } from "@/server/listings/own-listing";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import {
@@ -13,16 +19,7 @@ import {
 } from "@/server/media/background";
 import { PHOTO_OPEN_STATUSES } from "@/server/media/hold";
 import { signPhotoRows } from "@/server/media/links";
-import {
-  consumeRate,
-  envDial,
-  logRouteError,
-  readJsonBody,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
 
 /**
  * Bundle 13 turn 12 — D155b / D159: REMOVE THE COVER PHOTO'S BACKGROUND.
@@ -38,7 +35,9 @@ import {
  *                         provider key, is `featureOff`, before any dial, so a
  *                         switched-off tool spends none of the seller's tries
  *   3 the daily dial    — `background:day` per seller (RATE_LIMIT_BACKGROUND_PER_DAY, 10)
- *   4 the ids           — two UUIDs, else `badValue`
+ *   4 the ids           — two UUIDs (the body's schema), else `badShape`
+ *                         (Foundations turn 4: the schema runs in defineRoute,
+ *                         before the switch)
  *   5 ownership         — the listing read AS THE CALLER: another seller's is a
  *                         403 `notYourListing`; a closed status a 409 by name
  *   6 the cover         — the listing's photos read AS THE CALLER, in their own
@@ -60,18 +59,19 @@ import {
 
 const PATH = "/api/listings/background";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** The body the client sends (posting-service.ts `removeBackground`): exactly two ids. */
+export const BackgroundBody = z.object({ listingId: uuid, photoId: uuid }).strict();
+type Body = z.infer<typeof BackgroundBody>;
 
-function refusedWith(status: number, field: string, reason: string): Response {
-  return routeJson({ ok: false, refusals: [{ field, reason }] }, status);
-}
+const refusal = (field: string, reason: string, detail?: string, status = 200) =>
+  verdict([{ field, reason, ...(detail === undefined ? {} : { detail }) }], status);
+const refusedWith = (status: number, field: string, reason: string) =>
+  refusal(field, reason, undefined, status);
 
-async function handlePost(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-  const supabase = caller.supabase!;
-  const userId = caller.userId!;
+async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
+  const supabase = ctx.supabase!;
+  const userId = ctx.userId!;
+  const { listingId, photoId } = ctx.body;
   const log = (message: string) => logRouteError(PATH, message);
 
   // 2 — the switch first, and the provider's key: without either the tool is off.
@@ -90,6 +90,7 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // 3 — the seller's daily dial (D158).
+  // dial in the handler: after the switch, so a switched-off tool spends none — INC-859
   const daily = await consumeRate(
     "background:day",
     userId,
@@ -98,27 +99,11 @@ async function handlePost(request: Request): Promise<Response> {
   );
   if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
 
-  // 4 — the ids.
-  const body = await readJsonBody(request);
-  const listingId = typeof body["listingId"] === "string" ? body["listingId"].trim() : "";
-  const photoId = typeof body["photoId"] === "string" ? body["photoId"].trim() : "";
-  if (!UUID.test(listingId)) return refusal("listingId", "badValue");
-  if (!UUID.test(photoId)) return refusal("photoId", "badValue");
-
-  // 5 — ownership, as the caller (`listings_seller_read` is the authority, F3).
-  const { data: listing, error: listingError } = await supabase
-    .from("listings")
-    .select("id, status, seller_id")
-    .eq("id", listingId)
-    .maybeSingle();
-  if (listingError) {
-    log(`listing read: ${listingError.message}`);
-    return routeJson({ error: "server error" }, 500);
-  }
-  if (!listing || listing.seller_id !== userId) {
-    return refusedWith(403, "listingId", "notYourListing");
-  }
-  if (!PHOTO_OPEN_STATUSES.has(String(listing.status))) {
+  // 5 — ownership, as the caller: the id AND the seller in one read (ownListing).
+  const own = await ownListing(supabase, userId, listingId, "id, status");
+  if ("error" in own) return serverError(PATH, `listing read: ${own.error.message}`);
+  if (own.row === null) return refusedWith(403, "listingId", "notYourListing");
+  if (!PHOTO_OPEN_STATUSES.has(String(own.row["status"]))) {
     return refusedWith(409, "status", "listingNotOpenForPhotos");
   }
 
@@ -129,8 +114,7 @@ async function handlePost(request: Request): Promise<Response> {
     .eq("listing_id", listingId)
     .order("display_order", { ascending: true });
   if (rowsError) {
-    log(`photo rows: ${rowsError.message}`);
-    return routeJson({ error: "server error" }, 500);
+    return serverError(PATH, `photo rows: ${rowsError.message}`);
   }
   const photos = rows ?? [];
   const photo = photos.find((row) => row.id === photoId);
@@ -138,6 +122,7 @@ async function handlePost(request: Request): Promise<Response> {
   if (photos[0]?.id !== photoId) return refusedWith(409, "photoId", "notCover");
 
   // 7 — the ad's tries, spent before the provider is asked (F5).
+  // dial in the handler: keyed by the listing — INC-859
   const budget = await consumeRate(
     "background:listing",
     listingId,
@@ -172,27 +157,19 @@ async function handlePost(request: Request): Promise<Response> {
 
   // 9 — the meter: the provider has answered.
   await recordAiSpend("background_removal", 1, log);
-  return new Response(cutout.bytes as BodyInit, {
-    status: 200,
-    headers: {
-      "content-type": cutout.type,
-      "cache-control": "no-store",
-      "x-tries-left": String(triesLeft),
-    },
-  });
+  // bytes() answers no-store unless told otherwise (ANS-5).
+  return bytes(cutout.bytes, cutout.type, { headers: { "x-tries-left": String(triesLeft) } });
 }
 
 export const Route = createFileRoute("/api/listings/background")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        try {
-          return await handlePost(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      POST: defineRoute({
+        path: PATH,
+        auth: "user",
+        body: BackgroundBody,
+        handler: handlePost,
+      }),
     },
   },
 });
