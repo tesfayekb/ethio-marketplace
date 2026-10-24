@@ -4847,6 +4847,7 @@ export type Database = {
         Args: { p_country?: string; p_kind: string }
         Returns: Json
       }
+      legal_kind_signed_in_only: { Args: { p_kind: string }; Returns: boolean }
       legal_listing_certified: {
         Args: { p_ids: string[]; p_listing_id: string }
         Returns: boolean
