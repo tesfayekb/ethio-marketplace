@@ -1,255 +1,131 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
-import { readAllPages } from "@/lib/read-all-pages";
 
-import type { Database } from "@/integrations/supabase/types";
+import { conditional, notModified, serverError, upstreamUnavailable } from "@/server/answer";
+import { defineRoute, type RouteContext } from "@/server/route";
+import { versionCache } from "@/server/version-cache";
+import { upstreamFailed } from "@/server/supabase/user-client";
 import { errorText } from "@/lib/error-text";
+import { readAllPages } from "@/lib/read-all-pages";
+import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * INC-263 — THE PUBLIC CATEGORY TREE, VERSION-KEYED.
  *
  *   GET /api/categories/tree → { version, nodes: [...], pointers: [...] }
  *
- * CENSUS (why this route exists). The tree was the ONLY public reference read
- * with no version and no server seam: `features/categories/category-tree.ts`
- * queried `categories` + `category_tree_pointers` straight from the browser and
- * kept the first answer in a module-level cache for the whole page session, with
- * nothing that could ever expire it. A categories import therefore stayed
- * invisible — baby-food absent, food-beverages still under its old parent — for
- * as long as the tab lived, however long after the commit.
+ * Foundations turn 6 (INC-862 T2): on `defineRoute` with `auth: "anon"` (the
+ * anon publishable client, RLS as anon — DEC-013 §10: no bearer, no session),
+ * the one `versionCache` and the one `conditional()` responder.
  *
- * The option lists solved exactly this in INC-243, so this route is deliberately
- * their shape, in three layers:
- *   1 `get_category_tree_version()` → an in-process cache good for 15 s
- *   2 the version IS the ETag, so a conditional request costs a 304
- *   3 `public, max-age=60, stale-while-revalidate=300` for the browser
+ * INC-265 — THE HOLD IS THE BODY, NEVER THE VERSION: ttl 0, so the version is
+ * asked on EVERY request and the held body is reused only while that stamp is
+ * unmoved; the browser holds the body sixty seconds and pays a 304.
  *
- * So an import is visible inside the same sixty-second window the option lists
- * already promise, and a rail or wizard mount in between pays a 304.
- *
- * DEC-013 §10 — THE PUBLIC PATH CARRIES NO AUTHORITY: no bearer, no session, no
- * `has_permission`. The anon publishable client is built INSIDE the handler
- * because workerd injects bindings per request (F1).
- *
- * INC-246 — EVERY SURFACING IS SERVED. The pointers come back whole, both rows
- * of a category with a secondary parent included; which parent is "first" is the
- * reader's business, not this route's.
- *
- * I4 — every throw and every deliberate 5xx logs one `[ssr-error]` line.
+ * INC-246 — EVERY SURFACING IS SERVED: the pointers come back whole.
  */
 
-const MAX_AGE = 60;
-const SWR = 300;
+const PATH = "/api/categories/tree";
+const CACHE = "public, max-age=60, stale-while-revalidate=300";
 
-/**
- * INC-265 — THE HOLD IS THE BODY, NEVER THE VERSION.
- *
- * The first landing of this route also held the VERSION for fifteen seconds: a
- * request inside that window was answered from `cached` without asking the
- * database whether the tree had moved. On one process that serves many readers
- * — the built node serve the suite runs, and equally a warm worker — a category
- * created a moment ago was therefore absent from the tree for up to fifteen
- * seconds, and every reader asking in that window got the same stale answer.
- * That is the exact staleness INC-263 was opened about, one seam further in.
- *
- * So the version is asked on EVERY request (one short read-only stamp) and the
- * cached BODY is reused only while that stamp is unmoved — which is where the
- * real saving was anyway: the two tree queries. The browser still holds the body
- * for sixty seconds and pays a 304 to revalidate, so INC-263's promise stands
- * and a curator's import is visible on the next read, not fifteen seconds later.
- */
-interface CacheEntry {
-  version: string;
-  etag: string;
-  body: string;
-}
-
-let cached: CacheEntry | null = null;
-
-function logRouteError(error: unknown): void {
-  // INC-328, INC-625 — an upstream HTML error page is named, never dumped into the
-  // log; an error with no message says so (src/lib/error-text.ts).
-  const message = errorText(error);
-  console.error("[ssr-error]", "/api/categories/tree", message);
-}
-
-function serverEnv(name: string): string {
-  // Read INSIDE the handler: workerd injects bindings per request (F1).
-  return process.env[name] ?? "";
-}
-
-/** INC-802 — every client refusal this route sends, as a closed set (none today). */
-type ClientCode = never;
-
-/** INC-802 — a server failure: logged whole, answered with a fixed text. */
-function serverFailure(detail: string, status: 500 | 502 | 503): Response {
-  logRouteError(detail);
-  // INC-447 — a server failure is logged whole; the reply names no raw message.
-  return new Response(JSON.stringify({ error: "internal error" }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-/** INC-802 — a client refusal: its code is one of the route's fixed codes. */
-function clientFailure(code: ClientCode, status: 400 | 401 | 404 | 429): Response {
-  return new Response(JSON.stringify({ error: code }), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" },
-  });
-}
-
-function cacheControlHeader(): string {
-  return `public, max-age=${MAX_AGE}, stale-while-revalidate=${SWR}`;
-}
-
-function respond(request: Request, entry: CacheEntry): Response {
-  const cacheControl = cacheControlHeader();
-  if (request.headers.get("If-None-Match") === entry.etag) {
-    return new Response(null, {
-      status: 304,
-      headers: { ETag: entry.etag, "Cache-Control": cacheControl },
-    });
-  }
-  return new Response(entry.body, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": cacheControl,
-      ETag: entry.etag,
-      Vary: "Accept-Encoding",
-    },
-  });
-}
+/** The held value is the parsed body; conditional() serializes it. */
+const TREE = versionCache<"tree", { body: unknown } | { matched: true }>({ ttlMs: 0, max: 1 });
 
 /** The ten columns the two readers need — a translated name is never served. */
 const NODE_COLUMNS =
   "id,name_en,name_am,slug,icon,display_order,allow_listings,is_catchall,image_url,image_thumb_url";
 
-/** A thrown page read, as the `{ message }` the failure path below reads. */
-function errorOf(error: unknown): { message: string } {
-  // INC-625 — an error object with no message read as "undefined" here.
-  return { message: errorText(error) };
+/** A door read that failed, typed with the status the mapping reads. */
+function readFailed(error: unknown, status: number): ReaderError {
+  return new ReaderError({ class: "server", status, message: errorText(error) });
 }
 
-async function handleGet(request: Request): Promise<Response> {
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return serverFailure("supabase server env missing", 500);
-
-  const supabase = createClient<Database>(url, publishable, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  // EVERY request asks the stamp (INC-265): the body may be held, the truth of
-  // whether it is still the answer may not.
-  const { data: version, error: versionError } = await supabase.rpc("get_category_tree_version");
-  if (versionError) return serverFailure(versionError.message, 502);
-  const resolved = typeof version === "string" ? version : "";
-  if (resolved === "") return serverFailure("no category tree version", 502);
-  const etag = `"cat-tree-${resolved}"`;
-
-  // Version unchanged → the body already held is still the answer, and neither
-  // the categories nor the pointers are read a second time.
-  if (cached !== null && cached.version === resolved) return respond(request, cached);
-
-  // A conditional hit on a fresh version never touches the tree queries either.
-  if (request.headers.get("If-None-Match") === etag) {
-    return new Response(null, {
-      status: 304,
-      headers: { ETag: etag, "Cache-Control": cacheControlHeader() },
+async function handler(ctx: RouteContext): Promise<Response> {
+  const supabase = ctx.supabase;
+  if (supabase === null) throw new Error("anonymous client missing");
+  const etagOf = (version: string) => `"cat-tree-${version}"`;
+  try {
+    const held = await TREE.get(
+      "tree",
+      async () => {
+        const { data, error, status } = await supabase.rpc("get_category_tree_version");
+        if (error) throw readFailed(error, status);
+        const resolved = typeof data === "string" ? data : "";
+        if (resolved === "") throw new Error("no category tree version");
+        return resolved;
+      },
+      async (version) => {
+        // A cold conditional hit: nothing is read and nothing is held.
+        if (ctx.request.headers.get("If-None-Match") === etagOf(version)) return null;
+        // INC-459 — both tables read page by page after the last id.
+        const [nodes, pointers] = await Promise.all([
+          readAllPages(
+            (after, limit) => {
+              const query = supabase
+                .from("categories")
+                .select(NODE_COLUMNS)
+                .eq("is_active", true)
+                .order("id")
+                .limit(limit);
+              return after === null ? query : query.gt("id", after);
+            },
+            (row) => row.id,
+          ),
+          // D33 — the pointer order is cat_primary_pointer's: display_order, then created_at.
+          readAllPages(
+            (after, limit) => {
+              const query = supabase
+                .from("category_tree_pointers")
+                .select("id,child_id,parent_id,display_order,is_primary,created_at")
+                .order("id")
+                .limit(limit);
+              return after === null ? query : query.gt("id", after);
+            },
+            (row) => row.id,
+          ),
+        ]);
+        return {
+          body: {
+            version,
+            nodes: [...nodes].sort(
+              (a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id),
+            ),
+            pointers: [...pointers]
+              .sort(
+                (a, b) =>
+                  a.display_order - b.display_order ||
+                  a.created_at.localeCompare(b.created_at) ||
+                  a.id.localeCompare(b.id),
+              )
+              .map(({ child_id, parent_id, display_order, is_primary }) => ({
+                child_id,
+                parent_id,
+                display_order,
+                is_primary,
+              })),
+          },
+        };
+      },
+    );
+    if (held === null) {
+      // build returned null only for the cold conditional hit.
+      const version = await lastVersion(supabase);
+      return notModified(etagOf(version), CACHE);
+    }
+    if (!("body" in held.value)) return notModified(etagOf(held.version), CACHE);
+    return conditional(ctx.request, {
+      etag: etagOf(held.version),
+      body: held.value.body,
+      cache: CACHE,
     });
+  } catch (error) {
+    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
+    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
+      return upstreamUnavailable(PATH, "category tree read", status);
+    }
+    return serverError(PATH, error);
   }
-
-  // INC-459 — both tables are read page by page after the last id (each
-  // table's PRIMARY KEY), then sorted back to the order served before.
-  const [nodes, pointers] = await Promise.all([
-    readAllPages(
-      (after, limit) => {
-        const query = supabase
-          .from("categories")
-          .select(NODE_COLUMNS)
-          .eq("is_active", true)
-          .order("id")
-          .limit(limit);
-        return after === null ? query : query.gt("id", after);
-      },
-      (row) => row.id,
-    ).then(
-      (rows) => ({
-        error: null,
-        data: [...rows].sort(
-          (a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id),
-        ),
-      }),
-      (error: unknown) => ({ error: errorOf(error), data: null }),
-    ),
-    // D33 — THE POINTER CARRIES THE ORDER, AND THE FIRST POINTER IS THE PRIMARY
-    // HOME. The rows are served in exactly the order `cat_primary_pointer` ranks
-    // them — `display_order`, then `created_at` — so the reader's "first pointer
-    // of a child is its primary" is the SAME verdict the database reaches for the
-    // export's `parent_slug` and `category_path` (D30's breadcrumb).
-    readAllPages(
-      (after, limit) => {
-        const query = supabase
-          .from("category_tree_pointers")
-          .select("id,child_id,parent_id,display_order,is_primary,created_at")
-          .order("id")
-          .limit(limit);
-        return after === null ? query : query.gt("id", after);
-      },
-      (row) => row.id,
-    ).then(
-      (rows) => ({
-        error: null,
-        // Sorted back to display_order, then created_at (the primary rule's
-        // order); id and created_at are read for paging and sorting only.
-        data: [...rows]
-          .sort(
-            (a, b) =>
-              a.display_order - b.display_order ||
-              a.created_at.localeCompare(b.created_at) ||
-              a.id.localeCompare(b.id),
-          )
-          .map(({ child_id, parent_id, display_order, is_primary }) => ({
-            child_id,
-            parent_id,
-            display_order,
-            is_primary,
-          })),
-      }),
-      (error: unknown) => ({ error: errorOf(error), data: null }),
-    ),
-  ]);
-  // F4 — a failed read is a failure, never an empty tree that reads as "there
-  // are no categories".
-  if (nodes.error) return serverFailure(nodes.error.message, 502);
-  if (pointers.error) return serverFailure(pointers.error.message, 502);
-
-  const entry: CacheEntry = {
-    version: resolved,
-    etag,
-    body: JSON.stringify({
-      version: resolved,
-      nodes: nodes.data ?? [],
-      pointers: pointers.data ?? [],
-    }),
-  };
-  cached = entry;
-  return respond(request, entry);
 }
 
 export const Route = createFileRoute("/api/categories/tree")({
-  server: {
-    handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(error);
-          return serverFailure(errorText(error), 500);
-        }
-      },
-    },
-  },
+  server: { handlers: { GET: defineRoute({ path: PATH, auth: "anon", handler }) } },
 });
