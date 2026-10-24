@@ -127,10 +127,7 @@ function queryObject(url: URL, schema: z.ZodTypeAny): Record<string, unknown> {
   return out;
 }
 
-function badShapeAnswer(
-  mode: "verdict" | "clientError",
-  issues: readonly z.core.$ZodIssue[],
-): Response {
+function badShapeAnswer(mode: "verdict" | "clientError", issues: readonly z.core.$ZodIssue[]): Response {
   if (mode === "clientError") return clientError("bad request", 400);
   const first = issues[0];
   return verdict([
@@ -140,6 +137,12 @@ function badShapeAnswer(
       detail: first?.code,
     },
   ]);
+}
+
+/** A body that is not JSON at all: the same badShape answer, no schema issue. */
+function malformedJsonAnswer(mode: "verdict" | "clientError"): Response {
+  if (mode === "clientError") return clientError("bad request", 400);
+  return verdict([{ field: "", reason: "badShape", detail: "invalid_json" }]);
 }
 
 export function defineRoute<B = unknown, P = unknown, Q = unknown>(
@@ -256,9 +259,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         try {
           raw = JSON.parse(new TextDecoder().decode(bytes ?? new Uint8Array(0)));
         } catch {
-          return badShapeAnswer(badShape, [
-            { code: "invalid_type", path: [], message: "malformed JSON" } as z.core.$ZodIssue,
-          ]);
+          return malformedJsonAnswer(badShape);
         }
         const parsed = spec.body.safeParse(raw);
         if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues);
@@ -270,7 +271,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         const rebuilt = new Request(request.url, {
           method: request.method,
           headers: request.headers,
-          body: bytes,
+          body: new Blob([bytes ?? new Uint8Array(0)]),
         });
         form = await rebuilt.formData();
       }

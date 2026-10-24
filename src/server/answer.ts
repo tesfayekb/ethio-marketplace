@@ -45,6 +45,7 @@ export function clientError(
  */
 export function serverError(path: string, error: unknown): Response {
   const incident = crypto.randomUUID();
+  // eslint-disable-next-line no-restricted-syntax -- INC-815: the stack is wanted when it exists; a plain object falls through to String.
   logRouteError(path, `[incident ${incident}] ${error instanceof Error ? error.stack : error}`);
   return routeJson({ error: "server error", incident }, 500);
 }
