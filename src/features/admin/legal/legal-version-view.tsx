@@ -138,9 +138,19 @@ export function LegalVersionView({
   const focused = useRef(false);
   const row = version.data;
   useEffect(() => {
-    if (!openTranslation || !addingTranslation || !row || languages.isPending || focused.current || !panel.current) return;
+    if (
+      !openTranslation ||
+      !addingTranslation ||
+      !row ||
+      languages.isPending ||
+      focused.current ||
+      !panel.current
+    )
+      return;
     focused.current = true;
-    const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     panel.current.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
     languageSelect.current?.focus({ preventScroll: true });
   }, [openTranslation, addingTranslation, row, languages.isPending]);
@@ -295,181 +305,181 @@ export function LegalVersionView({
                 <div className={openTranslation ? "order-2" : undefined}>
                   <LegalText text={text} facts={facts} toc />
                 </div>
-              {row.status === "published" && permissions.includes("legal:publish") ? (
-                <section ref={panel} className="min-w-0 scroll-mt-20 space-y-3 print:hidden">
-                  <Button
-                    data-testid="legal-translation-add"
-                    variant="outline"
-                    aria-expanded={addingTranslation}
-                    onClick={() => {
-                      setAddingTranslation((open) => !open);
-                      setTranslationSaved(false);
-                      setTranslationError(null);
-                    }}
-                  >
-                    {t("admin.legal.translation.add")}
-                  </Button>
-                  {addingTranslation ? (
-                    <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
-                      {languages.error ? (
-                        <p role="alert" className="text-destructive">
-                          {t("admin.legal.error.load")}
+                {row.status === "published" && permissions.includes("legal:publish") ? (
+                  <section ref={panel} className="min-w-0 scroll-mt-20 space-y-3 print:hidden">
+                    <Button
+                      data-testid="legal-translation-add"
+                      variant="outline"
+                      aria-expanded={addingTranslation}
+                      onClick={() => {
+                        setAddingTranslation((open) => !open);
+                        setTranslationSaved(false);
+                        setTranslationError(null);
+                      }}
+                    >
+                      {t("admin.legal.translation.add")}
+                    </Button>
+                    {addingTranslation ? (
+                      <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
+                        {languages.error ? (
+                          <p role="alert" className="text-destructive">
+                            {t("admin.legal.error.load")}
+                          </p>
+                        ) : languages.isPending ? (
+                          <p role="status">{t("common.loading")}</p>
+                        ) : null}
+                        <label htmlFor="legal-translation-language">{t("language.label")}</label>
+                        <select
+                          ref={languageSelect}
+                          id="legal-translation-language"
+                          data-testid="legal-translation-language"
+                          className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-base"
+                          value={translationLanguage}
+                          disabled={translationSaving}
+                          onChange={(e) => {
+                            setTranslationLanguage(e.target.value);
+                            setTranslationSaved(false);
+                            setTranslationError(null);
+                          }}
+                        >
+                          <option value="">{t("language.label")}</option>
+                          {availableLanguages.map((l) => (
+                            <option key={l.code} value={l.code}>
+                              {l.nameEn}
+                            </option>
+                          ))}
+                        </select>
+                        <label htmlFor="legal-translation-body">
+                          {t("admin.legal.field.textOptional").replace(
+                            "{language}",
+                            languageName(translationLanguage),
+                          )}
+                        </label>
+                        <Textarea
+                          id="legal-translation-body"
+                          data-testid="legal-translation-body"
+                          className="min-h-72 text-base"
+                          value={translationBody}
+                          disabled={translationSaving}
+                          onChange={(e) => {
+                            setTranslationBody(e.target.value);
+                            setTranslationSaved(false);
+                            setTranslationError(null);
+                          }}
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          {t("admin.legal.count")
+                            .replace("{count}", String(translationBody.length))
+                            .replace("{max}", "200000")}
                         </p>
-                      ) : languages.isPending ? (
-                        <p role="status">{t("common.loading")}</p>
-                      ) : null}
-                      <label htmlFor="legal-translation-language">{t("language.label")}</label>
-                      <select
-                        ref={languageSelect}
-                        id="legal-translation-language"
-                        data-testid="legal-translation-language"
-                        className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-base"
-                        value={translationLanguage}
-                        disabled={translationSaving}
-                        onChange={(e) => {
-                          setTranslationLanguage(e.target.value);
-                          setTranslationSaved(false);
-                          setTranslationError(null);
-                        }}
-                      >
-                        <option value="">{t("language.label")}</option>
-                        {availableLanguages.map((l) => (
-                          <option key={l.code} value={l.code}>
-                            {l.nameEn}
-                          </option>
-                        ))}
-                      </select>
-                      <label htmlFor="legal-translation-body">
-                        {t("admin.legal.field.textOptional").replace(
-                          "{language}",
-                          languageName(translationLanguage),
-                        )}
-                      </label>
-                      <Textarea
-                        id="legal-translation-body"
-                        data-testid="legal-translation-body"
-                        className="min-h-72 text-base"
-                        value={translationBody}
-                        disabled={translationSaving}
-                        onChange={(e) => {
-                          setTranslationBody(e.target.value);
-                          setTranslationSaved(false);
-                          setTranslationError(null);
-                        }}
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        {t("admin.legal.count")
-                          .replace("{count}", String(translationBody.length))
-                          .replace("{max}", "200000")}
-                      </p>
-                      <label htmlFor="legal-translation-import" className="block text-sm">
-                        {t("admin.legal.import.label")}
-                      </label>
-                      <input
-                        id="legal-translation-import"
-                        data-testid="legal-translation-import"
-                        type="file"
-                        accept=".md,.txt,text/markdown,text/plain"
-                        className="block w-full min-w-0 text-sm"
-                        disabled={translationSaving}
-                        onChange={(e) => {
-                          const input = e.currentTarget;
-                          const file = input.files?.[0];
-                          input.value = "";
-                          if (!file) return;
-                          setImportedFile(null);
-                          setTranslationError(null);
-                          setTranslationSaved(false);
-                          void file
-                            .text()
-                            .then((body) => {
-                              if (body.length > 200000) {
-                                setTranslationError("admin.legal.import.tooBig");
-                                return;
-                              }
-                              setTranslationBody(body);
-                              setImportedFile(file.name);
-                            })
-                            .catch((failure: unknown) => {
-                              console.error("[client-error] legal translation import", failure);
-                              setTranslationError("admin.legal.import.failed");
-                            });
-                        }}
-                      />
-                      {importedFile ? (
-                        <p role="status">
-                          {t("admin.legal.import.done").replace("{file}", importedFile)}
+                        <label htmlFor="legal-translation-import" className="block text-sm">
+                          {t("admin.legal.import.label")}
+                        </label>
+                        <input
+                          id="legal-translation-import"
+                          data-testid="legal-translation-import"
+                          type="file"
+                          accept=".md,.txt,text/markdown,text/plain"
+                          className="block w-full min-w-0 text-sm"
+                          disabled={translationSaving}
+                          onChange={(e) => {
+                            const input = e.currentTarget;
+                            const file = input.files?.[0];
+                            input.value = "";
+                            if (!file) return;
+                            setImportedFile(null);
+                            setTranslationError(null);
+                            setTranslationSaved(false);
+                            void file
+                              .text()
+                              .then((body) => {
+                                if (body.length > 200000) {
+                                  setTranslationError("admin.legal.import.tooBig");
+                                  return;
+                                }
+                                setTranslationBody(body);
+                                setImportedFile(file.name);
+                              })
+                              .catch((failure: unknown) => {
+                                console.error("[client-error] legal translation import", failure);
+                                setTranslationError("admin.legal.import.failed");
+                              });
+                          }}
+                        />
+                        {importedFile ? (
+                          <p role="status">
+                            {t("admin.legal.import.done").replace("{file}", importedFile)}
+                          </p>
+                        ) : null}
+                        {tokens.length ? (
+                          <p data-testid="legal-unknown-tokens">
+                            {t("admin.legal.unknownTokens").replace("{tokens}", tokens.join(", "))}
+                          </p>
+                        ) : null}
+                        {emptyFacts.length ? (
+                          <p data-testid="legal-empty-facts">
+                            {t("admin.legal.emptyFacts").replace("{tokens}", emptyFacts.join(", "))}
+                          </p>
+                        ) : null}
+                        <LegalText text={translationBody} facts={facts} />
+                        <p className="text-sm text-muted-foreground">
+                          {t("admin.legal.translation.hint")}
                         </p>
-                      ) : null}
-                      {tokens.length ? (
-                        <p data-testid="legal-unknown-tokens">
-                          {t("admin.legal.unknownTokens").replace("{tokens}", tokens.join(", "))}
-                        </p>
-                      ) : null}
-                      {emptyFacts.length ? (
-                        <p data-testid="legal-empty-facts">
-                          {t("admin.legal.emptyFacts").replace("{tokens}", emptyFacts.join(", "))}
-                        </p>
-                      ) : null}
-                      <LegalText text={translationBody} facts={facts} />
-                      <p className="text-sm text-muted-foreground">
-                        {t("admin.legal.translation.hint")}
-                      </p>
-                      <Button
-                        data-testid="legal-translation-save"
-                        disabled={
-                          translationSaving ||
-                          !translationLanguage ||
-                          !translationBody.trim() ||
-                          languages.isPending ||
-                          Boolean(languages.error)
-                        }
-                        onClick={() => {
-                          setTranslationError(null);
-                          setTranslationSaved(false);
-                          if (translationBody.length > 200000) {
-                            setTranslationError("admin.legal.error.tooLong");
-                            return;
+                        <Button
+                          data-testid="legal-translation-save"
+                          disabled={
+                            translationSaving ||
+                            !translationLanguage ||
+                            !translationBody.trim() ||
+                            languages.isPending ||
+                            Boolean(languages.error)
                           }
-                          const input = {
-                            versionId: row.version_id,
-                            language: translationLanguage,
-                            body: translationBody,
-                          };
-                          setTranslationSaving(true);
-                          void guard(() => writes.translation.mutateAsync(input))
-                            .then(() => {
-                              setLang(input.language);
-                              setTranslationSaved(true);
-                              setAddingTranslation(false);
-                              setTranslationLanguage("");
-                              setTranslationBody("");
-                              setImportedFile(null);
-                            })
-                            .catch((failure: unknown) => {
-                              console.error("[client-error] legal translation save", failure);
-                              setTranslationErrorName(legalErrorName(failure));
-                              setTranslationError(legalErrorKey(failure));
-                            })
-                            .finally(() => setTranslationSaving(false));
-                        }}
-                      >
-                        {t("admin.legal.translation.save")}
-                      </Button>
-                      {translationError ? (
-                        <p role="alert" className="text-destructive">
-                          {t(translationError)
-                            .replace("{max}", "200000")
-                            .replace("{name}", translationErrorName)}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {translationSaved ? (
-                    <p role="status">{t("admin.legal.translation.saved")}</p>
-                  ) : null}
-                </section>
-              ) : null}
+                          onClick={() => {
+                            setTranslationError(null);
+                            setTranslationSaved(false);
+                            if (translationBody.length > 200000) {
+                              setTranslationError("admin.legal.error.tooLong");
+                              return;
+                            }
+                            const input = {
+                              versionId: row.version_id,
+                              language: translationLanguage,
+                              body: translationBody,
+                            };
+                            setTranslationSaving(true);
+                            void guard(() => writes.translation.mutateAsync(input))
+                              .then(() => {
+                                setLang(input.language);
+                                setTranslationSaved(true);
+                                setAddingTranslation(false);
+                                setTranslationLanguage("");
+                                setTranslationBody("");
+                                setImportedFile(null);
+                              })
+                              .catch((failure: unknown) => {
+                                console.error("[client-error] legal translation save", failure);
+                                setTranslationErrorName(legalErrorName(failure));
+                                setTranslationError(legalErrorKey(failure));
+                              })
+                              .finally(() => setTranslationSaving(false));
+                          }}
+                        >
+                          {t("admin.legal.translation.save")}
+                        </Button>
+                        {translationError ? (
+                          <p role="alert" className="text-destructive">
+                            {t(translationError)
+                              .replace("{max}", "200000")
+                              .replace("{name}", translationErrorName)}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    {translationSaved ? (
+                      <p role="status">{t("admin.legal.translation.saved")}</p>
+                    ) : null}
+                  </section>
+                ) : null}
               </div>
               {row.status === "published" && permissions.includes("legal:export") ? (
                 <section data-testid="legal-export-section" className="space-y-2 print:hidden">

@@ -119,22 +119,44 @@ export function LegalDocumentPage({
           const version = section.data?.inForce;
           const selection = version ? legalTextFor(version, language) : null;
           return (
-            <Section key={section.countryCode} className="space-y-4" data-testid="legal-public-section">
+            <Section
+              key={section.countryCode}
+              className="space-y-4"
+              data-testid="legal-public-section"
+            >
               <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
-                {t("legal.certify.forCountry").replace("{country}",
-                  new Intl.DisplayNames([language], { type: "region" }).of(section.countryCode) ?? section.countryCode)}
+                {t("legal.certify.forCountry").replace(
+                  "{country}",
+                  new Intl.DisplayNames([language], { type: "region" }).of(section.countryCode) ??
+                    section.countryCode,
+                )}
               </p>
               {section.data === null ? (
-                <p role="alert" data-testid="legal-public-load-error" className="text-destructive">{t("legal.page.loadError")}</p>
+                <p role="alert" data-testid="legal-public-load-error" className="text-destructive">
+                  {t("legal.page.loadError")}
+                </p>
               ) : !version ? (
-                <p data-testid="legal-public-none" className="text-muted-foreground">{t("legal.page.none").replace("{document}", title)}</p>
+                <p data-testid="legal-public-none" className="text-muted-foreground">
+                  {t("legal.page.none").replace("{document}", title)}
+                </p>
               ) : (
                 <>
                   <p data-testid="legal-public-meta" className="text-sm text-muted-foreground">
-                    {t("legal.page.meta").replace("{n}", String(version.version)).replace("{label}", version.label).replace("{date}", legalDate(version.effective_at, language))}
+                    {t("legal.page.meta")
+                      .replace("{n}", String(version.version))
+                      .replace("{label}", version.label)
+                      .replace("{date}", legalDate(version.effective_at, language))}
                   </p>
-                  {selection?.fallback ? <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">{t("legal.fallbackNote")}</p> : null}
-                  <LegalText toc text={selection?.text ?? ""} facts={version.settings_snapshot ?? {}} />
+                  {selection?.fallback ? (
+                    <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                      {t("legal.fallbackNote")}
+                    </p>
+                  ) : null}
+                  <LegalText
+                    toc
+                    text={selection?.text ?? ""}
+                    facts={version.settings_snapshot ?? {}}
+                  />
                 </>
               )}
             </Section>

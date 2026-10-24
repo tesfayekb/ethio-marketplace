@@ -17,10 +17,7 @@ vi.mock("@/i18n", async (original) => {
 import { en } from "@/i18n/locales/en";
 import { AgreeToDocument } from "./agree-to-document";
 
-const LINKS = [
-  { label: "Terms", href: "/terms" },
-  { label: "Privacy", href: "/privacy" },
-];
+const LINKS = { terms: "/terms", privacy: "/privacy" };
 
 function mount(props: { checked?: boolean; refused?: boolean; onChange?: (v: boolean) => void }) {
   return render(
@@ -38,13 +35,15 @@ function mount(props: { checked?: boolean; refused?: boolean; onChange?: (v: boo
 }
 
 describe("AgreeToDocument (bundle 22 turn 32)", () => {
-  it("renders the sentence, the required mark and every link with its href and target", () => {
+  it("renders the sentence with two inline document links", () => {
     mount({});
-    expect(screen.getByText(en["legal.agree.first.both"], { exact: false })).toBeTruthy();
+    expect(screen.getByTestId("agree-to-document").textContent).toContain("I am 18 or older.");
+    expect(screen.getByTestId("agree-to-document").querySelector("ul")).toBeNull();
     expect(screen.getByTestId("post-required-mark")).toBeTruthy();
     const links = screen.getAllByTestId("agree-link");
     expect(links.map((a) => a.getAttribute("href"))).toEqual(["/terms", "/privacy"]);
-    expect(links.map((a) => a.textContent)).toEqual(["Terms", "Privacy"]);
+    expect(links.map((a) => a.textContent)).toEqual(["Terms of Service", "Privacy Policy"]);
+    expect(links.map((a) => a.getAttribute("data-role"))).toEqual(["terms", "privacy"]);
     for (const a of links) {
       expect(a.getAttribute("target")).toBe("_blank");
       expect(a.getAttribute("rel")).toBe("noopener noreferrer");
@@ -104,5 +103,60 @@ describe("AgreeToDocument (bundle 22 turn 32)", () => {
     // Allowlist: none (a future exception is a line here with its reason and `until`, G55).
     const outside = matches.filter((m) => m !== "src/features/legal/agree-to-document.tsx");
     expect(outside.sort()).toEqual([]);
+  });
+});
+
+function sentenceFindings(english: string, amharic: string): string[] {
+  const read = (text: string) =>
+    Object.fromEntries([...text.matchAll(/"([^"]+)":\s*"([^"\n]*)"/g)].map((m) => [m[1], m[2]]));
+  const enRows = read(english);
+  const amRows = read(amharic);
+  const findings: string[] = [];
+  // These do not name a document; until a kind beyond terms/privacy is asked for on this screen.
+  const exceptions = ["legal.accept.agreeFirst.docs", "legal.accept.agreeUpdated.docs"];
+  for (const [key, value] of Object.entries(enRows)) {
+    if (
+      exceptions.includes(key) ||
+      !key.startsWith("legal.agree.") ||
+      !/Terms of Service|Privacy Policy|publishing statement/.test(value)
+    )
+      continue;
+    for (const [lang, sentence] of [
+      ["en", value],
+      ["am", amRows[key] ?? ""],
+    ]) {
+      const roles = [
+        ...sentence.matchAll(/\[([^\]\n]{1,120})\]\((terms|privacy|publishing)\)/g),
+      ].map((m) => m[2]);
+      const wanted = [...value.matchAll(/\[([^\]\n]{1,120})\]\((terms|privacy|publishing)\)/g)].map(
+        (m) => m[2],
+      );
+      if (
+        !roles.length ||
+        JSON.stringify(roles.slice().sort()) !== JSON.stringify(wanted.slice().sort()) ||
+        /\]\((?!(?:terms|privacy|publishing)\))/.test(sentence)
+      )
+        findings.push(`${lang}:${key}`);
+    }
+  }
+  return findings;
+}
+
+describe("D235 sentence census", () => {
+  it("every named document has its tokens in both catalogues", () => {
+    expect(
+      sentenceFindings(
+        readFileSync("src/i18n/locales/en-base.ts", "utf8"),
+        readFileSync("src/i18n/locales/am-base.ts", "utf8"),
+      ),
+    ).toEqual([]);
+  });
+  it("refuses a planted token-less sentence", () => {
+    expect(
+      sentenceFindings(
+        '"legal.agree.plant": "I agree to the Terms of Service.",',
+        '"legal.agree.plant": "plain",',
+      ),
+    ).toEqual(["en:legal.agree.plant", "am:legal.agree.plant"]);
   });
 });

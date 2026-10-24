@@ -56,11 +56,23 @@ export function AgreeToDocument({
     parts.push(text.slice(end, match.index));
     const role = match[2] as DocumentRole;
     const href = links[role];
-    parts.push(href ? (
-      <a key={match.index} href={href} target="_blank" rel="noopener noreferrer"
-        data-testid="agree-link" data-role={role}
-        className="text-primary underline underline-offset-2">{match[1]}</a>
-    ) : match[1]);
+    parts.push(
+      href ? (
+        <a
+          key={match.index}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="agree-link"
+          data-role={role}
+          className="text-primary underline underline-offset-2"
+        >
+          {match[1]}
+        </a>
+      ) : (
+        match[1]
+      ),
+    );
     end = match.index + match[0].length;
   }
   parts.push(text.slice(end));
@@ -103,7 +115,6 @@ export function AgreeToDocument({
           {parts} {required ? <RequiredMark /> : null}
         </span>
       </label>
-
     </div>
   );
 }

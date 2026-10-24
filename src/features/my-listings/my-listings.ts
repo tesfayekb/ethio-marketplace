@@ -236,7 +236,8 @@ export async function readMyListings(
   });
   if (error) throw new ReaderError(readerFailure(error));
   const page = parseMyListings(data);
-  if (page === null) throw new ReaderError({ class: "malformed", message: "my_listings malformed" });
+  if (page === null)
+    throw new ReaderError({ class: "malformed", message: "my_listings malformed" });
   return page;
 }
 

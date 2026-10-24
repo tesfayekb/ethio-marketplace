@@ -696,7 +696,9 @@ export function MyListingsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <p role="alert" data-testid="my-listings-error" className="text-sm text-destructive">
                 {t("myListings.loadError")}
-                {failure ? <span data-testid="my-listings-error-class">{` (${failure.class}${failure.status ? " " + failure.status : ""})`}</span> : null}
+                {failure ? (
+                  <span data-testid="my-listings-error-class">{` (${failure.class}${failure.status ? " " + failure.status : ""})`}</span>
+                ) : null}
               </p>
               <Button
                 type="button"

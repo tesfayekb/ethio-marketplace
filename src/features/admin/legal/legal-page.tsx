@@ -142,7 +142,15 @@ export function LegalPage() {
           )
           .map((v) => {
             const status = versionStatus(v, doc.versions, now);
-            const missingLanguages = languages.data?.filter((l) => l.enabledAdmin && l.code !== "en" && l.code !== "am" && l.code !== PSEUDO_LANG && ownValue(v.texts, l.code) === undefined) ?? [];
+            const missingLanguages =
+              languages.data?.filter(
+                (l) =>
+                  l.enabledAdmin &&
+                  l.code !== "en" &&
+                  l.code !== "am" &&
+                  l.code !== PSEUDO_LANG &&
+                  ownValue(v.texts, l.code) === undefined,
+              ) ?? [];
             return (
               <div
                 key={v.version_id}
@@ -235,7 +243,9 @@ export function LegalPage() {
                               search={{ translate: "1" }}
                               data-testid="legal-translate-inforce"
                             >
-                              {t("admin.legal.translation.add") + ": " + missingLanguages.map((l) => l.nameEn).join(", ")}
+                              {t("admin.legal.translation.add") +
+                                ": " +
+                                missingLanguages.map((l) => l.nameEn).join(", ")}
                             </Link>
                           </Button>
                         ) : null}

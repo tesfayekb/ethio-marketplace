@@ -103,3 +103,28 @@ describe("LegalDocumentPage", () => {
     expect(screen.queryByTestId("legal-fallback-note")).toBeNull();
   });
 });
+
+it("shows the global text and every requested country, including an absent statement", () => {
+  site.language = "en";
+  render(
+    <LegalDocumentPage
+      kind="publishing"
+      title="Publishing"
+      data={{ inForce: v(1, "Global body", "am", "", "2026-10-01T00:00:00Z"), scheduled: null }}
+      sections={[
+        {
+          countryCode: "ET",
+          data: {
+            inForce: v(2, "Country body", "am", "", "2026-10-01T00:00:00Z"),
+            scheduled: null,
+          },
+        },
+        { countryCode: "KE", data: { inForce: null, scheduled: null } },
+      ]}
+    />,
+  );
+  expect(screen.getByTestId("legal-public-page")).toHaveTextContent("Global body");
+  expect(screen.getByTestId("legal-public-page")).toHaveTextContent("Country body");
+  expect(screen.getAllByTestId("legal-public-country")).toHaveLength(2);
+  expect(screen.getByTestId("legal-public-none")).toHaveTextContent("legal.page.none");
+});

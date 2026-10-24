@@ -1282,11 +1282,14 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "legal.accept.version": "ስሪት {n} · {label}",
   "legal.accept.read": "ያንብቡ",
   "legal.accept.hide": "ይደብቁ",
-  "legal.agree.first.both": "ዕድሜዬ 18 ወይም ከዚያ በላይ ነው። [የአገልግሎት ውሎቹን](terms) እና [የግላዊነት መመሪያውን](privacy) አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
+  "legal.agree.first.both":
+    "ዕድሜዬ 18 ወይም ከዚያ በላይ ነው። [የአገልግሎት ውሎቹን](terms) እና [የግላዊነት መመሪያውን](privacy) አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
   "legal.agree.first.terms": "ዕድሜዬ 18 ወይም ከዚያ በላይ ነው። [የአገልግሎት ውሎቹን](terms) አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
-  "legal.agree.first.privacy": "ዕድሜዬ 18 ወይም ከዚያ በላይ ነው። [የግላዊነት መመሪያውን](privacy) አንብቤያለሁ፤ በእሱም እስማማለሁ።",
+  "legal.agree.first.privacy":
+    "ዕድሜዬ 18 ወይም ከዚያ በላይ ነው። [የግላዊነት መመሪያውን](privacy) አንብቤያለሁ፤ በእሱም እስማማለሁ።",
   "legal.accept.agreeFirst.docs": "ዕድሜዬ 18 ወይም ከዚያ በላይ ነው። ከላይ ያሉትን ሰነዶች አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
-  "legal.agree.updated.both": "የተሻሻሉትን [የአገልግሎት ውሎች](terms) እና የተሻሻለውን [የግላዊነት መመሪያ](privacy) አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
+  "legal.agree.updated.both":
+    "የተሻሻሉትን [የአገልግሎት ውሎች](terms) እና የተሻሻለውን [የግላዊነት መመሪያ](privacy) አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
   "legal.agree.updated.terms": "የተሻሻሉትን [የአገልግሎት ውሎች](terms) አንብቤያለሁ፤ በእነሱም እስማማለሁ።",
   "legal.agree.updated.privacy": "የተሻሻለውን [የግላዊነት መመሪያ](privacy) አንብቤያለሁ፤ በእሱም እስማማለሁ።",
   "legal.accept.agreeUpdated.docs": "ከላይ ያሉትን የተሻሻሉ ሰነዶች አንብቤያለሁ፤ በእነሱም እስማማለሁ።",

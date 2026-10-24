@@ -9,7 +9,9 @@ const COUNTRY = /^[A-Z]{2}$/;
 /** The root passes raw search through; only distinct uppercase country codes reach the door. */
 function shapedCountries(value: unknown): string[] {
   const values = typeof value === "string" ? value.split(",") : Array.isArray(value) ? value : [];
-  return [...new Set(values.filter((v): v is string => typeof v === "string" && COUNTRY.test(v)))].slice(0, 5);
+  return [
+    ...new Set(values.filter((v): v is string => typeof v === "string" && COUNTRY.test(v))),
+  ].slice(0, 5);
 }
 
 const scratchPageFn = createServerFn({ method: "GET" })
@@ -22,18 +24,22 @@ const scratchPageFn = createServerFn({ method: "GET" })
     if (!isE2E) throw new Error("legal scratch page: not an E2E build");
     const { legalPage } = await import("@/server/legal-page");
     const [global, ...countries] = await Promise.all([
-      legalPage(data.kind), ...data.countries.map((code) => legalPage(data.kind, code)),
+      legalPage(data.kind),
+      ...data.countries.map((code) => legalPage(data.kind, code)),
     ]);
     return { global, countries: data.countries.map((code, i) => ({ code, data: countries[i] })) };
   });
 
 /** The public publishing page always carries the global statement plus the countries requested. */
 const publishingPageFn = createServerFn({ method: "GET" })
-  .inputValidator((input: { countries: string[] }) => ({ countries: shapedCountries(input?.countries) }))
+  .inputValidator((input: { countries: string[] }) => ({
+    countries: shapedCountries(input?.countries),
+  }))
   .handler(async ({ data }) => {
     const { legalPage } = await import("@/server/legal-page");
     const [global, ...countries] = await Promise.all([
-      legalPage("publishing"), ...data.countries.map((code) => legalPage("publishing", code)),
+      legalPage("publishing"),
+      ...data.countries.map((code) => legalPage("publishing", code)),
     ]);
     return { global, countries: data.countries.map((code, i) => ({ code, data: countries[i] })) };
   });
@@ -56,7 +62,8 @@ export const Route = createFileRoute("/legal/$kind")({
   loader: async ({ params, deps }) => {
     if (params.kind === "terms" || params.kind === "privacy")
       throw redirect({ href: `/${params.kind}`, statusCode: 301 });
-    if (params.kind === "publishing") return publishingPageFn({ data: { countries: deps.countries } });
+    if (params.kind === "publishing")
+      return publishingPageFn({ data: { countries: deps.countries } });
     if (!isE2E || !SCRATCH_KIND.test(params.kind)) throw notFound();
     return scratchPageFn({ data: { kind: params.kind, countries: deps.countries } });
   },
@@ -106,7 +113,10 @@ function LegalKindPage() {
       kind={kind}
       title={title}
       data={answer.global ?? null}
-      sections={answer.countries.map((section) => ({ countryCode: section.code, data: section.data ?? null }))}
+      sections={answer.countries.map((section) => ({
+        countryCode: section.code,
+        data: section.data ?? null,
+      }))}
     />
   );
 }

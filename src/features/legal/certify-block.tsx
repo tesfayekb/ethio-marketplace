@@ -84,8 +84,12 @@ export function CertifyBlock({
       </div>
     );
 
-  const countries = [...new Set(statements.flatMap((s) => s.country_code ? [s.country_code] : []))];
-  const href = countries.length ? `/legal/publishing?country=${countries.join(",")}` : "/legal/publishing";
+  const countries = [
+    ...new Set(statements.flatMap((s) => (s.country_code ? [s.country_code] : []))),
+  ];
+  const href = countries.length
+    ? `/legal/publishing?country=${countries.join(",")}`
+    : "/legal/publishing";
   return (
     <section data-testid="certify-block" className="space-y-3">
       <h3 className="text-base font-semibold text-foreground">{t("legal.certify.title")}</h3>

@@ -1359,11 +1359,15 @@ export const enBase = {
   "legal.accept.version": "Version {n} · {label}",
   "legal.accept.read": "Read",
   "legal.accept.hide": "Hide",
-  "legal.agree.first.both": "I am 18 or older. I have read and agree to the [Terms of Service](terms) and the [Privacy Policy](privacy).",
-  "legal.agree.first.terms": "I am 18 or older. I have read and agree to the [Terms of Service](terms).",
-  "legal.agree.first.privacy": "I am 18 or older. I have read and agree to the [Privacy Policy](privacy).",
+  "legal.agree.first.both":
+    "I am 18 or older. I have read and agree to the [Terms of Service](terms) and the [Privacy Policy](privacy).",
+  "legal.agree.first.terms":
+    "I am 18 or older. I have read and agree to the [Terms of Service](terms).",
+  "legal.agree.first.privacy":
+    "I am 18 or older. I have read and agree to the [Privacy Policy](privacy).",
   "legal.accept.agreeFirst.docs": "I am 18 or older. I have read and agree to the documents above.",
-  "legal.agree.updated.both": "I have read and agree to the updated [Terms of Service](terms) and the updated [Privacy Policy](privacy).",
+  "legal.agree.updated.both":
+    "I have read and agree to the updated [Terms of Service](terms) and the updated [Privacy Policy](privacy).",
   "legal.agree.updated.terms": "I have read and agree to the updated [Terms of Service](terms).",
   "legal.agree.updated.privacy": "I have read and agree to the updated [Privacy Policy](privacy).",
   "legal.accept.agreeUpdated.docs": "I have read and agree to the updated documents above.",
