@@ -51,6 +51,7 @@ import { Route as DevTallRouteImport } from './routes/dev.tall'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as LegalKindRouteImport } from './routes/legal.$kind'
 import { Route as LegalAcceptRouteImport } from './routes/legal.accept'
+import { Route as LegalPublishingRouteImport } from './routes/legal.publishing'
 import { Route as MyListingsListingIdRouteImport } from './routes/my-listings_.$listingId'
 import { Route as PostListingIdRouteImport } from './routes/post_.$listingId'
 import { Route as AccountLegalVersionIdRouteImport } from './routes/account_.legal_.$versionId'
@@ -303,6 +304,11 @@ const LegalKindRoute = LegalKindRouteImport.update({
 const LegalAcceptRoute = LegalAcceptRouteImport.update({
   id: '/legal/accept',
   path: '/legal/accept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalPublishingRoute = LegalPublishingRouteImport.update({
+  id: '/legal/publishing',
+  path: '/legal/publishing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MyListingsListingIdRoute = MyListingsListingIdRouteImport.update({
@@ -572,6 +578,7 @@ export interface FileRoutesByFullPath {
   '/l/$slug': typeof LSlugRoute
   '/legal/$kind': typeof LegalKindRoute
   '/legal/accept': typeof LegalAcceptRoute
+  '/legal/publishing': typeof LegalPublishingRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -658,6 +665,7 @@ export interface FileRoutesByTo {
   '/l/$slug': typeof LSlugRoute
   '/legal/$kind': typeof LegalKindRoute
   '/legal/accept': typeof LegalAcceptRoute
+  '/legal/publishing': typeof LegalPublishingRoute
   '/my-listings/$listingId': typeof MyListingsListingIdRoute
   '/post/$listingId': typeof PostListingIdRoute
   '/admin': typeof AdminIndexRoute
@@ -746,6 +754,7 @@ export interface FileRoutesById {
   '/l/$slug': typeof LSlugRoute
   '/legal/$kind': typeof LegalKindRoute
   '/legal/accept': typeof LegalAcceptRoute
+  '/legal/publishing': typeof LegalPublishingRoute
   '/my-listings_/$listingId': typeof MyListingsListingIdRoute
   '/post_/$listingId': typeof PostListingIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -835,6 +844,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/$kind'
     | '/legal/accept'
+    | '/legal/publishing'
     | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin/'
@@ -921,6 +931,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/$kind'
     | '/legal/accept'
+    | '/legal/publishing'
     | '/my-listings/$listingId'
     | '/post/$listingId'
     | '/admin'
@@ -1008,6 +1019,7 @@ export interface FileRouteTypes {
     | '/l/$slug'
     | '/legal/$kind'
     | '/legal/accept'
+    | '/legal/publishing'
     | '/my-listings_/$listingId'
     | '/post_/$listingId'
     | '/admin/'
@@ -1081,6 +1093,7 @@ export interface RootRouteChildren {
   LSlugRoute: typeof LSlugRoute
   LegalKindRoute: typeof LegalKindRoute
   LegalAcceptRoute: typeof LegalAcceptRoute
+  LegalPublishingRoute: typeof LegalPublishingRoute
   MyListingsListingIdRoute: typeof MyListingsListingIdRoute
   PostListingIdRoute: typeof PostListingIdRoute
   AccountLegalVersionIdRoute: typeof AccountLegalVersionIdRoute
@@ -1408,6 +1421,13 @@ declare module '@tanstack/react-router' {
       path: '/legal/accept'
       fullPath: '/legal/accept'
       preLoaderRoute: typeof LegalAcceptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/publishing': {
+      id: '/legal/publishing'
+      path: '/legal/publishing'
+      fullPath: '/legal/publishing'
+      preLoaderRoute: typeof LegalPublishingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/my-listings_/$listingId': {
@@ -1824,6 +1844,7 @@ const rootRouteChildren: RootRouteChildren = {
   LSlugRoute: LSlugRoute,
   LegalKindRoute: LegalKindRoute,
   LegalAcceptRoute: LegalAcceptRoute,
+  LegalPublishingRoute: LegalPublishingRoute,
   MyListingsListingIdRoute: MyListingsListingIdRoute,
   PostListingIdRoute: PostListingIdRoute,
   AccountLegalVersionIdRoute: AccountLegalVersionIdRoute,
