@@ -611,11 +611,8 @@ function AuthScreen() {
             <AgreeToDocument
               id="agreement"
               testId="auth-agree-tick"
-              sentence="legal.accept.agreeFirst.both"
-              links={[
-                { label: t("legal.kind.terms"), href: "/terms" },
-                { label: t("legal.kind.privacy"), href: "/privacy" },
-              ]}
+              sentence="legal.agree.first.both"
+              links={{ terms: "/terms", privacy: "/privacy" }}
               checked={agreed}
               onCheckedChange={setAgreed}
               refused={agreeTried && !agreed}

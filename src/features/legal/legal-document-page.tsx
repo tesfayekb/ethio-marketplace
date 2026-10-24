@@ -17,12 +17,14 @@ export function LegalDocumentPage({
   title,
   data,
   countryCode,
+  sections = [],
 }: {
   kind: string;
   title: string;
   data: LegalPageAnswer | null;
   /** Bundle 22 turn 32 — a country's publishing statement names its country under the title. */
   countryCode?: string;
+  sections?: Array<{ countryCode: string; data: LegalPageAnswer | null }>;
 }) {
   const { t, language } = useI18n();
   const [showUpcoming, setShowUpcoming] = useState(false);
@@ -113,6 +115,53 @@ export function LegalDocumentPage({
             </Section>
           </>
         )}
+        {sections.map((section) => {
+          const version = section.data?.inForce;
+          const selection = version ? legalTextFor(version, language) : null;
+          return (
+            <Section
+              key={section.countryCode}
+              className="space-y-4"
+              data-testid="legal-public-section"
+            >
+              <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
+                {t("legal.certify.forCountry").replace(
+                  "{country}",
+                  new Intl.DisplayNames([language], { type: "region" }).of(section.countryCode) ??
+                    section.countryCode,
+                )}
+              </p>
+              {section.data === null ? (
+                <p role="alert" data-testid="legal-public-load-error" className="text-destructive">
+                  {t("legal.page.loadError")}
+                </p>
+              ) : !version ? (
+                <p data-testid="legal-public-none" className="text-muted-foreground">
+                  {t("legal.page.none").replace("{document}", title)}
+                </p>
+              ) : (
+                <>
+                  <p data-testid="legal-public-meta" className="text-sm text-muted-foreground">
+                    {t("legal.page.meta")
+                      .replace("{n}", String(version.version))
+                      .replace("{label}", version.label)
+                      .replace("{date}", legalDate(version.effective_at, language))}
+                  </p>
+                  {selection?.fallback ? (
+                    <p data-testid="legal-fallback-note" className="text-sm text-muted-foreground">
+                      {t("legal.fallbackNote")}
+                    </p>
+                  ) : null}
+                  <LegalText
+                    toc
+                    text={selection?.text ?? ""}
+                    facts={version.settings_snapshot ?? {}}
+                  />
+                </>
+              )}
+            </Section>
+          );
+        })}
       </div>
     </PageShell>
   );

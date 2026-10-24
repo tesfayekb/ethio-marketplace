@@ -62,20 +62,19 @@ describe("CertifyBlock (bundle 22 turn 4)", () => {
     expect(view.container.innerHTML).toBe("");
     expect(read).toHaveBeenCalledWith("l-1");
   });
-  it("turn 32 (DEC-236): one link per statement, no statement text, and one unticked tick", async () => {
+  it("turn 32 (DEC-236): one link for all statements, no statement text, and one unticked tick", async () => {
     read.mockResolvedValue({ statements: [GLOBAL, KENYA], acceptance_pending: false });
     const { reports } = mount();
-    await waitFor(() => expect(screen.getAllByTestId("agree-link")).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByTestId("agree-link")).toHaveLength(1));
     const links = screen.getAllByTestId("agree-link");
-    expect(links.map((a) => a.getAttribute("href"))).toEqual([
-      "/legal/publishing",
-      "/legal/publishing?country=KE",
-    ]);
-    expect(links[0]?.textContent).toBe("Publishing statement");
-    expect(links[1]?.textContent).toBe("Publishing statement — For Kenya");
+    expect(links.map((a) => a.getAttribute("href"))).toEqual(["/legal/publishing?country=KE"]);
+    expect(links[0]?.getAttribute("data-role")).toBe("publishing");
+    expect(links[0]?.textContent).toBe("publishing statement");
     expect(screen.queryByTestId("certify-statement")).toBeNull();
     expect(screen.queryByText("Global English")).toBeNull();
-    expect(screen.getByText("I certify the publishing statement.", { exact: false })).toBeTruthy();
+    expect(screen.getByTestId("agree-to-document").textContent).toContain(
+      "I certify the publishing statement.",
+    );
     expect(last(reports)).toEqual({
       state: "ready",
       versionIds: ["v-global", "v-ke"],

@@ -149,14 +149,10 @@ export function LegalAcceptScreen({
                 id="acceptance"
                 testId="legal-accept-tick"
                 sentence={tickKey(roles, firstTime)}
-                links={[
-                  ...(roles.includes("terms")
-                    ? [{ label: t("legal.kind.terms"), href: "/terms" }]
-                    : []),
-                  ...(roles.includes("privacy")
-                    ? [{ label: t("legal.kind.privacy"), href: "/privacy" }]
-                    : []),
-                ]}
+                links={{
+                  ...(roles.includes("terms") ? { terms: "/terms" } : {}),
+                  ...(roles.includes("privacy") ? { privacy: "/privacy" } : {}),
+                }}
                 checked={agreed}
                 onCheckedChange={setAgreed}
                 refused={agreeTried && !agreed}

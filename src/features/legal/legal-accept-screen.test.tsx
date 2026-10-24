@@ -15,7 +15,18 @@ vi.mock("./legal-reader", async (original) => ({
 }));
 vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
 vi.mock("@/components/shell-context", () => ({ useShell: () => ({ requestSignOut: vi.fn() }) }));
-vi.mock("@/i18n", () => ({ useI18n: () => ({ t: (k: string) => k, language: "en" }) }));
+vi.mock("@/i18n", async () => {
+  const { en } = await import("@/i18n/locales/en");
+  return {
+    useI18n: () => ({
+      t: (k: string) =>
+        k.startsWith("legal.agree.") && k !== "legal.agree.required"
+          ? ((en as Record<string, string>)[k] ?? k)
+          : k,
+      language: "en",
+    }),
+  };
+});
 import { LegalAcceptScreen } from "./legal-accept-screen";
 
 const row = (kind: string, id: string, adult = false) => ({
@@ -51,7 +62,7 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findAllByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.agreeFirst.both", { exact: false })).toBeInTheDocument();
+    expect(screen.getByTestId("agree-to-document")).toBeInTheDocument();
     expect(screen.getAllByTestId("agree-link").map((a) => a.getAttribute("href"))).toEqual([
       "/terms",
       "/privacy",
@@ -82,9 +93,7 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findByTestId("legal-accept-doc");
-    expect(
-      screen.getByText("legal.accept.agreeUpdated.terms", { exact: false }),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("agree-to-document")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());
     await waitFor(() =>

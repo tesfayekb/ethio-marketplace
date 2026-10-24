@@ -5017,13 +5017,7 @@
       "/post/$listingId"
     ],
     "legal.certify.forCountry": [
-      "/admin/listings/$listingId/edit",
       "/legal/$kind",
-      "/my-listings",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId",
       "/privacy",
       "/terms"
     ],
@@ -5078,13 +5072,7 @@
       "/terms"
     ],
     "legal.kind.publishing": [
-      "/admin/listings/$listingId/edit",
-      "/legal/$kind",
-      "/my-listings",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
+      "/legal/$kind"
     ],
     "legal.kind.terms": [
       "(every page)",
