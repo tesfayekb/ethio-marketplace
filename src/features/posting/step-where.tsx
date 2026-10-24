@@ -167,9 +167,7 @@ async function readGuess(): Promise<GuessFacts> {
   }
   const payload = answer.payload;
   const num = (key: string) =>
-    typeof payload[key] === "number" && Number.isFinite(payload[key])
-      ? Number(payload[key])
-      : null;
+    typeof payload[key] === "number" && Number.isFinite(payload[key]) ? Number(payload[key]) : null;
   return {
     country: typeof payload["country"] === "string" ? payload["country"] : null,
     regionCode: typeof payload["regionCode"] === "string" ? payload["regionCode"] : null,

@@ -290,7 +290,11 @@ describe("uploadRoute — the XHR transport", () => {
     expect(request.headers.get("Accept")).toBe("application/json");
     expect([...request.headers.keys()].filter((k) => k === "Authorization")).toHaveLength(1);
     expect(request.sent).toBe(form);
-    request.upload.onprogress?.({ lengthComputable: true, loaded: 50, total: 100 } as ProgressEvent);
+    request.upload.onprogress?.({
+      lengthComputable: true,
+      loaded: 50,
+      total: 100,
+    } as ProgressEvent);
     request.upload.onprogress?.({ lengthComputable: false, loaded: 0, total: 0 } as ProgressEvent);
     request.onload?.();
     expect(progress).toEqual([[50, 100]]);

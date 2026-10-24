@@ -29,7 +29,9 @@ export interface ReverseAnswer {
   reason: GeoReason;
 }
 
-async function ask(path: RoutePath): Promise<{ payload: Record<string, unknown>; reason: GeoReason }> {
+async function ask(
+  path: RoutePath,
+): Promise<{ payload: Record<string, unknown>; reason: GeoReason }> {
   const answer = await callRoute(path);
   if (answer.kind === "signedOut") return { payload: {}, reason: "signedOut" };
   if (answer.kind === "unreachable") return { payload: {}, reason: "unavailable" };
