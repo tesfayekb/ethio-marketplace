@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
+
+import { walkFiles } from "../../../scripts/conformance/kit";
 
 const build = vi.hoisted(() => ({ isE2E: false }));
 vi.mock("@/lib/env-flags", () => build);
@@ -39,19 +41,14 @@ beforeEach(() => {
 
 describe("the AI meter (D158)", () => {
   it("INC-839 every stand-in environment read uses the shared helper", () => {
-    const matches: string[] = [];
-    function visit(dir: string) {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) visit(path);
-        else if (
-          !entry.name.endsWith(".test.ts") &&
-          /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE)"\]/.test(readFileSync(path, "utf8"))
-        )
-          matches.push(relative(process.cwd(), path));
-      }
-    }
-    visit(join(process.cwd(), "src"));
+    const matches = walkFiles([join(process.cwd(), "src")], {
+      ext: ["ts", "tsx"],
+      skipTests: true,
+    })
+      .filter((path) =>
+        /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE)"\]/.test(readFileSync(path, "utf8")),
+      )
+      .map((path) => relative(process.cwd(), path));
     expect(matches.sort()).toEqual(["src/server/ai/meter.ts"]);
   });
   it("INC-828 a stand-in exists only in the test build", () => {

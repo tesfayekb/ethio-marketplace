@@ -1,17 +1,13 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { readFileSync } from "node:fs";
+import { relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { walkFiles } from "../../scripts/conformance/kit";
+
 /** Every source file under src/, tests left out. */
 function sources(dir: string): string[] {
-  const out: string[] = [];
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name);
-    if (statSync(path).isDirectory()) out.push(...sources(path));
-    else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) out.push(path);
-  }
-  return out;
+  return walkFiles([dir], { ext: ["ts", "tsx"], skipTests: true });
 }
 
 /**

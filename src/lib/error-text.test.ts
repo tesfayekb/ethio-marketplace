@@ -1,7 +1,9 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { walkFiles } from "../../scripts/conformance/kit";
 
 import { errorText, errorWithStack } from "./error-text";
 
@@ -57,17 +59,14 @@ describe("errorText — one rule for what a caught error says in a log line (INC
 /** Every server source file: the server entry, the root route, the API routes and src/server/. */
 function serverSources(): string[] {
   const root = process.cwd();
-  const out = [join(root, "src/server.ts"), join(root, "src/routes/__root.tsx")];
-  const walk = (dir: string) => {
-    for (const name of readdirSync(dir)) {
-      const path = join(dir, name);
-      if (statSync(path).isDirectory()) walk(path);
-      else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) out.push(path);
-    }
-  };
-  walk(resolve(root, "src/routes/api"));
-  walk(resolve(root, "src/server"));
-  return out;
+  return [
+    join(root, "src/server.ts"),
+    join(root, "src/routes/__root.tsx"),
+    ...walkFiles([resolve(root, "src/routes/api"), resolve(root, "src/server")], {
+      ext: ["ts", "tsx"],
+      skipTests: true,
+    }),
+  ];
 }
 
 /** The text with every errorText(…) and errorWithStack(…) call removed, nested brackets included. */
