@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguages } from "@/features/admin/translations/use-translations";
 import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
@@ -133,7 +133,17 @@ export function LegalVersionView({
   const [translationSaved, setTranslationSaved] = useState(false);
   const [translationSaving, setTranslationSaving] = useState(false);
   const [importedFile, setImportedFile] = useState<string | null>(null);
+  const panel = useRef<HTMLElement>(null);
+  const languageSelect = useRef<HTMLSelectElement>(null);
+  const focused = useRef(false);
   const row = version.data;
+  useEffect(() => {
+    if (!openTranslation || !addingTranslation || !row || languages.isPending || focused.current || !panel.current) return;
+    focused.current = true;
+    const reduced = typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    panel.current.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
+    languageSelect.current?.focus({ preventScroll: true });
+  }, [openTranslation, addingTranslation, row, languages.isPending]);
   const availableLanguages =
     languages.data?.filter(
       (l) =>
@@ -190,7 +200,7 @@ export function LegalVersionView({
           ) : null}
           {row ? (
             <>
-              <div data-print-root className="min-w-0 space-y-4">
+              <div data-print-root className="flex min-w-0 flex-col gap-4">
                 <h1 className="break-words text-lg font-semibold">
                   {kind ? t(kind) : row.kind}
                   {" · "}
@@ -282,10 +292,11 @@ export function LegalVersionView({
                     />
                   </div>
                 ) : null}
-                <LegalText text={text} facts={facts} toc />
-              </div>
+                <div className={openTranslation ? "order-2" : undefined}>
+                  <LegalText text={text} facts={facts} toc />
+                </div>
               {row.status === "published" && permissions.includes("legal:publish") ? (
-                <section className="min-w-0 space-y-3 print:hidden">
+                <section ref={panel} className="min-w-0 scroll-mt-20 space-y-3 print:hidden">
                   <Button
                     data-testid="legal-translation-add"
                     variant="outline"
@@ -309,6 +320,7 @@ export function LegalVersionView({
                       ) : null}
                       <label htmlFor="legal-translation-language">{t("language.label")}</label>
                       <select
+                        ref={languageSelect}
                         id="legal-translation-language"
                         data-testid="legal-translation-language"
                         className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-base"
@@ -458,6 +470,7 @@ export function LegalVersionView({
                   ) : null}
                 </section>
               ) : null}
+              </div>
               {row.status === "published" && permissions.includes("legal:export") ? (
                 <section data-testid="legal-export-section" className="space-y-2 print:hidden">
                   <Button
