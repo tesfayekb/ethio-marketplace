@@ -5,9 +5,6 @@ src/routes/api/admin/categories/import.ts | import route not yet on defineRoute 
 src/routes/api/admin/attributes/import.ts | import route not yet on defineRoute | INC-860
 src/routes/api/admin/locations/import.ts | import route not yet on defineRoute | INC-860
 src/routes/api/admin/translations/import.ts | import route not yet on defineRoute | INC-860
-src/routes/api/admin/categories/export.ts | export route not yet on defineRoute | INC-860
-src/routes/api/admin/attributes/export.ts | export route not yet on defineRoute | INC-860
-src/routes/api/admin/locations/export.ts | export route not yet on defineRoute | INC-860
 src/server/imports/gate.ts | the import gate: its own JSON builder :85 and bearer read :800 | INC-860
 # INC-861 — the staff AI routes
 src/routes/api/translate.ts | staff AI route not yet on defineRoute | INC-861

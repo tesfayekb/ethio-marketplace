@@ -111,9 +111,6 @@ export default tseslint.config(
       "src/routes/api/admin/attributes/import.ts", // until INC-860
       "src/routes/api/admin/locations/import.ts", // until INC-860
       "src/routes/api/admin/translations/import.ts", // until INC-860
-      "src/routes/api/admin/categories/export.ts", // until INC-860
-      "src/routes/api/admin/attributes/export.ts", // until INC-860
-      "src/routes/api/admin/locations/export.ts", // until INC-860
       "src/server/imports/gate.ts", // until INC-860
       "src/routes/api/translate.ts", // until INC-861
       "src/routes/api/admin/categories/generate-image.ts", // until INC-861

@@ -2,7 +2,7 @@
 # IMPORT-GATE PART E — ONE DOOR, PROVED BY A GUARD.
 #
 # 1. Every import/export route under src/routes/api MUST enter through the
-#    shared gate (`openImportGate` / `openExportGate`). A route that builds its
+#    shared gate (`openImportGate` / `exportScope`). A route that builds its
 #    own Supabase client, or reads the Authorization header itself, is a second
 #    door and fails here.
 # 2. Every registered family MUST declare a class for every column.
@@ -15,7 +15,7 @@ routes=$(git ls-files 'src/routes/api/**/import.ts' 'src/routes/api/**/export.ts
 
 check_route() {
   local file="$1"
-  if ! grep -qE 'open(Import|Export)Gate' "$file"; then
+  if ! grep -qE 'openImportGate|exportScope' "$file"; then
     echo "IMPORT-GATE: $file does not call the shared gate"
     return 1
   fi
