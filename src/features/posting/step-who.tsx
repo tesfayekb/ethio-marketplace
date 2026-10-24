@@ -5,6 +5,7 @@ import { Check } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
+import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
 import type { MessageKey } from "@/i18n";
 
 import { RequiredMark, controlClass } from "./field";
@@ -170,6 +171,7 @@ export function StepWho({
 
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
   const [identityFailed, setIdentityFailed] = useState(false);
+  const [identityFailure, setIdentityFailure] = useState<ReaderFailure | null>(null);
   /** A stored identity is CONFIRMED, not re-asked, until the seller opens it. */
   const [editing, setEditing] = useState(false);
 
@@ -264,6 +266,11 @@ export function StepWho({
         setCountry(readAreaCookie()?.country ?? "");
       }
       setEditing(found.alias === null);
+    }).catch((error: unknown) => {
+      console.error("[post-who] identity read failed", error);
+      if (cancelled) return;
+      setIdentityFailure(readerFailure(error));
+      setIdentityFailed(true);
     });
     // Walk fix 3 — the change rule's dates, for the state line under the name.
     void readSellerLine()
@@ -681,6 +688,9 @@ export function StepWho({
       {identityFailed && (
         <p className="text-sm text-destructive" data-testid="post-who-read-failed">
           {t("post.who.readFailed")}
+          {identityFailure ? (
+            <span data-testid="post-who-error-class">{` (${identityFailure.class}${identityFailure.status ? " " + identityFailure.status : ""})`}</span>
+          ) : null}
         </p>
       )}
 
