@@ -159,25 +159,23 @@ const REGION_STEP = NEST_STEP;
 const CITY_STEP = NEST_STEP;
 
 async function readGuess(): Promise<GuessFacts> {
-  try {
-    const response = await fetch("/api/geo", { headers: { accept: "application/json" } });
-    if (!response.ok) throw new Error(String(response.status));
-    const payload = (await response.json()) as Record<string, unknown>;
-    const num = (key: string) =>
-      typeof payload[key] === "number" && Number.isFinite(payload[key])
-        ? Number(payload[key])
-        : null;
-    return {
-      country: typeof payload["country"] === "string" ? payload["country"] : null,
-      regionCode: typeof payload["regionCode"] === "string" ? payload["regionCode"] : null,
-      city: typeof payload["city"] === "string" ? payload["city"] : null,
-      lat: num("lat"),
-      lng: num("lng"),
-    };
-  } catch {
+  const answer = await callRoute("/api/geo", { auth: "none" });
+  if (answer.kind !== "answered" || !answer.ok || answer.payload === null) {
     // A guess that cannot be read is simply no guess: the seller picks.
     return { country: null, regionCode: null, city: null, lat: null, lng: null };
   }
+  const payload = answer.payload;
+  const num = (key: string) =>
+    typeof payload[key] === "number" && Number.isFinite(payload[key])
+      ? Number(payload[key])
+      : null;
+  return {
+    country: typeof payload["country"] === "string" ? payload["country"] : null,
+    regionCode: typeof payload["regionCode"] === "string" ? payload["regionCode"] : null,
+    city: typeof payload["city"] === "string" ? payload["city"] : null,
+    lat: num("lat"),
+    lng: num("lng"),
+  };
 }
 
 /** The chain from the anchor down to a node, as region / city / sub-city ids. */

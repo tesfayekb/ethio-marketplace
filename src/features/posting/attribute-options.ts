@@ -17,7 +17,7 @@ import { catalogWords, type CatalogTokens } from "@/i18n";
 import { drawCatalog } from "@/i18n/catalog-tokens";
 import type { EntityBundle } from "@/i18n/entity";
 import { ownValue } from "@/lib/own-key";
-import { supabase } from "@/integrations/supabase/client";
+import { callRoute } from "@/lib/route-client";
 
 export interface AttrOption {
   value: string;
