@@ -155,6 +155,38 @@ export function bytes(
   return new Response(copy, { status: init?.status ?? 200, headers });
 }
 
+/**
+ * Foundations turn 11 (DEC-237) — THE ONE DOWNLOAD ANSWER. UTF-8 bytes, an
+ * RFC 6266 attachment with the RFC 5987 `filename*` form, nosniff, never
+ * cached. A filename carrying `"`, `\`, `/` or a control character throws: the
+ * header cannot be injected, and callers build names from format-checked parts.
+ */
+export function download(text: string, init: { filename: string; contentType: string }): Response {
+  const name = init.filename;
+  if (
+    name === "" ||
+    [...name].some((character) => {
+      const code = character.charCodeAt(0);
+      return character === '"' || character === "\\" || character === "/" || code < 32 || code === 127;
+    })
+  )
+    throw new Error("invalid download filename");
+  const ascii = [...name].map((character) => (character.charCodeAt(0) > 126 ? "_" : character)).join("");
+  const encoded = encodeURIComponent(name).replace(
+    /['()*]/g,
+    (character) => `%${character.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return new Response(new TextEncoder().encode(text), {
+    status: 200,
+    headers: {
+      "Content-Type": init.contentType,
+      "Content-Disposition": `attachment; filename="${ascii}"; filename*=UTF-8''${encoded}`,
+      "X-Content-Type-Options": "nosniff",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 export { doorAnswer, upstreamFailed, upstreamUnavailable };
 
 /** The one database-read failure answer, never exposing diagnostic text. */
