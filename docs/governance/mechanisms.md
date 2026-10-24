@@ -46,5 +46,5 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 - AI: no gateway census; the D166 census keyed on one provider — land with `aiCall` (rows 11, 12).
 - Doors: no static or live check that a door's gates come in order, that a mutating door audits, or that a refusal carries a code — land with `check-doors.ts` (row 20).
 - Locale: no lint for `Intl` sites, pinned locales or SQL language literals — lands with `locale.ts`/`format.ts` (row 16).
-- Guards: no `scripts/conformance/wired.test.ts` naming every guard's caller (G55) — the conformance kit, the Foundations bundle's first turn.
+- Guards: INC-852 ✓ (CF-SIR, signed-in-routes.test.ts), INC-855 ✓ (GW-3, shell-guards.test.ts); INC-853/INC-854 owed (the e2e-helpers wave of the kit adoption).
 - Allowlists: rows 2 and 8 and the RLS/definer allowlists carry no `until` (G55 format) — migrated by the door manifest and the conformance kit.
