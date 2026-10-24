@@ -303,7 +303,9 @@ export const AssistBody = z
     attrs: z.unknown().optional(),
     photoFacts: z.unknown().optional(),
     negotiable: z.boolean().optional(),
-    period: z.enum(["hour", "day", "week", "month", "year"]).nullable().optional(),
+    // The price period as the wizard holds it ("once" among them); assistDealLines
+    // keeps only the per-period words and ignores the rest, as it always has.
+    period: z.string().max(16).nullable().optional(),
     previous: z
       .array(z.object({ title: z.string(), description: z.string() }))
       .max(5)

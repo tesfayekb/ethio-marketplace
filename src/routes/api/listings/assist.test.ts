@@ -139,7 +139,7 @@ afterEach(() => {
 
 describe("POST /api/listings/assist on defineRoute (D2)", () => {
   it("AST-1 a bad body answers the verdict — no rpc, no fetch", async () => {
-    const response = await post({ ...BODY, period: "decade" });
+    const response = await post({ ...BODY, period: 7 });
     expect(response.status).toBe(200);
     const payload = (await response.json()) as { ok: boolean; refusals: unknown[] };
     expect(payload.refusals[0]).toMatchObject({ field: "period", reason: "badShape" });
