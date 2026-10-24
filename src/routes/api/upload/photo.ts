@@ -169,7 +169,8 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
   // D154 B2 — the stored photo this upload replaces, when it is an edit.
   const replacesField = form.get("replaces");
   const replaces = typeof replacesField === "string" ? replacesField.trim() : "";
-  if (replacesField !== null && !uuid.safeParse(replaces).success) return refusal("replaces", "badValue");
+  if (replacesField !== null && !uuid.safeParse(replaces).success)
+    return refusal("replaces", "badValue");
   const certifiedField = form.get("certified");
   const certified =
     typeof certifiedField === "string" && certifiedField !== "" ? certifiedField.split(",") : [];
@@ -375,7 +376,10 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
           thumb: stripped.thumb!,
         },
         log,
-        { category: categoryName, title: typeof listing["title"] === "string" ? listing["title"] : null },
+        {
+          category: categoryName,
+          title: typeof listing["title"] === "string" ? listing["title"] : null,
+        },
       );
   // D154 B3 — the screen's warnings: stored with the photo, never a refusal.
   const warnings = verdict.ok ? (verdict.warnings ?? []) : [];
@@ -497,31 +501,29 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
       }
     }
 
-    return ok(
-      {
-        ok: true,
-        photoId,
-        paths,
-        width: cover.width,
-        height: cover.height,
-        bytes: cover.bytes.length,
-        unscreened,
-        warnings,
-        // Bundle 16 turn 4a — the seller is told why the photo waits (the code, never the phrase).
-        ...(held
-          ? { review: { label: "held" } }
-          : review === null
-            ? {}
-            : {
-                review: {
-                  label: review.label,
-                  ...(review.code === undefined ? {} : { code: review.code }),
-                },
-              }),
-        ...(replaced === null ? {} : { replaced: replaces }),
-        ...(data && typeof data === "object" ? { door: data } : {}),
-      },
-    );
+    return ok({
+      ok: true,
+      photoId,
+      paths,
+      width: cover.width,
+      height: cover.height,
+      bytes: cover.bytes.length,
+      unscreened,
+      warnings,
+      // Bundle 16 turn 4a — the seller is told why the photo waits (the code, never the phrase).
+      ...(held
+        ? { review: { label: "held" } }
+        : review === null
+          ? {}
+          : {
+              review: {
+                label: review.label,
+                ...(review.code === undefined ? {} : { code: review.code }),
+              },
+            }),
+      ...(replaced === null ? {} : { replaced: replaces }),
+      ...(data && typeof data === "object" ? { door: data } : {}),
+    });
   } catch (error) {
     await rollback();
     throw error;

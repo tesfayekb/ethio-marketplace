@@ -308,7 +308,14 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
           headers: request.headers,
           body: new Blob([new Uint8Array(bytes ?? new Uint8Array(0))]),
         });
-        form = await rebuilt.formData();
+        try {
+          form = await rebuilt.formData();
+        } catch {
+          // Foundations turn 4 — an unreadable multipart body is the route's
+          // badShape answer (`{field:"body"}`, the upload's contract), not a 500.
+          if (badShape === "clientError") return clientError("bad request", 400);
+          return verdict([{ field: "body", reason: "badShape" }]);
+        }
       }
 
       // (6) the afterParse dials — the default.
