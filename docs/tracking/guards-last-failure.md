@@ -1,148 +1,79 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40084153912
-- Commit: `eefd1141f3d031bd9112baec2fc88b308421f395`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40087352763
+- Commit: `3db3fd464a0225c928ce570ab6668c126b9dffb0`
 - Attempt: 1
-- Written (UTC): 2026-10-24T10:17:50.236Z
+- Written (UTC): 2026-10-24T11:07:12.236Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
 
-## First-paint bundle budget (gzipped ceiling) — failure
+## E2E (Playwright, ethio-staging) — failure
 
 ### Evidence lines
 
 ```text
-[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
+[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
+[36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
+[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
+Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-dist/server/_ssr/app-rail-CT_osGPB.mjs                           55.87 kB │ gzip:  16.56 kB
-dist/server/_ssr/server-BuSttrNZ.mjs                             59.33 kB │ gzip:  15.46 kB
-dist/server/_libs/@radix-ui/react-dropdown-menu+[...].mjs        61.73 kB │ gzip:  12.23 kB
-dist/server/_ssr/category-dialogs-v0DGeRji.mjs                   62.23 kB │ gzip:  14.79 kB
-dist/server/index.mjs                                            62.32 kB │ gzip:  14.23 kB
-dist/server/_libs/tanstack__query-core.mjs                       74.06 kB │ gzip:  15.48 kB
-dist/server/_ssr/admin.categories-Cmdsw8uA.mjs                   74.27 kB │ gzip:  17.74 kB
-dist/server/_libs/supabase__realtime-js+unenv.mjs                78.40 kB │ gzip:  20.05 kB
-dist/server/_ssr/listing-detail-CYxIMvdE.mjs                     79.61 kB │ gzip:  19.88 kB
-dist/server/_ssr/admin.translations_._lang-DivKrGk2.mjs          81.93 kB │ gzip:  18.66 kB
-dist/server/_libs/tailwind-merge.mjs                             85.65 kB │ gzip:  15.21 kB
-dist/server/_libs/@radix-ui/react-alert-dialog+[...].mjs         86.50 kB │ gzip:  20.34 kB
-dist/server/_ssr/attribute-dialogs-Bat65sSI.mjs                  87.51 kB │ gzip:  19.84 kB
-dist/server/_libs/date-fns.mjs                                  104.02 kB │ gzip:  18.42 kB
-dist/server/_libs/supabase__postgrest-js.mjs                    105.41 kB │ gzip:  21.66 kB
-dist/server/_ssr/am-base-WWIbIc47.mjs                           106.02 kB │ gzip:  25.23 kB
-dist/server/_ssr/en-admin-H-7Pr_EA.mjs                          111.92 kB │ gzip:  25.34 kB
-dist/server/_libs/lucide-react.mjs                              117.13 kB │ gzip:  22.88 kB
-dist/server/_libs/@supabase/storage-js+[...].mjs                119.50 kB │ gzip:  22.34 kB
-dist/server/_libs/react-day-picker.mjs                          135.36 kB │ gzip:  26.50 kB
-dist/server/_ssr/provider-BaFFr07Q.mjs                          137.28 kB │ gzip:  41.15 kB
-dist/server/_ssr/am-admin-NOQx8WIR.mjs                          146.71 kB │ gzip:  31.15 kB
-dist/server/_libs/zod.mjs                                       156.76 kB │ gzip:  35.67 kB
-dist/server/_libs/leaflet.mjs                                   242.42 kB │ gzip:  54.53 kB
-dist/server/_libs/supabase__auth-js.mjs                         302.37 kB │ gzip:  60.33 kB
-dist/server/_libs/libphonenumber-js.mjs                         317.38 kB │ gzip:  62.73 kB
-dist/server/_ssr/router-D9PyKCw_.mjs                            425.89 kB │ gzip: 112.62 kB
-dist/server/_ssr/wizard-D_gbJi79.mjs                            493.39 kB │ gzip: 124.46 kB
-dist/server/_libs/@tanstack/react-router+[...].mjs              752.27 kB │ gzip: 159.42 kB
-
-[32m✓ built in 985ms[39m
-[info] [nitro] Using auto generated worker name: `tesfayekb-ethio-marketplace`
-[info] Generated [36mdist/server/wrangler.json[39m
-[info] Generated [36m.wrangler/deploy/config.json[39m
-[info] Generated [36mdist/client/_headers[39m
-[info] Generated [36mdist/nitro.json[39m
-[success] [nitro] You can preview this build using `npx vite preview`
-[success] [nitro] You can deploy this build using `npx nitro deploy --prebuilt`
-##[group]Run node scripts/check-bundle-size.mjs
-[36;1mnode scripts/check-bundle-size.mjs[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-Bundle budget: reader-failure-Cnr5tLrW.js must stay lazy (INC-864) but sits in the first-paint closure of index-DK3l1Tks.js.
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/71bf3c63-4edc-4e31-9e35-d1f25284527a' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## Build, typecheck, lint — failure
-
-### Evidence lines
-
-```text
-##[error]Unexplained deletions in ee0cdc5629a1c641e17b6c3134de65b073d60104..HEAD (INC-076).
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
- * [new branch]        lovable-backup-dev-1788419378 -> origin/lovable-backup-dev-1788419378
- * [new branch]        lovable-sync            -> origin/lovable-sync
- * [new branch]        lovable-sync-1788322342 -> origin/lovable-sync-1788322342
- * [new branch]        lovable-sync-1788764600 -> origin/lovable-sync-1788764600
- * [new branch]        lovable-sync-1789741128 -> origin/lovable-sync-1789741128
- * [new branch]        lovable-sync-1790153551 -> origin/lovable-sync-1790153551
- * [new branch]        lovable-sync-1790668701 -> origin/lovable-sync-1790668701
- * [new branch]        lovable-sync-1790806349 -> origin/lovable-sync-1790806349
- * [new branch]        lovable-sync-1790807903 -> origin/lovable-sync-1790807903
- * [new branch]        lovable-sync-1790881191 -> origin/lovable-sync-1790881191
- * [new branch]        lovable-sync-1790889145 -> origin/lovable-sync-1790889145
- * [new branch]        main                    -> origin/main
-[command]/usr/bin/git branch --list --remote origin/dev
-  origin/dev
-[command]/usr/bin/git rev-parse refs/remotes/origin/dev
-eefd1141f3d031bd9112baec2fc88b308421f395
-##[endgroup]
-##[group]Determining the checkout info
-##[endgroup]
-[command]/usr/bin/git sparse-checkout disable
-[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-##[group]Checking out the ref
-[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
-Switched to a new branch 'dev'
-branch 'dev' set up to track 'origin/dev'.
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-eefd1141f3d031bd9112baec2fc88b308421f395
-##[group]Run SELF_TEST=1 bash scripts/check-deletions.sh
-[36;1mSELF_TEST=1 bash scripts/check-deletions.sh[0m
-[36;1mbash scripts/check-deletions.sh[0m
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
+[36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
-  GITHUB_EVENT_BEFORE: ee0cdc5629a1c641e17b6c3134de65b073d60104
+  E2E_RESULTS_DIR: shard-results
+  E2E_LOGS_DIR: shard-logs
+  E2E_CONTEXT_DIR: shard-contexts
+  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+  E2E_GREEN: 0
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40087352763
+  E2E_HEAD_COMMIT_MESSAGE: Verified brief and applied Part A
+
+X-Lovable-Edit-ID: edt-a9a47536-cda8-4a86-ab12-cc96e25623f3
+Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
-Self-test OK: undeclared deletion flagged, marker-declared allowed, additions allowed; manifest door (INC-192): an ADDED path line declares, a pre-existing line does not.
-##[error]Unexplained deletions in ee0cdc5629a1c641e17b6c3134de65b073d60104..HEAD (INC-076).
-The following files were deleted with no [intentional-delete] marker in any commit
-message and no path line added to docs/tracking/intentional-deletions.txt by this range:
-src/features/legal/legal-page-data.test.ts
-If the removal is intended, say so in the commit message or add the path to
-docs/tracking/intentional-deletions.txt in the same push; otherwise you are pushing from a stale
-checkout and are about to erase someone's work.
+  layout OK — per-artifact subdir: 1 context file(s), report rendered.
+  layout OK — merged flat: 1 context file(s), report rendered.
+  layout OK — zero artifacts: 0 context file(s), report rendered.
+  layout OK — missing directory: 0 context file(s), report rendered.
+DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
+DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
+ok — R1a census names the missing log
+ok — R1a a11y never states zero with a gap
+ok — R1b census: all N logs read
+ok — R1b a11y: all N logs read
+Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
+Wrote docs/tracking/e2e-last-failure.md (18/18 source(s) with usable results, 128 context file(s) found).
+publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
+##[group]Run echo "lanes=failure"
+[36;1mecho "lanes=failure"[0m
+[36;1mif [ "failure" != "success" ]; then[0m
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit 1[0m
+[36;1mfi[0m
+[36;1mecho "Every temporary-backend lane passed (the email lane included)."[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+lanes=failure
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/1389b641-e911-4295-a9de-73bd5d2f2343' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/4f0542c6-0ff6-43eb-aa7d-ac0b8f249c1c' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
