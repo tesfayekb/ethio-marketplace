@@ -115,7 +115,7 @@ describe("browser route client", () => {
     ) {
       names.push(this.download);
     });
-    fetchMock.mockResolvedValue(new Response("﻿key\r\nvalue\r\n"));
+    fetchMock.mockResolvedValue(new Response("\ufeffkey\r\nvalue\r\n"));
     expect(await downloadRoute("/api/x", "scope-definitions.csv", { auth: "none" })).toMatchObject({
       kind: "answered",
       ok: true,
@@ -125,7 +125,7 @@ describe("browser route client", () => {
     expect(names).toEqual(["scope-definitions.csv"]);
     expect(create).toHaveBeenCalledTimes(1);
     expect(Array.from(new Uint8Array(await create.mock.calls[0][0].arrayBuffer()))).toEqual(
-      Array.from(new TextEncoder().encode("﻿key\r\nvalue\r\n")),
+      Array.from(new TextEncoder().encode("\ufeffkey\r\nvalue\r\n")),
     );
     expect(revoke).toHaveBeenCalledExactlyOnceWith("blob:test");
     expect(document.querySelector('a[href="blob:test"]')).toBeNull();
