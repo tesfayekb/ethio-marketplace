@@ -112,12 +112,12 @@ A dial goes in the spec unless its answer or its spending cannot be said there y
 
 ## The cached public readers on the mechanism (INC-862 T2, Foundations turn 6)
 
-| Route | Auth | Params | Cache (key · TTL · max) | ETag | Cache-Control | Answers |
-| --- | --- | --- | --- | --- | --- | --- |
-| `/api/categories/tree` | anon | none | `"tree"` · 0 (version read every request, INC-265) · 1 | `"cat-tree-<version>"` | `public, max-age=60, stale-while-revalidate=300` | 200 `{version, nodes, pointers}`; 304; 503/500 |
-| `/api/locations` | anon | none | `"open"` · 15 s (a 15-second time bucket as the version) · 1 | `"open-markets-<FNV-1a hex>"` | `public, max-age=300, stale-while-revalidate=3600` | 200 `{countries}`; 304; 503/500 |
-| `/api/locations/$country` | anon | `country: countryCodeLoose` | upper-case code · 15 s · 64 | `bundleEtag("loc-<CC>", version)` | `public, max-age=300, stale-while-revalidate=3600` | 200 `{country, version, nodes}`; 304; 400 `badCountry`; 404 `closedOrUnknownMarket` (never cached); 503/500 |
-| `/api/i18n/$lang` | anon | `lang: langCodeLoose` | normalised code · 15 s · 32 | `bundleEtag(code, version)` | `public, max-age=300, stale-while-revalidate=3600` | 200 `{lang, bundle}`; 304; 400 `invalid language code`; 503/500 |
+| Route                     | Auth | Params                      | Cache (key · TTL · max)                                      | ETag                              | Cache-Control                                      | Answers                                                                                                     |
+| ------------------------- | ---- | --------------------------- | ------------------------------------------------------------ | --------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `/api/categories/tree`    | anon | none                        | `"tree"` · 0 (version read every request, INC-265) · 1       | `"cat-tree-<version>"`            | `public, max-age=60, stale-while-revalidate=300`   | 200 `{version, nodes, pointers}`; 304; 503/500                                                              |
+| `/api/locations`          | anon | none                        | `"open"` · 15 s (a 15-second time bucket as the version) · 1 | `"open-markets-<FNV-1a hex>"`     | `public, max-age=300, stale-while-revalidate=3600` | 200 `{countries}`; 304; 503/500                                                                             |
+| `/api/locations/$country` | anon | `country: countryCodeLoose` | upper-case code · 15 s · 64                                  | `bundleEtag("loc-<CC>", version)` | `public, max-age=300, stale-while-revalidate=3600` | 200 `{country, version, nodes}`; 304; 400 `badCountry`; 404 `closedOrUnknownMarket` (never cached); 503/500 |
+| `/api/i18n/$lang`         | anon | `lang: langCodeLoose`       | normalised code · 15 s · 32                                  | `bundleEtag(code, version)`       | `public, max-age=300, stale-while-revalidate=3600` | 200 `{lang, bundle}`; 304; 400 `invalid language code`; 503/500                                             |
 
 Readers: the old 502 `{error:"internal error"}` retires — a database error answers 503 `upstream unavailable` when `upstreamFailed` says the database did not answer, else `serverError` 500. A cold conditional request (If-None-Match equal to the current tag, nothing held) builds nothing and answers 304. Every JSON answer carries `charset=utf-8` and every 304 carries `Vary: Accept-Encoding`.
 
