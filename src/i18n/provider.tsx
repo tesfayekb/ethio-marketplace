@@ -202,7 +202,6 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
 
 type I18nValue = {
   language: Language;
-  setLanguage: (next: Language) => void;
   t: (key: MessageKey) => string;
   /** U4d — approved entity names for the active language (overlay, never a replacement). */
   entities: EntityBundle;
@@ -635,7 +634,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nValue>(
     () => ({
       language,
-      setLanguage,
       t: (key: MessageKey) => messages[key] ?? enFirstPaint[key],
       entities,
       publicLanguages,
@@ -646,7 +644,6 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }),
     [
       language,
-      setLanguage,
       messages,
       entities,
       publicLanguages,

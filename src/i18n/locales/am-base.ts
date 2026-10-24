@@ -9,8 +9,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "language.amharic": "አማርኛ",
   "language.enShort": "EN",
   "language.amShort": "አማ",
-  "language.star": "በዚህ መሣሪያ ላይ እንደ ነባሪ ቋንቋ አድርግ",
-  "language.starred": "በዚህ መሣሪያ ላይ ነባሪ ቋንቋ",
   "nav.home": "መነሻ",
   "common.loading": "በመጫን ላይ…",
   "common.error": "የሆነ ስህተት ተከስቷል",
