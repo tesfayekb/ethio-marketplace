@@ -505,7 +505,7 @@ test.describe("Legal certification", () => {
     const { categoryId, cityId } = await sellerOnPage(page, s);
     const listingId = await draftOf(page, s, categoryId, cityId);
     const statementText = `Statement ${rand()}`;
-    await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, statementText);
+    const global = await seedDocument(s, `e2e-pub-${hex(listingId)}`, null, statementText);
 
     await gotoReady(page, `/post/${listingId}`);
     const block = page.getByTestId("certify-block");
@@ -518,7 +518,7 @@ test.describe("Legal certification", () => {
     await expect(links.nth(0)).toHaveAttribute("data-role", "publishing");
     await expect(links.nth(0)).toHaveText("publishing statement");
     // Add a country statement before the certification: the same single link now carries both.
-    await seedDocument(s, `e2e-pub-${hex(listingId)}`, "ET", `Country ${statementText}`);
+    const country = await seedDocument(s, `e2e-pub-${hex(listingId)}`, "ET", `Country ${statementText}`);
     await gotoReady(page, `/post/${listingId}`);
     await expect(links).toHaveCount(1);
     await expect(links.nth(0)).toHaveAttribute("href", "/legal/publishing?country=ET");
@@ -537,7 +537,10 @@ test.describe("Legal certification", () => {
     await expect(publish).not.toHaveAttribute("data-closed", "1");
     await publish.click();
     await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
-    await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(2);
+    await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
+    const certified = await certificationsOf(listingId);
+    expect(certified[0]?.version_ids).toEqual(expect.arrayContaining([global.versionId, country.versionId]));
+    expect(certified[0]?.version_ids).toHaveLength(2);
 
     const plain = await draftOf(page, s, categoryId, cityId);
     await gotoReady(page, `/post/${plain}`);
