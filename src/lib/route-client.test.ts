@@ -282,6 +282,8 @@ describe("uploadRoute — the XHR transport", () => {
     const pending = uploadRoute("/api/upload/photo", form, {
       onProgress: (loaded, total) => progress.push([loaded, total]),
     });
+    // The bearer read is async; let it settle so the request is open.
+    await new Promise((resolve) => setTimeout(resolve, 0));
     const request = last();
     expect(request.opened).toEqual({ method: "POST", path: "/api/upload/photo" });
     expect(request.headers.get("Authorization")).toBe("Bearer test-token");
@@ -335,6 +337,16 @@ describe("uploadRoute — the XHR transport", () => {
     });
     caller.abort();
     expect(await pending).toEqual({ kind: "unreachable", reason: "aborted" });
+    // Aborted before the bearer read settled: the request never opened.
+    expect(last().opened).toBeNull();
+    const caller2 = new AbortController();
+    const pending2 = uploadRoute("/api/upload/photo", new FormData(), {
+      auth: "none",
+      signal: caller2.signal,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    caller2.abort();
+    expect(await pending2).toEqual({ kind: "unreachable", reason: "aborted" });
     expect(last().aborted).toBe(true);
   });
   it("RCL-15e required without a session is signedOut and nothing opens", async () => {
