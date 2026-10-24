@@ -250,7 +250,6 @@ async function callProvider(
     );
   } catch (error) {
     // Foundations turn 3 — a deadline passed is a provider that could not answer.
-    // eslint-disable-next-line no-restricted-syntax -- INC-815: UpstreamTimeout is our own class; anything else is rethrown unchanged.
     if (error instanceof UpstreamTimeout) return null;
     throw error;
   }
