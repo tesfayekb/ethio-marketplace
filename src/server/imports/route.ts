@@ -157,6 +157,7 @@ export function defineImportRoute(
   const family = familyOf(familyId);
   const dial = ownValue(IMPORT_DIALS, familyId);
   if (family === null || dial === undefined) throw new Error(`unknown import family ${familyId}`);
+  const meter: Dial = dial;
   const path = `/api/admin/${familyId}/import`;
   const [resource = "", action = ""] = family.permission.split(":");
   const hasPreview = config.rpcs.preview !== undefined;
@@ -222,9 +223,9 @@ export function defineImportRoute(
     if (budgetModes.includes(mode)) {
       let spent;
       try {
-        spent = await spend(dial, userId);
+        spent = await spend(meter, userId);
       } catch {
-        return upstreamUnavailable(path, `rate limit ${dial.action}`, 0);
+        return upstreamUnavailable(path, `rate limit ${meter.action}`, 0);
       }
       if (!spent.allowed)
         return clientError(

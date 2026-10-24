@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import { FAMILIES, familyOf } from "../../src/server/imports/registry";
+
 import { codeOf, readAllowlist, report, walkFiles } from "./kit";
 
 /**
@@ -132,6 +134,33 @@ const read = (file: string) => readFileSync(file, "utf8");
 const routes = walkFiles(["src/routes/api/admin"], { ext: ["ts"], skipTests: true });
 
 describe("the staff file doors", () => {
+  it("IMD-7 the newest audit permission map equals the import family registry", () => {
+    const migrations = walkFiles(["supabase/migrations"], { ext: ["sql"] }).sort();
+    const newest = migrations
+      .filter((file) => read(file).includes("FUNCTION public.import_gate_audit("))
+      .at(-1);
+    expect(newest).toBeDefined();
+    if (newest === undefined) throw new Error("missing import_gate_audit definition");
+    const text = read(newest);
+    const start = text.indexOf("FUNCTION public.import_gate_audit(");
+    const definition = text.slice(start);
+    const delimiter = /AS\s+(\$\w*\$)/i.exec(definition)?.[1];
+    if (delimiter === undefined) throw new Error("missing audit function delimiter");
+    const body = definition.split(delimiter)[1];
+    const values = /FROM\s*\(VALUES([\s\S]*?)\)\s+AS f\(family, resource, verb\)/i.exec(body)?.[1];
+    if (values === undefined) throw new Error("missing audit family VALUES map");
+    const rows = [...values.matchAll(/\('([^']+)',\s*'([^']+)',\s*'([^']+)'\)/g)];
+    expect(rows.length).toBe(Object.keys(FAMILIES).length);
+    expect(new Set(rows.map((row) => row[1])).size).toBe(rows.length);
+    for (const [, id, resource, verb] of rows) {
+      const permission = familyOf(id)?.permission;
+      expect(`${id}: ${resource}:${verb}`, `${id}: ${resource}:${verb} ≠ ${permission}`).toBe(
+        `${id}: ${permission}`,
+      );
+    }
+    expect(rows.map((row) => row[1]).sort()).toEqual(Object.keys(FAMILIES).sort());
+  });
+
   it("IMD-1 every admin import route is a defineImportRoute call and nothing else", () => {
     const imports = routes.filter((file) => /\/import\.ts$/.test(file));
     expect(imports.length).toBe(4);
