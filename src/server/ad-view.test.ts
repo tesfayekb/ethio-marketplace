@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { countAdView, VIEW_LIMIT_PER_ADDRESS_AD, VIEW_LIMIT_PER_HOUR } from "./ad-view";
+import { DIALS } from "@/lib/dials";
+import { countAdView } from "./ad-view";
 import { hashAddress } from "./catalog-find.server";
 
 const mocks = vi.hoisted(() => ({ rate: vi.fn(), rpc: vi.fn(), caller: vi.fn(), log: vi.fn() }));
@@ -51,7 +52,7 @@ describe("view count route", () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it("VW-2 the dial comes before the door, and a spent dial answers counted false", async () => {
-    expect(VIEW_LIMIT_PER_HOUR).toBe(600);
+    expect(DIALS.listingViewAddress.limit.fallback).toBe(600);
     mocks.rate.mockResolvedValueOnce({ allowed: false });
     const spent = await countAdView(ctx({ publicId: ID }));
     expect(spent.status).toBe(200);
@@ -101,7 +102,7 @@ describe("view count route", () => {
     expect(await response.json()).toEqual({ error: "upstream unavailable" });
   });
   it("VW-4 a valid session: the session gate, the address-and-ad ceiling, then the door with the session key (turn 23)", async () => {
-    expect(VIEW_LIMIT_PER_ADDRESS_AD).toBe(30);
+    expect(DIALS.listingViewAddressAd.limit.fallback).toBe(30);
     const session = "Ab3dEf5gHj8kLm2nPq4rSt";
     await countAdView(ctx({ publicId: ID, session }));
     const sessionKey = hashAddress(session);

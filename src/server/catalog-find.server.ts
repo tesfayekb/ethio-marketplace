@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { DIALS } from "@/lib/dials";
 import { isE2E } from "@/lib/env-flags";
 import { errorText } from "@/lib/error-text";
+import { dialLimit } from "@/server/dials";
 
 export const CATALOG_FIND_TTL_MS = 60_000;
 export const CATALOG_FIND_MAX_ROWS = 8;
