@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `65dec9e689a913f149bef38192de204f586c75b5`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40008732750
+- Commit: `53aa4e76bbf78cf6d8ee6155b13d69fc3ff7cf95`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40057679164
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 895 | 117 | applied 339/339 | 186 | 0 | 0 | 60 | 246 |
-| email | 169 | 103 | applied 339/339 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 800 | 99 | applied 339/339 | 134 | 0 | 0 | 4 | 138 |
-| 2 | 860 | 101 | applied 339/339 | 120 | 0 | 0 | 3 | 123 |
-| 3 | 1586 | 118 | applied 339/339 | 130 | 0 | 0 | 0 | 130 |
-| 4 | 572 | 113 | applied 339/339 | 147 | 0 | 0 | 2 | 149 |
-| 5 | 559 | 117 | applied 339/339 | 114 | 0 | 0 | 6 | 120 |
-| 6 | 650 | 101 | applied 339/339 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 586 | 117 | applied 339/339 | 119 | 0 | 0 | 0 | 119 |
-| 8 | 1334 | 103 | applied 339/339 | 108 | 0 | 0 | 30 | 138 |
-| 9 | 775 | 119 | applied 339/339 | 127 | 0 | 0 | 2 | 129 |
-| 10 | 820 | 116 | applied 339/339 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 932 | 117 | applied 339/339 | 120 | 0 | 0 | 1 | 121 |
-| 12 | 1097 | 104 | applied 339/339 | 136 | 0 | 0 | 5 | 141 |
-| 13 | 570 | 101 | applied 339/339 | 116 | 0 | 0 | 4 | 120 |
-| 14 | 779 | 103 | applied 339/339 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 583 | 112 | applied 339/339 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 835 | 105 | applied 339/339 | 92 | 0 | 0 | 30 | 122 |
-| TOTAL | — | — | — | 2175 | 0 | 0 | 154 | 2329 |
+| smoke | 818 | 99 | applied 339/339 | 186 | 0 | 0 | 60 | 246 |
+| email | 154 | 99 | applied 339/339 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 750 | 104 | applied 339/339 | 134 | 0 | 0 | 4 | 138 |
+| 2 | 883 | 114 | applied 339/339 | 120 | 0 | 0 | 3 | 123 |
+| 3 | 865 | 109 | applied 339/339 | 130 | 0 | 0 | 0 | 130 |
+| 4 | 504 | 95 | applied 339/339 | 146 | 1 | 0 | 2 | 149 |
+| 5 | 586 | 118 | applied 339/339 | 114 | 0 | 0 | 6 | 120 |
+| 6 | 770 | 110 | applied 339/339 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 556 | 117 | applied 339/339 | 119 | 0 | 0 | 0 | 119 |
+| 8 | 566 | 98 | applied 339/339 | 108 | 0 | 0 | 30 | 138 |
+| 9 | 705 | 113 | applied 339/339 | 127 | 0 | 0 | 2 | 129 |
+| 10 | 910 | 101 | applied 339/339 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 816 | 93 | applied 339/339 | 120 | 0 | 0 | 1 | 121 |
+| 12 | 636 | 129 | applied 339/339 | 135 | 1 | 0 | 5 | 141 |
+| 13 | 598 | 103 | applied 339/339 | 116 | 0 | 0 | 4 | 120 |
+| 14 | 814 | 114 | applied 339/339 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 471 | 97 | applied 339/339 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 572 | 117 | applied 339/339 | 92 | 0 | 0 | 30 | 122 |
+| TOTAL | — | — | — | 2173 | 2 | 0 | 154 | 2329 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 3 1586 s
+- Slowest lane: 10 910 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40008732750-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40008732750-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40008732750-local-1
-  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40008732750-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40008732750-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40008732750-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40008732750-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40008732750-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40008732750-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40008732750-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40008732750-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40008732750-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40008732750-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40008732750-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40008732750-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40008732750-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40008732750-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40008732750-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40057679164-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40057679164-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40057679164-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40057679164-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40057679164-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40057679164-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40057679164-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40057679164-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40057679164-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40057679164-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40057679164-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40057679164-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40057679164-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40057679164-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40057679164-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40057679164-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40057679164-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40057679164-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -59,12 +59,18 @@
 - fixture 20260929201600: the sub-city Bole under Addis Ababa
 - Parity:
 RLS on 78 of 78 public tables
-Default grants in public: postgres | f | {postgres=X/postgres,service_role=X/postgres}; postgres | r | {postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}; postgres | S | {postgres=rwU/postgres,service_role=rwU/postgres}; supabase_admin | f | {postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}; supabase_admin | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}; supabase_admin | S | {postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}
+Default grants in public: postgres | f | {postgres=X/postgres}; postgres | r | {postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}; postgres | S | {postgres=rwU/postgres,service_role=rwU/postgres}; supabase_admin | f | {postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}; supabase_admin | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}; supabase_admin | S | {postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}
 - Status:
 certutil: present
 Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECRET, MAILPIT_URL, PUBLISHABLE_KEY, REST_URL, S3_PROTOCOL_ACCESS_KEY_ID, S3_PROTOCOL_ACCESS_KEY_SECRET, S3_PROTOCOL_REGION, SECRET_KEY, SERVICE_ROLE_KEY, STORAGE_S3_URL
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
+
+## Lane 4
+- legal-certify.spec.ts / Legal certification / LGC-1 the review step shows the statement as a link with one tick, Publish is closed until it; a draft with no statement shows today's line / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+
+## Lane 12
+- legal-certify.spec.ts / Legal certification / LGC-1 the review step shows the statement as a link with one tick, Publish is closed until it; a draft with no statement shows today's line / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
