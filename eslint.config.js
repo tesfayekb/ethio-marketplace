@@ -141,8 +141,8 @@ export default tseslint.config(
       "src/routes/api/geo/reverse.ts", // until INC-862
       "src/routes/api/geo/outline.ts", // until INC-862
       "src/routes/api/map/tiles.ts", // until INC-862
-      "src/routes/l.$id.photo[.]jpg.ts", // until INC-862
-      "src/routes/l.$id.qr[.]svg.ts", // until INC-862
+      "src/routes/l.$id.photo[[].[]]jpg.ts", // until INC-862
+      "src/routes/l.$id.qr[[].[]]svg.ts", // until INC-862
       "src/server/ad-photo.ts", // until INC-862
       "src/server/media/policy.ts", // until INC-862
       "src/server/media/background.ts", // until INC-862

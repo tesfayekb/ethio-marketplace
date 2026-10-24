@@ -10,7 +10,11 @@ const LISTING = "11111111-1111-4111-8111-111111111111";
 
 const state = {
   rpcCalls: [] as { name: string; args: unknown }[],
-  rpcAnswer: { data: { ok: true, status: "screening" } as unknown, error: null as unknown, status: 200 },
+  rpcAnswer: {
+    data: { ok: true, status: "screening" } as unknown,
+    error: null as unknown,
+    status: 200,
+  },
   logs: [] as string[],
 };
 
@@ -60,7 +64,9 @@ const { Route } = await import("@/routes/api/listings/publish");
 async function post(body: unknown): Promise<Response> {
   const handlers = (
     Route.options as unknown as {
-      server: { handlers: { POST: (ctx: { request: Request; params: unknown }) => Promise<Response> } };
+      server: {
+        handlers: { POST: (ctx: { request: Request; params: unknown }) => Promise<Response> };
+      };
     }
   ).server.handlers;
   return handlers.POST({

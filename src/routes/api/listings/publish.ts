@@ -3,13 +3,7 @@ import { z } from "zod";
 
 import { doorRefusal } from "@/features/posting/door-error";
 import { idList, optionalText, uuid } from "@/lib/schemas/primitives";
-import {
-  doorAnswer,
-  ok,
-  upstreamFailed,
-  upstreamUnavailable,
-  verdict,
-} from "@/server/answer";
+import { doorAnswer, ok, upstreamFailed, upstreamUnavailable, verdict } from "@/server/answer";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
 

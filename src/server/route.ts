@@ -35,7 +35,11 @@ import {
  * copied.
  */
 
-export type RouteAuth = "anon" | "optional" | "user" | { staff: { resource: string; action: string } };
+export type RouteAuth =
+  | "anon"
+  | "optional"
+  | "user"
+  | { staff: { resource: string; action: string } };
 
 export type RateSpec = {
   action: string;
@@ -193,11 +197,18 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       // The dials a route declares before the parse (the denial-of-service choice).
       const spend = async (entry: RateSpec): Promise<Response | null> => {
         const limit =
-          typeof entry.limit === "number" ? entry.limit : envDial(entry.limit.env, entry.limit.fallback);
+          typeof entry.limit === "number"
+            ? entry.limit
+            : envDial(entry.limit.env, entry.limit.fallback);
         const key =
           entry.key === "user" ? (userId ?? "anonymous") : hashAddress(clientAddress(request));
         try {
-          const spent = await consumeRate(entry.action, key, limit, `${entry.windowSeconds} seconds`);
+          const spent = await consumeRate(
+            entry.action,
+            key,
+            limit,
+            `${entry.windowSeconds} seconds`,
+          );
           if (!spent.allowed) {
             return clientError(
               "rateLimited",

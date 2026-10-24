@@ -39,7 +39,9 @@ const UUID_LITERAL = /\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-/;
 function census(): string[] {
   return ROUTE_FILES.filter((file) => {
     const code = codeOf(readFileSync(file, "utf8"));
-    return (code.includes("server: {") && code.includes("handlers:")) || code.includes("createServerFn(");
+    return (
+      (code.includes("server: {") && code.includes("handlers:")) || code.includes("createServerFn(")
+    );
   });
 }
 
@@ -69,7 +71,8 @@ const CENSUS = census();
 const RT1_BREACHES = CENSUS.filter((file) => !conforms(file));
 const RT2_FINDINGS = [...ROUTE_FILES, ...SERVER_FILES].flatMap(bypasses);
 const RT3_BREACHES = SRC_FILES.filter(
-  (file) => file !== "src/lib/schemas/primitives.ts" && UUID_LITERAL.test(readFileSync(file, "utf8")),
+  (file) =>
+    file !== "src/lib/schemas/primitives.ts" && UUID_LITERAL.test(readFileSync(file, "utf8")),
 );
 
 const FOUND = new Set<string>([
@@ -83,7 +86,9 @@ describe("the route boundary census (CF-RT)", () => {
   it("CF-RT-1 every handler file and server function uses defineRoute / a schema inputValidator, or has its allowance", () => {
     expect(CENSUS.length).toBeGreaterThanOrEqual(40);
     const breaches = RT1_BREACHES.filter((file) => !ALLOWED.has(file));
-    expect(report(breaches.map((file) => ({ file, line: 1, what: "not on defineRoute" })))).toBe("");
+    expect(report(breaches.map((file) => ({ file, line: 1, what: "not on defineRoute" })))).toBe(
+      "",
+    );
   });
 
   it("CF-RT-2 no file outside the helper set reads a body, builds a Response, reads Authorization, constructs a client or calls fetch", () => {
@@ -106,7 +111,9 @@ describe("the route boundary census (CF-RT)", () => {
 
   it("CF-RT-5 the lint block's ignore list equals the allowlist's paths, both ways", () => {
     const eslint = readFileSync("eslint.config.js", "utf8");
-    const block = eslint.split("// ROUTES-BOUNDARY-IGNORES-BEGIN")[1]?.split("// ROUTES-BOUNDARY-IGNORES-END")[0];
+    const block = eslint
+      .split("// ROUTES-BOUNDARY-IGNORES-BEGIN")[1]
+      ?.split("// ROUTES-BOUNDARY-IGNORES-END")[0];
     expect(block).toBeDefined();
     const entries = [...block!.matchAll(/"(src\/[^"]+)"/g)].map((match) => match[1]);
     const lintSet = new Set(entries.filter((entry) => !HELPER_SET.has(entry)));

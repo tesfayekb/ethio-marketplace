@@ -18,9 +18,7 @@ import {
 describe("route schema primitives (SCH-1)", () => {
   it("uuid accepts the canonical and upper-case forms, refuses a non-uuid", () => {
     expect(uuid.safeParse("11111111-1111-4111-8111-111111111111").success).toBe(true);
-    expect(uuid.safeParse("11111111-1111-4111-8111-111111111111".toUpperCase()).success).toBe(
-      true,
-    );
+    expect(uuid.safeParse("11111111-1111-4111-8111-111111111111".toUpperCase()).success).toBe(true);
     expect(uuid.safeParse("not-a-uuid").success).toBe(false);
   });
 

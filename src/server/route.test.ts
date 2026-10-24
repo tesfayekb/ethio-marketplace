@@ -122,7 +122,10 @@ describe("defineRoute — the one boundary (B4)", () => {
     const route = makeRoute({
       rate: [{ action: "post", key: "user", limit: 5, windowSeconds: 86_400 }],
     });
-    const response = await route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    const response = await route({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
     expect(response.status).toBe(401);
     expect(state.rates).toEqual([]);
     expect(state.handlerCalls).toBe(0);
@@ -157,15 +160,22 @@ describe("defineRoute — the one boundary (B4)", () => {
     const route = makeRoute({
       rate: [{ action: "post", key: "user", limit: 5, windowSeconds: 86_400 }],
     });
-    const response = await route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    const response = await route({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ got: { listingId: LISTING } });
-    expect(state.rates).toEqual([{ action: "post", key: "user-1", limit: 5, window: "86400 seconds" }]);
+    expect(state.rates).toEqual([
+      { action: "post", key: "user-1", limit: 5, window: "86400 seconds" },
+    ]);
   });
 
   it("RT-6 beforeParse consumes before the body is read — a bad body still cost one", async () => {
     const route = makeRoute({
-      rate: [{ action: "upload", key: "address", limit: 3, windowSeconds: 60, when: "beforeParse" }],
+      rate: [
+        { action: "upload", key: "address", limit: 3, windowSeconds: 60, when: "beforeParse" },
+      ],
     });
     const response = await route({ request: post(JSON.stringify({ listingId: "x" })), params: {} });
     expect(response.status).toBe(200);
@@ -181,7 +191,10 @@ describe("defineRoute — the one boundary (B4)", () => {
         throw new Error("secret internals");
       },
     });
-    const response = await route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    const response = await route({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
     expect(response.status).toBe(500);
     const body = (await response.json()) as { error: string; incident: string };
     expect(body.error).toBe("server error");
@@ -193,15 +206,24 @@ describe("defineRoute — the one boundary (B4)", () => {
   it("RT-8 staff mode calls has_permission as the caller and answers 403 on false", async () => {
     const route = makeRoute({ auth: { staff: { resource: "listings", action: "manage" } } });
     state.rpcAnswer = false;
-    const response = await route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    const response = await route({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({ error: "forbidden" });
     expect(state.rpcCalls).toEqual([
-      { name: "has_permission", args: { p_user_id: "user-1", p_resource: "listings", p_action: "manage" } },
+      {
+        name: "has_permission",
+        args: { p_user_id: "user-1", p_resource: "listings", p_action: "manage" },
+      },
     ]);
     expect(state.handlerCalls).toBe(0);
     state.rpcAnswer = true;
-    const allowed = await route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    const allowed = await route({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
     expect(allowed.status).toBe(200);
   });
 
@@ -219,7 +241,10 @@ describe("defineRoute — the one boundary (B4)", () => {
     const route = makeRoute({
       rate: [{ action: "post", key: "user", limit: 5, windowSeconds: 86_400 }],
     });
-    const response = await route({ request: post(JSON.stringify({ listingId: LISTING })), params: {} });
+    const response = await route({
+      request: post(JSON.stringify({ listingId: LISTING })),
+      params: {},
+    });
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "upstream unavailable" });
     expect(state.handlerCalls).toBe(0);
