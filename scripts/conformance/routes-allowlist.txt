@@ -14,12 +14,6 @@ src/routes/api/translate.ts | staff AI route not yet on defineRoute | INC-861
 src/routes/api/admin/categories/generate-image.ts | staff AI route not yet on defineRoute | INC-861
 src/routes/api/admin/categories/suggest-icon.ts | staff AI route not yet on defineRoute | INC-861
 src/server/category-images/gate.ts | the category-images gate: its own answers :21/:48/:59 | INC-861
-# INC-862 — the public readers and small routes
-src/routes/api/catalog.find.ts | reader route not yet on defineRoute | INC-862
-src/routes/api/map/tiles.ts | tiles route not yet on defineRoute | INC-862
-src/routes/l.$id.photo[.]jpg.ts | photo route not yet on defineRoute | INC-862
-src/routes/l.$id.qr[.]svg.ts | QR route not yet on defineRoute | INC-862
-src/server/ad-photo.ts | binary and redirect responses :16/:59 | INC-862
 src/server/category-images/gemini.ts | its own fetch :59, retired when its handlers move | INC-861
 # INC-863 — the six server functions
 src/routes/__root.tsx | createServerFn :94 and its own fetch :122 | INC-863
