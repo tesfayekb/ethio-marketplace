@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -56,7 +57,22 @@ describe("shell guards run by the unit tests (INC-563)", () => {
     TREE_SCAN_MS,
   );
 
-  it(
+  /**
+   * The executor sandbox shims git read-only (add/commit/push refused even in
+   * a throwaway /tmp repository), where the selftest's temporary bare repo can
+   * never run. CI runs GW-3 with real git; only the shimmed sandbox skips.
+   */
+  const gitShimmed = (() => {
+    const path = spawnSync("which", ["git"], { encoding: "utf8" }).stdout.trim();
+    if (!path.startsWith("/tmp/")) return false;
+    try {
+      return readFileSync(path, "utf8").includes("is not allowed");
+    } catch {
+      return false;
+    }
+  })();
+
+  it.skipIf(gitShimmed)(
     "GW-3 the publish-evidence self-test passes against its temporary bare repository (INC-855)",
     () => {
       const result = run("scripts/publish-evidence.selftest.sh", []);
