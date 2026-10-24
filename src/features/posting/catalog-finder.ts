@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { callRoute } from "@/lib/route-client";
 import type { EntityBundle } from "@/i18n/entity";
 import { catalogWords, useI18n, type CatalogTokens } from "@/i18n";
 
