@@ -1232,9 +1232,9 @@ export async function switchLanguage(page: Page, code: "en" | "am") {
    * INC-173b — `html[lang]` flips from React state, and the durable record the
    * NEXT page load reads (`localStorage["ethio.lang"]`) is written just after.
    * A navigation issued in that gap boots from the OLD record and the page
-   * comes back in the previous language. Selecting a language is a DEVICE
-   * choice (only STARRING syncs to `profiles.preferred_language`), so device
-   * truth — not the profile row — is what navigation must not race.
+   * comes back in the previous language. A pick is a DEVICE choice AND an
+   * account sync (D237: the pick stars), so device truth — not the profile
+   * row — is what navigation must not race.
    */
   await expect
     .poll(async () => page.evaluate(() => window.localStorage.getItem("ethio.lang")), {
@@ -1374,13 +1374,15 @@ export async function describeSwitcher(page: Page): Promise<string> {
       .evaluateAll((nodes) =>
         nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
       );
-    const stars = await page
-      .locator("[data-testid^='language-star-']")
+    const checked = await page
+      .locator("[data-testid^='language-option-']")
       .evaluateAll((nodes) =>
-        nodes.map((n) => (n.getAttribute("data-testid") ?? "").replace("language-star-", "")),
+        nodes
+          .filter((n) => n.getAttribute("aria-checked") === "true")
+          .map((n) => (n.getAttribute("data-testid") ?? "").replace("language-option-", "")),
       );
     const state = menuOpen === "true" ? "menu open" : "menu closed (options are portalled)";
-    options = `${codes.join(",") || "(none)"} · stars: ${stars.join(",") || "(none)"} · ${state}`;
+    options = `${codes.join(",") || "(none)"} · checked: ${checked.join(",") || "(none)"} · ${state}`;
   } catch (error) {
     options = `(options read threw: ${(error as Error).message})`;
   }
