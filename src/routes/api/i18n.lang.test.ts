@@ -68,7 +68,9 @@ describe("language bundle route", () => {
       "public, max-age=300, stale-while-revalidate=3600",
     );
     expect(response.headers.get("Vary")).toBe("Accept-Encoding");
-    expect(await response.text()).toBe(JSON.stringify({ lang: "am", bundle: { "app.title": "T" } }));
+    expect(await response.text()).toBe(
+      JSON.stringify({ lang: "am", bundle: { "app.title": "T" } }),
+    );
     expect(state.calls[0]).toEqual({ name: "get_ui_bundle_version", args: { p_lang: "am" } });
   });
 
