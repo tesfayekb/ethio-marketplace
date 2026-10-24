@@ -1,6 +1,6 @@
 import { createFileRoute, type ErrorComponentProps } from "@tanstack/react-router";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
-import { legalPageData, shapedCountries } from "@/features/legal/legal-page-data";
+import { shapedCountries } from "@/features/legal/legal-kinds";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
@@ -47,6 +47,7 @@ export const Route = createFileRoute("/legal/publishing")({
     await requireSignedIn(`/legal/publishing${searchString(search)}`);
   },
   loader: async ({ deps }) => {
+    const { legalPageData } = await import("@/features/legal/legal-page-data");
     const [global, ...countries] = await Promise.all([
       legalPageData(supabase, deps.kind),
       ...deps.countries.map((code) => legalPageData(supabase, deps.kind, code)),
