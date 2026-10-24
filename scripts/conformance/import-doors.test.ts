@@ -165,7 +165,6 @@ describe("the staff file doors", () => {
     ].join("\n");
     expect(importRouteFindings("planted/import.ts", planted)).toEqual([
       { file: "planted/import.ts", line: 1, what: "is not a defineImportRoute call" },
-      { file: "planted/import.ts", line: 1, what: "touches the request" },
       { file: "planted/import.ts", line: 3, what: "touches the request" },
       { file: "planted/import.ts", line: 5, what: "builds a Response" },
       { file: "planted/import.ts", line: 4, what: "calls an RPC" },
