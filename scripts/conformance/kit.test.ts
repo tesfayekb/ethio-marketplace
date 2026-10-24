@@ -32,7 +32,7 @@ it("CF-KIT-2 comments blank without moving code", () => {
   expect(code.split("\n").length).toBe(text.split("\n").length);
   expect(code.indexOf("ok()")).toBe(text.indexOf("ok()"));
   expect(code).not.toContain("comment");
-  expect(code).not.toContain("x");
+  expect(code.slice(0, text.indexOf("ok()"))).toBe("    \n    ");
 });
 it("CF-KIT-3 well formed allowances preserve fields", () => {
   const path = join(root(), "allow.txt");
