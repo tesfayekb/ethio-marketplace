@@ -15,10 +15,6 @@ src/routes/api/admin/categories/generate-image.ts | staff AI route not yet on de
 src/routes/api/admin/categories/suggest-icon.ts | staff AI route not yet on defineRoute | INC-861
 src/server/category-images/gate.ts | the category-images gate: its own answers :21/:48/:59 | INC-861
 # INC-862 — the public readers and small routes
-src/routes/api/categories.tree.ts | reader route not yet on defineRoute | INC-862
-src/routes/api/locations.ts | reader route not yet on defineRoute | INC-862
-src/routes/api/locations.$country.ts | reader route not yet on defineRoute | INC-862
-src/routes/api/i18n.$lang.ts | reader route not yet on defineRoute | INC-862
 src/routes/api/feed.ts | reader route not yet on defineRoute | INC-862
 src/routes/api/seller.ts | reader route not yet on defineRoute | INC-862
 src/routes/api/attributes.$id.options.ts | reader route not yet on defineRoute | INC-862

@@ -148,11 +148,7 @@ describe("the server's caught-error census (INC-625, G29)", () => {
     expect(raw).toEqual([]);
     expect(helpers.sort()).toEqual([
       "src/routes/api/attributes.$id.options.ts: logRouteError",
-      "src/routes/api/categories.tree.ts: logRouteError",
       "src/routes/api/feed.ts: logRouteError",
-      "src/routes/api/i18n.$lang.ts: logRouteError",
-      "src/routes/api/locations.$country.ts: logRouteError",
-      "src/routes/api/locations.ts: logRouteError",
       "src/routes/api/seller.ts: logRouteError",
       "src/routes/api/translate.ts: fail5xx",
       "src/routes/api/translate.ts: logRouteError",
