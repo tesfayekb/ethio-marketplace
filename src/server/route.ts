@@ -4,7 +4,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
-import { clientError, serverError, upstreamUnavailable, verdict } from "@/server/answer";
+import {
+  clientAborted,
+  clientError,
+  serverError,
+  upstreamUnavailable,
+  verdict,
+} from "@/server/answer";
 import type { Dial } from "@/lib/dials";
 import { spend as spendDial } from "@/server/dials";
 import {
@@ -350,8 +356,8 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         incident,
       });
     } catch (error) {
-      // (1) the outer catch.
-      return serverError(spec.path, error);
+      // (1) the outer catch; a client that left is not a server error (INC-871).
+      return clientAborted(request) ?? serverError(spec.path, error);
     }
   };
 }
