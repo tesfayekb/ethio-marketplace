@@ -1,3 +1,4 @@
+import { callRoute } from "@/lib/route-client";
 import { parseFeedPage, type FeedListing } from "@/features/feed/feed-page";
 import type { PhotoLinks } from "@/features/posting/photo-links";
 
@@ -21,20 +22,16 @@ export async function similarListings(
   excludeId: string,
 ): Promise<SimilarAnswer> {
   const empty: SimilarAnswer = { cards: [], coverLinks: {} };
-  try {
-    const params = new URLSearchParams({ category: categoryId, size: "11" });
-    if (placeId !== null) params.set("place", placeId);
-    const response = await fetch(`/api/feed?${params.toString()}`);
-    if (!response.ok) return empty;
-    const page = parseFeedPage(await response.json());
-    if (page === null) return empty;
-    return {
-      cards: page.cards
-        .filter((card) => card.id !== excludeId && card.publicId !== excludeId)
-        .slice(0, 10),
-      coverLinks: page.coverLinks ?? {},
-    };
-  } catch {
-    return empty;
-  }
+  const params = new URLSearchParams({ category: categoryId, size: "11" });
+  if (placeId !== null) params.set("place", placeId);
+  const answer = await callRoute(`/api/feed?${params.toString()}`, { auth: "none" });
+  if (answer.kind !== "answered" || !answer.ok) return empty;
+  const page = parseFeedPage(answer.payload);
+  if (page === null) return empty;
+  return {
+    cards: page.cards
+      .filter((card) => card.id !== excludeId && card.publicId !== excludeId)
+      .slice(0, 10),
+    coverLinks: page.coverLinks ?? {},
+  };
 }

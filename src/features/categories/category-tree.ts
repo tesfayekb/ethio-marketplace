@@ -267,14 +267,15 @@ interface TreePayload {
  * the browser still holds — the stale seam this incident was about.
  */
 export async function readCategoryTree(): Promise<{ tree: CategoryTree; version: string }> {
-  const response = await fetch("/api/categories/tree", {
-    headers: { Accept: "application/json" },
-    cache: "no-cache",
-  });
+  const answer = await callRoute("/api/categories/tree", { auth: "none", cache: "no-cache" });
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.
-  if (!response.ok) throw new Error(`category tree read failed (${String(response.status)})`);
-  const payload = (await response.json()) as TreePayload;
+  if (answer.kind !== "answered" || !answer.ok) {
+    throw new Error(
+      `category tree read failed (${answer.kind === "answered" ? String(answer.status) : answer.kind})`,
+    );
+  }
+  const payload = (answer.payload ?? { nodes: [], pointers: [], version: "" }) as TreePayload;
 
   const rows: CategoryNode[] = payload.nodes.map((row) => ({
     id: row.id,
