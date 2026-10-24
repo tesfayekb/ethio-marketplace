@@ -1,4 +1,7 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import type { LegalFacts } from "./legal-markdown";
 import { ownValue } from "@/lib/own-key";
 

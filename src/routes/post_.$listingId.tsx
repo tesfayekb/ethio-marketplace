@@ -1,8 +1,8 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { PostingWizard } from "@/features/posting/wizard";
-import { supabase } from "@/integrations/supabase/client";
 import { readDraft, mayResumePosting } from "@/features/posting/posting-service";
+import { requireSignedIn } from "@/lib/signed-in-route";
 
 /**
  * U6-C1a/C2a — `/post/<id>`: RESUMING a draft.
