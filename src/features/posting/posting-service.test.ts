@@ -92,7 +92,8 @@ describe("the publish route's certification (bundle 22 turn 4; the schema is the
     const { PublishBody } = await import("@/routes/api/listings/publish");
     const fieldOf = (body: Record<string, unknown>) => {
       const parsed = PublishBody.safeParse({ listingId: ID, ...body });
-      return parsed.success ? null : parsed.error.issues[0]?.path.join(".");
+      // The refusal's field is the path's first segment ("certified.1" → "certified").
+      return parsed.success ? null : String(parsed.error.issues[0]?.path[0]);
     };
     expect(fieldOf({ certified: [ID, "not-a-uuid"] })).toBe("certified");
     expect(fieldOf({ certified: Array.from({ length: 21 }, () => ID) })).toBe("certified");
