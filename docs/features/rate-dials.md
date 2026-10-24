@@ -43,6 +43,10 @@ guard is `scripts/conformance/dials.test.ts` (DIAL-1…5; no allowlist).
 | backgroundListing    | background:listing          | 2     | —                                      | 315576000  | listings/background.ts (listing id)                                                            | verdict `background`/`backgroundSpent`            |
 | identityImitation    | identity:imitation          | 20    | —                                      | 86400      | listings/identity.ts (user id; alias branch)                                                   | verdict `rate`/`rateLimited`                      |
 | catalogFind          | catalog_find (door-counted) | 120   | —                                      | 3600       | server/catalog-find.server.ts (`p_rate_limit`; E2E 2)                                          | the door's own                                    |
+| importCategories | import:categories | 30 | — | 60 | categories/import.ts (`defineImportRoute`; preview only, user id) | 429 `rateLimited` |
+| importAttributes | import:attributes | 30 | — | 60 | attributes/import.ts (`defineImportRoute`; preview only, user id) | 429 `rateLimited` |
+| importLocations | import:locations | 30 | — | 60 | locations/import.ts (`defineImportRoute`; preview only, user id) | 429 `rateLimited` |
+| importTranslations | import:translations | 30 | — | 60 | translations/import.ts (`defineImportRoute`; commit and undo, user id) | 429 `rateLimited` |
 
 ## The epoch note
 
