@@ -109,7 +109,7 @@ it("shows the global text and every requested country, including an absent state
   render(
     <LegalDocumentPage
       kind="publishing"
-      title="Publishing"
+      title={"Publishing"}
       data={{ inForce: v(1, "Global body", "am", "", "2026-10-01T00:00:00Z"), scheduled: null }}
       sections={[
         {
