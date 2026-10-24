@@ -28,7 +28,7 @@ const PATH = "/api/categories/tree";
 const CACHE = "public, max-age=60, stale-while-revalidate=300";
 
 /** The held value is the parsed body; conditional() serializes it. */
-const TREE = versionCache<"tree", { body: unknown } | { matched: true }>({ ttlMs: 0, max: 1 });
+const TREE = versionCache<"tree", { body: unknown }>({ ttlMs: 0, max: 1 });
 
 /** The ten columns the two readers need — a translated name is never served. */
 const NODE_COLUMNS =
@@ -39,10 +39,16 @@ function readFailed(error: unknown, status: number): ReaderError {
   return new ReaderError({ class: "server", status, message: errorText(error) });
 }
 
+/** F4 — a failed page read is a failure, never an empty tree. */
+function pageFailed(error: unknown): never {
+  throw readFailed(error, 500);
+}
+
 async function handler(ctx: RouteContext): Promise<Response> {
   const supabase = ctx.supabase;
   if (supabase === null) throw new Error("anonymous client missing");
   const etagOf = (version: string) => `"cat-tree-${version}"`;
+  let seen = "";
   try {
     const held = await TREE.get(
       "tree",
@@ -51,6 +57,7 @@ async function handler(ctx: RouteContext): Promise<Response> {
         if (error) throw readFailed(error, status);
         const resolved = typeof data === "string" ? data : "";
         if (resolved === "") throw new Error("no category tree version");
+        seen = resolved;
         return resolved;
       },
       async (version) => {
@@ -69,7 +76,7 @@ async function handler(ctx: RouteContext): Promise<Response> {
               return after === null ? query : query.gt("id", after);
             },
             (row) => row.id,
-          ),
+          ).catch(pageFailed),
           // D33 — the pointer order is cat_primary_pointer's: display_order, then created_at.
           readAllPages(
             (after, limit) => {
@@ -81,7 +88,7 @@ async function handler(ctx: RouteContext): Promise<Response> {
               return after === null ? query : query.gt("id", after);
             },
             (row) => row.id,
-          ),
+          ).catch(pageFailed),
         ]);
         return {
           body: {
@@ -106,12 +113,8 @@ async function handler(ctx: RouteContext): Promise<Response> {
         };
       },
     );
-    if (held === null) {
-      // build returned null only for the cold conditional hit.
-      const version = await lastVersion(supabase);
-      return notModified(etagOf(version), CACHE);
-    }
-    if (!("body" in held.value)) return notModified(etagOf(held.version), CACHE);
+    // build answers null only for the cold conditional hit (ruled, turn 6).
+    if (held === null) return notModified(etagOf(seen), CACHE);
     return conditional(ctx.request, {
       etag: etagOf(held.version),
       body: held.value.body,
