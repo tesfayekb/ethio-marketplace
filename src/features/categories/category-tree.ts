@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
+import { callRoute } from "@/lib/route-client";
 import { entityName, type EntityBundle } from "@/i18n";
 
 /**

@@ -1,5 +1,6 @@
 import { useQueries } from "@tanstack/react-query";
 
+import { callRoute } from "@/lib/route-client";
 import {
   CARD_THEN_THUMB,
   linksOf,
@@ -22,13 +23,14 @@ const GROUP = 20;
 const CARD_SIZES = ["card", "thumb"] as const;
 
 async function readCardLinks(photoIds: string[]): Promise<PhotoLinks> {
-  const response = await fetch("/api/media/photo-links", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ photoIds, variants: CARD_SIZES }),
+  const answer = await callRoute("/api/media/photo-links", {
+    auth: "none",
+    json: { photoIds, variants: CARD_SIZES },
   });
-  if (!response.ok) throw new Error(`card photo links: ${response.status}`);
-  return linksOf((await response.json()) as Record<string, unknown>);
+  if (answer.kind !== "answered" || !answer.ok) {
+    throw new Error(`card photo links: ${answer.kind === "answered" ? answer.status : 0}`);
+  }
+  return linksOf(answer.payload ?? {});
 }
 
 /**
