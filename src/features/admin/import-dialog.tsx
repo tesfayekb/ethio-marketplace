@@ -257,7 +257,10 @@ export function ImportDialog({
       return null;
     }
     if (!answer.ok) {
-      failed({ error: answer.error ?? undefined, detail: answer.detail ?? undefined }, answer.status);
+      failed(
+        { error: answer.error ?? undefined, detail: answer.detail ?? undefined },
+        answer.status,
+      );
       return null;
     }
     return answer.payload ?? {};

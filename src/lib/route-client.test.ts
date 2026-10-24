@@ -106,7 +106,9 @@ describe("browser route client", () => {
     const revoke = vi.fn();
     vi.stubGlobal("URL", Object.assign(URL, { createObjectURL: create, revokeObjectURL: revoke }));
     const names: string[] = [];
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (this: HTMLAnchorElement) {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
       names.push(this.download);
     });
     fetchMock.mockResolvedValue(new Response("\ufeffkey\r\nvalue\r\n"));
@@ -117,7 +119,9 @@ describe("browser route client", () => {
     });
     expect(names).toEqual(["scope-definitions.csv"]);
     expect(create).toHaveBeenCalledTimes(1);
-    expect(new Uint8Array(await create.mock.calls[0][0].arrayBuffer())).toEqual(new TextEncoder().encode("\ufeffkey\r\nvalue\r\n"));
+    expect(new Uint8Array(await create.mock.calls[0][0].arrayBuffer())).toEqual(
+      new TextEncoder().encode("\ufeffkey\r\nvalue\r\n"),
+    );
     expect(revoke).toHaveBeenCalledExactlyOnceWith("blob:test");
     expect(document.querySelector('a[href="blob:test"]')).toBeNull();
     fetchMock.mockResolvedValue(jsonAnswer({ error: "forbidden" }, 403));

@@ -214,7 +214,10 @@ export function AdminAttributesPage() {
       for (const file of ["definitions", "links"] as const) {
         const query =
           scope === null ? `file=${file}` : `file=${file}&scope=${encodeURIComponent(scope)}`;
-        const answer = await downloadRoute(`/api/admin/attributes/export?${query}`, scope === null ? `${file}.csv` : `${scope}-${file}.csv`);
+        const answer = await downloadRoute(
+          `/api/admin/attributes/export?${query}`,
+          scope === null ? `${file}.csv` : `${scope}-${file}.csv`,
+        );
         if (answer.kind !== "answered" || !answer.ok) {
           setExportError(true);
           break;

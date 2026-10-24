@@ -104,7 +104,10 @@ export function AdminCountriesPage() {
     setExporting(true);
     setExportError(false);
     try {
-      const answer = await downloadRoute("/api/admin/locations/export?file=countries", "countries.csv");
+      const answer = await downloadRoute(
+        "/api/admin/locations/export?file=countries",
+        "countries.csv",
+      );
       if (answer.kind !== "answered" || !answer.ok) setExportError(true);
     } catch (error) {
       console.error("[countries] export failed", error);

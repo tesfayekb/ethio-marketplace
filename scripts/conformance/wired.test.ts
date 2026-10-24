@@ -78,7 +78,9 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(missing).toEqual([]);
     // route-client.test.ts RCG-1…3 is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "vitest.config.ts"), "utf8")).toContain("scripts/**/*.test.ts");
-    expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain("RCG-3");
+    expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain(
+      "RCG-3",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

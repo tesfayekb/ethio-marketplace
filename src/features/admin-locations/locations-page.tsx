@@ -158,7 +158,10 @@ export function AdminLocationsPage() {
       // L2b-C1 — "All countries" carries NO scope: the route then exports every
       // market's places, and the file is named for the scope it was taken at.
       const scope = country === "" ? "" : `&scope=${encodeURIComponent(country)}`;
-      const answer = await downloadRoute(`/api/admin/locations/export?file=${file}${scope}`, `${country === "" ? "all" : country}-${file}.csv`);
+      const answer = await downloadRoute(
+        `/api/admin/locations/export?file=${file}${scope}`,
+        `${country === "" ? "all" : country}-${file}.csv`,
+      );
       if (answer.kind !== "answered" || !answer.ok) setExportError(true);
     } catch (error) {
       console.error("[locations] export failed", error);

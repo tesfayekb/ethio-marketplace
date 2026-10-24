@@ -288,7 +288,10 @@ export function AdminCategoriesPage() {
     setExportError(false);
     try {
       const query = scopeSlug === null ? "" : `?scope=${encodeURIComponent(scopeSlug)}`;
-      const answer = await downloadRoute(`/api/admin/categories/export${query}`, scopeSlug === null ? "categories.csv" : `${scopeSlug}-categories.csv`);
+      const answer = await downloadRoute(
+        `/api/admin/categories/export${query}`,
+        scopeSlug === null ? "categories.csv" : `${scopeSlug}-categories.csv`,
+      );
       if (answer.kind !== "answered" || !answer.ok) setExportError(true);
     } catch (error) {
       console.error("[categories] export failed", error);
