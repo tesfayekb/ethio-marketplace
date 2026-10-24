@@ -176,16 +176,15 @@ The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), usi
 
 ## The last INC-862 routes (Foundations turn 10; INC-862 closed, 15 of 15)
 
-| Route               | Auth | Shape                                                    | Cache / success                                                                    | Refusals                                                      |
-| ------------------- | ---- | -------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `/api/catalog/find` | anon | q trimmed 2–64; lang `langCodeLoose` ≤ 3, default `en`   | `public, max-age=60` + Server-Timing; `{ok, results}`                              | 400 `bad query` · 429 `rateLimited` (clientError, no-store)   |
-| `/api/map/tiles`    | none | GET none; POST `{reason?: string}`                       | GET `private, max-age=3600` plan, OSM `no-store` on a throw; POST `{ok}` no-store | POST bad body or spent dial → `{ok:false}`                    |
-| `/l/$id/photo.jpg`  | none | id `publicId`                                            | 302 `redirect()` to the signed https link, `private, max-age=1800`                 | plain text: 404 not found · 429 rate limited · 503 · 500      |
-| `/l/$id/qr.svg`     | none | id `publicId`                                            | `bytes()` SVG, `public, max-age=31536000, immutable`, nosniff                      | plain 404 not found (no-store)                                |
+| Route               | Auth | Shape                                                  | Cache / success                                                                   | Refusals                                                    |
+| ------------------- | ---- | ------------------------------------------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `/api/catalog/find` | anon | q trimmed 2–64; lang `langCodeLoose` ≤ 3, default `en` | `public, max-age=60` + Server-Timing; `{ok, results}`                             | 400 `bad query` · 429 `rateLimited` (clientError, no-store) |
+| `/api/map/tiles`    | none | GET none; POST `{reason?: string}`                     | GET `private, max-age=3600` plan, OSM `no-store` on a throw; POST `{ok}` no-store | POST bad body or spent dial → `{ok:false}`                  |
+| `/l/$id/photo.jpg`  | none | id `publicId`                                          | 302 `redirect()` to the signed https link, `private, max-age=1800`                | plain text: 404 not found · 429 rate limited · 503 · 500    |
+| `/l/$id/qr.svg`     | none | id `publicId`                                          | `bytes()` SVG, `public, max-age=31536000, immutable`, nosniff                     | plain 404 not found (no-store)                              |
 
 - Every route's outer catch answers `clientAborted(request) ?? serverError(...)`: a handler that throws after its client left is an empty 499 with one `[client-aborted]` line (RT-20; server.ts uses the same helper, ABT-4/5).
 - CHANGE (1) (declared language): see i18n-runtime.md — the first byte declares the base language the server renders.
 - CHANGE (2): a route whose handler throws after the client left answers 499 + `[client-aborted]`, not serverError (RT-20).
 - CHANGE (3): catalog find's 400/429 come from clientError; routeJson already carried `no-store` and the charset, so the answers are byte-identical (CFR-1, CFR-4).
 - CHANGE (4): tiles POST — an unreadable or non-JSON body answers `{ok:false}` with no dial and no line (TIL-3).
-
