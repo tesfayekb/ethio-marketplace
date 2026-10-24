@@ -1,11 +1,6 @@
 # The route boundary (Foundations turn 2): every server endpoint is a defineRoute; a line here is a route not yet moved (until its wave's INC) or a helper that implements the boundary. <path> | <reason> | <until>
 # INC-859 — closed (Foundations turn 4: every posting and media route is on defineRoute)
-# INC-860 — the admin imports and exports
-src/routes/api/admin/categories/import.ts | import route not yet on defineRoute | INC-860
-src/routes/api/admin/attributes/import.ts | import route not yet on defineRoute | INC-860
-src/routes/api/admin/locations/import.ts | import route not yet on defineRoute | INC-860
-src/routes/api/admin/translations/import.ts | import route not yet on defineRoute | INC-860
-src/server/imports/gate.ts | the import gate: its own JSON builder :85 and bearer read :800 | INC-860
+# INC-860 — closed (Foundations turn 12: the imports and exports are on defineRoute)
 # INC-861 — the staff AI routes
 src/routes/api/translate.ts | staff AI route not yet on defineRoute | INC-861
 src/routes/api/admin/categories/generate-image.ts | staff AI route not yet on defineRoute | INC-861
