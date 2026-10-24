@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import { DIALS } from "@/lib/dials";
 
 /**
  * U6-C1a — THE WIZARD'S VOCABULARY.
@@ -83,10 +84,11 @@ export const IMPLEMENTED_THROUGH = 8;
 
 /**
  * U6-C1-R2 — HOW MANY TIMES THE WRITING HELPER MAY BE ASKED, per listing.
- * The DOOR counts the spend (`consume_rate_limit` over a ten-year window); this
- * constant is only what the screen says in words, and the two agree by design.
+ * The DOOR counts the spend (`consume_rate_limit` over a ten-year window); the
+ * screen and the door read the one registry entry (DIALS.assistListing,
+ * src/lib/dials.ts), so the words and the count cannot disagree.
  */
-export const ASSIST_TRIES = 5;
+export const ASSIST_TRIES = DIALS.assistListing.limit.fallback;
 
 /**
  * U6-C2a — THE PRICE VOCABULARY, the door's own words (DEC-067, D13).

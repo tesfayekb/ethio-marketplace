@@ -196,7 +196,7 @@ describe("POST /api/listings/background (D155b / D159)", () => {
       action: "background:day",
       key: "seller-1",
       limit: 10,
-      window: "1 day",
+      window: "86400 seconds",
     });
     expect(state.spent).toEqual([]);
   });
@@ -224,7 +224,7 @@ describe("POST /api/listings/background (D155b / D159)", () => {
       action: "background:listing",
       key: LISTING,
       limit: 2,
-      window: "10 years",
+      window: "315576000 seconds",
     });
     expect(state.spent).toEqual([]);
   });

@@ -26,9 +26,6 @@ export interface GeoPlace {
   lng: number;
 }
 
-/** DEC-071's dial for geocoding: sixty lookups an hour per signed-in seller. */
-export const GEOCODE_PER_HOUR = 60;
-
 const CACHE_MS = 24 * 60 * 60 * 1000;
 const UPSTREAM_MS = 6000;
 const UPSTREAM = "https://nominatim.openstreetmap.org";

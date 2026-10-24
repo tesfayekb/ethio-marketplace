@@ -4,12 +4,12 @@ import { z } from "zod";
 import { uuid } from "@/lib/schemas/primitives";
 import { bytes, serverError, verdict } from "@/server/answer";
 import { ownListing } from "@/server/listings/own-listing";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
 import { defineRoute, type RouteContext } from "@/server/route";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import {
-  BACKGROUND_TRIES,
-  BACKGROUND_WINDOW,
   backgroundKey,
   cutOut,
   fakeCutout,
@@ -19,7 +19,7 @@ import {
 } from "@/server/media/background";
 import { PHOTO_OPEN_STATUSES } from "@/server/media/hold";
 import { signPhotoRows } from "@/server/media/links";
-import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
+import { logRouteError } from "@/server/supabase/user-client";
 
 /**
  * Bundle 13 turn 12 — D155b / D159: REMOVE THE COVER PHOTO'S BACKGROUND.
@@ -94,12 +94,7 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
 
   // 3 — the seller's daily dial (D158).
   // dial in the handler: after the switch, so a switched-off tool spends none — INC-859
-  const daily = await consumeRate(
-    "background:day",
-    userId,
-    envDial("RATE_LIMIT_BACKGROUND_PER_DAY", 10),
-    "1 day",
-  );
+  const daily = await spend(DIALS.backgroundDay, userId);
   if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
 
   // 4 — the ids.
@@ -132,12 +127,7 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
 
   // 7 — the ad's tries, spent before the provider is asked (F5).
   // dial in the handler: keyed by the listing — INC-859
-  const budget = await consumeRate(
-    "background:listing",
-    listingId,
-    BACKGROUND_TRIES,
-    BACKGROUND_WINDOW,
-  );
+  const budget = await spend(DIALS.backgroundListing, listingId);
   if (!budget.allowed) return refusal("background", "backgroundSpent");
   const triesLeft = budget.remaining ?? 0;
 

@@ -1,10 +1,11 @@
 import { listingPath, parseAddressSegment } from "@/features/ad-page/address";
 import type { PublicListingDoc } from "@/features/ad-page/public-listing";
 import { clientAddress } from "@/server/catalog-find.server";
-import { anonymousClient, consumeRate, envDial } from "@/server/supabase/user-client";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
+import { anonymousClient } from "@/server/supabase/user-client";
 import { errorText } from "@/lib/error-text";
 
-export const READ_LIMIT_PER_HOUR = 600;
 export type AdPageAnswer =
   | { kind: "ad"; doc: PublicListingDoc; canonical: string }
   | { kind: "gone" }
@@ -16,12 +17,7 @@ export async function readAdPage(request: Request, slug: string): Promise<AdPage
   const parsed = parseAddressSegment(slug);
   if (parsed === null) return { kind: "gone" };
   try {
-    const rate = await consumeRate(
-      "listing-read:address",
-      clientAddress(request),
-      envDial("RATE_LIMIT_LISTING_READ_PER_HOUR", READ_LIMIT_PER_HOUR),
-      "1 hour",
-    );
+    const rate = await spend(DIALS.listingReadAddress, clientAddress(request));
     if (!rate.allowed) return { kind: "rate" };
     const client = anonymousClient();
     if (client === null) {

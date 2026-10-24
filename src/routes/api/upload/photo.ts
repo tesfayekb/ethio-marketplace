@@ -10,6 +10,8 @@ import {
 } from "@/server/answer";
 import { doorCall } from "@/server/door";
 import { ownListing } from "@/server/listings/own-listing";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
 import { defineRoute, type RouteContext } from "@/server/route";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
@@ -30,7 +32,7 @@ import {
   type Partition,
 } from "@/server/media/storage";
 import { assertStripped, StripError, stripImage, type StrippedImage } from "@/server/media/strip";
-import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
+import { envDial, logRouteError } from "@/server/supabase/user-client";
 import { errorText } from "@/lib/error-text";
 
 /**
@@ -235,12 +237,7 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
   // or refused ad's photos are not counted here.
   if (String(listing["status"]) === "draft") {
     // dial in the handler: drafts only — INC-859
-    const week = await consumeRate(
-      "upload:draft-week",
-      userId,
-      envDial("DRAFT_UPLOADS_PER_WEEK_WITHOUT_AD", 50),
-      "7 days",
-    );
+    const week = await spend(DIALS.uploadDraftWeek, userId);
     if (!week.allowed) {
       const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data: submitted, error: submittedError } = await supabase
@@ -341,12 +338,7 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
   // the rest of the UTC day, and the photo is held or paused as when it is off.
   if (gate.on && !photoPolicyFake()) {
     // dial in the handler: site-wide AI budget — the AI gateway's, INC-861
-    const site = await consumeRate(
-      "upload:screen",
-      "site",
-      envDial("PHOTO_SCREENS_PER_DAY_SITE", 2000),
-      "1 day",
-    );
+    const site = await spend(DIALS.uploadScreen, "site");
     gate = withSiteCap(gate, site.allowed);
     if (!site.allowed) log("photo screening: the site's day cap is spent; the photo is held");
   }
@@ -541,19 +533,15 @@ export const Route = createFileRoute("/api/upload/photo")({
         form: { maxBytes: 2 * 1024 * 1024 },
         rate: [
           {
-            action: "upload",
+            dial: DIALS.uploadHour,
             key: "user",
-            limit: { env: "RATE_LIMIT_UPLOAD_PER_HOUR", fallback: 60 },
-            windowSeconds: 3600,
             when: "beforeParse",
             refuseAs: { verdict: { field: "rate" } },
           },
           {
             // D158 — a seller's daily limit, over the hourly one.
-            action: "upload:day",
+            dial: DIALS.uploadDay,
             key: "user",
-            limit: { env: "RATE_LIMIT_UPLOAD_PER_DAY", fallback: 200 },
-            windowSeconds: 86400,
             when: "beforeParse",
             refuseAs: { verdict: { field: "rate" } },
           },

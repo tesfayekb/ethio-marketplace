@@ -1,11 +1,8 @@
 import { ok, upstreamFailed, upstreamUnavailable } from "@/server/answer";
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
-import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
-
-export const VIEW_LIMIT_PER_HOUR = 600;
-/** Turn 23 — ESTIMATE (band 20–60): counted views one carrier address may
-    legitimately carry per ad per hour; env dial overrides. */
-export const VIEW_LIMIT_PER_ADDRESS_AD = 30;
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
+import { logRouteError } from "@/server/supabase/user-client";
 
 const SESSION_PATTERN = /^[A-Za-z0-9-]{16,64}$/;
 
@@ -25,12 +22,7 @@ export type AdViewContext = {
 export async function countAdView({ body, userId, request }: AdViewContext): Promise<Response> {
   const publicId = body.publicId;
   const address = clientAddress(request);
-  const rate = await consumeRate(
-    "listing-view:address",
-    address,
-    envDial("RATE_LIMIT_LISTING_VIEW_PER_HOUR", VIEW_LIMIT_PER_HOUR),
-    "1 hour",
-  );
+  const rate = await spend(DIALS.listingViewAddress, address);
   if (!rate.allowed) return ok({ counted: false });
   const rawSession = body.session;
   const session =
@@ -38,19 +30,9 @@ export async function countAdView({ body, userId, request }: AdViewContext): Pro
   let rateKey = hashAddress(address);
   if (session) {
     const sessionKey = hashAddress(session);
-    const sessionGate = await consumeRate(
-      "listing-view:session",
-      `${sessionKey}:${publicId}`,
-      1,
-      "24 hours",
-    );
+    const sessionGate = await spend(DIALS.listingViewSession, `${sessionKey}:${publicId}`);
     if (!sessionGate.allowed) return ok({ counted: false });
-    const ceiling = await consumeRate(
-      "listing-view:address-ad",
-      `${address}:${publicId}`,
-      envDial("RATE_LIMIT_LISTING_VIEW_PER_ADDRESS_AD", VIEW_LIMIT_PER_ADDRESS_AD),
-      "1 hour",
-    );
+    const ceiling = await spend(DIALS.listingViewAddressAd, `${address}:${publicId}`);
     if (!ceiling.allowed) return ok({ counted: false });
     rateKey = `s:${sessionKey}`;
   }

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { countAdShare, SHARE_LIMIT_PER_HOUR } from "./ad-share";
+import { DIALS } from "@/lib/dials";
+import { countAdShare } from "./ad-share";
 import { hashAddress } from "./catalog-find.server";
 const mocks = vi.hoisted(() => ({ rate: vi.fn(), rpc: vi.fn(), caller: vi.fn(), log: vi.fn() }));
 vi.mock("@/server/supabase/user-client", async (original) => ({
@@ -67,11 +68,16 @@ describe("share count route", () => {
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it("SH-3 the address limit is 120 an hour and refusal never reaches the door", async () => {
-    expect(SHARE_LIMIT_PER_HOUR).toBe(120);
+    expect(DIALS.listingShareAddress.limit.fallback).toBe(120);
     mocks.rate.mockResolvedValue({ allowed: false });
     const answer = await countAdShare(ctx({ publicId: ID, channel: "qr" }));
     expect(await answer.json()).toEqual({ counted: false });
-    expect(mocks.rate).toHaveBeenCalledWith("listing-share:address", "192.0.2.7", 120, "1 hour");
+    expect(mocks.rate).toHaveBeenCalledWith(
+      "listing-share:address",
+      "192.0.2.7",
+      120,
+      "3600 seconds",
+    );
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it("SH-4 upstream failure answers 503, a door error answers counted false", async () => {

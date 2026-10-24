@@ -6,8 +6,10 @@ import { doorRefusal } from "@/features/posting/door-error";
 import type { Database } from "@/integrations/supabase/types";
 import { ok, upstreamFailed, upstreamUnavailable, verdict } from "@/server/answer";
 import { doorCall, type DoorResult } from "@/server/door";
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
-import { consumeRate, logRouteError } from "@/server/supabase/user-client";
+import { logRouteError } from "@/server/supabase/user-client";
 import { upstream } from "@/server/upstream";
 import { aiFakeMode, aiGate, recordAiSpend } from "@/server/ai/meter";
 import { untrustedText, withUntrustedRule } from "@/lib/untrusted-text";
@@ -46,14 +48,6 @@ type IdentityArgs = Database["public"]["Functions"]["save_posting_identity"]["Ar
 function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
-
-/**
- * INC-442 — the imitation gate's dial, equal to the live `rate_dials` row for
- * `identity` (20 per 86400 s), so honest use meets the door's gate first.
- */
-const IMITATION_LIMIT = 20;
-/** INC-442 — the window of the same live row (86400 s). */
-const IMITATION_WINDOW = "24 hours";
 
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -194,7 +188,7 @@ async function handle(
   if (alias !== null) {
     // dial in the handler: spent on one branch only — INC-859
     // INC-442 — counted BEFORE the paid model call; a refused verdict never asks it.
-    const rate = await consumeRate("identity:imitation", userId, IMITATION_LIMIT, IMITATION_WINDOW);
+    const rate = await spend(DIALS.identityImitation, userId);
     if (!rate.allowed) {
       return verdict([
         { field: "rate", reason: "rateLimited", detail: rate.resetsAt ?? undefined },

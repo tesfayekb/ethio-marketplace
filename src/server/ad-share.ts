@@ -1,8 +1,8 @@
 import { ok, upstreamFailed, upstreamUnavailable } from "@/server/answer";
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
-import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
-
-export const SHARE_LIMIT_PER_HOUR = 120;
+import { DIALS } from "@/lib/dials";
+import { spend } from "@/server/dials";
+import { logRouteError } from "@/server/supabase/user-client";
 
 /** The typed context the route hands over: the parsed body, the verified caller. */
 export type AdShareContext = {
@@ -18,12 +18,7 @@ export type AdShareContext = {
  */
 export async function countAdShare({ body, userId, request }: AdShareContext): Promise<Response> {
   const address = clientAddress(request);
-  const rate = await consumeRate(
-    "listing-share:address",
-    address,
-    envDial("RATE_LIMIT_LISTING_SHARE_PER_HOUR", SHARE_LIMIT_PER_HOUR),
-    "1 hour",
-  );
+  const rate = await spend(DIALS.listingShareAddress, address);
   if (!rate.allowed) return ok({ counted: false });
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error, status } = await supabaseAdmin.rpc("count_listing_share", {
