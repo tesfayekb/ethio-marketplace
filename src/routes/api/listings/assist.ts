@@ -225,25 +225,29 @@ async function callProvider(
 
   let response: Response;
   try {
-    response = await upstream(`${BASE}/${encodeURIComponent(textModel())}:generateContent`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [
-        {
-          role: "user",
-          parts: [
-            { text: prompt },
-            ...images.map((image) => ({
-              inlineData: { mimeType: image.mimeType, data: image.data },
-            })),
+    response = await upstream(
+      `${BASE}/${encodeURIComponent(textModel())}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                ...images.map((image) => ({
+                  inlineData: { mimeType: image.mimeType, data: image.data },
+                })),
+              ],
+            },
           ],
-        },
-      ],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.7 },
-    }),
-  }, { timeoutMs: 20_000, label: "gemini assist" });
+          generationConfig: { responseMimeType: "application/json", temperature: 0.7 },
+        }),
+      },
+      { timeoutMs: 20_000, label: "gemini assist" },
+    );
   } catch (error) {
     // Foundations turn 3 — a deadline passed is a provider that could not answer.
     // eslint-disable-next-line no-restricted-syntax -- INC-815: UpstreamTimeout is our own class; anything else is rethrown unchanged.
@@ -329,6 +333,7 @@ async function handleGet(
 
 async function handlePost(
   supabase: SupabaseClient<Database>,
+  userId: string,
   body: z.infer<typeof AssistBody>,
 ): Promise<Response> {
   const log = (message: string) => logRouteError(PATH, message);
@@ -337,7 +342,10 @@ async function handlePost(
   const gate = await aiGate("writing_helper", log);
   if (!gate.on) {
     return verdict([
-      { field: "assist", reason: gate.reason === "unavailable" ? "providerUnavailable" : "featureOff" },
+      {
+        field: "assist",
+        reason: gate.reason === "unavailable" ? "providerUnavailable" : "featureOff",
+      },
     ]);
   }
 
@@ -354,9 +362,9 @@ async function handlePost(
     .maybeSingle();
   if (categoryError) {
     logRouteError(PATH, categoryError.message);
-    return refusal("assist", "providerUnavailable");
+    return verdict([{ field: "assist", reason: "providerUnavailable" }]);
   }
-  if (!category) return refusal("categoryId", "categoryNotPostable");
+  if (!category) return verdict([{ field: "categoryId", reason: "categoryNotPostable" }]);
 
   // Bundle 16 turn S1 — the listing named for the per-listing budget is the caller's
   // own, read AS THE CALLER (the owner reads his own rows): another seller's tries
@@ -369,22 +377,23 @@ async function handlePost(
   // THE PER-LISTING BUDGET, spent before any provider call is made (F5: gate first).
   let triesLeft: number | null = null;
   if (listingId !== "") {
+    // dial in the handler: conditional, keyed by the listing, read for its remaining count — INC-859
     const budget = await consumeRate("assist:listing", listingId, ASSIST_TRIES, ASSIST_WINDOW);
-    if (!budget.allowed) return refusal("assist", "assistBudgetSpent");
+    if (!budget.allowed) return verdict([{ field: "assist", reason: "assistBudgetSpent" }]);
     // INC-299 — the count comes from the rate-limit answer, never a table read.
     triesLeft = budget.remaining;
   }
 
   const facts = [
-    ...assistFactLines(body["attrs"], body["photoFacts"]),
-    ...assistDealLines(body["negotiable"], body["period"]),
+    ...assistFactLines(body.attrs, body.photoFacts),
+    ...assistDealLines(body.negotiable, body.period),
   ];
-  const previous = previousPairs(body["previous"]);
-  const sellerTitle = clamp(body["title"], TITLE_MAX);
-  const sellerDescription = clamp(body["description"], DESCRIPTION_MAX);
+  const previous = previousPairs(body.previous);
+  const sellerTitle = clamp(body.title, TITLE_MAX);
+  const sellerDescription = clamp(body.description, DESCRIPTION_MAX);
   const categoryPath =
-    typeof body["categoryPath"] === "string" && body["categoryPath"].trim() !== ""
-      ? body["categoryPath"].slice(0, 300)
+    body.categoryPath !== undefined && body.categoryPath.trim() !== ""
+      ? body.categoryPath.slice(0, 300)
       : `${category.name_en} (${category.slug})`;
 
   // FAKE MODE: `E2E_FAKE_ASSIST=1`, or the harness's standing `E2E_FAKE_TRANSLATE=1`
@@ -399,10 +408,10 @@ async function handlePost(
       sellerDescription,
     );
     await recordAiSpend("writing_helper", 1, log);
-    return routeJson({ ok: true, ...fake, triesLeft }, 200);
+    return ok({ ok: true, ...fake, triesLeft });
   }
 
-  const urls = await photoLinks(supabase, body["photoIds"]);
+  const urls = await photoLinks(supabase, body.photoIds);
   const prompt = composeAssistPrompt({
     locale,
     categoryPath,
@@ -414,30 +423,47 @@ async function handlePost(
   });
 
   const answer = await callProvider(prompt, urls);
-  if (answer === null) return refusal("assist", "providerUnavailable");
+  if (answer === null) return verdict([{ field: "assist", reason: "providerUnavailable" }]);
   await recordAiSpend("writing_helper", 1, log);
-  return routeJson({ ok: true, ...answer, triesLeft }, 200);
+  return ok({ ok: true, ...answer, triesLeft });
 }
+
+const ASSIST_DIALS = [
+  {
+    action: "assist",
+    key: "user" as const,
+    limit: { env: "RATE_LIMIT_ASSIST_PER_HOUR", fallback: 30 },
+    windowSeconds: 3600,
+    when: "beforeParse" as const,
+    refuseAs: { verdict: { field: "rate" } },
+  },
+  {
+    action: "assist:day",
+    key: "user" as const,
+    limit: { env: "RATE_LIMIT_ASSIST_PER_DAY", fallback: 60 },
+    windowSeconds: 86400,
+    when: "beforeParse" as const,
+    refuseAs: { verdict: { field: "rate" } },
+  },
+];
 
 export const Route = createFileRoute("/api/listings/assist")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
-      POST: async ({ request }) => {
-        try {
-          return await handlePost(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: "user",
+        query: AssistQuery,
+        handler: async ({ supabase, userId, query }) =>
+          handleGet(supabase!, userId!, query as z.infer<typeof AssistQuery>),
+      }),
+      POST: defineRoute({
+        path: PATH,
+        auth: "user",
+        body: AssistBody,
+        rate: ASSIST_DIALS,
+        handler: async ({ supabase, userId, body }) => handlePost(supabase!, userId!, body),
+      }),
     },
   },
 });
