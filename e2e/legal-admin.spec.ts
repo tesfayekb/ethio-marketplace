@@ -12,6 +12,7 @@ import { adminClient, createUser, leaseUser } from "./helpers/users";
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
 const kinds = new Set<string>();
 const languages = new Set<string>();
+const roles = new Set<string>();
 function scratch(tag: string) {
   const info = test.info();
   const project = info.project.name.startsWith("mobile") ? "m" : "d";
@@ -68,6 +69,13 @@ test.afterEach(async () => {
     const result = await adminClient().from("languages").delete().eq("code", code);
     if (result.error) failures.push(`language ${code}: ${result.error.message}`);
     else languages.delete(code);
+  }
+  for (const id of [...roles]) {
+    for (const table of ["role_permissions", "user_roles", "roles"] as const) {
+      const result = await adminClient().from(table).delete().eq(table === "roles" ? "id" : "role_id", id);
+      if (result.error) failures.push(`${table} ${id}: ${result.error.message}`);
+    }
+    if (!failures.length) roles.delete(id);
   }
   if (failures.length) throw new Error(failures.join("; "));
 });
@@ -1000,6 +1008,9 @@ test.describe("Admin Legal", () => {
     page,
   }) => {
     const kind = scratch("card");
+    const code = `${kind}-lang`;
+    languages.add(code);
+    await ensureFenceLanguage(code);
     await seed(kind);
     const versionId = (await version(kind)).id;
     const supabase = adminClient();
@@ -1023,6 +1034,7 @@ test.describe("Admin Legal", () => {
         .single();
       if (roleError || !role)
         throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
+      roles.add(role.id);
       const rows = picked(names);
       expect(rows.length, `LGA-21 expected ${names.join(" + ")}`).toBe(names.length);
       const granted = await supabase
@@ -1040,30 +1052,46 @@ test.describe("Admin Legal", () => {
     const publisher = await leaseUser();
     const viewer = await leaseUser();
     try {
-      await supabase
+      fail((await supabase
         .from("user_roles")
-        .insert({ user_id: publisher.id, role_id: publisherRole, scope_type: "global" });
-      await supabase
+        .insert({ user_id: publisher.id, role_id: publisherRole, scope_type: "global" })).error, "publisher role grant");
+      fail((await supabase
         .from("user_roles")
-        .insert({ user_id: viewer.id, role_id: viewerRole, scope_type: "global" });
+        .insert({ user_id: viewer.id, role_id: viewerRole, scope_type: "global" })).error, "viewer role grant");
       await useJobSuperAdmin(page);
       await switchUser(page, publisher.email, publisher.password);
       await gotoReady(page, "/admin/legal");
       const card = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(card.getByTestId("legal-view-inforce")).toBeVisible();
+      const languageRow = await supabase.from("languages").select("name_en").eq("code", code).single();
+      fail(languageRow.error, "scratch language name");
+      if (!languageRow.data) throw new Error("[e2e:legal-admin] scratch language missing");
+      await expect(card.getByTestId("legal-translate-inforce")).toContainText(languageRow.data.name_en);
       await card.getByTestId("legal-translate-inforce").click();
       await expect(page).toHaveURL(new RegExp(`/admin/legal/${versionId}\\?translate=`));
-      await expect(page.getByTestId("legal-translation-panel")).toBeVisible();
+      await expect(page.getByTestId("legal-translation-panel")).toBeInViewport();
+      await expect(page.getByTestId("legal-translation-language")).toBeFocused();
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/legal");
       const viewerCard = page.getByTestId(`legal-doc-${kind}-global`);
       await expect(viewerCard.getByTestId("legal-view-inforce")).toBeVisible();
       await expect(viewerCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
+      // Only this test's version is written: cover every enabled language, never alter a real text.
+      const enabled = await supabase.from("languages").select("code").eq("enabled_admin", true);
+      fail(enabled.error, "enabled languages");
+      const extra = (enabled.data ?? []).filter((l) => !["en", "am", "qps-ploc"].includes(l.code));
+      fail((await supabase.from("legal_version_texts").insert(extra.map((l) => ({ version_id: versionId, language: l.code, body: "Scratch translated statement" })))).error, "scratch version translations");
+      await switchUser(page, publisher.email, publisher.password);
+      await gotoReady(page, "/admin/legal");
+      const translatedCard = page.getByTestId(`legal-doc-${kind}-global`);
+      await expect(translatedCard.getByTestId("legal-view-inforce")).toBeVisible();
+      await expect(translatedCard.getByTestId("legal-translate-inforce")).toHaveCount(0);
     } finally {
       for (const roleId of [publisherRole, viewerRole]) {
-        await supabase.from("role_permissions").delete().eq("role_id", roleId);
-        await supabase.from("user_roles").delete().eq("role_id", roleId);
-        await supabase.from("roles").delete().eq("id", roleId);
+        fail((await supabase.from("role_permissions").delete().eq("role_id", roleId)).error, "cleanup role permissions");
+        fail((await supabase.from("user_roles").delete().eq("role_id", roleId)).error, "cleanup user roles");
+        fail((await supabase.from("roles").delete().eq("id", roleId)).error, "cleanup role");
+        roles.delete(roleId);
       }
     }
   });
