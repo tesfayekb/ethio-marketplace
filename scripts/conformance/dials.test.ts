@@ -114,6 +114,8 @@ describe("the dial census (Foundations turn 8)", () => {
 
   it("DIAL-5 src/lib/dials.ts imports nothing", () => {
     const code = codeOf(readFileSync(REGISTRY, "utf8"));
-    expect(code).not.toMatch(/\bimport\b|\brequire\s*\(/);
+    // An import statement or call — not the word inside an action string ("import:<family>").
+    expect(code).not.toMatch(/^\s*import\b|\bimport\s*\(|\brequire\s*\(/m);
+    expect("import x from 'y';").toMatch(/^\s*import\b|\bimport\s*\(|\brequire\s*\(/m);
   });
 });
