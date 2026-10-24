@@ -1091,6 +1091,9 @@ test.describe("Admin Legal", () => {
       await expect(page).toHaveURL(new RegExp(`/admin/legal/${versionId}\\?translate=`));
       await expect(page.getByTestId("legal-translation-panel")).toBeInViewport();
       await expect(page.getByTestId("legal-translation-language")).toBeFocused();
+      await expect(
+        page.getByTestId("legal-translation-language").locator(`option[value="${code}"]`),
+      ).toHaveText(languageRow.data.name_en);
       await switchUser(page, viewer.email, viewer.password);
       await gotoReady(page, "/admin/legal");
       const viewerCard = page.getByTestId(`legal-doc-${kind}-global`);

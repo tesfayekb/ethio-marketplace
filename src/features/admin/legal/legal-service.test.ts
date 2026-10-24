@@ -43,6 +43,7 @@ it.each([null, undefined, [], "text", { om: 42 }])(
         body_am: "am",
         settings_snapshot: {},
         texts,
+        missing_languages: [],
       },
       error: null,
     });
@@ -73,11 +74,85 @@ it("M22 list preserves every language returned by the door, including the empty 
     {
       document_id: "e2e-doc",
       kind: "e2e-list",
-      versions: [{ languages: ["om", "ti"] }, { languages: [] }],
+      versions: [
+        { languages: ["om", "ti"], missing_languages: [] },
+        { languages: [], missing_languages: [] },
+      ],
     },
   ];
   (supabase as unknown as { rpc: unknown }).rpc = vi.fn().mockResolvedValue({ data, error: null });
   expect(await listLegalDocuments()).toEqual(data);
+});
+it.each(
+  [undefined, null, "om", [42], [{}], [{ code: "om" }], [{ code: 1, name_en: "Oromo" }]].map(
+    (missing_languages) => ({ missing_languages }),
+  ),
+)(
+  "M23 both legal doors refuse missing or malformed missing_languages %j",
+  async ({ missing_languages }) => {
+    const rpc = vi.fn();
+    (supabase as unknown as { rpc: unknown }).rpc = rpc;
+    rpc.mockResolvedValue({
+      data: [
+        {
+          document_id: "e2e-doc",
+          kind: "e2e-list",
+          versions: [{ languages: [], missing_languages }],
+        },
+      ],
+      error: null,
+    });
+    await expect(listLegalDocuments()).rejects.toThrow("invalid missing_languages");
+    rpc.mockResolvedValue({
+      data: {
+        version_id: "e2e-version",
+        version: 1,
+        kind: "e2e-list",
+        body_en: "English",
+        body_am: "Amharic",
+        texts: {},
+        settings_snapshot: {},
+        missing_languages,
+      },
+      error: null,
+    });
+    await expect(getLegalVersion("e2e-version")).rejects.toThrow("invalid missing_languages");
+  },
+);
+it.each(
+  [[], [{ code: "e2e-language", name_en: "Scratch language" }]].map((missing_languages) => ({
+    missing_languages,
+  })),
+)("M23 both legal doors preserve the missing-language answer %j", async ({ missing_languages }) => {
+  const rpc = vi.fn();
+  (supabase as unknown as { rpc: unknown }).rpc = rpc;
+  rpc.mockResolvedValue({
+    data: [
+      {
+        document_id: "e2e-doc",
+        kind: "e2e-list",
+        versions: [{ languages: [], missing_languages }],
+      },
+    ],
+    error: null,
+  });
+  expect((await listLegalDocuments())[0]?.versions[0]?.missing_languages).toEqual(
+    missing_languages,
+  );
+  rpc.mockResolvedValue({
+    data: {
+      version_id: "e2e-version",
+      version: 1,
+      kind: "e2e-list",
+      body_en: "English",
+      body_am: "Amharic",
+      texts: {},
+      settings_snapshot: {},
+      missing_languages,
+    },
+    error: null,
+  });
+  expect((await getLegalVersion("e2e-version")).missing_languages).toEqual(missing_languages);
 });
 it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([
@@ -140,6 +215,7 @@ const versions: LegalVersion[] = [
   {
     version_id: "old",
     languages: [],
+    missing_languages: [],
     version: 1,
     status: "published",
     label: "old",
@@ -151,6 +227,7 @@ const versions: LegalVersion[] = [
   {
     version_id: "current",
     languages: [],
+    missing_languages: [],
     version: 2,
     status: "published",
     label: "current",
@@ -162,6 +239,7 @@ const versions: LegalVersion[] = [
   {
     version_id: "future",
     languages: [],
+    missing_languages: [],
     version: 3,
     status: "published",
     label: "future",
