@@ -17,6 +17,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const ALLOWLIST = join(dirname(fileURLToPath(import.meta.url)), "kit-adoption-allowlist.txt");
 
 const IMPORT_STATEMENT = /import[\s\S]*?from\s*["'][^"']*["']/g;
+const DYNAMIC_IMPORT = /\{[^}]*\}\s*=\s*(?:await\s+)?import\([^)]*\)/g;
 const ENUMERATOR = /\b(?:readdirSync|opendirSync|readdir|globSync|glob)\b/;
 const KIT_IMPORT = /from\s*["'][^"']*conformance\/kit["']/;
 
@@ -33,6 +34,14 @@ export function census(roots: string[]): Finding[] {
     const code = codeOf(readFileSync(file, "utf8"));
     const rel = relative(ROOT, file).split("\\").join("/");
     for (const match of code.matchAll(IMPORT_STATEMENT)) {
+      if (ENUMERATOR.test(match[0]))
+        findings.push({
+          file: rel,
+          line: lineOf(code, match.index),
+          what: "imports a tree enumerator",
+        });
+    }
+    for (const match of code.matchAll(DYNAMIC_IMPORT)) {
       if (ENUMERATOR.test(match[0]))
         findings.push({
           file: rel,

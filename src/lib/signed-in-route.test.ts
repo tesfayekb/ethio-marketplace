@@ -13,7 +13,7 @@ describe("requireSignedIn (INC-852)", () => {
   it("SIR-1 a visitor is thrown to /auth with the exact way back", async () => {
     getSession.mockResolvedValue({ data: { session: null } });
     const failure = await requireSignedIn("/account").catch((thrown: unknown) => thrown);
-    expect(failure).toMatchObject({ to: "/auth", search: { return: "/account" } });
+    expect(failure).toMatchObject({ options: { to: "/auth", search: { return: "/account" } } });
   });
 
   it("SIR-2 a session answers the user's id", async () => {
