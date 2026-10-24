@@ -12,12 +12,28 @@ vi.mock("@/server/supabase/user-client", async (original) => ({
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: { rpc: mocks.rpc } }));
 const ID = "2345678923";
-const request = (body: unknown) =>
+const request = (body: unknown, headers: Record<string, string> = {}) =>
   new Request("http://local/api/listings/view", {
     method: "POST",
-    headers: { "cf-connecting-ip": "192.0.2.7" },
+    headers: { "cf-connecting-ip": "192.0.2.7", "content-type": "application/json", ...headers },
     body: JSON.stringify(body),
   });
+/** Foundations turn 3 — the module takes the route's typed ctx. */
+const ctx = (body: { publicId: string; session?: unknown }, userId: string | null = null) => ({
+  body,
+  userId,
+  request: request(body),
+});
+/** The route itself, for the shape and the caller the module no longer checks. */
+const { Route } = await import("@/routes/api/listings/view");
+const viaRoute = (body: unknown, headers: Record<string, string> = {}) =>
+  (
+    Route.options as unknown as {
+      server: {
+        handlers: { POST: (c: { request: Request; params: unknown }) => Promise<Response> };
+      };
+    }
+  ).server.handlers.POST({ request: request(body, headers), params: {} });
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.rate.mockResolvedValue({ allowed: true });
@@ -27,7 +43,7 @@ beforeEach(() => {
 describe("view count route", () => {
   it("VW-1 a malformed id is 400 before any dial or door", async () => {
     for (const body of [{ publicId: "nope" }, {}]) {
-      const response = await countAdView(request(body));
+      const response = await viaRoute(body);
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({ error: "bad request" });
     }
@@ -37,11 +53,11 @@ describe("view count route", () => {
   it("VW-2 the dial comes before the door, and a spent dial answers counted false", async () => {
     expect(VIEW_LIMIT_PER_HOUR).toBe(600);
     mocks.rate.mockResolvedValueOnce({ allowed: false });
-    const spent = await countAdView(request({ publicId: ID }));
+    const spent = await countAdView(ctx({ publicId: ID }));
     expect(spent.status).toBe(200);
     expect(await spent.json()).toEqual({ counted: false });
     expect(mocks.rpc).not.toHaveBeenCalled();
-    await countAdView(request({ publicId: ID }));
+    await countAdView(ctx({ publicId: ID }));
     expect(mocks.rate).toHaveBeenLastCalledWith("listing-view:address", "192.0.2.7", 600, "1 hour");
     expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("count_listing_view", {
       p_public_id: ID,
@@ -53,30 +69,30 @@ describe("view count route", () => {
       mocks.rpc.mock.invocationCallOrder[0] ?? 0,
     );
   });
-  it("VW-3 a signed-in viewer's id reaches the door; a deactivated or unknown bearer does not; a door that cannot be reached is 503", async () => {
-    mocks.caller.mockResolvedValueOnce({ userId: "u1", reason: null });
-    await countAdView(request({ publicId: ID }));
+  it("VW-3 a signed-in viewer's id reaches the door; a refused bearer is refused (401), never counted as anonymous; a door that cannot be reached is 503", async () => {
+    await countAdView(ctx({ publicId: ID }, "u1"));
     expect(mocks.rpc).toHaveBeenLastCalledWith(
       "count_listing_view",
       expect.objectContaining({ p_viewer: "u1" }),
     );
-    for (const reason of ["deactivated", "notSignedIn"]) {
-      mocks.caller.mockResolvedValueOnce({ userId: null, reason });
-      await countAdView(request({ publicId: ID }));
-      expect(mocks.rpc).toHaveBeenLastCalledWith(
-        "count_listing_view",
-        expect.objectContaining({ p_viewer: undefined }),
-      );
-    }
+    mocks.rpc.mockClear();
+    mocks.caller.mockResolvedValueOnce({ supabase: null, userId: null, reason: "notSignedIn", message: "" });
+    const refused = await viaRoute({ publicId: ID }, { Authorization: "Bearer stale" });
+    expect(refused.status).toBe(401);
+    mocks.caller.mockResolvedValueOnce({ supabase: null, userId: null, reason: "deactivated", message: "" });
+    const deactivated = await viaRoute({ publicId: ID }, { Authorization: "Bearer gone" });
+    expect(deactivated.status).toBe(403);
+    expect(mocks.rate).not.toHaveBeenCalled();
+    expect(mocks.rpc).not.toHaveBeenCalled();
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "gateway" }, status: 502 });
-    const response = await countAdView(request({ publicId: ID }));
+    const response = await countAdView(ctx({ publicId: ID }));
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ error: "upstream unavailable" });
   });
   it("VW-4 a valid session: the session gate, the address-and-ad ceiling, then the door with the session key (turn 23)", async () => {
     expect(VIEW_LIMIT_PER_ADDRESS_AD).toBe(30);
     const session = "Ab3dEf5gHj8kLm2nPq4rSt";
-    await countAdView(request({ publicId: ID, session }));
+    await countAdView(ctx({ publicId: ID, session }));
     const sessionKey = hashAddress(session);
     expect(mocks.rate).toHaveBeenNthCalledWith(
       1,
@@ -108,7 +124,7 @@ describe("view count route", () => {
     mocks.rate.mockReset();
     mocks.rpc.mockClear();
     mocks.rate.mockResolvedValueOnce({ allowed: true }).mockResolvedValueOnce({ allowed: false });
-    const spentSession = await countAdView(request({ publicId: ID, session }));
+    const spentSession = await countAdView(ctx({ publicId: ID, session }));
     expect(await spentSession.json()).toEqual({ counted: false });
     expect(mocks.rate).toHaveBeenCalledTimes(2);
     expect(mocks.rpc).not.toHaveBeenCalled();
@@ -118,7 +134,7 @@ describe("view count route", () => {
       .mockResolvedValueOnce({ allowed: true })
       .mockResolvedValueOnce({ allowed: true })
       .mockResolvedValueOnce({ allowed: false });
-    const spentCeiling = await countAdView(request({ publicId: ID, session }));
+    const spentCeiling = await countAdView(ctx({ publicId: ID, session }));
     expect(await spentCeiling.json()).toEqual({ counted: false });
     expect(mocks.rate).toHaveBeenCalledTimes(3);
     expect(mocks.rpc).not.toHaveBeenCalled();
@@ -127,7 +143,7 @@ describe("view count route", () => {
     for (const bad of ["short", " ".repeat(17), 42, "a".repeat(65)]) {
       mocks.rate.mockClear();
       mocks.rpc.mockClear();
-      await countAdView(request({ publicId: ID, session: bad }));
+      await countAdView(ctx({ publicId: ID, session: bad }));
       expect(mocks.rate).toHaveBeenCalledTimes(1);
       expect(mocks.rate).toHaveBeenLastCalledWith(
         "listing-view:address",

@@ -4,11 +4,9 @@ import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-clie
 
 export const SHARE_LIMIT_PER_HOUR = 120;
 
-export type ShareChannel = "telegram" | "whatsapp" | "facebook" | "copy" | "qr";
-
 /** The typed context the route hands over: the parsed body, the verified caller. */
 export type AdShareContext = {
-  body: { publicId: string; channel: ShareChannel };
+  body: { publicId: string; channel: string };
   userId: string | null;
   request: Request;
 };
