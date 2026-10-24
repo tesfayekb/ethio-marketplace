@@ -15,10 +15,44 @@ import {
  */
 
 /** Success: JSON out, never cached unless the route declares a cache. */
-export function ok(body: unknown, init?: { status?: number; cache?: string }): Response {
+export function ok(body: unknown, init?: { status?: number; cache?: string; headers?: Record<string, string> }): Response {
   const response = routeJson(body, init?.status ?? 200);
   if (init?.cache !== undefined) response.headers.set("Cache-Control", init.cache);
+  for (const [name, value] of Object.entries(init?.headers ?? {})) response.headers.set(name, value);
   return response;
+}
+
+/** The one strong-ETag answer; a comma-separated list is compared tag by tag. */
+export function conditional(request: Request, init: { etag: string; body: unknown; cache: string; vary?: string }): Response {
+  const tags = request.headers.get("If-None-Match")?.split(",").map((tag) => tag.trim()) ?? [];
+  if (tags.includes(init.etag)) return notModified(init.etag, init.cache, init.vary);
+  return ok(init.body, { cache: init.cache, headers: { ETag: init.etag, Vary: init.vary ?? "Accept-Encoding" } });
+}
+
+/** A conditional hit carries no body, with the same cache and variation metadata. */
+export function notModified(etag: string, cache: string, vary?: string): Response {
+  return new Response(null, { status: 304, headers: { ETag: etag, "Cache-Control": cache, Vary: vary ?? "Accept-Encoding" } });
+}
+
+/** Only an absolute HTTPS URL or a single-slash local path may redirect. */
+export function redirect(location: string, init: { status?: 301 | 302 | 303 | 307 | 308; cache?: string; headers?: Record<string, string> }): Response {
+  // Backslashes and control characters can turn a local path into a foreign authority.
+  if (/[\\\u0000-\u0020\u007f]/.test(location)) throw new Error("invalid redirect location");
+  const local = location.startsWith("/") && !location.startsWith("//");
+  if (!local) {
+    const parsed = new URL(location);
+    if (!location.startsWith("https://") || parsed.protocol !== "https:" || !parsed.hostname) throw new Error("invalid redirect location");
+  }
+  const headers = new Headers(init.headers ?? {});
+  headers.set("Location", location);
+  headers.set("Cache-Control", init.cache ?? "no-store");
+  headers.set("X-Content-Type-Options", "nosniff");
+  return new Response(null, { status: init.status ?? 302, headers });
+}
+
+/** The public QR/photo readers' text answer, never cached unless declared. */
+export function plain(text: string, status: number, init?: { cache?: string }): Response {
+  return new Response(text, { status, headers: { "Content-Type": "text/plain; charset=utf-8", "X-Content-Type-Options": "nosniff", "Cache-Control": init?.cache ?? "no-store" } });
 }
 
 /**
