@@ -50,4 +50,22 @@ export function serverError(path: string, error: unknown): Response {
   return routeJson({ error: "server error", incident }, 500);
 }
 
+/**
+ * Foundations turn 3 — THE ONE BINARY ANSWER: the bytes, their content type,
+ * never cached unless a Cache-Control is given. No route builds its own
+ * `new Response` for bytes.
+ */
+export function bytes(
+  body: Uint8Array | ArrayBuffer,
+  contentType: string,
+  init?: { status?: number; headers?: Record<string, string> },
+): Response {
+  // A fresh ArrayBuffer-backed copy: the Blob owns its bytes.
+  const copy = new Uint8Array(body instanceof ArrayBuffer ? body.slice(0) : body.slice());
+  const headers = new Headers(init?.headers ?? {});
+  headers.set("Content-Type", contentType);
+  if (!headers.has("Cache-Control")) headers.set("Cache-Control", "no-store");
+  return new Response(new Blob([copy]), { status: init?.status ?? 200, headers });
+}
+
 export { doorAnswer, upstreamFailed, upstreamUnavailable };
