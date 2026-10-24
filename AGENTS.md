@@ -13,13 +13,12 @@
 
 ## Project constitution (all agents)
 
-Follow Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits. Server/RLS alone authorizes; signed-in screens (/legal/publishing too, D236) gate by `requireSignedIn` (signed-in-route.ts), never their own getSession. No silent catch-and-continue: a reader's door error is a typed `ReaderError` (reader-failure.ts), never `if (error) return null`. Routes: `defineRoute` + a src/lib/schemas shape; answers via answer.ts; outside calls via `upstream()`; no request.json/new Response/createClient/fetch elsewhere (routes.test.ts, ESLint).
+Follow Project Knowledge and /docs/conventions.md. Task-named files only; no extras; honesty first: disclose limits. Server/RLS alone authorizes; signed-in screens (/legal/publishing too, D236) gate by `requireSignedIn` (signed-in-route.ts), never their own getSession. No silent catch-and-continue: a reader's door error is a typed `ReaderError` (reader-failure.ts), never `if (error) return null`. Routes: `defineRoute` + a src/lib/schemas shape (`.strict()`); doors via `doorCall`, ownership via `ownListing`, answers via answer.ts, outside calls via `upstream()`; dials declared in the spec (`refuseAs` for a posting verdict); no request.json/new Response/createClient/fetch elsewhere (routes.test.ts, ESLint).
 
 - New tables, sequences and functions in public are born closed to browser roles: the migration names each GRANT (a browser grant needs its scripts/public-surface-allowlist.txt line); each new function restates REVOKE … FROM PUBLIC (bundle 8). A finality trigger lets its own ON DELETE SET NULL keys through (INC-812). Owner writes to ads, photos and seller names pass acceptance_guard (DEC-216; takedowns pass); other signed-in write doors check acceptance or sit in scripts/acceptance-doors-allowlist.txt (D227).
 - The database tool applies its input at once: check a scratch copy, then submit FINAL text once (never a stub, comment or draft); remove the scratch.
 - Text attributes: preset allowlist (`attr_preset_ok`), never free regex; option records: the strict shape `value, label_en, label_am, parent, active, bounds, aliases`, unknown keys refused, defaults omitted (DEC-050).
 - A console save never drops a field it does not show: editors round-trip every stored field (INC-188).
-- E2E tests needing only a signed-in account use `leaseUser()`; `createUser()` only for a new identity or target account (DEC-097).
 - CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, e2e-last-failure.md, guards-last-failure.md; never dev/main copies or a git fetch of it (S87).
 - Market-neutral wording (DEC-094): a market-dependent statement names no single country — use {country}; cultural facts are not market statements.
 - Data-API lists use `readAllPages`: keyset paging, never positional (INC-452).

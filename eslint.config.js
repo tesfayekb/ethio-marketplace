@@ -102,13 +102,12 @@ export default tseslint.config(
       "src/server/answer.ts",
       "src/server/upstream.ts",
       "src/server/supabase/user-client.ts",
+      "src/server/door.ts",
+      "src/server/listings/own-listing.ts",
       "**/*.test.ts",
       "**/*.test.tsx",
       // ROUTES-BOUNDARY-IGNORES-BEGIN
-      "src/routes/api/listings/identity.ts", // until INC-859
-      "src/routes/api/listings/assist.ts", // until INC-859
       "src/routes/api/listings/background.ts", // until INC-859
-      "src/routes/api/listings/photos.$id.ts", // until INC-859
       "src/routes/api/upload/photo.ts", // until INC-859
       "src/routes/api/media/photo-links.ts", // until INC-859
       "src/routes/api/admin/categories/import.ts", // until INC-860

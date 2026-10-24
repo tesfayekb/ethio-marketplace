@@ -1513,3 +1513,13 @@ After Publish the posting wizard removes its navigation controls and offers Home
 ## The certification in the link form (bundle 22 turn 32, DEC-236)
 
 The review step's certification is the shared AgreeToDocument: "I certify the [publishing statement]", the statement hyperlinked to the public page /legal/publishing, with the standard required styling. Publish (and the seller-edit Next) is drawn closed — never disabled — until ticked; in the block's loading or error state the button is disabled. The seller-edit keyboard Next path is unchanged.
+
+## The posting routes on the route boundary (Foundations turn 3)
+
+- `/api/listings/draft` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/alias` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/share` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/view` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/identity` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/assist` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/photos/$id` — on `defineRoute`; see docs/features/routes.md.

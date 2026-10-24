@@ -70,7 +70,8 @@ function json(value: unknown): unknown {
  */
 export const DraftBody = z
   .object({
-    listingId: z.string().nullable(),
+    // A missing id is a new draft, as a null one is (the e2e helpers omit it).
+    listingId: z.string().nullable().optional(),
     step: z.number().int().min(0).max(8),
     categoryId: z.string().max(64).nullable().optional(),
     title: z.string().max(2000).nullable().optional(),

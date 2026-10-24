@@ -15,6 +15,8 @@ const HELPER_SET = new Set([
   "src/server/answer.ts",
   "src/server/upstream.ts",
   "src/server/supabase/user-client.ts",
+  "src/server/door.ts",
+  "src/server/listings/own-listing.ts",
 ]);
 
 const ROUTE_FILES = walkFiles(["src/routes"], { ext: ["ts", "tsx"], skipTests: true });
