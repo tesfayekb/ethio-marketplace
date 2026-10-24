@@ -303,10 +303,13 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       let form: FormData | null = null;
       if (spec.form !== undefined) {
         // The counting reader already consumed the stream; parse the bytes.
+        // An ArrayBuffer copy, not a Blob: every runtime's Request reads it whole.
+        const owned = new Uint8Array(bytes?.byteLength ?? 0);
+        if (bytes !== null) owned.set(bytes);
         const rebuilt = new Request(request.url, {
           method: request.method,
           headers: request.headers,
-          body: new Blob([new Uint8Array(bytes ?? new Uint8Array(0))]),
+          body: owned.buffer,
         });
         try {
           form = await rebuilt.formData();
