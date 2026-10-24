@@ -544,9 +544,7 @@ test.describe("Legal certification", () => {
     await expect(page.getByTestId("post-in-review")).toBeVisible({ timeout: 20_000 });
     await expect.poll(async () => (await certificationsOf(listingId)).length).toBe(1);
     const certified = await certificationsOf(listingId);
-    expect(certified[0]?.version_ids).toEqual(
-      expect.arrayContaining([global.id, country.id]),
-    );
+    expect(certified[0]?.version_ids).toEqual(expect.arrayContaining([global.id, country.id]));
     expect(certified[0]?.version_ids).toHaveLength(2);
 
     const plain = await draftOf(page, s, categoryId, cityId);
