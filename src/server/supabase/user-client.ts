@@ -134,6 +134,32 @@ export async function userClientFromRequest(request: Request): Promise<UserClien
   return { supabase, userId: data.user.id, reason: null, message: "" };
 }
 
+/**
+ * Foundations turn 11 (DEC-237) — THE ONE STAFF CHECK. `has_permission` is the
+ * function every gated RPC calls; it is asked AS THE CALLER, so a route checks
+ * exactly what its door checks — no stricter, no weaker. A permission is
+ * "resource:action"; any other form throws (a coding error, never a pass). An
+ * rpc error throws: the caller's boundary answers it, never as a refusal (F4).
+ */
+export async function callerHasPermission(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  permission: string,
+): Promise<boolean> {
+  const parts = permission.split(":");
+  if (parts.length !== 2 || parts[0] === "" || parts[1] === "") {
+    throw new Error(`malformed permission ${permission}`);
+  }
+  const [resource, action] = parts;
+  const { data, error } = await supabase.rpc("has_permission", {
+    p_user_id: userId,
+    p_resource: resource,
+    p_action: action,
+  });
+  if (error) throw error;
+  return data === true;
+}
+
 /* ------------------------- the route's shared shapes ---------------------- */
 
 /** JSON out, never cached, never HTML (I4 companion). */
