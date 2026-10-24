@@ -35,7 +35,7 @@ export async function doorCall(
 ): Promise<Response> {
   const { data, error, status } = await call();
   if (upstreamFailed(error, status)) {
-    return upstreamUnavailable(path, error?.message ?? "door", status);
+    return upstreamUnavailable(path, "door", status);
   }
   if (error) {
     logRouteError(path, error.message);

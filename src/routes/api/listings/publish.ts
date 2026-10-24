@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { doorRefusal } from "@/features/posting/door-error";
 import { idList, optionalText, uuid } from "@/lib/schemas/primitives";
-import { doorAnswer, ok, upstreamFailed, upstreamUnavailable, verdict } from "@/server/answer";
+import { doorCall } from "@/server/door";
 import { defineRoute } from "@/server/route";
-import { logRouteError } from "@/server/supabase/user-client";
 
 /**
  * U6-A2-C — THE PUBLISH ROUTE.
@@ -46,25 +44,17 @@ export const Route = createFileRoute("/api/listings/publish")({
         auth: "user",
         body: PublishBody,
         handler: async ({ supabase, body }) => {
-          const { data, error, status } = await supabase!.rpc("publish_listing", {
-            p_listing_id: body.listingId,
-            ...(body.certified !== undefined ? { p_certified: body.certified } : {}),
-            ...(body.language !== undefined ? { p_language: body.language } : {}),
-          });
-          // INC-574 — the door was never reached: 503, not a refusal.
-          if (upstreamFailed(error, status)) {
-            return upstreamUnavailable(PATH, "publish_listing", status);
-          }
-          if (error) {
-            logRouteError(PATH, error.message);
-            return verdict([doorRefusal(error.message)]);
-          }
-
           // D1 GATEWAY HOOK (named deferral): the moderation gateway will be
-          // called here, on a listing that is already in `screening`. It alone
-          // may promote to `active`; this route never will.
-
-          return ok(doorAnswer(data));
+          // called after the door, on a listing that is already in `screening`.
+          // It alone may promote to `active`; this route never will.
+          // Foundations turn 3: the door envelope is doorCall's (INC-574 inside).
+          return doorCall(PATH, () =>
+            supabase!.rpc("publish_listing", {
+              p_listing_id: body.listingId,
+              ...(body.certified !== undefined ? { p_certified: body.certified } : {}),
+              ...(body.language !== undefined ? { p_language: body.language } : {}),
+            }),
+          );
         },
       }),
     },
