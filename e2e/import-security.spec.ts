@@ -930,7 +930,7 @@ test.describe("IMPORT-GATE attributes-links", () => {
       withinPreviewBudget(async () => {
         const response = await page.request.post("/api/admin/attributes/import", {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          data: { mode: "preview", digest: true, links },
+          data: { mode: "preview", links },
         });
         let payload: Record<string, unknown> = {};
         try {
@@ -1039,7 +1039,6 @@ test.describe("IMPORT-GATE audit", () => {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         data: {
           mode: "preview",
-          digest: true,
           links:
             "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n",
         },
