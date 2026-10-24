@@ -14,10 +14,12 @@ describe("the public reader cursor", () => {
   });
 
   it("CUR-2 garbage and oversized encodings refuse without throwing", () => {
-    for (const value of ["garbage", "", "=", "x".repeat(513)]) expect(cursor(shape).safeParse(value).success).toBe(false);
+    for (const value of ["garbage", "", "=", "x".repeat(513)])
+      expect(cursor(shape).safeParse(value).success).toBe(false);
   });
 
   it("CUR-3 a valid encoding of the wrong shape refuses", () => {
-    for (const value of [{ rank: "12", name: "x" }, { rank: 12 }, null, [], 12]) expect(cursor(shape).safeParse(encodeCursor(value)).success).toBe(false);
+    for (const value of [{ rank: "12", name: "x" }, { rank: 12 }, null, [], 12])
+      expect(cursor(shape).safeParse(encodeCursor(value)).success).toBe(false);
   });
 });

@@ -35,7 +35,11 @@ describe("the reader version cache", () => {
 
   it("VRC-3 an unmoved version reuses its value and a moved version rebuilds", async () => {
     const cache = versionCache<string, string>({ ttlMs: 0, max: 2 });
-    const version = vi.fn().mockResolvedValueOnce("one").mockResolvedValueOnce("one").mockResolvedValueOnce("two");
+    const version = vi
+      .fn()
+      .mockResolvedValueOnce("one")
+      .mockResolvedValueOnce("one")
+      .mockResolvedValueOnce("two");
     const build = vi.fn(async (value: string) => `built-${value}`);
     expect(await cache.get("key", version, build)).toEqual({ version: "one", value: "built-one" });
     expect(await cache.get("key", version, build)).toEqual({ version: "one", value: "built-one" });
@@ -63,7 +67,8 @@ describe("the reader version cache", () => {
         version.mockResolvedValueOnce("two");
         build.mockRejectedValueOnce(error);
       }
-      if (failure.startsWith("throw")) await expect(cache.get("key", version, build)).rejects.toBe(error);
+      if (failure.startsWith("throw"))
+        await expect(cache.get("key", version, build)).rejects.toBe(error);
       else expect(await cache.get("key", version, build)).toBeNull();
       const before = version.mock.calls.length;
       expect(await cache.get("key", version, build)).toEqual({ version: "one", value: 1 });
@@ -91,7 +96,9 @@ describe("the reader version cache", () => {
   });
 
   it("invalid cache bounds refuse instead of creating an unbounded cache", () => {
-    for (const max of [0, -1, 1.5, Infinity]) expect(() => versionCache({ max, ttlMs: 0 })).toThrow();
-    for (const ttlMs of [-1, Infinity, NaN]) expect(() => versionCache({ max: 1, ttlMs })).toThrow();
+    for (const max of [0, -1, 1.5, Infinity])
+      expect(() => versionCache({ max, ttlMs: 0 })).toThrow();
+    for (const ttlMs of [-1, Infinity, NaN])
+      expect(() => versionCache({ max: 1, ttlMs })).toThrow();
   });
 });

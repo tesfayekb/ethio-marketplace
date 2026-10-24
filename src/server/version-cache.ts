@@ -1,8 +1,20 @@
 /** Each reader owns one bounded, version-checked in-process cache instance. */
-export function versionCache<K, T>(opts: { ttlMs: number; max: number }): {
-  get(key: K, version: () => Promise<string | null>, build: (version: string) => Promise<T | null>): Promise<{ version: string; value: T } | null>;
+export function versionCache<K, T>(opts: {
+  ttlMs: number;
+  max: number;
+}): {
+  get(
+    key: K,
+    version: () => Promise<string | null>,
+    build: (version: string) => Promise<T | null>,
+  ): Promise<{ version: string; value: T } | null>;
 } {
-  if (!Number.isFinite(opts.ttlMs) || opts.ttlMs < 0 || !Number.isInteger(opts.max) || opts.max < 1) {
+  if (
+    !Number.isFinite(opts.ttlMs) ||
+    opts.ttlMs < 0 ||
+    !Number.isInteger(opts.max) ||
+    opts.max < 1
+  ) {
     throw new Error("invalid version cache bounds");
   }
   const entries = new Map<K, { version: string; value: T; checkedAt: number }>();
@@ -18,7 +30,8 @@ export function versionCache<K, T>(opts: { ttlMs: number; max: number }): {
   return {
     async get(key, version, build) {
       const entry = entries.get(key);
-      if (entry !== undefined && Date.now() - entry.checkedAt < opts.ttlMs) return touch(key, entry);
+      if (entry !== undefined && Date.now() - entry.checkedAt < opts.ttlMs)
+        return touch(key, entry);
       try {
         const current = await version();
         if (current === null) {

@@ -8,7 +8,8 @@ function decode(value: string, ctx: z.RefinementCtx): unknown {
     const binary = atob(padded + "=".repeat((4 - (padded.length % 4)) % 4));
     const bytes = Uint8Array.from(binary, (ch) => ch.charCodeAt(0));
     const parsed: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
-    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("invalid cursor object");
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed))
+      throw new Error("invalid cursor object");
     return parsed;
   } catch {
     ctx.addIssue({ code: "custom", message: "invalid cursor" });
@@ -16,7 +17,8 @@ function decode(value: string, ctx: z.RefinementCtx): unknown {
   }
 }
 
-export const cursor = <T extends z.ZodTypeAny>(shape: T) => z.string().max(512).transform(decode).pipe(shape);
+export const cursor = <T extends z.ZodTypeAny>(shape: T) =>
+  z.string().max(512).transform(decode).pipe(shape);
 
 /** UTF-8 JSON, encoded as unpadded base64url, matching both existing readers. */
 export function encodeCursor(value: unknown): string {
