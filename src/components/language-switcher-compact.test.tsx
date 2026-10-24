@@ -6,8 +6,8 @@ import { LanguageSwitcher } from "./language-switcher";
 /**
  * DEC-026 — U4i-4 (c) / INC-123. The menu had grown into a canvas: one tall
  * block per language with the star wrapped underneath. Density is a control:
- * N gated languages render N items, each ONE flex line holding the label and
- * its star side by side.
+ * N gated languages render N items, each ONE flex line holding the label
+ * (D237: the item's own radio indicator marks the choice; no star control).
  */
 const publicLanguages = [
   { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
@@ -39,7 +39,7 @@ describe("LanguageSwitcher density", () => {
     expect(items).toHaveLength(publicLanguages.length);
 
     for (const item of items) {
-      // One flex row: label and star are siblings, never stacked.
+      // One flex row: the label and its indicator are siblings, never stacked.
       expect(item.className).toContain("items-center");
       expect(item.className).not.toContain("flex-col");
       // U4i-8: compact rows use a 2px vertical inset and no line-height slack.
