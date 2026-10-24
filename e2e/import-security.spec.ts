@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
-import { withinPreviewBudget } from "./helpers/rate-window";
+import { inOneWindow, withinPreviewBudget } from "./helpers/rate-window";
 import {
   rand,
   bandOnly,
@@ -833,10 +833,11 @@ for (const family of FAMILIES) {
       // THE LIMIT: a budget of previews a minute per operator; past it the
       // door answers 429, and refusing costs nothing (no plan, no write).
       let limited = 0;
+      await inOneWindow(60, 40_000, "IG-3");
       for (let attempt = 0; attempt < 45; attempt += 1) {
         const answer = await rawPost(page, token, { [family.field]: text });
         if (answer.status === 429) {
-          expect(answer.payload["error"]).toBe("tooManyRequests");
+          expect(answer.payload["error"]).toBe("rateLimited");
           limited += 1;
           break;
         }
