@@ -1,5 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sortPlacesByName } from "@/lib/place-order";
+import { callRoute } from "@/lib/route-client";
 import type { ReactNode } from "react";
 
 import {
