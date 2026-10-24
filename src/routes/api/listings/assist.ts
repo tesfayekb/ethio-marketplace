@@ -298,11 +298,12 @@ export const AssistBody = z
   .object({
     categoryId: z.string().max(64).optional(),
     locale: z.string().max(8).optional(),
-    listingId: z.string().max(64).optional(),
+    // requestAssist sends null for a listing not yet saved.
+    listingId: z.string().max(64).nullable().optional(),
     attrs: z.unknown().optional(),
     photoFacts: z.unknown().optional(),
     negotiable: z.boolean().optional(),
-    period: z.enum(["hour", "day", "week", "month", "year"]).optional(),
+    period: z.enum(["hour", "day", "week", "month", "year"]).nullable().optional(),
     previous: z
       .array(z.object({ title: z.string(), description: z.string() }))
       .max(5)

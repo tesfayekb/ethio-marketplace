@@ -40,7 +40,9 @@ export const PhotoParams = z.object({ id: uuid });
 export const PhotoActionBody = z
   .object({
     action: z.enum(["cover", "move"]).optional(),
-    position: z.number().int().min(0).max(999).optional(),
+    // The place is judged in the handler: anything but a whole number 0..999 is
+    // the `position`/`badValue` refusal it has always been (PP-17).
+    position: z.unknown().optional(),
   })
   .strict();
 
@@ -143,7 +145,13 @@ export const Route = createFileRoute("/api/listings/photos/$id")({
           const action = body.action ?? "cover";
           // D154 — a place is a whole number from 0; the door closes a place past the end to the last.
           const position = body.position;
-          if (action === "move" && position === undefined) {
+          if (
+            action === "move" &&
+            (typeof position !== "number" ||
+              !Number.isInteger(position) ||
+              position < 0 ||
+              position > 999)
+          ) {
             return verdict([{ field: "position", reason: "badValue" }]);
           }
           const photo = await ownedPhoto(supabase!, photoId, userId!);
