@@ -72,6 +72,8 @@ describe("doorCall — the door-call envelope", () => {
       ok: false,
       refusals: [{ field: "price_bp", reason: "commissionRange" }],
     });
+    // INC-368 — a translated refusal writes no log line.
+    expect(state.logs).toHaveLength(1);
 
     const untranslated = await doorCall(
       "/api/x",
@@ -82,6 +84,8 @@ describe("doorCall — the door-call envelope", () => {
       ok: false,
       refusals: [{ field: "door", reason: "other" }],
     });
+    // An untranslated door error writes one.
+    expect(state.logs).toEqual(["/api/x notReady:photos", "/api/x other"]);
   });
 
   it("DC-3 ok answers doorAnswer(data), or the raw data with raw", async () => {

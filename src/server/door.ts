@@ -14,9 +14,10 @@ import { logRouteError } from "@/server/supabase/user-client";
  * publish.ts as turn 2 landed it:
  *
  *   the door never reached (INC-574) → 503 upstream unavailable
- *   a door error                     → logged, then the verdict at 200 —
- *                                      `translate`'s refusal when it answers,
- *                                      else the door's own code (doorRefusal)
+ *   a door error                     → the verdict at 200: `translate`'s
+ *                                      refusal when it answers (not logged —
+ *                                      INC-368), else logged and the door's
+ *                                      own code (doorRefusal)
  *   ok                               → doorAnswer(data), or the raw data
  *
  * The seed of the door mechanism (DEC-237's door turn), extended there; its
@@ -38,8 +39,11 @@ export async function doorCall(
     return upstreamUnavailable(path, "door", status);
   }
   if (error) {
+    // INC-368 — an expected refusal is not a server error: a translated one is not logged.
+    const translated = opts?.translate?.(error.message) ?? null;
+    if (translated !== null) return verdict([translated]);
     logRouteError(path, error.message);
-    return verdict([opts?.translate?.(error.message) ?? doorRefusal(error.message)]);
+    return verdict([doorRefusal(error.message)]);
   }
   return ok(opts?.raw === true ? data : doorAnswer(data));
 }
