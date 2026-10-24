@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40057679164  **PLATFORM-ORIGIN?**
-- Commit: `53aa4e76bbf78cf6d8ee6155b13d69fc3ff7cf95`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40061994145
+- Commit: `40203955084bd63ddbe0b947e032629ee4bc5a74`
 - Attempt: 1
-- Written (UTC): 2026-10-24T03:35:22.669Z
+- Written (UTC): 2026-10-24T04:38:52.410Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -31,9 +31,6 @@ No warning step ran in this run.
        1.3 KiB  dist/client/assets/react-dom-DR_LbxJG.js
        1.1 KiB  dist/client/assets/mfa-service-Bms3ePxN.js
        1.0 KiB  dist/client/assets/legal-reader-eR6H1y1d.js
-
-First-paint budget exceeded. Either code-split the addition behind a dynamic import,
-or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states why.
        1.0 KiB  dist/client/assets/dist-DrSBnlwU.js
        0.8 KiB  dist/client/assets/error-text-DGqXKKnp.js
        0.8 KiB  dist/client/assets/use-legal-gate-CFGhgNrd.js
@@ -63,12 +60,15 @@ or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states wh
        0.1 KiB  dist/client/assets/query-keys-DQ_pMCo4.js
        0.1 KiB  dist/client/assets/root-DLTE-HSj.js
 JS: 305.5 KiB / 305 KiB — OVER BUDGET
+
+First-paint budget exceeded. Either code-split the addition behind a dynamic import,
+or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states why.
 CSS: 20.5 KiB / 40 KiB — ok
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/5b9c5477-b5d8-4046-9c6b-b02b6afd4a4c' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/af79ac63-3dec-464f-89be-da61c0b7266d' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -111,12 +111,12 @@ Cleaning up orphan processes
 + vite-tsconfig-paths@6.1.1
 + zod@3.25.76
 
-543 packages installed [6.22s]
+543 packages installed [5.41s]
 ##[group]Run bash scripts/audit-gate.sh
 [36;1mbash scripts/audit-gate.sh[0m
 shell: /usr/bin/bash -e {0}
 ##[endgroup]
-[0.03ms] ".env"
+[0.02ms] ".env"
 [0m[1mbun audit [0m[2mv1.3.14 (0d9b296a)[0m
 zod  <4.6.6
   (direct dependency)
@@ -142,7 +142,7 @@ Review docs/features/dependency-audit.md, then remediate or record a ruling.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/73d7583e-e1b6-46ef-a9eb-dc887c7a64dc' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/207c5342-af00-4bf2-83eb-208a940ba97f' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -174,6 +174,8 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
 [36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
@@ -185,12 +187,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40057679164
-  E2E_HEAD_COMMIT_MESSAGE: Lovable update
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40061994145
+  E2E_HEAD_COMMIT_MESSAGE: Applied M22 to production
 
-Background task agent_id=sub_4fxqtryk project=b0521dfa-0e8c-4bc6-a635-16d3246b540f completed
-
-X-Lovable-Edit-ID: edt-507f374e-334d-4c05-aecf-d9fb2c20b1a3
+X-Lovable-Edit-ID: edt-defde47a-0fd0-41af-9912-2b620416c143
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -221,7 +221,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.55.0
-Temporarily overriding HOME='/home/runner/work/_temp/fd6e0977-f841-4ccb-b649-7cd4a4864217' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/981635f3-d4ff-474a-a823-dc931d34e3b2' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
