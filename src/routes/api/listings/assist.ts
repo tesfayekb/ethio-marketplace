@@ -3,17 +3,13 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 
-import {
-  consumeRate,
-  envDial,
-  logRouteError,
-  peekRate,
-  readJsonBody,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { z } from "zod";
+
+import { ok, verdict } from "@/server/answer";
+import { ownListing } from "@/server/listings/own-listing";
+import { defineRoute } from "@/server/route";
+import { consumeRate, logRouteError, peekRate } from "@/server/supabase/user-client";
+import { upstream, UpstreamTimeout } from "@/server/upstream";
 import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
 import { withUntrustedRule } from "@/lib/untrusted-text";
 import { aiFakeMode, aiGate, recordAiSpend } from "@/server/ai/meter";
@@ -75,6 +71,10 @@ import { errorText } from "@/lib/error-text";
  * own, read as the caller; then `peek_rate_limit` under the same action, key,
  * limit and window the spend counts in. No dial of its own: one row read by
  * its key, like the options route.
+ *
+ * Foundations turn 3: on defineRoute. The hourly and daily dials are declared
+ * in the spec (beforeParse, refuseAs the `rate` verdict), so they are spent
+ * before the switch's read; the per-listing budget stays in the handler.
  */
 
 const PATH = "/api/listings/assist";
@@ -197,7 +197,7 @@ const SYSTEM_PROMPT = withUntrustedRule(
 /** A photo the model may look at, fetched server-side and passed inline. */
 async function inlinePhoto(url: string): Promise<{ mimeType: string; data: string } | null> {
   try {
-    const response = await fetch(url);
+    const response = await upstream(url, {}, { timeoutMs: 10_000, label: "assist photo" });
     if (!response.ok) return null;
     const mimeType = response.headers.get("content-type") ?? "image/jpeg";
     if (!mimeType.startsWith("image/")) return null;
@@ -223,7 +223,9 @@ async function callProvider(
     (entry): entry is { mimeType: string; data: string } => entry !== null,
   );
 
-  const response = await fetch(`${BASE}/${encodeURIComponent(textModel())}:generateContent`, {
+  let response: Response;
+  try {
+    response = await upstream(`${BASE}/${encodeURIComponent(textModel())}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify({
@@ -241,7 +243,13 @@ async function callProvider(
       ],
       generationConfig: { responseMimeType: "application/json", temperature: 0.7 },
     }),
-  });
+  }, { timeoutMs: 20_000, label: "gemini assist" });
+  } catch (error) {
+    // Foundations turn 3 — a deadline passed is a provider that could not answer.
+    // eslint-disable-next-line no-restricted-syntax -- INC-815: UpstreamTimeout is our own class; anything else is rethrown unchanged.
+    if (error instanceof UpstreamTimeout) return null;
+    throw error;
+  }
   const raw = await response.text();
   if (!response.ok) {
     logRouteError(PATH, `provider ${response.status}: ${raw.slice(0, 200)}`);
@@ -263,80 +271,80 @@ async function callProvider(
 }
 
 /**
- * Bundle 16 turn S1 — the listing is the caller's own, read AS THE CALLER (the
- * owner reads his own rows): another seller's budget is never spent or read, and
- * an id that is not the caller's is a refusal. Written once for the try and the
- * peek (bundle 18 turn 1, INC-669). Null when the listing is the caller's.
+ * Bundle 16 turn S1 — the listing is the caller's own, read AS THE CALLER
+ * through ownListing (the id and the seller): another seller's budget is never
+ * spent or read, and an id that is not the caller's is a refusal. Written once
+ * for the try and the peek (bundle 18 turn 1, INC-669). Null when it is his.
  */
 async function ownListingRefusal(
   supabase: SupabaseClient<Database>,
   userId: string,
   listingId: string,
 ): Promise<Response | null> {
-  const { data: own, error: ownError } = await supabase
-    .from("listings")
-    .select("id")
-    .eq("id", listingId)
-    .eq("seller_id", userId)
-    .maybeSingle();
-  if (ownError) {
-    logRouteError(PATH, `listing read: ${ownError.message}`);
-    return refusal("assist", "providerUnavailable");
+  const own = await ownListing(supabase, userId, listingId, "id, seller_id, status");
+  if ("error" in own) {
+    logRouteError(PATH, `listing read: ${own.error.message}`);
+    return verdict([{ field: "assist", reason: "providerUnavailable" }]);
   }
-  if (!own) return refusal("listingId", "notYourListing");
+  if (own.row === null) return verdict([{ field: "listingId", reason: "notYourListing" }]);
   return null;
 }
 
+/** The body requestAssist sends (posting-service.ts; step-details.tsx). */
+export const AssistBody = z
+  .object({
+    categoryId: z.string().max(64).optional(),
+    locale: z.string().max(8).optional(),
+    listingId: z.string().max(64).optional(),
+    attrs: z.unknown().optional(),
+    photoFacts: z.unknown().optional(),
+    negotiable: z.boolean().optional(),
+    period: z.enum(["hour", "day", "week", "month", "year"]).optional(),
+    previous: z
+      .array(z.object({ title: z.string(), description: z.string() }))
+      .max(5)
+      .optional(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    categoryPath: z.string().optional(),
+    photoIds: z.array(z.string()).optional(),
+  })
+  .strict();
+
+export const AssistQuery = z.object({ listingId: z.string().optional() });
+
 /** INC-669 — the peek: the budget's remaining for the caller's own listing, nothing spent. */
-async function handleGet(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-  const supabase = caller.supabase!;
-  const userId = caller.userId!;
-  const listingId = (new URL(request.url).searchParams.get("listingId") ?? "").trim();
-  if (listingId === "") return refusal("listingId", "required");
+async function handleGet(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  query: z.infer<typeof AssistQuery>,
+): Promise<Response> {
+  const listingId = (query.listingId ?? "").trim();
+  if (listingId === "") return verdict([{ field: "listingId", reason: "required" }]);
   const notOwn = await ownListingRefusal(supabase, userId, listingId);
   if (notOwn !== null) return notOwn;
   const budget = await peekRate("assist:listing", listingId, ASSIST_TRIES, ASSIST_WINDOW);
-  return routeJson({ ok: true, triesLeft: budget.remaining }, 200);
+  return ok({ ok: true, triesLeft: budget.remaining });
 }
 
-async function handlePost(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-  const supabase = caller.supabase!;
-  const userId = caller.userId!;
+async function handlePost(
+  supabase: SupabaseClient<Database>,
+  body: z.infer<typeof AssistBody>,
+): Promise<Response> {
   const log = (message: string) => logRouteError(PATH, message);
 
-  // D158 — the switch first: a switched-off helper spends none of the seller's tries.
+  // D158 — the switch: a switched-off helper spends none of the seller's tries.
   const gate = await aiGate("writing_helper", log);
   if (!gate.on) {
-    return refusal("assist", gate.reason === "unavailable" ? "providerUnavailable" : "featureOff");
+    return verdict([
+      { field: "assist", reason: gate.reason === "unavailable" ? "providerUnavailable" : "featureOff" },
+    ]);
   }
 
-  const rate = await consumeRate(
-    "assist",
-    userId,
-    envDial("RATE_LIMIT_ASSIST_PER_HOUR", 30),
-    "1 hour",
-  );
-  if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
-  const daily = await consumeRate(
-    "assist:day",
-    userId,
-    envDial("RATE_LIMIT_ASSIST_PER_DAY", 60),
-    "1 day",
-  );
-  if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
-
-  const body = await readJsonBody(request);
-  const categoryId = typeof body["categoryId"] === "string" ? body["categoryId"] : "";
-  if (categoryId === "") return refusal("categoryId", "required");
-  const locale = typeof body["locale"] === "string" ? body["locale"].slice(0, 8) : "en";
-  const listingId = typeof body["listingId"] === "string" ? body["listingId"] : "";
-
+  const categoryId = body.categoryId ?? "";
+  if (categoryId === "") return verdict([{ field: "categoryId", reason: "required" }]);
+  const locale = (body.locale ?? "en").slice(0, 8);
+  const listingId = body.listingId ?? "";
   // The category is read as the CALLER (RLS: active categories are public), so
   // an inactive or unknown id is a refusal rather than a leak.
   const { data: category, error: categoryError } = await supabase
