@@ -77,31 +77,30 @@ describe("shapePostingSchema — K5 failed read", () => {
   });
 });
 
-describe("the publish route's certification (bundle 22 turn 4)", () => {
+describe("the publish route's certification (bundle 22 turn 4; the schema is the rule, Foundations turn 2)", () => {
   const ID = "0b9a6c1e-2f3d-4e5a-8b7c-9d0e1f2a3b4c";
   it("passes certified and language only when sent", async () => {
-    const { readCertification } = await import("@/routes/api/listings/publish");
-    expect(readCertification({ listingId: "x" })).toEqual({ ok: true, args: {} });
-    expect(readCertification({ certified: [ID], language: "am" })).toEqual({
-      ok: true,
-      args: { p_certified: [ID], p_language: "am" },
-    });
+    const { PublishBody } = await import("@/routes/api/listings/publish");
+    expect(PublishBody.safeParse({ listingId: ID }).success).toBe(true);
+    const full = PublishBody.safeParse({ listingId: ID, certified: [ID], language: "am" });
+    expect(full.success).toBe(true);
+    if (full.success) {
+      expect(full.data).toEqual({ listingId: ID, certified: [ID], language: "am" });
+    }
   });
-  it("refuses a non-uuid entry, more than 20 entries and a long language", async () => {
-    const { readCertification } = await import("@/routes/api/listings/publish");
-    expect(readCertification({ certified: [ID, "not-a-uuid"] })).toEqual({
-      ok: false,
-      field: "certified",
-    });
-    expect(readCertification({ certified: Array.from({ length: 21 }, () => ID) })).toEqual({
-      ok: false,
-      field: "certified",
-    });
-    expect(readCertification({ certified: Array.from({ length: 20 }, () => ID) }).ok).toBe(true);
-    expect(readCertification({ language: "x".repeat(11) })).toEqual({
-      ok: false,
-      field: "language",
-    });
+  it("refuses a non-uuid entry, more than 20 entries and a long language, by field", async () => {
+    const { PublishBody } = await import("@/routes/api/listings/publish");
+    const fieldOf = (body: Record<string, unknown>) => {
+      const parsed = PublishBody.safeParse({ listingId: ID, ...body });
+      return parsed.success ? null : parsed.error.issues[0]?.path.join(".");
+    };
+    expect(fieldOf({ certified: [ID, "not-a-uuid"] })).toBe("certified");
+    expect(fieldOf({ certified: Array.from({ length: 21 }, () => ID) })).toBe("certified");
+    expect(fieldOf({ certified: Array.from({ length: 20 }, () => ID) })).toBeNull();
+    expect(fieldOf({ language: "x".repeat(11) })).toBe("language");
+    const missing = PublishBody.safeParse({ certified: [ID] });
+    expect(missing.success).toBe(false);
+    if (!missing.success) expect(missing.error.issues[0]?.path.join(".")).toBe("listingId");
   });
   it("publishListing sends certified and language only when given", async () => {
     const { publishListing } = await import("./posting-service");
