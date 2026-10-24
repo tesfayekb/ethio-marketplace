@@ -58,6 +58,7 @@ import { SellerLine } from "./seller-line";
 import type { DraftValues } from "./use-draft";
 import type { DealLists, Refusal } from "./types";
 import { ownValue } from "@/lib/own-key";
+import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
 
 /**
  * U6-C2b — STEP 8: REVIEW & PUBLISH (spec §4 B2 step 8).
@@ -202,6 +203,7 @@ export function StepReview({
   const [attributeOptions, setAttributeOptions] = useState<Record<string, AttrOption[]>>({});
   /** U6-C1-R3b-1 — the seller block the buyer's-eye preview and the summary show. */
   const [identity, setIdentity] = useState<SellerIdentity | null>(null);
+  const [identityFailure, setIdentityFailure] = useState<ReaderFailure | null>(null);
   /** Bundle 3 step 20 — "previously" and member since, from `my_seller_line()`. */
   const [line, setLine] = useState<SellerLineFacts | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -268,9 +270,15 @@ export function StepReview({
   useEffect(() => {
     if (staffEdit) return;
     let cancelled = false;
-    void readSellerIdentity().then((found) => {
-      if (!cancelled) setIdentity(found);
-    });
+    void readSellerIdentity()
+      .then((found) => {
+        if (!cancelled) setIdentity(found);
+      })
+      .catch((error: unknown) => {
+        console.error("[post-review] identity read failed", error);
+        if (cancelled) return;
+        setIdentityFailure(readerFailure(error));
+      });
     readSellerLine().then(
       (found) => {
         if (!cancelled) setLine(found);
@@ -577,6 +585,14 @@ export function StepReview({
        * walking the wizard again.
        */}
       <div className="space-y-2" data-testid="post-review-summary">
+        {identityFailure ? (
+          <p role="alert" className="text-destructive">
+            {t("post.who.loadFailed")}
+            <span data-testid="post-review-identity-error-class">
+              {` (${identityFailure.class}${identityFailure.status ? " " + identityFailure.status : ""})`}
+            </span>
+          </p>
+        ) : null}
         <p className="text-sm font-medium text-foreground">
           {edit === null ? t("post.review.summaryLabel") : t("post.edit.summaryLabel")}
         </p>

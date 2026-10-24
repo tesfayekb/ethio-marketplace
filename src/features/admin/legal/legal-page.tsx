@@ -6,8 +6,6 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Textarea } from "@/components/ui/textarea";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
-import { useLanguages } from "@/features/admin/translations/use-translations";
-import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { legalTextFor } from "@/features/legal/legal-reader";
 import { LegalText } from "@/features/legal/legal-text";
@@ -56,7 +54,6 @@ export function LegalPage() {
   const documents = useLegalDocuments();
   const settings = useLegalSettings();
   const countries = useCountries();
-  const languages = useLanguages();
   const [reading, setReading] = useState<Set<string>>(new Set());
   const [selected, setSelected] = useState<Record<string, string>>({});
   const mayEdit = permissions.includes("legal:edit");
@@ -142,15 +139,7 @@ export function LegalPage() {
           )
           .map((v) => {
             const status = versionStatus(v, doc.versions, now);
-            const missingLanguages =
-              languages.data?.filter(
-                (l) =>
-                  l.enabledAdmin &&
-                  l.code !== "en" &&
-                  l.code !== "am" &&
-                  l.code !== PSEUDO_LANG &&
-                  !v.languages.includes(l.code),
-              ) ?? [];
+            const missingLanguages = v.missing_languages;
             return (
               <div
                 key={v.version_id}
@@ -245,7 +234,7 @@ export function LegalPage() {
                             >
                               {t("admin.legal.translation.add") +
                                 ": " +
-                                missingLanguages.map((l) => l.nameEn).join(", ")}
+                                missingLanguages.map((l) => l.name_en).join(", ")}
                             </Link>
                           </Button>
                         ) : null}

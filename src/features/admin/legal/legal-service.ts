@@ -6,6 +6,7 @@ import { errorText } from "@/lib/error-text";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
 
 export const LEGAL_KINDS = ["terms", "privacy", "publishing"] as const;
+export type MissingLegalLanguage = { code: string; name_en: string };
 export type LegalVersion = {
   version_id: string;
   version: number;
@@ -19,6 +20,7 @@ export type LegalVersion = {
   signed_in_unaccepted?: number | null;
   created_at: string;
   languages: string[];
+  missing_languages: MissingLegalLanguage[];
 };
 export type LegalReview = {
   at: string;
@@ -140,6 +142,20 @@ function objectOf(data: unknown, door: string): Record<string, unknown> {
     throw new Error(`${door}: invalid answer`);
   return data as Record<string, unknown>;
 }
+function checkMissingLanguages(value: unknown, door: string): void {
+  if (
+    !Array.isArray(value) ||
+    !value.every(
+      (item: unknown) =>
+        item !== null &&
+        typeof item === "object" &&
+        !Array.isArray(item) &&
+        typeof (item as Record<string, unknown>).code === "string" &&
+        typeof (item as Record<string, unknown>).name_en === "string",
+    )
+  )
+    throw new Error(`${door}: invalid missing_languages`);
+}
 export async function listLegalDocuments(): Promise<LegalDocument[]> {
   const { data, error } = await supabase.rpc("admin_legal_documents");
   if (error) throw error;
@@ -159,6 +175,7 @@ export async function listLegalDocuments(): Promise<LegalDocument[]> {
         !version.languages.every((code: unknown) => typeof code === "string")
       )
         throw new Error("admin_legal_documents: invalid languages");
+      checkMissingLanguages(version.missing_languages, "admin_legal_documents");
     }
   }
   return data as unknown as LegalDocument[];
@@ -182,6 +199,7 @@ export async function getLegalVersion(id: string): Promise<LegalVersionDetail> {
   )
     throw new Error("admin_legal_version: invalid version");
   parseLegalVersion(row, "admin_legal_version");
+  checkMissingLanguages(row.missing_languages, "admin_legal_version");
   return row as LegalVersionDetail;
 }
 export async function saveLegalDraft(input: DraftInput): Promise<DraftResult> {

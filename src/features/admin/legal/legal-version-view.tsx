@@ -1,8 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { useLanguages } from "@/features/admin/translations/use-translations";
-import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
 import { unknownTokens } from "@/features/legal/legal-markdown";
 import { Button } from "@/components/ui/button";
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -118,7 +116,6 @@ export function LegalVersionView({
   const settings = useLegalSettings();
   const documents = useLegalDocuments();
   const countries = useCountries();
-  const languages = useLanguages();
   const writes = useLegalWrites();
   const [lang, setLang] = useState("en");
   const [comparing, setComparing] = useState(false);
@@ -142,7 +139,6 @@ export function LegalVersionView({
       !openTranslation ||
       !addingTranslation ||
       !row ||
-      languages.isPending ||
       focused.current ||
       !panel.current
     )
@@ -153,20 +149,12 @@ export function LegalVersionView({
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     panel.current.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
     languageSelect.current?.focus({ preventScroll: true });
-  }, [openTranslation, addingTranslation, row, languages.isPending]);
-  const availableLanguages =
-    languages.data?.filter(
-      (l) =>
-        l.enabledAdmin &&
-        l.code !== "en" &&
-        l.code !== "am" &&
-        l.code !== PSEUDO_LANG &&
-        (!row || ownValue(row.texts, l.code) === undefined),
-    ) ?? [];
+  }, [openTranslation, addingTranslation, row]);
+  const availableLanguages = row?.missing_languages ?? [];
   const languageName = (l: string) =>
     l === "en" || l === "am"
       ? t(`admin.legal.lang.${l}`)
-      : (languages.data?.find((item) => item.code === l)?.nameEn ?? l);
+      : (availableLanguages.find((item) => item.code === l)?.name_en ?? l);
   const siblings = documents.data?.find((doc) => doc.document_id === row?.document_id)?.versions;
   const previous = row
     ? siblings?.filter((v) => v.version < row.version).sort((a, b) => b.version - a.version)[0]
@@ -321,13 +309,6 @@ export function LegalVersionView({
                     </Button>
                     {addingTranslation ? (
                       <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
-                        {languages.error ? (
-                          <p role="alert" className="text-destructive">
-                            {t("admin.legal.error.load")}
-                          </p>
-                        ) : languages.isPending ? (
-                          <p role="status">{t("common.loading")}</p>
-                        ) : null}
                         <label htmlFor="legal-translation-language">{t("language.label")}</label>
                         <select
                           ref={languageSelect}
@@ -345,7 +326,7 @@ export function LegalVersionView({
                           <option value="">{t("language.label")}</option>
                           {availableLanguages.map((l) => (
                             <option key={l.code} value={l.code}>
-                              {l.nameEn}
+                              {l.name_en}
                             </option>
                           ))}
                         </select>
@@ -430,9 +411,7 @@ export function LegalVersionView({
                           disabled={
                             translationSaving ||
                             !translationLanguage ||
-                            !translationBody.trim() ||
-                            languages.isPending ||
-                            Boolean(languages.error)
+                            !translationBody.trim()
                           }
                           onClick={() => {
                             setTranslationError(null);

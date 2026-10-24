@@ -1,4 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
+import { readerFailure } from "@/lib/reader-failure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { FormLayout } from "@/components/layout/form-layout";
@@ -383,13 +384,20 @@ function WizardShell({
   useEffect(() => {
     if (!needHome || home !== null) return;
     let cancelled = false;
-    void readSellerIdentity().then((identity) => {
-      if (cancelled) return;
-      setHome({
-        code: identity?.homeCountryCode ?? null,
-        confirmed: identity?.homeCountryConfirmed ?? false,
+    void readSellerIdentity()
+      .then((identity) => {
+        if (cancelled) return;
+        setHome({
+          code: identity?.homeCountryCode ?? null,
+          confirmed: identity?.homeCountryConfirmed ?? false,
+        });
+      })
+      .catch((error: unknown) => {
+        const failure = readerFailure(error);
+        console.error("[client-error] seller identity", failure.class);
+        if (cancelled) return;
+        setHome({ code: null, confirmed: false });
       });
-    });
     return () => {
       cancelled = true;
     };
