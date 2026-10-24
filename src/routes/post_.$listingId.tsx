@@ -28,15 +28,7 @@ import { readDraft, mayResumePosting } from "@/features/posting/posting-service"
 export const Route = createFileRoute("/post_/$listingId")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    // C2e.2 — the session the browser holds; no auth-server round trip. RLS and
-    // the server routes stay the authority behind this screen choice.
-    const { data } = await supabase.auth.getSession();
-    if ((data.session?.user ?? null) === null) {
-      throw redirect({
-        to: "/auth",
-        search: { return: `/post/${encodeURIComponent(params.listingId)}` },
-      });
-    }
+    await requireSignedIn(`/post/${encodeURIComponent(params.listingId)}`);
     const found = await readDraft(params.listingId);
     if (found !== null && !mayResumePosting(found.draft.status)) {
       throw redirect({ to: "/my-listings/$listingId", params: { listingId: params.listingId } });
