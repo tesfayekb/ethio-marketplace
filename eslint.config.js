@@ -139,9 +139,6 @@ export default tseslint.config(
       "src/routes/l.$id.photo[[].[]]jpg.ts", // until INC-862
       "src/routes/l.$id.qr[[].[]]svg.ts", // until INC-862
       "src/server/ad-photo.ts", // until INC-862
-      "src/server/media/policy.ts", // until INC-862
-      "src/server/media/background.ts", // until INC-862
-      "src/server/media/storage.ts", // until INC-862
       "src/server/geo/geocode.ts", // until INC-862
       "src/routes/__root.tsx", // until INC-863
       "src/routes/l.$slug.tsx", // until INC-863
