@@ -9,11 +9,61 @@
  * is not the swallowed shape passes through byte for byte, and the swallowed
  * shape still becomes the error page.
  */
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { normalizeCatastrophicSsrResponse } from "./server";
+const handler = vi.hoisted(() => ({ fetch: vi.fn() }));
+vi.mock("@tanstack/react-start/server-entry", () => ({ default: handler }));
+
+import server, { normalizeCatastrophicSsrResponse } from "./server";
 
 const REQUEST = new Request("https://example.test/api/example");
+
+afterEach(() => vi.restoreAllMocks());
+
+describe("abandoned requests (INC-871)", () => {
+  function request(aborted: boolean) {
+    const controller = new AbortController();
+    const value = new Request("https://example.test/api/example?private=query", {
+      signal: controller.signal,
+    });
+    if (aborted) controller.abort();
+    return value;
+  }
+
+  it("ABT-1 an abandoned handler throw logs only client-aborted and answers empty 499", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    handler.fetch.mockRejectedValueOnce(new Error("live failure control"));
+    const out = await server.fetch(request(true), {}, {});
+    expect(out.status).toBe(499);
+    expect(await out.text()).toBe("");
+    expect(log.mock.calls).toEqual([["[client-aborted]", "GET", "/api/example"]]);
+  });
+
+  it("ABT-2 the same throw on a live request logs ssr-error and renders 500", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const failure = new Error("live failure control");
+    handler.fetch.mockRejectedValueOnce(failure);
+    const out = await server.fetch(request(false), {}, {});
+    expect(out.status).toBe(500);
+    expect(out.headers.get("content-type")).toBe("text/html; charset=utf-8");
+    expect(await out.text()).toContain("<");
+    expect(log.mock.calls[0]?.[0]).toBe("[ssr-error]");
+    expect(log.mock.calls[1]).toEqual([failure]);
+    expect(log.mock.calls.some((line) => line[0] === "[client-aborted]")).toBe(false);
+  });
+
+  it("ABT-3 an abandoned swallowed HTTPError answers the same empty 499", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const swallowed = new Response(JSON.stringify({ unhandled: true, message: "HTTPError" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+    const out = await normalizeCatastrophicSsrResponse(request(true), swallowed);
+    expect(out.status).toBe(499);
+    expect(await out.text()).toBe("");
+    expect(log.mock.calls).toEqual([["[client-aborted]", "GET", "/api/example"]]);
+  });
+});
 
 describe("normalizeCatastrophicSsrResponse (INC-421)", () => {
   it("passes a 5xx JSON answer through with its body byte for byte", async () => {
