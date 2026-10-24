@@ -119,17 +119,21 @@ beforeEach(() => {
 function countedPost(text: string, headers: Record<string, string> = {}): Request {
   const encoded = new TextEncoder().encode(text);
   let sent = false;
-  const stream = new ReadableStream<Uint8Array>({
-    pull(controller) {
-      state.pulls += 1;
-      if (sent) {
-        controller.close();
-        return;
-      }
-      sent = true;
-      controller.enqueue(encoded);
+  const stream = new ReadableStream<Uint8Array>(
+    {
+      pull(controller) {
+        state.pulls += 1;
+        if (sent) {
+          controller.close();
+          return;
+        }
+        sent = true;
+        controller.enqueue(encoded);
+      },
     },
-  });
+    // No eager pull: a pull happens only when someone reads.
+    { highWaterMark: 0 },
+  );
   return new Request("http://local/api/test", {
     method: "POST",
     headers: { "content-type": "application/json", ...headers },
@@ -366,9 +370,7 @@ describe("defineRoute — the one boundary (B4)", () => {
 
   it("RT-14 beforeParse dials are spent before the body is read", async () => {
     const route = makeRoute({
-      rate: [
-        { action: "assist", key: "user", limit: 5, windowSeconds: 3600, when: "beforeParse" },
-      ],
+      rate: [{ action: "assist", key: "user", limit: 5, windowSeconds: 3600, when: "beforeParse" }],
     });
     const response = await route({
       request: countedPost(JSON.stringify({ listingId: LISTING })),
