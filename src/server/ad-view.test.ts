@@ -76,10 +76,20 @@ describe("view count route", () => {
       expect.objectContaining({ p_viewer: "u1" }),
     );
     mocks.rpc.mockClear();
-    mocks.caller.mockResolvedValueOnce({ supabase: null, userId: null, reason: "notSignedIn", message: "" });
+    mocks.caller.mockResolvedValueOnce({
+      supabase: null,
+      userId: null,
+      reason: "notSignedIn",
+      message: "",
+    });
     const refused = await viaRoute({ publicId: ID }, { Authorization: "Bearer stale" });
     expect(refused.status).toBe(401);
-    mocks.caller.mockResolvedValueOnce({ supabase: null, userId: null, reason: "deactivated", message: "" });
+    mocks.caller.mockResolvedValueOnce({
+      supabase: null,
+      userId: null,
+      reason: "deactivated",
+      message: "",
+    });
     const deactivated = await viaRoute({ publicId: ID }, { Authorization: "Bearer gone" });
     expect(deactivated.status).toBe(403);
     expect(mocks.rate).not.toHaveBeenCalled();
