@@ -136,7 +136,9 @@ const routes = walkFiles(["src/routes/api/admin"], { ext: ["ts"], skipTests: tru
 describe("the staff file doors", () => {
   it("IMD-7 the newest audit permission map equals the import family registry", () => {
     const migrations = walkFiles(["supabase/migrations"], { ext: ["sql"] }).sort();
-    const newest = migrations.filter((file) => read(file).includes("FUNCTION public.import_gate_audit(" )).at(-1);
+    const newest = migrations
+      .filter((file) => read(file).includes("FUNCTION public.import_gate_audit("))
+      .at(-1);
     expect(newest).toBeDefined();
     if (newest === undefined) throw new Error("missing import_gate_audit definition");
     const text = read(newest);
@@ -152,7 +154,9 @@ describe("the staff file doors", () => {
     expect(new Set(rows.map((row) => row[1])).size).toBe(rows.length);
     for (const [, id, resource, verb] of rows) {
       const permission = familyOf(id)?.permission;
-      expect(`${id}: ${resource}:${verb}`, `${id}: ${resource}:${verb} ≠ ${permission}`).toBe(`${id}: ${permission}`);
+      expect(`${id}: ${resource}:${verb}`, `${id}: ${resource}:${verb} ≠ ${permission}`).toBe(
+        `${id}: ${permission}`,
+      );
     }
     expect(rows.map((row) => row[1]).sort()).toEqual(Object.keys(FAMILIES).sort());
   });
