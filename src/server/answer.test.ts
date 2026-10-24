@@ -1,6 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { bytes, clientError, ok, serverError, verdict } from "@/server/answer";
+import {
+  bytes,
+  clientError,
+  conditional,
+  notModified,
+  ok,
+  plain,
+  redirect,
+  serverError,
+  verdict,
+} from "@/server/answer";
 
 /**
  * Foundations turn 2 (DEC-237) — the two envelopes (ANS-1…ANS-4);
@@ -14,6 +24,96 @@ describe("the route answers (B2)", () => {
     expect(await plain.json()).toEqual({ a: 1 });
     const cached = ok({ a: 1 }, { cache: "public, max-age=300" });
     expect(cached.headers.get("Cache-Control")).toBe("public, max-age=300");
+  });
+
+  it("ANS-6 ok merges headers after its declared cache", async () => {
+    const response = ok(
+      { a: 1 },
+      {
+        status: 201,
+        cache: "public, max-age=15",
+        headers: {
+          Vary: "Accept-Encoding",
+          "Server-Timing": "db;dur=4",
+          "Cache-Control": "private, max-age=5",
+        },
+      },
+    );
+    expect(response.status).toBe(201);
+    expect(response.headers.get("Vary")).toBe("Accept-Encoding");
+    expect(response.headers.get("Server-Timing")).toBe("db;dur=4");
+    expect(response.headers.get("Cache-Control")).toBe("private, max-age=5");
+    expect(await response.json()).toEqual({ a: 1 });
+  });
+
+  it("ANS-7 conditional matches exact and list tags with bodyless 304; misses retain JSON and headers", async () => {
+    const etag = '"cat-tree-12"';
+    const cache = "public, max-age=15";
+    for (const tag of [etag, '"other",  "cat-tree-12" , "third"']) {
+      const response = conditional(
+        new Request("https://example.test", { headers: { "If-None-Match": tag } }),
+        { etag, cache, body: { version: 12 } },
+      );
+      expect(response.status).toBe(304);
+      expect(response.body).toBeNull();
+      expect(await response.text()).toBe("");
+      expect(response.headers.get("ETag")).toBe(etag);
+      expect(response.headers.get("Cache-Control")).toBe(cache);
+      expect(response.headers.get("Vary")).toBe("Accept-Encoding");
+    }
+    for (const tag of ['"other"', 'W/"cat-tree-12"', "*", ""]) {
+      const response = conditional(
+        new Request("https://example.test", { headers: { "If-None-Match": tag } }),
+        { etag, cache, vary: "Accept-Language", body: { version: 12 } },
+      );
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual({ version: 12 });
+      expect(response.headers.get("ETag")).toBe(etag);
+      expect(response.headers.get("Cache-Control")).toBe(cache);
+      expect(response.headers.get("Vary")).toBe("Accept-Language");
+    }
+    const direct = notModified(etag, cache, "Accept-Language");
+    expect(direct.status).toBe(304);
+    expect(direct.body).toBeNull();
+    expect(direct.headers.get("Vary")).toBe("Accept-Language");
+  });
+
+  it("ANS-8 redirect carries its safe Location, status, cache and nosniff and refuses open redirects", () => {
+    const response = redirect("/photos/one", {});
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("/photos/one");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    const secure = redirect("https://example.test/photo", {
+      status: 307,
+      cache: "public, max-age=60",
+      headers: { Vary: "Accept", Location: "//evil.example" },
+    });
+    expect(secure.status).toBe(307);
+    expect(secure.headers.get("Location")).toBe("https://example.test/photo");
+    expect(secure.headers.get("Cache-Control")).toBe("public, max-age=60");
+    expect(secure.headers.get("Vary")).toBe("Accept");
+    for (const location of [
+      "//evil.example",
+      "javascript:alert(1)",
+      "http://example.test",
+      "relative",
+      "/\\evil.example",
+      "/\n/evil.example",
+    ])
+      expect(() => redirect(location, {})).toThrow();
+  });
+
+  it("ANS-9 plain carries its status, text content type, nosniff and cache", async () => {
+    const response = plain("not found", 404);
+    expect(response.status).toBe(404);
+    expect(response.headers.get("Content-Type")).toBe("text/plain; charset=utf-8");
+    expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(await response.text()).toBe("not found");
+    expect(plain("ok", 200, { cache: "public, max-age=60" }).headers.get("Cache-Control")).toBe(
+      "public, max-age=60",
+    );
   });
 
   it("ANS-2 verdict's shape: ok false and the refusals, at 200 by default", async () => {

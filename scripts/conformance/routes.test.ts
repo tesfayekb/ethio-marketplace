@@ -14,6 +14,7 @@ const HELPER_SET = new Set([
   "src/server/route.ts",
   "src/server/answer.ts",
   "src/server/upstream.ts",
+  "src/server/version-cache.ts",
   "src/server/supabase/user-client.ts",
   "src/server/door.ts",
   "src/server/listings/own-listing.ts",

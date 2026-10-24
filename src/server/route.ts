@@ -43,6 +43,7 @@ import {
  */
 
 export type RouteAuth =
+  | "none"
   | "anon"
   | "optional"
   | "user"
@@ -89,7 +90,10 @@ export type RouteSpec<B = unknown, P = unknown, Q = unknown> = {
   form?: { maxBytes: number };
   limits?: { bodyBytes?: number };
   /** verdict (the posting contract, default) or clientError (the readers'). */
-  badShape?: "verdict" | "clientError";
+  badShape?:
+    | "verdict"
+    | "clientError"
+    | ((issue: { part: "params" | "query" | "body"; path: string; code: string }) => Response);
   rate?: RateSpec[];
   handler: (ctx: RouteContext<B, P, Q>) => Promise<Response>;
 };
@@ -146,11 +150,15 @@ function queryObject(url: URL, schema: z.ZodTypeAny): Record<string, unknown> {
 }
 
 function badShapeAnswer(
-  mode: "verdict" | "clientError",
+  mode: NonNullable<RouteSpec["badShape"]>,
   issues: readonly z.core.$ZodIssue[],
+  part: "params" | "query" | "body",
 ): Response {
-  if (mode === "clientError") return clientError("bad request", 400);
   const first = issues[0];
+  if (typeof mode === "function") {
+    return mode({ part, path: first?.path.join(".") ?? "", code: first?.code ?? "badShape" });
+  }
+  if (mode === "clientError") return clientError("bad request", 400);
   return verdict([
     {
       field: first !== undefined ? first.path.join(".") : "",
@@ -161,7 +169,8 @@ function badShapeAnswer(
 }
 
 /** A body that is not JSON at all: the same badShape answer, no schema issue. */
-function malformedJsonAnswer(mode: "verdict" | "clientError"): Response {
+function malformedJsonAnswer(mode: NonNullable<RouteSpec["badShape"]>): Response {
+  if (typeof mode === "function") return mode({ part: "body", path: "", code: "invalid_json" });
   if (mode === "clientError") return clientError("bad request", 400);
   return verdict([{ field: "", reason: "badShape", detail: "invalid_json" }]);
 }
@@ -186,7 +195,9 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       let supabase: SupabaseClient<Database> | null = null;
       const staff = typeof spec.auth === "object" ? spec.auth.staff : null;
       const mode = staff !== null ? "user" : spec.auth;
-      if (mode === "anon") {
+      if (mode === "none") {
+        // No identity, environment check or Authorization read; service stays lazy.
+      } else if (mode === "anon") {
         supabase = anonymousClient();
         if (supabase === null) {
           const refused = refuseUserClient(spec.path, {
@@ -279,13 +290,13 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       let params: P = undefined as P;
       if (spec.params !== undefined) {
         const parsed = spec.params.safeParse(rawParams ?? {});
-        if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues);
+        if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues, "params");
         params = parsed.data as P;
       }
       let query: Q = undefined as Q;
       if (spec.query !== undefined) {
         const parsed = spec.query.safeParse(queryObject(new URL(request.url), spec.query));
-        if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues);
+        if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues, "query");
         query = parsed.data as Q;
       }
       let body: B = undefined as B;
@@ -297,7 +308,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
           return malformedJsonAnswer(badShape);
         }
         const parsed = spec.body.safeParse(raw);
-        if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues);
+        if (!parsed.success) return badShapeAnswer(badShape, parsed.error.issues, "body");
         body = parsed.data as B;
       }
       let form: FormData | null = null;
@@ -316,6 +327,9 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
         } catch {
           // Foundations turn 4 — an unreadable multipart body is the route's
           // badShape answer (`{field:"body"}`, the upload's contract), not a 500.
+          if (typeof badShape === "function") {
+            return badShape({ part: "body", path: "body", code: "badShape" });
+          }
           if (badShape === "clientError") return clientError("bad request", 400);
           return verdict([{ field: "body", reason: "badShape" }]);
         }

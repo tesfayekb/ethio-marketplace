@@ -21,11 +21,17 @@ export const publicId = z.string().regex(PUBLIC_ID_RE);
 /** The language-code shape src/routes/api/i18n.$lang.ts accepts today, verbatim. */
 export const langCode = z.string().regex(/^[a-z]{2,8}(-[a-z0-9]{2,8})?$/);
 
+/** Opt-in normalisation for the public language reader; langCode stays unchanged. */
+export const langCodeLoose = z.string().trim().toLowerCase().pipe(langCode);
+
 /** A country code: two letters, stored upper-case. */
 export const countryCode = z
   .string()
   .regex(/^[A-Za-z]{2}$/)
   .transform((s) => s.toUpperCase());
+
+/** Opt-in trimming for the public country reader; countryCode stays unchanged. */
+export const countryCodeLoose = z.string().trim().pipe(countryCode);
 
 /** Required text, trimmed, bounded. */
 export const boundedText = (max: number) => z.string().trim().min(1).max(max);

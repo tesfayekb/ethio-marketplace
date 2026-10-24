@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   boundedText,
   countryCode,
+  countryCodeLoose,
   idList,
   langCode,
+  langCodeLoose,
   optionalText,
   positiveInt,
   publicId,
@@ -16,6 +18,15 @@ import {
  * canonical value and refuses one malformed value.
  */
 describe("route schema primitives (SCH-1)", () => {
+  it("SCH-2 loose codes trim and normalise while refusing malformed values", () => {
+    expect(langCodeLoose.parse(" AM ")).toBe("am");
+    expect(countryCodeLoose.parse(" et ")).toBe("ET");
+    expect(langCodeLoose.safeParse("x").success).toBe(false);
+    expect(countryCodeLoose.safeParse("x").success).toBe(false);
+    expect(langCode.safeParse(" AM ").success).toBe(false);
+    expect(countryCode.safeParse(" et ").success).toBe(false);
+  });
+
   it("uuid accepts the canonical and upper-case forms, refuses a non-uuid", () => {
     expect(uuid.safeParse("11111111-1111-4111-8111-111111111111").success).toBe(true);
     expect(uuid.safeParse("11111111-1111-4111-8111-111111111111".toUpperCase()).success).toBe(true);

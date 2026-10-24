@@ -8,7 +8,7 @@ Foundations turn 3 (INC-865): the caller is known before any byte of the body is
 
 1. **The outer catch** — anything thrown answers `serverError` (a generic body, the stack in the log with the incident id).
 2. **The byte ceiling by header** — a `Content-Length` over the limit (`limits.bodyBytes`, default 64 KiB, or `form.maxBytes`) answers 413; nothing is read.
-3. **The caller** — `auth: "anon" | "optional" | "user" | { staff }`: a user route refuses a signed-out caller (401), a deactivated one (403); an optional route refuses a bearer that is present but refused; a staff route asks `has_permission` (`p_user_id`, `p_resource`, `p_action`) as the caller and refuses 403.
+3. **The caller** — `auth: "none" | "anon" | "optional" | "user" | { staff }`: none builds no client, checks no environment and reads no Authorization header; a user route refuses a signed-out caller (401), a deactivated one (403); an optional route refuses a bearer that is present but refused; a staff route asks `has_permission` (`p_user_id`, `p_resource`, `p_action`) as the caller and refuses 403.
 4. **Before-parse dials** — `rate: [{ when: "beforeParse", … }]` spend before the body is read (the denial-of-service choice).
 5. **The content type** — a JSON body route refuses anything but `application/json` with 415, before the body is read.
 6. **The bounded read** — only when `body` or `form` is declared: the counting reader; over the ceiling (a body sent without `Content-Length`) answers 413.
@@ -16,6 +16,38 @@ Foundations turn 3 (INC-865): the caller is known before any byte of the body is
 8. **After-parse dials, then the handler** — the handler gets `{ request, path, params, query, body, form, userId, supabase, service, incident }`; `service()` loads the privileged client lazily, only after the caller is verified.
 
 A spent dial answers the 429 `clientError("rateLimited", { resetsAt })`, or — with `refuseAs: { verdict: { field, reason? } }` — the posting verdict at 200 `{ field, reason: reason ?? "rateLimited", detail: resetsAt }` that the wizard reads (use-draft.ts, refusal-text.ts). A dial that cannot answer is 503.
+
+## Auth modes (Foundations turn 5)
+
+| Mode        | Client / identity                                                                                                                                                              |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `none`      | No client, environment check or Authorization read; `supabase` and `userId` null. Lazy `service()` remains available for an explicitly privileged reader such as catalog.find. |
+| `anon`      | `anonymousClient()`; missing server environment refused.                                                                                                                       |
+| `optional`  | A present Authorization header is checked as the caller; otherwise the anonymous client.                                                                                       |
+| `user`      | A verified caller and their RLS-scoped client.                                                                                                                                 |
+| `{ staff }` | The verified caller's client checks `has_permission` before the handler.                                                                                                       |
+
+`badShape` also accepts `({ part, path, code }) => Response`: only the first issue, in params → query → body order; the path joined with dots and the zod code, never its message. The route returns its own answer through answer.ts. Malformed JSON passes `{ part: "body", path: "", code: "invalid_json" }`; unreadable multipart passes `{ part: "body", path: "body", code: "badShape" }`. Existing verdict/clientError defaults are unchanged.
+
+Public GET query exception: only `auth: "none"` or `"anon"` readers may use non-strict `z.object`, stripping unknown keys rather than refusing them.
+The caller census found cache-busters/tracking parameters on public data requests; params, bodies and other queries remain strict.
+
+Reader 5xx decision for turns 6–9: database errors answer `upstreamUnavailable` 503 when `upstreamFailed` identifies transport failure, otherwise `serverError` 500.
+The local 502 `{error:"internal error"}` retires with each reader move: the census found callers keying only on ok, 200 or 404, never 502.
+
+## Reader answers (Foundations turn 5)
+
+- **`ok(body, { status?, cache?, headers? })`** — headers merge after Cache-Control, allowing Vary and Server-Timing; old defaults stay unchanged.
+- **`conditional(request, { etag, body, cache, vary? })`** — caller-provided quoted strong ETag; exact If-None-Match or a trimmed comma-list match → `notModified`, otherwise JSON 200. No wildcard or weak-tag matching; Vary defaults to Accept-Encoding.
+- **`notModified(etag, cache, vary?)`** — bodyless 304 with ETag, Cache-Control and Vary.
+- **`redirect(location, { status?, cache?, headers? })`** — 302 default, no-store default, Location and nosniff; only absolute HTTPS or single-slash local paths. Backslashes and controls/whitespace are refused to prevent a local-path authority bypass.
+- **`plain(text, status, { cache? }?)`** — text/plain; charset=utf-8, nosniff, no-store default (AP-2 pins the photo/QR text contract).
+
+## One version cache and cursor (Foundations turn 5)
+
+`versionCache<K, T>({ ttlMs, max })` in `src/server/version-cache.ts` returns `get(key, version, build)`. Each route owns its instance, no shared module state. Within TTL no version read; TTL 0 reads on every request (INC-265); an unchanged version reuses the value, a changed version rebuilds. Null versions/builds and throws evict any old entry and are never cached; throws propagate to the route's outer catch. Keys are bounded by max and evicted least-recently-used, including TTL hits as use. Bounds must be finite/non-negative TTL and positive integer max. VRC-1…5 prove the contracts.
+
+`cursor(shape)` and `encodeCursor(value)` in `src/lib/schemas/cursor.ts` share the identical feed/seller UTF-8 base64url-of-JSON codec. The decoder is bounded to 512 characters, refuses non-object JSON and invalid encodings as schema issues, then pipes through the supplied shape (CUR-1…3). Feed and seller remain unchanged until turn 7. `langCodeLoose` and `countryCodeLoose` opt in to the existing readers' trimming/normalisation; original primitives remain unchanged (SCH-2).
 
 ## The two envelopes
 
@@ -35,7 +67,7 @@ A spent dial answers the 429 `clientError("rateLimited", { resetsAt })`, or — 
 
 ## The allowlist's waves
 
-`routes-allowlist.txt` holds the exceptions (46 after Foundations turn 3), each with its wave: INC-859 (the readers), INC-860 (the uploads), INC-861 (the AI calls), INC-862 (the media routes), INC-863 (the server functions), INC-857 (the four client-side UUID copies). A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census.
+`routes-allowlist.txt` holds 40 exceptions after Foundations turn 4, unchanged in turn 5 (no route moves): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
 
 ## A new route
 
