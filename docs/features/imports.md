@@ -35,7 +35,7 @@ A file never gets past a step it failed.
     door through `import_gate_audit`; every failure logs `[ssr-error] <path>`.
     The function writes the row only for a caller who holds that family's own
     permission (attributes and categories `categories:import`, locations
-    `locations:import`, translations `translations:manage` — the audit function's own list),
+    `locations:import`, translations `translations:update` — the registry's permission),
     and refuses anyone else with `42501` (bundle 12 turn T10; IG-6).
 
 A refused file is never stored anywhere. Preview writes nothing.
@@ -476,3 +476,15 @@ answers `rateLimited` (was `tooManyRequests`); (3) the process-local
 cells are neutralised on export and refused raw on import (`isFormulaCell`,
 `unneutralize`, csv.ts's neutraliser; CSV-3, CSV-6). Guards: IMD-1…6,
 DIAL-1…8, CF-RT-1…7, `scripts/check-import-gate.sh`.
+
+## Audit map parity (Foundations turn 13, INC-874 closed)
+
+The whole live `import_gate_audit` definition was redeclared in migration
+`20261024220534_7aba0b1c-b2a2-455c-9aec-7c711a41034e.sql`: only the translations
+map row changes from manage to update. Security-definer status, volatility,
+search path and ACLs remain unchanged. Mark `20261025120000` is on production
+and staging. IMD-7 reads the newest migration's function-local VALUES map and
+requires exact equality with every registry family's permission, with no extra
+families. The red first named translations:manage versus translations:update.
+Browser imports now use `callRoute` (route-client.md); server gates still alone
+authorize.
