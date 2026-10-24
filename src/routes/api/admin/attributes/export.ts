@@ -1,207 +1,77 @@
 /**
- * IE-1 — GET /api/admin/attributes/export?file=definitions|links
+ * IE-1 — GET /api/admin/attributes/export?file=definitions|links&scope=<slug>
  *
  * TWO FILES, one control: the operator downloads `definitions.csv` and
- * `links.csv` separately, so the export needs no archive dependency (G2).
+ * `links.csv` separately, so the export needs no archive dependency (G2). The
+ * read runs through `admin_export_attributes()`, which re-checks
+ * `categories:view` server-side (F3) and owns the subtree resolution.
  *
- * A7 — the installed Start server-route primitive is
- * `createFileRoute(path)({ server: { handlers: { GET } } })`; the precedent in
- * this repo is `src/routes/api/admin/categories/generate-image.ts`.
- *
- * GATE — censused from `src/server/category-images/gate.ts` (itself conformed
- * to `src/routes/api/translate.ts`): bearer header → caller-context Supabase
- * client (SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY, never the service role) →
- * `auth.getUser()` → the read runs through `admin_export_attributes()`, which
- * re-checks `categories:view` server-side (F3). Every failure path logs
- * `[ssr-error] <path> <message>` before answering (I4) — nothing falls back
- * silently (F4).
+ * Foundations turn 11 (INC-860 part 1): on `defineRoute` with
+ * `auth: { staff: categories:view }`; the columns are the registry's, without
+ * `action` (imports/csv.ts — byte-equal to the literal lists they replace,
+ * CSV-4); the one download answer (answer.ts).
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { openExportGate } from "@/server/imports/gate";
-import { errorText } from "@/lib/error-text";
+import { clientError, download, readFailure } from "@/server/answer";
+import { exportFilename, exportColumns, exportRefusal, toCsv } from "@/server/imports/csv";
+import { exportScope } from "@/server/imports/gate";
+import { familyOf, fileOf } from "@/server/imports/registry";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 const PATH = "/api/admin/attributes/export";
+const ExportQuery = z.object({
+  file: z.enum(["definitions", "links"]),
+  scope: z.string().optional(),
+});
 
-type FileKind = "definitions" | "links";
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof ExportQuery>>,
+): Promise<Response> {
+  const kind = ctx.query.file;
+  const scoped = exportScope("attributes", ctx.query.scope);
+  if (!scoped.ok) return scoped.response;
+  const { scope } = scoped;
+  const supabase = ctx.supabase!;
 
-const DEFINITION_COLUMNS = [
-  "attribute_key",
-  "label_en",
-  "label_am",
-  "type",
-  "options",
-  // DEC-045b — the dependency is EDITABLE now: the header drops the read-only
-  // suffix, because the importer applies exactly what this cell says.
-  "depends_on",
-  // DEC-050 L2b — the nine v2 cells; the payload already emits them and this
-  // route formats nothing (IE-3b).
-  "unit",
-  "min",
-  "max",
-  "decimals",
-  "format",
-  "preset",
-  "max_length",
-  "help_text_en",
-  "help_text_am",
-  "is_per_variant",
-  "direct_link_count",
-  // Bundle 5 C3 — the Amharic unit, LAST: the registry makes it optional so
-  // a file written before it still imports.
-  "unit_am",
-] as const;
+  const { data, error } =
+    scope === null
+      ? await supabase.rpc("admin_export_attributes")
+      : await supabase.rpc("admin_export_attributes", { p_scope_slug: scope });
+  if (error) {
+    const refused = exportRefusal(error, "unknown category scope");
+    if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);
+    return readFailure(PATH, "export_failed", error);
+  }
 
-const LINK_COLUMNS = [
-  "category_path",
-  "category_slug",
-  "attribute_key",
-  "is_required",
-  "is_filterable",
-  "card_rank",
-  "origin",
-  // M-MAINT-2 B / U6-C1-R3b-1 STEP 7 — the two per-link cells the payload
-  // already emits (`attr_export_payload`, 20260920000002). The route formats
-  // nothing (IE-3b): `allowed_options` arrives as a pipe string and
-  // `default_value` as the text the planner reads back. They are LAST because
-  // the gate makes trailing cells optional, so a file exported before this
-  // change is still a valid file.
-  "allowed_options",
-  "default_value",
-  /**
-   * R-GATE / INC-241 — THE LAST TWO CELLS THE DATABASE ALREADY CARRIED.
-   * `attr_export_payload` emits `visible_when` (the planner's text form
-   * `key=value1|value2`) and `display_order` in exactly this order; the route
-   * formats nothing (IE-3b). Leaving them out meant an operator's own export
-   * did not state a condition or an order the database held, so a round trip
-   * dropped them from the file even though the importer now accepts both
-   * (INC-188's rule: a file never drops a field the database keeps).
-   */
-  "visible_when",
-  "display_order",
-  // B19 M2 — the key-facts rank, which `attr_export_payload` emits as text ('' for none); last, behind `optionalFrom`, so a file exported before it still imports.
-  "fact_rank",
-] as const;
-
-/**
- * IE-3 — COLUMN CLASSES. Identity and editable columns are written bare;
- * every DERIVED or FOREIGN column carries the " (read-only)" suffix in the
- * header, so the file itself states what the importer will never apply.
- */
-export const READ_ONLY_COLUMNS = new Set<string>([
-  "category_path",
-  "origin",
-  // IE-4b — `label_am` has LEFT this list: a filled cell is written through the
-  // translation door as a pending-review row; an empty cell is silence.
-  "is_per_variant",
-  "direct_link_count",
-]);
-
-export function headerCell(name: string): string {
-  return READ_ONLY_COLUMNS.has(name) ? `${name} (read-only)` : name;
-}
-
-function json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
+  const family = familyOf("attributes");
+  const spec = family === null ? null : fileOf(family, kind);
+  if (spec === null) throw new Error(`registry missing file ${kind}`);
+  const payload = (data ?? {}) as {
+    definitions?: Record<string, unknown>[];
+    links?: Record<string, unknown>[];
+  };
+  const rows = (kind === "definitions" ? payload.definitions : payload.links) ?? [];
+  return download(toCsv(exportColumns(spec), rows), {
+    filename: exportFilename(kind, scope),
+    contentType: "text/csv; charset=utf-8",
   });
-}
-
-/**
- * FORMULA SAFETY. A cell that opens with `=`, `+`, `-` or `@` is executed by
- * Excel/Sheets on open; a single leading quote neutralises it and is stripped
- * back out by every spreadsheet on display. Applied BEFORE RFC-4180 quoting.
- */
-function neutralize(value: string): string {
-  return /^[=+\-@]/.test(value) ? `'${value}` : value;
-}
-
-/**
- * RFC 4180: quote when the cell carries a quote, a comma or any newline.
- *
- * IE-3b — ONE SERIALIZER. `admin_export_attributes` returns every cell as the
- * exact text the file carries (booleans "true"/"false", nulls "", pipes,
- * dates ISO). The route formats NOTHING: it neutralises and quotes, no more.
- */
-function csvCell(raw: unknown): string {
-  const value = neutralize(raw === null || raw === undefined ? "" : String(raw));
-  return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
-
-function toCsv(columns: readonly string[], rows: Record<string, unknown>[]): string {
-  const lines = [columns.map(headerCell).join(",")];
-  for (const row of rows) lines.push(columns.map((column) => csvCell(row[column])).join(","));
-  // BOM: Excel reads UTF-8 (and therefore Ge'ez) correctly only with it.
-  return `\ufeff${lines.join("\r\n")}\r\n`;
-}
-
-/**
- * C3-INH PART B — the SCOPED filename carries the slug, so two downloads taken
- * minutes apart are never confused for one another on disk.
- */
-function datedFilename(kind: FileKind, scope: string | null): string {
-  const day = new Date().toISOString().slice(0, 10);
-  const middle = scope === null ? kind : `${scope}-${kind}`;
-  return `ethio-attributes-${middle}-${day}.csv`;
 }
 
 export const Route = createFileRoute("/api/admin/attributes/export")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const url = new URL(request.url);
-        const kind = url.searchParams.get("file");
-        if (kind !== "definitions" && kind !== "links") {
-          return json({ error: "file must be definitions or links" }, 400);
-        }
-
-        /**
-         * IMPORT-GATE — the ONE door: bearer → caller-context client →
-         * `auth.getUser()` → `scope` format law. The RPC re-checks
-         * `categories:view` (F3) and owns the subtree resolution.
-         */
-        const gate = await openExportGate(
-          request,
-          PATH,
-          "attributes",
-          url.searchParams.get("scope"),
-        );
-        if (!gate.ok) return gate.response;
-        const { supabase, scope } = gate;
-
-        const { data, error } =
-          scope === null
-            ? await supabase.rpc("admin_export_attributes")
-            : await supabase.rpc("admin_export_attributes", { p_scope_slug: scope });
-        if (error) {
-          // The RPC is the authority: `categories:view` is refused inside it.
-          console.error(`[ssr-error] ${PATH} export_failed ${errorText(error)}`);
-          if (error.message.includes("permission denied")) {
-            return json({ error: "permission denied" }, 403);
-          }
-          if (error.message.includes("unknown category scope")) {
-            return json({ error: "unknown category scope" }, 404);
-          }
-          return json({ error: "server error" }, 500);
-        }
-
-        const payload = (data ?? {}) as {
-          definitions?: Record<string, unknown>[];
-          links?: Record<string, unknown>[];
-        };
-        const columns = kind === "definitions" ? DEFINITION_COLUMNS : LINK_COLUMNS;
-        const rows = (kind === "definitions" ? payload.definitions : payload.links) ?? [];
-
-        return new Response(toCsv(columns, rows), {
-          status: 200,
-          headers: {
-            "Content-Type": "text/csv; charset=utf-8",
-            "Content-Disposition": `attachment; filename="${datedFilename(kind, scope)}"`,
-            "Cache-Control": "no-store",
-          },
-        });
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: { staff: { resource: "categories", action: "view" } },
+        query: ExportQuery,
+        badShape: (issue) =>
+          issue.path === "file"
+            ? clientError("file must be definitions or links", 400)
+            : clientError("badScope", 400),
+        handler,
+      }),
     },
   },
 });

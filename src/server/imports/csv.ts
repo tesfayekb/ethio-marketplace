@@ -46,3 +46,19 @@ export function toCsv(columns: readonly ExportColumn[], rows: Record<string, unk
   for (const row of rows) lines.push(columns.map((column) => csvCell(row[column.name])).join(","));
   return `\ufeff${lines.join("\r\n")}\r\n`;
 }
+
+/** CHANGE (7) — `ethio-<scope->-<file id>-YYYY-MM-DD.csv`, the UTC day; the scope only when scoped. */
+export function exportFilename(fileId: string, scope: string | null, now = new Date()): string {
+  const day = now.toISOString().slice(0, 10);
+  return `ethio-${scope === null ? "" : `${scope}-`}${fileId}-${day}.csv`;
+}
+
+/** The export RPCs' refusals, by their own words; anything else is the caller's read failure. */
+export function exportRefusal(
+  error: { message: string },
+  unknownScope: "unknown category scope" | "unknown country scope",
+): "forbidden" | typeof unknownScope | null {
+  if (error.message.includes("permission denied")) return "forbidden";
+  if (error.message.includes(unknownScope)) return unknownScope;
+  return null;
+}

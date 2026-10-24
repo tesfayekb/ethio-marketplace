@@ -6,136 +6,61 @@
  * SERVER-side by `admin_export_categories(text)`, which re-checks
  * `categories:view` (E7/F3) — the client never sends a category set.
  *
- * A7 — the installed Start primitive, same gate as the attributes export:
- * bearer header → caller-context publishable client (never the service role)
- * → `auth.getUser()` → the gated RPC. Every failure logs
- * `[ssr-error] <path> <message>` before answering (I4, F4).
+ * Foundations turn 11 (INC-860 part 1): on `defineRoute` with
+ * `auth: { staff: categories:view }` — the permission the RPC itself checks;
+ * the scope's format via `exportScope`; the file via the one writer
+ * (imports/csv.ts, the registry's columns without `action`) and the one
+ * download answer (answer.ts).
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { openExportGate } from "@/server/imports/gate";
-import { errorText } from "@/lib/error-text";
+import { clientError, download, readFailure } from "@/server/answer";
+import { exportFilename, exportColumns, exportRefusal, toCsv } from "@/server/imports/csv";
+import { exportScope } from "@/server/imports/gate";
+import { familyOf, fileOf } from "@/server/imports/registry";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 const PATH = "/api/admin/categories/export";
+const ExportQuery = z.object({ scope: z.string().optional() });
 
-export const CATEGORY_COLUMNS = [
-  "category_path",
-  "category_slug",
-  "parent_slug",
-  "name_en",
-  "name_am",
-  "display_order",
-  "is_active",
-  "allow_listings",
-  "is_catchall",
-  "price_enabled",
-  // U6-C1-R1 — the posting cells the registry declares (CT-x). The export header
-  // IS the import header: a file that round-trips must carry them in this order,
-  // or the gate answers `badHeader` (the red board's three `[ssr-error]` lines).
-  "capabilities",
-  "default_price_period",
-  "price_period_locked",
-  "expiry_days",
-  "icon",
-  "visible_from",
-  "visible_until",
-  "excluded_country_codes",
-  "secondary_parents",
-  "listing_count",
-  "origin_scope",
-] as const;
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof ExportQuery>>,
+): Promise<Response> {
+  const scoped = exportScope("categories", ctx.query.scope);
+  if (!scoped.ok) return scoped.response;
+  const { scope } = scoped;
+  const supabase = ctx.supabase!;
 
-/**
- * IE-3 — derived/foreign columns are labelled read-only in the header.
- * IE-4a — name_am LEFT this list: an Amharic name is written through the
- * translation door as a pending-review row, and an empty cell is silence.
- */
-export const READ_ONLY_COLUMNS = new Set<string>([
-  "category_path",
-  "is_catchall",
-  "listing_count",
-  "origin_scope",
-]);
-
-export function headerCell(name: string): string {
-  return READ_ONLY_COLUMNS.has(name) ? `${name} (read-only)` : name;
-}
-
-function json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
+  const { data, error } = await supabase.rpc("admin_export_categories", {
+    p_scope: scope as unknown as string,
   });
-}
-
-/** A cell opening with `=`, `+`, `-` or `@` is neutralised before quoting. */
-function neutralize(value: string): string {
-  return /^[=+\-@]/.test(value) ? `'${value}` : value;
-}
-
-/**
- * IE-3b — ONE SERIALIZER. `admin_export_categories` returns every cell as the
- * exact text the file carries; the route only neutralises and quotes.
- */
-function csvCell(raw: unknown): string {
-  const value = neutralize(raw === null || raw === undefined ? "" : String(raw));
-  return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
-
-function toCsv(rows: Record<string, unknown>[]): string {
-  const lines = [CATEGORY_COLUMNS.map(headerCell).join(",")];
-  for (const row of rows) {
-    lines.push(CATEGORY_COLUMNS.map((column) => csvCell(row[column])).join(","));
+  if (error) {
+    const refused = exportRefusal(error, "unknown category scope");
+    if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);
+    return readFailure(PATH, "export_failed", error);
   }
-  // BOM: Excel reads UTF-8 (and therefore Ge'ez) correctly only with it.
-  return `\ufeff${lines.join("\r\n")}\r\n`;
-}
 
-function datedFilename(scope: string | null): string {
-  const day = new Date().toISOString().slice(0, 10);
-  const middle = scope === null ? "categories" : `${scope}-categories`;
-  return `ethio-${middle}-${day}.csv`;
+  const family = familyOf("categories");
+  const spec = family === null ? null : fileOf(family, "categories");
+  if (spec === null) throw new Error("registry missing file categories");
+  const payload = (data ?? {}) as { categories?: Record<string, unknown>[] };
+  return download(toCsv(exportColumns(spec), payload.categories ?? []), {
+    filename: exportFilename("categories", scope),
+    contentType: "text/csv; charset=utf-8",
+  });
 }
 
 export const Route = createFileRoute("/api/admin/categories/export")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const url = new URL(request.url);
-        // IMPORT-GATE — the ONE door, same as the importer's.
-        const gate = await openExportGate(
-          request,
-          PATH,
-          "categories",
-          url.searchParams.get("scope"),
-        );
-        if (!gate.ok) return gate.response;
-        const { supabase, scope } = gate;
-
-        const { data, error } = await supabase.rpc("admin_export_categories", {
-          p_scope: scope as unknown as string,
-        });
-        if (error) {
-          console.error(`[ssr-error] ${PATH} export_failed ${errorText(error)}`);
-          if (error.message.includes("permission denied")) {
-            return json({ error: "permission denied" }, 403);
-          }
-          if (error.message.includes("unknown category scope")) {
-            return json({ error: "unknown category scope" }, 404);
-          }
-          return json({ error: "server error" }, 500);
-        }
-
-        const payload = (data ?? {}) as { categories?: Record<string, unknown>[] };
-        return new Response(toCsv(payload.categories ?? []), {
-          status: 200,
-          headers: {
-            "Content-Type": "text/csv; charset=utf-8",
-            "Content-Disposition": `attachment; filename="${datedFilename(scope)}"`,
-            "Cache-Control": "no-store",
-          },
-        });
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: { staff: { resource: "categories", action: "view" } },
+        query: ExportQuery,
+        badShape: () => clientError("badScope", 400),
+        handler,
+      }),
     },
   },
 });

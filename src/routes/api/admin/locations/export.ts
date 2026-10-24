@@ -1,131 +1,74 @@
 /**
- * LOCATIONS ERA L1b-C — GET /api/admin/locations/export?file=countries|locations
+ * LOCATIONS ERA L1b-C — GET /api/admin/locations/export?file=countries|locations&scope=<cc>
  *
  * TWO FILES, one control: the operator downloads `countries.csv` and
  * `locations.csv` separately, so the export needs no archive dependency (G2).
+ * The read runs through `admin_export_locations`, which re-checks
+ * `locations:view` server-side and owns the country resolution (F3, E7).
  *
- * GATE — the ONE door (`openExportGate`): bearer → caller-context Supabase
- * client (never the service role) → `auth.getUser()` → `scope` format law. The
- * read runs through `admin_export_locations`, which re-checks `locations:view`
- * server-side and owns the country resolution (F3, E7).
- *
- * NO SECOND COLUMN LIST — the header and the cell order are read from the ONE
- * registry (`src/server/imports/registry.ts`), whose column order is itself the
- * export contract of `country_export_row` / `loc_export_row` (20260915170752).
- * The read-only suffix is likewise derived from each column's declared class,
- * so no third literal set can drift from the family it describes.
- *
- * Every failure path logs `[ssr-error] <path> <message>` before answering (I4);
- * nothing falls back silently (F4).
+ * Foundations turn 11 (INC-860 part 1): on `defineRoute` with
+ * `auth: { staff: locations:view }`; the columns are the registry's WITHOUT
+ * `action` (CHANGE 6 — the importer treats a trailing `action` as optional, so
+ * a round trip still reads); the one download answer (answer.ts), whose name
+ * follows the one rule (CHANGE 7).
  */
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { openExportGate } from "@/server/imports/gate";
-import { familyOf, fileOf, type ColumnRule } from "@/server/imports/registry";
-import { errorText } from "@/lib/error-text";
+import { clientError, download, readFailure } from "@/server/answer";
+import { exportFilename, exportColumns, exportRefusal, toCsv } from "@/server/imports/csv";
+import { exportScope } from "@/server/imports/gate";
+import { familyOf, fileOf } from "@/server/imports/registry";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 const PATH = "/api/admin/locations/export";
+const ExportQuery = z.object({
+  file: z.enum(["countries", "locations"]),
+  scope: z.string().optional(),
+});
 
-type FileKind = "countries" | "locations";
+async function handler(
+  ctx: RouteContext<unknown, unknown, z.infer<typeof ExportQuery>>,
+): Promise<Response> {
+  const kind = ctx.query.file;
+  const scoped = exportScope("locations", ctx.query.scope);
+  if (!scoped.ok) return scoped.response;
+  const { scope } = scoped;
+  const supabase = ctx.supabase!;
 
-function json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
+  const { data, error } =
+    scope === null
+      ? await supabase.rpc("admin_export_locations")
+      : await supabase.rpc("admin_export_locations", { p_scope: scope });
+  if (error) {
+    const refused = exportRefusal(error, "unknown country scope");
+    if (refused !== null) return clientError(refused, refused === "forbidden" ? 403 : 404);
+    return readFailure(PATH, "export_failed", error);
+  }
+
+  const family = familyOf("locations");
+  const spec = family === null ? null : fileOf(family, kind);
+  if (spec === null) throw new Error(`registry missing file ${kind}`);
+  const payload = (data ?? {}) as Record<string, Record<string, unknown>[] | undefined>;
+  return download(toCsv(exportColumns(spec), payload[kind] ?? []), {
+    filename: exportFilename(kind, scope),
+    contentType: "text/csv; charset=utf-8",
   });
-}
-
-/**
- * IE-3 — COLUMN CLASSES. Identity, editable and action columns are written
- * bare; every DERIVED or FOREIGN column carries the " (read-only)" suffix, so
- * the file itself states what the importer will never apply.
- */
-function headerCell(rule: ColumnRule): string {
-  return rule.klass === "read-only" ? `${rule.name} (read-only)` : rule.name;
-}
-
-/**
- * FORMULA SAFETY. A cell that opens with `=`, `+`, `-` or `@` is executed by
- * Excel/Sheets on open; a single leading quote neutralises it and is stripped
- * back out by every spreadsheet on display. Applied BEFORE RFC-4180 quoting.
- */
-function neutralize(value: string): string {
-  return /^[=+\-@]/.test(value) ? `'${value}` : value;
-}
-
-/**
- * RFC 4180: quote when the cell carries a quote, a comma or any newline.
- *
- * ONE SERIALIZER. `admin_export_locations` returns every cell as the exact text
- * the file carries (booleans "true"/"false", nulls "", pipes, coordinates). The
- * route formats NOTHING: it neutralises and quotes, no more.
- */
-function csvCell(raw: unknown): string {
-  const value = neutralize(raw === null || raw === undefined ? "" : String(raw));
-  return /["\n\r,]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-}
-
-function toCsv(columns: readonly ColumnRule[], rows: Record<string, unknown>[]): string {
-  const lines = [columns.map(headerCell).join(",")];
-  for (const row of rows) lines.push(columns.map((rule) => csvCell(row[rule.name])).join(","));
-  // BOM: Excel reads UTF-8 (and therefore Ge'ez) correctly only with it.
-  return `\ufeff${lines.join("\r\n")}\r\n`;
 }
 
 export const Route = createFileRoute("/api/admin/locations/export")({
   server: {
     handlers: {
-      GET: async ({ request }) => {
-        const url = new URL(request.url);
-        const kind = url.searchParams.get("file");
-        if (kind !== "countries" && kind !== "locations") {
-          return json({ error: "file must be countries or locations" }, 400);
-        }
-
-        const gate = await openExportGate(
-          request,
-          PATH,
-          "locations",
-          url.searchParams.get("scope"),
-        );
-        if (!gate.ok) return gate.response;
-        const { supabase, scope } = gate;
-
-        const { data, error } =
-          scope === null
-            ? await supabase.rpc("admin_export_locations")
-            : await supabase.rpc("admin_export_locations", { p_scope: scope });
-        if (error) {
-          // The RPC is the authority: `locations:view` is refused inside it.
-          console.error(`[ssr-error] ${PATH} export_failed ${errorText(error)}`);
-          if (error.message.includes("permission denied")) {
-            return json({ error: "permission denied" }, 403);
-          }
-          if (error.message.includes("unknown country scope")) {
-            return json({ error: "unknown country scope" }, 404);
-          }
-          return json({ error: "server error" }, 500);
-        }
-
-        const family = familyOf("locations");
-        const spec = family === null ? null : fileOf(family, kind satisfies FileKind);
-        if (spec === null) {
-          console.error(`[ssr-error] ${PATH} registry missing file ${kind}`);
-          return json({ error: "server error" }, 500);
-        }
-
-        const payload = (data ?? {}) as Record<string, Record<string, unknown>[] | undefined>;
-        const rows = payload[kind] ?? [];
-
-        return new Response(toCsv(spec.columns, rows), {
-          status: 200,
-          headers: {
-            "Content-Type": "text/csv; charset=utf-8",
-            "Content-Disposition": `attachment; filename="locations-${scope ?? "all"}-${kind}.csv"`,
-            "Cache-Control": "no-store",
-          },
-        });
-      },
+      GET: defineRoute({
+        path: PATH,
+        auth: { staff: { resource: "locations", action: "view" } },
+        query: ExportQuery,
+        badShape: (issue) =>
+          issue.path === "file"
+            ? clientError("file must be countries or locations", 400)
+            : clientError("badScope", 400),
+        handler,
+      }),
     },
   },
 });
