@@ -954,6 +954,16 @@ a 24-hour in-process cache keyed by the query → a shape of our own
 word, `rateLimited`. `E2E_FAKE_GEOCODE=1` answers from a fixed table so the
 suite never depends on an upstream service.
 
+Foundations turn 9: search, reverse and outline share ONE cache, `geoCached`
+(src/server/geo/geocode.ts, one `versionCache`, 800 entries, least-recent
+eviction). The TTL is 24 hours from insertion and the version is the 24-hour UTC
+bucket, read only once the TTL has passed — so an entry lives exactly 24 hours
+from insertion, as before (GEC-4: inserted 23:59 UTC, still served 00:01 UTC);
+only the bound changed (800 LRU, not clear-all at 500/300). A build that throws
+is never cached. `nominatim()` calls through `upstream()` with the 6-second
+deadline; a timeout or refusal is `null`, logged once, and the route answers
+`geocoderUnavailable`.
+
 **Approximate means approximate.** The buyer-facing still map
 (`map-preview.tsx`) draws a 500 m circle around a centre SNAPPED to a 0.005°
 grid for an approximate pin, and a marker only for an exact one — the exact
