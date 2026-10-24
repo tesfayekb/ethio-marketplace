@@ -1,12 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { conditional, notModified, serverError, upstreamUnavailable } from "@/server/answer";
+import { conditional, notModified, readFailure } from "@/server/answer";
 import { defineRoute, type RouteContext } from "@/server/route";
 import { versionCache } from "@/server/version-cache";
-import { upstreamFailed } from "@/server/supabase/user-client";
-import { errorText } from "@/lib/error-text";
 import { readAllPages } from "@/lib/read-all-pages";
-import { ReaderError } from "@/lib/reader-failure";
+import { readFailed } from "@/lib/reader-failure";
 
 /**
  * INC-263 — THE PUBLIC CATEGORY TREE, VERSION-KEYED.
@@ -35,10 +33,6 @@ const NODE_COLUMNS =
   "id,name_en,name_am,slug,icon,display_order,allow_listings,is_catchall,image_url,image_thumb_url";
 
 /** A door read that failed, typed with the status the mapping reads. */
-function readFailed(error: unknown, status: number): ReaderError {
-  return new ReaderError({ class: "server", status, message: errorText(error) });
-}
-
 /** F4 — a failed page read is a failure, never an empty tree. */
 function pageFailed(error: unknown): never {
   throw readFailed(error, 500);
@@ -121,11 +115,7 @@ async function handler(ctx: RouteContext): Promise<Response> {
       cache: CACHE,
     });
   } catch (error) {
-    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
-    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
-      return upstreamUnavailable(PATH, "category tree read", status);
-    }
-    return serverError(PATH, error);
+    return readFailure(PATH, "category tree read", error);
   }
 }
 

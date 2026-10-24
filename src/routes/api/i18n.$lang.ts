@@ -2,19 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
 import { bundleEtag } from "@/i18n/bundle";
-import { errorText } from "@/lib/error-text";
-import { ReaderError } from "@/lib/reader-failure";
+import { readFailed } from "@/lib/reader-failure";
 import { langCodeLoose } from "@/lib/schemas/primitives";
 import {
   clientError,
   conditional,
   notModified,
-  serverError,
-  upstreamUnavailable,
+  readFailure,
 } from "@/server/answer";
 import { defineRoute, type RouteContext } from "@/server/route";
 import { versionCache } from "@/server/version-cache";
-import { upstreamFailed } from "@/server/supabase/user-client";
 
 /**
  * U4i ④ — THE CACHEABLE UI BUNDLE.
@@ -39,10 +36,6 @@ const CACHE = "public, max-age=300, stale-while-revalidate=3600";
 const params = z.object({ lang: langCodeLoose }).strict();
 
 const BUNDLES = versionCache<string, { body: unknown }>({ ttlMs: 15_000, max: 32 });
-
-function readFailed(error: unknown, status: number): ReaderError {
-  return new ReaderError({ class: "server", status, message: errorText(error) });
-}
 
 async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Promise<Response> {
   const supabase = ctx.supabase;
@@ -76,11 +69,7 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Prom
       cache: CACHE,
     });
   } catch (error) {
-    const status = error instanceof ReaderError ? (error.failure.status ?? 500) : 500;
-    if (error instanceof ReaderError && upstreamFailed({ message: error.message }, status)) {
-      return upstreamUnavailable(PATH, "ui bundle read", status);
-    }
-    return serverError(PATH, error);
+    return readFailure(PATH, "ui bundle read", error);
   }
 }
 

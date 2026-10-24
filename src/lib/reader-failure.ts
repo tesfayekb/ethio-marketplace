@@ -50,3 +50,8 @@ export class ReaderError extends Error {
     this.failure = failure;
   }
 }
+
+/** The one typed database-read failure factory. */
+export function readFailed(error: unknown, status: number): ReaderError {
+  return new ReaderError({ class: "server", status, message: errorText(error) });
+}

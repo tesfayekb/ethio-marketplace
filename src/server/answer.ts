@@ -1,3 +1,4 @@
+import { readerFailure } from "@/lib/reader-failure";
 import {
   doorAnswer,
   logRouteError,
@@ -142,3 +143,12 @@ export function bytes(
 }
 
 export { doorAnswer, upstreamFailed, upstreamUnavailable };
+
+/** The one database-read failure answer, never exposing diagnostic text. */
+export function readFailure(path: string, what: string, error: unknown): Response {
+  const failure = readerFailure(error);
+  const status = failure.status ?? 500;
+  return upstreamFailed({ message: failure.message }, status)
+    ? upstreamUnavailable(path, what, status)
+    : serverError(path, error);
+}
