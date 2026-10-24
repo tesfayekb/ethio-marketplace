@@ -1,8 +1,4 @@
 # DEC-244: every census guard walks the tree through scripts/conformance/kit.ts; a walker here is a guard not yet moved (until its turn's INC) or an enumerator that is not a guard (until DEC-244). <path> | <reason> | <until>
-src/lib/error-text.test.ts | guard not yet moved (route-boundary turn) | INC-856
-src/lib/untrusted-text.test.ts | guard not yet moved (route-boundary turn) | INC-856
-src/lib/env-flags.test.ts | guard not yet moved (route-boundary turn) | INC-856
-src/server/ai/meter.test.ts | guard not yet moved (route-boundary turn) | INC-856
 src/look-law.test.ts | guard not yet moved (form-kit turn) | INC-857
 scripts/admin-tables.ts | guard not yet moved (form-kit turn) | INC-857
 scripts/destructive-red.ts | guard not yet moved (form-kit turn) | INC-857
