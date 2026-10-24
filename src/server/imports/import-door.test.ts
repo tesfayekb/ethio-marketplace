@@ -58,11 +58,10 @@ function spiedRequest(headers: Record<string, string>) {
     body: JSON.stringify({ mode: "preview", categories: "category_path\n" }),
   });
   const reads = { body: 0, arrayBuffer: 0, json: 0, text: 0 };
-  const realBody = Object.getOwnPropertyDescriptor(Request.prototype, "body")!.get!;
   Object.defineProperty(request, "body", {
     get() {
       reads.body += 1;
-      return realBody.call(request);
+      return null;
     },
   });
   for (const method of ["arrayBuffer", "json", "text"] as const) {
