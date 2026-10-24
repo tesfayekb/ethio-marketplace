@@ -1,8 +1,8 @@
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
-import { gotoReady, switchLanguage } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
+import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * Bundle 22 (Stage 1), turn 3 — THE PUBLIC LEGAL PAGES (LGP-1..LGP-3); turn 32 — /legal/publishing (LGP-4).
@@ -132,10 +132,16 @@ test.describe("Legal public pages", () => {
     await expect(page.getByTestId("legal-public-page")).toBeVisible();
   });
 
-  test("LGP-4 /legal/publishing with no statement in force shows its soon state and carries the publishing title (DEC-236)", async ({
+  test("LGP-4 /legal/publishing is signed-in only: a visitor goes to sign in with the way back, then the soon state carries the publishing title (D236)", async ({
     page,
   }) => {
     // Real kinds are never published on ethio-staging (as LGP-1 holds for /terms and /privacy).
+    await gotoReady(page, "/legal/publishing");
+    await expect(page).toHaveURL(/\/auth\?/);
+    expect(new URL(page.url()).searchParams.get("return")).toBe("/legal/publishing");
+
+    const person = await leaseUser();
+    await signInViaSession(page, person.email, person.password);
     await gotoReady(page, "/legal/publishing");
     const shown = page.getByTestId("legal-public-page");
     await expect(shown).toBeVisible();
@@ -144,7 +150,16 @@ test.describe("Legal public pages", () => {
       en["legal.page.none"].replace("{document}", en["legal.kind.publishing"]),
     );
     await expect(page).toHaveTitle("Publishing statement — ethio.com");
-    await expect(page.locator('meta[name="robots"]')).toHaveCount(0);
+    // The head is client-rendered through the root's HeadContent, as /my-listings's noindex is.
+    await expect(page.locator('meta[name="robots"][content="noindex"]')).toHaveCount(1);
+  });
+
+  test("LGP-5 a publishing-class scratch kind is not served by the public route (D236)", async ({
+    page,
+  }) => {
+    await gotoReady(page, "/legal/e2e-pub-lgp5");
+    await expect(page.getByTestId("legal-public-page")).toHaveCount(0);
+    await expect(page.getByRole("heading", { level: 1, name: "404" })).toBeVisible();
   });
 
   test("LGP-2 a scratch document's page: meta, contents, frozen facts, the site's language, then the version ahead of its date", async ({
