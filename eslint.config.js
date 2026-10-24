@@ -105,14 +105,10 @@ export default tseslint.config(
       "**/*.test.ts",
       "**/*.test.tsx",
       // ROUTES-BOUNDARY-IGNORES-BEGIN
-      "src/routes/api/listings/draft.ts", // until INC-859
       "src/routes/api/listings/identity.ts", // until INC-859
-      "src/routes/api/listings/alias.ts", // until INC-859
       "src/routes/api/listings/assist.ts", // until INC-859
       "src/routes/api/listings/background.ts", // until INC-859
       "src/routes/api/listings/photos.$id.ts", // until INC-859
-      "src/routes/api/listings/share.ts", // until INC-859
-      "src/routes/api/listings/view.ts", // until INC-859
       "src/routes/api/upload/photo.ts", // until INC-859
       "src/routes/api/media/photo-links.ts", // until INC-859
       "src/routes/api/admin/categories/import.ts", // until INC-860

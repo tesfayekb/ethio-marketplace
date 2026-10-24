@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { clientError, ok, serverError, verdict } from "@/server/answer";
+import { bytes, clientError, ok, serverError, verdict } from "@/server/answer";
 
 /**
- * Foundations turn 2 (DEC-237) — the two envelopes (ANS-1…ANS-4).
+ * Foundations turn 2 (DEC-237) — the two envelopes (ANS-1…ANS-4);
+ * Foundations turn 3 — the binary answer (ANS-5).
  */
 describe("the route answers (B2)", () => {
   it("ANS-1 ok carries no-store unless a cache is declared", async () => {
@@ -42,5 +43,22 @@ describe("the route answers (B2)", () => {
     expect(line).toContain(body.incident);
     expect(line).toContain("secret postgres detail");
     logged.mockRestore();
+  });
+
+  it("ANS-5 bytes carries the body, the content type, no-store, and a given header", async () => {
+    const response = bytes(new Uint8Array([1, 2, 3]), "image/png", {
+      headers: { "X-Kind": "cutout" },
+    });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("Content-Type")).toBe("image/png");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(response.headers.get("X-Kind")).toBe("cutout");
+    expect([...new Uint8Array(await response.arrayBuffer())]).toEqual([1, 2, 3]);
+    const cached = bytes(new Uint8Array([9]).buffer, "image/webp", {
+      status: 201,
+      headers: { "Cache-Control": "public, max-age=60" },
+    });
+    expect(cached.status).toBe(201);
+    expect(cached.headers.get("Cache-Control")).toBe("public, max-age=60");
   });
 });

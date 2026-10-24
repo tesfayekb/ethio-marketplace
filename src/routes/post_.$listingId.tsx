@@ -1,7 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { PostingWizard } from "@/features/posting/wizard";
-import { readDraft, mayResumePosting } from "@/features/posting/posting-service";
 import { requireSignedIn } from "@/lib/signed-in-route";
 
 /**
@@ -29,6 +28,7 @@ export const Route = createFileRoute("/post_/$listingId")({
   ssr: false,
   beforeLoad: async ({ params }) => {
     await requireSignedIn(`/post/${encodeURIComponent(params.listingId)}`);
+    const { readDraft, mayResumePosting } = await import("@/features/posting/posting-service");
     const found = await readDraft(params.listingId);
     if (found !== null && !mayResumePosting(found.draft.status)) {
       throw redirect({ to: "/my-listings/$listingId", params: { listingId: params.listingId } });

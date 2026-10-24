@@ -14,9 +14,25 @@ const ID = "2345678923";
 const request = (body: unknown) =>
   new Request("http://local/api/listings/share", {
     method: "POST",
-    headers: { "cf-connecting-ip": "192.0.2.7" },
+    headers: { "cf-connecting-ip": "192.0.2.7", "content-type": "application/json" },
     body: JSON.stringify(body),
   });
+/** Foundations turn 3 — the module takes the route's typed ctx. */
+const ctx = (body: { publicId: string; channel: string }, userId: string | null = "viewer") => ({
+  body,
+  userId,
+  request: request(body),
+});
+/** The route itself, for the shape the module no longer checks. */
+const { Route } = await import("@/routes/api/listings/share");
+const viaRoute = (body: unknown) =>
+  (
+    Route.options as unknown as {
+      server: {
+        handlers: { POST: (c: { request: Request; params: unknown }) => Promise<Response> };
+      };
+    }
+  ).server.handlers.POST({ request: request(body), params: {} });
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.rate.mockResolvedValue({ allowed: true });
@@ -25,7 +41,7 @@ beforeEach(() => {
 });
 describe("share count route", () => {
   it("SH-1 a good body sends the channel, hashed address and viewer", async () => {
-    const answer = await countAdShare(request({ publicId: ID, channel: "copy" }));
+    const answer = await countAdShare(ctx({ publicId: ID, channel: "copy" }));
     expect(await answer.json()).toEqual({ counted: true });
     expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("count_listing_share", {
       p_public_id: ID,
@@ -43,7 +59,7 @@ describe("share count route", () => {
       { publicId: "nope", channel: "copy" },
       {},
     ]) {
-      const answer = await countAdShare(request(body));
+      const answer = await viaRoute(body);
       expect(answer.status).toBe(400);
       expect(await answer.json()).toEqual({ error: "bad request" });
     }
@@ -53,17 +69,17 @@ describe("share count route", () => {
   it("SH-3 the address limit is 120 an hour and refusal never reaches the door", async () => {
     expect(SHARE_LIMIT_PER_HOUR).toBe(120);
     mocks.rate.mockResolvedValue({ allowed: false });
-    const answer = await countAdShare(request({ publicId: ID, channel: "qr" }));
+    const answer = await countAdShare(ctx({ publicId: ID, channel: "qr" }));
     expect(await answer.json()).toEqual({ counted: false });
     expect(mocks.rate).toHaveBeenCalledWith("listing-share:address", "192.0.2.7", 120, "1 hour");
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it("SH-4 upstream failure answers 503, a door error answers counted false", async () => {
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "gateway" }, status: 504 });
-    const unavailable = await countAdShare(request({ publicId: ID, channel: "copy" }));
+    const unavailable = await countAdShare(ctx({ publicId: ID, channel: "copy" }));
     expect(unavailable.status).toBe(503);
     mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "refused" }, status: 400 });
-    const refused = await countAdShare(request({ publicId: ID, channel: "copy" }));
+    const refused = await countAdShare(ctx({ publicId: ID, channel: "copy" }));
     expect(await refused.json()).toEqual({ counted: false });
     expect(mocks.log).toHaveBeenCalledWith("/api/listings/share", "refused");
   });

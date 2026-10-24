@@ -1,16 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { doorRefusal } from "@/features/posting/door-error";
+import { z } from "zod";
 
-import {
-  doorAnswer,
-  logRouteError,
-  readJsonBody,
-  refuseUserClient,
-  routeJson,
-  upstreamFailed,
-  upstreamUnavailable,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { doorCall } from "@/server/door";
+import { defineRoute } from "@/server/route";
 
 /**
  * BUNDLE 3 STEPS 19 AND 21 — CHECKING IS NOT CLAIMING.
@@ -23,6 +15,7 @@ import {
  * (`rate_gate`); the name is claimed only when the contact step is saved, by
  * `save_posting_identity`. The route translates names and passes the door's
  * answer through `doorAnswer`, so a rate refusal reaches the client as `detail`.
+ * Foundations turn 3: on defineRoute.
  */
 const PATH = "/api/listings/alias";
 
@@ -30,32 +23,17 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
-async function handlePost(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-  const supabase = caller.supabase!;
-  const body = await readJsonBody(request);
-
-  const { data, error, status } =
-    body["suggest"] === true
-      ? await supabase.rpc("suggest_seller_aliases", {
-          p_business_name: text(body["businessName"]) ?? undefined,
-          p_first_name: text(body["firstName"]) ?? undefined,
-          p_last_name: text(body["lastName"]) ?? undefined,
-          // Walk fix 2 (M4) — the draft's category, for the category word.
-          p_category_id: text(body["categoryId"]) ?? undefined,
-        })
-      : await supabase.rpc("check_seller_alias", { p_alias: text(body["alias"]) ?? "" });
-  // INC-574 — the door was never reached: 503, not a refusal.
-  if (upstreamFailed(error, status)) return upstreamUnavailable(PATH, "alias", status);
-  if (error) {
-    logRouteError(PATH, error.message);
-    // INC-578 — a door's own sentence never travels raw (INC-447).
-    return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
-  }
-  return routeJson(doorAnswer(asRefusals(data)), 200);
-}
+/** The two bodies step-who.tsx sends: `{alias}` and `{...names, categoryId, suggest: true}`. */
+export const AliasBody = z
+  .object({
+    alias: z.string().max(200).optional(),
+    suggest: z.literal(true).optional(),
+    businessName: z.string().max(200).nullable().optional(),
+    firstName: z.string().max(200).nullable().optional(),
+    lastName: z.string().max(200).nullable().optional(),
+    categoryId: z.string().max(64).nullable().optional(),
+  })
+  .strict();
 
 /** The doors answer one refusal flat (`{ok:false, field, reason}`); the client reads `refusals`. */
 function asRefusals(data: unknown): unknown {
@@ -69,14 +47,31 @@ function asRefusals(data: unknown): unknown {
 export const Route = createFileRoute("/api/listings/alias")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        try {
-          return await handlePost(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      POST: defineRoute({
+        path: PATH,
+        auth: "user",
+        body: AliasBody,
+        handler: async ({ supabase, body }) =>
+          // INC-574 / INC-578 inside doorCall: 503 when never reached; a door's
+          // own sentence never travels raw (INC-447).
+          doorCall(
+            PATH,
+            async () => {
+              const answer =
+                body.suggest === true
+                  ? await supabase!.rpc("suggest_seller_aliases", {
+                      p_business_name: text(body.businessName) ?? undefined,
+                      p_first_name: text(body.firstName) ?? undefined,
+                      p_last_name: text(body.lastName) ?? undefined,
+                      // Walk fix 2 (M4) — the draft's category, for the category word.
+                      p_category_id: text(body.categoryId) ?? undefined,
+                    })
+                  : await supabase!.rpc("check_seller_alias", { p_alias: text(body.alias) ?? "" });
+              return { ...answer, data: asRefusals(answer.data) };
+            },
+            { raw: false },
+          ),
+      }),
     },
   },
 });

@@ -49,7 +49,7 @@ export function entryChunks(names) {
  * by file-name prefix. A page-only module that drifts into the entry's static
  * closure fails the budget guard with its name, whatever the total weight.
  */
-export const MUST_STAY_LAZY = ["reader-failure", "legal-page-data", "zod"];
+export const MUST_STAY_LAZY = ["reader-failure", "legal-page-data", "zod", "posting-service"];
 
 /** The first closure chunk name that must stay lazy, or null. */
 export function mustStayLazyViolation(closureNames) {

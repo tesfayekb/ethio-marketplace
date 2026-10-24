@@ -61,6 +61,7 @@ describe("the entry's static import closure (DEC-176)", () => {
     );
     expect(mustStayLazyViolation(["legal-page-data-b.js"])).toBe("legal-page-data-b.js");
     expect(mustStayLazyViolation(["zod-c.js"])).toBe("zod-c.js");
+    expect(mustStayLazyViolation(["posting-service-e.js"])).toBe("posting-service-e.js");
     expect(mustStayLazyViolation(["index-a.js", "shared-d.js"])).toBeNull();
   });
 });
