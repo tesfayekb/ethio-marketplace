@@ -12,6 +12,7 @@ import {
   redirect,
   readFailure,
   serverError,
+  stepUpRequired,
   verdict,
 } from "@/server/answer";
 
@@ -132,6 +133,14 @@ describe("the route answers (B2)", () => {
     const response = clientError("payloadTooLarge", 413, { ceiling: 1024 });
     expect(response.status).toBe(413);
     expect(await response.json()).toEqual({ error: "payloadTooLarge", ceiling: 1024 });
+  });
+
+  it("ANS-11 stepUpRequired answers the unchanged 428 bytes", async () => {
+    const response = stepUpRequired();
+    expect(response.status).toBe(428);
+    expect(response.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
+    expect(response.headers.get("Cache-Control")).toBe("no-store");
+    expect(await response.text()).toBe('{"error":"step-up required","code":"P0009"}');
   });
 
   it("ANS-4 serverError carries an incident id and never the error's message; the log carries the same id", async () => {
