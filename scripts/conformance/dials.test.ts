@@ -109,7 +109,7 @@ describe("the dial census (Foundations turn 8)", () => {
     ].join("\n");
     const found = dialBypasses("src/routes/api/planted.ts", planted);
     expect([...new Set(found.map((finding) => finding.line))]).toEqual([1, 2, 3, 4, 5]);
-    expect(dialBypasses(SPEND_HOME, planted.split("\n")[0])).toEqual([]);
+    expect(dialBypasses(SPEND_HOME, "return consumeRate(dial.action, key, limit, window);")).toEqual([]);
   });
 
   it("DIAL-5 src/lib/dials.ts imports nothing", () => {
