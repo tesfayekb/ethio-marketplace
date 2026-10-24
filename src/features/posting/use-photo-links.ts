@@ -1,24 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { linksOf, type PhotoLinks } from "./photo-links";
-import { supabase } from "@/integrations/supabase/client";
+import { callRoute } from "@/lib/route-client";
 
 /** The route caps a request at thirty photos (src/server/media/links.ts); a listing holds ten. */
 const MAX_PHOTOS = 30;
 
 export async function readPhotoLinks(photoIds: string[]): Promise<PhotoLinks> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token ?? null;
-  const response = await fetch("/api/media/photo-links", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token === null ? {} : { Authorization: `Bearer ${token}` }),
-    },
-    body: JSON.stringify({ photoIds }),
+  // Optional auth: signed-in callers get their own links, guests the public ones.
+  const answer = await callRoute("/api/media/photo-links", {
+    auth: "optional",
+    json: { photoIds },
   });
-  if (!response.ok) throw new Error(`photo links: ${response.status}`);
-  return linksOf(await response.json());
+  if (answer.kind !== "answered" || !answer.ok) {
+    throw new Error(`photo links: ${answer.kind === "answered" ? answer.status : 0}`);
+  }
+  return linksOf(answer.payload);
 }
 
 /**
