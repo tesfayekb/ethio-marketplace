@@ -1,5 +1,7 @@
 import type * as Leaflet from "leaflet";
 
+import { callRoute } from "@/lib/route-client";
+
 /**
  * U6-C1-R3b-4 — LOADING LEAFLET, ONCE, IN THE BROWSER ONLY (A7 first-of-kind).
  *

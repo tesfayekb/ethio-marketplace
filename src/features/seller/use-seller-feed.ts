@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { callRoute } from "@/lib/route-client";
 import { parseCard, type FeedListing } from "@/features/feed/feed-page";
 
 /**
@@ -68,22 +69,15 @@ export type SellerFeedResult =
 async function readPage(key: string, after: string | null): Promise<SellerFeedResult> {
   const params = new URLSearchParams({ key });
   if (after !== null) params.set("after", after);
-  let response: Response;
-  try {
-    response = await fetch(`/api/seller?${params.toString()}`, { method: "GET" });
-  } catch (cause: unknown) {
-    console.error("[seller] page fetch failed", cause);
+  const answer = await callRoute(`/api/seller?${params.toString()}`, { auth: "none" });
+  if (answer.kind !== "answered") {
+    console.error("[seller] page fetch failed", answer.kind);
     return { kind: "error" };
   }
-  if (response.status === 404) return { kind: "notFound" };
-  if (response.status !== 200) return { kind: "error" };
-  try {
-    const page = parseSellerPage(await response.json());
-    return page === null ? { kind: "error" } : { kind: "ok", page };
-  } catch (cause: unknown) {
-    console.error("[seller] page body refused", cause);
-    return { kind: "error" };
-  }
+  if (answer.status === 404) return { kind: "notFound" };
+  if (answer.status !== 200) return { kind: "error" };
+  const page = parseSellerPage(answer.payload);
+  return page === null ? { kind: "error" } : { kind: "ok", page };
 }
 
 export interface UseSellerFeed {
