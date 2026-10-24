@@ -772,12 +772,11 @@ export interface GateInput {
   familyId: string;
   /** file id → the raw text the operator uploaded. */
   texts: Record<string, string>;
-  mode: string;
   scope: string | null;
 }
 
 export async function openImportGate(input: GateInput): Promise<GateResult> {
-  const { caller, path, familyId, texts, mode, scope } = input;
+  const { caller, path, familyId, texts, scope } = input;
 
   const family = familyOf(familyId);
   if (family === null)
