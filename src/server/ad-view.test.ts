@@ -59,7 +59,12 @@ describe("view count route", () => {
     expect(await spent.json()).toEqual({ counted: false });
     expect(mocks.rpc).not.toHaveBeenCalled();
     await countAdView(ctx({ publicId: ID }));
-    expect(mocks.rate).toHaveBeenLastCalledWith("listing-view:address", "192.0.2.7", 600, "1 hour");
+    expect(mocks.rate).toHaveBeenLastCalledWith(
+      "listing-view:address",
+      "192.0.2.7",
+      600,
+      "3600 seconds",
+    );
     expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("count_listing_view", {
       p_public_id: ID,
       p_rate_key: hashAddress("192.0.2.7"),
@@ -111,21 +116,21 @@ describe("view count route", () => {
       "listing-view:address",
       "192.0.2.7",
       600,
-      "1 hour",
+      "3600 seconds",
     );
     expect(mocks.rate).toHaveBeenNthCalledWith(
       2,
       "listing-view:session",
       `${sessionKey}:${ID}`,
       1,
-      "24 hours",
+      "86400 seconds",
     );
     expect(mocks.rate).toHaveBeenNthCalledWith(
       3,
       "listing-view:address-ad",
       `192.0.2.7:${ID}`,
       30,
-      "1 hour",
+      "3600 seconds",
     );
     expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("count_listing_view", {
       p_public_id: ID,
@@ -161,7 +166,7 @@ describe("view count route", () => {
         "listing-view:address",
         "192.0.2.7",
         600,
-        "1 hour",
+        "3600 seconds",
       );
       expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith("count_listing_view", {
         p_public_id: ID,

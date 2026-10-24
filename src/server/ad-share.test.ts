@@ -72,7 +72,12 @@ describe("share count route", () => {
     mocks.rate.mockResolvedValue({ allowed: false });
     const answer = await countAdShare(ctx({ publicId: ID, channel: "qr" }));
     expect(await answer.json()).toEqual({ counted: false });
-    expect(mocks.rate).toHaveBeenCalledWith("listing-share:address", "192.0.2.7", 120, "1 hour");
+    expect(mocks.rate).toHaveBeenCalledWith(
+      "listing-share:address",
+      "192.0.2.7",
+      120,
+      "3600 seconds",
+    );
     expect(mocks.rpc).not.toHaveBeenCalled();
   });
   it("SH-4 upstream failure answers 503, a door error answers counted false", async () => {
