@@ -14,8 +14,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   json,
+  authorizeImport,
   openImportGate,
-  requireBearer,
   releaseSlot,
   withRowValues,
   type Refusal,
@@ -43,8 +43,8 @@ export const Route = createFileRoute("/api/admin/categories/import")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const anonymous = requireBearer(request);
-        if (anonymous !== null) return anonymous;
+        const door = await authorizeImport(request, PATH, "categories");
+        if (!door.ok) return door.response;
         const raw = await request.arrayBuffer();
         if (raw.byteLength > 4 * 1_048_576) {
           console.error(`[ssr-error] ${PATH} body too large`);
@@ -76,10 +76,9 @@ export const Route = createFileRoute("/api/admin/categories/import")({
         if (mode !== "undo" && categoriesText === "") return json({ error: "no file" }, 400);
 
         const gate = await openImportGate({
-          request,
+          caller: { supabase: door.supabase, userId: door.userId },
           path: PATH,
           familyId: "categories",
-          body: body as unknown as Record<string, unknown>,
           texts: mode === "undo" ? {} : { categories: categoriesText },
           mode,
           scope,

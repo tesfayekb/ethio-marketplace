@@ -15,8 +15,8 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   json,
+  authorizeImport,
   openImportGate,
-  requireBearer,
   releaseSlot,
   withRowValues,
   type Refusal,
@@ -47,8 +47,8 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
       POST: async ({ request }) => {
         // INGRESS: the bytes are read here so invalid UTF-8 and an oversized
         // body are refused before anything is parsed as JSON.
-        const anonymous = requireBearer(request);
-        if (anonymous !== null) return anonymous;
+        const door = await authorizeImport(request, PATH, "attributes");
+        if (!door.ok) return door.response;
         const raw = await request.arrayBuffer();
         if (raw.byteLength > 4 * 1_048_576) {
           console.error(`[ssr-error] ${PATH} body too large`);
@@ -83,10 +83,9 @@ export const Route = createFileRoute("/api/admin/attributes/import")({
         }
 
         const gate = await openImportGate({
-          request,
+          caller: { supabase: door.supabase, userId: door.userId },
           path: PATH,
           familyId: "attributes",
-          body: body as unknown as Record<string, unknown>,
           texts: mode === "undo" ? {} : { definitions: definitionsText, links: linksText },
           mode,
           scope,

@@ -18,9 +18,9 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   json,
+  authorizeImport,
   openImportGate,
   releaseSlot,
-  requireBearer,
   withRowValues,
 } from "@/server/imports/gate";
 import { errorText } from "@/lib/error-text";
@@ -41,8 +41,8 @@ export const Route = createFileRoute("/api/admin/translations/import")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const anonymous = requireBearer(request);
-        if (anonymous !== null) return anonymous;
+        const door = await authorizeImport(request, PATH, "translations");
+        if (!door.ok) return door.response;
 
         const raw = await request.arrayBuffer();
         if (raw.byteLength > 4 * 1_048_576) {
@@ -73,10 +73,9 @@ export const Route = createFileRoute("/api/admin/translations/import")({
         if (mode === "commit" && fileText === "") return json({ error: "no file" }, 400);
 
         const gate = await openImportGate({
-          request,
+          caller: { supabase: door.supabase, userId: door.userId },
           path: PATH,
           familyId: "translations",
-          body: body as unknown as Record<string, unknown>,
           texts: mode === "undo" ? {} : { strings: fileText },
           mode,
           scope: lang === "" ? null : lang,
