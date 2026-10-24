@@ -2,7 +2,8 @@
 # IMPORT-GATE PART E — ONE DOOR, PROVED BY A GUARD.
 #
 # 1. Every import/export route under src/routes/api MUST enter through the
-#    shared gate (`openImportGate` / `exportScope`). A route that builds its
+#    shared door: the import route factory (`defineImportRoute`, which opens
+#    the gate) or the export scope law (`exportScope`). A route that builds its
 #    own Supabase client, or reads the Authorization header itself, is a second
 #    door and fails here.
 # 2. Every registered family MUST declare a class for every column.
@@ -15,7 +16,7 @@ routes=$(git ls-files 'src/routes/api/**/import.ts' 'src/routes/api/**/export.ts
 
 check_route() {
   local file="$1"
-  if ! grep -qE 'openImportGate|exportScope' "$file"; then
+  if ! grep -qE 'defineImportRoute|exportScope' "$file"; then
     echo "IMPORT-GATE: $file does not call the shared gate"
     return 1
   fi
@@ -36,7 +37,7 @@ done
 
 # 4. IMPORT WRITERS ARE REACHED THROUGH THE DOOR. A console that calls an
 #    import RPC directly is a second door with no cap, no hygiene and no meter.
-direct=$(grep -rEn 'rpc\("(admin_import_translations|admin_preview_category_import|admin_commit_category_import|admin_preview_attribute_import|admin_commit_attribute_import)"' src/features src/lib 2>/dev/null || true)
+direct=$(grep -rEn 'rpc\("(admin_import_translations|admin_preview_category_import|admin_commit_category_import|admin_preview_attribute_import|admin_commit_attribute_import|admin_preview_location_import|admin_commit_location_import|admin_undo_category_import|admin_undo_attribute_import|admin_undo_location_import|admin_undo_import)"' src/features src/lib 2>/dev/null || true)
 if [ -n "$direct" ]; then
   echo "IMPORT-GATE: an import writer is called outside the route:"
   echo "$direct"

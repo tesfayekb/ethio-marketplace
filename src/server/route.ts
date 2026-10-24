@@ -94,7 +94,11 @@ export type RouteSpec<B = unknown, P = unknown, Q = unknown> = {
   /** The body's shape; the handler's `body` is this schema's output type. */
   body?: z.ZodType<B>;
   form?: { maxBytes: number };
-  limits?: { bodyBytes?: number };
+  /**
+   * `tooLarge` (Foundations turn 12): the word of BOTH 413 answers — by header
+   * (step 2) and by the counting reader (step 4b); default `payloadTooLarge`.
+   */
+  limits?: { bodyBytes?: number; tooLarge?: string };
   /** verdict (the posting contract, default) or clientError (the readers'). */
   badShape?:
     | "verdict"
@@ -185,6 +189,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
   spec: RouteSpec<B, P, Q>,
 ): (args: { request: Request; params: unknown }) => Promise<Response> {
   const ceiling = spec.form?.maxBytes ?? spec.limits?.bodyBytes ?? DEFAULT_BODY_BYTES;
+  const tooLarge = spec.limits?.tooLarge ?? "payloadTooLarge";
   const badShape = spec.badShape ?? "verdict";
 
   return async ({ request, params: rawParams }) => {
@@ -193,7 +198,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       // (2) the byte ceiling by header — nothing is read.
       const needsBody = spec.body !== undefined || spec.form !== undefined;
       if (needsBody && overByHeader(request, ceiling)) {
-        return clientError("payloadTooLarge", 413);
+        return clientError(tooLarge, 413);
       }
 
       // (3) the caller.
@@ -280,7 +285,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       let bytes: Uint8Array | null = null;
       if (needsBody) {
         bytes = await readBounded(request, ceiling);
-        if (bytes === null) return clientError("payloadTooLarge", 413);
+        if (bytes === null) return clientError(tooLarge, 413);
       }
 
       // (5) the shape.
@@ -298,9 +303,17 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       }
       let body: B = undefined as B;
       if (spec.body !== undefined) {
+        // Foundations turn 12 — RFC 8259 §8.1: a JSON body is UTF-8; invalid
+        // bytes are refused by name, never turned into U+FFFD.
+        let text: string;
+        try {
+          text = new TextDecoder("utf-8", { fatal: true }).decode(bytes ?? new Uint8Array(0));
+        } catch {
+          return clientError("invalidEncoding", 400);
+        }
         let raw: unknown;
         try {
-          raw = JSON.parse(new TextDecoder().decode(bytes ?? new Uint8Array(0)));
+          raw = JSON.parse(text);
         } catch {
           return malformedJsonAnswer(badShape);
         }

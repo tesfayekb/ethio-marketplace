@@ -140,4 +140,13 @@ export const DIALS = {
     windowSeconds: 3600,
     countedBy: "door",
   },
+  /** The staff file doors (src/server/imports/route.ts): budgetModes per family, user id. */
+  importCategories: { action: "import:categories", limit: { fallback: 30 }, windowSeconds: 60 },
+  importAttributes: { action: "import:attributes", limit: { fallback: 30 }, windowSeconds: 60 },
+  importLocations: { action: "import:locations", limit: { fallback: 30 }, windowSeconds: 60 },
+  importTranslations: {
+    action: "import:translations",
+    limit: { fallback: 30 },
+    windowSeconds: 60,
+  },
 } as const satisfies Record<string, Dial>;

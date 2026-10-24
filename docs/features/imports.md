@@ -55,12 +55,13 @@ a NUL byte.
    file its identity header, ordered columns with a class per column
    (`identity` · `editable` · `read-only` · `action`), identity columns and the
    duplicate policy.
-2. Call `authorizeImport(request, PATH, familyId)` before the body is read,
-   then `openImportGate({ caller, … })` from the route (the matching export is
-   a `defineRoute` with `auth: { staff: { resource, action: "view" } }` that
-   calls `exportScope` and answers `download(toCsv(exportColumns(file), rows))`)
-   and hand `rows[fileId]` to the gated planner RPC. Release the slot in
-   a `finally`, and call `audit(...)` on each door.
+2. Add its dial to `src/lib/dials.ts` (`import<Family>`, `import:<family>`)
+   and its line to `IMPORT_DIALS` in `src/server/imports/route.ts`; the route
+   is `POST: defineImportRoute("<family>", { rpcs, args, refresh })` and
+   nothing else (the matching export is a `defineRoute` with
+   `auth: { staff: { resource, action: "view" } }` that calls `exportScope`
+   and answers `download(toCsv(exportColumns(file), rows))`). A door's new
+   RAISE gets its `IMPORT_REFUSALS` line in the same change.
 3. Add the family to `e2e/import-security.spec.ts`'s `FAMILIES` list — the
    hostile catalogue is parameterised, so a family gets no private test.
 4. `scripts/check-import-gate.sh` fails the build if any import/export route
@@ -404,7 +405,7 @@ built on an export carries the header:
 attribute_key,label_en,label_am,type,options,depends_on,unit,min,max,decimals,format,preset,max_length,help_text_en,help_text_am,is_per_variant (read-only),direct_link_count (read-only),unit_am
 ```
 
-- Bundle 6 (C2): the idle prune of rate buckets (`bucketFor`) never deletes a bucket that is in flight, however long it has been idle.
+- Bundle 6 (C2): the idle prune of rate buckets (`bucketFor`) never deletes a bucket that is in flight, however long it has been idle. (Retired in Foundations turn 12 with the process-local meter.)
 
 ## The import door (Foundations turn 11, INC-860 part 1)
 
@@ -431,3 +432,47 @@ Exports write through the one CSV writer (`src/server/imports/csv.ts`: the
 registry's columns without `action`, " (read-only)" for read-only columns, BOM,
 CRLF, RFC 4180, formula neutralisation mirroring `isFormulaCell`/`unneutralize`)
 and the one download answer (`download` in answer.ts).
+
+## The import route factory (Foundations turn 12, INC-860 closed)
+
+`defineImportRoute(familyId, config)` (src/server/imports/route.ts) builds
+each staff import route on `defineRoute` from the registry: `auth: { staff }`
+(the family's permission), `limits: { bodyBytes: 4 MiB, tooLarge:
+"fileTooLarge" }`, the body `importBody(...)` (src/lib/schemas/imports.ts,
+`.strict()`: `mode` from the family's list and default, `scope` or `lang`,
+every file key — absent → "", `digest`, `batchId`). In order: the boundary
+(ceiling → caller → permission → content type → bounded read → strict UTF-8
+→ schema; a bad `mode` answers the family's "mode must be …" sentence, any
+other shape fault `malformed body`); undo without `batchId` → `batch id
+required`; no file → `no file`; the gate's file law (refusal DATA, answered
+through `clientError`); the family's dial for its `budgetModes`
+(429 `rateLimited`; a dial-store failure is 503); then the door RPC, ONE
+relay, the refresh (only after the RPC succeeded), the audit, and the
+unchanged 200 bodies (preview `{...plan, refusals, counts, digest}`, commit
+`{...result, refusals}`, undo the RPC's data, the one-step family's
+`emptyFile` 400 and its all-refused 200 with `skipped`).
+
+THE VOCABULARY (`IMPORT_REFUSALS`, `IMPORT_WORDS`; IMD-6 checks every answered
+word against them and that no `.message`/`.details`/`.hint` reaches an
+answer): `permission denied` → 403 `forbidden`; `step-up required[: …]` →
+`stepUpRequired()` (428 `{error:"step-up required", code:"P0009"}`); `import
+already running`, `batchAlreadyUndone`, `planHasRefusals`, `undoBlocked`
+(detail `hasRows`) → 409; `unknown category scope`, `unknown country scope`,
+`unknown import batch` → 404; `unknownParent: <slug>` → 409 `{error, detail}`;
+`batch id required`, `p_items must be a json array` → 400; `too many rows
+(max 5000)` → 400 `tooManyRows`; `not assigned to this language`, `base
+language rows are sync-owned` → 403; a nested door's own translation key
+(`admin.<family>.error.<name>[:tail]`, e.g. `parentAfterChild`) → 409 with
+the key and its tail; anything else → `serverError` (an incident, no text).
+
+CHANGES: (1) every `defineRoute` JSON body is decoded strictly — invalid
+UTF-8 is 400 `invalidEncoding`; (2) the meter is the registry dial per
+family (30 / 60 s, clock-aligned, shared by every server) and a spent dial
+answers `rateLimited` (was `tooManyRequests`); (3) the process-local
+"one import in flight" lock is gone — the commit RPCs lock in the database;
+(4) door refusals are the declared codes above (clients read `error` and
+`detail`, never `message`); (5) both 413 paths answer `fileTooLarge`;
+(6) bodies are strict — a preview carries no `digest`; (7) tab- and CR-led
+cells are neutralised on export and refused raw on import (`isFormulaCell`,
+`unneutralize`, csv.ts's neutraliser; CSV-3, CSV-6). Guards: IMD-1…6,
+DIAL-1…8, CF-RT-1…7, `scripts/check-import-gate.sh`.

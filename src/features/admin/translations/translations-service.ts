@@ -389,14 +389,14 @@ export function translationErrorKey(error: unknown): MessageKey | null {
   if (/base language cannot be deleted/i.test(message))
     return "admin.translations.error.deleteBase";
   if (/base language|sync-owned/i.test(message)) return "admin.translations.error.baseLocked";
-  if (/permission denied/i.test(message)) return "admin.translations.error.permission";
+  if (/permission denied|^forbidden$/i.test(message)) return "admin.translations.error.permission";
   // IMPORT-GATE PART C — the one gate's named file refusals, spoken here.
   if (/fileTooLarge|invalidEncoding|nulByte/.test(message))
     return "admin.translations.error.fileRejected";
   if (/badHeader|wrongFile|unknownColumn|duplicateColumn/.test(message))
     return "admin.translations.error.fileShape";
   if (/emptyFile|no file/.test(message)) return "admin.translations.error.fileEmpty";
-  if (/tooManyRows|tooManyRequests/.test(message)) return "admin.translations.error.fileTooMany";
+  if (/tooManyRows|rateLimited/.test(message)) return "admin.translations.error.fileTooMany";
   if (/language code/i.test(message)) return "admin.translations.error.codeInvalid";
   return "admin.translations.error.generic";
 }
@@ -908,11 +908,17 @@ async function importHeaders(): Promise<Record<string, string>> {
     : { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 }
 
-/** The route's named refusals, spoken as the messages this console maps (F4). */
+/**
+ * The route's named refusals, spoken as the messages this console maps (F4).
+ * Foundations turn 12 — a named code is returned as itself whenever one came
+ * (so `not assigned to this language` reaches the scope key); the status is
+ * read only when none did.
+ */
 function importFailure(status: number, named: string): Error {
-  if (status === 403 || named === "permission denied") return new Error("permission denied");
-  if (status === 428 || named === "step-up required") return new Error("step-up required");
-  return new Error(named === "" ? `import failed (${status})` : named);
+  if (named !== "") return new Error(named);
+  if (status === 403) return new Error("permission denied");
+  if (status === 428) return new Error("step-up required");
+  return new Error(`import failed (${status})`);
 }
 
 async function postImport(body: Record<string, unknown>): Promise<Record<string, unknown>> {

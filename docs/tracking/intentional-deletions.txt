@@ -36,3 +36,11 @@ src/features/admin-listings/edit-form.tsx
 # Foundations turn 2 (2026-10-24): signedInOnlyKind/shapedCountries and their tests
 # moved to legal-kinds.ts / legal-kinds.test.ts; the emptied test file went (INC-864).
 src/features/legal/legal-page-data.test.ts
+
+# Foundations turn 12 (2026-10-24; docs/governance/briefs/foundations-turn-12.md,
+# CHANGE 3): the process-local import meter and the interim import door went
+# with the code they tested — gate.test.ts's two INC-298 bucket tests ("drops a
+# bucket idle past an hour on the next bucketFor", "keeps an in-flight bucket
+# older than the idle window; deletes an idle one") and IMA-1…6 (authorizeImport);
+# IMR-1…3 (src/server/imports/route.test.ts) carry the door's order now.
+src/server/imports/import-door.test.ts

@@ -8,15 +8,15 @@
  * planner RPC, which remains the only authority on meaning (E7, F3).
  *
  * Order of judgement — a file never gets past a step it failed:
- *   1 door    → `authorizeImport`, before the body is read: the family, the
- *               declared size, the caller (never the service role) and the
- *               family's permission (Foundations turn 11)
+ *   1 door    → `defineImportRoute` (imports/route.ts) on `defineRoute`, before
+ *               the body is read: the declared size, the caller (never the
+ *               service role) and the family's permission (Foundations turn 12)
  *   2 family  → registry lookup (step-up, identity, columns, caps)
  *   3 ingress → ≤ 1 MB · valid UTF-8 (BOM stripped) · RFC-4180 · exact headers
  *   4 hygiene → NFC · trim · strip control/bidi/zero-width · refuse NUL ·
  *               refuse formula-leading · lengths · duplicate identities
  *   5 payload → typed rows, never raw CSV text
- *   6 limit   → one preview/commit in flight per user, 30 previews / minute
+ *   6 limit   → the route spends the family's registry dial (src/lib/dials.ts)
  *   7 audit   → one event per preview/commit/undo; [ssr-error] on every failure
  * A rejected file is never stored anywhere.
  */
@@ -26,11 +26,6 @@ import { xliffUnits } from "@/features/admin/translations/io-formats";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import type { Database } from "@/integrations/supabase/types";
 import { clientError } from "@/server/answer";
-import {
-  callerHasPermission,
-  refuseUserClient,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
 import {
   BOUND_RE,
   FAMILIES,
@@ -79,26 +74,28 @@ export interface GateOk {
   ) => Promise<void>;
 }
 
+/** A refusal as DATA (Foundations turn 12): the route answers it through clientError. */
 export interface GateRefused {
   ok: false;
-  response: Response;
+  status: 400 | 413;
+  error: string;
+  detail?: string;
 }
 
 export type GateResult = GateOk | GateRefused;
 
 /* ------------------------------ plumbing -------------------------------- */
 
-export function json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
-}
-
-function refuse(path: string, message: string, status: number, body: unknown): GateRefused {
+function refuse(
+  path: string,
+  message: string,
+  status: 400 | 413,
+  error: string,
+  detail?: string,
+): GateRefused {
   // INC-625 — an upstream's text is named by one rule (src/lib/error-text.ts).
   console.error(`[ssr-error] ${path} ${errorText(message)}`);
-  return { ok: false, response: json(body, status) };
+  return { ok: false, status, error, ...(detail === undefined ? {} : { detail }) };
 }
 
 /* --------------------------------- CSV ---------------------------------- */
@@ -147,14 +144,15 @@ export function parseCsvGrid(text: string): string[][] {
 /**
  * FORMULA LAW, both directions. The export NEUTRALISES a dangerous cell with a
  * leading apostrophe, so `'=Wide` is legitimate export output and round-trips;
- * a RAW `=…`, `+…`, `-…`, `@…` cell was hand-authored and is refused.
+ * a RAW `=…`, `+…`, `-…`, `@…`, tab- or carriage-return-led cell was
+ * hand-authored and is refused (OWASP CSV injection; Foundations turn 12).
  */
 export function isFormulaCell(raw: string): boolean {
-  return /^[=+\-@]/.test(raw);
+  return /^[=+\-@\t\r]/.test(raw);
 }
 
 export function unneutralize(raw: string): string {
-  return /^'[=+\-@]/.test(raw) ? raw.slice(1) : raw;
+  return /^'[=+\-@\t\r]/.test(raw) ? raw.slice(1) : raw;
 }
 
 /** The export labels derived columns " (read-only)"; both spellings import. */
@@ -753,116 +751,8 @@ export function withRowValues(
   });
 }
 
-/* ----------------------------- rate limiting ---------------------------- */
-
-interface Bucket {
-  inFlight: boolean;
-  /** Preview timestamps per family: one family's budget is not another's. */
-  previews: Record<string, number[]>;
-  /** INC-298 — the last time this bucket was asked for. */
-  lastSeen: number;
-}
-
-const buckets = new Map<string, Bucket>();
-/** INC-298 — a bucket idle for longer than this is pruned. */
-export const BUCKET_IDLE_MS = 60 * 60 * 1000;
-
-export function bucketFor(userId: string, now: number = Date.now()): Bucket {
-  for (const [key, bucket] of buckets) {
-    if (key !== userId && !bucket.inFlight && now - bucket.lastSeen > BUCKET_IDLE_MS)
-      buckets.delete(key);
-  }
-  const existing = buckets.get(userId);
-  if (existing !== undefined) {
-    existing.lastSeen = now;
-    return existing;
-  }
-  const created: Bucket = { inFlight: false, previews: {}, lastSeen: now };
-  buckets.set(userId, created);
-  return created;
-}
-
-/** INC-298 — test seam: whether a bucket is currently held. */
-export function hasBucket(userId: string): boolean {
-  return buckets.has(userId);
-}
-
-export function releaseSlot(userId: string): void {
-  bucketFor(userId).inFlight = false;
-}
-
-/**
- * One preview/commit in flight per user; PREVIEW_BUDGET previews a minute. The
- * budget is a DoS ceiling, not a workflow opinion: a console session (and the
- * suite that drives it) previews far more than ten files in a minute.
- */
-export const PREVIEW_BUDGET = 30;
-
-/** The import routes' body ceiling (4 MiB), declared once for the door and the read. */
+/** The import routes' body ceiling (4 MiB), declared once for the route and the read. */
 export const IMPORT_BODY_BYTES = 4 * 1_048_576;
-
-export type ImportDoor =
-  | { ok: true; supabase: SupabaseClient<Database>; userId: string }
-  | { ok: false; response: Response };
-
-/**
- * Foundations turn 11 (DEC-237, INC-860 part 1) — THE IMPORT DOOR. Who the
- * caller is and whether they hold the family's permission are answered BEFORE
- * a byte of the body is read, buffered, decoded, parsed or metered (ASVS
- * V4.1/V13). In order: (i) the family; (ii) a declared Content-Length over the
- * ceiling → 413 with nothing read; (iii) the shared caller (401 / 403
- * deactivated / 503 / 500); (iv) `callerHasPermission` with the family's
- * permission — false → 403 forbidden; an error throws (the route's boundary
- * answers it, never a pass).
- */
-export async function authorizeImport(
-  request: Request,
-  path: string,
-  familyId: string,
-): Promise<ImportDoor> {
-  const family = familyOf(familyId);
-  if (family === null)
-    return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
-
-  const declared = request.headers.get("content-length");
-  if (declared !== null && Number(declared) > IMPORT_BODY_BYTES) {
-    return refuse(path, "body too large", 413, { error: "fileTooLarge" });
-  }
-
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(path, caller);
-  if (refused !== null) return { ok: false, response: refused };
-  if (caller.supabase === null || caller.userId === null) {
-    return { ok: false, response: json({ error: "not signed in" }, 401) };
-  }
-
-  if (!(await callerHasPermission(caller.supabase, caller.userId, family.permission))) {
-    return { ok: false, response: clientError("forbidden", 403) };
-  }
-  return { ok: true, supabase: caller.supabase, userId: caller.userId };
-}
-
-export function takeSlot(
-  userId: string,
-  mode: string,
-  familyId: string,
-  budgetModes: readonly string[] = ["preview"],
-): "ok" | "busy" | "tooFast" {
-  const bucket = bucketFor(userId);
-  if (bucket.inFlight) return "busy";
-  if (budgetModes.includes(mode)) {
-    const now = Date.now();
-    const seen = (bucket.previews[familyId] ?? []).filter((at) => now - at < 60_000);
-    if (seen.length >= PREVIEW_BUDGET) {
-      bucket.previews[familyId] = seen;
-      return "tooFast";
-    }
-    seen.push(now);
-    bucket.previews[familyId] = seen;
-  }
-  bucket.inFlight = true;
-  return "ok";
-}
 
 /* --------------------------------- digest -------------------------------- */
 
@@ -877,22 +767,20 @@ export async function digestOf(parts: string[]): Promise<string> {
 /* ---------------------------------- gate --------------------------------- */
 
 export interface GateInput {
-  /** The caller `authorizeImport` verified — the gate never re-authenticates. */
+  /** The caller the route boundary verified — the gate never re-authenticates. */
   caller: { supabase: SupabaseClient<Database>; userId: string };
   path: string;
   familyId: string;
   /** file id → the raw text the operator uploaded. */
   texts: Record<string, string>;
-  mode: string;
   scope: string | null;
 }
 
 export async function openImportGate(input: GateInput): Promise<GateResult> {
-  const { caller, path, familyId, texts, mode, scope } = input;
+  const { caller, path, familyId, texts, scope } = input;
 
   const family = familyOf(familyId);
-  if (family === null)
-    return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
+  if (family === null) return refuse(path, `unknown family ${familyId}`, 400, "unknownFamily");
 
   const supabase = caller.supabase;
   const userId = caller.userId;
@@ -914,14 +802,14 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
 
   // `scope` must LOOK right; existence is the RPC's verdict (404).
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
-    return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+    return refuse(path, `bad scope ${scope}`, 400, "badScope");
   }
   if (family.scope === "language" && (scope === null || !LANG_RE.test(scope))) {
-    return refuse(path, `bad language ${scope ?? ""}`, 400, { error: "badScope" });
+    return refuse(path, `bad language ${scope ?? ""}`, 400, "badScope");
   }
   // A null country scope is LEGAL — it means every country.
   if (scope !== null && family.scope === "country-code" && !/^[A-Za-z]{2}$/.test(scope)) {
-    return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+    return refuse(path, `bad scope ${scope}`, 400, "badScope");
   }
 
   const rows: Record<string, GateRow[]> = {};
@@ -931,27 +819,16 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
   for (const [fileId, text] of Object.entries(texts)) {
     if (text === "") continue;
     const spec = fileOf(family, fileId);
-    if (spec === null) return refuse(path, `unknown file ${fileId}`, 400, { error: "unknownFile" });
+    if (spec === null) return refuse(path, `unknown file ${fileId}`, 400, "unknownFile");
     if (encoder.encode(text).length > (spec.maxBytes ?? MAX_BYTES)) {
-      return refuse(path, `${fileId} file too large`, 413, { error: "fileTooLarge" });
+      return refuse(path, `${fileId} file too large`, 413, "fileTooLarge");
     }
     const parsed = parseFamilyFile(spec, text);
     if (parsed.error !== null) {
-      return refuse(path, `${fileId} ${parsed.error}`, 400, {
-        error: parsed.error,
-        ...(parsed.detail === undefined ? {} : { detail: parsed.detail }),
-      });
+      return refuse(path, `${fileId} ${parsed.error}`, 400, parsed.error, parsed.detail);
     }
     rows[fileId] = parsed.rows;
     refusals.push(...parsed.refusals);
-  }
-
-  const slot = takeSlot(userId, mode, family.id, family.budgetModes ?? ["preview"]);
-  if (slot === "busy") {
-    return refuse(path, "import already running", 409, { error: "import already running" });
-  }
-  if (slot === "tooFast") {
-    return refuse(path, "too many previews", 429, { error: "tooManyRequests" });
   }
 
   return {
@@ -981,16 +858,24 @@ export function exportScope(
   scopeParam: string | undefined,
 ): { ok: true; scope: string | null } | { ok: false; response: Response } {
   const path = `/api/admin/${familyId}/export`;
+  const law = exportScopeLaw(path, familyId, scopeParam);
+  return law.ok ? law : { ok: false, response: clientError(law.error, law.status) };
+}
+
+function exportScopeLaw(
+  path: string,
+  familyId: string,
+  scopeParam: string | undefined,
+): { ok: true; scope: string | null } | GateRefused {
   const family = familyOf(familyId);
-  if (family === null)
-    return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
+  if (family === null) return refuse(path, `unknown family ${familyId}`, 400, "unknownFamily");
   const scope = scopeParam === undefined || scopeParam.trim() === "" ? null : scopeParam.trim();
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
-    return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+    return refuse(path, `bad scope ${scope}`, 400, "badScope");
   }
   // A null country scope is LEGAL — it means every country.
   if (scope !== null && family.scope === "country-code" && !/^[A-Za-z]{2}$/.test(scope)) {
-    return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
+    return refuse(path, `bad scope ${scope}`, 400, "badScope");
   }
   return { ok: true, scope };
 }

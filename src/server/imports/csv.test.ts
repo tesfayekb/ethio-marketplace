@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { exportColumns, exportFilename, toCsv } from "./csv";
-import { isFormulaCell, unneutralize } from "./gate";
+import { isFormulaCell, parseCsvGrid, unneutralize } from "./gate";
 import { familyOf, fileOf } from "./registry";
 
 /**
@@ -36,18 +36,25 @@ describe("toCsv", () => {
   });
 
   it("CSV-3 formula leaders are neutralised exactly where the reader refuses them", () => {
-    for (const leader of ["=", "+", "-", "@"]) {
+    for (const leader of ["=", "+", "-", "@", "\t"]) {
       const cell = `${leader}1`;
       expect(toCsv(one, [{ a: cell }])).toBe(`\ufeffa\r\n'${cell}\r\n`);
       expect(isFormulaCell(cell)).toBe(true);
       expect(unneutralize(`'${cell}`)).toBe(cell);
     }
-    // Tab and CR leaders: the reader neither refuses nor strips them, so the
-    // writer leaves them as they were at 126fbb4c (a CR is quoted, never prefixed).
-    expect(toCsv(one, [{ a: "\tx" }])).toBe("\ufeffa\r\n\tx\r\n");
-    expect(isFormulaCell("\tx")).toBe(false);
-    expect(toCsv(one, [{ a: "\rx" }])).toBe('\ufeffa\r\n"\rx"\r\n');
-    expect(isFormulaCell("\rx")).toBe(false);
+    // Foundations turn 12 (CHANGE 7) — a CR-led cell is prefixed AND quoted.
+    expect(toCsv(one, [{ a: "\rx" }])).toBe('\ufeffa\r\n"\'\rx"\r\n');
+    expect(isFormulaCell("\rx")).toBe(true);
+    expect(unneutralize("'\rx")).toBe("\rx");
+  });
+
+  it("CSV-6 a tab- or CR-led cell survives export → the gate's reader unchanged", () => {
+    for (const cell of ["\tWide", "\rWide", "=Wide", "plain"]) {
+      const grid = parseCsvGrid(toCsv(one, [{ a: cell }]));
+      const exported = grid[1]?.[0] ?? "";
+      expect(isFormulaCell(exported)).toBe(false);
+      expect(unneutralize(exported)).toBe(cell);
+    }
   });
 
   it("CSV-4 exportColumns equals the literal lists the exports carried", () => {

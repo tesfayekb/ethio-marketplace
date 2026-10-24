@@ -65,7 +65,7 @@ The local 502 `{error:"internal error"}` retires with each reader move: the cens
 
 ## The allowlist's waves
 
-`routes-allowlist.txt` holds 20 exceptions after Foundations turn 11 (23 after turn 10; the three admin exports left in turn 11; 33 after turn 7): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
+`routes-allowlist.txt` holds 15 exceptions after Foundations turn 12 (20 after turn 11; the four imports and gate.ts left in turn 12; 23 after turn 10; 33 after turn 7): INC-859 closed (posting/media), INC-860 closed (imports/exports), INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
 
 ## A new route
 
@@ -203,3 +203,20 @@ boundary; an anonymous request with a bad `file` answers 401 (the caller first);
 countries drop it; the importer treats a trailing `action` as optional);
 (7) the filename is `ethio-<scope->-<file id>-YYYY-MM-DD.csv` (UTC), sent as
 `attachment; filename="…"; filename*=UTF-8''…`.
+
+## The staff imports (Foundations turn 12, INC-860 closed)
+
+| Route                               | Factory call                           | Permission            | Metered modes |
+| ----------------------------------- | -------------------------------------- | --------------------- | ------------- |
+| POST /api/admin/categories/import   | `defineImportRoute("categories", …)`   | `categories:import`   | preview       |
+| POST /api/admin/attributes/import   | `defineImportRoute("attributes", …)`   | `categories:import`   | preview       |
+| POST /api/admin/locations/import    | `defineImportRoute("locations", …)`    | `locations:import`    | preview       |
+| POST /api/admin/translations/import | `defineImportRoute("translations", …)` | `translations:update` | commit, undo  |
+
+The boundary itself gained two rules this turn: every JSON body is decoded
+with `new TextDecoder("utf-8", { fatal: true })` — invalid bytes answer
+`clientError("invalidEncoding", 400)` before `JSON.parse` (RFC 8259 §8.1);
+and `limits.tooLarge` names the word of BOTH 413 answers (by header and by
+the counting reader; default `payloadTooLarge`). `clientError` takes 409 and
+`stepUpRequired()` is the one 428. The factory and its vocabulary:
+docs/features/imports.md.

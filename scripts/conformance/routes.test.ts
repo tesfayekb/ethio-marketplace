@@ -59,6 +59,9 @@ function conformsCode(code: string): boolean {
     // A server function conforms when its validator is a schema.
     return /\.inputValidator\(\s*(?:z\.|[A-Za-z_$][\w$]*Schema\b)/.test(code);
   }
+  // Foundations turn 12 — a staff import route is the factory over defineRoute.
+  if (code.includes('from "@/server/imports/route"') && /\bdefineImportRoute\s*\(/.test(code))
+    return true;
   return code.includes('from "@/server/route"') && /\bdefineRoute\s*(?:<[^>]*>)?\s*\(/.test(code);
 }
 

@@ -329,6 +329,44 @@ describe("defineRoute — the one boundary (B4)", () => {
     expect(state.handlerCalls).toBe(0);
   });
 
+  it("RT-21 an invalid UTF-8 body answers 400 invalidEncoding; no dial, no handler", async () => {
+    const route = makeRoute({
+      rate: [
+        { dial: { action: "post", limit: { fallback: 5 }, windowSeconds: 86_400 }, key: "user" },
+      ],
+    });
+    const prefix = new TextEncoder().encode('{"listingId":"');
+    const bytes = new Uint8Array([...prefix, 0xc3, 0x28, 0x22, 0x7d]);
+    const request = new Request("http://local/api/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: bytes,
+    });
+    const response = await route({ request, params: {} });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "invalidEncoding" });
+    expect(state.handlerCalls).toBe(0);
+    expect(state.rates).toEqual([]);
+  });
+
+  it("RT-22 a declared tooLarge word answers both 413 paths", async () => {
+    const route = makeRoute({ limits: { bodyBytes: 10, tooLarge: "fileTooLarge" } });
+    const byHeader = await route({
+      request: post(JSON.stringify({ listingId: LISTING }), { "content-length": "999" }),
+      params: {},
+    });
+    expect(byHeader.status).toBe(413);
+    expect(await byHeader.json()).toEqual({ error: "fileTooLarge" });
+    expect(state.callerCalls).toBe(0);
+    const request = countedPost(JSON.stringify({ listingId: LISTING }));
+    expect(request.headers.get("content-length")).toBeNull();
+    const byReader = await route({ request, params: {} });
+    expect(byReader.status).toBe(413);
+    expect(await byReader.json()).toEqual({ error: "fileTooLarge" });
+    expect(state.callerCalls).toBe(1);
+    expect(state.handlerCalls).toBe(0);
+  });
+
   it("RT-11 a signed-in body over the ceiling without Content-Length answers 413 after the caller and before any dial", async () => {
     const route = makeRoute({
       limits: { bodyBytes: 10 },

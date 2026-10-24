@@ -37,14 +37,15 @@ export async function inOneWindow(
 /**
  * INC-792 — AN IMPORT PREVIEW HONOURS THE DOOR'S BUDGET.
  *
- * The import gate allows PREVIEW_BUDGET (30) previews a minute per user and
- * family, in server memory (src/server/imports/gate.ts, `takeSlot`); a spec on
- * one pooled identity can send more in under a minute on a fast backend. The
- * budget is never raised for a test (G38): the test waits it out as a person
- * would. A re-sent refused preview costs nothing — the door refuses it before
- * the plan and before the count.
+ * The import route allows 30 previews a minute per user and family through
+ * the family's registry dial (src/lib/dials.ts `import<Family>`, counted by
+ * `consume_rate_limit` in clock-aligned 60 s windows, shared by every server);
+ * a spec on one pooled identity can send more in under a minute on a fast
+ * backend. The budget is never raised for a test (G38): the test waits it out
+ * as a person would; the 65 s poll outlasts one window. A re-sent refused
+ * preview costs nothing — the door refuses it before the plan.
  *
- * Sends once; any answer but a 429 `tooManyRequests` returns at once. On that
+ * Sends once; any answer but a 429 `rateLimited` returns at once. On that
  * answer the test's own budget grows by 70 s (the wait's named cause) and the
  * same request is sent again every 5 s, at most 65 s, until another answer
  * comes; the last answer is returned.
@@ -53,8 +54,7 @@ export async function withinPreviewBudget<
   T extends { status: number; payload: Record<string, unknown> },
 >(send: () => Promise<T>, tag: string): Promise<T> {
   let answer = await send();
-  const refused = (value: T) =>
-    value.status === 429 && value.payload["error"] === "tooManyRequests";
+  const refused = (value: T) => value.status === 429 && value.payload["error"] === "rateLimited";
   if (!refused(answer)) return answer;
   const info = test.info();
   if (info.timeout > 0) info.setTimeout(info.timeout + 70_000);

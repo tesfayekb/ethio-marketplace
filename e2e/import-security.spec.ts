@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
-import { withinPreviewBudget } from "./helpers/rate-window";
+import { inOneWindow, withinPreviewBudget } from "./helpers/rate-window";
 import {
   rand,
   bandOnly,
@@ -833,10 +833,11 @@ for (const family of FAMILIES) {
       // THE LIMIT: a budget of previews a minute per operator; past it the
       // door answers 429, and refusing costs nothing (no plan, no write).
       let limited = 0;
+      await inOneWindow(60, 40_000, "IG-3");
       for (let attempt = 0; attempt < 45; attempt += 1) {
         const answer = await rawPost(page, token, { [family.field]: text });
         if (answer.status === 429) {
-          expect(answer.payload["error"]).toBe("tooManyRequests");
+          expect(answer.payload["error"]).toBe("rateLimited");
           limited += 1;
           break;
         }
@@ -929,7 +930,7 @@ test.describe("IMPORT-GATE attributes-links", () => {
       withinPreviewBudget(async () => {
         const response = await page.request.post("/api/admin/attributes/import", {
           headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          data: { mode: "preview", digest: true, links },
+          data: { mode: "preview", links },
         });
         let payload: Record<string, unknown> = {};
         try {
@@ -1038,7 +1039,6 @@ test.describe("IMPORT-GATE audit", () => {
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         data: {
           mode: "preview",
-          digest: true,
           links:
             "category_path,category_slug,attribute_key,is_required,is_filterable,card_rank,origin\r\n",
         },

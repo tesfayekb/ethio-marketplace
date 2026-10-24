@@ -13,8 +13,9 @@ import type { FileSpec } from "./registry";
  *   reader's `canonicalHeader` strips back;
  * - UTF-8 BOM (Excel reads Ge'ez correctly only with it), CRLF rows and a
  *   trailing CRLF, RFC 4180 quoting of `"`, `,`, CR and LF;
- * - FORMULA SAFETY (CSV injection, OWASP): a cell opening with `=`, `+`, `-`
- *   or `@` gains a leading apostrophe BEFORE quoting — exactly the set the
+ * - FORMULA SAFETY (CSV injection, OWASP): a cell opening with `=`, `+`, `-`,
+ *   `@`, a tab or a carriage return (Foundations turn 12) gains a leading
+ *   apostrophe BEFORE quoting — exactly the set the
  *   reader's `isFormulaCell` refuses raw and `unneutralize` strips back
  *   (gate.ts), so every exported cell round-trips. Moved byte for byte from
  *   the three exports.
@@ -33,7 +34,7 @@ export function exportColumns(file: FileSpec): ExportColumn[] {
 
 /** The leading characters `isFormulaCell` refuses and `unneutralize` strips (gate.ts). */
 function neutralize(value: string): string {
-  return /^[=+\-@]/.test(value) ? `'${value}` : value;
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
 function csvCell(raw: unknown): string {
