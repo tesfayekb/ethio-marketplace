@@ -870,11 +870,10 @@ export async function digestOf(parts: string[]): Promise<string> {
 /* ---------------------------------- gate --------------------------------- */
 
 export interface GateInput {
-  request: Request;
+  /** The caller `authorizeImport` verified — the gate never re-authenticates. */
+  caller: { supabase: SupabaseClient<Database>; userId: string };
   path: string;
   familyId: string;
-  /** The already-read JSON body (routes read it once, the gate judges it). */
-  body: Record<string, unknown>;
   /** file id → the raw text the operator uploaded. */
   texts: Record<string, string>;
   mode: string;
@@ -882,30 +881,12 @@ export interface GateInput {
 }
 
 export async function openImportGate(input: GateInput): Promise<GateResult> {
-  const { request, path, familyId, texts, mode, scope } = input;
+  const { caller, path, familyId, texts, mode, scope } = input;
 
   const family = familyOf(familyId);
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
 
-  // U6-A2-C (B2/B3) — the SHARED user-scoped client; the wording and the status
-  // of each refusal stay this gate's own (no behaviour change).
-  const caller = await userClientFromRequest(request);
-  if (caller.reason === "serverEnv") {
-    return refuse(path, caller.message, 500, { error: "server error" });
-  }
-  if (caller.reason === "missingBearer") {
-    return { ok: false, response: json({ error: "missing bearer token" }, 401) };
-  }
-  // INC-574 — the auth server did not answer: 503, never "not signed in".
-  if (caller.reason === "upstream") {
-    return refuse(path, caller.message, 503, { error: "upstream unavailable" });
-  }
-  if (caller.supabase === null || caller.userId === null) {
-    const reason = caller.message === "" ? "" : ` ${errorText(caller.message)}`;
-    console.error(`[ssr-error] ${path} not signed in${reason}`);
-    return { ok: false, response: json({ error: "not signed in" }, 401) };
-  }
   const supabase = caller.supabase;
   const userId = caller.userId;
 
