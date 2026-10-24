@@ -3,6 +3,7 @@ import { cleanUntrusted, untrustedText, withUntrustedRule } from "@/lib/untruste
 import type { ImageFormat } from "./strip";
 import { errorText } from "@/lib/error-text";
 import { aiFakeMode } from "@/server/ai/meter";
+import { upstream } from "@/server/upstream";
 
 /**
  * U6-B1 — THE UPLOAD-TIME POLICY PASS (spec §12 D15).
@@ -281,36 +282,41 @@ export async function screenPhotoPolicy(
 
   const adPart = contextPart(context);
   const call = (lowDetail: boolean) =>
-    fetch(`${BASE}/${encodeURIComponent(visionModel())}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
-        // INC-601 — every stored size, largest first, in ONE call (D162: the middle
-        // size when sent); D165 — the smaller copies at low detail.
-        // D154 B3 — the ad's category and title first, as data.
-        contents: [
-          {
-            role: "user",
-            parts: [...(adPart === null ? [] : [adPart]), ...policyParts(variants, lowDetail)],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "OBJECT",
-            properties: {
-              allowed: { type: "BOOLEAN" },
-              code: { type: "STRING" },
-              evidence: { type: "STRING" },
-              warnings: { type: "ARRAY", items: { type: "STRING" } },
+    upstream(
+      `${BASE}/${encodeURIComponent(visionModel())}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: PHOTO_POLICY_INSTRUCTION }] },
+          // INC-601 — every stored size, largest first, in ONE call (D162: the middle
+          // size when sent); D165 — the smaller copies at low detail.
+          // D154 B3 — the ad's category and title first, as data.
+          contents: [
+            {
+              role: "user",
+              parts: [...(adPart === null ? [] : [adPart]), ...policyParts(variants, lowDetail)],
             },
-            required: ["allowed", "code", "evidence"],
+          ],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: {
+              type: "OBJECT",
+              properties: {
+                allowed: { type: "BOOLEAN" },
+                code: { type: "STRING" },
+                evidence: { type: "STRING" },
+                warnings: { type: "ARRAY", items: { type: "STRING" } },
+              },
+              required: ["allowed", "code", "evidence"],
+            },
+            temperature: 0,
           },
-          temperature: 0,
-        },
-      }),
-    });
+        }),
+        // Foundations turn 4 — a deadline; a timeout takes the unreachable branch below.
+      },
+      { timeoutMs: 20_000, label: "gemini photo_screen" },
+    );
 
   let response: Response;
   let raw: string;

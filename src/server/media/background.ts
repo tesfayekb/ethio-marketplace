@@ -30,6 +30,7 @@
  * a fixed 400 x 300 cut-out — a green block on a transparent ground — and no
  * network.
  */
+import { upstream } from "@/server/upstream";
 import { errorText } from "@/lib/error-text";
 import { aiFakeMode } from "@/server/ai/meter";
 
@@ -98,7 +99,8 @@ function mediaType(response: Response): string {
 /** The stored cover, fetched through the link the server signed for this one request. */
 export async function readSource(url: string, log: Log): Promise<Blob | null> {
   try {
-    const response = await fetch(url);
+    // Foundations turn 4 — a deadline; a timeout is the catch below (null).
+    const response = await upstream(url, {}, { timeoutMs: 10_000, label: "photo source" });
     if (!response.ok) {
       log(`cover read ${response.status}`);
       return null;
@@ -135,11 +137,12 @@ export async function cutOut(source: Blob, key: string, log: Log): Promise<Cutou
   form.set("size", "hd");
   let response: Response;
   try {
-    response = await fetch(PHOTOROOM_SEGMENT_URL, {
-      method: "POST",
-      headers: { "x-api-key": key },
-      body: form,
-    });
+    // Foundations turn 4 — a deadline; a timeout is the unreachable branch below.
+    response = await upstream(
+      PHOTOROOM_SEGMENT_URL,
+      { method: "POST", headers: { "x-api-key": key }, body: form },
+      { timeoutMs: 30_000, label: "photoroom segment" },
+    );
   } catch (error) {
     log(`photoroom unreachable: ${errorText(error)}`);
     return null;

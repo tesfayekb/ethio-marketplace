@@ -1,3 +1,4 @@
+import { upstream } from "@/server/upstream";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
@@ -223,14 +224,19 @@ async function r2Request(
   signingKey = await hmac(signingKey, "aws4_request");
   const signature = hex(await hmac(signingKey, stringToSign));
 
-  return await fetch(`https://${host}${path}`, {
-    method,
-    headers: {
-      ...headers,
-      Authorization: `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+  // Foundations turn 4 — a deadline; the label names the method, never the key or URL.
+  return await upstream(
+    `https://${host}${path}`,
+    {
+      method,
+      headers: {
+        ...headers,
+        Authorization: `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`,
+      },
+      ...(body === null ? {} : { body: body as unknown as BodyInit }),
     },
-    ...(body === null ? {} : { body: body as unknown as BodyInit }),
-  });
+    { timeoutMs: 15_000, label: `r2 ${method}` },
+  );
 }
 
 /* -------------------------------- operations ------------------------------ */
