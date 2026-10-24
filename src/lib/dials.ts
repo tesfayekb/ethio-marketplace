@@ -132,9 +132,10 @@ export const DIALS = {
     limit: { fallback: 20 },
     windowSeconds: 86400,
   },
-  /** src/server/catalog-find.server.ts — the limit handed to catalog_search; the door counts. */
+  /** src/server/catalog-find.server.ts — the limit handed to catalog_search; the door
+      counts it under its own action and window (consume_catalog_find_rate, 1 hour). */
   catalogFind: {
-    action: "catalog-find",
+    action: "catalog_find",
     limit: { fallback: 120 },
     windowSeconds: 3600,
     countedBy: "door",
