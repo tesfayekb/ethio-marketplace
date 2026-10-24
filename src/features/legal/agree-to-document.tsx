@@ -1,13 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RequiredMark } from "@/features/posting/field";
 import { useI18n, type MessageKey } from "@/i18n";
 
-export type AgreeLink = { label: string; href: string };
+type DocumentRole = "terms" | "privacy" | "publishing";
 
 /**
  * Bundle 22 turn 32 (D230, DEC-236, D231) — THE ONE AGREEMENT TO A DOCUMENT. A person ticks that they have
- * read and agree to (or certify) the named documents; each document is one tap away under the sentence.
+ * read and agree to (or certify) the named documents; each document is one inline link away in the sentence.
  * The tick is a required answer with the field kit's three-state border: a soft destructive border while
  * required and empty, the full border with the ring once the surrounding action was tapped without it, and
  * the normal border once ticked — nothing turns green (DEC-236). When refused, the message shows above the
@@ -29,7 +29,7 @@ export function AgreeToDocument({
   id: string;
   testId: string;
   sentence: MessageKey;
-  links: AgreeLink[];
+  links: Partial<Record<DocumentRole, string>>;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   refused: boolean;
@@ -48,6 +48,22 @@ export function AgreeToDocument({
     row.current?.scrollIntoView?.({ block: "start", behavior: reduced ? "auto" : "smooth" });
     control.current?.focus({ preventScroll: true });
   }, [shown]);
+  const text = t(sentence);
+  const parts: ReactNode[] = [];
+  const token = /\[([^\]\n]{1,120})\]\((terms|privacy|publishing)\)/g;
+  let end = 0;
+  for (const match of text.matchAll(token)) {
+    parts.push(text.slice(end, match.index));
+    const role = match[2] as DocumentRole;
+    const href = links[role];
+    parts.push(href ? (
+      <a key={match.index} href={href} target="_blank" rel="noopener noreferrer"
+        data-testid="agree-link" data-role={role}
+        className="text-primary underline underline-offset-2">{match[1]}</a>
+    ) : match[1]);
+    end = match.index + match[0].length;
+  }
+  parts.push(text.slice(end));
   const messageId = `${id}-message`;
   const border = shown
     ? "border-destructive ring-1 ring-destructive"
@@ -84,27 +100,10 @@ export function AgreeToDocument({
           className={`mt-1 ${border}`.trim()}
         />
         <span>
-          {t(sentence)} {required ? <RequiredMark /> : null}
+          {parts} {required ? <RequiredMark /> : null}
         </span>
       </label>
-      {links.length > 0 ? (
-        <ul className="flex flex-wrap gap-x-2 ps-7 text-sm">
-          {links.map((link, index) => (
-            <li key={link.href} className="flex items-center gap-2">
-              {index > 0 ? <span aria-hidden="true">·</span> : null}
-              <a
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-testid="agree-link"
-                className="inline-flex min-h-11 items-center text-primary underline underline-offset-2"
-              >
-                {link.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+
     </div>
   );
 }

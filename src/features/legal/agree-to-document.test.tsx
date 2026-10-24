@@ -27,7 +27,7 @@ function mount(props: { checked?: boolean; refused?: boolean; onChange?: (v: boo
     <AgreeToDocument
       id="agreement"
       testId="auth-agree-tick"
-      sentence="legal.accept.agreeFirst.both"
+      sentence="legal.agree.first.both"
       links={LINKS}
       checked={props.checked ?? false}
       onCheckedChange={props.onChange ?? (() => {})}
@@ -40,7 +40,7 @@ function mount(props: { checked?: boolean; refused?: boolean; onChange?: (v: boo
 describe("AgreeToDocument (bundle 22 turn 32)", () => {
   it("renders the sentence, the required mark and every link with its href and target", () => {
     mount({});
-    expect(screen.getByText(en["legal.accept.agreeFirst.both"], { exact: false })).toBeTruthy();
+    expect(screen.getByText(en["legal.agree.first.both"], { exact: false })).toBeTruthy();
     expect(screen.getByTestId("post-required-mark")).toBeTruthy();
     const links = screen.getAllByTestId("agree-link");
     expect(links.map((a) => a.getAttribute("href"))).toEqual(["/terms", "/privacy"]);

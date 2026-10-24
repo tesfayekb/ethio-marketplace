@@ -51,7 +51,7 @@ describe("LegalAcceptScreen", () => {
     accept.mockResolvedValue(undefined);
     mount();
     await screen.findAllByTestId("legal-accept-doc");
-    expect(screen.getByText("legal.accept.agreeFirst.both", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("legal.agree.first.both", { exact: false })).toBeInTheDocument();
     expect(screen.getAllByTestId("agree-link").map((a) => a.getAttribute("href"))).toEqual([
       "/terms",
       "/privacy",
@@ -83,7 +83,7 @@ describe("LegalAcceptScreen", () => {
     mount();
     await screen.findByTestId("legal-accept-doc");
     expect(
-      screen.getByText("legal.accept.agreeUpdated.terms", { exact: false }),
+      screen.getByText("legal.agree.updated.terms", { exact: false }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("legal-accept-tick"));
     fireEvent.click(submit());

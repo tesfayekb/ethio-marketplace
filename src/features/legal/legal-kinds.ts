@@ -16,14 +16,14 @@ export function tickKey(roles: LegalRole[], firstTime: boolean): MessageKey {
   const terms = roles.includes("terms");
   const privacy = roles.includes("privacy");
   if (firstTime) {
-    if (terms && privacy) return "legal.accept.agreeFirst.both";
-    if (terms) return "legal.accept.agreeFirst.terms";
-    if (privacy) return "legal.accept.agreeFirst.privacy";
+    if (terms && privacy) return "legal.agree.first.both";
+    if (terms) return "legal.agree.first.terms";
+    if (privacy) return "legal.agree.first.privacy";
     return "legal.accept.agreeFirst.docs";
   }
-  if (terms && privacy) return "legal.accept.agreeUpdated.both";
-  if (terms) return "legal.accept.agreeUpdated.terms";
-  if (privacy) return "legal.accept.agreeUpdated.privacy";
+  if (terms && privacy) return "legal.agree.updated.both";
+  if (terms) return "legal.agree.updated.terms";
+  if (privacy) return "legal.agree.updated.privacy";
   return "legal.accept.agreeUpdated.docs";
 }
 export function gateKinds(extra: unknown): string[] {

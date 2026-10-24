@@ -9,7 +9,7 @@ import { myListingCertification } from "./legal-reader";
 
 /**
  * The statements that apply to an ad, with ONE tick (L1 v2 item 4). Bundle 22 turn 32 (DEC-236, D231): the
- * statements are not printed here; the tick is AgreeToDocument with one link per applying statement to its
+ * statements are not printed here; the tick is AgreeToDocument with one link for every applying statement to its
  * public page, and `tried` — bumped by the screen's closed action — marks the tick refused while unticked.
  */
 export function CertifyBlock({
@@ -21,7 +21,7 @@ export function CertifyBlock({
   onChange: (value: CertifyState) => void;
   tried?: number;
 }) {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const client = useQueryClient();
   const query = useQuery({
     queryKey: certifyKey(listingId),
@@ -84,7 +84,8 @@ export function CertifyBlock({
       </div>
     );
 
-  const regions = new Intl.DisplayNames([language], { type: "region" });
+  const countries = [...new Set(statements.flatMap((s) => s.country_code ? [s.country_code] : []))];
+  const href = countries.length ? `/legal/publishing?country=${countries.join(",")}` : "/legal/publishing";
   return (
     <section data-testid="certify-block" className="space-y-3">
       <h3 className="text-base font-semibold text-foreground">{t("legal.certify.title")}</h3>
@@ -92,18 +93,8 @@ export function CertifyBlock({
       <AgreeToDocument
         id="certification"
         testId="certify-tick"
-        sentence="legal.certify.tickStatement"
-        links={statements.map((s) => ({
-          label: s.country_code
-            ? `${t("legal.kind.publishing")} — ${t("legal.certify.forCountry").replace(
-                "{country}",
-                regions.of(s.country_code) ?? s.country_code,
-              )}`
-            : t("legal.kind.publishing"),
-          href: s.country_code
-            ? `/legal/publishing?country=${encodeURIComponent(s.country_code)}`
-            : "/legal/publishing",
-        }))}
+        sentence="legal.agree.certify"
+        links={{ publishing: href }}
         checked={ticked}
         onCheckedChange={(value) => {
           setTicked(value);

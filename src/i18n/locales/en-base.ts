@@ -1359,17 +1359,13 @@ export const enBase = {
   "legal.accept.version": "Version {n} · {label}",
   "legal.accept.read": "Read",
   "legal.accept.hide": "Hide",
-  "legal.accept.agreeFirst.both":
-    "I am 18 or older. I have read and agree to the Terms of Service and the Privacy Policy.",
-  "legal.accept.agreeFirst.terms":
-    "I am 18 or older. I have read and agree to the Terms of Service.",
-  "legal.accept.agreeFirst.privacy":
-    "I am 18 or older. I have read and agree to the Privacy Policy.",
+  "legal.agree.first.both": "I am 18 or older. I have read and agree to the [Terms of Service](terms) and the [Privacy Policy](privacy).",
+  "legal.agree.first.terms": "I am 18 or older. I have read and agree to the [Terms of Service](terms).",
+  "legal.agree.first.privacy": "I am 18 or older. I have read and agree to the [Privacy Policy](privacy).",
   "legal.accept.agreeFirst.docs": "I am 18 or older. I have read and agree to the documents above.",
-  "legal.accept.agreeUpdated.both":
-    "I have read and agree to the updated Terms of Service and the updated Privacy Policy.",
-  "legal.accept.agreeUpdated.terms": "I have read and agree to the updated Terms of Service.",
-  "legal.accept.agreeUpdated.privacy": "I have read and agree to the updated Privacy Policy.",
+  "legal.agree.updated.both": "I have read and agree to the updated [Terms of Service](terms) and the updated [Privacy Policy](privacy).",
+  "legal.agree.updated.terms": "I have read and agree to the updated [Terms of Service](terms).",
+  "legal.agree.updated.privacy": "I have read and agree to the updated [Privacy Policy](privacy).",
   "legal.accept.agreeUpdated.docs": "I have read and agree to the updated documents above.",
   "legal.accept.submit": "Agree and continue",
   "legal.accept.decline": "Decline, sign out",
@@ -1382,7 +1378,7 @@ export const enBase = {
   "legal.certify.leadOnce":
     "Read the statement below. You confirm it once for this ad, and again only if it changes.",
   "legal.certify.forCountry": "For {country}",
-  "legal.certify.tickStatement": "I certify the publishing statement.",
+  "legal.agree.certify": "I certify the [publishing statement](publishing).",
   "legal.agree.required": "Tick the box to continue.",
   "legal.certify.changed": "The statement has just changed. Read it and tick again.",
   "legal.certify.loadError": "The statement could not be loaded. Try again.",
