@@ -1,5 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { doorRefusal } from "@/features/posting/door-error";
+
+import { uuid } from "@/lib/schemas/primitives";
+import { serverError, upstreamFailed, upstreamUnavailable, verdict } from "@/server/answer";
+import { doorCall } from "@/server/door";
+import { ownListing } from "@/server/listings/own-listing";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 import { aiGate, recordAiSpend } from "@/server/ai/meter";
 import {
@@ -19,17 +24,7 @@ import {
   type Partition,
 } from "@/server/media/storage";
 import { assertStripped, StripError, stripImage, type StrippedImage } from "@/server/media/strip";
-import {
-  consumeRate,
-  envDial,
-  logRouteError,
-  refusal,
-  refuseUserClient,
-  routeJson,
-  upstreamFailed,
-  upstreamUnavailable,
-  userClientFromRequest,
-} from "@/server/supabase/user-client";
+import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-client";
 import { errorText } from "@/lib/error-text";
 
 /**
@@ -125,7 +120,6 @@ const EDGE_DIALS: Record<Variant, { env: string; px: number }> = {
 
 const EXTENSION = { jpeg: "jpg", png: "png", webp: "webp" } as const;
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CONTENT_TYPE = {
   jpeg: "image/jpeg",
   png: "image/png",
@@ -150,46 +144,23 @@ async function planPhotoCap(userId: string): Promise<number> {
   return cap.data;
 }
 
-async function handlePost(request: Request): Promise<Response> {
-  const caller = await userClientFromRequest(request);
-  const refused = refuseUserClient(PATH, caller);
-  if (refused !== null) return refused;
-  const supabase = caller.supabase!;
-  const userId = caller.userId!;
+/** One refusal in the posting verdict (the shape `refusal()` answered before). */
+const refusal = (field: string, reason: string, detail?: string) =>
+  verdict([{ field, reason, ...(detail === undefined ? {} : { detail }) }]);
 
-  // 2 — the dial, before a byte of the body is read.
-  const rate = await consumeRate(
-    "upload",
-    userId,
-    envDial("RATE_LIMIT_UPLOAD_PER_HOUR", 60),
-    "1 hour",
-  );
-  if (!rate.allowed) return refusal("rate", "rateLimited", rate.resetsAt ?? undefined);
-  // D158 — a seller's daily limit, over the hourly one: a day of uploads has a ceiling.
-  const daily = await consumeRate(
-    "upload:day",
-    userId,
-    envDial("RATE_LIMIT_UPLOAD_PER_DAY", 200),
-    "1 day",
-  );
-  if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
-
-  // A7 — the Start primitive hands the handler a web `Request`, so the multipart
-  // body is `request.formData()`; nothing else is needed for an upload.
-  let form: FormData;
-  try {
-    form = await request.formData();
-  } catch (error) {
-    logRouteError(PATH, `unreadable multipart body: ${errorText(error)}`);
-    return refusal("body", "badShape");
-  }
+async function handlePost(ctx: RouteContext): Promise<Response> {
+  // 1 the caller and 2 the hourly and daily dials ran in defineRoute (beforeParse),
+  // before a byte of the body was read (INC-865); the form is the bounded read's.
+  const supabase = ctx.supabase!;
+  const userId = ctx.userId!;
+  const form = ctx.form!;
 
   const listingId = String(form.get("listingId") ?? "");
   if (listingId === "") return refusal("listingId", "required");
   // D154 B2 — the stored photo this upload replaces, when it is an edit.
   const replacesField = form.get("replaces");
   const replaces = typeof replacesField === "string" ? replacesField.trim() : "";
-  if (replacesField !== null && !UUID.test(replaces)) return refusal("replaces", "badValue");
+  if (replacesField !== null && !uuid.safeParse(replaces).success) return refusal("replaces", "badValue");
   const certifiedField = form.get("certified");
   const certified =
     typeof certifiedField === "string" && certifiedField !== "" ? certifiedField.split(",") : [];
@@ -197,7 +168,7 @@ async function handlePost(request: Request): Promise<Response> {
     certifiedField !== null &&
     (typeof certifiedField !== "string" ||
       certified.length > 20 ||
-      certified.some((id) => !UUID.test(id)))
+      certified.some((id) => !uuid.safeParse(id).success))
   ) {
     return refusal("certified", "badValue");
   }
@@ -208,48 +179,29 @@ async function handlePost(request: Request): Promise<Response> {
   const language = typeof languageField === "string" ? languageField : undefined;
 
   // 3 — ownership, as the caller: `listings_seller_read` is the authority (F3).
-  const { data: listing, error: listingError } = await supabase
-    .from("listings")
-    .select("id, status, seller_id, title, category_id")
-    .eq("id", listingId)
-    .maybeSingle();
-  if (listingError) {
-    logRouteError(PATH, `listing read: ${listingError.message}`);
-    return routeJson({ error: "server error" }, 500);
-  }
-  if (!listing || listing.seller_id !== userId) {
-    return routeJson(
-      { ok: false, refusals: [{ field: "listingId", reason: "notYourListing" }] },
-      403,
-    );
-  }
-  if (!PHOTO_OPEN_STATUSES.has(String(listing.status))) {
-    return routeJson(
-      { ok: false, refusals: [{ field: "status", reason: "listingNotOpenForPhotos" }] },
-      409,
-    );
+  const own = await ownListing(supabase, userId, listingId, "id, status, title, category_id");
+  if ("error" in own) return serverError(PATH, `listing read: ${own.error.message}`);
+  const listing = own.row;
+  if (listing === null) return refusalAt("listingId", "notYourListing", 403);
+  if (!PHOTO_OPEN_STATUSES.has(String(listing["status"]))) {
+    return refusalAt("status", "listingNotOpenForPhotos", 409);
   }
 
-  if (listing.status !== "draft") {
+  if (listing["status"] !== "draft") {
     const { data, error, status } = await supabase.rpc("my_listing_certification", {
       p_listing_id: listingId,
     });
     if (error) {
       if (upstreamFailed(error, status))
         return upstreamUnavailable(PATH, "my_listing_certification", status);
-      logRouteError(PATH, `my_listing_certification: ${error.message}`);
-      return routeJson({ error: "server error" }, 500);
+      return serverError(PATH, `my_listing_certification: ${error.message}`);
     }
     if (data === null || typeof data !== "object" || Array.isArray(data)) {
-      logRouteError(PATH, "my_listing_certification: invalid answer");
-      return routeJson({ error: "server error" }, 500);
+      return serverError(PATH, "my_listing_certification: invalid answer");
     }
     const answer = data as Record<string, unknown>;
     if (answer["acceptance_pending"] === true) {
-      return routeJson(
-        { ok: false, refusals: [{ field: "legal", reason: "acceptanceRequired" }] },
-        409,
-      );
+      return refusalAt("legal", "acceptanceRequired", 409);
     }
     const statements = answer["statements"];
     if (
@@ -258,15 +210,11 @@ async function handlePost(request: Request): Promise<Response> {
         (row) => row === null || typeof row !== "object" || typeof row["version_id"] !== "string",
       )
     ) {
-      logRouteError(PATH, "my_listing_certification: invalid statements");
-      return routeJson({ error: "server error" }, 500);
+      return serverError(PATH, "my_listing_certification: invalid statements");
     }
     const expected = statements.map((row) => row["version_id"] as string).sort();
     if (JSON.stringify(expected) !== JSON.stringify([...certified].sort())) {
-      return routeJson(
-        { ok: false, refusals: [{ field: "legal", reason: "certificationRequired" }] },
-        409,
-      );
+      return refusalAt("legal", "certificationRequired", 409);
     }
   }
 
@@ -275,7 +223,8 @@ async function handlePost(request: Request): Promise<Response> {
   // with no ad submitted in the last 7 days, a draft takes no more photos until the
   // seller submits an ad (`publish_listing` sets `published_first_at`). A live, closed
   // or refused ad's photos are not counted here.
-  if (String(listing.status) === "draft") {
+  if (String(listing["status"]) === "draft") {
+    // dial in the handler: drafts only — INC-859
     const week = await consumeRate(
       "upload:draft-week",
       userId,
@@ -291,8 +240,7 @@ async function handlePost(request: Request): Promise<Response> {
         .gte("published_first_at", since)
         .limit(1);
       if (submittedError) {
-        logRouteError(PATH, `submitted ads: ${submittedError.message}`);
-        return routeJson({ error: "server error" }, 500);
+        return serverError(PATH, `submitted ads: ${submittedError.message}`);
       }
       if ((submitted ?? []).length === 0) return refusal("photos", "publishFirst");
     }
@@ -308,11 +256,10 @@ async function handlePost(request: Request): Promise<Response> {
       .eq("id", replaces)
       .maybeSingle();
     if (oldError) {
-      logRouteError(PATH, `replaced photo read: ${oldError.message}`);
-      return routeJson({ error: "server error" }, 500);
+      return serverError(PATH, `replaced photo read: ${oldError.message}`);
     }
     if (!old || old.listing_id !== listingId) {
-      return routeJson({ ok: false, refusals: [{ field: "replaces", reason: "photoGone" }] }, 409);
+      return refusalAt("replaces", "photoGone", 409);
     }
     replaced = { paths: old.paths, storage_path: old.storage_path };
   } else {
@@ -321,8 +268,7 @@ async function handlePost(request: Request): Promise<Response> {
       .select("id", { count: "exact", head: true })
       .eq("listing_id", listingId);
     if (countError) {
-      logRouteError(PATH, `photo count: ${countError.message}`);
-      return routeJson({ error: "server error" }, 500);
+      return serverError(PATH, `photo count: ${countError.message}`);
     }
     // Bundle 16 turn S1 — the seller's plan cap is read here too, before the paid
     // screen, so a photo the door would refuse (`tooManyPhotos`) costs nothing.
@@ -330,8 +276,7 @@ async function handlePost(request: Request): Promise<Response> {
     try {
       planCap = await planPhotoCap(userId);
     } catch (error) {
-      logRouteError(PATH, `plan cap: ${errorText(error)}`);
-      return routeJson({ error: "server error" }, 500);
+      return serverError(PATH, `plan cap: ${errorText(error)}`);
     }
     if ((count ?? 0) >= Math.min(envDial("MAX_PHOTOS_PER_LISTING", 10), planCap)) {
       return refusal("photos", "tooManyPhotos");
@@ -385,6 +330,7 @@ async function handlePost(request: Request): Promise<Response> {
   // nothing and is not counted): once spent, screening reads as off by budget for
   // the rest of the UTC day, and the photo is held or paused as when it is off.
   if (gate.on && !photoPolicyFake()) {
+    // dial in the handler: site-wide AI budget — the AI gateway's, INC-861
     const site = await consumeRate(
       "upload:screen",
       "site",
@@ -396,20 +342,17 @@ async function handlePost(request: Request): Promise<Response> {
   }
   const plan = photoScreenPlan(gate);
   if (plan === "unavailable") {
-    return routeJson(
-      { ok: false, refusals: [{ field: "cover", reason: "providerUnavailable", retry: true }] },
-      200,
-    );
+    return verdict([{ field: "cover", reason: "providerUnavailable", retry: true }]);
   }
   const held = plan === "hold";
   const cover = stripped.cover!;
   // D154 B3 — the ad's category (its English name, public) and title, for relevance.
   let categoryName: string | null = null;
-  if (!held && typeof listing.category_id === "string") {
+  if (!held && typeof listing["category_id"] === "string") {
     const { data: category } = await supabase
       .from("categories")
       .select("name_en")
-      .eq("id", listing.category_id)
+      .eq("id", listing["category_id"])
       .maybeSingle();
     categoryName = typeof category?.name_en === "string" ? category.name_en : null;
   }
@@ -423,7 +366,7 @@ async function handlePost(request: Request): Promise<Response> {
           thumb: stripped.thumb!,
         },
         log,
-        { category: categoryName, title: typeof listing.title === "string" ? listing.title : null },
+        { category: categoryName, title: typeof listing["title"] === "string" ? listing["title"] : null },
       );
   // D154 B3 — the screen's warnings: stored with the photo, never a refusal.
   const warnings = verdict.ok ? (verdict.warnings ?? []) : [];
@@ -438,20 +381,14 @@ async function handlePost(request: Request): Promise<Response> {
   const review: PhotoReview | null = outcome?.kind === "review" ? outcome.review : null;
   const unscreened = held || review !== null;
   if (!verdict.ok && outcome?.kind === "refuse") {
-    return routeJson(
+    return answerVerdict([
       {
-        ok: false,
-        refusals: [
-          {
-            field: "cover",
-            reason: verdict.code,
-            detail: verdict.evidence,
-            ...(verdict.code === "providerUnavailable" ? { retry: true } : {}),
-          },
-        ],
+        field: "cover",
+        reason: verdict.code,
+        detail: verdict.evidence,
+        ...(verdict.code === "providerUnavailable" ? { retry: true } : {}),
       },
-      200,
-    );
+    ]);
   }
 
   // 7 — the objects, then 8 — the door. Both need the service role: the bucket's
@@ -512,7 +449,7 @@ async function handlePost(request: Request): Promise<Response> {
       p_warnings: warnings,
       // Bundle 16 turn 4a (D178) — why the photo is hidden, for a person to decide.
       ...(review === null ? {} : { p_review: review }),
-      ...(listing.status === "draft"
+      ...(listing["status"] === "draft"
         ? {}
         : {
             ...(certifiedField === null ? {} : { p_certified: certified }),
@@ -521,21 +458,22 @@ async function handlePost(request: Request): Promise<Response> {
     };
     // D154 B2 — an edit takes the old photo's place in one transaction.
     const door = replaced === null ? "register_listing_photo" : "replace_listing_photo";
-    const { data, error, status } =
+    const result =
       replaced === null
         ? await supabaseAdmin.rpc("register_listing_photo", stored)
         : await supabaseAdmin.rpc("replace_listing_photo", {
             ...stored,
             p_old_photo_id: replaces,
           });
+    const { data, error, status } = result;
     if (error) {
+      // The objects just written go BEFORE the answer: doorCall answers, it never throws.
       await rollback();
       // INC-574 — the door was never reached: 503 after the rollback, not a refusal.
       if (upstreamFailed(error, status)) {
         return upstreamUnavailable(PATH, door, status);
       }
-      logRouteError(PATH, `${door}: ${error.message}`);
-      return routeJson({ ok: false, refusals: [doorRefusal(error.message)] }, 200);
+      return doorCall(PATH, async () => result, { raw: true });
     }
 
     // D154 B2 — the old photo's row is gone; its objects go now. A failure is
@@ -550,7 +488,7 @@ async function handlePost(request: Request): Promise<Response> {
       }
     }
 
-    return routeJson(
+    return ok(
       {
         ok: true,
         photoId,
@@ -574,7 +512,6 @@ async function handlePost(request: Request): Promise<Response> {
         ...(replaced === null ? {} : { replaced: replaces }),
         ...(data && typeof data === "object" ? { door: data } : {}),
       },
-      200,
     );
   } catch (error) {
     await rollback();
@@ -585,14 +522,33 @@ async function handlePost(request: Request): Promise<Response> {
 export const Route = createFileRoute("/api/upload/photo")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        try {
-          return await handlePost(request);
-        } catch (error) {
-          logRouteError(PATH, error);
-          return routeJson({ error: "server error" }, 500);
-        }
-      },
+      POST: defineRoute({
+        path: PATH,
+        auth: "user",
+        // Foundations turn 4 — one byte ceiling, over the sum of the four size dials
+        // (1.63 MiB, SIZE_DIALS): an honest upload passes it; an abusive body is 413.
+        form: { maxBytes: 2 * 1024 * 1024 },
+        rate: [
+          {
+            action: "upload",
+            key: "user",
+            limit: { env: "RATE_LIMIT_UPLOAD_PER_HOUR", fallback: 60 },
+            windowSeconds: 3600,
+            when: "beforeParse",
+            refuseAs: { verdict: { field: "rate" } },
+          },
+          {
+            // D158 — a seller's daily limit, over the hourly one.
+            action: "upload:day",
+            key: "user",
+            limit: { env: "RATE_LIMIT_UPLOAD_PER_DAY", fallback: 200 },
+            windowSeconds: 86400,
+            when: "beforeParse",
+            refuseAs: { verdict: { field: "rate" } },
+          },
+        ],
+        handler: handlePost,
+      }),
     },
   },
 });
