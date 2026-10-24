@@ -28,5 +28,6 @@ it("QRR-2 a good id is a 200 SVG with the immutable cache and nosniff", async ()
 it("QRR-3 the body is byte-identical to qrSvg(origin + /l/ + id)", async () => {
   const body = new Uint8Array(await (await get("abcdefghjk")).arrayBuffer());
   const expected = new TextEncoder().encode(qrSvg("https://example.test/l/abcdefghjk"));
-  expect(body).toEqual(expected);
+  // Compared byte by byte as plain arrays (the test realm's Uint8Array differs).
+  expect(Array.from(body)).toEqual(Array.from(expected));
 });
