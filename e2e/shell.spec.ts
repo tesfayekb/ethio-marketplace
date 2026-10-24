@@ -2343,32 +2343,23 @@ test.describe("i18n gate is non-blocking (U4f-2)", () => {
  * per-test persona's own profile row), so they are NOT @global-state.
  */
 test.describe("U4h device language star", () => {
-  /** Stars a language through the real affordance and waits for the apply. */
-  async function starLanguage(page: Page, code: "en" | "am") {
-    await waitForHydration(page);
-    await page.getByTestId("language-switcher").click();
-    const star = page.getByTestId(`language-star-${code}`);
-    await star.click();
-    await expect(star).toBeVisible();
-    await expect(star).toHaveAttribute("aria-pressed", "true");
-    await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
-    await page.keyboard.press("Escape");
-    await expect(star).toBeHidden();
-    await expect(page.getByTestId("language-switcher")).toBeVisible();
-  }
-
-  test("TR-41 a starred language stays the default after another is chosen", async ({ page }) => {
+  test("TR-41 the language picked in the menu is the device's default: a new tab and a reload open in it (D237)", async ({
+    page,
+  }) => {
     await gotoReady(page, "/");
-    await starLanguage(page, "am");
-    await page.getByTestId("language-switcher").click();
-    await page.getByTestId("language-option-en").click();
-    await expect(page.locator("html")).toHaveAttribute("lang", "en");
+    await switchLanguage(page, "am");
+
+    const tab = await page.context().newPage();
+    await gotoReady(tab, "/");
+    await expect(tab.locator("html")).toHaveAttribute("lang", "am");
+
     await page.reload({ waitUntil: "domcontentloaded" });
     await waitForHydration(page);
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
+
     await page.getByTestId("language-switcher").click();
-    await expect(page.getByTestId("language-star-am")).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByTestId("language-star-en")).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByTestId("language-option-am")).toHaveAttribute("aria-checked", "true");
+    await expect(page.getByTestId("language-option-en")).toHaveAttribute("aria-checked", "false");
   });
 
   /** Seeds a star the way a returning device carries one: both stores, pre-boot. */
@@ -2388,7 +2379,7 @@ test.describe("U4h device language star", () => {
 
   test("TR-27 a star set signed-out survives reload, sign-in and sign-out", async ({ page }) => {
     await gotoReady(page, "/");
-    await starLanguage(page, "am");
+    await switchLanguage(page, "am");
 
     await gotoReady(page, "/");
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");

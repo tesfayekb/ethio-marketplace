@@ -634,13 +634,13 @@ stored twice:
 - cookie `ethio_lang_star` — the only channel SSR can read (`SameSite=Lax`,
   one year, path `/`). It carries a language CODE and nothing else.
 
-The switcher renders one ★ toggle per gated language (≥44px, `aria-pressed`,
-labelled by `language.star` / `language.starred` in EN+AM). Starring also
-SELECTS the language — a default you cannot see is not a default — and the
-setter REPLACES rather than appends, so the one-favourite invariant is
-structural rather than policed.
-
-A tap on the star sets it without selecting the row, and the menu stays open with the star filled (INC-748: Radix's menu item clicked itself on the pointerup and closed the menu first).
+D237 (Foundations turn 1): the pick IS the star. The menu is one radio group —
+picking a language stars it (both records written, SSR reads the cookie) and
+syncs the account preference; the item's own indicator (`aria-checked`) marks
+the choice. The separate ★ control is gone, and with it the `language.star` /
+`language.starred` strings (retired; read by nothing). The setter REPLACES
+rather than appends, so the one-favourite invariant is structural rather than
+policed.
 
 ### Precedence at boot
 

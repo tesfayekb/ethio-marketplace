@@ -8,8 +8,6 @@ export const enBase = {
   "language.amharic": "አማርኛ",
   "language.enShort": "EN",
   "language.amShort": "አማ",
-  "language.star": "Set as this device's default language",
-  "language.starred": "Default language on this device",
   "nav.home": "Home",
   "common.loading": "Loading…",
   "common.error": "Something went wrong",

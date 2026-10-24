@@ -34,6 +34,10 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 | 26 | An agreement to a document (the tick, its links, the required styling, the record) | `AgreeToDocument` (`src/features/legal/agree-to-document.tsx`; bundle 22 turn 32) — the sentence's link tokens `[text](role)`, roles supplied by the screen (turn 33; D235); consumers: the sign-up form, the acceptance screen, the certify block (review, seller edit, Renew); the record: `handle_new_user` (M21, metadata) and `accept_legal` / `legal_certify` | `src/features/legal/agree-to-document.test.tsx` — tree census: `<Checkbox` beside a `legal.` key only in the component + the sentence census (both catalogues) | — | languages and kinds as rows; a statement set as links | the landing after a sign-in: `landAfterSignIn` (use-legal-gate.ts), six callers, unit census |
 
 | 27 | A signed-in reader's failure reaches the screen with its class | `readerFailure` / `ReaderError` (`src/lib/reader-failure.ts`; bundle 22 turn 33) — consumers: readMyListings, the posting profile read; a null-to-throw reader lists every caller and lands its catch, including wizard and step-review (INC-849) | `src/lib/reader-failure.test.ts` — the `if (error) return null` census over src/features | — | classes as a closed set; door codes and a compiler-enforced Result replace the word/manual caller rule (Foundations) | INC-847, INC-849 |
+| 28 | A guard is one census over the whole tree with one allowlist grammar and a named caller | `scripts/conformance/kit.ts` | kit-adoption.test.ts, wired.test.ts | kit-adoption-allowlist.txt (15 walkers until their waves; 6 enumerators until DEC-244) | growth: a new guard is one file | DEC-244 |
+| 29 | A signed-in screen's door-step | `src/lib/signed-in-route.ts` requireSignedIn | signed-in-routes.test.ts | none | a new screen is one import | INC-852 |
+| 30 | A legal kind's audience | `public.legal_kind_signed_in_only(text)` (M24) + legal-kinds.ts signedInOnlyKind | the mirror test, LGC-6, the M24 proof | none | a kind is one predicate line, then a kinds table | D236 |
+| 31 | One language per device, every tab, carried to the account | provider.tsx setStar | language-records.test.ts | the ?lang= URL override (tab-only, never stars) | languages are rows | D237, INC-851 |
 
 ## Guard debt (G0.4; each open class with the test it owes)
 
@@ -42,5 +46,5 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 - AI: no gateway census; the D166 census keyed on one provider — land with `aiCall` (rows 11, 12).
 - Doors: no static or live check that a door's gates come in order, that a mutating door audits, or that a refusal carries a code — land with `check-doors.ts` (row 20).
 - Locale: no lint for `Intl` sites, pinned locales or SQL language literals — lands with `locale.ts`/`format.ts` (row 16).
-- Guards: no `scripts/conformance/wired.test.ts` naming every guard's caller (G55) — the conformance kit, the Foundations bundle's first turn.
+- Guards: INC-852 ✓ (CF-SIR, signed-in-routes.test.ts), INC-855 ✓ (GW-3, shell-guards.test.ts); INC-853/INC-854 owed (the e2e-helpers wave of the kit adoption).
 - Allowlists: rows 2 and 8 and the RLS/definer allowlists carry no `until` (G55 format) — migrated by the door manifest and the conformance kit.
