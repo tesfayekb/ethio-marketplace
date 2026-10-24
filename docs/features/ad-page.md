@@ -179,3 +179,5 @@ Bundle 21 turn 16 (INC-753): a tapped tab holds until the scroll it started has 
 Turn 34 — the Maps search names the full place, from the ad's place up to the country, in English (the deepest place common to the ad's places — INC-730); on an iPhone home-screen app, where an outside link opens in an in-app window that cannot hand a Google Maps web link to the app, both Maps links offer "Google Maps app" (Google's own app address) or "Open in browser" (INC-731); elsewhere the links open as before.
 
 INC-779 (bundle 22 turn 10): after a tap on the section bar, the tapped tab stays current once its own scroll has stopped, until the reader moves the page; AP-37 checks that the choice holds.
+
+Foundations turn 7 (INC-862 T3): the feed/seller/options boundary, cursor, cache and explicit answer changes are recorded in [routes.md](routes.md).

@@ -1,6 +1,6 @@
 # The route boundary (Foundations turn 2, DEC-237)
 
-Every server endpoint — a TanStack server route under `src/routes/api/` or a `createServerFn` — authenticates, bounds, parses, answers and calls out through ONE mechanism: `defineRoute` (`src/server/route.ts`), a shape from `src/lib/schemas/`, the two envelopes of `src/server/answer.ts`, and the one outside call `upstream()` (`src/server/upstream.ts`). No `request.json()`, `new Response(`, `createClient(` or `fetch(` anywhere else — the census (`scripts/conformance/routes.test.ts`, CF-RT-1…5) and the ESLint `no-restricted-syntax` block (its ignore list IS `scripts/conformance/routes-allowlist.txt`) fail on a bypass.
+Every server endpoint — a TanStack server route under `src/routes/api/` or a `createServerFn` — authenticates, bounds, parses, answers and calls out through ONE mechanism: `defineRoute` (`src/server/route.ts`), a shape from `src/lib/schemas/`, the two envelopes of `src/server/answer.ts`, and the one outside call `upstream()` (`src/server/upstream.ts`). No `request.json()`, `new Response(`, `createClient(` or `fetch(` anywhere else — the census (`scripts/conformance/routes.test.ts`, CF-RT-1…7) and the ESLint `no-restricted-syntax` block (its ignore list IS `scripts/conformance/routes-allowlist.txt`) fail on a bypass.
 
 ## The boundary's order
 
@@ -47,7 +47,7 @@ The local 502 `{error:"internal error"}` retires with each reader move: the cens
 
 `versionCache<K, T>({ ttlMs, max })` in `src/server/version-cache.ts` returns `get(key, version, build)`. Each route owns its instance, no shared module state. Within TTL no version read; TTL 0 reads on every request (INC-265); an unchanged version reuses the value, a changed version rebuilds. Null versions/builds and throws evict any old entry and are never cached; throws propagate to the route's outer catch. Keys are bounded by max and evicted least-recently-used, including TTL hits as use. Bounds must be finite/non-negative TTL and positive integer max. VRC-1…5 prove the contracts.
 
-`cursor(shape)` and `encodeCursor(value)` in `src/lib/schemas/cursor.ts` share the identical feed/seller UTF-8 base64url-of-JSON codec. The decoder is bounded to 512 characters, refuses non-object JSON and invalid encodings as schema issues, then pipes through the supplied shape (CUR-1…3). Feed and seller remain unchanged until turn 7. `langCodeLoose` and `countryCodeLoose` opt in to the existing readers' trimming/normalisation; original primitives remain unchanged (SCH-2).
+`cursor(shape)` and `encodeCursor(value)` in `src/lib/schemas/cursor.ts` share the identical feed/seller UTF-8 base64url-of-JSON codec. The decoder is bounded to 512 characters, refuses non-object JSON and invalid encodings as schema issues, then pipes through the supplied shape (CUR-1…3). Feed and seller consume this codec (Foundations turn 7). `langCodeLoose` and `countryCodeLoose` opt in to the existing readers' trimming/normalisation; original primitives remain unchanged (SCH-2).
 
 ## The two envelopes
 
@@ -67,7 +67,7 @@ The local 502 `{error:"internal error"}` retires with each reader move: the cens
 
 ## The allowlist's waves
 
-`routes-allowlist.txt` holds 36 exceptions after Foundations turn 6 (40 after turn 4, unchanged in turn 5; the four cached readers left in turn 6): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
+`routes-allowlist.txt` holds 33 exceptions after Foundations turn 7 (36 after turn 6; feed, seller and attributes options left in turn 7): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
 
 ## A new route
 
@@ -145,3 +145,18 @@ Each through `upstream()`; a timeout takes the branch a network error takes:
 - `src/server/media/policy.ts` — the Gemini photo screen, 20 s (`gemini photo_screen`) → `providerUnavailable` with `retry`.
 - `src/server/media/background.ts` — the source photo, 10 s (`photo source`) → null; Photoroom, 30 s (`photoroom segment`) → null; both `providerUnavailable`.
 - `src/server/media/storage.ts` — every R2 request, 15 s (`r2 <method>`; never the key or the signed URL) → the put or delete throws, as a network error does.
+
+## Paged public readers and signed-in options (INC-862 T3, Foundations turn 7)
+
+The one failed-read mapping is `readFailure(path, what, error)` (answer.ts), using `readerFailure` for raw or typed errors; `readFailed(error, status)` (reader-failure.ts) constructs the typed database failure. CF-RT-7 rejects local mapping/factory copies; CF-RT-6 recognises generic boundary calls. ANS-10 proves 503/500 without diagnostic text.
+
+| Route                         | Auth | Shape                                                                                     | Cache / success                                                                                                                        | Refusals                                                                              |
+| ----------------------------- | ---- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `/api/feed`                   | anon | non-strict query category/place uuid, size 1–50 (default 20), after cursor of JSON object | no in-process cache; public max-age=60, stale-while-revalidate=300; `{cards, ladder, steps, next}` plus optional cover links           | 400 badCategory/badPlace/badSize/badCursor; 404 unknownCategory/unknownPlace; 503/500 |
+| `/api/seller`                 | anon | non-strict query key required, max 60, empty accepted; after same cursor                  | no in-process cache; same public headers; `{seller, cards, next}`                                                                      | 400 badKey/badCursor/badSize; 404 unknownSeller; 503/500                              |
+| `/api/attributes/$id/options` | user | strict params id uuid                                                                     | versionCache id · 15 s · 512; private max-age=60, stale-while-revalidate=300; ETag `"attr-options-2-<stamp>"`; 200/304 via conditional | 404 unknown attribute; 429 rateLimited (not cached); shared caller refusals; 503/500  |
+
+- CHANGE (1): feed/seller database failures now use readFailure: 503 upstream unavailable or 500 server error with incident and no detail; INC-804 retains its test id/title and no-detail intent; malformed pages answer serverError.
+- CHANGE (2): options adopts missing bearer token / not signed in 401, account is deactivated 403 and upstream unavailable 503; PR-51 matches its draft/identity siblings; ATO-1/2 and PR-6 prove refusals.
+- CHANGE (3): options validates id after caller; signed-in non-uuid 404, signed-out non-uuid 401; ATO-3 proves caller-before-shape, PR-6's valid all-zero uuid stays 404.
+- CHANGE (4): every options request checks caller before any cache hit; ATO-5 proves two caller checks and one version read. The baseline already checked caller before cache; this is preserved, not a new order change.

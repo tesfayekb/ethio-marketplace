@@ -1072,3 +1072,5 @@ The single reader rule `keyFacts` takes up to four answered ranked facts in rank
 Tests: KF-1…KF-5 (ranking and fallback), LD-7 (shared strip and complete Details), AV-8 (definition mapping), the links-header gate case (old/new/order), AT-83 (route preview/commit/undo/refusals/export), AP-18 (ranked/fallback/card exclusion).
 
 Turn 10 adds the own-link Key fact checkbox beside the card tick. Picks append in tick order, unticking renumbers the remaining ranks, and at four the unranked boxes are disabled. The caption names the ranked labels (or the fallback when none is picked). `useSetFactAttributes` calls M2’s permission- and step-up-gated `admin_set_fact_attributes` door and invalidates the existing attribute queries; inherited rows are unchanged. AT-84 proves stored ranks, the caption, renumbering, the cap and untouched card ranks with scratch rows.
+
+Foundations turn 7 (INC-862 T3): the feed/seller/options boundary, cursor, cache and explicit answer changes are recorded in [routes.md](routes.md).
