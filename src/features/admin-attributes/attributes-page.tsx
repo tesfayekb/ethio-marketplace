@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { Download, Link2, Merge, Plus, Tags, Unlink, Upload } from "lucide-react";
 
-import { supabase } from "@/integrations/supabase/client";
+import { downloadRoute } from "@/lib/route-client";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -206,8 +206,6 @@ export function AdminAttributesPage() {
     setExporting(true);
     setExportError(false);
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token ?? "";
       // C3-INH PART B — a filtered console exports THAT SUBTREE (category +
       // descendants, inherited rows included); no filter exports the library.
       // The URL is the truth (C3-UX-1 PART B): reading the derived roster row
@@ -216,19 +214,11 @@ export function AdminAttributesPage() {
       for (const file of ["definitions", "links"] as const) {
         const query =
           scope === null ? `file=${file}` : `file=${file}&scope=${encodeURIComponent(scope)}`;
-        const response = await fetch(`/api/admin/attributes/export?${query}`, {
-          headers: token === "" ? {} : { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error(`export ${file} failed: ${response.status}`);
-        const blob = await response.blob();
-        const href = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
-        anchor.href = href;
-        anchor.download = scope === null ? `${file}.csv` : `${scope}-${file}.csv`;
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-        URL.revokeObjectURL(href);
+        const answer = await downloadRoute(`/api/admin/attributes/export?${query}`, scope === null ? `${file}.csv` : `${scope}-${file}.csv`);
+        if (answer.kind !== "answered" || !answer.ok) {
+          setExportError(true);
+          break;
+        }
       }
     } catch (error) {
       console.error("[attributes] export failed", error);
