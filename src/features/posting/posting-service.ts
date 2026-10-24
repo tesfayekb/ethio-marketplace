@@ -1,4 +1,5 @@
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 
@@ -24,11 +25,6 @@ import type { PlaceFact } from "./where-seed";
 /** The bearer the routes demand; absent means "not signed in" and the route 401s. */
 export function mayResumePosting(status: string): boolean {
   return status === "draft";
-}
-
-async function bearer(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
 }
 
 function refusalsOf(payload: Record<string, unknown>): Refusal[] {
