@@ -4,7 +4,12 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { entryChunks, mustStayLazyViolation, staticClosure, staticImportsOf } from "./bundle-closure.mjs";
+import {
+  entryChunks,
+  mustStayLazyViolation,
+  staticClosure,
+  staticImportsOf,
+} from "./bundle-closure.mjs";
 
 /**
  * Bundle 11 turn C8 (INC-556, DEC-176) — the first-paint budget follows the

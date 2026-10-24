@@ -53,5 +53,7 @@ export const MUST_STAY_LAZY = ["reader-failure", "legal-page-data", "zod"];
 
 /** The first closure chunk name that must stay lazy, or null. */
 export function mustStayLazyViolation(closureNames) {
-  return closureNames.find((name) => MUST_STAY_LAZY.some((prefix) => name.startsWith(prefix))) ?? null;
+  return (
+    closureNames.find((name) => MUST_STAY_LAZY.some((prefix) => name.startsWith(prefix))) ?? null
+  );
 }
