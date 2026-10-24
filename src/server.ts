@@ -67,6 +67,10 @@ export async function normalizeCatastrophicSsrResponse(
   }
 
   const error = consumeLastCapturedError() ?? new Error(`h3 swallowed SSR error: ${body}`);
+  if (request.signal.aborted) {
+    console.error("[client-aborted]", request.method, new URL(request.url).pathname);
+    return new Response(null, { status: 499 });
+  }
   logSsrError(request, error);
   return new Response(renderErrorPage(error), {
     status: 500,
@@ -90,6 +94,10 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(request, response);
     } catch (error) {
+      if (request.signal.aborted) {
+        console.error("[client-aborted]", request.method, new URL(request.url).pathname);
+        return new Response(null, { status: 499 });
+      }
       logSsrError(request, error);
       return new Response(renderErrorPage(error), {
         status: 500,
