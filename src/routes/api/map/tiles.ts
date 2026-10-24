@@ -49,7 +49,7 @@ export interface TilePlan {
   satellite: TileLayerSpec[];
 }
 
-export function osmPlan(): TilePlan {
+function osmPlan(): TilePlan {
   const layer: TileLayerSpec = {
     url: OSM,
     attribution: OSM_ATTRIBUTION,
@@ -114,7 +114,7 @@ export const Route = createFileRoute("/api/map/tiles")({
         auth: "none",
         body: FallbackBody,
         badShape: () => ok({ ok: false }, { cache: "no-store" }),
-        handler: async (ctx: RouteContext<unknown, z.infer<typeof FallbackBody>>) => {
+        handler: async (ctx: RouteContext<z.infer<typeof FallbackBody>>) => {
           const raw = ctx.body.reason ?? "";
           const reason = REASON.test(raw) ? raw : "unknown";
           // INC-446 — an unsigned caller may write at most 60 lines an hour per
