@@ -23,7 +23,12 @@ import { type SupabaseClient } from "@supabase/supabase-js";
 import { xliffUnits } from "@/features/admin/translations/io-formats";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import type { Database } from "@/integrations/supabase/types";
-import { userClientFromRequest } from "@/server/supabase/user-client";
+import { clientError } from "@/server/answer";
+import {
+  callerHasPermission,
+  refuseUserClient,
+  userClientFromRequest,
+} from "@/server/supabase/user-client";
 import {
   BOUND_RE,
   FAMILIES,
@@ -962,50 +967,23 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
 
 /* --------------------------------- export -------------------------------- */
 
-export interface ExportGateOk {
-  ok: true;
-  supabase: SupabaseClient<Database>;
-  userId: string;
-  scope: string | null;
-}
-
 /**
- * THE SAME DOOR FOR THE OTHER DIRECTION. An export hands the operator the exact
- * file the importer reads back, so it is gated identically: bearer →
- * caller-context client → `auth.getUser()` → `scope` must look like a slug
- * (its existence is the RPC's verdict). The RPC re-checks the permission.
+ * Foundations turn 11 (DEC-237) — THE EXPORT SCOPE LAW. The caller and the
+ * view permission are the boundary's (`defineRoute` with `auth: { staff }`);
+ * what is left here is the scope's FORMAT: it must look like a slug or a
+ * country code (its existence is the RPC's verdict, 404). A blank scope is
+ * every row.
  */
-export async function openExportGate(
-  request: Request,
-  path: string,
+export function exportScope(
   familyId: string,
-  scopeParam: string | null,
-): Promise<ExportGateOk | GateRefused> {
+  scopeParam: string | undefined,
+): { ok: true; scope: string | null } | { ok: false; response: Response } {
+  const path = `/api/admin/${familyId}/export`;
   const family = familyOf(familyId);
   if (family === null)
     return refuse(path, `unknown family ${familyId}`, 400, { error: "unknownFamily" });
-
-  // U6-A2-C (B2/B3) — the SHARED user-scoped client; the wording and the status
-  // of each refusal stay this gate's own (no behaviour change).
-  const caller = await userClientFromRequest(request);
-  if (caller.reason === "serverEnv") {
-    return refuse(path, caller.message, 500, { error: "server error" });
-  }
-  if (caller.reason === "missingBearer") {
-    return { ok: false, response: json({ error: "missing bearer token" }, 401) };
-  }
-  // INC-574 — the auth server did not answer: 503, never "not signed in".
-  if (caller.reason === "upstream") {
-    return refuse(path, caller.message, 503, { error: "upstream unavailable" });
-  }
-  if (caller.supabase === null || caller.userId === null) {
-    const reason = caller.message === "" ? "" : ` ${errorText(caller.message)}`;
-    console.error(`[ssr-error] ${path} not signed in${reason}`);
-    return { ok: false, response: json({ error: "not signed in" }, 401) };
-  }
-  const supabase = caller.supabase;
-
-  const scope = scopeParam === null || scopeParam.trim() === "" ? null : scopeParam.trim();
+  const scope =
+    scopeParam === undefined || scopeParam.trim() === "" ? null : scopeParam.trim();
   if (scope !== null && family.scope === "category-slug" && !SLUG_RE.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
@@ -1013,6 +991,5 @@ export async function openExportGate(
   if (scope !== null && family.scope === "country-code" && !/^[A-Za-z]{2}$/.test(scope)) {
     return refuse(path, `bad scope ${scope}`, 400, { error: "badScope" });
   }
-
-  return { ok: true, supabase, userId: caller.userId, scope };
+  return { ok: true, scope };
 }
