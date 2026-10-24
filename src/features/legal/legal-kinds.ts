@@ -34,25 +34,6 @@ export function gateKinds(extra: unknown): string[] {
   );
   return [...kinds, ...scratch.slice(0, 4)];
 }
-/**
- * D236 — a legal kind's audience, mirrored from public.legal_kind_signed_in_only
- * (M24): the publishing statement and the e2e-pub- scratch class are for
- * signed-in people; terms, privacy and the other scratch kinds stay public.
- * The LK-mirror test reads the migration, so the two never drift.
- */
-export function signedInOnlyKind(kind: string): boolean {
-  return kind === "publishing" || /^e2e-pub-/.test(kind);
-}
-
-const COUNTRY = /^[A-Z]{2}$/;
-/** The root passes raw search through; only distinct uppercase country codes reach the door. */
-export function shapedCountries(value: unknown): string[] {
-  const values = typeof value === "string" ? value.split(",") : Array.isArray(value) ? value : [];
-  return [
-    ...new Set(values.filter((v): v is string => typeof v === "string" && COUNTRY.test(v))),
-  ].slice(0, 5);
-}
-
 export function gateExempt(pathname: string): boolean {
   return (
     pathname === "/legal/accept" ||

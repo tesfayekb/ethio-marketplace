@@ -4,7 +4,12 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { entryChunks, staticClosure, staticImportsOf } from "./bundle-closure.mjs";
+import {
+  entryChunks,
+  mustStayLazyViolation,
+  staticClosure,
+  staticImportsOf,
+} from "./bundle-closure.mjs";
 
 /**
  * Bundle 11 turn C8 (INC-556, DEC-176) — the first-paint budget follows the
@@ -48,5 +53,14 @@ describe("the entry's static import closure (DEC-176)", () => {
     expect(
       entryChunks(["index-C1.js", "client-by2.js", "main.abc.js", "styles-x.css", "provider-q.js"]),
     ).toEqual(["index-C1.js", "main.abc.js"]);
+  });
+
+  it("BC-5 a must-stay-lazy chunk in the closure is refused, by name (INC-864)", () => {
+    expect(mustStayLazyViolation(["index-a.js", "reader-failure-x.js", "shared-d.js"])).toBe(
+      "reader-failure-x.js",
+    );
+    expect(mustStayLazyViolation(["legal-page-data-b.js"])).toBe("legal-page-data-b.js");
+    expect(mustStayLazyViolation(["zod-c.js"])).toBe("zod-c.js");
+    expect(mustStayLazyViolation(["index-a.js", "shared-d.js"])).toBeNull();
   });
 });

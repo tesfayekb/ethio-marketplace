@@ -1,5 +1,5 @@
 import { errorText } from "@/lib/error-text";
-import { legalPageData, type LegalPageData } from "@/features/legal/legal-reader";
+import { legalPageData, type LegalPageData } from "@/features/legal/legal-page-data";
 import { anonymousClient } from "@/server/supabase/user-client";
 
 export type { LegalPageData };

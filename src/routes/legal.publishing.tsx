@@ -1,7 +1,6 @@
 import { createFileRoute, type ErrorComponentProps } from "@tanstack/react-router";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
-import { shapedCountries } from "@/features/legal/legal-kinds";
-import { legalPageData } from "@/features/legal/legal-reader";
+import { legalPageData, shapedCountries } from "@/features/legal/legal-page-data";
 import { useI18n } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
