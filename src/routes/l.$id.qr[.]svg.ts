@@ -1,50 +1,41 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 
-import { errorText } from "@/lib/error-text";
-import { isPublicId, qrSvg } from "@/server/qr";
+import { publicId } from "@/lib/schemas/primitives";
+import { bytes, plain } from "@/server/answer";
+import { qrSvg } from "@/server/qr";
+import { defineRoute, type RouteContext } from "@/server/route";
 
 /**
- * D201 §2 — the short address `/l/<id>` is what the QR carries; the page
- * itself arrives in a later turn of this bundle. No database, auth or rate dial.
+ * D201 §2 — the short address `/l/<id>` is what the QR carries. No database,
+ * auth or rate dial. Foundations turn 10 (INC-862): on `defineRoute`; the id is
+ * `publicId`-shaped first; the SVG is immutable.
  */
-function logRouteError(id: string, error: unknown): void {
-  console.error("[ssr-error]", `/l/${id}/qr.svg`, errorText(error));
-}
+
+const Params = z.object({ id: publicId });
 
 export const Route = createFileRoute("/l/$id/qr.svg")({
   server: {
     handlers: {
-      GET: ({ request, params }) => {
-        const id = params.id;
-        try {
-          if (!isPublicId(id)) {
-            return new Response("not found", {
-              status: 404,
+      GET: defineRoute({
+        path: "/l/$id/qr.svg",
+        auth: "none",
+        params: Params,
+        badShape: () => plain("not found", 404),
+        handler: async (ctx: RouteContext<unknown, z.infer<typeof Params>>) =>
+          bytes(
+            new TextEncoder().encode(
+              qrSvg(`${new URL(ctx.request.url).origin}/l/${ctx.params.id}`),
+            ),
+            "image/svg+xml; charset=utf-8",
+            {
               headers: {
-                "Content-Type": "text/plain; charset=utf-8",
-                "Cache-Control": "no-store",
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "X-Content-Type-Options": "nosniff",
               },
-            });
-          }
-          return new Response(qrSvg(`${new URL(request.url).origin}/l/${id}`), {
-            status: 200,
-            headers: {
-              "Content-Type": "image/svg+xml; charset=utf-8",
-              "Cache-Control": "public, max-age=31536000, immutable",
-              "X-Content-Type-Options": "nosniff",
             },
-          });
-        } catch (error) {
-          logRouteError(id, error);
-          return new Response("internal error", {
-            status: 500,
-            headers: {
-              "Content-Type": "text/plain; charset=utf-8",
-              "Cache-Control": "no-store",
-            },
-          });
-        }
-      },
+          ),
+      }),
     },
   },
 });
