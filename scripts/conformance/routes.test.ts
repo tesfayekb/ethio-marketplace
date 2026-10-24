@@ -139,13 +139,13 @@ describe("the route boundary census (CF-RT)", () => {
   it("CF-RT-6 generic calls conform only with the boundary import", () => {
     const imported = 'import { defineRoute } from "@/server/route";\ndefineRoute<Ctx>({';
     expect(conformsCode(imported)).toBe(true);
-    expect(conformsCode('defineRoute<Ctx>({')).toBe(false);
+    expect(conformsCode("defineRoute<Ctx>({")).toBe(false);
   });
 
   it("CF-RT-7 the scanner reports both planted read-failure copies once", () => {
     for (const [code, expected] of [
-      ['error instanceof ReaderError && upstreamFailed(', 'maps a read failure by hand'],
-      ['function readFailed(', 'declares its own read-failure factory'],
+      ["error instanceof ReaderError && upstreamFailed(", "maps a read failure by hand"],
+      ["function readFailed(", "declares its own read-failure factory"],
     ]) {
       const hits = BYPASS_PATTERNS.filter(({ re }) => re.test(code)).map(({ what }) => what);
       expect(hits).toEqual([expected]);

@@ -165,7 +165,10 @@ describe("the route answers (B2)", () => {
         const response = readFailure("/api/test", "database read", error);
         expect(response.status).toBe(500);
         const body = await response.json();
-        expect(body).toEqual({ error: "server error", incident: expect.stringMatching(/^[0-9a-f-]{36}$/) });
+        expect(body).toEqual({
+          error: "server error",
+          incident: expect.stringMatching(/^[0-9a-f-]{36}$/),
+        });
         expect(JSON.stringify(body)).not.toContain("secret detail");
       }
     } finally {
