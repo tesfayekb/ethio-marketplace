@@ -32,3 +32,7 @@ e2e/admin-attributes.spec.ts
 # D194 / bundle 17 turn 2 (2026-10-16): the Edit is the posting wizard; the stacked
 # edit form of bundles 11–16 has no caller.
 src/features/admin-listings/edit-form.tsx
+
+# Foundations turn 2 (2026-10-24): signedInOnlyKind/shapedCountries and their tests
+# moved to legal-kinds.ts / legal-kinds.test.ts; the emptied test file went (INC-864).
+src/features/legal/legal-page-data.test.ts
