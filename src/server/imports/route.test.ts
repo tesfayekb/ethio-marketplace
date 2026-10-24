@@ -33,7 +33,8 @@ vi.mock("@/server/supabase/user-client", () => {
     });
   return {
     routeJson,
-    logRouteError: (path: string, message: unknown) => state.logs.push(`${path} ${String(message)}`),
+    logRouteError: (path: string, message: unknown) =>
+      state.logs.push(`${path} ${String(message)}`),
     userClientFromRequest: async () => {
       state.callerCalls += 1;
       return { supabase: { rpc }, userId: "user-imr", reason: null, message: "" };
@@ -178,7 +179,12 @@ describe("defineImportRoute", () => {
   });
 
   it("IMR-2 an invalid UTF-8 body answers 400 invalidEncoding before the gate", async () => {
-    const bytes = new Uint8Array([...new TextEncoder().encode('{"categories":"'), 0xff, 0x22, 0x7d]);
+    const bytes = new Uint8Array([
+      ...new TextEncoder().encode('{"categories":"'),
+      0xff,
+      0x22,
+      0x7d,
+    ]);
     const response = await categories({ request: post(bytes), params: {} });
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "invalidEncoding" });
@@ -187,7 +193,11 @@ describe("defineImportRoute", () => {
   });
 
   it("IMR-3 a 5 MB Content-Length answers 413 fileTooLarge with nothing read", async () => {
-    const response = await send(categories, { categories: CATEGORIES }, { "content-length": "5000000" });
+    const response = await send(
+      categories,
+      { categories: CATEGORIES },
+      { "content-length": "5000000" },
+    );
     expect(response.status).toBe(413);
     expect(await response.json()).toEqual({ error: "fileTooLarge" });
     expect(state.callerCalls).toBe(0);

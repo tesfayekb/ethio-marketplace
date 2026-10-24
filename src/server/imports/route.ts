@@ -108,14 +108,17 @@ export function relay(path: string, what: string, error: DoorError): Response {
   const message = String(error.message ?? "").trim();
   for (const entry of IMPORT_REFUSALS) {
     if (entry.kind === "stepUp") {
-      if (message === entry.match || message.startsWith(`${entry.match}:`))
-        return stepUpRequired();
+      if (message === entry.match || message.startsWith(`${entry.match}:`)) return stepUpRequired();
       continue;
     }
     if (entry.kind === "key") {
       if (!message.startsWith(`${entry.match}:`)) continue;
       const tail = message.slice(entry.match.length + 1).trim();
-      return clientError(entry.error ?? entry.match, 409, tail === "" ? undefined : { detail: tail });
+      return clientError(
+        entry.error ?? entry.match,
+        409,
+        tail === "" ? undefined : { detail: tail },
+      );
     }
     if (message !== entry.match) continue;
     const status = entry.status === 428 ? 409 : entry.status;
