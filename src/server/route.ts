@@ -255,7 +255,13 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
       }
       let form: FormData | null = null;
       if (spec.form !== undefined) {
-        form = await request.formData();
+        // The counting reader already consumed the stream; parse the bytes.
+        const rebuilt = new Request(request.url, {
+          method: request.method,
+          headers: request.headers,
+          body: bytes,
+        });
+        form = await rebuilt.formData();
       }
 
       // (6) the dials — after the parse by default.
