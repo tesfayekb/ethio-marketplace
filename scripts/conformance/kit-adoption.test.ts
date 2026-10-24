@@ -19,7 +19,7 @@ const ALLOWLIST = join(dirname(fileURLToPath(import.meta.url)), "kit-adoption-al
 const IMPORT_STATEMENT = /import[\s\S]*?from\s*["'][^"']*["']/g;
 const DYNAMIC_IMPORT = /\{[^}]*\}\s*=\s*(?:await\s+)?import\([^)]*\)/g;
 const ENUMERATOR = /\b(?:readdirSync|opendirSync|readdir|globSync|glob)\b/;
-const KIT_IMPORT = /from\s*["'][^"']*conformance\/kit["']/;
+const KIT_IMPORT = /from\s*["'](?:\.\/kit|[^"']*conformance\/kit)["']/;
 
 type Finding = { file: string; line: number; what: string };
 
