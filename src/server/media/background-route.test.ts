@@ -170,16 +170,13 @@ describe("POST /api/listings/background (D155b / D159)", () => {
   });
 
   it("BGR-6 the ids, then the seller's own ad read as the caller: a bad id, another seller's ad and a closed ad are refused by name", async () => {
-    // Foundations turn 4 — CHANGE: a malformed id is the schema's badShape.
     expect((await refusalOf(await post({ listingId: "x", photoId: COVER }))).refusal).toEqual({
       field: "listingId",
-      reason: "badShape",
-      detail: "invalid_format",
+      reason: "badValue",
     });
     expect((await refusalOf(await post({ listingId: LISTING, photoId: 7 }))).refusal).toEqual({
       field: "photoId",
-      reason: "badShape",
-      detail: "invalid_type",
+      reason: "badValue",
     });
     state.listing = { id: LISTING, status: "draft", seller_id: "someone-else" };
     expect(await refusalOf(await post({ listingId: LISTING, photoId: COVER }))).toEqual({

@@ -35,9 +35,7 @@ import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-clie
  *                         provider key, is `featureOff`, before any dial, so a
  *                         switched-off tool spends none of the seller's tries
  *   3 the daily dial    — `background:day` per seller (RATE_LIMIT_BACKGROUND_PER_DAY, 10)
- *   4 the ids           — two UUIDs (the body's schema), else `badShape`
- *                         (Foundations turn 4: the schema runs in defineRoute,
- *                         before the switch)
+ *   4 the ids           — two UUIDs (the one `uuid`), else `badValue`
  *   5 ownership         — the listing read AS THE CALLER: another seller's is a
  *                         403 `notYourListing`; a closed status a 409 by name
  *   6 the cover         — the listing's photos read AS THE CALLER, in their own
@@ -59,8 +57,14 @@ import { consumeRate, envDial, logRouteError } from "@/server/supabase/user-clie
 
 const PATH = "/api/listings/background";
 
-/** The body the client sends (posting-service.ts `removeBackground`): exactly two ids. */
-export const BackgroundBody = z.object({ listingId: uuid, photoId: uuid }).strict();
+/**
+ * The body the client sends (posting-service.ts `removeBackground`): exactly two
+ * keys. Their values are judged in the handler after the switch and the daily
+ * dial, by the one `uuid`, so a malformed id stays `badValue` (PP-31 :1922 pins it).
+ */
+export const BackgroundBody = z
+  .object({ listingId: z.unknown().optional(), photoId: z.unknown().optional() })
+  .strict();
 type Body = z.infer<typeof BackgroundBody>;
 
 const refusal = (field: string, reason: string, detail?: string, status = 200) =>
@@ -71,7 +75,6 @@ const refusedWith = (status: number, field: string, reason: string) =>
 async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
   const supabase = ctx.supabase!;
   const userId = ctx.userId!;
-  const { listingId, photoId } = ctx.body;
   const log = (message: string) => logRouteError(PATH, message);
 
   // 2 — the switch first, and the provider's key: without either the tool is off.
@@ -98,6 +101,12 @@ async function handlePost(ctx: RouteContext<Body>): Promise<Response> {
     "1 day",
   );
   if (!daily.allowed) return refusal("rate", "rateLimited", daily.resetsAt ?? undefined);
+
+  // 4 — the ids.
+  const listingId = typeof ctx.body.listingId === "string" ? ctx.body.listingId.trim() : "";
+  const photoId = typeof ctx.body.photoId === "string" ? ctx.body.photoId.trim() : "";
+  if (!uuid.safeParse(listingId).success) return refusal("listingId", "badValue");
+  if (!uuid.safeParse(photoId).success) return refusal("photoId", "badValue");
 
   // 5 — ownership, as the caller: the id AND the seller in one read (ownListing).
   const own = await ownListing(supabase, userId, listingId, "id, status");
