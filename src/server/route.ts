@@ -5,10 +5,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { clientAddress, hashAddress } from "@/server/catalog-find.server";
 import { clientError, serverError, upstreamUnavailable, verdict } from "@/server/answer";
+import type { Dial } from "@/lib/dials";
+import { spend as spendDial } from "@/server/dials";
 import {
   anonymousClient,
-  consumeRate,
-  envDial,
   refuseUserClient,
   userClientFromRequest,
 } from "@/server/supabase/user-client";
@@ -50,10 +50,9 @@ export type RouteAuth =
   | { staff: { resource: string; action: string } };
 
 export type RateSpec = {
-  action: string;
+  /** Foundations turn 8 — a registry dial (src/lib/dials.ts): action, limit, window. */
+  dial: Dial;
   key: "user" | "address";
-  limit: number | { env: string; fallback: number };
-  windowSeconds: number;
   /** afterParse (the default) or beforeParse — the denial-of-service choice. */
   when?: "afterParse" | "beforeParse";
   /**
@@ -229,19 +228,10 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
 
       // (3b) the dials a route declares before the parse (the denial-of-service choice).
       const spend = async (entry: RateSpec): Promise<Response | null> => {
-        const limit =
-          typeof entry.limit === "number"
-            ? entry.limit
-            : envDial(entry.limit.env, entry.limit.fallback);
         const key =
           entry.key === "user" ? (userId ?? "anonymous") : hashAddress(clientAddress(request));
         try {
-          const spent = await consumeRate(
-            entry.action,
-            key,
-            limit,
-            `${entry.windowSeconds} seconds`,
-          );
+          const spent = await spendDial(entry.dial, key);
           if (!spent.allowed) {
             if (entry.refuseAs !== undefined) {
               return verdict([
@@ -260,7 +250,7 @@ export function defineRoute<B = unknown, P = unknown, Q = unknown>(
           }
           return null;
         } catch {
-          return upstreamUnavailable(spec.path, `rate limit ${entry.action}`, 0);
+          return upstreamUnavailable(spec.path, `rate limit ${entry.dial.action}`, 0);
         }
       };
       for (const entry of spec.rate ?? []) {
