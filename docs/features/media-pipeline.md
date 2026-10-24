@@ -105,6 +105,8 @@ reaches the provider.
 
 ### `POST /api/upload/photo` (multipart: `listingId`, `cover`, `card`, `thumb`)
 
+On `defineRoute` since Foundations turn 4 (the byte ceiling, the dials, the answers): see docs/features/routes.md.
+
 The body is read with the Start primitive's own `request.formData()` (A7
 first-of-kind; `PP-1` is the smoke proof). In order:
 

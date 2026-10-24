@@ -1523,3 +1523,4 @@ The review step's certification is the shared AgreeToDocument: "I certify the [p
 - `/api/listings/identity` — on `defineRoute`; see docs/features/routes.md.
 - `/api/listings/assist` — on `defineRoute`; see docs/features/routes.md.
 - `/api/listings/photos/$id` — on `defineRoute`; see docs/features/routes.md.
+- `/api/listings/background` — on `defineRoute`; see docs/features/routes.md.

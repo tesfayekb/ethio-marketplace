@@ -28,6 +28,8 @@ const state = {
   reads: [] as string[],
   logs: [] as string[],
   signed: [] as { ids: string[]; variants: readonly string[] }[],
+  signedIn: true,
+  pulls: 0,
 };
 
 vi.mock("@/server/supabase/user-client", () => {
@@ -38,22 +40,38 @@ vi.mock("@/server/supabase/user-client", () => {
     });
   const query = (table: string) => {
     state.reads.push(table);
+    // Foundations turn 4 — the fixture honours the seller filter ownListing sends
+    // (the id AND the seller in one read), as RLS-scoped Postgres does.
+    let seller: unknown = undefined;
     const builder = {
       select: () => builder,
-      eq: () => builder,
+      eq: (column: string, value: unknown) => {
+        if (column === "seller_id") seller = value;
+        return builder;
+      },
       order: async () => ({ data: state.photos, error: null }),
-      maybeSingle: async () => ({ data: state.listing, error: null }),
+      maybeSingle: async () => ({
+        data:
+          state.listing !== null && seller !== undefined && state.listing["seller_id"] !== seller
+            ? null
+            : state.listing,
+        error: null,
+      }),
     };
     return builder;
   };
   return {
-    userClientFromRequest: async () => ({
-      supabase: { from: query },
-      userId: "seller-1",
-      reason: null,
-      message: "",
-    }),
-    refuseUserClient: () => null,
+    userClientFromRequest: async () =>
+      state.signedIn
+        ? { supabase: { from: query }, userId: "seller-1", reason: null, message: "" }
+        : { supabase: null, userId: null, reason: "noToken", message: "no bearer" },
+    refuseUserClient: (_path: string, caller: { userId: string | null }) =>
+      caller.userId === null ? routeJson({ error: "unauthorized" }, 401) : null,
+    // Foundations turn 4 — the exports route.ts and answer.ts import.
+    anonymousClient: () => null,
+    upstreamFailed: () => false,
+    upstreamUnavailable: () => routeJson({ error: "upstream unavailable" }, 503),
+    doorAnswer: (data: unknown) => data,
     consumeRate: async (action: string, key: string, limit: number, window: string) => {
       state.rates.push({ action, key, limit, window });
       if (action === "background:listing") {
@@ -100,6 +118,7 @@ async function post(body: Record<string, unknown>): Promise<Response> {
   return handlers.POST({
     request: new Request("http://local/api/listings/background", {
       method: "POST",
+      headers: { "content-type": "application/json", Authorization: "Bearer t" },
       body: JSON.stringify(body),
     }),
   });
@@ -119,6 +138,8 @@ beforeEach(() => {
   state.reads = [];
   state.logs = [];
   state.signed = [];
+  state.signedIn = true;
+  state.pulls = 0;
   vi.stubEnv("E2E_FAKE_BACKGROUND", "1");
   vi.stubEnv("E2E_FAKE_TRANSLATE", "");
   vi.stubEnv("PHOTOROOM_API_KEY", "");
@@ -263,5 +284,51 @@ describe("POST /api/listings/background (D155b / D159)", () => {
     });
     expect(state.spent).toEqual([]);
     vi.unstubAllGlobals();
+  });
+
+  it("BGR-11 the cutout answer carries x-tries-left and cache-control no-store with the bytes", async () => {
+    state.budgetLeft = 1;
+    const response = await post({ listingId: LISTING, photoId: COVER });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("x-tries-left")).toBe("1");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect((await response.arrayBuffer()).byteLength).toBeGreaterThan(0);
+  });
+
+  it("BGR-12 a visitor answers 401 and the stream is never read", async () => {
+    state.signedIn = false;
+    let sent = false;
+    const stream = new ReadableStream<Uint8Array>(
+      {
+        pull(controller) {
+          state.pulls += 1;
+          if (sent) {
+            controller.close();
+            return;
+          }
+          sent = true;
+          controller.enqueue(new TextEncoder().encode(JSON.stringify({ listingId: LISTING })));
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const handlers = (
+      Route.options as unknown as {
+        server: { handlers: { POST: (ctx: { request: Request }) => Promise<Response> } };
+      }
+    ).server.handlers;
+    const response = await handlers.POST({
+      request: new Request("http://local/api/listings/background", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: stream,
+        duplex: "half",
+      } as RequestInit),
+    });
+    expect(response.status).toBe(401);
+    expect(state.pulls).toBe(0);
+    expect(state.rates).toEqual([]);
+    expect(state.reads).toEqual([]);
+    expect(state.spent).toEqual([]);
   });
 });

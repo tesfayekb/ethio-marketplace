@@ -1,8 +1,5 @@
 # The route boundary (Foundations turn 2): every server endpoint is a defineRoute; a line here is a route not yet moved (until its wave's INC) or a helper that implements the boundary. <path> | <reason> | <until>
-# INC-859 — the posting and media routes
-src/routes/api/listings/background.ts | posting route not yet on defineRoute | INC-859
-src/routes/api/upload/photo.ts | upload route not yet on defineRoute | INC-859
-src/routes/api/media/photo-links.ts | media route not yet on defineRoute (carries the second clientAddress copy :46-:52) | INC-859
+# INC-859 — closed (Foundations turn 4: every posting and media route is on defineRoute)
 # INC-860 — the admin imports and exports
 src/routes/api/admin/categories/import.ts | import route not yet on defineRoute | INC-860
 src/routes/api/admin/attributes/import.ts | import route not yet on defineRoute | INC-860
@@ -34,9 +31,6 @@ src/routes/api/map/tiles.ts | tiles route not yet on defineRoute | INC-862
 src/routes/l.$id.photo[.]jpg.ts | photo route not yet on defineRoute | INC-862
 src/routes/l.$id.qr[.]svg.ts | QR route not yet on defineRoute | INC-862
 src/server/ad-photo.ts | binary and redirect responses :16/:59 | INC-862
-src/server/media/policy.ts | its own fetch :284, retired when its handlers move | INC-862
-src/server/media/background.ts | its own fetch :101/:138, retired when its handlers move | INC-862
-src/server/media/storage.ts | its own storage fetch :226, retired when its handlers move | INC-862
 src/server/geo/geocode.ts | its own fetch :97 (already carries a deadline; moves onto upstream()) | INC-862
 src/server/category-images/gemini.ts | its own fetch :59, retired when its handlers move | INC-861
 # INC-863 — the six server functions
