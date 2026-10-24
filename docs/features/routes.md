@@ -67,7 +67,7 @@ The local 502 `{error:"internal error"}` retires with each reader move: the cens
 
 ## The allowlist's waves
 
-`routes-allowlist.txt` holds 40 exceptions after Foundations turn 4, unchanged in turn 5 (no route moves): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
+`routes-allowlist.txt` holds 36 exceptions after Foundations turn 6 (40 after turn 4, unchanged in turn 5; the four cached readers left in turn 6): INC-859 closed (posting/media), INC-860 imports/exports, INC-861 staff AI, INC-862 public readers, INC-863 server functions, INC-857 four client-side UUID copies. A line whose INC's wave lands leaves the file in the same edit — a stale line fails the census. CF-RT-2's helper set now names version-cache.ts.
 
 ## A new route
 
@@ -109,6 +109,17 @@ A dial goes in the spec unless its answer or its spending cannot be said there y
 - **background's daily dial** (`background:day`, 10 per day) — after the AI switch, so a switched-off tool spends none of the seller's tries (D158's order; BGR-5).
 - **background's per-listing tries** (`background:listing`, 2 per 10 years) — keyed by the listing, read for `x-tries-left`.
 - **photo-links' address dial** (`photo-links:address`, 600 per hour) — anonymous callers only; keyed by `hashAddress(clientAddress(request))`, the one address reader.
+
+## The cached public readers on the mechanism (INC-862 T2, Foundations turn 6)
+
+| Route                     | Auth | Params                      | Cache (key · TTL · max)                                      | ETag                              | Cache-Control                                      | Answers                                                                                                     |
+| ------------------------- | ---- | --------------------------- | ------------------------------------------------------------ | --------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `/api/categories/tree`    | anon | none                        | `"tree"` · 0 (version read every request, INC-265) · 1       | `"cat-tree-<version>"`            | `public, max-age=60, stale-while-revalidate=300`   | 200 `{version, nodes, pointers}`; 304; 503/500                                                              |
+| `/api/locations`          | anon | none                        | `"open"` · 15 s (a 15-second time bucket as the version) · 1 | `"open-markets-<FNV-1a hex>"`     | `public, max-age=300, stale-while-revalidate=3600` | 200 `{countries}`; 304; 503/500                                                                             |
+| `/api/locations/$country` | anon | `country: countryCodeLoose` | upper-case code · 15 s · 64                                  | `bundleEtag("loc-<CC>", version)` | `public, max-age=300, stale-while-revalidate=3600` | 200 `{country, version, nodes}`; 304; 400 `badCountry`; 404 `closedOrUnknownMarket` (never cached); 503/500 |
+| `/api/i18n/$lang`         | anon | `lang: langCodeLoose`       | normalised code · 15 s · 32                                  | `bundleEtag(code, version)`       | `public, max-age=300, stale-while-revalidate=3600` | 200 `{lang, bundle}`; 304; 400 `invalid language code`; 503/500                                             |
+
+Readers: the old 502 `{error:"internal error"}` retires — a database error answers 503 `upstream unavailable` when `upstreamFailed` says the database did not answer, else `serverError` 500. A cold conditional request (If-None-Match equal to the current tag, nothing held) builds nothing and answers 304. Every JSON answer carries `charset=utf-8` and every 304 carries `Vary: Accept-Encoding`.
 
 ## The posting routes on the mechanism (INC-859 A)
 
