@@ -1,6 +1,7 @@
 /** Category images: one staff boundary, one audited task; variants remain in the browser. */
 import { createFileRoute } from "@tanstack/react-router";
 import { GenerateImageBody, GenerateImageProbeQuery } from "@/lib/schemas/category-image";
+import type { Infer } from "@/lib/schemas/primitives";
 import { aiCall, renderTask, type AiAnswer } from "@/server/ai/gateway";
 import type { OutputOf } from "@/server/ai/tasks";
 import { bytes, ok } from "@/server/answer";
@@ -54,7 +55,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
       badShape: ({ code }) => ok({ error: code === "invalid_json" ? "invalid json body" : "invalid categoryId" }, { status: 400 }),
       handler: async (ctx) => generate(ctx, ctx.body.categoryId, false),
     }),
-    GET: defineRoute({ path: PATH, auth: AUTH, query: GenerateImageProbeQuery,
+    GET: defineRoute<unknown, unknown, Infer<typeof GenerateImageProbeQuery>>({ path: PATH, auth: AUTH, query: GenerateImageProbeQuery,
       badShape: ({ path }) => ok({ error: path === "probe" ? "probe=1 required" : "invalid categoryId" }, { status: 400 }),
       handler: async (ctx) => generate(ctx, ctx.query.categoryId, true),
     }),
