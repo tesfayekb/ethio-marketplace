@@ -89,6 +89,9 @@ function provider(verdict: Record<string, unknown>) {
 }
 
 beforeEach(() => {
+  vi.stubEnv("GEMINI_API_KEY", "");
+  vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
+  vi.stubEnv("E2E_FAKE_TRANSLATE", "");
   state.gate = { on: true };
   state.siteCap = true;
   state.spends = [];
@@ -435,6 +438,7 @@ describe("the screen's switch and cap through the gateway (D158, D184)", () => {
   });
 
   it("PPOL-19 the site's spent day cap holds the photo, logged, before any provider call (D184)", async () => {
+    vi.stubEnv("GEMINI_API_KEY", "stub-key");
     const fetched = vi.fn();
     vi.stubGlobal("fetch", fetched);
     state.siteCap = false;
