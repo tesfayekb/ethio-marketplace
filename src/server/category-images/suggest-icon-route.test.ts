@@ -28,9 +28,14 @@ vi.mock("@/server/ai/meter", () => ({
 vi.mock("@/server/ai/gateway", () => {
   return {
     aiCall: async () => {
-      if (!meter.gate.on) return { ok: false, reason: meter.gate.reason === "staff" ? "featureOff" : meter.gate.reason };
+      if (!meter.gate.on)
+        return {
+          ok: false,
+          reason: meter.gate.reason === "staff" ? "featureOff" : meter.gate.reason,
+        };
       asked.count += 1;
-      if (thrown.value !== null) return { ok: false, reason: "providerError", status: thrown.value.status };
+      if (thrown.value !== null)
+        return { ok: false, reason: "providerError", status: thrown.value.status };
       meter.spent.push("category_icons");
       return { ok: true, value: { icon: answer.value }, fake: false };
     },

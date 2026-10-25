@@ -20,10 +20,12 @@ import { defineRoute } from "@/server/route";
 import { checkIcon } from "@/server/category-images/icons";
 
 const PATH = "/api/admin/categories/suggest-icon";
-export const SuggestIconBody = z.object({
-  name: z.string().trim().min(1).max(120),
-  parentName: z.string().trim().max(120).nullable().optional(),
-}).strict();
+export const SuggestIconBody = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    parentName: z.string().trim().max(120).nullable().optional(),
+  })
+  .strict();
 
 export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
   server: {
@@ -32,24 +34,66 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
         path: PATH,
         auth: { staff: { resource: "categories", action: "assets" } },
         body: SuggestIconBody,
-        badShape: ({ path, code }) => ok({ error: code === "invalid_json" ? "invalid json body" : path === "parentName" ? "invalid parentName" : "invalid name" }, { status: 400 }),
+        badShape: ({ path, code }) =>
+          ok(
+            {
+              error:
+                code === "invalid_json"
+                  ? "invalid json body"
+                  : path === "parentName"
+                    ? "invalid parentName"
+                    : "invalid name",
+            },
+            { status: 400 },
+          ),
         handler: async ({ body, userId }) => {
-          const answer = await aiCall("category_icon", { name: body.name, parent: body.parentName ?? "" }, { actorId: userId, path: PATH });
+          const answer = await aiCall(
+            "category_icon",
+            { name: body.name, parent: body.parentName ?? "" },
+            { actorId: userId, path: PATH },
+          );
           if (answer.ok) {
             const value = answer.value;
-            return ok({ ...checkIcon(typeof value === "object" && value !== null && "icon" in value ? value.icon : null), fake: answer.fake });
+            return ok({
+              ...checkIcon(
+                typeof value === "object" && value !== null && "icon" in value ? value.icon : null,
+              ),
+              fake: answer.fake,
+            });
           }
-          if (answer.reason === "featureOff" || answer.reason === "budget" || answer.reason === "unavailable") {
+          if (
+            answer.reason === "featureOff" ||
+            answer.reason === "budget" ||
+            answer.reason === "unavailable"
+          ) {
             const reason = answer.reason === "featureOff" ? "staff" : answer.reason;
-            return ok({ error: `AI feature category_icons is off (${reason})`, stage: "switched-off" }, { status: reason === "unavailable" ? 503 : 409 });
+            return ok(
+              { error: `AI feature category_icons is off (${reason})`, stage: "switched-off" },
+              { status: reason === "unavailable" ? 503 : 409 },
+            );
           }
           const status = answer.status;
-          if (answer.reason === "providerError" && status !== undefined && status >= 400 && status < 500) {
-            const code = status === 400 || status === 422 ? "modelRefused" : status === 401 || status === 403 ? "modelKeyRefused" : status === 429 ? "modelRateLimited" : "modelCallFailed";
+          if (
+            answer.reason === "providerError" &&
+            status !== undefined &&
+            status >= 400 &&
+            status < 500
+          ) {
+            const code =
+              status === 400 || status === 422
+                ? "modelRefused"
+                : status === 401 || status === 403
+                  ? "modelKeyRefused"
+                  : status === 429
+                    ? "modelRateLimited"
+                    : "modelCallFailed";
             return ok({ error: code }, { status });
           }
           const response = serverError(PATH, `ai category_icon ${answer.reason}`);
-          return ok({ error: "server error" }, { status: response.status === 500 ? 502 : response.status });
+          return ok(
+            { error: "server error" },
+            { status: response.status === 500 ? 502 : response.status },
+          );
         },
       }),
     },
