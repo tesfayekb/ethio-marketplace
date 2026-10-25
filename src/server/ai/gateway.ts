@@ -90,7 +90,6 @@ export async function aiCall<T extends TaskId>(
   let sent: readonly AiImage[] = [];
   let inputHash: string | null = null;
   try {
-    rendered = render(task, material);
     model = (process.env[task.model.env] ?? "").trim() || task.model.fallback;
     const gate = await aiGate(task.feature, log);
     if (!gate.on) {
@@ -107,6 +106,9 @@ export async function aiCall<T extends TaskId>(
       if (!fake) {
         sent = sentImages(task, typeof images === "function" ? await images() : images);
       }
+      // Rendered after the images resolve, so material derived from them (the
+      // photo count) reads true; in fake mode the render only feeds the hash.
+      rendered = render(task, material);
       inputHash = await hashMaterial(task, rendered.user, sent);
       let raw: unknown;
       if (fake) {
