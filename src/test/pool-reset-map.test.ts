@@ -19,6 +19,12 @@ function tablesWithUserColumn(): string[] {
 }
 
 describe("DEC-099 pool reset map", () => {
+  it("the AI attribution history is present in generated types and exempt", () => {
+    expect(tablesWithUserColumn()).toContain("ai_calls");
+    expect(POOL_EXEMPT_TABLES.ai_calls).toBe(
+      "EXEMPT — attribution history; actor_id goes null with the account",
+    );
+  });
   it("finds the census tables", () => {
     expect(tablesWithUserColumn().length).toBeGreaterThan(0);
   });
