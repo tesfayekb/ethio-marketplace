@@ -89,9 +89,10 @@ describe("browser route-client conformance", () => {
       ).toBe(true);
       incs.add(until);
     }
-    // INC-861: the AI-gateway clients; INC-875: the outside tile-host probe.
+    // INC-875: the outside tile-host probe (INC-861's AI-gateway clients moved
+    // onto callRoute in Foundations turn 19).
     // A new undated allowance fails here until its INC is named in this test.
-    expect([...incs].sort()).toEqual(["INC-861", "INC-875"]);
+    expect([...incs].sort()).toEqual(["INC-875"]);
   });
   it("RCG-3 both censuses report a planted browser bearer fetch", () => {
     const dir = mkdtempSync(join(tmpdir(), "route-client-"));

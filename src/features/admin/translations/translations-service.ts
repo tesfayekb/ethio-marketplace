@@ -2,8 +2,10 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { MessageKey } from "@/i18n/types";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { ownValue } from "@/lib/own-key";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { callRoute } from "@/lib/route-client";
+import type { TranslateReason } from "@/lib/schemas/translate";
 
 import { PSEUDO_LANG, PSEUDO_LANG_NAME_EN, PSEUDO_LANG_NAME_NATIVE } from "./pseudo";
 
@@ -371,6 +373,22 @@ export async function fetchUiBundle(lang: string): Promise<Record<string, string
 }
 
 /**
+ * Foundations turn 19, CHANGE (5) — the machine-translation route's per-item
+ * reason codes (CHANGE 4) and the existing key each one says.
+ */
+const TRANSLATE_REASON_KEYS: Readonly<Record<TranslateReason, MessageKey>> = {
+  providerUnavailable: "admin.translations.error.generic",
+  providerNoText: "admin.translations.error.generic",
+  permission: "admin.translations.error.permission",
+  stepUp: "admin.translations.error.stepUp",
+  scope: "admin.translations.error.scope",
+  baseLocked: "admin.translations.error.baseLocked",
+  unknownTarget: "admin.translations.error.generic",
+  emptyValue: "admin.translations.error.generic",
+  writerFailed: "admin.translations.error.generic",
+};
+
+/**
  * Maps every refusal these RPCs can raise onto a translation key. The server's
  * own message is the authority; this only chooses how to SAY it. Law F4 — an
  * unmapped failure still surfaces, through the generic key, never silently.
@@ -381,6 +399,9 @@ export function translationErrorKey(error: unknown): MessageKey | null {
   const abort = stepUpAbortKey(error);
   if (abort !== undefined) return abort;
   const message = (error as { message?: string } | null)?.message ?? "";
+  // Foundations turn 19, CHANGE (5) — a per-item reason code, read exactly.
+  const coded = ownValue(TRANSLATE_REASON_KEYS, message);
+  if (coded !== undefined) return coded;
   if (/step-up required/i.test(message)) return "admin.translations.error.stepUp";
   if (/flagged rows cannot be approved/i.test(message))
     return "admin.translations.error.flaggedApprove";
@@ -402,9 +423,14 @@ export function translationErrorKey(error: unknown): MessageKey | null {
   return "admin.translations.error.generic";
 }
 
-/** The server's own refusal text, surfaced verbatim beneath the translated line. */
+/**
+ * The server's own refusal text, surfaced verbatim beneath the translated
+ * line. A per-item reason code is not text: its translated line says it all
+ * (Foundations turn 19, ruling R4), so it has no detail line.
+ */
 export function serverMessage(error: unknown): string | null {
   const message = (error as { message?: string } | null)?.message ?? "";
+  if (ownValue(TRANSLATE_REASON_KEYS, message) !== undefined) return null;
   return message.trim() === "" ? null : message;
 }
 
@@ -413,9 +439,9 @@ export function serverMessage(error: unknown): string | null {
  *
  * The endpoint is the app server's `/api/translate` route (INC-096: new
  * Supabase Edge Functions are rejected by the executor, so the transport moved
- * to the app server; the contract is unchanged). The session bearer is attached
- * explicitly — this is a raw HTTP call, not a serverFn RPC, so the global
- * function middleware does not apply.
+ * to the app server; the contract is unchanged). Foundations turn 19: the call
+ * goes through `callRoute` (session, deadline, envelope), and a 2xx payload is
+ * narrowed by a shape guard.
  *
  * Law F3: this call decides NOTHING. The route re-checks
  * `translations:machine` + scope, and `admin_machine_translation` re-gates
@@ -437,29 +463,36 @@ export interface AiTranslateResult {
 /** The route's own hard cap; the caller chunks to this size. */
 export const AI_CHUNK_SIZE = 100;
 
-async function postTranslate(body: unknown): Promise<AiTranslateResult> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error("not signed in");
+/** One per-item failure as the route sends it: a key and its reason code. */
+function isTranslateFailure(value: unknown): value is { key: string; reason: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "key" in value &&
+    typeof value.key === "string" &&
+    "reason" in value &&
+    typeof value.reason === "string"
+  );
+}
 
-  const response = await fetch("/api/translate", {
+async function postTranslate(body: Record<string, unknown>): Promise<AiTranslateResult> {
+  const answer = await callRoute("/api/translate", {
     method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-    body: JSON.stringify(body),
+    json: body,
+    auth: "required",
   });
-
-  const payload = (await response.json().catch(() => null)) as
-    | (Partial<AiTranslateResult> & { error?: string })
-    | null;
-
+  if (answer.kind === "signedOut") throw new Error("not signed in");
+  if (answer.kind === "unreachable") throw new Error("translation request failed (0)");
   // F4 — a refusal is thrown with the SERVER's own words, never swallowed.
-  if (!response.ok) {
-    throw new Error(payload?.error ?? `translation request failed (${response.status})`);
+  if (!answer.ok) {
+    throw new Error(answer.error ?? `translation request failed (${answer.status})`);
   }
+  const payload = answer.payload;
+  const failed = payload !== null && Array.isArray(payload.failed) ? payload.failed : [];
   return {
     done: Number(payload?.done ?? 0),
     flagged: Number(payload?.flagged ?? 0),
-    failed: payload?.failed ?? [],
+    failed: failed.filter(isTranslateFailure),
   };
 }
 
@@ -501,25 +534,26 @@ export interface ProviderLanguage {
   name: string;
 }
 
-export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) throw new Error("not signed in");
-
-  const response = await fetch("/api/translate", {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  const payload = (await response.json().catch(() => null)) as {
-    languages?: ProviderLanguage[];
-    error?: string;
-  } | null;
-  if (!response.ok) {
-    throw new Error(payload?.error ?? `language list failed (${response.status})`);
-  }
-  return (payload?.languages ?? []).filter(
-    (entry) => typeof entry?.code === "string" && typeof entry?.name === "string",
+function isProviderLanguage(value: unknown): value is ProviderLanguage {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    typeof value.code === "string" &&
+    "name" in value &&
+    typeof value.name === "string"
   );
+}
+
+export async function listProviderLanguages(): Promise<ProviderLanguage[]> {
+  const answer = await callRoute("/api/translate", { method: "GET", auth: "required" });
+  if (answer.kind === "signedOut") throw new Error("not signed in");
+  if (answer.kind === "unreachable") throw new Error("language list failed (0)");
+  if (!answer.ok) {
+    throw new Error(answer.error ?? `language list failed (${answer.status})`);
+  }
+  const languages = answer.payload?.languages;
+  return Array.isArray(languages) ? languages.filter(isProviderLanguage) : [];
 }
 
 /**
