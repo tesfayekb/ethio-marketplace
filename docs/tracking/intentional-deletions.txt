@@ -49,3 +49,8 @@ src/server/category-images/fixture.ts
 src/server/category-images/gate.ts
 src/server/category-images/gemini.ts
 src/server/category-images/prompt.ts
+# Foundations turn 30 (DEC-258; declared late in turn 31 — INC-905): the admin-layer judge and the admin loader's
+# test, replaced by scripts/conformance/strings-layers.test.ts and src/i18n/compiled-layer-loader.test.ts.
+# Deleted in a018721a..1990ac5d, whose run the deletion guard refused for want of these lines.
+src/i18n/locales/admin-layer.test.ts
+src/i18n/compiled-admin-loader.test.ts
