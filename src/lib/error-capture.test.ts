@@ -21,11 +21,9 @@ describe("error-capture console channel (INC-894, INC-893)", () => {
     console.warn = warnSpy;
     await loadCapture();
 
-    console.error(
-      "Error in renderToReadableStream:",
-      new ReferenceError("window is not defined"),
-      { componentStack: "…" },
-    );
+    console.error("Error in renderToReadableStream:", new ReferenceError("window is not defined"), {
+      componentStack: "…",
+    });
 
     expect(errorSpy).toHaveBeenCalledTimes(1);
     const args = errorSpy.mock.calls[0];
