@@ -14,15 +14,8 @@ import { DIALS } from "@/lib/dials";
 import { spend } from "@/server/dials";
 import { defineRoute, type RouteContext } from "@/server/route";
 
-import { aiGate, recordAiSpend } from "@/server/ai/meter";
-import {
-  PHOTO_OPEN_STATUSES,
-  photoOutcome,
-  photoScreenPlan,
-  withSiteCap,
-  type PhotoReview,
-} from "@/server/media/hold";
-import { photoPolicyFake, screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
+import { PHOTO_OPEN_STATUSES, photoOutcome, type PhotoReview } from "@/server/media/hold";
+import { screenPhotoPolicy, type PolicyVerdict } from "@/server/media/policy";
 import {
   deleteObject,
   objectKey,
@@ -325,60 +318,38 @@ async function handlePost(ctx: RouteContext): Promise<Response> {
     stripped[variant] = result;
   }
 
-  // 6 — the policy pass: every size that will be stored, in one call (D15, INC-601).
-  // D158 — behind its switch, and metered. With the switch off (by staff or by
-  // budget) a photo is HELD: stored `unscreened` with a `held` review, with no pass
-  // and nothing metered, and shown to no buyer until staff approve the ad or the
-  // photo (bundle 16 turn 4a: on a live ad too, since staff now see every held
-  // photo). A gate that could not be read is `providerUnavailable` with a retry (F4).
+  // 6 — the policy pass: every size that will be stored, in one call (D15, INC-601),
+  // through the AI gateway (Foundations turn 17): the switch, the provider key,
+  // the site's day cap on paid screens (the call's reservation, D184 — fake mode
+  // spends nothing and is not counted), the stand-in or the provider, the meter
+  // and the audit row are the gateway's order. With the switch off (by staff or
+  // by budget) or the day cap spent, a photo is HELD: stored `unscreened` with a
+  // `held` review, with no pass, and shown to no buyer until staff approve the
+  // ad or the photo (bundle 16 turn 4a: on a live ad too, since staff now see
+  // every held photo). A switch that could not be read or any provider failure
+  // is `providerUnavailable` with a retry (F4).
   const log = (message: string) => logRouteError(PATH, message);
-  let gate = await aiGate("photo_screen", log);
-  // Bundle 16 turn S1 (D184) — the site's day cap on PAID screens (fake mode spends
-  // nothing and is not counted): once spent, screening reads as off by budget for
-  // the rest of the UTC day, and the photo is held or paused as when it is off.
-  if (gate.on && !photoPolicyFake()) {
-    // dial in the handler: site-wide AI budget — the AI gateway's, INC-861
-    const site = await spend(DIALS.uploadScreen, "site");
-    gate = withSiteCap(gate, site.allowed);
-    if (!site.allowed) log("photo screening: the site's day cap is spent; the photo is held");
-  }
-  const plan = photoScreenPlan(gate);
-  if (plan === "unavailable") {
-    return answerVerdict([{ field: "cover", reason: "providerUnavailable", retry: true }]);
-  }
-  const held = plan === "hold";
   const cover = stripped.cover!;
-  // D154 B3 — the ad's category (its English name, public) and title, for relevance.
-  let categoryName: string | null = null;
-  if (!held && typeof listing["category_id"] === "string") {
-    const { data: category } = await supabase
-      .from("categories")
-      .select("name_en")
-      .eq("id", listing["category_id"])
-      .maybeSingle();
-    categoryName = typeof category?.name_en === "string" ? category.name_en : null;
-  }
-  const verdict: PolicyVerdict = held
-    ? { ok: true }
-    : await screenPhotoPolicy(
-        {
-          cover,
-          ...(stripped.mid === undefined ? {} : { mid: stripped.mid }),
-          card: stripped.card!,
-          thumb: stripped.thumb!,
-        },
-        log,
-        {
-          category: categoryName,
-          title: typeof listing["title"] === "string" ? listing["title"] : null,
-        },
-      );
+  const screened = await screenPhotoPolicy(
+    {
+      cover,
+      ...(stripped.mid === undefined ? {} : { mid: stripped.mid }),
+      card: stripped.card!,
+      thumb: stripped.thumb!,
+    },
+    log,
+    {
+      actorId: userId,
+      path: PATH,
+      supabase,
+      categoryId: typeof listing["category_id"] === "string" ? listing["category_id"] : null,
+      title: typeof listing["title"] === "string" ? listing["title"] : null,
+    },
+  );
+  const held = screened.kind === "held";
+  const verdict: PolicyVerdict = held ? { ok: true } : screened.verdict;
   // D154 B3 — the screen's warnings: stored with the photo, never a refusal.
   const warnings = verdict.ok ? (verdict.warnings ?? []) : [];
-  // The provider answered (a pass or a refusal): one call is metered.
-  if (!held && (verdict.ok || verdict.code !== "providerUnavailable")) {
-    await recordAiSpend("photo_screen", 1, log);
-  }
   // Bundle 16 turn 4a (D178, D183) — what the verdict does: shown, kept hidden for a
   // person with its review, or refused unstored (nudity, a mismatched copy, the
   // provider's own failure). A held photo's review is `held`, written by the door.
