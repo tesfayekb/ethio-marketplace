@@ -13,6 +13,7 @@ const state = vi.hoisted(() => ({
   requests: [] as RequestInit[],
   status: 200,
   text: '{"imitates":false}',
+  errorBody: '{"error":{"message":"bad request"}}',
   timeout: false,
   bodyReadTimeout: false,
 }));
@@ -57,9 +58,11 @@ beforeEach(() => {
   state.requests = [];
   state.status = 200;
   state.text = '{"imitates":false}';
+  state.errorBody = '{"error":{"message":"bad request"}}';
   state.timeout = false;
   state.bodyReadTimeout = false;
   vi.stubEnv("GEMINI_API_KEY", "test-only-provider-key");
+  vi.stubEnv("PHOTOROOM_API_KEY", "test-only-photoroom-key");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
     state.requests.push(init);
@@ -73,6 +76,7 @@ beforeEach(() => {
         },
       } as unknown as Response;
     }
+    if (state.status >= 400) return new Response(state.errorBody, { status: state.status });
     return new Response(
       JSON.stringify({ candidates: [{ content: { parts: [{ text: state.text }] } }] }),
       { status: state.status },
@@ -214,7 +218,9 @@ describe("the one AI call", () => {
     expect(state.writes[0]?.p_input_hash).toMatch(/^[0-9a-f]{64}$/);
   });
   it("AIG-14 task ids are a literal union and the output type is the task's schema", () => {
-    expectTypeOf<TaskId>().toEqualTypeOf<"name_check" | "category_icon" | "writing_helper">();
+    expectTypeOf<TaskId>().toEqualTypeOf<
+      "name_check" | "category_icon" | "writing_helper" | "photo_screen" | "background_removal"
+    >();
     expectTypeOf<OutputOf<"name_check">>().toEqualTypeOf<{
       imitates: boolean;
       of?: string | undefined;
