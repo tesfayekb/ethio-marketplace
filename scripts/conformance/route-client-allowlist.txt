@@ -1,5 +1,4 @@
 src/features/admin/translations/translations-service.ts | Translate and provider-language clients move with the AI gateway | INC-861
-src/features/admin-categories/category-images-service.ts | Category-image client moves with the AI gateway | INC-861
 src/features/posting/map/leaflet.ts | The tile-host probe fetches an outside host, not a route | INC-875
 src/features/posting/photo-editor.tsx | Fetch reads an object URL, not a route call | 2027-04-24
 src/features/admin/translations/use-translations.ts | Fetch reads a static asset, not a route call | 2027-04-24
