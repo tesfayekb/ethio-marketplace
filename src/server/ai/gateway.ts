@@ -21,6 +21,9 @@ export type AiAnswer<O> =
       status?: number;
     };
 
+/** Image material: the bytes themselves, or a supplier the gateway calls only when a real call will happen. */
+export type AiImages = readonly AiImage[] | (() => Promise<readonly AiImage[]>);
+
 function hexOf(hash: ArrayBuffer): string {
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
@@ -62,6 +65,8 @@ function sentImages(
  * the parse, the spend — runs inside one try whose every exit writes the
  * audit row; a rejection anywhere is `unavailable` with its row. A refused
  * reservation is the one exit with no row and no spend: no model was asked.
+ * Image material is resolved only once a real call will happen, so a
+ * stand-in never touches the network.
  */
 export async function aiCall<T extends TaskId>(
   taskId: T,
@@ -71,7 +76,7 @@ export async function aiCall<T extends TaskId>(
     path: string;
     reserve?: () => Promise<{ ok: true } | { ok: false; refusal: unknown }>;
   },
-  images?: readonly AiImage[],
+  images?: AiImages,
 ): Promise<AiAnswer<OutputOf<T>>> {
   const task = taskOf(taskId);
   const started = Date.now();
@@ -81,12 +86,12 @@ export async function aiCall<T extends TaskId>(
   let fake = false;
   let billed = false;
   let model = task.model.fallback;
+  let rendered: { system: string; user: string } | null = null;
+  let sent: readonly AiImage[] = [];
   let inputHash: string | null = null;
   try {
-    const rendered = render(task, material);
+    rendered = render(task, material);
     model = (process.env[task.model.env] ?? "").trim() || task.model.fallback;
-    const sent = sentImages(task, images);
-    inputHash = await hashMaterial(task, rendered.user, sent);
     const gate = await aiGate(task.feature, log);
     if (!gate.on) {
       answer = { ok: false, reason: gate.reason === "staff" ? "featureOff" : gate.reason };
@@ -99,6 +104,10 @@ export async function aiCall<T extends TaskId>(
         if (!held.ok) return { ok: false, reason: "reserved", refusal: held.refusal };
       }
       fake = standInMode(task.fakeFlag);
+      if (!fake) {
+        sent = sentImages(task, typeof images === "function" ? await images() : images);
+      }
+      inputHash = await hashMaterial(task, rendered.user, sent);
       let raw: unknown;
       if (fake) {
         raw = task.fake(material);
@@ -149,9 +158,10 @@ export async function aiCall<T extends TaskId>(
   }
   if (billed) await recordAiSpend(task.feature, 1, log);
   if (inputHash === null) {
-    // A throw before the hash still writes its row (the door wants 64 hex).
+    // A gate-off answer or a throw before the hash still writes its row (the
+    // door wants 64 hex); the hash then covers the rendered text alone.
     try {
-      inputHash = await hashMaterial(task, "<unavailable>", []);
+      inputHash = await hashMaterial(task, rendered?.user ?? "<unavailable>", sent);
     } catch {
       inputHash = "0".repeat(64);
     }
