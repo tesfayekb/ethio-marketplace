@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_calls: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          fake: boolean
+          feature: string
+          id: string
+          input_hash: string
+          latency_ms: number
+          model: string
+          outcome: string
+          provider_status: number | null
+          task: string
+          task_version: number
+          updated_at: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          fake?: boolean
+          feature: string
+          id?: string
+          input_hash: string
+          latency_ms: number
+          model: string
+          outcome: string
+          provider_status?: number | null
+          task: string
+          task_version: number
+          updated_at?: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          fake?: boolean
+          feature?: string
+          id?: string
+          input_hash?: string
+          latency_ms?: number
+          model?: string
+          outcome?: string
+          provider_status?: number | null
+          task?: string
+          task_version?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_calls_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "ai_calls_feature_fkey"
+            columns: ["feature"]
+            isOneToOne: false
+            referencedRelation: "ai_features"
+            referencedColumns: ["feature"]
+          },
+        ]
+      }
+      ai_calls_prune_runs: {
+        Row: {
+          created_at: string
+          deleted: number
+          id: number
+          ran_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted: number
+          id?: number
+          ran_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted?: number
+          id?: number
+          ran_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_features: {
         Row: {
           alert_level: number
@@ -4326,7 +4413,23 @@ export type Database = {
         }[]
       }
       admin_user_legal_history: { Args: { p_user_id: string }; Returns: Json }
+      ai_calls_prune: { Args: never; Returns: number }
       ai_feature_gate: { Args: { p_feature: string }; Returns: Json }
+      ai_record_call: {
+        Args: {
+          p_actor: string
+          p_fake: boolean
+          p_feature: string
+          p_input_hash: string
+          p_latency_ms: number
+          p_model: string
+          p_outcome: string
+          p_provider_status: number
+          p_task: string
+          p_task_version: number
+        }
+        Returns: string
+      }
       ai_record_spend: {
         Args: { p_feature: string; p_units: number }
         Returns: Json
