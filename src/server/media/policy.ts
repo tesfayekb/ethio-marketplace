@@ -1,11 +1,12 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import type { Database } from "@/integrations/supabase/types";
 import { DIALS } from "@/lib/dials";
 import { aiCall, type AiAnswer } from "@/server/ai/gateway";
 import { POLICY_CODES, POLICY_WARNINGS, taskOf, type OutputOf } from "@/server/ai/tasks";
 import { render } from "@/server/ai/template";
 import { spend } from "@/server/dials";
+import type { RouteContext } from "@/server/route";
+
+/** The caller's own client, typed through the seam (vendor-seams: no direct import here). */
+type CallerClient = NonNullable<RouteContext<unknown>["supabase"]>;
 
 import type { ImageFormat } from "./strip";
 
@@ -131,7 +132,11 @@ export function screenAnswerOf(
   log: (message: string) => void,
 ): ScreenResult {
   if (!answer.ok) {
-    if (answer.reason === "featureOff" || answer.reason === "budget" || answer.reason === "reserved") {
+    if (
+      answer.reason === "featureOff" ||
+      answer.reason === "budget" ||
+      answer.reason === "reserved"
+    ) {
       return { kind: "held" };
     }
     return {
@@ -176,7 +181,7 @@ export async function screenPhotoPolicy(
   ctx: {
     actorId: string | null;
     path: string;
-    supabase: SupabaseClient<Database>;
+    supabase: CallerClient;
     categoryId: string | null;
     title: string | null;
   },

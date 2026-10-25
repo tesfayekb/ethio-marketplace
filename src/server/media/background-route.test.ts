@@ -99,6 +99,7 @@ vi.mock("@/server/ai/meter", async (importOriginal) => ({
     state.spent.push(feature);
   },
 }));
+vi.mock("@/server/ai/audit", () => ({ recordAiCall: async () => undefined }));
 vi.mock("@/server/media/links", () => ({
   signPhotoRows: async (_service: unknown, rows: { id: string }[], variants: readonly string[]) => {
     state.signed.push({ ids: rows.map((row) => row.id), variants });
@@ -163,7 +164,10 @@ describe("POST /api/listings/background (D155b / D159)", () => {
       field: "background",
       reason: "featureOff",
     });
-    expect(state.logs).toEqual(["no PHOTOROOM_API_KEY: background removal answers switched off"]);
+    // Turn 17, CHANGE (1) — the gateway's key check, before any reservation.
+    expect(state.logs).toEqual([
+      "ai background_removal no PHOTOROOM_API_KEY: the tool answers featureOff, spending nothing",
+    ]);
     expect(state.rates).toEqual([]);
     expect(state.reads).toEqual([]);
     expect(state.spent).toEqual([]);

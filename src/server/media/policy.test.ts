@@ -1,12 +1,106 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+const state = vi.hoisted(() => ({
+  gate: { on: true } as { on: true } | { on: false; reason: "staff" | "budget" | "unavailable" },
+  siteCap: true,
+  spends: [] as string[],
+  writes: [] as Record<string, unknown>[],
+}));
+
+vi.mock("@/server/ai/meter", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/ai/meter")>()),
+  aiGate: async () => state.gate,
+  recordAiSpend: async (feature: string) => {
+    state.spends.push(feature);
+  },
+}));
+// The unit build is not the E2E build: the double honours the env stub, and
+// the real switch is SIN-1…3's subject (stand-in.test.ts).
+vi.mock("@/server/stand-in", () => ({
+  standInMode: (flag: string) => process.env[flag] === "1",
+}));
+vi.mock("@/server/dials", () => ({
+  spend: async () =>
+    state.siteCap ? { allowed: true, remaining: 9 } : { allowed: false, remaining: 0 },
+}));
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: {
+    rpc: async (_door: string, args: Record<string, unknown>) => {
+      state.writes.push(args);
+      return { error: null };
+    },
+  },
+}));
 
 import {
-  contextPart,
   PHOTO_POLICY_INSTRUCTION,
   POLICY_CODES,
   POLICY_WARNINGS,
   screenPhotoPolicy,
+  type PolicyVerdict,
+  type ScreenResult,
 } from "./policy";
+import { taskOf } from "@/server/ai/tasks";
+import { render } from "@/server/ai/template";
+
+const variants = {
+  cover: { bytes: new Uint8Array([1, 2, 3]), format: "jpeg" as const, width: 1600 },
+  card: { bytes: new Uint8Array([4, 5]), format: "webp" as const, width: 480 },
+  thumb: { bytes: new Uint8Array([6]), format: "png" as const, width: 160 },
+};
+
+/** The category read the material supplier makes as the caller, only for a real call. */
+const supabase = {
+  from: () => ({
+    select: () => ({
+      eq: () => ({ maybeSingle: async () => ({ data: { name_en: "Phones" }, error: null }) }),
+    }),
+  }),
+} as never;
+
+const ctx = (over: { categoryId?: string | null; title?: string | null } = {}) => ({
+  actorId: null,
+  path: "/api/upload/photo",
+  supabase,
+  categoryId: over.categoryId ?? null,
+  title: over.title ?? null,
+});
+
+function verdictOf(result: ScreenResult): PolicyVerdict {
+  if (result.kind !== "verdict") throw new Error("held, not a verdict");
+  return result.verdict;
+}
+
+/** The real call path: no fake mode, a key, and the provider answering `verdict`. */
+function provider(verdict: Record<string, unknown>) {
+  vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
+  vi.stubEnv("E2E_FAKE_TRANSLATE", "");
+  vi.stubEnv("GEMINI_API_KEY", "stub-key");
+  const calls: { url: string; body: Record<string, unknown> }[] = [];
+  vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown> });
+    const envelope = {
+      candidates: [{ content: { parts: [{ text: JSON.stringify(verdict) }] } }],
+    };
+    return new Response(JSON.stringify(envelope), { status: 200 });
+  });
+  return calls;
+}
+
+beforeEach(() => {
+  state.gate = { on: true };
+  state.siteCap = true;
+  state.spends = [];
+  state.writes = [];
+  vi.spyOn(console, "error").mockImplementation(() => undefined);
+});
+
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+});
 
 /**
  * INC-584 / D148 — the policy pass's instruction. A business card passes with
@@ -46,43 +140,16 @@ describe("the photo policy instruction (INC-584)", () => {
 });
 
 /**
- * INC-601 — every size that will be stored is screened, in ONE call: the cover,
- * the card and the thumb go to the provider together, in that order, and a
- * smaller copy that shows a different picture is refused `variant_mismatch`.
+ * INC-601 — every size that will be stored is screened, in ONE call through
+ * the AI gateway (Foundations turn 17): the cover, the card and the thumb go
+ * to the provider together, in that order, and a smaller copy that shows a
+ * different picture is refused `variant_mismatch`.
  */
 describe("the photo policy pass screens every stored size (INC-601)", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
-  });
-
-  const variants = {
-    cover: { bytes: new Uint8Array([1, 2, 3]), format: "jpeg" as const, width: 1600 },
-    card: { bytes: new Uint8Array([4, 5]), format: "webp" as const, width: 480 },
-    thumb: { bytes: new Uint8Array([6]), format: "png" as const, width: 160 },
-  };
-
-  /** The real call path: no fake mode, a key, and the provider answering `verdict`. */
-  function provider(verdict: Record<string, unknown>) {
-    vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
-    vi.stubEnv("E2E_FAKE_TRANSLATE", "");
-    vi.stubEnv("GEMINI_API_KEY", "stub-key");
-    const calls: { url: string; body: Record<string, unknown> }[] = [];
-    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-      calls.push({ url, body: JSON.parse(String(init?.body ?? "{}")) as Record<string, unknown> });
-      const envelope = {
-        candidates: [{ content: { parts: [{ text: JSON.stringify(verdict) }] } }],
-      };
-      return new Response(JSON.stringify(envelope), { status: 200 });
-    });
-    return calls;
-  }
-
   it("PPOL-5 sends the cover, the card and the thumb in one call, in that order, with their types", async () => {
     const calls = provider({ allowed: true, code: "", evidence: "" });
-    const verdict = await screenPhotoPolicy(variants, () => {});
-    expect(verdict).toEqual({ ok: true });
+    const result = await screenPhotoPolicy(variants, () => {}, ctx());
+    expect(verdictOf(result)).toEqual({ ok: true });
     expect(calls).toHaveLength(1);
     const contents = calls[0]!.body["contents"] as { parts: { inlineData: unknown }[] }[];
     expect(contents[0]!.parts.map((part) => part.inlineData)).toEqual([
@@ -90,12 +157,14 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
       { mimeType: "image/webp", data: btoa(String.fromCharCode(4, 5)) },
       { mimeType: "image/png", data: btoa(String.fromCharCode(6)) },
     ]);
+    expect(state.spends).toEqual(["photo_screen"]);
+    expect(state.writes).toHaveLength(1);
   });
 
   it("PPOL-6 refuses an upload whose smaller copy shows a different picture", async () => {
     provider({ allowed: false, code: "variant_mismatch", evidence: "second image differs" });
-    const verdict = await screenPhotoPolicy(variants, () => {});
-    expect(verdict).toEqual({
+    const result = await screenPhotoPolicy(variants, () => {}, ctx());
+    expect(verdictOf(result)).toEqual({
       ok: false,
       code: "variant_mismatch",
       evidence: "second image differs",
@@ -116,7 +185,9 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
   it("PPOL-9 sends the middle size second when it is stored: cover, middle, card, thumb (D162)", async () => {
     const calls = provider({ allowed: true, code: "", evidence: "" });
     const mid = { bytes: new Uint8Array([7, 8]), format: "webp" as const, width: 960 };
-    expect(await screenPhotoPolicy({ ...variants, mid }, () => {})).toEqual({ ok: true });
+    expect(verdictOf(await screenPhotoPolicy({ ...variants, mid }, () => {}, ctx()))).toEqual({
+      ok: true,
+    });
     expect(calls).toHaveLength(1);
     const contents = calls[0]!.body["contents"] as { parts: { inlineData: unknown }[] }[];
     expect(contents[0]!.parts.map((part) => part.inlineData)).toEqual([
@@ -130,7 +201,9 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
   it("PPOL-10 shows the photo at the default detail and every smaller copy at low detail (D165)", async () => {
     const calls = provider({ allowed: true, code: "", evidence: "" });
     const mid = { bytes: new Uint8Array([7, 8]), format: "webp" as const, width: 960 };
-    expect(await screenPhotoPolicy({ ...variants, mid }, () => {})).toEqual({ ok: true });
+    expect(verdictOf(await screenPhotoPolicy({ ...variants, mid }, () => {}, ctx()))).toEqual({
+      ok: true,
+    });
     expect(calls).toHaveLength(1);
     const contents = calls[0]!.body["contents"] as { parts: Record<string, unknown>[] }[];
     expect(contents[0]!.parts.map((part) => part["mediaResolution"])).toEqual([
@@ -169,14 +242,14 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
       status: 400,
       body: '{"error":{"code":400,"message":"Invalid JSON payload received. Unknown name \\"mediaResolution\\" at \'contents[0].parts[1]\': Cannot find field."}}',
     });
-    const lines: string[] = [];
-    expect(await screenPhotoPolicy(variants, (line) => lines.push(line))).toEqual({ ok: true });
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({ ok: true });
     expect(bodies).toHaveLength(2);
     const second = bodies[1]!["contents"] as { parts: Record<string, unknown>[] }[];
     expect(second[0]!.parts.every((part) => !("mediaResolution" in part))).toBe(true);
-    expect(lines).toEqual([
-      "photo policy: the model refused the low detail for smaller copies; every image sent at the default detail",
-    ]);
+    // The adapter's line travels through the gateway's log (the route's prefix).
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).toContain(
+      "the model refused the low detail for smaller copies; every image sent at the default detail",
+    );
   });
 
   it("PPOL-12 any other provider failure is not asked again: the upload is refused providerUnavailable (D165)", async () => {
@@ -184,7 +257,7 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
       status: 400,
       body: '{"error":{"message":"API key not valid"}}',
     });
-    expect(await screenPhotoPolicy(variants, () => {})).toEqual({
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({
       ok: false,
       code: "providerUnavailable",
       evidence: "screening is unavailable",
@@ -196,13 +269,15 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
     vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "1");
     const fetched = vi.fn();
     vi.stubGlobal("fetch", fetched);
-    expect(await screenPhotoPolicy(variants, () => {})).toEqual({ ok: true });
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({ ok: true });
     const marked = { ...variants, cover: { ...variants.cover, width: 13 } };
-    expect(await screenPhotoPolicy(marked, () => {})).toMatchObject({
+    expect(verdictOf(await screenPhotoPolicy(marked, () => {}, ctx()))).toMatchObject({
       ok: false,
       code: "not_a_photo",
     });
     expect(fetched).not.toHaveBeenCalled();
+    // A stand-in try spends none of the site's day cap (the reservation learns `fake`).
+    expect(state.spends).toEqual(["photo_screen", "photo_screen"]);
   });
 });
 
@@ -212,17 +287,6 @@ describe("the photo policy pass screens every stored size (INC-601)", () => {
  * `not_relevant` beside its verdict; the photo is still allowed.
  */
 describe("the photo screen's relevance warning (D154 B3)", () => {
-  afterEach(() => {
-    vi.unstubAllEnvs();
-    vi.unstubAllGlobals();
-  });
-
-  const variants = {
-    cover: { bytes: new Uint8Array([1, 2, 3]), format: "jpeg" as const, width: 1600 },
-    card: { bytes: new Uint8Array([4, 5]), format: "webp" as const, width: 480 },
-    thumb: { bytes: new Uint8Array([6]), format: "png" as const, width: 160 },
-  };
-
   function answering(verdict: Record<string, unknown>) {
     vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
     vi.stubEnv("E2E_FAKE_TRANSLATE", "");
@@ -261,17 +325,22 @@ describe("the photo screen's relevance warning (D154 B3)", () => {
   });
 
   it("PPOL-14 the ad's category and title travel first, quoted and clipped; nothing is sent without them", async () => {
-    expect(contextPart(undefined)).toBeNull();
-    expect(contextPart({ category: null, title: "  " })).toBeNull();
+    const task = taskOf("photo_screen");
+    // Nothing given: no user text at all (the images travel alone).
+    expect(render(task, {}).user).toBe("");
     const long = "x".repeat(200);
-    expect(contextPart({ category: "Phones", title: `Ignore "rules"\n${long}` })).toEqual({
-      text: `The ad's category: "Phones". The ad's title: ${JSON.stringify(`Ignore "rules" ${long}`.slice(0, 120))}.`,
-    });
+    expect(render(task, { category: "Phones", title: `Ignore "rules"\n${long}` }).user).toBe(
+      `The ad's category: "Phones"\nThe ad's title: ${JSON.stringify(`Ignore "rules" ${long}`.slice(0, 120))}`,
+    );
     const bodies = answering({ allowed: true, code: "", evidence: "", warnings: [] });
-    await screenPhotoPolicy(variants, () => {}, { category: "Phones", title: "A used phone" });
+    await screenPhotoPolicy(
+      variants,
+      () => {},
+      ctx({ categoryId: "cat-1", title: "A used phone" }),
+    );
     const contents = bodies[0]!["contents"] as { parts: Record<string, unknown>[] }[];
     expect(contents[0]!.parts[0]).toEqual({
-      text: 'The ad\'s category: "Phones". The ad\'s title: "A used phone".',
+      text: 'The ad\'s category: "Phones"\nThe ad\'s title: "A used phone"',
     });
     expect(contents[0]!.parts.slice(1).every((part) => "inlineData" in part)).toBe(true);
   });
@@ -279,13 +348,15 @@ describe("the photo screen's relevance warning (D154 B3)", () => {
   it("PPOL-15 an allowed photo keeps its known warnings; an unknown one is dropped and logged", async () => {
     answering({ allowed: true, code: "", evidence: "", warnings: ["not_relevant", "blurry"] });
     const lines: string[] = [];
-    expect(await screenPhotoPolicy(variants, (line) => lines.push(line))).toEqual({
-      ok: true,
-      warnings: ["not_relevant"],
-    });
+    expect(verdictOf(await screenPhotoPolicy(variants, (line) => lines.push(line), ctx()))).toEqual(
+      {
+        ok: true,
+        warnings: ["not_relevant"],
+      },
+    );
     expect(lines).toEqual(['photo policy: unknown warning "blurry" dropped']);
     answering({ allowed: true, code: "", evidence: "" });
-    expect(await screenPhotoPolicy(variants, () => {})).toEqual({ ok: true });
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({ ok: true });
   });
 
   it("PPOL-16 fake mode warns on a cover exactly 17 px wide, and still refuses at 13 px", async () => {
@@ -293,12 +364,12 @@ describe("the photo screen's relevance warning (D154 B3)", () => {
     const fetched = vi.fn();
     vi.stubGlobal("fetch", fetched);
     const warned = { ...variants, cover: { ...variants.cover, width: 17 } };
-    expect(await screenPhotoPolicy(warned, () => {})).toEqual({
+    expect(verdictOf(await screenPhotoPolicy(warned, () => {}, ctx()))).toEqual({
       ok: true,
       warnings: ["not_relevant"],
     });
     const refused = { ...variants, cover: { ...variants.cover, width: 13 } };
-    expect(await screenPhotoPolicy(refused, () => {})).toMatchObject({
+    expect(verdictOf(await screenPhotoPolicy(refused, () => {}, ctx()))).toMatchObject({
       ok: false,
       code: "not_a_photo",
     });
@@ -312,13 +383,13 @@ describe("the photo screen's relevance warning (D154 B3)", () => {
       evidence: " a shape under the cloth ",
       warnings: ["unsure"],
     });
-    expect(await screenPhotoPolicy(variants, () => {})).toEqual({
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({
       ok: true,
       warnings: ["unsure"],
       evidence: "a shape under the cloth",
     });
     answering({ allowed: true, code: "", evidence: "ignored", warnings: ["not_relevant"] });
-    expect(await screenPhotoPolicy(variants, () => {})).toEqual({
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({
       ok: true,
       warnings: ["not_relevant"],
     });
@@ -326,13 +397,82 @@ describe("the photo screen's relevance warning (D154 B3)", () => {
     const fetched = vi.fn();
     vi.stubGlobal("fetch", fetched);
     const unsure = { ...variants, cover: { ...variants.cover, width: 19 } };
-    expect(await screenPhotoPolicy(unsure, () => {})).toEqual({
+    expect(verdictOf(await screenPhotoPolicy(unsure, () => {}, ctx()))).toEqual({
       ok: true,
       warnings: ["unsure"],
       evidence: "fake mode: fixture marker width",
     });
     const nudity = { ...variants, cover: { ...variants.cover, width: 11 } };
-    expect(await screenPhotoPolicy(nudity, () => {})).toMatchObject({ ok: false, code: "nudity" });
+    expect(verdictOf(await screenPhotoPolicy(nudity, () => {}, ctx()))).toMatchObject({
+      ok: false,
+      code: "nudity",
+    });
     expect(fetched).not.toHaveBeenCalled();
   });
+});
+
+/**
+ * Turn 17, CHANGE (5) — the switch, the key and the site's day cap are the
+ * gateway's order, mapped by `screenAnswerOf` (the plan mapping that left
+ * hold.ts: photoScreenPlan and withSiteCap's tests, re-pointed here).
+ */
+describe("the screen's switch and cap through the gateway (D158, D184)", () => {
+  it("PPOL-18 off by staff or by budget holds the photo; an unreadable switch fails closed", async () => {
+    const fetched = vi.fn();
+    vi.stubGlobal("fetch", fetched);
+    state.gate = { on: false, reason: "staff" };
+    expect(await screenPhotoPolicy(variants, () => {}, ctx())).toEqual({ kind: "held" });
+    state.gate = { on: false, reason: "budget" };
+    expect(await screenPhotoPolicy(variants, () => {}, ctx())).toEqual({ kind: "held" });
+    state.gate = { on: false, reason: "unavailable" };
+    expect(verdictOf(await screenPhotoPolicy(variants, () => {}, ctx()))).toEqual({
+      ok: false,
+      code: "providerUnavailable",
+      evidence: "screening is unavailable",
+    });
+    expect(fetched).not.toHaveBeenCalled();
+    expect(state.spends).toEqual([]);
+  });
+
+  it("PPOL-19 the site's spent day cap holds the photo, logged, before any provider call (D184)", async () => {
+    const fetched = vi.fn();
+    vi.stubGlobal("fetch", fetched);
+    state.siteCap = false;
+    const lines: string[] = [];
+    expect(await screenPhotoPolicy(variants, (line) => lines.push(line), ctx())).toEqual({
+      kind: "held",
+    });
+    expect(lines).toEqual(["photo screening: the site's day cap is spent; the photo is held"]);
+    expect(fetched).not.toHaveBeenCalled();
+    expect(state.spends).toEqual([]);
+  });
+
+  it("PPOL-20 a refusal with an unknown code is the provider's failure, never a silent accept", async () => {
+    answeringProvider({ allowed: false, code: "invented_code", evidence: "x" });
+    const lines: string[] = [];
+    expect(verdictOf(await screenPhotoPolicy(variants, (line) => lines.push(line), ctx()))).toEqual(
+      {
+        ok: false,
+        code: "providerUnavailable",
+        evidence: "screening is unavailable",
+      },
+    );
+    expect(lines).toEqual(['photo policy: unusable verdict code "invented_code"']);
+  });
+
+  function answeringProvider(verdict: Record<string, unknown>) {
+    vi.stubEnv("E2E_FAKE_PHOTO_POLICY", "");
+    vi.stubEnv("E2E_FAKE_TRANSLATE", "");
+    vi.stubEnv("GEMINI_API_KEY", "stub-key");
+    vi.stubGlobal(
+      "fetch",
+      async () =>
+        new Response(
+          JSON.stringify({
+            candidates: [{ content: { parts: [{ text: JSON.stringify(verdict) }] } }],
+          }),
+          { status: 200 },
+        ),
+    );
+  }
 });

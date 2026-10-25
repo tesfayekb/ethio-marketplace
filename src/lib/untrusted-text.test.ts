@@ -62,23 +62,24 @@ describe("a person's words reach a model as material only (D166)", () => {
     expect(untrustedLine("a\nb", 10, { lines: true })).toBe('"a\\nb"');
   });
 
-  it("UNT-4 every file that calls a model takes this module; the four calls are the census", () => {
+  it("UNT-4 every file that calls a model is the census, and the one renderer takes this module", () => {
     const root = resolve(process.cwd(), "src");
     const callers = sources(root)
       .filter((path) => readFileSync(path, "utf8").includes(":generateContent"))
       .map((path) => relative(process.cwd(), path))
       .sort();
-    // A new model call fails here until it is added, using the module.
+    // A new model call fails here until it is added. Since Foundations turn 17
+    // the photo screen's call is the gateway's: only the two Gemini adapters
+    // name the host.
     expect(callers).toEqual([
       "src/server/ai/providers/gemini.ts",
       "src/server/category-images/gemini.ts",
-      "src/server/media/policy.ts",
     ]);
-    for (const path of callers) {
-      expect(readFileSync(path, "utf8"), `${path} does not take the module`).toContain(
-        'from "@/lib/untrusted-text"',
-      );
-    }
+    // Every prompt a caller sends is built by the one template, which adds the
+    // one rule — so the module's use is asserted at the renderer.
+    expect(readFileSync(resolve(root, "server/ai/template.ts"), "utf8")).toContain(
+      'from "@/lib/untrusted-text"',
+    );
   });
 
   it("UNT-5 the writing helper quotes every line a person could write, and the photo screen's instruction ends with the rule", () => {

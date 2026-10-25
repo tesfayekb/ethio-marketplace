@@ -154,7 +154,11 @@ export async function aiCall<T extends TaskId>(
         }
         let imagesFailed = false;
         if (!fake) {
-          const picked = selectImages(task, typeof images === "function" ? await images() : images, log);
+          const picked = selectImages(
+            task,
+            typeof images === "function" ? await images() : images,
+            log,
+          );
           if (!picked.ok) {
             imagesFailed = true;
             answer = { ok: false, reason: "unavailable" };

@@ -1,34 +1,27 @@
 import { describe, expect, it } from "vitest";
 
-import { photoOutcome, photoScreenPlan, STORED_FAIL_CODES, withSiteCap } from "./hold";
+import { PHOTO_OPEN_STATUSES, photoOutcome, STORED_FAIL_CODES } from "./hold";
 import { POLICY_CODES } from "./policy";
 
-/** D158 item 3 (bundle 13 turn 6) — what an upload does with photo screening's switch. */
-describe("photoScreenPlan (D158)", () => {
-  it("PH-1 on: every photo is screened", () => {
-    expect(photoScreenPlan({ on: true })).toBe("screen");
-  });
+/**
+ * D158 item 3 — what an upload does with photo screening's switch is, since
+ * Foundations turn 17, the gateway's order mapped by `screenAnswerOf`
+ * (policy.test.ts PPOL-18…20: on → screen; off by staff or budget or a refused
+ * day cap → held; unreadable or any provider failure → providerUnavailable).
+ * This module keeps the photo outcomes and the one status set.
+ */
 
-  it("PH-2 off by staff: the photo is held, on any ad (bundle 16 turn 4a: staff see every held photo)", () => {
-    expect(photoScreenPlan({ on: false, reason: "staff" })).toBe("hold");
-  });
-
-  it("PH-3 a switch that could not be read fails closed", () => {
-    expect(photoScreenPlan({ on: false, reason: "unavailable" })).toBe("unavailable");
-  });
-
-  it("PH-4 off by budget (D184): held, as off by staff", () => {
-    expect(photoScreenPlan({ on: false, reason: "budget" })).toBe("hold");
-  });
-
-  it("PH-5 the site's day cap (D184): a spent cap turns an open gate into off by budget; any other gate is kept", () => {
-    expect(withSiteCap({ on: true }, true)).toEqual({ on: true });
-    expect(withSiteCap({ on: true }, false)).toEqual({ on: false, reason: "budget" });
-    const staff = { on: false, reason: "staff" } as const;
-    const unavailable = { on: false, reason: "unavailable" } as const;
-    expect(withSiteCap(staff, false)).toEqual(staff);
-    expect(withSiteCap(unavailable, false)).toEqual(unavailable);
-    expect(photoScreenPlan(withSiteCap({ on: true }, false))).toBe("hold");
+describe("the photo-open statuses", () => {
+  it("PH-1 the upload route and background removal read this one set", () => {
+    expect([...PHOTO_OPEN_STATUSES].sort()).toEqual([
+      "active",
+      "closed",
+      "draft",
+      "expired",
+      "held",
+      "reduced",
+      "rejected",
+    ]);
   });
 });
 

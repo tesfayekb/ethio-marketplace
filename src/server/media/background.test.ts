@@ -1,20 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  cutOut,
-  FAKE_CUTOUT_SIZE,
-  fakeCutout,
-  isBackgroundFake,
-  MAX_CUTOUT_BYTES,
-  MAX_SOURCE_BYTES,
-  PHOTOROOM_SEGMENT_URL,
-  readSource,
-} from "./background";
+import { FAKE_CUTOUT_SIZE, MAX_SOURCE_BYTES, readSource } from "./background";
+import { MAX_CUTOUT_BYTES, photoroomSegment } from "@/server/ai/providers/photoroom";
+import { taskOf } from "@/server/ai/tasks";
 
 /**
- * Bundle 13 turn 12 — D155b / D159: the provider call. Only the image goes out;
- * the answer is checked before it is used; fake mode's cut-out is a real PNG
- * with a transparent ground.
+ * Bundle 13 turn 12 — D155b / D159, on the AI gateway since Foundations turn
+ * 17: the provider call is the `background_removal` task through the Photoroom
+ * adapter. Only the image goes out; the answer is checked before it is used;
+ * fake mode's cut-out is a real PNG with a transparent ground.
  */
 
 afterEach(() => {
@@ -30,9 +24,11 @@ function answer(body: BodyInit | null, init: { status?: number; type?: string } 
 }
 
 describe("background removal — the provider (D155b / D159)", () => {
-  it("BGR-1 fake mode's cut-out is a 400 x 300 PNG with an alpha channel, asked for by either flag", () => {
-    const { bytes, type } = fakeCutout();
-    expect(type).toBe("image/png");
+  it("BGR-1 fake mode's cut-out is a 400 x 300 PNG with an alpha channel, behind its one flag", () => {
+    const task = taskOf("background_removal");
+    expect(task.fakeFlag).toBe("E2E_FAKE_BACKGROUND");
+    const { bytes, mime } = task.fake({}) as { bytes: Uint8Array; mime: string };
+    expect(mime).toBe("image/png");
     expect([...bytes.subarray(0, 8)]).toEqual([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     // IHDR: width, height, bit depth 8, colour type 6 (red, green, blue and alpha).
@@ -42,18 +38,12 @@ describe("background removal — the provider (D155b / D159)", () => {
       FAKE_CUTOUT_SIZE.height,
     ]);
     expect([bytes[24], bytes[25]]).toEqual([8, 6]);
-
-    vi.stubEnv("E2E_FAKE_BACKGROUND", "");
-    vi.stubEnv("E2E_FAKE_TRANSLATE", "");
-    expect(isBackgroundFake()).toBe(false);
-    vi.stubEnv("E2E_FAKE_TRANSLATE", "1");
-    expect(isBackgroundFake()).toBe(true);
-    vi.stubEnv("E2E_FAKE_TRANSLATE", "");
-    vi.stubEnv("E2E_FAKE_BACKGROUND", "1");
-    expect(isBackgroundFake()).toBe(true);
+    // The task's schema accepts the stand-in's answer.
+    expect(task.output.safeParse({ bytes, mime }).success).toBe(true);
   });
 
   it("BGR-2 Photoroom gets the image only, with the key in its header, asked for a WebP cut-out on a transparent ground", async () => {
+    vi.stubEnv("PHOTOROOM_API_KEY", "key-1");
     const sent: { url: string; init: RequestInit }[] = [];
     vi.stubGlobal(
       "fetch",
@@ -62,13 +52,20 @@ describe("background removal — the provider (D155b / D159)", () => {
         return answer(new Uint8Array([1, 2, 3]), { type: "image/webp" });
       }),
     );
-    const log = vi.fn();
-    const source = new Blob([new Uint8Array([9, 9])], { type: "image/webp" });
-    const result = await cutOut(source, "key-1", log);
+    const result = await photoroomSegment({
+      image: { bytes: new Uint8Array([9, 9]), mime: "image/webp" },
+      timeoutMs: 30_000,
+      label: "photoroom test",
+    });
 
-    expect(result).toEqual({ bytes: new Uint8Array([1, 2, 3]), type: "image/webp" });
+    expect(result).toEqual({
+      kind: "image",
+      status: 200,
+      bytes: new Uint8Array([1, 2, 3]),
+      mime: "image/webp",
+    });
     expect(sent).toHaveLength(1);
-    expect(sent[0]!.url).toBe(PHOTOROOM_SEGMENT_URL);
+    expect(sent[0]!.url).toBe("https://sdk.photoroom.com/v1/segment");
     expect(sent[0]!.init.method).toBe("POST");
     expect(sent[0]!.init.headers).toEqual({ "x-api-key": "key-1" });
     const form = sent[0]!.init.body as FormData;
@@ -81,21 +78,18 @@ describe("background removal — the provider (D155b / D159)", () => {
     const file = form.get("image_file") as File;
     expect(file.name).toBe("photo.webp");
     expect(new Uint8Array(await file.arrayBuffer())).toEqual(new Uint8Array([9, 9]));
-    expect(log).not.toHaveBeenCalled();
   });
 
-  it("BGR-3 a refusal, an answer that is not an image, an empty or oversized answer, or no network is no cut-out, and each is logged", async () => {
+  it("BGR-3 a refusal, an answer that is not an image, an empty or oversized answer, or no network is no cut-out", async () => {
+    vi.stubEnv("PHOTOROOM_API_KEY", "k");
     const cases: [Response | Error, string][] = [
-      [answer("payment required", { status: 402, type: "application/json" }), "photoroom 402"],
-      [answer("{}", { type: "application/json" }), "photoroom answered application/json"],
-      [answer(new Uint8Array(0), { type: "image/webp" }), "photoroom answered 0 bytes"],
-      [
-        answer(new Uint8Array(MAX_CUTOUT_BYTES + 1), { type: "image/webp" }),
-        `photoroom answered ${MAX_CUTOUT_BYTES + 1} bytes`,
-      ],
-      [new Error("offline"), "photoroom unreachable: offline"],
+      [answer("payment required", { status: 402, type: "application/json" }), "status"],
+      [answer("{}", { type: "application/json" }), "unusable"],
+      [answer(new Uint8Array(0), { type: "image/webp" }), "unusable"],
+      [answer(new Uint8Array(MAX_CUTOUT_BYTES + 1), { type: "image/webp" }), "unusable"],
+      [new Error("offline"), "network"],
     ];
-    for (const [reply, line] of cases) {
+    for (const [reply, kind] of cases) {
       vi.stubGlobal(
         "fetch",
         vi.fn(async () => {
@@ -103,12 +97,25 @@ describe("background removal — the provider (D155b / D159)", () => {
           return reply;
         }),
       );
-      const log = vi.fn();
-      expect(await cutOut(new Blob([new Uint8Array([1])], { type: "image/jpeg" }), "k", log)).toBe(
-        null,
-      );
-      expect(log.mock.calls[0]![0]).toContain(line);
+      const result = await photoroomSegment({
+        image: { bytes: new Uint8Array([1]), mime: "image/jpeg" },
+        timeoutMs: 30_000,
+        label: "photoroom test",
+      });
+      expect(result.kind).toBe(kind);
     }
+    // A keyless adapter answers noKey and asks nothing.
+    vi.stubEnv("PHOTOROOM_API_KEY", "");
+    const fetched = vi.fn();
+    vi.stubGlobal("fetch", fetched);
+    expect(
+      await photoroomSegment({
+        image: { bytes: new Uint8Array([1]), mime: "image/jpeg" },
+        timeoutMs: 30_000,
+        label: "photoroom test",
+      }),
+    ).toEqual({ kind: "noKey" });
+    expect(fetched).not.toHaveBeenCalled();
   });
 
   it("BGR-4 the stored cover is read through its link; a refusal, a non-image or an oversized file is not sent", async () => {

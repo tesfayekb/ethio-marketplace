@@ -72,12 +72,8 @@ vi.mock("@/server/media/storage", () => ({
   },
 }));
 vi.mock("@/server/media/policy", () => ({
-  photoPolicyFake: () => true,
-  screenPhotoPolicy: async () => ({ ok: true }),
-}));
-vi.mock("@/server/ai/meter", () => ({
-  aiGate: async () => ({ on: true }),
-  recordAiSpend: async () => undefined,
+  // Turn 17 — the gateway's answer, mapped: a verdict (or the held outcome).
+  screenPhotoPolicy: async () => ({ kind: "verdict", verdict: { ok: true } }),
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: {} }));
 
