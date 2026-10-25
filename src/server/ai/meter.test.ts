@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
 import { walkFiles } from "../../../scripts/conformance/kit";
+import { migrationAiFeatures } from "./features-census";
 
 const build = vi.hoisted(() => ({ isE2E: false }));
 vi.mock("@/lib/env-flags", () => build);
@@ -40,6 +41,9 @@ beforeEach(() => {
 });
 
 describe("the AI meter (D158)", () => {
+  it("AIM-6 the newest migration's feature CHECK equals AI_FEATURES", () => {
+    expect(migrationAiFeatures()).toEqual([...AI_FEATURES].sort());
+  });
   it("INC-839 every stand-in environment read uses the shared helper", () => {
     const matches = walkFiles([join(process.cwd(), "src")], {
       ext: ["ts", "tsx"],
