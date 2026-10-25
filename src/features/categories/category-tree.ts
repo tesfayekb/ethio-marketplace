@@ -272,7 +272,6 @@ function isTreePayload(payload: unknown): payload is TreePayload {
   );
 }
 
-
 /**
  * The raw read: one public route, never the browser client, so the tree carries
  * its own version and an ETag a second mount can answer with a 304 (INC-263).
