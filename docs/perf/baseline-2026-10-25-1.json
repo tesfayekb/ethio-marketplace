@@ -1,0 +1,244 @@
+{
+  "base": "https://my-market-dawn.lovable.app",
+  "when": "2026-10-25T15:41:16.897Z",
+  "device": {
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "deviceScaleFactor": 1.75,
+    "isMobile": true,
+    "hasTouch": true,
+    "userAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+  },
+  "throttling": {
+    "rttMs": 150,
+    "throughputKbps": 1638.4,
+    "requestLatencyMs": 562.5,
+    "downloadThroughputKbps": 1474.5600000000002,
+    "uploadThroughputKbps": 675,
+    "cpuSlowdownMultiplier": 4
+  },
+  "pages": [
+    {
+      "name": "home",
+      "url": "https://my-market-dawn.lovable.app/",
+      "medianCold": {
+        "ttfbMs": 1236,
+        "fcpMs": 3260,
+        "lcpMs": 3260,
+        "cls": 0,
+        "tbtMs": 663,
+        "loadMs": 5400,
+        "htmlKB": 7.6,
+        "totalKB": 509.8,
+        "requests": 74
+      },
+      "warm": {
+        "ttfbMs": 574,
+        "fcpMs": 1156,
+        "lcpMs": 6524,
+        "lcpElement": "img 6003b-a55e-49d8-b7c6-c8802bfc9e37/4b27e07b-43ec-4bdc-b36c-426a0cb9d859/card.webp",
+        "cls": 0.177,
+        "tbtMs": 1121,
+        "domContentLoadedMs": 1203,
+        "loadMs": 1558,
+        "htmlBytes": 7634,
+        "totalBytes": 978109,
+        "requests": 91,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Document": 7634,
+          "Script": 0,
+          "Font": 0,
+          "Preflight": 0,
+          "Other": 20506,
+          "Fetch": 88288,
+          "Image": 861681
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 1236,
+          "fcpMs": 3260,
+          "lcpMs": 3260,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0,
+          "tbtMs": 638,
+          "domContentLoadedMs": 3937,
+          "loadMs": 5409,
+          "htmlBytes": 7976,
+          "totalBytes": 522036,
+          "requests": 75,
+          "bytesByType": {
+            "Document": 7976,
+            "Script": 358893,
+            "Stylesheet": 23094,
+            "Font": 89732,
+            "Fetch": 21992,
+            "Other": 20349,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 1254,
+          "fcpMs": 3264,
+          "lcpMs": 3264,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0,
+          "tbtMs": 663,
+          "domContentLoadedMs": 3964,
+          "loadMs": 5400,
+          "htmlBytes": 7800,
+          "totalBytes": 520980,
+          "requests": 74,
+          "bytesByType": {
+            "Document": 7800,
+            "Script": 359203,
+            "Stylesheet": 23227,
+            "Font": 89732,
+            "Fetch": 20667,
+            "Other": 20351,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 603,
+          "fcpMs": 2472,
+          "lcpMs": 2472,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0,
+          "tbtMs": 731,
+          "domContentLoadedMs": 3173,
+          "loadMs": 4801,
+          "htmlBytes": 7785,
+          "totalBytes": 561394,
+          "requests": 74,
+          "bytesByType": {
+            "Document": 7785,
+            "Script": 359100,
+            "Stylesheet": 23122,
+            "Font": 89732,
+            "Fetch": 19941,
+            "Other": 20348,
+            "Preflight": 0
+          },
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "category",
+      "url": "https://my-market-dawn.lovable.app/c/vehicles",
+      "medianCold": {
+        "ttfbMs": 912,
+        "fcpMs": 2900,
+        "lcpMs": 2968,
+        "cls": 0.011,
+        "tbtMs": 751,
+        "loadMs": 5077,
+        "htmlKB": 7.6,
+        "totalKB": 510.1,
+        "requests": 75
+      },
+      "warm": {
+        "ttfbMs": 572,
+        "fcpMs": 1236,
+        "lcpMs": 6824,
+        "lcpElement": "img e4855-904d-4e3c-897a-6926d2870746/bf6f0bd3-7d67-4430-94f4-dd45d1e70115/card.webp",
+        "cls": 0.088,
+        "tbtMs": 1070,
+        "domContentLoadedMs": 1269,
+        "loadMs": 1653,
+        "htmlBytes": 7641,
+        "totalBytes": 470608,
+        "requests": 85,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Document": 7641,
+          "Script": 0,
+          "Font": 0,
+          "Preflight": 0,
+          "Other": 20510,
+          "Fetch": 86843,
+          "Image": 355614
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 912,
+          "fcpMs": 2972,
+          "lcpMs": 2972,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0.011,
+          "tbtMs": 741,
+          "domContentLoadedMs": 3608,
+          "loadMs": 5077,
+          "htmlBytes": 7771,
+          "totalBytes": 522236,
+          "requests": 75,
+          "bytesByType": {
+            "Document": 7771,
+            "Stylesheet": 23094,
+            "Script": 359319,
+            "Font": 89732,
+            "Fetch": 21968,
+            "Other": 20352,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 1009,
+          "fcpMs": 2900,
+          "lcpMs": 2968,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0.011,
+          "tbtMs": 751,
+          "domContentLoadedMs": 3676,
+          "loadMs": 5272,
+          "htmlBytes": 7785,
+          "totalBytes": 522306,
+          "requests": 75,
+          "bytesByType": {
+            "Document": 7785,
+            "Script": 359286,
+            "Stylesheet": 23092,
+            "Font": 89732,
+            "Fetch": 22077,
+            "Other": 20334,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 617,
+          "fcpMs": 2700,
+          "lcpMs": 2700,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0.011,
+          "tbtMs": 797,
+          "domContentLoadedMs": 3303,
+          "loadMs": 4737,
+          "htmlBytes": 7771,
+          "totalBytes": 563738,
+          "requests": 76,
+          "bytesByType": {
+            "Document": 7771,
+            "Script": 359368,
+            "Stylesheet": 23217,
+            "Font": 89732,
+            "Fetch": 63298,
+            "Other": 20352,
+            "Preflight": 0
+          },
+          "status": 200
+        }
+      ]
+    }
+  ]
+}
