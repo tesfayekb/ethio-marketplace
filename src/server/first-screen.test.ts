@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * D234 speed turn S5 — FSP-1…FSP-6. The server's first page for a listings
+ * D234 speed turns S5 and S6 — FSP-1…FSP-7. The server's first page for a listings
  * page: the place derived from the request with the shell's own functions, the
  * page read from the feed route in-process, its first covers named; null for
  * any other page, the E2E switch, a refusal, a failure or the deadline. The four
@@ -20,6 +20,8 @@ const state = vi.hoisted(() => ({
   asked: [] as string[],
   feedStatus: 200,
   feedDelayMs: 0,
+  feedBody: null as unknown,
+  treeBody: null as unknown,
 }));
 
 vi.mock("@/lib/env-flags", () => ({
@@ -72,6 +74,7 @@ vi.mock("@/routes/api/locations.$country", () => ({
 vi.mock("@/routes/api/categories.tree", () => ({
   categoryTreeGet: async ({ request }: { request: Request }) => {
     record(request);
+    if (state.treeBody !== null) return json(state.treeBody);
     return json({
       version: "v1",
       nodes: [
@@ -98,6 +101,7 @@ vi.mock("@/routes/api/feed", () => ({
     if (state.feedDelayMs > 0)
       await new Promise((resolve) => setTimeout(resolve, state.feedDelayMs));
     if (state.feedStatus !== 200) return json({ error: "internal error" }, state.feedStatus);
+    if (state.feedBody !== null) return json(state.feedBody);
     return json({
       cards: [
         {
@@ -148,6 +152,8 @@ beforeEach(() => {
   state.asked = [];
   state.feedStatus = 200;
   state.feedDelayMs = 0;
+  state.feedBody = null;
+  state.treeBody = null;
 });
 
 afterEach(() => {
@@ -160,6 +166,7 @@ describe("readFirstFeedPage (D234 S5)", () => {
     expect(held?.path).toBe(`/api/feed?place=${ADAMA}`);
     expect(held?.page.cards.map((entry) => entry.id)).toEqual(["a"]);
     expect(held?.covers).toEqual(["https://photos.example/a-card"]);
+    expect(held?.places.map((node) => node.id)).toEqual([ET, OROMIA, ADAMA]);
     expect(state.asked).toEqual([
       "/api/locations",
       "/api/locations/ET",
@@ -219,6 +226,26 @@ describe("readFirstFeedPage (D234 S5)", () => {
     await vi.advanceTimersByTimeAsync(FIRST_PAGE_DEADLINE_MS + 1);
     expect(await held).toBeNull();
     expect(warn).toHaveBeenCalledWith("[first-screen] deadline passed; the browser reads the feed");
+    warn.mockRestore();
+  });
+
+  it("FSP-7 a feed or category tree answered whole but malformed: no first page, one [first-screen] line naming it", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    state.feedBody = { cards: "not a list" };
+    expect(await readFirstFeedPage(at("/"), null)).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      "[first-screen]",
+      "/api/feed",
+      "answered a page that does not parse",
+    );
+    state.feedBody = null;
+    state.treeBody = { nodes: "not a list" };
+    expect(await readFirstFeedPage(at("/c/phones"), null)).toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      "[first-screen]",
+      "/api/categories/tree",
+      "answered a tree that does not parse",
+    );
     warn.mockRestore();
   });
 });

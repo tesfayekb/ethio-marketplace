@@ -14,15 +14,10 @@ import { useFavouriteCategory } from "@/components/shell/app-rail";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCategoryTree } from "@/features/categories/category-tree";
-import {
-  feedSections,
-  inviteSpot,
-  placeCount,
-  type FirstFeedPage,
-  type InviteSpot,
-} from "@/features/feed/feed-page";
+import { feedSections, inviteSpot, placeCount, type InviteSpot } from "@/features/feed/feed-page";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
-import { useFeed } from "@/features/feed/use-feed";
+import type { HeldFirstPage } from "@/features/feed/held-first-page";
+import { useFeed, useHeldFirstPage } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
@@ -81,14 +76,12 @@ export function Feed() {
   const { selectedCategoryId, categoryLookup, locationPath, feedInputsReady } = useShell();
   const place: LocationNode | null = locationPath[locationPath.length - 1] ?? null;
   const placeId = place?.id ?? null;
+  const inputsKnown = feedInputsReady && (categoryLookup === "none" || categoryLookup === "found");
   // D234 S5 — the feed's first page as the server answered it inside the page (the root loader).
   const firstFeed = useRouterState({
     select: (state) =>
-      (
-        state.matches[0]?.loaderData as
-          | { firstFeed?: Promise<FirstFeedPage | null> | null }
-          | undefined
-      )?.firstFeed ?? null,
+      (state.matches[0]?.loaderData as { firstFeed?: HeldFirstPage | null } | undefined)
+        ?.firstFeed ?? null,
   });
   const {
     cards,
@@ -101,12 +94,31 @@ export function Feed() {
     loadMore,
     retry,
     coverLinks,
+    firstReadDone,
   } = useFeed({
     categoryId: selectedCategoryId,
     placeId,
-    enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found"),
+    enabled: inputsKnown,
     firstPage: firstFeed,
   });
+  // D234 S6 — until this feed's own first read lands, it draws the page the server
+  // read inside the page (the very page that read then takes), headed by the place
+  // the server derived: the server draws the first cards and the browser hydrates
+  // them as they are. The route renders this under Suspense (useHeldFirstPage).
+  const held = useHeldFirstPage({
+    firstPage: firstFeed,
+    inputsKnown,
+    categoryId: selectedCategoryId,
+    placeId,
+    firstReadDone,
+  });
+  const showHeld = held !== null;
+  const shownPath = held !== null ? held.places : locationPath;
+  const shownPlace: LocationNode | null = shownPath[shownPath.length - 1] ?? null;
+  const shownCards = held !== null ? held.page.cards : cards;
+  const shownLadder = held !== null ? held.page.ladder : ladder;
+  const shownLinks = held !== null ? (held.page.coverLinks ?? {}) : coverLinks;
+  const shownHasMore = held !== null ? held.page.next !== null : hasMore;
 
   const nameOf = (node: LocationNode) =>
     entityName("location", { id: node.id, nameEn: node.name_en, nameAm: node.name_am }, entities);
@@ -128,26 +140,28 @@ export function Feed() {
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  const sections = feedSections(cards, ladder);
+  const sections = feedSections(shownCards, shownLadder);
   // INC-606 — each card's cover photo, at card size. DEC-195 — the links the
   // feed's answer already signed are the preset; only the rest are asked for.
-  const coverOf = useCardPhotos(cards, coverLinks);
+  const coverOf = useCardPhotos(shownCards, shownLinks);
 
   const { tree } = useCategoryTree();
   const categoryNode =
     selectedCategoryId === null ? null : (tree.byId.get(selectedCategoryId) ?? null);
   // D119 / D215 — the invitation is on every list, place or none; on a category
   // page it waits for the category's name rather than drawing a sentence without it.
-  const spot = inviteSpot(cards, place !== null, hasMore);
+  const spot = inviteSpot(shownCards, shownPlace !== null, shownHasMore);
+  // D234 S6 — a category page's invitation waits for the category itself (its lookup
+  // "none" is the listings page with no category), so the server never draws one without it.
   const invite: Invite | null =
-    selectedCategoryId === null || categoryNode !== null
+    categoryLookup === "none" || categoryNode !== null
       ? {
-          placeId: place?.id ?? null,
-          placeName: place ? nameOf(place) : null,
+          placeId: shownPlace?.id ?? null,
+          placeName: shownPlace ? nameOf(shownPlace) : null,
           categoryId: selectedCategoryId,
           categoryName:
             categoryNode === null ? null : entityName("category", categoryNode, entities),
-          placeCount: place ? placeCount(cards) : cards.length,
+          placeCount: shownPlace ? placeCount(shownCards) : shownCards.length,
         }
       : null;
   const favouriteOn = categoryNode !== null && favourite.slug === categoryNode.slug;
@@ -159,7 +173,7 @@ export function Feed() {
           entityName("category", categoryNode, entities),
         );
   const hintId = useId();
-  const firstStep = cards[0]?.step ?? 1;
+  const firstStep = shownCards[0]?.step ?? 1;
 
   let body: ReactNode;
   if (categoryLookup === "missing") {
@@ -174,7 +188,7 @@ export function Feed() {
     );
   } else if (categoryLookup === "failed") {
     body = <FeedError testid="feed-category-failed" onRetry={() => window.location.reload()} />;
-  } else if (isLoading) {
+  } else if (isLoading && !showHeld) {
     body = (
       <div className="flex justify-center py-12">
         <Spinner label={t("feed.loading")} />
@@ -182,10 +196,10 @@ export function Feed() {
     );
   } else if (error) {
     body = <FeedError testid="feed-error" retryTestid="feed-retry" onRetry={retry} />;
-  } else if (cards.length === 0 && invite !== null) {
+  } else if (shownCards.length === 0 && invite !== null) {
     // D215 — an empty list shows the invitation alone; the old empty box is retired.
     body = <InviteFirst invite={invite} at="alone" />;
-  } else if (cards.length === 0) {
+  } else if (shownCards.length === 0) {
     // The category's name is still loading: the card waits for it.
     body = (
       <div className="flex justify-center py-12">
@@ -208,7 +222,7 @@ export function Feed() {
           if (section.label?.kind === "all") label = t("nav.allListings");
           else if (section.label?.kind === "place") {
             const id = section.label.placeId;
-            const node = locationPath.find((n) => n.id === id);
+            const node = shownPath.find((n) => n.id === id);
             label = node ? inHeading(node) : null;
           }
           return (
@@ -248,7 +262,7 @@ export function Feed() {
             </section>
           );
         })}
-        {hasMore ? (
+        {shownHasMore ? (
           <div ref={moreRef} data-testid="feed-more" className="mt-6 flex min-h-11 justify-center">
             {moreError ? (
               <FeedError testid="feed-more-error" onRetry={retry} />
@@ -271,7 +285,7 @@ export function Feed() {
       <div className="flex min-w-0 flex-wrap items-center gap-x-2">
         <h1 className="min-w-0 text-xl font-semibold text-foreground wrap-anywhere">
           {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
-          {place ? inHeading(place) : t("nav.allListings")}
+          {shownPlace ? inHeading(shownPlace) : t("nav.allListings")}
         </h1>
         {categoryNode ? (
           <div className="flex min-w-0 items-center">
@@ -311,7 +325,7 @@ export function Feed() {
       {firstFeed !== null ? (
         // D234 S5 — the first cards' covers are asked for as the server's page streams in.
         <Suspense fallback={null}>
-          <Await promise={firstFeed}>
+          <Await promise={firstFeed.page}>
             {(held) => {
               for (const cover of held?.covers ?? []) {
                 preload(cover, { as: "image", fetchPriority: "high" });

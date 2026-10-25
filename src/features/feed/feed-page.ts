@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { linksOf, type PhotoLinks } from "@/features/posting/photo-links";
+import type { ShellLocationNode } from "@/components/shell/location-data";
 
 import type { ListingTier } from "./ranking";
 
@@ -278,11 +279,14 @@ export function feedPath(
   categoryId: string | null,
   placeId: string | null,
   after: string | null,
+  size: number | null = null,
 ): `/api/${string}` {
   const params = new URLSearchParams();
   if (categoryId !== null) params.set("category", categoryId);
   if (placeId !== null) params.set("place", placeId);
   if (after !== null) params.set("after", after);
+  // D234 S6 — a list that asks another page size (the similar ads, ad-page/similar.ts) says so.
+  if (size !== null) params.set("size", String(size));
   const query = params.toString();
   return query === "" ? "/api/feed" : `/api/feed?${query}`;
 }
@@ -297,4 +301,6 @@ export interface FirstFeedPage {
   path: string;
   page: FeedPage;
   covers: string[];
+  /** D234 S6 — the place path the server derived, so the page it draws is headed as the shell will head it. */
+  places: ShellLocationNode[];
 }

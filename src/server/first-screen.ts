@@ -90,9 +90,14 @@ async function read(request: Request, areaCookie: string | null): Promise<FirstF
   if (markets === null) return null;
   let categoryId: string | null = null;
   if (route.slug !== null) {
-    const found = parseCategoryTree(categories)?.tree.nodes.find(
-      (node) => node.slug === route.slug,
-    );
+    if (categories === null) return null;
+    const parsed = parseCategoryTree(categories);
+    if (parsed === null) {
+      console.warn("[first-screen]", CATEGORY_TREE_PATH, "answered a tree that does not parse");
+      return null;
+    }
+    // An unknown slug reads no feed: the page says the category is missing.
+    const found = parsed.tree.nodes.find((node) => node.slug === route.slug);
     if (found === undefined) return null;
     categoryId = found.id;
   }
@@ -118,8 +123,13 @@ async function read(request: Request, areaCookie: string | null): Promise<FirstF
   });
   const placeId = area.kind === "place" ? (area.path[area.path.length - 1]?.id ?? null) : null;
   const path = feedPath(categoryId, placeId, null);
-  const page = parseFeedPage(await answerOf(feedGet, url.origin, path));
-  if (page === null) return null;
+  const answer = await answerOf(feedGet, url.origin, path);
+  if (answer === null) return null;
+  const page = parseFeedPage(answer);
+  if (page === null) {
+    console.warn("[first-screen]", path, "answered a page that does not parse");
+    return null;
+  }
   const covers = (feedSections(page.cards, page.ladder)[0]?.cards ?? [])
     .slice(0, COVERS)
     .map((card) =>
@@ -128,7 +138,7 @@ async function read(request: Request, areaCookie: string | null): Promise<FirstF
         : photoUrl({ id: card.coverPhotoId }, CARD_THEN_THUMB, page.coverLinks),
     )
     .filter((cover): cover is string => cover !== null);
-  return { path, page, covers };
+  return { path, page, covers, places: area.kind === "place" ? area.path : [] };
 }
 
 /** The first page for this request, or null; never throws and never waits past the deadline. */

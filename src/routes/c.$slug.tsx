@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { Suspense } from "react";
+
+import { Spinner } from "@/components/brand/spinner";
 import { Feed } from "@/components/marketplace/feed";
+import { useI18n } from "@/i18n";
 
 /**
  * U0l (INC-073) — CATEGORY = ROUTE. A category selection is a URL, never bare
@@ -28,5 +32,18 @@ export const Route = createFileRoute("/c/$slug")({
 });
 
 function CategoryFeed() {
-  return <Feed />;
+  const { t } = useI18n();
+  // D234 S6 — the feed reads the server's first page as the page streams: the shell
+  // is sent at once, the feed's cards follow in the same response.
+  return (
+    <Suspense
+      fallback={
+        <div className="flex justify-center py-12">
+          <Spinner label={t("feed.loading")} />
+        </div>
+      }
+    >
+      <Feed />
+    </Suspense>
+  );
 }
