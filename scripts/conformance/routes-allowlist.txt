@@ -2,9 +2,6 @@
 # INC-859 — closed (Foundations turn 4: every posting and media route is on defineRoute)
 # INC-861 — the staff AI routes
 src/routes/api/translate.ts | staff AI route not yet on defineRoute | INC-861
-src/routes/api/admin/categories/generate-image.ts | staff AI route not yet on defineRoute | INC-861
-src/server/category-images/gate.ts | the category-images gate: its own answers :21/:48/:59 | INC-861
-src/server/category-images/gemini.ts | its own fetch :59, retired when its handlers move | INC-861
 # INC-863 — the six server functions
 src/routes/__root.tsx | createServerFn :94 and its own fetch :122 | INC-863
 src/routes/l.$slug.tsx | createServerFn :23 | INC-863
