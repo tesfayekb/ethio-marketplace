@@ -3,7 +3,6 @@ scripts/e2e-leases.ts | guard not yet moved (door turn) | INC-858
 scripts/test-ids.ts | guard not yet moved (door turn) | INC-858
 scripts/check-root-routes.ts | guard not yet moved (door turn) | INC-858
 src/lib/refresh-after-write.test.ts | guard not yet moved (door turn) | INC-858
-src/i18n/locales/admin-layer.test.ts | guard not yet moved (door turn) | INC-858
 scripts/e2e-select.ts | not a guard: picks the specs a run executes | DEC-244
 scripts/e2e-failure-report.ts | not a guard: reads the run's results | DEC-244
 scripts/e2e-migration-preflight.ts | not a guard: reads the migration marks | DEC-244

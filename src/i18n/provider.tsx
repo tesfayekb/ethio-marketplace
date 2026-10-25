@@ -18,13 +18,21 @@ import { errorText } from "@/lib/error-text";
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { enBase } from "./locales/en-base";
-import { adminLayerOutcome, compiledAdminLoader, compiledCatalogLoader } from "./compiled-catalog";
+import {
+  STRINGS_LAYERS,
+  compiledCatalogLoader,
+  compiledLayerLoader,
+  isStringsLayer,
+  layerOutcome,
+  type StringsLayer,
+} from "./compiled-catalog";
 import { type Language, type MessageKey, type Messages } from "./types";
 
 /**
  * DEC-231 — the English FIRST-PAINT part, typed as the full catalog so the
- * provider's state and fallback chain keep their shape. The admin.* keys are
- * undefined until the admin gate's layer loads; the gate waits for them (E4).
+ * provider's state and fallback chain keep their shape. A layer's keys
+ * (DEC-258: admin, member) are undefined until the layer loads; the shell's
+ * gate waits for them before a route that declares the layer draws.
  */
 const enFirstPaint = enBase as unknown as Messages;
 
@@ -211,11 +219,21 @@ type I18nValue = {
   star: string | null;
   /** U4h — star a language: it becomes the device default AND the active language. */
   setStar: (code: Language) => void;
-  /** DEC-231 — the admin strings layer: idle until the admin gate asks for it. */
-  adminStrings: "idle" | "loading" | "ready" | "failed";
-  /** DEC-231 — ask for the admin strings layer; also the retry after a failure. */
-  requestAdminStrings: () => void;
+  /** DEC-258 — each strings layer's state: idle until a route that shows it asks. */
+  layerStates: Record<StringsLayer, LayerState>;
+  /** DEC-258 — ask for a strings layer; also the retry after a failure. */
+  requestStringsLayer: (layer: StringsLayer) => void;
 };
+
+/** DEC-258 — where a strings layer's load stands. */
+export type LayerState = "idle" | "loading" | "ready" | "failed";
+
+function everyLayer<T>(value: T): Record<StringsLayer, T> {
+  return Object.fromEntries(STRINGS_LAYERS.map((layer) => [layer, value])) as Record<
+    StringsLayer,
+    T
+  >;
+}
 
 const I18nContext = createContext<I18nValue | null>(null);
 
@@ -278,14 +296,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // of `<html lang|dir>`. `language` is the selection; this follows it only when
   // its catalog is applied, so the page never declares text it does not carry.
   const [appliedLanguage, setAppliedLanguage] = useState<Language>(BASE_LANGUAGE);
-  // DEC-231 — the admin strings layer loads only when the admin gate asks
-  // (useAdminStrings). adminRequest is the retry counter: each request, first
-  // or repeated, re-runs the load effect.
-  const [adminStrings, setAdminStrings] = useState<"idle" | "loading" | "ready" | "failed">("idle");
-  const [adminRequest, setAdminRequest] = useState(0);
-  const requestAdminStrings = useCallback(() => {
-    setAdminRequest((n) => n + 1);
-    setAdminStrings((current) => (current === "ready" ? current : "loading"));
+  // DEC-258 — a strings layer loads only when a route that shows it asks
+  // (useStringsLayers, through the shell's gate). Each layer's request count is
+  // its retry counter: each request, first or repeated, re-runs the load effect.
+  const [layerStates, setLayerStates] = useState<Record<StringsLayer, LayerState>>(() =>
+    everyLayer<LayerState>("idle"),
+  );
+  const [layerRequests, setLayerRequests] = useState<Record<StringsLayer, number>>(() =>
+    everyLayer(0),
+  );
+  // A layer already in is not asked again: a screen that mounts later finds it ready.
+  const layerStatesRef = useRef(layerStates);
+  useEffect(() => {
+    layerStatesRef.current = layerStates;
+  }, [layerStates]);
+  const requestStringsLayer = useCallback((layer: StringsLayer) => {
+    if (layerStatesRef.current[layer] === "ready") return;
+    setLayerRequests((current) => ({ ...current, [layer]: current[layer] + 1 }));
+    setLayerStates((current) =>
+      current[layer] === "ready" ? current : { ...current, [layer]: "loading" },
+    );
   }, []);
   // U4d — entity names for the active language. Identity is stable while the
   // language is unchanged and the fetch is pending (INC-090 identity law).
@@ -312,8 +342,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const carriedForRef = useRef<string | null>(null);
   /** INC-107 — one warning per DB-only language, never one per effect run. */
   const warnedMissingRef = useRef<Set<string>>(new Set());
-  /** INC-816 — the English admin part, once loaded, is kept for later runs. */
-  const enAdminRef = useRef<Partial<Messages> | null>(null);
+  /** INC-816 — each layer's English part, once loaded, is kept for later runs. */
+  const enLayersRef = useRef<Partial<Record<StringsLayer, Partial<Messages>>>>({});
   const { settled: authSettled, userId } = useAuthIdentity();
 
   // Read the gate's own source (law F4: a failure logs, never silently widens).
@@ -507,35 +537,36 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, [gateReady, bootRead, isPublic, language, star]);
 
-  // Load the active locale only; the admin layer joins it once the gate asks.
+  // Load the active locale only; a strings layer joins it once a route asks.
   useEffect(() => {
     let cancelled = false;
-    const wantAdmin = adminRequest > 0;
+    const wanted = STRINGS_LAYERS.filter((layer) => layerRequests[layer] > 0);
 
     /**
      * D3 runtime flip (U4b), corrected by INC-095: the DB bundle is an OVERLAY
      * on the compiled ACTIVE catalog, never a replacement. The chain is
      * additive and applied lowest-first:
      *
-     *   en-base  ▸  en-admin  ▸  compiled[lang]  ▸  compiled[lang]-admin  ▸  DB[lang]
+     *   en-base  ▸  en-<layers>  ▸  compiled[lang]  ▸  compiled[lang]-<layers>  ▸  DB[lang]
      *
-     * (DEC-231: the two admin layers enter the chain only once the admin gate
-     * asked for them; until then the first paint is en-base ▸ compiled[lang]
-     * ▸ DB[lang]) so an empty, partial or failing bundle is INVISIBLE: the
-     * compiled active catalog still answers every key, and compiled English
-     * is the last resort.
+     * (DEC-231, DEC-258: a strings layer's two parts enter the chain only once
+     * a route asked for it, in STRINGS_LAYERS order; until then the first
+     * paint is en-base ▸ compiled[lang] ▸ DB[lang]) so an empty, partial or
+     * failing bundle is INVISIBLE: the compiled active catalog still answers
+     * every key, and compiled English is the last resort.
      */
     const applyWithBundle = (
       compiled: Partial<Messages>,
-      enAdmin: Partial<Messages> | null,
-      langAdmin: Partial<Messages> | null,
+      parts: { en: Partial<Messages> | null; lang: Partial<Messages> | null }[],
     ) => {
       if (cancelled) return;
+      const merge = (pick: (part: (typeof parts)[number]) => Partial<Messages> | null) =>
+        parts.reduce<Partial<Messages>>((all, part) => ({ ...all, ...(pick(part) ?? {}) }), {});
       const base = {
         ...enFirstPaint,
-        ...(enAdmin ?? {}),
+        ...merge((part) => part.en),
         ...compiled,
-        ...(langAdmin ?? {}),
+        ...merge((part) => part.lang),
       } as Messages;
       setMessages(base);
       setAppliedLanguage(language);
@@ -570,47 +601,55 @@ export function I18nProvider({ children }: { children: ReactNode }) {
         }
       }
       if (cancelled) return;
-      if (!wantAdmin) {
-        applyWithBundle(compiled, null, null);
-        return;
-      }
-      // INC-816 — two separate tries: the English admin part (kept once loaded)
-      // and the language's own part; a failed language part never blanks admin text.
-      let enAdmin: Partial<Messages> | null = enAdminRef.current;
-      try {
-        const enAdminLoader = compiledAdminLoader(BASE_LANGUAGE);
-        const loaded = enAdminLoader ? await enAdminLoader() : {};
-        enAdminRef.current = loaded;
-        enAdmin = loaded;
-      } catch (reason) {
-        // F4 — never silent: the kept part, if any, still applies.
-        console.error(`[i18n] admin strings for ${BASE_LANGUAGE} failed: ${errorText(reason)}`);
-      }
-      let langAdmin: Partial<Messages> | null = null;
-      if (language !== BASE_LANGUAGE) {
-        try {
-          const langAdminLoader = compiledAdminLoader(language);
-          langAdmin = langAdminLoader ? await langAdminLoader() : null;
-        } catch (reason) {
-          // F4 — never silent, never blank: the English admin part still applies.
-          console.error(`[i18n] admin strings for ${language} failed: ${errorText(reason)}`);
-        }
-      }
+      // INC-816 — per layer, two separate tries: the English part (kept once
+      // loaded) and the language's own part; a failed language part never
+      // blanks the layer's text.
+      const loaded = await Promise.all(
+        wanted.map(async (layer) => {
+          let en: Partial<Messages> | null = enLayersRef.current[layer] ?? null;
+          try {
+            const enLoader = compiledLayerLoader(layer, BASE_LANGUAGE);
+            const part = enLoader ? await enLoader() : {};
+            enLayersRef.current[layer] = part;
+            en = part;
+          } catch (reason) {
+            // F4 — never silent: the kept part, if any, still applies.
+            console.error(
+              `[i18n] ${layer} strings for ${BASE_LANGUAGE} failed: ${errorText(reason)}`,
+            );
+          }
+          let lang: Partial<Messages> | null = null;
+          if (language !== BASE_LANGUAGE) {
+            try {
+              const langLoader = compiledLayerLoader(layer, language);
+              lang = langLoader ? await langLoader() : null;
+            } catch (reason) {
+              // F4 — never silent, never blank: the English part still applies.
+              console.error(`[i18n] ${layer} strings for ${language} failed: ${errorText(reason)}`);
+            }
+          }
+          return { layer, en, lang };
+        }),
+      );
       if (cancelled) return;
-      const outcome = adminLayerOutcome({ enAdmin, langAdmin, wasReady: false });
-      applyWithBundle(compiled, outcome.enAdmin, outcome.langAdmin);
-      if (!cancelled) {
-        setAdminStrings(
-          (current) =>
-            adminLayerOutcome({ enAdmin, langAdmin, wasReady: current === "ready" }).state,
-        );
-      }
+      applyWithBundle(
+        compiled,
+        loaded.map(({ en, lang }) => layerOutcome({ en, lang, wasReady: false })),
+      );
+      if (loaded.length === 0 || cancelled) return;
+      setLayerStates((current) => {
+        const next = { ...current };
+        for (const { layer, en, lang } of loaded) {
+          next[layer] = layerOutcome({ en, lang, wasReady: current[layer] === "ready" }).state;
+        }
+        return next;
+      });
     };
     void run();
     return () => {
       cancelled = true;
     };
-  }, [language, authSettled, adminRequest]);
+  }, [language, authSettled, layerRequests]);
 
   // INC-872 — `lang` AND `dir` follow the APPLIED catalog, never the selection:
   // they change in the same commit as the text. Direction comes from the gate
@@ -645,8 +684,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       publicLanguages,
       star,
       setStar,
-      adminStrings,
-      requestAdminStrings,
+      layerStates,
+      requestStringsLayer,
     }),
     [
       language,
@@ -655,8 +694,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       publicLanguages,
       star,
       setStar,
-      adminStrings,
-      requestAdminStrings,
+      layerStates,
+      requestStringsLayer,
     ],
   );
 
@@ -670,18 +709,35 @@ export function useI18n(): I18nValue {
 }
 
 /**
- * DEC-231 — the admin gate's ask for the admin strings layer: requests it
- * once on mount and reports where the load stands. retry asks again.
+ * DEC-258 (DEC-231's admin gate, generalised) — a screen's ask for the strings
+ * layers it shows: requests each once on mount (and whenever the list
+ * changes) and reports where the load stands — ready only when every layer is
+ * in, failed when any failed. retry asks again for the layers not ready.
  */
-export function useAdminStrings(): {
-  state: "idle" | "loading" | "ready" | "failed";
+export function useStringsLayers(layers: readonly StringsLayer[]): {
+  state: LayerState;
   retry: () => void;
 } {
   const ctx = useContext(I18nContext);
-  if (!ctx) throw new Error("useAdminStrings must be used within <I18nProvider>");
-  const { adminStrings, requestAdminStrings } = ctx;
+  if (!ctx) throw new Error("useStringsLayers must be used within <I18nProvider>");
+  const { layerStates, requestStringsLayer } = ctx;
+  // One string for the list, so a new array of the same layers asks nothing again.
+  const asked = layers.join(",");
   useEffect(() => {
-    requestAdminStrings();
-  }, [requestAdminStrings]);
-  return { state: adminStrings, retry: requestAdminStrings };
+    for (const layer of asked.split(",")) {
+      if (isStringsLayer(layer)) requestStringsLayer(layer);
+    }
+  }, [asked, requestStringsLayer]);
+  const states = layers.map((layer) => layerStates[layer]);
+  const state: LayerState = states.includes("failed")
+    ? "failed"
+    : states.every((one) => one === "ready")
+      ? "ready"
+      : "loading";
+  const retry = useCallback(() => {
+    for (const layer of asked.split(",")) {
+      if (isStringsLayer(layer) && layerStates[layer] !== "ready") requestStringsLayer(layer);
+    }
+  }, [asked, layerStates, requestStringsLayer]);
+  return { state, retry };
 }

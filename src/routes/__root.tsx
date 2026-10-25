@@ -18,7 +18,10 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/app-shell";
+import { StringsLayerGate } from "../components/shell/strings-layer-gate";
+import { declaredLayers } from "../components/shell/strings-layers";
 import { BASE_LANGUAGE, I18nProvider, useI18n, LANGUAGE_STAR_COOKIE } from "../i18n";
+import { warmStringsLayers } from "../i18n/compiled-catalog";
 import { serverShellLanguage } from "../i18n/server-shell-language";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // TYPE ONLY — the judge itself is a server module (import protection keeps
@@ -286,6 +289,16 @@ const PHOTO_ORIGIN = (() => {
 })();
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // DEC-258 — a navigation (or a link's preload) to a route that declares
+  // strings layers starts their download here, before the route's own code and
+  // data arrive, so the shell's gate seldom waits.
+  beforeLoad: ({ matches }) => {
+    if (typeof window === "undefined") return;
+    const layers = declaredLayers(matches.map((match) => match.staticData));
+    if (layers.length > 0) {
+      warmStringsLayers(layers, [BASE_LANGUAGE, document.documentElement.lang]);
+    }
+  },
   // The origin/path are re-read on the client so a client-side navigation's
   // alternates point at the page the visitor is actually on, not at the
   // server-function URL the RPC was issued against.
@@ -425,8 +438,11 @@ function RootComponent() {
       <I18nProvider>
         <ThemeProvider>
           <AppShell>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
+            {/* DEC-258 — a route that declares strings layers draws once they are in. */}
+            <StringsLayerGate>
+              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+              <Outlet />
+            </StringsLayerGate>
           </AppShell>
         </ThemeProvider>
       </I18nProvider>
