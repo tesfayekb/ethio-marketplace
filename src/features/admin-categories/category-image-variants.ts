@@ -180,6 +180,40 @@ function toPng(el: HTMLCanvasElement): Promise<Blob> {
   });
 }
 
+/**
+ * D234 S2 — the card and the thumb are what a buyer's phone downloads (the feed's
+ * photo-less cards, the ad page's picture), so they are WebP: a flat illustration
+ * at this quality is a fraction of the PNG (the measured card was 138 KB). A
+ * browser that cannot encode WebP answers PNG; the caller names the file by the
+ * blob's own type. The OG picture stays PNG for the link previews of other sites.
+ */
+export const PICTURE_WEBP_QUALITY = 0.82;
+
+/**
+ * D234 S2 — category pictures are named by version (`card-<genTs>.<ext>`), so a
+ * name is never rewritten and may be kept by phones and the CDN for a year; the
+ * extension follows the blob's own type (WebP, or PNG from a browser that cannot
+ * encode WebP).
+ */
+export const PICTURE_CACHE_SECONDS = "31536000";
+
+export function pictureExtension(blob: Blob): "webp" | "png" {
+  return blob.type === "image/webp" ? "webp" : "png";
+}
+
+function toWebp(el: HTMLCanvasElement): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    el.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("canvas webp encode failed"));
+      },
+      "image/webp",
+      PICTURE_WEBP_QUALITY,
+    );
+  });
+}
+
 function drawWatermarks(
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -230,7 +264,7 @@ export interface Variants {
   og: Blob;
 }
 
-/** Decodes the provider image and cuts the three PNG variants. */
+/** Decodes the provider image and cuts the three variants: card and thumb WebP (D234), the OG PNG. */
 export async function makeVariants(source: Blob): Promise<Variants> {
   const bitmap = await createImageBitmap(source);
   const full = makeCanvas(bitmap.width, bitmap.height);
@@ -253,6 +287,6 @@ export async function makeVariants(source: Blob): Promise<Variants> {
   const thumb = makeCanvas(THUMB_WIDTH, THUMB_HEIGHT);
   context2d(thumb).drawImage(card, 0, 0, THUMB_WIDTH, THUMB_HEIGHT);
 
-  const [cardPng, thumbPng, ogPng] = await Promise.all([toPng(card), toPng(thumb), toPng(og)]);
-  return { card: cardPng, thumb: thumbPng, og: ogPng };
+  const [cardWebp, thumbWebp, ogPng] = await Promise.all([toWebp(card), toWebp(thumb), toPng(og)]);
+  return { card: cardWebp, thumb: thumbWebp, og: ogPng };
 }

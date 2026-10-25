@@ -213,3 +213,11 @@ The four moves of this turn (the supervisor's build of the change, gzip 6): the 
 `loadOnce` (`src/lib/load-once.ts`) fetches an on-demand module once per visit and forgets a failed download so the next ask tries again. `useNearViewport` (`src/lib/use-near-viewport.ts`) latches true once a box comes within 400 px of the screen, so below-the-fold work starts only then.
 
 Next: the ad page's LCP (photo links in the loader, fetchpriority, category pictures as WebP), the font decision, edge caching (a DEC), INC-897.
+
+## 8. The first picture (D234, Foundations turn 25)
+
+A public page's largest first picture is named in its server HTML and asked for first. The feed's first cards already were (DEC-195: their links arrive with the answer, priority on the first six); now the ad page is too: its photos are signed from its own public document (`signPublicPhotos`, `src/server/media/links.ts` — no second read) and handed to `usePhotoLinks` as the preset, and the gallery's main photo and the photo-less ad's category picture load eagerly at high priority.
+
+Why it matters on the lab's phone: the baseline's ad-page LCP was 6.0 s, its LCP element the photo-less ad's category picture loaded lazily (a 128 KiB PNG); an ad with photos waited for hydration plus one more request (562 ms of latency each on slow 4G) before its main photo's download could start. That request is gone.
+
+Category pictures made from now on are WebP (card, thumb; the OG picture stays PNG) under versioned names (`card-<genTs>.<ext>`) stored with a one-year cache. The pictures already stored stay PNG with a one-hour cache until regenerated — INC-900.

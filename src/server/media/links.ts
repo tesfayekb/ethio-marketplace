@@ -106,6 +106,28 @@ export async function readAndSignPhotoLinks(
 }
 
 /**
+ * D234 speed turn S2 — THE PHOTOS OF A PUBLIC LISTING DOCUMENT. `public_listing`,
+ * read as the caller (the anonymous client), answers only the photos the public
+ * policy admits — stripped and not held (`public_listing_json`, the predicate of
+ * `listing_photos_public_read`) — so its rows are signed as they stand, with no
+ * second read: the ad page's photos in its server HTML, the share image's
+ * redirect. At most MAX_LINK_PHOTOS. Every other door reads its rows as the
+ * caller first (readAndSignPhotoLinks).
+ */
+export async function signPublicPhotos(
+  photos: readonly { id: string; paths: unknown }[],
+  variants: readonly string[] = READ_VARIANTS,
+): Promise<Record<string, Record<string, string>>> {
+  const rows = photos
+    .filter((photo) => photo.id !== "")
+    .slice(0, MAX_LINK_PHOTOS)
+    .map((photo) => ({ id: photo.id, paths: photo.paths, exif_stripped: true }));
+  if (rows.length === 0) return {};
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return signPhotoRows(supabaseAdmin, rows, variants);
+}
+
+/**
  * Signs every readable variant of the given rows: `{ [photoId]: { [variant]: link } }`.
  * Rows not stripped are left out; a photo with no signable variant is absent.
  */

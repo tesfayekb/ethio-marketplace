@@ -3,7 +3,7 @@ import { clientAddress } from "@/server/catalog-find.server";
 import { DIALS } from "@/lib/dials";
 import { spend } from "@/server/dials";
 import { anonymousClient, logRouteError } from "@/server/supabase/user-client";
-import { signPhotoRows } from "@/server/media/links";
+import { signPublicPhotos } from "@/server/media/links";
 import { ownValue } from "@/lib/own-key";
 import { plain, redirect } from "@/server/answer";
 
@@ -34,12 +34,8 @@ export async function adPhotoResponse(request: Request, id: string): Promise<Res
   const doc = data as unknown as PublicListingDoc;
   const cover = doc.photos.find((photo) => photo.id === doc.cover_photo_id) ?? doc.photos[0];
   if (cover === undefined) return photoRefusal(404, "not found");
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const links = await signPhotoRows(
-    supabaseAdmin,
-    [{ id: cover.id, paths: cover.paths, exif_stripped: true }],
-    ["card"],
-  );
+  // D234 S2 — the document's own photos are signed as they stand (signPublicPhotos).
+  const links = await signPublicPhotos([cover], ["card"]);
   const link = ownValue(links, cover.id)?.card;
   if (link === undefined) return photoRefusal(404, "not found");
   return redirect(link, { status: 302, cache: "private, max-age=1800" });

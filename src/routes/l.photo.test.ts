@@ -13,8 +13,7 @@ vi.mock("@/server/supabase/user-client", async (original) => ({
   ...(await original<typeof import("@/server/supabase/user-client")>()),
   anonymousClient: () => ({ rpc: state.rpc }),
 }));
-vi.mock("@/server/media/links", () => ({ signPhotoRows: state.sign }));
-vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: {} }));
+vi.mock("@/server/media/links", () => ({ signPublicPhotos: state.sign }));
 
 type Handler = (ctx: { request: Request; params: unknown }) => Promise<Response>;
 async function get(id: string): Promise<Response> {
@@ -59,6 +58,8 @@ it("PHR-3 a cover is a 302 to the signed https link with private, max-age=1800",
   expect(response.headers.get("Location")).toBe(SIGNED);
   expect(response.headers.get("Cache-Control")).toBe("private, max-age=1800");
   expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
+  // D234 S2 — the document's cover is signed as it stands, its card size only.
+  expect(state.sign).toHaveBeenCalledWith([{ id: "p1", paths: {} }], ["card"]);
 });
 
 it("PHR-4 no cover is 404", async () => {

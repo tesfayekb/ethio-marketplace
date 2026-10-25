@@ -1,10 +1,39 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 
-import { MAX_LINK_PHOTOS, photoIdsOf, signPhotoRows, variantRefs, variantsOf } from "./links";
+import {
+  MAX_LINK_PHOTOS,
+  photoIdsOf,
+  signPhotoRows,
+  signPublicPhotos,
+  variantRefs,
+  variantsOf,
+} from "./links";
+
+// D234 S2 — the service client signPublicPhotos signs with: storage only, no table reads.
+const admin = vi.hoisted(() => ({ asked: [] as string[][] }));
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: {
+    storage: {
+      from: () => ({
+        createSignedUrls: async (keys: string[]) => {
+          admin.asked.push(keys);
+          return {
+            data: keys.map((key) => ({
+              path: key,
+              signedUrl: `https://signed/${key}`,
+              error: null,
+            })),
+            error: null,
+          };
+        },
+      }),
+    },
+  },
+}));
 
 /**
  * INC-588 / D151 — what may be signed. The stored shape is the upload route's
@@ -87,5 +116,19 @@ describe("photo links (INC-588)", () => {
       "cover",
     ]);
     expect(variantsOf(["mid"])).toEqual(["mid"]);
+  });
+
+  it("LK-6 a public document's photos are signed as they stand, with no row read, at most thirty (D234)", async () => {
+    const photos = Array.from({ length: MAX_LINK_PHOTOS + 1 }, (_, index) => ({
+      id: `p${index}`,
+      paths: { card: { partition: "default", key: `default/u/l/p${index}/card.webp` } },
+    }));
+    const links = await signPublicPhotos(photos, ["card"]);
+    expect(Object.keys(links)).toHaveLength(MAX_LINK_PHOTOS);
+    expect(links).toMatchObject({ p0: { card: "https://signed/default/u/l/p0/card.webp" } });
+    expect(admin.asked).toHaveLength(1);
+    expect(admin.asked[0]).toHaveLength(MAX_LINK_PHOTOS);
+    expect(await signPublicPhotos([], ["card"])).toEqual({});
+    expect(admin.asked).toHaveLength(1);
   });
 });

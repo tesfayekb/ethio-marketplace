@@ -22,8 +22,16 @@ export async function readPhotoLinks(photoIds: string[]): Promise<PhotoLinks> {
  * INC-588 / D151 — the links of these stored photos, read once per set of
  * photos and kept 45 minutes (they expire after 60). A failed read leaves every
  * photo as "no photo" (the category's picture), never a broken image.
+ *
+ * D234 S2 — `preset` is the links a server read already signed (the buyer's ad
+ * page signs them with the page's own read, the DEC-195 pattern): they seed the
+ * query, so the first photo is in the server's HTML and the browser asks no
+ * second request; the same 45 minutes then apply.
  */
-export function usePhotoLinks(photos: readonly { id: string }[]): PhotoLinks | undefined {
+export function usePhotoLinks(
+  photos: readonly { id: string }[],
+  preset: PhotoLinks | null = null,
+): PhotoLinks | undefined {
   const ids = [...new Set(photos.map((photo) => photo.id).filter((id) => id !== ""))]
     .sort()
     .slice(0, MAX_PHOTOS);
@@ -34,5 +42,6 @@ export function usePhotoLinks(photos: readonly { id: string }[]): PhotoLinks | u
     staleTime: 45 * 60_000,
     gcTime: 50 * 60_000,
     retry: 2,
+    ...(preset === null ? {} : { initialData: preset }),
   }).data;
 }

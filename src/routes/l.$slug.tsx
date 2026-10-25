@@ -97,7 +97,7 @@ function GonePage() {
 
 function AdPage() {
   const navigate = useNavigate();
-  const { doc, canonical } = Route.useLoaderData();
+  const { doc, canonical, photoLinks } = Route.useLoaderData();
   const countedId = useRef<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   // the reveal is a tap: a signed-in tap on Show contact, or a signed-out tap on
@@ -196,6 +196,7 @@ function AdPage() {
     <PageShell as="main" width="wide" data-testid="ad-page">
       <ListingDetail
         {...view}
+        photoLinks={photoLinks}
         share={
           <ShareAd
             publicId={doc.public_id}

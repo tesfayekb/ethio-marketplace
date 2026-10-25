@@ -1,5 +1,8 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import { createElement, type ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readPhotoLinks } from "./use-photo-links";
+import { readPhotoLinks, usePhotoLinks } from "./use-photo-links";
 
 // The transport is the route client (Foundations turn 14); the tests mock IT —
 // the request bytes are route-client's own contract (RCL-1…15). The reader's
@@ -41,5 +44,31 @@ describe("photo link reader", () => {
   it("UPL-3 an unreachable route throws and gives no links", async () => {
     callRoute.mockResolvedValue({ kind: "unreachable", reason: "network" });
     await expect(readPhotoLinks(["photo"])).rejects.toThrow("photo links: 0");
+  });
+});
+
+/** D234 S2 — links a server read already signed seed the hook: no second request. */
+describe("photo links preset by the page's server read", () => {
+  const wrapper = () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    return ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client }, children);
+  };
+
+  it("UPL-4 preset links are the answer at once, and nothing is asked", async () => {
+    const preset = { photo: { card: "https://example.com/signed.jpg" } };
+    const { result } = renderHook(() => usePhotoLinks([{ id: "photo" }], preset), {
+      wrapper: wrapper(),
+    });
+    expect(result.current).toEqual(preset);
+    await new Promise((done) => setTimeout(done, 20));
+    expect(callRoute).not.toHaveBeenCalled();
+  });
+
+  it("UPL-5 without a preset the links are asked for, as before", async () => {
+    const { result } = renderHook(() => usePhotoLinks([{ id: "photo" }]), { wrapper: wrapper() });
+    expect(result.current).toBeUndefined();
+    await waitFor(() => expect(result.current).toEqual(links));
+    expect(callRoute).toHaveBeenCalledTimes(1);
   });
 });
