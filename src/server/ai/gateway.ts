@@ -1,10 +1,27 @@
 import { logRouteError } from "@/server/supabase/user-client";
 import { standInMode } from "@/server/stand-in";
 import { recordAiCall } from "./audit";
-import { aiGate, recordAiSpend } from "./meter";
+import { errorText } from "@/lib/error-text";
+import { ownValue } from "@/lib/own-key";
+import { aiGate, recordAiSpend, type AiGate } from "./meter";
 import { geminiImage, geminiText } from "./providers/gemini";
 import { photoroomSegment } from "./providers/photoroom";
-import { taskOf, type AiImage, type AiMaterial, type OutputOf, type TaskId } from "./tasks";
+import {
+  providerLanguages,
+  translateBatch,
+  type ProviderLanguage,
+} from "./providers/google-translate";
+import {
+  FAKE_LANGUAGES,
+  TRANSLATION_CHUNK,
+  TRANSLATION_TARGET,
+  taskOf,
+  translationTexts,
+  type AiImage,
+  type AiMaterial,
+  type OutputOf,
+  type TaskId,
+} from "./tasks";
 import { render } from "./template";
 
 export type AiAnswer<O> =
@@ -20,6 +37,12 @@ export type AiAnswer<O> =
         | "providerError"
         | "unusableAnswer";
       status?: number;
+      /**
+       * Turn 19 (ruling R2 on stop 1) — set only on the answers built from the
+       * gate: featureOff, budget, and unavailable when the switch could not be
+       * read. A caller that must tell "switched off" from a failed call keys on it.
+       */
+      gate?: true;
     };
 
 /** Image material: the bytes themselves, or a supplier the gateway calls only when a real call will happen. */
@@ -37,7 +60,18 @@ const PROVIDER_KEY_ENV = {
   "gemini-text": "GEMINI_API_KEY",
   "gemini-image": "GEMINI_API_KEY",
   "photoroom-segment": "PHOTOROOM_API_KEY",
+  "google-translate": "GOOGLE_TRANSLATE_API_KEY",
 } as const;
+
+/** A translation's material: a target code and at most one chunk of texts (turn 19). */
+function translationMaterialOk(material: AiMaterial): boolean {
+  const target = ownValue(material, "target");
+  return (
+    typeof target === "string" &&
+    TRANSLATION_TARGET.test(target) &&
+    translationTexts(material).length <= TRANSLATION_CHUNK
+  );
+}
 
 /** The exact rendered user text used by the registered task's provider call. */
 export function renderTask<T extends TaskId>(taskId: T, material: AiMaterial): string {
@@ -139,11 +173,24 @@ export async function aiCall<T extends TaskId>(
   let rendered: { system: string; user: string } | null = null;
   let sent: readonly AiImage[] = [];
   let inputHash: string | null = null;
+  let units = 1;
   try {
     model = (process.env[task.model.env] ?? "").trim() || task.model.fallback;
-    const gate = await aiGate(task.feature, log);
+    // A gate read that throws is a switch that could not be read: off, with
+    // the gate's mark (ruling R2), never a call.
+    let gate: AiGate;
+    try {
+      gate = await aiGate(task.feature, log);
+    } catch (error) {
+      log(`gate unreadable: ${errorText(error)}`);
+      gate = { on: false, reason: "unavailable" };
+    }
     if (!gate.on) {
-      answer = { ok: false, reason: gate.reason === "staff" ? "featureOff" : gate.reason };
+      answer = {
+        ok: false,
+        reason: gate.reason === "staff" ? "featureOff" : gate.reason,
+        gate: true,
+      };
     } else {
       fake = standInMode(task.fakeFlag);
       const keyEnv = PROVIDER_KEY_ENV[task.provider];
@@ -179,8 +226,14 @@ export async function aiCall<T extends TaskId>(
           const resolved = typeof material === "function" ? await material() : material;
           rendered = render(task, resolved);
           inputHash = await hashMaterial(task, rendered.user, sent);
+          // Turn 19, CHANGE (2) — a task's own units, a pure function of its
+          // material (GWC-9); a task without it is metered as 1.
+          units = task.units !== undefined ? task.units(resolved) : 1;
           let raw: unknown;
-          if (fake) {
+          if (task.provider === "google-translate" && !translationMaterialOk(resolved)) {
+            log("material refused: a target code and at most one chunk of texts");
+            answer = { ok: false, reason: "unavailable" };
+          } else if (fake) {
             raw = task.fake(resolved);
             billed = true;
           } else if (task.provider === "photoroom-segment") {
@@ -212,6 +265,31 @@ export async function aiCall<T extends TaskId>(
                   reason: provider.kind === "timeout" ? "timeout" : "unavailable",
                 };
               }
+            }
+          } else if (task.provider === "google-translate") {
+            const target = ownValue(resolved, "target");
+            const provider = await translateBatch({
+              target: typeof target === "string" ? target : "",
+              texts: translationTexts(resolved),
+              timeoutMs: task.timeoutMs,
+              label: `google-translate ${task.id}`,
+            });
+            if (provider.kind === "texts") {
+              status = provider.status;
+              billed = true;
+              raw = provider.texts;
+            } else if (provider.kind === "unusable") {
+              status = provider.status;
+              billed = true;
+              answer = { ok: false, reason: "unusableAnswer" };
+            } else if (provider.kind === "status") {
+              status = provider.status;
+              answer = { ok: false, reason: "providerError", status };
+            } else {
+              answer = {
+                ok: false,
+                reason: provider.kind === "timeout" ? "timeout" : "unavailable",
+              };
             }
           } else if (task.provider === "gemini-image") {
             const provider = await geminiImage({
@@ -275,7 +353,7 @@ export async function aiCall<T extends TaskId>(
             const parsed = task.output.safeParse(raw);
             if (parsed.success) {
               answer =
-                task.validate !== undefined && !task.validate(parsed.data)
+                task.validate !== undefined && !task.validate(parsed.data, resolved)
                   ? { ok: false, reason: "unusableAnswer" }
                   : {
                       ok: true,
@@ -293,7 +371,7 @@ export async function aiCall<T extends TaskId>(
   } catch {
     answer = { ok: false, reason: "unavailable" };
   }
-  if (billed) await recordAiSpend(task.feature, 1, log);
+  if (billed) await recordAiSpend(task.feature, units, log);
   if (inputHash === null) {
     // A gate-off or keyless answer or a throw before the hash still writes its
     // row (the door wants 64 hex); the hash then covers the rendered text alone.
@@ -319,4 +397,26 @@ export async function aiCall<T extends TaskId>(
     log,
   );
   return answer;
+}
+
+export type TranslationLanguages =
+  | { ok: true; languages: ProviderLanguage[] }
+  | { ok: false; reason: "noKey" | "unavailable" };
+
+/**
+ * Turn 19, CHANGE (2) — the provider's supported targets for the language
+ * picker and the route's target check: a free metadata call, so no gate, no
+ * meter and no audit row (as today). The stand-in answers today's
+ * FAKE_LANGUAGES with no provider call; a real list is read once per process
+ * (the adapter's cache), with the translation task's deadline.
+ */
+export async function translationLanguages(ctx: { path: string }): Promise<TranslationLanguages> {
+  const task = taskOf("translation");
+  if (standInMode(task.fakeFlag)) return { ok: true, languages: FAKE_LANGUAGES };
+  const answer = await providerLanguages({ timeoutMs: task.timeoutMs });
+  if (answer.kind === "languages") return { ok: true, languages: answer.languages };
+  if (answer.kind === "noKey") return { ok: false, reason: "noKey" };
+  const status = "status" in answer ? ` ${answer.status}` : "";
+  logRouteError(ctx.path, `ai translation languages ${answer.kind}${status}`);
+  return { ok: false, reason: "unavailable" };
 }

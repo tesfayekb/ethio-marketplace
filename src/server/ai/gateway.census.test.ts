@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { relative } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { codeOf, readAllowlist, walkFiles } from "../../../scripts/conformance/kit";
 import { AI_FEATURES } from "./meter";
-import { AI_TASKS } from "./tasks";
+import { AI_TASKS, type AiMaterial } from "./tasks";
 import { migrationAiFeatures } from "./features-census";
 import { render } from "./template";
 import { UNTRUSTED_RULE } from "@/lib/untrusted-text";
@@ -130,7 +130,9 @@ describe("AI gateway conformance", () => {
     };
     const problems = (task: TaskShape): string[] => {
       const found: string[] = [];
-      if (task.provider !== "gemini-text") {
+      // The two image providers (turn 19, ruling R3 d): a text model and the
+      // translation adapter answer text, never image bytes.
+      if (task.provider === "gemini-image" || task.provider === "photoroom-segment") {
         const image = task.output.safeParse({ bytes: new Uint8Array([1]), mime: "image/png" });
         if (!image.success) found.push(`${task.id}: no image output schema`);
         const text = task.output.safeParse({ text: "rendered as text" });
@@ -165,6 +167,69 @@ describe("AI gateway conformance", () => {
       "planted_removal: no images.all",
       "planted_removal: no image output schema",
     ]);
+  });
+  it("GWC-9 a task's units are a pure count of its material, and a task without them is metered as 1", () => {
+    type UnitsTask = { id: string; units?: (material: AiMaterial) => unknown };
+    const IMPURE: RegExp[] = [
+      /\basync\b/,
+      /\bawait\b/,
+      /\bfetch\(/,
+      /\bupstream\(/,
+      /process\.env/,
+      /\bimport\(/,
+      /\.rpc\(/,
+      /\bDate\.now\(/,
+      /\bMath\.random\(/,
+      /\bconsole\./,
+    ];
+    const material = { target: "am", texts: ["Hello", "{count} items"] };
+    const problems = (task: UnitsTask): string[] => {
+      if (task.units === undefined) return [];
+      const text = task.units.toString();
+      const found = IMPURE.filter((pattern) => pattern.test(text)).map(
+        (pattern) => `${task.id}: units ${pattern.source}`,
+      );
+      let first: unknown;
+      let second: unknown;
+      try {
+        first = task.units(material);
+        second = task.units(material);
+      } catch {
+        return [...found, `${task.id}: units throws`];
+      }
+      if (typeof first !== "number" || !Number.isInteger(first) || first < 0 || first !== second)
+        found.push(`${task.id}: units is not a stable count`);
+      return found;
+    };
+    const tasks: readonly UnitsTask[] = AI_TASKS;
+    expect(tasks.flatMap((task) => problems(task))).toEqual([]);
+    // The translation task counts the characters it sends: 5 + 13.
+    expect(tasks.find((task) => task.id === "translation")?.units?.(material)).toBe(18);
+    // The planted task: units that read the network are reported on every count.
+    const planted: UnitsTask = {
+      id: "planted_units",
+      units: async () => (await fetch("https://example.invalid")).status,
+    };
+    // No real request leaves the test: the planted read meets a stub.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 200 })),
+    );
+    try {
+      expect(problems(planted)).toEqual([
+        "planted_units: units \\basync\\b",
+        "planted_units: units \\bawait\\b",
+        "planted_units: units \\bfetch\\(",
+        "planted_units: units is not a stable count",
+      ]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    // A task without units is metered as 1: the gateway's one spend call.
+    const gateway = codeOf(readFileSync("src/server/ai/gateway.ts", "utf8"));
+    expect(gateway).toMatch(/let units = 1;/);
+    expect(gateway).toMatch(/units = task\.units !== undefined \? task\.units\(resolved\) : 1;/);
+    expect(gateway).toMatch(/recordAiSpend\(task\.feature, units, log\)/);
   });
   it("GWC-5 planted provider call and secret read are both reported", () => {
     const planted =

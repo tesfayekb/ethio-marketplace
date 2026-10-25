@@ -257,6 +257,7 @@ describe("the one AI call", () => {
     expect(await aiCall("name_check", { alias: "abebe" }, ctx)).toEqual({
       ok: false,
       reason: "featureOff",
+      gate: true,
     });
     expect(state.requests).toEqual([]);
     expect(state.spends).toEqual([]);
@@ -370,6 +371,7 @@ describe("the one AI call", () => {
     expect(await aiCall("name_check", { alias: "abebe" }, ctx)).toEqual({
       ok: false,
       reason: "unavailable",
+      gate: true,
     });
     expect(state.requests).toEqual([]);
     expect(state.spends).toEqual([]);
@@ -385,6 +387,7 @@ describe("the one AI call", () => {
       | "writing_helper"
       | "photo_screen"
       | "background_removal"
+      | "translation"
     >();
     expectTypeOf<OutputOf<"name_check">>().toEqualTypeOf<{
       imitates: boolean;
