@@ -55,15 +55,15 @@ import { errorText } from "@/lib/error-text";
  *                            dimension cap; the strip's own self-check runs on
  *                            what it produced before a byte can be stored
  *   6 the policy pass      — the cover, the middle size, the card and the thumb,
- *                            in ONE call (D15, INC-601, D162): every size that
- *                            will be stored is screened; with the ad's category
- *                            and title, so the screen may warn `not_relevant`
- *                            (D154 B3: stored, and handed to the door);
- *                            behind its switch, and metered (D158). With the switch
- *                            off (bundle 13 turn 6), a draft's photo is HELD —
- *                            stored `unscreened`, shown to no buyer until staff
- *                            approve the ad — and a live ad's is refused
- *                            (`photoScreenPlan`, src/server/media/hold.ts).
+ *                            in ONE call (D15, INC-601, D162) through the AI
+ *                            gateway (`screenPhotoPolicy`, src/server/media/
+ *                            policy.ts): every size that will be stored is
+ *                            screened; with the ad's category and title, so the
+ *                            screen may warn `not_relevant` (D154 B3: stored,
+ *                            and handed to the door); behind its switch, and
+ *                            metered (D158). With the switch off, a photo is
+ *                            HELD — stored `unscreened`, shown to no buyer
+ *                            until staff approve it — on any ad.
  *                            Bundle 16 turn 4a (D178, D183): with the switch off
  *                            a photo on any ad is held for staff; the verdict
  *                            decides the rest (`photoOutcome`): a clean pass is
