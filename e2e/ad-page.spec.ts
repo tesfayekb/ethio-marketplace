@@ -1542,6 +1542,47 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await tap("details", '[data-testid="listing-detail-specs"]');
   });
 
+  test("AP-51 the first photo is in the server's page at its signed link, loads at once with high priority, and asks no second request (D234)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    await seedPhotos(ad.id);
+    const { canonical } = await address(ad);
+    const photoLinkPosts: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/media/photo-links") && request.method() === "POST")
+        photoLinkPosts.push(request.url());
+    });
+    // The server's own HTML already names the first photo by its signed link.
+    const html = await (await page.request.get(canonical)).text();
+    expect(html).toMatch(/\/storage\/v1\/object\/sign\//);
+    await gotoReady(page, canonical);
+    const main = page.getByTestId("gallery-main").locator("img");
+    await expect(main).toHaveAttribute("src", /\/storage\/v1\/object\/sign\//);
+    await expect(main).toHaveAttribute("loading", "eager");
+    await expect(main).toHaveAttribute("fetchpriority", "high");
+    expect(photoLinkPosts).toEqual([]);
+  });
+
+  test("AP-52 an ad without photos loads its category picture at once with high priority (D234)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    // The scratch branch's own parent carries the picture (a scratch row, never a real one).
+    const pictured = await adminClient()
+      .from("categories")
+      .update({ image_url: "https://example.invalid/e2e-ad-picture.jpg" })
+      .eq("id", seller.parentId);
+    expect(pictured.error).toBeNull();
+    const ad = await seed(seller, "active");
+    await gotoReady(page, (await address(ad)).canonical);
+    const box = page.getByTestId("listing-detail-illustration");
+    await expect(box).toHaveAttribute("data-picture", "category");
+    await expect(box.locator("img")).toHaveAttribute("loading", "eager");
+    await expect(box.locator("img")).toHaveAttribute("fetchpriority", "high");
+  });
+
   test("AP-50 the seller card fills the right column", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280");
     // DEC-197 — AP-36's ad: a fact, a description, an exact pin, photos.

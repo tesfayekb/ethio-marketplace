@@ -12,6 +12,9 @@ import {
   OG_FILL_RATIO,
   OG_HEIGHT,
   OG_WIDTH,
+  PICTURE_CACHE_SECONDS,
+  PICTURE_WEBP_QUALITY,
+  pictureExtension,
   watermarkCentres,
   WATERMARK_ANGLE,
   WATERMARK_TEXT,
@@ -90,5 +93,17 @@ describe("category image variants — geometry", () => {
 describe("D122 — one angle", () => {
   it("draws the watermark and every ribbon at −30°", () => {
     expect(WATERMARK_ANGLE).toBe(-30);
+  });
+});
+
+/** D234 S2 — what a buyer's phone downloads for a category picture. */
+describe("category picture files (D234)", () => {
+  it("CIV-1 a WebP blob is named .webp and any other .png; a versioned name is kept a year", () => {
+    expect(pictureExtension(new Blob([], { type: "image/webp" }))).toBe("webp");
+    expect(pictureExtension(new Blob([], { type: "image/png" }))).toBe("png");
+    expect(pictureExtension(new Blob([]))).toBe("png");
+    expect(PICTURE_CACHE_SECONDS).toBe(String(365 * 24 * 60 * 60));
+    expect(PICTURE_WEBP_QUALITY).toBeGreaterThan(0.7);
+    expect(PICTURE_WEBP_QUALITY).toBeLessThan(0.95);
   });
 });

@@ -23,7 +23,7 @@ import {
   type ContactState,
 } from "@/features/ad-page/contact";
 import { dealLines } from "../deal-lines";
-import { galleryPhotos } from "../photo-links";
+import { galleryPhotos, type PhotoLinks } from "../photo-links";
 import { usePhotoLinks } from "../use-photo-links";
 import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
@@ -149,6 +149,12 @@ export interface ListingDetailView {
   definitions: AttrDef[];
   attributeOptions: Record<string, AttrOption[]>;
   photos: DraftPhotoRow[];
+  /**
+   * D234 S2 — the photos' links signed with the page's own server read (the buyer's
+   * ad page), so the first photo is in the HTML and asks no second request after
+   * hydration; absent or null = the links are read in the browser as before.
+   */
+  photoLinks?: PhotoLinks | null;
   /** The nearest ancestor category's picture, shown when there is no photo. */
   illustrationUrl: string | null;
   /** Step 15 — the seller ticked "Photos coming soon". */
@@ -228,7 +234,7 @@ export function ListingDetail(view: ListingDetailView) {
 
   // INC-588 / D151 — every stored photo, through links that expire; D161 — each
   // with its card size for the page, its cover for the viewer and its thumb.
-  const links = usePhotoLinks(view.photos);
+  const links = usePhotoLinks(view.photos, view.photoLinks ?? null);
   const images = galleryPhotos(view.photos, links);
 
   const places = view.coverage
@@ -646,6 +652,7 @@ export function ListingDetail(view: ListingDetailView) {
               <ListingPicture
                 photoUrl={null}
                 categoryUrl={view.illustrationUrl}
+                priority
                 photosSoon={view.photosSoon === true}
                 ribbon={view.ribbon ?? null}
                 boxTestId={

@@ -151,6 +151,9 @@ export function PhotoGallery({
               alt=""
               width={480}
               height={360}
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
               className="h-full w-full object-contain @min-[32rem]:object-top"
               draggable={false}
             />

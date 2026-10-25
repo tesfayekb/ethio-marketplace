@@ -104,7 +104,8 @@ export async function generateCategoryImage(input: {
   if (!generatedPayload(payload))
     throw new CategoryImageError("route returned no image", 502, "model-call");
 
-  const { makeVariants } = await import("./category-image-variants");
+  const { makeVariants, pictureExtension, PICTURE_CACHE_SECONDS } =
+    await import("./category-image-variants");
   const processStart = performance.now();
   let variants: Awaited<ReturnType<typeof makeVariants>>;
   try {
@@ -122,7 +123,11 @@ export async function generateCategoryImage(input: {
   // C5e PART B — VERSIONED names, so a regenerate can never be served stale.
   const base = input.categoryId;
   const genTs = Date.now();
-  const names = { card: `card-${genTs}.png`, thumb: `thumb-${genTs}.png`, og: `og-${genTs}.png` };
+  const names = {
+    card: `card-${genTs}.${pictureExtension(variants.card)}`,
+    thumb: `thumb-${genTs}.${pictureExtension(variants.thumb)}`,
+    og: `og-${genTs}.${pictureExtension(variants.og)}`,
+  };
   const storage = supabase.storage.from(BUCKET);
   const uploads: [string, Blob][] = [
     [`${base}/${names.card}`, variants.card],
@@ -130,7 +135,12 @@ export async function generateCategoryImage(input: {
     [`${base}/${names.og}`, variants.og],
   ];
   for (const [path, blob] of uploads) {
-    const { error } = await storage.upload(path, blob, { contentType: "image/png", upsert: true });
+    // D234 S2 — a versioned name is never rewritten, so phones and the CDN keep it a year.
+    const { error } = await storage.upload(path, blob, {
+      contentType: blob.type,
+      cacheControl: PICTURE_CACHE_SECONDS,
+      upsert: true,
+    });
     if (error) {
       throw new CategoryImageError(`storage upload failed: ${error.message}`, 0, "upload");
     }
