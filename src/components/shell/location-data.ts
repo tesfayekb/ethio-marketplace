@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
 import { callRoute } from "@/lib/route-client";
+import { UUID_RE } from "@/lib/uuid";
 
 /**
  * LOCATIONS ERA L4b — THE SHELL'S GEOGRAPHY SEAM (B2: one utility, one concern).
@@ -63,7 +64,6 @@ export const AREA_COOKIE = "ethio_area";
 /** One year, the star cookie's own shape (§ i18n provider). */
 const AREA_COOKIE_MAX_AGE = 31_536_000;
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CODE_RE = /^[A-Za-z]{2}$/;
 
 export interface SavedArea {

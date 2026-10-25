@@ -1,10 +1,4 @@
 # DEC-244: every census guard walks the tree through scripts/conformance/kit.ts; a walker here is a guard not yet moved (until its turn's INC) or an enumerator that is not a guard (until DEC-244). <path> | <reason> | <until>
-src/look-law.test.ts | guard not yet moved (form-kit turn) | INC-857
-scripts/admin-tables.ts | guard not yet moved (form-kit turn) | INC-857
-scripts/destructive-red.ts | guard not yet moved (form-kit turn) | INC-857
-scripts/list-action-labels.ts | guard not yet moved (form-kit turn) | INC-857
-src/features/legal/agree-to-document.test.tsx | guard not yet moved (form-kit turn) | INC-857
-src/features/legal/use-legal-gate.test.tsx | guard not yet moved (form-kit turn) | INC-857
 scripts/e2e-leases.ts | guard not yet moved (door turn) | INC-858
 scripts/test-ids.ts | guard not yet moved (door turn) | INC-858
 scripts/check-root-routes.ts | guard not yet moved (door turn) | INC-858

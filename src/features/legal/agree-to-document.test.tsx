@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { walkFiles } from "../../../scripts/conformance/kit";
 
 vi.mock("@/i18n", async (original) => {
   const real = await original<typeof import("@/i18n")>();
@@ -87,19 +88,15 @@ describe("AgreeToDocument (bundle 22 turn 32)", () => {
   });
 
   it("census: a Checkbox beside a legal.* key lives only in the component", () => {
-    const matches: string[] = [];
-    function visit(dir: string) {
-      for (const entry of readdirSync(dir, { withFileTypes: true })) {
-        const path = join(dir, entry.name);
-        if (entry.isDirectory()) visit(path);
-        else if (/\.tsx?$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) {
-          const text = readFileSync(path, "utf8");
-          if (text.includes("<Checkbox") && /["'`]legal\./.test(text))
-            matches.push(relative(process.cwd(), path));
-        }
-      }
-    }
-    visit(join(process.cwd(), "src"));
+    const matches = walkFiles([join(process.cwd(), "src")], {
+      ext: ["ts", "tsx"],
+      skipTests: true,
+    })
+      .filter((path) => {
+        const text = readFileSync(path, "utf8");
+        return text.includes("<Checkbox") && /["'`]legal\./.test(text);
+      })
+      .map((path) => relative(process.cwd(), path));
     // Allowlist: none (a future exception is a line here with its reason and `until`, G55).
     const outside = matches.filter((m) => m !== "src/features/legal/agree-to-document.tsx");
     expect(outside.sort()).toEqual([]);

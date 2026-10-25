@@ -1,4 +1,5 @@
 import type { SavedArea } from "./location-data";
+import { UUID_RE } from "@/lib/uuid";
 
 /**
  * D106 (the operator, 2026-10-10) — THE PLACE ON THE ACCOUNT.
@@ -23,7 +24,6 @@ export interface AccountPlace {
   usable: boolean;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CODE_RE = /^[A-Za-z]{2}$/;
 
 type Rec = Record<string, unknown>;

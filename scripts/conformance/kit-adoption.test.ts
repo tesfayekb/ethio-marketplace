@@ -74,8 +74,8 @@ describe("every tree walker goes through the conformance kit (DEC-244)", () => {
   it("CF-ADOPT-1 the census holds: kit, kit importers or allowances, nothing else", () => {
     const findings = census(["scripts", "src", "e2e"].map((dir) => join(ROOT, dir)));
     const found = new Set(findings.map((finding) => finding.file));
-    // The floor proves the census is not silently empty; it drops as each wave moves its walkers (INC-856: 20 → 15).
-    expect(found.size).toBeGreaterThanOrEqual(15);
+    // The floor proves the census is not silently empty; it drops as each wave moves its walkers (INC-856: 20 → 15; INC-857: 19 → 13)
+    expect(found.size).toBeGreaterThanOrEqual(13);
     const allowances = readAllowlist(ALLOWLIST, found);
     const breaches = findings.filter(
       (finding) => !excused(finding.file) && !allowances.has(finding.file),

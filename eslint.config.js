@@ -156,10 +156,7 @@ export default tseslint.config(
       "**/*.test.ts",
       "**/*.test.tsx",
       // ROUTES-BOUNDARY-IGNORES-BEGIN
-      "src/components/shell/location-data.ts", // until INC-857
-      "src/components/shell/place-carry.ts", // until INC-857
-      "src/features/posting/post-prefill.ts", // until INC-857
-      "src/integrations/supabase/previewAuthStorage.ts", // until INC-857
+      "src/integrations/supabase/previewAuthStorage.ts", // the platform's file (INC-087)
       // ROUTES-BOUNDARY-IGNORES-END
     ],
     rules: {

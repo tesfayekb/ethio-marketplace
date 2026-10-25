@@ -35,9 +35,10 @@
  * none: a new table is built on the blocks or the check refuses it.
  * Run by the unit tests (scripts/admin-tables.test.ts).
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { walkFiles } from "./conformance/kit";
 
 export type Rule = "T1" | "T2" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9";
 
@@ -105,23 +106,12 @@ export type Source = { file: string; text: string };
 
 /** Every feature source file (tests left out): the admin's and the user's alike (INC-630). */
 export function readTableSources(root = ROOT): Source[] {
-  const out: Source[] = [];
-  const walk = (dir: string) => {
-    for (const name of readdirSync(dir)) {
-      const full = join(dir, name);
-      if (statSync(full).isDirectory()) {
-        walk(full);
-        continue;
-      }
-      if (!name.endsWith(".tsx") || /\.test\.tsx$/.test(name)) continue;
-      out.push({
-        file: relative(root, full).split("\\").join("/"),
-        text: readFileSync(full, "utf8"),
-      });
-    }
-  };
-  walk(join(root, "src/features"));
-  return out.sort((a, b) => a.file.localeCompare(b.file));
+  return walkFiles([join(root, "src/features")], { ext: ["tsx"], skipTests: true })
+    .map((path) => ({
+      file: relative(root, path).split("\\").join("/"),
+      text: readFileSync(path, "utf8"),
+    }))
+    .sort((a, b) => a.file.localeCompare(b.file));
 }
 
 /** The refusals over a set of sources: "<file>: <rule> — <what is missing>". */
