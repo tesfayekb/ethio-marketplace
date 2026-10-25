@@ -44,9 +44,11 @@ function Harness(props: {
 describe("DateField (INC-549)", () => {
   // D234 S1 — the field loads its calendar lazily; transform it once up front so
   // the first test's wait is the field's, not the test runner compiling the module.
+  // D234 S2 — under the whole suite's load that first transform (react-day-picker)
+  // outran the 10-second hook default (turn 24's full run); it gets 30 seconds.
   beforeAll(async () => {
     await import("./date-calendar");
-  });
+  }, 30_000);
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 11, 10, 0, 0));
