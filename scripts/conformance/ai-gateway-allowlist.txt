@@ -1,5 +1,4 @@
 # Existing provider integrations move in the next gateway wave.
-src/routes/api/listings/assist.ts | writing helper awaits its multimodal task | INC-876
 src/server/media/policy.ts | photo screening awaits its vision adapter | INC-876
 src/server/media/background.ts | background removal awaits its Photoroom adapter | INC-876
 src/server/category-images/gemini.ts | category images await the image-answer adapter | INC-876
