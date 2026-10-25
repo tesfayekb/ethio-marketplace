@@ -1,4 +1,5 @@
 import { childrenOf, type CategoryTree } from "@/features/categories/category-tree";
+import { UUID_RE } from "@/lib/uuid";
 
 /**
  * D119 — WHAT THE INVITE CARD CARRIES TO /post: a category and a place, each a
@@ -10,14 +11,12 @@ export interface PostSearch {
   place?: string;
 }
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
-
 export function postSearchOf(search: Record<string, unknown>): PostSearch {
   const out: PostSearch = {};
   const category = search["category"];
   const place = search["place"];
-  if (typeof category === "string" && UUID.test(category)) out.category = category;
-  if (typeof place === "string" && UUID.test(place)) out.place = place;
+  if (typeof category === "string" && UUID_RE.test(category)) out.category = category.toLowerCase();
+  if (typeof place === "string" && UUID_RE.test(place)) out.place = place.toLowerCase();
   return out;
 }
 

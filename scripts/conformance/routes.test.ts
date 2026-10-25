@@ -86,7 +86,7 @@ const RT1_BREACHES = CENSUS.filter((file) => !conforms(file));
 const RT2_FINDINGS = [...ROUTE_FILES, ...SERVER_FILES].flatMap(bypasses);
 const RT3_BREACHES = SRC_FILES.filter(
   (file) =>
-    file !== "src/lib/schemas/primitives.ts" && UUID_LITERAL.test(readFileSync(file, "utf8")),
+    file !== "src/lib/uuid.ts" && UUID_LITERAL.test(readFileSync(file, "utf8")),
 );
 
 const FOUND = new Set<string>([
@@ -110,7 +110,7 @@ describe("the route boundary census (CF-RT)", () => {
     expect(report(breaches)).toBe("");
   });
 
-  it("CF-RT-3 the UUID regex literal lives only in src/lib/schemas/primitives.ts", () => {
+  it("CF-RT-3 the UUID regex literal lives only in src/lib/uuid.ts", () => {
     const breaches = RT3_BREACHES.filter((file) => !ALLOWED.has(file));
     expect(report(breaches.map((file) => ({ file, line: 1, what: "a UUID regex copy" })))).toBe("");
   });

@@ -1,8 +1,5 @@
 # The route boundary (Foundations turn 2): every server endpoint is a defineRoute; a line here is a route not yet moved (until its wave's INC) or a helper that implements the boundary. <path> | <reason> | <until>
 # INC-859 — closed (Foundations turn 4: every posting and media route is on defineRoute)
 # INC-863 — closed (Foundations turn 20: the six server functions are on createServerFn().validator(<schema>))
-# INC-857 — the client's UUID copies (the form-kit turn)
-src/components/shell/location-data.ts | client UUID copy :65 | INC-857
-src/components/shell/place-carry.ts | client UUID copy :26 | INC-857
-src/features/posting/post-prefill.ts | client UUID copy :13 | INC-857
-src/integrations/supabase/previewAuthStorage.ts | client UUID copy :48 | INC-857
+# INC-857 — closed (Foundations turn 22: one UUID shape in src/lib/uuid.ts for the browser and the server)
+src/integrations/supabase/previewAuthStorage.ts | the platform's generated file, rewritten on every injection (INC-087): its preview-host project-id pattern :48 is the platform's, not a copy of ours | INC-087

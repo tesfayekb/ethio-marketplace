@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { PUBLIC_ID_RE } from "@/features/ad-page/address";
+import { UUID_RE } from "@/lib/uuid";
 
 /**
  * Foundations turn 2 (DEC-237) — THE SHARED SHAPES. Every server endpoint
@@ -11,8 +12,8 @@ import { PUBLIC_ID_RE } from "@/features/ad-page/address";
  * imports `type` only.
  */
 
-/** The one UUID shape (CF-RT-3: this literal lives nowhere else under src/). */
-export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** The one UUID shape lives in src/lib/uuid.ts (CF-RT-3); re-exported for the schemas. */
+export { UUID_RE };
 export const uuid = z.string().regex(UUID_RE);
 
 /** A listing's public address id (src/features/ad-page/address.ts, isPublicId). */

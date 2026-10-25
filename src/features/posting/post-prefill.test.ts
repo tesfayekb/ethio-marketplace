@@ -36,9 +36,9 @@ const tree = buildTree(
 );
 
 describe("postSearchOf", () => {
-  it("PF-1 keeps two lowercase uuids and drops everything else", () => {
+  it("PF-1 keeps two uuids in lowercase and drops everything else", () => {
     expect(postSearchOf({ category: C, place: P })).toEqual({ category: C, place: P });
-    expect(postSearchOf({ category: C.toUpperCase(), place: "not-a-uuid", other: C })).toEqual({});
+    expect(postSearchOf({ category: C.toUpperCase(), place: "not-a-uuid", other: C })).toEqual({ category: C });
     expect(postSearchOf({ category: 42, place: [P] })).toEqual({});
   });
 });
