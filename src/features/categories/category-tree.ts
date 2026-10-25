@@ -272,6 +272,9 @@ function isTreePayload(payload: unknown): payload is TreePayload {
   );
 }
 
+/** The tree's read (D234 S4: the page's head preloads this same address, src/lib/first-reads.ts). */
+export const CATEGORY_TREE_PATH = "/api/categories/tree";
+
 /**
  * The raw read: one public route, never the browser client, so the tree carries
  * its own version and an ETag a second mount can answer with a 304 (INC-263).
@@ -279,7 +282,7 @@ function isTreePayload(payload: unknown): payload is TreePayload {
  * the browser still holds — the stale seam this incident was about.
  */
 export async function readCategoryTree(): Promise<{ tree: CategoryTree; version: string }> {
-  const answer = await callRoute("/api/categories/tree", { auth: "none", cache: "no-cache" });
+  const answer = await callRoute(CATEGORY_TREE_PATH, { auth: "none", cache: "no-cache" });
   // Law F4 — a failed read is a failure, never an empty tree that reads as
   // "there are no categories". The caller renders the error state.
   if (answer.kind !== "answered" || !answer.ok) {

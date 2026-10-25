@@ -229,3 +229,31 @@ Category pictures made from now on are WebP (card, thumb; the OG picture stays P
 - The catalogue layers' loaders (src/i18n/compiled-catalog.ts) are on `loadOnce`; a failed layer is asked again by the next load.
 - The admin user and role crumbs moved into the admin detail crumbs module, so their reads leave every page's first download (entry 289.9 → 287.3 KiB); the ceilings in scripts/route-budgets.mjs and the entry's in scripts/check-bundle-size.mjs come down with it.
 - INC-897 is closed: OD-3 (scripts/conformance/on-demand-imports.test.ts) refuses any allowance waiting on it and any bare React.lazy site in the browser's code.
+
+
+## 10. The reads every page makes start with the page (D234, Foundations turn 27)
+
+`firstReadLinks` (src/lib/first-reads.ts) names four public reads in the server's
+head: the category tree (`CATEGORY_TREE_PATH`), the open markets (`MARKETS_PATH`),
+the saved market's tree (`treePath(country)`) and the language's approved strings
+(`bundleUrl(lang)`). Each address comes from its reader's own path builder.
+The links use `as="fetch"` and `crossorigin="anonymous"`, matching the readers'
+own mode and same-origin credentials, so the reader takes the preloaded answer.
+The supervisor's Playwright check on a local build found one request with the
+anonymous attribute and two without it, including with `cache: "no-cache"` and
+a reader five seconds later.
+
+The server names only request-known facts: the saved market, never a guessed
+market whose open status needs a read; the address's `?lang`, otherwise the device
+star, otherwise the base language, with the first two subject to the publication
+gate list and language-code shape. A client navigation names none.
+
+Three reads remain outside the head: the guessed market's tree (the server does
+not yet know whether that market is open); the publication gate list (its apikey
+header cannot be carried by a preload, and INC-113 requires no-store); and the
+entity bundle (an RPC POST). Their existing reader and failure states stay unchanged.
+
+FRL-1…4 pin the choice and mode; FRL-5 runs the actual readers against recording
+transports and refuses a preload that drifts from its reader's address. FRL-6
+proves in the browser that the head names the reads and the markets are asked once.
+Next: S5, the feed's first page answered in the page stream.

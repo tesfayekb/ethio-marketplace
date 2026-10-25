@@ -18,13 +18,14 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/app-shell";
-import { I18nProvider, useI18n, LANGUAGE_STAR_COOKIE } from "../i18n";
+import { BASE_LANGUAGE, I18nProvider, useI18n, LANGUAGE_STAR_COOKIE } from "../i18n";
 import { serverShellLanguage } from "../i18n/server-shell-language";
 import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // TYPE ONLY — the judge itself is a server module (import protection keeps
 // `src/server/**` out of the client graph); the handler imports it dynamically.
 import type { GeoAnswer } from "../server/geo/guess";
 import { errorText } from "@/lib/error-text";
+import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
 /**
@@ -78,6 +79,12 @@ type SsrLangContext = {
    * ethio.com cutover). A GUESS, never a default, and never persisted (law 10).
    */
   geo: GeoAnswer;
+  /**
+   * D234 S4 — the reads every page makes, preloaded from the page's <head>
+   * (src/lib/first-reads.ts). Named by the server for its own document only;
+   * a client navigation carries none.
+   */
+  firstReads: FirstReadLink[];
 };
 
 /** The saved-area cookie: "<CC>:<uuid>", or "<CC>:<uuid>:<ms>" since D106, or "everywhere:<ms>" (D219). */
@@ -140,7 +147,14 @@ const getSsrLangContext = createServerFn({ method: "GET" })
       }
     }
 
-    return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geo };
+    const firstReads = firstReadLinks({
+      areaCookie,
+      star,
+      requested: url.searchParams.get("lang"),
+      languages,
+      base: BASE_LANGUAGE,
+    });
+    return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geo, firstReads };
   });
 
 /** Surfaces that are not indexed and therefore carry no hreflang set. */
@@ -248,9 +262,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   loader: async (): Promise<SsrLangContext> => {
     const data = await getSsrLangContext();
     if (typeof window === "undefined") return data;
-    return { ...data, origin: window.location.origin, path: window.location.pathname };
+    return {
+      ...data,
+      origin: window.location.origin,
+      path: window.location.pathname,
+      firstReads: [],
+    };
   },
-  head: () => ({
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -268,6 +287,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
+      // D234 S4 — the reads every page makes start with the page (src/lib/first-reads.ts).
+      ...(loaderData?.firstReads ?? []),
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
       // Fonts: Inter (Latin body), Bricolage Grotesque (display), Noto Sans
       // Ethiopic (Ge'ez). Loaded as <link> — Lightning CSS cannot resolve a
