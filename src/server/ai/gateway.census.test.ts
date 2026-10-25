@@ -117,7 +117,13 @@ describe("AI gateway conformance", () => {
     }
   });
   it("GWC-8 a non-Gemini provider declares images.all and an image output; every task with images declares max and maxBytes", () => {
-    const problems = (task: (typeof AI_TASKS)[number]): string[] => {
+    type TaskShape = {
+      id: string;
+      provider: string;
+      images?: { max: number; maxBytes: number; all?: true };
+      output: { safeParse: (value: unknown) => { success: boolean } };
+    };
+    const problems = (task: TaskShape): string[] => {
       const found: string[] = [];
       if (task.provider !== "gemini-text") {
         if (task.images?.all !== true) found.push(`${task.id}: no images.all`);
@@ -135,11 +141,14 @@ describe("AI gateway conformance", () => {
     expect(AI_TASKS.flatMap((task) => problems(task))).toEqual([]);
     // The planted task: a Photoroom task without images.all and with a text
     // output is flagged on both counts.
-    const planted = {
-      ...AI_TASKS.find((task) => task.id === "background_removal")!,
+    const background = AI_TASKS.find((task) => task.id === "background_removal");
+    const nameCheck = AI_TASKS.find((task) => task.id === "name_check");
+    if (background === undefined || nameCheck === undefined) throw new Error("missing task");
+    const planted: TaskShape = {
+      ...background,
       id: "planted_removal",
       images: { max: 1, maxBytes: 4_000_000 },
-      output: AI_TASKS.find((task) => task.id === "name_check")!.output,
+      output: nameCheck.output,
     };
     expect(problems(planted)).toEqual([
       "planted_removal: no images.all",
