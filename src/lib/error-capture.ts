@@ -51,12 +51,42 @@ function isErrorLike(value: unknown): value is Error {
   return value instanceof Error;
 }
 
+/**
+ * INC-894 — a component that throws during the server stream render is logged by
+ * the framework as "Error in renderToReadableStream:" (or renderToPipeableStream)
+ * with no `[ssr-error]` tag, so the DEC-083 census never counts it; the wrapper
+ * puts the tag in front so every server render error is counted.
+ * INC-893 — a request whose client left is logged by h3 as an unhandled 500 whose
+ * cause chain holds an AbortError; that stack becomes one `[aborted]` warning
+ * (answer.ts still writes its own `[client-aborted]` line).
+ */
+const RENDER_ERROR = /^Error in renderTo(?:ReadableStream|PipeableStream):/;
+
+function abortedRequest(value: unknown): boolean {
+  if (!isErrorLike(value)) return false;
+  if ((value as { unhandled?: unknown }).unhandled !== true) return false;
+  let current: unknown = value.cause;
+  for (let depth = 0; depth < CAUSE_DEPTH_LIMIT && current != null; depth++) {
+    if ((current as { name?: unknown }).name === "AbortError") return true;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return false;
+}
+
 // Wrap console.error so errors logged by any layer — including h3's internal
 // unhandled-error logging, which this file cannot hook directly — are both
 // recorded for consumeLastCapturedError and expanded before serialization.
 const originalConsoleError = console.error.bind(console);
 console.error = (...args: unknown[]) => {
-  const expanded = args.map((arg) => {
+  if (args.length === 1 && abortedRequest(args[0])) {
+    console.warn("[aborted] the client left; h3 logged the request as unhandled (status 500)");
+    return;
+  }
+  const tagged =
+    typeof args[0] === "string" && RENDER_ERROR.test(args[0])
+      ? ["[ssr-error] render", ...args]
+      : args;
+  const expanded = tagged.map((arg) => {
     if (!isErrorLike(arg)) return arg;
     record(arg);
     return describeError(arg);
