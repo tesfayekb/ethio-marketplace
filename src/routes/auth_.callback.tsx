@@ -44,10 +44,11 @@ function AuthCallback() {
    * intended path in this URL's own `return` parameter (see `oauthRedirectUrl`),
    * and it is judged HERE by the shared same-origin rule: anything else is `/`.
    * Read once, from the landing URL, before any navigation rewrites it.
+   * The router's location is read because the server render has it too
+   * (INC-894: reading `window` there threw on every server render).
    */
-  const [target] = useState(() =>
-    safeReturnPath(new URLSearchParams(window.location.search).get("return")),
-  );
+  const searchStr = useLocation({ select: (location) => location.searchStr });
+  const [target] = useState(() => safeReturnPath(new URLSearchParams(searchStr).get("return")));
 
   useEffect(() => {
     let cancelled = false;
