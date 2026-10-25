@@ -155,6 +155,14 @@ describe("the route boundary census (CF-RT)", () => {
     }
   });
 
+  it("CF-RT-8 every server function requires its own schema validator", () => {
+    const fixture = codeOf(readFileSync("scripts/fixtures/bad-server-fn-example.ts.txt", "utf8"));
+    expect(conformsCode(fixture)).toBe(false);
+    expect(conformsCode("createServerFn({}).validator((input) => input).handler(fn)")).toBe(false);
+    expect(conformsCode("createServerFn({}).validator(z.object({ a: z.string() }).strict()).handler(fn)")).toBe(true);
+    expect(conformsCode("createServerFn({}).validator(NoInputSchema).handler(fn)")).toBe(true);
+  });
+
   it("prints the allowance count", () => {
     console.error(`[routes-allowlist] ${ALLOWED.size} allowances`);
     expect(ALLOWED.size).toBeGreaterThan(0);

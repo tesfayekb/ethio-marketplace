@@ -1,0 +1,6 @@
+const first = createServerFn({ method: "GET" })
+  .validator(AdPageInputSchema)
+  .handler(async ({ data }) => data);
+const second = createServerFn({ method: "GET" })
+  .inputValidator((input) => input)
+  .handler(async ({ data }) => data);

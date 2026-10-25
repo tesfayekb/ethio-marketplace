@@ -5,7 +5,7 @@ import { formatLocale } from "@/lib/format-locale";
 export type LegalRole = "terms" | "privacy" | "other";
 const SCRATCH_TERMS = /^e2e-[a-z0-9-]*-terms$/;
 const SCRATCH_PRIVACY = /^e2e-[a-z0-9-]*-privacy$/;
-const SCRATCH_KIND = /^e2e-[a-z0-9-]{1,40}$/;
+export const SCRATCH_KIND = /^e2e-[a-z0-9-]{1,40}$/;
 
 export function legalRole(kind: string): LegalRole {
   if (kind === "terms" || SCRATCH_TERMS.test(kind)) return "terms";
