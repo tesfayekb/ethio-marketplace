@@ -20,7 +20,7 @@ it("LL-1 cards never carry a plain border", () => {
   for (const path of walkFiles([resolve("src")], {
     ext: ["tsx"],
     skipTests: true,
-    skip: /[\/]src[\/]components[\/]ui$/,
+    skip: /[\\/]src[\\/]components[\\/]ui$/,
   })) {
     visitTs(path, (node, source) => {
       if (
