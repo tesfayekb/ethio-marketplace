@@ -4,7 +4,11 @@ const state = vi.hoisted(() => ({ staff: true, known: true, reads: 0 }));
 const provider = vi.hoisted(() => vi.fn());
 vi.mock("@tanstack/react-router", () => ({ createFileRoute: () => (options: unknown) => options }));
 vi.mock("@/server/supabase/user-client", () => ({
-  routeJson: (body: unknown, status: number) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } }),
+  routeJson: (body: unknown, status: number) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    }),
   userClientFromRequest: async () => ({
     userId: "staff-1",
     supabase: {
