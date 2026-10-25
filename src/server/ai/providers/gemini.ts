@@ -30,6 +30,14 @@ function base64Of(bytes: Uint8Array): string {
   return btoa(binary);
 }
 
+/** D165 — the detail every smaller copy is shown at. */
+const LOW_DETAIL = { level: "MEDIA_RESOLUTION_LOW" } as const;
+
+/** A 400 that names the per-image detail: the model does not take it (D165). */
+function refusesDetail(status: number, raw: string): boolean {
+  return status === 400 && /media_?resolution/i.test(raw);
+}
+
 /** DEC-248: relocated own-key Gemini integration, not the Lovable AI Gateway SDK. */
 export async function geminiText(input: {
   model: string;
@@ -40,12 +48,19 @@ export async function geminiText(input: {
   temperature?: number;
   timeoutMs: number;
   label: string;
+  /**
+   * Turn 17, CHANGE (3) — D165 as an adapter capability: every image after
+   * the first carries the low detail, and a model that refuses the setting is
+   * asked ONCE more without it (its own deadline), the log line as today's.
+   */
+  lowDetailAfterFirst?: boolean;
+  log?: (message: string) => void;
 }): Promise<GeminiTextAnswer> {
   const key = process.env["GEMINI_API_KEY"] ?? "";
   if (key.trim() === "") return { kind: "noKey" };
   if (!input.system.endsWith(UNTRUSTED_RULE)) return { kind: "network" };
-  try {
-    const response = await upstream(
+  const call = (lowDetail: boolean) =>
+    upstream(
       `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(input.model)}:generateContent`,
       {
         method: "POST",
@@ -56,9 +71,11 @@ export async function geminiText(input: {
             {
               role: "user",
               parts: [
-                { text: input.user },
-                ...(input.images ?? []).map((image) => ({
+                // Turn 17, CHANGE (3) — an empty user text sends the images alone.
+                ...(input.user === "" ? [] : [{ text: input.user }]),
+                ...(input.images ?? []).map((image, index) => ({
                   inlineData: { mimeType: image.mime, data: base64Of(image.bytes) },
+                  ...(lowDetail && index > 0 ? { mediaResolution: LOW_DETAIL } : {}),
                 })),
               ],
             },
@@ -72,6 +89,22 @@ export async function geminiText(input: {
       },
       { timeoutMs: input.timeoutMs, label: input.label },
     );
+  try {
+    let response = await call(input.lowDetailAfterFirst === true);
+    if (!response.ok && input.lowDetailAfterFirst === true) {
+      let raw = "";
+      try {
+        raw = await response.text();
+      } catch {
+        raw = "";
+      }
+      if (refusesDetail(response.status, raw)) {
+        input.log?.(
+          "the model refused the low detail for smaller copies; every image sent at the default detail",
+        );
+        response = await call(false);
+      }
+    }
     if (!response.ok) return { kind: "status", status: response.status };
     // Turn 16, CHANGE (2) — ONE deadline across the headers AND the body read:
     // the fetch signal stays armed while the body streams, so a deadline passed
