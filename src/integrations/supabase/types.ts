@@ -4417,14 +4417,14 @@ export type Database = {
       ai_feature_gate: { Args: { p_feature: string }; Returns: Json }
       ai_record_call: {
         Args: {
-          p_actor: string
+          p_actor?: string
           p_fake: boolean
           p_feature: string
           p_input_hash: string
           p_latency_ms: number
           p_model: string
           p_outcome: string
-          p_provider_status: number
+          p_provider_status?: number
           p_task: string
           p_task_version: number
         }
