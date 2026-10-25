@@ -57,7 +57,9 @@ function conforms(file: string): boolean {
 function conformsCode(code: string): boolean {
   if (code.includes("createServerFn(")) {
     // A server function conforms when its validator is a schema.
-    return /\.inputValidator\(\s*(?:z\.|[A-Za-z_$][\w$]*Schema\b)/.test(code);
+    const functions = [...code.matchAll(/\bcreateServerFn\(/g)].length;
+    const validators = [...code.matchAll(/\.validator\(\s*(?:z\.|[A-Za-z_$][\w$]*Schema\s*\))/g)].length;
+    return !code.includes(".inputValidator(") && validators === functions;
   }
   // Foundations turn 12 — a staff import route is the factory over defineRoute.
   if (code.includes('from "@/server/imports/route"') && /\bdefineImportRoute\s*\(/.test(code))
@@ -94,7 +96,7 @@ const FOUND = new Set<string>([
 const ALLOWED = readAllowlist("scripts/conformance/routes-allowlist.txt", FOUND);
 
 describe("the route boundary census (CF-RT)", () => {
-  it("CF-RT-1 every handler file and server function uses defineRoute / a schema inputValidator, or has its allowance", () => {
+  it("CF-RT-1 every handler file and server function uses defineRoute / a schema validator, or has its allowance", () => {
     expect(CENSUS.length).toBeGreaterThanOrEqual(40);
     const breaches = RT1_BREACHES.filter((file) => !ALLOWED.has(file));
     expect(report(breaches.map((file) => ({ file, line: 1, what: "not on defineRoute" })))).toBe(
