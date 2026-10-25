@@ -48,7 +48,8 @@ export type AiTask<O> = {
   id: string;
   version: number;
   feature: AiFeature;
-  provider: "gemini-text" | "photoroom-segment";
+  provider: "gemini-text" | "gemini-image" | "photoroom-segment";
+  promptMode?: "inline";
   model: { env: string; fallback: string };
   timeoutMs: number;
   instruction: string;

@@ -2,13 +2,13 @@ import { logRouteError } from "@/server/supabase/user-client";
 import { standInMode } from "@/server/stand-in";
 import { recordAiCall } from "./audit";
 import { aiGate, recordAiSpend } from "./meter";
-import { geminiText } from "./providers/gemini";
+import { geminiImage, geminiText } from "./providers/gemini";
 import { photoroomSegment } from "./providers/photoroom";
 import { taskOf, type AiImage, type AiMaterial, type OutputOf, type TaskId } from "./tasks";
 import { render } from "./template";
 
 export type AiAnswer<O> =
-  | { ok: true; value: O; fake: boolean }
+  | { ok: true; value: O; fake: boolean; latencyMs: number }
   | { ok: false; reason: "reserved"; refusal: unknown }
   | {
       ok: false;
@@ -35,8 +35,14 @@ export type AiMaterialInput = AiMaterial | (() => Promise<AiMaterial>);
 /** The key each provider reads, checked by the gateway before any reservation (turn 17, CHANGE 1). */
 const PROVIDER_KEY_ENV = {
   "gemini-text": "GEMINI_API_KEY",
+  "gemini-image": "GEMINI_API_KEY",
   "photoroom-segment": "PHOTOROOM_API_KEY",
 } as const;
+
+/** The exact rendered user text used by the registered task's provider call. */
+export function renderTask<T extends TaskId>(taskId: T, material: AiMaterial): string {
+  return render(taskOf(taskId), material).user;
+}
 
 function hexOf(hash: ArrayBuffer): string {
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -162,6 +168,22 @@ export async function aiCall<T extends TaskId>(
           if (!picked.ok) {
             imagesFailed = true;
             answer = { ok: false, reason: "unavailable" };
+          } else if (task.provider === "gemini-image") {
+            const provider = await geminiImage({ model, prompt: rendered.user, timeoutMs: task.timeoutMs, label: `gemini ${task.id}` });
+            if (provider.kind === "image") {
+              status = provider.status;
+              billed = true;
+              raw = { bytes: provider.bytes, mime: provider.mime };
+            } else if (provider.kind === "unusable") {
+              status = provider.status;
+              billed = true;
+              answer = { ok: false, reason: "unusableAnswer" };
+            } else if (provider.kind === "status") {
+              status = provider.status;
+              answer = { ok: false, reason: "providerError", status };
+            } else {
+              answer = { ok: false, reason: provider.kind === "timeout" ? "timeout" : "unavailable" };
+            }
           } else {
             sent = picked.sent;
           }
@@ -247,7 +269,7 @@ export async function aiCall<T extends TaskId>(
               answer =
                 task.validate !== undefined && !task.validate(parsed.data)
                   ? { ok: false, reason: "unusableAnswer" }
-                  : { ok: true, value: parsed.data, fake };
+                  : { ok: true, value: parsed.data, fake, latencyMs: Math.max(0, Date.now() - started) };
             } else {
               answer = { ok: false, reason: "unusableAnswer" };
             }
