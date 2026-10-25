@@ -22,6 +22,7 @@ Foundations turn 3 (INC-865): the caller is known before any byte of the body is
 RateSpec (Foundations turn 8): `{ dial: Dial; key: "user" | "address"; when?; refuseAs? }` — the dial is a registry entry (`DIALS`, src/lib/dials.ts; docs/features/rate-dials.md). 5. **The content type** — a JSON body route refuses anything but `application/json` with 415, before the body is read. 6. **The bounded read** — only when `body` or `form` is declared: the counting reader; over the ceiling (a body sent without `Content-Length`) answers 413. 7. **The shape** — params, query and body through their zod schemas (`.strict()`: an unknown key is a refusal); a refusal is the route class's badShape answer. 8. **After-parse dials, then the handler** — the handler gets `{ request, path, params, query, body, form, userId, supabase, service, incident }`; `service()` loads the privileged client lazily, only after the caller is verified.
 
 A spent dial answers the 429 `clientError("rateLimited", { resetsAt })`, or — with `refuseAs: { verdict: { field, reason? } }` — the posting verdict at 200 `{ field, reason: reason ?? "rateLimited", detail: resetsAt }` that the wizard reads (use-draft.ts, refusal-text.ts). A dial that cannot answer is 503.
+upstream() logs one line per call — `[upstream] <label> <status> <ms>` at info for an answer below 400, at error for a 4xx, a 5xx or a timeout (INC-892, Foundations turn 21).
 
 ## Auth modes (Foundations turn 5)
 
