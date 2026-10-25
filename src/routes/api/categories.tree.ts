@@ -119,6 +119,9 @@ async function handler(ctx: RouteContext): Promise<Response> {
   }
 }
 
+/** D234 S5 — the GET handler, also asked in-process by the server's first page (src/server/first-screen.ts). */
+export const categoryTreeGet = defineRoute({ path: PATH, auth: "anon", handler });
+
 export const Route = createFileRoute("/api/categories/tree")({
-  server: { handlers: { GET: defineRoute({ path: PATH, auth: "anon", handler }) } },
+  server: { handlers: { GET: categoryTreeGet } },
 });

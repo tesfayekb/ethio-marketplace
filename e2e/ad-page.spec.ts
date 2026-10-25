@@ -1627,6 +1627,7 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
 
   test("AP-49 the feed's first page asks no second request for its photos (DEC-195)", async ({
     page,
+    baseURL,
   }) => {
     // One scratch seller's three live ads with photos in a scratch leaf: the
     // leaf's feed holds only the seeded cards.
@@ -1638,6 +1639,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       if (request.url().includes("/api/media/photo-links") && request.method() === "POST")
         photoLinkPosts.push(request.url());
     });
+    // D234 S5 — this test proves the browser's own feed read: the server's first page is off.
+    await page.context().addCookies([{ name: "e2e_first_screen", value: "off", url: baseURL }]);
     const feedAnswer = page.waitForResponse(
       (response) => response.url().includes("/api/feed") && response.status() === 200,
     );
@@ -1661,6 +1664,45 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(src !== null && cardLinks.includes(src)).toBe(true);
     // No card asked /api/media/photo-links while the first page loaded.
     expect(photoLinkPosts).toEqual([]);
+  });
+
+  test("AP-53 the feed's first page arrives with the page: no browser read, its first cover asked for at once (D234 S5)", async ({
+    page,
+  }) => {
+    // One scratch seller's three live ads with photos in a scratch leaf: the
+    // leaf's feed holds only the seeded cards.
+    const seller = await scratchSeller();
+    const ads = [await seed(seller), await seed(seller), await seed(seller)];
+    for (const ad of ads) await seedPhotos(ad.id);
+    const feedReads: string[] = [];
+    const photoLinkPosts: string[] = [];
+    page.on("request", (request) => {
+      const { pathname } = new URL(request.url());
+      if (pathname === "/api/feed") feedReads.push(request.url());
+      if (pathname === "/api/media/photo-links" && request.method() === "POST")
+        photoLinkPosts.push(request.url());
+    });
+    await gotoReady(page, `/c/${seller.leafSlug}`);
+    await expect(page.getByTestId("listing-card")).toHaveCount(3);
+    // The server read the first page inside the page; the browser asked none.
+    expect(feedReads).toEqual([]);
+    expect(photoLinkPosts).toEqual([]);
+    // The first cards' covers were named in the page as high-priority image preloads,
+    // and the first card draws the very link the server preloaded.
+    const preloaded = await page
+      .locator('link[rel="preload"][as="image"]')
+      .evaluateAll((nodes) =>
+        nodes
+          .filter((node) => node.getAttribute("fetchpriority") === "high")
+          .map((node) => node.getAttribute("href")),
+      );
+    expect(preloaded).toHaveLength(3);
+    const src = await page
+      .getByTestId("listing-card-picture")
+      .locator("img")
+      .nth(0)
+      .getAttribute("src");
+    expect(src !== null && preloaded.includes(src)).toBe(true);
   });
 
   test("AP-46 Save and Share sit in the title box", async ({ page }) => {

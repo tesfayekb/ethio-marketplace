@@ -140,26 +140,25 @@ async function handler(
   });
 }
 
+/** D234 S5 — the GET handler, also asked in-process by the server's first page (src/server/first-screen.ts). */
+export const feedGet = defineRoute({
+  path: PATH,
+  auth: "anon",
+  query: FeedQuery,
+  badShape: (issue) =>
+    clientError(
+      issue.path === "category"
+        ? "badCategory"
+        : issue.path === "place"
+          ? "badPlace"
+          : issue.path === "size"
+            ? "badSize"
+            : "badCursor",
+      400,
+    ),
+  handler,
+});
+
 export const Route = createFileRoute("/api/feed")({
-  server: {
-    handlers: {
-      GET: defineRoute({
-        path: PATH,
-        auth: "anon",
-        query: FeedQuery,
-        badShape: (issue) =>
-          clientError(
-            issue.path === "category"
-              ? "badCategory"
-              : issue.path === "place"
-                ? "badPlace"
-                : issue.path === "size"
-                  ? "badSize"
-                  : "badCursor",
-            400,
-          ),
-        handler,
-      }),
-    },
-  },
+  server: { handlers: { GET: feedGet } },
 });

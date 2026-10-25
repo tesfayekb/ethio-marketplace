@@ -108,16 +108,15 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Prom
   }
 }
 
+/** D234 S5 — the GET handler, also asked in-process by the server's first page (src/server/first-screen.ts). */
+export const countryTreeGet = defineRoute({
+  path: PATH,
+  auth: "anon",
+  params,
+  badShape: () => clientError("badCountry", 400),
+  handler,
+});
+
 export const Route = createFileRoute("/api/locations/$country")({
-  server: {
-    handlers: {
-      GET: defineRoute({
-        path: PATH,
-        auth: "anon",
-        params,
-        badShape: () => clientError("badCountry", 400),
-        handler,
-      }),
-    },
-  },
+  server: { handlers: { GET: countryTreeGet } },
 });

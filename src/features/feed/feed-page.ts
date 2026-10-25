@@ -267,3 +267,34 @@ export function feedSections(cards: FeedListing[], ladder: string[]): FeedSectio
   }
   return sections;
 }
+
+/**
+ * The feed read's address for a page: the category, then the place, then the
+ * cursor — the browser's read (use-feed.ts) and the server's first page
+ * (D234 S5, src/server/first-screen.ts) build it here, so the server's answer
+ * is handed over only when it is the very page the browser would ask for.
+ */
+export function feedPath(
+  categoryId: string | null,
+  placeId: string | null,
+  after: string | null,
+): `/api/${string}` {
+  const params = new URLSearchParams();
+  if (categoryId !== null) params.set("category", categoryId);
+  if (placeId !== null) params.set("place", placeId);
+  if (after !== null) params.set("after", after);
+  const query = params.toString();
+  return query === "" ? "/api/feed" : `/api/feed?${query}`;
+}
+
+/**
+ * D234 S5 — THE FIRST PAGE THE SERVER ANSWERED INSIDE THE PAGE: the feed read's
+ * address, its answer read by parseFeedPage (as the browser reads it), and the
+ * first cards' cover links the page preloads. Handed to the browser's first read of the same address
+ * once per page load (use-feed.ts).
+ */
+export interface FirstFeedPage {
+  path: string;
+  page: FeedPage;
+  covers: string[];
+}

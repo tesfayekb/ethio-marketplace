@@ -568,7 +568,9 @@ test.describe("app shell", () => {
       .toBe(true);
     expect(errors, "INC-282: the page raised an error").toEqual([]);
   });
-  test("the self-drawing spinner renders while the feed loads", async ({ page }) => {
+  test("the self-drawing spinner renders while the feed loads", async ({ page, baseURL }) => {
+    // D234 S5 — the browser's own feed read is what this test holds open: the server's first page is off.
+    await page.context().addCookies([{ name: "e2e_first_screen", value: "off", url: baseURL }]);
     // Hold the listings read open so the busy state is observable.
     await page.route("**/api/feed*", async (route) => {
       await new Promise((resolve) => setTimeout(resolve, 2000));

@@ -168,7 +168,15 @@ async function fetchMarkets(): Promise<OpenMarket[]> {
   if (answer.kind !== "answered" || !answer.ok) {
     throw new Error(`markets ${answer.kind === "answered" ? answer.status : 0}`);
   }
-  const payload = (answer.payload ?? {}) as MarketsPayload;
+  return parseMarkets(answer.payload);
+}
+
+/**
+ * The open markets as the route answered them (D234 S5: one reading for the
+ * browser's read and the server's first page, src/server/first-screen.ts).
+ */
+export function parseMarkets(answer: Record<string, unknown> | null): OpenMarket[] {
+  const payload = (answer ?? {}) as MarketsPayload;
   return (payload.countries ?? [])
     .map((row) => ({
       code: String(row.code ?? "")
@@ -188,7 +196,12 @@ async function fetchTree(country: string): Promise<TreeNode[]> {
   if (answer.kind !== "answered" || !answer.ok) {
     throw new Error(`tree ${answer.kind === "answered" ? answer.status : 0}`);
   }
-  const payload = (answer.payload ?? {}) as TreePayload;
+  return parseTree(answer.payload);
+}
+
+/** A market's tree as the route answered it (D234 S5: one reading for the browser and the server). */
+export function parseTree(answer: Record<string, unknown> | null): TreeNode[] {
+  const payload = (answer ?? {}) as TreePayload;
   return (payload.nodes ?? []).map((row) => ({
     id: String(row.id ?? ""),
     parentId: typeof row.parent_id === "string" ? row.parent_id : null,
@@ -481,4 +494,73 @@ export function resolveGuess(nodes: TreeNode[], geo: GuessFacts): TreeNode | nul
 
   // (d) the market itself
   return anchor;
+}
+
+/* --------------------------- the initial area ----------------------------- */
+
+/**
+ * L4b-2 — THE MARKET THE FIRST PLACE COMES FROM: the saved area's country, else
+ * the edge's guessed country when it is an open market and the person has not
+ * chosen every area (D219). One function for the shell and for the server's
+ * first page (D234 S5, src/server/first-screen.ts), so the two can never pick
+ * different markets from the same request.
+ */
+export function initialCountries(input: {
+  savedArea: SavedArea | null;
+  everywhere: { at: number } | null;
+  geoCountry: string | null;
+  markets: readonly OpenMarket[];
+}): { initialCountry: string | null; guessCountry: string | null } {
+  const { savedArea, everywhere, geoCountry, markets } = input;
+  const guessCountry =
+    savedArea === null &&
+    everywhere === null &&
+    geoCountry !== null &&
+    markets.some((market) => market.code === geoCountry)
+      ? geoCountry
+      : null;
+  return { initialCountry: savedArea?.country ?? guessCountry, guessCountry };
+}
+
+/** The first place the shell shows, or none (no market, a failed or empty tree, no anchor). */
+export type InitialArea =
+  | { kind: "none" }
+  | { kind: "place"; country: string; path: ShellLocationNode[]; guess: boolean };
+
+/**
+ * L4b-2 / L4b-3 — THE INITIAL AREA, DERIVED ONCE, as one pure step: the saved
+ * area's path when the market's tree holds it; else the guess resolved over
+ * the tree (geometry, the region's code, the city's slug, the anchor) when the
+ * market came from the guess; else the market's anchor. The auto-select law
+ * applies at once, so the first path is already the deepest single-option
+ * place (the shell's walk then finds nothing to add). `tree` null means the
+ * tree's read failed: the area settles with no place (INC-282).
+ */
+export function deriveInitialArea(input: {
+  initialCountry: string | null;
+  savedArea: SavedArea | null;
+  guessCountry: string | null;
+  geo: GuessFacts;
+  tree: TreeNode[] | null;
+}): InitialArea {
+  const { initialCountry, savedArea, guessCountry, geo, tree } = input;
+  if (initialCountry === null || tree === null || tree.length === 0) return { kind: "none" };
+  const anchor = anchorOf(tree);
+  if (anchor === null) return { kind: "none" };
+  const place = (nodes: TreeNode[], country: string, guess: boolean): InitialArea => ({
+    kind: "place",
+    country,
+    guess,
+    path: autoExtendPath(tree, nodes.map(asLocationNode)),
+  });
+  if (savedArea !== null) {
+    const path = pathToNode(tree, savedArea.id);
+    if (path.length > 0) return place(path, savedArea.country, false);
+  }
+  if (savedArea === null && guessCountry !== null) {
+    const guessed = resolveGuess(tree, geo);
+    const path = guessed === null ? [] : pathToNode(tree, guessed.id);
+    return place(path.length > 0 ? path : [anchor], initialCountry, true);
+  }
+  return place([anchor], initialCountry, false);
 }

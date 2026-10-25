@@ -14,6 +14,8 @@ import {
   anchorOf,
   asLocationNode,
   autoExtendPath,
+  deriveInitialArea,
+  initialCountries,
   parseEverywhere,
   readEverywhere,
   writeEverywhereCookie,
@@ -36,7 +38,7 @@ import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
 import { useAuth } from "@/features/auth/use-auth";
-import { useCategoryTree } from "@/features/categories/category-tree";
+import { feedRouteOf, useCategoryTree } from "@/features/categories/category-tree";
 import type { AuthUser } from "@/features/auth/types";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
@@ -183,14 +185,13 @@ export function AppShell({ children }: { children: ReactNode }) {
     [areaCookieRaw, deriveTick],
   );
   const { markets, isLoading: marketsLoading } = useOpenMarkets();
-  const guessCountry =
-    savedArea === null &&
-    everywhere === null &&
-    geoCountry !== null &&
-    markets.some((market) => market.code === geoCountry)
-      ? geoCountry
-      : null;
-  const initialCountry = savedArea?.country ?? guessCountry;
+  // D234 S5 — the market the first place comes from: one function for the shell and the server.
+  const { initialCountry, guessCountry } = initialCountries({
+    savedArea,
+    everywhere,
+    geoCountry,
+    markets,
+  });
   /** The country whose tree the picker reads; the module cache shares the fetch. */
   const treeCountry = locationCountry ?? initialCountry;
   const {
@@ -267,53 +268,29 @@ export function AppShell({ children }: { children: ReactNode }) {
     // The open-market list decides whether a guessed country is browsable at
     // all, so the derivation must never LOCK before that read has answered.
     if (marketsLoading) return;
-    if (initialCountry === null) {
-      appliedRef.current = true;
-      setAreaSettled(true);
-      return;
-    }
-    // INC-282 (F4) — a failed tree settles the gate: the feed runs unscoped.
-    if (treeFailed) {
-      appliedRef.current = true;
-      setAreaSettled(true);
-      return;
-    }
-    if (treeLoadedCountry !== initialCountry) return;
-    // Loaded but empty — nothing to apply, so the gate settles too.
-    if (treeNodes.length === 0) {
-      appliedRef.current = true;
-      setAreaSettled(true);
-      return;
-    }
-    const anchor = anchorOf(treeNodes);
-    if (anchor === null) {
-      appliedRef.current = true;
-      setAreaSettled(true);
-      return;
-    }
+    // INC-282 (F4) — a failed tree settles the gate (the feed runs unscoped);
+    // otherwise the market's own tree must be in before the place is derived.
+    if (initialCountry !== null && !treeFailed && treeLoadedCountry !== initialCountry) return;
     appliedRef.current = true;
     setAreaSettled(true);
-    if (savedArea !== null) {
-      const path = pathToNode(treeNodes, savedArea.id);
-      if (path.length > 0) {
-        setCountryState(savedArea.country);
-        setPathState(path.map(asLocationNode));
-        return;
-      }
-    }
-    setCountryState(initialCountry);
-    if (savedArea === null && guessCountry !== null) {
-      // L4b-2 — the guess resolved over the CACHED tree: geometry, then the
-      // region's ISO code, then the city's slug, then the market anchor.
-      const guessed = resolveGuess(treeNodes, geo);
-      const path = guessed === null ? [] : pathToNode(treeNodes, guessed.id);
-      const resolved = path.length > 0 ? path : [anchor];
-      setPathState(resolved.map(asLocationNode));
-      setGuessNode(asLocationNode(resolved[resolved.length - 1]!));
+    // D234 S5 — one derivation for the shell and the server's first page
+    // (deriveInitialArea, location-data.ts): the saved area, else the guess, else
+    // the anchor, the auto-select law applied at once.
+    const area = deriveInitialArea({
+      initialCountry,
+      savedArea,
+      guessCountry,
+      geo,
+      tree: treeFailed ? null : treeNodes,
+    });
+    if (area.kind === "none") return;
+    setCountryState(area.country);
+    setPathState(area.path);
+    if (area.guess) {
+      setGuessNode(area.path[area.path.length - 1] ?? null);
       setGuessInUse(true);
       return;
     }
-    setPathState([asLocationNode(anchor)]);
     setGuessInUse(false);
   }, [
     initialCountry,
@@ -547,15 +524,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           ? "my-listings"
           : null;
   /** The marketplace feed is "/" and every category route /c/<slug>. */
-  const isFeedRoute = pathname === "/" || pathname.startsWith("/c/");
+  // D234 S5 — the address read once, as the server's first page reads it (feedRouteOf).
+  const feedRoute = feedRouteOf(pathname);
+  const isFeedRoute = feedRoute !== null;
 
   /**
    * U0l (INC-073) — the ONE source of truth for the selected category is the
    * URL. `/c/<slug>` selects; anything else (including "/") selects nothing.
    */
-  const selectedCategorySlug = pathname.startsWith("/c/")
-    ? decodeURIComponent(pathname.slice(3).split("/")[0] ?? "")
-    : null;
+  const selectedCategorySlug = feedRoute?.slug ?? null;
   // INC-504 — the slug resolves through the WHOLE tree, subcategories included.
   const {
     tree: categoryTree,

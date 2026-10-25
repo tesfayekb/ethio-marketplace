@@ -1,0 +1,160 @@
+import {
+  MARKETS_PATH,
+  deriveInitialArea,
+  initialCountries,
+  parseAreaCookie,
+  parseEverywhere,
+  parseMarkets,
+  parseTree,
+  treePath,
+} from "@/components/shell/location-data";
+import {
+  CATEGORY_TREE_PATH,
+  feedRouteOf,
+  parseCategoryTree,
+} from "@/features/categories/category-tree";
+import {
+  feedPath,
+  feedSections,
+  parseFeedPage,
+  type FirstFeedPage,
+} from "@/features/feed/feed-page";
+import { CARD_THEN_THUMB, photoUrl } from "@/features/posting/photo-links";
+import { isE2E } from "@/lib/env-flags";
+import { errorText } from "@/lib/error-text";
+import { categoryTreeGet } from "@/routes/api/categories.tree";
+import { feedGet } from "@/routes/api/feed";
+import { openMarketsGet } from "@/routes/api/locations";
+import { countryTreeGet } from "@/routes/api/locations.$country";
+import { geoGuess } from "@/server/geo/guess";
+
+/**
+ * D234 speed turn S5 — THE FEED'S FIRST PAGE ARRIVES WITH THE PAGE.
+ *
+ * On the listings pages ("/" and "/c/<slug>") the browser used to ask for the
+ * feed only after its code ran and the shell had read the markets and the
+ * market's tree: on a slow phone network the first cards came a few round trips
+ * after the code. The server already holds the request's facts (the saved-area
+ * cookie, the edge's guess, the address), so it derives the first place with
+ * the shell's own functions (initialCountries, deriveInitialArea, feedRouteOf,
+ * feedPath) over the same route answers the browser reads — each route's own
+ * GET handler, asked in-process with no session — and reads the first page.
+ * The root loader hands it over unawaited, so the page's shell is sent at once
+ * and this streams in behind it; the browser's first read of the same address
+ * takes it (use-feed.ts), once per page load, and the first cards' covers are
+ * preloaded meanwhile (feed.tsx).
+ *
+ * Never a failure of the page: any refusal, failure or the deadline answers
+ * null (one [first-screen] line), and the browser reads the feed as before.
+ * The E2E build skips it when the request carries the cookie
+ * `e2e_first_screen=off`, so the tests of the browser's own read keep that read
+ * (a cookie, not a header: it reaches only this site, never a cross-origin read).
+ */
+
+/** The longest the server waits for the first page; past it the browser reads as before. */
+export const FIRST_PAGE_DEADLINE_MS = 2000;
+/** The covers preloaded: a grid's first six cards load at once (DEC-195, feed.tsx). */
+const COVERS = 6;
+
+type Get = (args: { request: Request; params: unknown }) => Promise<Response>;
+
+/** One public route asked in-process with no session; its 200 answer, or null with one line. */
+async function answerOf(
+  get: Get,
+  origin: string,
+  path: string,
+  params: Record<string, string> = {},
+): Promise<Record<string, unknown> | null> {
+  const response = await get({ request: new Request(new URL(path, origin)), params });
+  if (response.status !== 200) {
+    console.warn("[first-screen]", path, "answered", response.status);
+    return null;
+  }
+  const value: unknown = await response.json();
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
+async function read(request: Request, areaCookie: string | null): Promise<FirstFeedPage | null> {
+  const url = new URL(request.url);
+  const route = feedRouteOf(url.pathname);
+  if (route === null) return null;
+  const savedArea = parseAreaCookie(areaCookie);
+  const everywhere = parseEverywhere(areaCookie);
+  const geo = geoGuess(request);
+  const [markets, categories] = await Promise.all([
+    answerOf(openMarketsGet, url.origin, MARKETS_PATH),
+    route.slug === null ? null : answerOf(categoryTreeGet, url.origin, CATEGORY_TREE_PATH),
+  ]);
+  if (markets === null) return null;
+  let categoryId: string | null = null;
+  if (route.slug !== null) {
+    const found = parseCategoryTree(categories)?.tree.nodes.find(
+      (node) => node.slug === route.slug,
+    );
+    if (found === undefined) return null;
+    categoryId = found.id;
+  }
+  const { initialCountry, guessCountry } = initialCountries({
+    savedArea,
+    everywhere,
+    geoCountry: geo.country,
+    markets: parseMarkets(markets),
+  });
+  // The market's tree only when the shell will read it too (both are cached per market).
+  const tree =
+    initialCountry === null
+      ? null
+      : await answerOf(countryTreeGet, url.origin, treePath(initialCountry), {
+          country: initialCountry,
+        });
+  const area = deriveInitialArea({
+    initialCountry,
+    savedArea,
+    guessCountry,
+    geo,
+    tree: tree === null ? null : parseTree(tree),
+  });
+  const placeId = area.kind === "place" ? (area.path[area.path.length - 1]?.id ?? null) : null;
+  const path = feedPath(categoryId, placeId, null);
+  const page = parseFeedPage(await answerOf(feedGet, url.origin, path));
+  if (page === null) return null;
+  const covers = (feedSections(page.cards, page.ladder)[0]?.cards ?? [])
+    .slice(0, COVERS)
+    .map((card) =>
+      card.coverPhotoId === null
+        ? null
+        : photoUrl({ id: card.coverPhotoId }, CARD_THEN_THUMB, page.coverLinks),
+    )
+    .filter((cover): cover is string => cover !== null);
+  return { path, page, covers };
+}
+
+/** The first page for this request, or null; never throws and never waits past the deadline. */
+export async function readFirstFeedPage(
+  request: Request,
+  areaCookie: string | null,
+): Promise<FirstFeedPage | null> {
+  if (isE2E && /(?:^|;\s*)e2e_first_screen=off(?:;|$)/.test(request.headers.get("cookie") ?? "")) {
+    return null;
+  }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<null>((resolve) => {
+    timer = setTimeout(() => {
+      console.warn("[first-screen] deadline passed; the browser reads the feed");
+      resolve(null);
+    }, FIRST_PAGE_DEADLINE_MS);
+  });
+  // The read's own failure is caught on the read itself, so a read that fails after
+  // the deadline has answered is still one logged line, never an unhandled rejection.
+  const reading = read(request, areaCookie).catch((error: unknown) => {
+    console.warn("[first-screen] the first page was not read:", errorText(error));
+    return null;
+  });
+  try {
+    return await Promise.race([reading, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
