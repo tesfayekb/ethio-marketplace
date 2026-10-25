@@ -297,7 +297,10 @@ async function handlePost(
   let photoCount = 0;
   const answer = await aiCall(
     "writing_helper",
-    {
+    // Turn 17, CHANGE (2) — a material supplier, resolved once after the images,
+    // so the photo count it renders is the count actually sent; the rendered
+    // prompt is today's, byte for byte (AIG-23).
+    async () => ({
       language: locale,
       category: categoryPath,
       slug: category.slug,
@@ -305,10 +308,8 @@ async function handlePost(
       sellerTitle,
       sellerDescription,
       previous: previous.map((pair, index) => `${index + 1}: ${pair.title} — ${pair.description}`),
-      get photos() {
-        return photoCount === 0 ? "none" : `attached: ${photoCount}`;
-      },
-    },
+      photos: photoCount === 0 ? "none" : `attached: ${photoCount}`,
+    }),
     { actorId: userId, path: PATH, reserve },
     async () => {
       const images = await assistImages(supabase, body.photoIds);
