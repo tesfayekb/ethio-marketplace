@@ -203,4 +203,10 @@ describe("the feed read's address (D234 S5)", () => {
     expect(feedPath(null, "p-1", null)).toBe("/api/feed?place=p-1");
     expect(feedPath("c-1", "p-1", "x y")).toBe("/api/feed?category=c-1&place=p-1&after=x+y");
   });
+
+  it("FP-16 a page size is asked only when given, after the cursor", () => {
+    expect(feedPath("c-1", "p-1", null, 11)).toBe("/api/feed?category=c-1&place=p-1&size=11");
+    expect(feedPath("c-1", null, null, 11)).toBe("/api/feed?category=c-1&size=11");
+    expect(feedPath("c-1", null, null, null)).toBe("/api/feed?category=c-1");
+  });
 });

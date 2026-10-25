@@ -1,5 +1,5 @@
 import { callRoute } from "@/lib/route-client";
-import { parseFeedPage, type FeedListing } from "@/features/feed/feed-page";
+import { feedPath, parseFeedPage, type FeedListing } from "@/features/feed/feed-page";
 import type { PhotoLinks } from "@/features/posting/photo-links";
 
 /** DEC-195 — the cards and the cover links the answer already signed. */
@@ -22,9 +22,8 @@ export async function similarListings(
   excludeId: string,
 ): Promise<SimilarAnswer> {
   const empty: SimilarAnswer = { cards: [], coverLinks: {} };
-  const params = new URLSearchParams({ category: categoryId, size: "11" });
-  if (placeId !== null) params.set("place", placeId);
-  const answer = await callRoute(`/api/feed?${params.toString()}`, { auth: "none" });
+  // D234 S6 — the feed read's one address builder (feedPath): eleven, so ten remain without the ad.
+  const answer = await callRoute(feedPath(categoryId, placeId, null, 11), { auth: "none" });
   if (answer.kind !== "answered" || !answer.ok) return empty;
   const page = parseFeedPage(answer.payload);
   if (page === null) return empty;

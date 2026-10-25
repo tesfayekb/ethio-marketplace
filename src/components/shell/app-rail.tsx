@@ -26,6 +26,7 @@ import { PANELS, categoryIcon, visibleItems } from "@/config/panels";
 import type { NavItem } from "@/config/panels.types";
 import {
   childrenOf,
+  feedRouteOf,
   pathOf,
   rootsOf,
   useCategoryTree,
@@ -834,7 +835,8 @@ export function AppRail() {
       peekAttempted.current ||
       window.innerWidth >= 768 ||
       activePanel !== "marketplace" ||
-      !(pathname === "/" || pathname.startsWith("/c/"))
+      // D234 S6 — the listings pages, read as everywhere else (feedRouteOf).
+      feedRouteOf(pathname) === null
     )
       return;
     peekAttempted.current = true;

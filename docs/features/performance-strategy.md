@@ -267,3 +267,14 @@ Next: S5, the feed's first page answered in the page stream.
 - The E2E build skips the server's page for the cookie `e2e_first_screen=off` (`isE2E`); the spinner test, FS-6 and AP-49 carry it, because they prove the browser's own read.
 - Proofs: DIA-6 (location-data.test.ts) is the equivalence proof of the shared derivation; AP-53 (e2e/ad-page.spec.ts) the browser proof.
 - Next: the cards drawn by the server from this same page (S6).
+
+
+## 12. The server draws the first cards and the browser keeps them (D234, Foundations turn 29)
+
+- `HeldFirstPage` (src/features/feed/held-first-page.ts) wraps the root loader's unawaited first-page read. Its `heldFirstPageAdapter`, registered in src/start.ts, sends the promise through the router's page stream and wraps it again on arrival, recording `settled` as soon as the page lands.
+- Why the adapter: in the supervisor's lab, a promise React had not seen settle made hydration wait and draw the feed again from scratch. Reading the arrived page at once lets the browser's first render draw the server's very cards, so React keeps those nodes.
+- `useHeldFirstPage` (src/features/feed/use-feed.ts) draws that page only for the page load's first feed, until its own first read lands (`firstReadDone`), and only for the very address once the inputs are known. Later mounts, navigation, another place and Retry keep the live reader's existing behaviour.
+- The listings routes (`index.tsx`, `c.$slug.tsx`) render the feed under Suspense with the existing translated spinner. The shell streams at once; the cards follow in the same response. FirstFeedPage carries `places`, the server's derived place path, so the feed heading matches the place the shell will show.
+- INC-901: a malformed whole feed or category-tree answer is no first page and one named `[first-screen]` warning; FSP-7 proves both cases. HFP-1…3, UFS-5…7 and FP-16 pin the wrapper, first drawing and optional page size.
+- AP-54 is the browser proof: two scratch cards occur in the server HTML and the first card node held at DOMContentLoaded is the same node once the page is ready, with no hydration error. AP-53 still proves no second feed or cover-link read. Similar ads now use `feedPath`; the rail's peek uses `feedRouteOf`.
+- Next: the shell's own first state from the server. A category page's invitation still waits for its category tree in the browser.

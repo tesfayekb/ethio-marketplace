@@ -1705,6 +1705,43 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(src !== null && preloaded.includes(src)).toBe(true);
   });
 
+  test("AP-54 the server draws the first cards and the browser keeps them: in the page's HTML, the very nodes once it is ready, no hydration error (D234 S6)", async ({
+    page,
+    request,
+  }) => {
+    const seller = await scratchSeller();
+    const ads = [await seed(seller), await seed(seller)];
+    for (const ad of ads) await seedPhotos(ad.id);
+    // The page as the server sends it: the two cards are in its HTML.
+    const html = await (await request.get(`/c/${seller.leafSlug}`)).text();
+    expect(html.match(/data-testid="listing-card"/g) ?? []).toHaveLength(2);
+    // A hydration failure is an uncaught error (React's #418-#425 in a production build).
+    const failures: string[] = [];
+    page.on("pageerror", (error) => failures.push(error.message));
+    page.on("console", (message) => {
+      if (message.type() === "error" && /hydrat|#41[89]|#42[1-5]/i.test(message.text()))
+        failures.push(message.text());
+    });
+    // The first card as the server drew it, held when the document has been parsed.
+    await page.addInitScript(() => {
+      document.addEventListener("DOMContentLoaded", () => {
+        Reflect.set(window, "__firstCard", document.querySelector('[data-testid="listing-card"]'));
+      });
+    });
+    await gotoReady(page, `/c/${seller.leafSlug}`);
+    await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached();
+    await expect(page.getByTestId("listing-card")).toHaveCount(2);
+    // React kept the server's nodes: a feed drawn again from scratch would have replaced them.
+    const kept = await page.evaluate(() => {
+      const first: unknown = Reflect.get(window, "__firstCard");
+      return (
+        first instanceof Element && first === document.querySelector('[data-testid="listing-card"]')
+      );
+    });
+    expect(kept).toBe(true);
+    expect(failures).toEqual([]);
+  });
+
   test("AP-46 Save and Share sit in the title box", async ({ page }) => {
     const seller = await scratchSeller();
     const ad = await seed(seller, "active");
