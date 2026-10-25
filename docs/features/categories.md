@@ -222,7 +222,7 @@ The category filter is a subtree picker: every category in depth-first roster or
 ## C5a — AI asset foundation (2026-09-03)
 
 - **Keys and models.** `GEMINI_API_KEY` is a server-env secret, read inside the
-  handler only (F1). `GEMINI_IMAGE_MODEL` (default `gemini-2.5-flash-image`) and
+  handler only (F1). `GEMINI_IMAGE_MODEL` (default `gemini-3.1-flash-image`) and
   `GEMINI_TEXT_MODEL` (default `gemini-2.5-flash-lite`) are overridable;
   `GEMINI_FAKE=1` short-circuits the model call with a deterministic in-repo
   fixture so CI proves the whole pipeline with no key and no spend.
@@ -250,15 +250,7 @@ The category filter is a subtree picker: every category in depth-first roster or
   four; because the Worker clock is frozen across pure CPU work, `processMs` is
   floored at 1ms once the stages completed — a `done` stage with 0ms processing
   (the regression's tell) can no longer be reported, and CI-2/CI-4 assert it.
-- **Routes.** `POST /api/admin/categories/generate-image` (body
-  `{categoryId, customPrompt?}`) uploads the three assets and persists
-  `image_url`, `image_thumb_url`, `og_image_url`, `image_generation_prompt`.
-  `GET /api/admin/categories/generate-image?probe=1&categoryId=…` is the A7 walk
-  surface: the same flow rendered as an HTML page with the three images inline
-  and the timing JSON. `POST /api/admin/categories/suggest-icon` returns one
-  lucide name from the server-side allowlist (`Package` fallback). Both gate on
-  auth + `categories:assets` exactly as the U4c translations route does, log
-  every 5xx as `[ssr-error]`, and pass provider 402/429 through untouched.
+- **Routes (Foundations turn 18).** POST accepts only `{categoryId}`; GET accepts only `probe=1&categoryId`. Both use defineRoute, categories:assets and strict schemas/category-image.ts shapes. The category and home parent are read as the caller before aiCall(category_image). POST answers `{stage: "generated", prompt, genMs, image}`; GET answers raw image bytes with their magic-read type, X-Gen-Ms and no-store. Unknown categories are 404; switched off is 409/unreadable 503; provider 4xx carries fixed codes, other model failures are generic 502. Provider text never reaches the probe. customPrompt is removed and its persistence argument is always NULL. Browser processing/uploads/persistence/pruning remain the existing pipeline. Suggest-icon uses the same staff boundary.
 - **E2E.** `e2e/category-image-routes.spec.ts` (CI-1..CI-3) in fake mode:
   unauthenticated refusal, a fake generate proved against DB truth, and an
   allowlisted icon. Scratch category and bucket objects are deleted in `finally`.
@@ -267,9 +259,9 @@ The category filter is a subtree picker: every category in depth-first roster or
 
 **DEC-082 (INC-308) — division of labour.** Bulk "Generate image" died with a hosting-layer 500 (no JSON body): the Worker decoded and re-encoded PNGs in plain JavaScript (130–180 ms CPU per image). The Worker now does I/O only; no image library is loaded on it.
 
-- **Route** `POST /api/admin/categories/generate-image`: gate (`categories:assets`), body checks, category read (unknown → 404), house prompt, provider call (fake mode → captured fixture bytes in `src/server/category-images/fixture.ts`). Answers `{ stage: "generated", prompt, genMs, image: <base64> }` with `Cache-Control: no-store`. Failures are JSON with `stage: "model-call"`. The `GET ?probe=1` walk surface returns the raw generated image.
+- **Route** `POST /api/admin/categories/generate-image`: gate (`categories:assets`), body checks, category read (unknown → 404), house prompt, provider call (fake mode → captured fixture bytes beside category_image in `src/server/ai/tasks.ts`). Answers `{ stage: "generated", prompt, genMs, image: <base64> }` with `Cache-Control: no-store`. Failures are JSON with `stage: "model-call"`. The `GET ?probe=1` walk surface returns the raw generated image.
 - **Browser** (`category-image-variants.ts`): the C5a pipeline ported to canvas with the same constants and order — white→transparent (≥244), content-bounds crop (alpha >16), 512 card at 0.85 fill with three `ethio.com` marks (0.1 opacity, −30°) behind the icon, 128 thumb from the card, 1200×630 OG at 0.88 of the height.
-- **Service** (`category-images-service.ts`): route → variants → three versioned uploads (`card|thumb|og-<ts>.png` under `<categoryId>/`) under the admin's session → `admin_set_category_images` → best-effort prune (logged, never fatal). Stages: `model-call · process · upload · persist · client-timeout`. No service role on this path.
+- **Service** (`category-images-service.ts`): callRoute (required session, 30-second timeout, narrowed payload) → variants → three versioned uploads (`card|thumb|og-<ts>.png` under `<categoryId>/`) under the admin's session → `admin_set_category_images` → best-effort prune (logged, never fatal). Stages: `model-call · process · upload · persist · client-timeout`. No service role on this path.
 - Retired: `src/server/category-images/{pipeline,raster,raster.test,font}.ts`. `pngjs`/`jpeg-js` stay in `package.json` only because `scripts/fixtures/photos/make.ts` still imports them.
 
 The Image tab of the category editor is the review surface for AI-generated
