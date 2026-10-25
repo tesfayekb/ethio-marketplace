@@ -1,3 +1,4 @@
+- Foundations turn 15 (2026-10-25) — AI orchestration, quoting template, own-key Gemini text adapter (DEC-248), service-only audit writer with M2 nullable argument omission; identity and icon consumers moved, icon route on defineRoute, GWC/AIG checks and documentation added. Partial landing: final review identified census-scope and schema-file scope rulings required; roadmap records remaining correctness work. Unit suite 275 files / 1709 passed / 1 skipped; both complete moved-surface E2E specs 14 passed, no retries.
 # Changelog (append-only)
 
 - 2026-10-09 — bundle 9 turn 17: the 320px location-row label expectation reads its `sr-only` class instead of Playwright visibility (a 1 px `sr-only` box counts as visible, so `toBeHidden()` could never pass); the product and the test's other assertions are unchanged.
