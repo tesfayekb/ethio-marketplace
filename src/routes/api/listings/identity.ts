@@ -70,8 +70,7 @@ async function imitationOf(alias: string, userId: string): Promise<Imitation> {
   if (!answer.ok) return { of: null, checked: false };
   const value = answer.value;
   if (value.imitates !== true) return { of: null, checked: true };
-  const of =
-    typeof value.of === "string" && value.of.trim() !== "" ? value.of.trim() : alias;
+  const of = typeof value.of === "string" && value.of.trim() !== "" ? value.of.trim() : alias;
   return { of, checked: true };
 }
 

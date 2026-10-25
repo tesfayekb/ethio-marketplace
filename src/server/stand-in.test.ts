@@ -54,9 +54,7 @@ describe("the one stand-in switch (DEC-249)", () => {
       skipTests: true,
     })
       .filter((path) =>
-        /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE|AI_FAKE)"\]/.test(
-          readFileSync(path, "utf8"),
-        ),
+        /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE|AI_FAKE)"\]/.test(readFileSync(path, "utf8")),
       )
       .map((path) => relative(process.cwd(), path));
     expect(matches.sort()).toEqual(["src/server/stand-in.ts"]);

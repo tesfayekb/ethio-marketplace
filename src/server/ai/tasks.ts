@@ -224,7 +224,8 @@ export const AI_TASKS = [
         ". Nothing beyond these facts is claimed.";
       return { title, description: clampAssist(body, ASSIST_DESCRIPTION_MAX) };
     },
-    validate: (value) => !CONTACT_DETAIL.test(value.title) && !CONTACT_DETAIL.test(value.description),
+    validate: (value) =>
+      !CONTACT_DETAIL.test(value.title) && !CONTACT_DETAIL.test(value.description),
   }),
 ] as const;
 

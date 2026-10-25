@@ -25,10 +25,7 @@ function renderField(field: AiField, material: AiMaterial): string[] {
       Array.isArray(value) ? value : typeof value === "string" && value !== "" ? [value] : []
     ).slice(0, field.maxItems ?? 20);
     if (items.length === 0) return field.none === true ? [`${field.label}: (none)`] : [];
-    return [
-      `${field.label}:`,
-      ...items.map((item) => `- ${untrustedLine(item, field.max)}`),
-    ];
+    return [`${field.label}:`, ...items.map((item) => `- ${untrustedLine(item, field.max)}`)];
   }
   if (value === undefined || value === "" || Array.isArray(value)) {
     return field.none === true ? [`${field.label}: (none)`] : [];

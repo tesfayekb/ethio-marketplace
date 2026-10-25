@@ -27,8 +27,9 @@ describe("vendor seams conformance", () => {
     .map((row) => row.file);
   const allowed = readAllowlist("scripts/conformance/vendor-seams-allowlist.txt", found);
   it("VS-1 no file outside the four seams reaches Supabase directly without an allowlist line", () => {
-    expect(rows.filter((row) => row.supabase && !seamExempt(row.file) && !allowed.has(row.file)))
-      .toEqual([]);
+    expect(
+      rows.filter((row) => row.supabase && !seamExempt(row.file) && !allowed.has(row.file)),
+    ).toEqual([]);
   });
   it("VS-2 no file names a Lovable package, identifier or host without an allowlist line", () => {
     expect(rows.filter((row) => row.lovable && !allowed.has(row.file))).toEqual([]);
