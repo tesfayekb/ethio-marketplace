@@ -14,10 +14,14 @@ describe("vendor seams conformance", () => {
     ...walkFiles(["src", "scripts"], { ext: ["ts", "tsx"], skipTests: true, skip: /fixtures/ }),
     "vite.config.ts",
   ];
-  const rows = files.map((file) => {
-    const rel = relative(process.cwd(), file) || file;
-    return { file: rel, ...vendorTies(readFileSync(file, "utf8")) };
-  });
+  const rows = files
+    .map((file) => {
+      const rel = relative(process.cwd(), file) || file;
+      return { file: rel, ...vendorTies(readFileSync(file, "utf8")) };
+    })
+    // The census module itself holds the detector's regexes; like the AI
+    // census's own directory, it is not a finding.
+    .filter((row) => row.file !== "scripts/conformance/vendor-seams-scan.ts");
   const found = rows
     .filter((row) => (row.supabase && !seamExempt(row.file)) || row.lovable)
     .map((row) => row.file);

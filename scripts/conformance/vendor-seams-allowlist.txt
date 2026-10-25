@@ -1,0 +1,71 @@
+# DEC-250 — the vendor-seams freeze (turn 16). Every file the census found at the freeze;
+# a NEW direct vendor reach fails VS-1/VS-2 until this line is reviewed. Exit notes: docs/features/vendor-exit.md.
+scripts/deny-tests/p1f-identity-unlink.ts | direct vendor use before DEC-250 | INC-877
+scripts/e2e-migration-preflight.ts | direct vendor use before DEC-250 | INC-877
+scripts/feed-bench.ts | direct vendor use before DEC-250 | INC-877
+src/components/app-shell.tsx | direct vendor use before DEC-250 | INC-877
+src/components/shell/place-carry-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/account/account-overview.tsx | direct vendor use before DEC-250 | INC-877
+src/features/ad-page/contact.ts | direct vendor use before DEC-250 | INC-877
+src/features/ad-page/report.ts | direct vendor use before DEC-250 | INC-877
+src/features/ad-page/save.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-ai/ai-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-attributes/attributes-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-categories/categories-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-categories/category-images-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-countries/countries-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-coverage/coverage-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-listings/listing-settings.tsx | direct vendor use before DEC-250 | INC-877
+src/features/admin-listings/use-admin-listing.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-listings/use-admin-listings.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-listings/use-listing-reports.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-locations/locations-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-screening/use-photo-changes.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-screening/use-photo-reviews.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin-screening/use-screening.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/audit/audit-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/impersonation/impersonation-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/legal/legal-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/nav-alerts.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/roles/roles-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/translations/translations-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/admin/translations/translator-card.tsx | direct vendor use before DEC-250 | INC-877
+src/features/admin/users/admin-users-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/auth/auth-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/auth/mfa/mfa-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/auth/use-auth.ts | direct vendor use before DEC-250 | INC-877
+src/features/legal/legal-page-data.ts | direct vendor use before DEC-250 | INC-877
+src/features/legal/legal-reader.ts | direct vendor use before DEC-250 | INC-877
+src/features/legal/use-legal-gate.ts | direct vendor use before DEC-250 | INC-877
+src/features/my-listings/my-listing.ts | direct vendor use before DEC-250 | INC-877
+src/features/my-listings/my-listings.ts | direct vendor use before DEC-250 | INC-877
+src/features/permissions/service.ts | direct vendor use before DEC-250 | INC-877
+src/features/posting/posting-service.ts | direct vendor use before DEC-250 | INC-877
+src/features/posting/pricing-data.ts | direct vendor use before DEC-250 | INC-877
+src/features/posting/use-edit-draft.ts | direct vendor use before DEC-250 | INC-877
+src/features/posting/use-price-unit-labels.ts | direct vendor use before DEC-250 | INC-877
+src/i18n/bundle.ts | direct vendor use before DEC-250 | INC-877
+src/i18n/provider.tsx | direct vendor use before DEC-250 | INC-877
+src/lib/signed-in-route.ts | direct vendor use before DEC-250 | INC-877
+src/routes/api/admin/categories/generate-image.ts | direct vendor use before DEC-250 | INC-877
+src/routes/api/listings/assist.ts | direct vendor use before DEC-250 | INC-877
+src/routes/api/listings/identity.ts | direct vendor use before DEC-250 | INC-877
+src/routes/api/listings/photos.$id.ts | direct vendor use before DEC-250 | INC-877
+src/routes/api/translate.ts | direct vendor use before DEC-250 | INC-877
+src/routes/auth.tsx | direct vendor use before DEC-250 | INC-877
+src/routes/legal.publishing.tsx | direct vendor use before DEC-250 | INC-877
+src/routes/settings.tsx | direct vendor use before DEC-250 | INC-877
+src/server/category-images/gate.ts | direct vendor use before DEC-250 | INC-877
+src/server/imports/gate.ts | direct vendor use before DEC-250 | INC-877
+src/server/imports/route.ts | direct vendor use before DEC-250 | INC-877
+src/server/listings/own-listing.ts | direct vendor use before DEC-250 | INC-877
+src/server/media/links.ts | direct vendor use before DEC-250 | INC-877
+src/server/route.ts | direct vendor use before DEC-250 | INC-877
+scripts/e2e-failure-report.ts | direct vendor use before DEC-250; exit vendor-exit.md#ci-tooling | INC-877
+src/integrations/supabase/auth-middleware.ts | direct vendor use before DEC-250; exit vendor-exit.md#platform-references | INC-877
+src/integrations/supabase/client.server.ts | direct vendor use before DEC-250; exit vendor-exit.md#platform-references | INC-877
+src/integrations/supabase/client.ts | direct vendor use before DEC-250; exit vendor-exit.md#platform-references | INC-877
+src/integrations/supabase/previewAuthStorage.ts | direct vendor use before DEC-250; exit vendor-exit.md#preview-auth-storage | INC-877
+src/lib/lovable-error-reporting.ts | direct vendor use before DEC-250; exit vendor-exit.md#error-reporting | INC-877
+src/routes/__root.tsx | direct vendor use before DEC-250; exit vendor-exit.md#error-reporting | INC-877
+vite.config.ts | direct vendor use before DEC-250; exit vendor-exit.md#build-wrapper | INC-877
