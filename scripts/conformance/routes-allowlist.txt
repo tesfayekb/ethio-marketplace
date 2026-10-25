@@ -1,12 +1,6 @@
 # The route boundary (Foundations turn 2): every server endpoint is a defineRoute; a line here is a route not yet moved (until its wave's INC) or a helper that implements the boundary. <path> | <reason> | <until>
 # INC-859 — closed (Foundations turn 4: every posting and media route is on defineRoute)
-# INC-863 — the six server functions
-src/routes/__root.tsx | createServerFn :94 and its own fetch :122 | INC-863
-src/routes/l.$slug.tsx | createServerFn :23 | INC-863
-src/routes/$name.tsx | createServerFn :8 | INC-863
-src/routes/terms.tsx | createServerFn :6 | INC-863
-src/routes/privacy.tsx | createServerFn :6 | INC-863
-src/routes/legal.$kind.tsx | createServerFn :10 | INC-863
+# INC-863 — closed (Foundations turn 20: the six server functions are on createServerFn().validator(<schema>))
 # INC-857 — the client's UUID copies (the form-kit turn)
 src/components/shell/location-data.ts | client UUID copy :65 | INC-857
 src/components/shell/place-carry.ts | client UUID copy :26 | INC-857

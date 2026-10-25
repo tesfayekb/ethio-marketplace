@@ -25,6 +25,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // `src/server/**` out of the client graph); the handler imports it dynamically.
 import type { GeoAnswer } from "../server/geo/guess";
 import { errorText } from "@/lib/error-text";
+import { NoInputSchema } from "@/lib/schemas/server-fns";
 
 /**
  * U4h — HEAD-COMPOSITION CENSUS (stated, per the task).
@@ -92,8 +93,10 @@ const AREA_SHAPE =
  * Law F4 — a failure logs one named line and degrades to "base language only";
  * it never blocks the document.
  */
-const getSsrLangContext = createServerFn({ method: "GET" }).handler(
-  async (): Promise<SsrLangContext> => {
+const LANGUAGE_GATE_TIMEOUT_MS = 1500;
+const getSsrLangContext = createServerFn({ method: "GET" })
+  .validator(NoInputSchema)
+  .handler(async (): Promise<SsrLangContext> => {
     const url = getRequestUrl();
     const raw = getCookie(LANGUAGE_STAR_COOKIE) ?? null;
     const star = raw && CODE_SHAPE.test(raw) ? raw : null;
@@ -120,9 +123,11 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
     let languages: Array<{ code: string; rtl: boolean }> = [];
     if (base && key) {
       try {
-        const response = await fetch(
+        const { upstream } = await import("../server/upstream");
+        const response = await upstream(
           `${base}/rest/v1/languages?select=code,rtl&or=(enabled_public.eq.true,is_base.eq.true)&order=sort.asc`,
           { headers: { apikey: key, accept: "application/json" }, cache: "no-store" },
+          { timeoutMs: LANGUAGE_GATE_TIMEOUT_MS, label: "ssr language gate" },
         );
         if (response.ok) {
           const rows = (await response.json()) as Array<{ code: string; rtl: boolean }>;
@@ -136,8 +141,7 @@ const getSsrLangContext = createServerFn({ method: "GET" }).handler(
     }
 
     return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geo };
-  },
-);
+  });
 
 /** Surfaces that are not indexed and therefore carry no hreflang set. */
 function isPublicPath(path: string): boolean {

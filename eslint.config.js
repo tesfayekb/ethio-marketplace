@@ -107,12 +107,6 @@ export default tseslint.config(
       "**/*.test.ts",
       "**/*.test.tsx",
       // ROUTES-BOUNDARY-IGNORES-BEGIN
-      "src/routes/__root.tsx", // until INC-863
-      "src/routes/l.$slug.tsx", // until INC-863
-      "src/routes/$name.tsx", // until INC-863
-      "src/routes/terms.tsx", // until INC-863
-      "src/routes/privacy.tsx", // until INC-863
-      "src/routes/legal.$kind.tsx", // until INC-863
       "src/components/shell/location-data.ts", // until INC-857
       "src/components/shell/place-carry.ts", // until INC-857
       "src/features/posting/post-prefill.ts", // until INC-857
