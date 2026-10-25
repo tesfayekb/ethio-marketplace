@@ -1,4 +1,4 @@
-# AI gateway — Foundations turns 15–18
+# AI gateway — Foundations turns 15–19
 
 This project's "AI gateway" is its own module over its own provider keys (DEC-248), distinct from the Lovable AI Gateway SDK.
 
@@ -46,7 +46,21 @@ M1 `f5f6c8fb` declares mark `20261025140000`; operator-ruled M2 `71ad0a58` decla
 
 `gateway.census.test.ts` uses the conformance kit: GWC-1 provider hosts only in adapters; GWC-2 provider key/model/stand-in env reads only under AI (every spelling: `process.env.X`, bracket and destructured forms, `import.meta.env`, `serverEnv(`, `stubEnv(`, `standInMode(`); GWC-3 feature list matches the newest migration; GWC-4 bounded deadlines, no surviving unknown keys, bounded strings and the quoting rule; GWC-5 planted violations bite; GWC-6 every `standInMode(` with an AI flag outside the gateway is allowlisted; GWC-7 a planted file holding each env-read form is reported once per form; GWC-8 every image-answer task declares an image output schema, photo_screen/background_removal declare `images.all`, and every task with input images declares `max` and `maxBytes` (planted-task proof). `wired.test.ts` names the caller. AIG-1…36 cover orchestration, the audited-throw order, typed ids, body-read deadlines, reservations, field kinds, images, the contact-detail validator, the stand-in pair, the key-first order, supplier timing, the `all`/`min` rules, the low-detail retry, images-alone calls, the Photoroom adapter and the screen's stand-in mapping. AIM-6 shares the feature-census helper with GWC-3. UNT-4/UNT-5 hold the quoting census and the writing helper's rendered prompt.
 
-`scripts/conformance/ai-gateway-allowlist.txt` holds one expiring exception until INC-876: translation. Turn 19 moves translation onto aiCall and defineRoute (INC-861). No package change accompanied turn 18.
+GWC-8's image checks apply to the two image providers (`gemini-image`, `photoroom-segment`) since turn 19. GWC-9 (turn 19): every task's `units` is a pure count of its material — no `async`/`await`, fetch, `upstream`, environment read, dynamic import, RPC, clock, randomness or log in its source; called twice on the same material it answers the same non-negative integer — and a task without `units` is metered as 1 (the gateway's one spend call; planted-task proof). AIG-37…44 cover the translation adapter and task.
+
+`scripts/conformance/ai-gateway-allowlist.txt` is EMPTY since turn 19 (INC-876 closed): no file outside `src/server/ai/` names a provider host, key or stand-in flag. Turn 18 had one expiring exception (translation). No package change accompanied turns 18 or 19.
+
+## Translation (turn 19)
+
+Three providers: `provider: "gemini-text" | "gemini-image" | "photoroom-segment" | "google-translate"` (Gemini's text and image adapters, Photoroom, Google Translate). `providers/google-translate.ts` (DEC-249: own code over `upstream`) has two calls. `translateBatch({ target, texts, timeoutMs, label })` posts one form body to Cloud Translation v2 with `source=en` (the catalogue's base language — K4's recorded exception), `format=html`, one `q` per masked text and the key in `x-goog-api-key` only (INC-829), with one deadline across headers and body; it answers `texts` (one per input, `null` where the provider gave none), `unusable` for a 2xx whose body does not parse or whose count differs (metered), or the shared `status | timeout | network | noKey`. `providerLanguages({ timeoutMs })` reads the supported targets (code, English name) once per process, with a deadline.
+
+`translate-tokens.ts` holds the masking rules moved byte for byte from the route (pure, no I/O): each `{token}` travels as `<span translate="no">⟦i⟧</span>`, is restored by index whether the provider keeps or strips the span, and a missing or duplicated sentinel hands the provider's text back for the writer's validator to flag; `decodeEntities`; and the stand-in `fakeTranslate` (`⟪<lang>⟫ <source>`, E2EBREAK drops every placeholder).
+
+The `translation` task: feature `translations`, model env `GOOGLE_TRANSLATE_MODEL` (fallback `v2-nmt`, an audit label only), 20-second deadline, no instruction and no fields (the texts are data, never a prompt), material `{ target, texts }` (a code `^[a-z]{2,8}(-[a-z]{2,8})?$` and at most 100 texts — the gateway answers `unavailable` for anything else), output `z.array(z.string().nullable())` whose length must equal the texts sent (`validate(value, material)`, the material beside the answer since turn 19), stand-in flag `E2E_FAKE_TRANSLATE`. `units` (new): a task may declare `units(material)`; the gateway records it instead of 1 on a billed call — a translation meters the characters it sent, as the route did before.
+
+`translationLanguages({ path })` (gateway export) answers the provider's list, or today's `FAKE_LANGUAGES` (moved byte for byte into tasks.ts) under the stand-in with `fake: true`; it is a free metadata call — no gate, no meter, no audit row; a missing key answers `noKey`, any other failure `unavailable` with one log line.
+
+The gate's mark (ruling R2 on turn 19's stop 1): the answers `aiCall` builds from the gate — `featureOff`, `budget`, and `unavailable` when the switch could not be read (a gate read that throws included) — carry `gate: true`; no other answer does. A caller that must tell "switched off" from a failed call keys on it (translate.ts's first chunk).
 
 ## Category image answer (turn 18)
 
