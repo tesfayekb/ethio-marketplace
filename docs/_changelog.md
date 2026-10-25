@@ -1096,3 +1096,10 @@
 - Catalogue entries moved unchanged: 591 to member, 30 to admin; the census replaces the admin-only judge and first-download ceilings follow the supervisor's measurements.
 - INC-904: AP-54 checks its own navigation's HTML, not another server render. Retired `src/i18n/locales/admin-layer.test.ts` and `src/i18n/compiled-admin-loader.test.ts`; their replacement proofs are the strings-layers census and compiled-layer-loader tests.
 - No migration, new strings or package change. Whole-catalogue admin imports (INC-902) and unused keys (INC-903) remain outside scope.
+
+## Foundations turn 31 (2026-10-25) — speed S8 (D234), DEC-259: the overlays' code on demand
+
+- The tooltip's and the dropdown menu's code (Radix, floating-ui and their layers) left every page's first download: the facades draw the trigger through the same Slot and ask for the module on intent or idle; the real primitive takes the already-drawn element (no unmount, no focus loss).
+- Conformance: CF-OV-1…3 (only the impl files reach Radix; the facades export exactly the impls' names), OVF-1…10 and OVE-1/2 prove the behaviour; the weight and first-paint guards gained the overlay modules.
+- INC-905: turn 30's two retired tests were declared late (its run's only red, the deletion guard); declared here. Supervisor's build measurements: entry 280.2 → 260.0 KiB, every page 17–25 KiB lighter; ceilings follow.
+- No migration, new strings or package change. `matchMedia`'s jsdom shim lacks `removeEventListener` (K2; outside scope).

@@ -288,3 +288,9 @@ DEC-258 generalises the admin layer into named admin and member strings layers. 
 Supervisor's build measurements, not a local rebuild: 591 keys moved to member and 30 to admin; entry 287.9 → 280.2 KiB; every page 7–11 KiB lighter; Amharic base about 11 KiB lighter. The ceilings follow those measurements, with three admin whole-catalogue consumers separately recorded under INC-902.
 
 Next: study moving the database client off the first paint, a Tier A study for the operator's decision; no database-client change is made here.
+
+## 14. The overlays' code arrives on demand (D234, Foundations turn 31)
+
+DEC-259 moves the tooltip's and the dropdown menu's code (Radix, floating-ui and their layers) off every page's first download. Each facade (src/components/ui/tooltip.tsx, dropdown-menu.tsx) draws the trigger through the same Slot the real primitive uses, so the server and the first render draw the same closed trigger, and asks for the module on the trigger's first intent or once the page is idle. The real primitive takes the already-drawn element — no unmount, no focus loss.
+
+Supervisor's build measurements, not a local rebuild: entry 280.2 → 260.0 KiB; every page 17–25 KiB lighter; overlays-impl 16.5 KiB on demand; the entry ceiling follows to 263 KiB and the per-page ceilings follow their measurements.
