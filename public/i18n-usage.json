@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 562,
+  "scanned": 563,
   "dynamicCallSites": 395,
   "keys": {
     "account.deactivatedBanner": [
@@ -5063,11 +5063,17 @@
     ],
     "legal.kind.privacy": [
       "(every page)",
+      "/$name",
       "/account/legal",
       "/account/legal/$versionId",
+      "/admin/legal",
+      "/admin/legal/$versionId",
+      "/admin/legal/edit",
+      "/admin/users/$userId",
       "/auth",
       "/auth/callback",
       "/auth/reset",
+      "/l/$slug",
       "/legal/$kind",
       "/legal/accept",
       "/legal/publishing",
@@ -5079,11 +5085,17 @@
     ],
     "legal.kind.terms": [
       "(every page)",
+      "/$name",
       "/account/legal",
       "/account/legal/$versionId",
+      "/admin/legal",
+      "/admin/legal/$versionId",
+      "/admin/legal/edit",
+      "/admin/users/$userId",
       "/auth",
       "/auth/callback",
       "/auth/reset",
+      "/l/$slug",
       "/legal/$kind",
       "/legal/accept",
       "/legal/publishing",
