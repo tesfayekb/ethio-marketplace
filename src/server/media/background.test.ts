@@ -3,6 +3,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { FAKE_CUTOUT_SIZE, MAX_SOURCE_BYTES, readSource } from "./background";
 import { MAX_CUTOUT_BYTES, photoroomSegment } from "@/server/ai/providers/photoroom";
 import { taskOf } from "@/server/ai/tasks";
+import { aiCall } from "@/server/ai/gateway";
+
+vi.mock("@/lib/env-flags", () => ({ isE2E: true }));
+vi.mock("@/server/ai/meter", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/ai/meter")>()),
+  aiGate: vi.fn(async () => ({ on: true })),
+  recordAiSpend: vi.fn(async () => undefined),
+}));
+vi.mock("@/server/ai/audit", () => ({ recordAiCall: vi.fn(async () => undefined) }));
 
 /**
  * Bundle 13 turn 12 — D155b / D159, on the AI gateway since Foundations turn
@@ -24,6 +33,38 @@ function answer(body: BodyInit | null, init: { status?: number; type?: string } 
 }
 
 describe("background removal — the provider (D155b / D159)", () => {
+  it("BGR-13 the E2E gateway stand-in preserves the captured PNG bytes and every chunk CRC", async () => {
+    vi.stubEnv("E2E_FAKE_BACKGROUND", "1");
+    const fetched = vi.fn();
+    vi.stubGlobal("fetch", fetched);
+    const result = await aiCall("background_removal", {}, { actorId: null, path: "/api/listings/background" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error("stand-in refused");
+    const { bytes, mime } = result.value;
+    expect(mime).toBe("image/png");
+    expect(bytes.byteLength).toBe(1013);
+    const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes));
+    expect(Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join(""))
+      .toBe("ad185c1a829172945925d40f29febc64403d88a02d4f40fcf54adf0abff5ea7c");
+    expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    expect([view.getUint32(16), view.getUint32(20)]).toEqual([400, 300]);
+    let offset = 8;
+    while (offset < bytes.byteLength) {
+      const length = view.getUint32(offset);
+      expect(offset + length + 12).toBeLessThanOrEqual(bytes.byteLength);
+      let crc = 0xffffffff;
+      for (const byte of bytes.subarray(offset + 4, offset + 8 + length)) {
+        crc ^= byte;
+        for (let bit = 0; bit < 8; bit += 1) crc = (crc >>> 1) ^ ((crc & 1) === 1 ? 0xedb88320 : 0);
+      }
+      expect((crc ^ 0xffffffff) >>> 0).toBe(view.getUint32(offset + 8 + length));
+      offset += length + 12;
+    }
+    expect(offset).toBe(1013);
+    expect(fetched).not.toHaveBeenCalled();
+  });
+
   it("BGR-1 fake mode's cut-out is a 400 x 300 PNG with an alpha channel, behind its one flag", () => {
     const task = taskOf("background_removal");
     expect(task.fakeFlag).toBe("E2E_FAKE_BACKGROUND");
