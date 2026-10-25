@@ -1,5 +1,5 @@
 import { shapeAttrOption } from "@/features/posting/attribute-options";
-import { shapeDeal, shapePostingSchema } from "@/features/posting/posting-service";
+import { shapeDeal, shapePostingSchema } from "@/features/posting/schema-shape";
 import type { ListingDetailView } from "@/features/posting/preview/listing-detail";
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 import { catalogText } from "@/i18n/entity";
