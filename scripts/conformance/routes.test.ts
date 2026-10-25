@@ -85,8 +85,7 @@ const CENSUS = census();
 const RT1_BREACHES = CENSUS.filter((file) => !conforms(file));
 const RT2_FINDINGS = [...ROUTE_FILES, ...SERVER_FILES].flatMap(bypasses);
 const RT3_BREACHES = SRC_FILES.filter(
-  (file) =>
-    file !== "src/lib/uuid.ts" && UUID_LITERAL.test(readFileSync(file, "utf8")),
+  (file) => file !== "src/lib/uuid.ts" && UUID_LITERAL.test(readFileSync(file, "utf8")),
 );
 
 const FOUND = new Set<string>([
