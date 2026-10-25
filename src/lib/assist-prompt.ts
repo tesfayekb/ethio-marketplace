@@ -1,19 +1,18 @@
 /**
- * Bundle 4 step 13 — THE WRITING HELPER'S PROMPT, composed in one pure place so
- * a unit test can read it. The answers reach it as facts (unit, size and terms
- * included, now that the price page comes first), plus one line for
+ * Bundle 4 step 13 — THE WRITING HELPER'S FACTS, built in one pure place so a
+ * unit test can read them. The answers reach the prompt as facts (unit, size
+ * and terms included, now that the price page comes first), plus one line for
  * "negotiable" when the switch is on and one for the period when it is not
  * "once". The amount and the currency are never part of it: the body carries
  * neither, and any attribute key that names a price is dropped here as well.
  *
- * D166 — every line a person could have written (the category path the page
- * sends, each fact, the draft title and description, the earlier suggestions)
- * enters as ONE quoted string through src/lib/untrusted-text.ts, so nothing in
- * it can pose as a line of the instruction; the route's instruction ends with
- * the shared rule.
+ * D166 — every line a person could have written enters the prompt as ONE
+ * quoted string through the gateway's template (src/server/ai/template.ts),
+ * so nothing in it can pose as a line of the instruction; the task's
+ * instruction ends with the shared rule. Foundations turn 16: the prompt
+ * itself is the `writing_helper` task's declared fields; this module keeps
+ * only the pure fact builders.
  */
-
-import { untrustedLine, untrustedText } from "./untrusted-text";
 
 const PRICE_KEY = /^(price|amount|currency)(_|$)/i;
 
@@ -46,40 +45,4 @@ export function assistDealLines(negotiable: unknown, period: unknown): string[] 
     lines.push(`price period: per ${period}`);
   }
   return lines;
-}
-
-export function composeAssistPrompt(input: {
-  locale: string;
-  categoryPath: string;
-  facts: string[];
-  sellerTitle: string;
-  sellerDescription: string;
-  photoCount: number;
-  previous: { title: string; description: string }[];
-}): string {
-  const { locale, categoryPath, facts, sellerTitle, sellerDescription, photoCount, previous } =
-    input;
-  return [
-    // A language code only (the page's own), else English: never a person's words.
-    `Language: ${/^[a-z]{2}(-[A-Z]{2})?$/.test(locale) ? locale : "en"}`,
-    untrustedText("Category", categoryPath, 300),
-    "Facts:",
-    ...(facts.length === 0 ? ["(none)"] : facts.map((line) => `- ${untrustedLine(line, 240)}`)),
-    sellerTitle === ""
-      ? "Seller's draft title: (none)"
-      : untrustedText("Seller's draft title", sellerTitle, 200),
-    sellerDescription === ""
-      ? "Seller's draft description: (none)"
-      : untrustedText("Seller's draft description", sellerDescription, 5000, { lines: true }),
-    photoCount === 0 ? "Photos: (none)" : `Photos attached: ${photoCount}`,
-    ...(previous.length === 0
-      ? []
-      : [
-          "Earlier suggestions to differ from:",
-          ...previous.map(
-            (pair, index) =>
-              `- ${index + 1}: ${untrustedLine(pair.title, 200)} — ${untrustedLine(pair.description, 5000, { lines: true })}`,
-          ),
-        ]),
-  ].join("\n");
 }

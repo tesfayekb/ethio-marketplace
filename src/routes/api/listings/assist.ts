@@ -8,13 +8,13 @@ import { z } from "zod";
 import { ok, verdict } from "@/server/answer";
 import { ownListing } from "@/server/listings/own-listing";
 import { DIALS } from "@/lib/dials";
-import { peek, spend } from "@/server/dials";
+import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
-import { upstream, UpstreamTimeout } from "@/server/upstream";
-import { assistDealLines, assistFactLines, composeAssistPrompt } from "@/lib/assist-prompt";
-import { withUntrustedRule } from "@/lib/untrusted-text";
-import { aiFakeMode, aiGate, recordAiSpend } from "@/server/ai/meter";
+import { upstream } from "@/server/upstream";
+import { assistDealLines, assistFactLines } from "@/lib/assist-prompt";
+import { aiCall } from "@/server/ai/gateway";
+import type { AiImage } from "@/server/ai/tasks";
 import { signPhotoRows } from "@/server/media/links";
 import { errorText } from "@/lib/error-text";
 
@@ -43,23 +43,26 @@ import { errorText } from "@/lib/error-text";
  * refusal `assistBudgetSpent`; the remaining count travels back so the screen can
  * say it in words.
  *
- * THE PROVIDER: the same Gemini text model and the same server-side key name the
- * category-images pipeline uses (`GEMINI_API_KEY`, `GEMINI_TEXT_MODEL`), read
- * INSIDE the handler and never echoed into a body (F1).
+ * THE PROVIDER (Foundations turn 16): the model call is the gateway's
+ * `writing_helper` task (src/server/ai/tasks.ts) — the same Gemini text model
+ * and server-side key the category-images pipeline uses, read inside the
+ * gateway and never echoed into a body (F1), with the prompt rendered by the
+ * one template and every call audited.
  *
  * FAKE MODE (`E2E_FAKE_ASSIST=1`, or the harness-wide `E2E_FAKE_TRANSLATE=1`): a
  * DISTINCT deterministic pair per try, numbered by how many suggestions came
  * before it, and always echoing the seller's own words — no provider call, no
- * spend, no network.
+ * spend, no network (the photos are not even fetched).
  *
  * A PROVIDER FAILURE IS A REFUSAL, NOT A DRAFT (F4): a 5xx or an unusable answer
  * comes back as `{ ok:false, refusals:[{ field:'assist', reason:
  * 'providerUnavailable' }] }`, so nothing is ever written from a guess.
  *
- * THE SWITCH AND THE METER (D158): the helper is asked first whether it is
- * switched on — off is the refusal `featureOff`, asked before any dial so a
- * switched-off helper spends none of the seller's tries — and every answer it
- * gives (fake mode's too) is metered. Over the hourly dial sits a daily one
+ * THE SWITCH AND THE METER (D158): the gateway asks whether the helper is
+ * switched on — off is the refusal `featureOff` — and then reserves the
+ * per-listing budget through the call's `reserve` callback, so a switched-off
+ * helper still spends none of the seller's tries (today's rule). Every answer
+ * it gives (fake mode's too) is metered. Over the hourly dial sits a daily one
  * (`assist:day`, RATE_LIMIT_ASSIST_PER_DAY, 60).
  *
  * THE PEEK (bundle 18 turn 1, INC-669):
@@ -76,23 +79,13 @@ import { errorText } from "@/lib/error-text";
  *
  * Foundations turn 3: on defineRoute. The hourly and daily dials are declared
  * in the spec (beforeParse, refuseAs the `rate` verdict), so they are spent
- * before the switch's read; the per-listing budget stays in the handler.
+ * before the switch's read; the per-listing budget is the gateway's reserve.
  */
 
 const PATH = "/api/listings/assist";
-const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const TITLE_MAX = 120;
 const DESCRIPTION_MAX = 1200;
 const MAX_PHOTOS_SENT = 3;
-
-function serverEnv(name: string): string {
-  return process.env[name] ?? "";
-}
-
-function textModel(): string {
-  const value = serverEnv("GEMINI_TEXT_MODEL").trim();
-  return value === "" ? "gemini-3.5-flash-lite" : value;
-}
 
 function clamp(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().replace(/\s+/g, " ").slice(0, max) : "";
@@ -134,6 +127,39 @@ async function photoLinks(supabase: SupabaseClient<Database>, raw: unknown): Pro
     .filter((link): link is string => link !== null);
 }
 
+/** The photo's media type, allowlisted to the three the task accepts. */
+function photoMime(raw: string | null): AiImage["mime"] | null {
+  return raw === "image/jpeg" || raw === "image/png" || raw === "image/webp" ? raw : null;
+}
+
+/**
+ * The photos as image material for the gateway: each signed link fetched
+ * through `upstream`, type-sniffed from the answer's content type. The gateway
+ * calls this only once a real call will happen (never in fake mode), and
+ * bounds size and count itself.
+ */
+async function assistImages(
+  supabase: SupabaseClient<Database>,
+  raw: unknown,
+): Promise<readonly AiImage[]> {
+  const urls = await photoLinks(supabase, raw);
+  const fetched = await Promise.all(
+    urls.map(async (url): Promise<AiImage | null> => {
+      try {
+        const response = await upstream(url, {}, { timeoutMs: 10_000, label: "assist photo" });
+        if (!response.ok) return null;
+        const mime = photoMime(response.headers.get("content-type"));
+        if (mime === null) return null;
+        return { bytes: new Uint8Array(await response.arrayBuffer()), mime };
+      } catch (error) {
+        logRouteError(PATH, `photo unreadable: ${errorText(error)}`);
+        return null;
+      }
+    }),
+  );
+  return fetched.filter((image): image is AiImage => image !== null);
+}
+
 /** The suggestions already shown, so the next one takes a different angle. */
 function previousPairs(raw: unknown): { title: string; description: string }[] {
   if (!Array.isArray(raw)) return [];
@@ -147,129 +173,6 @@ function previousPairs(raw: unknown): { title: string; description: string }[] {
       };
     })
     .filter((pair) => pair.title !== "" || pair.description !== "");
-}
-
-/**
- * FAKE MODE: one distinct, numbered pair per try, built from the category slug,
- * the seller's own draft words and the facts — so a test can prove that two
- * tries differ AND that the seller's phrase survived.
- */
-function fakeAssist(
-  slug: string,
-  facts: string[],
-  attempt: number,
-  sellerTitle: string,
-  sellerDescription: string,
-): { title: string; description: string } {
-  const values = facts.map((line) => line.split(": ").slice(1).join(": ")).filter((v) => v !== "");
-  const own = [sellerTitle, sellerDescription].filter((entry) => entry !== "").join(" ");
-  const title = clamp(
-    `${slug} ${sellerTitle === "" ? values.slice(0, 2).join(" ") : sellerTitle} (${attempt})`,
-    TITLE_MAX,
-  );
-  const body =
-    `Version ${attempt}. ${slug}` +
-    (own === "" ? "" : ` — ${own}`) +
-    (values.length === 0 ? "" : ` · ${values.join(" · ")}`) +
-    ". Nothing beyond these facts is claimed.";
-  return { title, description: clamp(body, DESCRIPTION_MAX) };
-}
-
-/** D166 — the shared rule about a person's words and text inside a photo closes it. */
-const SYSTEM_PROMPT = withUntrustedRule(
-  [
-    "You write marketplace listing copy for a classifieds app.",
-    "Write to sell: a natural, specific title and a persuasive but truthful description.",
-    "You are given a category path, the facts the seller entered, the seller's own draft",
-    "title and description, and up to three photos of the item.",
-    "KEEP EVERY FACT AND PHRASE THE SELLER GAVE — their words win over your phrasing.",
-    "Add nothing that is not visible in the photos or stated in the facts: never invent a",
-    "condition, measurement, age, brand, history, price, delivery term, guarantee or contact detail.",
-    "If a fact is missing, leave it out rather than guessing.",
-    "Never state a price, an amount or a currency. You may say what the item is sold per, and that the price is negotiable, when the facts say so.",
-    "If earlier suggestions are listed, take a clearly different angle from all of them.",
-    `Return JSON only: {"title": string (max ${TITLE_MAX} characters), "description": string (max ${DESCRIPTION_MAX} characters)}.`,
-    "Write both fields in the requested language.",
-  ].join(" "),
-);
-
-/** A photo the model may look at, fetched server-side and passed inline. */
-async function inlinePhoto(url: string): Promise<{ mimeType: string; data: string } | null> {
-  try {
-    const response = await upstream(url, {}, { timeoutMs: 10_000, label: "assist photo" });
-    if (!response.ok) return null;
-    const mimeType = response.headers.get("content-type") ?? "image/jpeg";
-    if (!mimeType.startsWith("image/")) return null;
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    if (bytes.byteLength > 4_000_000) return null;
-    let binary = "";
-    for (const byte of bytes) binary += String.fromCharCode(byte);
-    return { mimeType, data: btoa(binary) };
-  } catch (error) {
-    logRouteError(PATH, `photo unreadable: ${errorText(error)}`);
-    return null;
-  }
-}
-
-async function callProvider(
-  prompt: string,
-  urls: string[],
-): Promise<{ title: string; description: string } | null> {
-  const key = serverEnv("GEMINI_API_KEY");
-  if (key.trim() === "") return null;
-
-  const images = (await Promise.all(urls.map((url) => inlinePhoto(url)))).filter(
-    (entry): entry is { mimeType: string; data: string } => entry !== null,
-  );
-
-  let response: Response;
-  try {
-    response = await upstream(
-      `${BASE}/${encodeURIComponent(textModel())}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: prompt },
-                ...images.map((image) => ({
-                  inlineData: { mimeType: image.mimeType, data: image.data },
-                })),
-              ],
-            },
-          ],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.7 },
-        }),
-      },
-      { timeoutMs: 20_000, label: "gemini assist" },
-    );
-  } catch (error) {
-    // Foundations turn 3 — a deadline passed is a provider that could not answer.
-    if (error instanceof UpstreamTimeout) return null;
-    throw error;
-  }
-  const raw = await response.text();
-  if (!response.ok) {
-    logRouteError(PATH, `provider ${response.status}: ${raw.slice(0, 200)}`);
-    return null;
-  }
-  try {
-    const parsed = JSON.parse(raw) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-    };
-    const text = parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const answer = JSON.parse(text) as { title?: unknown; description?: unknown };
-    const title = clamp(answer.title, TITLE_MAX);
-    const description = clamp(answer.description, DESCRIPTION_MAX);
-    return title === "" || description === "" ? null : { title, description };
-  } catch (error) {
-    logRouteError(PATH, `unusable provider answer: ${errorText(error)}`);
-    return null;
-  }
 }
 
 /**
@@ -337,19 +240,6 @@ async function handlePost(
   userId: string,
   body: z.infer<typeof AssistBody>,
 ): Promise<Response> {
-  const log = (message: string) => logRouteError(PATH, message);
-
-  // D158 — the switch: a switched-off helper spends none of the seller's tries.
-  const gate = await aiGate("writing_helper", log);
-  if (!gate.on) {
-    return verdict([
-      {
-        field: "assist",
-        reason: gate.reason === "unavailable" ? "providerUnavailable" : "featureOff",
-      },
-    ]);
-  }
-
   const categoryId = body.categoryId ?? "";
   if (categoryId === "") return verdict([{ field: "categoryId", reason: "required" }]);
   const locale = (body.locale ?? "en").slice(0, 8);
@@ -375,15 +265,22 @@ async function handlePost(
     if (notOwn !== null) return notOwn;
   }
 
-  // THE PER-LISTING BUDGET, spent before any provider call is made (F5: gate first).
+  // THE PER-LISTING BUDGET, reserved inside the gateway's audited order: after
+  // the switch answers on, before any stand-in or provider call (F5: gate first).
   let triesLeft: number | null = null;
-  if (listingId !== "") {
+  let budgetSpent: Response | null = null;
+  const reserve = async (): Promise<{ ok: true } | { ok: false; refusal: unknown }> => {
+    if (listingId === "") return { ok: true };
     // dial in the handler: conditional, keyed by the listing, read for its remaining count — INC-859
     const budget = await spend(DIALS.assistListing, listingId);
-    if (!budget.allowed) return verdict([{ field: "assist", reason: "assistBudgetSpent" }]);
+    if (!budget.allowed) {
+      budgetSpent = verdict([{ field: "assist", reason: "assistBudgetSpent" }]);
+      return { ok: false, refusal: null };
+    }
     // INC-299 — the count comes from the rate-limit answer, never a table read.
     triesLeft = budget.remaining;
-  }
+    return { ok: true };
+  };
 
   const facts = [
     ...assistFactLines(body.attrs, body.photoFacts),
@@ -397,36 +294,40 @@ async function handlePost(
       ? body.categoryPath.slice(0, 300)
       : `${category.name_en} (${category.slug})`;
 
-  // FAKE MODE: `E2E_FAKE_ASSIST=1`, or the harness's standing `E2E_FAKE_TRANSLATE=1`
-  // (the flag every e2e job already exports — the translate route's own switch),
-  // so a test run never spends provider credit and never reaches the network.
-  if (aiFakeMode("E2E_FAKE_ASSIST")) {
-    const fake = fakeAssist(
-      category.slug,
+  let photoCount = 0;
+  const answer = await aiCall(
+    "writing_helper",
+    {
+      language: locale,
+      category: categoryPath,
+      slug: category.slug,
       facts,
-      previous.length + 1,
       sellerTitle,
       sellerDescription,
-    );
-    await recordAiSpend("writing_helper", 1, log);
-    return ok({ ok: true, ...fake, triesLeft });
+      previous: previous.map(
+        (pair, index) => `${index + 1}: ${pair.title} — ${pair.description}`,
+      ),
+      get photos() {
+        return photoCount === 0 ? "none" : `attached: ${photoCount}`;
+      },
+    },
+    { actorId: userId, path: PATH, reserve },
+    async () => {
+      const images = await assistImages(supabase, body.photoIds);
+      photoCount = images.length;
+      return images;
+    },
+  );
+  if (!answer.ok) {
+    if (answer.reason === "reserved") {
+      return budgetSpent ?? verdict([{ field: "assist", reason: "assistBudgetSpent" }]);
+    }
+    if (answer.reason === "featureOff" || answer.reason === "budget") {
+      return verdict([{ field: "assist", reason: "featureOff" }]);
+    }
+    return verdict([{ field: "assist", reason: "providerUnavailable" }]);
   }
-
-  const urls = await photoLinks(supabase, body.photoIds);
-  const prompt = composeAssistPrompt({
-    locale,
-    categoryPath,
-    facts,
-    sellerTitle,
-    sellerDescription,
-    photoCount: urls.length,
-    previous,
-  });
-
-  const answer = await callProvider(prompt, urls);
-  if (answer === null) return verdict([{ field: "assist", reason: "providerUnavailable" }]);
-  await recordAiSpend("writing_helper", 1, log);
-  return ok({ ok: true, ...answer, triesLeft });
+  return ok({ ok: true, ...answer.value, triesLeft });
 }
 
 const ASSIST_DIALS = [
