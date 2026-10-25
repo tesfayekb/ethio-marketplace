@@ -44,3 +44,8 @@ src/features/legal/legal-page-data.test.ts
 # older than the idle window; deletes an idle one") and IMA-1…6 (authorizeImport);
 # IMR-1…3 (src/server/imports/route.test.ts) carry the door's order now.
 src/server/imports/import-door.test.ts
+# Foundations turn 18 (INC-861) — the category-image gate, provider call, fixture and prompt, retired onto defineRoute and aiCall
+src/server/category-images/fixture.ts
+src/server/category-images/gate.ts
+src/server/category-images/gemini.ts
+src/server/category-images/prompt.ts
