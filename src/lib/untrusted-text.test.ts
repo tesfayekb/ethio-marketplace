@@ -70,7 +70,7 @@ describe("a person's words reach a model as material only (D166)", () => {
     // A new model call fails here until it is added, using the module.
     expect(callers).toEqual([
       "src/routes/api/listings/assist.ts",
-      "src/routes/api/listings/identity.ts",
+      "src/server/ai/providers/gemini.ts",
       "src/server/category-images/gemini.ts",
       "src/server/media/policy.ts",
     ]);

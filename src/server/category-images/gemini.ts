@@ -6,7 +6,7 @@
  * F4: a provider failure is surfaced honestly with its own status (429/402 pass
  * straight through), never swallowed into a fake success.
  */
-import { UNTRUSTED_RULE, untrustedText } from "@/lib/untrusted-text";
+import { UNTRUSTED_RULE } from "@/lib/untrusted-text";
 import { aiFakeMode } from "@/server/ai/meter";
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
@@ -110,51 +110,3 @@ export async function generateImageBytes(prompt: string): Promise<GeneratedImage
   return { bytes, declaredMimeType: inline?.inlineData?.mimeType ?? "unknown" };
 }
 
-/** JSON-mode icon suggestion, constrained to the allowlist by responseSchema. */
-export async function suggestIconName(
-  name: string,
-  parentName: string | null,
-  allowlist: readonly string[],
-): Promise<unknown> {
-  const parsed = await callGemini(textModel(), {
-    contents: [
-      {
-        role: "user",
-        parts: [
-          {
-            text: [
-              // D166 — the names are quoted material; the shared rule closes the ask.
-              "Pick the single best lucide-react icon for an online marketplace category.",
-              `${untrustedText("Category name", name, 120)}.`,
-              parentName ? `${untrustedText("Parent section", parentName, 120)}.` : "",
-              `Allowed names: ${allowlist.join(", ")}.`,
-              'Answer with JSON only: {"icon": "<one name from the allowed list>"}.',
-              UNTRUSTED_RULE,
-            ]
-              .filter(Boolean)
-              .join(" "),
-          },
-        ],
-      },
-    ],
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: "OBJECT",
-        // INC-387 — the list rides in the prompt; a 136-value schema enum is refused
-        // by the model (400 INVALID_ARGUMENT). The caller still validates the answer.
-        properties: { icon: { type: "STRING" } },
-        required: ["icon"],
-      },
-    },
-  });
-  const text = parsed.candidates?.[0]?.content?.parts?.find(
-    (p) => typeof p.text === "string",
-  )?.text;
-  if (!text) return null;
-  try {
-    return (JSON.parse(text) as { icon?: unknown }).icon;
-  } catch {
-    return null;
-  }
-}

@@ -109,7 +109,6 @@ export default tseslint.config(
       // ROUTES-BOUNDARY-IGNORES-BEGIN
       "src/routes/api/translate.ts", // until INC-861
       "src/routes/api/admin/categories/generate-image.ts", // until INC-861
-      "src/routes/api/admin/categories/suggest-icon.ts", // until INC-861
       "src/server/category-images/gate.ts", // until INC-861
       "src/server/category-images/gemini.ts", // until INC-861
       "src/routes/__root.tsx", // until INC-863

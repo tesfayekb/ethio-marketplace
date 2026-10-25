@@ -52,10 +52,11 @@ vi.mock("@/server/catalog-find.server", () => ({
   clientAddress: () => "203.0.113.9",
   hashAddress: (address: string) => `hashed:${address}`,
 }));
-vi.mock("@/server/ai/meter", () => ({
-  aiFakeMode: () => state.fake,
-  aiGate: async () => ({ on: true }),
-  recordAiSpend: async () => undefined,
+vi.mock("@/server/ai/gateway", () => ({
+  aiCall: async () => {
+    state.fetches += 1;
+    return { ok: true, value: JSON.parse(state.modelAnswer), fake: state.fake };
+  },
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: { from: () => ({ insert: async () => ({ error: null }) }) },
