@@ -168,22 +168,6 @@ export async function aiCall<T extends TaskId>(
           if (!picked.ok) {
             imagesFailed = true;
             answer = { ok: false, reason: "unavailable" };
-          } else if (task.provider === "gemini-image") {
-            const provider = await geminiImage({ model, prompt: rendered.user, timeoutMs: task.timeoutMs, label: `gemini ${task.id}` });
-            if (provider.kind === "image") {
-              status = provider.status;
-              billed = true;
-              raw = { bytes: provider.bytes, mime: provider.mime };
-            } else if (provider.kind === "unusable") {
-              status = provider.status;
-              billed = true;
-              answer = { ok: false, reason: "unusableAnswer" };
-            } else if (provider.kind === "status") {
-              status = provider.status;
-              answer = { ok: false, reason: "providerError", status };
-            } else {
-              answer = { ok: false, reason: provider.kind === "timeout" ? "timeout" : "unavailable" };
-            }
           } else {
             sent = picked.sent;
           }
@@ -228,6 +212,22 @@ export async function aiCall<T extends TaskId>(
                   reason: provider.kind === "timeout" ? "timeout" : "unavailable",
                 };
               }
+            }
+          } else if (task.provider === "gemini-image") {
+            const provider = await geminiImage({ model, prompt: rendered.user, timeoutMs: task.timeoutMs, label: `gemini ${task.id}` });
+            if (provider.kind === "image") {
+              status = provider.status;
+              billed = true;
+              raw = { bytes: provider.bytes, mime: provider.mime };
+            } else if (provider.kind === "unusable") {
+              status = provider.status;
+              billed = true;
+              answer = { ok: false, reason: "unusableAnswer" };
+            } else if (provider.kind === "status") {
+              status = provider.status;
+              answer = { ok: false, reason: "providerError", status };
+            } else {
+              answer = { ok: false, reason: provider.kind === "timeout" ? "timeout" : "unavailable" };
             }
           } else {
             const provider = await geminiText({
