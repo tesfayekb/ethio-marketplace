@@ -214,7 +214,12 @@ export async function aiCall<T extends TaskId>(
               }
             }
           } else if (task.provider === "gemini-image") {
-            const provider = await geminiImage({ model, prompt: rendered.user, timeoutMs: task.timeoutMs, label: `gemini ${task.id}` });
+            const provider = await geminiImage({
+              model,
+              prompt: rendered.user,
+              timeoutMs: task.timeoutMs,
+              label: `gemini ${task.id}`,
+            });
             if (provider.kind === "image") {
               status = provider.status;
               billed = true;
@@ -227,7 +232,10 @@ export async function aiCall<T extends TaskId>(
               status = provider.status;
               answer = { ok: false, reason: "providerError", status };
             } else {
-              answer = { ok: false, reason: provider.kind === "timeout" ? "timeout" : "unavailable" };
+              answer = {
+                ok: false,
+                reason: provider.kind === "timeout" ? "timeout" : "unavailable",
+              };
             }
           } else {
             const provider = await geminiText({
@@ -269,7 +277,12 @@ export async function aiCall<T extends TaskId>(
               answer =
                 task.validate !== undefined && !task.validate(parsed.data)
                   ? { ok: false, reason: "unusableAnswer" }
-                  : { ok: true, value: parsed.data, fake, latencyMs: Math.max(0, Date.now() - started) };
+                  : {
+                      ok: true,
+                      value: parsed.data,
+                      fake,
+                      latencyMs: Math.max(0, Date.now() - started),
+                    };
             } else {
               answer = { ok: false, reason: "unusableAnswer" };
             }
