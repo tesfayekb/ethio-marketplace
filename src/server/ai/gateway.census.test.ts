@@ -38,6 +38,8 @@ function envNames(source: string): string[] {
     }
   }
   found.delete("");
+  // DEC-249 — the geocoder's flag is not an AI call and stays outside this census.
+  found.delete("E2E_FAKE_GEOCODE");
   return [...found];
 }
 

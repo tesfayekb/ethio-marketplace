@@ -66,7 +66,8 @@ vi.mock("@/server/catalog-find.server", () => ({
   clientAddress: () => "203.0.113.9",
   hashAddress: (address: string) => `hashed:${address}`,
 }));
-vi.mock("@/server/ai/meter", () => ({
+vi.mock("@/server/ai/meter", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/ai/meter")>()),
   aiGate: async () => ({ on: true }),
   recordAiSpend: async () => undefined,
 }));
