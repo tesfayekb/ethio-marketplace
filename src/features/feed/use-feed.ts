@@ -4,7 +4,7 @@ import { callRoute } from "@/lib/route-client";
 import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 
 import type { PhotoLinks } from "@/features/posting/photo-links";
-import { parseFeedPage, type FeedListing } from "./feed-page";
+import { feedPath, parseFeedPage, type FeedListing, type FirstFeedPage } from "./feed-page";
 
 export type { FeedListing } from "./feed-page";
 
@@ -18,6 +18,12 @@ export interface UseFeedOptions {
    * NO request, so the empty state can never paint before its inputs exist.
    */
   enabled?: boolean;
+  /**
+   * D234 S5 — the first page the server answered inside the page (root loader,
+   * src/server/first-screen.ts): the first read takes it when it is the very
+   * address that read asks, once per page load; otherwise the read goes out.
+   */
+  firstPage?: Promise<FirstFeedPage | null> | null;
 }
 
 /** One page from /api/feed, or null on any failure (F4). */
@@ -26,16 +32,31 @@ async function readPage(
   placeId: string | null,
   after: string | null,
 ): Promise<ReturnType<typeof parseFeedPage>> {
-  const params = new URLSearchParams();
-  if (categoryId !== null) params.set("category", categoryId);
-  if (placeId !== null) params.set("place", placeId);
-  if (after !== null) params.set("after", after);
-  const query = params.toString();
-  const answer = await callRoute(query === "" ? "/api/feed" : `/api/feed?${query}`, {
-    auth: "none",
-  });
+  const answer = await callRoute(feedPath(categoryId, placeId, after), { auth: "none" });
   if (answer.kind !== "answered" || answer.status !== 200) return null;
   return parseFeedPage(answer.payload);
+}
+
+/** D234 S5 — a server's first page is taken at most once (a later mount reads afresh). */
+const takenFirstPages = new WeakSet<Promise<FirstFeedPage | null>>();
+
+/**
+ * D234 S5 — the first read: the server's first page when it answers this very
+ * address, once; any other address, a page already taken, none at all, or a
+ * failed hand-over reads as before.
+ */
+async function firstRead(
+  categoryId: string | null,
+  placeId: string | null,
+  firstPage: Promise<FirstFeedPage | null> | null,
+): Promise<ReturnType<typeof parseFeedPage>> {
+  if (firstPage === null || takenFirstPages.has(firstPage)) {
+    return readPage(categoryId, placeId, null);
+  }
+  takenFirstPages.add(firstPage);
+  const held = await firstPage;
+  if (held !== null && held.path === feedPath(categoryId, placeId, null)) return held.page;
+  return readPage(categoryId, placeId, null);
 }
 
 /**
@@ -48,6 +69,7 @@ export function useFeed({
   categoryId = null,
   placeId = null,
   enabled = true,
+  firstPage = null,
 }: UseFeedOptions = {}) {
   const [cards, setCards] = useState<FeedListing[]>([]);
   const [ladder, setLadder] = useState<string[]>([]);
@@ -61,6 +83,8 @@ export function useFeed({
   const [firstToken, setFirstToken] = useState(0);
   /** Bumped on every start-over; an answer to an earlier generation is ignored. */
   const generation = useRef(0);
+  /** D234 S5 — the server's first page as this mount received it (a later loader run never restarts the feed). */
+  const [heldFirstPage] = useState(firstPage);
 
   // The first page: a change of category, place or enabled starts over.
   useEffect(() => {
@@ -74,7 +98,7 @@ export function useFeed({
     setError(false);
     setMoreError(false);
     if (!enabled) return;
-    readPage(categoryId, placeId, null)
+    firstRead(categoryId, placeId, heldFirstPage)
       .then((page) => {
         if (generation.current !== mine) return;
         if (page === null) {
@@ -94,7 +118,7 @@ export function useFeed({
         setError(true);
         setIsLoading(false);
       });
-  }, [categoryId, placeId, enabled, firstToken]);
+  }, [categoryId, placeId, enabled, firstToken, heldFirstPage]);
 
   const hasMore = next !== null;
 

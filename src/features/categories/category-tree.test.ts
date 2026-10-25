@@ -11,6 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildTree,
   childrenOf,
+  feedRouteOf,
   forgetCategoryTree,
   isPostable,
   pathOf,
@@ -227,5 +228,15 @@ describe("what a seller may post into", () => {
     const folder = { ...node("keepsakes", 7), allowListings: false };
     const withFolder = buildTree([...rows, folder], pointers);
     expect(isPostable(withFolder, folder)).toBe(false);
+  });
+});
+
+describe("feedRouteOf (D234 S5)", () => {
+  it("FRO-1 the listings pages are / and /c/<slug>, the slug decoded; any other page is none", () => {
+    expect(feedRouteOf("/")).toEqual({ slug: null });
+    expect(feedRouteOf("/c/phones")).toEqual({ slug: "phones" });
+    expect(feedRouteOf("/c/ph%C3%B6nes/extra")).toEqual({ slug: "phönes" });
+    expect(feedRouteOf("/l/an-ad")).toBeNull();
+    expect(feedRouteOf("/cars")).toBeNull();
   });
 });

@@ -352,11 +352,13 @@ test.describe("FEED SCREENS", () => {
     expect(calls).toEqual([]);
   });
 
-  test("FS-6 a failed read is shown, and Retry recovers", async ({ page }) => {
+  test("FS-6 a failed read is shown, and Retry recovers", async ({ page, baseURL }) => {
     const user = await seller();
     const { leaf } = await branch();
     const c = await chain();
     const id = await addListing(leaf.id, user.id, c.city.id, "regular", 1);
+    // D234 S5 — the browser's own feed read is what fails here: the server's first page is off.
+    await page.context().addCookies([{ name: "e2e_first_screen", value: "off", url: baseURL }]);
     let n = 0;
     await page.route("**/api/feed*", async (route) => {
       n += 1;

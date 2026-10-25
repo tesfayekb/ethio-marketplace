@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   EVERYWHERE,
+  feedPath,
   feedSections,
   inviteShown,
   inviteSpot,
@@ -192,5 +193,14 @@ describe("inviteSpot", () => {
     expect(inviteSpot(of([1, 1, 1, 1]), true, false)).toBe("end");
     expect(inviteSpot(of([1, 1]), false, false)).toBe("end");
     expect(inviteSpot(of([1, 1]), false, true)).toBeNull();
+  });
+});
+
+describe("the feed read's address (D234 S5)", () => {
+  it("FP-15 the category, then the place, then the cursor; none of them is the bare read", () => {
+    expect(feedPath(null, null, null)).toBe("/api/feed");
+    expect(feedPath("c-1", null, null)).toBe("/api/feed?category=c-1");
+    expect(feedPath(null, "p-1", null)).toBe("/api/feed?place=p-1");
+    expect(feedPath("c-1", "p-1", "x y")).toBe("/api/feed?category=c-1&place=p-1&after=x+y");
   });
 });

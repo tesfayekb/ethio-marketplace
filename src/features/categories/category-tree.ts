@@ -276,6 +276,17 @@ function isTreePayload(payload: unknown): payload is TreePayload {
 export const CATEGORY_TREE_PATH = "/api/categories/tree";
 
 /**
+ * U0l (INC-073) — the listings pages are "/" and "/c/<slug>": null for any other
+ * page, else the category's slug (null on "/"). The shell and the server's first
+ * page (D234 S5, src/server/first-screen.ts) read the address here, the same way.
+ */
+export function feedRouteOf(pathname: string): { slug: string | null } | null {
+  if (pathname === "/") return { slug: null };
+  if (!pathname.startsWith("/c/")) return null;
+  return { slug: decodeURIComponent(pathname.slice(3).split("/")[0] ?? "") };
+}
+
+/**
  * The raw read: one public route, never the browser client, so the tree carries
  * its own version and an ETag a second mount can answer with a 304 (INC-263).
  * `cache: "no-cache"` revalidates with the origin rather than serving whatever
@@ -290,11 +301,22 @@ export async function readCategoryTree(): Promise<{ tree: CategoryTree; version:
       `category tree read failed (${answer.kind === "answered" ? String(answer.status) : answer.kind})`,
     );
   }
-  const payload = answer.payload;
-  if (!isTreePayload(payload)) {
+  const parsed = parseCategoryTree(answer.payload);
+  if (parsed === null) {
     throw new Error("category tree read failed (bad payload)");
   }
+  return parsed;
+}
 
+/**
+ * The tree as the route answered it, or null for a malformed answer (F4) — one
+ * reading for the browser's read and the server's first page (D234 S5,
+ * src/server/first-screen.ts: a /c/<slug> page finds its category here).
+ */
+export function parseCategoryTree(
+  payload: unknown,
+): { tree: CategoryTree; version: string } | null {
+  if (!isTreePayload(payload)) return null;
   const rows: CategoryNode[] = payload.nodes.map((row) => ({
     id: row.id,
     nameEn: row.name_en,

@@ -26,6 +26,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 import type { GeoAnswer } from "../server/geo/guess";
 import { errorText } from "@/lib/error-text";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
+import type { FirstFeedPage } from "@/features/feed/feed-page";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
 /**
@@ -101,6 +102,32 @@ const AREA_SHAPE =
  * it never blocks the document.
  */
 const LANGUAGE_GATE_TIMEOUT_MS = 1500;
+/**
+ * D234 S5 — the feed's first page for a listings page, read by the server
+ * (src/server/first-screen.ts); null for any other page and on any failure.
+ */
+const getFirstFeedPage = createServerFn({ method: "GET" })
+  .validator(NoInputSchema)
+  .handler(async (): Promise<FirstFeedPage | null> => {
+    const rawArea = getCookie(AREA_COOKIE) ?? null;
+    const { readFirstFeedPage } = await import("../server/first-screen");
+    return readFirstFeedPage(getRequest(), rawArea && AREA_SHAPE.test(rawArea) ? rawArea : null);
+  });
+
+/** The root's loader data: the request's language and area facts, and the feed's first page. */
+type RootData = SsrLangContext & {
+  /** D234 S5 — the server's own document only; a client navigation carries none. */
+  firstFeed: Promise<FirstFeedPage | null> | null;
+};
+
+/** Never a rejection: a failed hand-over is one [first-screen] line and the browser reads the feed. */
+function startFirstFeedPage(): Promise<FirstFeedPage | null> {
+  return getFirstFeedPage().catch((error: unknown) => {
+    console.warn("[first-screen] the first page was not handed over:", errorText(error));
+    return null;
+  });
+}
+
 const getSsrLangContext = createServerFn({ method: "GET" })
   .validator(NoInputSchema)
   .handler(async (): Promise<SsrLangContext> => {
@@ -259,14 +286,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // The origin/path are re-read on the client so a client-side navigation's
   // alternates point at the page the visitor is actually on, not at the
   // server-function URL the RPC was issued against.
-  loader: async (): Promise<SsrLangContext> => {
+  loader: async (): Promise<RootData> => {
+    // D234 S5 — the server starts the feed's first page at once and hands it over
+    // unawaited: the page's shell is sent without waiting, the page streams in.
+    const firstFeed = typeof window === "undefined" ? startFirstFeedPage() : null;
     const data = await getSsrLangContext();
-    if (typeof window === "undefined") return data;
+    if (typeof window === "undefined") return { ...data, firstFeed };
     return {
       ...data,
       origin: window.location.origin,
       path: window.location.pathname,
       firstReads: [],
+      firstFeed: null,
     };
   },
   head: ({ loaderData }) => ({

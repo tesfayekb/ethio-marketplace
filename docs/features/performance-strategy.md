@@ -257,3 +257,13 @@ FRL-1…4 pin the choice and mode; FRL-5 runs the actual readers against recordi
 transports and refuses a preload that drifts from its reader's address. FRL-6
 proves in the browser that the head names the reads and the markets are asked once.
 Next: S5, the feed's first page answered in the page stream.
+
+## 11. The feed's first page arrives with the page (D234, Foundations turn 28)
+
+- `readFirstFeedPage(request, areaCookie)` (src/server/first-screen.ts) runs on "/" and "/c/<slug>" only. It reads the request's facts (the saved-area cookie after `AREA_SHAPE`, `parseAreaCookie` and `parseEverywhere`; the edge's guess; the address), asks the open markets, the market's tree and, on a category page, the category tree through the routes' own GET handlers (`openMarketsGet`, `countryTreeGet`, `categoryTreeGet`) in-process with no session, derives the first place with the shell's own `initialCountries` and `deriveInitialArea`, and asks `feedGet` for that place's first page at `feedPath`. Any refusal, failure, unknown category or the 2-second deadline answers null with one `[first-screen]` line; the browser then reads as before.
+- The root loader's server branch starts it unawaited through `getFirstFeedPage` (`createServerFn({ method: "GET" }).validator(NoInputSchema)`), so the page's shell is sent at once and the first page streams in behind it; a bot gets the whole page. A client navigation carries none.
+- `useFeed` (`firstPage`) takes it on its first read only when its address is that read's own, once per page load (a WeakSet); a second mount, a Retry or a new place reads afresh.
+- `feed.tsx` preloads the first cards' covers with react-dom's `preload(…, { as: "image", fetchPriority: "high" })` under Suspense/Await.
+- The E2E build skips the server's page for the cookie `e2e_first_screen=off` (`isE2E`); the spinner test, FS-6 and AP-49 carry it, because they prove the browser's own read.
+- Proofs: DIA-6 (location-data.test.ts) is the equivalence proof of the shared derivation; AP-53 (e2e/ad-page.spec.ts) the browser proof.
+- Next: the cards drawn by the server from this same page (S6).

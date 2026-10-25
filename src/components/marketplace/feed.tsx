@@ -1,6 +1,8 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { cn } from "@/lib/utils";
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { Suspense, useEffect, useId, useRef, type ReactNode } from "react";
+import { preload } from "react-dom";
+import { Await, useRouterState } from "@tanstack/react-router";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
 import { Spinner } from "@/components/brand/spinner";
@@ -12,7 +14,13 @@ import { useFavouriteCategory } from "@/components/shell/app-rail";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCategoryTree } from "@/features/categories/category-tree";
-import { feedSections, inviteSpot, placeCount, type InviteSpot } from "@/features/feed/feed-page";
+import {
+  feedSections,
+  inviteSpot,
+  placeCount,
+  type FirstFeedPage,
+  type InviteSpot,
+} from "@/features/feed/feed-page";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
 import { useFeed } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
@@ -73,6 +81,15 @@ export function Feed() {
   const { selectedCategoryId, categoryLookup, locationPath, feedInputsReady } = useShell();
   const place: LocationNode | null = locationPath[locationPath.length - 1] ?? null;
   const placeId = place?.id ?? null;
+  // D234 S5 — the feed's first page as the server answered it inside the page (the root loader).
+  const firstFeed = useRouterState({
+    select: (state) =>
+      (
+        state.matches[0]?.loaderData as
+          | { firstFeed?: Promise<FirstFeedPage | null> | null }
+          | undefined
+      )?.firstFeed ?? null,
+  });
   const {
     cards,
     ladder,
@@ -88,6 +105,7 @@ export function Feed() {
     categoryId: selectedCategoryId,
     placeId,
     enabled: feedInputsReady && (categoryLookup === "none" || categoryLookup === "found"),
+    firstPage: firstFeed,
   });
 
   const nameOf = (node: LocationNode) =>
@@ -290,6 +308,19 @@ export function Feed() {
       </div>
 
       <div className="mt-4">{body}</div>
+      {firstFeed !== null ? (
+        // D234 S5 — the first cards' covers are asked for as the server's page streams in.
+        <Suspense fallback={null}>
+          <Await promise={firstFeed}>
+            {(held) => {
+              for (const cover of held?.covers ?? []) {
+                preload(cover, { as: "image", fetchPriority: "high" });
+              }
+              return null;
+            }}
+          </Await>
+        </Suspense>
+      ) : null}
     </section>
   );
 }
