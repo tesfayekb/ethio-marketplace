@@ -9,4 +9,5 @@ scripts/e2e-failure-report.ts | not a guard: reads the run's results | DEC-244
 scripts/e2e-migration-preflight.ts | not a guard: reads the migration marks | DEC-244
 scripts/i18n-usage-map.ts | not a guard: writes the usage map | DEC-244
 scripts/check-bundle-size.mjs | not a guard: reads the dist bundle | DEC-244
+scripts/bundle-closure.mjs | not a guard: finds the build's route manifest (D234) | DEC-244
 src/features/posting/price-basis.test.ts | not a guard: a mirror test reading the latest migration | DEC-244

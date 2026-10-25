@@ -739,8 +739,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const { canonical, publicId } = await address(X);
     await page.goto(canonical);
     await expect(page.getByTestId("listing-detail-title")).toHaveText(X.title);
+    // D234 S1 — the section reads when its place nears the screen: scroll there, as a buyer does.
+    const anchor = page.getByTestId("listing-similar-anchor");
+    await anchor.scrollIntoViewIfNeeded();
+    await expect(anchor).toHaveAttribute("data-similar", "shown", { timeout: 15000 });
     const section = page.getByTestId("listing-similar");
-    await expect(section).toBeVisible({ timeout: 15000 });
+    await expect(section).toBeVisible();
     const hrefs = await section
       .locator("ul > li a")
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href") ?? ""));
@@ -753,6 +757,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     expect(marked.error).toBeNull();
     await page.reload();
     await expect(page.getByTestId("listing-detail-title")).toHaveText(X.title);
+    // A sold ad mounts no similar-ads section at all: not even its anchor.
+    await expect(page.getByTestId("listing-similar-anchor")).toHaveCount(0);
     await expect(page.getByTestId("listing-similar")).toHaveCount(0);
   });
 

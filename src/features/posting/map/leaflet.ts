@@ -1,5 +1,6 @@
 import type * as Leaflet from "leaflet";
 
+import { loadOnce } from "@/lib/load-once";
 import { callRoute } from "@/lib/route-client";
 
 /**
@@ -25,20 +26,21 @@ import { callRoute } from "@/lib/route-client";
 
 export type LeafletModule = typeof Leaflet;
 
-let loaded: Promise<LeafletModule> | null = null;
+// D234 S1 — once per visit (src/lib/load-once.ts); a failed download is retried by
+// the next map that asks, never kept as a rejection for the rest of the visit.
+const LEAFLET = loadOnce(async () => {
+  await import("leaflet/dist/leaflet.css");
+  const mod = (await import("leaflet")) as unknown as {
+    default?: LeafletModule;
+  } & LeafletModule;
+  return mod.default ?? mod;
+});
 
 export function loadLeaflet(): Promise<LeafletModule> {
   if (typeof window === "undefined") {
     return Promise.reject(new Error("leaflet is browser-only"));
   }
-  loaded ??= (async () => {
-    await import("leaflet/dist/leaflet.css");
-    const mod = (await import("leaflet")) as unknown as {
-      default?: LeafletModule;
-    } & LeafletModule;
-    return mod.default ?? mod;
-  })();
-  return loaded;
+  return LEAFLET.load();
 }
 
 export type TileKind = "street" | "satellite";

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { PageCard } from "@/components/shell/page-card";
@@ -7,6 +7,7 @@ import type { FeedListing } from "@/features/feed/feed-page";
 import type { PhotoLinks } from "@/features/posting/photo-links";
 import { useCardPhotos } from "@/features/feed/use-card-photos";
 import { useI18n } from "@/i18n";
+import { useNearViewport } from "@/lib/use-near-viewport";
 
 /**
  * D201 §12 — the similar-ads section of the buyer's page. It reads once after
@@ -15,6 +16,12 @@ import { useI18n } from "@/i18n";
  * only with cards, so a live ad never shows an empty framed box under it. The
  * cards are the feed's own (src/components/marketplace/feed.tsx): two columns
  * at 360 (D201 §5), three from 640.
+ *
+ * D234 speed turn S1 — the read (and the card photos after it) waits until the
+ * section's place nears the screen: a buyer who never scrolls down downloads
+ * none of it. The place is an empty anchor that is always drawn; its
+ * `data-similar` says "waiting", "empty" or "shown", so a test can scroll to it
+ * and know the read has answered (AP-32).
  */
 export function SimilarAds({
   categoryId,
@@ -28,7 +35,10 @@ export function SimilarAds({
   const { t } = useI18n();
   const [cards, setCards] = useState<FeedListing[] | null>(null);
   const [coverLinks, setCoverLinks] = useState<PhotoLinks>({});
+  const anchorRef = useRef<HTMLDivElement | null>(null);
+  const near = useNearViewport(anchorRef);
   useEffect(() => {
+    if (!near) return;
     let active = true;
     void similarListings(categoryId, placeId, excludeId).then((answer) => {
       if (active) {
@@ -39,31 +49,43 @@ export function SimilarAds({
     return () => {
       active = false;
     };
-  }, [categoryId, placeId, excludeId]);
+  }, [categoryId, placeId, excludeId, near]);
   // DEC-195 — the answer's own links are the preset; only the rest are asked for.
   const coverOf = useCardPhotos(cards ?? [], coverLinks);
-  if (cards === null || cards.length === 0) return null;
+  const anchor = (
+    <div
+      ref={anchorRef}
+      aria-hidden="true"
+      className="h-px"
+      data-testid="listing-similar-anchor"
+      data-similar={cards === null ? "waiting" : cards.length === 0 ? "empty" : "shown"}
+    />
+  );
+  if (cards === null || cards.length === 0) return anchor;
   return (
-    <PageCard className="mt-6 min-w-0">
-      <section data-testid="listing-similar" aria-labelledby="listing-similar-title">
-        <h2 id="listing-similar-title" className="mb-3 text-base font-semibold text-foreground">
-          {t("adPage.similar.title")}
-        </h2>
-        <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
-          {cards.map((listing, index) => (
-            <li
-              key={listing.id}
-              className={
-                index >= 8 ? "hidden lg:block" : index >= 6 ? "hidden sm:block" : undefined
-              }
-            >
-              {/* DEC-195 — below the fold: the cover links arrive with the
+    <>
+      {anchor}
+      <PageCard className="mt-6 min-w-0">
+        <section data-testid="listing-similar" aria-labelledby="listing-similar-title">
+          <h2 id="listing-similar-title" className="mb-3 text-base font-semibold text-foreground">
+            {t("adPage.similar.title")}
+          </h2>
+          <ul className="grid auto-rows-fr grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4 lg:grid-cols-5">
+            {cards.map((listing, index) => (
+              <li
+                key={listing.id}
+                className={
+                  index >= 8 ? "hidden lg:block" : index >= 6 ? "hidden sm:block" : undefined
+                }
+              >
+                {/* DEC-195 — below the fold: the cover links arrive with the
                   answer, but no load priority. */}
-              <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
-            </li>
-          ))}
-        </ul>
-      </section>
-    </PageCard>
+                <ListingCard listing={listing} photoUrl={coverOf(listing.coverPhotoId)} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      </PageCard>
+    </>
   );
 }

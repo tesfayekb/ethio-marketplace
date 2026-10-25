@@ -201,3 +201,15 @@ Baseline of the published site (https://my-market-dawn.lovable.app),
 | terms `/terms` | 1175 | 3276 | 3276 | li | 0 | 799 | 5296 | 44.6 | 536.3 | 71 | 1112 | 85 |
 
 Budgets: set from this baseline and the speed study (a later turn).
+
+## 7. Every page's first download (D234, Foundations turn 24)
+
+The bundle-budget job (`scripts/check-bundle-size.mjs` with `scripts/bundle-closure.mjs`) now judges every page, not only the entry. For each page route of the build's route manifest (`dist/server/_tanstack-start-manifest_v-*.mjs`; server routes under `/api/` excluded) it reads the modulepreload lists along the route's parent chain, root included, then follows their static import closure and sums the gzipped (level 6) sizes. It fails when a page has no line, when a line names a page the build lacks, when a page is over its ceiling, when a page is 8 KiB or more under it (the ratchet: lower the line), and when a public page holds a `PUBLIC_MUST_STAY_LAZY` prefix (`posting-service`, `zod`, `category-glyphs`, `date-calendar`, `leaflet`).
+
+The ceilings live in `scripts/route-budgets.mjs`, one line per page: the page's measured download plus 3 KiB, rounded up. Every saving is kept; raising a line is a commit that says why.
+
+The four moves of this turn (the supervisor's build of the change, gzip 6): the category glyph map left the first paint — the entry 302.2 → 289.9 KiB, every page −12.3; `/` and `/c/$slug` 315.5 → 303.3; the posting doors left the ad page and its map and similar ads wait for their place — `/l/$slug` 343.5 → 327.4 (Leaflet 41.9 KiB, its CSS, the tile plan and tiles, the similar-ads read and its photos only when scrolled to); the calendar loads on first open — `/post` 439.2 → 422.1.
+
+`loadOnce` (`src/lib/load-once.ts`) fetches an on-demand module once per visit and forgets a failed download so the next ask tries again. `useNearViewport` (`src/lib/use-near-viewport.ts`) latches true once a box comes within 400 px of the screen, so below-the-fold work starts only then.
+
+Next: the ad page's LCP (photo links in the loader, fetchpriority, category pictures as WebP), the font decision, edge caching (a DEC), INC-897.

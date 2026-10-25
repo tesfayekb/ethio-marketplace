@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { isoDay, parseDay } from "./date-day";
 import { DateField } from "./date-field";
@@ -42,6 +42,11 @@ function Harness(props: {
 }
 
 describe("DateField (INC-549)", () => {
+  // D234 S1 — the field loads its calendar lazily; transform it once up front so
+  // the first test's wait is the field's, not the test runner compiling the module.
+  beforeAll(async () => {
+    await import("./date-calendar");
+  });
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 11, 10, 0, 0));
@@ -49,11 +54,14 @@ describe("DateField (INC-549)", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("DF-1 a day after the latest bound is disabled, and the month cannot move past it", () => {
+  it("DF-1 a day after the latest bound is disabled, and the month cannot move past it", async () => {
     render(<Harness max="2026-10-11" />);
     fireEvent.click(screen.getByTestId("df"));
     expect(screen.getByTestId("df-calendar")).toBeTruthy();
-    expect((screen.getByTestId("df-day-2026-10-11") as HTMLButtonElement).disabled).toBe(false);
+    // D234 S1 — the calendar arrives on first open (date-calendar.tsx, lazy).
+    expect(((await screen.findByTestId("df-day-2026-10-11")) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
     expect((screen.getByTestId("df-day-2026-10-12") as HTMLButtonElement).disabled).toBe(true);
     const next = screen.getByRole("button", { name: "prim.date.next" }) as HTMLButtonElement;
     expect(next.disabled || next.getAttribute("aria-disabled") === "true").toBe(true);
@@ -63,10 +71,12 @@ describe("DateField (INC-549)", () => {
     expect(previous.disabled || previous.getAttribute("aria-disabled") === "true").toBe(false);
   });
 
-  it("DF-2 a day before the earliest bound is disabled, and the month cannot move before it", () => {
+  it("DF-2 a day before the earliest bound is disabled, and the month cannot move before it", async () => {
     render(<Harness min="2026-10-11" max="2026-11-30" />);
     fireEvent.click(screen.getByTestId("df"));
-    expect((screen.getByTestId("df-day-2026-10-10") as HTMLButtonElement).disabled).toBe(true);
+    expect(((await screen.findByTestId("df-day-2026-10-10")) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
     expect((screen.getByTestId("df-day-2026-10-11") as HTMLButtonElement).disabled).toBe(false);
     const previous = screen.getByRole("button", {
       name: "prim.date.previous",
@@ -74,12 +84,12 @@ describe("DateField (INC-549)", () => {
     expect(previous.disabled || previous.getAttribute("aria-disabled") === "true").toBe(true);
   });
 
-  it("DF-3 choosing a day writes it as YYYY-MM-DD, shows it and closes the calendar; clear empties it", () => {
+  it("DF-3 choosing a day writes it as YYYY-MM-DD, shows it and closes the calendar; clear empties it", async () => {
     const onChange = vi.fn();
     render(<Harness max="2026-10-11" onChange={onChange} />);
     expect(screen.getByTestId("df-value").textContent).toBe("prim.date.pick");
     fireEvent.click(screen.getByTestId("df"));
-    fireEvent.click(screen.getByTestId("df-day-2026-10-09"));
+    fireEvent.click(await screen.findByTestId("df-day-2026-10-09"));
     expect(onChange).toHaveBeenLastCalledWith("2026-10-09");
     expect(screen.queryByTestId("df-calendar")).toBeNull();
     expect(screen.getByTestId("df-value").textContent).toBe(
@@ -90,10 +100,11 @@ describe("DateField (INC-549)", () => {
     expect(screen.getByTestId("df-value").textContent).toBe("prim.date.pick");
   });
 
-  it("DF-4 the month is named in the page's language", () => {
+  it("DF-4 the month is named in the page's language", async () => {
     language.current = "am";
     render(<Harness initial="2026-10-09" />);
     fireEvent.click(screen.getByTestId("df"));
+    await screen.findByTestId("df-day-2026-10-09");
     const month = new Intl.DateTimeFormat("am-ET", { month: "long", year: "numeric" }).format(
       new Date(2026, 9, 1),
     );

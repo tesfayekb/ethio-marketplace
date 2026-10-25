@@ -14,7 +14,7 @@ import {
 } from "react";
 
 import { useShell } from "@/components/shell-context";
-import { categoryGlyphOrNull } from "@/components/shell/category-glyphs";
+import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
@@ -39,11 +39,6 @@ import { cn } from "@/lib/utils";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
-
-/** FIX-SCAN-1 ISSUE 4 — the glyph map now lives in category-glyphs.ts, the one
- *  allowlist the server suggester validates against; re-exported here so the
- *  console's existing imports keep working. */
-export { categoryGlyph } from "@/components/shell/category-glyphs";
 
 /** D207 — one device favourite, shared by every mounted reader. */
 const FAVOURITE_KEY = "ethio.fav";
@@ -517,7 +512,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const { t, entities } = useI18n();
-  const { tree, isLoading, error } = useCategoryTree();
+  const { tree, isLoading: treeLoading, error } = useCategoryTree();
+  // D234 S1 — the glyph map arrives after the first paint; the skeleton stays until it settles.
+  const glyphs = useCategoryGlyphs();
+  const isLoading = treeLoading || !glyphs.settled;
   const { selectedCategorySlug } = useShell();
   const favourite = useFavouriteCategory();
   const favouriteCategory = tree.nodes.find((category) => category.slug === favourite.slug);
@@ -552,7 +550,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     testid: `rail-category-${category.slug}`,
     label: entityName("category", category, entities),
     icon: category.icon
-      ? (categoryGlyphOrNull(category.icon) ?? undefined)
+      ? (glyphs.glyphOf(category.icon) ?? undefined)
       : categoryIcon(category.slug),
     active: category.slug === selectedCategorySlug,
     ancestorActive: !level && ancestors.some((ancestor) => ancestor.id === category.id),
