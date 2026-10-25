@@ -2,8 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { useI18n } from "@/i18n";
+import { NoInputSchema } from "@/lib/schemas/server-fns";
 
-const termsPageFn = createServerFn({ method: "GET" }).handler(async () => {
+const termsPageFn = createServerFn({ method: "GET" }).validator(NoInputSchema).handler(async () => {
   const { legalPage } = await import("@/server/legal-page");
   return legalPage("terms");
 });

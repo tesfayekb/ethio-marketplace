@@ -19,14 +19,10 @@ import { adPageView } from "@/features/ad-page/public-listing";
 import { ownValue } from "@/lib/own-key";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
+import { AdPageInputSchema } from "@/lib/schemas/server-fns";
 
 const readAdPageFn = createServerFn({ method: "GET" })
-  .inputValidator((input: { slug: string }) => {
-    if (!input || typeof input.slug !== "string" || input.slug.length === 0) {
-      throw new Error("invalid ad address");
-    }
-    return { slug: input.slug };
-  })
+  .validator(AdPageInputSchema)
   .handler(async ({ data }) => {
     const { readAdPage } = await import("@/server/ad-page");
     const answer = await readAdPage(getRequest(), data.slug);

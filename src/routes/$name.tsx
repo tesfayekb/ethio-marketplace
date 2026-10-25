@@ -4,12 +4,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { PageShell } from "@/components/layout/page-shell";
 import { SellerPage } from "@/features/seller/seller-page";
 import { useI18n } from "@/i18n";
+import { SellerPageInputSchema } from "@/lib/schemas/server-fns";
 
 const sellerExistsFn = createServerFn({ method: "GET" })
-  .inputValidator((input: { name: string }) => {
-    if (!input || typeof input.name !== "string") throw new Error("invalid seller name");
-    return { name: input.name };
-  })
+  .validator(SellerPageInputSchema)
   .handler(async ({ data }) => {
     const { sellerExists } = await import("@/server/seller-page");
     return sellerExists(data.name);

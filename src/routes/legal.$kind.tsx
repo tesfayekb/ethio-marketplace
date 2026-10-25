@@ -1,26 +1,22 @@
 import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
-import { shapedCountries, signedInOnlyKind } from "@/features/legal/legal-kinds";
+import { SCRATCH_KIND, shapedCountries, signedInOnlyKind } from "@/features/legal/legal-kinds";
 import { useI18n } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
-
-const SCRATCH_KIND = /^e2e-[a-z0-9-]{1,40}$/;
+import { LegalScratchInputSchema } from "@/lib/schemas/server-fns";
 
 const scratchPageFn = createServerFn({ method: "GET" })
-  .inputValidator((input: { kind: string; countries: string[] }) => {
-    if (!input || typeof input.kind !== "string" || !SCRATCH_KIND.test(input.kind))
-      throw new Error("invalid legal kind");
-    return { kind: input.kind, countries: shapedCountries(input.countries) };
-  })
+  .validator(LegalScratchInputSchema)
   .handler(async ({ data }) => {
     if (!isE2E) throw new Error("legal scratch page: not an E2E build");
     const { legalPage } = await import("@/server/legal-page");
+    const countryCodes = shapedCountries(data.countries);
     const [global, ...countries] = await Promise.all([
       legalPage(data.kind),
-      ...data.countries.map((code) => legalPage(data.kind, code)),
+      ...countryCodes.map((code) => legalPage(data.kind, code)),
     ]);
-    return { global, countries: data.countries.map((code, i) => ({ code, data: countries[i] })) };
+    return { global, countries: countryCodes.map((code, i) => ({ code, data: countries[i] })) };
   });
 
 /**
