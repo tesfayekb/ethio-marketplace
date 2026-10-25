@@ -227,7 +227,10 @@ export function uploadRoute(
         if (request.status === 0) return settle({ kind: "unreachable", reason: "network" });
         const contentType = request.getResponseHeader("content-type") ?? "";
         const headers = new Headers();
-        for (const line of request.getAllResponseHeaders().trim().split(/[\r\n]+/)) {
+        for (const line of request
+          .getAllResponseHeaders()
+          .trim()
+          .split(/[\r\n]+/)) {
           const at = line.indexOf(":");
           if (at > 0) headers.append(line.slice(0, at).trim(), line.slice(at + 1).trim());
         }

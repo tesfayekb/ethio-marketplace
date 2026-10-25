@@ -1,5 +1,7 @@
 import type * as Leaflet from "leaflet";
 
+import { callRoute } from "@/lib/route-client";
+
 /**
  * U6-C1-R3b-4 — LOADING LEAFLET, ONCE, IN THE BROWSER ONLY (A7 first-of-kind).
  *
@@ -95,24 +97,21 @@ export function loadTilePlan(): Promise<{ plan: TilePlan; reason: string | null 
     return Promise.resolve({ plan: OSM_PLAN, reason: sessionFallback });
   }
   planRead ??= (async () => {
-    try {
-      const response = await fetch("/api/map/tiles", { headers: { accept: "application/json" } });
-      if (!response.ok) return { plan: OSM_PLAN, reason: String(response.status) };
-      const payload = (await response.json()) as Record<string, unknown>;
-      const street = shapeLayers(payload["street"]);
-      const satellite = shapeLayers(payload["satellite"]);
-      if (street.length === 0) return { plan: OSM_PLAN, reason: "empty" };
-      return {
-        plan: {
-          provider: payload["provider"] === "esri" ? "esri" : "osm",
-          street,
-          satellite: satellite.length > 0 ? satellite : street,
-        },
-        reason: null,
-      };
-    } catch {
-      return { plan: OSM_PLAN, reason: "network" };
-    }
+    const answer = await callRoute("/api/map/tiles", { auth: "none" });
+    if (answer.kind !== "answered") return { plan: OSM_PLAN, reason: "network" };
+    if (!answer.ok) return { plan: OSM_PLAN, reason: String(answer.status) };
+    const payload = answer.payload ?? {};
+    const street = shapeLayers(payload["street"]);
+    const satellite = shapeLayers(payload["satellite"]);
+    if (street.length === 0) return { plan: OSM_PLAN, reason: "empty" };
+    return {
+      plan: {
+        provider: payload["provider"] === "esri" ? "esri" : "osm",
+        street,
+        satellite: satellite.length > 0 ? satellite : street,
+      },
+      reason: null,
+    };
   })();
   return planRead;
 }
@@ -122,12 +121,8 @@ export function reportFallback(reason: string): void {
   if (sessionFallback !== null) return;
   sessionFallback = reason;
   planRead = null;
-  void fetch("/api/map/tiles", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ reason }),
-    keepalive: true,
-  }).catch(() => undefined);
+  // keepalive: the report must still leave when the page is being closed.
+  void callRoute("/api/map/tiles", { auth: "none", json: { reason }, keepalive: true });
 }
 
 /** Draws one tile kind's layers; no prefetch beyond the viewport (keepBuffer 0). */

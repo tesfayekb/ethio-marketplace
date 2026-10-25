@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { callRoute } from "@/lib/route-client";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -197,9 +198,9 @@ export const FALLBACK_CURRENCY = "ETB";
 
 export async function readGuessCurrency(): Promise<string> {
   try {
-    const response = await fetch("/api/geo", { headers: { accept: "application/json" } });
-    if (!response.ok) return FALLBACK_CURRENCY;
-    const payload = (await response.json()) as { country?: string | null };
+    const answer = await callRoute("/api/geo", { auth: "none" });
+    if (answer.kind !== "answered" || !answer.ok) return FALLBACK_CURRENCY;
+    const payload = (answer.payload ?? {}) as { country?: string | null };
     const country = typeof payload.country === "string" ? payload.country.toUpperCase() : null;
     if (country === null) return FALLBACK_CURRENCY;
     const { data } = await supabase
@@ -254,9 +255,9 @@ export interface MarketCurrency {
  */
 export async function readMarketCurrencies(): Promise<MarketCurrency[]> {
   try {
-    const response = await fetch("/api/locations", { headers: { accept: "application/json" } });
-    if (!response.ok) return [];
-    const payload = (await response.json()) as {
+    const answer = await callRoute("/api/locations", { auth: "none" });
+    if (answer.kind !== "answered" || !answer.ok) return [];
+    const payload = (answer.payload ?? {}) as {
       countries?: Array<{ code?: unknown; currency_code?: unknown; display_order?: unknown }>;
     };
     return (payload.countries ?? [])

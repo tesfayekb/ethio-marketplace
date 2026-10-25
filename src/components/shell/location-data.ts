@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
+import { callRoute } from "@/lib/route-client";
 
 /**
  * LOCATIONS ERA L4b — THE SHELL'S GEOGRAPHY SEAM (B2: one utility, one concern).
@@ -155,9 +156,11 @@ let marketsPromise: Promise<OpenMarket[]> | null = null;
 const treePromises = new Map<string, Promise<TreeNode[]>>();
 
 async function fetchMarkets(): Promise<OpenMarket[]> {
-  const response = await fetch("/api/locations", { headers: { accept: "application/json" } });
-  if (!response.ok) throw new Error(`markets ${response.status}`);
-  const payload = (await response.json()) as MarketsPayload;
+  const answer = await callRoute("/api/locations", { auth: "none" });
+  if (answer.kind !== "answered" || !answer.ok) {
+    throw new Error(`markets ${answer.kind === "answered" ? answer.status : 0}`);
+  }
+  const payload = (answer.payload ?? {}) as MarketsPayload;
   return (payload.countries ?? [])
     .map((row) => ({
       code: String(row.code ?? "")
@@ -173,11 +176,13 @@ async function fetchMarkets(): Promise<OpenMarket[]> {
 }
 
 async function fetchTree(country: string): Promise<TreeNode[]> {
-  const response = await fetch(`/api/locations/${encodeURIComponent(country)}`, {
-    headers: { accept: "application/json" },
+  const answer = await callRoute(`/api/locations/${encodeURIComponent(country)}`, {
+    auth: "none",
   });
-  if (!response.ok) throw new Error(`tree ${response.status}`);
-  const payload = (await response.json()) as TreePayload;
+  if (answer.kind !== "answered" || !answer.ok) {
+    throw new Error(`tree ${answer.kind === "answered" ? answer.status : 0}`);
+  }
+  const payload = (answer.payload ?? {}) as TreePayload;
   return (payload.nodes ?? []).map((row) => ({
     id: String(row.id ?? ""),
     parentId: typeof row.parent_id === "string" ? row.parent_id : null,

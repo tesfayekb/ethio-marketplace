@@ -4,9 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useSellerFeed } from "./use-seller-feed";
 
 /**
- * Bundle 19 turn 16 — SL-1…SL-3. The fetch is mocked; the hook's promises
- * settle on their own.
+ * Bundle 19 turn 16 — SL-1…SL-3. The route client is mocked (the transport's
+ * own contract is RCL-1…15); the hook's promises settle on their own.
  */
+const { callRoute } = vi.hoisted(() => ({ callRoute: vi.fn() }));
+vi.mock("@/lib/route-client", () => ({ callRoute }));
 
 function card(id: string, step = 1) {
   return {
@@ -46,48 +48,52 @@ function pageBody(cards: unknown[], next: string | null) {
 
 function respond(status: number, body: unknown) {
   return Promise.resolve({
+    kind: "answered" as const,
     status,
-    json: () => Promise.resolve(body),
-  } as unknown as Response);
+    ok: status >= 200 && status < 300,
+    payload: body as Record<string, unknown>,
+    error: null,
+    detail: null,
+    headers: new Headers(),
+    bytes: null,
+  });
 }
 
 describe("useSellerFeed", () => {
   beforeEach(() => {
-    vi.stubGlobal("fetch", vi.fn());
+    callRoute.mockReset();
   });
   afterEach(() => {
-    vi.unstubAllGlobals();
+    vi.resetAllMocks();
   });
 
   it("SL-1 asks the first page by key and the next page with its after cursor", async () => {
-    const fetchMock = vi.mocked(fetch);
-    fetchMock
+    callRoute
       .mockImplementationOnce(() => respond(200, pageBody([card("l-1")], "cursor-1")))
       .mockImplementationOnce(() => respond(200, pageBody([card("l-2")], null)));
     const { result } = renderHook(() => useSellerFeed("abebe"));
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(fetchMock).toHaveBeenNthCalledWith(1, "/api/seller?key=abebe", { method: "GET" });
+    expect(callRoute).toHaveBeenNthCalledWith(1, "/api/seller?key=abebe", { auth: "none" });
     expect(result.current.cards.map((one) => one.id)).toEqual(["l-1"]);
     expect(result.current.hasMore).toBe(true);
     await act(async () => result.current.loadMore());
     await waitFor(() => expect(result.current.isLoadingMore).toBe(false));
-    expect(fetchMock).toHaveBeenNthCalledWith(2, "/api/seller?key=abebe&after=cursor-1", {
-      method: "GET",
+    expect(callRoute).toHaveBeenNthCalledWith(2, "/api/seller?key=abebe&after=cursor-1", {
+      auth: "none",
     });
     expect(result.current.cards.map((one) => one.id)).toEqual(["l-1", "l-2"]);
     expect(result.current.hasMore).toBe(false);
   });
 
   it("SL-2 a 404 is notFound; a 500 and an unparsable body are errors, never an empty page", async () => {
-    const fetchMock = vi.mocked(fetch);
-    fetchMock.mockImplementationOnce(() => respond(404, { error: "unknownSeller" }));
+    callRoute.mockImplementationOnce(() => respond(404, { error: "unknownSeller" }));
     const missing = renderHook(() => useSellerFeed("nobody"));
     await waitFor(() => expect(missing.result.current.isLoading).toBe(false));
     expect(missing.result.current.notFound).toBe(true);
     expect(missing.result.current.error).toBe(false);
     missing.unmount();
 
-    fetchMock.mockImplementationOnce(() => respond(500, { error: "internal error" }));
+    callRoute.mockImplementationOnce(() => respond(500, { error: "internal error" }));
     const failed = renderHook(() => useSellerFeed("abebe"));
     await waitFor(() => expect(failed.result.current.isLoading).toBe(false));
     expect(failed.result.current.error).toBe(true);
@@ -95,7 +101,7 @@ describe("useSellerFeed", () => {
     expect(failed.result.current.cards).toEqual([]);
     failed.unmount();
 
-    fetchMock.mockImplementationOnce(() => respond(200, { cards: "no" }));
+    callRoute.mockImplementationOnce(() => respond(200, { cards: "no" }));
     const refused = renderHook(() => useSellerFeed("abebe"));
     await waitFor(() => expect(refused.result.current.isLoading).toBe(false));
     expect(refused.result.current.error).toBe(true);
@@ -104,12 +110,11 @@ describe("useSellerFeed", () => {
   });
 
   it("SL-3 an answer to an earlier key is ignored", async () => {
-    const fetchMock = vi.mocked(fetch);
-    let resolveFirst: ((response: Response) => void) | null = null;
-    fetchMock
+    let resolveFirst: ((answer: unknown) => void) | null = null;
+    callRoute
       .mockImplementationOnce(
         () =>
-          new Promise<Response>((resolve) => {
+          new Promise((resolve) => {
             resolveFirst = resolve;
           }),
       )
@@ -121,11 +126,17 @@ describe("useSellerFeed", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.cards.map((one) => one.id)).toEqual(["l-new"]);
     // The first key's late answer must not overwrite the second key's page.
-    (resolveFirst as unknown as (response: Response) => void)({
+    (resolveFirst as unknown as (answer: unknown) => void)({
+      kind: "answered",
       status: 200,
-      json: () => Promise.resolve(pageBody([card("l-old")], null)),
-    } as unknown as Response);
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+      ok: true,
+      payload: pageBody([card("l-old")], null),
+      error: null,
+      detail: null,
+      headers: new Headers(),
+      bytes: null,
+    });
+    await waitFor(() => expect(callRoute).toHaveBeenCalledTimes(2));
     expect(result.current.cards.map((one) => one.id)).toEqual(["l-new"]);
   });
 });

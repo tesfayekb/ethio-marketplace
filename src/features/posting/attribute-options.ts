@@ -17,7 +17,7 @@ import { catalogWords, type CatalogTokens } from "@/i18n";
 import { drawCatalog } from "@/i18n/catalog-tokens";
 import type { EntityBundle } from "@/i18n/entity";
 import { ownValue } from "@/lib/own-key";
-import { supabase } from "@/integrations/supabase/client";
+import { callRoute } from "@/lib/route-client";
 
 export interface AttrOption {
   value: string;
@@ -171,40 +171,32 @@ export async function loadAttributeOptions(
   const cached = cache.get(attributeId);
   if (cached && Date.now() - cached.at < TTL_MS) return cached.options;
   const held = opts.freshOnly === true ? undefined : cached;
-  try {
-    // INC-397 — the route answers signed-in callers only.
-    const { data: session } = await supabase.auth.getSession();
-    const token = session.session?.access_token ?? null;
-    if (token === null) return held ? held.options : null;
-    const response = await fetch(`/api/attributes/${attributeId}/options`, {
-      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) {
-      // F4 — never silent: a refused read (429 = rateLimited) is logged.
-      console.error("[attr-options] read refused", attributeId, response.status);
-      if (response.status === 429) opts.onRateLimited?.();
-      return held ? held.options : null;
-    }
-    const payload = (await response.json()) as Record<string, unknown>;
-    const list = Array.isArray(payload["options"]) ? payload["options"] : null;
-    if (list === null) return held ? held.options : null;
-    const options = list
-      .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
-      .filter((option) => option.value !== "");
-    const retiredList = Array.isArray(payload["retired"]) ? payload["retired"] : [];
-    const retired = retiredList
-      .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
-      .filter((option) => option.value !== "");
-    cache.set(attributeId, {
-      options,
-      retired,
-      version: typeof payload["version"] === "string" ? payload["version"] : "",
-      at: Date.now(),
-    });
-    return options;
-  } catch {
+  // INC-397 — the route answers signed-in callers only.
+  const answer = await callRoute(`/api/attributes/${attributeId}/options`);
+  if (answer.kind !== "answered") return held ? held.options : null;
+  if (!answer.ok) {
+    // F4 — never silent: a refused read (429 = rateLimited) is logged.
+    console.error("[attr-options] read refused", attributeId, answer.status);
+    if (answer.status === 429) opts.onRateLimited?.();
     return held ? held.options : null;
   }
+  const payload = answer.payload ?? {};
+  const list = Array.isArray(payload["options"]) ? payload["options"] : null;
+  if (list === null) return held ? held.options : null;
+  const options = list
+    .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
+    .filter((option) => option.value !== "");
+  const retiredList = Array.isArray(payload["retired"]) ? payload["retired"] : [];
+  const retired = retiredList
+    .map((entry) => shapeAttrOption((entry ?? {}) as Record<string, unknown>))
+    .filter((option) => option.value !== "");
+  cache.set(attributeId, {
+    options,
+    retired,
+    version: typeof payload["version"] === "string" ? payload["version"] : "",
+    at: Date.now(),
+  });
+  return options;
 }
 
 /**

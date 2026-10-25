@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { callRoute } from "@/lib/route-client";
 import { rootsOf, useCategoryTree } from "@/features/categories/category-tree";
 
 import type { PhotoLinks } from "@/features/posting/photo-links";
@@ -30,11 +31,11 @@ async function readPage(
   if (placeId !== null) params.set("place", placeId);
   if (after !== null) params.set("after", after);
   const query = params.toString();
-  const response = await fetch(query === "" ? "/api/feed" : `/api/feed?${query}`, {
-    method: "GET",
+  const answer = await callRoute(query === "" ? "/api/feed" : `/api/feed?${query}`, {
+    auth: "none",
   });
-  if (response.status !== 200) return null;
-  return parseFeedPage(await response.json());
+  if (answer.kind !== "answered" || answer.status !== 200) return null;
+  return parseFeedPage(answer.payload);
 }
 
 /**

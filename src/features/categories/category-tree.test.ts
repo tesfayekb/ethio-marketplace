@@ -80,6 +80,8 @@ describe("the page's held category tree", () => {
         })),
         pointers: [],
       }),
+      // The route client reads the envelope by content type; the stub names it.
+      { headers: { "content-type": "application/json" } },
     );
   }
 

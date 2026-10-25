@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { callRoute, type RoutePath } from "@/lib/route-client";
 
 /**
  * U6-C1-R3b-4 — THE MAP'S ONLY WAY TO A GEOCODER.
@@ -29,30 +29,21 @@ export interface ReverseAnswer {
   reason: GeoReason;
 }
 
-async function bearer(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
-}
-
-async function ask(path: string): Promise<{ payload: Record<string, unknown>; reason: GeoReason }> {
-  const token = await bearer();
-  if (token === null) return { payload: {}, reason: "signedOut" };
-  try {
-    const response = await fetch(path, {
-      headers: { Authorization: `Bearer ${token}`, accept: "application/json" },
-    });
-    if (response.status === 401) return { payload: {}, reason: "signedOut" };
-    if (!response.ok) return { payload: {}, reason: "unavailable" };
-    const payload = (await response.json()) as Record<string, unknown>;
-    if (payload["ok"] !== true) {
-      const refusals = Array.isArray(payload["refusals"]) ? payload["refusals"] : [];
-      const first = (refusals[0] ?? {}) as Record<string, unknown>;
-      return { payload, reason: first["reason"] === "rateLimited" ? "rateLimited" : "unavailable" };
-    }
-    return { payload, reason: null };
-  } catch {
-    return { payload: {}, reason: "unavailable" };
+async function ask(
+  path: RoutePath,
+): Promise<{ payload: Record<string, unknown>; reason: GeoReason }> {
+  const answer = await callRoute(path);
+  if (answer.kind === "signedOut") return { payload: {}, reason: "signedOut" };
+  if (answer.kind === "unreachable") return { payload: {}, reason: "unavailable" };
+  if (answer.status === 401) return { payload: {}, reason: "signedOut" };
+  if (!answer.ok) return { payload: {}, reason: "unavailable" };
+  const payload = answer.payload ?? {};
+  if (payload["ok"] !== true) {
+    const refusals = Array.isArray(payload["refusals"]) ? payload["refusals"] : [];
+    const first = (refusals[0] ?? {}) as Record<string, unknown>;
+    return { payload, reason: first["reason"] === "rateLimited" ? "rateLimited" : "unavailable" };
   }
+  return { payload, reason: null };
 }
 
 export async function searchPlaces(query: string): Promise<SearchAnswer> {
