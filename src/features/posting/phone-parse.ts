@@ -11,6 +11,8 @@
  * (^\+[0-9]{7,15}$, unchanged). A number the library cannot read is kept as the
  * typed digits behind the code, and the door refuses it as before.
  */
+import { loadOnce } from "@/lib/load-once";
+
 import { CALLING_CODES } from "./calling-codes";
 
 export interface PhoneLib {
@@ -22,20 +24,16 @@ export interface PhoneLib {
     | undefined;
 }
 
-let pending: Promise<PhoneLib> | null = null;
+/**
+ * The one dynamic import, once per visit; a failure is forgotten so a retry can
+ * try again (src/lib/load-once.ts — D234 S1).
+ */
+const PHONE_LIB = loadOnce(() =>
+  import("libphonenumber-js/min").then((module) => module as unknown as PhoneLib),
+);
 
-/** The one dynamic import; a failure clears the cache so a retry can try again. */
 export function loadPhoneLib(): Promise<PhoneLib> {
-  if (pending === null) {
-    pending = import("libphonenumber-js/min").then(
-      (module) => module as unknown as PhoneLib,
-      (error: unknown) => {
-        pending = null;
-        throw error;
-      },
-    );
-  }
-  return pending;
+  return PHONE_LIB.load();
 }
 
 /** What may stay in the box while typing: digits, separators and one leading +. */

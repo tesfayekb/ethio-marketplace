@@ -1,11 +1,13 @@
 import { CalendarDays, X } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState, type JSX } from "react";
 import type { Matcher } from "react-day-picker";
 
-import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
+import { loadOnce } from "@/lib/load-once";
 import { cn } from "@/lib/utils";
 
+import type { DateCalendarProps } from "./date-calendar";
 import { isoDay, parseDay } from "./date-day";
 import { formatLocale } from "@/lib/format-locale";
 
@@ -27,6 +29,25 @@ import { formatLocale } from "@/lib/format-locale";
 function firstOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
+
+/**
+ * D234 speed turn S1 — the calendar (react-day-picker, 21 KiB gzipped) is
+ * downloaded when a field first opens it, once per visit (src/lib/load-once.ts),
+ * never with the page: the wizard, the audit log and the listings console
+ * carried it on their first load. The field itself is unchanged; the box under it
+ * holds its place while the calendar arrives, focusing or pressing the field
+ * starts the download early, and a download that fails says so with a "Try again"
+ * that asks once more — the page never breaks over it.
+ */
+type CalendarComponent = (props: DateCalendarProps) => JSX.Element;
+const CALENDAR = loadOnce<CalendarComponent>(() =>
+  import("./date-calendar").then((module) => module.default),
+);
+// An early start on focus or press: a failure here is answered when the field opens —
+// the effect in DateField asks again, logs a failure and offers "Try again".
+const startCalendar = () => {
+  CALENDAR.load().catch(() => undefined);
+};
 
 export interface DateFieldProps {
   /** The field's id, for a <label htmlFor>. */
@@ -57,6 +78,24 @@ export function DateField({
   const { t, language } = useI18n();
   const calendarId = useId();
   const [open, setOpen] = useState(false);
+  const [Calendar, setCalendar] = useState<CalendarComponent | null>(() => CALENDAR.ready());
+  const [calendarFailed, setCalendarFailed] = useState(false);
+  useEffect(() => {
+    if (!open || Calendar !== null || calendarFailed) return;
+    let live = true;
+    CALENDAR.load().then(
+      (next) => {
+        if (live) setCalendar(() => next);
+      },
+      (error: unknown) => {
+        console.error("[client-error] the calendar failed to load", error);
+        if (live) setCalendarFailed(true);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, [open, Calendar, calendarFailed]);
   const locale = formatLocale(language);
   const selected = parseDay(value);
   const earliest = min === undefined ? null : parseDay(min);
@@ -84,6 +123,8 @@ export function DateField({
           aria-expanded={open}
           aria-controls={calendarId}
           onClick={() => setOpen((current) => !current)}
+          onFocus={startCalendar}
+          onPointerDown={startCalendar}
           className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-md border border-input bg-background px-3 text-start text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <CalendarDays aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
@@ -111,38 +152,42 @@ export function DateField({
       </div>
       {open ? (
         <div id={calendarId} data-testid={`${testid}-calendar`} className="min-w-0">
-          <Calendar
-            mode="single"
-            selected={selected ?? undefined}
-            defaultMonth={shown}
-            disabled={disabled}
-            showOutsideDays={false}
-            {...(earliest ? { startMonth: firstOfMonth(earliest) } : {})}
-            {...(latest ? { endMonth: firstOfMonth(latest) } : {})}
-            onSelect={(day) => {
-              if (!day) return;
-              onChange(isoDay(day));
-              setOpen(false);
-            }}
-            formatters={{
-              formatCaption: (month) => captionLabel.format(month),
-              formatWeekdayName: (day) => weekdayLabel.format(day),
-            }}
-            labels={{
-              labelNext: () => t("prim.date.next"),
-              labelPrevious: () => t("prim.date.previous"),
-              labelDayButton: (day) => fullLabel.format(day),
-            }}
-            components={{
-              DayButton: (props) => (
-                <CalendarDayButton
-                  {...props}
-                  data-testid={`${testid}-day-${isoDay(props.day.date)}`}
-                />
-              ),
-            }}
-            className="rounded-md border border-border"
-          />
+          {Calendar !== null ? (
+            <Calendar
+              testid={testid}
+              selected={selected ?? undefined}
+              defaultMonth={shown}
+              disabled={disabled}
+              startMonth={earliest ? firstOfMonth(earliest) : undefined}
+              endMonth={latest ? firstOfMonth(latest) : undefined}
+              onPick={(day) => {
+                onChange(isoDay(day));
+                setOpen(false);
+              }}
+              formatCaption={(month) => captionLabel.format(month)}
+              formatWeekdayName={(day) => weekdayLabel.format(day)}
+              labelNext={t("prim.date.next")}
+              labelPrevious={t("prim.date.previous")}
+              labelDayButton={(day) => fullLabel.format(day)}
+            />
+          ) : (
+            <div
+              data-testid={`${testid}-calendar-loading`}
+              className="flex h-80 items-center justify-center rounded-md border border-border"
+            >
+              {calendarFailed ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid={`${testid}-calendar-retry`}
+                  onClick={() => setCalendarFailed(false)}
+                >
+                  {t("common.tryAgain")}
+                </Button>
+              ) : null}
+            </div>
+          )}
         </div>
       ) : null}
     </div>
