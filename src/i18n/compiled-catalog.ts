@@ -1,6 +1,12 @@
+import { loadOnce } from "@/lib/load-once";
+
 import type { Messages } from "./types";
 
 /**
+ * D234 S3 (INC-897) — each compiled layer is fetched once per visit
+ * (src/lib/load-once.ts); a failed download is forgotten so the next load asks
+ * again, and the provider answers it as it always has (INC-107, INC-816).
+ *
  * INC-107 — A MISSING COMPILED LAYER IS EMPTY, NOT FATAL.
  *
  * The compiled catalogs are a SEED, not the language registry: a language the
@@ -9,8 +15,9 @@ import type { Messages } from "./types";
  * code, and a lookup miss means "the compiled layer for this language is `{}`"
  * — the chain becomes compiled.en ▸ {} ▸ DB[lang], never a throw.
  */
+const AM_BASE = loadOnce(() => import("./locales/am-base").then((m) => m.amBase));
 const loaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
-  am: () => import("./locales/am-base").then((m) => m.amBase),
+  am: () => AM_BASE.load(),
 };
 
 /**
@@ -18,9 +25,11 @@ const loaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
  * asks for it (useAdminStrings), so its loaders are a second map. A compiled
  * admin layer is a PART of Messages; a language without one has none to load.
  */
+const EN_ADMIN = loadOnce(() => import("./locales/en-admin").then((m) => m.enAdmin));
+const AM_ADMIN = loadOnce(() => import("./locales/am-admin").then((m) => m.amAdmin));
 const adminLoaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
-  en: () => import("./locales/en-admin").then((m) => m.enAdmin),
-  am: () => import("./locales/am-admin").then((m) => m.amAdmin),
+  en: () => EN_ADMIN.load(),
+  am: () => AM_ADMIN.load(),
 };
 
 /**

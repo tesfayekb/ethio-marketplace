@@ -1,8 +1,4 @@
-# D234 speed turn S1 (INC-897): a browser module fetched on demand outside loadOnce (src/lib/load-once.ts). <path> | <reason> | <until>
-src/components/shell/breadcrumbs.tsx | React.lazy crumbs: a failed chunk reaches the route's error boundary | INC-897
-src/features/posting/preview/listing-detail.tsx | React.lazy map components and a map prefetch: a failed chunk reaches the route's error boundary | INC-897
-src/features/posting/step-where.tsx | React.lazy map components in the wizard: a failed chunk reaches the route's error boundary | INC-897
-src/i18n/compiled-catalog.ts | the catalogue layers' loaders, each read by the language provider | INC-897
+# D234 speed turns S1 and S3: a browser module fetched on demand outside loadOnce (src/lib/load-once.ts); INC-897's React.lazy sites and catalogue loaders moved onto it in S3. <path> | <reason> | <until>
 src/features/admin-categories/category-images-service.ts | staff-only image variants, awaited inside the upload that reports its own failure | 2027-04-25
 src/routes/legal.publishing.tsx | a route loader's data module: a failed download is the route's own error screen | 2027-04-25
 src/routes/post_.$listingId.tsx | a route guard's door module: a failed download is the route's own error screen | 2027-04-25

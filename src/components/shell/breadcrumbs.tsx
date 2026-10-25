@@ -1,6 +1,6 @@
 import { useRouterState } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 
 import { useShell } from "@/components/shell-context";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
@@ -14,13 +14,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import { PANELS } from "@/config/panels";
 import { groupForPath, groupForSection, sectionForPath } from "@/features/admin/sections";
-import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
-import { useAdminUser } from "@/features/admin/users/use-admin-users";
 import { pathOf, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { PublicListingDoc } from "@/features/ad-page/public-listing";
+import { resilientLazy } from "@/lib/resilient-lazy";
 
 /**
  * The content top-line breadcrumb — band 4: Home › <panel> › <category path>.
@@ -39,23 +38,62 @@ import type { PublicListingDoc } from "@/features/ad-page/public-listing";
 /** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
 const CURRENT = "min-w-0 truncate font-semibold text-foreground underline underline-offset-4";
 
-/** INC-554 — the listing and language crumbs load only on their pages (never in the first paint). */
-const AdminListingCrumb = lazy(() =>
-  import("./admin-detail-crumbs").then((module) => ({ default: module.AdminListingCrumb })),
+/**
+ * INC-554 — the admin detail crumbs load only on their pages (never in the first
+ * paint); D234 S3 adds the user and role crumbs to that module, so the admin user
+ * and role reads leave every page's first download. Bundle 18 turn 1 (D198) — the
+ * ad's crumb on the seller's pages, loaded only there. D234 S3 (INC-897) — each
+ * is resilientLazy: a crumb that cannot download shows its place, never the
+ * route's error screen.
+ */
+const AdminListingCrumb = resilientLazy(
+  () => import("./admin-detail-crumbs").then((module) => module.AdminListingCrumb),
+  "a breadcrumb",
+  PendingCrumb,
 );
-const AdminLanguageCrumb = lazy(() =>
-  import("./admin-detail-crumbs").then((module) => ({ default: module.AdminLanguageCrumb })),
+const AdminLanguageCrumb = resilientLazy(
+  () => import("./admin-detail-crumbs").then((module) => module.AdminLanguageCrumb),
+  "a breadcrumb",
+  PendingCrumb,
 );
-/** Bundle 18 turn 1 (D198) — the ad's crumb on the seller's pages, loaded only there. */
-const MyListingCrumb = lazy(() =>
-  import("./seller-crumbs").then((module) => ({ default: module.MyListingCrumb })),
+const AdminUserCrumb = resilientLazy(
+  () => import("./admin-detail-crumbs").then((module) => module.AdminUserCrumb),
+  "a breadcrumb",
+  PendingCrumb,
+);
+const AdminRoleCrumb = resilientLazy(
+  () => import("./admin-detail-crumbs").then((module) => module.AdminRoleCrumb),
+  "a breadcrumb",
+  PendingCrumb,
+);
+const MyListingCrumb = resilientLazy(
+  () => import("./seller-crumbs").then((module) => module.MyListingCrumb),
+  "a breadcrumb",
+  PendingCrumb,
+);
+const AdCrumbs = resilientLazy(
+  () => import("./ad-crumbs").then((module) => module.AdCrumbs),
+  "a breadcrumb",
+  AdTitleCrumb,
 );
 
-const AdCrumbs = lazy(() => import("./ad-crumbs").then((module) => ({ default: module.AdCrumbs })));
-
-/** What a lazy crumb shows while its module loads: the page's place, not a blank. */
+/** What an on-demand crumb shows while its module loads, or in its place: the page's place, not a blank. */
 function PendingCrumb() {
   return <BreadcrumbPage className={CURRENT}>—</BreadcrumbPage>;
+}
+
+/** The ad's own title as its last crumb: what the ad's trail shows until (or instead of) its category path. */
+function AdTitleCrumb({ title }: { title: string; categoryId: string | null }) {
+  return (
+    <>
+      <BreadcrumbSeparator />
+      <BreadcrumbItem>
+        <BreadcrumbPage data-testid="breadcrumb-ad" className={CURRENT} title={title}>
+          {title}
+        </BreadcrumbPage>
+      </BreadcrumbItem>
+    </>
+  );
 }
 
 export function Breadcrumbs() {
@@ -107,20 +145,7 @@ export function Breadcrumbs() {
           </BreadcrumbItem>
           {publicAd ? (
             <Suspense
-              fallback={
-                <>
-                  <BreadcrumbSeparator />
-                  <BreadcrumbItem>
-                    <BreadcrumbPage
-                      data-testid="breadcrumb-ad"
-                      className={CURRENT}
-                      title={publicAd.title}
-                    >
-                      {publicAd.title}
-                    </BreadcrumbPage>
-                  </BreadcrumbItem>
-                </>
-              }
+              fallback={<AdTitleCrumb title={publicAd.title} categoryId={publicAd.categoryId} />}
             >
               <AdCrumbs title={publicAd.title} categoryId={publicAd.categoryId} />
             </Suspense>
@@ -283,9 +308,13 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {userDetailId ? (
-                  <AdminUserCrumb userId={userDetailId} />
+                  <Suspense fallback={<PendingCrumb />}>
+                    <AdminUserCrumb userId={userDetailId} />
+                  </Suspense>
                 ) : roleDetailId ? (
-                  <AdminRoleCrumb roleId={roleDetailId} />
+                  <Suspense fallback={<PendingCrumb />}>
+                    <AdminRoleCrumb roleId={roleDetailId} />
+                  </Suspense>
                 ) : listingDetailId ? (
                   <Suspense fallback={<PendingCrumb />}>
                     <AdminListingCrumb listingId={listingDetailId} link={listingEditing} />
@@ -463,26 +492,6 @@ export function Breadcrumbs() {
         })}
       </BreadcrumbList>
     </Breadcrumb>
-  );
-}
-
-/** U1d — the 4th admin crumb; reads the detail page's cached row. */
-function AdminUserCrumb({ userId }: { userId: string }) {
-  const { data } = useAdminUser(userId);
-  return (
-    <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT}>
-      {data?.displayName ?? "—"}
-    </BreadcrumbPage>
-  );
-}
-
-/** U2 — the 4th admin crumb for a role; reads the detail page's cached row. */
-function AdminRoleCrumb({ roleId }: { roleId: string }) {
-  const { data } = useAdminRole(roleId);
-  return (
-    <BreadcrumbPage data-testid="breadcrumb-admin-role" className={CURRENT}>
-      {data?.displayName ?? data?.name ?? "—"}
-    </BreadcrumbPage>
   );
 }
 

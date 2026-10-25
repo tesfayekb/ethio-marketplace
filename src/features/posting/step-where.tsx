@@ -1,6 +1,8 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { sortPlacesByName } from "@/lib/place-order";
 import { callRoute } from "@/lib/route-client";
+import { resilientLazy } from "@/lib/resilient-lazy";
+import { Button } from "@/components/ui/button";
 import type { ReactNode } from "react";
 
 import {
@@ -44,12 +46,41 @@ import type { Refusal } from "./types";
  * U6-C1-R3b-4 — THE MAP IS A LAZY CHUNK. Leaflet, its stylesheet and the dropper
  * are fetched by the tap that opens the section, so the marketplace's first paint
  * never carries a mapping library (the weight and budget guards prove it), and a
- * seller who never asks for a pin never downloads one.
+ * seller who never asks for a pin never downloads one. D234 S3 (INC-897) — both
+ * are resilientLazy: a preview that cannot download shows nothing, and the pin
+ * map offers "Try again", which reloads the page (the draft is saved).
  */
-const MapPreview = lazy(() => import("./map/map-preview"));
-const MapPinDropper = lazy(() =>
-  import("./map/map-pin-dropper").then((mod) => ({ default: mod.MapPinDropper })),
+const MapPreview = resilientLazy(
+  () => import("./map/map-preview").then((mod) => mod.MapPreview),
+  "the map",
+  NoMap,
 );
+const MapPinDropper = resilientLazy(
+  () => import("./map/map-pin-dropper").then((mod) => mod.MapPinDropper),
+  "the pin map",
+  PinMapUnavailable,
+);
+
+/** The pin preview's place when its map cannot download: nothing, as while it loads. */
+function NoMap() {
+  return null;
+}
+
+/** The pin map's place when it cannot download: "Try again" reloads the page; the draft is saved. */
+function PinMapUnavailable() {
+  const { t } = useI18n();
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="touch"
+      data-testid="post-pin-map-retry"
+      onClick={() => window.location.reload()}
+    >
+      {t("common.tryAgain")}
+    </Button>
+  );
+}
 
 /**
  * U6-C2a — STEP 6: WHERE IT IS, AND WHERE IT SHOWS (DEC-064 as amended, D19).
