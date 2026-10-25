@@ -13,85 +13,87 @@
  * provider (or fake mode) gives is metered.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { errorText } from "@/lib/error-text";
+import { z } from "zod";
+import { aiCall } from "@/server/ai/gateway";
+import { ok, serverError } from "@/server/answer";
+import { defineRoute } from "@/server/route";
+import { checkIcon } from "@/server/category-images/icons";
 
 const PATH = "/api/admin/categories/suggest-icon";
-const FAKE_ICON = "Store";
-
-interface Body {
-  name?: string;
-  parentName?: string;
-}
+export const SuggestIconBody = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    parentName: z.string().trim().max(120).nullable().optional(),
+  })
+  .strict();
 
 export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        const { gateCategoriesAssets, json, fail5xx } =
-          await import("@/server/category-images/gate");
-        const gate = await gateCategoriesAssets(request, PATH);
-        if (!gate.ok) return gate.response;
-
-        let body: Body;
-        try {
-          body = (await request.json()) as Body;
-        } catch {
-          return json({ error: "invalid json body" }, 400);
-        }
-        const name = (body.name ?? "").trim();
-        if (name === "" || name.length > 120) return json({ error: "invalid name" }, 400);
-        const parentName = (body.parentName ?? "").trim() || null;
-        if (parentName !== null && parentName.length > 120) {
-          return json({ error: "invalid parentName" }, 400);
-        }
-
-        const { ICON_ALLOWLIST, checkIcon } = await import("@/server/category-images/icons");
-        const { isFakeMode, suggestIconName, GeminiError } =
-          await import("@/server/category-images/gemini");
-
-        const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
-        const log = (message: string) => console.error(`[ssr-error] ${PATH} ${message}`);
-        const feature = await aiGate("category_icons", log);
-        if (!feature.on) {
-          return json(
+      POST: defineRoute({
+        path: PATH,
+        auth: { staff: { resource: "categories", action: "assets" } },
+        body: SuggestIconBody,
+        badShape: ({ path, code }) =>
+          ok(
             {
-              error: `AI feature category_icons is off (${feature.reason})`,
-              stage: "switched-off",
+              error:
+                code === "invalid_json"
+                  ? "invalid json body"
+                  : path === "parentName"
+                    ? "invalid parentName"
+                    : "invalid name",
             },
-            feature.reason === "unavailable" ? 503 : 409,
+            { status: 400 },
+          ),
+        handler: async ({ body, userId }) => {
+          const answer = await aiCall(
+            "category_icon",
+            { name: body.name, parent: body.parentName ?? "" },
+            { actorId: userId, path: PATH },
           );
-        }
-
-        if (isFakeMode()) {
-          await recordAiSpend("category_icons", 1, log);
-          return json({ ...checkIcon(FAKE_ICON), fake: true }, 200);
-        }
-
-        try {
-          const raw = await suggestIconName(name, parentName, ICON_ALLOWLIST);
-          await recordAiSpend("category_icons", 1, log);
-          return json({ ...checkIcon(raw), fake: false }, 200);
-        } catch (error) {
-          const message = errorText(error); // INC-625
-          // PART B (F4): true cause + stable code before the generic body.
-          console.error(`[ssr-error] ${PATH} icon_suggest_failed stage=model-call ${message}`);
-          if (error instanceof GeminiError) {
-            if (error.status >= 500) return fail5xx(PATH, error.message, 502);
-            // INC-804 — the reply carries a fixed code by the provider's
-            // status; the full upstream text stays in the log line above.
+          if (answer.ok) {
+            const value = answer.value;
+            return ok({
+              ...checkIcon(
+                typeof value === "object" && value !== null && "icon" in value ? value.icon : null,
+              ),
+              fake: answer.fake,
+            });
+          }
+          if (
+            answer.reason === "featureOff" ||
+            answer.reason === "budget" ||
+            answer.reason === "unavailable"
+          ) {
+            const reason = answer.reason === "featureOff" ? "staff" : answer.reason;
+            return ok(
+              { error: `AI feature category_icons is off (${reason})`, stage: "switched-off" },
+              { status: reason === "unavailable" ? 503 : 409 },
+            );
+          }
+          const status = answer.status;
+          if (
+            answer.reason === "providerError" &&
+            status !== undefined &&
+            status >= 400 &&
+            status < 500
+          ) {
             const code =
-              error.status === 400 || error.status === 422
+              status === 400 || status === 422
                 ? "modelRefused"
-                : error.status === 401 || error.status === 403
+                : status === 401 || status === 403
                   ? "modelKeyRefused"
-                  : error.status === 429
+                  : status === 429
                     ? "modelRateLimited"
                     : "modelCallFailed";
-            return json({ error: code }, error.status);
+            return ok({ error: code }, { status });
           }
-          return fail5xx(PATH, message);
-        }
-      },
+          const response = serverError(PATH, `ai category_icon ${answer.reason}`);
+          // Keep the boundary's incident-bearing envelope and the established 502 status.
+          return ok(await response.json(), { status: 502 });
+        },
+      }),
     },
   },
 });

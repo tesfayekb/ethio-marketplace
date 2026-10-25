@@ -10,10 +10,7 @@ import { DIALS } from "@/lib/dials";
 import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
-import { upstream } from "@/server/upstream";
-import { aiFakeMode, aiGate, recordAiSpend } from "@/server/ai/meter";
-import { untrustedText, withUntrustedRule } from "@/lib/untrusted-text";
-import { errorText } from "@/lib/error-text";
+import { aiCall } from "@/server/ai/gateway";
 
 /**
  * U6-A2-C — THE POSTING IDENTITY ROUTE (D17).
@@ -49,18 +46,6 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
 }
 
-const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-
-/** D166 — the shared rule about a person's words closes the instruction. */
-const IMITATION_PROMPT = withUntrustedRule(
-  [
-    "Does this marketplace seller name imitate or impersonate a well-known company,",
-    "brand, bank, government body or public figure?",
-    'Answer JSON only: {"imitates": boolean, "of": string}.',
-    "Answer false for ordinary personal names, generic words and small local shops.",
-  ].join(" "),
-);
-
 /**
  * U6-C1-R2 — THE IMITATION CHECK (Tier A rigor, F3).
  *
@@ -80,48 +65,18 @@ interface Imitation {
   checked: boolean;
 }
 
-async function imitationOf(alias: string): Promise<Imitation> {
-  const fake = aiFakeMode("E2E_FAKE_ASSIST");
-  if (fake) return { of: alias.includes("cocacola") ? "Coca-Cola" : null, checked: true };
-
-  const key = process.env["GEMINI_API_KEY"] ?? "";
-  if (key.trim() === "") return { of: null, checked: false };
-  const model = (process.env["GEMINI_TEXT_MODEL"] ?? "").trim() || "gemini-3.5-flash-lite";
-  try {
-    // Foundations turn 3 — the transport takes a deadline; a timeout is caught
-    // below as any provider failure is (the name goes on unchecked).
-    const response = await upstream(
-      `${GEMINI_BASE}/${encodeURIComponent(model)}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: IMITATION_PROMPT }] },
-          // D166 — the seller's name enters as one quoted string.
-          contents: [{ role: "user", parts: [{ text: untrustedText("Seller name", alias, 120) }] }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0 },
-        }),
-      },
-      { timeoutMs: 15_000, label: "gemini name_check" },
-    );
-    if (!response.ok) {
-      logRouteError(PATH, `imitation check ${response.status}`);
-      return { of: null, checked: false };
-    }
-    const parsed = (await response.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-    };
-    const answer = JSON.parse(parsed.candidates?.[0]?.content?.parts?.[0]?.text ?? "{}") as {
-      imitates?: unknown;
-      of?: unknown;
-    };
-    if (answer.imitates !== true) return { of: null, checked: true };
-    const of = typeof answer.of === "string" && answer.of.trim() !== "" ? answer.of.trim() : alias;
-    return { of, checked: true };
-  } catch (error) {
-    logRouteError(PATH, `imitation check unusable: ${errorText(error)}`);
+async function imitationOf(alias: string, userId: string): Promise<Imitation> {
+  const answer = await aiCall("name_check", { alias }, { actorId: userId, path: PATH });
+  if (!answer.ok) return { of: null, checked: false };
+  const value = answer.value;
+  if (typeof value !== "object" || value === null || !("imitates" in value))
     return { of: null, checked: false };
-  }
+  if (value.imitates !== true) return { of: null, checked: true };
+  const of =
+    "of" in value && typeof value.of === "string" && value.of.trim() !== ""
+      ? value.of.trim()
+      : alias;
+  return { of, checked: true };
 }
 
 /**
@@ -198,12 +153,7 @@ async function handle(
     // that could not be read), the name is not asked about: it goes to the door
     // unchecked and is audited `alias.unchecked`, exactly as when the provider
     // cannot answer — a switch never becomes a ban list. An answer is metered.
-    const log = (message: string) => logRouteError(PATH, message);
-    const gate = await aiGate("name_check", log);
-    const imitated: Imitation = gate.on
-      ? await imitationOf(alias.toLowerCase())
-      : { of: null, checked: false };
-    if (gate.on && imitated.checked) await recordAiSpend("name_check", 1, log);
+    const imitated = await imitationOf(alias.toLowerCase(), userId);
     if (imitated.of !== null) {
       // INC-866 — the model's free text reaches the client bounded.
       return verdict([
@@ -275,7 +225,10 @@ export const Route = createFileRoute("/api/listings/identity")({
         path: PATH,
         auth: "user",
         body: IdentityBody,
-        handler: async ({ supabase, userId, body }) => handle(supabase!, userId!, body),
+        handler: async ({ supabase, userId, body }) => {
+          if (supabase === null || userId === null) return upstreamUnavailable(PATH, "caller", 0);
+          return handle(supabase, userId, body);
+        },
       }),
     },
   },

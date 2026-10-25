@@ -1,5 +1,7 @@
 # AI services — switches, budgets and the meter (D158)
 
+Foundations turn 15 centralizes seller-name checks and category icon suggestions in [the AI gateway](ai-gateway.md); the existing D158 meter remains the gate/spend authority.
+
 The operator's rule (D158, 2026-10-13): every AI feature has an on/off switch, a monthly budget and the spend so far; at its budget every feature switches itself off except photo screening, which only alerts; while photo screening is off, new photos are held for staff. INC-600 recorded that none of this existed. Bundle 13 builds it in three turns:
 
 1. **Turn 1:** the doors and the server — the switches, the meter, the budgets' automatic switch-off, and a seller's daily limits.
