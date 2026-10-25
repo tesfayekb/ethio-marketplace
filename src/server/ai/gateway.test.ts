@@ -10,6 +10,8 @@ const state = vi.hoisted(() => ({
   auditError: false,
   writes: [] as Record<string, unknown>[],
   spends: [] as string[],
+  // Turn 19 — the units each spend recorded, beside its feature.
+  spendUnits: [] as number[],
   requests: [] as RequestInit[],
   status: 200,
   text: '{"imitates":false}',
@@ -25,8 +27,9 @@ vi.mock("./meter", async (original) => {
       if (state.gateThrows) throw new Error("gate read failed");
       return state.gate;
     },
-    recordAiSpend: async (feature: string) => {
+    recordAiSpend: async (feature: string, units: number) => {
       state.spends.push(feature);
+      state.spendUnits.push(units);
     },
   };
 });
@@ -43,6 +46,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 }));
 
 import { aiCall, renderTask, type AiAnswer } from "./gateway";
+import { translateBatch } from "./providers/google-translate";
 import { AI_TASKS, type OutputOf, type TaskId } from "./tasks";
 import { render } from "./template";
 
@@ -55,6 +59,7 @@ beforeEach(() => {
   state.auditError = false;
   state.writes = [];
   state.spends = [];
+  state.spendUnits = [];
   state.requests = [];
   state.status = 200;
   state.text = '{"imitates":false}';
@@ -63,6 +68,7 @@ beforeEach(() => {
   state.bodyReadTimeout = false;
   vi.stubEnv("GEMINI_API_KEY", "");
   vi.stubEnv("PHOTOROOM_API_KEY", "");
+  vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async (_url: string, init: RequestInit) => {
     state.requests.push(init);
@@ -810,5 +816,228 @@ describe("the one AI call", () => {
     expect(await verdictOf(1600)).toEqual({ kind: "verdict", verdict: { ok: true } });
     expect(state.requests).toEqual([]);
     expect(state.spends.filter((feature) => feature === "photo_screen")).toHaveLength(5);
+  });
+});
+
+/** Foundations turn 19 — machine translation on the gateway (CHANGE 1 and 2). */
+describe("the translation task and its Google Translate adapter", () => {
+  const KEY = "test-only-translate-key";
+  type Seen = { url: string; init: RequestInit };
+  let seen: Seen[] = [];
+  /** A provider that answers each `q` by `answer`, or a fixed response. */
+  function provider(answer: (q: string[]) => unknown, status = 200): void {
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {
+      seen.push({ url, init });
+      const q = new URLSearchParams(String(init.body ?? "")).getAll("q");
+      return new Response(JSON.stringify(answer(q)), { status });
+    });
+  }
+  const echo = (q: string[]) => ({
+    data: { translations: q.map((text) => ({ translatedText: `T:${text}` })) },
+  });
+  beforeEach(() => {
+    seen = [];
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", KEY);
+  });
+
+  it("AIG-37 the adapter sends one form body with source=en, format=html, a q per text and the key in the header only", async () => {
+    provider(echo);
+    const answer = await aiCall(
+      "translation",
+      { target: "am", texts: ["Hello {name}", "Bye"] },
+      ctx,
+    );
+    expect(answer.ok).toBe(true);
+    expect(seen).toHaveLength(1);
+    const [request] = seen;
+    if (request === undefined) throw new Error("no request");
+    expect(request.url).toBe("https://translation.googleapis.com/language/translate/v2");
+    expect(request.url).not.toContain(KEY);
+    expect(request.init.method).toBe("POST");
+    const headers = new Headers(request.init.headers);
+    expect(headers.get("x-goog-api-key")).toBe(KEY);
+    expect(headers.get("content-type")).toBe("application/x-www-form-urlencoded");
+    const form = new URLSearchParams(String(request.init.body));
+    expect(form.get("target")).toBe("am");
+    expect(form.get("source")).toBe("en");
+    expect(form.get("format")).toBe("html");
+    expect(form.getAll("q")).toEqual(['Hello <span translate="no">⟦0⟧</span>', "Bye"]);
+    expect(String(request.init.body)).not.toContain(KEY);
+    // One deadline across headers and body (upstream's signal).
+    expect(request.init.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it("AIG-38 a count mismatch or an unparsable 2xx is unusable and metered; a non-2xx is providerError and not; a deadline across the body is timeout", async () => {
+    const material = { target: "am", texts: ["one", "two"] };
+    provider(() => ({ data: { translations: [{ translatedText: "only one" }] } }));
+    expect(await aiCall("translation", material, ctx)).toEqual({
+      ok: false,
+      reason: "unusableAnswer",
+    });
+    expect(state.spends).toEqual(["translations"]);
+    vi.stubGlobal("fetch", async () => new Response("not json", { status: 200 }));
+    expect(await aiCall("translation", material, ctx)).toEqual({
+      ok: false,
+      reason: "unusableAnswer",
+    });
+    expect(state.spends).toEqual(["translations", "translations"]);
+    provider(() => ({ error: { message: "quota exceeded for project" } }), 403);
+    expect(await aiCall("translation", material, ctx)).toEqual({
+      ok: false,
+      reason: "providerError",
+      status: 403,
+    });
+    vi.stubGlobal(
+      "fetch",
+      async () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => {
+            throw new DOMException("signal timed out", "TimeoutError");
+          },
+        }) as unknown as Response,
+    );
+    expect(await aiCall("translation", material, ctx)).toEqual({ ok: false, reason: "timeout" });
+    vi.stubGlobal("fetch", async () => {
+      throw new UpstreamTimeout("google-translate translation", 20_000);
+    });
+    expect(await aiCall("translation", material, ctx)).toEqual({ ok: false, reason: "timeout" });
+    expect(state.spends).toEqual(["translations", "translations"]);
+    expect(state.writes.map((row) => row.p_outcome)).toEqual([
+      "unusableAnswer",
+      "unusableAnswer",
+      "providerError",
+      "timeout",
+      "timeout",
+    ]);
+  });
+
+  it("AIG-39 a masked {token} survives a kept span and a stripped one, and a duplicated sentinel is handed back as the provider gave it", async () => {
+    const translate = async (reply: string) => {
+      provider(() => ({ data: { translations: [{ translatedText: reply }] } }));
+      return translateBatch({
+        target: "am",
+        texts: ["Hello {name}"],
+        timeoutMs: 1_000,
+        label: "google-translate translation",
+      });
+    };
+    expect(await translate('Selam <span translate="no">⟦0⟧</span>')).toEqual({
+      kind: "texts",
+      status: 200,
+      texts: ["Selam {name}"],
+    });
+    expect(await translate("Selam ⟦0⟧")).toEqual({
+      kind: "texts",
+      status: 200,
+      texts: ["Selam {name}"],
+    });
+    expect(await translate("Selam ⟦0⟧ ⟦0⟧")).toEqual({
+      kind: "texts",
+      status: 200,
+      texts: ["Selam ⟦0⟧ ⟦0⟧"],
+    });
+    // An empty translation is that text's null.
+    expect(await translate("")).toEqual({ kind: "texts", status: 200, texts: [null] });
+  });
+
+  it("AIG-40 the stand-in gives ⟪<lang>⟫ <source>, and E2EBREAK drops every placeholder", async () => {
+    state.e2e = true;
+    state.fake = true;
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
+    provider(echo);
+    const answer = await aiCall(
+      "translation",
+      { target: "am", texts: ["Hello {name}", "E2EBREAK {count} items"] },
+      ctx,
+    );
+    expect(answer).toMatchObject({
+      ok: true,
+      fake: true,
+      value: ["⟪am⟫ Hello {name}", "⟪am⟫ E2EBREAK items"],
+    });
+    expect(seen).toEqual([]);
+  });
+
+  it("AIG-41 units meter the chunk's characters, fake and real; a task without units meters 1", async () => {
+    const material = { target: "am", texts: ["Hello", "{count} items"] };
+    provider(echo);
+    expect((await aiCall("translation", material, ctx)).ok).toBe(true);
+    state.e2e = true;
+    state.fake = true;
+    expect((await aiCall("translation", material, ctx)).ok).toBe(true);
+    expect((await aiCall("name_check", { alias: "abebe" }, ctx)).ok).toBe(true);
+    expect(state.spends).toEqual(["translations", "translations", "name_check"]);
+    expect(state.spendUnits).toEqual([18, 18, 1]);
+  });
+
+  it("AIG-42 an output whose length differs from the texts sent is unusableAnswer", async () => {
+    const task = AI_TASKS.find((entry) => entry.id === "translation");
+    if (task?.validate === undefined) throw new Error("no translation task");
+    expect(task.validate(["a", "b"], { target: "am", texts: ["x", "y"] })).toBe(true);
+    expect(task.validate(["a"], { target: "am", texts: ["x", "y"] })).toBe(false);
+    state.e2e = true;
+    state.fake = true;
+    vi.spyOn(task, "fake").mockReturnValue(["only one"]);
+    expect(await aiCall("translation", { target: "am", texts: ["x", "y"] }, ctx)).toEqual({
+      ok: false,
+      reason: "unusableAnswer",
+    });
+  });
+
+  it("AIG-43 translationLanguages() caches per process, answers the stand-in list in the E2E build and writes no audit row", async () => {
+    vi.resetModules();
+    const fresh = await import("./gateway");
+    const { FAKE_LANGUAGES } = await import("./tasks");
+    provider(() => ({
+      data: { languages: [{ language: "AM", name: "Amharic" }, { language: "om" }] },
+    }));
+    const first = await fresh.translationLanguages({ path: "/api/translate" });
+    const second = await fresh.translationLanguages({ path: "/api/translate" });
+    const list = [
+      { code: "am", name: "Amharic" },
+      { code: "om", name: "om" },
+    ];
+    expect(first).toEqual({ ok: true, languages: list, fake: false });
+    expect(second).toEqual(first);
+    expect(seen).toHaveLength(1);
+    expect(new Headers(seen[0]?.init.headers).get("x-goog-api-key")).toBe(KEY);
+    state.e2e = true;
+    state.fake = true;
+    expect(await fresh.translationLanguages({ path: "/api/translate" })).toEqual({
+      ok: true,
+      languages: FAKE_LANGUAGES,
+      fake: true,
+    });
+    expect(seen).toHaveLength(1);
+    expect(state.writes).toEqual([]);
+    expect(state.spends).toEqual([]);
+  });
+
+  it("AIG-44 the language-list call has a deadline, and a missing key reads no provider", async () => {
+    vi.resetModules();
+    const fresh = await import("./gateway");
+    vi.stubGlobal("fetch", async (url: string, init: RequestInit) => {
+      seen.push({ url, init });
+      // AbortSignal.timeout's own rejection; upstream turns it into its timeout.
+      throw new DOMException("signal timed out", "TimeoutError");
+    });
+    expect(await fresh.translationLanguages({ path: "/api/translate" })).toEqual({
+      ok: false,
+      reason: "unavailable",
+    });
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.init.signal).toBeInstanceOf(AbortSignal);
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).toContain(
+      "ai translation languages timeout",
+    );
+    vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", "");
+    expect(await fresh.translationLanguages({ path: "/api/translate" })).toEqual({
+      ok: false,
+      reason: "noKey",
+    });
+    expect(seen).toHaveLength(1);
+    expect(state.writes).toEqual([]);
   });
 });
