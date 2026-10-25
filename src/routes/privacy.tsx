@@ -4,10 +4,12 @@ import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { useI18n } from "@/i18n";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
-const privacyPageFn = createServerFn({ method: "GET" }).validator(NoInputSchema).handler(async () => {
-  const { legalPage } = await import("@/server/legal-page");
-  return legalPage("privacy");
-});
+const privacyPageFn = createServerFn({ method: "GET" })
+  .validator(NoInputSchema)
+  .handler(async () => {
+    const { legalPage } = await import("@/server/legal-page");
+    return legalPage("privacy");
+  });
 
 const TITLE = "Privacy Policy — ethio.com";
 const DESCRIPTION = "The Privacy Policy of ethio.com, the version in force and the next one.";

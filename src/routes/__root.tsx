@@ -94,8 +94,9 @@ const AREA_SHAPE =
  * it never blocks the document.
  */
 const LANGUAGE_GATE_TIMEOUT_MS = 1500;
-const getSsrLangContext = createServerFn({ method: "GET" }).validator(NoInputSchema).handler(
-  async (): Promise<SsrLangContext> => {
+const getSsrLangContext = createServerFn({ method: "GET" })
+  .validator(NoInputSchema)
+  .handler(async (): Promise<SsrLangContext> => {
     const url = getRequestUrl();
     const raw = getCookie(LANGUAGE_STAR_COOKIE) ?? null;
     const star = raw && CODE_SHAPE.test(raw) ? raw : null;
@@ -140,8 +141,7 @@ const getSsrLangContext = createServerFn({ method: "GET" }).validator(NoInputSch
     }
 
     return { star, languages, origin: url.origin, path: url.pathname, areaCookie, geo };
-  },
-);
+  });
 
 /** Surfaces that are not indexed and therefore carry no hreflang set. */
 function isPublicPath(path: string): boolean {

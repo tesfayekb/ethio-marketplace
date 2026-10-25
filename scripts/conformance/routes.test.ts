@@ -58,7 +58,8 @@ function conformsCode(code: string): boolean {
   if (code.includes("createServerFn(")) {
     // A server function conforms when its validator is a schema.
     const functions = [...code.matchAll(/\bcreateServerFn\(/g)].length;
-    const validators = [...code.matchAll(/\.validator\(\s*(?:z\.|[A-Za-z_$][\w$]*Schema\s*\))/g)].length;
+    const validators = [...code.matchAll(/\.validator\(\s*(?:z\.|[A-Za-z_$][\w$]*Schema\s*\))/g)]
+      .length;
     return !code.includes(".inputValidator(") && validators === functions;
   }
   // Foundations turn 12 — a staff import route is the factory over defineRoute.
@@ -161,7 +162,11 @@ describe("the route boundary census (CF-RT)", () => {
     const fixture = codeOf(readFileSync("scripts/fixtures/bad-server-fn-example.ts.txt", "utf8"));
     expect(conformsCode(fixture)).toBe(false);
     expect(conformsCode("createServerFn({}).validator((input) => input).handler(fn)")).toBe(false);
-    expect(conformsCode("createServerFn({}).validator(z.object({ a: z.string() }).strict()).handler(fn)")).toBe(true);
+    expect(
+      conformsCode(
+        "createServerFn({}).validator(z.object({ a: z.string() }).strict()).handler(fn)",
+      ),
+    ).toBe(true);
     expect(conformsCode("createServerFn({}).validator(NoInputSchema).handler(fn)")).toBe(true);
   });
 

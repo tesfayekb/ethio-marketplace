@@ -4,10 +4,12 @@ import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { useI18n } from "@/i18n";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
-const termsPageFn = createServerFn({ method: "GET" }).validator(NoInputSchema).handler(async () => {
-  const { legalPage } = await import("@/server/legal-page");
-  return legalPage("terms");
-});
+const termsPageFn = createServerFn({ method: "GET" })
+  .validator(NoInputSchema)
+  .handler(async () => {
+    const { legalPage } = await import("@/server/legal-page");
+    return legalPage("terms");
+  });
 
 const TITLE = "Terms of Service — ethio.com";
 const DESCRIPTION = "The Terms of Service of ethio.com, the version in force and the next one.";

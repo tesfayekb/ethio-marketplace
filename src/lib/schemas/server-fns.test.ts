@@ -38,8 +38,12 @@ describe("server-function input shapes", () => {
 
   it("SFN-3 the scratch-kind pattern has one production definition", () => {
     const pattern = "/^e2e-[a-z0-9-]{1,40}$/";
-    const hits = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true }).flatMap(
-      (file) => [...readFileSync(file, "utf8").matchAll(new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"))].map(() => file),
+    const hits = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true }).flatMap((file) =>
+      [
+        ...readFileSync(file, "utf8").matchAll(
+          new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g"),
+        ),
+      ].map(() => file),
     );
     expect(hits).toEqual(["src/features/legal/legal-kinds.ts"]);
   });
