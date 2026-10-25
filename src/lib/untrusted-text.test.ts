@@ -70,9 +70,7 @@ describe("a person's words reach a model as material only (D166)", () => {
       .sort();
     // A new model call fails here until it is added. All Gemini tasks use the
     // shared adapter; category_image's instruction lives beside its task.
-    expect(callers).toEqual([
-      "src/server/ai/providers/gemini.ts",
-    ]);
+    expect(callers).toEqual(["src/server/ai/providers/gemini.ts"]);
     // Every prompt a caller sends is built by the one template, which adds the
     // one rule — so the module's use is asserted at the renderer.
     expect(readFileSync(resolve(root, "server/ai/template.ts"), "utf8")).toContain(

@@ -16,24 +16,49 @@ export type GeminiImageAnswer =
   | Exclude<GeminiTextAnswer, { kind: "text" }>;
 
 const imageEnvelope = z.object({
-  candidates: z.array(z.object({
-    content: z.object({ parts: z.array(z.object({
-      inlineData: z.object({ data: z.string(), mimeType: z.string().optional() }).optional(),
-    })) }).optional(),
-  })).optional(),
+  candidates: z
+    .array(
+      z.object({
+        content: z
+          .object({
+            parts: z.array(
+              z.object({
+                inlineData: z
+                  .object({ data: z.string(), mimeType: z.string().optional() })
+                  .optional(),
+              }),
+            ),
+          })
+          .optional(),
+      }),
+    )
+    .optional(),
 });
 
 /** The bytes, never the provider's declared content type, identify an image. */
 function imageMime(bytes: Uint8Array): AiImage["mime"] | null {
-  if (bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)) return "image/png";
-  if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "image/jpeg";
-  if (bytes.length >= 12 && String.fromCharCode(...bytes.subarray(0, 4)) === "RIFF" && String.fromCharCode(...bytes.subarray(8, 12)) === "WEBP") return "image/webp";
+  if (
+    bytes.length >= 8 &&
+    [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)
+  )
+    return "image/png";
+  if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255)
+    return "image/jpeg";
+  if (
+    bytes.length >= 12 &&
+    String.fromCharCode(...bytes.subarray(0, 4)) === "RIFF" &&
+    String.fromCharCode(...bytes.subarray(8, 12)) === "WEBP"
+  )
+    return "image/webp";
   return null;
 }
 
 /** One image-model request and one decode, bounded across headers and body. */
 export async function geminiImage(input: {
-  model: string; prompt: string; timeoutMs: number; label: string;
+  model: string;
+  prompt: string;
+  timeoutMs: number;
+  label: string;
 }): Promise<GeminiImageAnswer> {
   const key = process.env["GEMINI_API_KEY"] ?? "";
   if (key.trim() === "") return { kind: "noKey" };
@@ -43,7 +68,10 @@ export async function geminiImage(input: {
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: input.prompt }] }], generationConfig: { responseModalities: ["TEXT", "IMAGE"] } }),
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: input.prompt }] }],
+          generationConfig: { responseModalities: ["TEXT", "IMAGE"] },
+        }),
       },
       { timeoutMs: input.timeoutMs, label: input.label },
     );
@@ -51,16 +79,24 @@ export async function geminiImage(input: {
     try {
       const parsed = imageEnvelope.safeParse(await response.json());
       if (!parsed.success) return { kind: "unusable", status: response.status };
-      const data = parsed.data.candidates?.[0]?.content?.parts?.find((part) => part.inlineData !== undefined)?.inlineData?.data;
-      if (data === undefined || data.length > Math.ceil(IMAGE_ANSWER_MAX_BYTES / 3) * 4) return { kind: "unusable", status: response.status };
+      const data = parsed.data.candidates?.[0]?.content?.parts?.find(
+        (part) => part.inlineData !== undefined,
+      )?.inlineData?.data;
+      if (data === undefined || data.length > Math.ceil(IMAGE_ANSWER_MAX_BYTES / 3) * 4)
+        return { kind: "unusable", status: response.status };
       const binary = atob(data);
-      if (binary.length === 0 || binary.length > IMAGE_ANSWER_MAX_BYTES) return { kind: "unusable", status: response.status };
+      if (binary.length === 0 || binary.length > IMAGE_ANSWER_MAX_BYTES)
+        return { kind: "unusable", status: response.status };
       const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
       const mime = imageMime(bytes);
-      return mime === null ? { kind: "unusable", status: response.status } : { kind: "image", status: response.status, bytes, mime };
+      return mime === null
+        ? { kind: "unusable", status: response.status }
+        : { kind: "image", status: response.status, bytes, mime };
     } catch (error) {
-      const name = typeof error === "object" && error !== null && "name" in error ? error.name : null;
-      if (error instanceof UpstreamTimeout || name === "AbortError" || name === "TimeoutError") return { kind: "timeout" };
+      const name =
+        typeof error === "object" && error !== null && "name" in error ? error.name : null;
+      if (error instanceof UpstreamTimeout || name === "AbortError" || name === "TimeoutError")
+        return { kind: "timeout" };
       return { kind: "unusable", status: response.status };
     }
   } catch (error) {
