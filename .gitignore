@@ -45,3 +45,9 @@ blob-report/
 # Local-only Playwright configs (never committed)
 pw.local.ts
 pw.*.local.ts
+
+# Claude Code executor (DEC-255): per-session state and personal settings, never committed
+.claude/turn/
+.claude/settings.local.json
+# the kit archive while it is unpacked (executor-kit install)
+/executor-kit-*.tar.gz
