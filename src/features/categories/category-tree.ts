@@ -276,7 +276,10 @@ export async function readCategoryTree(): Promise<{ tree: CategoryTree; version:
       `category tree read failed (${answer.kind === "answered" ? String(answer.status) : answer.kind})`,
     );
   }
-  const payload = (answer.payload ?? { nodes: [], pointers: [], version: "" }) as TreePayload;
+  const payload = answer.payload;
+  if (!isTreePayload(payload)) {
+    throw new Error("category tree read failed (bad payload)");
+  }
 
   const rows: CategoryNode[] = payload.nodes.map((row) => ({
     id: row.id,
