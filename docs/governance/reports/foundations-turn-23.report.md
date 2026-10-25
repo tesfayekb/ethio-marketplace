@@ -38,7 +38,7 @@ scripts/perf/lab.ts
 src/lib/error-capture.test.ts
 ```
 
-The report is new at closure; its tracked-file proof is checked after the platform save, not assumed.
+The report is new at closure; after its platform save, `git ls-files docs/governance/reports/foundations-turn-23.report.md` printed `docs/governance/reports/foundations-turn-23.report.md`.
 
 ## 2. Part A — CI first
 
@@ -225,7 +225,7 @@ Important limit: the smoke log also retains bare `abort@[native code]` stacks be
 
 ## 9. K2 census
 
-Read-only production src census (test/spec files excluded), hook initializers cross-checked against window/document/localStorage/sessionStorage/navigator reads: no remaining matching useState/useMemo/useRef initializer. Covered former site `src/routes/auth_.callback.tsx:48–50` now reads router searchStr (current lines checked below).
+Read-only production src census (test/spec files excluded), hook initializers cross-checked against window/document/localStorage/sessionStorage/navigator reads: no remaining matching useState/useMemo/useRef initializer. Covered former site now reads router searchStr at `src/routes/auth_.callback.tsx:50`, with the safe return initializer at `:51` (fresh source search verified both).
 
 Production console.error sites in src/server and src/lib: no remaining untagged framework-error writer found. The framework emitter remains node_modules/@tanstack/react-router/dist/esm/ssr/renderRouterToStream.js:14–16; error-capture.ts:85–88 tags its arguments. error-capture.ts:81–83 recognizes the h3 abort log. Tagged non-census upstream logs at src/server/upstream.ts:35,43 are deliberate, not an untagged framework bypass.
 
