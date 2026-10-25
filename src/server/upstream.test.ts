@@ -68,4 +68,28 @@ describe("upstream (B3)", () => {
     expect(line).not.toContain("provider.example");
     expect(line).not.toContain("secret-key");
   });
+
+  it("UPS-4 an answer below 400 logs at info, a 4xx at error (INC-892)", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 200 })),
+    );
+    await upstream("https://provider.example/ok", {}, { timeoutMs: 1000, label: "provider" });
+    expect(info).toHaveBeenCalledTimes(1);
+    expect(info.mock.calls[0].join(" ")).toContain("[upstream] provider 200");
+    expect(error).not.toHaveBeenCalled();
+
+    info.mockClear();
+    error.mockClear();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { status: 404 })),
+    );
+    await upstream("https://provider.example/missing", {}, { timeoutMs: 1000, label: "provider" });
+    expect(error).toHaveBeenCalledTimes(1);
+    expect(error.mock.calls[0].join(" ")).toContain("[upstream] provider 404");
+    expect(info).not.toHaveBeenCalled();
+  });
 });
