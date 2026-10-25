@@ -11,10 +11,10 @@ vi.mock("@supabase/supabase-js", () => ({
   isAuthRetryableFetchError: () => false,
 }));
 vi.mock("@/server/ai/meter", () => ({
-  aiFakeMode: () => false,
   aiGate: async () => ({ on: true }),
   recordAiSpend: async () => undefined,
 }));
+vi.mock("@/server/stand-in", () => ({ standInMode: () => false }));
 
 import { Route } from "./translate";
 
