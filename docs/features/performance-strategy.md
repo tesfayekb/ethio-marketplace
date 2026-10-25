@@ -161,3 +161,43 @@ the *product's* performance story is mostly still ahead and is dominated by how 
 image pipeline is built. That's where the attention should go — and this document exists so
 it does.
 
+
+## 6. The phone lab and the baseline (D234, Foundations turn 23)
+
+`scripts/perf/lab.ts` measures how fast a page is for a person on a low-end
+Android phone on a slow mobile network, the same way every time, from the
+published site. The throttling is Lighthouse's own mobile preset
+(`lighthouse-core/config/constants.js`, `throttling.mobileSlow4G`, devtools
+method): 150 ms RTT and 1.6 Mbps down / 750 Kbps up, applied as 562.5 ms
+request latency, 1,474.56 Kbps down and 675 Kbps up, with a 4× CPU slowdown;
+the screen is the project's 360 px phone (360×740, DPR 1.75). Per page it runs
+cold-cache passes (a fresh browser context each) plus one warm run (a repeat
+visit in the same context), and records TTFB (from the CDP clock — Navigation
+Timing's responseStart is taken before DevTools throttling and under-reports
+it), FCP, LCP and its element, CLS, TBT, DOMContentLoaded, load, HTML bytes,
+bytes by type as the network carried them, and the request count.
+
+Run it (each command stands alone):
+
+```
+bun scripts/perf/lab.ts --base https://my-market-dawn.lovable.app --runs 3 --pages home,category --out docs/perf/baseline-2026-10-25-1.json
+bun scripts/perf/lab.ts --base https://my-market-dawn.lovable.app --runs 3 --pages ad,seller --out docs/perf/baseline-2026-10-25-2.json
+bun scripts/perf/lab.ts --base https://my-market-dawn.lovable.app --runs 3 --pages post,auth --out docs/perf/baseline-2026-10-25-3.json
+bun scripts/perf/lab.ts --base https://my-market-dawn.lovable.app --runs 3 --pages terms --out docs/perf/baseline-2026-10-25-4.json
+```
+
+Baseline of the published site (https://my-market-dawn.lovable.app),
+2026-10-25 — median of three cold runs; raw data in
+`docs/perf/baseline-2026-10-25-*.json`:
+
+| Page | TTFB ms | FCP ms | LCP ms | LCP element | CLS | TBT ms | load ms | HTML KB | total KB | requests | warm LCP ms | warm KB |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| home `/` | 1236 | 3260 | 3260 | p[footer-copyright] | 0 | 663 | 5400 | 7.6 | 509.8 | 74 | 6524 | 955 |
+| category `/c/vehicles` | 912 | 2900 | 2968 | p[footer-copyright] | 0.011 | 751 | 5077 | 7.6 | 510.1 | 75 | 6824 | 460 |
+| ad `/l/driver-hire-service-c5j3d66hyk` | 938 | 3168 | 6008 | img (category card png) | 0.026 | 685 | 6365 | 13.7 | 893.6 | 96 | 1188 | 237 |
+| seller `/badminton_shop` | 1080 | 3112 | 3112 | p[footer-copyright] | 0.006 | 612 | 5280 | 7.3 | 550.3 | 78 | 5100 | 362 |
+| post `/post` | 827 | 2860 | 2860 | p[footer-copyright] | 0 | 542 | 5257 | 8.8 | 555 | 67 | 988 | 70 |
+| auth `/auth` | 610 | 2668 | 2668 | (none) | 0 | 528 | 4708 | 8 | 548.8 | 77 | 1212 | 48 |
+| terms `/terms` | 1175 | 3276 | 3276 | li | 0 | 799 | 5296 | 44.6 | 536.3 | 71 | 1112 | 85 |
+
+Budgets: set from this baseline and the speed study (a later turn).
