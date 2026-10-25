@@ -263,11 +263,12 @@ interface TreePayload {
 
 /** The route's envelope is data; a malformed answer is a read failure (F4), never a cast. */
 function isTreePayload(payload: unknown): payload is TreePayload {
-  if (payload === null || typeof payload !== "object") return false;
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return false;
+  const record: Record<string, unknown> = payload as Record<string, unknown>;
   return (
-    typeof payload["version"] === "string" &&
-    Array.isArray(payload["nodes"]) &&
-    Array.isArray(payload["pointers"])
+    typeof record["version"] === "string" &&
+    Array.isArray(record["nodes"]) &&
+    Array.isArray(record["pointers"])
   );
 }
 
