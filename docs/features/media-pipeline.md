@@ -66,6 +66,13 @@ a copy.
 
 ## The policy pass (`src/server/media/policy.ts`, D15)
 
+Since Foundations turn 17 the pass is one `aiCall("photo_screen", …)` through
+the AI gateway (docs/features/ai-gateway.md): the switch, the provider key, the
+site's day cap (the call's reservation), the stand-in or the provider, the
+schema, the spend and the audit row are the gateway's order, and the task's
+`all` rule fails the call before the provider is asked when any size would be
+dropped.
+
 `screenPhotoPolicy` sends EVERY size that will be stored — the cover, the card and
 the thumb, in that order (turn T17) — to one Gemini image call — `GEMINI_API_KEY`, model `GEMINI_VISION_MODEL`
 (default the images model the category-image route uses) — with a JSON-schema
@@ -212,7 +219,7 @@ The operator's decisions of 2026-10-13 (after the gallery peer study): on a comp
 
 ## Bundle 13, turn 6 — photos held while photo screening is off (D158)
 
-- **The upload's step 6** asks `photoScreenPlan(gate, status)` (src/server/media/hold.ts): `screen` (the pass, as before), `hold` (switched off by staff, on a draft or a rejected ad: stored with `unscreened = true`, no pass, nothing metered), `paused` (switched off by staff, on a live or held or expired ad: refused `screeningPaused`) or `unavailable` (the switch could not be read: `providerUnavailable` with a retry). The answer of a stored photo carries `unscreened`.
+- **The upload's step 6** is the gateway's order since Foundations turn 17 (`screenAnswerOf`, src/server/media/policy.ts; `photoScreenPlan`/`withSiteCap` are retired): switched off by staff or by budget, or the site's day cap spent (the call's reservation), the photo is HELD on any ad — stored with `unscreened = true`, no pass, nothing metered (bundle 16 turn 4a retired `paused`: staff see every held photo); a switch that could not be read or any provider failure is `providerUnavailable` with a retry. The answer of a stored photo carries `unscreened`.
 - **`listing_photos.unscreened`** — a held photo. `register_listing_photo(…, p_unscreened)` writes it; the public read and the feed's cover leave it out; approving the ad clears it (the trigger `listing_photos_approved_with_ad`, a person's decision only). The whole rule: docs/features/ai-services.md, "Photos held for staff".
 
 ## Bundle 13, turn 7 — the middle size (D162) and the photo's top in the gallery (INC-613)
@@ -243,7 +250,7 @@ This section is the later word on the counts of sizes above.
 ## Bundle 13, turn 12 — remove the cover's background (D155b / D159)
 
 - **What the operator decided.** One fixed background in the house colour, seen before the seller keeps it (D155); the tool on the cover only, once per ad plus one retry, in every category (D159); the provider Photoroom (D156), its data terms read first.
-- **The path.** The photo step's cover has Remove background (an eraser icon beside Edit). The dialog says what it does and asks nothing until Start. `POST /api/listings/background { listingId, photoId }` checks the switch, the seller's daily dial, the ad (the caller's own, in a status that takes photos — the upload route's set, now one export in src/server/media/hold.ts) and the photo (the first in the ad's order), spends one of the ad's two tries, reads the stored cover through a link the server signs for it, and sends that image — and nothing else — to Photoroom for a WebP cut-out on a transparent ground (src/server/media/background.ts). The answer is the image itself; nothing is stored.
+- **The path.** The photo step's cover has Remove background (an eraser icon beside Edit). The dialog says what it does and asks nothing until Start. `POST /api/listings/background { listingId, photoId }` is one `aiCall("background_removal", …)` since Foundations turn 17: the gateway checks the switch and the key first (a keyless tool answers switched off and spends no try), then the route's reservation runs in today's order — the seller's daily dial, the ad (the caller's own, in a status that takes photos — the upload route's set, one export in src/server/media/hold.ts) and the photo (the first in the ad's order), one of the ad's two tries — then the image supplier reads the stored cover through a link the server signs for it, and the Photoroom adapter (src/server/ai/providers/photoroom.ts) sends that image — and nothing else — for a WebP cut-out on a transparent ground. The answer is the image itself; nothing is stored.
 - **The colour.** The seller's device lays the cut-out on #F3F5F8, the site's page tone (src/features/posting/photo-background.ts), and shows it. The server does no image work (DEC-082, INC-308).
 - **Keeping it.** Keep sends the picture through `POST /api/upload/photo` with `replaces` (turn 9's path): the four sizes on the device, the strip, the AI screen; it takes the cover's place and the old cover goes. Retry asks once more while the ad has a try left; Cancel keeps the photo as it was. A refusal is said in words (switched off, could not be removed now, the ad's tries used, the cover only) and the photo stays as it was.
 - **Cost and switch.** The AI feature `background_removal` (docs/features/ai-services.md, "Bundle 13 turn 12"): $0.02 a call, metered after the provider answers; switched off by staff, by its budget, or when no `PHOTOROOM_API_KEY` is set.
