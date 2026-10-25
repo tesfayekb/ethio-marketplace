@@ -9,7 +9,9 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * download retried by the next ask and answered on screen, never a crashed page
  * (a failed React.lazy chunk throws to the route's error boundary). The census
  * reads every dynamic `import(` in the browser's code; one inside a `loadOnce(`
- * call passes, any other needs its allowlist line (key | reason | until).
+ * call passes, and so does a component's inside `resilientLazy(`
+ * (src/lib/resilient-lazy.ts, D234 S3: React.lazy whose failure renders the
+ * piece's own fallback); any other needs its allowlist line (key | reason | until).
  * Server-only imports (src/server/, server routes, *.server.ts and the server
  * modules a server function loads) never run in the browser and are not read.
  */
@@ -18,12 +20,15 @@ const SERVER_SPECIFIER =
 
 type Finding = { file: string; line: number; what: string };
 
+/** The two ways a browser module is fetched on demand (D234 S1, S3). */
+const ON_DEMAND = new Set(["loadOnce", "resilientLazy"]);
+
 function insideLoadOnce(node: ts.Node): boolean {
   for (let parent = node.parent; parent !== undefined; parent = parent.parent) {
     if (
       ts.isCallExpression(parent) &&
       ts.isIdentifier(parent.expression) &&
-      parent.expression.text === "loadOnce"
+      ON_DEMAND.has(parent.expression.text)
     )
       return true;
   }
@@ -86,7 +91,7 @@ describe("on-demand module loading (D234, INC-897)", () => {
       );
       writeFileSync(
         good,
-        'import { loadOnce } from "@/lib/load-once";\nconst MAP = loadOnce(() => import("./map"));\nconst s = () => import("@/server/x");\n',
+        'import { loadOnce } from "@/lib/load-once";\nconst MAP = loadOnce(() => import("./map"));\nconst Pin = resilientLazy(() => import("./pin").then((m) => m.Pin), "the pin", NoPin);\nconst s = () => import("@/server/x");\n',
       );
       expect(report(onDemandImports([bad, good]))).toBe(
         `${bad}:2 fetches a module on demand outside loadOnce`,
@@ -96,9 +101,12 @@ describe("on-demand module loading (D234, INC-897)", () => {
     }
   });
 
-  it("OD-3 the bypasses still to move are the ones INC-897 names, and their number only falls", () => {
-    const toMove = [...allowances.values()].filter((allowance) => allowance.until === "INC-897");
-    expect(toMove.length).toBeLessThanOrEqual(4);
-    expect(readFileSync(ALLOWLIST, "utf8")).toContain("INC-897");
+  it("OD-3 INC-897 is closed: no allowance waits on it, and no React.lazy site is left in the browser's code", () => {
+    const waiting = [...allowances.values()].filter((allowance) => allowance.until === "INC-897");
+    expect(waiting).toEqual([]);
+    const lazySites = domain.filter((file) =>
+      /\blazy\(\s*\(\)\s*=>\s*import\(/.test(readFileSync(file, "utf8")),
+    );
+    expect(lazySites).toEqual([]);
   });
 });
