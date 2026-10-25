@@ -90,10 +90,8 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
             return ok({ error: code }, { status });
           }
           const response = serverError(PATH, `ai category_icon ${answer.reason}`);
-          return ok(
-            { error: "server error" },
-            { status: response.status === 500 ? 502 : response.status },
-          );
+          // Keep the boundary's incident-bearing envelope and the established 502 status.
+          return ok(await response.json(), { status: 502 });
         },
       }),
     },
