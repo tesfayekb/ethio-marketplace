@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(bun run *)",
+      "Bash(bunx prettier *)",
+      "Bash(bunx eslint *)",
+      "Bash(bunx vitest *)",
+      "Bash(bunx tsc *)",
+      "Bash(bunx playwright install *)",
+      "Bash(bun install --frozen-lockfile)",
+      "Bash(bash scripts/*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git fetch*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git rev-parse*)",
+      "Bash(git merge-base*)",
+      "Bash(git ls-files*)",
+      "Bash(git grep*)",
+      "Bash(git cat-file*)",
+      "Bash(git restore *)",
+      "Bash(git rm *)",
+      "Bash(git mv *)",
+      "Bash(git stash*)",
+      "Bash(gh api repos/tesfayekb/ethio-marketplace/*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(sha256sum *)",
+      "Bash(rg *)",
+      "Bash(grep *)",
+      "Bash(ls *)",
+      "Bash(wc *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(sed -n *)",
+      "Bash(diff *)",
+      "Bash(jq *)",
+      "Bash(mkdir -p .claude/turn*)",
+      "Bash(bun .claude/hooks/land.ts)",
+      "Bash(git switch dev)",
+      "Bash(git merge --ff-only origin/dev)",
+      "Bash(git branch --show-current)",
+      "mcp__supabase-prod__list_tables",
+      "mcp__supabase-prod__list_migrations",
+      "mcp__supabase-prod__list_extensions"
+    ],
+    "ask": ["mcp__supabase-prod__apply_migration"],
+    "deny": [
+      "Bash(git rebase*)",
+      "Bash(git commit --amend*)",
+      "Bash(git reset --hard*)",
+      "Bash(git reset --merge*)",
+      "Bash(git branch -D*)",
+      "Bash(git branch -d*)",
+      "Bash(git branch -m*)",
+      "Bash(git branch -M*)",
+      "Bash(git checkout dev*)",
+      "Bash(git checkout main*)",
+      "Bash(git switch dev*)",
+      "Bash(git switch main*)",
+      "Bash(git merge *)",
+      "Bash(git pull*)",
+      "Bash(git cherry-pick*)",
+      "Bash(git tag *)",
+      "Bash(git remote add*)",
+      "Bash(git remote set-url*)",
+      "Bash(git remote remove*)",
+      "Bash(git apply*)",
+      "Bash(git -C *)",
+      "Bash(git -c *)",
+      "Bash(supabase *)",
+      "Bash(psql*)",
+      "Bash(pg_dump*)",
+      "Bash(playwright test*)",
+      "Bash(bunx playwright test*)",
+      "Bash(npx playwright test*)",
+      "Bash(bun run test:e2e*)",
+      "Bash(bun add *)",
+      "Bash(bun remove *)",
+      "Bash(bun update*)",
+      "Bash(npm install*)",
+      "Bash(npm i *)",
+      "Bash(npm ci*)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm install*)",
+      "Bash(yarn add *)",
+      "Bash(yarn install*)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(eval *)",
+      "Bash(bash -c *)",
+      "Bash(sh -c *)",
+      "Bash(python3 -c *)",
+      "Bash(python -c *)",
+      "Bash(node -e *)",
+      "Bash(bun -e *)",
+      "Bash(gh pr merge*)",
+      "Bash(gh pr close*)",
+      "Bash(gh pr review*)",
+      "Bash(gh repo *)",
+      "Bash(gh release *)",
+      "Bash(gh secret *)",
+      "Bash(gh variable *)",
+      "Bash(gh auth *)",
+      "Bash(gh ruleset *)",
+      "Bash(gh workflow run*)",
+      "Bash(gh run rerun*)",
+      "Bash(gh run cancel*)",
+      "Bash(gh api graphql*)",
+      "Bash(gh api -X DELETE *)",
+      "Bash(gh api -X PUT *)",
+      "Bash(gh api --method DELETE *)",
+      "Bash(gh api --method PUT *)",
+      "Bash(claude mcp *)",
+      "Bash(claude config *)",
+      "Bash(claude plugin *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf .)",
+      "Bash(rm -rf ./)",
+      "Bash(rm -rf .git*)",
+      "Bash(rm -rf .claude*)",
+      "Bash(rm -rf src*)",
+      "Bash(rm -rf e2e*)",
+      "Bash(rm -rf supabase*)",
+      "Bash(rm -rf docs*)",
+      "Bash(rm -rf scripts*)",
+      "Bash(printenv*)",
+      "Bash(env)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./.claude/settings.local.json)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(./src/integrations/supabase/types.ts)",
+      "Edit(./src/routeTree.gen.ts)",
+      "Edit(./src/integrations/supabase/previewAuthStorage.ts)",
+      "Edit(./bun.lock)",
+      "Edit(./CLAUDE.md)",
+      "Edit(./.mcp.json)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./.claude/settings.local.json)",
+      "Edit(./.claude/hooks/**)",
+      "Edit(./.claude/rules/**)",
+      "Edit(./.claude/agents/**)",
+      "Edit(./.claude/skills/**)",
+      "Edit(./.github/workflows/**)",
+      "Write(./.env)",
+      "Write(./.env.*)",
+      "Write(./src/integrations/supabase/types.ts)",
+      "Write(./src/routeTree.gen.ts)",
+      "Write(./bun.lock)",
+      "Write(./CLAUDE.md)",
+      "Write(./.mcp.json)",
+      "Write(./.claude/settings.json)",
+      "Write(./.claude/settings.local.json)",
+      "Write(./.claude/hooks/**)",
+      "Write(./.claude/rules/**)",
+      "Write(./.claude/agents/**)",
+      "Write(./.claude/skills/**)",
+      "Write(./.github/workflows/**)",
+      "WebFetch",
+      "WebSearch",
+      "Bash(git push*)",
+      "Bash(git switch -c*)",
+      "Bash(git switch -C*)",
+      "Bash(git checkout -b*)",
+      "Bash(gh pr *)",
+      "Bash(gh issue *)",
+      "Bash(gh api -X POST*)",
+      "Bash(gh api -X PATCH*)",
+      "Bash(gh api --method POST*)",
+      "Bash(gh api --method PATCH*)",
+      "Bash(claude *)",
+      "mcp__supabase-prod__execute_sql"
+    ]
+  },
+  "enableAllProjectMcpServers": false,
+  "enabledMcpjsonServers": ["supabase-prod"],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-setup.ts",
+            "timeout": 1100
+          },
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/header.ts",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/header.ts",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/scope-guard.ts",
+            "timeout": 30,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/bash-guard.ts",
+            "timeout": 30,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/post-edit.ts",
+            "timeout": 120
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop-gate.ts",
+            "timeout": 2400,
+            "onFailure": "block"
+          }
+        ]
+      }
+    ]
+  }
+}
