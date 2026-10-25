@@ -337,4 +337,3 @@ THE CHECKS (in this order): `bun run lint` (paste the error and warning counts; 
 
 THE COMPLETION REPORT (docs/governance/reports/foundations-turn-23.report.md, and its summary in chat): the file list from `git diff --name-only <START>` (plus `git ls-files` for each new file); done or not done by part and step; lab.ts's sha256; the red-first lines for ECAP-1 and ECAP-2; every `[lab]` line and the four headers dumps; the K2 lists (file:line); the first six lines of ci-status.md for the last commit you can read; every departure with its reason. THE CI WAIT REPORT: after the final commit, END THE TURN; the supervisor reads the run.
 ```
-BRIEF-END
