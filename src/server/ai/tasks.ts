@@ -250,7 +250,10 @@ export type OutputOf<T extends TaskId> = z.infer<
 
 const BY_ID = new Map(AI_TASKS.map((task) => [task.id, task]));
 
-/** The registry's one cast: the map holds exactly the tasks above, keyed by their ids. */
-export function taskOf<T extends TaskId>(id: T): Extract<(typeof AI_TASKS)[number], { id: T }> {
-  return BY_ID.get(id) as Extract<(typeof AI_TASKS)[number], { id: T }>;
+/**
+ * The registry's one cast, at the trust boundary: the map holds exactly the
+ * tasks above, so the id a caller names is paired with that task's schema.
+ */
+export function taskOf<T extends TaskId>(id: T): AiTask<OutputOf<T>> & { id: T } {
+  return BY_ID.get(id) as AiTask<OutputOf<T>> & { id: T };
 }

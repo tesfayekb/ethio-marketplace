@@ -82,14 +82,19 @@ describe("AI gateway conformance", () => {
   it("GWC-4 tasks bound deadlines and every string output and close instructions", () => {
     for (const task of AI_TASKS) {
       expect(task.timeoutMs).toBeLessThanOrEqual(120_000);
-      const valid = task.fake({ alias: "cocacola", name: "Sofas" });
+      const valid = task.fake({ alias: "cocacola", name: "Sofas" }) as Record<string, unknown>;
       expect(task.output.safeParse(valid).success).toBe(true);
       expect(task.output.safeParse({ ...valid, extra: true }).success).toBe(false);
       for (const [key, value] of Object.entries(valid)) {
-        if (typeof value === "string")
-          expect(task.output.safeParse({ ...valid, [key]: "x".repeat(10_000) }).success).toBe(
-            false,
-          );
+        if (typeof value === "string") {
+          // Bounded either by refusal or by the task's own clamp (the writing
+          // helper's transform cuts to the field's ceiling before the bounds).
+          const oversized = task.output.safeParse({ ...valid, [key]: "x".repeat(10_000) });
+          if (oversized.success) {
+            const stored = (oversized.data as Record<string, unknown>)[key];
+            expect(typeof stored === "string" && stored.length < 10_000).toBe(true);
+          }
+        }
       }
       const system = render(task, {}).system;
       expect(system.endsWith(UNTRUSTED_RULE)).toBe(true);

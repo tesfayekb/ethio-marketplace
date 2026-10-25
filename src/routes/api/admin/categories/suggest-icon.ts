@@ -63,7 +63,7 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
               { status: reason === "unavailable" ? 503 : 409 },
             );
           }
-          const status = answer.status;
+          const status = "status" in answer ? answer.status : undefined;
           if (
             answer.reason === "providerError" &&
             status !== undefined &&
