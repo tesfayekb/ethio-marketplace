@@ -7,7 +7,7 @@
  * straight through), never swallowed into a fake success.
  */
 import { UNTRUSTED_RULE } from "@/lib/untrusted-text";
-import { aiFakeMode } from "@/server/ai/meter";
+import { standInMode } from "@/server/stand-in";
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -20,7 +20,7 @@ export function serverEnv(name: string, fallback = ""): string {
  * Without that permission the provider path reports a missing key normally.
  */
 export function isFakeMode(): boolean {
-  return aiFakeMode("GEMINI_FAKE");
+  return standInMode("GEMINI_FAKE");
 }
 
 export function imageModel(): string {

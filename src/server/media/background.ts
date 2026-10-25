@@ -32,7 +32,7 @@
  */
 import { upstream } from "@/server/upstream";
 import { errorText } from "@/lib/error-text";
-import { aiFakeMode } from "@/server/ai/meter";
+import { standInMode } from "@/server/stand-in";
 
 export const PHOTOROOM_SEGMENT_URL = "https://sdk.photoroom.com/v1/segment";
 
@@ -50,7 +50,7 @@ export interface Cutout {
 type Log = (message: string) => void;
 
 export function isBackgroundFake(): boolean {
-  return aiFakeMode("E2E_FAKE_BACKGROUND");
+  return standInMode("E2E_FAKE_BACKGROUND");
 }
 
 /** The provider's key, read inside the handler and never echoed (F1). */

@@ -407,7 +407,8 @@ async function handlePost(request: Request): Promise<Response> {
   // Machine translation is asked for only while `translations` is switched on
   // (off: 409; a switch that could not be read: 503), and the characters the
   // provider (or fake mode) was sent are metered once the chunks have answered.
-  const { aiFakeMode, aiGate, recordAiSpend } = await import("@/server/ai/meter");
+  const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
+  const { standInMode } = await import("@/server/stand-in");
   const meterLog = (message: string) => logRouteError(message);
   const gate = await aiGate("translations", meterLog);
   if (!gate.on) {
@@ -418,7 +419,7 @@ async function handlePost(request: Request): Promise<Response> {
   }
 
   // ---- PROVIDER --------------------------------------------------
-  const fake = aiFakeMode("E2E_FAKE_TRANSLATE");
+  const fake = standInMode("E2E_FAKE_TRANSLATE");
   const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
   if (!fake && apiKey === "") {
     return fail5xx("translation provider is not configured", 503);
@@ -547,8 +548,8 @@ async function handleGet(request: Request): Promise<Response> {
   if (manageError) return fail5xx(manageError.message, 500);
   if (mayManage !== true) return json({ error: "permission denied" }, 403);
 
-  const { aiFakeMode } = await import("@/server/ai/meter");
-  if (aiFakeMode("E2E_FAKE_TRANSLATE")) {
+  const { standInMode } = await import("@/server/stand-in");
+  if (standInMode("E2E_FAKE_TRANSLATE")) {
     return json({ languages: FAKE_LANGUAGES }, 200);
   }
 

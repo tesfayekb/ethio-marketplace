@@ -66,11 +66,12 @@ vi.mock("@/server/catalog-find.server", () => ({
   clientAddress: () => "203.0.113.9",
   hashAddress: (address: string) => `hashed:${address}`,
 }));
-vi.mock("@/server/ai/meter", () => ({
-  aiFakeMode: () => false,
+vi.mock("@/server/ai/meter", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/ai/meter")>()),
   aiGate: async () => ({ on: true }),
   recordAiSpend: async () => undefined,
 }));
+vi.mock("@/server/stand-in", () => ({ standInMode: () => false }));
 vi.mock("@/server/media/links", () => ({ signPhotoRows: async () => ({}) }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: {} }));
 
