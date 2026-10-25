@@ -59,7 +59,8 @@ export async function geminiImage(input: {
       const mime = imageMime(bytes);
       return mime === null ? { kind: "unusable", status: response.status } : { kind: "image", status: response.status, bytes, mime };
     } catch (error) {
-      if (error instanceof UpstreamTimeout || (error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError"))) return { kind: "timeout" };
+      const name = typeof error === "object" && error !== null && "name" in error ? error.name : null;
+      if (error instanceof UpstreamTimeout || name === "AbortError" || name === "TimeoutError") return { kind: "timeout" };
       return { kind: "unusable", status: response.status };
     }
   } catch (error) {
