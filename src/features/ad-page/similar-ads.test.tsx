@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
@@ -72,12 +72,22 @@ describe("SIM-4 the similar-ads section", () => {
       }),
     );
     const { container, rerender } = render(<SimilarAds {...props} />);
-    // INC-704: while loading the container holds no element at all (no frame).
-    expect(container.firstElementChild).toBeNull();
+    // INC-704: while loading the container holds no frame and no text — only the
+    // section's 1px anchor (D234 S1), which says the read has not answered.
+    const anchor = screen.getByTestId("listing-similar-anchor");
+    expect(container.children).toHaveLength(1);
+    expect(anchor.getAttribute("data-similar")).toBe("waiting");
+    expect(container.querySelector(".rounded-card")).toBeNull();
     resolve({ cards: [], coverLinks: {} });
     await waitFor(() => expect(similarListings).toHaveBeenCalledTimes(1));
     rerender(<SimilarAds {...props} />);
-    await waitFor(() => expect(container.firstElementChild).toBeNull());
+    await waitFor(() =>
+      expect(screen.getByTestId("listing-similar-anchor").getAttribute("data-similar")).toBe(
+        "empty",
+      ),
+    );
+    expect(container.children).toHaveLength(1);
+    expect(container.querySelector(".rounded-card")).toBeNull();
     expect(container.textContent).toBe("");
   });
 
@@ -99,5 +109,43 @@ describe("SIM-4 the similar-ads section", () => {
     const items = section.querySelectorAll("ul > li");
     for (const index of [6, 7]) expect(items[index]?.className).toBe("hidden sm:block");
     for (const index of [8, 9]) expect(items[index]?.className).toBe("hidden lg:block");
+  });
+});
+
+/**
+ * D234 speed turn S1 — the read waits until the section's place nears the screen
+ * (src/lib/use-near-viewport.ts): a buyer who never scrolls down downloads none of it.
+ */
+describe("SIM-5 the similar-ads read waits for its place to near the screen", () => {
+  it("reads nothing until the anchor nears the screen, then reads once", async () => {
+    const observers: Array<(entries: Array<{ isIntersecting: boolean }>) => void> = [];
+    class FakeObserver {
+      constructor(callback: (entries: Array<{ isIntersecting: boolean }>) => void) {
+        observers.push(callback);
+      }
+      observe() {}
+      disconnect() {}
+    }
+    vi.stubGlobal("IntersectionObserver", FakeObserver);
+    try {
+      similarListings.mockReset();
+      similarListings.mockResolvedValue({ cards: [card("l-1")], coverLinks: {} });
+      render(<SimilarAds {...props} />);
+      await new Promise((done) => setTimeout(done, 20));
+      expect(similarListings).not.toHaveBeenCalled();
+      expect(screen.getByTestId("listing-similar-anchor").getAttribute("data-similar")).toBe(
+        "waiting",
+      );
+      act(() => {
+        for (const notify of observers) notify([{ isIntersecting: true }]);
+      });
+      expect(await screen.findByTestId("listing-similar")).toBeTruthy();
+      expect(similarListings).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId("listing-similar-anchor").getAttribute("data-similar")).toBe(
+        "shown",
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 });

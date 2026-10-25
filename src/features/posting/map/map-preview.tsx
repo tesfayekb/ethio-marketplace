@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 
 import { useI18n } from "@/i18n";
+import { useNearViewport } from "@/lib/use-near-viewport";
 
 import { APPROX_RADIUS_M } from "./geocode";
 import {
@@ -61,10 +62,13 @@ export function MapPreview({
   const approx = precision === "approx";
   // Part H2 — the plan in force's credit, drawn as text (never Leaflet's markup control).
   const [credit, setCredit] = useState("");
+  // D234 S1 — on the buyer's ad page the map's library, tile plan and tiles wait until
+  // the box nears the screen; the seller's preview in the wizard draws at once.
+  const near = useNearViewport(boxRef, { enabled: audience === "buyer" });
 
   useEffect(() => {
     const box = boxRef.current;
-    if (box === null) return;
+    if (box === null || !near) return;
     let cancelled = false;
 
     void Promise.all([loadLeaflet(), loadTilePlan()])
@@ -111,7 +115,7 @@ export function MapPreview({
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, [lat, lng, approx, zoom]);
+  }, [lat, lng, approx, zoom, near]);
 
   return (
     <div className="space-y-1">
