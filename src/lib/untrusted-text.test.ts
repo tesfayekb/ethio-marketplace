@@ -7,7 +7,8 @@ import { PHOTO_POLICY_INSTRUCTION } from "@/server/media/policy";
 
 import { walkFiles } from "../../scripts/conformance/kit";
 
-import { composeAssistPrompt } from "./assist-prompt";
+import { AI_TASKS } from "@/server/ai/tasks";
+import { render } from "@/server/ai/template";
 import {
   cleanUntrusted,
   UNTRUSTED_RULE,
