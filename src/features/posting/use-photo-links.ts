@@ -15,7 +15,7 @@ export async function readPhotoLinks(photoIds: string[]): Promise<PhotoLinks> {
   if (answer.kind !== "answered" || !answer.ok) {
     throw new Error(`photo links: ${answer.kind === "answered" ? answer.status : 0}`);
   }
-  return linksOf(answer.payload);
+  return linksOf(answer.payload ?? {});
 }
 
 /**

@@ -261,6 +261,17 @@ interface TreePayload {
   }[];
 }
 
+/** The route's envelope is data; a malformed answer is a read failure (F4), never a cast. */
+function isTreePayload(payload: unknown): payload is TreePayload {
+  if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return false;
+  if (!("version" in payload) || !("nodes" in payload) || !("pointers" in payload)) return false;
+  return (
+    typeof payload.version === "string" &&
+    Array.isArray(payload.nodes) &&
+    Array.isArray(payload.pointers)
+  );
+}
+
 /**
  * The raw read: one public route, never the browser client, so the tree carries
  * its own version and an ETag a second mount can answer with a 304 (INC-263).
@@ -276,7 +287,10 @@ export async function readCategoryTree(): Promise<{ tree: CategoryTree; version:
       `category tree read failed (${answer.kind === "answered" ? String(answer.status) : answer.kind})`,
     );
   }
-  const payload = (answer.payload ?? { nodes: [], pointers: [], version: "" }) as TreePayload;
+  const payload = answer.payload;
+  if (!isTreePayload(payload)) {
+    throw new Error("category tree read failed (bad payload)");
+  }
 
   const rows: CategoryNode[] = payload.nodes.map((row) => ({
     id: row.id,
