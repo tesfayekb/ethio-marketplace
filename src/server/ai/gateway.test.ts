@@ -360,4 +360,265 @@ describe("the one AI call", () => {
     expect(state.requests).toEqual([]);
     expect(state.spends).toEqual(["writing_helper"]);
   });
+  it("AIG-21 a keyless provider answers the task's noKey with one audit row, no reserve, no spend", async () => {
+    vi.stubEnv("PHOTOROOM_API_KEY", " ");
+    const reserve = vi.fn(async () => ({ ok: true as const }));
+    expect(
+      await aiCall("background_removal", {}, { ...ctx, reserve }, [
+        { bytes: new Uint8Array([1]), mime: "image/jpeg" },
+      ]),
+    ).toEqual({ ok: false, reason: "featureOff" });
+    expect(reserve).not.toHaveBeenCalled();
+    expect(state.requests).toEqual([]);
+    expect(state.spends).toEqual([]);
+    expect(state.writes).toHaveLength(1);
+    expect(state.writes[0]?.p_outcome).toBe("featureOff");
+  });
+  it("AIG-22 the reservation learns whether the call is a stand-in", async () => {
+    const seen: boolean[] = [];
+    const reserve = async (info: { fake: boolean }) => {
+      seen.push(info.fake);
+      return { ok: true as const };
+    };
+    await aiCall("name_check", { alias: "abebe" }, { ...ctx, reserve });
+    state.e2e = true;
+    state.fake = true;
+    await aiCall("name_check", { alias: "abebe" }, { ...ctx, reserve });
+    expect(seen).toEqual([false, true]);
+  });
+  it("AIG-23 a material supplier runs once, after the images, and not at all when the gate is off or the reservation refused; the rendered prompt is today's bytes", async () => {
+    const order: string[] = [];
+    const material = async () => {
+      order.push("material");
+      return { ...ASSIST_MATERIAL, photos: "attached: 2" };
+    };
+    const images = async () => {
+      order.push("images");
+      return [
+        { bytes: new Uint8Array([1, 2, 3]), mime: "image/jpeg" as const },
+        { bytes: new Uint8Array([4, 5]), mime: "image/webp" as const },
+      ];
+    };
+    state.text = '{"title":"A car","description":"A good car."}';
+    const answered = await aiCall("writing_helper", material, ctx, images);
+    expect(answered.ok).toBe(true);
+    expect(order).toEqual(["images", "material"]);
+    const body = JSON.parse(String(state.requests[0]?.body)) as {
+      contents: { parts: Record<string, unknown>[] }[];
+    };
+    const task = AI_TASKS.find((entry) => entry.id === "writing_helper");
+    if (task === undefined) throw new Error("missing task");
+    expect(body.contents[0]?.parts[0]?.["text"]).toBe(
+      render(task, { ...ASSIST_MATERIAL, photos: "attached: 2" }).user,
+    );
+    expect(body.contents[0]?.parts[0]?.["text"]).toContain("Photos: attached: 2");
+
+    order.length = 0;
+    state.gate = { on: false, reason: "staff" };
+    await aiCall("writing_helper", material, ctx, images);
+    expect(order).toEqual([]);
+    state.gate = { on: true };
+    await aiCall("writing_helper", material, {
+      ...ctx,
+      reserve: async () => ({ ok: false as const, refusal: null }),
+    });
+    expect(order).toEqual([]);
+  });
+  it("AIG-24 all: a gif, an oversize image, a fifth image or too few images is unavailable before any provider call", async () => {
+    const small = (marker: number) => ({
+      bytes: new Uint8Array([marker, 2, 3]),
+      mime: "image/jpeg" as const,
+    });
+    const cases: { name: string; images: unknown[] }[] = [
+      { name: "gif", images: [small(1), small(2), { bytes: new Uint8Array([1]), mime: "image/gif" }] },
+      { name: "oversize", images: [small(1), small(2), { bytes: new Uint8Array(5_000_000), mime: "image/png" }] },
+      { name: "fifth", images: [small(1), small(2), small(3), small(4), small(5)] },
+      { name: "too few", images: [small(1), small(2)] },
+    ];
+    for (const entry of cases) {
+      state.requests = [];
+      state.writes = [];
+      const answer = await aiCall(
+        "photo_screen",
+        { coverWidth: "1600" },
+        ctx,
+        entry.images as never,
+      );
+      expect(answer, entry.name).toEqual({ ok: false, reason: "unavailable" });
+      expect(state.requests, entry.name).toEqual([]);
+      expect(state.spends, entry.name).toEqual([]);
+      expect(state.writes, entry.name).toHaveLength(1);
+    }
+    const logged = JSON.stringify(vi.mocked(console.error).mock.calls);
+    expect(logged).toContain("dropped");
+  });
+  it("AIG-25 lowDetailAfterFirst: smaller copies carry the low detail; a media_resolution 400 is retried once without it, logged; any other 400 is not retried", async () => {
+    state.text = '{"allowed":true,"code":"","evidence":"","warnings":[]}';
+    const images = [1, 2, 3, 4].map((marker) => ({
+      bytes: new Uint8Array([marker, 2, 3]),
+      mime: "image/jpeg" as const,
+    }));
+    await aiCall("photo_screen", { coverWidth: "1600" }, ctx, images);
+    const partsOf = (request: RequestInit) =>
+      (JSON.parse(String(request.body)) as { contents: { parts: Record<string, unknown>[] }[] })
+        .contents[0]?.parts ?? [];
+    expect(partsOf(state.requests[0]!).map((part) => part["mediaResolution"])).toEqual([
+      undefined,
+      { level: "MEDIA_RESOLUTION_LOW" },
+      { level: "MEDIA_RESOLUTION_LOW" },
+      { level: "MEDIA_RESOLUTION_LOW" },
+    ]);
+
+    state.requests = [];
+    state.status = 400;
+    state.errorBody =
+      '{"error":{"code":400,"message":"Invalid JSON payload received. Unknown name \\"mediaResolution\\""}}';
+    const retried = await aiCall("photo_screen", { coverWidth: "1600" }, ctx, images);
+    // The retry's own answer: the stub still answers 400, so the call ends providerError.
+    expect(retried).toEqual({ ok: false, reason: "providerError", status: 400 });
+    expect(state.requests).toHaveLength(2);
+    expect(partsOf(state.requests[1]!).every((part) => !("mediaResolution" in part))).toBe(true);
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).toContain("low detail");
+
+    state.requests = [];
+    state.errorBody = '{"error":{"message":"API key not valid"}}';
+    vi.mocked(console.error).mockClear();
+    expect(await aiCall("photo_screen", { coverWidth: "1600" }, ctx, images)).toEqual({
+      ok: false,
+      reason: "providerError",
+      status: 400,
+    });
+    expect(state.requests).toHaveLength(1);
+    expect(JSON.stringify(vi.mocked(console.error).mock.calls)).not.toContain("low detail");
+  });
+  it("AIG-26 an empty user text sends the images alone", async () => {
+    state.text = '{"allowed":true,"code":"","evidence":"","warnings":[]}';
+    const images = [1, 2, 3].map((marker) => ({
+      bytes: new Uint8Array([marker, 2, 3]),
+      mime: "image/jpeg" as const,
+    }));
+    // No category, no title: every declared field is absent, so nothing is rendered.
+    await aiCall("photo_screen", {}, ctx, images);
+    const parts = (
+      JSON.parse(String(state.requests[0]?.body)) as {
+        contents: { parts: Record<string, unknown>[] }[];
+      }
+    ).contents[0]?.parts;
+    expect(parts).toHaveLength(3);
+    expect(parts?.every((part) => "inlineData" in part)).toBe(true);
+  });
+  it("AIG-27 the Photoroom adapter: the form fields and the key header; a gif or a 9 MiB answer is unusable (metered); a non-2xx is a status; a deadline is timeout", async () => {
+    const { photoroomSegment, MAX_CUTOUT_BYTES } = await import("./providers/photoroom");
+    const sent: { url: string; init: RequestInit }[] = [];
+    let reply: () => Response = () =>
+      new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/webp" } });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init: RequestInit) => {
+        sent.push({ url, init });
+        return reply();
+      }),
+    );
+    const image = { bytes: new Uint8Array([9, 9]), mime: "image/webp" as const };
+    expect(await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" })).toEqual({
+      kind: "image",
+      status: 200,
+      bytes: new Uint8Array([1, 2, 3]),
+      mime: "image/webp",
+    });
+    expect(sent[0]?.url).toBe("https://sdk.photoroom.com/v1/segment");
+    expect((sent[0]?.init.headers as Record<string, string>)["x-api-key"]).toBe(
+      "test-only-photoroom-key",
+    );
+    const form = sent[0]?.init.body as FormData;
+    expect([...form.keys()].sort()).toEqual(["channels", "format", "image_file", "size"]);
+    expect([form.get("format"), form.get("channels"), form.get("size")]).toEqual([
+      "webp",
+      "rgba",
+      "hd",
+    ]);
+    expect((form.get("image_file") as File).name).toBe("photo.webp");
+
+    reply = () => new Response("{}", { headers: { "content-type": "image/gif" } });
+    expect(
+      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
+    ).toEqual({ kind: "unusable", status: 200 });
+    reply = () =>
+      new Response(new Uint8Array(MAX_CUTOUT_BYTES + 1), {
+        headers: { "content-type": "image/webp" },
+      });
+    expect(
+      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
+    ).toEqual({ kind: "unusable", status: 200 });
+    reply = () => new Response("payment required", { status: 402 });
+    expect(
+      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
+    ).toEqual({ kind: "status", status: 402 });
+
+    // Through the gateway: an unusable answer is metered (CHANGE 4), a non-2xx is not.
+    state.spends = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("{}", { headers: { "content-type": "image/gif" } })),
+    );
+    expect(
+      await aiCall("background_removal", {}, ctx, [
+        { bytes: new Uint8Array([1]), mime: "image/jpeg" },
+      ]),
+    ).toEqual({ ok: false, reason: "unusableAnswer" });
+    expect(state.spends).toEqual(["background_removal"]);
+    state.spends = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("no", { status: 500 })),
+    );
+    expect(
+      await aiCall("background_removal", {}, ctx, [
+        { bytes: new Uint8Array([1]), mime: "image/jpeg" },
+      ]),
+    ).toEqual({ ok: false, reason: "providerError", status: 500 });
+    expect(state.spends).toEqual([]);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new UpstreamTimeout("photoroom test", 30_000);
+      }),
+    );
+    expect(
+      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
+    ).toEqual({ kind: "timeout" });
+  });
+  it("AIG-28 the photo screen's stand-in returns each width's verdict through the one mapping", async () => {
+    const { screenAnswerOf } = await import("@/server/media/policy");
+    state.e2e = true;
+    state.fake = true;
+    const verdictOf = async (width: number) => {
+      const answer = await aiCall("photo_screen", { coverWidth: String(width) }, ctx);
+      return screenAnswerOf(answer, () => undefined);
+    };
+    expect(await verdictOf(13)).toEqual({
+      kind: "verdict",
+      verdict: { ok: false, code: "not_a_photo", evidence: "fake mode: fixture marker width" },
+    });
+    expect(await verdictOf(11)).toEqual({
+      kind: "verdict",
+      verdict: { ok: false, code: "nudity", evidence: "fake mode: fixture marker width" },
+    });
+    expect(await verdictOf(19)).toEqual({
+      kind: "verdict",
+      verdict: {
+        ok: true,
+        warnings: ["unsure"],
+        evidence: "fake mode: fixture marker width",
+      },
+    });
+    expect(await verdictOf(17)).toEqual({
+      kind: "verdict",
+      verdict: { ok: true, warnings: ["not_relevant"] },
+    });
+    expect(await verdictOf(1600)).toEqual({ kind: "verdict", verdict: { ok: true } });
+    expect(state.requests).toEqual([]);
+    expect(state.spends.filter((feature) => feature === "photo_screen")).toHaveLength(5);
+  });
 });
