@@ -430,8 +430,14 @@ describe("the one AI call", () => {
       mime: "image/jpeg" as const,
     });
     const cases: { name: string; images: unknown[] }[] = [
-      { name: "gif", images: [small(1), small(2), { bytes: new Uint8Array([1]), mime: "image/gif" }] },
-      { name: "oversize", images: [small(1), small(2), { bytes: new Uint8Array(5_000_000), mime: "image/png" }] },
+      {
+        name: "gif",
+        images: [small(1), small(2), { bytes: new Uint8Array([1]), mime: "image/gif" }],
+      },
+      {
+        name: "oversize",
+        images: [small(1), small(2), { bytes: new Uint8Array(5_000_000), mime: "image/png" }],
+      },
       { name: "fifth", images: [small(1), small(2), small(3), small(4), small(5)] },
       { name: "too few", images: [small(1), small(2)] },
     ];
@@ -540,20 +546,23 @@ describe("the one AI call", () => {
     expect((form.get("image_file") as File).name).toBe("photo.webp");
 
     reply = () => new Response("{}", { headers: { "content-type": "image/gif" } });
-    expect(
-      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
-    ).toEqual({ kind: "unusable", status: 200 });
+    expect(await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" })).toEqual({
+      kind: "unusable",
+      status: 200,
+    });
     reply = () =>
       new Response(new Uint8Array(MAX_CUTOUT_BYTES + 1), {
         headers: { "content-type": "image/webp" },
       });
-    expect(
-      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
-    ).toEqual({ kind: "unusable", status: 200 });
+    expect(await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" })).toEqual({
+      kind: "unusable",
+      status: 200,
+    });
     reply = () => new Response("payment required", { status: 402 });
-    expect(
-      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
-    ).toEqual({ kind: "status", status: 402 });
+    expect(await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" })).toEqual({
+      kind: "status",
+      status: 402,
+    });
 
     // Through the gateway: an unusable answer is metered (CHANGE 4), a non-2xx is not.
     state.spends = [];
@@ -585,9 +594,9 @@ describe("the one AI call", () => {
         throw new UpstreamTimeout("photoroom test", 30_000);
       }),
     );
-    expect(
-      await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" }),
-    ).toEqual({ kind: "timeout" });
+    expect(await photoroomSegment({ image, timeoutMs: 30_000, label: "photoroom test" })).toEqual({
+      kind: "timeout",
+    });
   });
   it("AIG-28 the photo screen's stand-in returns each width's verdict through the one mapping", async () => {
     const { screenAnswerOf } = await import("@/server/media/policy");

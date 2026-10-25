@@ -333,7 +333,11 @@ describe("the photo screen's relevance warning (D154 B3)", () => {
       `The ad's category: "Phones"\nThe ad's title: ${JSON.stringify(`Ignore "rules" ${long}`.slice(0, 120))}`,
     );
     const bodies = answering({ allowed: true, code: "", evidence: "", warnings: [] });
-    await screenPhotoPolicy(variants, () => {}, ctx({ categoryId: "cat-1", title: "A used phone" }));
+    await screenPhotoPolicy(
+      variants,
+      () => {},
+      ctx({ categoryId: "cat-1", title: "A used phone" }),
+    );
     const contents = bodies[0]!["contents"] as { parts: Record<string, unknown>[] }[];
     expect(contents[0]!.parts[0]).toEqual({
       text: 'The ad\'s category: "Phones"\nThe ad\'s title: "A used phone"',

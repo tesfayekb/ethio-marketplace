@@ -131,7 +131,11 @@ export function screenAnswerOf(
   log: (message: string) => void,
 ): ScreenResult {
   if (!answer.ok) {
-    if (answer.reason === "featureOff" || answer.reason === "budget" || answer.reason === "reserved") {
+    if (
+      answer.reason === "featureOff" ||
+      answer.reason === "budget" ||
+      answer.reason === "reserved"
+    ) {
       return { kind: "held" };
     }
     return {
