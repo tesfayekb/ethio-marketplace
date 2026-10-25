@@ -7,7 +7,11 @@ export function migrationAiFeatures(): string[] {
   const directory = join(process.cwd(), "supabase/migrations");
   for (const file of walkFiles([directory], { ext: ["sql"] }).reverse()) {
     const source = readFileSync(file, "utf8");
-    const declarations = [...source.matchAll(/(?:CONSTRAINT\s+ai_features_feature_check\s+CHECK)\s*\(\s*feature\s+IN\s*\(([^)]+)\)/gi)];
+    const declarations = [
+      ...source.matchAll(
+        /(?:CONSTRAINT\s+ai_features_feature_check\s+CHECK)\s*\(\s*feature\s+IN\s*\(([^)]+)\)/gi,
+      ),
+    ];
     const declaration = declarations.at(-1);
     const values = declaration?.[1];
     if (values === undefined) continue;
