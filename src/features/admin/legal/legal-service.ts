@@ -4,6 +4,7 @@ import { ownValue } from "@/lib/own-key";
 import type { LegalFacts } from "@/features/legal/legal-markdown";
 import { errorText } from "@/lib/error-text";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
+import { SCRATCH_KIND } from "@/features/legal/legal-kinds";
 
 export const LEGAL_KINDS = ["terms", "privacy", "publishing"] as const;
 export type MissingLegalLanguage = { code: string; name_en: string };
@@ -102,7 +103,7 @@ export type LegalHistory = { acceptances: LegalHistoryRow[]; notices: LegalHisto
 
 export function validDocument(kind: string, country?: string): boolean {
   return (
-    ((LEGAL_KINDS as readonly string[]).includes(kind) || /^e2e-[a-z0-9-]{1,40}$/.test(kind)) &&
+    ((LEGAL_KINDS as readonly string[]).includes(kind) || SCRATCH_KIND.test(kind)) &&
     (country === undefined || /^[A-Z]{2}$/.test(country))
   );
 }
