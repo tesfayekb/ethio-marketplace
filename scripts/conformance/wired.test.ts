@@ -84,6 +84,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "src/server/ai/gateway.census.test.ts"), "utf8")).toContain(
       "GWC-5",
     );
+    // vendor-seams.test.ts VS-1…3 is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
+      "VS-3",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

@@ -260,7 +260,14 @@ describe("the one AI call", () => {
       fields: [
         { key: "items", label: "Items", kind: "list", max: 50, maxItems: 2 },
         { key: "note", label: "Note", kind: "lines", max: 50 },
-        { key: "lang", label: "Language", kind: "code", max: 8, allow: /^[a-z]{2}$/, fallback: "en" },
+        {
+          key: "lang",
+          label: "Language",
+          kind: "code",
+          max: 8,
+          allow: /^[a-z]{2}$/,
+          fallback: "en",
+        },
       ],
     };
     const prompt = render(task, {

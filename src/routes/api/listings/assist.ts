@@ -304,9 +304,7 @@ async function handlePost(
       facts,
       sellerTitle,
       sellerDescription,
-      previous: previous.map(
-        (pair, index) => `${index + 1}: ${pair.title} — ${pair.description}`,
-      ),
+      previous: previous.map((pair, index) => `${index + 1}: ${pair.title} — ${pair.description}`),
       get photos() {
         return photoCount === 0 ? "none" : `attached: ${photoCount}`;
       },

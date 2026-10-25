@@ -15,10 +15,17 @@ import { UNTRUSTED_RULE } from "@/lib/untrusted-text";
  * `import.meta.env.X`, `serverEnv("X")`, `vi.stubEnv("X"` and
  * `standInMode("X")` — across line breaks.
  */
-const NAMES = "(?:GEMINI_|PHOTOROOM_|GOOGLE_TRANSLATE_|OPENAI_|ANTHROPIC_|E2E_FAKE_|GEMINI_FAKE|AI_FAKE)[A-Z_0-9]*";
+const NAMES =
+  "(?:GEMINI_|PHOTOROOM_|GOOGLE_TRANSLATE_|OPENAI_|ANTHROPIC_|E2E_FAKE_|GEMINI_FAKE|AI_FAKE)[A-Z_0-9]*";
 const NAME_ONLY = new RegExp(`^${NAMES}$`);
 
-const AI_STAND_IN_FLAGS = ["E2E_FAKE_ASSIST", "E2E_FAKE_PHOTO_POLICY", "E2E_FAKE_BACKGROUND", "GEMINI_FAKE", "AI_FAKE"];
+const AI_STAND_IN_FLAGS = [
+  "E2E_FAKE_ASSIST",
+  "E2E_FAKE_PHOTO_POLICY",
+  "E2E_FAKE_BACKGROUND",
+  "GEMINI_FAKE",
+  "AI_FAKE",
+];
 
 function envNames(source: string): string[] {
   const found = new Set<string>();
