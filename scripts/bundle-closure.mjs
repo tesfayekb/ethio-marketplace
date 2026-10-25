@@ -12,8 +12,9 @@
  * demand and is left out. Used by scripts/check-bundle-size.mjs; tested by
  * scripts/bundle-closure.test.ts.
  */
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 // `import "./x.js"`, `import { a } from "./x.js"` and `export … from "./x.js"`;
 // a dynamic `import("./x.js")` has a parenthesis before its quote and never matches.
@@ -56,4 +57,115 @@ export function mustStayLazyViolation(closureNames) {
   return (
     closureNames.find((name) => MUST_STAY_LAZY.some((prefix) => name.startsWith(prefix))) ?? null
   );
+}
+
+/**
+ * D234 speed turn S1 — WHAT A PAGE DOWNLOADS BEFORE IT CAN RUN. The entry's
+ * closure is only the shell; a page also needs its route's chunks, which the
+ * server render names as modulepreload links. TanStack Start writes them to the
+ * build's route manifest (dist/server/_tanstack-start-manifest_v-*.mjs, a
+ * module with no imports that exports `tsrStartManifest()`): each route lists
+ * its own `preloads` and its parent in `children`. A route's first download is
+ * the static closure of its chain's preloads; the entry is the root's.
+ */
+export async function readRouteManifest(serverDir) {
+  const name = existsSync(serverDir)
+    ? readdirSync(serverDir).find((file) => /^_tanstack-start-manifest.*\.mjs$/.test(file))
+    : undefined;
+  if (name === undefined) {
+    throw new Error(`route manifest: no _tanstack-start-manifest*.mjs in ${serverDir}`);
+  }
+  const module = await import(pathToFileURL(resolve(serverDir, name)).href);
+  const routes = module.tsrStartManifest?.().routes;
+  if (routes === undefined || routes === null || typeof routes !== "object") {
+    throw new Error(`route manifest: ${name} exports no routes`);
+  }
+  return routes;
+}
+
+/**
+ * The chunk file names a route preloads: its own and every ancestor's, root included.
+ * Route ids come from a build file, so the manifest is read as its own entries only
+ * (a Map; the own-key rule — never `routes[id]`), and a cycle cannot loop.
+ */
+export function routePreloads(routes, routeId) {
+  const table = new Map(Object.entries(routes));
+  if (!table.has(routeId)) throw new Error(`route manifest: no route ${routeId}`);
+  const parent = new Map();
+  for (const [id, route] of table) {
+    for (const child of route.children ?? []) parent.set(child, id);
+  }
+  const names = new Set();
+  const seen = new Set();
+  for (let id = routeId; id !== undefined && !seen.has(id); id = parent.get(id)) {
+    seen.add(id);
+    for (const path of table.get(id)?.preloads ?? []) names.add(path.split("/").pop());
+  }
+  return [...names].sort();
+}
+
+/**
+ * D234 S1 — chunks that must never reach a PUBLIC page's first download (a page a
+ * visitor opens signed out: home, category, ad, seller, sign-in, legal). The
+ * posting doors, the schema library, the calendar, the category glyph map and the
+ * map library load only where their feature is used.
+ */
+export const PUBLIC_MUST_STAY_LAZY = [
+  "posting-service",
+  "zod",
+  "category-glyphs",
+  "date-calendar",
+  "leaflet",
+];
+
+/** The first chunk name in a closure that starts with one of `prefixes`, or null. */
+export function firstLazyViolation(closureNames, prefixes) {
+  return closureNames.find((name) => prefixes.some((prefix) => name.startsWith(prefix))) ?? null;
+}
+
+/** The routes that are pages: every manifest route but the root and the server routes under /api/. */
+export function pageRouteIds(routes) {
+  return Object.keys(routes)
+    .filter((id) => id !== "__root__" && !id.startsWith("/api/"))
+    .sort();
+}
+
+/**
+ * D234 S1 — judge every page against its ceiling. `measure(id)` answers the
+ * page's first download as `{ kib, closure }`. A page with no ceiling, a ceiling
+ * with no page, a page over its ceiling, a page `slack` KiB or more under it (the
+ * ratchet: lower it), and a public page holding a must-stay-lazy chunk each fail.
+ */
+export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLazy }) {
+  // Page ids come from the build's manifest: the ceilings are read as own entries only.
+  const ceilings = new Map(Object.entries(budgets));
+  const rows = [];
+  const failures = [];
+  for (const id of routeIds) {
+    const budget = ceilings.get(id);
+    if (budget === undefined) {
+      failures.push(
+        `${id}: no ceiling in scripts/route-budgets.mjs (every page declares its first download)`,
+      );
+      continue;
+    }
+    const { kib, closure } = measure(id);
+    rows.push({ id, kib, ceiling: budget.ceiling });
+    if (kib > budget.ceiling) {
+      failures.push(`${id}: ${kib.toFixed(1)} KiB, over its ceiling of ${budget.ceiling} KiB`);
+    } else if (budget.ceiling - kib >= slack) {
+      failures.push(
+        `${id}: ${kib.toFixed(1)} KiB, ${slack} KiB or more under its ceiling of ${budget.ceiling} KiB (ratchet: lower the ceiling to ${Math.ceil(kib + 3)})`,
+      );
+    }
+    if (budget.public) {
+      const lazy = firstLazyViolation(closure, publicLazy);
+      if (lazy) failures.push(`${id}: ${lazy} must stay lazy on a public page (D234)`);
+    }
+  }
+  for (const id of ceilings.keys()) {
+    if (!routeIds.includes(id))
+      failures.push(`${id}: a ceiling for a page the build does not have`);
+  }
+  return { rows, failures };
 }

@@ -18,13 +18,24 @@ import { readdirSync, readFileSync, statSync, existsSync } from "node:fs";
 import { basename, dirname, join, extname } from "node:path";
 import { gzipSync } from "node:zlib";
 
-import { entryChunks, mustStayLazyViolation, staticClosure } from "./bundle-closure.mjs";
+import {
+  entryChunks,
+  judgeRouteBudgets,
+  mustStayLazyViolation,
+  pageRouteIds,
+  PUBLIC_MUST_STAY_LAZY,
+  readRouteManifest,
+  routePreloads,
+  staticClosure,
+} from "./bundle-closure.mjs";
+import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB } from "./route-budgets.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
   // DEC-231 (2026-10-21): the admin strings left the first paint (320.0 → 296.8 KiB in the supervisor's build of the split); the ceiling follows to 305.
   // 2026-10-24: the agreement sentences carry link tokens (D235) and the publishing page its sections; 305.x measured
-  js: 306,
+  // D234 speed turn S1 (2026-10-25): the category glyph map left the first paint (302.2 → 289.9 measured; 3 KiB of build-to-build room, as every page's line in route-budgets.mjs).
+  js: 293,
   css: 40,
 };
 
@@ -153,6 +164,44 @@ if (failed) {
   console.error(
     "\nFirst-paint budget exceeded. Either code-split the addition behind a dynamic import,\n" +
       "or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states why.",
+  );
+  process.exit(1);
+}
+
+/**
+ * D234 speed turn S1 — EVERY PAGE'S FIRST DOWNLOAD: the entry's closure plus the
+ * page's own chunks, read from the build's route manifest (scripts/bundle-closure.mjs),
+ * judged against scripts/route-budgets.mjs.
+ */
+const assetsDir = dirname(jsEntries[0]);
+const serverDir = buildDir.startsWith(".output") ? ".output/server" : "dist/server";
+const routes = await readRouteManifest(serverDir);
+const sizeCache = new Map();
+const gz = (name) => {
+  if (!sizeCache.has(name))
+    sizeCache.set(name, gzipSync(readFileSync(join(assetsDir, name))).length);
+  return sizeCache.get(name);
+};
+const { rows, failures } = judgeRouteBudgets({
+  routeIds: pageRouteIds(routes),
+  budgets: ROUTE_BUDGETS_KIB,
+  slack: RATCHET_SLACK_KIB,
+  publicLazy: PUBLIC_MUST_STAY_LAZY,
+  measure: (id) => {
+    const closure = staticClosure(assetsDir, routePreloads(routes, id));
+    return { kib: closure.reduce((sum, name) => sum + gz(name), 0) / 1024, closure };
+  },
+});
+console.log("\nPer-page first download (entry + the page's chunks, gzipped):");
+for (const { id, kib, ceiling } of rows) {
+  console.log(`  ${kib.toFixed(1).padStart(7)} / ${String(ceiling).padStart(3)} KiB  ${id}`);
+}
+if (failures.length > 0) {
+  console.error("\nPer-page budget failed (D234):");
+  for (const line of failures) console.error(`  ${line}`);
+  console.error(
+    "\nCode-split the addition behind a dynamic import, or change the page's line in\n" +
+      "scripts/route-budgets.mjs in a commit that states why (a saving lowers it).",
   );
   process.exit(1);
 }
