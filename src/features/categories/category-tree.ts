@@ -261,6 +261,17 @@ interface TreePayload {
   }[];
 }
 
+/** The route's envelope is data; a malformed answer is a read failure (F4), never a cast. */
+function isTreePayload(payload: Record<string, unknown> | null): payload is unknown & TreePayload {
+  if (payload === null) return false;
+  return (
+    typeof payload["version"] === "string" &&
+    Array.isArray(payload["nodes"]) &&
+    Array.isArray(payload["pointers"])
+  );
+}
+
+
 /**
  * The raw read: one public route, never the browser client, so the tree carries
  * its own version and an ETag a second mount can answer with a 304 (INC-263).
