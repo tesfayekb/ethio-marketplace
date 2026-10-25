@@ -21,9 +21,10 @@
  * refuses an exception that no longer matches a control (stale).
  * Run by the unit tests (scripts/destructive-red.test.ts).
  */
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { walkFiles } from "./conformance/kit";
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -161,21 +162,12 @@ export function findingsIn(file: string, text: string): Finding[] {
 export type Source = { file: string; text: string };
 
 export function readSources(root = ROOT): Source[] {
-  const out: Source[] = [];
-  const walk = (dir: string) => {
-    for (const name of readdirSync(dir)) {
-      const full = join(dir, name);
-      if (statSync(full).isDirectory()) walk(full);
-      else if (name.endsWith(".tsx") && !/\.test\.tsx$/.test(name)) {
-        out.push({
-          file: relative(root, full).split("\\").join("/"),
-          text: readFileSync(full, "utf8"),
-        });
-      }
-    }
-  };
-  walk(join(root, "src"));
-  return out.sort((a, b) => a.file.localeCompare(b.file));
+  return walkFiles([join(root, "src")], { ext: ["tsx"], skipTests: true })
+    .map((path) => ({
+      file: relative(root, path).split("\\").join("/"),
+      text: readFileSync(path, "utf8"),
+    }))
+    .sort((a, b) => a.file.localeCompare(b.file));
 }
 
 /** The refusals: a destructive control not drawn red, and an exception that no longer matches. */

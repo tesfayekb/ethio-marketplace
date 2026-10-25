@@ -20,9 +20,10 @@
  *    labels. Every other t(variable) stays unlisted; its count is printed.
  * Flags (action kinds only): over3, article, bracket, am_over4.
  */
-import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import { walkFiles } from "./conformance/kit";
 
 export type Kind =
   | "button"
@@ -309,18 +310,10 @@ export function readAllowlist(text: string): Map<string, string> {
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 export function readTree(): Source[] {
-  const out: Source[] = [];
-  const walk = (dir: string) => {
-    for (const name of readdirSync(dir)) {
-      const path = join(dir, name);
-      if (statSync(path).isDirectory()) walk(path);
-      else if (path.endsWith(".tsx") && !path.endsWith(".test.tsx")) {
-        out.push({ file: relative(ROOT, path), text: readFileSync(path, "utf8") });
-      }
-    }
-  };
-  walk(join(ROOT, "src"));
-  return out;
+  return walkFiles([join(ROOT, "src")], { ext: ["tsx"], skipTests: true }).map((path) => ({
+    file: relative(ROOT, path),
+    text: readFileSync(path, "utf8"),
+  }));
 }
 
 async function main() {

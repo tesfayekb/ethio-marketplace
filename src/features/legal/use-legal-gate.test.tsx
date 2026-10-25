@@ -156,15 +156,18 @@ describe("landAfterSignIn (bundle 22 turn 32, INC-823)", () => {
     expect(await land(20)).toHaveBeenCalledWith({ href: "/post?category=x" });
   });
   it("census: no sign-in route navigates by href outside landAfterSignIn", async () => {
-    const { readdirSync, readFileSync } = await import("node:fs");
-    const { join } = await import("node:path");
+    const { readFileSync } = await import("node:fs");
+    const { join, dirname, basename } = await import("node:path");
+    const { walkFiles } = await import("../../../scripts/conformance/kit");
     const dir = join(process.cwd(), "src/routes");
-    const hits = readdirSync(dir)
-      .filter((name) => /^auth.*\.tsx$/.test(name))
-      .flatMap((name) =>
-        readFileSync(join(dir, name), "utf8")
+    const hits = walkFiles([dir], { ext: ["tsx"] })
+      .filter((path) => dirname(path) === dir && /^auth.*\.tsx$/.test(basename(path)))
+      .flatMap((path) =>
+        readFileSync(path, "utf8")
           .split("\n")
-          .map((line, i) => (line.includes("navigate({ href") ? `${name}:${i + 1}` : null))
+          .map((line, i) =>
+            line.includes("navigate({ href") ? `${basename(path)}:${i + 1}` : null,
+          )
           .filter((hit): hit is string => hit !== null),
       );
     expect(hits).toEqual([]);

@@ -1,7 +1,7 @@
-import { readFileSync, readdirSync } from "node:fs";
 import { resolve, relative } from "node:path";
 import ts from "typescript";
 import { expect, it } from "vitest";
+import { visitTs, walkFiles } from "../scripts/conformance/kit";
 
 /** D135 / G29: a card lifts by its shadow, never a plain one-pixel border. */
 function plainCardBorder(value: string): boolean {
@@ -15,25 +15,14 @@ function plainCardBorder(value: string): boolean {
   );
 }
 
-function sourceFiles(dir: string): string[] {
-  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-    const path = resolve(dir, entry.name);
-    if (entry.isDirectory()) return path === resolve("src/components/ui") ? [] : sourceFiles(path);
-    return entry.name.endsWith(".tsx") && !entry.name.endsWith(".test.tsx") ? [path] : [];
-  });
-}
-
 it("LL-1 cards never carry a plain border", () => {
   const findings: string[] = [];
-  for (const path of sourceFiles(resolve("src"))) {
-    const source = ts.createSourceFile(
-      path,
-      readFileSync(path, "utf8"),
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX,
-    );
-    function visit(node: ts.Node) {
+  for (const path of walkFiles([resolve("src")], {
+    ext: ["tsx"],
+    skipTests: true,
+    skip: /[\/]src[\/]components[\/]ui$/,
+  })) {
+    visitTs(path, (node, source) => {
       if (
         ts.isStringLiteral(node) ||
         ts.isNoSubstitutionTemplateLiteral(node) ||
@@ -47,9 +36,7 @@ it("LL-1 cards never carry a plain border", () => {
           findings.push(`${relative(process.cwd(), path)}:${line + 1}`);
         }
       }
-      ts.forEachChild(node, visit);
-    }
-    visit(source);
+    });
   }
   expect(
     findings,
