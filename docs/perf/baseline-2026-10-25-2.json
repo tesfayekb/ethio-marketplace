@@ -1,0 +1,247 @@
+{
+  "base": "https://my-market-dawn.lovable.app",
+  "when": "2026-10-25T15:43:48.630Z",
+  "device": {
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "deviceScaleFactor": 1.75,
+    "isMobile": true,
+    "hasTouch": true,
+    "userAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+  },
+  "throttling": {
+    "rttMs": 150,
+    "throughputKbps": 1638.4,
+    "requestLatencyMs": 562.5,
+    "downloadThroughputKbps": 1474.5600000000002,
+    "uploadThroughputKbps": 675,
+    "cpuSlowdownMultiplier": 4
+  },
+  "pages": [
+    {
+      "name": "ad",
+      "url": "https://my-market-dawn.lovable.app/l/driver-hire-service-c5j3d66hyk",
+      "medianCold": {
+        "ttfbMs": 938,
+        "fcpMs": 3168,
+        "lcpMs": 6008,
+        "cls": 0.026,
+        "tbtMs": 685,
+        "loadMs": 6365,
+        "htmlKB": 13.7,
+        "totalKB": 893.6,
+        "requests": 96
+      },
+      "warm": {
+        "ttfbMs": 580,
+        "fcpMs": 1040,
+        "lcpMs": 1188,
+        "lcpElement": "img blic/category-assets/8912bf40-95e4-4588-873c-ee8d0f0ec9e1/card-1790586420878.png",
+        "cls": 0.03,
+        "tbtMs": 650,
+        "domContentLoadedMs": 1083,
+        "loadMs": 1399,
+        "htmlBytes": 13222,
+        "totalBytes": 243197,
+        "requests": 111,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Script": 43290,
+          "Document": 13222,
+          "Font": 0,
+          "Image": 142897,
+          "Preflight": 0,
+          "Fetch": 23349,
+          "Other": 20439
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 2278,
+          "fcpMs": 4504,
+          "lcpMs": 7372,
+          "lcpElement": "img blic/category-assets/8912bf40-95e4-4588-873c-ee8d0f0ec9e1/card-1790586420878.png",
+          "cls": 0.03,
+          "tbtMs": 685,
+          "domContentLoadedMs": 5282,
+          "loadMs": 7678,
+          "htmlBytes": 14040,
+          "totalBytes": 914869,
+          "requests": 96,
+          "bytesByType": {
+            "Document": 14040,
+            "Script": 397448,
+            "Stylesheet": 23219,
+            "Font": 287827,
+            "Fetch": 32698,
+            "Image": 139084,
+            "Preflight": 0,
+            "Other": 20553
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 938,
+          "fcpMs": 3168,
+          "lcpMs": 6008,
+          "lcpElement": "img blic/category-assets/8912bf40-95e4-4588-873c-ee8d0f0ec9e1/card-1790586420878.png",
+          "cls": 0.026,
+          "tbtMs": 791,
+          "domContentLoadedMs": 3889,
+          "loadMs": 6337,
+          "htmlBytes": 13984,
+          "totalBytes": 914999,
+          "requests": 96,
+          "bytesByType": {
+            "Document": 13984,
+            "Script": 397756,
+            "Stylesheet": 23012,
+            "Fetch": 32786,
+            "Font": 287817,
+            "Image": 139086,
+            "Preflight": 0,
+            "Other": 20558
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 874,
+          "fcpMs": 3112,
+          "lcpMs": 5952,
+          "lcpElement": "img blic/category-assets/8912bf40-95e4-4588-873c-ee8d0f0ec9e1/card-1790586420878.png",
+          "cls": 0.026,
+          "tbtMs": 499,
+          "domContentLoadedMs": 3869,
+          "loadMs": 6365,
+          "htmlBytes": 13982,
+          "totalBytes": 958259,
+          "requests": 99,
+          "bytesByType": {
+            "Document": 13982,
+            "Script": 397676,
+            "Stylesheet": 23096,
+            "Font": 287817,
+            "Fetch": 76134,
+            "Image": 139078,
+            "Preflight": 0,
+            "Other": 20476
+          },
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "seller",
+      "url": "https://my-market-dawn.lovable.app/badminton_shop",
+      "medianCold": {
+        "ttfbMs": 1080,
+        "fcpMs": 3112,
+        "lcpMs": 3112,
+        "cls": 0.006,
+        "tbtMs": 612,
+        "loadMs": 5280,
+        "htmlKB": 7.3,
+        "totalKB": 550.3,
+        "requests": 78
+      },
+      "warm": {
+        "ttfbMs": 572,
+        "fcpMs": 1032,
+        "lcpMs": 5100,
+        "lcpElement": "img e4855-904d-4e3c-897a-6926d2870746/bf6f0bd3-7d67-4430-94f4-dd45d1e70115/card.webp",
+        "cls": 0.007,
+        "tbtMs": 656,
+        "domContentLoadedMs": 1148,
+        "loadMs": 1489,
+        "htmlBytes": 7210,
+        "totalBytes": 370333,
+        "requests": 84,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Document": 7210,
+          "Script": 0,
+          "Font": 0,
+          "Preflight": 0,
+          "Fetch": 23556,
+          "Other": 20424,
+          "Image": 319143
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 1080,
+          "fcpMs": 3112,
+          "lcpMs": 3112,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0.006,
+          "tbtMs": 740,
+          "domContentLoadedMs": 3882,
+          "loadMs": 5280,
+          "htmlBytes": 7431,
+          "totalBytes": 563471,
+          "requests": 78,
+          "bytesByType": {
+            "Document": 7431,
+            "Script": 358092,
+            "Stylesheet": 23117,
+            "Font": 89732,
+            "Fetch": 64723,
+            "Other": 20376,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 923,
+          "fcpMs": 2980,
+          "lcpMs": 2980,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0.006,
+          "tbtMs": 612,
+          "domContentLoadedMs": 3693,
+          "loadMs": 5096,
+          "htmlBytes": 7422,
+          "totalBytes": 521565,
+          "requests": 77,
+          "bytesByType": {
+            "Document": 7422,
+            "Script": 357756,
+            "Stylesheet": 23145,
+            "Font": 89732,
+            "Fetch": 23157,
+            "Other": 20353,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 1353,
+          "fcpMs": 3372,
+          "lcpMs": 3372,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0.006,
+          "tbtMs": 593,
+          "domContentLoadedMs": 4090,
+          "loadMs": 5404,
+          "htmlBytes": 7539,
+          "totalBytes": 564445,
+          "requests": 79,
+          "bytesByType": {
+            "Document": 7539,
+            "Script": 357822,
+            "Stylesheet": 23118,
+            "Font": 89732,
+            "Fetch": 64774,
+            "Other": 20350,
+            "Preflight": 0
+          },
+          "status": 200
+        }
+      ]
+    }
+  ]
+}
