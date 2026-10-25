@@ -1,5 +1,3 @@
-import type { AiGate } from "@/server/ai/meter";
-
 import type { PolicyVerdict } from "./policy";
 
 /**
@@ -9,31 +7,15 @@ import type { PolicyVerdict } from "./policy";
  * to buyers, until staff approve"; posting keeps working; staff approve them with
  * the ad (his answer of 2026-10-13: "Approve with the ad").
  *
- *   - on                                → `screen`: the policy pass, as before;
- *   - off by staff, on an ad whose next step is the screening queue (a draft, or
- *     a rejected ad sent again)        → `hold`: stored `unscreened`, no pass and
- *                                         nothing metered; approving the ad shows it;
- *   - off by staff, on an ad that is live or past the queue (active, reduced,
- *     held by staff, expired)          → `paused`: refused, because nothing would
- *                                         put the photo in front of staff;
- *   - a switch that could not be read  → `unavailable`: refused with a retry, as
- *                                         before (F4: it fails closed).
- *
- * Bundle 16 turn S1 (D184, the operator 2026-10-15) — photo screening's money
- * stop: at its monthly budget it switches itself off like every other AI feature
- * (`ai_record_spend`), and past the site's day cap on paid screens
- * (`withSiteCap`, the upload route) it reads as off for the rest of the UTC day.
- * Either is "off by budget", and an upload then does what it does when staff
- * switch screening off: `hold` on a draft or a refused ad, `paused` on a live one,
- * with no further spend.
- *
- * Bundle 16 turn 4a (D178, D177) — `paused` is retired: with screening off, by staff
- * or by budget, a photo on ANY ad is held — stored hidden, with a `held` review
- * that staff now see and decide in Admin (listing_photo_reviews), so a live ad's
- * photo is put in front of staff too. On a draft or a refused ad it is still
- * approved with the ad.
+ * Since Foundations turn 17 the switch, the site's day cap on paid screens
+ * (D184) and the stand-in are the AI gateway's order (`aiCall("photo_screen")`,
+ * src/server/media/policy.ts `screenPhotoPolicy`): off by staff or by budget —
+ * the monthly budget's self-switch, or the day cap refused by the call's
+ * reservation — and the photo is HELD on any ad (bundle 16 turn 4a, D178/D177:
+ * stored hidden with a `held` review that staff see and decide in Admin); a
+ * switch that could not be read fails closed as `providerUnavailable` with a
+ * retry (F4). The plan mapping itself is `screenAnswerOf` beside the call.
  */
-export type PhotoScreenPlan = "screen" | "hold" | "unavailable";
 
 /**
  * The statuses whose ad may still gain, lose or change a photo: the upload route
@@ -50,20 +32,6 @@ export const PHOTO_OPEN_STATUSES: ReadonlySet<string> = new Set([
   "held",
   "expired",
 ]);
-
-export function photoScreenPlan(gate: AiGate): PhotoScreenPlan {
-  if (gate.on) return "screen";
-  if (gate.reason === "unavailable") return "unavailable";
-  return "hold";
-}
-
-/**
- * Bundle 16 turn S1 (D184) — the site's day cap on paid screens: a gate that is on
- * reads as off by budget once the day's count is spent; any other gate is kept.
- */
-export function withSiteCap(gate: AiGate, siteAllowed: boolean): AiGate {
-  return gate.on && !siteAllowed ? { on: false, reason: "budget" } : gate;
-}
 
 /**
  * Bundle 16 turn 4a (D178, D183) — the fail codes a person may still allow: a photo
