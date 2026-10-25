@@ -27,6 +27,7 @@ import type { GeoAnswer } from "../server/geo/guess";
 import { errorText } from "@/lib/error-text";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
 import type { FirstFeedPage } from "@/features/feed/feed-page";
+import { HeldFirstPage } from "@/features/feed/held-first-page";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
 /**
@@ -117,15 +118,17 @@ const getFirstFeedPage = createServerFn({ method: "GET" })
 /** The root's loader data: the request's language and area facts, and the feed's first page. */
 type RootData = SsrLangContext & {
   /** D234 S5 — the server's own document only; a client navigation carries none. */
-  firstFeed: Promise<FirstFeedPage | null> | null;
+  firstFeed: HeldFirstPage | null;
 };
 
 /** Never a rejection: a failed hand-over is one [first-screen] line and the browser reads the feed. */
-function startFirstFeedPage(): Promise<FirstFeedPage | null> {
-  return getFirstFeedPage().catch((error: unknown) => {
-    console.warn("[first-screen] the first page was not handed over:", errorText(error));
-    return null;
-  });
+function startFirstFeedPage(): HeldFirstPage {
+  return new HeldFirstPage(
+    getFirstFeedPage().catch((error: unknown) => {
+      console.warn("[first-screen] the first page was not handed over:", errorText(error));
+      return null;
+    }),
+  );
 }
 
 const getSsrLangContext = createServerFn({ method: "GET" })
