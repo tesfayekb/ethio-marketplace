@@ -27,8 +27,13 @@ function renderField(field: AiField, material: AiMaterial): string[] {
     if (items.length === 0) return field.none === true ? [`${field.label}: (none)`] : [];
     return [`${field.label}:`, ...items.map((item) => `- ${untrustedLine(item, field.max)}`)];
   }
-  if (value === undefined || (typeof value === "string" && value.trim() === "") || Array.isArray(value)) {
-    if (kind === "text" && field.fallback !== undefined) return [`${field.label}: ${field.fallback}`];
+  if (
+    value === undefined ||
+    (typeof value === "string" && value.trim() === "") ||
+    Array.isArray(value)
+  ) {
+    if (kind === "text" && field.fallback !== undefined)
+      return [`${field.label}: ${field.fallback}`];
     return field.none === true ? [`${field.label}: (none)`] : [];
   }
   return [untrustedText(field.label, value, field.max, { lines: kind === "lines" })];

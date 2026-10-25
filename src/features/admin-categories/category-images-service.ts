@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import { errorText } from "@/lib/error-text";
+import { callRoute, type RoutePath } from "@/lib/route-client";
 
 /**
  * C5b — the client seam for the two FROZEN C5a routes.
@@ -40,55 +41,38 @@ export class CategoryImageError extends Error {
   }
 }
 
-async function post(path: string, body: unknown, timeoutMs?: number): Promise<unknown> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token ?? "";
-  // C5f PART A — CLIENT TIMEOUT. This guards the CLIENT's wait only: the
-  // server-side generation is not cancelled and may still persist its assets,
-  // which the caller's db-truth dump then reveals. The controller is aborted
-  // by an explicit timer because this is our own app route, not a Gateway
-  // fetch; the budget is a large multiple of the fake-mode pipeline cost.
-  const controller = timeoutMs === undefined ? null : new AbortController();
-  const timer =
-    controller === null
-      ? null
-      : setTimeout(() => {
-          controller.abort();
-        }, timeoutMs);
-  let response: Response;
-  try {
-    response = await fetch(path, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token === "" ? {} : { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify(body),
-      ...(controller === null ? {} : { signal: controller.signal }),
-    });
-  } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") {
+async function post(
+  path: RoutePath,
+  body: unknown,
+  timeoutMs?: number,
+): Promise<Record<string, unknown> | null> {
+  const answer = await callRoute(path, { method: "POST", json: body, auth: "required", timeoutMs });
+  if (answer.kind === "signedOut") throw new CategoryImageError("not signed in", 401, "model-call");
+  if (answer.kind === "unreachable") {
+    if (answer.reason === "timeout")
       throw new CategoryImageError("client-timeout", 0, "client-timeout");
-    }
-    throw error;
-  } finally {
-    if (timer !== null) clearTimeout(timer);
+    throw new CategoryImageError("network error", 0, "model-call");
   }
-  const text = await response.text();
-  let parsed: { error?: string; stage?: string } = {};
-  try {
-    parsed = JSON.parse(text) as { error?: string; stage?: string };
-  } catch {
-    /* a non-JSON body still carries its status */
-  }
-  if (!response.ok) {
+  if (!answer.ok)
     throw new CategoryImageError(
-      parsed.error ?? `HTTP ${response.status}`,
-      response.status,
-      parsed.stage ?? null,
+      typeof answer.payload?.error === "string" ? answer.payload.error : `HTTP ${answer.status}`,
+      answer.status,
+      typeof answer.payload?.stage === "string" ? answer.payload.stage : "model-call",
     );
-  }
-  return parsed;
+  return answer.payload;
+}
+
+function generatedPayload(
+  value: Record<string, unknown> | null,
+): value is Record<string, unknown> & { image: string; prompt: string; genMs: number } {
+  return (
+    value !== null &&
+    typeof value.image === "string" &&
+    value.image !== "" &&
+    typeof value.prompt === "string" &&
+    typeof value.genMs === "number" &&
+    Number.isFinite(value.genMs)
+  );
 }
 
 const BUCKET = "category-assets";
@@ -111,32 +95,14 @@ function fromBase64(value: string): Uint8Array {
  */
 export async function generateCategoryImage(input: {
   categoryId: string;
-  customPrompt?: string;
 }): Promise<GeneratedAssets> {
-  const customPrompt =
-    input.customPrompt && input.customPrompt.trim() !== "" ? input.customPrompt.trim() : undefined;
-  // C5f PART A — 30s client budget; a hang becomes a stage-labelled failure
-  // ("client-timeout") that the bulk loop surfaces and advances past (F4).
-  let payload: { stage?: string; prompt?: string; genMs?: number; image?: string };
-  try {
-    payload = (await post(
-      "/api/admin/categories/generate-image",
-      { categoryId: input.categoryId, ...(customPrompt ? { customPrompt } : {}) },
-      30_000,
-    )) as typeof payload;
-  } catch (error) {
-    if (error instanceof CategoryImageError) {
-      throw new CategoryImageError(error.message, error.status, error.stage ?? "model-call");
-    }
-    throw new CategoryImageError(
-      error === null || error === undefined ? "network error" : errorText(error),
-      0,
-      "model-call",
-    );
-  }
-  if (typeof payload.image !== "string" || payload.image === "") {
+  const payload = await post(
+    "/api/admin/categories/generate-image",
+    { categoryId: input.categoryId },
+    30_000,
+  );
+  if (!generatedPayload(payload))
     throw new CategoryImageError("route returned no image", 502, "model-call");
-  }
 
   const { makeVariants } = await import("./category-image-variants");
   const processStart = performance.now();
@@ -180,7 +146,7 @@ export async function generateCategoryImage(input: {
     p_image_thumb_url: thumbUrl,
     p_og_image_url: ogUrl,
     // C5c PART C.2 — the column records a CUSTOM prompt only (NULL otherwise).
-    p_generation_prompt: customPrompt === undefined ? (null as unknown as string) : prompt,
+    p_generation_prompt: null as unknown as string,
   });
   if (persistError) throw new CategoryImageError(persistError.message, 0, "persist");
 
@@ -218,12 +184,12 @@ export async function suggestCategoryIcon(input: {
   name: string;
   parentName?: string | null;
 }): Promise<{ icon: string; fallback: boolean }> {
-  const payload = (await post("/api/admin/categories/suggest-icon", {
+  const payload = await post("/api/admin/categories/suggest-icon", {
     name: input.name,
     ...(input.parentName ? { parentName: input.parentName } : {}),
-  })) as { icon?: string; fallback?: boolean };
+  });
   // Bundle 2 step 18 — a missing icon is a fallback too, never silent.
-  if (typeof payload.icon !== "string") return { icon: "Package", fallback: true };
+  if (typeof payload?.icon !== "string") return { icon: "Package", fallback: true };
   return { icon: payload.icon, fallback: payload.fallback === true };
 }
 

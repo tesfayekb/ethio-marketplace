@@ -37,15 +37,20 @@ describe("background removal — the provider (D155b / D159)", () => {
     vi.stubEnv("E2E_FAKE_BACKGROUND", "1");
     const fetched = vi.fn();
     vi.stubGlobal("fetch", fetched);
-    const result = await aiCall("background_removal", {}, { actorId: null, path: "/api/listings/background" });
+    const result = await aiCall(
+      "background_removal",
+      {},
+      { actorId: null, path: "/api/listings/background" },
+    );
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error("stand-in refused");
     const { bytes, mime } = result.value;
     expect(mime).toBe("image/png");
     expect(bytes.byteLength).toBe(1013);
     const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes));
-    expect(Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join(""))
-      .toBe("ad185c1a829172945925d40f29febc64403d88a02d4f40fcf54adf0abff5ea7c");
+    expect(
+      Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join(""),
+    ).toBe("ad185c1a829172945925d40f29febc64403d88a02d4f40fcf54adf0abff5ea7c");
     expect([...bytes.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     expect([view.getUint32(16), view.getUint32(20)]).toEqual([400, 300]);

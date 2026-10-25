@@ -136,7 +136,13 @@ describe("AI gateway conformance", () => {
         const text = task.output.safeParse({ text: "rendered as text" });
         if (text.success) found.push(`${task.id}: an image answer parses as text`);
       }
-      if ((task.id === "photo_screen" || task.id === "background_removal" || task.id === "planted_removal") && task.images?.all !== true) found.unshift(`${task.id}: no images.all`);
+      if (
+        (task.id === "photo_screen" ||
+          task.id === "background_removal" ||
+          task.id === "planted_removal") &&
+        task.images?.all !== true
+      )
+        found.unshift(`${task.id}: no images.all`);
       if (task.images !== undefined) {
         if (!(task.images.max > 0)) found.push(`${task.id}: no images.max`);
         if (!(task.images.maxBytes > 0)) found.push(`${task.id}: no images.maxBytes`);
