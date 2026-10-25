@@ -93,7 +93,13 @@ describe("AI gateway conformance", () => {
       expect(task.timeoutMs).toBeLessThanOrEqual(120_000);
       const valid = task.fake({ alias: "cocacola", name: "Sofas" }) as Record<string, unknown>;
       expect(task.output.safeParse(valid).success).toBe(true);
-      expect(task.output.safeParse({ ...valid, extra: true }).success).toBe(false);
+      // An unknown key never survives the schema: refused outright (strict) or
+      // stripped (the photo screen's object, whose responseSchema already names
+      // every key).
+      const withExtra = task.output.safeParse({ ...valid, extra: true });
+      if (withExtra.success) {
+        expect(withExtra.data).not.toHaveProperty("extra");
+      }
       for (const [key, value] of Object.entries(valid)) {
         if (typeof value === "string") {
           // Bounded either by refusal or by the task's own clamp (the writing
@@ -109,6 +115,36 @@ describe("AI gateway conformance", () => {
       expect(system.endsWith(UNTRUSTED_RULE)).toBe(true);
       expect(system.split(UNTRUSTED_RULE)).toHaveLength(2);
     }
+  });
+  it("GWC-8 a non-Gemini provider declares images.all and an image output; every task with images declares max and maxBytes", () => {
+    const problems = (task: (typeof AI_TASKS)[number]): string[] => {
+      const found: string[] = [];
+      if (task.provider !== "gemini-text") {
+        if (task.images?.all !== true) found.push(`${task.id}: no images.all`);
+        const image = task.output.safeParse({ bytes: new Uint8Array([1]), mime: "image/png" });
+        if (!image.success) found.push(`${task.id}: no image output schema`);
+        const text = task.output.safeParse({ text: "rendered as text" });
+        if (text.success) found.push(`${task.id}: an image answer parses as text`);
+      }
+      if (task.images !== undefined) {
+        if (!(task.images.max > 0)) found.push(`${task.id}: no images.max`);
+        if (!(task.images.maxBytes > 0)) found.push(`${task.id}: no images.maxBytes`);
+      }
+      return found;
+    };
+    expect(AI_TASKS.flatMap((task) => problems(task))).toEqual([]);
+    // The planted task: a Photoroom task without images.all and with a text
+    // output is flagged on both counts.
+    const planted = {
+      ...AI_TASKS.find((task) => task.id === "background_removal")!,
+      id: "planted_removal",
+      images: { max: 1, maxBytes: 4_000_000 },
+      output: AI_TASKS.find((task) => task.id === "name_check")!.output,
+    };
+    expect(problems(planted)).toEqual([
+      "planted_removal: no images.all",
+      "planted_removal: no image output schema",
+    ]);
   });
   it("GWC-5 planted provider call and secret read are both reported", () => {
     const planted =
