@@ -89,7 +89,7 @@ describe("RowActions", () => {
       pointerType: "mouse",
     });
     // jsdom runs no animation, so the rule itself is read: the closed state
-    // overrides the shared menu's fade-out (src/components/ui/dropdown-menu.tsx).
+    // overrides the shared menu's fade-out (src/components/ui/dropdown-menu-impl.tsx).
     expect(screen.getByTestId("r-menu").className).toContain("data-[state=closed]:animate-none!");
   });
 });
