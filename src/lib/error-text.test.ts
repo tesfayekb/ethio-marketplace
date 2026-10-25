@@ -147,8 +147,6 @@ describe("the server's caught-error census (INC-625, G29)", () => {
     }
     expect(raw).toEqual([]);
     expect(helpers.sort()).toEqual([
-      "src/routes/api/translate.ts: fail5xx",
-      "src/routes/api/translate.ts: logRouteError",
       "src/server/imports/gate.ts: refuse",
       "src/server/supabase/user-client.ts: logRouteError",
     ]);

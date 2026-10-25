@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ownValue } from "@/lib/own-key";
+import { TRANSLATE_TARGET } from "@/lib/schemas/translate";
 import { ICON_ALLOWLIST } from "@/server/category-images/icons";
 import { AI_FEATURES, type AiFeature } from "./meter";
 import type { ProviderLanguage } from "./providers/google-translate";
@@ -225,7 +226,7 @@ export { FAKE_LANGUAGES };
  * Turn 19, CHANGE (2) — a translation's material: one target code (today's
  * route shape) and at most one chunk of texts (today's GOOGLE_CHUNK).
  */
-export const TRANSLATION_TARGET = /^[a-z]{2,8}(-[a-z]{2,8})?$/;
+export const TRANSLATION_TARGET = TRANSLATE_TARGET;
 export const TRANSLATION_CHUNK = 100;
 
 /** The texts a translation's material carries; anything else reads as none. */

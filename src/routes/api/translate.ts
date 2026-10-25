@@ -1,586 +1,215 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient, isAuthRetryableFetchError } from "@supabase/supabase-js";
 
-import type { Database } from "@/integrations/supabase/types";
-import { errorText, errorWithStack } from "@/lib/error-text";
+import {
+  TRANSLATE_MAX_ITEMS,
+  TranslateBody,
+  issueWord,
+  type TranslateReason,
+} from "@/lib/schemas/translate";
+import { aiCall, translationLanguages, type TranslationLanguages } from "@/server/ai/gateway";
+import { TRANSLATION_CHUNK } from "@/server/ai/tasks";
+import { ok, readFailure } from "@/server/answer";
+import { defineRoute } from "@/server/route";
+import { logRouteError } from "@/server/supabase/user-client";
 
 /**
- * U4c — AI TRANSLATION ENDPOINT.
+ * U4c — AI TRANSLATION ENDPOINT, on the one route boundary since Foundations
+ * turn 19 (INC-861) and on the one audited AI call (INC-876).
  *
  * TRANSPORT RULING (INC-096): the spec asked for a Supabase Edge Function; the
- * executor rejects NEW edge functions at the tool layer (existing ones stay
- * editable), so the endpoint lives on the app server instead. Every other line
- * of the U4c contract is verbatim.
+ * endpoint lives on the app server instead. U4j PATH RULING: the provider's
+ * language list is served by `GET /api/translate` (one route file), not
+ * `/api/translate/languages`.
  *
- * SERVER-ROUTE PRIMITIVE (INC-096b census, @tanstack/react-start@1.168.26):
- * `createFileRoute(...)({ server: { handlers: { POST } } })` IS the server
- * route primitive — `start-client-core/serverRoute.d.ts` augments the file
- * route options with `server?: RouteServerOptions`; no separate factory
- * (`createServerFileRoute` et al.) exists in the installed version. Verified
- * empirically: POST answers from the handler in BOTH serves (dev AND the
- * NITRO_PRESET=node-server production build behind scripts/serve-e2e-node.ts).
+ * POST — the order:
+ *   defineRoute     the byte ceiling, the caller with translations:machine,
+ *                   JSON, strict UTF-8, the body schema (today's words)
+ *   the scope door  translation_scope_ok(target) as the caller — it already
+ *                   ORs translations:manage; before any provider call or spend
+ *   the targets     translationLanguages() unless the stand-in: an unsupported
+ *                   target is 422 with nothing spent
+ *   the chunks      100 texts per aiCall("translation") — gate, key, audit row,
+ *                   meter (characters sent) and the stand-in inside the gateway.
+ *                   The FIRST chunk's gate answer (gate: true) is today's
+ *                   409/503 before anything is written; any other failure marks
+ *                   its chunk's keys `providerUnavailable` and writes nothing
+ *                   for them (F4)
+ *   the writes      the single writer RPC per item, as the caller — it re-gates
+ *                   (permission → step-up → scope), validates placeholders,
+ *                   flags, stamps provenance, captures a revision and audits
+ *   the flags       read back from the rows the writer just validated (UI only)
  *
- * ERROR-LOGGING CONTRACT (INC-096b/c): server-route responses do NOT traverse
- * the SSR error catch, so a 500 issued here was previously invisible to the
- * reporter's [ssr-error] grep (run 33293988345: TR-scope expected 403, got 500
- * from a gate-section RPC error, with zero [ssr-error] lines). Every 5xx this
- * route returns — thrown OR deliberately issued — is logged into [ssr-error]
- * first. The 500 body stays structured: {error}.
+ * Every per-item reason is a fixed code (CHANGE 4, INC-447); the writer's own
+ * text is logged with its key, never sent. There is no service-role client
+ * here: nothing is written past RLS or past the gates.
  *
- * LAWS honoured:
- *  * F1 — GOOGLE_TRANSLATE_API_KEY is read from the SERVER runtime env INSIDE
- *    the handler (`process.env[...]`, never a `VITE_` name), so it is never
- *    bundled for the browser and never appears in a response body.
- *  * F3 — the caller's own bearer token builds a caller-context Supabase
- *    client, so `auth.uid()` flows into every RPC. There is NO service-role
- *    client here: this route cannot write past RLS or past the gates.
- *  * SINGLE-WRITER DISCIPLINE — the route never touches `ui_translations`.
- *    `admin_machine_translation` is the only writer: it re-gates
- *    (permission → step-up → scope), placeholder-validates, flags, stamps
- *    provenance, captures a revision and audits.
- *  * F4 — a per-item provider failure is REPORTED and TOUCHES NOTHING for that
- *    key; it is never swallowed and never written as an empty value.
- *
- * FAKE MODE (`E2E_FAKE_TRANSLATE === "1"`): Google is skipped and each item
- * becomes a deterministic `⟪<lang>⟫ <source>`. Gates, chunking, the writer RPC,
- * the validator, provenance and revision capture all still run, so CI proves
- * the whole pipeline with no external call, no spend and no Google key. A
- * source containing the literal `E2EBREAK` yields output with every `{token}`
- * removed, which drives the validator's flag path (TR-13).
+ * The translator note (`context`) is accepted, validated and carried to this
+ * boundary, and there it stops: Cloud Translation v2 has no context field —
+ * the field a future v3 adapter reads with no client change.
  */
 
-const GOOGLE_CHUNK = 100; // Google v2 accepts many `q` params; 100 is our budget.
-const MAX_ITEMS = 600; // hard cap per request (413 beyond).
+const PATH = "/api/translate";
+
+/** Ruling R3 (e): 600 items with 500-character notes fit; defineRoute's 413 beyond. */
+const MAX_BODY_BYTES = 1_048_576;
 
 /**
- * U4j — SCOPES. `ui` writes `ui_translations` through
- * `admin_machine_translation`; `entity` writes `entity_translations` through
- * `admin_machine_entity_translation`. Same gates, same provider path, same
- * per-item honesty; only the writer differs.
- *
- * U4j PATH RULING (law A3, stated before the code): the task named
- * `GET /api/translate/languages`. TanStack's flat file routing would need a
- * SECOND route file (`src/routes/api/translate.languages.ts`) for that path,
- * and this task's scope names exactly one route file. The provider list is
- * therefore served by `GET /api/translate` — same handler file, same gate,
- * same contract; only the path differs from the spec's wording.
+ * CHANGE (4) — the writer's refusal by its message (admin_machine_translation,
+ * admin_machine_entity_translation and require_step_up_if_needed's RAISEs).
  */
-type Scope = "ui" | "entity";
+const WRITER_REASONS = new Map<string, TranslateReason>([
+  ["permission denied", "permission"],
+  ["not assigned to this language", "scope"],
+  ["base language rows are sync-owned", "baseLocked"],
+  ["unknown translation key", "unknownTarget"],
+  ["unknown entity", "unknownTarget"],
+  ["unknown entity field", "unknownTarget"],
+  ["empty machine value", "emptyValue"],
+]);
 
-// C3-UX-2 — attribute labels are translatable content, same writer, same gate.
-const ENTITY_TYPES = new Set(["category", "location", "attribute"]);
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-interface Item {
-  key: string;
-  source: string;
-  /**
-   * U4i ① — the key's translator note.
-   *
-   * V2 MECHANISM RULING (law A3, stated rather than guessed): Cloud
-   * Translation **v2** exposes exactly four request fields — `q`, `source`,
-   * `target`, `format`. It has NO context, hint, domain or glossary parameter;
-   * those live in v3 (`translateText` with a glossary / adaptive dataset).
-   * Appending the note to `q` is NOT a substitute: the provider would translate
-   * the note and return it inside the string.
-   *
-   * So the note is ACCEPTED, VALIDATED and CARRIED to the provider boundary,
-   * and there it stops — a documented dead end, not a silent drop. It is used
-   * today by the human editor and by fake mode's determinism, and it is the
-   * field a future v3 adaptive call reads with no client change.
-   */
-  context?: string;
-  /** entity scope only */
-  type?: string;
-  id?: string;
-  field?: string;
+function writerReason(message: string): TranslateReason {
+  if (message.startsWith("step-up required")) return "stepUp";
+  return WRITER_REASONS.get(message) ?? "writerFailed";
 }
 
-interface Failure {
-  key: string;
-  reason: string;
-}
-
-function json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
-}
-
-// INC-096b/c — server-route failures bypass the SSR catch; every 5xx this
-// endpoint issues (deliberate or thrown) logs into the reporter-grepped
-// [ssr-error] channel BEFORE the structured body goes out.
-function logRouteError(error: unknown): void {
-  // INC-625 — one rule for a caught error's text (src/lib/error-text.ts).
-  const message = errorWithStack(error);
-  console.error("[ssr-error]", "/api/translate", message);
-}
-
-function fail5xx(error: string, status: number): Response {
-  logRouteError(error);
-  // INC-802 — the reply carries a fixed code; the true text stays in the log.
-  return json({ error: "internal error" }, status);
-}
-
-/** Cold-start cache of the provider's supported targets (code + English name). */
-export interface ProviderLanguage {
-  code: string;
-  name: string;
-}
-
-let supportedLanguages: ProviderLanguage[] | null = null;
-
-/**
- * U4j FAKE LIST — deterministic, no provider call, no spend. Ethiopian and
- * regional targets first so CI can add one (TR-25 uses `sw`).
- */
-const FAKE_LANGUAGES: ProviderLanguage[] = [
-  { code: "am", name: "Amharic" },
-  { code: "om", name: "Oromo" },
-  { code: "ti", name: "Tigrinya" },
-  { code: "sw", name: "Swahili" },
-  { code: "so", name: "Somali" },
-  { code: "ar", name: "Arabic" },
-  { code: "fr", name: "French" },
-  { code: "en", name: "English" },
-];
-
-async function loadSupportedLanguages(apiKey: string): Promise<ProviderLanguage[]> {
-  if (supportedLanguages) return supportedLanguages;
-  const response = await fetch(
-    "https://translation.googleapis.com/language/translate/v2/languages?target=en",
-    { headers: { "x-goog-api-key": apiKey } },
-  );
-  if (!response.ok) throw new Error(`language list unavailable (${response.status})`);
-  const payload = (await response.json()) as {
-    data?: { languages?: { language: string; name?: string }[] };
-  };
-  const list = (payload.data?.languages ?? []).map((entry) => ({
-    code: entry.language.toLowerCase(),
-    name: entry.name ?? entry.language,
-  }));
-  if (list.length === 0) throw new Error("language list empty");
-  supportedLanguages = list;
-  return supportedLanguages;
-}
-
-async function loadSupportedTargets(apiKey: string): Promise<Set<string>> {
-  const list = await loadSupportedLanguages(apiKey);
-  return new Set(list.map((entry) => entry.code));
-}
-
-/**
- * U4g-24 / INC-115 — PLACEHOLDER PROTECTION.
- *
- * SENTINEL CENSUS (stated honestly, per law A3): this executor has NO Google
- * Translate credential, so the "does v2 return `⟦0⟧` unchanged?" question could
- * NOT be answered empirically here. An unverified assumption is not a law, so
- * the endpoint takes the DOCUMENTED path instead of the guessed one: Google
- * Cloud Translation v2 documents `format=html` and honours the standard
- * `translate="no"` / `notranslate` markup, so every `{token}` travels as
- *   `<span translate="no">⟦i⟧</span>`
- * — a marked-untranslatable wrapper AROUND an index sentinel. Two independent
- * defences: if the provider honours the wrapper the sentinel is untouched, and
- * if it strips the wrapper the bare `⟦i⟧` is still restored by index.
- *
- * RESTORE IS TOTAL OR NOTHING: each sentinel must appear EXACTLY once in the
- * response. A missing or duplicated sentinel means the provider mangled the
- * structure, so the text is returned AS THE PROVIDER GAVE IT (sentinels and
- * all) — never guessed at — and the writer's placeholder validator then flags
- * the row. Silence is never an option (law F4).
- */
-const TOKEN_RE = /\{[^{}]*\}/g;
-const SENTINEL_RE = /⟦(\d+)⟧/g;
-
-interface Masked {
-  text: string;
-  tokens: string[];
-}
-
-function maskTokens(source: string, html: boolean): Masked {
-  const tokens: string[] = [];
-  const text = source.replace(TOKEN_RE, (token) => {
-    const index = tokens.push(token) - 1;
-    // Reviewed (DEC-153): only a number goes into the masking span sent to the provider.
-    // nosemgrep: html-in-template-string
-    return html ? `<span translate="no">⟦${index}⟧</span>` : `⟦${index}⟧`;
-  });
-  return { text, tokens };
-}
-
-/** Drop provider-preserved wrappers so only the bare sentinels remain. */
-function stripWrappers(text: string): string {
-  return text.replace(/<\/?span[^>]*>/g, "");
-}
-
-function restoreTokens(translated: string, tokens: string[]): string {
-  if (tokens.length === 0) return translated;
-  const bare = stripWrappers(translated);
-  const seen = new Map<number, number>();
-  for (const match of bare.matchAll(SENTINEL_RE)) {
-    const index = Number(match[1]);
-    seen.set(index, (seen.get(index) ?? 0) + 1);
+/** A language list that could not be read: today's 503 without a key, 502 otherwise. */
+function languagesFailure(reason: Extract<TranslationLanguages, { ok: false }>["reason"]) {
+  if (reason === "noKey") {
+    logRouteError(PATH, "translation provider is not configured");
+    return ok({ error: "internal error" }, { status: 503 });
   }
-  const intact = tokens.every((_, index) => seen.get(index) === 1) && seen.size === tokens.length;
-  // Mangled structure → hand back the provider's own text; the validator flags it.
-  if (!intact) return translated;
-  return bare.replace(SENTINEL_RE, (whole, digits: string) => tokens[Number(digits)] ?? whole);
-}
-
-function fakeTranslate(target: string, source: string): string {
-  // FAKE MODE runs the SAME mask → translate → restore path as the provider
-  // call, so CI proves the protection itself and not just the writer.
-  const { text, tokens } = maskTokens(source, false);
-  const restored = restoreTokens(`⟪${target}⟫ ${text}`, tokens);
-  // E2EBREAK still drops every placeholder — on the RESTORED text (TR-13).
-  return source.includes("E2EBREAK")
-    ? restored.replace(TOKEN_RE, "").replace(/\s+/g, " ").trim()
-    : restored;
-}
-
-/** Google v2 returns HTML-escaped text even in `format=text` responses. */
-function decodeEntities(text: string): string {
-  return text
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
-}
-
-async function googleTranslate(
-  apiKey: string,
-  target: string,
-  chunk: Item[],
-): Promise<Map<string, string>> {
-  const body = new URLSearchParams();
-  body.set("target", target);
-  body.set("source", "en");
-  // format=html is what makes `translate="no"` meaningful to the provider.
-  body.set("format", "html");
-  const masked = chunk.map((item) => maskTokens(item.source, true));
-  for (const entry of masked) body.append("q", entry.text);
-
-  const response = await fetch("https://translation.googleapis.com/language/translate/v2", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded", "x-goog-api-key": apiKey },
-    body,
-  });
-  if (!response.ok) {
-    const detail = await response.text();
-    // The key is never echoed: only the provider's status and its own message.
-    throw new Error(`provider error ${response.status}: ${detail.slice(0, 200)}`);
-  }
-  const payload = (await response.json()) as {
-    data?: { translations?: { translatedText: string }[] };
-  };
-  const translations = payload.data?.translations ?? [];
-  const out = new Map<string, string>();
-  chunk.forEach((item, index) => {
-    const value = translations[index]?.translatedText;
-    if (typeof value === "string" && value.length > 0) {
-      const decoded = decodeEntities(value);
-      out.set(item.key, restoreTokens(decoded, masked[index]?.tokens ?? []));
-    }
-  });
-  return out;
-}
-
-/**
- * SERVER-RUNTIME ENV ACCESS — one access pattern, both serves.
- *
- * `process.env` is the ONLY read used here, and it is read INSIDE the handler,
- * never at module scope:
- *  * node serve (`E2E_SERVE_BUILT=1`, Nitro node-server / DEC-019): the real
- *    Node `process.env`, populated from the job/shell environment. Verified in
- *    the built bundle: the read survives compilation as `process.env[name]`,
- *    never a build-time inline.
- *  * cloudflare serve (workerd + `nodejs_compat`): the platform injects the
- *    Worker bindings into `process.env` per REQUEST — a module-scope read there
- *    returns `undefined`, which is exactly why every read sits in the handler.
- *
- * No `VITE_`-prefixed name is ever read on this path: `VITE_*` is compiled into
- * the CLIENT bundle, so a provider key behind such a name would ship to the
- * browser. `GOOGLE_TRANSLATE_API_KEY` is a Supabase/deploy secret only.
- */
-function serverEnv(name: string): string {
-  return process.env[name] ?? "";
-}
-
-async function handlePost(request: Request): Promise<Response> {
-  const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
-    return json({ error: "missing bearer token" }, 401);
-  }
-
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-
-  if (url === "" || publishable === "") {
-    return fail5xx("supabase server env missing", 500);
-  }
-
-  // CALLER-CONTEXT CLIENT: publishable key + the caller's own JWT.
-  const supabase = createClient<Database>(url, publishable, {
-    global: { headers: { Authorization: authorization } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  // INC-574 — the auth server did not answer: 503, never "not signed in".
-  if (userError && isAuthRetryableFetchError(userError)) {
-    return fail5xx("auth upstream unavailable", 503);
-  }
-  const uid = userData?.user?.id;
-  if (userError || !uid) return json({ error: "not signed in" }, 401);
-
-  let payload: { target_lang?: string; scope?: string; items?: Item[] };
-  try {
-    payload = (await request.json()) as typeof payload;
-  } catch {
-    return json({ error: "invalid json body" }, 400);
-  }
-
-  const scope: Scope = payload.scope === "entity" ? "entity" : "ui";
-  const target = (payload.target_lang ?? "").trim().toLowerCase();
-  const items = Array.isArray(payload.items) ? payload.items : [];
-  if (payload.scope !== undefined && payload.scope !== "ui" && payload.scope !== "entity") {
-    return json({ error: "invalid scope" }, 400);
-  }
-  if (!/^[a-z]{2,8}(-[a-z]{2,8})?$/.test(target)) {
-    return json({ error: "invalid target_lang" }, 400);
-  }
-  if (items.length === 0) return json({ error: "no items" }, 400);
-  if (items.length > MAX_ITEMS) return json({ error: `too many items (max ${MAX_ITEMS})` }, 413);
-  for (const item of items) {
-    if (item?.context !== undefined && typeof item.context !== "string") {
-      return json({ error: "context must be a string" }, 400);
-    }
-    if (typeof item?.context === "string" && item.context.length > 500) {
-      return json({ error: "context too long (max 500)" }, 400);
-    }
-    if (typeof item?.key !== "string" || typeof item?.source !== "string") {
-      return json({ error: "invalid item shape" }, 400);
-    }
-    if (scope === "entity") {
-      if (
-        typeof item.type !== "string" ||
-        !ENTITY_TYPES.has(item.type) ||
-        typeof item.id !== "string" ||
-        !UUID_RE.test(item.id) ||
-        typeof item.field !== "string" ||
-        item.field === ""
-      ) {
-        return json({ error: "invalid entity item shape" }, 400);
-      }
-    }
-  }
-  const byKey = new Map(items.map((item) => [item.key, item]));
-
-  // ---- GATE (before any provider call) ---------------------------
-  const { data: mayMachine, error: machineError } = await supabase.rpc("has_permission", {
-    p_user_id: uid,
-    p_resource: "translations",
-    p_action: "machine",
-  });
-  if (machineError) return fail5xx(machineError.message, 500);
-  if (mayMachine !== true) return json({ error: "permission denied" }, 403);
-
-  const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
-    p_user_id: uid,
-    p_resource: "translations",
-    p_action: "manage",
-  });
-  if (manageError) return fail5xx(manageError.message, 500);
-
-  if (mayManage !== true) {
-    const { data: scope, error: scopeError } = await supabase.rpc("get_my_translator_languages");
-    if (scopeError) return fail5xx(scopeError.message, 500);
-    const codes = ((scope ?? []) as { lang_code: string }[]).map((row) => row.lang_code);
-    if (!codes.includes(target)) {
-      return json({ error: "not assigned to this language" }, 403);
-    }
-  }
-
-  // ---- D158 — THE SWITCH AND THE METER ----------------------------
-  // Machine translation is asked for only while `translations` is switched on
-  // (off: 409; a switch that could not be read: 503), and the characters the
-  // provider (or fake mode) was sent are metered once the chunks have answered.
-  const { aiGate, recordAiSpend } = await import("@/server/ai/meter");
-  const { standInMode } = await import("@/server/stand-in");
-  const meterLog = (message: string) => logRouteError(message);
-  const gate = await aiGate("translations", meterLog);
-  if (!gate.on) {
-    return json(
-      { error: `machine translation is switched off (${gate.reason})` },
-      gate.reason === "unavailable" ? 503 : 409,
-    );
-  }
-
-  // ---- PROVIDER --------------------------------------------------
-  const fake = standInMode("E2E_FAKE_TRANSLATE");
-  const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
-  if (!fake && apiKey === "") {
-    return fail5xx("translation provider is not configured", 503);
-  }
-
-  const failed: Failure[] = [];
-  const translated = new Map<string, string>();
-  let sentCharacters = 0;
-
-  if (fake) {
-    for (const item of items) translated.set(item.key, fakeTranslate(target, item.source));
-    sentCharacters = items.reduce((sum, item) => sum + item.source.length, 0);
-  } else {
-    try {
-      const supported = await loadSupportedTargets(apiKey);
-      if (!supported.has(target)) {
-        return json({ error: `target language ${target} is not supported by the provider` }, 422);
-      }
-    } catch (error) {
-      return fail5xx(errorText(error), 502);
-    }
-    for (let index = 0; index < items.length; index += GOOGLE_CHUNK) {
-      const chunk = items.slice(index, index + GOOGLE_CHUNK);
-      try {
-        const result = await googleTranslate(apiKey, target, chunk);
-        sentCharacters += chunk.reduce((sum, item) => sum + item.source.length, 0);
-        for (const item of chunk) {
-          const value = result.get(item.key);
-          if (value === undefined) {
-            failed.push({ key: item.key, reason: "provider returned no text" });
-          } else {
-            translated.set(item.key, value);
-          }
-        }
-      } catch (error) {
-        // Per-item honesty: the chunk failed, so every key in it is
-        // reported and NOTHING is written for any of them.
-        for (const item of chunk) {
-          failed.push({ key: item.key, reason: errorText(error) });
-        }
-      }
-    }
-  }
-
-  if (sentCharacters > 0) await recordAiSpend("translations", sentCharacters, meterLog);
-
-  // ---- WRITES (the RPC is the single writer) ---------------------
-  let done = 0;
-  for (const [key, value] of translated) {
-    const item = byKey.get(key);
-    const { error } =
-      scope === "entity" && item
-        ? await supabase.rpc("admin_machine_entity_translation", {
-            p_type: item.type as string,
-            p_id: item.id as string,
-            p_field: item.field as string,
-            p_lang: target,
-            p_value: value,
-          })
-        : await supabase.rpc("admin_machine_translation", {
-            p_key: key,
-            p_lang: target,
-            p_value: value,
-          });
-    if (error) {
-      failed.push({ key, reason: error.message });
-      continue;
-    }
-    done += 1;
-  }
-
-  let flagged = 0;
-  // Entity names carry no {placeholders}, so the validator has nothing to flag;
-  // the flag read-back is a UI-scope concern only.
-  if (done > 0 && scope === "ui") {
-    // Flag count read back from the rows the writer just validated.
-    const { data: rows } = await supabase.rpc("admin_list_translations", {
-      p_lang: target,
-      p_status: "machine",
-      p_flagged: true,
-      p_search: "",
-      p_limit: MAX_ITEMS,
-      p_offset: 0,
-    });
-    const keys = new Set(translated.keys());
-    flagged = ((rows ?? []) as { key: string }[]).filter((row) => keys.has(row.key)).length;
-  }
-
-  return json({ done, flagged, failed }, 200);
-}
-
-/**
- * U4j — GET /api/translate: the PROVIDER's supported target list, for the
- * guided "add a language" picker. Gated on `translations:manage` (the same
- * permission `admin_upsert_language` requires), caller-context client, no
- * service role. Fake mode answers from FAKE_LANGUAGES — no provider call.
- */
-async function handleGet(request: Request): Promise<Response> {
-  const authorization = request.headers.get("Authorization") ?? "";
-  if (!authorization.toLowerCase().startsWith("bearer ")) {
-    return json({ error: "missing bearer token" }, 401);
-  }
-
-  const url = serverEnv("SUPABASE_URL");
-  const publishable = serverEnv("SUPABASE_PUBLISHABLE_KEY");
-  if (url === "" || publishable === "") return fail5xx("supabase server env missing", 500);
-
-  const supabase = createClient<Database>(url, publishable, {
-    global: { headers: { Authorization: authorization } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  // INC-574 — the auth server did not answer: 503, never "not signed in".
-  if (userError && isAuthRetryableFetchError(userError)) {
-    return fail5xx("auth upstream unavailable", 503);
-  }
-  const uid = userData?.user?.id;
-  if (userError || !uid) return json({ error: "not signed in" }, 401);
-
-  const { data: mayManage, error: manageError } = await supabase.rpc("has_permission", {
-    p_user_id: uid,
-    p_resource: "translations",
-    p_action: "manage",
-  });
-  if (manageError) return fail5xx(manageError.message, 500);
-  if (mayManage !== true) return json({ error: "permission denied" }, 403);
-
-  const { standInMode } = await import("@/server/stand-in");
-  if (standInMode("E2E_FAKE_TRANSLATE")) {
-    return json({ languages: FAKE_LANGUAGES }, 200);
-  }
-
-  const apiKey = serverEnv("GOOGLE_TRANSLATE_API_KEY");
-  if (apiKey === "") return fail5xx("translation provider is not configured", 503);
-  try {
-    return json({ languages: await loadSupportedLanguages(apiKey) }, 200);
-  } catch (error) {
-    return fail5xx(errorText(error), 502);
-  }
+  return ok({ error: "internal error" }, { status: 502 });
 }
 
 export const Route = createFileRoute("/api/translate")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
-        try {
-          return await handlePost(request);
-        } catch (error) {
-          logRouteError(error);
-          return json({ error: "internal error" }, 500); // INC-447 — logged above, never echoed
-        }
-      },
-      GET: async ({ request }) => {
-        try {
-          return await handleGet(request);
-        } catch (error) {
-          logRouteError(error);
-          return json({ error: "internal error" }, 500); // INC-447 — logged above, never echoed
-        }
-      },
+      POST: defineRoute({
+        path: PATH,
+        auth: { staff: { resource: "translations", action: "machine" } },
+        body: TranslateBody,
+        limits: { bodyBytes: MAX_BODY_BYTES },
+        badShape: ({ path, code }) => {
+          const word = issueWord({ path, code });
+          return ok({ error: word.error }, { status: word.status });
+        },
+        handler: async ({ body, supabase, userId }) => {
+          if (supabase === null) throw new Error("staff client missing");
+          const { scope, target, items } = body;
+
+          // ---- THE SCOPE (before any provider call or spend) ----------
+          const { data: inScope, error: scopeError } = await supabase.rpc("translation_scope_ok", {
+            p_lang: target,
+          });
+          if (scopeError) return readFailure(PATH, "translation scope", scopeError);
+          if (inScope !== true) {
+            return ok({ error: "not assigned to this language" }, { status: 403 });
+          }
+
+          // ---- THE TARGETS (the stand-in translates any code, as today) --
+          const languages = await translationLanguages({ path: PATH });
+          if (!languages.ok) return languagesFailure(languages.reason);
+          if (!languages.fake && !languages.languages.some((entry) => entry.code === target)) {
+            return ok(
+              { error: `target language ${target} is not supported by the provider` },
+              { status: 422 },
+            );
+          }
+
+          // ---- THE CHUNKS (one audited, metered call each) ------------
+          const failed: { key: string; reason: TranslateReason }[] = [];
+          const translated = new Map<string, string>();
+          for (let index = 0; index < items.length; index += TRANSLATION_CHUNK) {
+            const chunk = items.slice(index, index + TRANSLATION_CHUNK);
+            const answer = await aiCall(
+              "translation",
+              { target, texts: chunk.map((item) => item.source) },
+              { actorId: userId, path: PATH },
+            );
+            if (!answer.ok) {
+              if (index === 0 && "gate" in answer && answer.gate === true) {
+                const reason = answer.reason === "featureOff" ? "staff" : answer.reason;
+                return ok(
+                  { error: `machine translation is switched off (${reason})` },
+                  { status: answer.reason === "unavailable" ? 503 : 409 },
+                );
+              }
+              const status =
+                "status" in answer && answer.status !== undefined ? ` ${answer.status}` : "";
+              logRouteError(
+                PATH,
+                `translation chunk ${index / TRANSLATION_CHUNK + 1}: ${answer.reason}${status}`,
+              );
+              // Per-item honesty: every key in the chunk is reported, none written.
+              for (const item of chunk)
+                failed.push({ key: item.key, reason: "providerUnavailable" });
+              continue;
+            }
+            chunk.forEach((item, position) => {
+              const value = answer.value[position];
+              if (typeof value === "string") translated.set(item.key, value);
+              else failed.push({ key: item.key, reason: "providerNoText" });
+            });
+          }
+
+          // ---- THE WRITES (the RPC is the single writer) --------------
+          const byKey = new Map(items.map((item) => [item.key, item]));
+          let done = 0;
+          for (const [key, value] of translated) {
+            const entity = scope === "entity" ? (byKey.get(key)?.entity ?? null) : null;
+            const { error } =
+              scope === "entity" && entity !== null
+                ? await supabase.rpc("admin_machine_entity_translation", {
+                    p_type: entity.type,
+                    p_id: entity.id,
+                    p_field: entity.field,
+                    p_lang: target,
+                    p_value: value,
+                  })
+                : await supabase.rpc("admin_machine_translation", {
+                    p_key: key,
+                    p_lang: target,
+                    p_value: value,
+                  });
+            if (error) {
+              // The writer's own words stay in the log, beside the key.
+              logRouteError(PATH, `writer ${key}: ${error.message}`);
+              failed.push({ key, reason: writerReason(error.message) });
+              continue;
+            }
+            done += 1;
+          }
+
+          let flagged = 0;
+          // Entity names carry no {placeholders}, so the validator has nothing to flag;
+          // the flag read-back is a UI-scope concern only.
+          if (done > 0 && scope === "ui") {
+            // Flag count read back from the rows the writer just validated.
+            const { data: rows } = await supabase.rpc("admin_list_translations", {
+              p_lang: target,
+              p_status: "machine",
+              p_flagged: true,
+              p_search: "",
+              p_limit: TRANSLATE_MAX_ITEMS,
+              p_offset: 0,
+            });
+            const keys = new Set(translated.keys());
+            flagged = (rows ?? []).filter((row) => keys.has(row.key)).length;
+          }
+
+          return ok({ done, flagged, failed });
+        },
+      }),
+      GET: defineRoute({
+        path: PATH,
+        auth: { staff: { resource: "translations", action: "manage" } },
+        handler: async () => {
+          // U4j — the guided "add a language" picker's list; the stand-in's list in fake mode.
+          const languages = await translationLanguages({ path: PATH });
+          if (!languages.ok) return languagesFailure(languages.reason);
+          return ok({ languages: languages.languages });
+        },
+      }),
     },
   },
 });

@@ -400,7 +400,7 @@ export async function aiCall<T extends TaskId>(
 }
 
 export type TranslationLanguages =
-  | { ok: true; languages: ProviderLanguage[] }
+  | { ok: true; languages: ProviderLanguage[]; fake: boolean }
   | { ok: false; reason: "noKey" | "unavailable" };
 
 /**
@@ -412,9 +412,9 @@ export type TranslationLanguages =
  */
 export async function translationLanguages(ctx: { path: string }): Promise<TranslationLanguages> {
   const task = taskOf("translation");
-  if (standInMode(task.fakeFlag)) return { ok: true, languages: FAKE_LANGUAGES };
+  if (standInMode(task.fakeFlag)) return { ok: true, languages: FAKE_LANGUAGES, fake: true };
   const answer = await providerLanguages({ timeoutMs: task.timeoutMs });
-  if (answer.kind === "languages") return { ok: true, languages: answer.languages };
+  if (answer.kind === "languages") return { ok: true, languages: answer.languages, fake: false };
   if (answer.kind === "noKey") return { ok: false, reason: "noKey" };
   const status = "status" in answer ? ` ${answer.status}` : "";
   logRouteError(ctx.path, `ai translation languages ${answer.kind}${status}`);

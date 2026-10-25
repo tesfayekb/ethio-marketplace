@@ -107,7 +107,6 @@ export default tseslint.config(
       "**/*.test.ts",
       "**/*.test.tsx",
       // ROUTES-BOUNDARY-IGNORES-BEGIN
-      "src/routes/api/translate.ts", // until INC-861
       "src/routes/__root.tsx", // until INC-863
       "src/routes/l.$slug.tsx", // until INC-863
       "src/routes/$name.tsx", // until INC-863

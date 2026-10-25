@@ -1,2 +1,1 @@
-# Existing provider integrations move in the next gateway wave.
-src/routes/api/translate.ts | translations await the translation adapter | INC-876
+# Empty since Foundations turn 19 (INC-876 closed): every provider call lives in src/server/ai/; a line here is a new exception.

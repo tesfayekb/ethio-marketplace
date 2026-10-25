@@ -1,31 +1,15 @@
 import { afterEach, expect, it, vi } from "vitest";
 
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({
-    auth: { getUser: async () => ({ data: { user: { id: "translator" } }, error: null }) },
-    rpc: async (name: string) => ({
-      data: name === "has_permission" ? true : name === "admin_list_translations" ? [] : null,
-      error: null,
-    }),
-  }),
-  isAuthRetryableFetchError: () => false,
-}));
-vi.mock("@/server/ai/meter", () => ({
-  aiGate: async () => ({ on: true }),
-  recordAiSpend: async () => undefined,
-}));
-vi.mock("@/server/stand-in", () => ({ standInMode: () => false }));
-
-import { Route } from "./translate";
+import { providerLanguages, translateBatch } from "@/server/ai/providers/google-translate";
 
 afterEach(() => {
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
 });
 
+// Foundations turn 19 — re-pointed at the adapter that now makes both calls
+// (src/server/ai/providers/google-translate.ts); the assertion is unchanged.
 it("INC-829 translation request URLs contain no key=; both calls carry the key in a header", async () => {
-  vi.stubEnv("SUPABASE_URL", "https://staging.example");
-  vi.stubEnv("SUPABASE_PUBLISHABLE_KEY", "test-publishable");
   const testKey = "test-only-provider-key";
   vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", testKey);
   const requests: Request[] = [];
@@ -38,20 +22,15 @@ it("INC-829 translation request URLs contain no key=; both calls carry the key i
         : { data: { translations: [{ translatedText: "translated fixture" }] } },
     );
   });
-  const handlers = (
-    Route.options as unknown as {
-      server: { handlers: { POST: (ctx: { request: Request }) => Promise<Response> } };
-    }
-  ).server.handlers;
-  const response = await handlers.POST({
-    request: new Request("https://staging.example/api/translate", {
-      method: "POST",
-      headers: { Authorization: "Bearer test-only-session" },
-      body: JSON.stringify({ target_lang: "am", items: [{ key: "fixture", source: "fixture" }] }),
-    }),
+  const languages = await providerLanguages({ timeoutMs: 1_000 });
+  expect(languages).toEqual({ kind: "languages", languages: [{ code: "am", name: "Amharic" }] });
+  const answer = await translateBatch({
+    target: "am",
+    texts: ["fixture"],
+    timeoutMs: 1_000,
+    label: "google-translate translation",
   });
-  expect(response.status).toBe(200);
-  expect(await response.json()).toEqual({ done: 1, flagged: 0, failed: [] });
+  expect(answer).toEqual({ kind: "texts", status: 200, texts: ["translated fixture"] });
   expect(requests.map((request) => request.method)).toEqual(["GET", "POST"]);
   for (const request of requests) {
     expect(request.url).not.toContain("key=");
