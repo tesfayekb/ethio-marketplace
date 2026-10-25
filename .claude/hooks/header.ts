@@ -30,7 +30,7 @@ const laws = [
   "4 ONE MECHANISM PER CONCERN: find it in docs/governance/mechanisms.md; extend, never fork; a new mechanism lands with its census guard.",
   "5 BOUNDARIES: defineRoute + src/lib/schemas; callRoute; aiCall; the Supabase seams; strings as keys (EN+AM); formatLocale; DataTable.",
   "6 TESTS: J1-J9; no real row; no weakened assertion; refusal tests prove no side effect; red-first for defects; vi.stubEnv for every key; fixtures copied by script.",
-  "7 MIGRATIONS: write the file (append-only, born closed, whole redeclaration, self-marking, scratch proofs) — apply NOTHING — then STOP with the apply line.",
+  "7 MIGRATIONS: write the file (append-only, born closed, whole redeclaration, self-marking, scratch proofs), land it with a MIGRATION stop, end the turn; apply on ethio-prod ONLY on the supervisor's `apply <fragment> on ethio-prod`, through the migration tool, behind the operator's approval; never on staging.",
   "8 GIT: work on dev; commit per part; never force/rebase/amend/reset/merge/push by hand; deletions declared in the same commit; every stop and the end LAND through bun .claude/hooks/land.ts (it runs the checks, requires the report, pushes dev fast-forward); main is CI's.",
   "9 GREEN-SHAPED COMMITS: typecheck + lint + touched tests before every commit; land.ts runs lint → typecheck → unit → i18n → build → migration guard → format:check before anything reaches dev.",
   "10 SECRETS: staging E2E credentials only; never print, log or commit one; no production or provider key; no new dependency unless the brief names it.",
@@ -39,7 +39,13 @@ const laws = [
 ];
 
 const lines: string[] = [];
-if (kind === "SessionStart") {
+// A fresh cloud session's refs are stale until session-setup.ts has fetched, and hooks of one event
+// run in parallel — so at that moment the setup prints the SESSION line, after its fetch.
+const setupReports =
+  kind === "SessionStart" &&
+  process.env["CLAUDE_CODE_REMOTE"] === "true" &&
+  (event.source === undefined || event.source === "startup");
+if (kind === "SessionStart" && !setupReports) {
   const head = git(["rev-parse", "--short", "HEAD"]);
   const branch = currentBranch();
   const devHead = git(["rev-parse", "--short", "origin/dev"]);
@@ -48,7 +54,7 @@ if (kind === "SessionStart") {
   );
   if (branch !== WORK_BRANCH)
     lines.push(
-      `You are not on ${WORK_BRANCH}: Part A switches (git fetch origin && git switch ${WORK_BRANCH}; git merge --ff-only origin/dev when it is behind and clean).`,
+      `You are not on ${WORK_BRANCH}: Part A — git fetch origin dev main ci-evidence; git fetch origin dev:dev (a fast-forward of local dev without checking it out); git switch ${WORK_BRANCH}.`,
     );
   const ci = git(["show", "origin/ci-evidence:docs/tracking/ci-status.md"]);
   if (ci !== "" && !/^fatal/.test(ci))

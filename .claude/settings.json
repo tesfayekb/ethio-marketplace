@@ -70,6 +70,10 @@
       "Bash(git merge --no-ff*)",
       "Bash(git merge --squash*)",
       "Bash(git merge --no-commit*)",
+      "Bash(git fetch *+*)",
+      "Bash(git fetch * -f*)",
+      "Bash(git fetch -f*)",
+      "Bash(git fetch *--force*)",
       "Bash(git pull*)",
       "Bash(git cherry-pick*)",
       "Bash(git tag *)",
@@ -197,7 +201,7 @@
           {
             "type": "command",
             "command": "bun \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-setup.ts",
-            "timeout": 1100
+            "timeout": 1500
           },
           {
             "type": "command",

@@ -51,6 +51,12 @@ const DENY: Rule[] = [
     why: "the only merge is catching up a clean dev with git merge --ff-only origin/dev at Part A; if dev moved during the turn, STOP (the supervisor re-bases the brief) — never merge",
   },
   {
+    // INC-883: `git fetch origin dev:dev` brings local dev up as a fast-forward; a forced refspec or
+    // --force rewrites local branches and can drop unlanded commits.
+    re: /\bgit\s+fetch\b[^\n|;&]*(\s\+[\w./:*-]|\s(-f|--force|--update-head-ok)(\s|$))/,
+    why: "a forced fetch rewrites local branches and can drop your unlanded commits: git fetch origin dev:dev updates local dev only as a fast-forward",
+  },
+  {
     re: /\bgit\s+remote\s+(add|set-url|remove|rm|rename|prune|set-head)\b/,
     why: "the remote is origin and stays as it is",
   },
@@ -76,7 +82,7 @@ const DENY: Rule[] = [
   // --- databases, browsers, packages -----------------------------------------------------------
   {
     re: /\bsupabase\s+(db|link|unlink|login|migration|migrations|projects|functions|secrets|branches|orgs|inspect)\b/,
-    why: "you write migration files and apply nothing (30-migrations.md)",
+    why: "no Supabase CLI: a migration is applied only through the supabase-prod migration tool, on the supervisor's `apply <fragment> on ethio-prod` (30-migrations.md)",
   },
   {
     re: /\b(psql|pg_dump|pg_restore|pg_dumpall|pgcli|pgbench)\b|postgres(ql)?:\/\//,

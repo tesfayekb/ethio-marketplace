@@ -23,8 +23,11 @@ CHECKS are green; then it pushes fast-forward. You never `git push` by hand.
 
 A turn is ONE brief, worked part by part, landed at every stop and at the end.
 
-1. **Part A — orient.** `git fetch origin dev main ci-evidence`; `git switch dev`; when local `dev`
-   is behind and you have no unlanded commits, `git merge --ff-only origin/dev`. A cloud session
+1. **Part A — orient.** `git fetch origin dev main ci-evidence`; when you are not on `dev`,
+   `git fetch origin dev:dev` first — it brings a stale local `dev` up to `origin/dev` as a
+   fast-forward without checking it out (the session setup already did so at startup; never a forced
+   form; a refusal is a STOP) — then `git switch dev`; when you are on `dev` and it is behind with no
+   unlanded commits, `git merge --ff-only origin/dev`. A cloud session
    starts on a branch of its own (`claude/…`) and its setup text may tell you to work there; this
    repository's rule is `dev` — switch before your first change and never commit on the session's
    branch (`land.ts` alone may park a held turn there). Record `<BASE>` =
