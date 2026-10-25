@@ -1,0 +1,242 @@
+{
+  "base": "https://my-market-dawn.lovable.app",
+  "when": "2026-10-25T15:46:44.187Z",
+  "device": {
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "deviceScaleFactor": 1.75,
+    "isMobile": true,
+    "hasTouch": true,
+    "userAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+  },
+  "throttling": {
+    "rttMs": 150,
+    "throughputKbps": 1638.4,
+    "requestLatencyMs": 562.5,
+    "downloadThroughputKbps": 1474.5600000000002,
+    "uploadThroughputKbps": 675,
+    "cpuSlowdownMultiplier": 4
+  },
+  "pages": [
+    {
+      "name": "post",
+      "url": "https://my-market-dawn.lovable.app/post",
+      "medianCold": {
+        "ttfbMs": 827,
+        "fcpMs": 2860,
+        "lcpMs": 2860,
+        "cls": 0,
+        "tbtMs": 542,
+        "loadMs": 5257,
+        "htmlKB": 8.8,
+        "totalKB": 555,
+        "requests": 67
+      },
+      "warm": {
+        "ttfbMs": 575,
+        "fcpMs": 988,
+        "lcpMs": 988,
+        "lcpElement": "p[footer-copyright]",
+        "cls": 0.06,
+        "tbtMs": 518,
+        "domContentLoadedMs": 1025,
+        "loadMs": 1311,
+        "htmlBytes": 8807,
+        "totalBytes": 71663,
+        "requests": 81,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Document": 8807,
+          "Script": 0,
+          "Font": 0,
+          "Preflight": 0,
+          "Fetch": 22072,
+          "Other": 40784
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 1427,
+          "fcpMs": 3440,
+          "lcpMs": 3440,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0,
+          "tbtMs": 537,
+          "domContentLoadedMs": 4266,
+          "loadMs": 5854,
+          "htmlBytes": 9119,
+          "totalBytes": 568343,
+          "requests": 66,
+          "bytesByType": {
+            "Document": 9119,
+            "Script": 404684,
+            "Stylesheet": 23117,
+            "Font": 89732,
+            "Fetch": 21244,
+            "Preflight": 0,
+            "Other": 20447
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 604,
+          "fcpMs": 2648,
+          "lcpMs": 2648,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0,
+          "tbtMs": 550,
+          "domContentLoadedMs": 3416,
+          "loadMs": 4999,
+          "htmlBytes": 9034,
+          "totalBytes": 572345,
+          "requests": 69,
+          "bytesByType": {
+            "Document": 9034,
+            "Script": 408918,
+            "Stylesheet": 23028,
+            "Font": 89732,
+            "Fetch": 21202,
+            "Preflight": 0,
+            "Other": 20431
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 827,
+          "fcpMs": 2860,
+          "lcpMs": 2860,
+          "lcpElement": "p[footer-copyright]",
+          "cls": 0,
+          "tbtMs": 542,
+          "domContentLoadedMs": 3712,
+          "loadMs": 5257,
+          "htmlBytes": 9061,
+          "totalBytes": 550681,
+          "requests": 67,
+          "bytesByType": {
+            "Document": 9061,
+            "Script": 405460,
+            "Stylesheet": 23214,
+            "Font": 89732,
+            "Fetch": 2765,
+            "Preflight": 0,
+            "Other": 20449
+          },
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "auth",
+      "url": "https://my-market-dawn.lovable.app/auth",
+      "medianCold": {
+        "ttfbMs": 610,
+        "fcpMs": 2668,
+        "lcpMs": 2668,
+        "cls": 0,
+        "tbtMs": 528,
+        "loadMs": 4708,
+        "htmlKB": 8,
+        "totalKB": 548.8,
+        "requests": 77
+      },
+      "warm": {
+        "ttfbMs": 577,
+        "fcpMs": 1212,
+        "lcpMs": 1212,
+        "lcpElement": null,
+        "cls": 0,
+        "tbtMs": 438,
+        "domContentLoadedMs": 1224,
+        "loadMs": 1556,
+        "htmlBytes": 8037,
+        "totalBytes": 49207,
+        "requests": 77,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Document": 8037,
+          "Script": 0,
+          "Font": 0,
+          "Preflight": 0,
+          "Fetch": 20744,
+          "Other": 20426
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 610,
+          "fcpMs": 2668,
+          "lcpMs": 2668,
+          "lcpElement": null,
+          "cls": 0,
+          "tbtMs": 528,
+          "domContentLoadedMs": 3304,
+          "loadMs": 4708,
+          "htmlBytes": 8395,
+          "totalBytes": 562322,
+          "requests": 77,
+          "bytesByType": {
+            "Document": 8395,
+            "Script": 357224,
+            "Stylesheet": 23220,
+            "Font": 89732,
+            "Fetch": 63416,
+            "Other": 20335,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 775,
+          "fcpMs": 2764,
+          "lcpMs": 2764,
+          "lcpElement": null,
+          "cls": 0,
+          "tbtMs": 560,
+          "domContentLoadedMs": 3507,
+          "loadMs": 5001,
+          "htmlBytes": 8152,
+          "totalBytes": 520688,
+          "requests": 76,
+          "bytesByType": {
+            "Document": 8152,
+            "Script": 357502,
+            "Stylesheet": 22972,
+            "Font": 89732,
+            "Fetch": 21979,
+            "Other": 20351,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 604,
+          "fcpMs": 2644,
+          "lcpMs": 2644,
+          "lcpElement": null,
+          "cls": 0,
+          "tbtMs": 429,
+          "domContentLoadedMs": 3308,
+          "loadMs": 4667,
+          "htmlBytes": 8174,
+          "totalBytes": 561990,
+          "requests": 77,
+          "bytesByType": {
+            "Document": 8174,
+            "Stylesheet": 23094,
+            "Script": 357231,
+            "Font": 89732,
+            "Fetch": 63410,
+            "Other": 20349,
+            "Preflight": 0
+          },
+          "status": 200
+        }
+      ]
+    }
+  ]
+}
