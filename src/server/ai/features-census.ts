@@ -1,11 +1,12 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { walkFiles } from "../../../scripts/conformance/kit";
 
 /** The newest declaration, not an earlier seed, is the feature-list authority. */
 export function migrationAiFeatures(): string[] {
   const directory = join(process.cwd(), "supabase/migrations");
-  for (const file of readdirSync(directory).filter((name) => name.endsWith(".sql")).sort().reverse()) {
-    const source = readFileSync(join(directory, file), "utf8");
+  for (const file of walkFiles([directory], { ext: ["sql"] }).reverse()) {
+    const source = readFileSync(file, "utf8");
     const declarations = [...source.matchAll(/(?:CONSTRAINT\s+ai_features_feature_check\s+CHECK)\s*\(\s*feature\s+IN\s*\(([^)]+)\)/gi)];
     const declaration = declarations.at(-1);
     const values = declaration?.[1];
