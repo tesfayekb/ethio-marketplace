@@ -5,6 +5,70 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
+/**
+ * Foundations turn 21 (INC-891) — ONE LIST PER LINT CONCERN. Flat config
+ * REPLACES a rule's options for a file: a later block that sets
+ * `no-restricted-syntax` drops every selector an earlier block gave the same
+ * file. Each list below is its concern's one definition; every block composes
+ * the lists its files owe, and scripts/conformance/lint-rules.test.ts
+ * (CF-LINT-1…3) checks every file under src/ and e2e/ against the owed table.
+ */
+export const RESTRICTED_SYNTAX = {
+  // DEC-025 — typed clients: every file under src/.
+  typedClient: [
+    {
+      selector: "CallExpression[callee.name='createClient']:not([typeArguments])",
+      message:
+        "DEC-025: pass the generated schema — createClient<Database>(…). An untyped client makes every table, column and RPC argument `any`.",
+    },
+  ],
+  // INC-815 — a caught error is read with errorText: every file under src/
+  // except the tests and the platform's lovable-error-reporting.ts.
+  caughtError: [
+    {
+      selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
+      message:
+        "INC-815: a caught error may be a plain { message } object (a Supabase door's refusal), not an Error. Read it with errorText (src/lib/error-text.ts). A line that truly needs an Error instance carries an eslint-disable-next-line comment with its reason.",
+    },
+  ],
+  // DEC-237 — the route boundary: src/routes/** and src/server/** outside the
+  // block's ignores (CF-RT-5 keeps those equal to routes-allowlist.txt).
+  routeBoundary: [
+    {
+      selector:
+        "CallExpression[callee.object.name='request'][callee.property.name=/^(json|formData|arrayBuffer|text)$/]",
+      message: "a route reads its body through defineRoute's schema or form",
+    },
+    {
+      selector: "NewExpression[callee.name='Response']",
+      message: "answers come from src/server/answer.ts",
+    },
+    {
+      selector: "CallExpression[callee.name='fetch']",
+      message: "outside calls go through upstream()",
+    },
+    {
+      selector: "CallExpression[callee.name='createClient']",
+      message: "clients come from user-client.ts",
+    },
+  ],
+  // DEC-027 — spec lint: every e2e/**/*.ts.
+  specLint: [
+    {
+      selector: "CallExpression[callee.property.name='first']",
+      message: "twin helpers per J5",
+    },
+    {
+      selector: "MemberExpression[object.name='test'][property.name='only']",
+      message: "test.only never lands: it silently green-washes the whole file",
+    },
+    {
+      selector: "CallExpression[callee.property.name='waitForTimeout']",
+      message: "poll on truth, never sleep",
+    },
+  ],
+};
+
 export default tseslint.config(
   {
     ignores: [
