@@ -23,9 +23,14 @@ let cloneCount = 0;
 
 // INC-881: a sandbox may put a git wrapper that refuses stateful commands ahead of the real binary on
 // PATH; the scratch repositories (and the hooks run in them) use the real git when /bin/git exists.
-const ENV: NodeJS.ProcessEnv = existsSync("/bin/git")
-  ? { ...process.env, PATH: `/bin:${process.env["PATH"] ?? ""}` }
-  : { ...process.env };
+// The system git configuration is ignored too (a sandbox's core.hooksPath=/dev/null silenced EXH-17's
+// planted pre-receive hook), and the cloud-session flag is cleared: tests set their own environment.
+const ENV: NodeJS.ProcessEnv = {
+  ...process.env,
+  ...(existsSync("/bin/git") ? { PATH: `/bin:${process.env["PATH"] ?? ""}` } : {}),
+  GIT_CONFIG_NOSYSTEM: "1",
+  CLAUDE_CODE_REMOTE: "",
+};
 
 function sh(cmd: string, cwd: string): string {
   const r = spawnSync("bash", ["-c", cmd], { cwd, encoding: "utf8", env: ENV });
@@ -343,6 +348,9 @@ describe("bash guard (50-security.md)", () => {
     refused("git remote set-url origin https://example.invalid/x.git", /remote is origin/);
     refused("git config alias.p push", /no alias/);
     refused("git tag v1", /tags are the operator's/);
+    refused("git fetch origin +dev:dev", /forced fetch/);
+    refused("git fetch -f origin dev:dev", /forced fetch/);
+    refused("git fetch --force origin dev:dev", /forced fetch/);
   });
 
   it("EXH-5 refuses database work, direct browsers, package changes, secrets, downloads, indirection, GitHub writes and Claude itself", () => {
@@ -469,6 +477,7 @@ describe("bash guard (50-security.md)", () => {
       "bun .claude/hooks/land.ts",
       "gh run list --branch dev --limit 3",
       "git branch --show-current",
+      "git fetch origin dev:dev",
     ];
     for (const command of required) {
       for (const p of permission(command)) {
@@ -502,6 +511,8 @@ describe("bash guard (50-security.md)", () => {
       "bash -c 'echo hi'",
       "claude -p hello",
       "gh pr create --base dev",
+      "git fetch origin +dev:dev",
+      "git fetch -f origin dev:dev",
     ]) {
       expect(
         permission(command).some((p) => p.denied !== null),
@@ -529,6 +540,14 @@ describe("the standing header (every prompt)", () => {
     const start = hook("header", { hook_event_name: "SessionStart", source: "compact" });
     expect(start.out).toMatch(/SESSION \(compact\): branch dev/);
     expect(start.out).toMatch(/unlanded commits: 0/);
+    // A fresh cloud session: the refs are stale until the setup has fetched, so the setup prints the
+    // SESSION line and the header leaves it out.
+    const cloud = hook("header", { hook_event_name: "SessionStart", source: "startup" }, repo, {
+      CLAUDE_CODE_REMOTE: "true",
+    });
+    expect(cloud.out).toMatch(/standing header/);
+    expect(cloud.out).not.toMatch(/SESSION \(/);
+    expect(cloud.out).toMatch(/7 MIGRATIONS: .*apply on ethio-prod ONLY on the supervisor's/);
   });
 });
 
@@ -734,6 +753,45 @@ describe("the session setup", () => {
       "claude/planted-session",
     );
     expect(r.out).toMatch(/started on claude\/planted-session; you work on dev/);
+    expect(r.out).toMatch(/SESSION \(startup, after fetch\): branch claude\/planted-session/);
+  });
+
+  it("EXH-19 brings a stale local dev level with origin/dev as a fast-forward before the executor can check it out — and leaves a local dev with its own commits, naming it", () => {
+    const setup = (dir: string) => {
+      writeFileSync(join(dir, "bun.lock"), "{}\n");
+      mkdirSync(join(dir, "node_modules"), { recursive: true });
+      writeFileSync(join(dir, "node_modules", ".executor-install-stamp"), "planted\n");
+      return hook("session-setup", { hook_event_name: "SessionStart", source: "startup" }, dir, {
+        CLAUDE_CODE_REMOTE: "true",
+      });
+    };
+    const advance = (origin: string, name: string) => {
+      const other = join(root, name);
+      sh(
+        `git clone -q --branch dev "${origin}" "${other}" && cd "${other}" && git config user.email e2e@ethio-e2e.invalid && git config user.name e2e && echo y > lovable.txt && git add -A && git commit -q -m 'Lovable update' && git push -q origin dev`,
+        root,
+      );
+      return remoteDev(origin);
+    };
+    // Stale: the clone's local dev is behind (a snapshot); the session starts on its own branch.
+    const stale = freshClone("setup-stale");
+    const newer = advance(stale.origin, "setup-stale-other");
+    sh("git switch -q -c claude/planted-session", stale.dir);
+    const brought = setup(stale.dir);
+    expect(brought.code, brought.err).toBe(0);
+    expect(sh("git rev-parse refs/heads/dev", stale.dir).trim()).toBe(newer);
+    expect(brought.out).toMatch(/local dev = origin\/dev \(brought up as a fast-forward/);
+    expect(brought.out).toMatch(/local dev commits not on origin\/dev: 0/);
+    // Diverged: local dev carries a commit origin/dev lacks — never forced, named instead.
+    const diverged = freshClone("setup-diverged");
+    write(diverged.dir, "src/server/ai/local.ts", "export const local = 1;\n");
+    const own = commit(diverged.dir, "turn 99 part B: a local commit");
+    advance(diverged.origin, "setup-diverged-other");
+    sh("git switch -q -c claude/planted-session", diverged.dir);
+    const left = setup(diverged.dir);
+    expect(left.code, left.err).toBe(0);
+    expect(sh("git rev-parse refs/heads/dev", diverged.dir).trim()).toBe(own);
+    expect(left.out).toMatch(/could NOT be brought to origin\/dev as a fast-forward/);
   });
 });
 
