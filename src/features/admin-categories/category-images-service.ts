@@ -41,23 +41,38 @@ export class CategoryImageError extends Error {
   }
 }
 
-async function post(path: RoutePath, body: unknown, timeoutMs?: number): Promise<Record<string, unknown> | null> {
+async function post(
+  path: RoutePath,
+  body: unknown,
+  timeoutMs?: number,
+): Promise<Record<string, unknown> | null> {
   const answer = await callRoute(path, { method: "POST", json: body, auth: "required", timeoutMs });
   if (answer.kind === "signedOut") throw new CategoryImageError("not signed in", 401, "model-call");
   if (answer.kind === "unreachable") {
-    if (answer.reason === "timeout") throw new CategoryImageError("client-timeout", 0, "client-timeout");
+    if (answer.reason === "timeout")
+      throw new CategoryImageError("client-timeout", 0, "client-timeout");
     throw new CategoryImageError("network error", 0, "model-call");
   }
-  if (!answer.ok) throw new CategoryImageError(
-    typeof answer.payload?.error === "string" ? answer.payload.error : `HTTP ${answer.status}`,
-    answer.status,
-    typeof answer.payload?.stage === "string" ? answer.payload.stage : "model-call",
-  );
+  if (!answer.ok)
+    throw new CategoryImageError(
+      typeof answer.payload?.error === "string" ? answer.payload.error : `HTTP ${answer.status}`,
+      answer.status,
+      typeof answer.payload?.stage === "string" ? answer.payload.stage : "model-call",
+    );
   return answer.payload;
 }
 
-function generatedPayload(value: Record<string, unknown> | null): value is Record<string, unknown> & { image: string; prompt: string; genMs: number } {
-  return value !== null && typeof value.image === "string" && value.image !== "" && typeof value.prompt === "string" && typeof value.genMs === "number" && Number.isFinite(value.genMs);
+function generatedPayload(
+  value: Record<string, unknown> | null,
+): value is Record<string, unknown> & { image: string; prompt: string; genMs: number } {
+  return (
+    value !== null &&
+    typeof value.image === "string" &&
+    value.image !== "" &&
+    typeof value.prompt === "string" &&
+    typeof value.genMs === "number" &&
+    Number.isFinite(value.genMs)
+  );
 }
 
 const BUCKET = "category-assets";
@@ -78,9 +93,16 @@ function fromBase64(value: string): Uint8Array {
  *   → prune (best effort, logged, never fatal).
  * Every failure is a CategoryImageError carrying its stage (F4).
  */
-export async function generateCategoryImage(input: { categoryId: string }): Promise<GeneratedAssets> {
-  const payload = await post("/api/admin/categories/generate-image", { categoryId: input.categoryId }, 30_000);
-  if (!generatedPayload(payload)) throw new CategoryImageError("route returned no image", 502, "model-call");
+export async function generateCategoryImage(input: {
+  categoryId: string;
+}): Promise<GeneratedAssets> {
+  const payload = await post(
+    "/api/admin/categories/generate-image",
+    { categoryId: input.categoryId },
+    30_000,
+  );
+  if (!generatedPayload(payload))
+    throw new CategoryImageError("route returned no image", 502, "model-call");
 
   const { makeVariants } = await import("./category-image-variants");
   const processStart = performance.now();
@@ -162,10 +184,10 @@ export async function suggestCategoryIcon(input: {
   name: string;
   parentName?: string | null;
 }): Promise<{ icon: string; fallback: boolean }> {
-  const payload = (await post("/api/admin/categories/suggest-icon", {
+  const payload = await post("/api/admin/categories/suggest-icon", {
     name: input.name,
     ...(input.parentName ? { parentName: input.parentName } : {}),
-  }));
+  });
   // Bundle 2 step 18 — a missing icon is a fallback too, never silent.
   if (typeof payload?.icon !== "string") return { icon: "Package", fallback: true };
   return { icon: payload.icon, fallback: payload.fallback === true };
