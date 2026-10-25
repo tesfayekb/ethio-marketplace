@@ -108,7 +108,8 @@ export function routePreloads(routes, routeId) {
  * D234 S1 — chunks that must never reach a PUBLIC page's first download (a page a
  * visitor opens signed out: home, category, ad, seller, sign-in, legal). The
  * posting doors, the schema library, the calendar, the category glyph map and the
- * map library load only where their feature is used.
+ * map library load only where their feature is used; the strings layers (DEC-258)
+ * load only where a route declares them.
  */
 export const PUBLIC_MUST_STAY_LAZY = [
   "posting-service",
@@ -116,6 +117,10 @@ export const PUBLIC_MUST_STAY_LAZY = [
   "category-glyphs",
   "date-calendar",
   "leaflet",
+  "en-member",
+  "am-member",
+  "en-admin",
+  "am-admin",
 ];
 
 /** The first chunk name in a closure that starts with one of `prefixes`, or null. */

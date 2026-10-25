@@ -27,6 +27,8 @@ const FORBIDDEN_FILES = [
   "src/i18n/locales/en-admin.ts",
   "src/i18n/locales/am-admin.ts",
   "src/i18n/locales/am-base.ts",
+  "src/i18n/locales/en-member.ts",
+  "src/i18n/locales/am-member.ts",
 ];
 const FORBIDDEN = [
   "recharts",
