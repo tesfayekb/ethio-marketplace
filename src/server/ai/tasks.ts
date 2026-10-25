@@ -73,7 +73,12 @@ export const AI_TASKS = [
 
 const ids = new Set<string>();
 for (const task of AI_TASKS) {
-  if (ids.has(task.id) || !AI_FEATURES.includes(task.feature) || task.timeoutMs > 120_000 || task.timeoutMs <= 0)
+  if (
+    ids.has(task.id) ||
+    !AI_FEATURES.includes(task.feature) ||
+    task.timeoutMs > 120_000 ||
+    task.timeoutMs <= 0
+  )
     throw new Error(`Invalid AI task registration: ${task.id}`);
   ids.add(task.id);
 }

@@ -10,13 +10,24 @@ export type GeminiTextAnswer =
   | { kind: "noKey" };
 
 const envelope = z.object({
-  candidates: z.array(z.object({ content: z.object({ parts: z.array(z.object({ text: z.string().optional() })) }).optional() })).optional(),
+  candidates: z
+    .array(
+      z.object({
+        content: z.object({ parts: z.array(z.object({ text: z.string().optional() })) }).optional(),
+      }),
+    )
+    .optional(),
 });
 
 /** DEC-248: relocated own-key Gemini integration, not the Lovable AI Gateway SDK. */
 export async function geminiText(input: {
-  model: string; system: string; user: string; responseSchema?: Record<string, unknown>;
-  temperature?: number; timeoutMs: number; label: string;
+  model: string;
+  system: string;
+  user: string;
+  responseSchema?: Record<string, unknown>;
+  temperature?: number;
+  timeoutMs: number;
+  label: string;
 }): Promise<GeminiTextAnswer> {
   const key = process.env["GEMINI_API_KEY"] ?? "";
   if (key.trim() === "") return { kind: "noKey" };
@@ -42,7 +53,11 @@ export async function geminiText(input: {
     if (!response.ok) return { kind: "status", status: response.status };
     try {
       const parsed = envelope.safeParse(await response.json());
-      return { kind: "text", status: response.status, text: parsed.success ? (parsed.data.candidates?.[0]?.content?.parts?.[0]?.text ?? "") : "" };
+      return {
+        kind: "text",
+        status: response.status,
+        text: parsed.success ? (parsed.data.candidates?.[0]?.content?.parts?.[0]?.text ?? "") : "",
+      };
     } catch {
       return { kind: "text", status: response.status, text: "" };
     }

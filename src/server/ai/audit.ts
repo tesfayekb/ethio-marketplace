@@ -1,6 +1,14 @@
 export type AiAuditRow = {
-  feature: string; task: string; taskVersion: number; model: string; actorId: string | null;
-  inputHash: string; outcome: string; providerStatus: number | null; latencyMs: number; fake: boolean;
+  feature: string;
+  task: string;
+  taskVersion: number;
+  model: string;
+  actorId: string | null;
+  inputHash: string;
+  outcome: string;
+  providerStatus: number | null;
+  latencyMs: number;
+  fake: boolean;
 };
 
 /** Awaited before returning a verdict; audit failure never changes a billed answer. */
