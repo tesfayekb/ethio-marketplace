@@ -29,7 +29,10 @@ export async function upstream(
       ...init,
       signal: AbortSignal.timeout(opts.timeoutMs),
     });
-    console.error(`[upstream] ${opts.label} ${response.status} ${Date.now() - started}ms`);
+    const line = `[upstream] ${opts.label} ${response.status} ${Date.now() - started}ms`;
+    // INC-892: an answer below 400 is information, a 4xx or 5xx an error; a timeout stays an error.
+    if (response.status < 400) console.info(line);
+    else console.error(line);
     return response;
   } catch (error) {
     // Foundations turn 3 — AbortSignal.timeout rejects with a DOMException named
