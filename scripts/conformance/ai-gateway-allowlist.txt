@@ -1,3 +1,2 @@
 # Existing provider integrations move in the next gateway wave.
-src/server/category-images/gemini.ts | category images await the image-answer adapter | INC-876
 src/routes/api/translate.ts | translations await the translation adapter | INC-876
