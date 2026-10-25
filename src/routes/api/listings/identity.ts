@@ -69,13 +69,9 @@ async function imitationOf(alias: string, userId: string): Promise<Imitation> {
   const answer = await aiCall("name_check", { alias }, { actorId: userId, path: PATH });
   if (!answer.ok) return { of: null, checked: false };
   const value = answer.value;
-  if (typeof value !== "object" || value === null || !("imitates" in value))
-    return { of: null, checked: false };
   if (value.imitates !== true) return { of: null, checked: true };
   const of =
-    "of" in value && typeof value.of === "string" && value.of.trim() !== ""
-      ? value.of.trim()
-      : alias;
+    typeof value.of === "string" && value.of.trim() !== "" ? value.of.trim() : alias;
   return { of, checked: true };
 }
 

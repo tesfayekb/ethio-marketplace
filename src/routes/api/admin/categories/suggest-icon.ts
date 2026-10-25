@@ -13,19 +13,13 @@
  * provider (or fake mode) gives is metered.
  */
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
 import { aiCall } from "@/server/ai/gateway";
 import { ok, serverError } from "@/server/answer";
 import { defineRoute } from "@/server/route";
 import { checkIcon } from "@/server/category-images/icons";
+import { SuggestIconBody } from "@/lib/schemas/category-icon";
 
 const PATH = "/api/admin/categories/suggest-icon";
-export const SuggestIconBody = z
-  .object({
-    name: z.string().trim().min(1).max(120),
-    parentName: z.string().trim().max(120).nullable().optional(),
-  })
-  .strict();
 
 export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
   server: {
@@ -53,11 +47,8 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
             { actorId: userId, path: PATH },
           );
           if (answer.ok) {
-            const value = answer.value;
             return ok({
-              ...checkIcon(
-                typeof value === "object" && value !== null && "icon" in value ? value.icon : null,
-              ),
+              ...checkIcon(answer.value.icon),
               fake: answer.fake,
             });
           }
