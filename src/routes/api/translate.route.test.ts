@@ -19,6 +19,8 @@ type Call = { name: string; args: Record<string, unknown> };
 const state = vi.hoisted(() => ({
   permissions: new Set<string>(),
   scopeOk: true as boolean,
+  /** The scope door's own failure text, when it fails. */
+  scopeError: null as string | null,
   calls: [] as Call[],
   /** The writer's refusal text by key (UI) or entity id. */
   writerErrors: new Map<string, string>(),
@@ -39,7 +41,11 @@ vi.mock("@/server/supabase/user-client", async (original) => {
   const client = {
     rpc: async (name: string, args: Record<string, unknown>) => {
       state.calls.push({ name, args });
-      if (name === "translation_scope_ok") return { data: state.scopeOk, error: null, status: 200 };
+      if (name === "translation_scope_ok") {
+        return state.scopeError === null
+          ? { data: state.scopeOk, error: null, status: 200 }
+          : { data: null, error: { message: state.scopeError }, status: 500 };
+      }
       if (name === "admin_machine_translation" || name === "admin_machine_entity_translation") {
         const id = String(name === "admin_machine_translation" ? args.p_key : args.p_id);
         const message = state.writerErrors.get(id);
@@ -155,6 +161,7 @@ const writes = () =>
 beforeEach(() => {
   state.permissions = new Set(["translations:machine", "translations:manage"]);
   state.scopeOk = true;
+  state.scopeError = null;
   state.calls = [];
   state.writerErrors = new Map();
   state.flaggedKeys = [];
@@ -198,6 +205,14 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
     });
     expect(state.calls).toEqual([{ name: "translation_scope_ok", args: { p_lang: "om" } }]);
     expect(state.translateRequests + state.languageRequests).toBe(0);
+    expect(state.spends).toEqual([]);
+    expect(state.audits).toEqual([]);
+    // A scope read that fails keeps today's answer, its text in the log only.
+    state.scopeError = "canceling statement due to statement timeout";
+    const failed = await post({ target_lang: "om", items: items(1) });
+    expect(failed).toEqual({ status: 500, body: { error: "internal error" } });
+    expect(state.logs.some((line) => line.includes(state.scopeError ?? "-"))).toBe(true);
+    expect(state.translateRequests).toBe(0);
     expect(state.spends).toEqual([]);
     expect(state.audits).toEqual([]);
   });
@@ -340,6 +355,21 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       [{ target_lang: "am" }, 400, "no items"],
       [{ target_lang: "am", items: "x" }, 400, "no items"],
       [{ target_lang: "am", items: items(601) }, 413, "too many items (max 600)"],
+      // Today's order: the count before any item.
+      [{ target_lang: "am", items: [{ key: 5 }, ...items(600)] }, 413, "too many items (max 600)"],
+      // Today's order: item by item — an earlier item's address before a later item's key.
+      [
+        {
+          scope: "entity",
+          target_lang: "am",
+          items: [
+            { key: "category:x", source: "Cars", type: "user", id: "1", field: "name" },
+            { key: 5, source: "s", context: 5 },
+          ],
+        },
+        400,
+        "invalid entity item shape",
+      ],
       [
         { target_lang: "am", items: [{ key: "k", source: "s", context: 5 }] },
         400,

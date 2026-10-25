@@ -887,16 +887,13 @@ describe("the translation task and its Google Translate adapter", () => {
       reason: "providerError",
       status: 403,
     });
-    vi.stubGlobal(
-      "fetch",
-      async () =>
-        ({
-          ok: true,
-          status: 200,
-          json: async () => {
-            throw new DOMException("signal timed out", "TimeoutError");
-          },
-        }) as unknown as Response,
+    // A real 200 whose body read passes the deadline.
+    vi.stubGlobal("fetch", async () =>
+      Object.assign(new Response("{}", { status: 200 }), {
+        json: async () => {
+          throw new DOMException("signal timed out", "TimeoutError");
+        },
+      }),
     );
     expect(await aiCall("translation", material, ctx)).toEqual({ ok: false, reason: "timeout" });
     vi.stubGlobal("fetch", async () => {

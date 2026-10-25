@@ -63,14 +63,19 @@ const PROVIDER_KEY_ENV = {
   "google-translate": "GOOGLE_TRANSLATE_API_KEY",
 } as const;
 
-/** A translation's material: a target code and at most one chunk of texts (turn 19). */
-function translationMaterialOk(material: AiMaterial): boolean {
+/**
+ * A translation's material (turn 19): a target code and at most one chunk of
+ * texts, every one a string; null for anything else — never a default.
+ */
+function translationMaterial(
+  material: AiMaterial,
+): { target: string; texts: readonly string[] } | null {
   const target = ownValue(material, "target");
-  return (
-    typeof target === "string" &&
-    TRANSLATION_TARGET.test(target) &&
-    translationTexts(material).length <= TRANSLATION_CHUNK
-  );
+  const texts: readonly unknown[] = translationTexts(material);
+  if (typeof target !== "string" || !TRANSLATION_TARGET.test(target)) return null;
+  if (texts.length > TRANSLATION_CHUNK) return null;
+  const strings = texts.filter((text): text is string => typeof text === "string");
+  return strings.length === texts.length ? { target, texts: strings } : null;
 }
 
 /** The exact rendered user text used by the registered task's provider call. */
@@ -230,7 +235,9 @@ export async function aiCall<T extends TaskId>(
           // material (GWC-9); a task without it is metered as 1.
           units = task.units !== undefined ? task.units(resolved) : 1;
           let raw: unknown;
-          if (task.provider === "google-translate" && !translationMaterialOk(resolved)) {
+          const translation =
+            task.provider === "google-translate" ? translationMaterial(resolved) : null;
+          if (task.provider === "google-translate" && translation === null) {
             log("material refused: a target code and at most one chunk of texts");
             answer = { ok: false, reason: "unavailable" };
           } else if (fake) {
@@ -266,11 +273,10 @@ export async function aiCall<T extends TaskId>(
                 };
               }
             }
-          } else if (task.provider === "google-translate") {
-            const target = ownValue(resolved, "target");
+          } else if (translation !== null) {
             const provider = await translateBatch({
-              target: typeof target === "string" ? target : "",
-              texts: translationTexts(resolved),
+              target: translation.target,
+              texts: translation.texts,
               timeoutMs: task.timeoutMs,
               label: `google-translate ${task.id}`,
             });

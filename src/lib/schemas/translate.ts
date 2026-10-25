@@ -20,7 +20,7 @@ export type TranslateEntityType = (typeof TRANSLATE_ENTITY_TYPES)[number];
 const item = z
   .object({
     /** U4i ① — the key's translator note: carried to the provider boundary, never sent by v2. */
-    context: z.string().max(TRANSLATE_CONTEXT_MAX).optional(),
+    context: z.string().optional(),
     key: z.string(),
     source: z.string(),
     /** The entity scope's address; a UI item's are ignored, as today. */
@@ -40,31 +40,58 @@ function entityOf(raw: RawItem): { type: TranslateEntityType; id: string; field:
   return { type, id: raw.id, field: raw.field };
 }
 
+/**
+ * Today's per-item checks, item by item, stopping at the first failure: the
+ * note's type, the note's length, the key and source, then (new: strict keys)
+ * an unknown key, then for the entity scope the address. Each answers one
+ * issue whose path `issueWord` reads.
+ */
+function firstItemIssue(raw: unknown, index: number, entity: boolean): (string | number)[] | null {
+  const fields = typeof raw === "object" && raw !== null ? raw : null;
+  const context = fields !== null && "context" in fields ? fields.context : undefined;
+  if (context !== undefined && typeof context !== "string") return ["items", index, "context"];
+  if (typeof context === "string" && context.length > TRANSLATE_CONTEXT_MAX) {
+    return ["items", index, "context", "length"];
+  }
+  const parsed = item.safeParse(raw);
+  if (!parsed.success) return ["items", index];
+  if (entity && entityOf(parsed.data) === null) return ["items", index, "type"];
+  return null;
+}
+
 export const TranslateBody = z
   .object({
     scope: z.enum(["ui", "entity"]).optional(),
     // Today's normalisation: trimmed and lower-cased before the code check.
     target_lang: z.string().trim().toLowerCase().pipe(z.string().regex(TRANSLATE_TARGET)),
-    items: z.array(item).min(1).max(TRANSLATE_MAX_ITEMS),
+    // The count first, as today; each item after, in order (superRefine).
+    items: z.array(z.unknown()).min(1).max(TRANSLATE_MAX_ITEMS),
   })
   .strict()
   .superRefine((body, ctx) => {
-    if (body.scope !== "entity") return;
-    body.items.forEach((raw, index) => {
-      if (entityOf(raw) === null) {
-        ctx.addIssue({ code: "custom", path: ["items", index, "type"], message: "entity" });
+    // A base issue (scope, target, the count) always comes first; never walk a list that failed.
+    if (!Array.isArray(body.items)) return;
+    for (const [index, raw] of body.items.entries()) {
+      const path = firstItemIssue(raw, index, body.scope === "entity");
+      if (path !== null) {
+        ctx.addIssue({ code: "custom", path, message: "item" });
+        return;
       }
-    });
+    }
   })
   .transform((body) => ({
     scope: body.scope ?? "ui",
     target: body.target_lang,
-    items: body.items.map((raw) => ({
-      key: raw.key,
-      source: raw.source,
-      ...(raw.context === undefined ? {} : { context: raw.context }),
-      entity: body.scope === "entity" ? entityOf(raw) : null,
-    })),
+    // Every item passed `item` in the refinement; parse gives its type.
+    items: body.items.map((raw) => {
+      const parsed = item.parse(raw);
+      return {
+        key: parsed.key,
+        source: parsed.source,
+        ...(parsed.context === undefined ? {} : { context: parsed.context }),
+        entity: body.scope === "entity" ? entityOf(parsed) : null,
+      };
+    }),
   }));
 
 export type TranslateRequest = z.output<typeof TranslateBody>;
@@ -92,7 +119,7 @@ export function issueWord(issue: { path: string; code: string }): {
   error: string;
   status: 400 | 413;
 } {
-  const [head, index, field] = issue.path.split(".");
+  const [head, index, field, part] = issue.path.split(".");
   if (issue.code === "invalid_json" || head === "" || head === undefined) {
     return { error: "invalid json body", status: 400 };
   }
@@ -104,12 +131,10 @@ export function issueWord(issue: { path: string; code: string }): {
       : { error: "no items", status: 400 };
   }
   if (field === "context") {
-    return issue.code === "too_big"
+    return part === "length"
       ? { error: `context too long (max ${TRANSLATE_CONTEXT_MAX})`, status: 400 }
       : { error: "context must be a string", status: 400 };
   }
-  if (field === "type" && issue.code === "custom") {
-    return { error: "invalid entity item shape", status: 400 };
-  }
+  if (field === "type") return { error: "invalid entity item shape", status: 400 };
   return { error: "invalid item shape", status: 400 };
 }

@@ -8,7 +8,7 @@ import {
 } from "@/lib/schemas/translate";
 import { aiCall, translationLanguages, type TranslationLanguages } from "@/server/ai/gateway";
 import { TRANSLATION_CHUNK } from "@/server/ai/tasks";
-import { ok, readFailure } from "@/server/answer";
+import { ok } from "@/server/answer";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
 
@@ -101,7 +101,11 @@ export const Route = createFileRoute("/api/translate")({
           const { data: inScope, error: scopeError } = await supabase.rpc("translation_scope_ok", {
             p_lang: target,
           });
-          if (scopeError) return readFailure(PATH, "translation scope", scopeError);
+          if (scopeError) {
+            // Today's answer for a failed gate read: 500, the text in the log only.
+            logRouteError(PATH, `translation scope: ${scopeError.message}`);
+            return ok({ error: "internal error" }, { status: 500 });
+          }
           if (inScope !== true) {
             return ok({ error: "not assigned to this language" }, { status: 403 });
           }

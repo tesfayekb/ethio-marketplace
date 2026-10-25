@@ -56,8 +56,7 @@ function apiKey(): string {
 }
 
 function isDeadline(error: unknown): boolean {
-  const name =
-    typeof error === "object" && error !== null ? (error as { name?: unknown }).name : null;
+  const name = typeof error === "object" && error !== null && "name" in error ? error.name : null;
   return error instanceof UpstreamTimeout || name === "TimeoutError" || name === "AbortError";
 }
 

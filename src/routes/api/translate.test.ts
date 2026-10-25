@@ -8,7 +8,8 @@ afterEach(() => {
 });
 
 // Foundations turn 19 — re-pointed at the adapter that now makes both calls
-// (src/server/ai/providers/google-translate.ts); the assertion is unchanged.
+// (src/server/ai/providers/google-translate.ts); its URL and header assertions
+// are unchanged, and the route's own answer is proven in translate.route.test.ts.
 it("INC-829 translation request URLs contain no key=; both calls carry the key in a header", async () => {
   const testKey = "test-only-provider-key";
   vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", testKey);
