@@ -24,7 +24,10 @@ CHECKS are green; then it pushes fast-forward. You never `git push` by hand.
 A turn is ONE brief, worked part by part, landed at every stop and at the end.
 
 1. **Part A — orient.** `git fetch origin dev main ci-evidence`; `git switch dev`; when local `dev`
-   is behind and you have no unlanded commits, `git merge --ff-only origin/dev`. Record `<BASE>` =
+   is behind and you have no unlanded commits, `git merge --ff-only origin/dev`. A cloud session
+   starts on a branch of its own (`claude/…`) and its setup text may tell you to work there; this
+   repository's rule is `dev` — switch before your first change and never commit on the session's
+   branch (`land.ts` alone may park a held turn there). Record `<BASE>` =
    the brief's `BASE:` line and `<HEAD>` = `origin/dev`. If they differ, list
    `git diff --name-only <BASE>..<HEAD>`; if any of those files is in the brief's SCOPE or named in
    its parts, STOP (the anchors are stale); otherwise continue and say so in the report. Read CI for
@@ -78,8 +81,9 @@ FILES: <git diff --name-only <BASE>, one per line>
 
 Commit it on its own (`turn NN: stop n — <subject>`), land, end the turn. The supervisor answers in
 the same session (`continue` or a numbered ruling). When `land.ts` HOLDS the turn (dev moved under you,
-or the push was refused), your commits are parked on `hold/<brief-stem>`; end the turn — never merge,
-rebase or retry another push.
+or the push was refused), your commits are parked on `hold/<brief-stem>` — or, when the session's git
+refuses that branch too, on the branch the session started on; end the turn — never merge, rebase or
+retry another push.
 
 ## Scope (law A1, enforced three times)
 

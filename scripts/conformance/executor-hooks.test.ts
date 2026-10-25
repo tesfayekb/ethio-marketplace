@@ -9,7 +9,7 @@
  * touches the real tree and no network is used.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -21,18 +21,24 @@ let seedOrigin = "";
 let repo = "";
 let cloneCount = 0;
 
+// INC-881: a sandbox may put a git wrapper that refuses stateful commands ahead of the real binary on
+// PATH; the scratch repositories (and the hooks run in them) use the real git when /bin/git exists.
+const ENV: NodeJS.ProcessEnv = existsSync("/bin/git")
+  ? { ...process.env, PATH: `/bin:${process.env["PATH"] ?? ""}` }
+  : { ...process.env };
+
 function sh(cmd: string, cwd: string): string {
-  const r = spawnSync("bash", ["-c", cmd], { cwd, encoding: "utf8" });
+  const r = spawnSync("bash", ["-c", cmd], { cwd, encoding: "utf8", env: ENV });
   if (r.status !== 0) throw new Error(`${cmd}\n${r.stdout}${r.stderr}`);
   return `${r.stdout}${r.stderr}`;
 }
 
-function hook(name: string, event: Record<string, unknown>, cwd = repo) {
+function hook(name: string, event: Record<string, unknown>, cwd = repo, extra = {}) {
   const r = spawnSync("bun", [join(HOOKS, `${name}.ts`)], {
     cwd,
     input: JSON.stringify(event),
     encoding: "utf8",
-    env: { ...process.env, CLAUDE_PROJECT_DIR: cwd },
+    env: { ...ENV, CLAUDE_PROJECT_DIR: cwd, ...extra },
   });
   return { code: r.status, out: r.stdout, err: r.stderr };
 }
@@ -41,9 +47,44 @@ function land(cwd: string) {
   const r = spawnSync("bun", [join(HOOKS, "land.ts")], {
     cwd,
     encoding: "utf8",
-    env: { ...process.env, CLAUDE_PROJECT_DIR: cwd },
+    env: { ...ENV, CLAUDE_PROJECT_DIR: cwd },
   });
   return { code: r.status, out: r.stdout, err: r.stderr };
+}
+
+/**
+ * Claude Code's permission rules as settings.json writes them: `Bash(<pattern>)`, where `*` matches
+ * any text and a pattern without `*` matches the command exactly; a deny outranks an allow. Each part
+ * of a compound command (&&, ||, ;, |) is judged on its own, its descriptor redirections removed.
+ */
+const SETTINGS = JSON.parse(
+  readFileSync(join(process.cwd(), ".claude", "settings.json"), "utf8"),
+) as {
+  permissions: { allow: string[]; deny: string[] };
+};
+function bashRule(rule: string): RegExp | null {
+  const m = /^Bash\((.*)\)$/.exec(rule);
+  if (m === null) return null;
+  const body = m[1]!.replace(/:\*$/, "*");
+  return new RegExp(
+    `^${body
+      .split("*")
+      .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+      .join(".*")}$`,
+  );
+}
+function permission(
+  command: string,
+): { part: string; denied: string | null; allowed: string | null }[] {
+  return command
+    .split(/\s*(?:&&|\|\||;|\|)\s*/)
+    .map((p) => p.replace(/\s+\d?>(?:&\d|\s*\/dev\/null)/g, "").trim())
+    .filter((p) => p !== "")
+    .map((part) => ({
+      part,
+      denied: SETTINGS.permissions.deny.find((r) => bashRule(r)?.test(part) ?? false) ?? null,
+      allowed: SETTINGS.permissions.allow.find((r) => bashRule(r)?.test(part) ?? false) ?? null,
+    }));
 }
 
 const BRIEF = [
@@ -391,6 +432,82 @@ describe("bash guard (50-security.md)", () => {
     allowed('grep -rn "process.env" src/');
     allowed('grep -rn "API_KEY=" src/');
     allowed("git tag -l");
+    allowed("git switch dev 2>&1");
+    allowed(
+      "git fetch origin dev main ci-evidence 2>&1 | tail -5; git switch dev 2>&1; git status -sb",
+    );
+    allowed("git merge --ff-only origin/dev 2>/dev/null && git rev-parse HEAD");
+    allowed("ls src/server/ai 2>/dev/null");
+    refused("git switch main 2>&1", /dev only/);
+    refused("git merge origin/main 2>&1", /only merge/);
+  });
+
+  it("EXH-16 every command the protocol requires passes BOTH layers — the permission rules and the guard; the forbidden ones are denied by the rules too", () => {
+    // The commands .claude/rules/00, 20, 30, 40 and 60 tell the executor to run, as it writes them.
+    const required = [
+      "git fetch origin dev main ci-evidence",
+      "git switch dev",
+      "git merge --ff-only origin/dev",
+      "git status -sb",
+      "git status --porcelain",
+      "git rev-parse HEAD origin/dev origin/main",
+      "git diff --name-only 0000000000000000000000000000000000000000..origin/dev",
+      "git show origin/ci-evidence:docs/tracking/ci-status.md | head -6",
+      "git log -1 --format=%h --abbrev=7",
+      "git add -A",
+      "git commit -m 'turn 99: step 0 — brief saved'",
+      "sha256sum docs/governance/briefs/foundations-turn-99.md",
+      "bun run lint",
+      "bun run typecheck",
+      "bun run test:unit",
+      "bun run i18n:usage",
+      "bun run build",
+      "bun run format:check",
+      "bash scripts/check-migrations.sh",
+      "bun run e2e:local -- e2e/smoke-auth-i18n.spec.ts",
+      "bunx vitest run src/server/ai/gateway.test.ts",
+      "bun .claude/hooks/land.ts",
+      "gh run list --branch dev --limit 3",
+      "git branch --show-current",
+    ];
+    for (const command of required) {
+      for (const p of permission(command)) {
+        expect(p.denied, `${command} → part "${p.part}" is DENIED by ${p.denied}`).toBeNull();
+        expect(
+          p.allowed,
+          `${command} → part "${p.part}" matches no allow rule (it would prompt)`,
+        ).not.toBeNull();
+      }
+      allowed(command);
+    }
+    // With descriptor redirections the rules still never deny them.
+    for (const command of [
+      "git switch dev 2>&1",
+      "git merge --ff-only origin/dev 2>&1",
+      "ls src 2>/dev/null",
+    ])
+      for (const p of permission(command)) expect(p.denied, `${command}: ${p.denied}`).toBeNull();
+    // The second layer: the rules deny the forbidden commands on their own.
+    for (const command of [
+      "git push origin dev",
+      "git switch main",
+      "git switch -c feature/x",
+      "git merge origin/main",
+      "git merge --no-ff origin/dev",
+      "git rebase origin/dev",
+      "git reset --hard HEAD~1",
+      "git checkout -b turn/99",
+      "supabase db push",
+      "curl https://example.invalid",
+      "bash -c 'echo hi'",
+      "claude -p hello",
+      "gh pr create --base dev",
+    ]) {
+      expect(
+        permission(command).some((p) => p.denied !== null),
+        `${command} is not denied by any rule`,
+      ).toBe(true);
+    }
   });
 });
 
@@ -546,6 +663,47 @@ describe("the landing door (land.ts)", () => {
     expect(existsSync(join(dir, ".claude/turn", `held-${head.slice(0, 12)}`))).toBe(true);
     expect(hook("stop-gate", { hook_event_name: "Stop" }, dir).code).toBe(0);
   });
+
+  it("EXH-17 when the session's git refuses dev and hold/*, the door parks the commits on the session's own branch — never anywhere else", () => {
+    const { dir, origin } = freshClone("land-session");
+    // The origin accepts pushes to claude/* only (as a cloud session's git proxy may).
+    writeFileSync(
+      join(origin, "hooks", "pre-receive"),
+      '#!/bin/sh\nwhile read old new ref; do case "$ref" in refs/heads/claude/*) ;; *) echo "refused: $ref" >&2; exit 1;; esac; done\n',
+      { mode: 0o755 },
+    );
+    const before = remoteDev(origin);
+    write(dir, "src/server/ai/new.ts", "export const x = 1;\n");
+    commit(dir, "turn 99 part B: new module");
+    write(dir, STOP_1, STOP_TEXT);
+    const head = commit(dir, "turn 99: stop 1");
+    // Without a recorded session branch: both refusals are reported, nothing is parked.
+    const nowhere = land(dir);
+    expect(nowhere.code).toBe(3);
+    expect(nowhere.err).toMatch(/Parking on hold\/foundations-turn-99 was refused too/);
+    expect(remoteDev(origin)).toBe(before);
+    // With the branch session-setup.ts recorded: the commits are parked there.
+    writeFileSync(join(dir, ".claude", "turn", "session-branch"), "claude/planted-session\n");
+    const parked = land(dir);
+    expect(parked.code).toBe(3);
+    expect(parked.err).toMatch(/parked on this session's branch claude\/planted-session/);
+    expect(sh("git rev-parse claude/planted-session", origin).trim()).toBe(head);
+    expect(remoteDev(origin)).toBe(before);
+    expect(hook("stop-gate", { hook_event_name: "Stop" }, dir).code).toBe(0);
+    // A recorded name that is not a session branch is never pushed to.
+    const other = freshClone("land-session-bad");
+    writeFileSync(
+      join(other.origin, "hooks", "pre-receive"),
+      '#!/bin/sh\nwhile read old new ref; do case "$ref" in refs/heads/claude/*) ;; *) echo "refused: $ref" >&2; exit 1;; esac; done\n',
+      { mode: 0o755 },
+    );
+    writeFileSync(join(other.dir, ".claude", "turn", "session-branch"), "main\n");
+    write(other.dir, "src/server/ai/new.ts", "export const x = 1;\n");
+    commit(other.dir, "turn 99 part B: new module");
+    write(other.dir, STOP_1, STOP_TEXT);
+    commit(other.dir, "turn 99: stop 1");
+    expect(land(other.dir).err).toMatch(/was refused too/);
+  });
 });
 
 describe("the session setup", () => {
@@ -560,10 +718,27 @@ describe("the session setup", () => {
     expect(r.stdout).toBe("");
     expect(existsSync(join(repo, "node_modules"))).toBe(false);
   });
+
+  it("EXH-18 in a cloud session started on claude/…, records that branch for the door and tells the executor to switch to dev", () => {
+    const { dir } = freshClone("setup-session");
+    sh("git switch -q -c claude/planted-session", dir);
+    // An install stamp newer than the lockfile: the setup skips the install (no network in the test).
+    writeFileSync(join(dir, "bun.lock"), "{}\n");
+    mkdirSync(join(dir, "node_modules"), { recursive: true });
+    writeFileSync(join(dir, "node_modules", ".executor-install-stamp"), "planted\n");
+    const r = hook("session-setup", { hook_event_name: "SessionStart", source: "startup" }, dir, {
+      CLAUDE_CODE_REMOTE: "true",
+    });
+    expect(r.code, r.err).toBe(0);
+    expect(readFileSync(join(dir, ".claude", "turn", "session-branch"), "utf8").trim()).toBe(
+      "claude/planted-session",
+    );
+    expect(r.out).toMatch(/started on claude\/planted-session; you work on dev/);
+  });
 });
 
 describe("the stop gate", () => {
-  it("EXH-14 passes a reply that changed nothing, refuses a dirty tree (naming strays) and a branch that is not dev", () => {
+  it("EXH-14 passes a reply that changed nothing, refuses a dirty tree (naming strays) and work on a branch that is not dev", () => {
     const { dir } = freshClone("stop");
     expect(hook("stop-gate", { hook_event_name: "Stop" }, dir).code).toBe(0);
     write(dir, "stray.txt", "x");
@@ -572,9 +747,14 @@ describe("the stop gate", () => {
     expect(dirty.err).toMatch(/not clean/);
     expect(dirty.err).toMatch(/Outside the brief's SCOPE \(undo, never commit\): stray\.txt/);
     rmSync(join(dir, "stray.txt"));
-    sh("git switch -q -c feature/y", dir);
+    // A STOP before Part A's switch: off dev with nothing of the turn on it — nothing is left behind.
+    sh("git switch -q -c claude/planted-session", dir);
+    const idle = hook("stop-gate", { hook_event_name: "Stop" }, dir);
+    expect(idle.code, idle.err).toBe(0);
+    write(dir, "src/server/ai/new.ts", "export const x = 1;\n");
+    commit(dir, "turn 99 part B: committed on the wrong branch");
     const branch = hook("stop-gate", { hook_event_name: "Stop" }, dir);
     expect(branch.code).toBe(2);
-    expect(branch.err).toMatch(/works and lands on dev/);
+    expect(branch.err).toMatch(/work of this turn on it; the executor works and lands on dev/);
   });
 });
