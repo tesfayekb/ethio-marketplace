@@ -155,8 +155,16 @@ interface TreePayload {
 let marketsPromise: Promise<OpenMarket[]> | null = null;
 const treePromises = new Map<string, Promise<TreeNode[]>>();
 
+/** The open markets' read (D234 S4: the page's head preloads this same address, src/lib/first-reads.ts). */
+export const MARKETS_PATH = "/api/locations";
+
+/** A market's tree read (D234 S4: the page's head preloads this same address for the saved market). */
+export function treePath(country: string): `/api/${string}` {
+  return `/api/locations/${encodeURIComponent(country)}`;
+}
+
 async function fetchMarkets(): Promise<OpenMarket[]> {
-  const answer = await callRoute("/api/locations", { auth: "none" });
+  const answer = await callRoute(MARKETS_PATH, { auth: "none" });
   if (answer.kind !== "answered" || !answer.ok) {
     throw new Error(`markets ${answer.kind === "answered" ? answer.status : 0}`);
   }
@@ -176,9 +184,7 @@ async function fetchMarkets(): Promise<OpenMarket[]> {
 }
 
 async function fetchTree(country: string): Promise<TreeNode[]> {
-  const answer = await callRoute(`/api/locations/${encodeURIComponent(country)}`, {
-    auth: "none",
-  });
+  const answer = await callRoute(treePath(country), { auth: "none" });
   if (answer.kind !== "answered" || !answer.ok) {
     throw new Error(`tree ${answer.kind === "answered" ? answer.status : 0}`);
   }

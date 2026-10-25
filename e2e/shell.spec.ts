@@ -4214,3 +4214,35 @@ test.describe("SHELL — the phone page never widens (bundle 21 turn 10)", () =>
     }
   });
 });
+
+test.describe("the reads every page makes start with the page (D234 S4)", () => {
+  test("FRL-6 the head preloads the first reads, and the markets are asked once", async ({
+    page,
+  }) => {
+    const markets: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/locations") markets.push(request.url());
+    });
+    await gotoReady(page, "/");
+    const preloads = await page
+      .locator('link[rel="preload"][as="fetch"]')
+      .evaluateAll((nodes) =>
+        nodes.map((node) => `${node.getAttribute("href")} ${node.getAttribute("crossorigin")}`),
+      );
+    expect(preloads).toEqual(
+      expect.arrayContaining([
+        "/api/categories/tree anonymous",
+        "/api/locations anonymous",
+        "/api/i18n/en anonymous",
+      ]),
+    );
+    // No saved market on a fresh browser: no market's tree is named.
+    expect(preloads.filter((entry) => entry.startsWith("/api/locations/"))).toEqual([]);
+    // The feed waits for the markets, so once it is ready the shell has read them:
+    // one request in all — the preload is the read.
+    await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached({
+      timeout: 20000,
+    });
+    expect(markets).toHaveLength(1);
+  });
+});
