@@ -22,20 +22,21 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, e2e-last-failure.md, guards-last-failure.md; never dev/main copies or a git fetch of it.
 - Market-neutral wording: a market-dependent statement names no single country — use {country}; cultural facts are not market statements.
 - Data-API lists use `readAllPages`: keyset paging, never positional.
-- Lint workflows with `actionlint -shellcheck= -pyflakes=` as CI does.
-- Browser tests start only with `bun run e2e:local` / `e2e:changed`, never plain `playwright test`; targets: ethio-staging or CI's temporary backend (`E2E_LOCAL_BACKEND=1` — CI's only gate, local-backend-proof.yml); never supabase/config.toml.
+- Lint workflows with `actionlint -shellcheck= -pyflakes=`.
+- Browser tests start only with `bun run e2e:local` / `e2e:changed`, never plain `playwright test`; targets: ethio-staging or CI's temporary backend (`E2E_LOCAL_BACKEND=1`); never supabase/config.toml.
 - CI: 16 lanes, 1 worker each.
-- Scanner output in CI logs/ci-evidence: counts only; details in the Security tab.
-- Action labels: two or three words, no article or bracketed remark, every language; explanations in help text, never a button; a flagged label takes the brief's shorter text; the allowlist needs a reason.
+- Scanner output in CI logs/ci-evidence: counts only.
+- Action labels: two or three words, no article or bracketed remark, every language; explanations in help text, never a button; a flagged label takes the brief's shorter text.
 - A brief's string text is copied by key, character for character; no Amharic of your own.
 - A door's new refusal: the census names every caller and the order each reaches it.
 - A map indexed by an outside key is read through `ownValue`, never `map[key]`.
 - CutText for cut names; useLabelRoom per crowded row; action-focus modality installs once at hydration.
-- Flake-fix proofs use manual Flake check, separate from CI/promotion: no local browsers.
+- Flake-fix proofs use the manual Flake check, never local browsers.
 - Import previews in tests use `withinPreviewBudget`; only IG-3 drives the limit, never raised.
 - QR: the encoder lives only in `src/server/qr.ts`, off first paint (a guard); public QR routes check the id's shape, no DB read.
 - Shell: cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:`.
 - Legal: texts only via `LegalText`/`legalTextFor`, never HTML; facts are {{setting}} tokens frozen per version; other languages are legal_version_texts rows; every agreement tick is `AgreeToDocument` with `[text](role)` link tokens; page data via `legalPageData` (legal-page-data.ts), never on the first paint.
+- AI: every model call is `aiCall` (src/server/ai/gateway.ts) with a task in tasks.ts; provider hosts, keys and stand-in flags live only under src/server/ai/ (GWC).
 - Admin menu alerts: a section's `alert` (sections.ts) is read by `useNavAlerts` as one server boolean; the rail draws a dot.
 - Strings: keys only admin files use go in en-admin.ts/am-admin.ts, others in en-base.ts/am-base.ts; en.ts/am.ts join them; admin-layer.test.ts judges; `<html lang>` follows the applied catalog (`appliedLanguage`), never the selection.
 - Dates/numbers: `formatLocale` (src/lib/format-locale.ts); names via catalogText, entityName, optionLabel; options translate as entity rows `option:<value>` beyond en/am.
