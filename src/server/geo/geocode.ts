@@ -20,7 +20,7 @@
 import { upstream } from "@/server/upstream";
 import { logRouteError } from "@/server/supabase/user-client";
 import { versionCache } from "@/server/version-cache";
-import { aiFakeMode } from "@/server/ai/meter";
+import { standInMode } from "@/server/stand-in";
 
 export interface GeoPlace {
   label: string;
@@ -69,7 +69,7 @@ export class GeocoderUnavailable extends Error {
 }
 
 export function isFakeGeocode(): boolean {
-  return aiFakeMode("E2E_FAKE_GEOCODE");
+  return standInMode("E2E_FAKE_GEOCODE");
 }
 
 /**

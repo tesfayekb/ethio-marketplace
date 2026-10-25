@@ -2,7 +2,7 @@ import { cleanUntrusted, untrustedText, withUntrustedRule } from "@/lib/untruste
 
 import type { ImageFormat } from "./strip";
 import { errorText } from "@/lib/error-text";
-import { aiFakeMode } from "@/server/ai/meter";
+import { standInMode } from "@/server/stand-in";
 import { upstream } from "@/server/upstream";
 
 /**
@@ -248,7 +248,7 @@ function isPolicyCode(value: string): value is (typeof POLICY_CODES)[number] {
  * the upload route's site day cap counts paid screens only, so it reads this too.
  */
 export function photoPolicyFake(): boolean {
-  return aiFakeMode("E2E_FAKE_PHOTO_POLICY");
+  return standInMode("E2E_FAKE_PHOTO_POLICY");
 }
 
 export async function screenPhotoPolicy(
