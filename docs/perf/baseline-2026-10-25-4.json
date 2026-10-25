@@ -1,0 +1,133 @@
+{
+  "base": "https://my-market-dawn.lovable.app",
+  "when": "2026-10-25T15:49:01.680Z",
+  "device": {
+    "viewport": {
+      "width": 360,
+      "height": 740
+    },
+    "deviceScaleFactor": 1.75,
+    "isMobile": true,
+    "hasTouch": true,
+    "userAgent": "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+  },
+  "throttling": {
+    "rttMs": 150,
+    "throughputKbps": 1638.4,
+    "requestLatencyMs": 562.5,
+    "downloadThroughputKbps": 1474.5600000000002,
+    "uploadThroughputKbps": 675,
+    "cpuSlowdownMultiplier": 4
+  },
+  "pages": [
+    {
+      "name": "terms",
+      "url": "https://my-market-dawn.lovable.app/terms",
+      "medianCold": {
+        "ttfbMs": 1175,
+        "fcpMs": 3276,
+        "lcpMs": 3276,
+        "cls": 0,
+        "tbtMs": 799,
+        "loadMs": 5296,
+        "htmlKB": 44.6,
+        "totalKB": 536.3,
+        "requests": 71
+      },
+      "warm": {
+        "ttfbMs": 569,
+        "fcpMs": 1112,
+        "lcpMs": 1112,
+        "lcpElement": "li",
+        "cls": 0,
+        "tbtMs": 612,
+        "domContentLoadedMs": 1407,
+        "loadMs": 1738,
+        "htmlBytes": 45491,
+        "totalBytes": 86674,
+        "requests": 72,
+        "bytesByType": {
+          "Stylesheet": 0,
+          "Script": 0,
+          "Font": 0,
+          "Document": 45491,
+          "Preflight": 0,
+          "Fetch": 20659,
+          "Other": 20524
+        },
+        "status": 200
+      },
+      "cold": [
+        {
+          "ttfbMs": 1175,
+          "fcpMs": 3112,
+          "lcpMs": 3112,
+          "lcpElement": "li",
+          "cls": 0,
+          "tbtMs": 799,
+          "domContentLoadedMs": 3871,
+          "loadMs": 5568,
+          "htmlBytes": 45572,
+          "totalBytes": 549141,
+          "requests": 71,
+          "bytesByType": {
+            "Document": 45572,
+            "Script": 348171,
+            "Stylesheet": 23126,
+            "Font": 89732,
+            "Fetch": 22089,
+            "Other": 20451,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 1288,
+          "fcpMs": 3328,
+          "lcpMs": 3328,
+          "lcpElement": "li",
+          "cls": 0,
+          "tbtMs": 809,
+          "domContentLoadedMs": 3904,
+          "loadMs": 5296,
+          "htmlBytes": 45629,
+          "totalBytes": 549182,
+          "requests": 71,
+          "bytesByType": {
+            "Document": 45629,
+            "Script": 348294,
+            "Stylesheet": 23118,
+            "Font": 89732,
+            "Fetch": 22055,
+            "Other": 20354,
+            "Preflight": 0
+          },
+          "status": 200
+        },
+        {
+          "ttfbMs": 1070,
+          "fcpMs": 3276,
+          "lcpMs": 3276,
+          "lcpElement": "li",
+          "cls": 0,
+          "tbtMs": 772,
+          "domContentLoadedMs": 3703,
+          "loadMs": 4933,
+          "htmlBytes": 45992,
+          "totalBytes": 591956,
+          "requests": 73,
+          "bytesByType": {
+            "Document": 45992,
+            "Script": 348256,
+            "Stylesheet": 23197,
+            "Font": 89732,
+            "Fetch": 63316,
+            "Other": 20351,
+            "Preflight": 0
+          },
+          "status": 200
+        }
+      ]
+    }
+  ]
+}
