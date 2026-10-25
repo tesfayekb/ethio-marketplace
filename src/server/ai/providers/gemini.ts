@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { upstream, UpstreamTimeout } from "@/server/upstream";
 import { UNTRUSTED_RULE } from "@/lib/untrusted-text";
-import type { AiImage } from "../tasks";
+import { IMAGE_ANSWER_MAX_BYTES, type AiImage } from "../tasks";
 
 export type GeminiTextAnswer =
   | { kind: "text"; status: number; text: string }
@@ -10,6 +10,62 @@ export type GeminiTextAnswer =
   | { kind: "timeout" }
   | { kind: "network" }
   | { kind: "noKey" };
+
+export type GeminiImageAnswer =
+  | { kind: "image"; status: number; bytes: Uint8Array; mime: AiImage["mime"] }
+  | Exclude<GeminiTextAnswer, { kind: "text" }>;
+
+const imageEnvelope = z.object({
+  candidates: z.array(z.object({
+    content: z.object({ parts: z.array(z.object({
+      inlineData: z.object({ data: z.string(), mimeType: z.string().optional() }).optional(),
+    })) }).optional(),
+  })).optional(),
+});
+
+/** The bytes, never the provider's declared content type, identify an image. */
+function imageMime(bytes: Uint8Array): AiImage["mime"] | null {
+  if (bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)) return "image/png";
+  if (bytes.length >= 3 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "image/jpeg";
+  if (bytes.length >= 12 && String.fromCharCode(...bytes.subarray(0, 4)) === "RIFF" && String.fromCharCode(...bytes.subarray(8, 12)) === "WEBP") return "image/webp";
+  return null;
+}
+
+/** One image-model request and one decode, bounded across headers and body. */
+export async function geminiImage(input: {
+  model: string; prompt: string; timeoutMs: number; label: string;
+}): Promise<GeminiImageAnswer> {
+  const key = process.env["GEMINI_API_KEY"] ?? "";
+  if (key.trim() === "") return { kind: "noKey" };
+  try {
+    const response = await upstream(
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(input.model)}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: input.prompt }] }], generationConfig: { responseModalities: ["TEXT", "IMAGE"] } }),
+      },
+      { timeoutMs: input.timeoutMs, label: input.label },
+    );
+    if (!response.ok) return { kind: "status", status: response.status };
+    try {
+      const parsed = imageEnvelope.safeParse(await response.json());
+      if (!parsed.success) return { kind: "unusable", status: response.status };
+      const data = parsed.data.candidates?.[0]?.content?.parts?.find((part) => part.inlineData !== undefined)?.inlineData?.data;
+      if (data === undefined || data.length > Math.ceil(IMAGE_ANSWER_MAX_BYTES / 3) * 4) return { kind: "unusable", status: response.status };
+      const binary = atob(data);
+      if (binary.length === 0 || binary.length > IMAGE_ANSWER_MAX_BYTES) return { kind: "unusable", status: response.status };
+      const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+      const mime = imageMime(bytes);
+      return mime === null ? { kind: "unusable", status: response.status } : { kind: "image", status: response.status, bytes, mime };
+    } catch (error) {
+      if (error instanceof UpstreamTimeout || (error instanceof Error && (error.name === "AbortError" || error.name === "TimeoutError"))) return { kind: "timeout" };
+      return { kind: "unusable", status: response.status };
+    }
+  } catch (error) {
+    return error instanceof UpstreamTimeout ? { kind: "timeout" } : { kind: "network" };
+  }
+}
 
 const envelope = z.object({
   candidates: z

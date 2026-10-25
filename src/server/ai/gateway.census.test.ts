@@ -111,12 +111,17 @@ describe("AI gateway conformance", () => {
           }
         }
       }
-      const system = render(task, {}).system;
-      expect(system.endsWith(UNTRUSTED_RULE)).toBe(true);
-      expect(system.split(UNTRUSTED_RULE)).toHaveLength(2);
+      const rendered = render(task, {});
+      if (task.promptMode === "inline") {
+        expect(rendered.user).toContain(UNTRUSTED_RULE);
+        expect(rendered.user.split(UNTRUSTED_RULE)).toHaveLength(2);
+      } else {
+        expect(rendered.system.endsWith(UNTRUSTED_RULE)).toBe(true);
+        expect(rendered.system.split(UNTRUSTED_RULE)).toHaveLength(2);
+      }
     }
   });
-  it("GWC-8 a non-Gemini provider declares images.all and an image output; every task with images declares max and maxBytes", () => {
+  it("GWC-8 image-answer tasks declare an image schema; every input image is bounded and required whole-image tasks declare all", () => {
     type TaskShape = {
       id: string;
       provider: string;
@@ -126,12 +131,12 @@ describe("AI gateway conformance", () => {
     const problems = (task: TaskShape): string[] => {
       const found: string[] = [];
       if (task.provider !== "gemini-text") {
-        if (task.images?.all !== true) found.push(`${task.id}: no images.all`);
         const image = task.output.safeParse({ bytes: new Uint8Array([1]), mime: "image/png" });
         if (!image.success) found.push(`${task.id}: no image output schema`);
         const text = task.output.safeParse({ text: "rendered as text" });
         if (text.success) found.push(`${task.id}: an image answer parses as text`);
       }
+      if ((task.id === "photo_screen" || task.id === "background_removal" || task.id === "planted_removal") && task.images?.all !== true) found.unshift(`${task.id}: no images.all`);
       if (task.images !== undefined) {
         if (!(task.images.max > 0)) found.push(`${task.id}: no images.max`);
         if (!(task.images.maxBytes > 0)) found.push(`${task.id}: no images.maxBytes`);

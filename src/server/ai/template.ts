@@ -27,7 +27,8 @@ function renderField(field: AiField, material: AiMaterial): string[] {
     if (items.length === 0) return field.none === true ? [`${field.label}: (none)`] : [];
     return [`${field.label}:`, ...items.map((item) => `- ${untrustedLine(item, field.max)}`)];
   }
-  if (value === undefined || value === "" || Array.isArray(value)) {
+  if (value === undefined || (typeof value === "string" && value.trim() === "") || Array.isArray(value)) {
+    if (kind === "text" && field.fallback !== undefined) return [`${field.label}: ${field.fallback}`];
     return field.none === true ? [`${field.label}: (none)`] : [];
   }
   return [untrustedText(field.label, value, field.max, { lines: kind === "lines" })];
@@ -35,11 +36,12 @@ function renderField(field: AiField, material: AiMaterial): string[] {
 
 /** The task's instruction under the one rule, and its declared fields in order. */
 export function render(
-  task: Pick<AiTask<unknown>, "instruction" | "fields">,
+  task: Pick<AiTask<unknown>, "instruction" | "fields" | "promptMode">,
   material: AiMaterial,
 ): { system: string; user: string } {
-  return {
-    system: withUntrustedRule(task.instruction),
-    user: task.fields.flatMap((field) => renderField(field, material)).join("\n"),
-  };
+  const system = withUntrustedRule(task.instruction);
+  const user = task.fields.flatMap((field) => renderField(field, material)).join("\n");
+  return task.promptMode === "inline"
+    ? { system: "", user: [system, user].filter((part) => part !== "").join("\n\n") }
+    : { system, user };
 }

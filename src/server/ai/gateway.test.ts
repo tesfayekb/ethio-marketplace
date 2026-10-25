@@ -219,7 +219,7 @@ describe("the one AI call", () => {
   });
   it("AIG-14 task ids are a literal union and the output type is the task's schema", () => {
     expectTypeOf<TaskId>().toEqualTypeOf<
-      "name_check" | "category_icon" | "writing_helper" | "photo_screen" | "background_removal"
+      "name_check" | "category_icon" | "category_image" | "writing_helper" | "photo_screen" | "background_removal"
     >();
     expectTypeOf<OutputOf<"name_check">>().toEqualTypeOf<{
       imitates: boolean;
