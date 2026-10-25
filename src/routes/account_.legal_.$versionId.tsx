@@ -18,6 +18,8 @@ export const Route = createFileRoute("/account_/legal_/$versionId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
+  staticData: { strings: ["member"] },
   component: VersionRoute,
 });
 

@@ -21,5 +21,7 @@ export const Route = createFileRoute("/account_/legal")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
+  staticData: { strings: ["member"] },
   component: MyLegalPage,
 });

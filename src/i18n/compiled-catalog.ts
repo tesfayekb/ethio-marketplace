@@ -1,3 +1,4 @@
+import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 
 import type { Messages } from "./types";
@@ -21,16 +22,34 @@ const loaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
 };
 
 /**
- * DEC-231 — the ADMIN layer rides apart from the first paint: the admin gate
- * asks for it (useAdminStrings), so its loaders are a second map. A compiled
- * admin layer is a PART of Messages; a language without one has none to load.
+ * DEC-231, generalised by DEC-258 (Foundations turn 30) — THE STRINGS LAYERS.
+ * A string only some screens show rides apart from the first paint: the routes
+ * that show it declare its layer (`staticData: { strings: [...] }`), and the
+ * shell's gate (StringsLayerGate) loads the declared layers before those
+ * routes draw. A compiled layer is a PART of Messages; a language without one
+ * has none to load. The order is the census's preference: a key every one of
+ * whose pages loads both layers lives in the first
+ * (scripts/conformance/strings-layers.ts).
  */
+export const STRINGS_LAYERS = ["admin", "member"] as const;
+export type StringsLayer = (typeof STRINGS_LAYERS)[number];
+
 const EN_ADMIN = loadOnce(() => import("./locales/en-admin").then((m) => m.enAdmin));
 const AM_ADMIN = loadOnce(() => import("./locales/am-admin").then((m) => m.amAdmin));
-const adminLoaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
-  en: () => EN_ADMIN.load(),
-  am: () => AM_ADMIN.load(),
+const EN_MEMBER = loadOnce(() => import("./locales/en-member").then((m) => m.enMember));
+const AM_MEMBER = loadOnce(() => import("./locales/am-member").then((m) => m.amMember));
+const layerLoaders: Record<
+  StringsLayer,
+  Partial<Record<string, () => Promise<Partial<Messages>>>>
+> = {
+  admin: { en: () => EN_ADMIN.load(), am: () => AM_ADMIN.load() },
+  member: { en: () => EN_MEMBER.load(), am: () => AM_MEMBER.load() },
 };
+
+/** A layer name read from outside (a route's declaration joined into a key). */
+export function isStringsLayer(value: string): value is StringsLayer {
+  return (STRINGS_LAYERS as readonly string[]).includes(value);
+}
 
 /**
  * Part H1 — the loader for a language code, read from the map's OWN keys only.
@@ -44,31 +63,52 @@ export function compiledCatalogLoader(
   return Object.prototype.hasOwnProperty.call(loaders, code) ? loaders[code] : undefined;
 }
 
-/** The admin layer's loader, under the same own-key law as compiledCatalogLoader. */
-export function compiledAdminLoader(code: string): (() => Promise<Partial<Messages>>) | undefined {
-  return Object.prototype.hasOwnProperty.call(adminLoaders, code) ? adminLoaders[code] : undefined;
+/** A layer's loader for a language, under the same own-key law as compiledCatalogLoader. */
+export function compiledLayerLoader(
+  layer: StringsLayer,
+  code: string,
+): (() => Promise<Partial<Messages>>) | undefined {
+  const loaders = layerLoaders[layer];
+  return Object.prototype.hasOwnProperty.call(loaders, code) ? loaders[code] : undefined;
 }
 
 /**
- * INC-816 (bundle 22 turn 24) — which admin parts apply after a load, and the
- * admin layer's state. `enAdmin` is the English admin part loaded this run or
- * kept from an earlier run (null when none was ever loaded); `langAdmin` is the
- * language's own admin part (null when it failed or the language has none).
- * With the English part in hand the layer is ready — a failed language part
- * leaves admin text in English, never blank. Without it the base applies alone
- * and the state is failed, unless it was already ready.
+ * DEC-258 — start downloading the layers a route is about to show, for the
+ * given languages (the root's beforeLoad, on a navigation or a link's
+ * preload), so the gate seldom waits. Only a head start: the provider's load
+ * reports and retries a failure.
  */
-export function adminLayerOutcome(input: {
-  enAdmin: Partial<Messages> | null;
-  langAdmin: Partial<Messages> | null;
+export function warmStringsLayers(layers: readonly StringsLayer[], codes: readonly string[]): void {
+  for (const layer of layers) {
+    for (const code of new Set(codes)) {
+      compiledLayerLoader(layer, code)?.().catch((error: unknown) => {
+        console.warn(`[i18n] warming the ${layer} strings for ${code} failed: ${errorText(error)}`);
+      });
+    }
+  }
+}
+
+/**
+ * INC-816 (bundle 22 turn 24; every layer since DEC-258) — which parts of a
+ * layer apply after a load, and the layer's state. `en` is the English part
+ * loaded this run or kept from an earlier run (null when none was ever
+ * loaded); `lang` is the language's own part (null when it failed or the
+ * language has none). With the English part in hand the layer is ready — a
+ * failed language part leaves the layer's text in English, never blank.
+ * Without it the base applies alone and the state is failed, unless it was
+ * already ready.
+ */
+export function layerOutcome(input: {
+  en: Partial<Messages> | null;
+  lang: Partial<Messages> | null;
   wasReady: boolean;
 }): {
-  enAdmin: Partial<Messages> | null;
-  langAdmin: Partial<Messages> | null;
+  en: Partial<Messages> | null;
+  lang: Partial<Messages> | null;
   state: "ready" | "failed";
 } {
-  if (input.enAdmin === null) {
-    return { enAdmin: null, langAdmin: null, state: input.wasReady ? "ready" : "failed" };
+  if (input.en === null) {
+    return { en: null, lang: null, state: input.wasReady ? "ready" : "failed" };
   }
-  return { enAdmin: input.enAdmin, langAdmin: input.langAdmin, state: "ready" };
+  return { en: input.en, lang: input.lang, state: "ready" };
 }

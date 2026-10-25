@@ -1707,14 +1707,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
 
   test("AP-54 the server draws the first cards and the browser keeps them: in the page's HTML, the very nodes once it is ready, no hydration error (D234 S6)", async ({
     page,
-    request,
   }) => {
     const seller = await scratchSeller();
     const ads = [await seed(seller), await seed(seller)];
     for (const ad of ads) await seedPhotos(ad.id);
-    // The page as the server sends it: the two cards are in its HTML.
-    const html = await (await request.get(`/c/${seller.leafSlug}`)).text();
-    expect(html.match(/data-testid="listing-card"/g) ?? []).toHaveLength(2);
+    const path = `/c/${seller.leafSlug}`;
     // A hydration failure is an uncaught error (React's #418-#425 in a production build).
     const failures: string[] = [];
     page.on("pageerror", (error) => failures.push(error.message));
@@ -1728,7 +1725,16 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         Reflect.set(window, "__firstCard", document.querySelector('[data-testid="listing-card"]'));
       });
     });
-    await gotoReady(page, `/c/${seller.leafSlug}`);
+    // INC-904 — the page as the server sent it to this very navigation: the two cards are
+    // in its HTML (a separate request proved another render, not the one judged below).
+    const documentResponse = page.waitForResponse(
+      (response) =>
+        response.request().resourceType() === "document" &&
+        new URL(response.url()).pathname === path,
+    );
+    await gotoReady(page, path);
+    const html = await (await documentResponse).text();
+    expect(html.match(/data-testid="listing-card"/g) ?? []).toHaveLength(2);
     await expect(page.locator('[data-testid="feed-container"][data-ready="1"]')).toBeAttached();
     await expect(page.getByTestId("listing-card")).toHaveCount(2);
     // React kept the server's nodes: a feed drawn again from scratch would have replaced them.

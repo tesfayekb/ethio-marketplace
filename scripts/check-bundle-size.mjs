@@ -36,7 +36,8 @@ const BUDGET_KIB = {
   // 2026-10-24: the agreement sentences carry link tokens (D235) and the publishing page its sections; 305.x measured
   // D234 speed turn S1 (2026-10-25): the category glyph map left the first paint (302.2 → 289.9 measured; 3 KiB of build-to-build room, as every page's line in route-budgets.mjs).
   // D234 speed turn S3 (2026-10-25): the admin user and role crumbs left it too (289.9 → 287.3 measured).
-  js: 291,
+  // DEC-258 (Foundations turn 30, 2026-10-25): the member strings left it (287.9 → 280.2 measured); the ceiling follows to 284.
+  js: 284,
   css: 40,
 };
 

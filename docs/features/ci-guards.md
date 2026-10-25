@@ -1081,3 +1081,9 @@ The on-demand import census (`scripts/conformance/on-demand-imports.test.ts`, OD
 ## D234 — one signer for photo links (Foundations turn 25)
 
 The photo-signing census (`scripts/conformance/photo-signing.test.ts`, SIGN-1/SIGN-2) reads every call of `signPhotoRows` or `readLinks` under `src/` outside `src/server/media/links.ts` and `storage.ts`: each needs a line in `scripts/conformance/photo-signing-allowlist.txt` (`key | reason | until`) naming its caller-scoped proof. SIGN-2 catches a planted direct signing and passes a `signPublicPhotos` call. The allowlist's two lines: `src/routes/api/listings/assist.ts` (its photo rows read as the caller first) and `src/routes/api/listings/background.ts` (ownership asserted as the caller first), both DEC-195.
+
+## DEC-258 — the strings-layers census; the first-paint ceiling at 284 KiB
+
+`scripts/conformance/strings-layers.test.ts` replaces `admin-layer.test.ts`: CF-SL-1 checks each key's assigned file, proven red by C7's planted `settings.title`; CF-SL-4/5 exercise planted import trees, including type-only imports and public readers; CF-SL-2 proves English/Amharic parity and the joined catalogue.
+
+`FORBIDDEN_FILES` gains the member files; `PUBLIC_MUST_STAY_LAZY` gains all admin and member chunks. No strings layer may enter a public page's first download. The entry ceiling falls 291 → 284 KiB against the supervisor's 280.2 KiB measurement. Every route ceiling is re-measured; the three admin pages importing the whole catalogue rise for the separately chunked member part (INC-902), not a general relaxation.

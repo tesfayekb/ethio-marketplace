@@ -11,59 +11,63 @@
  * build-to-build room, rounded up. A page that grows past its ceiling fails; a page that
  * shrinks 8 KiB or more below it fails too, until its ceiling is lowered in the
  * same commit — so every saving is kept. Raising a ceiling is a commit that says
- * why. Measured 2026-10-25 on the S3 build (the comment after each line).
+ * why. Measured 2026-10-25 on the Foundations turn 30 build (DEC-258: the member strings
+ * left every page's first download; the comment after each line). Three admin pages rose
+ * (/admin/listings_/$listingId, /admin/roles_/$roleId, /admin/translations): each imports
+ * the whole catalogue to test a key or to sync it, and its member part is now a chunk of
+ * its own (INC-902).
  */
 export const ROUTE_BUDGETS_KIB = {
-  "/": { ceiling: 304, public: true }, // 300.6
-  "/$name": { ceiling: 303, public: true }, // 299.3
-  "/account": { ceiling: 296, public: false }, // 292.2
-  "/account_/legal": { ceiling: 293, public: false }, // 289.1
-  "/account_/legal_/$versionId": { ceiling: 294, public: false }, // 290.6
-  "/account_/saved": { ceiling: 303, public: false }, // 299.4
-  "/admin": { ceiling: 292, public: false }, // 288.4
-  "/admin/": { ceiling: 293, public: false }, // 289.2
-  "/admin/ai": { ceiling: 344, public: false }, // 340.7
-  "/admin/attributes": { ceiling: 360, public: false }, // 356.9
-  "/admin/audit": { ceiling: 320, public: false }, // 317.0
-  "/admin/categories": { ceiling: 369, public: false }, // 365.1
-  "/admin/countries": { ceiling: 350, public: false }, // 346.7
-  "/admin/coverage": { ceiling: 343, public: false }, // 339.3
-  "/admin/images": { ceiling: 292, public: false }, // 289.0
-  "/admin/impersonation_/$sessionId": { ceiling: 321, public: false }, // 317.5
-  "/admin/legal": { ceiling: 307, public: false }, // 303.4
-  "/admin/legal_/$versionId": { ceiling: 306, public: false }, // 302.7
-  "/admin/legal_/edit": { ceiling: 313, public: false }, // 309.7
-  "/admin/listings": { ceiling: 366, public: false }, // 362.4
-  "/admin/listings_/$listingId": { ceiling: 394, public: false }, // 390.2
-  "/admin/listings_/$listingId_/edit": { ceiling: 429, public: false }, // 425.5
-  "/admin/locations": { ceiling: 299, public: false }, // 295.6
-  "/admin/places": { ceiling: 351, public: false }, // 347.9
-  "/admin/roles": { ceiling: 319, public: false }, // 315.1
-  "/admin/roles_/$roleId": { ceiling: 325, public: false }, // 321.7
-  "/admin/screening": { ceiling: 387, public: false }, // 383.2
-  "/admin/translations": { ceiling: 409, public: false }, // 405.7
-  "/admin/translations_/$lang": { ceiling: 334, public: false }, // 330.5
-  "/admin/users": { ceiling: 317, public: false }, // 313.6
-  "/admin/users_/$userId": { ceiling: 314, public: false }, // 310.2
-  "/auth": { ceiling: 303, public: true }, // 299.2
-  "/auth_/callback": { ceiling: 292, public: true }, // 288.1
-  "/auth_/reset": { ceiling: 294, public: true }, // 290.2
-  "/c/$slug": { ceiling: 304, public: true }, // 300.6
-  "/dev/primitives": { ceiling: 306, public: false }, // 302.6
-  "/dev/style": { ceiling: 308, public: false }, // 304.8
-  "/dev/tall": { ceiling: 291, public: false }, // 287.6
-  "/l/$slug": { ceiling: 328, public: true }, // 324.2
-  "/legal/$kind": { ceiling: 295, public: true }, // 291.2
-  "/legal/accept": { ceiling: 302, public: false }, // 298.3
-  "/legal/publishing": { ceiling: 295, public: true }, // 291.9
-  "/my-listings": { ceiling: 341, public: false }, // 337.1
-  "/my-listings_/$listingId": { ceiling: 344, public: false }, // 340.8
-  "/my-listings_/$listingId_/edit": { ceiling: 424, public: false }, // 420.1
-  "/post": { ceiling: 424, public: false }, // 420.1
-  "/post_/$listingId": { ceiling: 424, public: false }, // 420.1
-  "/privacy": { ceiling: 295, public: true }, // 291.2
-  "/settings": { ceiling: 300, public: false }, // 296.6
-  "/terms": { ceiling: 295, public: true }, // 291.2
+  "/": { ceiling: 297, public: true }, // 293.7
+  "/$name": { ceiling: 296, public: true }, // 292.4
+  "/account": { ceiling: 289, public: false }, // 285.2
+  "/account_/legal": { ceiling: 285, public: false }, // 282.0
+  "/account_/legal_/$versionId": { ceiling: 287, public: false }, // 283.5
+  "/account_/saved": { ceiling: 296, public: false }, // 292.4
+  "/admin": { ceiling: 285, public: false }, // 281.2
+  "/admin/": { ceiling: 285, public: false }, // 282.0
+  "/admin/ai": { ceiling: 337, public: false }, // 333.4
+  "/admin/attributes": { ceiling: 353, public: false }, // 349.7
+  "/admin/audit": { ceiling: 313, public: false }, // 309.8
+  "/admin/categories": { ceiling: 361, public: false }, // 357.9
+  "/admin/countries": { ceiling: 343, public: false }, // 339.5
+  "/admin/coverage": { ceiling: 335, public: false }, // 332.0
+  "/admin/images": { ceiling: 285, public: false }, // 281.8
+  "/admin/impersonation_/$sessionId": { ceiling: 314, public: false }, // 310.4
+  "/admin/legal": { ceiling: 300, public: false }, // 296.2
+  "/admin/legal_/$versionId": { ceiling: 299, public: false }, // 295.5
+  "/admin/legal_/edit": { ceiling: 306, public: false }, // 302.5
+  "/admin/listings": { ceiling: 359, public: false }, // 355.2
+  "/admin/listings_/$listingId": { ceiling: 397, public: false }, // 393.5
+  "/admin/listings_/$listingId_/edit": { ceiling: 421, public: false }, // 417.8
+  "/admin/locations": { ceiling: 292, public: false }, // 288.4
+  "/admin/places": { ceiling: 344, public: false }, // 340.7
+  "/admin/roles": { ceiling: 311, public: false }, // 307.9
+  "/admin/roles_/$roleId": { ceiling: 328, public: false }, // 324.9
+  "/admin/screening": { ceiling: 380, public: false }, // 376.1
+  "/admin/translations": { ceiling: 415, public: false }, // 411.1
+  "/admin/translations_/$lang": { ceiling: 327, public: false }, // 323.3
+  "/admin/users": { ceiling: 310, public: false }, // 306.4
+  "/admin/users_/$userId": { ceiling: 306, public: false }, // 303.0
+  "/auth": { ceiling: 296, public: true }, // 292.2
+  "/auth_/callback": { ceiling: 285, public: true }, // 281.1
+  "/auth_/reset": { ceiling: 287, public: true }, // 283.2
+  "/c/$slug": { ceiling: 297, public: true }, // 293.7
+  "/dev/primitives": { ceiling: 299, public: false }, // 295.6
+  "/dev/style": { ceiling: 301, public: false }, // 297.7
+  "/dev/tall": { ceiling: 284, public: false }, // 280.5
+  "/l/$slug": { ceiling: 321, public: true }, // 317.2
+  "/legal/$kind": { ceiling: 288, public: true }, // 284.1
+  "/legal/accept": { ceiling: 295, public: false }, // 291.2
+  "/legal/publishing": { ceiling: 288, public: true }, // 284.8
+  "/my-listings": { ceiling: 334, public: false }, // 330.1
+  "/my-listings_/$listingId": { ceiling: 337, public: false }, // 333.8
+  "/my-listings_/$listingId_/edit": { ceiling: 416, public: false }, // 412.6
+  "/post": { ceiling: 416, public: false }, // 412.6
+  "/post_/$listingId": { ceiling: 416, public: false }, // 412.5
+  "/privacy": { ceiling: 288, public: true }, // 284.1
+  "/settings": { ceiling: 293, public: false }, // 289.6
+  "/terms": { ceiling: 288, public: true }, // 284.1
 };
 
 /** A page this far under its ceiling (KiB) fails until the ceiling is lowered. */

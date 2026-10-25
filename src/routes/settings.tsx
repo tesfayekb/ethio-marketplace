@@ -63,6 +63,8 @@ export const Route = createFileRoute("/settings")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
+  staticData: { strings: ["member"] },
   component: SettingsScreen,
 });
 

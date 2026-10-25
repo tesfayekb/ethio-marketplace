@@ -1089,3 +1089,10 @@
 - Foundations turn 28 (2026-10-25) — speed S5 (D234): readFirstFeedPage (src/server/first-screen.ts) reads the listings pages' first feed page on the server through the four public routes' own handlers and hands it over unawaited in the page stream; useFeed takes it once for its very address; the first covers preloaded at high priority; one derivation of the first place (initialCountries, deriveInitialArea), one address (feedRouteOf, feedPath), one parser per read; DIA-1…6, FSP-1…6, UFS-1…4, FP-15, FRO-1, AP-53; the E2E-only cookie e2e_first_screen=off for the spinner test, FS-6 and AP-49; no migration, new string or package change.
 
 - Foundations turn 29 (2026-10-25) — speed S6 (D234): HeldFirstPage and its router adapter make the streamed first page readable at once on arrival; useHeldFirstPage draws the server's first cards until the feed's own first read lands, under route-level Suspense, so the browser keeps the server's nodes; FirstFeedPage carries the derived place path; INC-901 logs malformed answers; the similar ads and rail onto feedPath/feedRouteOf; HFP-1…3, UFS-5…7, FSP-7, FP-16, AP-54. No migration, new string or package change.
+
+## Foundations turn 30 (2026-10-25) — speed S7 (D234), DEC-258: the strings layers
+
+- Routes declare the strings their screens show; one shell gate loads admin/member layers before drawing them, with navigation warm-up, retry and kept English fallback.
+- Catalogue entries moved unchanged: 591 to member, 30 to admin; the census replaces the admin-only judge and first-download ceilings follow the supervisor's measurements.
+- INC-904: AP-54 checks its own navigation's HTML, not another server render. Retired `src/i18n/locales/admin-layer.test.ts` and `src/i18n/compiled-admin-loader.test.ts`; their replacement proofs are the strings-layers census and compiled-layer-loader tests.
+- No migration, new strings or package change. Whole-catalogue admin imports (INC-902) and unused keys (INC-903) remain outside scope.
