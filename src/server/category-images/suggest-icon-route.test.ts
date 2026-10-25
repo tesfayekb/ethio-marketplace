@@ -11,11 +11,13 @@ const thrown = { value: null as { message: string; status: number } | null };
 const meter = { gate: { on: true } as { on: boolean; reason?: string }, spent: [] as string[] };
 const asked = { count: 0 };
 
-vi.mock("@/server/category-images/gate", () => ({
-  gateCategoriesAssets: async () => ({ ok: true }),
-  json: (body: unknown, status: number) =>
+vi.mock("@/server/supabase/user-client", () => ({
+  userClientFromRequest: async () => ({ supabase: {}, userId: "staff-1" }),
+  refuseUserClient: () => null,
+  callerHasPermission: async () => true,
+  logRouteError: () => undefined,
+  routeJson: (body: unknown, status: number) =>
     new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } }),
-  fail5xx: () => new Response("fail", { status: 500 }),
 }));
 vi.mock("@/server/ai/meter", () => ({
   aiGate: async () => meter.gate,
@@ -23,22 +25,15 @@ vi.mock("@/server/ai/meter", () => ({
     meter.spent.push(feature);
   },
 }));
-vi.mock("@/server/category-images/gemini", () => {
-  class GeminiError extends Error {
-    status: number;
-    constructor(message: string, status: number) {
-      super(message);
-      this.status = status;
-    }
-  }
+vi.mock("@/server/ai/gateway", () => {
   return {
-    isFakeMode: () => false,
-    suggestIconName: async () => {
+    aiCall: async () => {
+      if (!meter.gate.on) return { ok: false, reason: meter.gate.reason === "staff" ? "featureOff" : meter.gate.reason };
       asked.count += 1;
-      if (thrown.value !== null) throw new GeminiError(thrown.value.message, thrown.value.status);
-      return answer.value;
+      if (thrown.value !== null) return { ok: false, reason: "providerError", status: thrown.value.status };
+      meter.spent.push("category_icons");
+      return { ok: true, value: { icon: answer.value }, fake: false };
     },
-    GeminiError,
   };
 });
 
@@ -53,6 +48,7 @@ async function post(): Promise<Response> {
   return handlers.POST({
     request: new Request("http://local/api/admin/categories/suggest-icon", {
       method: "POST",
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "Sofas & armchairs", parentName: "Furniture" }),
     }),
   });
@@ -66,6 +62,7 @@ async function call(): Promise<Record<string, unknown>> {
   ).server.handlers;
   const request = new Request("http://local/api/admin/categories/suggest-icon", {
     method: "POST",
+    headers: { "content-type": "application/json" },
     body: JSON.stringify({ name: "Sofas & armchairs", parentName: "Furniture" }),
   });
   const response = await handlers.POST({ request });
