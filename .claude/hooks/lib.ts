@@ -624,6 +624,8 @@ export type Verdict = { ok: true; by: string } | { ok: false; reason: string };
 
 /** The one scope decision every write-shaped action goes through. */
 export function scopeVerdict(rawPath: string): Verdict {
+  // The output devices are not files: `2>/dev/null`, `> /dev/stderr` write nothing anywhere.
+  if (/^\/dev\/(null|stdout|stderr|tty)$/.test(rawPath)) return { ok: true, by: "output device" };
   const rel = repoPath(rawPath);
   if (!inRepo(rel)) {
     // Outside the repository: scratch files under /tmp are fine; nothing else is.

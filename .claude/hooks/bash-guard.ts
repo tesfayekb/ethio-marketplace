@@ -38,7 +38,8 @@ const DENY: Rule[] = [
     why: "branches are the operator's: you work on dev only (git branch is for listing)",
   },
   {
-    re: /\bgit\s+switch\b(?!\s+dev\s*$)(?!\s+dev\s*[;&|])/,
+    // `git switch dev`, optionally followed by descriptor redirections (2>&1, 2>/dev/null), then the end
+    re: /\bgit\s+switch\b(?!\s+dev(?:\s+\d?>(?:&\d|\s*\/dev\/null))*\s*(?:$|[;&|)]))/,
     why: "you work on dev only: git switch dev (other branches are read with git show / git diff)",
   },
   {
@@ -46,7 +47,7 @@ const DENY: Rule[] = [
     why: "git checkout <ref> is ambiguous (branch or file): git switch dev for the branch; git restore --source=<ref> -- <path> for files",
   },
   {
-    re: /\bgit\s+merge(?![\w-])(?!\s+--ff-only\s+origin\/dev\s*($|[;&|]))|\bgit\s+(pull|cherry-pick|am)(?![\w-])|\bgit\s+revert\b[^\n|;&]*\s(-n|--no-commit)\b/,
+    re: /\bgit\s+merge(?![\w-])(?!\s+--ff-only\s+origin\/dev(?:\s+\d?>(?:&\d|\s*\/dev\/null))*\s*(?:$|[;&|)]))|\bgit\s+(pull|cherry-pick|am)(?![\w-])|\bgit\s+revert\b[^\n|;&]*\s(-n|--no-commit)\b/,
     why: "the only merge is catching up a clean dev with git merge --ff-only origin/dev at Part A; if dev moved during the turn, STOP (the supervisor re-bases the brief) — never merge",
   },
   {
@@ -124,7 +125,10 @@ const DENY: Rule[] = [
     on: "original",
     why: "never place a secret value in a command; a test sets what it needs with vi.stubEnv and a fake value (INC-880)",
   },
-  { re: /\bgit\s+switch\s+-(\s|$)/, why: "git switch - may land on dev; name your turn branch" },
+  {
+    re: /\bgit\s+switch\s+-(\s|$)/,
+    why: "git switch - goes wherever you were last: git switch dev",
+  },
   // --- indirection that hides a command from this guard ---------------------------------------
   { re: /(^|[\s;&|(`])eval\b/, why: "eval hides the command from the guard" },
   {

@@ -8,18 +8,32 @@
  *      own turn, DEC-118 / G42);
  *   2. the Chromium headless shell for the repository's pinned Playwright, unless E2E_CHROMIUM_PATH
  *      points at a browser already.
+ *   0. the branch the session started on (claude/…), recorded in .claude/turn/session-branch for
+ *      land.ts's last-resort parking, with a note that the executor works on dev;
  * It does nothing outside a cloud session (CLAUDE_CODE_REMOTE !== "true") and never blocks: a
  * failure is reported, the session continues.
  */
-import { existsSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { PROJECT_DIR, readEvent, run } from "./lib";
+import { PROJECT_DIR, git, readEvent, run } from "./lib";
 
 const event = await readEvent();
 if (process.env["CLAUDE_CODE_REMOTE"] !== "true") process.exit(0);
 if (event.source !== undefined && event.source !== "startup") process.exit(0);
 
 const notes: string[] = [];
+
+// The branch the session was started on (Claude Code on the web names one, claude/…): land.ts parks a
+// held turn there when the session's git refuses both dev and hold/<brief>, so no work is stranded.
+const startBranch = git(["branch", "--show-current"]);
+if (/^claude\/[\w./-]+$/.test(startBranch)) {
+  mkdirSync(join(PROJECT_DIR, ".claude", "turn"), { recursive: true });
+  writeFileSync(join(PROJECT_DIR, ".claude", "turn", "session-branch"), `${startBranch}\n`);
+  notes.push(
+    `SETUP: this session started on ${startBranch}; you work on dev — \`git switch dev\` is your first git step (00-executor-protocol.md Part A).`,
+  );
+}
+
 const stamp = join(PROJECT_DIR, "node_modules", ".executor-install-stamp");
 const lock = join(PROJECT_DIR, "bun.lock");
 const fresh =

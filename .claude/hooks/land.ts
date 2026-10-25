@@ -51,28 +51,53 @@ function say(text: string): void {
 /**
  * When the turn cannot land (dev moved under it, or the push to dev was refused), its commits are
  * parked on hold/<brief stem> — a branch no workflow runs on — so the supervisor can read them, and
- * the Stop gate lets the turn end. Nothing is ever force-pushed.
+ * the Stop gate lets the turn end. When the session's git refuses that branch too (Claude Code on the
+ * web may allow only the branch the session started on), they are parked on that branch, recorded
+ * by session-setup.ts in .claude/turn/session-branch. Nothing is ever force-pushed.
  */
-function hold(step: string, reason: string): never {
-  const stem = (readScope().brief ?? "no-brief").replace(/^.*\//, "").replace(/\.md$/, "");
-  const ref = `refs/heads/hold/${stem}`;
+function park(ref: string): { ok: boolean; err: string } {
   const p = Bun.spawnSync(["git", "push", "origin", `HEAD:${ref}`], {
     cwd: PROJECT_DIR,
     stdout: "pipe",
     stderr: "pipe",
   });
+  return { ok: p.exitCode === 0, err: new TextDecoder().decode(p.stderr).trim() };
+}
+
+function hold(step: string, reason: string): never {
+  const stem = (readScope().brief ?? "no-brief").replace(/^.*\//, "").replace(/\.md$/, "");
   const head = git(["rev-parse", "HEAD"]);
-  if (p.exitCode === 0) {
-    writeFileSync(join(turnDir, `held-${head.slice(0, 12)}`), ref);
+  const marker = join(turnDir, `held-${head.slice(0, 12)}`);
+  const tail =
+    "Make sure the last commit carries a stop report that says why (STOP — <reason>), then end the turn; the supervisor rules.";
+  const first = park(`refs/heads/hold/${stem}`);
+  if (first.ok) {
+    writeFileSync(marker, `hold/${stem}`);
     process.stderr.write(
-      `LAND HELD at ${step}:\n${reason}\n\nYour commits are parked on hold/${stem} (${head.slice(0, 12)}); nothing reached dev. Make sure the last commit carries a stop report that says why (STOP — <reason>), then end the turn; the supervisor rules.\n`,
+      `LAND HELD at ${step}:\n${reason}\n\nYour commits are parked on hold/${stem} (${head.slice(0, 12)}); nothing reached dev. ${tail}\n`,
+    );
+    process.exit(3);
+  }
+  const sessionFile = join(turnDir, "session-branch");
+  const session = existsSync(sessionFile) ? readFileSync(sessionFile, "utf8").trim() : "";
+  if (/^claude\/[\w./-]+$/.test(session)) {
+    const second = park(`refs/heads/${session}`);
+    if (second.ok) {
+      writeFileSync(marker, session);
+      process.stderr.write(
+        `LAND HELD at ${step}:\n${reason}\n\nParking on hold/${stem} was refused (${first.err.split("\n").pop()}); your commits are parked on this session's branch ${session} (${head.slice(0, 12)}). Nothing reached dev. ${tail}\n`,
+      );
+      process.exit(3);
+    }
+    process.stderr.write(
+      `LAND HELD at ${step}:\n${reason}\n\nParking was refused on hold/${stem}:\n${first.err}\nand on ${session}:\n${second.err}\nSay these refusals in your last message and end the turn.\n`,
     );
   } else {
     process.stderr.write(
-      `LAND HELD at ${step}:\n${reason}\n\nParking on hold/${stem} was refused too:\n${new TextDecoder().decode(p.stderr)}\nSay both refusals in your last message and end the turn.\n`,
+      `LAND HELD at ${step}:\n${reason}\n\nParking on hold/${stem} was refused too:\n${first.err}\nSay both refusals in your last message and end the turn.\n`,
     );
-    writeFileSync(join(turnDir, `held-${head.slice(0, 12)}`), "push refused");
   }
+  writeFileSync(marker, "push refused");
   process.exit(3);
 }
 

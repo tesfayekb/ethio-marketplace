@@ -2,7 +2,8 @@
  * Stop — the gate. Claude Code runs it every time the executor finishes responding.
  *
  * A turn may end only when nothing of it is left behind in the session:
- *   · on `dev` (the work branch);
+ *   · on `dev` (the work branch) — or on the branch the session started on with nothing of the turn
+ *     on it (a STOP before Part A's `git switch dev`);
  *   · the tree clean — every change committed, nothing untracked (and nothing outside the scope:
  *     the landing script checks the committed diff, this gate names stray working files first);
  *   · nothing unlanded — every commit is on origin/dev, landed by bun .claude/hooks/land.ts, which
@@ -55,12 +56,17 @@ function refuse(reason: string): never {
 }
 
 const branch = currentBranch();
-if (branch !== WORK_BRANCH)
-  refuse(
-    `you are on "${branch}"; the executor works and lands on ${WORK_BRANCH}. git switch ${WORK_BRANCH} (your commits stay on the branch you made them on — STOP and say so if that happened).`,
-  );
-
 const status = lines(git(["status", "--porcelain"]));
+const pending = unlanded();
+// Off dev with nothing of the turn on it (a clean tree, no commit that origin/dev lacks — e.g. a STOP
+// at Part A, before `git switch dev`): nothing is left behind, so the turn may end.
+if (branch !== WORK_BRANCH && (status.length > 0 || pending.length > 0)) {
+  if (!(status.length === 0 && existsSync(join(turnDir, `held-${head.slice(0, 12)}`))))
+    refuse(
+      `you are on "${branch}" with work of this turn on it; the executor works and lands on ${WORK_BRANCH}. Your commits stay on the branch you made them on — do not move them: STOP and say so in your last message.`,
+    );
+}
+
 if (status.length > 0) {
   const stray = status
     .map((l) => l.slice(3).replace(/^.* -> /, ""))
@@ -74,8 +80,7 @@ if (status.length > 0) {
   );
 }
 
-const pending = unlanded();
-if (pending.length > 0 && existsSync(join(turnDir, `held-${head.slice(0, 12)}`))) process.exit(0); // parked on hold/* by land.ts
+if (pending.length > 0 && existsSync(join(turnDir, `held-${head.slice(0, 12)}`))) process.exit(0); // parked by land.ts (hold/* or the session's branch)
 if (pending.length > 0) {
   refuse(
     `${pending.length} commit(s) are not on origin/${WORK_BRANCH}:\n${git(["log", "--oneline", `origin/${WORK_BRANCH}..HEAD`])}\nA turn ends landed: write the report (a stop report for a STOP, a question or a migration; the final report at the end of the brief), commit it, then run bun .claude/hooks/land.ts and end the turn after it prints LANDED. If the landing script refused, fix what it named and land again; when it HELD the turn (dev moved, push refused), the gate lets you end.`,
