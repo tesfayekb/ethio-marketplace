@@ -42,11 +42,11 @@ The four schemas are in `src/lib/schemas/server-fns.ts`: undefined input, strict
 Framework greps confirmed the installed compiler's client stripping and the Standard Schema server validator. Captured lines:
 
 ```text
-handleCreateServerFn.js:112: console.warn("createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.");
-handleCreateServerFn.js:114: if (env === "client") stripMethodCall(inputValidator, callExpression);
-handleCreateServerFn.js:161:function stripMethodCall(methodToStrip, callExpression) {
-createServerFn.js:289: if ("~standard" in validator) {
-createServerFn.js:290: const result = await validator["~standard"].validate(input);
+handleCreateServerFn.js:1:import { cleanId, codeFrameError, stripMethodCall } from "./utils.js";
+handleCreateServerFn.js:23: context.warn?.(`${location}createServerFn().inputValidator() is deprecated. Use createServerFn().validator() instead.`);
+handleCreateServerFn.js:140: if (context.env === "client") stripMethodCall(methodCall.callPath);
+createServerFn.js:171: if ("~standard" in validator) {
+createServerFn.js:172: const result = await validator["~standard"].validate(input);
 ```
 
 Commands: `grep -n "stripMethodCall\|inputValidator() is deprecated" node_modules/@tanstack/start-plugin-core/dist/esm/start-compiler/handleCreateServerFn.js`; `grep -n "~standard" node_modules/@tanstack/start-client-core/dist/esm/createServerFn.js`. Client bundle-budget judgment remains CI's, not inferred from source alone.
@@ -106,8 +106,8 @@ Routes allowlist: **10 → 4**. Matching ROUTES-BOUNDARY-IGNORES: **10 → 4**, 
 All six production `createServerFn` sites use the schema mechanism; each has only its own route loader caller:
 
 - `src/routes/__root.tsx:97` getSsrLangContext; caller `:249`.
-- `src/routes/l.$slug.tsx:24` readAdPageFn; caller `:34`.
-- `src/routes/$name.tsx:9` sellerExistsFn; caller `:34`.
+- `src/routes/l.$slug.tsx:24` readAdPageFn; caller `:35`.
+- `src/routes/$name.tsx:9` sellerExistsFn; caller `:31`.
 - `src/routes/terms.tsx:7` termsPageFn; caller `:18`.
 - `src/routes/privacy.tsx:7` privacyPageFn; caller `:18`.
 - `src/routes/legal.$kind.tsx:9` scratchPageFn; caller `:38`.
@@ -226,4 +226,4 @@ src/lib/schemas/server-fns.test.ts
 src/lib/schemas/server-fns.ts
 ```
 
-This report is newly created and awaits the platform's commit; no manual add/commit. No migration, user-visible string, dependency or E2E source change.
+The platform already tracks this report: final `git ls-files docs/governance/reports/foundations-turn-20.report.md` returned that path. No manual add/commit. Markdown lint checks exited 0 with ignored-file warnings because ESLint supplies no Markdown configuration; Prettier checks cover the documents. No migration, user-visible string, dependency or E2E source change.
