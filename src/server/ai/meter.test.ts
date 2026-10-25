@@ -1,12 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { readFileSync } from "node:fs";
-import { join, relative } from "node:path";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { walkFiles } from "../../../scripts/conformance/kit";
 import { migrationAiFeatures } from "./features-census";
-
-const build = vi.hoisted(() => ({ isE2E: false }));
-vi.mock("@/lib/env-flags", () => build);
 
 /**
  * Bundle 13, turn 1 — the AI meter's server side (D158, INC-600). The doors
@@ -28,12 +22,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-const { AI_FEATURES, aiFakeMode, aiGate, recordAiSpend } = await import("./meter");
-
-afterEach(() => {
-  vi.unstubAllEnvs();
-  build.isE2E = false;
-});
+const { AI_FEATURES, aiGate, recordAiSpend } = await import("./meter");
 
 beforeEach(() => {
   calls.length = 0;
@@ -44,42 +33,7 @@ describe("the AI meter (D158)", () => {
   it("AIM-6 the newest migration's feature CHECK equals AI_FEATURES", () => {
     expect(migrationAiFeatures()).toEqual([...AI_FEATURES].sort());
   });
-  it("INC-839 every stand-in environment read uses the shared helper", () => {
-    const matches = walkFiles([join(process.cwd(), "src")], {
-      ext: ["ts", "tsx"],
-      skipTests: true,
-    })
-      .filter((path) =>
-        /process\.env\["(E2E_FAKE_[A-Z_]+|GEMINI_FAKE)"\]/.test(readFileSync(path, "utf8")),
-      )
-      .map((path) => relative(process.cwd(), path));
-    expect(matches.sort()).toEqual(["src/server/ai/meter.ts"]);
-  });
-  it("INC-828 a stand-in exists only in the test build", () => {
-    const flags = [
-      "E2E_FAKE_PHOTO_POLICY",
-      "E2E_FAKE_ASSIST",
-      "E2E_FAKE_BACKGROUND",
-      "E2E_FAKE_TRANSLATE",
-      "E2E_FAKE_GEOCODE",
-      "GEMINI_FAKE",
-    ];
-    for (const flag of flags) vi.stubEnv(flag, "1");
-    for (const flag of flags) expect(aiFakeMode(flag)).toBe(false);
-    build.isE2E = true;
-    for (const flag of flags) expect(aiFakeMode(flag)).toBe(true);
-    for (const flag of flags) vi.stubEnv(flag, undefined);
-    for (const flag of flags) expect(aiFakeMode(flag)).toBe(false);
-    for (const flag of flags) {
-      vi.stubEnv(flag, "1");
-      expect(aiFakeMode(flag)).toBe(true);
-      vi.stubEnv(flag, undefined);
-    }
-    vi.stubEnv("E2E_FAKE_TRANSLATE", "1");
-    for (const flag of flags) expect(aiFakeMode(flag)).toBe(true);
-    build.isE2E = false;
-    for (const flag of flags) expect(aiFakeMode(flag)).toBe(false);
-  });
+  // INC-828 and INC-839 moved to src/server/stand-in.test.ts (SIN-1…3), ids unchanged.
   it("AIM-1 the gate answers on, or off with its reason", async () => {
     const log = vi.fn();
     next.answer = async () => ({ data: { on: true, off_reason: null }, error: null });
