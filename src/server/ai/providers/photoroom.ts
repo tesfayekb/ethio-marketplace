@@ -46,9 +46,11 @@ export async function photoroomSegment(input: {
   const key = (process.env["PHOTOROOM_API_KEY"] ?? "").trim();
   if (key === "") return { kind: "noKey" };
   const form = new FormData();
+  // A fresh copy on its own ArrayBuffer: the shared AiImage buffer type is not a BlobPart.
+  const body = new Uint8Array(input.image.bytes);
   form.set(
     "image_file",
-    new Blob([input.image.bytes], { type: input.image.mime }),
+    new Blob([body], { type: input.image.mime }),
     `photo.${EXTENSIONS[input.image.mime] ?? "jpg"}`,
   );
   form.set("format", "webp");
