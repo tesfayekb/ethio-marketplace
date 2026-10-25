@@ -33,7 +33,7 @@ import { defineRoute, type RouteContext } from "@/server/route";
  *   4 the SHAPE — label/lat/lng and nothing else. The upstream's payload never
  *     reaches the browser verbatim.
  *
- * Only the E2E build's shared aiFakeMode helper enables the fixed table, so the
+ * Only the E2E build's shared standInMode helper enables the fixed table, so the
  * suite proves the wiring without making the tests depend on an upstream service
  * (I1 — the fixture is the table, not a captured HTTP body).
  */
