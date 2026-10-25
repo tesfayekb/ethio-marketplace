@@ -3,11 +3,13 @@ import { Link } from "@tanstack/react-router";
 import { BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { useLanguages } from "@/features/admin/translations/use-translations";
 import { useAdminListing } from "@/features/admin-listings/use-admin-listing";
+import { useAdminRole } from "@/features/admin/roles/use-admin-roles";
+import { useAdminUser } from "@/features/admin/users/use-admin-users";
 
 /**
  * Bundle 11, turn L4b (INC-554) — THE LAST CRUMB of two admin detail pages,
  * kept out of the first paint: the shell's breadcrumb loads this module only
- * on those pages (React.lazy), so a marketplace visitor never downloads the
+ * on those pages (resilientLazy, D234 S3), so a marketplace visitor never downloads the
  * admin reads behind it. Each reads the page's own cached query (the same
  * keys the page fills), so no second request is made.
  */
@@ -55,6 +57,33 @@ export function AdminLanguageCrumb({ code }: { code: string }) {
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-language" className={CURRENT}>
       {row?.nameNative ?? code}
+    </BreadcrumbPage>
+  );
+}
+
+/**
+ * D234 S3 — the user and role crumbs moved here from the shell's breadcrumbs, so
+ * the admin user and role reads (and the step-up service behind them) leave every
+ * page's first download. The cut style is the shell's own current segment.
+ */
+const CURRENT_CUT = "min-w-0 truncate font-semibold text-foreground underline underline-offset-4";
+
+/** U1d — the 4th admin crumb; reads the detail page's cached row. */
+export function AdminUserCrumb({ userId }: { userId: string }) {
+  const { data } = useAdminUser(userId);
+  return (
+    <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT_CUT}>
+      {data?.displayName ?? "—"}
+    </BreadcrumbPage>
+  );
+}
+
+/** U2 — the 4th admin crumb for a role; reads the detail page's cached row. */
+export function AdminRoleCrumb({ roleId }: { roleId: string }) {
+  const { data } = useAdminRole(roleId);
+  return (
+    <BreadcrumbPage data-testid="breadcrumb-admin-role" className={CURRENT_CUT}>
+      {data?.displayName ?? data?.name ?? "—"}
     </BreadcrumbPage>
   );
 }

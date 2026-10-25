@@ -1,4 +1,6 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { loadOnce } from "@/lib/load-once";
+import { resilientLazy } from "@/lib/resilient-lazy";
 import { cn } from "@/lib/utils";
 import {
   mapsPlaceQuery,
@@ -29,20 +31,36 @@ import { PhotoGallery } from "./photo-gallery";
 import { SafetyBox } from "./safety-box";
 import { boxLayout } from "./box-layout";
 import { keyFacts } from "../key-facts";
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
- * with no pin never downloads Leaflet, and neither does the first paint.
+ * with no pin never downloads Leaflet, and neither does the first paint. D234 S3
+ * (INC-897) — the still map's module is fetched once per visit (its component and
+ * the pin snap share the one download, src/lib/load-once.ts), and both maps are
+ * resilientLazy: a map that cannot download shows its word, never the route's
+ * error screen.
  */
-const MapPreview = lazy(() =>
-  import("../map/map-preview").then((mod) => ({ default: mod.MapPreview })),
+const MAP_PREVIEW = loadOnce(() => import("../map/map-preview"));
+const MapPreview = resilientLazy(
+  () => MAP_PREVIEW.load().then((mod) => mod.MapPreview),
+  "the map",
+  MapUnavailable,
+);
+const MapLarge = resilientLazy(
+  () => import("../map/map-large").then((mod) => mod.MapLarge),
+  "the large map",
+  MapUnavailable,
 );
 
-const MapLarge = lazy(() => import("../map/map-large").then((mod) => ({ default: mod.MapLarge })));
+/** What a map's place shows while it loads, or in its place: the map's own word. */
+function MapUnavailable() {
+  const { t } = useI18n();
+  return <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>;
+}
 
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
 import { useI18n } from "@/i18n";
@@ -380,7 +398,7 @@ export function ListingDetail(view: ListingDetailView) {
       return;
     }
     // Keep the still-map module off the marketplace's first-paint graph.
-    void import("../map/map-preview")
+    MAP_PREVIEW.load()
       .then(({ snap }) => {
         if (active) {
           const snappedLat = snap(lat).toFixed(2);

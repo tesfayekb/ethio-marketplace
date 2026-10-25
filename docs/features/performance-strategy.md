@@ -221,3 +221,11 @@ A public page's largest first picture is named in its server HTML and asked for 
 Why it matters on the lab's phone: the baseline's ad-page LCP was 6.0 s, its LCP element the photo-less ad's category picture loaded lazily (a 128 KiB PNG); an ad with photos waited for hydration plus one more request (562 ms of latency each on slow 4G) before its main photo's download could start. That request is gone.
 
 Category pictures made from now on are WebP (card, thumb; the OG picture stays PNG) under versioned names (`card-<genTs>.<ext>`) stored with a one-year cache. The pictures already stored stay PNG with a one-hour cache until regenerated — INC-900.
+
+## 9. A component fetched on demand never breaks the page (D234, Foundations turn 26)
+
+- `resilientLazy(fetch, label, fallback)` (src/lib/resilient-lazy.ts) is React.lazy whose failed download resolves to the piece's own fallback, logged once as `[client-error] <label> failed to load`. The server render and hydration are React.lazy's own, unchanged; the tab's one stale-chunk reload (src/lib/stale-chunk.ts, INC-640) runs first.
+- The four sites and their fallbacks: the shell's breadcrumbs (admin listing, language, user, role and seller crumbs show the pending "—"; the ad's crumbs show the ad's title); the ad page's still and large maps (the map's word, "Map pin"; the still map's module is one `loadOnce` shared with the pin snap); the wizard's pin preview (nothing) and pin map ("Try again", the Button primitive, which reloads the page; the draft is saved).
+- The catalogue layers' loaders (src/i18n/compiled-catalog.ts) are on `loadOnce`; a failed layer is asked again by the next load.
+- The admin user and role crumbs moved into the admin detail crumbs module, so their reads leave every page's first download (entry 289.9 → 287.3 KiB); the ceilings in scripts/route-budgets.mjs and the entry's in scripts/check-bundle-size.mjs come down with it.
+- INC-897 is closed: OD-3 (scripts/conformance/on-demand-imports.test.ts) refuses any allowance waiting on it and any bare React.lazy site in the browser's code.
