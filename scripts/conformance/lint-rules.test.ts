@@ -58,7 +58,10 @@ async function breaches(roots: string[]): Promise<string[]> {
   )) {
     const rel = relative(ROOT, full).split("\\").join("/");
     if (await eslint.isPathIgnored(full)) continue;
-    const missing = missingLists(owedLists(rel), selectorsOf(await eslint.calculateConfigForFile(full)));
+    const missing = missingLists(
+      owedLists(rel),
+      selectorsOf(await eslint.calculateConfigForFile(full)),
+    );
     if (missing.length) found.push(`${rel}: ${missing.join(", ")}`);
   }
   return found;

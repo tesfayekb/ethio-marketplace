@@ -125,16 +125,8 @@ export default tseslint.config(
     rules: {
       "no-restricted-syntax": [
         "error",
-        {
-          selector: "CallExpression[callee.name='createClient']:not([typeArguments])",
-          message:
-            "DEC-025: pass the generated schema — createClient<Database>(…). An untyped client makes every table, column and RPC argument `any`.",
-        },
-        {
-          selector: "BinaryExpression[operator='instanceof'][right.name='Error']",
-          message:
-            "INC-815: a caught error may be a plain { message } object (a Supabase door's refusal), not an Error. Read it with errorText (src/lib/error-text.ts). A line that truly needs an Error instance carries an eslint-disable-next-line comment with its reason.",
-        },
+        ...RESTRICTED_SYNTAX.typedClient,
+        ...RESTRICTED_SYNTAX.caughtError,
       ],
     },
   },
@@ -144,14 +136,7 @@ export default tseslint.config(
     // it is. These files keep the DEC-025 selector alone.
     files: ["src/**/*.test.{ts,tsx}", "src/lib/lovable-error-reporting.ts"],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "CallExpression[callee.name='createClient']:not([typeArguments])",
-          message:
-            "DEC-025: pass the generated schema — createClient<Database>(…). An untyped client makes every table, column and RPC argument `any`.",
-        },
-      ],
+      "no-restricted-syntax": ["error", ...RESTRICTED_SYNTAX.typedClient],
     },
   },
   {
@@ -180,23 +165,9 @@ export default tseslint.config(
     rules: {
       "no-restricted-syntax": [
         "error",
-        {
-          selector:
-            "CallExpression[callee.object.name='request'][callee.property.name=/^(json|formData|arrayBuffer|text)$/]",
-          message: "a route reads its body through defineRoute's schema or form",
-        },
-        {
-          selector: "NewExpression[callee.name='Response']",
-          message: "answers come from src/server/answer.ts",
-        },
-        {
-          selector: "CallExpression[callee.name='fetch']",
-          message: "outside calls go through upstream()",
-        },
-        {
-          selector: "CallExpression[callee.name='createClient']",
-          message: "clients come from user-client.ts",
-        },
+        ...RESTRICTED_SYNTAX.typedClient,
+        ...RESTRICTED_SYNTAX.caughtError,
+        ...RESTRICTED_SYNTAX.routeBoundary,
       ],
     },
   },
@@ -205,21 +176,7 @@ export default tseslint.config(
     // than once; each is cheaper to catch here than in a CI run.
     files: ["e2e/**/*.ts"],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "CallExpression[callee.property.name='first']",
-          message: "twin helpers per J5",
-        },
-        {
-          selector: "MemberExpression[object.name='test'][property.name='only']",
-          message: "test.only never lands: it silently green-washes the whole file",
-        },
-        {
-          selector: "CallExpression[callee.property.name='waitForTimeout']",
-          message: "poll on truth, never sleep",
-        },
-      ],
+      "no-restricted-syntax": ["error", ...RESTRICTED_SYNTAX.specLint],
     },
   },
   eslintPluginPrettier,
