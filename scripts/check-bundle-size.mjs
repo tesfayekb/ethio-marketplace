@@ -37,7 +37,8 @@ const BUDGET_KIB = {
   // D234 speed turn S1 (2026-10-25): the category glyph map left the first paint (302.2 → 289.9 measured; 3 KiB of build-to-build room, as every page's line in route-budgets.mjs).
   // D234 speed turn S3 (2026-10-25): the admin user and role crumbs left it too (289.9 → 287.3 measured).
   // DEC-258 (Foundations turn 30, 2026-10-25): the member strings left it (287.9 → 280.2 measured); the ceiling follows to 284.
-  js: 284,
+  // DEC-259 (Foundations turn 31, 2026-10-25): the tooltip's and the dropdown menu's code left it (280.2 → 260.0 measured); the ceiling follows to 263.
+  js: 263,
   css: 40,
 };
 
