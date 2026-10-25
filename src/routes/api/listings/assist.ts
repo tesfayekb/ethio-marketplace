@@ -8,7 +8,7 @@ import { z } from "zod";
 import { ok, verdict } from "@/server/answer";
 import { ownListing } from "@/server/listings/own-listing";
 import { DIALS } from "@/lib/dials";
-import { spend } from "@/server/dials";
+import { peek, spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
 import { upstream } from "@/server/upstream";
