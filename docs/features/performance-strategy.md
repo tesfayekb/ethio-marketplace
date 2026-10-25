@@ -278,3 +278,13 @@ Next: S5, the feed's first page answered in the page stream.
 - INC-901: a malformed whole feed or category-tree answer is no first page and one named `[first-screen]` warning; FSP-7 proves both cases. HFP-1…3, UFS-5…7 and FP-16 pin the wrapper, first drawing and optional page size.
 - AP-54 is the browser proof: two scratch cards occur in the server HTML and the first card node held at DOMContentLoaded is the same node once the page is ready, with no hydration error. AP-53 still proves no second feed or cover-link read. Similar ads now use `feedPath`; the rail's peek uses `feedRouteOf`.
 - Next: the shell's own first state from the server. A category page's invitation still waits for its category tree in the browser.
+
+## 13. Strings a page does not show stay off its first download (D234, Foundations turn 30)
+
+DEC-258 generalises the admin layer into named admin and member strings layers. Member screens declare member; the admin layout declares both; public listings pages declare neither. Each route's `staticData.strings` declaration, including its layouts', names what it needs.
+
+`StringsLayerGate` waits for those layers before drawing the screen. The root's `beforeLoad` starts their download through `warmStringsLayers` on navigation or link preload, beside the route code and data. The census in `scripts/conformance/strings-layers.ts` assigns every key to its readers' shared layer, or base when any reader has no such declaration. CF-SL-1 enforces that assignment and refuses a planted misplaced key.
+
+Supervisor's build measurements, not a local rebuild: 591 keys moved to member and 30 to admin; entry 287.9 → 280.2 KiB; every page 7–11 KiB lighter; Amharic base about 11 KiB lighter. The ceilings follow those measurements, with three admin whole-catalogue consumers separately recorded under INC-902.
+
+Next: study moving the database client off the first paint, a Tier A study for the operator's decision; no database-client change is made here.

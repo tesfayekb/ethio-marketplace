@@ -82,3 +82,11 @@ The English and Amharic catalogues are each two files. en-base.ts / am-base.ts h
 ## One language rule (DEC-229, bundle 22 turn 24)
 
 Dates and numbers format with formatLocale(language) (src/lib/format-locale.ts): am-ET for Amharic, en-GB for English, the language's own code where the runtime knows it, else English. Names stored in English and Amharic columns go through catalogText, or entityName when the row is a category or place with its id, so a translation added in Admin › Translations shows in any language. An acceptance's or certification's language is named for any language from the public language list. The admin strings layer keeps its English part under a failed language part (INC-816).
+
+## The strings layers (DEC-258, Foundations turn 30)
+
+DEC-231's admin layer is now one of the named `STRINGS_LAYERS`: admin and member, each with English and Amharic files. The base part alone rides on every page's first download. A route declares the layers its screens show with `staticData: { strings: [...] }`; a layout's declaration covers the routes under it.
+
+The root's `StringsLayerGate` asks through `useStringsLayers` and draws the route once every declared layer is ready. It shows a spinner while loading, or an error line with the shared Button's Try again action on failure. Each English part is kept under a failed language part (INC-816), so translated-layer failure leaves English text, never blank text. `useAdminStrings` is retired; the admin permission gate remains the authority for its screens.
+
+`scripts/conformance/strings-layers.ts` decides each key's file from the pages that reach its readers and those pages' declarations. Keys no page shows stay where they are (INC-903). `en.ts` and `am.ts` join every part for tests, scripts and the strings console; the first paint reads only the base part.
