@@ -81,6 +81,20 @@ describe("reloadOnStaleChunk (INC-640)", () => {
     expect(storage.get(STALE_CHUNK_KEY)).toBe(String(1_000 + STALE_CHUNK_WINDOW_MS));
   });
 
+  it("STC-1 a page whose first failure came within the window is never reloaded by a later one (INC-922)", () => {
+    const storage = new Map<string, string>([[STALE_CHUNK_KEY, "1000"]]);
+    let clock = 1_000 + 2_000;
+    const { win, fire, reloads } = fakeWindow(storage);
+    reloadOnStaleChunk(win, () => clock);
+    // The page that came back from the reload fails at once: left to surface.
+    expect(fire().defaultPrevented).toBe(false);
+    // More than a minute later, a submit's download fails again: the form is not thrown away.
+    clock = 1_000 + STALE_CHUNK_WINDOW_MS + 10_000;
+    const later = fire();
+    expect(reloads()).toBe(0);
+    expect(later.defaultPrevented).toBe(false);
+  });
+
   it("still reloads once per page when storage is refused", () => {
     const { win, fire, reloads } = fakeWindow(null);
     reloadOnStaleChunk(win, () => 1_000);
