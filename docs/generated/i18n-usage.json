@@ -4678,7 +4678,6 @@
     ],
     "common.close": [
       "(every page)",
-      "/",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -4700,7 +4699,6 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/admin/users/$userId",
-      "/c/$slug",
       "/dev/style",
       "/l/$id/photo[/]jpg",
       "/l/$slug",

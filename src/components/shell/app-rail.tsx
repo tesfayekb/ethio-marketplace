@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@/components/ui/dialog-primitive";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, LogOut, Star, X, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, LogOut, Star, type LucideIcon } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -823,6 +823,8 @@ export function AppRail() {
   const footerInset = useFooterInset();
   const pathname = useShownPathname();
   const [peeking, setPeeking] = useState(false);
+  /** INC-924 — the peek's menu has been drawn (its code arrived): its 3-second clock starts here. */
+  const [peekDrawn, setPeekDrawn] = useState(false);
   const peekAttempted = useRef(false);
   const peekFocus = useRef(false);
 
@@ -840,6 +842,9 @@ export function AppRail() {
     )
       return;
     peekAttempted.current = true;
+    // INC-924 (Foundations turn 34w) — a menu the person opened before the sign-in check ended is
+    // theirs: the peek never takes it over (it used to, and closed it three seconds later).
+    if (navOpen) return;
     if (isE2E) {
       try {
         if (sessionStorage.getItem("ethio.peek") !== "force") return;
@@ -850,30 +855,42 @@ export function AppRail() {
     peekFocus.current = true;
     setPeeking(true);
     setNavOpen(true);
-  }, [authLoading, activePanel, pathname, setNavOpen]);
+  }, [authLoading, activePanel, pathname, navOpen, setNavOpen]);
 
+  // A person's tap, scroll or key ends the peek at once, drawn or not.
   useEffect(() => {
     if (!peeking || !navOpen) return;
-    const end = () => {
-      setNavOpen(false);
-      setPeeking(false);
-    };
     const outside = (event: Event) => {
       if (event.target instanceof Element && event.target.closest('[data-testid="rail-menu"]'))
         return;
-      end();
+      setNavOpen(false);
+      setPeeking(false);
     };
-    const timer = window.setTimeout(end, 3000);
     document.addEventListener("pointerdown", outside, true);
     document.addEventListener("scroll", outside, true);
     document.addEventListener("keydown", outside, true);
     return () => {
-      window.clearTimeout(timer);
       document.removeEventListener("pointerdown", outside, true);
       document.removeEventListener("scroll", outside, true);
       document.removeEventListener("keydown", outside, true);
     };
   }, [peeking, navOpen, setNavOpen]);
+
+  // INC-924 (Foundations turn 34w) — the peek shows for three seconds FROM WHEN IT IS DRAWN: on a
+  // slow connection its code arrives late, and a clock started at the opening closed it before it
+  // was ever seen (or a moment after).
+  useEffect(() => {
+    if (!peeking || !navOpen || !peekDrawn) return;
+    const timer = window.setTimeout(() => {
+      setNavOpen(false);
+      setPeeking(false);
+    }, 3000);
+    return () => window.clearTimeout(timer);
+  }, [peeking, navOpen, peekDrawn, setNavOpen]);
+
+  useEffect(() => {
+    if (!peeking) setPeekDrawn(false);
+  }, [peeking]);
 
   const changeMenu = (open: boolean) => {
     peekFocus.current = false;
@@ -964,7 +981,10 @@ export function AppRail() {
           }}
           onOpenAutoFocus={(event) => {
             event.preventDefault();
-            if (peeking) return;
+            if (peeking) {
+              setPeekDrawn(true);
+              return;
+            }
             peekFocus.current = false;
             document
               .getElementById("rail-menu")
@@ -979,16 +999,8 @@ export function AppRail() {
               document.querySelector<HTMLElement>('[aria-controls="rail-menu"]')?.focus();
           }}
         >
-          <Button
-            variant="ghost"
-            size="touch"
-            data-testid="rail-menu-close"
-            aria-label={t("common.close")}
-            onClick={() => setNavOpen(false)}
-            className="fixed start-[calc(16rem-2.75rem)] top-1 z-50 w-11 p-0 md:hidden [&_svg]:size-5"
-          >
-            <X aria-hidden="true" />
-          </Button>
+          {/* D238 (the operator, 2026-10-26) — no × here: ☰ (top-left, aria-expanded) and a tap
+              outside close the menu, and Escape does; a fixed × rode the slide-in and jumped. */}
           <DialogPrimitive.Title className="sr-only">{t("shell.menuTitle")}</DialogPrimitive.Title>
           {/* The opened menu belongs to phones only and keeps its identity foot. */}
           <RailVariantContext.Provider value="menu">
