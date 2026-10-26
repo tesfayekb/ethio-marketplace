@@ -3,32 +3,33 @@ import { describe, expect, it, vi } from "vitest";
 
 /**
  * D234 speed turn S1 — the date field downloads its calendar on first open; a
- * download that fails says so with "Try again", which asks once more. The page
- * never breaks over it.
+ * download that fails says so in the calendar's place and (INC-911) offers to
+ * refresh the page — the browser keeps a failed download for the page's life, so
+ * asking again cannot help. The page never breaks over it.
  */
-let attempts = 0;
 vi.mock("./date-calendar", () => {
-  attempts += 1;
   throw new Error("offline");
 });
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
+const refreshed = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/on-demand-failure", () => ({ refreshPage: refreshed }));
 
 const { DateField } = await import("./date-field");
 
 describe("DateField offline (D234)", () => {
-  it("DF-6 a calendar that cannot download offers Try again, which asks once more", async () => {
+  it("DF-6 a calendar that cannot download says so and offers a refresh (INC-911)", async () => {
     const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
     render(<DateField testid="df" value="" onChange={() => undefined} />);
     fireEvent.click(screen.getByTestId("df"));
-    const retry = await screen.findByTestId("df-calendar-retry");
-    expect(retry.textContent).toBe("common.tryAgain");
+    const failed = await screen.findByTestId("df-calendar-failed");
+    expect(failed.textContent).toContain("common.loadFailed");
     expect(screen.queryByTestId("df-day-2026-10-11")).toBeNull();
-    const before = attempts;
-    fireEvent.click(retry);
-    expect(await screen.findByTestId("df-calendar-retry")).toBeTruthy();
-    expect(attempts).toBeGreaterThan(before);
+    const refresh = screen.getByTestId("df-calendar-refresh");
+    expect(refresh.textContent).toBe("common.refreshPage");
+    fireEvent.click(refresh);
+    expect(refreshed).toHaveBeenCalledTimes(1);
     expect(errors).toHaveBeenCalledWith(
       "[client-error] the calendar failed to load",
       expect.anything(),

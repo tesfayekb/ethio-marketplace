@@ -1,15 +1,5 @@
-# INC-911 (Foundations turn 34b-2): a caller of an on-demand loader that answers a failed download without reportOnDemandFailure, refreshPage or LoadFailedHere (src/lib/on-demand-failure.ts, src/components/shell/on-demand-notice.tsx). <path> | <reason> | <until>
+# INC-911 (Foundations turns 34b-2, 34b-3): a caller of an on-demand loader that answers a failed download without reportOnDemandFailure, refreshPage or LoadFailedHere (src/lib/on-demand-failure.ts, src/components/shell/on-demand-notice.tsx). <path> | <reason> | <until>
 src/components/app-shell.tsx | the client handed to the E2E tests (isE2E, DEC-018): never in a production build | 2027-04-26
 src/features/auth/auth-service.ts | its actions answer a failed client download as a value, common.loadFailed, which the sign-in screen shows in its own alert (INC-915) | 2027-04-26
 src/routes/auth.tsx | a head start on the client once the screen paints; each submit asks again through auth-service and says so in place (INC-915) | 2027-04-26
 src/routes/legal.publishing.tsx | a route loader's door: a failed download is the route's own error screen | 2027-04-26
-src/components/shell/date-field.tsx | the calendar says it did not load, with a "Try again" that cannot work (the browser keeps the failed download) — onto LoadFailedHere in turn 34b-3 | INC-911
-src/components/shell/use-category-glyphs.ts | a failed glyph download is logged and the rows draw without glyphs — reported in turn 34b-3 | INC-911
-src/features/auth/use-auth.ts | a signed-in visitor's profile read logs a failed client download — reported in turn 34b-3 | INC-911
-src/features/posting/map/map-large.tsx | the large map logs a failed download — reported in turn 34b-3 | INC-911
-src/features/posting/map/map-pin-dropper.tsx | the pin map's own map says "Tap the map instead" with no map to tap — onto LoadFailedHere in turn 34b-3 | INC-911
-src/features/posting/map/map-preview.tsx | the map preview logs a failed download — reported in turn 34b-3 | INC-911
-src/features/posting/preview/listing-detail.tsx | the ad page's map links log a failed download — reported in turn 34b-3 | INC-911
-src/features/posting/step-who.tsx | the phone box says so with a "Try again" that cannot work — Refresh in turn 34b-3 | INC-911
-src/i18n/provider.tsx | a failed download of a language's strings is an unhandled rejection (INC-919) — reported in turn 34b-3 | INC-911
-src/routes/settings.tsx | a failed client download on Settings is logged — reported in turn 34b-3 | INC-911

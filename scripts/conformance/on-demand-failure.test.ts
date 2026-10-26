@@ -180,9 +180,64 @@ describe("a piece fetched on demand that fails to download tells the person (INC
       expect(report(result.findings)).toBe(
         [
           `${drawer}:3 calls an on-demand loader and answers its failure without the mechanism`,
+          `${drawer}:3 catches a failed download of getSupabase silently, and no call in the file handles it`,
           `${exported}:2 exports a loadOnce loader outside DEFINERS (its callers would escape the census)`,
           `${own}:5 calls an on-demand loader and answers its failure without the mechanism`,
+          `${own}:5 catches a failed download of MAP silently, and no call in the file handles it`,
           `${silent}:2 calls an on-demand loader and answers its failure without the mechanism`,
+          `${silent}:2 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
+        ].join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("ODC-4 each call handles its own failure: an aliased or namespaced loader is still a call, and a mention elsewhere answers nothing (34b-2's reviewer)", () => {
+    const dir = "node_modules/.cache/on-demand-failure-4";
+    mkdirSync(dir, { recursive: true });
+    const files = {
+      aliased: `${dir}/odc-aliased.ts`,
+      namespaced: `${dir}/odc-namespaced.ts`,
+      mention: `${dir}/odc-mention.ts`,
+      warm: `${dir}/odc-warm.ts`,
+      lazy: `${dir}/odc-lazy.ts`,
+      factory: `${dir}/odc-factory.ts`,
+    };
+    const report4 = 'import { reportOnDemandFailure } from "@/lib/on-demand-failure";\n';
+    try {
+      writeFileSync(
+        files.aliased,
+        `${report4}import { getSupabase as client } from "@/lib/supabase-door";\nvoid client();\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.namespaced,
+        'import * as door from "@/lib/supabase-door";\nvoid door.getSupabase().then(() => 1);\n',
+      );
+      writeFileSync(
+        files.mention,
+        'import { refreshPage } from "@/lib/on-demand-failure";\nimport { loadLeaflet } from "@/features/posting/map/leaflet";\nexport const go = refreshPage;\nvoid loadLeaflet().catch(() => undefined);\n',
+      );
+      writeFileSync(
+        files.warm,
+        `${report4}import { loadOverlays } from "@/components/ui/overlay-loader";\nloadOverlays().catch(() => undefined);\nloadOverlays().catch((error) => reportOnDemandFailure("x", error));\n`,
+      );
+      writeFileSync(
+        files.lazy,
+        'import { refreshPage } from "@/lib/on-demand-failure";\nimport { loadOnce } from "@/lib/load-once";\nimport { resilientLazy } from "@/lib/resilient-lazy";\nconst MAP = loadOnce(() => import("./map"));\nexport const Map = resilientLazy(() => MAP.load().then((m) => m.Map), "the map", () => null);\nexport const go = refreshPage;\n',
+      );
+      writeFileSync(
+        files.factory,
+        `${report4}import { compiledCatalogLoader } from "@/i18n/compiled-catalog";\nexport async function read() {\n  const loader = compiledCatalogLoader("xx");\n  try {\n    return await loader?.();\n  } catch (error) {\n    reportOnDemandFailure("x", error);\n  }\n}\n`,
+      );
+      const result = onDemandFailureCensus(Object.values(files));
+      expect(result.consumers).toEqual(Object.values(files));
+      expect(report(result.findings)).toBe(
+        [
+          `${files.aliased}:3 leaves a failed download of getSupabase unhandled`,
+          `${files.mention}:4 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
+          `${files.namespaced}:2 calls an on-demand loader and answers its failure without the mechanism`,
+          `${files.namespaced}:2 leaves a failed download of getSupabase unhandled`,
         ].join("\n"),
       );
     } finally {
