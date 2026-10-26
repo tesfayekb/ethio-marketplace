@@ -12,7 +12,15 @@
  * Stop gate's diff check is the authority behind this guard: whatever slips past here is found
  * there, and again in CI.
  */
-import { readEvent, block, scopeVerdict, normaliseCommand, writeTargets, programsOf } from "./lib";
+import {
+  readEvent,
+  block,
+  scopeVerdict,
+  normaliseCommand,
+  writeTargets,
+  programsOf,
+  blankInertData,
+} from "./lib";
 
 const event = await readEvent();
 const input = event.tool_input ?? {};
@@ -182,7 +190,11 @@ for (const rule of DENY) {
 
 // INC-889 — scheduling and service control, read where the shell runs a program (each segment's
 // first word after its assignments and wrappers), so "fix at the root" or "the service role" in a
-// message, an argument or a heredoc body is never taken for the program.
+// message, an argument or a heredoc body is never taken for the program. K1 ruling 3 (DEC-269) —
+// fail-closed as before K1: the words are also refused anywhere in the command's text except
+// provably inert data (blankInertData: closed quotes without expansions, quoted heredoc bodies),
+// so a spelling the program reader cannot see (a program started by another program, a comment,
+// an unclosed body) is still refused.
 const SCHEDULERS = new Set([
   "crontab",
   "at",
@@ -193,9 +205,10 @@ const SCHEDULERS = new Set([
   "service",
   "launchctl",
 ]);
-const scheduler = [...programsOf(command), ...programsOf(norm)].find((program) =>
-  SCHEDULERS.has(program),
-);
+const SCHEDULER_WORD = /(^|[\s;&|(`])(crontab|at|atq|atrm|batch|systemctl|service|launchctl)\b/;
+const scheduler =
+  [...programsOf(command), ...programsOf(norm)].find((program) => SCHEDULERS.has(program)) ??
+  SCHEDULER_WORD.exec(blankInertData(command))?.[2];
 if (scheduler !== undefined)
   block(
     `BASH GUARD (.claude/hooks/bash-guard.ts): refused — no scheduling or service control from the executor (${scheduler}).\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
