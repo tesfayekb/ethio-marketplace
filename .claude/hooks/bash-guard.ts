@@ -21,6 +21,7 @@ import {
   programsOf,
   blankInertData,
   unreadablePrograms,
+  runsOnlyDataPrograms,
 } from "./lib";
 
 const event = await readEvent();
@@ -189,13 +190,24 @@ for (const rule of DENY) {
     );
 }
 
+// K1 rulings 4 and 5 — a program named by an expansion ("$p" status, $'at' now, $(…) status, a
+// glob) is one neither reader can read: refused first, as a refusal of the unreadable.
+const unreadable = unreadablePrograms(command)[0];
+if (unreadable !== undefined)
+  block(
+    `BASH GUARD (.claude/hooks/bash-guard.ts): refused — a program named by an expansion (${unreadable}) cannot be read by the guard; name the program itself.\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
+  );
+
 // INC-889 — scheduling and service control, read where the shell runs a program (each segment's
 // first word after its assignments and wrappers), so "fix at the root" or "the service role" in a
 // message, an argument or a heredoc body is never taken for the program. K1 ruling 3 (DEC-269) —
 // fail-closed as before K1: the words are also refused anywhere in the command's text except
 // provably inert data (blankInertData: closed quotes without expansions, quoted heredoc bodies),
 // so a spelling the program reader cannot see (a program started by another program, a comment,
-// an unclosed body) is still refused.
+// an unclosed body) is still refused. K1 ruling 5 (DEC-270) — data is inert only where its
+// consumer never runs it: the text is blanked only when every program of the command is one that
+// never runs its data (runsOnlyDataPrograms); bash -c '…', a body fed to bash, or an argument of
+// any other program is read whole, as before K1 (the command and its normalised text).
 const SCHEDULERS = new Set([
   "crontab",
   "at",
@@ -207,20 +219,22 @@ const SCHEDULERS = new Set([
   "launchctl",
 ]);
 const SCHEDULER_WORD = /(^|[\s;&|(`])(crontab|at|atq|atrm|batch|systemctl|service|launchctl)\b/;
+// Read whole, a quote or a `!` before the word counts too: `echo 'at now' | sh` hands sh a
+// command, and `vim -c '!at now'` runs one.
+const SCHEDULER_WORD_WHOLE =
+  /(^|[\s;&|(`'"!])(crontab|at|atq|atrm|batch|systemctl|service|launchctl)\b/;
+const wordTexts = runsOnlyDataPrograms(command)
+  ? [{ text: blankInertData(command), re: SCHEDULER_WORD }]
+  : [
+      { text: command, re: SCHEDULER_WORD_WHOLE },
+      { text: norm, re: SCHEDULER_WORD_WHOLE },
+    ];
 const scheduler =
   [...programsOf(command), ...programsOf(norm)].find((program) => SCHEDULERS.has(program)) ??
-  SCHEDULER_WORD.exec(blankInertData(command))?.[2];
+  wordTexts.map(({ text, re }) => re.exec(text)?.[2]).find((word) => word !== undefined);
 if (scheduler !== undefined)
   block(
     `BASH GUARD (.claude/hooks/bash-guard.ts): refused — no scheduling or service control from the executor (${scheduler}).\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
-  );
-
-// K1 ruling 4 — a program named by an expansion ("$p" status, $'at' now) is one neither reader can
-// read: refused, as a refusal of the unreadable.
-const unreadable = unreadablePrograms(command)[0];
-if (unreadable !== undefined)
-  block(
-    `BASH GUARD (.claude/hooks/bash-guard.ts): refused — a program named by an expansion (${unreadable}) cannot be read by the guard; name the program itself.\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
   );
 
 // Shell writes bypass the editing tools: every target goes through the same scope decision.
