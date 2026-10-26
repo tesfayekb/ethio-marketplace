@@ -37,8 +37,15 @@ describe("the session's bearer (DEC-261)", () => {
     expect(await headersSent()).toEqual({ headers: {} });
   });
 
-  it("SBB-3 a failed session read: no header and no throw", async () => {
-    door.currentSession.mockResolvedValue({ session: null, failed: true });
+  it("SBB-3 a failed session read: no header and no throw, and it says so (INC-914)", async () => {
+    door.currentSession.mockResolvedValue({
+      session: null,
+      failed: true,
+      error: new Error("offline"),
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     expect(await headersSent()).toEqual({ headers: {} });
+    expect(warn).toHaveBeenCalledWith("[session-bearer] the session could not be read: offline");
+    warn.mockRestore();
   });
 });
