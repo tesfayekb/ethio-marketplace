@@ -1,5 +1,6 @@
 import { createMiddleware } from "@tanstack/react-start";
 
+import { errorText } from "@/lib/error-text";
 import { currentSession } from "@/lib/supabase-door";
 
 /**
@@ -14,8 +15,12 @@ import { currentSession } from "@/lib/supabase-door";
  */
 export const attachSessionBearer = createMiddleware({ type: "function" }).client(
   async ({ next }) => {
-    const { session } = await currentSession();
-    const token = session?.access_token;
+    const read = await currentSession();
+    // INC-914 — a session that could not be read sends no bearer (as a signed-out call does), and
+    // says so: the server function answers as for a visitor, and the page's own refusal shows.
+    if (read.failed)
+      console.warn(`[session-bearer] the session could not be read: ${errorText(read.error)}`);
+    const token = read.session?.access_token;
     return next({
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });

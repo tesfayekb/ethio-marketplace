@@ -197,8 +197,34 @@ describe("the client's door (DEC-261)", () => {
     state.getSession.mockRejectedValue(new Error("offline"));
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const { currentSession } = await door();
-    expect(await currentSession()).toEqual({ session: null, failed: true });
+    // INC-914 — the failed read carries its error for the reader that says so.
+    expect(await currentSession()).toEqual({
+      session: null,
+      failed: true,
+      error: new Error("offline"),
+    });
     expect(warn).toHaveBeenCalledWith("[supabase-door] the session read failed: offline");
+    warn.mockRestore();
+  });
+
+  it("SBD-20 a refresh that never reached the server leaves the session unread; one the server refused is a signed-out visitor (INC-914)", async () => {
+    window.localStorage.setItem(STORED, "{}");
+    const offline = Object.assign(new Error("Failed to fetch"), {
+      name: "AuthRetryableFetchError",
+    });
+    state.getSession.mockResolvedValueOnce({ data: { session: null }, error: offline });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { currentSession } = await door();
+    expect(await currentSession()).toEqual({ session: null, failed: true, error: offline });
+    expect(warn).toHaveBeenCalledWith(
+      "[supabase-door] the session could not be refreshed: Failed to fetch",
+    );
+    const refused = Object.assign(new Error("Invalid Refresh Token: Refresh Token Not Found"), {
+      name: "AuthApiError",
+    });
+    state.getSession.mockResolvedValueOnce({ data: { session: null }, error: refused });
+    expect(await currentSession()).toEqual({ session: null, failed: false });
+    expect(warn).toHaveBeenCalledTimes(1);
     warn.mockRestore();
   });
 
@@ -242,7 +268,12 @@ describe("the client's door (DEC-261)", () => {
     failClientDownload();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const { currentSession } = await door();
-    expect(await currentSession()).toEqual({ session: null, failed: true });
+    // INC-914 — the failed read carries the download's error for the reader that says so.
+    expect(await currentSession()).toEqual({
+      session: null,
+      failed: true,
+      error: expect.anything(),
+    });
     expect(warn).toHaveBeenCalledWith(
       expect.stringMatching(/^\[supabase-door\] the client did not load: /),
     );

@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { completeEmailVerification } from "@/features/auth/auth-service";
 import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
@@ -35,10 +36,11 @@ function AuthCallback() {
    * "noSession"  — nothing conclusive: no error param, but no session in this
    *                browser (link likely opened elsewhere). NOT a bad link.
    * "failed"     — the URL carried a real error param and no session exists.
+   * "unavailable" — the sign-in code did not load (INC-914): the link may be good.
    */
-  const [status, setStatus] = useState<"checking" | "confirmed" | "noSession" | "failed">(
-    "checking",
-  );
+  const [status, setStatus] = useState<
+    "checking" | "confirmed" | "noSession" | "failed" | "unavailable"
+  >("checking");
   /**
    * INC-224 — WHERE THIS LANDING GOES NEXT. The Google door put the seller's
    * intended path in this URL's own `return` parameter (see `oauthRedirectUrl`),
@@ -57,7 +59,14 @@ function AuthCallback() {
       const result = await completeEmailVerification();
       if (cancelled) return;
       // "invalid or expired" requires a genuine error param AND no session.
-      const settled = result.ok ? "confirmed" : result.hadError ? "failed" : "noSession";
+      // INC-914 (Foundations turn 34c) — the sign-in code did not load: neither confirmed nor a dead link.
+      const settled = result.ok
+        ? "confirmed"
+        : "unavailable" in result
+          ? "unavailable"
+          : result.hadError
+            ? "failed"
+            : "noSession";
       setStatus(settled);
       // A session AND a destination: there is nothing to confirm by hand.
       if (settled === "confirmed" && target !== "/") {
@@ -91,6 +100,14 @@ function AuthCallback() {
         >
           {t("auth.continue")}
         </button>
+      </main>
+    );
+  }
+
+  if (status === "unavailable") {
+    return (
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <LoadFailedHere testid="auth-callback-load-failed" refreshTestid="auth-callback-refresh" />
       </main>
     );
   }

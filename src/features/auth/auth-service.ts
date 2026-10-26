@@ -456,10 +456,28 @@ export async function changeEmail(newEmail: string): Promise<AuthResult> {
  * directly and calling `setSession` rehydrates this tab (INC-005 final).
  */
 export async function hasSessionRehydrating(): Promise<boolean> {
-  if (typeof window === "undefined") return false;
-  const supabase = await authClient();
-  if (supabase === null) return false;
+  return (await sessionRehydration()) === "session";
+}
 
+/**
+ * INC-914 (Foundations turn 34c) — the same read, with a client that did not load kept apart
+ * from "no session": the reset screen says the page did not load (and offers a refresh) rather
+ * than calling a good link dead.
+ */
+export async function sessionRehydration(): Promise<"session" | "none" | "unavailable"> {
+  if (typeof window === "undefined") return "none";
+  const supabase = await authClient();
+  if (supabase === null) return "unavailable";
+  try {
+    return (await rehydrate(supabase)) ? "session" : "none";
+  } catch (error) {
+    // The client loaded; its own session read threw: unread, never "no session".
+    console.warn(`[auth] the session could not be read: ${errorText(error)}`);
+    return "unavailable";
+  }
+}
+
+async function rehydrate(supabase: Client): Promise<boolean> {
   const direct = (await supabase.auth.getSession()).data.session;
   if (direct) return true;
 
@@ -511,7 +529,8 @@ export async function hasSessionRehydrating(): Promise<boolean> {
  */
 export async function completeEmailVerification(): Promise<VerificationResult> {
   const supabase = await authClient();
-  if (supabase === null) return { ok: false, hadError: true };
+  // INC-914 — the client did not load: unknown, never "the link is dead".
+  if (supabase === null) return { ok: false, unavailable: true };
   const url = new URL(window.location.href);
   const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : "");
   const hasErrorParam = Boolean(
@@ -672,8 +691,10 @@ export async function fetchPreferredLanguage(): Promise<
   { code: string | null; reason: null } | { code: null; reason: string }
 > {
   // DEC-261 — the session through the door: a signed-out device fetches no client.
-  const { session } = await currentSession();
-  const userId = session?.user?.id;
+  const read = await currentSession();
+  // INC-914 — a session that could not be read is not "no session".
+  if (read.failed) return { code: null, reason: "the session could not be read" };
+  const userId = read.session?.user?.id;
   if (!userId) return { code: null, reason: "no session" };
   const supabase = await authClient();
   if (supabase === null) return { code: null, reason: "the client did not load" };
@@ -695,8 +716,10 @@ export async function savePreferredLanguage(
   code: string | null,
 ): Promise<{ ok: true } | { ok: false; reason: string }> {
   // DEC-261 — a signed-out device's star is the ordinary case: no client is fetched for it.
-  const { session } = await currentSession();
-  if (!session) return { ok: false, reason: "no session" };
+  const read = await currentSession();
+  // INC-914 — a session that could not be read is not "no session".
+  if (read.failed) return { ok: false, reason: "the session could not be read" };
+  if (!read.session) return { ok: false, reason: "no session" };
   const supabase = await authClient();
   if (supabase === null) return { ok: false, reason: "the client did not load" };
 

@@ -29,7 +29,11 @@ export type AuthUser = {
  * `hadError` marks a genuine `error`/`error_code` param, as opposed to
  * simply arriving with no recoverable link data.
  */
-export type VerificationResult = { ok: true } | { ok: false; hadError: boolean };
+export type VerificationResult =
+  | { ok: true }
+  | { ok: false; hadError: boolean }
+  // INC-914 (Foundations turn 34c) — the client did not load: neither a confirmation nor a dead link.
+  | { ok: false; unavailable: true };
 
 /**
  * One linked sign-in method, flattened for the settings surface.

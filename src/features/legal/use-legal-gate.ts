@@ -1,4 +1,5 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
+import { errorText } from "@/lib/error-text";
 import { currentSession } from "@/lib/supabase-door";
 import { useEffect } from "react";
 import { isE2E } from "@/lib/env-flags";
@@ -84,8 +85,16 @@ export async function landAfterSignIn(input: {
   const { navigate, href, replace, client, deadlineMs = 5000 } = input;
   const land = (target: string) =>
     void navigate(replace === undefined ? { href: target } : { href: target, replace });
-  const { session } = await currentSession();
-  const userId = session?.user?.id;
+  const read = await currentSession();
+  // INC-914 — a session that could not be read lands where it was going, logged: the legal
+  // gate's own check (LegalGate, the in-app net) runs once the session is read.
+  if (read.failed) {
+    console.error(
+      `[client-error] legal landing: the session could not be read: ${errorText(read.error)}`,
+    );
+    return land(href);
+  }
+  const userId = read.session?.user?.id;
   if (!userId) return land(href);
   const kinds = currentGateKinds();
   let timer: ReturnType<typeof setTimeout> | undefined;
