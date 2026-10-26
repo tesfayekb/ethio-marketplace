@@ -159,13 +159,20 @@ export function onAuthChange(listener: AuthListener): AuthSubscription {
  */
 export async function currentSession(): Promise<{ session: Session | null; failed: boolean }> {
   if (door.ready() === null && !hasStoredSession()) return { session: null, failed: false };
+  let client: Client;
   try {
-    const client = await getSupabase();
+    client = await getSupabase();
+  } catch (error) {
+    logLoadFailure(error);
+    return { session: null, failed: true };
+  }
+  try {
     const { data, error } = await client.auth.getSession();
     // As route-client read it before: any error is a failed read.
     return { session: data.session, failed: Boolean(error) };
   } catch (error) {
-    logLoadFailure(error);
+    // INC-915 — the client loaded; its own session read threw.
+    console.warn(`[supabase-door] the session read failed: ${errorText(error)}`);
     return { session: null, failed: true };
   }
 }
@@ -240,7 +247,14 @@ export async function rpc<F extends FunctionName>(
   const ready = door.ready();
   if (ready === null && !hasStoredSession())
     return anonymousRpc<Functions[F]["Returns"]>(name, args ?? {});
-  const client = ready ?? (await getSupabase());
+  let client: Client;
+  try {
+    client = ready ?? (await getSupabase());
+  } catch (error) {
+    // INC-915 — never a rejection where the client's own call would have answered.
+    logLoadFailure(error);
+    return { data: null, error: rpcError(null, `the client did not load: ${errorText(error)}`) };
+  }
   const { data, error } = await client.rpc(name, args);
   return { data, error: error === null ? null : rpcError(error, error.message) };
 }

@@ -4,31 +4,47 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * DEC-261 (Foundations turn 34) — THE CLIENT'S DOOR. A signed-out visitor's page
  * never fetches the Supabase client: auth events, the session and database
  * functions answer without it, exactly as the client answered a signed-out
- * caller. Each test loads the door afresh (vi.resetModules) and sets its own
- * environment (INC-880).
+ * caller. Each test loads the door afresh (vi.resetModules) and the client's mock
+ * afresh (vi.doMock), so `imported` counts that case's import only (ruling 2, R2-4),
+ * and sets its own environment (INC-880).
  */
-const state = vi.hoisted(() => ({
-  imported: 0,
-  listeners: new Array<(event: string, session: unknown) => void>(),
-  rpc: vi.fn(),
-  getSession: vi.fn(),
-}));
-
-vi.mock("@/integrations/supabase/client", () => {
-  state.imported += 1;
-  return {
-    supabase: {
-      rpc: state.rpc,
-      auth: {
-        getSession: state.getSession,
-        onAuthStateChange: (listener: (event: string, session: unknown) => void) => {
-          state.listeners.push(listener);
-          return { data: { subscription: { unsubscribe: () => undefined } } };
+const state = vi.hoisted(() => {
+  const state = {
+    imported: 0,
+    listeners: new Array<(event: string, session: unknown) => void>(),
+    rpc: vi.fn(),
+    getSession: vi.fn(),
+    /** The client's chunk fails to download (a dropped connection on a phone). */
+    downloadFails: false,
+    module: () => {
+      if (state.downloadFails) throw new TypeError("Failed to fetch dynamically imported module");
+      state.imported += 1;
+      return {
+        supabase: {
+          rpc: state.rpc,
+          auth: {
+            getSession: state.getSession,
+            onAuthStateChange: (listener: (event: string, session: unknown) => void) => {
+              state.listeners.push(listener);
+              return { data: { subscription: { unsubscribe: () => undefined } } };
+            },
+          },
         },
-      },
+      };
     },
   };
+  return state;
 });
+
+vi.mock("@/integrations/supabase/client", () => state.module());
+
+/**
+ * The client's chunk fails to download. One flag on the one factory: a second vi.doMock of
+ * the same path races the first (vitest resolves queued mocks concurrently).
+ */
+function failClientDownload() {
+  state.downloadFails = true;
+}
 
 const URL_ = "https://abcdefghijklmnop.supabase.co";
 const KEY = "sb_publishable_test_key";
@@ -46,7 +62,9 @@ async function door() {
 
 beforeEach(() => {
   vi.resetModules();
+  vi.doMock("@/integrations/supabase/client", () => state.module());
   state.imported = 0;
+  state.downloadFails = false;
   state.listeners = [];
   state.rpc.mockReset().mockResolvedValue({ data: "from-client", error: null });
   state.getSession.mockReset().mockResolvedValue({ data: { session: null }, error: null });
@@ -163,12 +181,12 @@ describe("the client's door (DEC-261)", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const { currentSession } = await door();
     expect(await currentSession()).toEqual({ session: null, failed: true });
-    expect(warn).toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith("[supabase-door] the session read failed: offline");
     warn.mockRestore();
   });
 
   it("SBD-13 a framed page (a Lovable preview's broker) starts the client at once, with nothing stored", async () => {
-    // The client module's mock is evaluated once per file (SBD-8 first): the proof is the call's path.
+    // With nothing stored, only the frame can start the client: the proof is the call's path.
     const parent = vi.spyOn(window, "parent", "get").mockReturnValue(Object.create(window));
     const { hasStoredSession, rpc } = await door();
     expect(hasStoredSession()).toBe(true);
@@ -185,5 +203,59 @@ describe("the client's door (DEC-261)", () => {
     const { rpc } = await door();
     await rpc("price_unit_labels");
     expect(fetchMock.mock.calls[0][0]).toBe(`${URL_}/rest/v1/rpc/price_unit_labels`);
+  });
+
+  it("SBD-14 a database function for a signed-in caller whose client fails to download answers an error, never a rejection (INC-915)", async () => {
+    window.localStorage.setItem(STORED, "{}");
+    failClientDownload();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { rpc } = await door();
+    const answer = await rpc("get_my_permissions");
+    expect(answer.data).toBeNull();
+    expect(answer.error?.message).toMatch(/^the client did not load: /);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/^\[supabase-door\] the client did not load: /),
+    );
+    warn.mockRestore();
+  });
+
+  it("SBD-15 the session of a signed-in caller whose client fails to download is a failed read (INC-915)", async () => {
+    window.localStorage.setItem(STORED, "{}");
+    failClientDownload();
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const { currentSession } = await door();
+    expect(await currentSession()).toEqual({ session: null, failed: true });
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/^\[supabase-door\] the client did not load: /),
+    );
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining("the session read failed"));
+    warn.mockRestore();
+  });
+
+  it("SBD-16 a listener unsubscribed before the client arrives never hears an event", async () => {
+    // Signed out: the next task's INITIAL_SESSION null is dropped.
+    const signedOut = await door();
+    const heardOut: string[] = [];
+    signedOut.onAuthChange((event) => heardOut.push(event)).unsubscribe();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(heardOut).toEqual([]);
+    // Signed in: the client arrives after the unsubscribe and is never handed the listener.
+    vi.resetModules();
+    window.localStorage.setItem(STORED, "{}");
+    const signedIn = await door();
+    const heardIn: string[] = [];
+    signedIn.onAuthChange((event) => heardIn.push(event)).unsubscribe();
+    expect(await signedIn.getSupabase()).toBeDefined();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(state.listeners).toEqual([]);
+    expect(heardIn).toEqual([]);
+  });
+
+  it("SBD-17 a storage event that removes the key starts no download", async () => {
+    await door();
+    window.dispatchEvent(new StorageEvent("storage", { key: STORED, newValue: null }));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(state.imported).toBe(0);
   });
 });
