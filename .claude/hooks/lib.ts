@@ -202,6 +202,29 @@ export const KNOWN_FLAGS: readonly string[] = [
 /** The branch the executor works on, and the only branch it lands on (DEC-020: main moves by CI's promote). */
 export const WORK_BRANCH = "dev";
 
+/**
+ * The independent review gates the landing (the operator, 2026-10-26: every turn gets the
+ * reviewer's report). A final report carries the reviewer's last line, word for word, as its own
+ * line: "Review: READY|NOT READY · <n> BLOCKER · <n> MAJOR · <n> MINOR · on <sha>" — the review
+ * ran on the last code commit, and no BLOCKER stands.
+ */
+export const REVIEW_LINE =
+  /^Review: (READY|NOT READY) · (\d+) BLOCKER · (\d+) MAJOR · (\d+) MINOR · on ([0-9a-f]{7,40})$/m;
+
+/** Why a final report's review line does not gate the landing, or null when it does. */
+export function reviewLineProblem(reportText: string, lastCode: string): string | null {
+  const line = REVIEW_LINE.exec(reportText);
+  if (line === null)
+    return 'it carries no review line ("Review: READY|NOT READY · <n> BLOCKER · <n> MAJOR · <n> MINOR · on <sha>"). Run the reviewer subagent in the foreground on the last code commit, wait for its answer, and copy its last line into the report word for word.';
+  const blockers = Number(line[2]);
+  const sha = (line[5] ?? "").slice(0, 7);
+  if (blockers > 0)
+    return `the review counts ${blockers} BLOCKER(s): fix each in a new commit, run the reviewer again and copy its new last line — or land a STOP report for a ruling.`;
+  if (sha !== lastCode.slice(0, 7))
+    return `the review ran on ${sha}, not on the last code commit ${lastCode}: a commit after the review needs the review again.`;
+  return null;
+}
+
 /** Where the turn's reports live (committed, read by the supervisor from a fresh clone). */
 export function reportPaths(brief: string | null): { final: string; stopPrefix: string } | null {
   if (brief === null) return null;
@@ -450,21 +473,23 @@ const WRAPPERS = new Set([
 ]);
 
 /**
- * Paths a command writes to: redirection targets plus the targets of the programs that write files.
- * A target the shell would expand comes back with a `$` marker so the guard can refuse it as
- * not literal. Accepts a command line (all segments) or one tokenised segment.
+ * One segment's program and its arguments: redirections and their targets set aside, then the
+ * assignments and wrappers the shell runs it through skipped (timeout 900 cmd, nice -n 5 cmd,
+ * env -i X=1 cmd, sudo cmd). `redirects` holds the redirection targets, `program` the base name
+ * of the program the shell would run ("" when there is none), `args` its argument tokens.
  */
-export function writeTargets(input: string | ShellToken[]): string[] {
-  if (typeof input === "string") return shellSegments(input).flatMap((t) => writeTargets(t));
-  const toks = input;
-  const out: string[] = [];
-  const mark = (t: ShellToken) => (t.dynamic && !/[$~*?[]/.test(t.v) ? `$${t.v}` : t.v);
+export function segmentProgram(toks: ShellToken[]): {
+  program: string;
+  args: ShellToken[];
+  redirects: ShellToken[];
+} {
+  const redirects: ShellToken[] = [];
   const words: ShellToken[] = [];
   for (let k = 0; k < toks.length; k += 1) {
     const t = toks[k]!;
     if (t.op === ">" || t.op === ">>") {
       const target = toks[k + 1];
-      if (target !== undefined && target.op === undefined) out.push(mark(target));
+      if (target !== undefined && target.op === undefined) redirects.push(target);
       k += 1;
       continue;
     }
@@ -475,7 +500,6 @@ export function writeTargets(input: string | ShellToken[]): string[] {
     }
     words.push(t);
   }
-  // skip assignments and wrappers (timeout 900 cmd, nice -n 5 cmd, env -i X=1 cmd)
   let w = 0;
   while (w < words.length) {
     const v = words[w]!.v;
@@ -506,8 +530,34 @@ export function writeTargets(input: string | ShellToken[]): string[] {
     }
     break;
   }
-  const cmd = (words[w]?.v ?? "").replace(/^.*\//, "");
-  const argToks = words.slice(w + 1);
+  return {
+    program: (words[w]?.v ?? "").replace(/^.*\//, ""),
+    args: words.slice(w + 1),
+    redirects,
+  };
+}
+
+/**
+ * INC-889 — the programs a command line runs, one per segment, in order: what a rule about a
+ * program (scheduling, a Claude session, eval) reads, so a word in a message, a quoted argument
+ * or a heredoc body ("fix at the root", "the service role") is never taken for a program.
+ */
+export function programsOf(cmd: string): string[] {
+  return shellSegments(cmd)
+    .map((toks) => segmentProgram(toks).program)
+    .filter((program) => program !== "");
+}
+
+/**
+ * Paths a command writes to: redirection targets plus the targets of the programs that write files.
+ * A target the shell would expand comes back with a `$` marker so the guard can refuse it as
+ * not literal. Accepts a command line (all segments) or one tokenised segment.
+ */
+export function writeTargets(input: string | ShellToken[]): string[] {
+  if (typeof input === "string") return shellSegments(input).flatMap((t) => writeTargets(t));
+  const mark = (t: ShellToken) => (t.dynamic && !/[$~*?[]/.test(t.v) ? `$${t.v}` : t.v);
+  const { program: cmd, args: argToks, redirects } = segmentProgram(input);
+  const out: string[] = redirects.map(mark);
   const args = argToks.map(mark);
   const positional = (a: string[]) => a.filter((x) => !x.startsWith("-") || x === "-");
   switch (cmd) {

@@ -31,6 +31,7 @@ import {
   readScope,
   scopeVerdict,
   reportPaths,
+  reviewLineProblem,
   lines,
   unlanded,
 } from "./lib";
@@ -262,6 +263,8 @@ if (finalReport === undefined) {
       "6 final report",
       `${reportFile} must name the last code commit (${lastCode || "none found"}) on its second line ("Final commit: <sha>").`,
     );
+  const reviewProblem = reviewLineProblem(reportText, lastCode);
+  if (reviewProblem !== null) fail("6 final report", `${reportFile}: ${reviewProblem}`);
   const unlisted = paths.filter((f) => f !== reportFile && !reportText.includes(f));
   if (unlisted.length > 0)
     fail(

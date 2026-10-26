@@ -60,7 +60,13 @@ A turn is ONE brief, worked part by part, landed at every stop and at the end.
    0 retries, fake mode) through `bun run e2e:local -- <files>`, plus every test id the brief names by
    `--grep`. Paste every count line and the server log's `[ssr-error]` count by path. When the
    environment cannot run browsers, say so with the reason; CI on the landing is the full proof.
-7. **THE COMPLETION REPORT** (`60-report.md`) is written to
+7. **THE INDEPENDENT REVIEW, then THE COMPLETION REPORT.** After THE END-TO-END CHECK the `reviewer`
+   subagent runs on the last code commit, in the FOREGROUND, and the turn waits for its answer — it is
+   never started in the background, never skipped, never cut short by a stop gate or the turn's length
+   (the turn-report skill, step 3). Every BLOCKER is fixed in a new commit and the reviewer runs again;
+   every MAJOR and MINOR is fixed inside SCOPE when the brief's exact text allows it, otherwise listed
+   under Departures for a ruling. Its last line goes into the report word for word (`land.ts` refuses a
+   final report without it). THE COMPLETION REPORT (`60-report.md`) is written to
    `docs/governance/reports/<brief-stem>.report.md` after your last code commit, committed on its
    own (`turn NN: report`), and the turn LANDS: `bun .claude/hooks/land.ts` (give the Bash call a
    timeout of 1800000 ms — the first run of the checks can take 15–25 minutes). When it prints

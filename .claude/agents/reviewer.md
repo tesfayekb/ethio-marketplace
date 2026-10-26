@@ -44,6 +44,12 @@ Review in this order and report under these headings, each with file:line eviden
 8. SECURITY — anything the public repository should not carry before a fix is live; any input not
    validated at the boundary; any provider or Postgres text reaching a client.
 
-Severity per finding: BLOCKER (a law broken), MAJOR (a contract or proof gap), MINOR. End with one
-line: READY / NOT READY, and the count by severity. Never soften a finding because the brief asked for
-the change; the brief can be wrong, and that is a finding too.
+Severity per finding: BLOCKER (a law broken), MAJOR (a contract or proof gap), MINOR. End with exactly
+one line, the last of your answer, in this form (the executor copies it into its report word for word,
+and land.ts reads it):
+
+Review: READY · <n> BLOCKER · <n> MAJOR · <n> MINOR · on <sha>
+
+— NOT READY instead of READY when any BLOCKER stands; `<sha>` is `git log -1 --format=%h --abbrev=7
+HEAD`, the commit you read. Never soften a finding because the brief asked for the change; the brief
+can be wrong, and that is a finding too.
