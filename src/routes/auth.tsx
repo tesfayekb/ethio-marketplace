@@ -123,7 +123,9 @@ function AuthScreen() {
   const isSignIn = view !== "sign-up";
 
   // DEC-261 — every door on this screen needs the client: it starts downloading once the screen
-  // has painted, so a submit does not wait for it (a failure is logged; the submit asks again).
+  // has painted, so a submit does not wait for it. A failed download first reloads the tab once
+  // (src/lib/stale-chunk.ts, INC-640: a tab opened before a Publish asks for old chunk names); a
+  // failure that remains is logged here, and each submit asks again and says it failed (INC-915).
   useEffect(() => {
     void getSupabase().catch((error: unknown) =>
       console.warn(`[auth] the client did not load: ${errorText(error)}`),
@@ -364,7 +366,10 @@ function AuthScreen() {
    * P1-g reset request (ruling R4). The answer is NEUTRAL-ALWAYS: the same
    * message renders whether or not an account exists, so this screen cannot be
    * used to enumerate addresses (the B-3 guard). The in-flight lock engages on
-   * INITIATION, per the INC-017 precedent.
+   * INITIATION, per the INC-017 precedent. INC-915 — a request that never left
+   * the browser (the sign-in code did not load) is not "on its way": the screen
+   * says it failed and gives back the try and the cooldown it took. That says
+   * nothing about whether an account exists, so B-3 holds.
    */
   async function handleForgotSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -388,11 +393,18 @@ function AuthScreen() {
 
     setBusy(true);
     // INC-915 — busy and the in-flight lock end in a finally: no throw leaves them engaged.
+    let result: Awaited<ReturnType<typeof requestPasswordReset>>;
     try {
-      await requestPasswordReset(address);
+      result = await requestPasswordReset(address);
     } finally {
       setBusy(false);
       resendInFlightRef.current = false;
+    }
+    if (!result.ok) {
+      setResendCount((n) => Math.max(0, n - 1));
+      setCooldown(0);
+      setErrorKey(result.errorKey);
+      return;
     }
     setResetRequested(true);
   }
@@ -426,7 +438,7 @@ function AuthScreen() {
             </div>
 
             {errorKey ? (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" data-testid="auth-reset-error" className="text-sm text-destructive">
                 {t(errorKey)}
               </p>
             ) : null}
@@ -648,7 +660,7 @@ function AuthScreen() {
           ) : null}
 
           {errorKey ? (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" data-testid="auth-error" className="text-sm text-destructive">
               {t(errorKey)}
             </p>
           ) : null}

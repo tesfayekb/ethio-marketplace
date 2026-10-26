@@ -3,10 +3,17 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { adPageFixtures } from "./helpers/ad-page";
-import { authFields, gotoReady, signInViaSession, signedInMarker } from "./helpers/ui";
+import {
+  authFields,
+  gotoReady,
+  signInViaSession,
+  signedInMarker,
+  waitForHydration,
+} from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 import { listingPath } from "../src/features/ad-page/address";
 import { en } from "../src/i18n/locales/en";
+import { STALE_CHUNK_KEY } from "../src/lib/stale-chunk";
 
 /**
  * DEC-261 (Foundations turn 34) — THE CLIENT'S DOOR IN THE BROWSER. A signed-out
@@ -23,7 +30,9 @@ import { en } from "../src/i18n/locales/en";
  * DEC-266 (INC-913) — SBE-3: the browser hydrates the server's first screen once React has
  * placed it, so a signed-in visitor's settling state (the session, the member strings) never
  * makes React draw the listings again: one copy of each card, the server's own. INC-915 —
- * SBE-4: a client whose download fails leaves the sign-in form answering, never stuck.
+ * SBE-4, SBE-5: a client whose download fails leaves the sign-in and the reset forms answering,
+ * never stuck and never claiming a link was sent. A failed chunk first reloads the tab once
+ * (src/lib/stale-chunk.ts, INC-640); both wait for that reload before they type.
  */
 
 const CLIENT_MARKER = "GoTrueClient";
@@ -59,6 +68,38 @@ function watchRpcs(page: Page) {
     if (match) calls.push({ name: match[1] ?? "", status: response.status() });
   });
   return { calls: () => [...calls] };
+}
+
+/** Every script that carries the client is refused, as a dropped download on a phone. */
+async function refuseClientDownload(page: Page) {
+  await page.route("**/*.js", async (route) => {
+    const response = await route.fetch();
+    if ((await response.text()).includes(CLIENT_MARKER)) await route.abort("failed");
+    else await route.fulfill({ response });
+  });
+}
+
+/**
+ * Opens `path` with the client refused and waits for the app's one reload for a failed chunk
+ * (src/lib/stale-chunk.ts, INC-640) and for the page it lands on to be ready, so a test types
+ * into the page that stays. Returns the page's load count, which a test checks stays at two.
+ */
+async function openAfterTheOneReload(page: Page, path: string): Promise<() => number> {
+  let loads = 0;
+  page.on("load", () => {
+    loads += 1;
+  });
+  // Not gotoReady: the reload can land while it waits, and a destroyed page is not this test's subject.
+  await page.goto(path);
+  await expect
+    .poll(() => loads, { message: "the app reloaded once for the failed chunk (INC-640)" })
+    .toBe(2);
+  await waitForHydration(page);
+  expect(
+    await page.evaluate((key) => window.sessionStorage.getItem(key), STALE_CHUNK_KEY),
+    "the reload was the stale-chunk rule's",
+  ).not.toBeNull();
+  return () => loads;
 }
 
 /** The page has loaded and the browser has had an idle moment (a deferred fetch has started). */
@@ -172,20 +213,33 @@ test.describe("THE CLIENT'S DOOR — the Supabase client off public pages (DEC-2
     await page.addInitScript(() => {
       Object.assign(window, { __ethioClientOff: true });
     });
-    // Every script that carries the client is refused, as a dropped download on a phone.
-    await page.route("**/*.js", async (route) => {
-      const response = await route.fetch();
-      if ((await response.text()).includes(CLIENT_MARKER)) await route.abort("failed");
-      else await route.fulfill({ response });
-    });
-    await gotoReady(page, "/auth");
+    await refuseClientDownload(page);
+    const loads = await openAfterTheOneReload(page, "/auth");
     const { email, password, submit } = authFields(page);
     await email.fill("nobody@example.test");
     await password.fill("not-a-real-password-1");
     await submit.click();
-    await expect(
-      page.locator('p[role="alert"]').filter({ hasText: en["auth.errorGeneric"] }),
-    ).toBeVisible();
+    await expect(page.getByTestId("auth-error")).toHaveText(en["auth.errorGeneric"]);
     await expect(submit).toBeEnabled();
+    expect(loads(), "one reload, never a second").toBe(2);
+  });
+
+  test("SBE-5 signed out, the client's download fails: Forgot password says it failed, sends no false word, and gives the try back (INC-915)", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.assign(window, { __ethioClientOff: true });
+    });
+    await refuseClientDownload(page);
+    const loads = await openAfterTheOneReload(page, "/auth?view=forgot");
+    await page.locator("#reset-email").fill("nobody@example.test");
+    const send = page.getByRole("button", { name: en["auth.resetSend"] });
+    await send.click();
+    await expect(page.getByTestId("auth-reset-error")).toHaveText(en["auth.errorGeneric"]);
+    await expect(page.getByText(en["auth.resetNeutral"])).toHaveCount(0);
+    // The request never left the browser: no cooldown, so the button asks again at once.
+    await expect(send).toBeEnabled();
+    await expect(send).toHaveText(en["auth.resetSend"]);
+    expect(loads(), "one reload, never a second").toBe(2);
   });
 });
