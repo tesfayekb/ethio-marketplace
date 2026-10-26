@@ -111,8 +111,8 @@ function rejectionHandler(call: ts.Node): ts.Node | "lazy" | null {
     ) {
       const step = parent.name.text;
       const chained = parent.parent;
-      if (step === "catch") return chained.arguments[0] ?? null;
-      if (step === "then" && chained.arguments.length >= 2) return chained.arguments[1] ?? null;
+      if (step === "catch") return handlerIn(chained.arguments[0]);
+      if (step === "then" && chained.arguments.length >= 2) return handlerIn(chained.arguments[1]);
       if (step === "then" || step === "finally") {
         node = chained;
         continue;
@@ -132,12 +132,40 @@ function rejectionHandler(call: ts.Node): ts.Node | "lazy" | null {
   }
 }
 
-/** A handler that does nothing: `() => undefined`, `() => {}`, `() => void 0`. */
+/** No handler at all: `undefined`, `null` or `void 0` where a handler goes (turn 34b-3's reviewer). */
+function isNothing(node: ts.Node): boolean {
+  return (
+    (ts.isIdentifier(node) && node.text === "undefined") ||
+    node.kind === ts.SyntaxKind.NullKeyword ||
+    ts.isVoidExpression(node)
+  );
+}
+
+/** The handler an argument gives, or null when it gives none. */
+function handlerIn(node: ts.Node | undefined): ts.Node | null {
+  return node === undefined || isNothing(node) ? null : node;
+}
+
+/** A body that does nothing: no statement, or only `return;`, `return undefined;`, `return void 0;`. */
+function doesNothing(block: ts.Block): boolean {
+  return block.statements.every(
+    (statement) =>
+      ts.isEmptyStatement(statement) ||
+      (ts.isReturnStatement(statement) &&
+        (statement.expression === undefined || isNothing(statement.expression))),
+  );
+}
+
+/**
+ * A handler that does nothing: `() => undefined`, `() => {}`, `() => void 0`, `() => { return undefined; }`,
+ * or an empty `catch {}` around an awaited call (turn 34b-3's reviewer, MAJOR 1).
+ */
 function isSilent(handler: ts.Node): boolean {
+  if (ts.isBlock(handler)) return doesNothing(handler);
   if (!ts.isArrowFunction(handler) && !ts.isFunctionExpression(handler)) return false;
   const body = handler.body;
-  if (ts.isBlock(body)) return body.statements.length === 0;
-  return (ts.isIdentifier(body) && body.text === "undefined") || ts.isVoidExpression(body);
+  if (ts.isBlock(body)) return doesNothing(body);
+  return isNothing(body);
 }
 
 /** The calls of the loader a factory call returned (`const loader = compiledCatalogLoader(…)`). */
@@ -403,6 +431,54 @@ describe("a piece fetched on demand that fails to download tells the person (INC
           `${files.mention}:4 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
           `${files.namespaced}:2 calls an on-demand loader and answers its failure without the mechanism`,
           `${files.namespaced}:2 leaves a failed download of getSupabase unhandled`,
+        ].join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("ODC-5 a handler that does nothing is silent, and no handler is none: an empty catch, a bare return, then(ok, undefined), catch(undefined) (34b-3's reviewer)", () => {
+    const dir = "node_modules/.cache/on-demand-failure-5";
+    mkdirSync(dir, { recursive: true });
+    const files = {
+      emptyCatch: `${dir}/odc-empty-catch.ts`,
+      bareReturn: `${dir}/odc-bare-return.ts`,
+      thenUndefined: `${dir}/odc-then-undefined.ts`,
+      catchUndefined: `${dir}/odc-catch-undefined.ts`,
+      handled: `${dir}/odc-handled.ts`,
+    };
+    const head =
+      'import { reportOnDemandFailure } from "@/lib/on-demand-failure";\nimport { loadLeaflet } from "@/features/posting/map/leaflet";\n';
+    try {
+      writeFileSync(
+        files.emptyCatch,
+        `${head}export async function go() {\n  try {\n    await loadLeaflet();\n  } catch {}\n}\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.bareReturn,
+        `${head}void loadLeaflet().catch(() => {\n  return undefined;\n});\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.thenUndefined,
+        `${head}void loadLeaflet().then(() => 1, undefined);\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.catchUndefined,
+        `${head}void loadLeaflet().catch(undefined);\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.handled,
+        `${head}void loadLeaflet().catch((error: unknown) => reportOnDemandFailure("the map", error));\n`,
+      );
+      const result = onDemandFailureCensus(Object.values(files));
+      expect(result.consumers).toEqual(Object.values(files));
+      expect(report(result.findings)).toBe(
+        [
+          `${files.bareReturn}:3 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
+          `${files.catchUndefined}:3 leaves a failed download of loadLeaflet unhandled`,
+          `${files.emptyCatch}:5 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
+          `${files.thenUndefined}:3 leaves a failed download of loadLeaflet unhandled`,
         ].join("\n"),
       );
     } finally {
