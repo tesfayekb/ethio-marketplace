@@ -111,8 +111,8 @@ function rejectionHandler(call: ts.Node): ts.Node | "lazy" | null {
     ) {
       const step = parent.name.text;
       const chained = parent.parent;
-      if (step === "catch") return chained.arguments[0] ?? null;
-      if (step === "then" && chained.arguments.length >= 2) return chained.arguments[1] ?? null;
+      if (step === "catch") return handlerIn(chained.arguments[0]);
+      if (step === "then" && chained.arguments.length >= 2) return handlerIn(chained.arguments[1]);
       if (step === "then" || step === "finally") {
         node = chained;
         continue;
@@ -132,12 +132,40 @@ function rejectionHandler(call: ts.Node): ts.Node | "lazy" | null {
   }
 }
 
-/** A handler that does nothing: `() => undefined`, `() => {}`, `() => void 0`. */
+/** No handler at all: `undefined`, `null` or `void 0` where a handler goes (turn 34b-3's reviewer). */
+function isNothing(node: ts.Node): boolean {
+  return (
+    (ts.isIdentifier(node) && node.text === "undefined") ||
+    node.kind === ts.SyntaxKind.NullKeyword ||
+    ts.isVoidExpression(node)
+  );
+}
+
+/** The handler an argument gives, or null when it gives none. */
+function handlerIn(node: ts.Node | undefined): ts.Node | null {
+  return node === undefined || isNothing(node) ? null : node;
+}
+
+/** A body that does nothing: no statement, or only `return;`, `return undefined;`, `return void 0;`. */
+function doesNothing(block: ts.Block): boolean {
+  return block.statements.every(
+    (statement) =>
+      ts.isEmptyStatement(statement) ||
+      (ts.isReturnStatement(statement) &&
+        (statement.expression === undefined || isNothing(statement.expression))),
+  );
+}
+
+/**
+ * A handler that does nothing: `() => undefined`, `() => {}`, `() => void 0`, `() => { return undefined; }`,
+ * or an empty `catch {}` around an awaited call (turn 34b-3's reviewer, MAJOR 1).
+ */
 function isSilent(handler: ts.Node): boolean {
+  if (ts.isBlock(handler)) return doesNothing(handler);
   if (!ts.isArrowFunction(handler) && !ts.isFunctionExpression(handler)) return false;
   const body = handler.body;
-  if (ts.isBlock(body)) return body.statements.length === 0;
-  return (ts.isIdentifier(body) && body.text === "undefined") || ts.isVoidExpression(body);
+  if (ts.isBlock(body)) return doesNothing(body);
+  return isNothing(body);
 }
 
 /** The calls of the loader a factory call returned (`const loader = compiledCatalogLoader(…)`). */
