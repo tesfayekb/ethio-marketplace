@@ -4,7 +4,13 @@ import { expect, test } from "./fixtures";
 
 import { adPageFixtures } from "./helpers/ad-page";
 import { openAfterTheOneReload, refuseScripts } from "./helpers/on-demand";
-import { authFields, gotoReady, signInViaSession, signedInMarker } from "./helpers/ui";
+import {
+  authFields,
+  gotoReady,
+  signInMarker,
+  signInViaSession,
+  signedInMarker,
+} from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 import { listingPath } from "../src/features/ad-page/address";
 import { en } from "../src/i18n/locales/en";
@@ -189,6 +195,23 @@ test.describe("THE CLIENT'S DOOR — the Supabase client off public pages (DEC-2
     await expect(page.getByTestId("auth-error")).toHaveText(en["common.loadFailed"]);
     await expect(submit).toBeEnabled();
     expect(loads(), "one reload, never a second").toBe(2);
+  });
+
+  test("SBE-6 signed in, the client's download fails: the visitor is unknown, never signed out — no Sign in, the notice offers Refresh, and Settings shows its error view, never the sign-in page (INC-914)", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    await signInViaSession(page, user.email, user.password);
+    await refuseClientDownload(page);
+    await openAfterTheOneReload(page, "/");
+    await expect(page.getByTestId("on-demand-failed")).toBeVisible();
+    await expect(page.getByTestId("on-demand-refresh")).toBeVisible();
+    await expect(signInMarker(page), "a signed-in visitor is never shown Sign in").toHaveCount(0);
+    await expect(signedInMarker(page)).toHaveCount(0);
+    await page.goto("/settings");
+    await expect(page.getByTestId("route-error-refresh")).toBeVisible();
+    await expect(page, "never sent to the sign-in page").toHaveURL(/\/settings$/);
+    await expect(page.getByText(en["common.tryAgain"])).toHaveCount(0);
   });
 
   test("SBE-5 signed out, the client's download fails: Forgot password says it failed, sends no false word, and gives the try back (INC-915)", async ({

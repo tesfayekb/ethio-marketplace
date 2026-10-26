@@ -4696,6 +4696,8 @@
       "/admin/translations/$lang",
       "/admin/users",
       "/admin/users/$userId",
+      "/auth/callback",
+      "/auth/reset",
       "/dev/style",
       "/l/$id/photo[/]jpg",
       "/l/$slug",
@@ -4724,6 +4726,8 @@
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId/edit",
+      "/auth/callback",
+      "/auth/reset",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -4759,6 +4763,8 @@
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",
+      "/auth/callback",
+      "/auth/reset",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -4794,7 +4800,6 @@
       "/post/$listingId"
     ],
     "common.tryAgain": [
-      "(every page)",
       "/admin/listings/$listingId/edit",
       "/legal/accept",
       "/my-listings",

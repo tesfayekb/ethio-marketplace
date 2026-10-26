@@ -175,28 +175,41 @@ export function onAuthChange(listener: AuthListener): AuthSubscription {
   };
 }
 
+/** The answer of a session read: `failed` carries why (INC-914 — a failed read is unknown, never signed out). */
+export type SessionRead =
+  | { session: Session | null; failed: false }
+  | { session: Session | null; failed: true; error: unknown };
+
 /**
  * The current session: null without the client when nothing is stored. Never a
- * rejection: a client that did not load answers `failed` (logged), as a failed
- * getSession() did.
+ * rejection: a client that did not load answers `failed` with its error (logged), as a
+ * failed getSession() does. Every reader reads `failed` (CF-SESSION-1): a failed read
+ * is UNKNOWN — never a signed-out visitor (INC-914).
  */
-export async function currentSession(): Promise<{ session: Session | null; failed: boolean }> {
+export async function currentSession(): Promise<SessionRead> {
   if (door.ready() === null && !hasStoredSession()) return { session: null, failed: false };
   let client: Client;
   try {
     client = await getSupabase();
   } catch (error) {
     logLoadFailure(error);
-    return { session: null, failed: true };
+    return { session: null, failed: true, error };
   }
   try {
     const { data, error } = await client.auth.getSession();
-    // As route-client read it before: any error is a failed read.
-    return { session: data.session, failed: Boolean(error) };
+    if (error === null) return { session: data.session, failed: false };
+    // getSession()'s one error is a failed refresh of an expired session. A refresh the server
+    // refused (a revoked or expired refresh token) has removed the session and announced
+    // SIGNED_OUT: a signed-out visitor, known. One that never reached the server (auth-js's
+    // AuthRetryableFetchError — offline, a timeout) leaves the session stored and unread: unknown
+    // until the next refresh (INC-914).
+    if (error.name !== "AuthRetryableFetchError") return { session: null, failed: false };
+    console.warn(`[supabase-door] the session could not be refreshed: ${errorText(error)}`);
+    return { session: data.session, failed: true, error };
   } catch (error) {
     // INC-915 — the client loaded; its own session read threw.
     console.warn(`[supabase-door] the session read failed: ${errorText(error)}`);
-    return { session: null, failed: true };
+    return { session: null, failed: true, error };
   }
 }
 

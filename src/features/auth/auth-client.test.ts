@@ -41,7 +41,8 @@ const ANSWERS: Record<string, unknown> = {
   changePassword: LOAD_FAILED,
   changeEmail: LOAD_FAILED,
   hasSessionRehydrating: false,
-  completeEmailVerification: { ok: false, hadError: true },
+  sessionRehydration: "unavailable",
+  completeEmailVerification: { ok: false, unavailable: true },
   hasPassword: LOAD_FAILED,
   removeOwnPassword: LOAD_FAILED,
   requestPasswordReset: LOAD_FAILED,
@@ -112,6 +113,19 @@ describe("a failed client download is a failed action (INC-915)", () => {
         "[client-error] the sign-in code did not load:",
         "Failed to fetch dynamically imported module",
       );
+    }
+  });
+
+  it('ASC-6 a session read that throws is unavailable to the reset screen, never "no session" (INC-914)', async () => {
+    const getSession = vi.fn().mockRejectedValue(new Error("the lock timed out"));
+    door.getSupabase.mockReset().mockResolvedValue({ auth: { getSession } });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      expect(await service.sessionRehydration()).toBe("unavailable");
+      expect(await service.hasSessionRehydrating()).toBe(false);
+      expect(warn).toHaveBeenCalledWith("[auth] the session could not be read: the lock timed out");
+    } finally {
+      warn.mockRestore();
     }
   });
 

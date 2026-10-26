@@ -112,8 +112,16 @@ export function useAuth() {
       void applyUser(session?.user?.id, session?.user?.email);
     });
 
-    void currentSession().then(({ session }) => {
-      void applyUser(session?.user?.id, session?.user?.email);
+    void currentSession().then((read) => {
+      // INC-914 (Foundations turn 34c) — a session the browser could not read is UNKNOWN, never
+      // signed out: the state stays "loading" (the header draws neither Sign in nor the account;
+      // the live guard and the peek wait), the shell's one notice offers the cure, a refresh, and a
+      // later auth event (the client arriving, a token refreshed) settles it.
+      if (read.failed) {
+        reportOnDemandFailure("the session", read.error);
+        return;
+      }
+      void applyUser(read.session?.user?.id, read.session?.user?.email);
     });
 
     return () => {

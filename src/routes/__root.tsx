@@ -5,7 +5,6 @@ import {
   Outlet,
   Link,
   createRootRouteWithContext,
-  useRouter,
   useRouterState,
   HeadContent,
   Scripts,
@@ -28,6 +27,8 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 // `src/server/**` out of the client graph); the handler imports it dynamically.
 import type { GeoAnswer } from "../server/geo/guess";
 import { errorText } from "@/lib/error-text";
+import { refreshPage } from "@/lib/on-demand-failure";
+import { Button } from "@/components/ui/button";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
 import type { FirstFeedPage } from "@/features/feed/feed-page";
 import { HeldFirstPage } from "@/features/feed/held-first-page";
@@ -224,9 +225,8 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorContent({ error, reset }: ErrorComponentProps) {
+function ErrorContent({ error }: ErrorComponentProps) {
   const { t } = useI18n();
-  const router = useRouter();
   useEffect(() => {
     // The router hands `unknown`; narrow before reading the message.
     // eslint-disable-next-line no-restricted-syntax -- the report takes an Error instance
@@ -243,15 +243,12 @@ function ErrorContent({ error, reset }: ErrorComponentProps) {
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">{t("error.pageFailedBody")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            {t("common.tryAgain")}
-          </button>
+          {/* INC-918 (Foundations turn 34c) — the one cure that always works: a fresh load. "Try
+              again" re-ran the loaders in this page, and a download that failed (the page's code,
+              the session's client) fails again until the page reloads. */}
+          <Button type="button" data-testid="route-error-refresh" onClick={refreshPage}>
+            {t("common.refreshPage")}
+          </Button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
@@ -321,8 +318,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // them again from the server on a navigation to the page already shown (it reloads every
   // loader of a same-href navigation): a round trip for nothing online, and offline a failed read
   // whose error view replaced the whole app — the offline sign-out's move to "/" from "/" (SO-12).
-  // A navigation elsewhere never re-read them; only router.invalidate() (the error view's "Try
-  // again") reads them again.
+  // A navigation elsewhere never re-read them; a fresh load reads them again (the error view's
+  // Refresh, turn 34c).
   shouldReload: false,
   head: ({ loaderData }) => ({
     meta: [

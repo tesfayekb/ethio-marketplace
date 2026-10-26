@@ -4,7 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 
-import { completePasswordReset, hasSessionRehydrating } from "@/features/auth/auth-service";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
+import { completePasswordReset, sessionRehydration } from "@/features/auth/auth-service";
 import { landAfterSignIn } from "@/features/legal/use-legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
@@ -58,6 +59,8 @@ function ResetScreen() {
 
   const [checking, setChecking] = useState(true);
   const [hasRecoverySession, setHasRecoverySession] = useState(false);
+  /** INC-914 (Foundations turn 34c) — the sign-in code did not load: neither a session nor a dead link. */
+  const [unavailable, setUnavailable] = useState(false);
   const [password, setPassword] = useState("");
   /** Bundle 11 turn C4 (D143) — the new password is typed twice. */
   const [passwordAgain, setPasswordAgain] = useState("");
@@ -70,13 +73,14 @@ function ResetScreen() {
     void (async () => {
       // The SDK may still be consuming the URL hash on first paint; one retry
       // covers that without inventing tolerance for a genuinely dead link.
-      let signedIn = await hasSessionRehydrating();
-      if (!signedIn) {
+      let read = await sessionRehydration();
+      if (read === "none") {
         await new Promise((resolve) => window.setTimeout(resolve, 600));
-        signedIn = await hasSessionRehydrating();
+        read = await sessionRehydration();
       }
       if (!active) return;
-      setHasRecoverySession(signedIn);
+      setHasRecoverySession(read === "session");
+      setUnavailable(read === "unavailable");
       setChecking(false);
     })();
     return () => {
@@ -97,8 +101,13 @@ function ResetScreen() {
       return;
     }
     setBusy(true);
-    const result = await completePasswordReset(password);
-    setBusy(false);
+    let result: Awaited<ReturnType<typeof completePasswordReset>>;
+    try {
+      result = await completePasswordReset(password);
+    } finally {
+      // The roadmap's 34c item: a submit that throws never leaves the button busy for good.
+      setBusy(false);
+    }
     if (!result.ok) {
       setErrorKey(result.errorKey);
       return;
@@ -130,6 +139,15 @@ function ResetScreen() {
         >
           {t("auth.continue")}
         </button>
+      </main>
+    );
+  }
+
+  if (unavailable) {
+    // INC-914 — the page's sign-in code did not download: the link may be good; a refresh is the cure.
+    return (
+      <main className="mx-auto w-full max-w-sm px-4 py-10">
+        <LoadFailedHere testid="auth-reset-load-failed" refreshTestid="auth-reset-refresh" />
       </main>
     );
   }
