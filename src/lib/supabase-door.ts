@@ -126,6 +126,28 @@ export function hasStoredSession(): boolean {
   }
 }
 
+/**
+ * Foundations turn 34b-1 (DEC-268) — A SIGN-OUT ENDS THE SESSION ON THIS DEVICE, whatever
+ * the server answered. Removes this project's stored session, and the two items the client keeps
+ * beside it, from the browser's storage, where the client reads its session on every call
+ * (supabase-js keeps none in memory with persistSession). For the sign-out that could not finish
+ * (src/features/auth/auth-service.ts signOut): the client then holds no session, and a page load
+ * reads none. A framed page (the editor's preview) keeps its session in the editor's broker,
+ * which this does not reach; a visitor's page is never framed. Answers whether it removed it.
+ */
+export function forgetStoredSession(): boolean {
+  if (typeof window === "undefined" || framed()) return false;
+  const key = storedSessionKey();
+  if (key === null) return false;
+  try {
+    for (const item of [key, `${key}-code-verifier`, `${key}-user`])
+      window.localStorage.removeItem(item);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** The client's onAuthStateChange, without fetching the client for a signed-out visitor. */
 export function onAuthChange(listener: AuthListener): AuthSubscription {
   let cancelled = false;

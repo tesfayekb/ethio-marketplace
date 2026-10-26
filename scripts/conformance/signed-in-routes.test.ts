@@ -11,6 +11,9 @@ import { codeOf, readAllowlist, report, walkFiles } from "./kit";
  * whose code reads auth.getSession( itself is a breach (signed-in-route.ts is
  * not under src/routes — so: always a breach); a route with ssr: false must
  * import requireSignedIn or carry an allowance. Expected allowances: none.
+ * INC-923 (Foundations turn 34b-1) — nor does a screen send a signed-out visitor to sign in from its
+ * own code (`hasSessionRehydrating(` or a navigate to "/auth"): that raced the screen's other routing
+ * (/settings landed on "/"). Only the sign-in screens themselves (a route path under /auth) may.
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -32,6 +35,16 @@ export function census(routesRoot: string): { scanned: number; findings: Finding
     const session = code.indexOf("auth.getSession(");
     if (session !== -1) {
       findings.push({ file: rel, line: lineOf(code, session), what: "reads the session itself" });
+      continue;
+    }
+    const path = /createFileRoute\("([^"]*)"\)/.exec(code)?.[1] ?? "";
+    const ownGate = code.search(/hasSessionRehydrating\(|navigate\(\{\s*to:\s*"\/auth"/);
+    if (ownGate !== -1 && !path.startsWith("/auth")) {
+      findings.push({
+        file: rel,
+        line: lineOf(code, ownGate),
+        what: "sends to sign in from the screen",
+      });
       continue;
     }
     const ssr = code.indexOf("ssr: false");
@@ -77,6 +90,29 @@ describe("every signed-in screen's door-step is requireSignedIn (INC-852)", () =
         line: 1,
         what: "reads the session itself",
       },
+    ]);
+  });
+
+  it("CF-SIR-3 a planted screen that sends to sign in itself is reported; a sign-in screen is not (INC-923)", () => {
+    const temp = mkdtempSync(join(tmpdir(), "signed-in-routes-"));
+    tempRoots.push(temp);
+    writeFileSync(
+      join(temp, "planted.tsx"),
+      'createFileRoute("/planted")({});\nif (!signedIn) void navigate({ to: "/auth", search: {} });\n',
+    );
+    writeFileSync(
+      join(temp, "rehydrating.tsx"),
+      'createFileRoute("/other")({});\nconst signedIn = await hasSessionRehydrating();\n',
+    );
+    writeFileSync(
+      join(temp, "sign-in.tsx"),
+      'createFileRoute("/auth")({});\nif (await hasSessionRehydrating()) void navigate({ to: "/auth", search: {} });\n',
+    );
+    const { findings } = census(temp);
+    const at = (name: string) => relative(ROOT, join(temp, name)).split("\\").join("/");
+    expect(findings).toEqual([
+      { file: at("planted.tsx"), line: 2, what: "sends to sign in from the screen" },
+      { file: at("rehydrating.tsx"), line: 2, what: "sends to sign in from the screen" },
     ]);
   });
 });

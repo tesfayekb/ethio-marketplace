@@ -11,6 +11,11 @@
  * failure must not loop the page); after that minute a later Publish gets its
  * own one reload. The mark lives in sessionStorage (this tab only) and is
  * best-effort: a browser that refuses storage still reloads once per page life.
+ * INC-922 (Foundations turn 34b-1; turn 34's reviewer, MAJOR 3) — only a page's
+ * FIRST failed download may reload it: a page whose first failure was left to
+ * surface (it came within the minute) is never reloaded by a later one, so a
+ * form the person has been filling for more than a minute is not thrown away;
+ * that failure is left to the piece that asked for the download to answer.
  */
 
 export const STALE_CHUNK_KEY = "ethio:stale-chunk-reloaded-at";
@@ -35,18 +40,20 @@ function reloadedRecently(win: StaleChunkWindow, now: number): boolean {
 }
 
 /**
- * Installs the handler; returns the uninstaller. `reloadedInPage` guards the
- * case where storage is refused: one reload per page life, never a loop.
+ * Installs the handler; returns the uninstaller. `failedInPage` lets only the
+ * page's first failure reload it — one reload per page life, never a loop, also
+ * where storage is refused.
  */
 export function reloadOnStaleChunk(
   win: StaleChunkWindow,
   now: () => number = () => Date.now(),
 ): () => void {
-  let reloadedInPage = false;
+  let failedInPage = false;
   const onPreloadError = (event: Event) => {
     const at = now();
-    if (reloadedInPage || reloadedRecently(win, at)) return;
-    reloadedInPage = true;
+    const first = !failedInPage;
+    failedInPage = true;
+    if (!first || reloadedRecently(win, at)) return;
     try {
       win.sessionStorage?.setItem(STALE_CHUNK_KEY, String(at));
     } catch {

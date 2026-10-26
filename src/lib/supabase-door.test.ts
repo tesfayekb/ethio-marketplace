@@ -277,4 +277,23 @@ describe("the client's door (DEC-261)", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(state.imported).toBe(0);
   });
+
+  it("SBD-18 DEC-268 — forgetting the stored session removes it and the two items beside it, and nothing else", async () => {
+    for (const item of [STORED, `${STORED}-code-verifier`, `${STORED}-user`, "ethio:other"])
+      window.localStorage.setItem(item, "{}");
+    const { forgetStoredSession, hasStoredSession } = await door();
+    expect(forgetStoredSession()).toBe(true);
+    expect(Object.keys(window.localStorage)).toEqual(["ethio:other"]);
+    expect(hasStoredSession()).toBe(false);
+    expect(state.imported).toBe(0);
+  });
+
+  it("SBD-19 a framed page's session lives in the editor's broker: forgetting leaves storage alone and says so", async () => {
+    window.localStorage.setItem(STORED, "{}");
+    const parent = vi.spyOn(window, "parent", "get").mockReturnValue(Object.create(window));
+    const { forgetStoredSession } = await door();
+    expect(forgetStoredSession()).toBe(false);
+    expect(window.localStorage.getItem(STORED)).toBe("{}");
+    parent.mockRestore();
+  });
 });

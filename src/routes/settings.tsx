@@ -2,7 +2,7 @@ import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { ContentGrid } from "@/components/layout/content-grid";
 import { ActionMessage } from "@/components/ui/action-message";
@@ -14,7 +14,6 @@ import {
   changePassword,
   getIdentities,
   hasPassword,
-  hasSessionRehydrating,
   linkGoogleIdentity,
   removeOwnPassword,
   signOutOtherDevices,
@@ -23,6 +22,7 @@ import {
 import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
+import { requireSignedIn } from "@/lib/signed-in-route";
 import { getSupabase } from "@/lib/supabase-door";
 import { errorText } from "@/lib/error-text";
 import { useI18n } from "@/i18n";
@@ -50,6 +50,12 @@ type MessageSlot = "methods" | "removePassword" | "password" | "email" | "device
 type SlotMessage = { slot: MessageSlot; tone: "error" | "done"; key: MessageKey };
 
 export const Route = createFileRoute("/settings")({
+  // INC-923 (Foundations turn 34b-1) — a signed-in screen's door-step, as /account's: a signed-out
+  // visitor goes to sign in and comes back here, before the screen draws (INC-852).
+  ssr: false,
+  beforeLoad: async () => {
+    await requireSignedIn("/settings");
+  },
   head: () => ({
     meta: [
       { name: "robots", content: "noindex" },
@@ -151,22 +157,16 @@ function SettingsScreen() {
    * The law: every auth-derived read is keyed to the auth state and is
    * cancelled by an auth transition; post-sign-out routing belongs to the
    * shell's hard reset alone, never to a page bootstrap.
+   *
+   * INC-923 (Foundations turn 34b-1) — nor the sign-in: a signed-out visitor never reaches this
+   * screen (the route's door-step is requireSignedIn). This screen's own send to /auth raced the
+   * live guard's "/" above, and lost whenever the sign-in code's download was slow.
    */
-  const hadSession = useRef(false);
-
   useEffect(() => {
     if (authLoading) return;
     let active = true;
     void (async () => {
-      if (user === null) {
-        // Signed out AFTER having a session: the shell hard reset owns "/".
-        if (hadSession.current) return;
-        const signedIn = await hasSessionRehydrating();
-        if (!active || hadSession.current) return;
-        if (!signedIn) void navigate({ to: "/auth", search: {} });
-        return;
-      }
-      hadSession.current = true;
+      if (user === null) return;
       // INC-915 — a failed download leaves member-since unknown and ends the session check.
       let supabase: Awaited<ReturnType<typeof getSupabase>>;
       try {
@@ -191,7 +191,7 @@ function SettingsScreen() {
     return () => {
       active = false;
     };
-  }, [authLoading, user, navigate]);
+  }, [authLoading, user]);
 
   const loadIdentities = useCallback(async () => {
     const result = await getIdentities();

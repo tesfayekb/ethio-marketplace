@@ -12,6 +12,7 @@ import {
   openRailScope,
   signIn,
   signInViaSession,
+  signInMarker,
   signOutViaUi,
   signedInMarker,
 } from "./helpers/ui";
@@ -184,6 +185,48 @@ test.describe("U0j sign-out hard reset", () => {
         .map((q) => JSON.stringify(q.queryKey));
     });
     expect(survivors, "auth-derived queries survived the hard reset").toEqual([]);
+  });
+
+  test("SO-11 a sign-out whose server cannot be reached still ends the session on this device (DEC-268)", async ({
+    page,
+  }) => {
+    // supabase-js retries a refused token refresh with back-off for up to about 30 s before
+    // the sign-out answers (auth-js GoTrueClient's refresh retry): that wait is this test's time.
+    test.setTimeout(120_000);
+    const user = await leaseUser();
+    await signInViaSession(page, user.email, user.password);
+    await gotoReady(page, "/settings");
+    // The access token has run out and the auth server cannot be reached.
+    await page.route("**/auth/v1/**", (route) => route.abort("failed"));
+    await page.evaluate(() => {
+      const key = Object.keys(localStorage).find(
+        (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
+      );
+      if (!key) throw new Error("no persisted supabase session found");
+      const session = JSON.parse(localStorage.getItem(key) ?? "{}") as { expires_at?: number };
+      session.expires_at = Math.floor(Date.now() / 1000) - 3600;
+      localStorage.setItem(key, JSON.stringify(session));
+    });
+    if (isMobile(page)) {
+      await page.getByTestId("account-menu").click();
+      await page.getByTestId("account-menu-sign-out").click();
+    } else {
+      await page.getByTestId("app-rail").getByTestId("rail-sign-out").click();
+    }
+    await expect(page).toHaveURL(/\/$/, { timeout: 60_000 });
+    await expect(signInMarker(page)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+    expect(
+      await page.evaluate(() =>
+        Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token")),
+      ),
+      "the stored session is gone from this device",
+    ).toBe(false);
+    // The network is back: a fresh load of the page is still signed out.
+    await page.unrouteAll({ behavior: "ignoreErrors" });
+    await gotoReady(page, "/");
+    await expect(signInMarker(page)).toBeVisible();
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
   });
 });
 

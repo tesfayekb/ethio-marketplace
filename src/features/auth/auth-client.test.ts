@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const door = vi.hoisted(() => ({
   getSupabase: vi.fn(),
   currentSession: vi.fn(),
+  forgetStoredSession: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase-door", () => ({
@@ -19,6 +20,7 @@ vi.mock("@/lib/supabase-door", () => ({
   // A signed-in device, so the account-carry calls go on to ask for the client.
   currentSession: () => door.currentSession(),
   storedSessionKey: () => "sb-abcdefghijklmnop-auth-token",
+  forgetStoredSession: () => door.forgetStoredSession(),
 }));
 
 const service = await import("./auth-service");
@@ -82,6 +84,7 @@ beforeEach(() => {
   door.getSupabase
     .mockReset()
     .mockRejectedValue(new TypeError("Failed to fetch dynamically imported module"));
+  door.forgetStoredSession.mockReset().mockReturnValue(true);
   door.currentSession
     .mockReset()
     .mockResolvedValue({ session: { user: { id: "user-1" }, access_token: "t" }, failed: false });
@@ -115,5 +118,76 @@ describe("a failed client download is a failed action (INC-915)", () => {
   it("ASC-2 auth-service.ts asks the door for the client in one place", () => {
     const text = readFileSync("src/features/auth/auth-service.ts", "utf8");
     expect(text.match(/getSupabase\(\)/g) ?? []).toHaveLength(1);
+  });
+});
+
+describe("a sign-out ends the session on this device whatever the server answers (DEC-268)", () => {
+  it("ASC-3 a sign-out that cannot finish still ends the session on this device", async () => {
+    // The client did not load: the stored session is removed, and the answer says it failed.
+    const unloaded = await service.signOut();
+    expect(door.forgetStoredSession).toHaveBeenCalledTimes(1);
+    expect(unloaded).toEqual(GENERIC);
+    // The server could not be reached (supabase-js answers an error and keeps the session).
+    door.forgetStoredSession.mockClear();
+    const signOut = vi.fn().mockResolvedValue({
+      error: { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 },
+    });
+    door.getSupabase.mockReset().mockResolvedValue({ auth: { signOut } });
+    const failed = await service.signOut();
+    expect(failed.ok).toBe(false);
+    expect(signOut).toHaveBeenCalledTimes(1);
+    expect(door.forgetStoredSession).toHaveBeenCalledTimes(1);
+    // A sign-out the server confirmed leaves the stored session to supabase-js, which removed it.
+    door.forgetStoredSession.mockClear();
+    signOut.mockResolvedValue({ error: null });
+    expect(await service.signOut()).toEqual({ ok: true });
+    expect(door.forgetStoredSession).not.toHaveBeenCalled();
+  });
+
+  it("ASC-4 a sign-in that drops an expired prior session drops it from this device when the library keeps it", async () => {
+    const key = "sb-abcdefghijklmnop-auth-token";
+    const expiredAt = Math.floor(Date.now() / 1000) - 3600;
+    window.localStorage.setItem(
+      key,
+      JSON.stringify({ access_token: "a", refresh_token: "r", expires_at: expiredAt }),
+    );
+    const unreachable = { name: "AuthRetryableFetchError", message: "Failed to fetch", status: 0 };
+    const signOut = vi.fn().mockResolvedValue({ error: unreachable });
+    const signInWithPassword = vi
+      .fn()
+      .mockResolvedValue({ data: { session: null, user: null }, error: unreachable });
+    door.getSupabase.mockReset().mockResolvedValue({ auth: { signOut, signInWithPassword } });
+    try {
+      await service.signInWithPassword({
+        email: "nobody@example.test",
+        password: "not-a-real-password-1",
+      });
+      expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+      expect(door.forgetStoredSession).toHaveBeenCalledTimes(1);
+    } finally {
+      window.localStorage.removeItem(key);
+    }
+  });
+
+  it("ASC-5 every call that ends this device's session forgets the stored session when the library keeps it", () => {
+    const text = readFileSync("src/features/auth/auth-service.ts", "utf8");
+    // Each top-level function's text, from its declaration to the next one.
+    const functions = text.split(/\n(?=(?:export )?(?:async )?function )/);
+    // A sign-out of "others" ends no session on this device; every other one does.
+    const ending = functions.filter((body) =>
+      /\.auth\.signOut\((?!\{ scope: "others" \})/.test(body),
+    );
+    const names = ending.map((body) => /function (\w+)/.exec(body)?.[1] ?? "?");
+    expect(names).toEqual(["evictExpiredSession", "signOut", "currentPasswordProof"]);
+    // The one exception: the password check's second client keeps no session on this device
+    // (no storage, persistSession false) — its sign-out ends the check, not the person's session.
+    const NO_STORED_SESSION = ["currentPasswordProof"];
+    for (const [index, body] of ending.entries()) {
+      if (NO_STORED_SESSION.includes(names[index] ?? "")) {
+        expect(body).toMatch(/persistSession: false/);
+        continue;
+      }
+      expect(body, names[index]).toMatch(/forgetStoredSession\(\)/);
+    }
   });
 });
