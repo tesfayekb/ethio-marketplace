@@ -48,6 +48,10 @@ const FORBIDDEN = [
   // Foundations turn 32 (DEC-260) — the dialog and the alert dialog too.
   "@radix-ui/react-dialog",
   "@radix-ui/react-alert-dialog",
+  // INC-908 (Foundations turn 32b) — the drawer (vaul) and the command palette (cmdk) carry
+  // Radix's dialog inside them: neither may reach the first paint either.
+  "vaul",
+  "cmdk",
 ];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 
