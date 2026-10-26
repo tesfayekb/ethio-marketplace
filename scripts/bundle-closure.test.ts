@@ -171,7 +171,7 @@ describe("every page's first download (D234)", () => {
     expect(judge(fair, planted)).toEqual([
       "/l/$slug: posting-service-e.js must stay lazy on a public page (D234)",
     ]);
-    for (const prefix of ["category-glyphs", "date-calendar", "leaflet", "zod"]) {
+    for (const prefix of ["category-glyphs", "date-calendar", "leaflet", "zod", "overlays-impl"]) {
       expect(PUBLIC_MUST_STAY_LAZY).toContain(prefix);
     }
   });

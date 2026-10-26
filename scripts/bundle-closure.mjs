@@ -50,7 +50,14 @@ export function entryChunks(names) {
  * by file-name prefix. A page-only module that drifts into the entry's static
  * closure fails the budget guard with its name, whatever the total weight.
  */
-export const MUST_STAY_LAZY = ["reader-failure", "legal-page-data", "zod", "posting-service"];
+export const MUST_STAY_LAZY = [
+  "reader-failure",
+  "legal-page-data",
+  "zod",
+  "posting-service",
+  // Foundations turn 31 (DEC-259) — the tooltip's and the menu's code arrives on demand.
+  "overlays-impl",
+];
 
 /** The first closure chunk name that must stay lazy, or null. */
 export function mustStayLazyViolation(closureNames) {
@@ -121,6 +128,7 @@ export const PUBLIC_MUST_STAY_LAZY = [
   "am-member",
   "en-admin",
   "am-admin",
+  "overlays-impl",
 ];
 
 /** The first chunk name in a closure that starts with one of `prefixes`, or null. */

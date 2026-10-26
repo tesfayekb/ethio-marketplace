@@ -42,6 +42,9 @@ const FORBIDDEN = [
   "libphonenumber-js",
   // Bundle 19 turn 1 (DEC-187) — the QR encoder is server-only; it never enters the first-paint path.
   "qrcode-generator",
+  // Foundations turn 31 (DEC-259) — the overlay primitives load on demand (src/components/ui/overlay-loader.ts).
+  "@radix-ui/react-tooltip",
+  "@radix-ui/react-dropdown-menu",
 ];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 
@@ -62,7 +65,7 @@ const seen = new Set();
 const queue = ENTRIES.map((entry) => [resolve(entry), null]);
 const violations = [];
 
-const IMPORT_FROM = /^\s*import\s(?!type\b)[^;]*?from\s+["']([^"']+)["']/gm;
+const IMPORT_FROM = /^\s*import\s(?!type\b)(?:[^;"']*?from\s+)?["']([^"']+)["']/gm;
 const EXPORT_FROM = /^\s*export\s(?!type\b)[^;]*?from\s+["']([^"']+)["']/gm;
 
 while (queue.length > 0) {

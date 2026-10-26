@@ -122,6 +122,13 @@ Two rules apply to every block below.
   parent forwards its ref to a real DOM element; it never returns a Fragment or
   a provider at its root.
 
+- DEC-259 (Foundations turn 31): the facades (`tooltip.tsx`, `dropdown-menu.tsx`)
+  hold the consumer API and draw the trigger through the same Slot; the Radix
+  implementations live in `tooltip-impl.tsx`/`dropdown-menu-impl.tsx`, reached
+  by value only through `overlays-impl.ts`, and that only through
+  `overlay-loader.ts`'s `loadOnce` (idle or first intent). The order above is
+  unchanged for a control that is both triggers.
+
 ### IconButton — `src/components/ui/icon-button.tsx`
 
 Props: `label` (required; the accessible name and the tooltip's text), `icon`,

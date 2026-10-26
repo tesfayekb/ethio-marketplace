@@ -3,6 +3,8 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+import { loadOverlays } from "@/components/ui/overlay-loader";
+
 /**
  * DEC-026 — the component-test setup. Three jobs only:
  *  1. jest-dom matchers (`toBeVisible`, `toHaveTextContent`, …);
@@ -64,6 +66,12 @@ if (!Element.prototype.hasPointerCapture) {
 if (!Element.prototype.scrollIntoView) {
   Element.prototype.scrollIntoView = () => {};
 }
+
+// DEC-259 — the overlay primitives (tooltip, dropdown menu) arrive on demand in
+// the browser. A component test has them from the start, so a trigger's first
+// gesture opens the real primitive within the same act(), as on a page whose
+// module has already arrived.
+await loadOverlays();
 
 afterEach(() => {
   cleanup();
