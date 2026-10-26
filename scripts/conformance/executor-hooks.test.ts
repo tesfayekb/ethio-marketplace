@@ -498,8 +498,13 @@ describe("bash guard (50-security.md)", () => {
       "find . -name x -exec at now \\;",
       "echo at",
       "cat <<EOF > /tmp/n.txt\nmeet at 5\nEOF",
+      // K1 ruling 4 — a keyword before the program.
+      "if true; then /bin/systemctl status; fi",
     ])
       refused(command, /no scheduling or service control/);
+    // K1 ruling 4 — a program named by an expansion is unreadable, and refused as such.
+    for (const command of ['p=systemctl; "$p" status', "$'at' now"])
+      refused(command, /a program named by an expansion/);
     for (const command of [
       'git commit -m "turn 35: fix at the root; the service role reads it"',
       'grep -n "look at this" src/lib/uuid.ts',
@@ -509,6 +514,10 @@ describe("bash guard (50-security.md)", () => {
       "echo '$(at now)'",
       "git commit -m \"$(cat <<'EOF'\nturn 35: fix at the root (INC-889); the service role reads it\nEOF\n)\"",
       "git commit -m \"$(cat <<'EOF'\nturn 35: it's fixed (see INC-889); at 5 pm\nEOF\n)\"",
+      // K1 ruling 4 — a quoted delimiter may hold a space; its body is data.
+      "cat <<'A B'\nfix at root\nA B",
+      'echo "$(git rev-parse HEAD)"',
+      "for f in a b; do echo $f; done",
     ])
       allowed(command);
   });
@@ -541,6 +550,9 @@ describe("bash guard (50-security.md)", () => {
     expect(blankInertData("cat <<EOF > f\nat 5\nEOF")).toBe("cat <<EOF > f\nat 5\nEOF");
     expect(blankInertData("cat <<'EOF'\n'at'")).toBe("cat <<'EOF'\n'at'");
     expect(blankInertData("echo 'at now")).toBe("echo 'at now");
+    // K1 ruling 4 — one word reader for the delimiter: a quoted run holds a space.
+    expect(blankInertData("cat <<'A B'\nfix at root\nA B")).toBe("cat <<'A B'\n           \nA B");
+    expect(programsOf("if true; then /bin/systemctl status; fi")).toContain("systemctl");
   });
 
   it("EXH-16 every command the protocol requires passes BOTH layers — the permission rules and the guard; the forbidden ones are denied by the rules too", () => {
