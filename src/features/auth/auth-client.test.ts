@@ -15,13 +15,19 @@ const door = vi.hoisted(() => ({
   forgetStoredSession: vi.fn(),
 }));
 
-vi.mock("@/lib/supabase-door", () => ({
-  getSupabase: () => door.getSupabase(),
-  // A signed-in device, so the account-carry calls go on to ask for the client.
-  currentSession: () => door.currentSession(),
-  storedSessionKey: () => "sb-abcdefghijklmnop-auth-token",
-  forgetStoredSession: () => door.forgetStoredSession(),
-}));
+vi.mock("@/lib/supabase-door", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/lib/supabase-door")>();
+  return {
+    getSupabase: () => door.getSupabase(),
+    // A signed-in device, so the account-carry calls go on to ask for the client.
+    currentSession: () => door.currentSession(),
+    storedSessionKey: () => "sb-abcdefghijklmnop-auth-token",
+    besideStoredSession: (name: string) => `sb-abcdefghijklmnop-${name}`,
+    projectEnv: () => ({ url: "https://abcdefghijklmnop.supabase.co", key: "publishable" }),
+    neverReachedTheServer: real.neverReachedTheServer,
+    forgetStoredSession: () => door.forgetStoredSession(),
+  };
+});
 
 const service = await import("./auth-service");
 
@@ -125,6 +131,41 @@ describe("a failed client download is a failed action (INC-915)", () => {
       expect(await service.hasSessionRehydrating()).toBe(false);
       expect(warn).toHaveBeenCalledWith("[auth] the session could not be read: the lock timed out");
     } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("ASC-7 an expired session whose refresh never reached the server is kept, and the read is unknown; one the server refused is dropped (INC-931)", async () => {
+    const key = "sb-abcdefghijklmnop-auth-token";
+    const expiredAt = Math.floor(Date.now() / 1000) - 3600;
+    const stored = JSON.stringify({ access_token: "a", refresh_token: "r", expires_at: expiredAt });
+    const getSession = vi.fn().mockResolvedValue({ data: { session: null }, error: null });
+    const unreachable = Object.assign(new Error("Failed to fetch"), {
+      name: "AuthRetryableFetchError",
+    });
+    const refreshSession = vi
+      .fn()
+      .mockResolvedValue({ data: { session: null, user: null }, error: unreachable });
+    const signOut = vi.fn().mockResolvedValue({ error: null });
+    door.getSupabase
+      .mockReset()
+      .mockResolvedValue({ auth: { getSession, refreshSession, signOut } });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    window.localStorage.setItem(key, stored);
+    try {
+      expect(await service.sessionRehydration()).toBe("unavailable");
+      expect(signOut).not.toHaveBeenCalled();
+      expect(door.forgetStoredSession).not.toHaveBeenCalled();
+      expect(window.localStorage.getItem(key)).toBe(stored);
+      expect(warn).toHaveBeenCalledWith("[auth] the session could not be read: Failed to fetch");
+      const refused = Object.assign(new Error("Invalid Refresh Token: Refresh Token Not Found"), {
+        name: "AuthApiError",
+      });
+      refreshSession.mockResolvedValue({ data: { session: null, user: null }, error: refused });
+      expect(await service.sessionRehydration()).toBe("none");
+      expect(signOut).toHaveBeenCalledWith({ scope: "local" });
+    } finally {
+      window.localStorage.removeItem(key);
       warn.mockRestore();
     }
   });
