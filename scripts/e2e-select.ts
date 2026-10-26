@@ -195,7 +195,14 @@ export const AREAS: Area[] = [
   },
   {
     name: "settings",
-    src: ["src/routes/settings.tsx", "src/features/settings/**"],
+    // INC-925 (Foundations turn 34w) — S-1 proves every door-step page; the shell's guard reads the list.
+    src: [
+      "src/routes/settings.tsx",
+      "src/features/settings/**",
+      "src/lib/signed-in-pages.ts",
+      "src/lib/signed-in-route.ts",
+      "src/components/app-shell.tsx",
+    ],
     specs: ["e2e/settings.spec.ts"],
   },
   {

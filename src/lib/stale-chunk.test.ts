@@ -95,6 +95,16 @@ describe("reloadOnStaleChunk (INC-640)", () => {
     expect(later.defaultPrevented).toBe(false);
   });
 
+  it("STC-2 a download that fails offline is no stale chunk: no reload, then or later (DEC-271)", () => {
+    const net = { onLine: false };
+    const { win, fire, reloads } = fakeWindow();
+    reloadOnStaleChunk({ ...win, navigator: net }, () => 1_000);
+    expect(fire().defaultPrevented).toBe(false);
+    net.onLine = true;
+    expect(fire().defaultPrevented).toBe(false);
+    expect(reloads()).toBe(0);
+  });
+
   it("still reloads once per page when storage is refused", () => {
     const { win, fire, reloads } = fakeWindow(null);
     reloadOnStaleChunk(win, () => 1_000);

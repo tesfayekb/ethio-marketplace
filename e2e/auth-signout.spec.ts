@@ -15,6 +15,7 @@ import {
   signInMarker,
   signOutViaUi,
   signedInMarker,
+  waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -225,6 +226,51 @@ test.describe("U0j sign-out hard reset", () => {
     // The network is back: a fresh load of the page is still signed out.
     await page.unrouteAll({ behavior: "ignoreErrors" });
     await gotoReady(page, "/");
+    await expect(signInMarker(page)).toBeVisible();
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+  });
+
+  test("SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271)", async ({
+    page,
+  }) => {
+    const user = await leaseUser();
+    await signInViaSession(page, user.email, user.password);
+    await gotoReady(page, "/");
+    if (isMobile(page)) {
+      // The account menu's code arrives on its first opening: open it once while online.
+      await page.getByTestId("account-menu").click();
+      await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("account-menu-sign-out")).toHaveCount(0);
+    }
+    let loads = 0;
+    page.on("load", () => {
+      loads += 1;
+    });
+    await page.context().setOffline(true);
+    if (isMobile(page)) {
+      await page.getByTestId("account-menu").click();
+      await page.getByTestId("account-menu-sign-out").click();
+    } else {
+      await page.getByTestId("app-rail").getByTestId("rail-sign-out").click();
+    }
+    // The site stays on screen, signed out — not the browser's own "cannot open" page.
+    await expect(signInMarker(page)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+    await expect(page).toHaveURL(/\/$/);
+    expect(loads, "no load is tried while offline").toBe(0);
+    expect(
+      await page.evaluate(() =>
+        Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token")),
+      ),
+      "the stored session is gone from this device",
+    ).toBe(false);
+    // The connection returns: the page loads afresh, still signed out.
+    await page.context().setOffline(false);
+    await expect
+      .poll(() => loads, { message: "the page loads afresh when the connection returns" })
+      .toBe(1);
+    await waitForHydration(page);
     await expect(signInMarker(page)).toBeVisible();
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
   });

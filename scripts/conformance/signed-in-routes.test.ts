@@ -1,9 +1,10 @@
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { codeOf, readAllowlist, report, walkFiles } from "./kit";
+import { SIGNED_IN_PAGES } from "../../src/lib/signed-in-pages";
 
 /**
  * INC-852 (Foundations turn 1, D3): a signed-in screen's door-step is
@@ -14,6 +15,8 @@ import { codeOf, readAllowlist, report, walkFiles } from "./kit";
  * INC-923 (Foundations turn 34b-1) — nor does a screen send a signed-out visitor to sign in from its
  * own code (`hasSessionRehydrating(` or a navigate to "/auth"): that raced the screen's other routing
  * (/settings landed on "/"). Only the sign-in screens themselves (a route path under /auth) may.
+ * INC-925 (Foundations turn 34w) — the door-step's list of its pages (SIGNED_IN_PAGES, read by the
+ * shell's live guard) is every route that calls requireSignedIn and nothing else: CF-SIR-4.
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -56,6 +59,52 @@ export function census(routesRoot: string): { scanned: number; findings: Finding
       });
   }
   return { scanned: files.length, findings };
+}
+
+/** A route's address from its file route id: a non-nesting segment's trailing "_" is not in the URL. */
+function addressOf(routeId: string): string {
+  return routeId
+    .split("/")
+    .map((segment) => segment.replace(/_$/, ""))
+    .join("/");
+}
+
+/** INC-925 — where the door-step's page list and the routes that call requireSignedIn disagree. */
+export function pageListCensus(routesRoot: string, pages: readonly string[]): Finding[] {
+  const covers = (address: string) =>
+    pages.some((page) => address === page || address.startsWith(`${page}/`));
+  const findings: Finding[] = [];
+  const served = new Set<string>();
+  for (const file of walkFiles([routesRoot], { ext: ["ts", "tsx"], skipTests: true })) {
+    const code = codeOf(readFileSync(file, "utf8"));
+    const id = /createFileRoute\("([^"]*)"\)/.exec(code)?.[1];
+    if (id === undefined) continue;
+    const address = addressOf(id);
+    const rel = relative(ROOT, file).split(sep).join("/");
+    const doorStep = code.search(/\brequireSignedIn\(/);
+    for (const page of pages)
+      if (address === page || address.startsWith(`${page}/`)) served.add(page);
+    if (doorStep !== -1 && !covers(address))
+      findings.push({
+        file: rel,
+        line: lineOf(code, doorStep),
+        what: `${address} calls requireSignedIn but SIGNED_IN_PAGES does not list it`,
+      });
+    if (doorStep === -1 && covers(address))
+      findings.push({
+        file: rel,
+        line: 1,
+        what: `${address} is under SIGNED_IN_PAGES but its route does not call requireSignedIn`,
+      });
+  }
+  for (const page of pages)
+    if (!served.has(page))
+      findings.push({
+        file: "src/lib/signed-in-pages.ts",
+        line: 1,
+        what: `SIGNED_IN_PAGES lists ${page}, which no route serves`,
+      });
+  return findings;
 }
 
 const tempRoots: string[] = [];
@@ -113,6 +162,48 @@ describe("every signed-in screen's door-step is requireSignedIn (INC-852)", () =
     expect(findings).toEqual([
       { file: at("planted.tsx"), line: 2, what: "sends to sign in from the screen" },
       { file: at("rehydrating.tsx"), line: 2, what: "sends to sign in from the screen" },
+    ]);
+  });
+
+  it("CF-SIR-4 SIGNED_IN_PAGES is every route that calls requireSignedIn, and nothing else (INC-925)", () => {
+    const findings = pageListCensus(join(ROOT, "src", "routes"), SIGNED_IN_PAGES);
+    console.log(`[signed-in-routes] door-step pages: ${SIGNED_IN_PAGES.length}`);
+    expect(report(findings)).toBe("");
+    // The shell's live guard reads the list itself — never a copy of its own.
+    expect(codeOf(readFileSync(join(ROOT, "src/components/app-shell.tsx"), "utf8"))).toMatch(
+      /const ownSignIn = sendsToSignIn\(pathname\);/,
+    );
+  });
+
+  it("CF-SIR-5 a planted unlisted door-step, a listed page without it and a list entry no route serves are reported", () => {
+    const temp = mkdtempSync(join(tmpdir(), "signed-in-routes-"));
+    tempRoots.push(temp);
+    writeFileSync(
+      join(temp, "unlisted.tsx"),
+      'createFileRoute("/vault_/$id")({\n  beforeLoad: () => requireSignedIn("/vault"),\n});\n',
+    );
+    writeFileSync(join(temp, "listed.tsx"), 'createFileRoute("/settings")({});\n');
+    writeFileSync(
+      join(temp, "kept.tsx"),
+      'createFileRoute("/account_/saved")({\n  beforeLoad: () => requireSignedIn("/account/saved"),\n});\n',
+    );
+    const at = (name: string) => relative(ROOT, join(temp, name)).split(sep).join("/");
+    expect(pageListCensus(temp, ["/account", "/settings", "/ghost"])).toEqual([
+      {
+        file: at("listed.tsx"),
+        line: 1,
+        what: "/settings is under SIGNED_IN_PAGES but its route does not call requireSignedIn",
+      },
+      {
+        file: at("unlisted.tsx"),
+        line: 2,
+        what: "/vault/$id calls requireSignedIn but SIGNED_IN_PAGES does not list it",
+      },
+      {
+        file: "src/lib/signed-in-pages.ts",
+        line: 1,
+        what: "SIGNED_IN_PAGES lists /ghost, which no route serves",
+      },
     ]);
   });
 });

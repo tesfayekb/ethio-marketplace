@@ -37,4 +37,21 @@ describe("OnDemandNotice (INC-911)", () => {
     expect(screen.getByTestId("on-demand-failed")).toBeTruthy();
     errors.mockRestore();
   });
+
+  it("ODN-2 the notice adds no role to the page, quiet or shown: a page's own status stays the only one", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    render(
+      <>
+        <p role="status">the page's own answer</p>
+        <OnDemandNotice />
+      </>,
+    );
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    act(() => {
+      reportOnDemandFailure("a menu's code", new Error("offline"));
+    });
+    expect(screen.getByTestId("on-demand-failed")).toBeTruthy();
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    errors.mockRestore();
+  });
 });

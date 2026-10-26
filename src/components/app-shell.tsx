@@ -56,6 +56,7 @@ import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { errorText } from "@/lib/error-text";
 import { getSupabase } from "@/lib/supabase-door";
+import { sendsToSignIn } from "@/lib/signed-in-pages";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
@@ -653,8 +654,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           // from this device (auth-service's signOut removed it); a full load to "/" reads that
           // afresh, so no screen, cache or listener of the old session survives.
           clearSessionClocks();
-          window.location.replace("/");
-          return;
+          if (navigator.onLine) {
+            window.location.replace("/");
+            return;
+          }
+          // DEC-271 (Foundations turn 34w) — offline, that load would show the browser's own
+          // "cannot open" page: the app stays on screen, signed out (signingOut stays set, so no
+          // frame of the old account), its auth-derived reads purged below, and the fresh load
+          // comes the moment the connection returns.
+          window.addEventListener("online", () => window.location.replace("/"), { once: true });
         }
         // (2) macrotask boundary: React commits the unmount before the purge.
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -673,7 +681,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         setSessionNotice(notice);
         await navigate({ to: "/", replace: true });
       } finally {
-        // A reloading page stays signed-out until it goes: no frame of the old account.
+        // A reloading page stays signed-out until it goes — offline, until the connection returns
+        // and it goes (DEC-271): no frame of the old account.
         if (!reloading) setSigningOut(false);
       }
     },
@@ -741,11 +750,14 @@ export function AppShell({ children }: { children: ReactNode }) {
     pathname.startsWith("/my-listings");
   /**
    * Bundle 16 turn 2b (INC-627) — A FRESH SIGNED-OUT VISIT IS NOT A SIGN-OUT.
-   * /account and /my-listings send a signed-out visitor to sign in and back
-   * (their own `beforeLoad`, D20's rule). This guard used to win that race and
-   * drop the visitor on the marketplace instead. It now evacuates those two only
-   * once a session this tab held has gone; /admin and /settings, which have no
-   * sign-in redirect of their own, are evacuated as before.
+   * A page whose door-step is requireSignedIn sends a signed-out visitor to sign
+   * in and back (D20's rule). This guard used to win that race and drop the
+   * visitor on the marketplace instead. It now evacuates those pages only once a
+   * session this tab held has gone; /admin, which has no sign-in redirect of its
+   * own, is evacuated as before. INC-925 (Foundations turn 34w) — which pages those
+   * are is the door-step's own list (sendsToSignIn, src/lib/signed-in-pages.ts),
+   * never a list kept here: /settings gained the door-step (INC-923) while this
+   * guard still evacuated it, and the visitor landed on "/" a moment after /auth.
    *
    * INC-668 — "a session this tab held" is `hadSession` from useAuth, true from
    * the session event itself. It used to be "a user this shell has rendered",
@@ -753,7 +765,7 @@ export function AppShell({ children }: { children: ReactNode }) {
    * read was pending found no user on record and left the tab standing on
    * /account (MLP-3, the second sign-out).
    */
-  const ownSignIn = pathname.startsWith("/account") || pathname.startsWith("/my-listings");
+  const ownSignIn = sendsToSignIn(pathname);
   useEffect(() => {
     if (authLoading || user !== null) return;
     void queryClient.cancelQueries({ queryKey: [AUTH_DERIVED_ROOT] });

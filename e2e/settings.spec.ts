@@ -1,8 +1,10 @@
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { SIGNED_IN_PAGES } from "../src/lib/signed-in-pages";
 import {
   attemptSignIn,
+  authFields,
   expectSignedIn,
   expectSignedOut,
   signIn,
@@ -18,11 +20,33 @@ import { leaseUser } from "./helpers/users";
  * U-1/U-2/U-3 (see docs/features/settings-surface.md).
  */
 
-test("S-1: unauthenticated /settings lands on /auth", async ({ page }) => {
-  await page.goto("/settings");
-  await page.waitForURL(/\/auth(\?|$)/, { timeout: 15000 });
-  await expectSignedOut(page);
-});
+/**
+ * INC-925 (Foundations turn 34w) — every page whose door-step is requireSignedIn sends a signed-out
+ * visitor to sign in AND KEEPS THEM THERE: the shell's live guard once evacuated /settings to "/"
+ * a moment after /auth, and a test that only waited for /auth passed on the passing frame. The
+ * signed-out marker shows in the same render that runs the guard; typing into the email field
+ * then proves the sign-in page is the one that stays, and no frame ever showed "/".
+ */
+for (const path of SIGNED_IN_PAGES) {
+  test(`S-1 ${path}: a signed-out visitor is sent to sign in and stays there (INC-923, INC-925)`, async ({
+    page,
+  }) => {
+    const seen: string[] = [];
+    page.on("framenavigated", (frame) => {
+      if (frame === page.mainFrame()) seen.push(new URL(frame.url()).pathname);
+    });
+    await page.goto(path);
+    await page.waitForURL(/\/auth(\?|$)/, { timeout: 15000 });
+    await expectSignedOut(page);
+    const { email } = authFields(page);
+    await email.pressSequentially("door-step@example.test");
+    await expect(email).toHaveValue("door-step@example.test");
+    const at = new URL(page.url());
+    expect(at.pathname).toBe("/auth");
+    expect(at.searchParams.get("return")).toBe(path);
+    expect(seen, "the visitor never passed through the home page").not.toContain("/");
+  });
+}
 
 test("S-2: settings renders all three sections and guards the only method", async ({ page }) => {
   const user = await leaseUser();
