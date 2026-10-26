@@ -66,19 +66,32 @@ Dark mode therefore uses the lighter leaf `#7FC9A6` with near-black text
 
 ## Typography
 
-- `--font-sans`: `Inter, "Noto Sans Ethiopic", system-ui, sans-serif`
-- `--font-display`: `Bricolage Grotesque, "Noto Sans Ethiopic", system-ui, sans-serif`
-  (headings + logo wordmark)
+The device's own fonts (DEC-262, Foundations turn 33): no page downloads a font.
 
-**Ge'ez fallback rule:** Inter carries no Ethiopic glyphs. Browsers resolve font
-stacks _per glyph_, so Latin renders in Inter and every Ge'ez codepoint falls
-through to Noto Sans Ethiopic automatically — no locale-conditional class is
-needed, and mixed Amharic/Latin strings render correctly. The shell smoke spec
-asserts a rendered `U+1200–U+137F` heading after the language toggle.
+- `--font-sans`, the device's stack (CF-FT-2 pins it):
 
-Fonts load as `<link rel="stylesheet">` in `src/routes/__root.tsx`'s `head()`
-with `display=swap` (Lightning CSS cannot resolve a remote `@import` from
-`src/styles.css`); Noto is requested with `subset=ethiopic`.
+  ```css
+  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
+  "Noto Sans Ethiopic", Kefa, Nyala, Ebrima, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+  "Noto Color Emoji"
+  ```
+
+- `--font-display`: `var(--font-sans)` (headings and the logo wordmark keep their
+  weight classes)
+
+**Ge'ez fallback rule:** browsers resolve a font stack _per glyph_, so Latin
+renders in the platform's UI face (San Francisco on Apple devices, Segoe UI on
+Windows, Roboto on Android) and every Ge'ez codepoint falls through to the
+platform's Ethiopic face (Noto Sans Ethiopic on Android and Linux, Kefa on Apple
+devices, Nyala or Ebrima on Windows) — no locale-conditional class is needed, and
+mixed Amharic/Latin strings render correctly. `system-ui` is left out on purpose:
+on Windows it follows the system's locale font. The shell smoke spec asserts a
+rendered `U+1200–U+137F` heading after the language toggle.
+
+Nothing names a web-font host, declares `@font-face` or ships a font file, and a
+family is set only through the two tokens (`scripts/conformance/fonts.test.ts`,
+CF-FT-1…3; `e2e/fonts.spec.ts`, FTE-1). A brand face, if one is ever chosen, is
+an ADR: one self-hosted, subset, non-blocking file and one token change.
 
 ## Performance stance
 
@@ -126,8 +139,9 @@ of the three widths; every visible button and link ≥ 44px; no text under 11px;
 rail is a drawer below `md` and persistent above; the feed grid reflows 1→2→3→4
 without clipping. All five are `shell.spec` assertions, not claims.
 
-Performance: fonts are `display=swap`, Noto Sans Ethiopic subset to `ethiopic` and
-Inter to `latin`, so neither pulls the other's glyphs and none blocks first paint.
+Performance: no web font since DEC-262 (Foundations turn 33) — the two render-blocking
+font stylesheets and about 87 KB of Latin fonts (281 KB with the Ethiopic weights on
+an Amharic ad page, turn 23's lab) left every page.
 Listing cards reserve a fixed `aspect-4/3` box, so the loading→empty/error
 transition costs no layout shift; when the photo strip lands the image goes in that
 box `loading="lazy"` with explicit dimensions. The marketplace module graph is 28

@@ -21,8 +21,8 @@ These are in place today and are the reason the app is fast at all:
   is the single biggest lever for slow networks, and we have it by default.
 - **Flat surfaces, no background images, no gradients** (a deliberate design decision).
   Zero decorative bytes on every page.
-- **Font subsetting + `display: swap`.** Noto Sans Ethiopic ships only Ge'ez glyphs, Inter
-  only Latin; text never blocks render waiting for fonts.
+- **No web font (DEC-262).** Every page draws with the device's own fonts; nothing waits on a
+  font server (§16).
 - **A CI bundle-size budget** (currently ~156 KiB JS / ~13 KiB CSS gzipped, well under the
   320/40 ceiling) — the build FAILS if the first-paint bundle bloats. Performance can't
   silently regress.
@@ -311,3 +311,12 @@ DEC-260: the dialog and the alert dialog (Radix's dialog with its focus trap, sc
 - The supervisor's build: the entry 260.0 → 254.1 KiB; every public page 5.9–6.0 KiB lighter (the home page 273.4 → 267.5); the posting and editing pages 6.7–6.8 KiB lighter. Twelve staff and dev pages that draw another Radix overlay (a popover, a select) now carry the focus, dismiss and positioning layers it shares with the dialog in a chunk of their own: 0.3–0.4 KiB more, under their ceilings. The overlay module is 10.9 KiB gzip, asked for after the load event. The lab (360 wide, touch): the phone menu opens on the first tap; tapped after the idle download it opens in 127 ms, and tapped at DOMContentLoaded, before the module has arrived, in 306 ms (250 ms on the turn-31 build).
 
 Next: the popover and the select — and the hover card, the context menu, the menubar and the navigation menu that turn 31's K2 list names — still import Radix directly; the same parts take them.
+
+## 16. The device's own fonts (D234, Foundations turn 33)
+
+DEC-262 (the operator, 2026-10-26: "all as recommended"): turn 23's lab found two Google Fonts stylesheets in front of every first paint (src/routes/__root.tsx) — render-blocking whatever their `display=swap` said — and 87 KB of Latin fonts on every page, 281 KB with the three Ethiopic weights on an Amharic ad page. Both stylesheets, their two preconnects and the three web-font families are gone: `--font-sans` in src/styles.css is the device's stack, and `--font-display` is the same stack (headings and the wordmark keep their weights).
+
+- Latin and the interface take the platform's UI face (San Francisco on Apple devices, Segoe UI on Windows, Roboto on Android); Ge'ez falls through per glyph to the platform's Ethiopic face (Noto Sans Ethiopic on Android and Linux, Kefa on Apple devices, Nyala or Ebrima on Windows). `system-ui` is left out on purpose: on Windows it follows the system's locale font.
+- The visible change is the typeface of English text and headings; no layout, size, weight, colour or behaviour changes. Tests that measure text measure the visible characters with the element's own font (D104), so a face change moves no rule.
+- The gain is judged on the lab after Publish (the D234 judge): the first paint no longer waits on two stylesheets from another origin — ESTIMATE 1–1.5 s sooner on the lab's phone over slow 4G — and every page is 87 KB lighter, an Amharic ad page up to 281 KB.
+- The guard: `scripts/conformance/fonts.test.ts` (CF-FT-1 — nothing under src/ or public/ names a web-font host, declares `@font-face`, ships a font file or sets a family by name; CF-FT-2 — the two tokens; CF-FT-3 — the census on a planted tree) and `e2e/fonts.spec.ts` (FTE-1 — the home and terms pages ask for no font and draw with the stack).
