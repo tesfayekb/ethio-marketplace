@@ -298,14 +298,50 @@ export type ShellToken = { v: string; op?: string; dynamic: boolean };
  * at `;`, `&&`, `||`, `|`, `&`, newlines, `(`, `)`, `$(` and backticks — never inside quotes — and
  * each segment into words and redirection operators. Heredoc bodies are skipped (they are data).
  * A word is `dynamic` when the shell would expand it ($VAR, backticks, unquoted globs, a leading ~).
+ * K1 ruling 1 (INC-889's sibling, found by K1's reviewer) — the shell RUNS a command substitution
+ * inside double quotes ("$(…)", "`…`") and inside an unquoted heredoc's body (<<EOF, not <<'EOF'):
+ * each such body's own segments are appended after the line's, so every rule that reads programs
+ * or write targets sees them. Only appended: the line's own segments are unchanged. A `$(` inside a
+ * quoted heredoc nested in a substitution is read too (fail-closed: a refusal, never a miss).
  */
 export function shellSegments(cmd: string): ShellToken[][] {
   const segments: ShellToken[][] = [];
+  /** The segments of the substitutions the shell runs inside double quotes or heredoc bodies. */
+  const inner: ShellToken[][] = [];
+  const substitution = (text: string, at: number) => {
+    // `$(` at `at`: the body up to its matching `)`, or to the end when it never closes.
+    let depth = 1;
+    let j = at + 2;
+    while (j < text.length && depth > 0) {
+      if (text[j] === "\\") j += 1;
+      else if (text[j] === "(") depth += 1;
+      else if (text[j] === ")") depth -= 1;
+      j += 1;
+    }
+    inner.push(...shellSegments(text.slice(at + 2, depth === 0 ? j - 1 : j)));
+  };
+  const backquoted = (text: string, at: number) => {
+    let j = at + 1;
+    while (j < text.length && text[j] !== "`") j += text[j] === "\\" ? 2 : 1;
+    inner.push(...shellSegments(text.slice(at + 1, j)));
+  };
+  /** An unquoted heredoc's body, as the shell reads it: substitutions run, quotes are literal. */
+  const expandedBody = (body: string) => {
+    for (let j = 0; j < body.length; j += 1) {
+      if (body[j] === "\\") j += 1;
+      else if (body[j] === "$" && body[j + 1] === "(") substitution(body, j);
+      else if (body[j] === "`") {
+        backquoted(body, j);
+        const close = body.indexOf("`", j + 1);
+        j = close < 0 ? body.length : close;
+      }
+    }
+  };
   let seg: ShellToken[] = [];
   let cur = "";
   let started = false;
   let dynamic = false;
-  const heredocs: string[] = [];
+  const heredocs: Array<{ delim: string; expands: boolean }> = [];
   const flush = () => {
     if (started) seg.push({ v: cur, dynamic });
     cur = "";
@@ -351,7 +387,15 @@ export function shellSegments(cmd: string): ShellToken[][] {
           continue;
         }
         if (d === "$" || d === "`") dynamic = true;
-        cur += d;
+        if (d === "$" && cmd[i + 1] === "(") substitution(cmd, i);
+        if (d === "`") {
+          backquoted(cmd, i);
+          const close = cmd.indexOf("`", i + 1);
+          const end = close < 0 || close > cmd.indexOf('"', i + 1) ? i : close;
+          cur += cmd.slice(i, end);
+          i = end;
+        }
+        cur += cmd[i]!;
         i += 1;
       }
       i += 1;
@@ -365,13 +409,16 @@ export function shellSegments(cmd: string): ShellToken[][] {
       endSegment();
       i += 1;
       while (heredocs.length > 0) {
-        const delim = heredocs.shift()!;
+        const { delim, expands } = heredocs.shift()!;
+        const lines: string[] = [];
         while (i < n) {
           const eol = cmd.indexOf("\n", i);
           const line = eol < 0 ? cmd.slice(i) : cmd.slice(i, eol);
           i = eol < 0 ? n : eol + 1;
           if (line.replace(/^\t+/, "").trim() === delim) break;
+          lines.push(line);
         }
+        if (expands) expandedBody(lines.join("\n"));
       }
       continue;
     }
@@ -418,7 +465,8 @@ export function shellSegments(cmd: string): ShellToken[][] {
         while (j < n && (cmd[j] === " " || cmd[j] === "\t")) j += 1;
         let k = j;
         while (k < n && !/[\s;&|<>]/.test(cmd[k]!)) k += 1;
-        heredocs.push(cmd.slice(j, k).replace(/^['"]|['"]$/g, ""));
+        const word = cmd.slice(j, k);
+        heredocs.push({ delim: word.replace(/^['"]|['"]$/g, ""), expands: !/['"\\]/.test(word) });
         seg.push({ v: "<<", op: "<<", dynamic: false });
         i = k;
         continue;
@@ -448,7 +496,7 @@ export function shellSegments(cmd: string): ShellToken[][] {
     i += 1;
   }
   endSegment();
-  return segments;
+  return [...segments, ...inner];
 }
 
 /** The command split at every shell operator, so each piece starts with its own program. */
