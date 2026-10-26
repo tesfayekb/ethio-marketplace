@@ -14,7 +14,8 @@ import { ModalPart, ModalRoot, ModalTrigger } from "./overlay-facade";
 /** Radix's part names: a name that is not one of them fails the typecheck. */
 type Part = keyof typeof Impl;
 
-function Root(props: React.ComponentProps<typeof Impl.Root>) {
+/** INC-911 — `onUnavailable`: the modal's code did not download (overlay-facade.tsx ModalRoot). */
+function Root(props: React.ComponentProps<typeof Impl.Root> & { onUnavailable?: () => void }) {
   return <ModalRoot kind="dialog" {...props} />;
 }
 

@@ -15,6 +15,9 @@ export const enBase = {
   "common.empty": "Nothing here yet",
   "common.cancel": "Cancel",
   "common.close": "Close",
+  "common.loadFailed":
+    "Part of this page didn't load. Check your connection, then refresh the page.",
+  "common.refreshPage": "Refresh page",
   "common.goHome": "Go home",
   "common.tryAgain": "Try again",
   "error.pageNotFound": "Page not found",

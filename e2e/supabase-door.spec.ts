@@ -3,17 +3,11 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { adPageFixtures } from "./helpers/ad-page";
-import {
-  authFields,
-  gotoReady,
-  signInViaSession,
-  signedInMarker,
-  waitForHydration,
-} from "./helpers/ui";
+import { openAfterTheOneReload, refuseScripts } from "./helpers/on-demand";
+import { authFields, gotoReady, signInViaSession, signedInMarker } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 import { listingPath } from "../src/features/ad-page/address";
 import { en } from "../src/i18n/locales/en";
-import { STALE_CHUNK_KEY } from "../src/lib/stale-chunk";
 
 /**
  * DEC-261 (Foundations turn 34) — THE CLIENT'S DOOR IN THE BROWSER. A signed-out
@@ -72,34 +66,7 @@ function watchRpcs(page: Page) {
 
 /** Every script that carries the client is refused, as a dropped download on a phone. */
 async function refuseClientDownload(page: Page) {
-  await page.route("**/*.js", async (route) => {
-    const response = await route.fetch();
-    if ((await response.text()).includes(CLIENT_MARKER)) await route.abort("failed");
-    else await route.fulfill({ response });
-  });
-}
-
-/**
- * Opens `path` with the client refused and waits for the app's one reload for a failed chunk
- * (src/lib/stale-chunk.ts, INC-640) and for the page it lands on to be ready, so a test types
- * into the page that stays. Returns the page's load count, which a test checks stays at two.
- */
-async function openAfterTheOneReload(page: Page, path: string): Promise<() => number> {
-  let loads = 0;
-  page.on("load", () => {
-    loads += 1;
-  });
-  // Not gotoReady: the reload can land while it waits, and a destroyed page is not this test's subject.
-  await page.goto(path);
-  await expect
-    .poll(() => loads, { message: "the app reloaded once for the failed chunk (INC-640)" })
-    .toBe(2);
-  await waitForHydration(page);
-  expect(
-    await page.evaluate((key) => window.sessionStorage.getItem(key), STALE_CHUNK_KEY),
-    "the reload was the stale-chunk rule's",
-  ).not.toBeNull();
-  return () => loads;
+  await refuseScripts(page, (_url, text) => text.includes(CLIENT_MARKER));
 }
 
 /** The page has loaded and the browser has had an idle moment (a deferred fetch has started). */
@@ -219,7 +186,7 @@ test.describe("THE CLIENT'S DOOR — the Supabase client off public pages (DEC-2
     await email.fill("nobody@example.test");
     await password.fill("not-a-real-password-1");
     await submit.click();
-    await expect(page.getByTestId("auth-error")).toHaveText(en["auth.errorGeneric"]);
+    await expect(page.getByTestId("auth-error")).toHaveText(en["common.loadFailed"]);
     await expect(submit).toBeEnabled();
     expect(loads(), "one reload, never a second").toBe(2);
   });
@@ -235,7 +202,7 @@ test.describe("THE CLIENT'S DOOR — the Supabase client off public pages (DEC-2
     await page.locator("#reset-email").fill("nobody@example.test");
     const send = page.getByRole("button", { name: en["auth.resetSend"] });
     await send.click();
-    await expect(page.getByTestId("auth-reset-error")).toHaveText(en["auth.errorGeneric"]);
+    await expect(page.getByTestId("auth-reset-error")).toHaveText(en["common.loadFailed"]);
     await expect(page.getByText(en["auth.resetNeutral"])).toHaveCount(0);
     // The request never left the browser: no cooldown, so the button asks again at once.
     await expect(send).toBeEnabled();

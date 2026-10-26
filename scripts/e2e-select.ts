@@ -178,6 +178,12 @@ export const AREAS: Area[] = [
     ],
   },
   {
+    // INC-911 (Foundations turn 34b-2) — a piece fetched on demand that fails to download says so.
+    name: "on-demand",
+    src: ["src/components/shell/on-demand-notice.tsx", "src/components/ui/overlay-*.ts*"],
+    specs: ["e2e/on-demand-failure.spec.ts"],
+  },
+  {
     name: "components",
     src: ["src/components/**"],
     specs: ["e2e/primitives-law.spec.ts"],

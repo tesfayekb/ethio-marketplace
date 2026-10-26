@@ -7,8 +7,17 @@ import type { OverlaysImpl } from "./overlay-loader";
  * DEC-259 (Foundations turn 31) and DEC-260 (turn 32) — a failed download of the
  * overlay module leaves the closed trigger as it was (no half-open menu or dialog,
  * no crash) and the next press asks again. The loader is replaced here so the test decides when the module
- * arrives or fails; overlay-loader.ts's own warning is its loadOnce's.
+ * arrives or fails; overlay-loader.ts's own warning is its loadOnce's. INC-911 —
+ * every failure is reported to the shell's notice (src/lib/on-demand-failure.ts,
+ * replaced here so the test reads the reports), and a modal's owner that passes
+ * `onUnavailable` hears it before the closing.
  */
+const reported = vi.hoisted(() => [] as string[]);
+vi.mock("@/lib/on-demand-failure", () => ({
+  reportOnDemandFailure: (label: string) => {
+    reported.push(label);
+  },
+}));
 const state = vi.hoisted(() => ({
   impl: null as OverlaysImpl | null,
   listeners: new Set<() => void>(),
@@ -53,6 +62,7 @@ const { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 
 describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)", () => {
   it("OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu", async () => {
+    reported.length = 0;
     state.impl = null;
     state.next = ["fail", "arrive"];
     state.asked = 0;
@@ -71,6 +81,7 @@ describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)
       fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false, pointerType: "mouse" });
     });
     expect(state.asked).toBe(1);
+    expect(reported).toEqual(["a menu's code"]);
     expect(screen.queryByTestId("menu")).toBeNull();
     expect(trigger).toHaveAttribute("aria-expanded", "false");
     expect(trigger).toHaveAttribute("data-state", "closed");
@@ -85,6 +96,7 @@ describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)
   });
 
   it("OVF-16 a failed download keeps the closed dialog; the next click asks again and opens it", async () => {
+    reported.length = 0;
     state.impl = null;
     state.next = ["fail", "arrive"];
     state.asked = 0;
@@ -102,6 +114,7 @@ describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)
       fireEvent.click(screen.getByTestId("dialog-trigger"));
     });
     expect(state.asked).toBe(1);
+    expect(reported).toEqual(["a dialog's code"]);
     expect(screen.queryByTestId("dialog")).toBeNull();
     expect(screen.getByTestId("dialog-trigger")).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByTestId("dialog-trigger")).toHaveAttribute("data-state", "closed");
@@ -189,5 +202,37 @@ describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)
     });
     expect(state.asked).toBe(2);
     expect(screen.getByTestId("opened-dialog")).toBeInTheDocument();
+  });
+
+  it("OVF-20 a dialog whose download fails tells an owner that asked `onUnavailable` before its closing, and reports it once (INC-911)", async () => {
+    reported.length = 0;
+    state.impl = null;
+    state.next = ["fail"];
+    state.asked = 0;
+    const heard: string[] = [];
+    function Gate() {
+      const [open, setOpen] = useState(true);
+      return (
+        <Dialog
+          open={open}
+          onUnavailable={() => heard.push("unavailable")}
+          onOpenChange={(next) => {
+            heard.push(`open ${String(next)}`);
+            setOpen(next);
+          }}
+        >
+          <DialogContent data-testid="gate-dialog">
+            <DialogTitle>Enter your code</DialogTitle>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+    await act(async () => {
+      render(<Gate />);
+    });
+    expect(state.asked).toBe(1);
+    expect(heard).toEqual(["unavailable", "open false"]);
+    expect(reported).toEqual(["a dialog's code"]);
+    expect(screen.queryByTestId("gate-dialog")).toBeNull();
   });
 });
