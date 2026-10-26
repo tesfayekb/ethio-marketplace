@@ -12,7 +12,7 @@
  * Stop gate's diff check is the authority behind this guard: whatever slips past here is found
  * there, and again in CI.
  */
-import { readEvent, block, scopeVerdict, normaliseCommand, writeTargets } from "./lib";
+import { readEvent, block, scopeVerdict, normaliseCommand, writeTargets, programsOf } from "./lib";
 
 const event = await readEvent();
 const input = event.tool_input ?? {};
@@ -160,10 +160,6 @@ const DENY: Rule[] = [
     re: /(^|[\s;&|(`])claude(\s|$)/,
     why: "the executor does not start or reconfigure Claude sessions; the supervisor drives, and the kit changes only through an install brief",
   },
-  {
-    re: /(^|[\s;&|(`])(crontab|at|systemctl|service|launchctl)\b/,
-    why: "no scheduling or service control from the executor",
-  },
   // --- GitHub: the executor reads, never writes (its only write is the landing push) -----------
   {
     re: /\bgh\s+(?!(run\s+(list|view)|api)\b)\S/,
@@ -183,6 +179,27 @@ for (const rule of DENY) {
       `BASH GUARD (.claude/hooks/bash-guard.ts): refused — ${rule.why}.\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
     );
 }
+
+// INC-889 — scheduling and service control, read where the shell runs a program (each segment's
+// first word after its assignments and wrappers), so "fix at the root" or "the service role" in a
+// message, an argument or a heredoc body is never taken for the program.
+const SCHEDULERS = new Set([
+  "crontab",
+  "at",
+  "atq",
+  "atrm",
+  "batch",
+  "systemctl",
+  "service",
+  "launchctl",
+]);
+const scheduler = [...programsOf(command), ...programsOf(norm)].find((program) =>
+  SCHEDULERS.has(program),
+);
+if (scheduler !== undefined)
+  block(
+    `BASH GUARD (.claude/hooks/bash-guard.ts): refused — no scheduling or service control from the executor (${scheduler}).\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
+  );
 
 // Shell writes bypass the editing tools: every target goes through the same scope decision.
 const targets: string[] = writeTargets(norm);

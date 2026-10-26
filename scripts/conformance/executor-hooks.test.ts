@@ -13,7 +13,19 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
-import { normaliseCommand, writeTargets, commandSegments } from "../../.claude/hooks/lib";
+import {
+  normaliseCommand,
+  writeTargets,
+  commandSegments,
+  programsOf,
+} from "../../.claude/hooks/lib";
+
+/**
+ * INC-890 — the tests that build scratch repositories and run the hooks against them (git init,
+ * clones, a pre-receive hook, land.ts) take seconds, more in a slow sandbox than in CI; vitest's
+ * default of 5 s per test cut them short there. Their suites and the shared setup state a budget.
+ */
+const GIT_HEAVY_MS = 120_000;
 
 const HOOKS = join(process.cwd(), ".claude", "hooks");
 let root = "";
@@ -188,7 +200,7 @@ beforeAll(() => {
     seed,
   );
   repo = freshClone("work").dir;
-});
+}, GIT_HEAVY_MS);
 
 afterAll(() => {
   if (root !== "") rmSync(root, { recursive: true, force: true });
@@ -450,6 +462,34 @@ describe("bash guard (50-security.md)", () => {
     refused("git merge origin/main 2>&1", /only merge/);
   });
 
+  it("EXH-21 scheduling and service control are refused where the shell runs them, never as a word in data (INC-889)", () => {
+    expect(programsOf("timeout 900 nice -n 5 env X=1 at now; ls | xargs atq")).toEqual([
+      "at",
+      "ls",
+      "atq",
+    ]);
+    expect(programsOf("cat <<'EOF' > /tmp/n.txt\nat 5 pm\nEOF")).toEqual(["cat"]);
+    for (const command of [
+      "at now",
+      "echo 'touch x' | at now + 1 minute",
+      "timeout 5 at now",
+      "X=1 at now",
+      "sudo systemctl restart nginx",
+      "(crontab -l)",
+      "echo $(service nginx status)",
+      "nohup launchctl list",
+      "ls; atq",
+    ])
+      refused(command, /no scheduling or service control/);
+    for (const command of [
+      'git commit -m "turn 35: fix at the root; the service role reads it"',
+      'grep -n "look at this" src/lib/uuid.ts',
+      "cat <<'EOF' > /tmp/note.txt\nat 5 pm the service starts\nEOF",
+      "echo at",
+    ])
+      allowed(command);
+  });
+
   it("EXH-16 every command the protocol requires passes BOTH layers — the permission rules and the guard; the forbidden ones are denied by the rules too", () => {
     // The commands .claude/rules/00, 20, 30, 40 and 60 tell the executor to run, as it writes them.
     const required = [
@@ -551,7 +591,7 @@ describe("the standing header (every prompt)", () => {
   });
 });
 
-describe("the landing door (land.ts)", () => {
+describe("the landing door (land.ts)", { timeout: GIT_HEAVY_MS }, () => {
   it("EXH-9 refuses a dirty tree, a landing without a report, a thin stop report and a migration stop without its pairing line", () => {
     const { dir, origin } = freshClone("land-report");
     const before = remoteDev(origin);
@@ -639,7 +679,7 @@ describe("the landing door (land.ts)", () => {
     write(dir, "src/server/ai/new.ts", "export const x = 1;\n");
     const code = commit(dir, "turn 99 part B: new module");
     const report = (commitLine: string, body: string) =>
-      `# Turn 99 — planted\nBase: x · Final commit: ${commitLine} · Brief: planted\n${body}\n`;
+      `# Turn 99 — planted\nBase: x · Final commit: ${commitLine} · Brief: planted\nReview: READY · 0 BLOCKER · 0 MAJOR · 1 MINOR · on ${commitLine}\n${body}\n`;
     write(dir, FINAL, report("0000000", SECTIONS));
     commit(dir, "turn 99: report");
     expect(land(dir).err).toMatch(/must name the last code commit/);
@@ -656,6 +696,28 @@ describe("the landing door (land.ts)", () => {
       dir,
       "turn 99: report (paths) — a fix in a later commit still names the code commit",
     );
+    const ok = land(dir);
+    expect(ok.code, ok.err).toBe(0);
+    expect(remoteDev(origin)).toBe(head);
+  });
+
+  it("EXH-20 a final report lands only with the reviewer's last line: present, no BLOCKER, run on the last code commit", () => {
+    const { dir, origin } = freshClone("land-review");
+    write(dir, "src/server/ai/new.ts", "export const x = 1;\n");
+    const code = commit(dir, "turn 99 part B: new module").slice(0, 7);
+    const report = (review: string) =>
+      `# Turn 99 — planted\nBase: x · Final commit: ${code} · Brief: planted\n${review}${SECTIONS}\n\nsrc/server/ai/new.ts\n`;
+    write(dir, FINAL, report(""));
+    commit(dir, "turn 99: report (no review)");
+    expect(land(dir).err).toMatch(/carries no review line/);
+    write(dir, FINAL, report(`Review: NOT READY · 1 BLOCKER · 0 MAJOR · 0 MINOR · on ${code}\n`));
+    commit(dir, "turn 99: report (a blocker)");
+    expect(land(dir).err).toMatch(/counts 1 BLOCKER/);
+    write(dir, FINAL, report("Review: READY · 0 BLOCKER · 0 MAJOR · 0 MINOR · on 0000000\n"));
+    commit(dir, "turn 99: report (another commit)");
+    expect(land(dir).err).toMatch(/not on the last code commit/);
+    write(dir, FINAL, report(`Review: READY · 0 BLOCKER · 2 MAJOR · 1 MINOR · on ${code}\n`));
+    const head = commit(dir, "turn 99: report (reviewed)");
     const ok = land(dir);
     expect(ok.code, ok.err).toBe(0);
     expect(remoteDev(origin)).toBe(head);
@@ -725,7 +787,7 @@ describe("the landing door (land.ts)", () => {
   });
 });
 
-describe("the session setup", () => {
+describe("the session setup", { timeout: GIT_HEAVY_MS }, () => {
   it("EXH-15 does nothing outside a cloud session (no install, no output, never blocks)", () => {
     const r = spawnSync("bun", [join(HOOKS, "session-setup.ts")], {
       cwd: repo,
@@ -795,7 +857,7 @@ describe("the session setup", () => {
   });
 });
 
-describe("the stop gate", () => {
+describe("the stop gate", { timeout: GIT_HEAVY_MS }, () => {
   it("EXH-14 passes a reply that changed nothing, refuses a dirty tree (naming strays) and work on a branch that is not dev", () => {
     const { dir } = freshClone("stop");
     expect(hook("stop-gate", { hook_event_name: "Stop" }, dir).code).toBe(0);

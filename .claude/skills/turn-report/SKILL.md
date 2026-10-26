@@ -33,9 +33,20 @@ credentials in this environment: say so under Limits; CI runs every test on the 
 
 ## 3. The independent review
 
-Invoke the `reviewer` subagent on the diff (it reads the brief and the rules itself; tell it nothing
-about what you expect). Every BLOCKER is fixed before the report; every MAJOR is fixed or listed under
-Departures with the reason; MINOR findings are listed.
+Every turn that ends with a completion report gets the review; a STOP, QUESTION or MIGRATION stop does not.
+
+1. Run it after THE END-TO-END CHECK, on the last code commit: nothing is committed between its
+   answer and the report except a BLOCKER fix.
+2. Invoke the `reviewer` subagent in the FOREGROUND — the Agent call with `run_in_background: false` —
+   and wait for its answer. Never start it in the background, never write the report or land before it
+   answers, never skip it for a stop gate or the turn's length; a review that cannot run is a STOP.
+3. Tell it nothing about what you expect: it reads the brief and the rules itself.
+4. Every BLOCKER is fixed in a new commit, and the reviewer runs again on that commit.
+5. Every MAJOR and MINOR is fixed when the fix lies inside SCOPE and the brief's exact text allows it;
+   otherwise it is listed under Departures with the reason, for the supervisor's ruling.
+6. Copy its last line — `Review: READY · <n> BLOCKER · <n> MAJOR · <n> MINOR · on <sha>` — word for
+   word as the report's third line. `land.ts` refuses a final report without it, with a BLOCKER in it,
+   or naming another commit than the last code commit.
 
 ## 4. The report
 

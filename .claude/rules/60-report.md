@@ -4,11 +4,13 @@ After your last code commit, write `docs/governance/reports/<brief-stem>.report.
 name with `.report.md`) with exactly these headings, in this order; commit it on its own
 (`turn NN: report`) and land (`bun .claude/hooks/land.ts`). The supervisor reads it from a fresh clone
 of `dev`; it is part of the project record. `land.ts` refuses to push while a heading is missing, while
-the report does not name the last code commit, or while a landed path is missing from section 2.
+the report does not name the last code commit, while a landed path is missing from section 2, or while
+the review line is missing, counts a BLOCKER or names another commit than the last code commit.
 
 ```
 # Turn NN — <subject>
 Base: <BASE sha> · Final commit: <sha of the last code commit> · Brief: docs/governance/briefs/<file> (sha256 <value>)
+Review: <the reviewer's last line, word for word — READY · <n> BLOCKER · <n> MAJOR · <n> MINOR · on <the last code commit>>
 
 ## 1. Done / not done, by part and step
 ## 2. Files changed  (verbatim `git diff --name-only <BASE>`; new files with `git ls-files` proof)
