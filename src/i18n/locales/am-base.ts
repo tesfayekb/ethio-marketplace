@@ -16,6 +16,8 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "common.empty": "እስካሁን ምንም የለም",
   "common.cancel": "ተወው",
   "common.close": "ዝጋ",
+  "common.loadFailed": "የዚህ ገጽ ክፍል አልተጫነም። ግንኙነትዎን ይፈትሹና ገጹን ያድሱ።",
+  "common.refreshPage": "ገጹን ያድሱ",
   "common.goHome": "ወደ መነሻ ይሂዱ",
   "common.tryAgain": "እንደገና ይሞክሩ",
   "error.pageNotFound": "ገጹ አልተገኘም",

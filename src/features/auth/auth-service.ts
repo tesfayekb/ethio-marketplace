@@ -28,9 +28,10 @@ const supabaseJs = loadOnce(() => import("@supabase/supabase-js"));
 type Client = Awaited<ReturnType<typeof getSupabase>>;
 
 /** The answer of an action whose client did not load (INC-915). */
-const CLIENT_FAILED: { ok: false; errorKey: "auth.errorGeneric" } = {
+const CLIENT_FAILED: { ok: false; errorKey: "common.loadFailed" } = {
   ok: false,
-  errorKey: "auth.errorGeneric",
+  // INC-911 — the words every on-demand failure uses: the page needs a refresh (src/lib/on-demand-failure.ts).
+  errorKey: "common.loadFailed",
 };
 
 /**

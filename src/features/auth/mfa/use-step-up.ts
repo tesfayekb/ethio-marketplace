@@ -75,6 +75,20 @@ export function useStepUp() {
     pending?.reject(new StepUpCancelled());
   }, []);
 
+  /**
+   * INC-911 — the modal's code did not download (its root's `onUnavailable`, heard before its
+   * closing): the gate settles as StepUpUnavailable, not StepUpCancelled — the person did not
+   * cancel; the step-up could not be asked. The shell's notice has told them.
+   */
+  const unavailable = useCallback(() => {
+    const pending = pendingRef.current;
+    pendingRef.current = null;
+    setMode("closed");
+    setErrorKey(null);
+    setBusy(false);
+    pending?.reject(new StepUpUnavailable());
+  }, []);
+
   /** Parks the action behind the modal; the caller's promise waits for it. */
   const open = useCallback(async (pending: Pending) => {
     pendingRef.current = pending;
@@ -140,5 +154,5 @@ export function useStepUp() {
     return true;
   }, []);
 
-  return { mode, busy, errorKey, guard, submitCode, close };
+  return { mode, busy, errorKey, guard, submitCode, close, unavailable };
 }

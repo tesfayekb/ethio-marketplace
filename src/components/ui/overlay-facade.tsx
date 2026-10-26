@@ -1,6 +1,7 @@
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { ownValue } from "@/lib/own-key";
 
 import {
@@ -124,9 +125,11 @@ export function OverlayRoot({
   const activate = React.useCallback((next: Intent | null) => {
     intent.current = next;
     setWanted(true);
-    loadOverlays().catch(() => {
+    loadOverlays().catch((error: unknown) => {
       intent.current = null;
       setWanted(false);
+      // INC-911 — the person's tap opened nothing: the shell's notice says so.
+      reportOnDemandFailure("a menu's code", error);
     });
   }, []);
 
@@ -348,10 +351,14 @@ export function OverlayContent({
  * AROUND the children, open: the owner hears `onOpenChange(true)` from the
  * trigger as from Radix's, and an uncontrolled modal opens itself. The children are
  * drawn afresh at that moment (the focus moves into the modal); afterwards
- * everything is Radix's. A failed download leaves the closed modal and the next
- * opening asks again; an owner that heard the opening, or opened the modal itself,
- * hears `onOpenChange(false)` when the download fails, so its next opening asks
- * for the module again (INC-908).
+ * everything is Radix's. A failed download leaves the closed modal; an owner that
+ * heard the opening, or opened the modal itself, hears `onOpenChange(false)` when
+ * the download fails, so its state never says open over nothing (INC-908); a next
+ * opening asks again, which the browser answers from its memory of the failure
+ * until the page reloads (INC-918). INC-911 — the failure is reported to the shell's
+ * notice (src/lib/on-demand-failure.ts), and an owner that must tell "it could not
+ * open" from "the person closed it" passes `onUnavailable`, called before that
+ * `onOpenChange(false)` (the step-up gate: StepUpUnavailable, not StepUpCancelled).
  */
 export type ModalKind = "dialog" | "alertDialog";
 
@@ -405,6 +412,7 @@ export function ModalRoot({
   open,
   defaultOpen,
   onOpenChange,
+  onUnavailable,
   ...rest
 }: Props & {
   kind: ModalKind;
@@ -412,15 +420,17 @@ export function ModalRoot({
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** INC-911 — the modal's code did not download: heard before `onOpenChange(false)`. */
+  onUnavailable?: () => void;
 }) {
   const impl = useOverlays();
   const [wanted, setWanted] = React.useState(false);
   const [opened, setOpened] = React.useState(false);
   const controlled = open !== undefined;
   /** The owner as it stands, for the download's failure path (INC-908). */
-  const owner = React.useRef({ controlled, onOpenChange });
+  const owner = React.useRef({ controlled, onOpenChange, onUnavailable });
   useIsoLayoutEffect(() => {
-    owner.current = { controlled, onOpenChange };
+    owner.current = { controlled, onOpenChange, onUnavailable };
   });
 
   React.useEffect(() => {
@@ -430,13 +440,17 @@ export function ModalRoot({
   const want = React.useCallback((byTrigger: boolean) => {
     setWanted(true);
     if (byTrigger) setOpened(true);
-    loadOverlays().catch(() => {
+    loadOverlays().catch((error: unknown) => {
       setWanted(false);
       setOpened(false);
+      reportOnDemandFailure("a dialog's code", error);
       // INC-908 — an owner that heard the trigger's opening, or opened the modal itself,
       // hears that it did not open: its next opening asks for the module again.
-      const { controlled: owned, onOpenChange: tell } = owner.current;
-      if (byTrigger || owned) tell?.(false);
+      const { controlled: owned, onOpenChange: tell, onUnavailable: unavailable } = owner.current;
+      if (byTrigger || owned) {
+        unavailable?.();
+        tell?.(false);
+      }
     });
   }, []);
 

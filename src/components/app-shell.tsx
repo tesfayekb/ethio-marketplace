@@ -8,6 +8,7 @@ import { AppFooter } from "@/components/shell/app-footer";
 import { AppHeader, SearchRow } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
+import { OnDemandNotice } from "@/components/shell/on-demand-notice";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import {
@@ -1039,6 +1040,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             rail exists there). */}
         {/* C2b — the phone bottom bar, on every page (C2e: no wizard exception). */}
         <BottomBar />
+        {/* INC-911 — the one notice for a piece whose code did not download. */}
+        <OnDemandNotice />
         <div
           data-testid="shell-footer-wrapper"
           className={cn("relative z-0 w-full bg-card md:z-40", "max-md:[&>footer>*]:ps-12")}

@@ -26,7 +26,7 @@ import { useStepUp, type GuardFn } from "./use-step-up";
  */
 export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNode }) {
   const { t } = useI18n();
-  const { mode, busy, errorKey, guard, submitCode, close } = useStepUp();
+  const { mode, busy, errorKey, guard, submitCode, close, unavailable } = useStepUp();
   const [code, setCode] = useState("");
   const codeRef = useRef<HTMLInputElement | null>(null);
 
@@ -42,6 +42,7 @@ export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNo
       {mode === "closed" ? null : (
         <Dialog
           open
+          onUnavailable={unavailable}
           onOpenChange={(next) => {
             if (!next && !busy) cancel();
           }}

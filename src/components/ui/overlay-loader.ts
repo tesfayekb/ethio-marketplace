@@ -13,8 +13,10 @@ import { loadOnce } from "@/lib/load-once";
  *
  * `useOverlays()` is the module once it has arrived (null before; null on the
  * server and in the hydration render, so the server's HTML and the first
- * client render agree). A failed download is logged once per try and forgotten:
- * the next ask tries again (loadOnce).
+ * client render agree). A failed download is logged once per try; the caller
+ * (overlay-facade.tsx) reports it to the shell's one notice, which offers to refresh
+ * the page — the browser keeps a failed module download for the page's life, so the
+ * next ask fails at once (INC-911, INC-918).
  */
 export type OverlaysImpl = typeof import("./overlays-impl");
 
@@ -55,7 +57,8 @@ let warmScheduled = false;
 /**
  * Asks for the module once the page has loaded and the browser is idle, so a
  * person's first press finds it ready; scheduled once per visit, never on the
- * server. A failure here is logged and left for the next ask.
+ * server. A failure here is logged only: the person asked for nothing, and the
+ * press that does ask reports it (INC-911).
  */
 export function warmOverlaysWhenIdle(): void {
   if (warmScheduled || typeof window === "undefined") return;

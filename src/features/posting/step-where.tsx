@@ -1,4 +1,5 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { sortPlacesByName } from "@/lib/place-order";
 import { callRoute } from "@/lib/route-client";
 import { resilientLazy } from "@/lib/resilient-lazy";
@@ -59,6 +60,7 @@ const MapPinDropper = resilientLazy(
   () => import("./map/map-pin-dropper").then((mod) => mod.MapPinDropper),
   "the pin map",
   PinMapUnavailable,
+  { inPlace: true },
 );
 
 /** The pin preview's place when its map cannot download: nothing, as while it loads. */
@@ -66,19 +68,17 @@ function NoMap() {
   return null;
 }
 
-/** The pin map's place when it cannot download: "Try again" reloads the page; the draft is saved. */
+/**
+ * The pin map's place when it cannot download: it says so and offers to refresh the page, in the
+ * words of the shell's notice (INC-911); the draft is saved.
+ */
 function PinMapUnavailable() {
-  const { t } = useI18n();
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="touch"
-      data-testid="post-pin-map-retry"
-      onClick={() => window.location.reload()}
-    >
-      {t("common.tryAgain")}
-    </Button>
+    <LoadFailedHere
+      testid="post-pin-map-failed"
+      refreshTestid="post-pin-map-retry"
+      className="items-start text-start"
+    />
   );
 }
 

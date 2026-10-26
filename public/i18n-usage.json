@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 590,
+  "scanned": 592,
   "dynamicCallSites": 395,
   "keys": {
     "account.deactivatedBanner": [
@@ -4724,6 +4724,13 @@
     "common.goHome": [
       "(every page)"
     ],
+    "common.loadFailed": [
+      "(every page)",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "common.loading": [
       "(every page)",
       "/account",
@@ -4747,6 +4754,13 @@
       "/post",
       "/post/$listingId",
       "/settings"
+    ],
+    "common.refreshPage": [
+      "(every page)",
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
     ],
     "common.retry": [
       "/",
