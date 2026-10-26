@@ -1,6 +1,8 @@
 import { Slot } from "@radix-ui/react-slot";
 import * as React from "react";
 
+import { ownValue } from "@/lib/own-key";
+
 import {
   loadOverlays,
   useOverlays,
@@ -335,4 +337,175 @@ export function OverlayContent({
   const { setContent } = root;
   useIsoLayoutEffect(() => () => setContent(null), [setContent]);
   return null;
+}
+
+/**
+ * THE MODAL OVERLAYS (DEC-260; Foundations turn 32): the dialog and the alert
+ * dialog. A closed modal draws nothing but its trigger, so until its first
+ * opening ModalRoot draws its children with the closed trigger alone (the closed
+ * state's attributes, as Radix's). The first opening — the trigger's click, or
+ * the owner's `open` — asks for the module, then draws the real Radix root
+ * AROUND the children, open: the owner hears `onOpenChange(true)` from the
+ * trigger as from Radix's, and an uncontrolled modal opens itself. The children are
+ * drawn afresh at that moment (the focus moves into the modal); afterwards
+ * everything is Radix's. A failed download leaves the closed modal and the next
+ * opening asks again.
+ */
+export type ModalKind = "dialog" | "alertDialog";
+
+type Parts = Record<string, React.ComponentType<Props>>;
+
+/** A module export a modal draws: a component (a function, or React's memo / forwardRef object). */
+function isPart(value: unknown): value is React.ComponentType<Props> {
+  return (
+    typeof value === "function" ||
+    (typeof value === "object" && value !== null && "$$typeof" in value)
+  );
+}
+
+const PARTS = new WeakMap<object, Parts>();
+
+/** Radix's parts of one modal kind, by export name — read once per module. */
+function partsOf(module: object): Parts {
+  const known = PARTS.get(module);
+  if (known !== undefined) return known;
+  const parts: Parts = Object.fromEntries(
+    Object.entries(module).filter((entry): entry is [string, React.ComponentType<Props>] =>
+      isPart(entry[1]),
+    ),
+  );
+  PARTS.set(module, parts);
+  return parts;
+}
+
+interface ModalState {
+  /** Radix's parts of this kind once the root is real; null before. */
+  real: Parts | null;
+  /** The trigger's click before the real root exists. */
+  ask(): void;
+}
+
+/** One context per kind: an alert dialog may open from inside a dialog. */
+const MODALS: Record<ModalKind, React.Context<ModalState | null>> = {
+  dialog: React.createContext<ModalState | null>(null),
+  alertDialog: React.createContext<ModalState | null>(null),
+};
+
+function useModal(kind: ModalKind, part: string): ModalState {
+  const state = React.useContext(MODALS[kind]);
+  if (state === null) throw new Error(`${part} must be used within its root`);
+  return state;
+}
+
+export function ModalRoot({
+  kind,
+  children,
+  open,
+  defaultOpen,
+  onOpenChange,
+  ...rest
+}: Props & {
+  kind: ModalKind;
+  children?: React.ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const impl = useOverlays();
+  const [wanted, setWanted] = React.useState(false);
+  const [opened, setOpened] = React.useState(false);
+  const controlled = open !== undefined;
+
+  React.useEffect(() => {
+    warmOverlaysWhenIdle();
+  }, []);
+
+  const want = React.useCallback((byTrigger: boolean) => {
+    setWanted(true);
+    if (byTrigger) setOpened(true);
+    loadOverlays().catch(() => {
+      setWanted(false);
+      setOpened(false);
+    });
+  }, []);
+
+  const ownerOpens = open === true || defaultOpen === true;
+  React.useEffect(() => {
+    if (ownerOpens) want(false);
+  }, [ownerOpens, want]);
+
+  const real = wanted && impl !== null ? partsOf(impl[kind]) : null;
+  const state = React.useMemo<ModalState>(
+    () => ({
+      real,
+      ask: () => {
+        // As Radix's trigger: the owner hears the opening; an uncontrolled modal opens itself.
+        onOpenChange?.(true);
+        if (!controlled) want(true);
+      },
+    }),
+    [real, controlled, onOpenChange, want],
+  );
+
+  const Context = MODALS[kind];
+  const inner = <Context.Provider value={state}>{children}</Context.Provider>;
+  if (real === null) return inner;
+  const RealRoot = real.Root;
+  return (
+    <RealRoot
+      {...rest}
+      open={open}
+      defaultOpen={defaultOpen === true || opened}
+      onOpenChange={onOpenChange}
+    >
+      {inner}
+    </RealRoot>
+  );
+}
+
+/** A closed modal's trigger attributes, as Radix's DialogTrigger draws them. */
+const MODAL_CLOSED: Props = {
+  type: "button",
+  "aria-haspopup": "dialog",
+  "aria-expanded": false,
+  "data-state": "closed",
+};
+
+export function ModalTrigger({
+  kind,
+  part,
+  children,
+  onClick,
+  ...props
+}: Props & {
+  kind: ModalKind;
+  part: string;
+  children?: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+}) {
+  const { real, ask } = useModal(kind, part);
+  if (real !== null) {
+    const RealTrigger = real.Trigger;
+    return (
+      <RealTrigger asChild onClick={onClick} {...props}>
+        {children}
+      </RealTrigger>
+    );
+  }
+  const shell: Props = {
+    ...MODAL_CLOSED,
+    ...props,
+    onClick: (event: React.MouseEvent<HTMLButtonElement>) => {
+      onClick?.(event);
+      if (!event.defaultPrevented) ask();
+    },
+  };
+  return <Slot {...shell}>{children}</Slot>;
+}
+
+/** A part a closed modal does not draw: the real part once the root is real, else nothing. */
+export function ModalPart({ kind, part, ...props }: Props & { kind: ModalKind; part: string }) {
+  const { real } = useModal(kind, part);
+  const Real = real === null ? undefined : ownValue(real, part);
+  return Real === undefined ? null : <Real {...props} />;
 }

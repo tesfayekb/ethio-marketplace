@@ -1,4 +1,4 @@
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import * as DialogPrimitive from "@/components/ui/dialog-primitive";
 import { X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 

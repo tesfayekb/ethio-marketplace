@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
+import * as DialogPrimitive from "@/components/ui/dialog-primitive";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, LogOut, Star, X, type LucideIcon } from "lucide-react";
 import {
