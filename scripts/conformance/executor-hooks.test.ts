@@ -479,6 +479,11 @@ describe("bash guard (50-security.md)", () => {
       "echo $(service nginx status)",
       "nohup launchctl list",
       "ls; atq",
+      // K1 ruling 1 — the shell runs a substitution inside double quotes and in an unquoted heredoc.
+      'echo "$(at now)"',
+      'echo "`crontab -l`"',
+      'git commit -m "note $(systemctl restart nginx)"',
+      "cat <<EOF > /tmp/x.txt\n$(at now)\nEOF",
     ])
       refused(command, /no scheduling or service control/);
     for (const command of [
@@ -486,8 +491,25 @@ describe("bash guard (50-security.md)", () => {
       'grep -n "look at this" src/lib/uuid.ts',
       "cat <<'EOF' > /tmp/note.txt\nat 5 pm the service starts\nEOF",
       "echo at",
+      // Single quotes run nothing; a commit message written through a quoted heredoc stays data.
+      "echo '$(at now)'",
+      "git commit -m \"$(cat <<'EOF'\nturn 35: fix at the root (INC-889); the service role reads it\nEOF\n)\"",
     ])
       allowed(command);
+  });
+
+  it("EXH-22 a program or a write inside a double-quoted substitution or an unquoted heredoc's substitution is read like any other (K1 ruling 1)", () => {
+    expect(programsOf('echo "$(cp a.ts src/x.ts)"')).toEqual(["echo", "cp"]);
+    expect(writeTargets('echo "$(cp a.ts src/x.ts)"')).toEqual(["src/x.ts"]);
+    expect(writeTargets("cat <<EOF\n$(touch src/y.ts)\nEOF")).toEqual(["src/y.ts"]);
+    expect(writeTargets("cat <<'EOF'\n$(touch src/y.ts)\nEOF")).toEqual([]);
+    expect(programsOf('echo "a `date` b" > out.txt')).toEqual(["echo", "date"]);
+    refused(
+      'echo "$(cp /tmp/x.ts src/features/posting/wizard.tsx)"',
+      /shell write to src\/features\/posting\/wizard\.tsx/,
+    );
+    refused('echo "`cp /tmp/x .claude/hooks/lib.ts`"', /shell write to \.claude\/hooks\/lib\.ts/);
+    allowed('echo "$(cp /tmp/x.ts src/server/ai/x.ts)"');
   });
 
   it("EXH-16 every command the protocol requires passes BOTH layers — the permission rules and the guard; the forbidden ones are denied by the rules too", () => {
