@@ -210,13 +210,13 @@ if (rp === null)
 const lastCommitPaths = lines(git(["diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"]));
 const stopReport = lastCommitPaths.find((f) => f.startsWith(rp.stopPrefix) && f.endsWith(".md"));
 const finalReport = lastCommitPaths.includes(rp.final) ? rp.final : undefined;
-if (stopReport === undefined && finalReport === undefined) {
+const reportFile = finalReport ?? stopReport;
+if (reportFile === undefined) {
   fail(
     "6 report",
     `the last commit carries no report. A landing ends with one:\n  a stop (STOP, QUESTION, MIGRATION): ${rp.stopPrefix}<n>.md — first line "STOP|QUESTION|MIGRATION — turn NN part X: <subject>", then DONE, LEFT, CI, FILES and the question or the apply line;\n  the end of the brief: ${rp.final} — the twelve sections of .claude/rules/60-report.md.\nWrite it after your last code commit, commit it on its own, then land.`,
   );
 }
-const reportFile = (finalReport ?? stopReport)!;
 const reportText = readFileSync(join(PROJECT_DIR, reportFile), "utf8");
 if (finalReport === undefined) {
   if (
