@@ -294,6 +294,25 @@ export function normaliseCommand(cmd: string): string {
 export type ShellToken = { v: string; op?: string; dynamic: boolean };
 
 /**
+ * K1 ruling 4 — where a shell word that starts at `j` ends: at the first whitespace or one of
+ * `;&|<>` outside quotes. A quoted run may hold spaces (`<<'A B'` is one word, delimiter "A B");
+ * a backslash takes the next character. The one reader of a heredoc's delimiter word, for
+ * shellSegments and blankInertData alike.
+ */
+export function wordEnd(cmd: string, j: number): number {
+  let k = j;
+  while (k < cmd.length && !/[\s;&|<>]/.test(cmd.charAt(k))) {
+    const ch = cmd.charAt(k);
+    if (ch === "\\") k += 2;
+    else if (ch === "'" || ch === '"') {
+      const close = cmd.indexOf(ch, k + 1);
+      k = close < 0 ? cmd.length : close + 1;
+    } else k += 1;
+  }
+  return Math.min(k, cmd.length);
+}
+
+/**
  * A quote-aware shell tokenizer, good enough for a guard: it splits a command line into segments
  * at `;`, `&&`, `||`, `|`, `&`, newlines, `(`, `)`, `$(` and backticks — never inside quotes — and
  * each segment into words and redirection operators. Heredoc bodies are skipped (they are data).
@@ -501,8 +520,7 @@ export function shellSegments(cmd: string): ShellToken[][] {
         let j = i + 2;
         if (cmd[j] === "-") j += 1;
         while (j < n && (cmd[j] === " " || cmd[j] === "\t")) j += 1;
-        let k = j;
-        while (k < n && !/[\s;&|<>]/.test(cmd[k]!)) k += 1;
+        const k = wordEnd(cmd, j);
         const word = cmd.slice(j, k);
         // The shell's quote removal: <<'A', <<"A", <<\A and <<A'' all end at a line "A" (K1 ruling 2).
         heredocs.push({ delim: word.replace(/['"\\]/g, ""), expands: !/['"\\]/.test(word) });
@@ -586,8 +604,7 @@ export function blankInertData(cmd: string): string {
       let j = i + 2;
       if (cmd[j] === "-") j += 1;
       while (j < n && (cmd[j] === " " || cmd[j] === "\t")) j += 1;
-      let k = j;
-      while (k < n && !/[\s;&|<>]/.test(cmd.charAt(k))) k += 1;
+      const k = wordEnd(cmd, j);
       const word = cmd.slice(j, k);
       pending.push({ delim: word.replace(/['"\\]/g, ""), inert: /['"\\]/.test(word) });
       out += cmd.slice(i, k);
@@ -630,6 +647,9 @@ export function commandSegments(cmd: string): string[] {
   return shellSegments(cmd).map((toks) => toks.map((t) => t.v).join(" "));
 }
 
+/** K1 ruling 4 — the shell's own words that come before a program in a segment. */
+const KEYWORDS = new Set(["if", "then", "elif", "else", "do", "while", "until", "!", "{", "}"]);
+
 const WRAPPERS = new Set([
   "command",
   "builtin",
@@ -649,13 +669,17 @@ const WRAPPERS = new Set([
 /**
  * One segment's program and its arguments: redirections and their targets set aside, then the
  * assignments and wrappers the shell runs it through skipped (timeout 900 cmd, nice -n 5 cmd,
- * env -i X=1 cmd, sudo cmd). `redirects` holds the redirection targets, `program` the base name
+ * env -i X=1 cmd, sudo cmd) — and, K1 ruling 4, the shell's keywords (`then /bin/systemctl`). A
+ * program the shell names through an expansion ("$p", $'at') comes back with its `$`, for the
+ * guard to refuse as unreadable. `redirects` holds the redirection targets, `program` the base name
  * of the program the shell would run ("" when there is none), `args` its argument tokens.
  */
 export function segmentProgram(toks: ShellToken[]): {
   program: string;
   args: ShellToken[];
   redirects: ShellToken[];
+  /** True when the shell expands the program's word ("$p", $'at') — K1 ruling 4. */
+  dynamic: boolean;
 } {
   const redirects: ShellToken[] = [];
   const words: ShellToken[] = [];
@@ -676,8 +700,14 @@ export function segmentProgram(toks: ShellToken[]): {
   }
   let w = 0;
   while (w < words.length) {
-    const v = words[w]!.v;
+    const word = words[w];
+    if (word === undefined) break;
+    const v = word.v;
     const base = v.replace(/^.*\//, "");
+    if (KEYWORDS.has(v)) {
+      w += 1;
+      continue;
+    }
     if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(v)) {
       w += 1;
       continue;
@@ -708,6 +738,7 @@ export function segmentProgram(toks: ShellToken[]): {
     program: (words[w]?.v ?? "").replace(/^.*\//, ""),
     args: words.slice(w + 1),
     redirects,
+    dynamic: words[w]?.dynamic ?? false,
   };
 }
 
@@ -720,6 +751,17 @@ export function programsOf(cmd: string): string[] {
   return shellSegments(cmd)
     .map((toks) => segmentProgram(toks).program)
     .filter((program) => program !== "");
+}
+
+/**
+ * K1 ruling 4 — the programs a command line names through an expansion ("$p" status, $'at' now):
+ * the shell decides them at run time, so no reader of the text can; the guard refuses them.
+ */
+export function unreadablePrograms(cmd: string): string[] {
+  return shellSegments(cmd)
+    .map((toks) => segmentProgram(toks))
+    .filter((segment) => segment.dynamic && /[$`]/.test(segment.program))
+    .map((segment) => segment.program);
 }
 
 /**

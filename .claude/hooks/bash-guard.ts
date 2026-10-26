@@ -20,6 +20,7 @@ import {
   writeTargets,
   programsOf,
   blankInertData,
+  unreadablePrograms,
 } from "./lib";
 
 const event = await readEvent();
@@ -212,6 +213,14 @@ const scheduler =
 if (scheduler !== undefined)
   block(
     `BASH GUARD (.claude/hooks/bash-guard.ts): refused — no scheduling or service control from the executor (${scheduler}).\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
+  );
+
+// K1 ruling 4 — a program named by an expansion ("$p" status, $'at' now) is one neither reader can
+// read: refused, as a refusal of the unreadable.
+const unreadable = unreadablePrograms(command)[0];
+if (unreadable !== undefined)
+  block(
+    `BASH GUARD (.claude/hooks/bash-guard.ts): refused — a program named by an expansion (${unreadable}) cannot be read by the guard; name the program itself.\nCommand: ${command.split("\n")[0]}\nA refusal is final: do not look for another spelling of the same action; STOP and report if the brief needs it.`,
   );
 
 // Shell writes bypass the editing tools: every target goes through the same scope decision.
