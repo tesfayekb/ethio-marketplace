@@ -5,7 +5,12 @@ import { clearSessionClocks } from "@/features/session/session-policy";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { safeReturnPath } from "@/lib/return-path";
-import { currentSession, getSupabase, storedSessionKey } from "@/lib/supabase-door";
+import {
+  currentSession,
+  forgetStoredSession,
+  getSupabase,
+  storedSessionKey,
+} from "@/lib/supabase-door";
 
 import { isEmailNotConfirmed, toErrorKey, type AuthErrorLike } from "./auth-error-key";
 
@@ -190,14 +195,17 @@ function storedSessionIsExpired(): boolean {
 /**
  * DEC-076 step 1 — drop an expired prior session locally, so no refresh of it
  * can land after the new one. `scope: "local"` only: this browser's stale
- * token is the problem, the user's other devices are not.
+ * token is the problem, the user's other devices are not. DEC-268 (Foundations
+ * turn 34b-1): when the library answers an error or throws, this device drops
+ * the stored session itself (the door's forgetStoredSession), as signOut does.
  */
 async function evictExpiredSession(supabase: Client): Promise<void> {
   if (!storedSessionIsExpired()) return;
   try {
-    await supabase.auth.signOut({ scope: "local" });
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) forgetStoredSession();
   } catch {
-    /* Best effort: the storage clear below is the part that matters. */
+    forgetStoredSession();
   }
   clearSessionClocks();
 }
@@ -274,9 +282,18 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
 
 export async function signOut(): Promise<AuthResult> {
   const supabase = await authClient();
-  if (supabase === null) return CLIENT_FAILED;
+  // DEC-268 (Foundations turn 34b-1) — the session ends on this device whatever the answer: a
+  // sign-out that could not reach the server, or whose client did not load, removes the stored
+  // session itself, and answers its failure so the shell reloads to read that.
+  if (supabase === null) {
+    forgetStoredSession();
+    return CLIENT_FAILED;
+  }
   const { error } = await supabase.auth.signOut();
-  if (error) return failure(error);
+  if (error) {
+    forgetStoredSession();
+    return failure(error);
+  }
   return { ok: true };
 }
 

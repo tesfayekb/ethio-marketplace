@@ -618,6 +618,8 @@ export function AppShell({ children }: { children: ReactNode }) {
    *       starts a fresh idle/absolute window;
    *   (d) auth-derived client state resets (panel, category, location, drawer);
    *   (e) replace-navigate to "/" so Back cannot re-enter a gated page.
+   * DEC-268 (Foundations turn 34b-1): when (a) answers a failure, the session is already gone from
+   * this device (auth-service's signOut removed it) and the page loads "/" afresh.
    *
    * U0k: no confirmation dialog — one click IS the contract.
    */
@@ -641,8 +643,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       setPanelChoice("marketplace");
       resetLocationState();
       setNavOpen(false);
+      let reloading = false;
       try {
-        await signOut();
+        const answer = await signOut();
+        if (!answer.ok) {
+          reloading = true;
+          // DEC-268 (Foundations turn 34b-1) — the server did not confirm, but the session is gone
+          // from this device (auth-service's signOut removed it); a full load to "/" reads that
+          // afresh, so no screen, cache or listener of the old session survives.
+          clearSessionClocks();
+          window.location.replace("/");
+          return;
+        }
         // (2) macrotask boundary: React commits the unmount before the purge.
         await new Promise((resolve) => setTimeout(resolve, 0));
         /**
@@ -660,7 +672,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         setSessionNotice(notice);
         await navigate({ to: "/", replace: true });
       } finally {
-        setSigningOut(false);
+        // A reloading page stays signed-out until it goes: no frame of the old account.
+        if (!reloading) setSigningOut(false);
       }
     },
     [signOut, queryClient, navigate, resetLocationState],
