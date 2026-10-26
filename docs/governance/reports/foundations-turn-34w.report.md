@@ -1,6 +1,6 @@
 # Foundations turn 34w — incomplete completion report
 
-Brief: docs/governance/briefs/foundations-turn-34w.md; SHA-256 bbf8f37562500d88b68b5a957a7327c589c81fc339ab7b8bd6a10972051366b0; 67,890 bytes. Code reviewed: b1d82c6ed691c2dca1b120847f5defa55fa705bf. Independent review pending; completion is not claimed.
+Brief: docs/governance/briefs/foundations-turn-34w.md; SHA-256 bbf8f37562500d88b68b5a957a7327c589c81fc339ab7b8bd6a10972051366b0; 67,890 bytes. Code reviewed: b1d82c6ed691c2dca1b120847f5defa55fa705bf. Reviewer: NOT READY — two MAJORs and one delivery-constraint BLOCKER; completion is not claimed.
 
 ## 1. Done by part and step
 
@@ -12,7 +12,7 @@ Brief: docs/governance/briefs/foundations-turn-34w.md; SHA-256 bbf8f37562500d88b
 - E: exact stale-chunk edits; seven tests pass. Offline sign-out browser contract remains failing.
 - F: exact rail and selector edits; usage regenerated, selector self-test passes. Menu and peek browser checks pass.
 - G: exact docs and AGENTS edits; roadmap line 3 updated with suffix preserved; 34b-2 ticked; 34w remains unchecked because browser failures prevent completion. AGENTS is 8,980 bytes.
-- THE CHECKS: executed in order and passed. THE END-TO-END CHECK: every named run executed; four sign-out failures remain. Reviewer: pending. Report: written honestly as incomplete.
+- THE CHECKS: executed in order and passed. THE END-TO-END CHECK: every named run executed; four sign-out failures remain. Reviewer: NOT READY (§9). Report: written honestly as incomplete.
 
 ## 2. Files from git diff --name-only START
 
@@ -120,11 +120,18 @@ Door-step callers at immutable BASE: account.tsx:9; account_.legal.tsx:8; accoun
 
 ## 9. Independent reviewer
 
-Pending independent reviewer on final code commit b1d82c6ed691c2dca1b120847f5defa55fa705bf. Diagnosis task separately identified offline router navigation/server-loader dependency; no code changed after hashes passed. Verdict will be inserted before end.
+**Verdict: NOT READY**, independently reviewed final code commit b1d82c6ed691c2dca1b120847f5defa55fa705bf against START. The reviewer independently verified all 19 prescribed hashes, 67,890 brief bytes and its SHA; only the completion report changed after that code commit. Source/log analysis, no independent browser rerun or unit rerun claimed.
+
+- **MAJOR 1 (provable, in scope):** app-shell.tsx:651–682 preserves no document reload offline but still invokes network-dependent router navigation; root loader __root.tsx:305–318 calls a server function. The transport fails offline and the root error view removes AppShell. SO-12 fails after the click at both widths. Remedy must preserve mounted signed-out shell, purge reads, make the home/URL transition offline-safe even from other signed-in pages, and retain one reconnect fresh load. Returning before purge or swallowing a rejection is not an adequate fix.
+- **MAJOR 2:** required sign-out suite is red; SO-11 fails before clicking because the controls are missing. The test expires storage after root hydration without proving signed-in Settings chrome is ready. A test-local readiness precondition and first-failure capture are the reviewer's follow-up, not a proved unique root-cause patch. No speculative auth rewrite applied.
+- **Delivery-constraint BLOCKER:** exact prescribed bytes reproduce MAJOR 1, so required behaviour and immutable hashes cannot both be accepted unchanged. Repairing app-shell or the prescribed SO-11 test changes mandated digests; this needs revised supervisor blocks/digests, not edited hash expectations. This is a conflicting delivery contract, not a newly discovered security hole.
+- **Deferred minor/K2:** FadingNotice's empty role-bearing status and existing gatedRoute coverage discrepancy; details in §8. Other four targeted mechanisms were judged appropriate; unchanged on-demand census debt remains assigned to 34b-3.
+
+No code changed after review; BLOCKER and MAJOR 1 cannot be safely resolved within this brief's exact-byte constraint. Original failure screenshots were inspected by the applying agent; reviewer could not independently inspect them because subsequent required runs removed those artifacts. Surviving logs/source were independently examined.
 
 ## 10. Departures and blocked work
 
-- No speculative edits, no altered hashes, no weakened tests. SO-12 repair would require changing prescribed app-shell bytes (and possibly server-loader behaviour outside scope). This conflicts with instruction to fix hash differences only by re-copying exact blocks; corrective ruling needed for code departing from pinned bytes. Await independent verdict.
+- No speculative edits, no altered hashes, no weakened tests. SO-12 repair requires changing prescribed app-shell bytes; the reviewer confirms this can remain in the hard-reset mechanism without an unrelated global loader redesign. This conflicts with instruction to fix hash differences only by re-copying exact blocks; corrective ruling with revised blocks/digests is needed. SO-11 also needs an authorized precondition/root-cause investigation before passing proof. No repeat of the failed final spec was made.
 - Existing config excludes desktop Settings/reset; no harness change made to force them.
 - Map-guard regenerated maps early as E2E prerequisite; Part F regenerated them again; final hashes match.
 - No repeat runs of failed final specs, no background E2E run, no time ceiling workaround.
