@@ -226,7 +226,7 @@ export const AREAS: Area[] = [
       "src/components/shell/filter-chips.tsx",
       "src/components/shell/data-table.tsx",
     ],
-    specs: ["e2e/house-style.spec.ts", "e2e/overlays.spec.ts"],
+    specs: ["e2e/house-style.spec.ts", "e2e/overlays.spec.ts", "e2e/fonts.spec.ts"],
   },
   {
     name: "ad-page",
