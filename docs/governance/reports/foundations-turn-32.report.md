@@ -163,3 +163,4 @@ Two-step: the conclusion is SUCCESS, and the reported commit 2b8160c9 = BASE = o
 - The bundle numbers are this sandbox's build; they equal the supervisor's to the tenth (JS 254.1 / 257 KiB; every page line as D3's comments).
 - The lab timings in performance-strategy.md §15 (127 ms / 306 ms) are the supervisor's measurements, copied from the brief; not re-measured here.
 - Rendered-output acceptance (how the dialogs look at 360/768/1024/1280) belongs to the operator's walk.
+- The independent `reviewer` subagent was started on the diff before this report, but it had not reported when the turn landed: the Stop gate was at its second of three refusals, and the bash guard refused a wait loop. So no reviewer finding is in this report, and none was acted on. Every code file is the brief's own text, checked by its hash list (§2).
