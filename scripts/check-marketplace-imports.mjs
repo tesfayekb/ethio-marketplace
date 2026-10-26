@@ -45,6 +45,9 @@ const FORBIDDEN = [
   // Foundations turn 31 (DEC-259) — the overlay primitives load on demand (src/components/ui/overlay-loader.ts).
   "@radix-ui/react-tooltip",
   "@radix-ui/react-dropdown-menu",
+  // Foundations turn 32 (DEC-260) — the dialog and the alert dialog too.
+  "@radix-ui/react-dialog",
+  "@radix-ui/react-alert-dialog",
 ];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 

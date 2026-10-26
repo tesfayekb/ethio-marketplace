@@ -38,7 +38,8 @@ const BUDGET_KIB = {
   // D234 speed turn S3 (2026-10-25): the admin user and role crumbs left it too (289.9 → 287.3 measured).
   // DEC-258 (Foundations turn 30, 2026-10-25): the member strings left it (287.9 → 280.2 measured); the ceiling follows to 284.
   // DEC-259 (Foundations turn 31, 2026-10-25): the tooltip's and the dropdown menu's code left it (280.2 → 260.0 measured); the ceiling follows to 263.
-  js: 263,
+  // DEC-260 (Foundations turn 32, 2026-10-26): the dialog's and the alert dialog's code left it (260.0 → 254.1 measured); the ceiling follows to 257.
+  js: 257,
   css: 40,
 };
 
