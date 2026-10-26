@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 import { isE2E } from "@/lib/env-flags";
+import { currentSession } from "@/lib/supabase-door";
 
 /**
  * U1f-4 (INC-081) — A BEARER CLAIM IS NOT A STEP-UP.
@@ -166,10 +167,13 @@ export async function isSteppedUp(): Promise<boolean> {
  *   (2) the token claims aal2 AND its newest totp `amr` timestamp is inside
  *       the same 10-minute window the server enforces.
  * Authority still lives in public.require_step_up_if_needed (law F3).
+ * Turn 34c-5 (INC-933) — the session through the door: a read that failed is not
+ * fresh (the step-up asks again; the door has logged the failure).
  */
 export async function isStepUpFresh(): Promise<boolean> {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const read = await currentSession();
+  if (read.failed) return false;
+  const token = read.session?.access_token;
   if (!token) return false;
   const claims = decodeJwt(token);
   if (!claims || claims.aal !== "aal2") return false;

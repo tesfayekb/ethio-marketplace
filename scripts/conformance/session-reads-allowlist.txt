@@ -1,0 +1,4 @@
+# Turn 34c-5 (INC-933) — a session or user read around the door: `<client>.auth.getSession()` or
+# `<client>.auth.getUser()` in the browser tree (scripts/conformance/session-reads.test.ts, CF-SESSION-3).
+# Key: `<file> <function>` | reason | until. Every other read goes through currentSession() and reads its `failed`.
+src/features/auth/auth-service.ts currentPasswordProof | the server's own answer of the account's e-mail for the password proof — a server read by design (an e-mail confirmed on another device is not yet in this device's session); a failed read answers the generic error | DEC-274

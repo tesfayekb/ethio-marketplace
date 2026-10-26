@@ -35,7 +35,6 @@ src/features/posting/use-edit-draft.ts | direct vendor use before DEC-250 | INC-
 src/routes/api/listings/assist.ts | direct vendor use before DEC-250 | INC-877
 src/routes/api/listings/identity.ts | direct vendor use before DEC-250 | INC-877
 src/routes/api/listings/photos.$id.ts | direct vendor use before DEC-250 | INC-877
-src/routes/settings.tsx | direct vendor use before DEC-250 | INC-877
 src/server/imports/gate.ts | direct vendor use before DEC-250 | INC-877
 src/server/imports/route.ts | direct vendor use before DEC-250 | INC-877
 src/server/listings/own-listing.ts | direct vendor use before DEC-250 | INC-877

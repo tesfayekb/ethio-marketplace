@@ -71,7 +71,13 @@ vi.mock("@/features/auth/auth-service", () => ({
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    auth: { getUser: async () => ({ data: { user: { created_at: "2026-01-01T00:00:00Z" } } }) },
+    // Turn 34c-5 — member since comes from the door's session read (currentSession).
+    auth: {
+      getSession: async () => ({
+        data: { session: { user: { created_at: "2026-01-01T00:00:00Z" } } },
+        error: null,
+      }),
+    },
     from: () => ({
       select: () => ({
         eq: () => ({ maybeSingle: async () => ({ data: { account_status: "active" } }) }),

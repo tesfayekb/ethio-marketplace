@@ -19,6 +19,7 @@ import {
   type GroupCounts,
 } from "@/features/my-listings/my-listings";
 import { formatLocale } from "@/lib/format-locale";
+import { currentSession } from "@/lib/supabase-door";
 
 type Profile = {
   seller_alias: string | null;
@@ -52,7 +53,10 @@ export function AccountOverview() {
     if (user === null) return;
     let active = true;
     void (async () => {
-      const [profile, listings, authUser] = await Promise.all([
+      // Turn 34c-5 (INC-933) — the member-since date from the door's session read (local), not
+      // a server round trip (`auth.getUser()` was one); a read that failed is the page's error.
+      const read = await currentSession();
+      const [profile, listings] = await Promise.all([
         supabase
           .from("profiles")
           .select(
@@ -64,17 +68,16 @@ export function AccountOverview() {
         // door that serves My listings (one row asked for; the counts cover all),
         // so no status is mapped twice and none can fall through to a wrong word.
         readMyListings("live", 1, 0),
-        supabase.auth.getUser(),
       ]);
       if (!active) return;
-      if (profile.error || listings === null || authUser.error) {
+      if (read.failed || profile.error || listings === null) {
         setState((current) => ({ ...current, error: true }));
         setLoading(false);
         return;
       }
       setState({
         profile: profile.data,
-        memberSince: authUser.data.user?.created_at ?? null,
+        memberSince: read.session?.user.created_at ?? null,
         counts: listings.counts,
         error: false,
       });

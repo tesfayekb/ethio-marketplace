@@ -125,6 +125,12 @@ describe("a failed client download is a failed action (INC-915)", () => {
   it('ASC-6 a session read that throws is unavailable to the reset screen, never "no session" (INC-914)', async () => {
     const getSession = vi.fn().mockRejectedValue(new Error("the lock timed out"));
     door.getSupabase.mockReset().mockResolvedValue({ auth: { getSession } });
+    // Turn 34c-5 — the read goes through the door, which answers a throw as `failed`.
+    door.currentSession.mockResolvedValue({
+      session: null,
+      failed: true,
+      error: new Error("the lock timed out"),
+    });
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     try {
       expect(await service.sessionRehydration()).toBe("unavailable");
@@ -150,6 +156,8 @@ describe("a failed client download is a failed action (INC-915)", () => {
     door.getSupabase
       .mockReset()
       .mockResolvedValue({ auth: { getSession, refreshSession, signOut } });
+    // Turn 34c-5 — the door's read finds no session in the client's memory.
+    door.currentSession.mockResolvedValue({ session: null, failed: false });
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     window.localStorage.setItem(key, stored);
     try {
@@ -168,6 +176,40 @@ describe("a failed client download is a failed action (INC-915)", () => {
       window.localStorage.removeItem(key);
       warn.mockRestore();
     }
+  });
+
+  it("ASC-8 a reset whose recovery session could not be read is not a dead link: the person tries again (INC-933)", async () => {
+    const unreachable = Object.assign(new Error("Failed to fetch"), {
+      name: "AuthRetryableFetchError",
+    });
+    const getSession = vi.fn().mockResolvedValue({ data: { session: null }, error: unreachable });
+    const updateUser = vi.fn().mockResolvedValue({ data: {}, error: null });
+    door.getSupabase.mockReset().mockResolvedValue({ auth: { getSession, updateUser } });
+    door.currentSession.mockResolvedValue({ session: null, failed: true, error: unreachable });
+    expect(await service.completePasswordReset("new-password-1")).toEqual({
+      ok: false,
+      errorKey: "auth.errorGeneric",
+    });
+    expect(updateUser).not.toHaveBeenCalled();
+    getSession.mockResolvedValue({ data: { session: null }, error: null });
+    door.currentSession.mockResolvedValue({ session: null, failed: false });
+    expect(await service.completePasswordReset("new-password-1")).toEqual({
+      ok: false,
+      errorKey: "auth.errorResetLinkInvalid",
+    });
+  });
+
+  it("ASC-9 a verification landing whose session could not be read is unavailable, never a failed link (INC-933)", async () => {
+    const unreachable = Object.assign(new Error("Failed to fetch"), {
+      name: "AuthRetryableFetchError",
+    });
+    const getSession = vi.fn().mockResolvedValue({ data: { session: null }, error: unreachable });
+    door.getSupabase.mockReset().mockResolvedValue({ auth: { getSession } });
+    door.currentSession.mockResolvedValue({ session: null, failed: true, error: unreachable });
+    expect(await service.completeEmailVerification()).toEqual({ ok: false, unavailable: true });
+    getSession.mockResolvedValue({ data: { session: null }, error: null });
+    door.currentSession.mockResolvedValue({ session: null, failed: false });
+    expect(await service.completeEmailVerification()).toEqual({ ok: false, hadError: false });
   });
 
   it("ASC-2 auth-service.ts asks the door for the client in one place", () => {
