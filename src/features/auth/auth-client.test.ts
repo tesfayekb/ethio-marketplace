@@ -25,27 +25,27 @@ vi.mock("@/lib/supabase-door", () => ({
 
 const service = await import("./auth-service");
 
-const GENERIC = { ok: false, errorKey: "auth.errorGeneric" };
+const LOAD_FAILED = { ok: false, errorKey: "common.loadFailed" };
 
 /** Each action's answer when the client did not load. */
 const ANSWERS: Record<string, unknown> = {
-  signUp: GENERIC,
-  signInWithPassword: GENERIC,
-  signInWithGoogle: GENERIC,
-  resendConfirmation: GENERIC,
-  signOut: GENERIC,
-  signOutOtherDevices: GENERIC,
-  getIdentities: GENERIC,
-  linkGoogleIdentity: GENERIC,
-  unlinkProviderIdentity: GENERIC,
-  changePassword: GENERIC,
-  changeEmail: GENERIC,
+  signUp: LOAD_FAILED,
+  signInWithPassword: LOAD_FAILED,
+  signInWithGoogle: LOAD_FAILED,
+  resendConfirmation: LOAD_FAILED,
+  signOut: LOAD_FAILED,
+  signOutOtherDevices: LOAD_FAILED,
+  getIdentities: LOAD_FAILED,
+  linkGoogleIdentity: LOAD_FAILED,
+  unlinkProviderIdentity: LOAD_FAILED,
+  changePassword: LOAD_FAILED,
+  changeEmail: LOAD_FAILED,
   hasSessionRehydrating: false,
   completeEmailVerification: { ok: false, hadError: true },
-  hasPassword: GENERIC,
-  removeOwnPassword: GENERIC,
-  requestPasswordReset: GENERIC,
-  completePasswordReset: GENERIC,
+  hasPassword: LOAD_FAILED,
+  removeOwnPassword: LOAD_FAILED,
+  requestPasswordReset: LOAD_FAILED,
+  completePasswordReset: LOAD_FAILED,
   fetchPreferredLanguage: { code: null, reason: "the client did not load" },
   savePreferredLanguage: { ok: false, reason: "the client did not load" },
 };
@@ -126,7 +126,7 @@ describe("a sign-out ends the session on this device whatever the server answers
     // The client did not load: the stored session is removed, and the answer says it failed.
     const unloaded = await service.signOut();
     expect(door.forgetStoredSession).toHaveBeenCalledTimes(1);
-    expect(unloaded).toEqual(GENERIC);
+    expect(unloaded).toEqual(LOAD_FAILED);
     // The server could not be reached (supabase-js answers an error and keeps the session).
     door.forgetStoredSession.mockClear();
     const signOut = vi.fn().mockResolvedValue({
