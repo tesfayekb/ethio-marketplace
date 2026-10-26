@@ -291,7 +291,16 @@ export function normaliseCommand(cmd: string): string {
   return s;
 }
 
-export type ShellToken = { v: string; op?: string; dynamic: boolean };
+/**
+ * One word or operator of a segment. `dynamic`: the shell expands it ($VAR, backticks, unquoted
+ * globs, a leading ~). `quoted` (K1 ruling 5): a quote or a backslash took part in it, so it is
+ * never a shell keyword (`'then'` runs a program named then). An unquoted `$(` or backquote that
+ * starts a word leaves `SUBSTITUTED` in its place: a program named by a substitution is unreadable.
+ */
+export type ShellToken = { v: string; op?: string; dynamic: boolean; quoted?: boolean };
+
+/** K1 ruling 5 — the stand-in for a word the shell takes from a command substitution's output. */
+export const SUBSTITUTED = "$(…)";
 
 /**
  * K1 ruling 4 — where a shell word that starts at `j` ends: at the first whitespace or one of
@@ -304,12 +313,64 @@ export function wordEnd(cmd: string, j: number): number {
   while (k < cmd.length && !/[\s;&|<>]/.test(cmd.charAt(k))) {
     const ch = cmd.charAt(k);
     if (ch === "\\") k += 2;
-    else if (ch === "'" || ch === '"') {
+    else if (ch === "'") {
       const close = cmd.indexOf(ch, k + 1);
       k = close < 0 ? cmd.length : close + 1;
+    } else if (ch === '"') {
+      // K1 ruling 5 — inside double quotes a backslash takes the next character (`"A\"B"`).
+      k += 1;
+      while (k < cmd.length && cmd.charAt(k) !== '"') k += cmd.charAt(k) === "\\" ? 2 : 1;
+      k += 1;
     } else k += 1;
   }
   return Math.min(k, cmd.length);
+}
+
+/**
+ * K1 ruling 5 — A HEREDOC'S DELIMITER, AS THE SHELL READS IT (POSIX 2.7.4: quote removal on the
+ * word; the body expands only when no part of the word is quoted). In single quotes every
+ * character is literal (`<<'A\ B'` ends at a line `A\ B`); in double quotes a backslash is removed
+ * only before `$`, a backquote, `"` or a backslash (`<<"A\"B"` ends at `A"B`, `<<"A\ B"` at
+ * `A\ B`); outside quotes a backslash is removed and keeps the next character (`<<A\ B` ends at
+ * `A B`). The one reading of the delimiter, for shellSegments and blankInertData alike.
+ */
+export function heredocDelimiter(word: string): { delim: string; quoted: boolean } {
+  let delim = "";
+  let quoted = false;
+  let k = 0;
+  while (k < word.length) {
+    const ch = word.charAt(k);
+    if (ch === "'") {
+      quoted = true;
+      const close = word.indexOf("'", k + 1);
+      const end = close < 0 ? word.length : close;
+      delim += word.slice(k + 1, end);
+      k = end + 1;
+    } else if (ch === '"') {
+      quoted = true;
+      k += 1;
+      while (k < word.length && word.charAt(k) !== '"') {
+        const d = word.charAt(k);
+        const e = word.charAt(k + 1);
+        if (d === "\\" && e !== "" && '$`"\\'.includes(e)) {
+          delim += e;
+          k += 2;
+        } else {
+          delim += d;
+          k += 1;
+        }
+      }
+      k += 1;
+    } else if (ch === "\\") {
+      quoted = true;
+      delim += word.charAt(k + 1);
+      k += 2;
+    } else {
+      delim += ch;
+      k += 1;
+    }
+  }
+  return { delim, quoted };
 }
 
 /**
@@ -383,12 +444,14 @@ export function shellSegments(cmd: string): ShellToken[][] {
   let cur = "";
   let started = false;
   let dynamic = false;
+  let quoted = false;
   const heredocs: Array<{ delim: string; expands: boolean }> = [];
   const flush = () => {
-    if (started) seg.push({ v: cur, dynamic });
+    if (started) seg.push(quoted ? { v: cur, dynamic, quoted } : { v: cur, dynamic });
     cur = "";
     started = false;
     dynamic = false;
+    quoted = false;
   };
   const endSegment = () => {
     flush();
@@ -407,6 +470,7 @@ export function shellSegments(cmd: string): ShellToken[][] {
       }
       cur += next;
       started = true;
+      quoted = true;
       i += 2;
       continue;
     }
@@ -415,16 +479,18 @@ export function shellSegments(cmd: string): ShellToken[][] {
       const body = close < 0 ? cmd.slice(i + 1) : cmd.slice(i + 1, close);
       cur += body;
       started = true;
+      quoted = true;
       i = close < 0 ? n : close + 1;
       continue;
     }
     if (c === '"') {
       i += 1;
       started = true;
+      quoted = true;
       while (i < n && cmd[i] !== '"') {
-        const d = cmd[i]!;
-        if (d === "\\" && i + 1 < n && '"$`\\'.includes(cmd[i + 1]!)) {
-          cur += cmd[i + 1]!;
+        const d = cmd.charAt(i);
+        if (d === "\\" && i + 1 < n && '"$`\\'.includes(cmd.charAt(i + 1))) {
+          cur += cmd.charAt(i + 1);
           i += 2;
           continue;
         }
@@ -521,9 +587,9 @@ export function shellSegments(cmd: string): ShellToken[][] {
         if (cmd[j] === "-") j += 1;
         while (j < n && (cmd[j] === " " || cmd[j] === "\t")) j += 1;
         const k = wordEnd(cmd, j);
-        const word = cmd.slice(j, k);
-        // The shell's quote removal: <<'A', <<"A", <<\A and <<A'' all end at a line "A" (K1 ruling 2).
-        heredocs.push({ delim: word.replace(/['"\\]/g, ""), expands: !/['"\\]/.test(word) });
+        // The shell's quote removal (K1 rulings 2 and 5): <<'A', <<"A", <<\A and <<A'' end at "A".
+        const { delim, quoted: literal } = heredocDelimiter(cmd.slice(j, k));
+        heredocs.push({ delim, expands: !literal });
         seg.push({ v: "<<", op: "<<", dynamic: false });
         i = k;
         continue;
@@ -538,10 +604,13 @@ export function shellSegments(cmd: string): ShellToken[][] {
       continue;
     }
     if (c === "$" && next === "(") {
+      // K1 ruling 5 — a word the shell takes from a substitution's output: its stand-in.
+      if (!started) seg.push({ v: SUBSTITUTED, op: SUBSTITUTED, dynamic: true });
       endSegment();
       i += 2;
       continue;
     }
+    if (c === "`" && !started) seg.push({ v: SUBSTITUTED, op: SUBSTITUTED, dynamic: true });
     if (c === ";" || c === "|" || c === "&" || c === "(" || c === ")" || c === "`") {
       endSegment();
       i += c === next && (c === "&" || c === "|" || c === ";") ? 2 : 1;
@@ -605,8 +674,8 @@ export function blankInertData(cmd: string): string {
       if (cmd[j] === "-") j += 1;
       while (j < n && (cmd[j] === " " || cmd[j] === "\t")) j += 1;
       const k = wordEnd(cmd, j);
-      const word = cmd.slice(j, k);
-      pending.push({ delim: word.replace(/['"\\]/g, ""), inert: /['"\\]/.test(word) });
+      const { delim, quoted } = heredocDelimiter(cmd.slice(j, k));
+      pending.push({ delim, inert: quoted });
       out += cmd.slice(i, k);
       i = k;
       continue;
@@ -669,13 +738,17 @@ const WRAPPERS = new Set([
 /**
  * One segment's program and its arguments: redirections and their targets set aside, then the
  * assignments and wrappers the shell runs it through skipped (timeout 900 cmd, nice -n 5 cmd,
- * env -i X=1 cmd, sudo cmd) — and, K1 ruling 4, the shell's keywords (`then /bin/systemctl`). A
- * program the shell names through an expansion ("$p", $'at') comes back with its `$`, for the
- * guard to refuse as unreadable. `redirects` holds the redirection targets, `program` the base name
- * of the program the shell would run ("" when there is none), `args` its argument tokens.
+ * env -i X=1 cmd, sudo cmd) — and, K1 ruling 4, the shell's keywords (`then /bin/systemctl`; a
+ * quoted one is a word, K1 ruling 5). A program the shell names through an expansion ("$p", $'at',
+ * a substitution, a glob) comes back as its whole word in `word`, for the guard to refuse as
+ * unreadable. `redirects` holds the redirection targets, `program` the base name of the program
+ * the shell would run ("" when there is none), `args` its argument tokens (a substitution's
+ * stand-in is not one: what it holds is read as its own segments).
  */
 export function segmentProgram(toks: ShellToken[]): {
   program: string;
+  /** The program's whole word, before its directory is set aside (K1 ruling 5). */
+  word: string;
   args: ShellToken[];
   redirects: ShellToken[];
   /** True when the shell expands the program's word ("$p", $'at') — K1 ruling 4. */
@@ -704,7 +777,7 @@ export function segmentProgram(toks: ShellToken[]): {
     if (word === undefined) break;
     const v = word.v;
     const base = v.replace(/^.*\//, "");
-    if (KEYWORDS.has(v)) {
+    if (KEYWORDS.has(v) && word.quoted !== true) {
       w += 1;
       continue;
     }
@@ -736,7 +809,8 @@ export function segmentProgram(toks: ShellToken[]): {
   }
   return {
     program: (words[w]?.v ?? "").replace(/^.*\//, ""),
-    args: words.slice(w + 1),
+    word: words[w]?.v ?? "",
+    args: words.slice(w + 1).filter((t) => t.op !== SUBSTITUTED),
     redirects,
     dynamic: words[w]?.dynamic ?? false,
   };
@@ -754,14 +828,77 @@ export function programsOf(cmd: string): string[] {
 }
 
 /**
- * K1 ruling 4 — the programs a command line names through an expansion ("$p" status, $'at' now):
- * the shell decides them at run time, so no reader of the text can; the guard refuses them.
+ * K1 rulings 4 and 5 — the programs a command line names through an expansion: a variable ("$p"
+ * status, "$DIR/echo" hi), $'…' ($'at' now), a substitution ($(echo /bin/systemctl) status,
+ * `echo at` now) or a glob (/usr/bin/a? now, e*ho hi) — read by the whole word, never by its base
+ * name. The shell decides them at run time, so no reader of the text can; the guard refuses them.
+ * A leading ~ is not one (the home directory keeps the program's name), nor a lone `[` (test).
  */
+const UNREADABLE_WORD = /[$`*?]|\[[^\]]*\]/;
 export function unreadablePrograms(cmd: string): string[] {
   return shellSegments(cmd)
     .map((toks) => segmentProgram(toks))
-    .filter((segment) => segment.dynamic && /[$`]/.test(segment.program))
-    .map((segment) => segment.program);
+    .filter((segment) => segment.dynamic && UNREADABLE_WORD.test(segment.word))
+    .map((segment) => segment.word);
+}
+
+/**
+ * K1 ruling 5 (DEC-270) — DATA IS INERT ONLY WHERE ITS CONSUMER NEVER RUNS IT. The programs that
+ * never run the strings or the heredoc bodies they are handed; git only for the subcommands that
+ * do not (no `-c` configuration, no `--exec`). A command whose every program is one of these may
+ * have its quoted data blanked for a text rule (blankInertData); any other — bash -c '…', a body
+ * fed to bash, an argument of a program the guard does not know — is read whole.
+ */
+const DATA_ONLY = new Set([
+  "cat",
+  "cd",
+  "cut",
+  "diff",
+  "echo",
+  "egrep",
+  "fgrep",
+  "false",
+  "git",
+  "grep",
+  "head",
+  "ls",
+  "printf",
+  "pwd",
+  "rg",
+  "sha256sum",
+  "sort",
+  "tail",
+  "tee",
+  "test",
+  "tr",
+  "true",
+  "uniq",
+  "wc",
+  "[",
+]);
+const GIT_DATA_ONLY = new Set([
+  "add",
+  "commit",
+  "diff",
+  "grep",
+  "log",
+  "ls-files",
+  "notes",
+  "rev-parse",
+  "show",
+  "status",
+  "tag",
+]);
+export function runsOnlyDataPrograms(cmd: string): boolean {
+  return shellSegments(cmd).every((toks) => {
+    const { program, word, args, dynamic } = segmentProgram(toks);
+    if (program === "") return true;
+    if ((dynamic && UNREADABLE_WORD.test(word)) || !DATA_ONLY.has(program)) return false;
+    if (program !== "git") return true;
+    if (args.some((a) => a.v === "-c" || a.v === "--config-env" || a.v.startsWith("--exec")))
+      return false;
+    return args.some((a) => GIT_DATA_ONLY.has(a.v));
+  });
 }
 
 /**
