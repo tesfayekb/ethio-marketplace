@@ -9,6 +9,8 @@ import {
   currentSession,
   forgetStoredSession,
   getSupabase,
+  neverReachedTheServer,
+  projectEnv,
   storedSessionKey,
 } from "@/lib/supabase-door";
 
@@ -411,13 +413,13 @@ async function currentPasswordProof(supabase: Client, currentPassword: string) {
   const email = userData.user?.email;
   if (!email) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
 
-  const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
-  if (!url || !key) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
+  // Turn 34c-2 — the project's address and key through the door (CF-PROJECT-1).
+  const project = projectEnv();
+  if (project === null) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
 
   // DEC-261 — the second client's code arrives with the first, never on a first download.
   const { createClient } = await supabaseJs.load();
-  const verifier = createClient<Database>(url, key, {
+  const verifier = createClient<Database>(project.url, project.key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
   const { error: verifyError } = await verifier.auth.signInWithPassword({
@@ -471,7 +473,8 @@ export async function sessionRehydration(): Promise<"session" | "none" | "unavai
   try {
     return (await rehydrate(supabase)) ? "session" : "none";
   } catch (error) {
-    // The client loaded; its own session read threw: unread, never "no session".
+    // The client loaded; its own session read threw, or its refresh never reached the server
+    // (INC-931): unread, never "no session".
     console.warn(`[auth] the session could not be read: ${errorText(error)}`);
     return "unavailable";
   }
@@ -497,6 +500,10 @@ async function rehydrate(supabase: Client): Promise<boolean> {
     const { data, error } = await supabase.auth.refreshSession({
       refresh_token: tokens.refresh_token,
     });
+    // INC-931 (turn 34c-2, DEC-273) — a refresh that never reached the server (offline, a timeout)
+    // proves nothing about the session: it stays stored, and the read is unknown —
+    // sessionRehydration answers "unavailable". The eviction is for a refresh the server refused.
+    if (error !== null && neverReachedTheServer(error)) throw error;
     if (error || !data.session) {
       await evictExpiredSession(supabase);
       return false;

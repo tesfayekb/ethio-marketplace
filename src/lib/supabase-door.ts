@@ -78,8 +78,13 @@ export function getSupabase(): Promise<Client> {
   return door.load();
 }
 
-/** The project's URL and publishable key, read as the client module reads them. */
-function projectEnv(): { url: string; key: string } | null {
+/**
+ * The project's public address and publishable key, read as the client module reads them (dev
+ * serves VITE_*; the deployed Worker serves the unprefixed pair). Turn 34c-2: the one place browser
+ * and route code reads them (CF-PROJECT-1) — a second reading drifts (a trailing slash, a server
+ * pair one reader forgot, a local address one regex could not read).
+ */
+export function projectEnv(): { url: string; key: string } | null {
   const url = import.meta.env.VITE_SUPABASE_URL || process.env["SUPABASE_URL"];
   const key =
     import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env["SUPABASE_PUBLISHABLE_KEY"];
@@ -100,6 +105,25 @@ export function authStorageKey(url: string): string | null {
 export function storedSessionKey(): string | null {
   const env = projectEnv();
   return env === null ? null : authStorageKey(env.url);
+}
+
+/**
+ * A name beside the stored session, `sb-<project ref>-<name>` — what the app keeps with the
+ * session (its clocks) carries the prefix the client's own key carries, so a browser that holds
+ * two projects' sessions keeps two sets apart. Null without a URL (turn 34c-2).
+ */
+export function besideStoredSession(name: string): string | null {
+  const key = storedSessionKey();
+  return key === null ? null : `${key.slice(0, -"auth-token".length)}${name}`;
+}
+
+/**
+ * auth-js's own test of an auth call that never reached the server — offline, a timeout:
+ * `AuthRetryableFetchError` (auth-js isAuthRetryableFetchError), read by its name so the client's
+ * code stays off the first download. Such a call proves nothing about the session (INC-914, INC-931).
+ */
+export function neverReachedTheServer(error: { name?: unknown } | null): boolean {
+  return error !== null && error.name === "AuthRetryableFetchError";
 }
 
 /** A framed page: a superset of the preview broker's rule (previewAuthStorage.ts). */
@@ -203,7 +227,7 @@ export async function currentSession(): Promise<SessionRead> {
     // SIGNED_OUT: a signed-out visitor, known. One that never reached the server (auth-js's
     // AuthRetryableFetchError — offline, a timeout) leaves the session stored and unread: unknown
     // until the next refresh (INC-914).
-    if (error.name !== "AuthRetryableFetchError") return { session: null, failed: false };
+    if (!neverReachedTheServer(error)) return { session: null, failed: false };
     console.warn(`[supabase-door] the session could not be refreshed: ${errorText(error)}`);
     return { session: data.session, failed: true, error };
   } catch (error) {
