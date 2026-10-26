@@ -1,5 +1,7 @@
 # Foundations — turn 34c-3: completion report
 
+Latest readable CI at report time: commit `cd3e00dd`, run 40392505916, SUCCESS (2026-10-26T20:45:49Z); run 40397087967 on BASE not yet published.
+
 Brief: `docs/governance/briefs/foundations-turn-34c-3.md` — sha256 `9495916bcafcb22aca91e1ed35cffa4c97c164f3cc362e0a0544413549f57c17`, 44754 bytes (matches the carrying message).
 
 ## 1. Done by part
