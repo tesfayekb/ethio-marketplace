@@ -267,15 +267,20 @@ function AuthScreen() {
 
     const address = email.trim();
     setBusy(true);
-    const result = isSignIn
-      ? await signIn({ email: address, password })
-      : await signUp(
-          { email: address, password },
-          inForce.data && inForce.data.length > 0
-            ? { versionIds: inForce.data, language }
-            : undefined,
-        );
-    setBusy(false);
+    // INC-915 — busy ends in a finally: no throw leaves the form disabled.
+    let result: Awaited<ReturnType<typeof signIn>>;
+    try {
+      result = isSignIn
+        ? await signIn({ email: address, password })
+        : await signUp(
+            { email: address, password },
+            inForce.data && inForce.data.length > 0
+              ? { versionIds: inForce.data, language }
+              : undefined,
+          );
+    } finally {
+      setBusy(false);
+    }
 
     if (!result.ok) {
       setErrorKey(result.errorKey);
@@ -316,9 +321,14 @@ function AuthScreen() {
     setCooldown(RESEND_COOLDOWN_SECONDS);
 
     setBusy(true);
-    const result = await resendConfirmation(address);
-    setBusy(false);
-    resendInFlightRef.current = false;
+    // INC-915 — busy and the in-flight lock end in a finally: no throw leaves them engaged.
+    let result: Awaited<ReturnType<typeof resendConfirmation>>;
+    try {
+      result = await resendConfirmation(address);
+    } finally {
+      setBusy(false);
+      resendInFlightRef.current = false;
+    }
     if (result.ok) {
       setResendSent(true);
     } else {
@@ -339,12 +349,15 @@ function AuthScreen() {
     setCanResend(false);
     setBusy(true);
     // INC-224 — the Google door carries the same return path the email door does.
-    const result = await signInWithGoogle(afterSignIn);
-
-    if (!result.ok) {
-      setBusy(false);
-      setErrorKey(result.errorKey);
+    let result: Awaited<ReturnType<typeof signInWithGoogle>> | undefined;
+    try {
+      result = await signInWithGoogle(afterSignIn);
+    } finally {
+      // INC-915 — only a door that answered success keeps busy on (the browser navigates away).
+      if (result === undefined || !result.ok) setBusy(false);
     }
+
+    if (!result.ok) setErrorKey(result.errorKey);
   }
 
   /**
@@ -374,9 +387,13 @@ function AuthScreen() {
     setCooldown(RESEND_COOLDOWN_SECONDS);
 
     setBusy(true);
-    await requestPasswordReset(address);
-    setBusy(false);
-    resendInFlightRef.current = false;
+    // INC-915 — busy and the in-flight lock end in a finally: no throw leaves them engaged.
+    try {
+      await requestPasswordReset(address);
+    } finally {
+      setBusy(false);
+      resendInFlightRef.current = false;
+    }
     setResetRequested(true);
   }
 

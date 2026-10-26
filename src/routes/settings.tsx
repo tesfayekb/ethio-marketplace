@@ -24,6 +24,7 @@ import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { getSupabase } from "@/lib/supabase-door";
+import { errorText } from "@/lib/error-text";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
@@ -166,7 +167,15 @@ function SettingsScreen() {
         return;
       }
       hadSession.current = true;
-      const supabase = await getSupabase();
+      // INC-915 — a failed download leaves member-since unknown and ends the session check.
+      let supabase: Awaited<ReturnType<typeof getSupabase>>;
+      try {
+        supabase = await getSupabase();
+      } catch (error) {
+        console.error(`[client-error] settings: the client did not load: ${errorText(error)}`);
+        if (active) setCheckingSession(false);
+        return;
+      }
       const { data } = await supabase.auth.getUser();
       if (!active || user === null) return;
       setMemberSince(data.user?.created_at ?? null);

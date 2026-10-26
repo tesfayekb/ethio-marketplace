@@ -2,6 +2,7 @@ import type { EmailOtpType, UserIdentity } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
+import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 import { safeReturnPath } from "@/lib/return-path";
 import { currentSession, getSupabase, storedSessionKey } from "@/lib/supabase-door";
@@ -18,6 +19,28 @@ import type {
 
 /** DEC-261 — supabase-js itself, for the current-password verifier only; fetched once on demand. */
 const supabaseJs = loadOnce(() => import("@supabase/supabase-js"));
+
+type Client = Awaited<ReturnType<typeof getSupabase>>;
+
+/** The answer of an action whose client did not load (INC-915). */
+const CLIENT_FAILED: { ok: false; errorKey: "auth.errorGeneric" } = {
+  ok: false,
+  errorKey: "auth.errorGeneric",
+};
+
+/**
+ * INC-915 (Foundations turn 34, ruling 2) — THE ONE PLACE THIS FILE ASKS THE DOOR FOR THE
+ * CLIENT. A failed download is a failed action: logged here, answered as null, and each
+ * action returns its own failure answer — never a rejection that leaves a screen busy.
+ */
+async function authClient(): Promise<Client | null> {
+  try {
+    return await getSupabase();
+  } catch (error) {
+    console.error("[client-error] the sign-in code did not load:", errorText(error));
+    return null;
+  }
+}
 
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
@@ -68,7 +91,8 @@ export async function signUp(
   { email, password }: Credentials,
   legalAccept?: { versionIds: string[]; language: string },
 ): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.signUp({
     email,
     password,
@@ -168,8 +192,7 @@ function storedSessionIsExpired(): boolean {
  * can land after the new one. `scope: "local"` only: this browser's stale
  * token is the problem, the user's other devices are not.
  */
-async function evictExpiredSession(): Promise<void> {
-  const supabase = await getSupabase();
+async function evictExpiredSession(supabase: Client): Promise<void> {
   if (!storedSessionIsExpired()) return;
   try {
     await supabase.auth.signOut({ scope: "local" });
@@ -184,8 +207,10 @@ async function evictExpiredSession(): Promise<void> {
  * the access token the grant just issued. Bounded (≈3 s) and polled, because
  * the write goes through auth-js's storage lock.
  */
-async function awaitSessionCommit(accessToken: string | undefined): Promise<boolean> {
-  const supabase = await getSupabase();
+async function awaitSessionCommit(
+  supabase: Client,
+  accessToken: string | undefined,
+): Promise<boolean> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
     const session = (await supabase.auth.getSession()).data.session;
     if (session && (accessToken === undefined || session.access_token === accessToken)) return true;
@@ -195,8 +220,9 @@ async function awaitSessionCommit(accessToken: string | undefined): Promise<bool
 }
 
 export async function signInWithPassword({ email, password }: Credentials): Promise<AuthResult> {
-  const supabase = await getSupabase();
-  await evictExpiredSession();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
+  await evictExpiredSession(supabase);
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -204,7 +230,7 @@ export async function signInWithPassword({ email, password }: Credentials): Prom
   });
   if (error) return failure(error);
   // F4 — a sign-in that cannot be shown to hold a session is NOT a success.
-  if (!(await awaitSessionCommit(data.session?.access_token))) {
+  if (!(await awaitSessionCommit(supabase, data.session?.access_token))) {
     console.error("[ssr-error] /auth sign-in granted but no session committed");
     return { ok: false, errorKey: "auth.errorGeneric", emailNotConfirmed: false };
   }
@@ -221,7 +247,8 @@ export async function signInWithPassword({ email, password }: Credentials): Prom
  * seller sent to sign in from the wizard lands back on the wizard.
  */
 export async function signInWithGoogle(returnPath?: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
@@ -234,7 +261,8 @@ export async function signInWithGoogle(returnPath?: string): Promise<AuthResult>
 }
 
 export async function resendConfirmation(email: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.resend({
     type: "signup",
     email,
@@ -245,7 +273,8 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
 }
 
 export async function signOut(): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.signOut();
   if (error) return failure(error);
   return { ok: true };
@@ -256,7 +285,8 @@ export async function signOut(): Promise<AuthResult> {
  * Server-side revocation — the only authority (law F3).
  */
 export async function signOutOtherDevices(): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.signOut({ scope: "others" });
   if (error) return failure(error);
   return { ok: true };
@@ -264,7 +294,8 @@ export async function signOutOtherDevices(): Promise<AuthResult> {
 
 /** Linked sign-in methods, flattened. Read-only. */
 export async function getIdentities(): Promise<IdentitiesResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { data, error } = await supabase.auth.getUserIdentities();
   if (error || !data) return { ok: false, errorKey: toErrorKey(error ?? { message: "" }) };
   return {
@@ -282,7 +313,8 @@ export async function getIdentities(): Promise<IdentitiesResult> {
  * scopes and same return target as the sign-in door — one source of truth.
  */
 export async function linkGoogleIdentity(): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.linkIdentity({
     provider: "google",
     options: { redirectTo: emailRedirectUrl(), scopes: "email profile openid" },
@@ -297,7 +329,8 @@ export async function linkGoogleIdentity(): Promise<AuthResult> {
  * is surfaced through `auth.errorLastMethod`.
  */
 export async function unlinkProviderIdentity(identityId: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { data, error: readError } = await supabase.auth.getUserIdentities();
   if (readError || !data) return failure(readError ?? { message: "" });
 
@@ -323,8 +356,9 @@ export async function changePassword(
   currentPassword: string,
   newPassword: string,
 ): Promise<AuthResult> {
-  const supabase = await getSupabase();
-  const verified = await verifyCurrentPassword(currentPassword);
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
+  const verified = await verifyCurrentPassword(supabase, currentPassword);
   if (!verified.ok) return verified;
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
@@ -343,16 +377,18 @@ export async function changePassword(
  * `auth.errorWrongCurrentPassword` and nothing else runs. Bundle 11 turn C4
  * (D143): Remove password asks for it too.
  */
-async function verifyCurrentPassword(currentPassword: string): Promise<AuthResult> {
-  const proof = await currentPasswordProof(currentPassword);
+async function verifyCurrentPassword(
+  supabase: Client,
+  currentPassword: string,
+): Promise<AuthResult> {
+  const proof = await currentPasswordProof(supabase, currentPassword);
   if (!proof.ok) return proof;
   const { error } = await proof.release();
   if (error) console.warn("[auth] password verifier release failed", error.message);
   return { ok: true };
 }
 
-async function currentPasswordProof(currentPassword: string) {
-  const supabase = await getSupabase();
+async function currentPasswordProof(supabase: Client, currentPassword: string) {
   const { data: userData } = await supabase.auth.getUser();
   const email = userData.user?.email;
   if (!email) return { ok: false as const, errorKey: "auth.errorGeneric" as const };
@@ -381,7 +417,8 @@ async function currentPasswordProof(currentPassword: string) {
  * until both are opened.
  */
 export async function changeEmail(newEmail: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.updateUser(
     { email: newEmail },
     { emailRedirectTo: emailRedirectUrl() },
@@ -402,7 +439,8 @@ export async function changeEmail(newEmail: string): Promise<AuthResult> {
  */
 export async function hasSessionRehydrating(): Promise<boolean> {
   if (typeof window === "undefined") return false;
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return false;
 
   const direct = (await supabase.auth.getSession()).data.session;
   if (direct) return true;
@@ -424,7 +462,7 @@ export async function hasSessionRehydrating(): Promise<boolean> {
       refresh_token: tokens.refresh_token,
     });
     if (error || !data.session) {
-      await evictExpiredSession();
+      await evictExpiredSession(supabase);
       return false;
     }
     return true;
@@ -454,7 +492,8 @@ export async function hasSessionRehydrating(): Promise<boolean> {
  *   - legacy PKCE: `?code=...`                      → exchangeCodeForSession (best effort)
  */
 export async function completeEmailVerification(): Promise<VerificationResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return { ok: false, hadError: true };
   const url = new URL(window.location.href);
   const hash = new URLSearchParams(url.hash.startsWith("#") ? url.hash.slice(1) : "");
   const hasErrorParam = Boolean(
@@ -516,7 +555,8 @@ export async function completeEmailVerification(): Promise<VerificationResult> {
 
 /** Does the CURRENT user have a usable password? Server-answered. */
 export async function hasPassword(): Promise<PasswordStateResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { data, error } = await supabase.rpc("has_password");
   if (error) return { ok: false, errorKey: toErrorKey(error) };
   return { ok: true, hasPassword: Boolean(data) };
@@ -527,9 +567,10 @@ export async function hasPassword(): Promise<PasswordStateResult> {
  * identity remains; that refusal is surfaced as `auth.errorLastMethod`.
  */
 export async function removeOwnPassword(currentPassword: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   // DEC-242: keep GoTrue's password-proof session alive until the door answers.
-  const verified = await currentPasswordProof(currentPassword);
+  const verified = await currentPasswordProof(supabase, currentPassword);
   if (!verified.ok) return verified;
   let removed = false;
   try {
@@ -567,7 +608,8 @@ export function resetRedirectUrl(): string {
  * operators; only the enumeration signal is withheld.
  */
 export async function requestPasswordReset(email: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: resetRedirectUrl(),
     captchaToken: getCaptchaToken(),
@@ -584,7 +626,8 @@ export async function requestPasswordReset(email: string): Promise<AuthResult> {
  * surfaced — never swallowed.
  */
 export async function completePasswordReset(newPassword: string): Promise<AuthResult> {
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return CLIENT_FAILED;
   const session = (await supabase.auth.getSession()).data.session;
   if (!session) return { ok: false, errorKey: "auth.errorResetLinkInvalid" };
 
@@ -614,7 +657,8 @@ export async function fetchPreferredLanguage(): Promise<
   const { session } = await currentSession();
   const userId = session?.user?.id;
   if (!userId) return { code: null, reason: "no session" };
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return { code: null, reason: "the client did not load" };
 
   const { data, error } = await supabase
     .from("profiles")
@@ -635,7 +679,8 @@ export async function savePreferredLanguage(
   // DEC-261 — a signed-out device's star is the ordinary case: no client is fetched for it.
   const { session } = await currentSession();
   if (!session) return { ok: false, reason: "no session" };
-  const supabase = await getSupabase();
+  const supabase = await authClient();
+  if (supabase === null) return { ok: false, reason: "the client did not load" };
 
   const { error } = await supabase.rpc("user_set_preferred_language", { p_code: code as string });
   if (error) return { ok: false, reason: error.message };
