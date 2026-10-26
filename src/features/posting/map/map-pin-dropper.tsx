@@ -3,11 +3,13 @@ import { createPortal } from "react-dom";
 import type * as Leaflet from "leaflet";
 
 import { Z_SHEET } from "@/components/layout/layers";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+import { errorText } from "@/lib/error-text";
 
 import { fill } from "../refusal-text";
 import { readOutline, reverseStreet, searchPlaces, type GeoPlace, type GeoReason } from "./geocode";
@@ -121,6 +123,7 @@ export function MapPinDropper({
   const [results, setResults] = useState<GeoPlace[]>([]);
   const [searching, setSearching] = useState(false);
   const [notice, setNotice] = useState<MessageKey | null>(null);
+  const [mapFailed, setMapFailed] = useState(false);
   const [state, setState] = useState<"idle" | "busy" | "failed">("idle");
 
   function judgeOutside(lat: number, lng: number) {
@@ -258,8 +261,13 @@ export function MapPinDropper({
           }
         });
       })
-      .catch(() => {
-        setNotice("post.pin.geocodeUnavailable");
+      .catch((error: unknown) => {
+        // INC-911 — the map's code did not download (or the map could not be drawn): its place
+        // says so and offers a refresh, the one cure — the browser keeps a failed download for
+        // the page's life (INC-918). It said "the place search is unavailable, tap the map",
+        // with no map to tap.
+        console.error(`[client-error] the pin map failed to load: ${errorText(error)}`);
+        if (!cancelled) setMapFailed(true);
       });
 
     return () => {
@@ -440,6 +448,13 @@ export function MapPinDropper({
             data-outline="0"
             data-provider={backup ? "osm" : planRef.current.provider}
           />
+          {mapFailed && (
+            <LoadFailedHere
+              testid="post-pin-load-failed"
+              refreshTestid="post-pin-load-refresh"
+              className="items-start text-start"
+            />
+          )}
           <p
             className="text-end text-xs text-muted-foreground"
             data-testid="post-pin-credit"

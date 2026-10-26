@@ -2,9 +2,9 @@ import { useMatches } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Spinner } from "@/components/brand/spinner";
-import { Button } from "@/components/ui/button";
 import { isStringsLayer, useI18n, useStringsLayers, type StringsLayer } from "@/i18n";
 
+import { LoadFailedHere } from "./on-demand-notice";
 import { declaredLayers } from "./strings-layers";
 
 /**
@@ -13,7 +13,10 @@ import { declaredLayers } from "./strings-layers";
  * declare layers (staticData.strings), it asks for them and draws the route
  * only once they are in — a waiting line meanwhile, an error line with Try
  * again if a load fails (F4: its own lines ride in the first paint, so it is
- * never blank). A page that declares none draws at once, unchanged.
+ * never blank). A page that declares none draws at once, unchanged. INC-911 —
+ * the layers are code fetched on demand, and the browser keeps a failed download
+ * for the page's life, so the error line offers to refresh the page (the one
+ * cure, src/lib/on-demand-failure.ts) in the words the shell's notice uses.
  */
 export function StringsLayerGate({ children }: { children: ReactNode }) {
   const { t } = useI18n();
@@ -25,16 +28,11 @@ export function StringsLayerGate({ children }: { children: ReactNode }) {
   const strings = useStringsLayers(layers);
   if (strings.state === "failed") {
     return (
-      <div
-        role="alert"
-        data-testid="strings-layer-failed"
-        className="flex min-h-40 flex-col items-center justify-center gap-3 text-sm text-muted-foreground"
-      >
-        {t("auth.errorGeneric")}
-        <Button data-testid="strings-layer-retry" onClick={strings.retry}>
-          {t("common.tryAgain")}
-        </Button>
-      </div>
+      <LoadFailedHere
+        testid="strings-layer-failed"
+        refreshTestid="strings-layer-refresh"
+        className="min-h-40 justify-center gap-3"
+      />
     );
   }
   if (strings.state !== "ready") {

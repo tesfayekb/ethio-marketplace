@@ -528,7 +528,6 @@ export const enMember = {
   "post.who.showToSignedIn": "Show to signed-in buyers",
   "post.who.countryWhereHint": "Where you live. We use it for your default currency.",
   "post.who.phoneLibFailed": "The phone box could not be loaded.",
-  "post.who.phoneLibRetry": "Try again",
   "post.who.aliasRules": "5 to 30 small Latin letters, numbers or _. Start with a letter.",
   "post.who.aliasAvailable": "This name is free. It becomes yours when you save this step.",
   "post.who.aliasSuggestions": "Free names you can use:",

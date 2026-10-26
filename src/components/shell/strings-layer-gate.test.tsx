@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * DEC-258 — the shell's one gate for the strings layers: a page that declares
  * none draws at once; a page that declares one waits for it, says so when it
- * fails (with Try again), and draws once it is in.
+ * fails (with Refresh page — INC-911), and draws once it is in.
  */
 
 const state = vi.hoisted(() => ({
@@ -14,6 +14,8 @@ const state = vi.hoisted(() => ({
   retry: vi.fn(),
 }));
 
+const refreshed = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/on-demand-failure", () => ({ refreshPage: refreshed }));
 vi.mock("@tanstack/react-router", () => ({
   useMatches: ({ select }: { select: (matches: unknown[]) => unknown }) => select(state.matches),
 }));
@@ -42,6 +44,7 @@ beforeEach(() => {
   state.layers = "loading";
   state.asked = [];
   state.retry.mockReset();
+  refreshed.mockReset();
 });
 
 describe("StringsLayerGate (DEC-258)", () => {
@@ -60,14 +63,14 @@ describe("StringsLayerGate (DEC-258)", () => {
     expect(state.asked.at(-1)).toEqual(["member"]);
   });
 
-  it("SLG-3 a failed layer says so, with Try again that asks again", () => {
+  it("SLG-3 a failed layer says so, and offers to refresh the page (INC-911)", () => {
     state.matches = [{ staticData: { strings: ["admin", "member"] } }];
     state.layers = "failed";
     draw();
-    expect(screen.getByTestId("strings-layer-failed").textContent).toContain("auth.errorGeneric");
+    expect(screen.getByTestId("strings-layer-failed").textContent).toContain("common.loadFailed");
     expect(screen.queryByTestId("route")).toBeNull();
-    fireEvent.click(screen.getByTestId("strings-layer-retry"));
-    expect(state.retry).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByTestId("strings-layer-refresh"));
+    expect(refreshed).toHaveBeenCalledTimes(1);
     expect(state.asked.at(-1)).toEqual(["admin", "member"]);
   });
 

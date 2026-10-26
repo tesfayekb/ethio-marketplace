@@ -12,9 +12,20 @@ vi.mock("@/components/shell/location-data", () => ({
   readAreaCookie: () => ({ country: "ET" }),
   useOpenMarkets: () => ({ markets: [] }),
 }));
+const phone = vi.hoisted(() => ({ fails: false }));
+const refresh = vi.hoisted(() => ({ calls: 0 }));
 vi.mock("./phone-parse", async (original) => ({
   ...(await original<typeof import("./phone-parse")>()),
-  loadPhoneLib: async () => null,
+  loadPhoneLib: async () => {
+    if (phone.fails) throw new TypeError("Failed to fetch dynamically imported module");
+    return null;
+  },
+}));
+vi.mock("@/lib/on-demand-failure", async (original) => ({
+  ...(await original<typeof import("@/lib/on-demand-failure")>()),
+  refreshPage: () => {
+    refresh.calls += 1;
+  },
 }));
 vi.mock("./posting-service", () => ({
   readSellerIdentity: async () => ({
@@ -84,4 +95,37 @@ it("D231 the contact step closes Next until every required answer is given", asy
   );
   expect(first).not.toHaveAttribute("aria-invalid");
   view?.unmount();
+});
+
+it("PLF-1 a phone library that cannot download says so in place and offers a refresh, not a retry (INC-911)", async () => {
+  phone.fails = true;
+  refresh.calls = 0;
+  const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  try {
+    let view: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      view = render(
+        <StepWho
+          contactPref={{ messages: true }}
+          refusals={[]}
+          onChange={() => {}}
+          onMissing={() => {}}
+        />,
+      );
+    });
+    const failed = await screen.findByTestId("post-who-phone-lib-failed");
+    expect(failed).toHaveTextContent("post.who.phoneLibFailed");
+    const button = screen.getByTestId("post-who-phone-lib-refresh");
+    expect(button).toHaveTextContent("common.refreshPage");
+    expect(screen.queryByText("post.who.phoneLibRetry")).toBeNull();
+    fireEvent.click(button);
+    expect(refresh.calls).toBe(1);
+    expect(log).toHaveBeenCalledWith(
+      expect.stringContaining("[client-error] the phone library failed to load"),
+    );
+    view?.unmount();
+  } finally {
+    log.mockRestore();
+    phone.fails = false;
+  }
 });

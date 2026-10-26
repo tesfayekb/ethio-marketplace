@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 import type { DateCalendarProps } from "./date-calendar";
 import { isoDay, parseDay } from "./date-day";
+import { LoadFailedHere } from "./on-demand-notice";
 import { formatLocale } from "@/lib/format-locale";
 
 /**
@@ -36,15 +37,16 @@ function firstOfMonth(date: Date): Date {
  * never with the page: the wizard, the audit log and the listings console
  * carried it on their first load. The field itself is unchanged; the box under it
  * holds its place while the calendar arrives, focusing or pressing the field
- * starts the download early, and a download that fails says so with a "Try again"
- * that asks once more — the page never breaks over it.
+ * starts the download early, and a download that fails says so in the calendar's
+ * place with a Refresh (LoadFailedHere, INC-911) — the browser keeps a failed
+ * download for the page's life (INC-918); the page never breaks over it.
  */
 type CalendarComponent = (props: DateCalendarProps) => JSX.Element;
 const CALENDAR = loadOnce<CalendarComponent>(() =>
   import("./date-calendar").then((module) => module.default),
 );
 // An early start on focus or press: a failure here is answered when the field opens —
-// the effect in DateField asks again, logs a failure and offers "Try again".
+// the effect in DateField asks again, logs the failure and says so in place.
 const startCalendar = () => {
   CALENDAR.load().catch(() => undefined);
 };
@@ -176,15 +178,13 @@ export function DateField({
               className="flex h-80 items-center justify-center rounded-md border border-border"
             >
               {calendarFailed ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="touch"
-                  data-testid={`${testid}-calendar-retry`}
-                  onClick={() => setCalendarFailed(false)}
-                >
-                  {t("common.tryAgain")}
-                </Button>
+                // INC-911 — the browser keeps a failed download for the page's life: the
+                // calendar's place says so and offers a refresh, as the shell's notice does.
+                <LoadFailedHere
+                  testid={`${testid}-calendar-failed`}
+                  refreshTestid={`${testid}-calendar-refresh`}
+                  className="px-4"
+                />
               ) : null}
             </div>
           )}

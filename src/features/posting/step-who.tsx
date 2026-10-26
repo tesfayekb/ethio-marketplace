@@ -29,6 +29,9 @@ import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel, normalizeTelegram } from "./validate";
 import { formatLocale } from "@/lib/format-locale";
+import { errorText } from "@/lib/error-text";
+import { refreshPage } from "@/lib/on-demand-failure";
+import { Button } from "@/components/ui/button";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -202,7 +205,7 @@ export function StepWho({
   const [countryConfirming, setCountryConfirming] = useState(false);
   const [countryChangeRefusal, setCountryChangeRefusal] = useState<Refusal | null>(null);
 
-  /** Step 11 — the phone library, loaded when this step opens; a failure offers a retry. */
+  /** Step 11 — the phone library, loaded when this step opens; a failure offers a refresh (INC-911). */
   const [phoneLib, setPhoneLib] = useState<PhoneLib | null>(null);
   const [phoneLibFailed, setPhoneLibFailed] = useState(false);
   const loadLib = useCallback(() => {
@@ -212,7 +215,8 @@ export function StepWho({
         if (aliveRef.current) setPhoneLib(lib);
       },
       (error: unknown) => {
-        console.error("[phone-lib] load failed", error);
+        // INC-911 — the in-place say-so logs the line every on-demand failure logs.
+        console.error(`[client-error] the phone library failed to load: ${errorText(error)}`);
         if (aliveRef.current) setPhoneLibFailed(true);
       },
     );
@@ -998,14 +1002,16 @@ export function StepWho({
             data-testid="post-who-phone-lib-failed"
           >
             <span>{t("post.who.phoneLibFailed")}</span>
-            <button
+            {/* INC-911 — the browser keeps a failed download for the page's life: a refresh, not a retry. */}
+            <Button
               type="button"
-              className={smallButtonClass}
-              data-testid="post-who-phone-lib-retry"
-              onClick={loadLib}
+              variant="outline"
+              size="touch"
+              data-testid="post-who-phone-lib-refresh"
+              onClick={refreshPage}
             >
-              {t("post.who.phoneLibRetry")}
-            </button>
+              {t("common.refreshPage")}
+            </Button>
           </p>
         )}
         {carriedContact && (
@@ -1114,9 +1120,9 @@ export function StepWho({
                   data-testid={`post-who-unread-${channel}`}
                 >
                   <span>{t("post.who.phoneLibFailed")}</span>
-                  <button type="button" className={smallButtonClass} onClick={loadLib}>
-                    {t("post.who.phoneLibRetry")}
-                  </button>
+                  <Button type="button" variant="outline" size="touch" onClick={refreshPage}>
+                    {t("common.refreshPage")}
+                  </Button>
                 </p>
               )}
               {refusal !== null && (

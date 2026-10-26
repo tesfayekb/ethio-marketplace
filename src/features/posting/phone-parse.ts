@@ -25,8 +25,9 @@ export interface PhoneLib {
 }
 
 /**
- * The one dynamic import, once per visit; a failure is forgotten so a retry can
- * try again (src/lib/load-once.ts — D234 S1).
+ * The one dynamic import, once per visit (src/lib/load-once.ts — D234 S1); a failure
+ * is answered by the phone step with a Refresh (INC-911) — the browser keeps a failed
+ * download for the page's life (INC-918).
  */
 const PHONE_LIB = loadOnce(() =>
   import("libphonenumber-js/min").then((module) => module as unknown as PhoneLib),
