@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `fe0ceeea8b280cb10947d5499d52acd54d9ca6e1`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40259346793
+- Commit: `ba37841d81e43ec78123c49eb27f6fcd1f849e05`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40260842584
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 876 | 116 | applied 345/345 | 188 | 0 | 0 | 60 | 248 |
-| email | 195 | 113 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 721 | 109 | applied 345/345 | 129 | 0 | 0 | 4 | 133 |
-| 2 | 804 | 101 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
-| 3 | 909 | 108 | applied 345/345 | 132 | 1 | 0 | 0 | 133 |
-| 4 | 804 | 120 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 748 | 113 | applied 345/345 | 118 | 0 | 0 | 6 | 124 |
-| 6 | 618 | 96 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 674 | 107 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 616 | 118 | applied 345/345 | 97 | 0 | 0 | 30 | 127 |
-| 9 | 622 | 100 | applied 345/345 | 131 | 0 | 0 | 2 | 133 |
-| 10 | 951 | 106 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 956 | 118 | applied 345/345 | 120 | 0 | 0 | 1 | 121 |
-| 12 | 635 | 115 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 591 | 114 | applied 345/345 | 119 | 0 | 0 | 5 | 124 |
-| 14 | 798 | 117 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 566 | 114 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 498 | 99 | applied 345/345 | 93 | 0 | 0 | 30 | 123 |
-| TOTAL | — | — | — | 2201 | 1 | 0 | 155 | 2357 |
+| smoke | 1266 | 94 | applied 345/345 | 188 | 0 | 0 | 60 | 248 |
+| email | 392 | 117 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 669 | 110 | applied 345/345 | 129 | 0 | 0 | 4 | 133 |
+| 2 | 959 | 120 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
+| 3 | 851 | 103 | applied 345/345 | 132 | 1 | 0 | 0 | 133 |
+| 4 | 915 | 115 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 566 | 105 | applied 345/345 | 118 | 0 | 0 | 6 | 124 |
+| 6 | 664 | 96 | applied 345/345 | 130 | 0 | 1 | 1 | 132 |
+| 7 | 799 | 104 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 606 | 116 | applied 345/345 | 97 | 0 | 0 | 30 | 127 |
+| 9 | 762 | 117 | applied 345/345 | 131 | 0 | 0 | 2 | 133 |
+| 10 | 782 | 97 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 941 | 117 | applied 345/345 | 120 | 0 | 0 | 1 | 121 |
+| 12 | 774 | 119 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 594 | 115 | applied 345/345 | 119 | 0 | 0 | 5 | 124 |
+| 14 | 621 | 95 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 478 | 96 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 562 | 116 | applied 345/345 | 93 | 0 | 0 | 30 | 123 |
+| TOTAL | — | — | — | 2200 | 1 | 1 | 155 | 2357 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 11 956 s
+- Slowest lane: smoke 1266 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40259346793-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40259346793-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40259346793-local-1
-  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40259346793-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40259346793-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40259346793-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40259346793-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40259346793-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40259346793-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40259346793-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40259346793-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40259346793-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40259346793-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40259346793-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40259346793-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40259346793-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40259346793-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40259346793-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40260842584-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40260842584-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40260842584-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40260842584-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40260842584-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40260842584-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40260842584-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40260842584-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40260842584-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40260842584-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40260842584-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40260842584-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40260842584-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40260842584-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40260842584-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40260842584-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40260842584-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40260842584-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -69,5 +69,8 @@ Database container: supabase_db_ethio-ci-local
 
 ## Lane 3
 - admin-translations-governance.spec.ts / U4g bulk approval, order and orphans / TR-31 a scratch language deletes with a typed confirm and leaves no rows / mobile-360 — Error: TR-31: the delete confirmation is not red
+
+## Lane 6
+- post-wizard-pricing.spec.ts / POSTING WIZARD / PW-94 a listing card prints its price period / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
