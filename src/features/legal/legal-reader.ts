@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import type { LegalFacts } from "./legal-markdown";
 import { ownValue } from "@/lib/own-key";
 
@@ -102,7 +102,7 @@ export function legalRefusal(error: unknown): string {
 }
 
 export async function myLegalStatus(kinds: string[]): Promise<LegalStatusRow[]> {
-  const { data, error } = await supabase.rpc("my_legal_status", { p_kinds: kinds });
+  const { data, error } = await rpc("my_legal_status", { p_kinds: kinds });
   if (error) throw error;
   if (!Array.isArray(data)) throw new Error("my_legal_status: invalid answer");
   for (const raw of data) {
@@ -117,7 +117,7 @@ export async function acceptLegal(input: {
   adult: boolean;
   dataConsent: boolean;
 }): Promise<void> {
-  const { error } = await supabase.rpc("accept_legal", {
+  const { error } = await rpc("accept_legal", {
     p_version_ids: input.versionIds,
     p_language: input.language,
     p_adult: input.adult,
@@ -126,7 +126,7 @@ export async function acceptLegal(input: {
   if (error) throw error;
 }
 export async function myLegalHistory(): Promise<MyLegalHistory> {
-  const { data, error } = await supabase.rpc("my_legal_history");
+  const { data, error } = await rpc("my_legal_history");
   if (error) throw error;
   const row = record(data, "my_legal_history");
   if (!Array.isArray(row.acceptances) || !Array.isArray(row.notices))
@@ -149,7 +149,7 @@ export async function myLegalHistory(): Promise<MyLegalHistory> {
 export async function legalInForceIds(kinds: string[]): Promise<string[]> {
   const answers = await Promise.all(
     kinds.map(async (kind) => {
-      const { data, error } = await supabase.rpc("legal_in_force", { p_kind: kind });
+      const { data, error } = await rpc("legal_in_force", { p_kind: kind });
       if (error) throw error;
       return data == null ? null : parseLegalVersion(data, "legal_in_force").version_id;
     }),
@@ -157,7 +157,7 @@ export async function legalInForceIds(kinds: string[]): Promise<string[]> {
   return answers.filter((id): id is string => id !== null);
 }
 export async function myLegalVersion(id: string): Promise<PublicLegalVersion> {
-  const { data, error } = await supabase.rpc("my_legal_version", { p_version_id: id });
+  const { data, error } = await rpc("my_legal_version", { p_version_id: id });
   if (error) throw error;
   return parseLegalVersion(data, "my_legal_version");
 }
@@ -179,7 +179,7 @@ export type ListingCertification = {
   acceptance_pending: boolean;
 };
 export async function myListingCertification(listingId: string): Promise<ListingCertification> {
-  const { data, error } = await supabase.rpc("my_listing_certification", {
+  const { data, error } = await rpc("my_listing_certification", {
     p_listing_id: listingId,
   });
   if (error) throw error;

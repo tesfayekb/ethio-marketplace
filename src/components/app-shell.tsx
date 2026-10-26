@@ -51,10 +51,10 @@ import {
 import { LegalGate } from "@/features/legal/legal-gate";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
-import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { errorText } from "@/lib/error-text";
+import { getSupabase } from "@/lib/supabase-door";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
@@ -767,7 +767,15 @@ export function AppShell({ children }: { children: ReactNode }) {
    */
   useEffect(() => {
     if (!isE2E || typeof window === "undefined") return;
-    (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = supabase;
+    // DEC-261 — the client through its door, asked for at mount in an E2E build — except where a
+    // test's init script set `__ethioClientOff` (SBE-1 proves the signed-out path there).
+    if ((window as unknown as { __ethioClientOff?: boolean }).__ethioClientOff !== true)
+      void getSupabase().then(
+        (client) => {
+          (window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase = client;
+        },
+        (error: unknown) => console.warn(`[e2e] the client did not load: ${errorText(error)}`),
+      );
     // U1g-2 — SO-4 proof reads the cache directly to assert the purge.
     (window as unknown as { __ethioQueryClient?: unknown }).__ethioQueryClient = queryClient;
   }, [queryClient]);

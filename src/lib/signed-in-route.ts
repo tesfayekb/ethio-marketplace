@@ -1,5 +1,5 @@
 import { redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { currentSession } from "@/lib/supabase-door";
 
 /**
  * The one door-step of a signed-in screen (INC-852): the session the browser
@@ -11,8 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
  * the server routes stay the authority behind this screen choice.
  */
 export async function requireSignedIn(returnTo: string): Promise<{ userId: string }> {
-  const { data } = await supabase.auth.getSession();
-  const user = data.session?.user ?? null;
+  // DEC-261 — through the client's door: a signed-out visitor is sent on without the client.
+  const { session } = await currentSession();
+  const user = session?.user ?? null;
   if (user === null) throw redirect({ to: "/auth", search: { return: returnTo } });
   return { userId: user.id };
 }

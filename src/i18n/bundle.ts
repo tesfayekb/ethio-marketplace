@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import { errorText } from "@/lib/error-text";
 
 import type { EntityBundleMap } from "./entity";
@@ -51,7 +51,7 @@ export function bundleUrl(lang: string): string {
  * name" (never a blank label).
  */
 export async function fetchEntityBundle(lang: string): Promise<EntityBundleResult> {
-  const { data, error } = await supabase.rpc("get_entity_bundle", { p_lang: lang });
+  const { data, error } = await rpc("get_entity_bundle", { p_lang: lang });
   if (error) return { bundle: null, reason: error.message };
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return { bundle: null, reason: "entity bundle is not an object" };
@@ -112,7 +112,7 @@ export async function fetchUiBundle(lang: string): Promise<BundleResult> {
     );
   }
 
-  const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: lang });
+  const { data, error } = await rpc("get_ui_bundle", { p_lang: lang });
   if (error) return { bundle: null, reason: error.message };
   return shapeBundle(data);
 }

@@ -122,8 +122,9 @@ describe("useLegalGate", () => {
 
 describe("landAfterSignIn (bundle 22 turn 32, INC-823)", () => {
   const session = vi.hoisted(() => ({ value: { user: { id: "u1" } } as unknown }));
-  vi.mock("@/integrations/supabase/client", () => ({
-    supabase: { auth: { getSession: async () => ({ data: { session: session.value } }) } },
+  // DEC-261 — the session through the client's door.
+  vi.mock("@/lib/supabase-door", () => ({
+    currentSession: async () => ({ session: session.value, failed: false }),
   }));
   async function land(deadlineMs?: number) {
     const { landAfterSignIn } = await import("./use-legal-gate");

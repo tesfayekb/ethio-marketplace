@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import { errorText } from "@/lib/error-text";
 
 /**
@@ -49,7 +49,7 @@ export async function beginImpersonation(input: {
   targetId: string;
   reason: string;
 }): Promise<{ sessionId: string; expiresAt: string }> {
-  const { data, error } = await supabase.rpc("begin_impersonation", {
+  const { data, error } = await rpc("begin_impersonation", {
     p_target: input.targetId,
     p_reason: input.reason,
   });
@@ -60,12 +60,12 @@ export async function beginImpersonation(input: {
 }
 
 export async function endImpersonation(sessionId: string): Promise<void> {
-  const { error } = await supabase.rpc("end_impersonation", { p_session: sessionId });
+  const { error } = await rpc("end_impersonation", { p_session: sessionId });
   if (error) throw error;
 }
 
 export async function getActiveImpersonation(): Promise<ActiveImpersonation | null> {
-  const { data, error } = await supabase.rpc("get_active_impersonation");
+  const { data, error } = await rpc("get_active_impersonation");
   if (error) throw error;
   const row = (data ?? [])[0];
   if (!row) return null;
@@ -78,7 +78,7 @@ export async function getActiveImpersonation(): Promise<ActiveImpersonation | nu
 }
 
 export async function getImpersonatedProfile(sessionId: string): Promise<ImpersonatedProfile> {
-  const { data, error } = await supabase.rpc("impersonated_get_profile", { p_session: sessionId });
+  const { data, error } = await rpc("impersonated_get_profile", { p_session: sessionId });
   if (error) throw error;
   const row = (data ?? [])[0];
   if (!row) throw new Error("impersonated_get_profile returned no row");
@@ -97,7 +97,7 @@ export async function listImpersonatedListings(
   limit = 25,
   offset = 0,
 ): Promise<{ rows: ImpersonatedListing[]; totalCount: number }> {
-  const { data, error } = await supabase.rpc("impersonated_list_listings", {
+  const { data, error } = await rpc("impersonated_list_listings", {
     p_session: sessionId,
     p_limit: limit,
     p_offset: offset,

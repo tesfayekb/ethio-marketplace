@@ -1,5 +1,5 @@
 import type { FeedListing } from "@/features/feed/feed-page";
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import type { Json } from "@/integrations/supabase/types";
 
 export type SaveAnswer =
@@ -11,7 +11,7 @@ async function toggle(
   door: "save_listing" | "unsave_listing",
 ): Promise<SaveAnswer> {
   try {
-    const { data, error } = await supabase.rpc(door, { p_public_id: publicId });
+    const { data, error } = await rpc(door, { p_public_id: publicId });
     if (error) {
       console.error(`[save-error] ${door}`, error.message);
       return {
@@ -46,7 +46,7 @@ export const unsaveListing = (publicId: string): Promise<SaveAnswer> =>
 
 export async function listingSaved(publicId: string): Promise<boolean | null> {
   try {
-    const { data, error } = await supabase.rpc("listing_saved", { p_public_id: publicId });
+    const { data, error } = await rpc("listing_saved", { p_public_id: publicId });
     if (error) {
       console.error("[save-error] listing_saved", error.message);
       return null;
@@ -70,7 +70,7 @@ export async function mySaved(
   after: unknown | null,
   size: number,
 ): Promise<{ cards: SavedCard[]; next: unknown | null }> {
-  const { data, error } = await supabase.rpc("my_saved_listings", {
+  const { data, error } = await rpc("my_saved_listings", {
     p_after: after as Json,
     p_size: size,
   });

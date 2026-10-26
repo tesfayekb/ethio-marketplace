@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 
 import { parseAccountPlace, type AccountPlace } from "./place-carry";
 
@@ -20,7 +20,7 @@ export type ReadResult =
 
 /** The owner's read. A failure names its reason (F4); it is never "no place". */
 export async function readAccountPlace(): Promise<ReadResult> {
-  const { data, error } = await supabase.rpc("my_viewing_location");
+  const { data, error } = await rpc("my_viewing_location");
   if (error) return { place: null, reason: error.message };
   const place = parseAccountPlace(data);
   if (place === undefined) return { place: null, reason: "malformed answer" };
@@ -35,7 +35,7 @@ export type SaveResult =
 export async function saveAccountPlace(id: string | null): Promise<SaveResult> {
   // The generated argument type is not nullable; the door takes NULL to clear
   // (the cast the language door's caller uses, auth-service.ts).
-  const { data, error } = await supabase.rpc("user_set_viewing_location", {
+  const { data, error } = await rpc("user_set_viewing_location", {
     p_location: id as string,
   });
   if (error) return { ok: false, reason: error.message };

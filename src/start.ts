@@ -2,7 +2,7 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 
 import { renderErrorPage } from "./lib/error-page";
 import { heldFirstPageAdapter } from "@/features/feed/held-first-page";
-import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+import { attachSessionBearer } from "@/lib/session-bearer";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -29,6 +29,8 @@ const csrfMiddleware = createCsrfMiddleware({
 export const startInstance = createStart(() => ({
   // D234 S6 — the feed's first page travels in the page stream and is read at once on arrival.
   serializationAdapters: [heldFirstPageAdapter],
-  functionMiddleware: [attachSupabaseAuth],
+  // DEC-261 — the bearer through the client's door (src/lib/session-bearer.ts), never the
+  // generated attacher, which imports the whole client into every first download.
+  functionMiddleware: [attachSessionBearer],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
 }));

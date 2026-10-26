@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 
 /**
  * Bundle 19 turn 11 (D201 §6) — THE BUYER'S CONTACT REVEAL. The values never
@@ -34,7 +34,7 @@ export type RevealAnswer =
 const CHANNELS: readonly ContactChannel[] = ["phone", "phone2", "telegram", "whatsapp"];
 
 export async function revealContact(publicId: string): Promise<RevealAnswer> {
-  const { data, error } = await supabase.rpc("reveal_listing_contact", {
+  const { data, error } = await rpc("reveal_listing_contact", {
     p_public_id: publicId,
   } as never);
   if (error) {

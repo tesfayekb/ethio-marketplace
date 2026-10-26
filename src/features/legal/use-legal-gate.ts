@@ -1,5 +1,5 @@
 import { useQuery, type QueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { currentSession } from "@/lib/supabase-door";
 import { useEffect } from "react";
 import { isE2E } from "@/lib/env-flags";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
@@ -84,8 +84,8 @@ export async function landAfterSignIn(input: {
   const { navigate, href, replace, client, deadlineMs = 5000 } = input;
   const land = (target: string) =>
     void navigate(replace === undefined ? { href: target } : { href: target, replace });
-  const { data } = await supabase.auth.getSession();
-  const userId = data.session?.user?.id;
+  const { session } = await currentSession();
+  const userId = session?.user?.id;
   if (!userId) return land(href);
   const kinds = currentGateKinds();
   let timer: ReturnType<typeof setTimeout> | undefined;

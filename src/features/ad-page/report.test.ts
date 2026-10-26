@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const rpc = vi.fn();
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { rpc: (...args: unknown[]) => rpc(...args) },
+// DEC-261 — the database call through the client's door.
+vi.mock("@/lib/supabase-door", () => ({
+  rpc: (...args: unknown[]) => rpc(...args),
 }));
 const { reportListing } = await import("./report");
 beforeEach(() => rpc.mockReset());

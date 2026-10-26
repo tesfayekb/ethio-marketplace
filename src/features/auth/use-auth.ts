@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { clearSessionClocks } from "@/features/session/session-policy";
-import { supabase } from "@/integrations/supabase/client";
+import { errorText } from "@/lib/error-text";
+import { currentSession, getSupabase, onAuthChange } from "@/lib/supabase-door";
 
 import * as authService from "./auth-service";
 import { markDeactivatedSignOut } from "./deactivated";
@@ -15,7 +16,8 @@ type AuthState = {
 
 /**
  * Session + auth actions. Self-contained: it subscribes to Supabase's auth
- * state directly, so no extra React provider is needed in __root.tsx.
+ * state through the client's door (src/lib/supabase-door.ts, DEC-261), so no
+ * extra React provider is needed in __root.tsx.
  */
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ user: null, loading: true });
@@ -64,11 +66,20 @@ export function useAuth() {
       // bundle 16 turn S3 (D189), the account's status: a deactivated account is
       // signed out at every auth event (the first load, a sign-in, a token
       // refresh), so a session deactivated while open ends on its own.
-      const { data } = await supabase
-        .from("profiles")
-        .select("display_name, account_status")
-        .eq("user_id", userId)
-        .maybeSingle();
+      // DEC-261 — the client is here for a signed-in visitor (the door started it); a
+      // client that did not load is a read that failed: fail-open, as above.
+      const { data } = await getSupabase().then(
+        (supabase) =>
+          supabase
+            .from("profiles")
+            .select("display_name, account_status")
+            .eq("user_id", userId)
+            .maybeSingle(),
+        (error: unknown) => {
+          console.warn(`[auth] the profile read could not start: ${errorText(error)}`);
+          return { data: null };
+        },
+      );
       if (stale()) return;
       if (data?.account_status === "deactivated") {
         // INC-650 — the sign-out goes FIRST: the shell navigates to /auth the
@@ -95,17 +106,18 @@ export function useAuth() {
       });
     };
 
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    // DEC-261 — the door: a signed-out visitor hears INITIAL_SESSION null without the client.
+    const subscription = onAuthChange((_event, session) => {
       void applyUser(session?.user?.id, session?.user?.email);
     });
 
-    void supabase.auth.getSession().then(({ data }) => {
-      void applyUser(data.session?.user?.id, data.session?.user?.email);
+    void currentSession().then(({ session }) => {
+      void applyUser(session?.user?.id, session?.user?.email);
     });
 
     return () => {
       cancelled = true;
-      subscription.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 

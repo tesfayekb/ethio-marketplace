@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import { ownValue } from "@/lib/own-key";
 
 export const REPORT_REASONS = [
@@ -23,7 +23,7 @@ export async function reportListing(
   note: string,
 ): Promise<ReportAnswer> {
   try {
-    const { data, error } = await supabase.rpc("report_listing", {
+    const { data, error } = await rpc("report_listing", {
       p_public_id: publicId,
       p_reason: reason,
       p_note: note.trim() === "" ? null : note.trim(),

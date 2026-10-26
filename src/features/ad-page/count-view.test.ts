@@ -2,8 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { countView, viewSessionId } from "./count-view";
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null } }) } },
+// DEC-261 — the session reaches route calls through the client's door.
+vi.mock("@/lib/supabase-door", () => ({
+  currentSession: async () => ({ session: null, failed: false }),
 }));
 
 const ID = "2345678923";

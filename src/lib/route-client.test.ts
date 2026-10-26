@@ -1,8 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { callRoute, downloadRoute, uploadRoute } from "./route-client";
 
-const { getSession } = vi.hoisted(() => ({ getSession: vi.fn() }));
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: { getSession } } }));
+// DEC-261 — the session reaches route calls through the client's door (src/lib/supabase-door.ts).
+const { currentSession } = vi.hoisted(() => ({ currentSession: vi.fn() }));
+vi.mock("@/lib/supabase-door", () => ({ currentSession }));
 const fetchMock = vi.fn();
 const jsonAnswer = (payload: unknown, status = 200) =>
   new Response(JSON.stringify(payload), {
@@ -11,7 +12,7 @@ const jsonAnswer = (payload: unknown, status = 200) =>
   });
 
 beforeEach(() => {
-  getSession.mockReset().mockResolvedValue({ data: { session: null }, error: null });
+  currentSession.mockReset().mockResolvedValue({ session: null, failed: false });
   fetchMock.mockReset().mockResolvedValue(jsonAnswer({}));
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -24,10 +25,10 @@ describe("browser route client", () => {
   it("RCL-1 required without a session sends nothing", async () => {
     expect(await callRoute("/api/x")).toEqual({ kind: "signedOut" });
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(getSession).toHaveBeenCalledTimes(1);
+    expect(currentSession).toHaveBeenCalledTimes(1);
   });
   it("RCL-2 attaches the exact session bearer once", async () => {
-    getSession.mockResolvedValue({ data: { session: { access_token: "test-token" } } });
+    currentSession.mockResolvedValue({ session: { access_token: "test-token" }, failed: false });
     await callRoute("/api/x");
     const [path, init] = fetchMock.mock.calls[0];
     expect(path).toBe("/api/x");
@@ -36,7 +37,7 @@ describe("browser route client", () => {
     expect(init.headers.has("Content-Type")).toBe(false);
     expect(init.method).toBe("GET");
     expect(init.body).toBeUndefined();
-    expect(getSession).toHaveBeenCalledTimes(1);
+    expect(currentSession).toHaveBeenCalledTimes(1);
   });
   it("RCL-3 optional without a session still sends without a bearer", async () => {
     expect((await callRoute("/api/x", { auth: "optional" })).kind).toBe("answered");
@@ -44,7 +45,7 @@ describe("browser route client", () => {
   });
   it("RCL-4 none does not read a session", async () => {
     await callRoute("/api/x", { auth: "none" });
-    expect(getSession).not.toHaveBeenCalled();
+    expect(currentSession).not.toHaveBeenCalled();
   });
   it("RCL-5 JSON alone selects POST and preserves its body", async () => {
     await callRoute("/api/x", { auth: "none", json: { mode: "commit" } });
@@ -275,7 +276,7 @@ describe("uploadRoute — the XHR transport", () => {
   const last = () => XhrDouble.instances[XhrDouble.instances.length - 1];
 
   it("RCL-15 bearer once, progress as (loaded, total), a 200 JSON answer answered", async () => {
-    getSession.mockResolvedValue({ data: { session: { access_token: "test-token" } } });
+    currentSession.mockResolvedValue({ session: { access_token: "test-token" }, failed: false });
     const progress: [number, number][] = [];
     const form = new FormData();
     form.set("photo", new Blob(["x"]), "x.jpg");

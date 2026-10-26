@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { currentSession } from "@/lib/supabase-door";
 
 export type RoutePath = `/api/${string}`;
 export type RouteAuth = "required" | "optional" | "none";
@@ -65,11 +65,14 @@ function readEnvelope(contentType: string, text: string | null, blob: Blob | nul
   return { payload: null, error: null, detail: null, bytes: blob };
 }
 
-/** The session's bearer, read once per call; null when there is no session. */
+/**
+ * The session's bearer, read once per call; null when there is no session. DEC-261:
+ * through the client's door — an anonymous call fetches no client.
+ */
 async function sessionToken(): Promise<{ token: string | null; failed: boolean }> {
-  const { data, error } = await supabase.auth.getSession();
-  if (error) return { token: null, failed: true };
-  return { token: data.session?.access_token ?? null, failed: false };
+  const { session, failed } = await currentSession();
+  if (failed) return { token: null, failed: true };
+  return { token: session?.access_token ?? null, failed: false };
 }
 
 /** One session read, one controller, one envelope reader for browser routes. */

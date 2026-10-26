@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const rpc = vi.hoisted(() => vi.fn());
-vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc } }));
+// DEC-261 — the database call through the client's door.
+vi.mock("@/lib/supabase-door", () => ({ rpc }));
 import { legalTextFor, myListingCertification, parseLegalVersion } from "./legal-reader";
 
 const version = {

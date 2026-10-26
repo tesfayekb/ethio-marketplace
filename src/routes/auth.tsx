@@ -13,8 +13,9 @@ import { useAuth } from "@/features/auth/use-auth";
 import { AgreeToDocument } from "@/features/legal/agree-to-document";
 import { legalInForceIds } from "@/features/legal/legal-reader";
 import { currentGateKinds, landAfterSignIn } from "@/features/legal/use-legal-gate";
-import { supabase } from "@/integrations/supabase/client";
+import { errorText } from "@/lib/error-text";
 import { safeReturnPath } from "@/lib/return-path";
+import { getSupabase, onAuthChange } from "@/lib/supabase-door";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";
 
@@ -121,6 +122,14 @@ function AuthScreen() {
   const onForgot = view === "forgot";
   const isSignIn = view !== "sign-up";
 
+  // DEC-261 — every door on this screen needs the client: it starts downloading once the screen
+  // has painted, so a submit does not wait for it (a failure is logged; the submit asks again).
+  useEffect(() => {
+    void getSupabase().catch((error: unknown) =>
+      console.warn(`[auth] the client did not load: ${errorText(error)}`),
+    );
+  }, []);
+
   /**
    * Bundle 22 turn 32 (D230) — the sign-up form's agreement tick. Create account is drawn closed until it
    * is ticked (D231); never persisted, cleared when the view toggles. The ids in force travel as sign-up
@@ -205,7 +214,8 @@ function AuthScreen() {
       if (await hasSessionRehydrating()) markConfirmed();
     };
 
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+    // DEC-261 — the client's auth events through its door.
+    const subscription = onAuthChange((_event, session) => {
       if (session && onCheckEmailRef.current) markConfirmed();
     });
 
@@ -225,7 +235,7 @@ function AuthScreen() {
 
     return () => {
       active = false;
-      data.subscription.unsubscribe();
+      subscription.unsubscribe();
       window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onFocus);
       window.removeEventListener("pageshow", onPageShow);

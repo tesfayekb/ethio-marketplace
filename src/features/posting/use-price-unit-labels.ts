@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import type { PriceUnitLabels } from "./price-line";
 
 /**
@@ -14,7 +14,7 @@ export function usePriceUnitLabels(enabled: boolean): PriceUnitLabels | null {
     staleTime: Infinity,
     gcTime: Infinity,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("price_unit_labels");
+      const { data, error } = await rpc("price_unit_labels");
       if (error) {
         console.error("[price-unit-labels] read failed", error.message);
         throw error;

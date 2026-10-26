@@ -19,12 +19,9 @@ const loaders = vi.hoisted(() => ({
   pending: new Map<string, { resolve: (value: Record<string, string>) => void }>(),
 }));
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    auth: {
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => undefined } } }),
-    },
-  },
+// DEC-261 — auth events through the client's door; none arrives in these tests.
+vi.mock("@/lib/supabase-door", () => ({
+  onAuthChange: () => ({ unsubscribe: () => undefined }),
 }));
 vi.mock("@/features/auth/auth-service", () => ({
   fetchPreferredLanguage: () => new Promise(() => undefined),

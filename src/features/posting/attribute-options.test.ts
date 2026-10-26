@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    auth: { getSession: async () => ({ data: { session: { access_token: "t" } } }) },
-  },
+// DEC-261 — the session reaches route calls through the client's door.
+vi.mock("@/lib/supabase-door", () => ({
+  currentSession: async () => ({ session: { access_token: "t" }, failed: false }),
 }));
 
 import { attributeDisplayValue } from "./attribute-display";

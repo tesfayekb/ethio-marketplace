@@ -1,6 +1,6 @@
 import type { NavAlertId } from "@/config/panels.types";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import type { MessageKey } from "@/i18n";
 
@@ -30,7 +30,7 @@ export function useNavAlerts(
     enabled: enabled && permissions.includes("legal:view"),
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("legal_review_overdue");
+      const { data, error } = await rpc("legal_review_overdue");
       if (error) throw error;
       if (typeof data !== "boolean") throw new Error("legal_review_overdue: invalid answer");
       return data;

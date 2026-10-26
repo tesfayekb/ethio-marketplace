@@ -23,7 +23,7 @@ import {
 import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/lib/supabase-door";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
@@ -166,6 +166,7 @@ function SettingsScreen() {
         return;
       }
       hadSession.current = true;
+      const supabase = await getSupabase();
       const { data } = await supabase.auth.getUser();
       if (!active || user === null) return;
       setMemberSince(data.user?.created_at ?? null);

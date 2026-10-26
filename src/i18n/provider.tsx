@@ -10,10 +10,10 @@ import {
 } from "react";
 
 import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/auth-service";
-import { supabase } from "@/integrations/supabase/client";
 import { isE2E } from "@/lib/env-flags";
 
 import { errorText } from "@/lib/error-text";
+import { onAuthChange } from "@/lib/supabase-door";
 
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
@@ -269,7 +269,8 @@ function useAuthIdentity(): { settled: boolean; userId: string | null } {
     const raise = () => {
       if (!cancelled) setSettled(true);
     };
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+    // DEC-261 — through the client's door: a signed-out visitor settles without the client.
+    const subscription = onAuthChange((_event, session) => {
       // No Supabase CALL here (law I5): the session is the event's own argument.
       // INC-121 (a): the signed-in identity is what re-arms the account carry,
       // so it is mirrored — equality-guarded, never a fresh object per event.
@@ -282,7 +283,7 @@ function useAuthIdentity(): { settled: boolean; userId: string | null } {
     return () => {
       cancelled = true;
       clearTimeout(watchdog);
-      subscription.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
