@@ -61,7 +61,7 @@ export function globToRegExp(glob: string): RegExp {
   if (g.endsWith("/")) g = `${g}**`;
   let re = "";
   for (let i = 0; i < g.length; i += 1) {
-    const c = g[i]!;
+    const c = g.charAt(i);
     if (c === "*") {
       if (g[i + 1] === "*") {
         const slashAfter = g[i + 2] === "/";
@@ -154,7 +154,7 @@ export function briefInForce(): string | null {
   const lines = readFileSync(roadmap, "utf8").split("\n");
   const line = lines.find((l) => /brief in force/i.test(l)) ?? lines[2] ?? "";
   const m = line.match(/(docs\/governance\/briefs\/[A-Za-z0-9._-]+\.md)/);
-  return m ? m[1]! : null;
+  return m?.[1] ?? null;
 }
 
 export type Scope = { brief: string | null; globs: string[]; base: string | null; flags: string[] };
@@ -174,17 +174,17 @@ export function readScope(): Scope {
   const text = readFileSync(file, "utf8");
   const m = text.match(/^SCOPE-BEGIN\s*$([\s\S]*?)^SCOPE-END\s*$/m);
   if (m) {
-    out.globs = m[1]!
+    out.globs = (m[1] ?? "")
       .split("\n")
       .map((l) => l.replace(/#.*$/, "").trim())
       .filter((l) => l !== "");
   }
   const b = text.match(/^BASE:\s*([0-9a-f]{7,40})\s*$/m);
-  out.base = b ? b[1]! : null;
+  out.base = b?.[1] ?? null;
   // FLAGS: no-migration, no-new-string, no-package-change, no-agents-change  (a deliberate line, never prose)
   const f = text.match(/^FLAGS:\s*(.*)$/m);
   if (f) {
-    out.flags = f[1]!
+    out.flags = (f[1] ?? "")
       .split(/[,\s]+/)
       .map((t) => t.trim().toLowerCase())
       .filter((t) => KNOWN_FLAGS.includes(t));
@@ -461,7 +461,7 @@ export function shellSegments(cmd: string): ShellToken[][] {
   let i = 0;
   const n = cmd.length;
   while (i < n) {
-    const c = cmd[i]!;
+    const c = cmd.charAt(i);
     const next = cmd[i + 1] ?? "";
     if (c === "\\") {
       if (next === "\n") {
@@ -567,7 +567,7 @@ export function shellSegments(cmd: string): ShellToken[][] {
       if (c === ">" && cmd[j] === "&") {
         // >&2, >&- : a descriptor duplication, not a file
         j += 1;
-        while (j < n && /[\d-]/.test(cmd[j]!)) j += 1;
+        while (j < n && /[\d-]/.test(cmd.charAt(j))) j += 1;
         i = j;
         continue;
       }
@@ -757,7 +757,8 @@ export function segmentProgram(toks: ShellToken[]): {
   const redirects: ShellToken[] = [];
   const words: ShellToken[] = [];
   for (let k = 0; k < toks.length; k += 1) {
-    const t = toks[k]!;
+    const t = toks[k];
+    if (t === undefined) continue;
     if (t.op === ">" || t.op === ">>") {
       const target = toks[k + 1];
       if (target !== undefined && target.op === undefined) redirects.push(target);
@@ -787,19 +788,21 @@ export function segmentProgram(toks: ShellToken[]): {
     }
     if (WRAPPERS.has(base)) {
       w += 1;
+      // The word at an index as a string ("" past the end): no assertion, the bounds checked first.
+      const wordAt = (index: number) => words[index]?.v ?? "";
       while (
         w < words.length &&
-        (words[w]!.v.startsWith("-") ||
-          /^\d+[smhd]?$/.test(words[w]!.v) ||
-          /^[A-Za-z_][A-Za-z0-9_]*=/.test(words[w]!.v))
+        (wordAt(w).startsWith("-") ||
+          /^\d+[smhd]?$/.test(wordAt(w)) ||
+          /^[A-Za-z_][A-Za-z0-9_]*=/.test(wordAt(w)))
       ) {
-        const flag = words[w]!.v;
+        const flag = wordAt(w);
         w += 1;
         if (
           /^-(n|c|s|k|o|e|i|u)$/.test(flag) &&
           w < words.length &&
-          /^\S+$/.test(words[w]!.v) &&
-          !/^[a-z]/.test(words[w]!.v)
+          /^\S+$/.test(wordAt(w)) &&
+          !/^[a-z]/.test(wordAt(w))
         )
           w += 1;
       }
@@ -923,8 +926,10 @@ export function writeTargets(input: string | ShellToken[]): string[] {
     case "ln": {
       const p = positional(args);
       const t = args.findIndex((a) => a === "-t" || a === "--target-directory");
-      if (t >= 0 && args[t + 1]) out.push(args[t + 1]!);
-      else if (p.length >= 2) out.push(p[p.length - 1]!);
+      const target = t >= 0 ? args[t + 1] : undefined;
+      const last = p[p.length - 1];
+      if (target) out.push(target);
+      else if (p.length >= 2 && last !== undefined) out.push(last);
       break;
     }
     case "mv": {
@@ -953,11 +958,11 @@ export function writeTargets(input: string | ShellToken[]): string[] {
     case "curl":
     case "wget": {
       for (let i = 0; i < args.length; i += 1) {
-        const a = args[i]!;
+        const a = args[i] ?? "";
         if (a === "-o" || a === "--output" || a === "-O" || a === "--output-document")
           out.push(args[i + 1] ?? ".");
         if (a.startsWith("--output=") || a.startsWith("--output-document="))
-          out.push(a.split("=")[1]!);
+          out.push(a.split("=")[1] ?? "");
       }
       if (cmd === "wget" && !args.some((a) => a === "-O" || a.startsWith("--output")))
         out.push(".");
@@ -966,12 +971,14 @@ export function writeTargets(input: string | ShellToken[]): string[] {
     case "tar":
       if (args.some((a) => /^-?[a-zA-Z]*x/.test(a) || a === "--extract")) {
         const c = args.findIndex((a) => a === "-C" || a === "--directory");
-        out.push(c >= 0 && args[c + 1] ? args[c + 1]! : ".");
+        const into = c >= 0 ? args[c + 1] : undefined;
+        out.push(into ? into : ".");
       }
       break;
     case "unzip": {
       const d = args.indexOf("-d");
-      out.push(d >= 0 && args[d + 1] ? args[d + 1]! : ".");
+      const into = d >= 0 ? args[d + 1] : undefined;
+      out.push(into ? into : ".");
       break;
     }
     case "sed":
@@ -980,7 +987,8 @@ export function writeTargets(input: string | ShellToken[]): string[] {
       const files: string[] = [];
       let scriptSeen = false;
       for (let i = 0; i < args.length; i += 1) {
-        const a = args[i]!;
+        const a = args[i];
+        if (a === undefined) continue;
         if (a === "-e" || a === "-f" || a === "--expression" || a === "--file") {
           i += 1;
           scriptSeen = true;
