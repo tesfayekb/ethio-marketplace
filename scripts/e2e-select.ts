@@ -159,6 +159,7 @@ export const AREAS: Area[] = [
       "e2e/auth-*.spec.ts",
       "e2e/mfa-stepup.spec.ts",
       "e2e/smoke-auth-i18n.spec.ts",
+      "e2e/supabase-door.spec.ts",
       "e2e/nightly/*.spec.ts",
     ],
   },
