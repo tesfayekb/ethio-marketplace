@@ -19,6 +19,9 @@ import {
   commandSegments,
   programsOf,
   blankInertData,
+  heredocDelimiter,
+  runsOnlyDataPrograms,
+  unreadablePrograms,
 } from "../../.claude/hooks/lib";
 
 /**
@@ -500,10 +503,27 @@ describe("bash guard (50-security.md)", () => {
       "cat <<EOF > /tmp/n.txt\nmeet at 5\nEOF",
       // K1 ruling 4 — a keyword before the program.
       "if true; then /bin/systemctl status; fi",
+      // K1 ruling 5 (DEC-270) — data is inert only where its consumer never runs it: a body fed
+      // to a shell, a string piped to one, a command for an editor, and (the named edge) any
+      // argument of a program outside the data-only set are read whole.
+      "bash <<'EOF'\nat now\nEOF",
+      "cat <<'EOF' | bash\nat now\nEOF",
+      "echo 'at now' | sh",
+      "vim -c '!at now'",
+      'bunx vitest run -t "look at this"',
+      // K1 ruling 5 — the shell's delimiter here is `A\ B`: the line after it runs.
+      "cat <<'A\\ B' > /tmp/x\nhi\nA\\ B\nat now\nA B",
     ])
       refused(command, /no scheduling or service control/);
-    // K1 ruling 4 — a program named by an expansion is unreadable, and refused as such.
-    for (const command of ['p=systemctl; "$p" status', "$'at' now"])
+    // K1 rulings 4 and 5 — a program named by an expansion is unreadable, and refused as such.
+    for (const command of [
+      'p=systemctl; "$p" status',
+      "$'at' now",
+      "$(echo /bin/systemctl) status",
+      '"$DIR/echo" hi',
+      "/usr/bin/a? now",
+      "e*ho hi",
+    ])
       refused(command, /a program named by an expansion/);
     for (const command of [
       'git commit -m "turn 35: fix at the root; the service role reads it"',
@@ -518,6 +538,13 @@ describe("bash guard (50-security.md)", () => {
       "cat <<'A B'\nfix at root\nA B",
       'echo "$(git rev-parse HEAD)"',
       "for f in a b; do echo $f; done",
+      // K1 ruling 5 — the shell's own delimiters (POSIX quote removal): these bodies are data.
+      "cat <<'A\\ B'\n/bin/systemctl status\nA\\ B",
+      'cat <<"A\\ B"\n/bin/systemctl status\nA\\ B',
+      // A quoted keyword is a program's name; a lone `[` and a leading ~ are readable.
+      "'then' \"$BIN\"",
+      '[ -f package.json ] && echo "ready at last"',
+      "~/bin/echo hi",
     ])
       allowed(command);
   });
@@ -553,6 +580,34 @@ describe("bash guard (50-security.md)", () => {
     // K1 ruling 4 — one word reader for the delimiter: a quoted run holds a space.
     expect(blankInertData("cat <<'A B'\nfix at root\nA B")).toBe("cat <<'A B'\n           \nA B");
     expect(programsOf("if true; then /bin/systemctl status; fi")).toContain("systemctl");
+    // K1 ruling 5 — the delimiter as the shell reads it, and the data-only programs.
+    expect(heredocDelimiter("'A\\ B'")).toEqual({ delim: "A\\ B", quoted: true });
+    expect(heredocDelimiter('"A\\ B"')).toEqual({ delim: "A\\ B", quoted: true });
+    expect(heredocDelimiter('"A\\"B"')).toEqual({ delim: 'A"B', quoted: true });
+    expect(heredocDelimiter("A\\ B")).toEqual({ delim: "A B", quoted: true });
+    expect(heredocDelimiter("A''")).toEqual({ delim: "A", quoted: true });
+    expect(heredocDelimiter("EOF")).toEqual({ delim: "EOF", quoted: false });
+    expect(blankInertData("cat <<'A\\ B'\nfix at root\nA\\ B")).toBe(
+      "cat <<'A\\ B'\n           \nA\\ B",
+    );
+    for (const command of [
+      'git commit -m "fix at root"',
+      "cat <<'EOF' > /tmp/n.txt\nat 5\nEOF",
+      'cd /tmp && git status && grep -n "at" a.ts | head -3',
+      '[ -f x ] && echo "y"',
+    ])
+      expect(runsOnlyDataPrograms(command), command).toBe(true);
+    for (const command of [
+      "bash <<'EOF'\nx\nEOF",
+      "echo x | sh",
+      "git -c core.editor=x commit",
+      "git rebase -i HEAD~2",
+      "bunx vitest run",
+      '"$X" y',
+    ])
+      expect(runsOnlyDataPrograms(command), command).toBe(false);
+    expect(unreadablePrograms("$(echo /bin/systemctl) status")).toEqual(["$(…)"]);
+    expect(unreadablePrograms('[ -f x ] && ~/bin/echo "$X"')).toEqual([]);
   });
 
   it("EXH-16 every command the protocol requires passes BOTH layers — the permission rules and the guard; the forbidden ones are denied by the rules too", () => {
