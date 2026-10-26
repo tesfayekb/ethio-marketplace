@@ -5,6 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const status = vi.fn();
 vi.mock("./legal-reader", () => ({ myLegalStatus: (kinds: string[]) => status(kinds) }));
+// landAfterSignIn's session (below) — at the top level, where vitest hoists it.
+const session = vi.hoisted(() => ({ value: { user: { id: "u1" } } as unknown }));
+// DEC-261 — the session through the client's door.
+vi.mock("@/lib/supabase-door", () => ({
+  currentSession: async () => ({ session: session.value, failed: false }),
+}));
 import { useLegalGate } from "./use-legal-gate";
 
 const ROW = {
@@ -121,11 +127,6 @@ describe("useLegalGate", () => {
 });
 
 describe("landAfterSignIn (bundle 22 turn 32, INC-823)", () => {
-  const session = vi.hoisted(() => ({ value: { user: { id: "u1" } } as unknown }));
-  // DEC-261 — the session through the client's door.
-  vi.mock("@/lib/supabase-door", () => ({
-    currentSession: async () => ({ session: session.value, failed: false }),
-  }));
   async function land(deadlineMs?: number) {
     const { landAfterSignIn } = await import("./use-legal-gate");
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
