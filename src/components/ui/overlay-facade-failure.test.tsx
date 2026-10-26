@@ -4,9 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import type { OverlaysImpl } from "./overlay-loader";
 
 /**
- * DEC-259 (Foundations turn 31) — a failed download of the overlay module leaves
- * the closed trigger as it was (no half-open menu, no crash) and the next press
- * asks again. The loader is replaced here so the test decides when the module
+ * DEC-259 (Foundations turn 31) and DEC-260 (turn 32) — a failed download of the
+ * overlay module leaves the closed trigger as it was (no half-open menu or dialog,
+ * no crash) and the next press asks again. The loader is replaced here so the test decides when the module
  * arrives or fails; overlay-loader.ts's own warning is its loadOnce's.
  */
 const state = vi.hoisted(() => ({
@@ -41,11 +41,16 @@ vi.mock("./overlay-loader", async () => {
   };
 });
 
+vi.mock("@/i18n", () => ({
+  useI18n: () => ({ t: (key: string) => key, language: "en", setLanguage: () => {} }),
+}));
+
 const { Button } = await import("./button");
+const { Dialog, DialogContent, DialogTitle, DialogTrigger } = await import("./dialog");
 const { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } =
   await import("./dropdown-menu");
 
-describe("the overlay facades when the module fails to arrive (DEC-259)", () => {
+describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)", () => {
   it("OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu", async () => {
     state.impl = null;
     state.next = ["fail", "arrive"];
@@ -76,5 +81,35 @@ describe("the overlay facades when the module fails to arrive (DEC-259)", () => 
     expect(screen.getByTestId("menu")).toBeInTheDocument();
     expect(screen.getByTestId("trigger")).toBe(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("OVF-16 a failed download keeps the closed dialog; the next click asks again and opens it", async () => {
+    state.impl = null;
+    state.next = ["fail", "arrive"];
+    state.asked = 0;
+    render(
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button data-testid="dialog-trigger">Share</Button>
+        </DialogTrigger>
+        <DialogContent data-testid="dialog">
+          <DialogTitle>Share the ad</DialogTitle>
+        </DialogContent>
+      </Dialog>,
+    );
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("dialog-trigger"));
+    });
+    expect(state.asked).toBe(1);
+    expect(screen.queryByTestId("dialog")).toBeNull();
+    expect(screen.getByTestId("dialog-trigger")).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByTestId("dialog-trigger")).toHaveAttribute("data-state", "closed");
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("dialog-trigger"));
+    });
+    expect(state.asked).toBe(2);
+    expect(screen.getByTestId("dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("dialog-trigger")).toHaveAttribute("aria-expanded", "true");
   });
 });

@@ -6,27 +6,33 @@ import { ownValue } from "../../src/lib/own-key";
 import { report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
- * DEC-259 (Foundations turn 31; D234 speed S8) — THE OVERLAY PRIMITIVES ARRIVE ON
- * DEMAND. The Radix tooltip and dropdown menu (with floating-ui and their
- * layers) are reached by value only through their impl files, the impl files
- * only through src/components/ui/overlays-impl.ts, and that module only through
- * the loader's loadOnce (src/components/ui/overlay-loader.ts). Everything else
- * uses the facades (tooltip.tsx, dropdown-menu.tsx), which draw the trigger at
- * once and the real primitive on the person's first intent. A type-only import
- * is erased by the compiler and passes.
+ * DEC-259 (Foundations turn 31; D234 speed S8) and DEC-260 (turn 32; S9) — THE
+ * OVERLAY PRIMITIVES ARRIVE ON DEMAND. The Radix tooltip, dropdown menu, dialog
+ * and alert dialog (with floating-ui and their focus and scroll layers) are
+ * reached by value only through their impl files, the impl files only through
+ * src/components/ui/overlays-impl.ts, and that module only through the loader's
+ * loadOnce (src/components/ui/overlay-loader.ts). Everything else uses the
+ * facades (tooltip.tsx, dropdown-menu.tsx, dialog-primitive.tsx,
+ * alert-dialog-primitive.tsx), which draw the trigger at once and the real
+ * primitive on the person's first intent. A type-only import is erased by the
+ * compiler and passes.
  */
 type Finding = { file: string; line: number; what: string };
 
 /** The specifiers the census watches. */
 const WATCHED =
-  /^(?:@radix-ui\/react-tooltip|@radix-ui\/react-dropdown-menu|(?:@\/components\/ui\/|\.{1,2}\/(?:[\w.-]+\/)*)(?:tooltip-impl|dropdown-menu-impl|overlays-impl))$/;
+  /^(?:@radix-ui\/react-(?:tooltip|dropdown-menu|dialog|alert-dialog)|(?:@\/components\/ui\/|\.{1,2}\/(?:[\w.-]+\/)*)(?:tooltip-impl|dropdown-menu-impl|dialog-impl|alert-dialog-impl|overlays-impl))$/;
 
 /** The one file allowed to reach each watched module (an impl file by its base name). */
 export const MAY_REACH: Record<string, string> = {
   "@radix-ui/react-tooltip": "src/components/ui/tooltip-impl.tsx",
   "@radix-ui/react-dropdown-menu": "src/components/ui/dropdown-menu-impl.tsx",
+  "@radix-ui/react-dialog": "src/components/ui/dialog-impl.ts",
+  "@radix-ui/react-alert-dialog": "src/components/ui/alert-dialog-impl.ts",
   "./tooltip-impl": "src/components/ui/overlays-impl.ts",
   "./dropdown-menu-impl": "src/components/ui/overlays-impl.ts",
+  "./dialog-impl": "src/components/ui/overlays-impl.ts",
+  "./alert-dialog-impl": "src/components/ui/overlays-impl.ts",
   "./overlays-impl": "src/components/ui/overlay-loader.ts",
 };
 
@@ -90,7 +96,7 @@ const ROOT = process.cwd();
 
 describe("the overlay primitives on demand (DEC-259)", () => {
   it(
-    "CF-OV-1 only the impl files reach Radix's tooltip and menu, only overlays-impl reaches the impl files, only the loader reaches overlays-impl",
+    "CF-OV-1 only the impl files reach Radix's tooltip, menu, dialog and alert dialog, only overlays-impl reaches the impl files, only the loader reaches overlays-impl",
     () => {
       const files = walkFiles(["src", "e2e", "scripts"], { ext: ["ts", "tsx", "mts", "mjs"] }).map(
         (file) => join(ROOT, file),
@@ -132,7 +138,7 @@ describe("the overlay primitives on demand (DEC-259)", () => {
     }
   });
 
-  it("CF-OV-3 each facade exports exactly the names its impl file exports", () => {
+  it("CF-OV-3 each facade exports exactly the names its impl file exports, the modal facades Radix's parts", () => {
     expect(exportedNames("src/components/ui/tooltip.tsx")).toEqual(
       exportedNames("src/components/ui/tooltip-impl.tsx"),
     );
@@ -141,5 +147,26 @@ describe("the overlay primitives on demand (DEC-259)", () => {
     );
     expect(exportedNames("src/components/ui/tooltip.tsx")).toHaveLength(4);
     expect(exportedNames("src/components/ui/dropdown-menu.tsx")).toHaveLength(15);
+    expect(exportedNames("src/components/ui/dialog-primitive.tsx")).toEqual([
+      "Close",
+      "Content",
+      "Description",
+      "Overlay",
+      "Portal",
+      "Root",
+      "Title",
+      "Trigger",
+    ]);
+    expect(exportedNames("src/components/ui/alert-dialog-primitive.tsx")).toEqual([
+      "Action",
+      "Cancel",
+      "Content",
+      "Description",
+      "Overlay",
+      "Portal",
+      "Root",
+      "Title",
+      "Trigger",
+    ]);
   });
 });
