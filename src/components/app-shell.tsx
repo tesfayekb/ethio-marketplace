@@ -741,13 +741,12 @@ export function AppShell({ children }: { children: ReactNode }) {
    * onAuthStateChange subscription, so ANY signed-out transition — this tab,
    * another tab, or token expiry — lands here, not just a mount check. A gated
    * route standing open is replaced by the marketplace immediately, so no
-   * gated UI survives a sign-out on any screen size.
+   * gated UI survives a sign-out on any screen size. INC-926 (Foundations turn
+   * 34w-2) — the gated pages are /admin and every page the door-step guards
+   * (SIGNED_IN_PAGES): this guard kept its own four, and /post, /legal/accept and
+   * /legal/publishing stood open, signed out, after a sign-out in another tab.
    */
-  const gatedRoute =
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/settings") ||
-    pathname.startsWith("/account") ||
-    pathname.startsWith("/my-listings");
+  const gatedRoute = pathname.startsWith("/admin") || sendsToSignIn(pathname);
   /**
    * Bundle 16 turn 2b (INC-627) — A FRESH SIGNED-OUT VISIT IS NOT A SIGN-OUT.
    * A page whose door-step is requireSignedIn sends a signed-out visitor to sign
