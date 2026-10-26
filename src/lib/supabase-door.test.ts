@@ -60,7 +60,19 @@ async function door() {
   return import("./supabase-door");
 }
 
+/**
+ * Ruling 3 (R3-4) — each case's door import registers its own window `storage` listener: kept
+ * here, read by the case that registered it, and removed after the case, so no earlier case's
+ * door hears a later case's event.
+ */
+const storageListeners: unknown[] = [];
+const addWindowListener = window.addEventListener;
+
 beforeEach(() => {
+  Reflect.set(window, "addEventListener", (type: unknown, listener: unknown, options: unknown) => {
+    if (type === "storage") storageListeners.push(listener);
+    Reflect.apply(addWindowListener, window, [type, listener, options]);
+  });
   vi.resetModules();
   vi.doMock("@/integrations/supabase/client", () => state.module());
   state.imported = 0;
@@ -76,6 +88,9 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  for (const listener of storageListeners.splice(0))
+    Reflect.apply(window.removeEventListener, window, ["storage", listener]);
+  Reflect.set(window, "addEventListener", addWindowListener);
   vi.unstubAllEnvs();
   vi.unstubAllGlobals();
   vi.useRealTimers();
@@ -157,14 +172,16 @@ describe("the client's door (DEC-261)", () => {
 
   it("SBD-9 a sign-in in another tab fetches the client, and a waiting listener is attached to it", async () => {
     const { onAuthChange } = await door();
+    // This case's import registered the one storage listener on the window (R3-4).
+    expect(storageListeners).toHaveLength(1);
     const heard: string[] = [];
     onAuthChange((event) => heard.push(event));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(state.imported).toBe(0);
     window.dispatchEvent(new StorageEvent("storage", { key: STORED, newValue: "{}" }));
-    // Earlier tests' doors hear the same event; this door's listener is the last attached.
-    await vi.waitFor(() => expect(state.listeners.length).toBeGreaterThan(0));
-    state.listeners.at(-1)?.("SIGNED_IN", { user: { id: "u" } });
+    // Only this door hears it; its waiting listener is the one attached to the client.
+    await vi.waitFor(() => expect(state.listeners).toHaveLength(1));
+    state.listeners[0]?.("SIGNED_IN", { user: { id: "u" } });
     expect(heard).toEqual(["INITIAL_SESSION", "SIGNED_IN"]);
   });
 
@@ -254,6 +271,8 @@ describe("the client's door (DEC-261)", () => {
 
   it("SBD-17 a storage event that removes the key starts no download", async () => {
     await door();
+    // Only this case's door listens (R3-4), so `imported` judges its listener alone.
+    expect(storageListeners).toHaveLength(1);
     window.dispatchEvent(new StorageEvent("storage", { key: STORED, newValue: null }));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(state.imported).toBe(0);
