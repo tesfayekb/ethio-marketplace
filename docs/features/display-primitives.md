@@ -121,13 +121,14 @@ Two rules apply to every block below.
   DropdownMenuTrigger asChild › the button. A component handed to an `asChild`
   parent forwards its ref to a real DOM element; it never returns a Fragment or
   a provider at its root.
-
-- DEC-259 (Foundations turn 31): the facades (`tooltip.tsx`, `dropdown-menu.tsx`)
-  hold the consumer API and draw the trigger through the same Slot; the Radix
-  implementations live in `tooltip-impl.tsx`/`dropdown-menu-impl.tsx`, reached
-  by value only through `overlays-impl.ts`, and that only through
-  `overlay-loader.ts`'s `loadOnce` (idle or first intent). The order above is
-  unchanged for a control that is both triggers.
+- THE ON-DEMAND RULE (DEC-259, `src/components/ui/overlay-facade.tsx`): Tooltip
+  and DropdownMenu are facades. Their triggers are always `asChild` (the types
+  require it) and are the consumer's own element from the first render; the
+  Radix code arrives on the first hover or keyboard focus (a tooltip), the
+  first press or opening key (a menu), or once the page is idle; a part drawn
+  inside the content exists only once the real content is drawn. Nothing
+  imports `@radix-ui/react-tooltip`, `@radix-ui/react-dropdown-menu` or the
+  `*-impl` files but the overlay files themselves (CF-OV-1).
 
 ### IconButton — `src/components/ui/icon-button.tsx`
 

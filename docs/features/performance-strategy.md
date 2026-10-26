@@ -289,8 +289,14 @@ Supervisor's build measurements, not a local rebuild: 591 keys moved to member a
 
 Next: study moving the database client off the first paint, a Tier A study for the operator's decision; no database-client change is made here.
 
-## 14. The overlays' code arrives on demand (D234, Foundations turn 31)
+## 14. The overlays' code waits for the person (D234, Foundations turn 31)
 
-DEC-259 moves the tooltip's and the dropdown menu's code (Radix, floating-ui and their layers) off every page's first download. Each facade (src/components/ui/tooltip.tsx, dropdown-menu.tsx) draws the trigger through the same Slot the real primitive uses, so the server and the first render draw the same closed trigger, and asks for the module on the trigger's first intent or once the page is idle. The real primitive takes the already-drawn element — no unmount, no focus loss.
+DEC-259: the tooltip and the dropdown menu carried Radix, floating-ui and their focus and scroll layers on every page's first download — about 20 KiB, for controls nobody has touched yet. Their facades (`src/components/ui/tooltip.tsx`, `dropdown-menu.tsx`) keep the same exports; the Radix code (`tooltip-impl.tsx`, `dropdown-menu-impl.tsx`, moved unchanged, re-exported by `overlays-impl.ts`) arrives through `overlay-loader.ts` (loadOnce).
 
-Supervisor's build measurements, not a local rebuild: entry 280.2 → 260.0 KiB; every page 17–25 KiB lighter; overlays-impl 16.5 KiB on demand; the entry ceiling follows to 263 KiB and the per-page ceilings follow their measurements.
+- The trigger is the consumer's own element from the server's first HTML, with the closed state's attributes (`data-state="closed"`; a menu's `aria-haspopup="menu"`, `aria-expanded="false"`, `type="button"`).
+- A tooltip's first hover (a mouse or pen) or keyboard focus, and a menu's first press or opening key (Enter, Space, ArrowDown), ask for the module; a menu trigger's hover or focus only warms it. Once the page's load event has passed and the browser is idle, the module is asked for anyway, so the first press rarely waits.
+- The real Radix root is drawn beside the trigger, never around it: its trigger renders a collector that hands its props (handlers, aria, data-state, the ref the popper anchors to) to the facade trigger, which puts them on the same element. Nothing is remounted — focus, hover and a press in progress survive — and the first intent is replayed once on that element, so a keyboard opening still focuses the first item.
+- A failed download leaves the closed trigger and logs `[overlays] loading the overlay primitives failed`; the next intent asks again.
+- The supervisor's build: the entry 280.2 → 260.0 KiB; every page 10–20 KiB lighter (the home page 293.7 → 273.4). The lab (slow 4G constants off; local server): the module asked about 190 ms after the load event; a first press, a first Enter and a first hover each answered on the same element.
+
+Next: the shell's Radix dialog (the phone rail's sheet in app-rail.tsx, the toolbar panel in toolbar-panel.tsx, each importing @radix-ui/react-dialog directly) still rides the entry; the same three parts take it — one more impl file and facade.
