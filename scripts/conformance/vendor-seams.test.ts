@@ -40,4 +40,15 @@ describe("vendor seams conformance", () => {
     );
     expect(planted).toEqual({ supabase: true, lovable: true });
   });
+  it("VS-4 a planted file whose only tie is a dynamic import of the client module is reported (INC-916)", () => {
+    expect(
+      vendorTies('export const load = () => import("@/integrations/supabase/client");'),
+    ).toEqual({ supabase: true, lovable: false });
+  });
+  it("VS-5 a planted file whose only tie is a dynamic import of supabase-js is reported (INC-916)", () => {
+    expect(vendorTies("export const load = () => import( '@supabase/supabase-js' );")).toEqual({
+      supabase: true,
+      lovable: false,
+    });
+  });
 });

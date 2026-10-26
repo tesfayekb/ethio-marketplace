@@ -32,6 +32,10 @@ export function vendorTies(source: string): { supabase: boolean; lovable: boolea
     supabase:
       /from\s+["']@supabase\/supabase-js["']/.test(code) ||
       /from\s+["']@\/integrations\/supabase\/client["']/.test(code) ||
+      // INC-916 (Foundations turn 34, ruling 2) — a dynamic import reaches the client too.
+      /import\(\s*["'](?:@supabase\/supabase-js|@\/integrations\/supabase\/client)["']\s*\)/.test(
+        code,
+      ) ||
       new RegExp(`\\.auth\\.${AUTH_METHODS}\\b`).test(code) ||
       /\.storage\.from\(/.test(code),
     lovable: /lovable/i.test(code),
