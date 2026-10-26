@@ -12,7 +12,10 @@ import { cn } from "@/lib/utils";
  * (src/lib/on-demand-failure.ts): it says so and offers to refresh the page, the only cure
  * (the browser keeps a failed download for the page's life). It shows from the first failure
  * until the person closes it or refreshes; a later failure shows it again. Drawn above the
- * phone's bottom bar; a polite live region, so a screen reader hears it once.
+ * phone's bottom bar; a polite live region, so a screen reader hears it once. The region is
+ * there from the first paint (a live region must exist before its words arrive) and carries no
+ * role: an empty role="status" on every page answered a page's own getByRole("status") too
+ * (the reset screen's R-2 and R-4, CI on turn 34b-2's landing).
  */
 export function OnDemandNotice() {
   const { t } = useI18n();
@@ -24,7 +27,6 @@ export function OnDemandNotice() {
   const shown = failures > closedAt;
   return (
     <div
-      role="status"
       aria-live="polite"
       className="pointer-events-none fixed inset-x-0 bottom-16 z-50 flex justify-center px-4 md:bottom-6"
     >
