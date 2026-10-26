@@ -1,5 +1,7 @@
+import { errorText } from "@/lib/error-text";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
+import { currentSession } from "@/lib/supabase-door";
 import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 
@@ -518,18 +520,29 @@ export async function readPlaceCountry(placeId: string): Promise<string | null> 
 }
 
 /**
+ * Turn 34c-5 (INC-933) — THE SIGNED-IN SELLER'S ID, from the door's session read (no
+ * network). `null` when nobody is signed in; a read that failed throws a ReaderError —
+ * unknown, never "nobody is signed in" (INC-914). Every "the seller's own row" read below
+ * filters by it (INC-330).
+ */
+async function signedInSellerId(): Promise<string | null> {
+  const read = await currentSession();
+  if (read.failed) throw new ReaderError(readerFailure(read.error));
+  return read.session?.user.id ?? null;
+}
+
+/**
  * W6b-1 R4 — THE LAST POST'S PLACES, for a NEW post's prefill. Filtered by
  * `seller_id` explicitly (INC-330): RLS also shows every ACTIVE listing, so the
  * filter — not the policy — keeps another seller's places out. A draft is not a
  * post yet, so only listings past the draft stage count; `excludeId` keeps the
  * draft on screen out. Only the place's `country_code` is read from
  * `locations` (the public read), so the step can open the right market; names
- * still come from the cached tree. A failure is simply no prefill (`null`).
+ * still come from the cached tree. A failure is simply no prefill (`null`), logged (F4).
  */
 export async function readLastListingPlaces(excludeId: string | null): Promise<LastPlaces | null> {
   try {
-    const { data: session } = await supabase.auth.getSession();
-    const userId = session.session?.user.id ?? null;
+    const userId = await signedInSellerId();
     if (userId === null) return null;
     let query = supabase
       .from("listings")
@@ -575,7 +588,8 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
             directions: last.directions ?? null,
           };
     return { country, itemId: last.location_id, placeIds: [last.location_id, ...others], pin };
-  } catch {
+  } catch (error) {
+    console.warn(`[post-where] the last post's places could not be read: ${errorText(error)}`);
     return null;
   }
 }
@@ -719,8 +733,7 @@ export async function clearSellerPlace(): Promise<boolean> {
 export async function readLastListingContact(
   excludeId: string | null,
 ): Promise<Record<string, unknown> | null> {
-  const { data: session } = await supabase.auth.getSession();
-  if ((session.session?.user.id ?? null) === null) return null;
+  if ((await signedInSellerId()) === null) return null;
   // INC-389 — contact_pref is private; the owner-only door reads the last post.
   const { data, error } = await supabase.rpc("my_last_listing_private", {
     p_exclude: excludeId ?? undefined,
@@ -934,8 +947,7 @@ export interface SellerLineFacts {
  * read throws (F4) and the caller logs it.
  */
 export async function readSellerLine(): Promise<SellerLineFacts | null> {
-  const { data: session } = await supabase.auth.getSession();
-  if ((session.session?.user.id ?? null) === null) return null;
+  if ((await signedInSellerId()) === null) return null;
   const { data, error } = await supabase.rpc("my_seller_line");
   if (error) throw new Error(error.message);
   const row =
@@ -953,8 +965,8 @@ export async function readSellerLine(): Promise<SellerLineFacts | null> {
 }
 
 export async function readSellerIdentity(): Promise<SellerIdentity | null> {
-  const { data: session } = await supabase.auth.getUser();
-  const userId = session.user?.id ?? null;
+  // Turn 34c-5 — the session's own id, not a server round trip (`auth.getUser()` was one).
+  const userId = await signedInSellerId();
   if (userId === null) return null;
   const { data, error } = await supabase
     .from("profiles")

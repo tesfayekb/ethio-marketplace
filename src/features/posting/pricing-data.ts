@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { callRoute } from "@/lib/route-client";
+import { currentSession } from "@/lib/supabase-door";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -131,16 +132,19 @@ export interface SellerHome {
  */
 /**
  * INC-330 — THE SIGNED-IN SELLER'S OWN ID, read from the local session (no
- * network). Every "the seller's own row" read below filters by it: RLS alone is
- * not a filter. `listings_public_read` shows EVERY active listing to a seller, so
- * an unfiltered "last listing" read returned another seller's currency; and an
+ * network) through the door (turn 34c-5, INC-933): a read that failed is no
+ * prefill, as every failure here is — the door has logged it. Every "the
+ * seller's own row" read below filters by it: RLS alone is not a filter.
+ * `listings_public_read` shows EVERY active listing to a seller, so an
+ * unfiltered "last listing" read returned another seller's currency; and an
  * unfiltered `profiles` read made the policy judge every row (slow enough on a
  * large table to leave the price step with no currency — PW-10), and returns
  * several rows to an admin, which `maybeSingle` refuses.
  */
 async function signedInId(): Promise<string | null> {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.user.id ?? null;
+  const read = await currentSession();
+  if (read.failed) return null;
+  return read.session?.user.id ?? null;
 }
 
 export async function readSellerHome(): Promise<SellerHome> {

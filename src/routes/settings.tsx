@@ -23,7 +23,7 @@ import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { requireSignedIn } from "@/lib/signed-in-route";
-import { getSupabase } from "@/lib/supabase-door";
+import { currentSession, getSupabase } from "@/lib/supabase-door";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
@@ -177,9 +177,11 @@ function SettingsScreen() {
         if (active) setCheckingSession(false);
         return;
       }
-      const { data } = await supabase.auth.getUser();
+      // Turn 34c-5 (INC-933) — member since from the door's session read (local), not a server
+      // round trip (`auth.getUser()` was one); a read that failed leaves it unknown (not shown).
+      const read = await currentSession();
       if (!active || user === null) return;
-      setMemberSince(data.user?.created_at ?? null);
+      setMemberSince(read.failed ? null : (read.session?.user.created_at ?? null));
       const profile = await supabase
         .from("profiles")
         .select("account_status")

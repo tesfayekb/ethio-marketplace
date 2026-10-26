@@ -214,16 +214,15 @@ async function evictExpiredSession(supabase: Client): Promise<void> {
 }
 
 /**
- * DEC-076 step 2 — the session is committed when `getSession()` answers with
+ * DEC-076 step 2 — the session is committed when the session read answers with
  * the access token the grant just issued. Bounded (≈3 s) and polled, because
- * the write goes through auth-js's storage lock.
+ * the write goes through auth-js's storage lock. Turn 34c-5 (INC-933) — read
+ * through the door: a read that failed is "not committed yet", and the poll goes on.
  */
-async function awaitSessionCommit(
-  supabase: Client,
-  accessToken: string | undefined,
-): Promise<boolean> {
+async function awaitSessionCommit(accessToken: string | undefined): Promise<boolean> {
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    const session = (await supabase.auth.getSession()).data.session;
+    const read = await currentSession();
+    const session = read.failed ? null : read.session;
     if (session && (accessToken === undefined || session.access_token === accessToken)) return true;
     await new Promise((resolve) => window.setTimeout(resolve, 50));
   }
@@ -241,7 +240,7 @@ export async function signInWithPassword({ email, password }: Credentials): Prom
   });
   if (error) return failure(error);
   // F4 — a sign-in that cannot be shown to hold a session is NOT a success.
-  if (!(await awaitSessionCommit(supabase, data.session?.access_token))) {
+  if (!(await awaitSessionCommit(data.session?.access_token))) {
     console.error("[ssr-error] /auth sign-in granted but no session committed");
     return { ok: false, errorKey: "auth.errorGeneric", emailNotConfirmed: false };
   }
@@ -481,8 +480,11 @@ export async function sessionRehydration(): Promise<"session" | "none" | "unavai
 }
 
 async function rehydrate(supabase: Client): Promise<boolean> {
-  const direct = (await supabase.auth.getSession()).data.session;
-  if (direct) return true;
+  // Turn 34c-5 (INC-933) — the session through the door: a read that failed is thrown, and
+  // sessionRehydration answers "unavailable", never "no session".
+  const direct = await currentSession();
+  if (direct.failed) throw direct.error;
+  if (direct.session) return true;
 
   // DEC-261 — the stored token is read under the door's key (storedSession above).
   const tokens = storedSession();
@@ -515,7 +517,9 @@ async function rehydrate(supabase: Client): Promise<boolean> {
     access_token: tokens.access_token,
     refresh_token: tokens.refresh_token,
   });
-  return Boolean((await supabase.auth.getSession()).data.session);
+  const after = await currentSession();
+  if (after.failed) throw after.error;
+  return after.session !== null;
 }
 
 /**
@@ -553,15 +557,19 @@ export async function completeEmailVerification(): Promise<VerificationResult> {
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type") ?? hash.get("type");
 
-  // 1. detectSessionInUrl may already have consumed the hash tokens.
-  let session = (await supabase.auth.getSession()).data.session;
-  if (session) return { ok: true };
+  // 1. detectSessionInUrl may already have consumed the hash tokens. Turn 34c-5 (INC-933) —
+  //    every session read here goes through the door: a read that failed is unknown, never a
+  //    bad link (the screen says the page did not load).
+  const first = await currentSession();
+  if (first.failed) return { ok: false, unavailable: true };
+  if (first.session) return { ok: true };
 
   // 2. Explicit hash-token handling when the SDK did not pick them up.
-  if (!session && accessToken && refreshToken) {
+  if (accessToken && refreshToken) {
     await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-    session = (await supabase.auth.getSession()).data.session;
-    if (session) return { ok: true };
+    const set = await currentSession();
+    if (set.failed) return { ok: false, unavailable: true };
+    if (set.session) return { ok: true };
   }
 
   // 3. OTP link fallback: a clean verifyOtp IS verification success, even if
@@ -579,8 +587,9 @@ export async function completeEmailVerification(): Promise<VerificationResult> {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  session = (await supabase.auth.getSession()).data.session;
-  if (session) return { ok: true };
+  const last = await currentSession();
+  if (last.failed) return { ok: false, unavailable: true };
+  if (last.session) return { ok: true };
 
   return { ok: false, hadError: hasErrorParam };
 }
@@ -672,8 +681,11 @@ export async function requestPasswordReset(email: string): Promise<AuthResult> {
 export async function completePasswordReset(newPassword: string): Promise<AuthResult> {
   const supabase = await authClient();
   if (supabase === null) return CLIENT_FAILED;
-  const session = (await supabase.auth.getSession()).data.session;
-  if (!session) return { ok: false, errorKey: "auth.errorResetLinkInvalid" };
+  // Turn 34c-5 (INC-933) — the recovery session through the door: a read that failed (its
+  // refresh never reached the server) is not a dead link — the person tries again.
+  const read = await currentSession();
+  if (read.failed) return { ok: false, errorKey: "auth.errorGeneric" };
+  if (!read.session) return { ok: false, errorKey: "auth.errorResetLinkInvalid" };
 
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) return failure(error);

@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  */
 const calls: Array<{ table: string; eq: Array<[string, unknown]> }> = [];
 let sessionUser: string | null = "seller-1";
+let sessionFailed = false;
 
 function chain(table: string, row: unknown) {
   const record = { table, eq: [] as Array<[string, unknown]> };
@@ -22,14 +23,18 @@ function chain(table: string, row: unknown) {
   return builder;
 }
 
+// Turn 34c-5 (INC-933) — the seller's id comes from the door's session read.
+vi.mock("@/lib/supabase-door", () => ({
+  currentSession: () =>
+    Promise.resolve(
+      sessionFailed
+        ? { session: null, failed: true, error: new Error("Failed to fetch") }
+        : { session: sessionUser === null ? null : { user: { id: sessionUser } }, failed: false },
+    ),
+}));
+
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    auth: {
-      getSession: () =>
-        Promise.resolve({
-          data: { session: sessionUser === null ? null : { user: { id: sessionUser } } },
-        }),
-    },
     from: (table: string) =>
       chain(
         table,
@@ -48,6 +53,7 @@ describe("INC-330 — the currency pre-fill reads only the signed-in seller's ro
   beforeEach(() => {
     calls.length = 0;
     sessionUser = "seller-1";
+    sessionFailed = false;
   });
 
   it("filters the last listing by seller_id", async () => {
@@ -62,6 +68,13 @@ describe("INC-330 — the currency pre-fill reads only the signed-in seller's ro
 
   it("reads nothing without a session", async () => {
     sessionUser = null;
+    expect(await readLastListingCurrency()).toBe(null);
+    expect(await readSellerHome()).toEqual({ countryCode: null, currencyCode: null });
+    expect(calls).toHaveLength(0);
+  });
+
+  it("reads nothing when the session read failed: no prefill, never another seller's row (INC-933)", async () => {
+    sessionFailed = true;
     expect(await readLastListingCurrency()).toBe(null);
     expect(await readSellerHome()).toEqual({ countryCode: null, currencyCode: null });
     expect(calls).toHaveLength(0);
