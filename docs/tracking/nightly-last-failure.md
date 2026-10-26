@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40118998768
-- Commit: `0d95c0dd56bd1c59f31ae6e71f711902d531a91a`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40374842423
+- Commit: `f09ec2a90bc6fc4405b3ac5e5b1e53caab50e898`
 - Attempt: 1
-- Written (UTC): 2026-10-24T22:44:17.281Z
-- Passed: 2001 · Skipped: 98 · Failed: 1
-- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
+- Written (UTC): 2026-10-26T23:39:53.858Z
+- Passed: 2046 · Skipped: 101 · Failed: 2
+- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Post-test errors (DEC-059, non-gating): nightly, full
 - Sources without results: none
@@ -19,23 +19,17 @@ None: no results file lists one and no log's summary names one (2 of 2 results f
 
 Logs read: nightly, full · unavailable: none
 
-101 line(s), 35 message(s): 1 off the allowlist, 34 allowlisted.
+63 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `digest mismatch` (quiet) | 12 | full |
-| `too many previews` (quiet) | 10 | full |
-| `[incident <uuid>] AbortError: The operation was aborted` | 5 | full |
 | `categories badHeader` (quiet) | 4 | full |
 | `categories wrongFile` (quiet) | 4 | full |
 | `definitions badHeader` (quiet) | 4 | full |
 | `definitions wrongFile` (quiet) | 4 | full |
-| `export_failed permission denied` (quiet) | 4 | full |
-| `preview_failed permission denied` (quiet) | 4 | full |
 | `categories file too large` (quiet) | 2 | full |
 | `categories nulByte` (quiet) | 2 | full |
 | `categories unknownColumn` (quiet) | 2 | full |
-| `commit_failed step-up required: no verified factor` (quiet) | 2 | full |
 | `countries badHeader` (quiet) | 2 | full |
 | `countries nulByte` (quiet) | 2 | full |
 | `countries tooManyRows` (quiet) | 2 | full |
@@ -56,20 +50,19 @@ Logs read: nightly, full · unavailable: none
 | `strings tooManyRows` (quiet) | 2 | full |
 | `strings unknownColumn` (quiet) | 2 | full |
 | `strings wrongFile` (quiet) | 2 | full |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-<n>hf<n>: e<n>e_par_<n>xz<n>w<n> → e<n>e_chi_ptc<n>me` (quiet) | 1 | full |
-| `commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-tzwrjm: e<n>e_par_n<n>qnf<n> → e<n>e_chi_<n>e<n>gq` (quiet) | 1 | full |
+| `category tree read: upstream unavailable (<n>)` | 1 | full |
 
-Quiet (allowlisted): digest mismatch ×12 · too many previews ×10 · categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · export_failed permission denied ×4 · preview_failed permission denied ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · commit_failed step-up required: no verified factor ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-<n>hf<n>: e<n>e_par_<n>xz<n>w<n> → e<n>e_chi_ptc<n>me ×1 · commit_failed admin.attributes.error.parentAfterChild:e<n>e-cat-nightly-<n>-tzwrjm: e<n>e_par_n<n>qnf<n> → e<n>e_chi_<n>e<n>gq ×1
+Quiet (allowlisted): categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
 
 Off the allowlist:
 
-### [incident <uuid>] AbortError: The operation was aborted
+### category tree read: upstream unavailable (<n>)
 
-- Count: 5 · Sources: full
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-23 the gallery draws the middle size, and on a computer a wide photo's top me ×2 · PP-24 a middle size over its cap is refused by name and nothing is stored (D162) ×2 · PW-117 two sub-cities of one city both save and count as that one city ×2 · PW-118 a draft's own channel is never overwritten by the last post's ×2 · PW-20 where: the default place lists itself, is ticked, and a lone city box offe ×1 · PW-33 a region alone never lists itself; its city does (W6 R2) ×1
+- Count: 1 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): AT-10 Used by names the category the attribute was assigned to (DB truth) ×1 · AT-11 remove from category unlinks it and the chip disappears (DB truth) ×1
 
 ```text
-[WebServer] [ssr-error] /api/media/photo-links [incident 61a19a5b-2483-47fa-9a65-93fdd49b9cfc] AbortError: The operation was aborted
+[WebServer] [ssr-error] /api/categories/tree category tree read: upstream unavailable (502)
 ```
 
 ## Accessibility (DEC-084, gating)
@@ -84,90 +77,95 @@ Results read: nightly, full · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-10-24T18:04:59.151Z | 3.5 min |
-| full | 2026-10-24T18:08:30.213Z | 275.7 min |
+| nightly | 2026-10-26T18:26:57.350Z | 3.5 min |
+| full | 2026-10-26T18:30:31.250Z | 309.3 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `photo-pipeline.spec.ts` | 68 | 14.0 min | full |
-| `post-wizard-specs.spec.ts` | 82 | 11.1 min | full |
-| `post-wizard-bundle2.spec.ts` | 70 | 10.9 min | full |
-| `admin-listings.spec.ts` | 62 | 10.9 min | full |
-| `ad-page.spec.ts` | 68 | 10.8 min | full |
-| `admin-screening.spec.ts` | 52 | 10.0 min | full |
-| `shell.spec.ts` | 212 | 9.8 min | full |
-| `posting-routes.spec.ts` | 80 | 7.9 min | full |
-| `post-wizard-pricing.spec.ts` | 52 | 7.9 min | full |
-| `post-wizard-place.spec.ts` | 38 | 7.2 min | full |
-| `my-listings-ad.spec.ts` | 36 | 6.9 min | full |
-| `admin-categories-lifecycle.spec.ts` | 52 | 6.9 min | full |
-| `admin-translations-governance.spec.ts` | 20 | 6.9 min | full |
-| `admin-attributes-library.spec.ts` | 42 | 6.9 min | full |
-| `legal-certify.spec.ts` | 42 | 6.4 min | full |
-| `post-wizard-where.spec.ts` | 32 | 6.1 min | full |
-| `post-wizard-category.spec.ts` | 48 | 6.0 min | full |
-| `feed-screens.spec.ts` | 36 | 5.9 min | full |
-| `admin-categories-console.spec.ts` | 34 | 5.7 min | full |
-| `admin-attributes-links.spec.ts` | 34 | 5.7 min | full |
-| `post-wizard-resets.spec.ts` | 34 | 5.7 min | full |
-| `admin-locations.spec.ts` | 38 | 5.6 min | full |
-| `admin-translations-console.spec.ts` | 46 | 5.6 min | full |
-| `admin-users.spec.ts` | 28 | 5.3 min | full |
-| `viewing-place.spec.ts` | 22 | 5.1 min | full |
-| `admin-attributes-editor.spec.ts` | 36 | 4.9 min | full |
-| `admin-roles.spec.ts` | 26 | 4.8 min | full |
-| `ad-page-doors.spec.ts` | 30 | 4.7 min | full |
-| `my-listings-doors.spec.ts` | 28 | 4.6 min | full |
-| `legal-admin.spec.ts` | 42 | 4.0 min | full |
-| `import-security.spec.ts` | 36 | 3.9 min | full |
-| `admin-attributes-safety.spec.ts` | 18 | 3.8 min | full |
+| `photo-pipeline.spec.ts` | 68 | 15.8 min | full |
+| `ad-page.spec.ts` | 76 | 12.7 min | full |
+| `post-wizard-specs.spec.ts` | 82 | 12.3 min | full |
+| `post-wizard-bundle2.spec.ts` | 70 | 12.0 min | full |
+| `admin-listings.spec.ts` | 62 | 11.5 min | full |
+| `shell.spec.ts` | 218 | 10.8 min | full |
+| `admin-screening.spec.ts` | 52 | 10.7 min | full |
+| `import-security.spec.ts` | 36 | 9.5 min | full |
+| `posting-routes.spec.ts` | 80 | 9.0 min | full |
+| `post-wizard-pricing.spec.ts` | 52 | 8.6 min | full |
+| `admin-categories-lifecycle.spec.ts` | 52 | 7.9 min | full |
+| `my-listings-ad.spec.ts` | 36 | 7.8 min | full |
+| `post-wizard-place.spec.ts` | 38 | 7.5 min | full |
+| `admin-attributes-library.spec.ts` | 42 | 7.4 min | full |
+| `legal-certify.spec.ts` | 42 | 7.0 min | full |
+| `admin-translations-governance.spec.ts` | 20 | 7.0 min | full |
+| `post-wizard-category.spec.ts` | 48 | 6.9 min | full |
+| `post-wizard-where.spec.ts` | 32 | 6.5 min | full |
+| `admin-categories-console.spec.ts` | 34 | 6.3 min | full |
+| `admin-attributes-links.spec.ts` | 34 | 6.2 min | full |
+| `post-wizard-resets.spec.ts` | 34 | 6.1 min | full |
+| `feed-screens.spec.ts` | 36 | 6.0 min | full |
+| `admin-translations-console.spec.ts` | 46 | 5.9 min | full |
+| `admin-locations.spec.ts` | 38 | 5.9 min | full |
+| `admin-users.spec.ts` | 28 | 5.7 min | full |
+| `ad-page-doors.spec.ts` | 30 | 5.3 min | full |
+| `auth-signout.spec.ts` | 32 | 5.3 min | full |
+| `admin-attributes-editor.spec.ts` | 36 | 5.2 min | full |
+| `viewing-place.spec.ts` | 22 | 5.2 min | full |
+| `my-listings-doors.spec.ts` | 28 | 5.2 min | full |
+| `admin-roles.spec.ts` | 26 | 5.1 min | full |
+| `legal-admin.spec.ts` | 42 | 4.4 min | full |
+| `admin-attributes-import.spec.ts` | 40 | 4.1 min | full |
+| `admin-attributes-safety.spec.ts` | 18 | 4.0 min | full |
+| `my-listings-page.spec.ts` | 16 | 3.6 min | full |
 | `auth-resend-exhaustion.spec.ts` | 1 | 3.4 min | nightly |
-| `admin-attributes-import.spec.ts` | 40 | 3.4 min | full |
-| `my-listings-page.spec.ts` | 16 | 3.3 min | full |
-| `auth-signout.spec.ts` | 28 | 3.3 min | full |
-| `legal-doors.spec.ts` | 34 | 3.1 min | full |
-| `posting-routes-catalog.spec.ts` | 18 | 2.7 min | full |
-| `admin-countries.spec.ts` | 18 | 2.5 min | full |
-| `feed-index.spec.ts` | 30 | 2.5 min | full |
-| `admin-translations-data.spec.ts` | 10 | 2.4 min | full |
-| `admin-audit.spec.ts` | 14 | 2.3 min | full |
-| `admin-categories-home.spec.ts` | 10 | 2.2 min | full |
-| `feed-route.spec.ts` | 22 | 2.1 min | full |
-| `mfa-stepup.spec.ts` | 18 | 1.7 min | full |
-| `admin-shell.spec.ts` | 12 | 1.5 min | full |
-| `posting-routes-dials.spec.ts` | 18 | 1.4 min | full |
-| `admin-coverage.spec.ts` | 16 | 1.2 min | full |
-| `auth-caller-gates.spec.ts` | 8 | 1.1 min | full |
+| `legal-doors.spec.ts` | 34 | 3.4 min | full |
+| `posting-routes-catalog.spec.ts` | 18 | 2.9 min | full |
+| `feed-index.spec.ts` | 30 | 2.8 min | full |
+| `admin-countries.spec.ts` | 18 | 2.7 min | full |
+| `admin-audit.spec.ts` | 14 | 2.5 min | full |
+| `admin-translations-data.spec.ts` | 10 | 2.5 min | full |
+| `admin-categories-home.spec.ts` | 10 | 2.3 min | full |
+| `feed-route.spec.ts` | 22 | 2.2 min | full |
+| `mfa-stepup.spec.ts` | 18 | 1.8 min | full |
+| `admin-shell.spec.ts` | 12 | 1.7 min | full |
+| `posting-routes-dials.spec.ts` | 18 | 1.6 min | full |
+| `admin-coverage.spec.ts` | 16 | 1.3 min | full |
+| `post-wizard-details.spec.ts` | 8 | 1.3 min | full |
+| `auth-caller-gates.spec.ts` | 8 | 1.2 min | full |
+| `post-wizard-removed.spec.ts` | 4 | 1.2 min | full |
+| `admin-categories-images.spec.ts` | 4 | 1.2 min | full |
 | `locations-tree.spec.ts` | 8 | 1.1 min | full |
-| `post-wizard-removed.spec.ts` | 4 | 1.1 min | full |
-| `post-wizard-details.spec.ts` | 8 | 1.1 min | full |
-| `admin-categories-images.spec.ts` | 4 | 1.1 min | full |
-| `post-wizard-finder.spec.ts` | 8 | 1.0 min | full |
-| `legal-accept.spec.ts` | 12 | 0.9 min | full |
-| `breadcrumbs.spec.ts` | 6 | 0.8 min | full |
-| `phone-frame.spec.ts` | 18 | 0.8 min | full |
-| `posting-routes-identity.spec.ts` | 4 | 0.7 min | full |
-| `i18n-bundle.spec.ts` | 6 | 0.6 min | full |
+| `post-wizard-finder.spec.ts` | 8 | 1.1 min | full |
+| `legal-accept.spec.ts` | 12 | 1.0 min | full |
+| `supabase-door.spec.ts` | 10 | 1.0 min | full |
+| `phone-frame.spec.ts` | 18 | 0.9 min | full |
+| `breadcrumbs.spec.ts` | 6 | 0.9 min | full |
+| `posting-routes-identity.spec.ts` | 4 | 0.8 min | full |
+| `account-saved.spec.ts` | 4 | 0.7 min | full |
 | `legal-history.spec.ts` | 6 | 0.6 min | full |
-| `account-saved.spec.ts` | 4 | 0.6 min | full |
-| `category-image-routes.spec.ts` | 10 | 0.5 min | full |
-| `post-wizard-units.spec.ts` | 4 | 0.5 min | full |
-| `admin-services.spec.ts` | 10 | 0.4 min | full |
-| `i18n-coverage.spec.ts` | 14 | 0.4 min | full |
+| `category-image-routes.spec.ts` | 10 | 0.6 min | full |
+| `i18n-bundle.spec.ts` | 6 | 0.6 min | full |
+| `post-wizard-units.spec.ts` | 4 | 0.6 min | full |
+| `admin-services.spec.ts` | 10 | 0.5 min | full |
+| `settings.spec.ts` | 9 | 0.5 min | full |
+| `i18n-coverage.spec.ts` | 14 | 0.5 min | full |
+| `a11y.spec.ts` | 4 | 0.5 min | full |
 | `post-wizard-recent.spec.ts` | 2 | 0.4 min | full |
-| `a11y.spec.ts` | 4 | 0.4 min | full |
 | `legal-pages.spec.ts` | 10 | 0.4 min | full |
-| `settings.spec.ts` | 4 | 0.4 min | full |
-| `rbac.spec.ts` | 6 | 0.3 min | full |
-| `primitives-law.spec.ts` | 24 | 0.3 min | full |
+| `rbac.spec.ts` | 6 | 0.4 min | full |
+| `primitives-law.spec.ts` | 24 | 0.4 min | full |
 | `house-style.spec.ts` | 12 | 0.3 min | full |
-| `category-nav.spec.ts` | 10 | 0.2 min | full |
-| `auth-reset.spec.ts` | 6 | 0.2 min | full |
+| `category-nav.spec.ts` | 10 | 0.3 min | full |
+| `auth-reset.spec.ts` | 6 | 0.3 min | full |
 | `layout.spec.ts` | 10 | 0.2 min | full |
 | `smoke-auth-i18n.spec.ts` | 2 | 0.2 min | full |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | full |
+| `auth-signin-errors.spec.ts` | 5 | 0.2 min | full |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | full |
 | `auth-callback.spec.ts` | 4 | 0.1 min | full |
+| `i18n-layers.spec.ts` | 6 | 0.1 min | full |
+| `overlays.spec.ts` | 6 | 0.1 min | full |
+| `on-demand-failure.spec.ts` | 2 | 0.1 min | full |
+| `fonts.spec.ts` | 2 | 0.0 min | full |
 | `auth-google.spec.ts` | 2 | 0.0 min | full |
 | `geo.spec.ts` | 10 | 0.0 min | full |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | full |
@@ -176,21 +174,21 @@ Results read: nightly, full · unavailable: none
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 224.5 s |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.3 s |
-| `my-listings-ad.spec.ts` › MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it | mobile-360 | 34.8 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 34.3 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 34.1 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 33.6 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 33.5 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 32.2 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 32.0 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 31.4 s |
-| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 31.1 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | desktop-1280 | 30.9 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.9 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 30.9 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.8 s |
+| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 223.4 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 204.6 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 56.6 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | desktop-1280 | 54.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 53.8 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 53.0 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 52.4 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 47.0 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 44.0 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 40.8 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | mobile-360 | 39.7 s |
+| `my-listings-ad.spec.ts` › MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it | mobile-360 | 36.0 s |
+| `photo-pipeline.spec.ts` › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) | desktop-1280 | 35.6 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | mobile-360 | 35.1 s |
+| `my-listings-ad.spec.ts` › MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it | desktop-1280 | 35.1 s |
 
 ## Post-test errors: nightly
 
@@ -199,7 +197,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 4 user(s) owned by process 40118998768-nightly
+[e2e:teardown] deleted 4 user(s) owned by process 40374842423-nightly
 ```
 
 ## Post-test errors: full
@@ -208,114 +206,157 @@ full: every test's verdict stands — these lines were printed OUTSIDE any test 
 
 ```text
 [e2e:teardown] accounts signed in this run: 80 (pool 2, fresh 78)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 112 user(s) owned by process 40118998768-nightly
+[e2e:teardown] transport retries this run: 1 (by method: DELETE 1; by code: UND_ERR_SOCKET 1; ran out: 0)
+[e2e:teardown] deleted 112 user(s) owned by process 40374842423-nightly
 ```
 
-## i18n-coverage.spec.ts › i18n chrome coverage (Amharic) › the admin shell renders no English fallback
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271)
 
 - Source: `full`
-- Project: `desktop-1280`
+- Project: `mobile-360`
 
 ```text
-Error: admin shell: keys fell back to English
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toEqual(expected) // deep equality
+Locator: getByTestId('bottom-bar-sign-in')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
 
-- Expected  -  1
-+ Received  + 17
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('bottom-bar-sign-in')
 
-- Array []
-+ Array [
-+   "shell.searchPlaceholder => \"Search listings\"",
-+   "navSection.marketplace => \"Marketplace\"",
-+   "nav.home => \"Home\"",
-+   "admin.landing.title => \"Admin\"",
-+   "app.tagline => \"Buy and sell\"",
-+   "footer.sectionCompany => \"Company\"",
-+   "footer.about => \"About\"",
-+   "post.step.contact => \"Contact\"",
-+   "footer.sectionHelp => \"Help\"",
-+   "footer.safety => \"Safety\"",
-+   "admin.users.legal.title => \"Legal\"",
-+   "post.price.group.terms => \"Terms\"",
-+   "footer.privacy => \"Privacy\"",
-+   "footer.rights => \"All rights reserved.\"",
-+   "navSection.marketplace => \"Marketplace\"",
-+ ]
 --- further error 1 ---
-Error: admin shell: keys fell back to English
+Error: expect(locator).toBeVisible() failed
 
-expect(received).toEqual(expected) // deep equality
+Locator: getByTestId('bottom-bar-sign-in')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
 
-- Expected  -  1
-+ Received  + 17
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for getByTestId('bottom-bar-sign-in')
 
-- Array []
-+ Array [
-+   "shell.searchPlaceholder => \"Search listings\"",
-+   "navSection.marketplace => \"Marketplace\"",
-+   "nav.home => \"Home\"",
-+   "admin.landing.title => \"Admin\"",
-+   "app.tagline => \"Buy and sell\"",
-+   "footer.sectionCompany => \"Company\"",
-+   "footer.about => \"About\"",
-+   "post.step.contact => \"Contact\"",
-+   "footer.sectionHelp => \"Help\"",
-+   "footer.safety => \"Safety\"",
-+   "admin.users.legal.title => \"Legal\"",
+
+  256 |     }
+  257 |     // The site stays on screen, signed out — not the browser's own "cannot open" page.
+> 258 |     await expect(signInMarker(page)).toBeVisible({ timeout: 15_000 });
+      |                                      ^
+  259 |     await expect(page.getByTestId("account-menu")).toHaveCount(0);
+  260 |     await expect(page).toHaveURL(/\/$/);
+  261 |     expect(loads, "no load is tried while offline").toBe(0);
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:258:38
 ```
 
 Context:
 
 ```text
-          - listitem [ref=e291]:
-            - generic [ref=e292]: ስለ እኛ
-          - listitem [ref=e293]:
-            - generic [ref=e294]: ያግኙን
-      - navigation "እገዛ" [ref=e295]:
-        - heading "እገዛ" [level=2] [ref=e296]
-        - list [ref=e297]:
-          - listitem [ref=e298]:
-            - generic [ref=e299]: ደህንነት
-      - navigation "ሕጋዊ" [ref=e300]:
-        - heading "ሕጋዊ" [level=2] [ref=e301]
-        - list [ref=e302]:
-          - listitem [ref=e303]:
-            - link "ውሎች" [ref=e304] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e305]:
-            - link "ግላዊነት" [ref=e306] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e308]: © 2026 ethio.com — መብቱ በሙሉ የተጠበቀ ነው።
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
+```
+```
+
+## auth-signout.spec.ts › U0j sign-out hard reset › SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271)
+
+- Source: `full`
+- Project: `desktop-1280`
+
+```text
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('header a[href="/auth"]')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for locator('header a[href="/auth"]')
+
+--- further error 1 ---
+Error: expect(locator).toBeVisible() failed
+
+Locator: locator('header a[href="/auth"]')
+Expected: visible
+Timeout: 15000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toBeVisible" with timeout 15000ms
+  - waiting for locator('header a[href="/auth"]')
+
+
+  256 |     }
+  257 |     // The site stays on screen, signed out — not the browser's own "cannot open" page.
+> 258 |     await expect(signInMarker(page)).toBeVisible({ timeout: 15_000 });
+      |                                      ^
+  259 |     await expect(page.getByTestId("account-menu")).toHaveCount(0);
+  260 |     await expect(page).toHaveURL(/\/$/);
+  261 |     expect(loads, "no load is tried while offline").toBe(0);
+    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/auth-signout.spec.ts:258:38
+```
+
+Context:
+
+```text
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - heading "This page didn't load" [level=1] [ref=e4]
+  - paragraph [ref=e5]: Something went wrong on our end. You can try refreshing or head back home.
+  - generic [ref=e6]:
+    - button "Try again" [ref=e7]
+    - link "Go home" [ref=e8] [cursor=pointer]:
+      - /url: /
 ```
 ```
 
 ## Server errors: full
 
 ```text
-[WebServer] [ssr-error] /api/admin/translations/import too many previews
+[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
+[WebServer] [ssr-error] /api/admin/categories/import categories file too large
+[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
+[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
+[WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
+[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
+[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
+[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
 [WebServer] [ssr-error] /api/admin/locations/import countries badHeader
 [WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
 [WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
 [WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
 [WebServer] [ssr-error] /api/admin/locations/import countries nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/locations/import locations badHeader
 [WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
 [WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
-[WebServer] [ssr-error] /api/admin/locations/import digest mismatch
-[WebServer] [ssr-error] /api/admin/locations/import too many previews
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/media/photo-links [incident f9ef0231-822a-40e2-aaac-e3b7160224c6] AbortError: The operation was aborted
-[WebServer] [ssr-error] /api/listings/alias [incident cf107719-af2d-49c3-a5d8-e70f07abcb0e] AbortError: The operation was aborted
-[WebServer] [ssr-error] /api/listings/alias [incident 084dd489-c504-478f-9906-e9c0393f4e65] AbortError: The operation was aborted
 ```
 
 ## Client errors: full
 
-No `[client-error]` lines in the `full` log (or no log was uploaded).
+```text
+[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED ×4
+[client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2159:27 at getResponse (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2202:20) at serverFnFetcher (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2159:9) at async client (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2510:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2441:20) at async userNext (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2427:21) ×3
+[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED ×3
+[client-error] console.error: [client-error] gate fetch threw
+[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED ×6
+[client-error] console.error: TypeError: Failed to fetch at http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2159:27 at getResponse (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2202:20) at serverFnFetcher (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2159:9) at async client (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2510:17) at async callNextMiddleware (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2441:20) at async userNext (http://127.0.0.1:4173/assets/createServerFn-DrI7aLUc.js:2427:21) ×3
+[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED ×3
+[client-error] console.error: [client-error] gate fetch threw
+[client-error] console.error: Failed to load resource: net::ERR_INTERNET_DISCONNECTED
+```
