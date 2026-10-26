@@ -24,7 +24,7 @@ vi.mock("./overlay-loader", async () => {
       state.asked += 1;
       const outcome = state.next.shift() ?? "arrive";
       if (outcome === "fail") return Promise.reject(new Error("offline"));
-      state.impl = real as unknown as OverlaysImpl;
+      state.impl = real;
       for (const listener of state.listeners) listener();
       return Promise.resolve(state.impl);
     },
@@ -47,6 +47,7 @@ vi.mock("@/i18n", () => ({
 
 const { Button } = await import("./button");
 const { Dialog, DialogContent, DialogTitle, DialogTrigger } = await import("./dialog");
+const { useState } = await import("react");
 const { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } =
   await import("./dropdown-menu");
 
@@ -111,5 +112,82 @@ describe("the overlay facades when the module fails to arrive (DEC-259, DEC-260)
     expect(state.asked).toBe(2);
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
     expect(screen.getByTestId("dialog-trigger")).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("OVF-17 a controlled dialog whose download fails: its owner hears the closing, and the next click asks again and opens it (INC-908)", async () => {
+    state.impl = null;
+    state.next = ["fail", "arrive"];
+    state.asked = 0;
+    const heard: boolean[] = [];
+    function Owned() {
+      const [open, setOpen] = useState(false);
+      return (
+        <Dialog
+          open={open}
+          onOpenChange={(next) => {
+            heard.push(next);
+            setOpen(next);
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button data-testid="owned-trigger">Report</Button>
+          </DialogTrigger>
+          <DialogContent data-testid="owned-dialog">
+            <DialogTitle>Report the ad</DialogTitle>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+    render(<Owned />);
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("owned-trigger"));
+    });
+    expect(state.asked).toBe(1);
+    expect(heard).toEqual([true, false]);
+    expect(screen.queryByTestId("owned-dialog")).toBeNull();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId("owned-trigger"));
+    });
+    expect(state.asked).toBe(2);
+    expect(heard).toEqual([true, false, true]);
+    expect(screen.getByTestId("owned-dialog")).toBeInTheDocument();
+  });
+
+  it("OVF-18 a dialog its owner opens whose download fails: the owner hears the closing, and its next opening asks again (INC-908)", async () => {
+    state.impl = null;
+    state.next = ["fail", "arrive"];
+    state.asked = 0;
+    const heard: boolean[] = [];
+    let reopen: () => void = () => undefined;
+    function Opened() {
+      const [open, setOpen] = useState(true);
+      reopen = () => setOpen(true);
+      return (
+        <Dialog
+          open={open}
+          onOpenChange={(next) => {
+            heard.push(next);
+            setOpen(next);
+          }}
+        >
+          <DialogContent data-testid="opened-dialog">
+            <DialogTitle>Confirm it is you</DialogTitle>
+          </DialogContent>
+        </Dialog>
+      );
+    }
+    await act(async () => {
+      render(<Opened />);
+    });
+    expect(state.asked).toBe(1);
+    expect(heard).toEqual([false]);
+    expect(screen.queryByTestId("opened-dialog")).toBeNull();
+
+    await act(async () => {
+      reopen();
+    });
+    expect(state.asked).toBe(2);
+    expect(screen.getByTestId("opened-dialog")).toBeInTheDocument();
   });
 });

@@ -53,7 +53,7 @@ describe("the modal facades (DEC-260)", () => {
     fireEvent.click(screen.getByTestId("dialog-trigger"));
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByTestId("dialog")).toContainElement(document.activeElement as HTMLElement),
+      expect(screen.getByTestId("dialog").contains(document.activeElement)).toBe(true),
     );
     const trigger = screen.getByTestId("dialog-trigger");
     expect(trigger).toHaveAttribute("aria-expanded", "true");

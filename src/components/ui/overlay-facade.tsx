@@ -349,7 +349,9 @@ export function OverlayContent({
  * trigger as from Radix's, and an uncontrolled modal opens itself. The children are
  * drawn afresh at that moment (the focus moves into the modal); afterwards
  * everything is Radix's. A failed download leaves the closed modal and the next
- * opening asks again.
+ * opening asks again; an owner that heard the opening, or opened the modal itself,
+ * hears `onOpenChange(false)` when the download fails, so its next opening asks
+ * for the module again (INC-908).
  */
 export type ModalKind = "dialog" | "alertDialog";
 
@@ -415,6 +417,11 @@ export function ModalRoot({
   const [wanted, setWanted] = React.useState(false);
   const [opened, setOpened] = React.useState(false);
   const controlled = open !== undefined;
+  /** The owner as it stands, for the download's failure path (INC-908). */
+  const owner = React.useRef({ controlled, onOpenChange });
+  useIsoLayoutEffect(() => {
+    owner.current = { controlled, onOpenChange };
+  });
 
   React.useEffect(() => {
     warmOverlaysWhenIdle();
@@ -426,6 +433,10 @@ export function ModalRoot({
     loadOverlays().catch(() => {
       setWanted(false);
       setOpened(false);
+      // INC-908 — an owner that heard the trigger's opening, or opened the modal itself,
+      // hears that it did not open: its next opening asks for the module again.
+      const { controlled: owned, onOpenChange: tell } = owner.current;
+      if (byTrigger || owned) tell?.(false);
     });
   }, []);
 
@@ -449,8 +460,8 @@ export function ModalRoot({
 
   const Context = MODALS[kind];
   const inner = <Context.Provider value={state}>{children}</Context.Provider>;
-  if (real === null) return inner;
-  const RealRoot = real.Root;
+  const RealRoot = real === null ? undefined : ownValue(real, "Root");
+  if (RealRoot === undefined) return inner;
   return (
     <RealRoot
       {...rest}
@@ -484,8 +495,8 @@ export function ModalTrigger({
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }) {
   const { real, ask } = useModal(kind, part);
-  if (real !== null) {
-    const RealTrigger = real.Trigger;
+  const RealTrigger = real === null ? undefined : ownValue(real, "Trigger");
+  if (RealTrigger !== undefined) {
     return (
       <RealTrigger asChild onClick={onClick} {...props}>
         {children}
