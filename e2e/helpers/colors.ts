@@ -50,6 +50,32 @@ export function okLchOf(color: string): OkLch | null {
 /** A fill a person sees as its colour is at least half opaque (a 10% wash is not). */
 const SEEN_ALPHA = 0.5;
 
+/** An sRGB colour's channels (0–255) and its alpha (0–1). */
+export interface Rgb {
+  red: number;
+  green: number;
+  blue: number;
+  alpha: number;
+}
+
+/**
+ * rgb() and rgba(), comma or space form, with the alpha a browser reports (`, 0.1`, `/ 10%`) —
+ * turn 32b's reviewer: `rgba(180, 35, 24, 0.1)` is a 10% wash, never a red fill, as an oklab() wash
+ * is not. Null for any other form.
+ */
+export function rgbOf(color: string): Rgb | null {
+  const rgb = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,/]\s*([\d.]+%?))?\s*\)/i.exec(
+    color,
+  );
+  if (!rgb) return null;
+  return {
+    red: Number(rgb[1]),
+    green: Number(rgb[2]),
+    blue: Number(rgb[3]),
+    alpha: alphaOf(rgb[4]),
+  };
+}
+
 /**
  * D163 — whether a colour is the system's gold: oklch(0.681 0.13 72.5) in light
  * and oklch(0.769 0.128 78.3) in dark (src/styles.css; #C98A2B and #E0A94A).
@@ -57,21 +83,17 @@ const SEEN_ALPHA = 0.5;
 export function isGoldFill(color: string): boolean {
   const lch = okLchOf(color);
   if (lch) return lch.alpha >= SEEN_ALPHA && lch.chroma >= 0.08 && lch.hue >= 60 && lch.hue <= 95;
-  const rgb = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(color);
-  if (rgb) {
-    const [red, green, blue] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
-    return red >= 150 && red > green && green >= 100 && green - blue >= 40;
-  }
-  return false;
+  const rgb = rgbOf(color);
+  if (rgb === null || rgb.alpha < SEEN_ALPHA) return false;
+  const { red, green, blue } = rgb;
+  return red >= 150 && red > green && green >= 100 && green - blue >= 40;
 }
 
 export function isRedFill(color: string): boolean {
   const lch = okLchOf(color);
   if (lch) return lch.alpha >= SEEN_ALPHA && lch.chroma >= 0.1 && (lch.hue <= 45 || lch.hue >= 340);
-  const rgb = /^rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)/i.exec(color);
-  if (rgb) {
-    const [red, green, blue] = [Number(rgb[1]), Number(rgb[2]), Number(rgb[3])];
-    return red >= 150 && red - green >= 60 && red - blue >= 60;
-  }
-  return false;
+  const rgb = rgbOf(color);
+  if (rgb === null || rgb.alpha < SEEN_ALPHA) return false;
+  const { red, green, blue } = rgb;
+  return red >= 150 && red - green >= 60 && red - blue >= 60;
 }

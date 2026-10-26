@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { isGoldFill, isRedFill, okLchOf } from "../../e2e/helpers/colors";
+import { isGoldFill, isRedFill, okLchOf, rgbOf } from "../../e2e/helpers/colors";
 
 describe("the E2E colour reader (INC-910)", () => {
   it("EC-1 the red tokens, light and dark, and their hovered 90% mix as Chromium reports it, are red", () => {
@@ -43,5 +43,16 @@ describe("the E2E colour reader (INC-910)", () => {
     expect(lch?.alpha).toBeCloseTo(0.9, 5);
     expect(okLchOf("oklab(0.52 -0.105 -0.032)")?.hue).toBeGreaterThan(180);
     expect(okLchOf("rgb(1, 2, 3)")).toBeNull();
+  });
+
+  it("EC-6 rgb()'s alpha is read as oklab()'s is: a 10% wash is no fill, comma or space form (turn 32b's reviewer)", () => {
+    expect(isRedFill("rgba(180, 35, 24, 0.1)")).toBe(false);
+    expect(isRedFill("rgb(180 35 24 / 10%)")).toBe(false);
+    expect(isRedFill("rgba(180, 35, 24, 0.9)")).toBe(true);
+    expect(isGoldFill("rgba(201, 138, 43, 0.1)")).toBe(false);
+    expect(isGoldFill("rgb(201 138 43 / 90%)")).toBe(true);
+    expect(rgbOf("rgba(1, 2, 3, 0.5)")).toEqual({ red: 1, green: 2, blue: 3, alpha: 0.5 });
+    expect(rgbOf("rgb(1, 2, 3)")?.alpha).toBe(1);
+    expect(rgbOf("oklch(0.5 0.1 30)")).toBeNull();
   });
 });

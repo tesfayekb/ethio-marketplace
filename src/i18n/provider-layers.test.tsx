@@ -1,16 +1,14 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-
-import { Button } from "@/components/ui/button";
 
 import { enMember } from "./locales/en-member";
 import type { MessageKey } from "./types";
 
 /**
  * DEC-258 — a strings layer loads only when a screen asks for it, joins the
- * chain once its English part is in, and says "failed" (with a retry that asks
- * again) when that part does not arrive. The layer loaders are mocked with
- * promises settled by hand.
+ * chain once its English part is in, and says "failed" when that part does not
+ * arrive — with no retry (turn 34c-3, INC-918: the one cure is a refresh). The
+ * layer loaders are mocked with promises settled by hand.
  */
 
 const KEY = Object.keys(enMember)[0] as MessageKey;
@@ -72,9 +70,7 @@ function Asker() {
   return (
     <>
       <p data-testid="state">{member.state}</p>
-      <Button type="button" onClick={member.retry}>
-        retry
-      </Button>
+      <p data-testid="answer">{Object.keys(member).join(",")}</p>
     </>
   );
 }
@@ -126,7 +122,7 @@ describe("strings layers in the provider (DEC-258)", () => {
     expect(screen.getByTestId("text").textContent).toBe(TEXT);
   });
 
-  it("PSL-3 a failed English part fails the layer; Try again asks again and a later load is ready", async () => {
+  it("PSL-3 a failed English part fails the layer, and the hook offers no retry — a refresh is the cure (INC-918)", async () => {
     mount(true);
     await waitFor(() => expect(loaders.pending.has("member")).toBe(true));
     await act(async () => {
@@ -134,14 +130,7 @@ describe("strings layers in the provider (DEC-258)", () => {
     });
     await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("failed"));
     expect(screen.getByTestId("text").textContent).toBe("");
-    loaders.pending.clear();
-    fireEvent.click(screen.getByRole("button", { name: "retry" }));
-    await waitFor(() => expect(loaders.pending.has("member")).toBe(true));
-    await act(async () => {
-      loaders.pending.get("member")?.resolve({ [KEY]: TEXT });
-    });
-    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready"));
-    expect(screen.getByTestId("text").textContent).toBe(TEXT);
+    expect(screen.getByTestId("answer").textContent).toBe("state");
   });
 
   it("PSL-4 a layer already in is not loaded again when a later screen asks for it", async () => {
