@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `470d16baef25173a3993588d6d9076b0bfc822c7`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40360382373
+- Commit: `f09ec2a90bc6fc4405b3ac5e5b1e53caab50e898`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40374691120
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 946 | 115 | applied 345/345 | 192 | 2 | 0 | 62 | 256 |
-| email | 735 | 106 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 1269 | 128 | applied 345/345 | 129 | 0 | 0 | 4 | 133 |
-| 2 | 989 | 92 | applied 345/345 | 142 | 0 | 0 | 3 | 145 |
-| 3 | 1358 | 105 | applied 345/345 | 121 | 1 | 0 | 0 | 122 |
-| 4 | 638 | 133 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 585 | 134 | applied 345/345 | 119 | 0 | 0 | 6 | 125 |
-| 6 | 683 | 98 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 539 | 105 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 726 | 123 | applied 345/345 | 98 | 0 | 0 | 30 | 128 |
-| 9 | 860 | 103 | applied 345/345 | 142 | 0 | 0 | 2 | 144 |
-| 10 | 999 | 130 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 1477 | 103 | applied 345/345 | 122 | 0 | 0 | 1 | 123 |
-| 12 | 646 | 115 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 613 | 110 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 742 | 101 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 593 | 131 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 1042 | 108 | applied 345/345 | 98 | 0 | 0 | 32 | 130 |
-| TOTAL | — | — | — | 2228 | 3 | 0 | 159 | 2390 |
+| smoke | 1023 | 115 | applied 345/345 | 192 | 2 | 0 | 62 | 256 |
+| email | 179 | 110 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 806 | 120 | applied 345/345 | 129 | 0 | 0 | 4 | 133 |
+| 2 | 1096 | 118 | applied 345/345 | 142 | 0 | 0 | 3 | 145 |
+| 3 | 753 | 87 | applied 345/345 | 121 | 1 | 0 | 0 | 122 |
+| 4 | 674 | 113 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 1179 | 95 | applied 345/345 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 783 | 112 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 514 | 108 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 1039 | 90 | applied 345/345 | 98 | 0 | 0 | 30 | 128 |
+| 9 | 772 | 104 | applied 345/345 | 142 | 0 | 0 | 2 | 144 |
+| 10 | 799 | 91 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 912 | 108 | applied 345/345 | 121 | 0 | 1 | 1 | 123 |
+| 12 | 622 | 114 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 592 | 104 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
+| 14 | 789 | 105 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 483 | 101 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 561 | 104 | applied 345/345 | 98 | 0 | 0 | 32 | 130 |
+| TOTAL | — | — | — | 2227 | 3 | 1 | 159 | 2390 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 11 1477 s
+- Slowest lane: 5 1179 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40360382373-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40360382373-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40360382373-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40360382373-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40360382373-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40360382373-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40360382373-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40360382373-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40360382373-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40360382373-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40360382373-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40360382373-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40360382373-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40360382373-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40360382373-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40360382373-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40360382373-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40360382373-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40374691120-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40374691120-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40374691120-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40374691120-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40374691120-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40374691120-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40374691120-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40374691120-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40374691120-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40374691120-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40374691120-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40374691120-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40374691120-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40374691120-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40374691120-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40374691120-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40374691120-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40374691120-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -73,5 +73,8 @@ Database container: supabase_db_ethio-ci-local
 
 ## Lane 3
 - auth-signout.spec.ts / U0j sign-out hard reset / SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271) / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+## Lane 11
+- auth-signout.spec.ts / U0j sign-out hard reset / SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
