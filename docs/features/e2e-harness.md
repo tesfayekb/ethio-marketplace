@@ -565,4 +565,6 @@ A test that polls database truth or navigates after a wizard change calls awaitD
 
 `window.__ethioSupabase` arrives when the client's chunk has loaded, not at mount (DEC-261: the E2E hand-off asks the door for it) — read it after a wait, never synchronously at load.
 
-`window.__ethioClientOff`, set by a test's init script, turns that E2E hand-off off, so the page behaves as a production visitor's (SBE-1…4).
+`window.__ethioClientOff`, set by a test's init script, turns that E2E hand-off off, so the page behaves as a production visitor's (SBE-1…5).
+
+A test that refuses a chunk's download waits for the app's one reload for a failed chunk (src/lib/stale-chunk.ts, INC-640) and for the page it lands on before it types — the reload drops what was typed (SBE-4, SBE-5's `openAfterTheOneReload`).
