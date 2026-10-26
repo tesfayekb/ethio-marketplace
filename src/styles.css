@@ -109,12 +109,21 @@
   --radius-4xl: calc(var(--radius) + 16px);
   --radius-card: 0.75rem;
   /*
-   * Typography. Inter carries Latin; Noto Sans Ethiopic carries Ge'ez —
-   * Inter has NO Ethiopic glyphs, so Amharic (and any Ge'ez codepoint in mixed
-   * text) falls through to Noto per-glyph automatically.
+   * Typography (DEC-262, Foundations turn 33): the device's own fonts — no page
+   * downloads a font. Latin and the interface take the platform's UI face (San
+   * Francisco on Apple devices, Segoe UI on Windows, Roboto on Android); Ge'ez
+   * falls through per glyph to the platform's Ethiopic face (Noto Sans Ethiopic
+   * on Android and Linux, Kefa on Apple devices, Nyala or Ebrima on Windows), so
+   * a mixed Amharic and Latin string needs no language class. `system-ui` is left
+   * out on purpose: on Windows it follows the system's locale font. Headings share
+   * the stack and keep their weight classes; scripts/conformance/fonts.test.ts
+   * judges (CF-FT).
    */
-  --font-sans: "Inter", "Noto Sans Ethiopic", system-ui, sans-serif;
-  --font-display: "Bricolage Grotesque", "Noto Sans Ethiopic", system-ui, sans-serif;
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial,
+    "Noto Sans Ethiopic", Kefa, Nyala, Ebrima, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Noto Color Emoji";
+  --font-display: var(--font-sans);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

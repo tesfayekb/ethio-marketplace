@@ -337,11 +337,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // D234 S4 — the reads every page makes start with the page (src/lib/first-reads.ts).
       ...(loaderData?.firstReads ?? []),
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      // Fonts: Inter (Latin body), Bricolage Grotesque (display), Noto Sans
-      // Ethiopic (Ge'ez). Loaded as <link> — Lightning CSS cannot resolve a
-      // remote @import from src/styles.css.
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      // DEC-262 — no web font: the page draws with the device's own fonts
+      // (src/styles.css --font-sans), so nothing waits on a font server.
       // DEC-195 — an early connection to the photo server's origin (the
       // project's own Supabase address, read from the public env, never
       // hard-coded), so the first cards' photos start sooner.
@@ -351,14 +348,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             { rel: "preconnect", href: PHOTO_ORIGIN },
             { rel: "dns-prefetch", href: PHOTO_ORIGIN },
           ]),
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Bricolage+Grotesque:wght@600;700&display=swap",
-      },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;500;600&display=swap&subset=ethiopic",
-      },
     ],
     // NO FLASH OF WRONG THEME: this runs in <head>, before the body paints, so
     // data-mode + the .dark class are already correct on the first frame.
