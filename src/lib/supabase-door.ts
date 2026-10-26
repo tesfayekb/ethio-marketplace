@@ -31,9 +31,10 @@ import { loadOnce } from "@/lib/load-once";
  * - `currentSession()` is `null` without the client when nothing is stored, and
  *   the client's `getSession()` (refresh included) otherwise.
  * - `rpc()` calls a database function. With no stored session and no client it is
- *   the anonymous PostgREST call the client itself sends for a signed-out
+ *   the anonymous PostgREST call with the client's own auth headers for a signed-out
  *   visitor — POST /rest/v1/rpc/<name>, the publishable key as `apikey`, the
- *   bearer only for an old-style anon JWT key — answered in supabase-js's
+ *   bearer only for an old-style anon JWT key; not postgrest-js's X-Client-Info,
+ *   an analytics header — answered in supabase-js's
  *   `{ data, error }` shape; otherwise it is the client's own `rpc`. A function
  *   therefore sees exactly the caller it saw before.
  */

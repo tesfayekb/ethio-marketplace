@@ -2,7 +2,7 @@ import { StrictMode, startTransition } from "react";
 import { hydrateRoot } from "react-dom/client";
 import { StartClient } from "@tanstack/react-start/client";
 
-import { whenStreamPlaced } from "@/lib/hydrate-when-placed";
+import { PLACED_DEADLINE_MS, whenStreamPlaced } from "@/lib/hydrate-when-placed";
 
 /**
  * DEC-266 — the browser's entry: TanStack Start's own client entry
@@ -12,7 +12,7 @@ import { whenStreamPlaced } from "@/lib/hydrate-when-placed";
 void whenStreamPlaced().then((outcome) => {
   if (outcome === "deadline")
     console.error(
-      "[client-error] the first screen was not placed 1.5 s after the page was read; hydrating anyway",
+      `[client-error] the first screen was not placed ${PLACED_DEADLINE_MS / 1000} s after the page was read; hydrating anyway`,
     );
   startTransition(() => {
     hydrateRoot(
