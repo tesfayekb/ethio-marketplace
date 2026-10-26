@@ -122,10 +122,16 @@ export function OverlayRoot({
     if (active) setContentState(contentRef.current);
   }, [active]);
 
+  /** Turn 34c-3 — each activation's number: a late failure of an older one says nothing. */
+  const asks = React.useRef(0);
+
   const activate = React.useCallback((next: Intent | null) => {
+    asks.current += 1;
+    const ask = asks.current;
     intent.current = next;
     setWanted(true);
     loadOverlays().catch((error: unknown) => {
+      if (ask !== asks.current) return;
       intent.current = null;
       setWanted(false);
       // INC-911 — the person's tap opened nothing: the shell's notice says so.
@@ -428,25 +434,39 @@ export function ModalRoot({
   const [opened, setOpened] = React.useState(false);
   const controlled = open !== undefined;
   /** The owner as it stands, for the download's failure path (INC-908). */
-  const owner = React.useRef({ controlled, onOpenChange, onUnavailable });
+  const owner = React.useRef({ controlled, open, onOpenChange, onUnavailable });
   useIsoLayoutEffect(() => {
-    owner.current = { controlled, onOpenChange, onUnavailable };
+    owner.current = { controlled, open, onOpenChange, onUnavailable };
   });
+  /** Turn 34c-3 (turn 32b's reviewer) — each ask's number: a late failure of an older ask tells nobody. */
+  const asks = React.useRef(0);
 
   React.useEffect(() => {
     warmOverlaysWhenIdle();
   }, []);
 
   const want = React.useCallback((byTrigger: boolean) => {
+    asks.current += 1;
+    const ask = asks.current;
     setWanted(true);
     if (byTrigger) setOpened(true);
     loadOverlays().catch((error: unknown) => {
+      // Turn 34c-3 — the owner has asked again since: this failure is that ask's to tell, or the
+      // module has arrived for it; an older ask's failure says nothing.
+      if (ask !== asks.current) return;
       setWanted(false);
       setOpened(false);
       reportOnDemandFailure("a dialog's code", error);
       // INC-908 — an owner that heard the trigger's opening, or opened the modal itself,
-      // hears that it did not open: its next opening asks for the module again.
-      const { controlled: owned, onOpenChange: tell, onUnavailable: unavailable } = owner.current;
+      // hears that it did not open: its next opening asks for the module again. Turn 34c-3 —
+      // an owner that has closed the modal meanwhile hears no stale closing.
+      const {
+        controlled: owned,
+        open: isOpen,
+        onOpenChange: tell,
+        onUnavailable: unavailable,
+      } = owner.current;
+      if (owned && isOpen !== true) return;
       if (byTrigger || owned) {
         unavailable?.();
         tell?.(false);

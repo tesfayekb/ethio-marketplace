@@ -223,7 +223,7 @@ type I18nValue = {
   setStar: (code: Language) => void;
   /** DEC-258 — each strings layer's state: idle until a route that shows it asks. */
   layerStates: Record<StringsLayer, LayerState>;
-  /** DEC-258 — ask for a strings layer; also the retry after a failure. */
+  /** DEC-258 — ask for a strings layer (a failed one is asked again by the next screen that needs it). */
   requestStringsLayer: (layer: StringsLayer) => void;
 };
 
@@ -725,12 +725,11 @@ export function useI18n(): I18nValue {
  * DEC-258 (DEC-231's admin gate, generalised) — a screen's ask for the strings
  * layers it shows: requests each once on mount (and whenever the list
  * changes) and reports where the load stands — ready only when every layer is
- * in, failed when any failed. retry asks again for the layers not ready.
+ * in, failed when any failed. Turn 34c-3 (INC-918): no retry — the browser keeps
+ * a failed download for the page's life, so the one cure is a refresh (the
+ * shell's gate draws LoadFailedHere).
  */
-export function useStringsLayers(layers: readonly StringsLayer[]): {
-  state: LayerState;
-  retry: () => void;
-} {
+export function useStringsLayers(layers: readonly StringsLayer[]): { state: LayerState } {
   const ctx = useContext(I18nContext);
   if (!ctx) throw new Error("useStringsLayers must be used within <I18nProvider>");
   const { layerStates, requestStringsLayer } = ctx;
@@ -747,10 +746,5 @@ export function useStringsLayers(layers: readonly StringsLayer[]): {
     : states.every((one) => one === "ready")
       ? "ready"
       : "loading";
-  const retry = useCallback(() => {
-    for (const layer of asked.split(",")) {
-      if (isStringsLayer(layer) && layerStates[layer] !== "ready") requestStringsLayer(layer);
-    }
-  }, [asked, layerStates, requestStringsLayer]);
-  return { state, retry };
+  return { state };
 }

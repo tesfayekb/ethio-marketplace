@@ -11,7 +11,6 @@ const state = vi.hoisted(() => ({
   matches: [] as { staticData: { strings?: string[] } }[],
   layers: "loading" as "loading" | "ready" | "failed",
   asked: [] as string[][],
-  retry: vi.fn(),
 }));
 
 const refreshed = vi.hoisted(() => vi.fn());
@@ -25,7 +24,7 @@ vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key }),
   useStringsLayers: (layers: string[]) => {
     state.asked.push(layers);
-    return { state: layers.length === 0 ? "ready" : state.layers, retry: state.retry };
+    return { state: layers.length === 0 ? "ready" : state.layers };
   },
 }));
 
@@ -43,7 +42,6 @@ beforeEach(() => {
   state.matches = [];
   state.layers = "loading";
   state.asked = [];
-  state.retry.mockReset();
   refreshed.mockReset();
 });
 
