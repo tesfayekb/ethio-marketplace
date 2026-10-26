@@ -6,6 +6,9 @@ only in the Authorization header, and always requests JSON. A JSON body alone
 selects POST and adds `Content-Type: application/json`; a bodyless call defaults
 to GET. A `form` body posts multipart with the browser's own boundary. `cache`
 and `keepalive` forward to fetch. Tokens, headers and bodies are never logged.
+The session is read through the client's door (`currentSession`,
+`src/lib/supabase-door.ts`, DEC-261): a signed-out visitor's call fetches no
+Supabase client.
 
 ## Answers
 
