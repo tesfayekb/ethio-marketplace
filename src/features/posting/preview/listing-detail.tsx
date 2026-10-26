@@ -1,5 +1,6 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { resilientLazy } from "@/lib/resilient-lazy";
 import { cn } from "@/lib/utils";
 import {
@@ -398,8 +399,10 @@ export function ListingDetail(view: ListingDetailView) {
       return;
     }
     // Keep the still-map module off the marketplace's first-paint graph.
-    MAP_PREVIEW.load()
-      .then(({ snap }) => {
+    // INC-911 — a failed download is reported to the shell's one notice (the map beside it,
+    // the same download, shows its own word in place).
+    MAP_PREVIEW.load().then(
+      ({ snap }) => {
         if (active) {
           const snappedLat = snap(lat).toFixed(2);
           const snappedLng = snap(lng).toFixed(2);
@@ -408,8 +411,9 @@ export function ListingDetail(view: ListingDetailView) {
             app: appPinUrl(snappedLat, snappedLng, 13),
           });
         }
-      })
-      .catch((error: unknown) => console.error("[listing-maps]", error));
+      },
+      (error: unknown) => reportOnDemandFailure("the map's links", error),
+    );
     return () => {
       active = false;
     };

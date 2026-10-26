@@ -5,8 +5,9 @@ import type { Messages } from "./types";
 
 /**
  * D234 S3 (INC-897) — each compiled layer is fetched once per visit
- * (src/lib/load-once.ts); a failed download is forgotten so the next load asks
- * again, and the provider answers it as it always has (INC-107, INC-816).
+ * (src/lib/load-once.ts); the provider answers a failed download (INC-107,
+ * INC-816) and reports it to the shell's one notice, which offers to refresh the
+ * page — asking again cannot help, the browser keeps the failure (INC-911, INC-918).
  *
  * INC-107 — A MISSING COMPILED LAYER IS EMPTY, NOT FATAL.
  *

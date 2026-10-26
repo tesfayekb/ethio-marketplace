@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { clearSessionClocks } from "@/features/session/session-policy";
-import { errorText } from "@/lib/error-text";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { currentSession, getSupabase, onAuthChange } from "@/lib/supabase-door";
 
 import * as authService from "./auth-service";
@@ -67,7 +67,8 @@ export function useAuth() {
       // signed out at every auth event (the first load, a sign-in, a token
       // refresh), so a session deactivated while open ends on its own.
       // DEC-261 — the client is here for a signed-in visitor (the door started it); a
-      // client that did not load is a read that failed: fail-open, as above.
+      // client that did not load is a read that failed: fail-open, as above. INC-911 — it is
+      // reported to the shell's one notice, which offers to refresh the page.
       const { data } = await getSupabase().then(
         (supabase) =>
           supabase
@@ -76,7 +77,7 @@ export function useAuth() {
             .eq("user_id", userId)
             .maybeSingle(),
         (error: unknown) => {
-          console.warn(`[auth] the profile read could not start: ${errorText(error)}`);
+          reportOnDemandFailure("the account's code", error);
           return { data: null };
         },
       );

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import { useI18n } from "@/i18n";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { APPROX_RADIUS_M } from "./geocode";
 import { snap } from "./map-preview";
 import {
@@ -71,7 +72,8 @@ export function MapLarge({
         large.invalidateSize();
       })
       .catch((error: unknown) => {
-        console.error("[map-large]", error);
+        // INC-911 — the large map stays empty; the shell's notice says why.
+        reportOnDemandFailure("the large map", error);
       });
     return () => {
       cancelled = true;

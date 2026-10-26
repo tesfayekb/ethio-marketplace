@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 
 import { useI18n } from "@/i18n";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useNearViewport } from "@/lib/use-near-viewport";
 
 import { APPROX_RADIUS_M } from "./geocode";
@@ -105,9 +106,10 @@ export function MapPreview({
           L.marker(centre, { icon: pinIcon(L), keyboard: false }).addTo(map);
         }
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         // A map that cannot load leaves the caption below it standing; the page
-        // never blanks over a picture (C4).
+        // never blanks over a picture (C4). INC-911 — the shell's notice says so.
+        reportOnDemandFailure("the map", error);
       });
 
     return () => {

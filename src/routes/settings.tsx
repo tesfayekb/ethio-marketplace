@@ -24,7 +24,7 @@ import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { requireSignedIn } from "@/lib/signed-in-route";
 import { getSupabase } from "@/lib/supabase-door";
-import { errorText } from "@/lib/error-text";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
@@ -167,12 +167,13 @@ function SettingsScreen() {
     let active = true;
     void (async () => {
       if (user === null) return;
-      // INC-915 — a failed download leaves member-since unknown and ends the session check.
+      // INC-915 — a failed download leaves member-since unknown and ends the session check;
+      // INC-911 — it is reported to the shell's one notice, which offers to refresh the page.
       let supabase: Awaited<ReturnType<typeof getSupabase>>;
       try {
         supabase = await getSupabase();
       } catch (error) {
-        console.error(`[client-error] settings: the client did not load: ${errorText(error)}`);
+        reportOnDemandFailure("the account's code", error);
         if (active) setCheckingSession(false);
         return;
       }

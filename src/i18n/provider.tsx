@@ -13,6 +13,7 @@ import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/a
 import { isE2E } from "@/lib/env-flags";
 
 import { errorText } from "@/lib/error-text";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { onAuthChange } from "@/lib/supabase-door";
 
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
@@ -598,7 +599,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
             console.warn(`[i18n] no compiled catalog for ${language}; DB-only`);
           }
         } else {
-          compiled = await loader();
+          // INC-919 — a failed download of the language's compiled base was an unhandled
+          // rejection: nothing applied and nothing said so. It now leaves the base empty (the
+          // English first-paint part underneath and the database's rows on top, as for a
+          // DB-only language) and is reported to the shell's one notice (INC-911), which offers
+          // to refresh the page — the browser keeps a failed download for the page's life.
+          try {
+            compiled = await loader();
+          } catch (reason) {
+            reportOnDemandFailure(`the ${language} strings`, reason);
+          }
         }
       }
       if (cancelled) return;
@@ -625,8 +635,9 @@ export function I18nProvider({ children }: { children: ReactNode }) {
               const langLoader = compiledLayerLoader(layer, language);
               lang = langLoader ? await langLoader() : null;
             } catch (reason) {
-              // F4 — never silent, never blank: the English part still applies.
-              console.error(`[i18n] ${layer} strings for ${language} failed: ${errorText(reason)}`);
+              // F4 — never silent, never blank: the English part still applies, and (INC-911)
+              // the shell's one notice says part of the page did not load and offers a refresh.
+              reportOnDemandFailure(`the ${layer} strings for ${language}`, reason);
             }
           }
           return { layer, en, lang };

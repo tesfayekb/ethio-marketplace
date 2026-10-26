@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 
 /**
  * D234 speed turn S1 — THE CATEGORY GLYPH MAP LOADS AFTER THE FIRST PAINT.
@@ -14,8 +15,9 @@ import { loadOnce } from "@/lib/load-once";
  * draw — and reports `settled` once it has arrived or failed; the rail keeps its
  * skeleton until then, so a row never draws without its glyph and never shifts.
  * One download per visit (src/lib/load-once.ts); a later mount reads it at once.
- * A failed download is logged, the rows draw without glyphs, and the next mount
- * tries again. The bundle budget guard keeps the map off every public page's
+ * A failed download draws the rows without glyphs and is reported to the shell's
+ * one notice (INC-911), which offers to refresh the page — the browser keeps a
+ * failed download for the page's life (INC-918). The bundle budget guard keeps the map off every public page's
  * first download (PUBLIC_MUST_STAY_LAZY "category-glyphs").
  */
 export type GlyphReader = (name: string | null | undefined) => LucideIcon | null;
@@ -41,7 +43,7 @@ export function useCategoryGlyphs(): { glyphOf: GlyphReader; settled: boolean } 
         if (live) setState({ glyphOf, settled: true });
       },
       (error: unknown) => {
-        console.error("[client-error] category glyphs failed to load", error);
+        reportOnDemandFailure("the category glyphs", error);
         if (live) setState({ glyphOf: NO_GLYPH, settled: true });
       },
     );

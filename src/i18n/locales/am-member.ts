@@ -507,7 +507,6 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "post.who.showToSignedIn": "ለገቡ ገዢዎች አሳይ",
   "post.who.countryWhereHint": "የሚኖሩበት። ለነባሪ ገንዘብዎ እንጠቀምበታለን።",
   "post.who.phoneLibFailed": "የስልክ ሳጥኑ ሊጫን አልቻለም።",
-  "post.who.phoneLibRetry": "እንደገና ይሞክሩ",
   "post.who.aliasRules": "ከ5 እስከ 30 ትንንሽ የላቲን ፊደሎች፣ ቁጥሮች ወይም _። በፊደል ይጀምሩ።",
   "post.who.aliasAvailable": "ይህ ስም ነፃ ነው። ይህን ደረጃ ሲያስቀምጡ የእርስዎ ይሆናል።",
   "post.who.aliasSuggestions": "ሊጠቀሙባቸው የሚችሉ ነፃ ስሞች፦",

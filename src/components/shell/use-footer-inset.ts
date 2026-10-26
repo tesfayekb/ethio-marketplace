@@ -97,7 +97,12 @@ export function useFooterInset(): number {
     const settlePasses = [0, 60, 200, 600].map((delay) => setTimeout(flush, delay));
     const raf2 = window.requestAnimationFrame(() => window.requestAnimationFrame(measure));
     const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
-    void fonts?.ready.then(() => measure()).catch(() => undefined);
+    // INC-909 — a failure is logged, never dropped (F4); the other settle passes still measure.
+    void fonts?.ready
+      .then(() => measure())
+      .catch((error: unknown) => {
+        console.error("[client-error] footer inset: fonts.ready failed", error);
+      });
     window.addEventListener("scroll", scheduleSettle, { passive: true });
     window.addEventListener("scrollend", flush, { passive: true });
     window.addEventListener("resize", scheduleSettle, { passive: true });
