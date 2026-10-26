@@ -20,8 +20,18 @@
 import { readFileSync, existsSync, statSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
-const ENTRIES = ["src/routes/index.tsx", "src/components/app-shell.tsx", "src/routes/__root.tsx"];
+// DEC-261 (Foundations turn 34): src/start.ts too — its request middleware rides every page.
+const ENTRIES = [
+  "src/routes/index.tsx",
+  "src/components/app-shell.tsx",
+  "src/routes/__root.tsx",
+  "src/start.ts",
+];
 const FORBIDDEN_FILES = [
+  // DEC-261 — the Supabase client, and the generated attacher that imports it, load through
+  // src/lib/supabase-door.ts only.
+  "src/integrations/supabase/client.ts",
+  "src/integrations/supabase/auth-attacher.ts",
   "src/i18n/locales/en.ts",
   "src/i18n/locales/am.ts",
   "src/i18n/locales/en-admin.ts",
@@ -52,6 +62,8 @@ const FORBIDDEN = [
   // Radix's dialog inside them: neither may reach the first paint either.
   "vaul",
   "cmdk",
+  // Foundations turn 34 (DEC-261) — the Supabase client loads through src/lib/supabase-door.ts.
+  "@supabase/supabase-js",
 ];
 const EXTENSIONS = ["", ".ts", ".tsx", ".js", ".jsx", "/index.ts", "/index.tsx"];
 
@@ -82,8 +94,11 @@ while (queue.length > 0) {
 
   const relative = file.replace(`${process.cwd()}/`, "");
   if (FORBIDDEN_FILES.includes(relative)) {
+    const why = relative.startsWith("src/integrations/supabase/")
+      ? "DEC-261: the Supabase client loads through src/lib/supabase-door.ts"
+      : "DEC-231: the full catalogues and the admin strings stay off the first paint";
     violations.push(
-      `${importer ? importer.replace(`${process.cwd()}/`, "") : relative} reaches ${relative} (DEC-231: the full catalogues and the admin strings stay off the first paint)`,
+      `${importer ? importer.replace(`${process.cwd()}/`, "") : relative} reaches ${relative} (${why})`,
     );
     continue;
   }

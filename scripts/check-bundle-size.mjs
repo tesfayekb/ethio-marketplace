@@ -21,6 +21,7 @@ import { gzipSync } from "node:zlib";
 import {
   entryChunks,
   judgeRouteBudgets,
+  carriedViolation,
   mustStayLazyViolation,
   pageRouteIds,
   PUBLIC_MUST_STAY_LAZY,
@@ -39,7 +40,8 @@ const BUDGET_KIB = {
   // DEC-258 (Foundations turn 30, 2026-10-25): the member strings left it (287.9 → 280.2 measured); the ceiling follows to 284.
   // DEC-259 (Foundations turn 31, 2026-10-25): the tooltip's and the dropdown menu's code left it (280.2 → 260.0 measured); the ceiling follows to 263.
   // DEC-260 (Foundations turn 32, 2026-10-26): the dialog's and the alert dialog's code left it (260.0 → 254.1 measured); the ceiling follows to 257.
-  js: 257,
+  // DEC-261 (Foundations turn 34, 2026-10-26): the Supabase client left it (254.0 → 203.6 measured); the ceiling follows to 207.
+  js: 207,
   css: 40,
 };
 
@@ -121,6 +123,16 @@ for (const entry of jsEntries) {
     );
     process.exit(1);
   }
+  // DEC-261: the Supabase client never rides the first download, whatever its chunk is named.
+  const carried = carriedViolation(closure, (name) =>
+    readFileSync(join(dirname(entry), name), "utf8"),
+  );
+  if (carried) {
+    console.error(
+      `Bundle budget: ${carried.name} carries ${carried.marker} (the Supabase client, DEC-261) in the first-paint closure of ${basename(entry)}.`,
+    );
+    process.exit(1);
+  }
   for (const name of closure) eager.add(join(dirname(entry), name));
 }
 for (const file of files) {
@@ -191,6 +203,8 @@ const { rows, failures } = judgeRouteBudgets({
   budgets: ROUTE_BUDGETS_KIB,
   slack: RATCHET_SLACK_KIB,
   publicLazy: PUBLIC_MUST_STAY_LAZY,
+  carries: (closure) =>
+    carriedViolation(closure, (name) => readFileSync(join(assetsDir, name), "utf8")),
   measure: (id) => {
     const closure = staticClosure(assetsDir, routePreloads(routes, id));
     return { kib: closure.reduce((sum, name) => sum + gz(name), 0) / 1024, closure };

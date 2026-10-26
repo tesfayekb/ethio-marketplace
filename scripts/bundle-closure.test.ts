@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
+  carriedViolation,
   entryChunks,
   judgeRouteBudgets,
   mustStayLazyViolation,
@@ -174,5 +175,33 @@ describe("every page's first download (D234)", () => {
     for (const prefix of ["category-glyphs", "date-calendar", "leaflet", "zod", "overlays-impl"]) {
       expect(PUBLIC_MUST_STAY_LAZY).toContain(prefix);
     }
+  });
+
+  it("BC-13 a chunk that carries the Supabase client fails by its text, whatever its name — the entry and a public page (DEC-261)", () => {
+    const texts = new Map([
+      ["index-a.js", "export const shell = 1;"],
+      ["dist-b.js", "class GoTrueClient {}"],
+    ]);
+    const textOf = (name: string) => texts.get(name) ?? "";
+    expect(carriedViolation(["index-a.js"], textOf)).toBeNull();
+    expect(carriedViolation(["index-a.js", "dist-b.js"], textOf)).toEqual({
+      name: "dist-b.js",
+      marker: "GoTrueClient",
+    });
+    const carries = (closure: string[]) => carriedViolation(closure, textOf);
+    const planted = {
+      ...sizes,
+      "/l/$slug": { kib: 320, closure: ["index-a.js", "dist-b.js"] },
+    };
+    expect(
+      judgeRouteBudgets({
+        routeIds: Object.keys(planted),
+        budgets: fair,
+        measure: (id) => planted[id as keyof typeof planted],
+        slack: 8,
+        publicLazy: PUBLIC_MUST_STAY_LAZY,
+        carries,
+      }).failures,
+    ).toEqual(["/l/$slug: dist-b.js carries GoTrueClient on a public page (DEC-261)"]);
   });
 });

@@ -59,6 +59,23 @@ export const MUST_STAY_LAZY = [
   "overlays-impl",
 ];
 
+/**
+ * DEC-261 (Foundations turn 34) — WHAT NO FIRST DOWNLOAD MAY CARRY, found by its text:
+ * the bundler names a shared chunk after any module grouped into it, so a name prefix
+ * cannot find the Supabase client; its auth class's name survives minification.
+ */
+export const MUST_NOT_CARRY = ["GoTrueClient"];
+
+/** The first chunk of `closureNames` whose text (`textOf(name)`) carries a marker, or null. */
+export function carriedViolation(closureNames, textOf, markers = MUST_NOT_CARRY) {
+  for (const name of closureNames) {
+    const text = textOf(name);
+    const marker = markers.find((candidate) => text.includes(candidate));
+    if (marker !== undefined) return { name, marker };
+  }
+  return null;
+}
+
 /** The first closure chunk name that must stay lazy, or null. */
 export function mustStayLazyViolation(closureNames) {
   return (
@@ -147,9 +164,10 @@ export function pageRouteIds(routes) {
  * D234 S1 — judge every page against its ceiling. `measure(id)` answers the
  * page's first download as `{ kib, closure }`. A page with no ceiling, a ceiling
  * with no page, a page over its ceiling, a page `slack` KiB or more under it (the
- * ratchet: lower it), and a public page holding a must-stay-lazy chunk each fail.
+ * ratchet: lower it), a public page holding a must-stay-lazy chunk, and a public page
+ * whose chunks carry a MUST_NOT_CARRY marker (`carries(closure)`, DEC-261) each fail.
  */
-export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLazy }) {
+export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLazy, carries }) {
   // Page ids come from the build's manifest: the ceilings are read as own entries only.
   const ceilings = new Map(Object.entries(budgets));
   const rows = [];
@@ -174,6 +192,11 @@ export function judgeRouteBudgets({ routeIds, budgets, measure, slack, publicLaz
     if (budget.public) {
       const lazy = firstLazyViolation(closure, publicLazy);
       if (lazy) failures.push(`${id}: ${lazy} must stay lazy on a public page (D234)`);
+      const carried = carries === undefined ? null : carries(closure);
+      if (carried)
+        failures.push(
+          `${id}: ${carried.name} carries ${carried.marker} on a public page (DEC-261)`,
+        );
     }
   }
   for (const id of ceilings.keys()) {
