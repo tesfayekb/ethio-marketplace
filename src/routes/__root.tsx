@@ -28,6 +28,7 @@ import { ThemeProvider, THEME_INIT_SCRIPT } from "../providers/theme-provider";
 import type { GeoAnswer } from "../server/geo/guess";
 import { errorText } from "@/lib/error-text";
 import { refreshPage } from "@/lib/on-demand-failure";
+import { projectEnv } from "@/lib/supabase-door";
 import { Button } from "@/components/ui/button";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
 import type { FirstFeedPage } from "@/features/feed/feed-page";
@@ -156,18 +157,17 @@ const getSsrLangContext = createServerFn({ method: "GET" })
       console.error("[ssr-error] /__root geo guess threw", errorText(error));
     }
 
-    // Same resolution order as the generated client (dev serves VITE_*; the
-    // deployed Worker serves the unprefixed pair).
-    const base = import.meta.env.VITE_SUPABASE_URL || process.env["SUPABASE_URL"];
-    const key =
-      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env["SUPABASE_PUBLISHABLE_KEY"];
+    // Turn 34c-2 — the project's address and key through the door (CF-PROJECT-1): the same
+    // resolution order as the generated client (dev serves VITE_*; the deployed Worker serves the
+    // unprefixed pair).
+    const project = projectEnv();
     let languages: Array<{ code: string; rtl: boolean }> = [];
-    if (base && key) {
+    if (project !== null) {
       try {
         const { upstream } = await import("../server/upstream");
         const response = await upstream(
-          `${base}/rest/v1/languages?select=code,rtl&or=(enabled_public.eq.true,is_base.eq.true)&order=sort.asc`,
-          { headers: { apikey: key, accept: "application/json" }, cache: "no-store" },
+          `${project.url}/rest/v1/languages?select=code,rtl&or=(enabled_public.eq.true,is_base.eq.true)&order=sort.asc`,
+          { headers: { apikey: project.key, accept: "application/json" }, cache: "no-store" },
           { timeoutMs: LANGUAGE_GATE_TIMEOUT_MS, label: "ssr language gate" },
         );
         if (response.ok) {
@@ -273,13 +273,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 /** DEC-195 — the photo server's origin: the public Supabase address's origin, or null when unset or unparsable. */
 const PHOTO_ORIGIN = (() => {
   try {
-    // Same resolution order as the loader (:116): dev serves VITE_*; the
-    // deployed Worker serves the unprefixed name. Never a hard-coded URL.
-    const url =
-      (import.meta.env.VITE_SUPABASE_URL as string | undefined) ||
-      process.env["SUPABASE_URL"] ||
-      "";
-    return url === "" ? null : new URL(url).origin;
+    // Turn 34c-2 — the project's address through the door (CF-PROJECT-1), as the loader reads it.
+    // Never a hard-coded URL.
+    const project = projectEnv();
+    return project === null ? null : new URL(project.url).origin;
   } catch {
     return null;
   }

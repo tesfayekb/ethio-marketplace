@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { isE2E } from "@/lib/env-flags";
+import { besideStoredSession, storedSessionKey } from "@/lib/supabase-door";
 
 /**
  * U0k — SESSION POLICY (client-side enforcement).
@@ -57,25 +58,25 @@ function overrides(): SessionPolicyOverrides {
   );
 }
 
-/**
- * Storage keys are sb-scoped like the supabase token itself, so a different
- * project (staging vs prod) in the same browser keeps its own clocks.
- */
-function projectRef(): string {
-  return (
-    (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.match(/https?:\/\/([^.]+)\./)?.[1] ??
-    "local"
-  );
-}
+export type SessionClockKeys = {
+  lastActivityAt: string;
+  sessionStartedAt: string;
+  /** INC-223 — which session these clocks belong to. */
+  sessionRef: string;
+};
 
-export function sessionPolicyKeys() {
-  const ref = projectRef();
-  return {
-    lastActivityAt: `sb-${ref}-last-activity-at`,
-    sessionStartedAt: `sb-${ref}-session-started-at`,
-    /** INC-223 — which session these clocks belong to. */
-    sessionRef: `sb-${ref}-session-ref`,
-  };
+/**
+ * The clocks' storage keys sit beside the session's own key, as the door names it (turn 34c-2:
+ * besideStoredSession — the client's own prefix, read from the project's address as the client
+ * reads it), so a different project (staging vs prod) in the same browser keeps its own clocks.
+ * Null without a project: there is no session to clock.
+ */
+export function sessionPolicyKeys(): SessionClockKeys | null {
+  const lastActivityAt = besideStoredSession("last-activity-at");
+  const sessionStartedAt = besideStoredSession("session-started-at");
+  const sessionRef = besideStoredSession("session-ref");
+  if (lastActivityAt === null || sessionStartedAt === null || sessionRef === null) return null;
+  return { lastActivityAt, sessionStartedAt, sessionRef };
 }
 
 /**
@@ -124,13 +125,10 @@ function decodeSessionId(accessToken: string): string | null {
 
 export function liveSessionRef(): string | null {
   if (typeof window === "undefined") return null;
-  const key =
-    `sb-${projectRef()}-auth-token` in window.localStorage
-      ? `sb-${projectRef()}-auth-token`
-      : Object.keys(window.localStorage).find(
-          (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
-        );
-  if (!key) return null;
+  // Turn 34c-2 — this project's session only, under the key the door names: another project's
+  // session in the same browser is never read as this one's.
+  const key = storedSessionKey();
+  if (key === null) return null;
   const raw = window.localStorage.getItem(key);
   if (!raw) return null;
   try {
@@ -159,7 +157,7 @@ export function liveSessionRef(): string | null {
 export function sessionClocksAreCurrent(): boolean {
   if (typeof window === "undefined") return false;
   const keys = sessionPolicyKeys();
-  if (readStamp(keys.sessionStartedAt) === null) return false;
+  if (keys === null || readStamp(keys.sessionStartedAt) === null) return false;
   const live = liveSessionRef();
   // No readable token → nothing to compare against; the stamps stand as written.
   if (live === null) return true;
@@ -190,6 +188,7 @@ function writeStamp(key: string, value: number) {
 export function startSessionClocks(now = Date.now()) {
   if (typeof window === "undefined") return;
   const keys = sessionPolicyKeys();
+  if (keys === null) return;
   if (sessionClocksAreCurrent()) {
     if (readStamp(keys.lastActivityAt) === null) writeStamp(keys.lastActivityAt, now);
     return;
@@ -204,11 +203,13 @@ export function startSessionClocks(now = Date.now()) {
 export function clearSessionClocks() {
   if (typeof window === "undefined") return;
   const keys = sessionPolicyKeys();
+  if (keys === null) return;
   window.localStorage.removeItem(keys.lastActivityAt);
   window.localStorage.removeItem(keys.sessionStartedAt);
   window.localStorage.removeItem(keys.sessionRef);
   // INC-167: shed the retired U1f step-up hint from pre-L5 browsers.
-  window.localStorage.removeItem(`sb-${projectRef()}-stepped-up-at`);
+  const steppedUp = besideStoredSession("stepped-up-at");
+  if (steppedUp !== null) window.localStorage.removeItem(steppedUp);
 }
 
 export function idleLimitFor(tier: SessionTier) {
@@ -253,7 +254,8 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
   onExpireRef.current = onExpire;
 
   const extend = useCallback(() => {
-    writeStamp(sessionPolicyKeys().lastActivityAt, Date.now());
+    const keys = sessionPolicyKeys();
+    if (keys !== null) writeStamp(keys.lastActivityAt, Date.now());
     setSecondsLeft(null);
   }, []);
 
@@ -264,6 +266,10 @@ export function useSessionPolicy({ active, tier, onExpire }: Options) {
     }
     firedRef.current = false;
     const keys = sessionPolicyKeys();
+    if (keys === null) {
+      setSecondsLeft(null);
+      return;
+    }
     // Session-scoped: absent OR foreign stamps start a fresh window.
     if (!sessionClocksAreCurrent()) startSessionClocks();
     if (readStamp(keys.lastActivityAt) === null) writeStamp(keys.lastActivityAt, Date.now());

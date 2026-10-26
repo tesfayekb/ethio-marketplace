@@ -14,7 +14,7 @@ import { isE2E } from "@/lib/env-flags";
 
 import { errorText } from "@/lib/error-text";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
-import { onAuthChange } from "@/lib/supabase-door";
+import { onAuthChange, projectEnv } from "@/lib/supabase-door";
 
 import { fetchEntityBundle, fetchUiBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
@@ -144,9 +144,10 @@ const SEED_PUBLIC_LANGUAGES: PublicLanguage[] = [
  * the URL is unchanged so the delay harness still targets exactly this read.
  */
 async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
-  const url = import.meta.env["VITE_SUPABASE_URL"] as string | undefined;
-  const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
-  if (!url || !key) return null;
+  // Turn 34c-2 — the project's address and key through the door (CF-PROJECT-1).
+  const project = projectEnv();
+  if (project === null) return null;
+  const { url, key } = project;
   const query =
     "select=code,name_en,name_native,rtl,sort" +
     "&or=(enabled_public.eq.true,is_base.eq.true)" +
