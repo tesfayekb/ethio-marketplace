@@ -134,7 +134,9 @@ Two rules apply to every block below.
   triggers are always `asChild`; a closed modal draws its trigger alone; the
   first opening (the trigger's click or the owner's `open`) draws the real root
   around the children, which are drawn afresh then — so keep state that must
-  survive the first opening outside the modal's root. Nothing imports
+  survive the first opening outside the modal's root. When the code fails to
+  download, an owner that heard the opening (or opened the modal itself) hears
+  `onOpenChange(false)`, so its next opening asks again (INC-908). Nothing imports
   `@radix-ui/react-dialog` or `@radix-ui/react-alert-dialog` by value but the
   two impl files (CF-OV-1).
 

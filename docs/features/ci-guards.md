@@ -1103,3 +1103,7 @@ The weight guard's FORBIDDEN gains `@radix-ui/react-dialog` and `@radix-ui/react
 ## DEC-262 — the font census
 
 `scripts/conformance/fonts.test.ts`: CF-FT-1 reads every source and stylesheet under src/ and public/ (tests aside) and every font file there — a web-font host (Google Fonts, Typekit, Bunny), an `@font-face`, a font file (`.woff`, `.woff2`, `.ttf`, `.otf`, `.eot`), a family set by name (`fontFamily:`, a `font-[…]` class, a `font-family:` that is not `var(--font-sans)` or `var(--font-display)`) or a font token defined outside src/styles.css each fail; CF-FT-2 pins the two tokens (the device's stack; `--font-display` = `var(--font-sans)`) and the base rules that use them; CF-FT-3 proves the census on a planted tree. Shown red against turn 32's tree (the four Google Fonts lines in `src/routes/__root.tsx`). The browser's side is `e2e/fonts.spec.ts` FTE-1, in the selector's house-style area.
+
+## INC-908 — a failed overlay download on a modal its owner controls
+
+`src/components/ui/overlay-facade-failure.test.tsx` gains OVF-17 (a controlled dialog: the trigger's opening, a failed download, the owner hears `false`, the next click asks again and opens it) and OVF-18 (a dialog its owner opens: a failed download, the owner hears `false`, its next opening asks again); both were shown red against turn 32's facade. The weight guard's FORBIDDEN gains `vaul` and `cmdk`, which carry Radix's dialog inside them (proven on a planted `import "vaul"`).
