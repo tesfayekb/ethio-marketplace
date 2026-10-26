@@ -197,6 +197,14 @@ test.describe("U0j sign-out hard reset", () => {
     const user = await leaseUser();
     await signInViaSession(page, user.email, user.password);
     await gotoReady(page, "/settings");
+    // INC-928 — the signed-in page is drawn before its session goes stale: made stale while the
+    // page's first session read was still pending, the visitor read as signed out before the click
+    // (turn 34w's local runs; that reading is INC-914's, turn 34c).
+    await expect(
+      isMobile(page)
+        ? page.getByTestId("account-menu")
+        : page.getByTestId("app-rail").getByTestId("rail-sign-out"),
+    ).toBeVisible();
     // The access token has run out and the auth server cannot be reached.
     await page.route("**/auth/v1/**", (route) => route.abort("failed"));
     await page.evaluate(() => {

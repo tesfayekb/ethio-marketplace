@@ -15,7 +15,9 @@ describe("FadingNotice", () => {
   it("FN-1 shows nothing until told, then the words for a few seconds, then nothing", () => {
     const { rerender } = render(<FadingNotice testid="n" nonce={0} text={null} />);
     const notice = screen.getByTestId("n");
-    expect(notice).toHaveAttribute("role", "status");
+    // S446 — drawn always, so no role: the polite live region alone is heard.
+    expect(notice).not.toHaveAttribute("role");
+    expect(notice).toHaveAttribute("aria-live", "polite");
     expect(notice).toHaveAttribute("data-shown", "false");
     expect(notice).toHaveTextContent("");
 

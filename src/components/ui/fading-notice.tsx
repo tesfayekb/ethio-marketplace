@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
  * and goes away, drawn in place (no <Toaster/> is mounted in this app; its
  * notices are inline live regions). `nonce` re-shows the same words when a
  * second save says the same thing. A screen reader hears it through the live
- * region; nothing else moves.
+ * region; nothing else moves. It is drawn always, empty until told, so it carries
+ * no role (S446, ODN-2): an empty role="status" answered a page's own
+ * getByRole("status") too — the polite live region alone is what is heard.
  */
 export const FADING_NOTICE_MS = 4000;
 
@@ -32,7 +34,6 @@ export function FadingNotice({
   }, [text, nonce, ms]);
   return (
     <p
-      role="status"
       aria-live="polite"
       data-testid={testid}
       data-shown={shown ? "true" : "false"}

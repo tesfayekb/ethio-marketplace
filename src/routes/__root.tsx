@@ -316,6 +316,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       firstFeed: null,
     };
   },
+  // DEC-272 (Foundations turn 34w-2, INC-927) — the root's facts (the published languages, the
+  // language star, the saved area, the edge's guess) are read once per page load. The router read
+  // them again from the server on a navigation to the page already shown (it reloads every
+  // loader of a same-href navigation): a round trip for nothing online, and offline a failed read
+  // whose error view replaced the whole app — the offline sign-out's move to "/" from "/" (SO-12).
+  // A navigation elsewhere never re-read them; only router.invalidate() (the error view's "Try
+  // again") reads them again.
+  shouldReload: false,
   head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },

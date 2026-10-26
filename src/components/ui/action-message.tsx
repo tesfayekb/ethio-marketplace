@@ -15,7 +15,9 @@ import { cn } from "@/lib/utils";
  * The role follows the tone (`alert` for a refusal, `status` for a confirmation)
  * unless the caller names one. Without text it renders nothing, unless
  * `persistent` keeps the empty region in the page so its first message is
- * announced.
+ * announced — that empty region is a live region with no role (INC-929, S446's
+ * class): an empty role answered a page's own getByRole too; the role comes with
+ * the words.
  */
 export function ActionMessage({
   text,
@@ -50,8 +52,8 @@ export function ActionMessage({
   return (
     <p
       ref={ref}
-      role={liveRole}
-      aria-live={liveRole === "status" ? "polite" : undefined}
+      role={shown ? liveRole : undefined}
+      aria-live={liveRole === "status" ? "polite" : persistent ? "assertive" : undefined}
       data-testid={testid}
       data-tone={tone}
       className={cn(
