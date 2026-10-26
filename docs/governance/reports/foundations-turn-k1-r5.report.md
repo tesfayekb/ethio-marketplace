@@ -106,7 +106,7 @@ These unchanged refusals are not STOP findings. Named-edge and unreadable-progra
 
 `bun run lint`: 0 errors, 39 warnings. Latest preview diagnostic available before this report: build 2026-10-26T12:46:05Z, build OK; no error TS lines. No manual project build or typecheck run.
 
-Final `bun run format:check` is run last after formatting this report; its result must be clean before ending.
+Final `bun run format:check`, run last after formatting this report: `All matched files use Prettier code style!` Markdown ESLint checks reported three ignored-file warnings (no matching configuration), zero errors.
 
 ## 9. CI evidence
 
