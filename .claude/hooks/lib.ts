@@ -305,6 +305,10 @@ export type ShellToken = { v: string; op?: string; dynamic: boolean };
  * quoted heredoc nested in a substitution is read too (fail-closed: a refusal, never a miss).
  * K1 ruling 2 — a heredoc's delimiter is read after the shell's quote removal, and a body whose
  * delimiter line never comes is read as commands; a `)` in quotes never closes a substitution.
+ * K1 ruling 3 — an expanding body is read for its substitutions whether or not it closes; a `)` in
+ * a comment closes nothing. A reader of programs is never the last word on its own: the scheduling
+ * rule also matches its words in blankInertData's text (below), so what this reader misses is
+ * refused unless it is provably inert data.
  */
 export function shellSegments(cmd: string): ShellToken[][] {
   const segments: ShellToken[][] = [];
@@ -325,6 +329,10 @@ export function shellSegments(cmd: string): ShellToken[][] {
         j += 1;
         while (j < text.length && text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
         j += 1;
+      } else if (ch === "#" && (j === at + 2 || /[\s;&|(]/.test(text[j - 1] ?? ""))) {
+        // K1 ruling 3 — a comment runs to the end of its line; a `)` in it closes nothing.
+        const eol = text.indexOf("\n", j);
+        j = eol < 0 ? text.length : eol;
       } else {
         if (ch === "(") depth += 1;
         else if (ch === ")") depth -= 1;
@@ -410,7 +418,7 @@ export function shellSegments(cmd: string): ShellToken[][] {
           cur += cmd.slice(i, end);
           i = end;
         }
-        cur += cmd[i]!;
+        cur += cmd.charAt(i);
         i += 1;
       }
       i += 1;
@@ -424,7 +432,9 @@ export function shellSegments(cmd: string): ShellToken[][] {
       endSegment();
       i += 1;
       while (heredocs.length > 0) {
-        const { delim, expands } = heredocs.shift()!;
+        const next = heredocs.shift();
+        if (next === undefined) break;
+        const { delim, expands } = next;
         const lines: string[] = [];
         const bodyStart = i;
         let closed = false;
@@ -438,6 +448,8 @@ export function shellSegments(cmd: string): ShellToken[][] {
           }
           lines.push(line);
         }
+        // K1 ruling 3 — an expanding body is read for its substitutions whether or not it closes.
+        if (expands) expandedBody(lines.join("\n"));
         if (!closed) {
           // K1 ruling 2 — a body whose delimiter line never comes is read as commands (fail-closed):
           // a delimiter this reader spelled differently from the shell never hides the lines after it.
@@ -445,7 +457,6 @@ export function shellSegments(cmd: string): ShellToken[][] {
           heredocs.length = 0;
           break;
         }
-        if (expands) expandedBody(lines.join("\n"));
       }
       continue;
     }
@@ -525,6 +536,93 @@ export function shellSegments(cmd: string): ShellToken[][] {
   }
   endSegment();
   return [...segments, ...inner];
+}
+
+/**
+ * K1 ruling 3 (DEC-269) — THE COMMAND WITH ONLY ITS PROVABLY INERT DATA BLANKED, for a text rule
+ * that must be fail-closed: properly closed single-quoted strings; properly closed double-quoted
+ * strings holding no `$`, backquote or backslash; and the bodies of heredocs whose delimiter is
+ * quoted and whose delimiter line comes. Everything else stays — an unclosed quote, an expanding
+ * heredoc's body, and everything after a heredoc that never closes — so a spelling this reader
+ * cannot classify is read as commands. Blanked text keeps its line breaks.
+ */
+export function blankInertData(cmd: string): string {
+  const blank = (text: string) => text.replace(/[^\n]/g, " ");
+  const pending: Array<{ delim: string; inert: boolean }> = [];
+  let out = "";
+  let i = 0;
+  const n = cmd.length;
+  while (i < n) {
+    const c = cmd.charAt(i);
+    if (c === "\\") {
+      out += cmd.slice(i, i + 2);
+      i += 2;
+      continue;
+    }
+    if (c === "'") {
+      const close = cmd.indexOf("'", i + 1);
+      if (close < 0) return out + cmd.slice(i);
+      out += `'${blank(cmd.slice(i + 1, close))}'`;
+      i = close + 1;
+      continue;
+    }
+    if (c === '"') {
+      let j = i + 1;
+      let inert = true;
+      while (j < n && cmd[j] !== '"') {
+        if (cmd[j] === "\\" || cmd[j] === "$" || cmd[j] === "`") inert = false;
+        j += cmd[j] === "\\" ? 2 : 1;
+      }
+      if (j < n && inert) {
+        out += `"${blank(cmd.slice(i + 1, j))}"`;
+        i = j + 1;
+        continue;
+      }
+      out += c;
+      i += 1;
+      continue;
+    }
+    if (c === "<" && cmd[i + 1] === "<" && cmd[i + 2] !== "<") {
+      let j = i + 2;
+      if (cmd[j] === "-") j += 1;
+      while (j < n && (cmd[j] === " " || cmd[j] === "\t")) j += 1;
+      let k = j;
+      while (k < n && !/[\s;&|<>]/.test(cmd.charAt(k))) k += 1;
+      const word = cmd.slice(j, k);
+      pending.push({ delim: word.replace(/['"\\]/g, ""), inert: /['"\\]/.test(word) });
+      out += cmd.slice(i, k);
+      i = k;
+      continue;
+    }
+    if (c === "\n" && pending.length > 0) {
+      out += c;
+      i += 1;
+      while (pending.length > 0) {
+        const next = pending.shift();
+        if (next === undefined) break;
+        const { delim, inert } = next;
+        let j = i;
+        let end = -1;
+        while (j <= n) {
+          const eol = cmd.indexOf("\n", j);
+          const line = eol < 0 ? cmd.slice(j) : cmd.slice(j, eol);
+          if (line.replace(/^\t+/, "").trim() === delim) {
+            end = j;
+            break;
+          }
+          if (eol < 0) break;
+          j = eol + 1;
+        }
+        if (end < 0) return out + cmd.slice(i);
+        out += inert ? blank(cmd.slice(i, end)) : cmd.slice(i, end);
+        i = end;
+      }
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  return out;
 }
 
 /** The command split at every shell operator, so each piece starts with its own program. */

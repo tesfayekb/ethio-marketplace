@@ -18,6 +18,7 @@ import {
   writeTargets,
   commandSegments,
   programsOf,
+  blankInertData,
 } from "../../.claude/hooks/lib";
 
 /**
@@ -489,13 +490,21 @@ describe("bash guard (50-security.md)", () => {
       "cat <<\\A > /tmp/x\nhello\nA\nat now",
       "cat <<\\A > /tmp/x\nhello\nA\ncat <<EOF > /tmp/y\n$(at now)\nEOF",
       "cat <<EOF > /tmp/x\nat now",
+      // K1 ruling 3 (DEC-269) — an unclosed expanding body is still read for its substitutions; a `)`
+      // in a comment closes nothing; and the words are refused anywhere outside provably inert
+      // data — a program another program starts, an unquoted argument, an expanding body's words.
+      "cat <<EOF\n'$(at now)'",
+      'echo "$(echo ok # )\nat now\n)"',
+      "find . -name x -exec at now \\;",
+      "echo at",
+      "cat <<EOF > /tmp/n.txt\nmeet at 5\nEOF",
     ])
       refused(command, /no scheduling or service control/);
     for (const command of [
       'git commit -m "turn 35: fix at the root; the service role reads it"',
       'grep -n "look at this" src/lib/uuid.ts',
       "cat <<'EOF' > /tmp/note.txt\nat 5 pm the service starts\nEOF",
-      "echo at",
+      'echo "at"',
       // Single quotes run nothing; a commit message written through a quoted heredoc stays data.
       "echo '$(at now)'",
       "git commit -m \"$(cat <<'EOF'\nturn 35: fix at the root (INC-889); the service role reads it\nEOF\n)\"",
@@ -512,12 +521,26 @@ describe("bash guard (50-security.md)", () => {
     expect(programsOf('echo "a `date` b" > out.txt')).toEqual(["echo", "date"]);
     expect(writeTargets("echo \"$(echo ')'; cp a.ts src/x.ts)\"")).toEqual(["src/x.ts"]);
     expect(programsOf("cat <<\\A > /tmp/x\nhello\nA\nls")).toEqual(["cat", "ls"]);
+    // K1 ruling 3 — an unclosed expanding body and a comment inside a substitution.
+    expect(writeTargets("cat <<EOF\n'$(cp a.ts src/x.ts)'")).toEqual(["src/x.ts"]);
+    expect(programsOf('echo "$(echo ok # )\nls\n)"')).toContain("ls");
     refused(
       'echo "$(cp /tmp/x.ts src/features/posting/wizard.tsx)"',
       /shell write to src\/features\/posting\/wizard\.tsx/,
     );
     refused('echo "`cp /tmp/x .claude/hooks/lib.ts`"', /shell write to \.claude\/hooks\/lib\.ts/);
     allowed('echo "$(cp /tmp/x.ts src/server/ai/x.ts)"');
+  });
+
+  it("EXH-23 blankInertData blanks only provably inert data: closed quotes without expansions and closed quoted heredoc bodies (K1 ruling 3, DEC-269)", () => {
+    expect(blankInertData('git commit -m "fix at root"')).toBe('git commit -m "           "');
+    expect(blankInertData("echo '$(at now)'")).toBe("echo '         '");
+    expect(blankInertData('echo "$(at now)"')).toBe('echo "$(at now)"');
+    expect(blankInertData('echo "say \\"at\\" now"')).toBe('echo "say \\"at\\" now"');
+    expect(blankInertData("cat <<'EOF' > f\nat 5\nEOF")).toBe("cat <<'EOF' > f\n    \nEOF");
+    expect(blankInertData("cat <<EOF > f\nat 5\nEOF")).toBe("cat <<EOF > f\nat 5\nEOF");
+    expect(blankInertData("cat <<'EOF'\n'at'")).toBe("cat <<'EOF'\n'at'");
+    expect(blankInertData("echo 'at now")).toBe("echo 'at now");
   });
 
   it("EXH-16 every command the protocol requires passes BOTH layers — the permission rules and the guard; the forbidden ones are denied by the rules too", () => {
