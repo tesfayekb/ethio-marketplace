@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `bc963938f649d134784d317c78b15ec367f132d9`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40345497360
+- Commit: `a8c025ef6aec24a7702b59bf4a740107c1bb0757`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40358294719
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 950 | 108 | applied 345/345 | 190 | 0 | 0 | 60 | 250 |
-| email | 166 | 104 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 1123 | 96 | applied 345/345 | 129 | 0 | 0 | 4 | 133 |
-| 2 | 1058 | 114 | applied 345/345 | 142 | 0 | 0 | 3 | 145 |
-| 3 | 856 | 116 | applied 345/345 | 119 | 2 | 0 | 0 | 121 |
-| 4 | 646 | 112 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 473 | 97 | applied 345/345 | 119 | 0 | 0 | 6 | 125 |
-| 6 | 781 | 107 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 460 | 98 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 569 | 104 | applied 345/345 | 102 | 0 | 0 | 30 | 132 |
-| 9 | 643 | 101 | applied 345/345 | 131 | 0 | 0 | 2 | 133 |
-| 10 | 861 | 102 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 964 | 116 | applied 345/345 | 126 | 0 | 0 | 1 | 127 |
-| 12 | 1170 | 101 | applied 345/345 | 135 | 0 | 0 | 5 | 140 |
-| 13 | 537 | 96 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 639 | 94 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 525 | 115 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 572 | 106 | applied 345/345 | 98 | 0 | 0 | 30 | 128 |
-| TOTAL | — | — | — | 2216 | 2 | 0 | 155 | 2373 |
+| smoke | 959 | 120 | applied 345/345 | 192 | 1 | 1 | 62 | 256 |
+| email | 850 | 103 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 607 | 88 | applied 345/345 | 128 | 0 | 1 | 4 | 133 |
+| 2 | 1800 | 127 | applied 345/345 | 142 | 0 | 0 | 3 | 145 |
+| 3 | 903 | 126 | applied 345/345 | 121 | 1 | 0 | 0 | 122 |
+| 4 | 1466 | 114 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 478 | 123 | applied 345/345 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 775 | 139 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 571 | 130 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 476 | 108 | applied 345/345 | 98 | 0 | 0 | 30 | 128 |
+| 9 | 882 | 127 | applied 345/345 | 142 | 0 | 0 | 2 | 144 |
+| 10 | 1556 | 90 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 979 | 105 | applied 345/345 | 121 | 1 | 0 | 1 | 123 |
+| 12 | 661 | 112 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 1107 | 108 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
+| 14 | 1536 | 106 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 594 | 127 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 1457 | 105 | applied 345/345 | 98 | 0 | 0 | 32 | 130 |
+| TOTAL | — | — | — | 2226 | 3 | 2 | 159 | 2390 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 12 1170 s
+- Slowest lane: 2 1800 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40345497360-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40345497360-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40345497360-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40345497360-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40345497360-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40345497360-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40345497360-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40345497360-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40345497360-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40345497360-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40345497360-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40345497360-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40345497360-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40345497360-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40345497360-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40345497360-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40345497360-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40345497360-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40358294719-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40358294719-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40358294719-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40358294719-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40358294719-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40358294719-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40358294719-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40358294719-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40358294719-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40358294719-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40358294719-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40358294719-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40358294719-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40358294719-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40358294719-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40358294719-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40358294719-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40358294719-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -67,8 +67,17 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
+## Lane smoke
+- auth-signout.spec.ts / U0j sign-out hard reset / SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271) / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+- auth-signout.spec.ts / U0j sign-out hard reset / SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+## Lane 1
+- ad-page.spec.ts / AD PAGE — the buyer's page (bundle 19 turn 5) / AP-32 similar ads: up to six of the same leaf and place, the ad itself never among them; none on a sold ad / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
 ## Lane 3
-- auth-reset.spec.ts / R-2: the reset request answers identically for a real and an unknown address / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
-- auth-reset.spec.ts / R-4: the reset request is throttled after one submit / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
+- auth-signout.spec.ts / U0j sign-out hard reset / SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271) / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+## Lane 11
+- auth-signout.spec.ts / U0j sign-out hard reset / SO-12 an offline sign-out keeps the site on screen, signed out, and loads it afresh when the connection returns (DEC-271) / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
