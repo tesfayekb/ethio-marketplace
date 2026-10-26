@@ -129,6 +129,14 @@ Two rules apply to every block below.
   inside the content exists only once the real content is drawn. Nothing
   imports `@radix-ui/react-tooltip`, `@radix-ui/react-dropdown-menu` or the
   `*-impl` files but the overlay files themselves (CF-OV-1).
+- THE MODAL RULE (DEC-260, the same file): Dialog, Sheet and AlertDialog sit on
+  facades too (`dialog-primitive.tsx`, `alert-dialog-primitive.tsx`). Their
+  triggers are always `asChild`; a closed modal draws its trigger alone; the
+  first opening (the trigger's click or the owner's `open`) draws the real root
+  around the children, which are drawn afresh then — so keep state that must
+  survive the first opening outside the modal's root. Nothing imports
+  `@radix-ui/react-dialog` or `@radix-ui/react-alert-dialog` by value but the
+  two impl files (CF-OV-1).
 
 ### IconButton — `src/components/ui/icon-button.tsx`
 
