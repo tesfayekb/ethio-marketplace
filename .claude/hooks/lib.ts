@@ -303,22 +303,37 @@ export type ShellToken = { v: string; op?: string; dynamic: boolean };
  * each such body's own segments are appended after the line's, so every rule that reads programs
  * or write targets sees them. Only appended: the line's own segments are unchanged. A `$(` inside a
  * quoted heredoc nested in a substitution is read too (fail-closed: a refusal, never a miss).
+ * K1 ruling 2 — a heredoc's delimiter is read after the shell's quote removal, and a body whose
+ * delimiter line never comes is read as commands; a `)` in quotes never closes a substitution.
  */
 export function shellSegments(cmd: string): ShellToken[][] {
   const segments: ShellToken[][] = [];
   /** The segments of the substitutions the shell runs inside double quotes or heredoc bodies. */
   const inner: ShellToken[][] = [];
   const substitution = (text: string, at: number) => {
-    // `$(` at `at`: the body up to its matching `)`, or to the end when it never closes.
+    // `$(` at `at`: the body up to its matching `)`, or to the end when it never closes. A `)` in
+    // quotes or after a backslash closes nothing (K1 ruling 2: `"$(echo ')'; at now)"`).
     let depth = 1;
     let j = at + 2;
     while (j < text.length && depth > 0) {
-      if (text[j] === "\\") j += 1;
-      else if (text[j] === "(") depth += 1;
-      else if (text[j] === ")") depth -= 1;
-      j += 1;
+      const ch = text[j];
+      if (ch === "\\") j += 2;
+      else if (ch === "'") {
+        const close = text.indexOf("'", j + 1);
+        j = close < 0 ? text.length : close + 1;
+      } else if (ch === '"') {
+        j += 1;
+        while (j < text.length && text[j] !== '"') j += text[j] === "\\" ? 2 : 1;
+        j += 1;
+      } else {
+        if (ch === "(") depth += 1;
+        else if (ch === ")") depth -= 1;
+        j += 1;
+      }
     }
-    inner.push(...shellSegments(text.slice(at + 2, depth === 0 ? j - 1 : j)));
+    inner.push(
+      ...shellSegments(text.slice(at + 2, depth === 0 ? j - 1 : Math.min(j, text.length))),
+    );
   };
   const backquoted = (text: string, at: number) => {
     let j = at + 1;
@@ -411,12 +426,24 @@ export function shellSegments(cmd: string): ShellToken[][] {
       while (heredocs.length > 0) {
         const { delim, expands } = heredocs.shift()!;
         const lines: string[] = [];
+        const bodyStart = i;
+        let closed = false;
         while (i < n) {
           const eol = cmd.indexOf("\n", i);
           const line = eol < 0 ? cmd.slice(i) : cmd.slice(i, eol);
           i = eol < 0 ? n : eol + 1;
-          if (line.replace(/^\t+/, "").trim() === delim) break;
+          if (line.replace(/^\t+/, "").trim() === delim) {
+            closed = true;
+            break;
+          }
           lines.push(line);
+        }
+        if (!closed) {
+          // K1 ruling 2 — a body whose delimiter line never comes is read as commands (fail-closed):
+          // a delimiter this reader spelled differently from the shell never hides the lines after it.
+          i = bodyStart;
+          heredocs.length = 0;
+          break;
         }
         if (expands) expandedBody(lines.join("\n"));
       }
@@ -466,7 +493,8 @@ export function shellSegments(cmd: string): ShellToken[][] {
         let k = j;
         while (k < n && !/[\s;&|<>]/.test(cmd[k]!)) k += 1;
         const word = cmd.slice(j, k);
-        heredocs.push({ delim: word.replace(/^['"]|['"]$/g, ""), expands: !/['"\\]/.test(word) });
+        // The shell's quote removal: <<'A', <<"A", <<\A and <<A'' all end at a line "A" (K1 ruling 2).
+        heredocs.push({ delim: word.replace(/['"\\]/g, ""), expands: !/['"\\]/.test(word) });
         seg.push({ v: "<<", op: "<<", dynamic: false });
         i = k;
         continue;

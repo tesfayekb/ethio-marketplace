@@ -484,6 +484,11 @@ describe("bash guard (50-security.md)", () => {
       'echo "`crontab -l`"',
       'git commit -m "note $(systemctl restart nginx)"',
       "cat <<EOF > /tmp/x.txt\n$(at now)\nEOF",
+      // K1 ruling 2 — a `)` in quotes closes nothing; <<\A ends at "A"; a body never closed is commands.
+      "echo \"$(echo ')'; at now)\"",
+      "cat <<\\A > /tmp/x\nhello\nA\nat now",
+      "cat <<\\A > /tmp/x\nhello\nA\ncat <<EOF > /tmp/y\n$(at now)\nEOF",
+      "cat <<EOF > /tmp/x\nat now",
     ])
       refused(command, /no scheduling or service control/);
     for (const command of [
@@ -494,6 +499,7 @@ describe("bash guard (50-security.md)", () => {
       // Single quotes run nothing; a commit message written through a quoted heredoc stays data.
       "echo '$(at now)'",
       "git commit -m \"$(cat <<'EOF'\nturn 35: fix at the root (INC-889); the service role reads it\nEOF\n)\"",
+      "git commit -m \"$(cat <<'EOF'\nturn 35: it's fixed (see INC-889); at 5 pm\nEOF\n)\"",
     ])
       allowed(command);
   });
@@ -504,6 +510,8 @@ describe("bash guard (50-security.md)", () => {
     expect(writeTargets("cat <<EOF\n$(touch src/y.ts)\nEOF")).toEqual(["src/y.ts"]);
     expect(writeTargets("cat <<'EOF'\n$(touch src/y.ts)\nEOF")).toEqual([]);
     expect(programsOf('echo "a `date` b" > out.txt')).toEqual(["echo", "date"]);
+    expect(writeTargets("echo \"$(echo ')'; cp a.ts src/x.ts)\"")).toEqual(["src/x.ts"]);
+    expect(programsOf("cat <<\\A > /tmp/x\nhello\nA\nls")).toEqual(["cat", "ls"]);
     refused(
       'echo "$(cp /tmp/x.ts src/features/posting/wizard.tsx)"',
       /shell write to src\/features\/posting\/wizard\.tsx/,
