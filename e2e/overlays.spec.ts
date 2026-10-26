@@ -3,11 +3,12 @@ import { expect, test } from "./fixtures";
 import { gotoReady } from "./helpers/ui";
 
 /**
- * DEC-259 (Foundations turn 31) — THE OVERLAY PRIMITIVES IN THE BROWSER. The
- * tooltip's and the dropdown menu's code (Radix, floating-ui and their layers)
- * is not on any page's first download: the browser asks for it once the page
- * has loaded and is idle, or on a trigger's first intent, and the trigger the
- * person already sees answers that intent itself. Read-only: no rows are written.
+ * DEC-259 (Foundations turn 31) and DEC-260 (turn 32) — THE OVERLAY PRIMITIVES
+ * IN THE BROWSER. The tooltip's, the dropdown menu's and the dialogs' code (Radix,
+ * floating-ui and their layers) is not on any page's first download: the browser
+ * asks for it once the page has loaded and is idle, or on a trigger's first
+ * intent, and the trigger the person already sees answers that intent itself.
+ * Read-only: no rows are written.
  */
 
 /** The overlay chunk's own name in the build: overlays-impl-<hash>.js. */
@@ -58,5 +59,22 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
     await expect(page.getByRole("menu")).toHaveCount(0);
     await expect(trigger).toBeFocused();
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("OVE-3 the phone menu (a dialog) opens on its first tap and Escape gives the focus back to ☰", async ({
+    page,
+  }, testInfo) => {
+    // The phone menu exists below 768 px only.
+    test.skip(testInfo.project.name !== "mobile-360");
+    await gotoReady(page, "/");
+    const toggle = page.locator('[aria-controls="rail-menu"]');
+    await toggle.click();
+    await expect(page.getByTestId("rail-menu")).toBeVisible();
+    await expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("rail-menu")).toHaveCount(0);
+    await expect(toggle).toBeFocused();
+    await toggle.click();
+    await expect(page.getByTestId("rail-menu")).toBeVisible();
   });
 });
