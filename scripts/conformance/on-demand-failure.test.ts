@@ -410,6 +410,54 @@ describe("a piece fetched on demand that fails to download tells the person (INC
     }
   });
 
+  it("ODC-5 a handler that does nothing is silent, and no handler is none: an empty catch, a bare return, then(ok, undefined), catch(undefined) (34b-3's reviewer)", () => {
+    const dir = "node_modules/.cache/on-demand-failure-5";
+    mkdirSync(dir, { recursive: true });
+    const files = {
+      emptyCatch: `${dir}/odc-empty-catch.ts`,
+      bareReturn: `${dir}/odc-bare-return.ts`,
+      thenUndefined: `${dir}/odc-then-undefined.ts`,
+      catchUndefined: `${dir}/odc-catch-undefined.ts`,
+      handled: `${dir}/odc-handled.ts`,
+    };
+    const head =
+      'import { reportOnDemandFailure } from "@/lib/on-demand-failure";\nimport { loadLeaflet } from "@/features/posting/map/leaflet";\n';
+    try {
+      writeFileSync(
+        files.emptyCatch,
+        `${head}export async function go() {\n  try {\n    await loadLeaflet();\n  } catch {}\n}\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.bareReturn,
+        `${head}void loadLeaflet().catch(() => {\n  return undefined;\n});\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.thenUndefined,
+        `${head}void loadLeaflet().then(() => 1, undefined);\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.catchUndefined,
+        `${head}void loadLeaflet().catch(undefined);\nexport const told = () => reportOnDemandFailure("x", 1);\n`,
+      );
+      writeFileSync(
+        files.handled,
+        `${head}void loadLeaflet().catch((error: unknown) => reportOnDemandFailure("the map", error));\n`,
+      );
+      const result = onDemandFailureCensus(Object.values(files));
+      expect(result.consumers).toEqual(Object.values(files));
+      expect(report(result.findings)).toBe(
+        [
+          `${files.bareReturn}:3 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
+          `${files.catchUndefined}:3 leaves a failed download of loadLeaflet unhandled`,
+          `${files.emptyCatch}:5 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
+          `${files.thenUndefined}:3 leaves a failed download of loadLeaflet unhandled`,
+        ].join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("ODC-3 the definers: resilientLazy reports, and every named loader exists over a loadOnce", () => {
     expect(readFileSync("src/lib/resilient-lazy.ts", "utf8")).toMatch(
       /reportOnDemandFailure\(label, error\)/,
