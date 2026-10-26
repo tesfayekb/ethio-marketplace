@@ -109,3 +109,7 @@ READY. MINOR: `besideStoredSession` derives its prefix from the stored key by sl
 ## 10. Limits
 
 CF-SL-1 timed out under load and passed alone (INC-921). EXH-21 failed once under full load, and that failure line was not captured. CI on this landing is the supervisor's to read.
+
+## 11. Departure — roadmap formatting
+
+`bun run format:check` flagged roadmap.md. Prettier escaped one character in this turn's 34c-2 line, so `"any sb-*-auth-token"` became `"any sb-\*-auth-token"`. roadmap.md is not in the hash list. It is the only change from the brief's text, and it was made by running `prettier --write`.
