@@ -6,3 +6,5 @@ src/i18n/provider.tsx | Fetch reads the database REST API with a publishable key
 src/features/auth/mfa/mfa-service.ts | Token reader inspects claims and sends no route call | 2027-04-24
 src/features/auth/auth-service.ts | Session handoff token reader, not a route call | 2027-04-24
 src/features/session/session-policy.ts | Token reader inspects the session id and sends no route call | 2027-04-24
+src/lib/supabase-door.ts | The client's door: the anonymous PostgREST call and the publishable key's bearer rule, not a route call (DEC-261) | 2027-04-24
+src/lib/session-bearer.ts | The server-function bearer read through the client's door, not a route call (DEC-261) | 2027-04-24
