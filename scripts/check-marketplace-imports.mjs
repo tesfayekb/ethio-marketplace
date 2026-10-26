@@ -26,6 +26,8 @@ const ENTRIES = [
   "src/components/app-shell.tsx",
   "src/routes/__root.tsx",
   "src/start.ts",
+  // DEC-266 (Foundations turn 34, ruling 2): the browser's entry, which hydrates the first screen.
+  "src/client.tsx",
 ];
 const FORBIDDEN_FILES = [
   // DEC-261 — the Supabase client, and the generated attacher that imports it, load through
