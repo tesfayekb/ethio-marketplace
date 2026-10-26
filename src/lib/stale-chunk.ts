@@ -16,6 +16,10 @@
  * surface (it came within the minute) is never reloaded by a later one, so a
  * form the person has been filling for more than a minute is not thrown away;
  * that failure is left to the piece that asked for the download to answer.
+ * DEC-271 (Foundations turn 34w) — a download that fails while the device is offline is no stale
+ * chunk: a reload would only show the browser's own "cannot open" page. It is left to the piece
+ * that asked (the on-demand notice, src/lib/on-demand-failure.ts), and it counts as the page's
+ * first failure, so no later one reloads the page either.
  */
 
 export const STALE_CHUNK_KEY = "ethio:stale-chunk-reloaded-at";
@@ -27,6 +31,7 @@ export interface StaleChunkWindow {
   removeEventListener: Window["removeEventListener"];
   location: { reload: () => void };
   sessionStorage?: Pick<Storage, "getItem" | "setItem">;
+  navigator?: { onLine: boolean };
 }
 
 /** True when the tab reloaded for a stale chunk less than a minute ago. */
@@ -53,7 +58,7 @@ export function reloadOnStaleChunk(
     const at = now();
     const first = !failedInPage;
     failedInPage = true;
-    if (!first || reloadedRecently(win, at)) return;
+    if (!first || win.navigator?.onLine === false || reloadedRecently(win, at)) return;
     try {
       win.sessionStorage?.setItem(STALE_CHUNK_KEY, String(at));
     } catch {
