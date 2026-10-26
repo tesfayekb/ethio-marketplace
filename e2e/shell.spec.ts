@@ -16,6 +16,7 @@ import {
   openRailScope,
   signIn,
   signInViaSession,
+  signedInMarker,
   signOutViaUi,
   settled,
   switchLanguage,
@@ -1170,7 +1171,12 @@ test.describe("mobile chrome", () => {
     const menu = page.getByTestId("rail-menu").getByTestId("rail-scroll");
     await expect(menu).toBeVisible();
     await checkVariant(menu, "Admin", "menu");
-    await page.getByTestId("rail-menu-close").click();
+    // D238 — the phone menu has no ×: ☰ closes it.
+    await page
+      .getByTestId("shell-topbar")
+      .getByRole("button", { name: en["shell.closeMenu"] })
+      .click();
+    await expect(menu).toBeHidden();
 
     // INC-759: prove scrolling where the Admin strip is one row's floor short.
     const n = (await rowsOf(strip)).length;
@@ -1200,7 +1206,11 @@ test.describe("mobile chrome", () => {
       .click();
     await expect(menu).toBeVisible();
     await checkVariant(menu, "Account", "menu");
-    await page.getByTestId("rail-menu-close").click();
+    await page
+      .getByTestId("shell-topbar")
+      .getByRole("button", { name: en["shell.closeMenu"] })
+      .click();
+    await expect(menu).toBeHidden();
   });
 
   test("RM-1 a tap on the strip opens the menu; the row under the finger opens the category", async ({
@@ -1374,20 +1384,8 @@ test.describe("mobile chrome", () => {
     await settled(page);
     const menuBox = await menu.boundingBox();
     if (!menuBox) throw new Error("Missing opened menu box");
-    const close = page.getByTestId("rail-menu-close");
-    await expect(close).toBeVisible();
-    const closeBox = await close.boundingBox();
-    if (!closeBox) throw new Error("Missing close button box");
-    expect(closeBox.height).toBeGreaterThanOrEqual(44);
-    expect(closeBox.width).toBeGreaterThanOrEqual(44);
-    expect(Math.abs(closeBox.x + closeBox.width - menuBox.x - menuBox.width)).toBeLessThanOrEqual(
-      1,
-    );
-    await close.click();
-    await expect(menu).toBeHidden();
-    await expect(close).toBeHidden();
-    await expect(control).toBeFocused();
-    menu = await openRailScope(page);
+    // D238 (the operator, 2026-10-26) — the phone menu has no ×; a tap outside and ☰ close it.
+    await expect(page.getByTestId("rail-menu-close")).toHaveCount(0);
     await page.mouse.click(menuBox.x + menuBox.width + 20, menuBox.y + 20);
     await expect(menu).toBeHidden();
     await expect(page.getByTestId("rail-strip")).toBeVisible();
@@ -1563,7 +1561,11 @@ test.describe("mobile chrome", () => {
     if (!firstMenuRow) throw new Error("Missing menu category");
     expect(firstMenuRow.height).toBeGreaterThanOrEqual(31);
     expect(firstMenuRow.height).toBeLessThanOrEqual(41);
-    await expectTapTarget(page, page.getByTestId("rail-menu-close"), "close menu");
+    await expectTapTarget(
+      page,
+      page.getByTestId("shell-topbar").getByRole("button", { name: en["shell.closeMenu"] }),
+      "close menu",
+    );
   });
 
   test("the bottom bar, signed out", async ({ page }) => {
@@ -3591,6 +3593,73 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
   }
 });
 
+type PeekRecord = {
+  shows: number;
+  shownAt: number | null;
+  focusedAtShow: boolean | null;
+  focusedLater: boolean | null;
+  goneAt: number | null;
+};
+
+/**
+ * D216 — every load opts in to the peek (the force word; no production session marker is
+ * written). INC-741 — the same script watches the menu from BEFORE the load, so a peek that opens
+ * and closes while page.goto is still waiting is recorded. Shared by PK-1…PK-3 (INC-924).
+ */
+async function watchPeek(page: Page) {
+  await page.addInitScript(() => {
+    if (window.location.origin !== "null" && sessionStorage.getItem("ethio.peek") === null) {
+      sessionStorage.setItem("ethio.peek", "force");
+    }
+    type Record = {
+      shows: number;
+      shownAt: number | null;
+      focusedAtShow: boolean | null;
+      focusedLater: boolean | null;
+      goneAt: number | null;
+    };
+    const record: Record = {
+      shows: 0,
+      shownAt: null,
+      focusedAtShow: null,
+      focusedLater: null,
+      goneAt: null,
+    };
+    (window as unknown as { __peek: Record }).__peek = record;
+    const visibleMenu = () => {
+      const menu = document.querySelector<HTMLElement>('[data-testid="rail-menu"]');
+      if (!menu) return null;
+      const box = menu.getBoundingClientRect();
+      const style = getComputedStyle(menu);
+      return box.width > 0 && box.height > 0 && style.visibility !== "hidden" ? menu : null;
+    };
+    const look = () => {
+      const menu = visibleMenu();
+      if (menu && (record.shownAt === null || record.goneAt !== null)) {
+        record.shows += 1;
+        record.goneAt = null;
+        record.shownAt = performance.now();
+        record.focusedAtShow = menu.contains(document.activeElement);
+        window.setTimeout(() => {
+          const later = visibleMenu();
+          record.focusedLater = later ? later.contains(document.activeElement) : false;
+        }, 300);
+      } else if (!menu && record.shownAt !== null && record.goneAt === null) {
+        record.goneAt = performance.now();
+      }
+    };
+    new MutationObserver(look).observe(document, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+    });
+  });
+}
+
+function readPeek(page: Page): Promise<PeekRecord> {
+  return page.evaluate(() => (window as unknown as { __peek: PeekRecord }).__peek);
+}
+
 test.describe("in-place category menu (bundle 21 turn 5)", () => {
   /**
    * INC-738 — a three-level SCRATCH branch (root › branch › leaf): the real
@@ -3726,71 +3795,8 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360");
-    // D216: every load opts in; no production session marker is written.
-    // INC-741 — the same script watches the menu from BEFORE the load, so a
-    // peek that opens and closes while page.goto is still waiting is recorded.
-    await page.addInitScript(() => {
-      if (window.location.origin !== "null" && sessionStorage.getItem("ethio.peek") === null) {
-        sessionStorage.setItem("ethio.peek", "force");
-      }
-      type PeekRecord = {
-        shows: number;
-        shownAt: number | null;
-        focusedAtShow: boolean | null;
-        focusedLater: boolean | null;
-        goneAt: number | null;
-      };
-      const record: PeekRecord = {
-        shows: 0,
-        shownAt: null,
-        focusedAtShow: null,
-        focusedLater: null,
-        goneAt: null,
-      };
-      (window as unknown as { __peek: PeekRecord }).__peek = record;
-      const visibleMenu = () => {
-        const menu = document.querySelector<HTMLElement>('[data-testid="rail-menu"]');
-        if (!menu) return null;
-        const box = menu.getBoundingClientRect();
-        const style = getComputedStyle(menu);
-        return box.width > 0 && box.height > 0 && style.visibility !== "hidden" ? menu : null;
-      };
-      const look = () => {
-        const menu = visibleMenu();
-        if (menu && (record.shownAt === null || record.goneAt !== null)) {
-          record.shows += 1;
-          record.goneAt = null;
-          record.shownAt = performance.now();
-          record.focusedAtShow = menu.contains(document.activeElement);
-          window.setTimeout(() => {
-            const later = visibleMenu();
-            record.focusedLater = later ? later.contains(document.activeElement) : false;
-          }, 300);
-        } else if (!menu && record.shownAt !== null && record.goneAt === null) {
-          record.goneAt = performance.now();
-        }
-      };
-      new MutationObserver(look).observe(document, {
-        subtree: true,
-        childList: true,
-        attributes: true,
-      });
-    });
-    const readRecord = () =>
-      page.evaluate(
-        () =>
-          (
-            window as unknown as {
-              __peek: {
-                shows: number;
-                shownAt: number | null;
-                focusedAtShow: boolean | null;
-                focusedLater: boolean | null;
-                goneAt: number | null;
-              };
-            }
-          ).__peek,
-      );
+    await watchPeek(page);
+    const readRecord = () => readPeek(page);
     await gotoReady(page, "/c/electronics");
     await expect
       .poll(async () => (await readRecord()).shownAt !== null, {
@@ -3838,6 +3844,70 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
           return Date.now() - readyAt >= 4000 ? "held" : "waiting";
         },
         { timeout: 6000, intervals: [250], message: "the peek repeated on in-app navigation" },
+      )
+      .toBe("held");
+  });
+
+  test("PK-2 a peek whose code arrives late still shows for its three seconds (INC-924)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    await watchPeek(page);
+    // A slow connection: the menu's code arrives after the peek's three seconds would have run out.
+    await page.route(/\/overlays-impl-[^/]+\.js$/, async (route) => {
+      const response = await route.fetch();
+      await new Promise((resolve) => setTimeout(resolve, 3_500));
+      await route.fulfill({ response });
+    });
+    await gotoReady(page, "/c/electronics");
+    await expect
+      .poll(async () => (await readPeek(page)).shownAt !== null, {
+        timeout: 15_000,
+        message: "INC-924: the late peek never showed",
+      })
+      .toBe(true);
+    await expect
+      .poll(async () => (await readPeek(page)).goneAt !== null, { timeout: 10_000 })
+      .toBe(true);
+    const record = await readPeek(page);
+    if (record.goneAt === null || record.shownAt === null) throw new Error("PK-2 incomplete peek");
+    expect(
+      record.goneAt - record.shownAt,
+      "the peek's three seconds count from when it showed",
+    ).toBeGreaterThanOrEqual(2_500);
+    expect(record.shows).toBe(1);
+  });
+
+  test("PK-3 a menu opened before the sign-in check ends is the person's: the peek never closes it (INC-924)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    const user = await leaseUser();
+    await watchPeek(page);
+    await signInViaSession(page, user.email, user.password);
+    // The sign-in code arrives late, so the sign-in check is still running when the person opens
+    // the menu (the client's own code carries GoTrueClient, as e2e/supabase-door.spec.ts reads it).
+    await page.route("**/*.js", async (route) => {
+      const response = await route.fetch();
+      if ((await response.text()).includes("GoTrueClient"))
+        await new Promise((resolve) => setTimeout(resolve, 4_000));
+      await route.fulfill({ response });
+    });
+    await page.goto("/c/electronics");
+    await waitForHydration(page);
+    await page.getByRole("button", { name: en["shell.openMenu"] }).click();
+    const menu = page.getByTestId("rail-menu");
+    await expect(menu).toBeVisible();
+    await expect(signedInMarker(page)).toBeVisible({ timeout: 20_000 });
+    // The check has ended; the peek's three-second clock would have closed a menu it took over.
+    const heldFrom = Date.now();
+    await expect
+      .poll(
+        async () => {
+          if (!(await menu.isVisible())) return "closed";
+          return Date.now() - heldFrom >= 4_000 ? "held" : "waiting";
+        },
+        { timeout: 8_000, message: "INC-924: the peek took over the person's menu and closed it" },
       )
       .toBe("held");
   });
@@ -3911,7 +3981,11 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
           )
           .toBe("level");
       }
-      await page.getByTestId("rail-menu-close").click();
+      await page
+        .getByTestId("shell-topbar")
+        .getByRole("button", { name: en["shell.closeMenu"] })
+        .click();
+      await expect(scope).toBeHidden();
     }
   };
   await checkFavourite("electronics");
