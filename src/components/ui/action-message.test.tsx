@@ -41,7 +41,12 @@ describe("ActionMessage", () => {
     expect(container).toBeEmptyDOMElement();
     rerender(<ActionMessage text={null} tone="done" persistent testid="region" />);
     expect(screen.getByTestId("region")).toBeEmptyDOMElement();
+    // INC-929 — the empty region is live but carries no role until its words come.
+    expect(screen.getByTestId("region")).not.toHaveAttribute("role");
+    expect(screen.getByTestId("region")).toHaveAttribute("aria-live", "polite");
     expect(scroll).not.toHaveBeenCalled();
+    rerender(<ActionMessage text="Saved." tone="done" persistent testid="region" />);
+    expect(screen.getByRole("status")).toHaveTextContent("Saved.");
   });
 
   it("AMSG-3: it brings itself into view each time its text appears or changes", () => {

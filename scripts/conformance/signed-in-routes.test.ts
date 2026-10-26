@@ -169,9 +169,12 @@ describe("every signed-in screen's door-step is requireSignedIn (INC-852)", () =
     const findings = pageListCensus(join(ROOT, "src", "routes"), SIGNED_IN_PAGES);
     console.log(`[signed-in-routes] door-step pages: ${SIGNED_IN_PAGES.length}`);
     expect(report(findings)).toBe("");
-    // The shell's live guard reads the list itself — never a copy of its own.
-    expect(codeOf(readFileSync(join(ROOT, "src/components/app-shell.tsx"), "utf8"))).toMatch(
-      /const ownSignIn = sendsToSignIn\(pathname\);/,
+    // The shell's live guard reads the list itself — never a copy of its own: for the pages it
+    // sends to sign in and (INC-926) for the pages it evacuates after a sign-out.
+    const shell = codeOf(readFileSync(join(ROOT, "src/components/app-shell.tsx"), "utf8"));
+    expect(shell).toMatch(/const ownSignIn = sendsToSignIn\(pathname\);/);
+    expect(shell).toMatch(
+      /const gatedRoute = pathname\.startsWith\("\/admin"\) \|\| sendsToSignIn\(pathname\);/,
     );
   });
 
