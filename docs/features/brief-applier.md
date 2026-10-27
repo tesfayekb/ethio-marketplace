@@ -22,7 +22,7 @@ With no path it applies every block of the brief in the order written; with path
 - An OLD text found zero times or more than once, or an EDIT to a file that does not exist.
 - A path named on the command line that has no block.
 
-Every file is staged beside its target (`<file>.apply-blocks-staged`) and renamed into place only when all are staged, so a file that cannot be written leaves the others as they were.
+Every file is staged beside its target (`<file>.apply-blocks-staged`) and renamed into place only when all are staged, so a file that cannot be written leaves the others as they were. A file that exists keeps its mode — an executable script stays executable. A directory standing at a target's path is refused before anything is placed. A rename that fails is a refusal naming the files already placed, and no staged file is left behind.
 
 ## Its tests
 
