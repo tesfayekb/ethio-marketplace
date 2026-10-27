@@ -10,7 +10,9 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * (src/ but the generated client in src/integrations/, scripts/, e2e/, the kit's .claude/hooks/),
  * a `process.env` read excepted. A file may hold no more than its allowlist line says — the line's
  * key carries the count, so a file that sheds assertions must lower its line (a stale line fails)
- * and a file that gains one is named. The kit holds none (turn K2 took out its 22).
+ * and a file that gains one is named. The kit holds none (turn K2 took out its 22). Turn 34d
+ * (K2's report): a definite-assignment assertion (a `let` or a class field marked `!` before its
+ * type) is the same mark in another place and counts too.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -31,12 +33,22 @@ function isEnvRead(node: ts.Expression): boolean {
   );
 }
 
-/** Each file's non-null assertions, by line. */
+/** A definite-assignment assertion: a `let` or a class field marked `!` before its type. */
+function isDefiniteAssignment(node: ts.Node): boolean {
+  return (
+    (ts.isVariableDeclaration(node) || ts.isPropertyDeclaration(node)) &&
+    node.exclamationToken !== undefined
+  );
+}
+
+/** Each file's non-null and definite-assignment assertions, by line. */
 export function nonNullCensus(files: string[]): Map<string, number[]> {
   const sites = new Map<string, number[]>();
   for (const file of files) {
     visitTs(file, (node, source) => {
-      if (!ts.isNonNullExpression(node) || isEnvRead(node.expression)) return;
+      const asserted =
+        (ts.isNonNullExpression(node) && !isEnvRead(node.expression)) || isDefiniteAssignment(node);
+      if (!asserted) return;
       const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
       sites.set(file, [...(sites.get(file) ?? []), line]);
     });
@@ -91,15 +103,15 @@ describe("no new non-null assertion (the executor's platform rule; turn K2)", ()
       const bang = String.fromCharCode(33);
       writeFileSync(
         bad,
-        `export function f(a: { b?: string }, list: string[]) {\n  const head = list[0]${bang};\n  return a.b${bang}.length + head.length;\n}\n`,
+        `export function f(a: { b?: string }, list: string[]) {\n  const head = list[0]${bang};\n  let later${bang}: number;\n  later = 1;\n  return a.b${bang}.length + head.length + later;\n}\n`,
       );
       writeFileSync(
         good,
         `export function g(a: { b?: string }, list: string[]) {\n  const head = list[0];\n  if (head === undefined) return 0;\n  const key = process.env["E2E_KEY"]${bang};\n  return (a.b?.length ?? 0) + head.length + key.length;\n}\n`,
       );
       const sites = nonNullCensus([bad, good]);
-      expect([...sites]).toEqual([[bad, [2, 3]]]);
-      expect(nonNullKeys(sites)).toEqual([`${bad} (2)`]);
+      expect([...sites]).toEqual([[bad, [2, 3, 5]]]);
+      expect(nonNullKeys(sites)).toEqual([`${bad} (3)`]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

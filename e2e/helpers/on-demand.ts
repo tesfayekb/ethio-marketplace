@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 
 import { expect } from "../fixtures";
 import { STALE_CHUNK_KEY } from "../../src/lib/stale-chunk";
+import { whilePageLives } from "./route-guard";
 import { waitForHydration } from "./ui";
 
 /**
@@ -11,16 +12,23 @@ import { waitForHydration } from "./ui";
  * sees what a visitor whose download keeps failing sees.
  */
 
-/** Every script `refuse` names (by its address and its text) is refused, as a dropped download. */
+/**
+ * Every script `refuse` names (by its address and its text) is refused, as a dropped download.
+ * INC-934 — the refused chunk makes the app reload once, so a script fetched for the page being
+ * left can still be in this handler when that page goes: it ends there (whilePageLives).
+ */
 export async function refuseScripts(
   page: Page,
   refuse: (url: string, text: string) => boolean,
 ): Promise<void> {
-  await page.route("**/*.js", async (route) => {
-    const response = await route.fetch();
-    if (refuse(route.request().url(), await response.text())) await route.abort("failed");
-    else await route.fulfill({ response });
-  });
+  await page.route(
+    "**/*.js",
+    whilePageLives(async (route) => {
+      const response = await route.fetch();
+      if (refuse(route.request().url(), await response.text())) await route.abort("failed");
+      else await route.fulfill({ response });
+    }),
+  );
 }
 
 /**

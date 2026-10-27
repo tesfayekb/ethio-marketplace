@@ -44,6 +44,7 @@ e2e/my-listings-page.spec.ts (2) | non-null assertions written before the platfo
 e2e/nightly/auth-resend-exhaustion.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/phone-frame.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/photo-pipeline.spec.ts (84) | non-null assertions written before the platform rule was enforced | INC-932
+e2e/post-wizard-bundle2.spec.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/post-wizard-category.spec.ts (15) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/post-wizard-details.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/post-wizard-finder.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
@@ -114,11 +115,11 @@ src/features/posting/step-photos.tsx (2) | non-null assertions written before th
 src/features/posting/step-review.tsx (1) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/step-where.test.tsx (29) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/step-where.tsx (9) | non-null assertions written before the platform rule was enforced | INC-932
-src/features/posting/use-draft.test.tsx (24) | non-null assertions written before the platform rule was enforced | INC-932
+src/features/posting/use-draft.test.tsx (34) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/where-seed.test.ts (5) | non-null assertions written before the platform rule was enforced | INC-932
 src/features/posting/where-seed.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
 src/i18n/locales/am-script.test.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
-src/lib/refresh-after-write.test.ts (5) | non-null assertions written before the platform rule was enforced | INC-932
+src/lib/refresh-after-write.test.ts (6) | non-null assertions written before the platform rule was enforced | INC-932
 src/lib/route-client.test.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 src/routes/api/admin/attributes/export.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 src/routes/api/admin/categories/export.ts (1) | non-null assertions written before the platform rule was enforced | INC-932

@@ -1,0 +1,6 @@
+# The route-guard census (scripts/conformance/route-guard.test.ts, turn 34d — INC-934): one line per e2e file whose
+# route handlers still fetch the real answer outside whilePageLives — key "<file> (<count>)" | reason | until.
+# A file that moves a handler onto whilePageLives lowers its count here (the old line goes stale and fails).
+e2e/post-wizard-bundle2.spec.ts (2) | handlers written before whilePageLives; they move when the file is next run whole (G37) | INC-934
+e2e/post-wizard-specs.spec.ts (1) | handlers written before whilePageLives; they move when the file is next run whole (G37) | INC-934
+e2e/shell.spec.ts (2) | handlers written before whilePageLives; they move when the file is next run whole (G37) | INC-934
