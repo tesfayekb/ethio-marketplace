@@ -23,7 +23,7 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - Market-neutral wording: a market-dependent statement names no single country — use {country}.
 - Data-API lists use `readAllPages`: keyset paging, never positional.
 - Lint workflows with `actionlint -shellcheck= -pyflakes=`.
-- Browser tests start only with `bun run e2e:local` / `e2e:changed`, never plain `playwright test`; targets: ethio-staging or CI's temporary backend (`E2E_LOCAL_BACKEND=1`); never supabase/config.toml.
+- Browser tests start only with `bun run e2e:local` / `e2e:changed`, never plain `playwright test`; targets: ethio-staging or CI's temporary backend (`E2E_LOCAL_BACKEND=1`); never supabase/config.toml; a route handler that fetches the real answer goes through whilePageLives (e2e/helpers/route-guard.ts, CF-RG-1).
 - CI: 16 lanes, 1 worker each.
 - Scanner output in CI logs/ci-evidence: counts only.
 - Action labels: two or three words, no article or bracketed remark, every language; explanations in help text, never a button; a flagged label takes the brief's shorter text.
