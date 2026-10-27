@@ -1,13 +1,14 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 40512047787 passed
-
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40512047787
-- Commit: `529655649246c6e364e69fe57f1655e29f5459eb`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40519893778
+- Commit: `a308c6b37bcced92f89d7d0f367adc7fe476d224`
 - Attempt: 1
-- Written (UTC): 2026-10-27T13:53:43.656Z
-- Post-test warnings: 54
+- Written (UTC): 2026-10-27T14:41:09.057Z
+- Passed: 1715 · Skipped: 148 · Failed: 0
+- Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 1
+- Post-test errors (DEC-059, non-gating): smoke, email, shard 1, shard 2, shard 4, shard 6, shard 8, shard 9, shard 10, shard 11, shard 13, shard 14, shard 15, shard 16
+- Sources without results: shard 3, shard 5, shard 7, shard 12
 - Errors outside any test (INC-589): none
 
 ## Flake ledger (DEC-030)
@@ -15,243 +16,439 @@ last E2E run 40512047787 passed
 These tests FAILED then PASSED on retry. Retries are evidence, not concealment:
 a test flaky 3× in 7 days gets an INC and root-cause work.
 
-- FLAKY (passed on retry) · `desktop-1280` · source `shard 9` · ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-36 the layout follows the article's width (DEC-192, drawings v13) — Error: expect(received).toBe(expected) // Object.is equality
+- FLAKY (passed on retry) · `mobile-360` · source `shard 6` · post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans — Error: PW-30: no place was chosen
 
 ## Flaky bodies (DEC-078)
 
-### ad-page.spec.ts › AD PAGE — the buyer's page (bundle 19 turn 5) › AP-36 the layout follows the article's width (DEC-192, drawings v13)
+### post-wizard-place.spec.ts › POSTING WIZARD › PW-30 review and buyer preview render option labels, units, multi-values and booleans
 
-- Source: `shard 9`
-- Project: `desktop-1280`
+- Source: `shard 6`
+- Project: `mobile-360`
 
 ```text
-Error: expect(received).toBe(expected) // Object.is equality
+Error: PW-30: no place was chosen
+PW-30 step timings: signed in @ 906 ms | category and specifications seeded @ 1061 ms | step 3 reached @ 1842 ms | specifications answered @ 2260 ms | step 6 open @ 3210 ms | tree served @ 3232 ms
 
-Expected: true
-Received: false
+expect(locator).toHaveAttribute(expected) failed
+
+Locator:  getByTestId('post-where-chosen')
+Expected: "1"
+Received: "0"
+Timeout:  20000ms
+
+Call log:
+  - PW-30: no place was chosen
+PW-30 step timings: signed in @ 906 ms | category and specifications seeded @ 1061 ms | step 3 reached @ 1842 ms | specifications answered @ 2260 ms | step 6 open @ 3210 ms | tree served @ 3232 ms with timeout 20000ms
+  - waiting for getByTestId('post-where-chosen')
+    24 × locator resolved to <ul data-count="0" class="space-y-1" data-testid="post-where-chosen"></ul>
+       - unexpected value "0"
+
 --- further error 1 ---
-Error: expect(received).toBe(expected) // Object.is equality
+Error: PW-30: no place was chosen
+PW-30 step timings: signed in @ 906 ms | category and specifications seeded @ 1061 ms | step 3 reached @ 1842 ms | specifications answered @ 2260 ms | step 6 open @ 3210 ms | tree served @ 3232 ms
 
-Expected: true
-Received: false
+expect(locator).toHaveAttribute(expected) failed
 
-  958 |         for (const item of row) {
-  959 |           expect(near(item.y, details.y, 1)).toBe(true);
-> 960 |           expect(near(item.height, details.height, 1)).toBe(true);
-      |                                                        ^
-  961 |           expect(near(item.width, third, 2)).toBe(true);
-  962 |         }
-  963 |         expect(near(safety.width, article.width, 1)).toBe(true);
-    at check (/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:960:56)
-    at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/ad-page.spec.ts:971:23
+Locator:  getByTestId('post-where-chosen')
+Expected: "1"
+Received: "0"
+Timeout:  20000ms
+
+Call log:
+  - PW-30: no place was chosen
+PW-30 step timings: signed in @ 906 ms | category and specifications seeded @ 1061 ms | step 3 reached @ 1842 ms | specifications answered @ 2260 ms | step 6 open @ 3210 ms | tree served @ 3232 ms with timeout 20000ms
+  - waiting for getByTestId('post-where-chosen')
+    24 × locator resolved to <ul data-count="0" class="space-y-1" data-testid="post-where-chosen"></ul>
+       - unexpected value "0"
+
+
+  780 |       page.getByTestId("post-where-chosen"),
+  781 |       why("PW-30: no place was chosen"),
 ```
 
-Context:
-
-```text
-          - listitem [ref=e329]:
-            - generic [ref=e330]: About
-          - listitem [ref=e331]:
-            - generic [ref=e332]: Contact
-      - navigation "Help" [ref=e333]:
-        - heading "Help" [level=2] [ref=e334]
-        - list [ref=e335]:
-          - listitem [ref=e336]:
-            - generic [ref=e337]: Safety
-      - navigation "Legal" [ref=e338]:
-        - heading "Legal" [level=2] [ref=e339]
-        - list [ref=e340]:
-          - listitem [ref=e341]:
-            - link "Terms" [ref=e342] [cursor=pointer]:
-              - /url: /terms
-          - listitem [ref=e343]:
-            - link "Privacy" [ref=e344] [cursor=pointer]:
-              - /url: /privacy
-    - paragraph [ref=e346]: © 2026 ethio.com — All rights reserved.
-```
-```
+Context: context file not found for `post-wizard-place-POSTING-WIZARD-PW-30-review-and-buyer-preview-render-option-labels-units-multi-values-and-booleans-mobile-360` — Playwright's name `post-wizard-place-POSTING--6247a-s-multi-values-and-booleans-mobile-360`; this run carried 0 context file(s); of the same spec: none
 
 ## Errors outside any test (INC-589)
 
-None: no results file lists one and no log's summary names one (18 of 18 results files read, 18 of 18 logs read).
+None: no results file lists one and no log's summary names one (14 of 18 results files read, 14 of 18 logs read).
 
 ## Server errors — census (DEC-083, non-gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 4, shard 6, shard 8, shard 9, shard 10, shard 11, shard 13, shard 14, shard 15, shard 16 · unavailable: shard 3, shard 5, shard 7, shard 12
 
-62 line(s), 27 message(s): 0 off the allowlist, 27 allowlisted.
+`shard 3`, `shard 5`, `shard 7`, `shard 12`: log unavailable.
+
+35 line(s), 27 message(s): 0 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `categories badHeader` (quiet) | 4 | shard 2, shard 4, shard 10, shard 12 |
-| `categories wrongFile` (quiet) | 4 | shard 2, shard 4, shard 10, shard 12 |
-| `definitions badHeader` (quiet) | 4 | shard 1, shard 4, shard 9, shard 12 |
-| `definitions wrongFile` (quiet) | 4 | shard 1, shard 4, shard 9, shard 12 |
-| `categories file too large` (quiet) | 2 | shard 4, shard 12 |
-| `categories nulByte` (quiet) | 2 | shard 4, shard 12 |
-| `categories unknownColumn` (quiet) | 2 | shard 4, shard 12 |
-| `countries badHeader` (quiet) | 2 | shard 4, shard 12 |
-| `countries nulByte` (quiet) | 2 | shard 4, shard 12 |
-| `countries tooManyRows` (quiet) | 2 | shard 4, shard 12 |
-| `countries unknownColumn` (quiet) | 2 | shard 4, shard 12 |
-| `countries wrongFile` (quiet) | 2 | shard 4, shard 12 |
-| `definitions nulByte` (quiet) | 2 | shard 4, shard 12 |
-| `definitions tooManyRows` (quiet) | 2 | shard 4, shard 12 |
-| `definitions unknownColumn` (quiet) | 2 | shard 4, shard 12 |
-| `links unknownColumn` (quiet) | 2 | shard 4, shard 12 |
-| `locations badHeader` (quiet) | 2 | shard 4, shard 12 |
-| `locations file too large` (quiet) | 2 | shard 4, shard 12 |
-| `locations nulByte` (quiet) | 2 | shard 4, shard 12 |
-| `locations unknownColumn` (quiet) | 2 | shard 4, shard 12 |
-| `locations wrongFile` (quiet) | 2 | shard 4, shard 12 |
-| `strings badHeader` (quiet) | 2 | shard 4, shard 12 |
-| `strings emptyFile` (quiet) | 2 | shard 4, shard 12 |
-| `strings nulByte` (quiet) | 2 | shard 4, shard 12 |
-| `strings tooManyRows` (quiet) | 2 | shard 4, shard 12 |
-| `strings unknownColumn` (quiet) | 2 | shard 4, shard 12 |
-| `strings wrongFile` (quiet) | 2 | shard 4, shard 12 |
+| `categories badHeader` (quiet) | 3 | shard 2, shard 4, shard 10 |
+| `categories wrongFile` (quiet) | 3 | shard 2, shard 4, shard 10 |
+| `definitions badHeader` (quiet) | 3 | shard 1, shard 4, shard 9 |
+| `definitions wrongFile` (quiet) | 3 | shard 1, shard 4, shard 9 |
+| `categories file too large` (quiet) | 1 | shard 4 |
+| `categories nulByte` (quiet) | 1 | shard 4 |
+| `categories unknownColumn` (quiet) | 1 | shard 4 |
+| `countries badHeader` (quiet) | 1 | shard 4 |
+| `countries nulByte` (quiet) | 1 | shard 4 |
+| `countries tooManyRows` (quiet) | 1 | shard 4 |
+| `countries unknownColumn` (quiet) | 1 | shard 4 |
+| `countries wrongFile` (quiet) | 1 | shard 4 |
+| `definitions nulByte` (quiet) | 1 | shard 4 |
+| `definitions tooManyRows` (quiet) | 1 | shard 4 |
+| `definitions unknownColumn` (quiet) | 1 | shard 4 |
+| `links unknownColumn` (quiet) | 1 | shard 4 |
+| `locations badHeader` (quiet) | 1 | shard 4 |
+| `locations file too large` (quiet) | 1 | shard 4 |
+| `locations nulByte` (quiet) | 1 | shard 4 |
+| `locations unknownColumn` (quiet) | 1 | shard 4 |
+| `locations wrongFile` (quiet) | 1 | shard 4 |
+| `strings badHeader` (quiet) | 1 | shard 4 |
+| `strings emptyFile` (quiet) | 1 | shard 4 |
+| `strings nulByte` (quiet) | 1 | shard 4 |
+| `strings tooManyRows` (quiet) | 1 | shard 4 |
+| `strings unknownColumn` (quiet) | 1 | shard 4 |
+| `strings wrongFile` (quiet) | 1 | shard 4 |
 
-Quiet (allowlisted): categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
+Quiet (allowlisted): categories badHeader ×3 · categories wrongFile ×3 · definitions badHeader ×3 · definitions wrongFile ×3 · categories file too large ×1 · categories nulByte ×1 · categories unknownColumn ×1 · countries badHeader ×1 · countries nulByte ×1 · countries tooManyRows ×1 · countries unknownColumn ×1 · countries wrongFile ×1 · definitions nulByte ×1 · definitions tooManyRows ×1 · definitions unknownColumn ×1 · links unknownColumn ×1 · locations badHeader ×1 · locations file too large ×1 · locations nulByte ×1 · locations unknownColumn ×1 · locations wrongFile ×1 · strings badHeader ×1 · strings emptyFile ×1 · strings nulByte ×1 · strings tooManyRows ×1 · strings unknownColumn ×1 · strings wrongFile ×1
 
 Off the allowlist: none.
 
 ## Accessibility (DEC-084, gating)
 
-Logs read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16 · unavailable: none
+Logs read: smoke, email, shard 1, shard 2, shard 4, shard 6, shard 8, shard 9, shard 10, shard 11, shard 13, shard 14, shard 15, shard 16 · unavailable: shard 3, shard 5, shard 7, shard 12
+
+`shard 3`, `shard 5`, `shard 7`, `shard 12`: log unavailable.
 
 10 page×project check(s): serious=0 critical=0 — home mobile-360 serious=0 critical=0 · auth mobile-360 serious=0 critical=0 · wizard-1 mobile-360 serious=0 critical=0 · wizard-3 mobile-360 serious=0 critical=0 · wizard-5 mobile-360 serious=0 critical=0 · home desktop-1280 serious=0 critical=0 · auth desktop-1280 serious=0 critical=0 · wizard-1 desktop-1280 serious=0 critical=0 · wizard-3 desktop-1280 serious=0 critical=0 · wizard-5 desktop-1280 serious=0 critical=0
 
 ## Timing (DEC-087, non-gating)
 
-Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16 · unavailable: none
+Results read: smoke, email, shard 1, shard 2, shard 4, shard 6, shard 8, shard 9, shard 10, shard 11, shard 13, shard 14, shard 15, shard 16 · unavailable: shard 3, shard 5, shard 7, shard 12
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-27T13:29:11.905Z | 13.2 min |
-| email | 2026-10-27T13:40:22.435Z | 0.3 min |
-| shard 1 | 2026-10-27T13:40:40.689Z | 8.8 min |
-| shard 2 | 2026-10-27T13:40:08.059Z | 12.8 min |
-| shard 3 | 2026-10-27T13:28:55.286Z | 10.5 min |
-| shard 4 | 2026-10-27T13:28:58.117Z | 7.9 min |
-| shard 5 | 2026-10-27T13:30:54.375Z | 5.5 min |
-| shard 6 | 2026-10-27T13:29:26.648Z | 9.9 min |
-| shard 7 | 2026-10-27T13:29:50.215Z | 6.5 min |
-| shard 8 | 2026-10-27T13:29:19.330Z | 6.2 min |
-| shard 9 | 2026-10-27T13:29:33.983Z | 12.0 min |
-| shard 10 | 2026-10-27T13:34:44.482Z | 13.4 min |
-| shard 11 | 2026-10-27T13:29:07.772Z | 11.6 min |
-| shard 12 | 2026-10-27T13:29:21.759Z | 8.1 min |
-| shard 13 | 2026-10-27T13:29:31.760Z | 7.4 min |
-| shard 14 | 2026-10-27T13:39:18.859Z | 9.6 min |
-| shard 15 | 2026-10-27T13:29:54.888Z | 7.0 min |
-| shard 16 | 2026-10-27T13:30:59.319Z | 7.0 min |
+| smoke | 2026-10-27T14:21:47.017Z | 13.4 min |
+| email | 2026-10-27T14:21:35.285Z | 0.4 min |
+| shard 1 | 2026-10-27T14:21:25.366Z | 9.0 min |
+| shard 2 | 2026-10-27T14:23:23.766Z | 13.8 min |
+| shard 4 | 2026-10-27T14:21:13.236Z | 7.7 min |
+| shard 6 | 2026-10-27T14:23:06.930Z | 10.2 min |
+| shard 8 | 2026-10-27T14:22:15.483Z | 6.0 min |
+| shard 9 | 2026-10-27T14:22:08.520Z | 12.0 min |
+| shard 10 | 2026-10-27T14:21:13.011Z | 11.6 min |
+| shard 11 | 2026-10-27T14:23:06.579Z | 12.1 min |
+| shard 13 | 2026-10-27T14:21:23.384Z | 7.4 min |
+| shard 14 | 2026-10-27T14:21:43.532Z | 8.2 min |
+| shard 15 | 2026-10-27T14:21:31.956Z | 6.0 min |
+| shard 16 | 2026-10-27T14:21:36.639Z | 7.0 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 436 | 19.1 min | smoke, shard 8, shard 16 |
-| `auth-signout.spec.ts` | 64 | 6.0 min | smoke, shard 3, shard 11 |
-| `post-wizard-bundle2.spec.ts` | 70 | 5.4 min | shard 6, shard 14 |
+| `shell.spec.ts` | 436 | 19.0 min | smoke, shard 8, shard 16 |
 | `admin-attributes-library.spec.ts` | 42 | 5.3 min | shard 1, shard 9 |
-| `import-security.spec.ts` | 36 | 5.1 min | shard 4, shard 12 |
-| `post-wizard-specs.spec.ts` | 82 | 4.9 min | shard 7, shard 15 |
-| `admin-locations.spec.ts` | 38 | 4.6 min | shard 2, shard 10 |
-| `feed-screens.spec.ts` | 36 | 4.6 min | shard 4, shard 12 |
-| `post-wizard-place.spec.ts` | 38 | 4.3 min | shard 6, shard 14 |
-| `admin-categories-console.spec.ts` | 34 | 4.2 min | shard 2, shard 10 |
-| `admin-translations-console.spec.ts` | 44 | 4.2 min | shard 3, shard 11 |
+| `post-wizard-bundle2.spec.ts` | 70 | 4.9 min | shard 6, shard 14 |
+| `auth-signout.spec.ts` | 48 | 4.6 min | smoke, shard 11 |
+| `admin-locations.spec.ts` | 38 | 4.5 min | shard 2, shard 10 |
+| `post-wizard-place.spec.ts` | 38 | 4.2 min | shard 6, shard 14 |
+| `admin-roles.spec.ts` | 26 | 4.1 min | shard 2, shard 11 |
+| `admin-categories-console.spec.ts` | 34 | 4.1 min | shard 2, shard 10 |
 | `viewing-place.spec.ts` | 22 | 4.0 min | shard 9, shard 16 |
-| `admin-roles.spec.ts` | 26 | 4.0 min | shard 2, shard 11 |
 | `admin-attributes-links.spec.ts` | 34 | 3.8 min | shard 1, shard 9 |
-| `post-wizard-where.spec.ts` | 32 | 3.8 min | shard 7, shard 15 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 3.7 min | shard 2, shard 10 |
-| `admin-screening.spec.ts` | 52 | 3.7 min | shard 3, shard 11 |
-| `photo-pipeline.spec.ts` | 68 | 3.5 min | shard 5, shard 13 |
-| `admin-users.spec.ts` | 28 | 3.4 min | shard 3, shard 11 |
-| `admin-listings.spec.ts` | 62 | 3.4 min | shard 2, shard 10 |
-| `my-listings-ad.spec.ts` | 36 | 3.1 min | shard 5, shard 13 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.0 min | shard 1, shard 9 |
-| `post-wizard-pricing.spec.ts` | 52 | 3.0 min | shard 6, shard 14 |
-| `ad-page.spec.ts` | 76 | 2.7 min | shard 1, shard 9 |
-| `posting-routes.spec.ts` | 80 | 2.5 min | shard 7, shard 15 |
-| `post-wizard-category.spec.ts` | 48 | 2.5 min | shard 6, shard 14 |
-| `admin-attributes-safety.spec.ts` | 18 | 2.5 min | shard 1, shard 10 |
-| `post-wizard-resets.spec.ts` | 34 | 2.4 min | shard 6, shard 14 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 3.6 min | shard 2, shard 10 |
+| `admin-listings.spec.ts` | 62 | 3.2 min | shard 2, shard 10 |
+| `admin-attributes-editor.spec.ts` | 36 | 3.1 min | shard 1, shard 9 |
+| `ad-page.spec.ts` | 76 | 2.9 min | shard 1, shard 9 |
+| `post-wizard-pricing.spec.ts` | 52 | 2.8 min | shard 6, shard 14 |
+| `import-security.spec.ts` | 18 | 2.4 min | shard 4 |
+| `feed-screens.spec.ts` | 18 | 2.4 min | shard 4 |
+| `admin-attributes-safety.spec.ts` | 18 | 2.4 min | shard 1, shard 10 |
+| `post-wizard-resets.spec.ts` | 34 | 2.3 min | shard 6, shard 14 |
+| `post-wizard-category.spec.ts` | 48 | 2.3 min | shard 6, shard 14 |
+| `post-wizard-specs.spec.ts` | 41 | 2.2 min | shard 15 |
+| `admin-translations-console.spec.ts` | 22 | 2.2 min | shard 11 |
 | `admin-countries.spec.ts` | 18 | 2.2 min | shard 2, shard 10 |
-| `admin-translations-data.spec.ts` | 10 | 1.9 min | shard 3, shard 11 |
-| `legal-admin.spec.ts` | 42 | 1.9 min | shard 4, shard 12 |
-| `admin-translations-governance.spec.ts` | 8 | 1.8 min | shard 3, shard 11 |
+| `photo-pipeline.spec.ts` | 34 | 2.0 min | shard 13 |
+| `admin-screening.spec.ts` | 26 | 1.9 min | shard 11 |
 | `admin-attributes-import.spec.ts` | 40 | 1.8 min | shard 1, shard 9 |
-| `admin-categories-home.spec.ts` | 10 | 1.7 min | shard 2, shard 10 |
-| `legal-certify.spec.ts` | 42 | 1.6 min | shard 4, shard 12 |
+| `admin-users.spec.ts` | 14 | 1.8 min | shard 11 |
+| `post-wizard-where.spec.ts` | 16 | 1.7 min | shard 15 |
+| `my-listings-ad.spec.ts` | 18 | 1.7 min | shard 13 |
+| `admin-categories-home.spec.ts` | 10 | 1.6 min | shard 2, shard 10 |
 | `admin-audit.spec.ts` | 14 | 1.4 min | shard 2, shard 10 |
-| `mfa-stepup.spec.ts` | 18 | 1.4 min | shard 5, shard 13 |
-| `locations-tree.spec.ts` | 8 | 1.1 min | shard 5, shard 13 |
-| `phone-frame.spec.ts` | 18 | 1.0 min | shard 5, shard 13 |
-| `admin-coverage.spec.ts` | 16 | 0.8 min | shard 2, shard 10 |
-| `my-listings-page.spec.ts` | 16 | 0.8 min | shard 5, shard 13 |
-| `admin-shell.spec.ts` | 12 | 0.7 min | shard 3, shard 11 |
-| `post-wizard-removed.spec.ts` | 4 | 0.7 min | shard 6, shard 14 |
-| `legal-doors.spec.ts` | 34 | 0.7 min | shard 5, shard 13 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.6 min | shard 7, shard 15 |
-| `i18n-bundle.spec.ts` | 6 | 0.6 min | shard 4, shard 12 |
+| `posting-routes.spec.ts` | 40 | 1.1 min | shard 15 |
+| `admin-translations-data.spec.ts` | 5 | 1.0 min | shard 11 |
+| `admin-translations-governance.spec.ts` | 4 | 0.9 min | shard 11 |
+| `legal-admin.spec.ts` | 21 | 0.8 min | shard 4 |
+| `phone-frame.spec.ts` | 9 | 0.8 min | shard 13 |
+| `mfa-stepup.spec.ts` | 9 | 0.8 min | shard 13 |
+| `admin-coverage.spec.ts` | 16 | 0.7 min | shard 2, shard 10 |
+| `legal-certify.spec.ts` | 21 | 0.7 min | shard 4 |
+| `post-wizard-removed.spec.ts` | 4 | 0.6 min | shard 6, shard 14 |
+| `locations-tree.spec.ts` | 4 | 0.5 min | shard 13 |
 | `supabase-door.spec.ts` | 12 | 0.5 min | shard 8, shard 16 |
 | `admin-categories-images.spec.ts` | 2 | 0.5 min | shard 2, shard 10 |
-| `posting-routes-dials.spec.ts` | 18 | 0.5 min | shard 7, shard 15 |
-| `my-listings-doors.spec.ts` | 28 | 0.4 min | shard 5, shard 13 |
-| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6, shard 14 |
-| `legal-accept.spec.ts` | 12 | 0.4 min | shard 4, shard 12 |
+| `my-listings-page.spec.ts` | 8 | 0.5 min | shard 13 |
 | `ad-page-doors.spec.ts` | 30 | 0.4 min | shard 1, shard 9 |
+| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6, shard 14 |
 | `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 6, shard 14 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 7, shard 15 |
-| `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 3, shard 11 |
-| `settings.spec.ts` | 9 | 0.3 min | shard 8 |
-| `house-style.spec.ts` | 12 | 0.3 min | shard 4, shard 12 |
+| `admin-shell.spec.ts` | 6 | 0.4 min | shard 11 |
+| `legal-doors.spec.ts` | 17 | 0.4 min | shard 13 |
+| `auth-signup.spec.ts` | 6 | 0.3 min | email |
 | `a11y.spec.ts` | 4 | 0.3 min | smoke |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 7, shard 15 |
+| `i18n-bundle.spec.ts` | 3 | 0.3 min | shard 4 |
+| `settings.spec.ts` | 9 | 0.3 min | shard 8 |
 | `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 8, shard 16 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 5, shard 13 |
-| `feed-index.spec.ts` | 30 | 0.3 min | shard 4, shard 12 |
-| `auth-signup.spec.ts` | 6 | 0.2 min | email |
-| `i18n-coverage.spec.ts` | 14 | 0.2 min | shard 4, shard 12 |
-| `category-nav.spec.ts` | 10 | 0.2 min | shard 4, shard 12 |
-| `breadcrumbs.spec.ts` | 6 | 0.2 min | shard 3, shard 11 |
-| `legal-history.spec.ts` | 6 | 0.2 min | shard 5, shard 13 |
-| `layout.spec.ts` | 10 | 0.2 min | shard 4, shard 12 |
-| `admin-services.spec.ts` | 10 | 0.2 min | shard 3, shard 11 |
+| `posting-routes-catalog.spec.ts` | 9 | 0.3 min | shard 15 |
+| `my-listings-doors.spec.ts` | 14 | 0.2 min | shard 13 |
+| `posting-routes-dials.spec.ts` | 9 | 0.2 min | shard 15 |
+| `auth-caller-gates.spec.ts` | 4 | 0.2 min | shard 11 |
+| `legal-accept.spec.ts` | 6 | 0.2 min | shard 4 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 8, shard 16 |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 4, shard 12 |
-| `auth-reset.spec.ts` | 6 | 0.2 min | shard 3 |
-| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 7, shard 15 |
-| `account-saved.spec.ts` | 4 | 0.1 min | shard 1, shard 9 |
+| `account-saved.spec.ts` | 4 | 0.2 min | shard 1, shard 9 |
+| `legal-pages.spec.ts` | 5 | 0.2 min | shard 13 |
+| `primitives-law.spec.ts` | 12 | 0.1 min | shard 15 |
+| `post-wizard-units.spec.ts` | 2 | 0.1 min | shard 15 |
+| `i18n-coverage.spec.ts` | 7 | 0.1 min | shard 4 |
+| `feed-route.spec.ts` | 11 | 0.1 min | shard 4 |
+| `house-style.spec.ts` | 6 | 0.1 min | shard 4 |
+| `legal-history.spec.ts` | 3 | 0.1 min | shard 13 |
 | `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 6, shard 14 |
+| `breadcrumbs.spec.ts` | 3 | 0.1 min | shard 11 |
+| `admin-services.spec.ts` | 5 | 0.1 min | shard 11 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 8, shard 16 |
-| `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 3 |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | shard 4, shard 12 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
-| `overlays.spec.ts` | 6 | 0.1 min | shard 5, shard 13 |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 5, shard 13 |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 3, shard 11 |
-| `fonts.spec.ts` | 2 | 0.0 min | shard 4, shard 12 |
-| `auth-google.spec.ts` | 2 | 0.0 min | shard 3 |
-| `geo.spec.ts` | 10 | 0.0 min | shard 4, shard 12 |
+| `category-nav.spec.ts` | 5 | 0.1 min | shard 4 |
+| `feed-index.spec.ts` | 15 | 0.1 min | shard 4 |
+| `layout.spec.ts` | 5 | 0.1 min | shard 4 |
+| `posting-routes-identity.spec.ts` | 2 | 0.1 min | shard 15 |
+| `on-demand-failure.spec.ts` | 1 | 0.0 min | shard 13 |
+| `i18n-layers.spec.ts` | 3 | 0.0 min | shard 4 |
+| `overlays.spec.ts` | 3 | 0.0 min | shard 13 |
+| `category-image-routes.spec.ts` | 5 | 0.0 min | shard 11 |
+| `fonts.spec.ts` | 1 | 0.0 min | shard 4 |
+| `geo.spec.ts` | 5 | 0.0 min | shard 4 |
 | `ad-page-routes.spec.ts` | 4 | 0.0 min | shard 1, shard 9 |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 46.6 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 43.5 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 41.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 37.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 36.8 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 45.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 42.1 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.4 s |
 | `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.3 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.2 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 31.9 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 30.6 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.6 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.6 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | desktop-1280 | 30.6 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 31.6 s |
+| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 30.5 s |
 | `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 30.5 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | desktop-1280 | 30.5 s |
+| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.5 s |
 | `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.5 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.5 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 29.8 s |
+| `post-wizard-place.spec.ts` › PW-30 review and buyer preview render option labels, units, multi-values and booleans | mobile-360 | 29.2 s |
+| `auth-signout.spec.ts` › SO-11 a sign-out whose server cannot be reached still ends the session on this device (DEC-268) | mobile-360 | 28.5 s |
+| `auth-signout.spec.ts` › SO-11 a sign-out whose server cannot be reached still ends the session on this device (DEC-268) | desktop-1280 | 28.2 s |
+
+## Post-test errors: smoke
+
+smoke: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 4 (pool 2, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 2 user(s) owned by process 40519893778-localproof
+```
+
+## Post-test errors: email
+
+email: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 1 (pool 0, fresh 1)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-email
+```
+
+## Post-test errors: shard 1
+
+shard 1: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 6 user(s) owned by process 40519893778-local-1
+```
+
+## Post-test errors: shard 2
+
+shard 2: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 8 (pool 2, fresh 6)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 7 user(s) owned by process 40519893778-local-2
+```
+
+## Post-test errors: shard 4
+
+shard 4: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 16 (pool 2, fresh 14)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 14 user(s) owned by process 40519893778-local-4
+```
+
+## Post-test errors: shard 6
+
+shard 6: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 4 (pool 2, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-6
+```
+
+## Post-test errors: shard 8
+
+shard 8: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-8
+```
+
+## Post-test errors: shard 9
+
+shard 9: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 6 user(s) owned by process 40519893778-local-9
+```
+
+## Post-test errors: shard 10
+
+shard 10: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 7 (pool 2, fresh 5)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 6 user(s) owned by process 40519893778-local-10
+```
+
+## Post-test errors: shard 11
+
+shard 11: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 8 (pool 2, fresh 6)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 14 user(s) owned by process 40519893778-local-11
+```
+
+## Post-test errors: shard 13
+
+shard 13: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 14 (pool 2, fresh 12)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 19 user(s) owned by process 40519893778-local-13
+```
+
+## Post-test errors: shard 14
+
+shard 14: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 4 (pool 2, fresh 2)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-14
+```
+
+## Post-test errors: shard 15
+
+shard 15: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 3 (pool 2, fresh 1)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 2 user(s) owned by process 40519893778-local-15
+```
+
+## Post-test errors: shard 16
+
+shard 16: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
+
+```text
+[e2e:teardown] accounts signed in this run: 5 (pool 2, fresh 3)
+[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
+[e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-16
+```
+
+## Server errors: shard 3
+
+No `[ssr-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Client errors: shard 3
+
+No `[client-error]` lines in the `shard 3` log (or no log was uploaded).
+
+## Server errors: shard 5
+
+No `[ssr-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Client errors: shard 5
+
+No `[client-error]` lines in the `shard 5` log (or no log was uploaded).
+
+## Server errors: shard 7
+
+No `[ssr-error]` lines in the `shard 7` log (or no log was uploaded).
+
+## Client errors: shard 7
+
+No `[client-error]` lines in the `shard 7` log (or no log was uploaded).
+
+## Server errors: shard 12
+
+No `[ssr-error]` lines in the `shard 12` log (or no log was uploaded).
+
+## Client errors: shard 12
+
+No `[client-error]` lines in the `shard 12` log (or no log was uploaded).
+
+## shard 3: no results file
+
+shard 3: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 5: no results file
+
+shard 5: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 7: no results file
+
+shard 7: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
+
+## shard 12: no results file
+
+shard 12: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+(no log tail was uploaded for this source)
+```
