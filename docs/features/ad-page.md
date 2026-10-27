@@ -66,6 +66,7 @@ Turn 16 — INC-704 (similar ads draw their own card frame, only with cards); M8
 
 ## Tests
 
+Foundations turn 34f (INC-940): ALS-1 (e2e/ad-page-layout.spec.ts), LDM-1, MFR-1, MFR-2; AP-36, AP-37, AP-41, AP-42, AP-44, AP-45, AP-46, AP-47, AP-48 and AP-50 changed (their boxes read through layoutBoxes).
 Turn 34: GML-1…GML-4, LD-24.
 Turn 32: AP-45 changed.
 Turn 31: LD-23; AP-36 changed.
@@ -181,3 +182,5 @@ Turn 34 — the Maps search names the full place, from the ad's place up to the 
 INC-779 (bundle 22 turn 10): after a tap on the section bar, the tapped tab stays current once its own scroll has stopped, until the reader moves the page; AP-37 checks that the choice holds.
 
 Foundations turn 7 (INC-862 T3): the feed/seller/options boundary, cursor, cache and explicit answer changes are recorded in [routes.md](routes.md).
+
+Foundations turn 34f (INC-940): the still map holds its box from the first paint. Its place while its code downloads and when it cannot download is MapFrame (src/features/posting/map/map-frame.tsx) — the still map's box with its word and its caption, drawn from the same module the map draws from (still-map.ts) — and the provider's credit lies on the box at its foot, so the Details | Description | Location row keeps its height when the map, its library and its credit arrive (AP-36 retried four times while the Location box grew between two reads). The census scripts/conformance/holds-its-box.test.ts keeps every late part on a reserver or on its allowlist.
