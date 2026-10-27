@@ -61,7 +61,7 @@ foundations-records-r5.md.
 ## 8. THE CHECKS
 
 Hash list: all 17 lines `OK`. `git diff <START> --stat -- src e2e supabase .claude AGENTS.md`: empty.
-format:check: see the chat summary (run last).
+format:check (run last): `All matched files use Prettier code style!`
 
 ## 9. Files
 
