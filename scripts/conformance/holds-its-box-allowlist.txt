@@ -1,0 +1,12 @@
+# INC-940 (Foundations turn 34f): a part fetched after the first paint whose places do not hold its box through a reserver (scripts/conformance/holds-its-box.test.ts RESERVERS; src/features/posting/map/map-frame.tsx). <file>#<name> | <reason> | <until>
+src/components/marketplace/feed.tsx#Await | a preload of the first cards' covers: it renders nothing whether loaded or not, so it holds no box to keep | 2027-04-27
+src/components/shell/breadcrumbs.tsx#AdCrumbs | the ad's trail shows the ad's own title crumb (AdTitleCrumb) while its category path loads: one line of the crumb bar, whose height does not change | 2027-04-27
+src/components/shell/breadcrumbs.tsx#AdminLanguageCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
+src/components/shell/breadcrumbs.tsx#AdminListingCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
+src/components/shell/breadcrumbs.tsx#AdminRoleCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
+src/components/shell/breadcrumbs.tsx#AdminUserCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
+src/components/shell/breadcrumbs.tsx#MyListingCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
+src/features/posting/preview/listing-detail.tsx#MapLarge | the large map opens in a dialog of fixed height (h-[90dvh], md:h-[70vh]): its place while it loads moves nothing on the page | 2027-04-27
+src/features/posting/step-where.tsx#MapPinDropper | the pin map opens as a fixed full-screen sheet over the step; the one line it shows while it downloads is covered as the sheet opens | 2027-04-27
+src/routes/c.$slug.tsx#Feed | the category feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945
+src/routes/index.tsx#Feed | the home feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945

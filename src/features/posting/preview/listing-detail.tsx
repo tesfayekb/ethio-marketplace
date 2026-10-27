@@ -36,6 +36,7 @@ import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from 
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
+import { MapFrame } from "../map/map-frame";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
@@ -57,10 +58,23 @@ const MapLarge = resilientLazy(
   MapUnavailable,
 );
 
-/** What a map's place shows while it loads, or in its place: the map's own word. */
-function MapUnavailable() {
+/**
+ * What a map's place shows when it cannot download: the map's own word, in the still map's box
+ * (INC-940 — the place holds the map's size, so nothing around it moves).
+ */
+function MapUnavailable({
+  precision,
+  audience,
+}: {
+  precision: string | null;
+  audience?: "seller" | "buyer";
+}) {
   const { t } = useI18n();
-  return <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>;
+  return (
+    <MapFrame precision={precision} {...(audience === undefined ? {} : { audience })}>
+      <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+    </MapFrame>
+  );
 }
 
 import { NegotiableBadge } from "@/components/marketplace/listing-card";
@@ -1146,7 +1160,12 @@ export function ListingDetail(view: ListingDetailView) {
                 <div className="relative isolate" data-testid="listing-detail-map">
                   <Suspense
                     fallback={
-                      <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+                      <MapFrame
+                        precision={view.pinPrecision ?? "exact"}
+                        {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
+                      >
+                        <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+                      </MapFrame>
                     }
                   >
                     <MapPreview

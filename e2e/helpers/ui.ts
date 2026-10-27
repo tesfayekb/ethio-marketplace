@@ -61,6 +61,69 @@ export async function settled(page: Page) {
   });
 }
 
+/** A box as Playwright's boundingBox() gives it: viewport pixels of the main frame. */
+export type LayoutBox = { x: number; y: number; width: number; height: number };
+
+/**
+ * INC-940 — A LAYOUT IS READ WHOLE, ONCE IT HAS STOPPED MOVING. Every box a test compares is read
+ * in ONE frame (one page.evaluate over every target), after settled(page), and the read is taken
+ * again two animation frames later; the boxes are returned only when the two reads agree and every
+ * target is drawn. A box read one by one can come from before a late part arrived and its
+ * neighbour from after it (AP-36: the Location box grew between two reads when the still map's
+ * code arrived). Targets are Locators, so a box inside a card, a tab by its position or a list's
+ * items read as the test names them; each must match exactly one element. The poll's value names
+ * the boxes still moving or missing, so a timeout says which.
+ */
+export async function layoutBoxes<K extends string>(
+  targets: Readonly<Record<K, Locator>>,
+  { timeout = 10_000 }: { timeout?: number } = {},
+): Promise<Record<K, LayoutBox>> {
+  const entries = Object.entries(targets) as Array<[K, Locator]>;
+  const firstEntry = entries[0];
+  if (firstEntry === undefined) throw new Error("layoutBoxes: no targets");
+  const page = firstEntry[1].page();
+  await settled(page);
+  let boxes: Record<K, LayoutBox> | null = null;
+  await expect
+    .poll(
+      async () => {
+        const handles = await Promise.all(entries.map(([, locator]) => locator.elementHandle()));
+        try {
+          const read = await page.evaluate(async (elements) => {
+            const take = () =>
+              elements.map((element) => {
+                if (element === null || element.getClientRects().length === 0) return null;
+                if (getComputedStyle(element).visibility === "hidden") return null;
+                const rect = element.getBoundingClientRect();
+                return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+              });
+            const before = take();
+            await new Promise<void>((resolve) =>
+              requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+            );
+            return { before, after: take() };
+          }, handles);
+          const missing = entries.filter((_, index) => read.after[index] === null);
+          const moving = entries.filter(
+            (_, index) => JSON.stringify(read.before[index]) !== JSON.stringify(read.after[index]),
+          );
+          if (missing.length > 0 || moving.length > 0)
+            return `missing: ${missing.map(([name]) => name).join(", ") || "none"}; moving: ${moving.map(([name]) => name).join(", ") || "none"}`;
+          boxes = Object.fromEntries(
+            entries.map(([name], index) => [name, read.after[index]]),
+          ) as Record<K, LayoutBox>;
+          return "settled";
+        } finally {
+          await Promise.all(handles.map((handle) => handle?.dispose()));
+        }
+      },
+      { timeout, message: "every box drawn and still over two frames (INC-940)" },
+    )
+    .toBe("settled");
+  if (boxes === null) throw new Error("layoutBoxes: the boxes settled but were not kept");
+  return boxes;
+}
+
 /** Lifted verbatim from smoke-auth-i18n.spec.ts (P1-c hydration race fix). */
 export async function fillUntilStable(input: Locator, value: string, fieldName: string) {
   await expect(input, `${fieldName} field is not editable`).toBeEditable();

@@ -6,6 +6,7 @@ import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useNearViewport } from "@/lib/use-near-viewport";
 
 import { APPROX_RADIUS_M } from "./geocode";
+import { STILL_MAP_BOX, STILL_MAP_CREDIT, stillMapCaptionKey } from "./still-map";
 import {
   addTileLayers,
   creditOf,
@@ -61,6 +62,7 @@ export function MapPreview({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Leaflet.Map | null>(null);
   const approx = precision === "approx";
+  const caption = stillMapCaptionKey(audience, approx);
   // Part H2 — the plan in force's credit, drawn as text (never Leaflet's markup control).
   const [credit, setCredit] = useState("");
   // D234 S1 — on the buyer's ad page the map's library, tile plan and tiles wait until
@@ -121,33 +123,32 @@ export function MapPreview({
 
   return (
     <div className="space-y-1">
-      <div
-        ref={boxRef}
-        className="isolate h-48 w-full overflow-hidden rounded-md border border-border"
-        data-testid={approx ? "listing-map-circle" : "listing-map-pin"}
-        data-precision={approx ? "approx" : "exact"}
-        aria-label={t(
-          audience === "buyer"
-            ? approx
-              ? "adPage.map.approx"
-              : "adPage.map.label"
-            : approx
-              ? "post.pin.previewApprox"
-              : "post.pin.previewExact",
-        )}
-      />
-      <p className="text-end text-xs text-muted-foreground" data-testid="listing-map-credit">
-        {credit}
-      </p>
-      {audience === "buyer" ? (
-        approx ? (
-          <p className="text-xs text-muted-foreground" data-testid="listing-map-caption">
-            {t("adPage.map.approx")}
+      {/* INC-940 — the credit lies on the box at its foot, so its length never moves the page. */}
+      <div className="relative">
+        <div
+          ref={boxRef}
+          className={STILL_MAP_BOX}
+          data-testid={approx ? "listing-map-circle" : "listing-map-pin"}
+          data-precision={approx ? "approx" : "exact"}
+          aria-label={t(
+            audience === "buyer"
+              ? approx
+                ? "adPage.map.approx"
+                : "adPage.map.label"
+              : approx
+                ? "post.pin.previewApprox"
+                : "post.pin.previewExact",
+          )}
+        />
+        {credit !== "" && (
+          <p className={STILL_MAP_CREDIT} data-testid="listing-map-credit">
+            {credit}
           </p>
-        ) : null
-      ) : (
+        )}
+      </div>
+      {caption !== null && (
         <p className="text-xs text-muted-foreground" data-testid="listing-map-caption">
-          {t(approx ? "post.pin.previewApprox" : "post.pin.previewExact")}
+          {t(caption)}
         </p>
       )}
     </div>

@@ -41,6 +41,7 @@ import { looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinPlace, PinValue } from "./map/map-pin-dropper";
 import { DETAILS_MAX, sanitizeDetails } from "./map/location-details";
+import { MapFrame } from "./map/map-frame";
 import type { Refusal } from "./types";
 
 /**
@@ -48,8 +49,9 @@ import type { Refusal } from "./types";
  * are fetched by the tap that opens the section, so the marketplace's first paint
  * never carries a mapping library (the weight and budget guards prove it), and a
  * seller who never asks for a pin never downloads one. D234 S3 (INC-897) — both
- * are resilientLazy: a preview that cannot download shows nothing, and the pin
- * map offers "Try again", which reloads the page (the draft is saved).
+ * are resilientLazy: a preview that cannot download shows the map's word in its
+ * box (INC-940: map-frame.tsx), and the pin map offers "Try again", which reloads
+ * the page (the draft is saved).
  */
 const MapPreview = resilientLazy(
   () => import("./map/map-preview").then((mod) => mod.MapPreview),
@@ -63,9 +65,17 @@ const MapPinDropper = resilientLazy(
   { inPlace: true },
 );
 
-/** The pin preview's place when its map cannot download: nothing, as while it loads. */
-function NoMap() {
-  return null;
+/**
+ * The pin preview's place when its map cannot download: the map's word in the still map's box, as
+ * while it loads (INC-940 — the place holds the map's size, so the step below it never moves).
+ */
+function NoMap({ precision }: { precision: string | null }) {
+  const { t } = useI18n();
+  return (
+    <MapFrame precision={precision}>
+      <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+    </MapFrame>
+  );
 }
 
 /**
@@ -1830,7 +1840,13 @@ export function StepWhere({
             {/* K — after Save, the small map exactly as buyers see it. */}
             {pin !== null && !pinOpen && (
               <div data-testid="post-where-pin-preview">
-                <Suspense fallback={null}>
+                <Suspense
+                  fallback={
+                    <MapFrame precision={pin.precision ?? null}>
+                      <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+                    </MapFrame>
+                  }
+                >
                   <MapPreview
                     lat={pin.lat}
                     lng={pin.lng}
