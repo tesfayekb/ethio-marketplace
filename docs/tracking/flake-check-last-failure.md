@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 39913477923 passed
+last E2E run 40580864742 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/39913477923
-- Commit: `b0c01ef1a24952ac6c18220c4668d25034f81c50`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40580864742
+- Commit: `e2287d6d03327474e3666789f8dd85d80ed6bba4`
 - Attempt: 1
-- Written (UTC): 2026-10-23T06:52:59.034Z
+- Written (UTC): 2026-10-27T21:50:49.795Z
 - Post-test warnings: 3
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
@@ -18,7 +18,24 @@ None: no results file lists one and no log's summary names one (1 of 1 results f
 
 Logs read: flake · unavailable: none
 
-No `[ssr-error]` lines in any source (all 1 logs read).
+1 line(s), 1 message(s): 1 off the allowlist, 0 allowlisted.
+
+| Message | Count | Sources |
+| --- | --- | --- |
+| `insert or update on table <q> violates foreign key constraint <q>` | 1 | flake |
+
+Quiet (allowlisted): none
+
+Off the allowlist:
+
+### insert or update on table <q> violates foreign key constraint <q>
+
+- Count: 1 · Sources: flake
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): ALS-1 the Location box keeps its height when the still map arrives ×1 · AP-46 Save and Share sit in the title box ×1
+
+```text
+[WebServer] [ssr-error] /api/listings/view insert or update on table "listing_counters" violates foreign key constraint "listing_counters_listing_id_fkey"
+```
 
 ## Accessibility (DEC-084, gating)
 
@@ -32,28 +49,29 @@ Results read: flake · unavailable: none
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| flake | 2026-10-23T06:51:37.002Z | 1.3 min |
+| flake | 2026-10-27T21:46:40.963Z | 4.1 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `post-wizard-specs.spec.ts` | 24 | 8.3 min | flake |
+| `ad-page.spec.ts` | 120 | 21.9 min | flake |
+| `ad-page-layout.spec.ts` | 24 | 5.5 min | flake |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 24.4 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 23.6 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 23.4 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 23.2 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 23.0 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 22.5 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 21.4 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 20.9 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 20.7 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 20.6 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 20.3 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | mobile-360 | 20.3 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 20.2 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 20.0 s |
-| `post-wizard-specs.spec.ts` › PW-153 a settled range hides its number and the review and buyer sheet show the range | desktop-1280 | 19.9 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 23.2 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 23.0 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 22.3 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 22.1 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 20.8 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 20.2 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 20.2 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 20.2 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 19.8 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 19.4 s |
+| `ad-page.spec.ts` › AP-37 the in-page bar scrolls to each section and stays under the sub-band | mobile-360 | 19.0 s |
+| `ad-page.spec.ts` › AP-36 the layout follows the article's width (DEC-192, drawings v13) | mobile-360 | 18.4 s |
+| `ad-page.spec.ts` › AP-36 the layout follows the article's width (DEC-192, drawings v13) | mobile-360 | 18.4 s |
+| `ad-page.spec.ts` › AP-42 a missing box gives its room to its row | desktop-1280 | 18.2 s |
+| `ad-page.spec.ts` › AP-42 a missing box gives its room to its row | desktop-1280 | 18.1 s |
