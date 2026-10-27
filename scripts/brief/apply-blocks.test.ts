@@ -1,17 +1,30 @@
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it, vi } from "vitest";
 import { errorText } from "../../src/lib/error-text";
+import { walkFiles } from "../conformance/kit";
 import { applyBlocks, ApplyRefused, main, parseBlocks, type Allow, type Io } from "./apply-blocks";
 
 /**
- * Register row 58 (Foundations records turn R1) — a brief's FILE and EDIT blocks reach the tree exactly,
- * through scripts/brief/apply-blocks.sh (apply-blocks.ts): in order, all or none. The planted briefs are
- * built line by line, so this file holds no block of its own.
+ * Register row 58 (Foundations records turn R1; hardened in records turn R3) — a brief's FILE and EDIT
+ * blocks reach the tree exactly, through scripts/brief/apply-blocks.sh (apply-blocks.ts): in order, all or
+ * none. The planted briefs are built line by line, so this file holds no block of its own.
  */
 const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(HERE, "..", "..");
+const roots: string[] = [];
+const scratch = () => {
+  const root = mkdtempSync(join(tmpdir(), "apply-blocks-"));
+  roots.push(root);
+  return root;
+};
+afterAll(() => {
+  for (const root of roots) rmSync(root, { recursive: true, force: true });
+});
+
 const fileBlock = (path: string, ...body: string[]) => [
   `FILE-BEGIN ${path}`,
   ...body,
@@ -38,16 +51,33 @@ function memory(files: Record<string, string>, allow: Allow = everywhere): Memor
     files: state,
     writes: () => writes,
     read: (path) => state.get(path) ?? null,
-    write: (path, text) => {
+    writeAll: (texts) => {
       writes += 1;
-      state.set(path, text);
+      for (const [path, text] of texts) state.set(path, text);
     },
     allow,
   };
 }
+const refusal = (run: () => unknown): string => {
+  try {
+    run();
+  } catch (error) {
+    expect(error).toBeInstanceOf(ApplyRefused);
+    return errorText(error);
+  }
+  return "no refusal";
+};
+
+/** Code that names a block marker, other than the applier and this test: a second parser of briefs. */
+function secondParsers(files: Array<{ path: string; text: string }>): string[] {
+  const own = new Set(["scripts/brief/apply-blocks.ts", "scripts/brief/apply-blocks.test.ts"]);
+  return files
+    .filter((f) => !own.has(f.path) && /\b(OLD|NEW)-BEGIN\b/.test(f.text))
+    .map((f) => f.path);
+}
 
 describe("the block applier (register row 58)", () => {
-  it("BA-1 reads FILE and EDIT blocks in the order written; a block inside a FILE block is that file's text; a block that runs into the next is refused", () => {
+  it("BA-1 reads FILE and EDIT blocks in the order written; a block inside a FILE block is that file's text; a block that runs on, never ends or is numbered out of order is refused", () => {
     const inner = editBlock("b.txt", 1, ["x"], ["y"]);
     const blocks = parseBlocks(
       brief(
@@ -62,8 +92,26 @@ describe("the block applier (register row 58)", () => {
       { kind: "file", path: "c.md", text: `${inner.join("\n")}\n` },
     ]);
     const runOn = ["EDIT a.txt #1", "OLD-BEGIN", "two", "OLD-END", "NEW-BEGIN", "NEW-END"];
-    expect(() => parseBlocks(brief(runOn, editBlock("a.txt", 2, ["x"], ["y"])))).toThrow(
+    expect(refusal(() => parseBlocks(brief(runOn, editBlock("a.txt", 2, ["x"], ["y"]))))).toBe(
       "EDIT a.txt #1: malformed — a block marker inside its OLD or NEW text",
+    );
+    const lastNeverEnds = ["EDIT a.txt #1", "OLD-BEGIN", "x", "OLD-END", "NEW-BEGIN", "y"];
+    expect(refusal(() => parseBlocks(brief(fileBlock("ok.txt", "z"), lastNeverEnds)))).toBe(
+      'malformed — the marker "EDIT a.txt #1" on line 9 belongs to no whole block',
+    );
+    expect(refusal(() => parseBlocks(brief(["FILE-BEGIN b.txt", "text"])))).toBe(
+      'malformed — the marker "FILE-BEGIN b.txt" on line 5 belongs to no whole block',
+    );
+    const twice = brief(editBlock("a.txt", 1, ["a"], ["b"]), editBlock("a.txt", 1, ["b"], ["c"]));
+    expect(refusal(() => parseBlocks(twice))).toBe(
+      "EDIT a.txt #1: out of order — the path's next EDIT is #2",
+    );
+    const gap = brief(editBlock("a.txt", 1, ["a"], ["b"]), editBlock("a.txt", 3, ["b"], ["c"]));
+    expect(refusal(() => parseBlocks(gap))).toBe(
+      "EDIT a.txt #3: out of order — the path's next EDIT is #2",
+    );
+    expect(refusal(() => parseBlocks(brief(editBlock("b.txt", 2, ["a"], ["b"]))))).toBe(
+      "EDIT b.txt #2: out of order — the path's next EDIT is #1",
     );
   });
 
@@ -84,6 +132,7 @@ describe("the block applier (register row 58)", () => {
       "EDIT old.md #2",
       "applied 4 block(s) to 2 file(s)",
     ]);
+    expect(io.writes()).toBe(1);
     expect(Object.fromEntries(io.files)).toEqual({
       "old.md": "# t\nalpha\ngamma\nend\n",
       "new.ts": "export const a = 1;\nexport const b = 3;\n",
@@ -101,13 +150,7 @@ describe("the block applier (register row 58)", () => {
       allow: Allow = everywhere,
     ) => {
       const io = memory(files, allow);
-      let message = "";
-      try {
-        applyBlocks(parseBlocks(b), io, only);
-      } catch (error) {
-        expect(error).toBeInstanceOf(ApplyRefused);
-        message = errorText(error);
-      }
+      const message = refusal(() => applyBlocks(parseBlocks(b), io, only));
       expect(io.writes()).toBe(0);
       expect(Object.fromEntries(io.files)).toEqual(files);
       return message;
@@ -139,40 +182,85 @@ describe("the block applier (register row 58)", () => {
     expect(refuses("# no blocks\n", {})).toBe("the brief has no FILE or EDIT block");
   });
 
-  it("BA-4 the command line writes the tree, writes nothing on --dry or a refusal, and asks for a brief", () => {
-    const root = mkdtempSync(join(tmpdir(), "apply-blocks-"));
-    mkdirSync(join(root, "docs"), { recursive: true });
-    writeFileSync(join(root, "docs/a.md"), "start\n");
-    writeFileSync(
-      join(root, "b.md"),
-      brief(
-        fileBlock("docs/sub/new.md", "made"),
-        editBlock("docs/a.md", 1, ["start"], ["changed"]),
-      ),
-    );
-    expect(main(["b.md", "--dry"], root, everywhere)).toBe(0);
-    expect(existsSync(join(root, "docs/sub/new.md"))).toBe(false);
-    expect(readFileSync(join(root, "docs/a.md"), "utf8")).toBe("start\n");
-    expect(main(["b.md"], root, everywhere)).toBe(0);
-    expect(readFileSync(join(root, "docs/sub/new.md"), "utf8")).toBe("made\n");
-    expect(readFileSync(join(root, "docs/a.md"), "utf8")).toBe("changed\n");
-    writeFileSync(
-      join(root, "c.md"),
-      brief(fileBlock("docs/c.md", "c"), editBlock("docs/a.md", 1, ["start"], ["x"])),
-    );
-    expect(main(["c.md"], root, everywhere)).toBe(1);
-    expect(existsSync(join(root, "docs/c.md"))).toBe(false);
-    expect(main([], root, everywhere)).toBe(2);
+  it("BA-4 the command line writes the tree, writes nothing on --dry, a refusal or a file it cannot stage, and asks for a brief", () => {
+    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    try {
+      const root = scratch();
+      mkdirSync(join(root, "docs"), { recursive: true });
+      writeFileSync(join(root, "docs/a.md"), "start\n");
+      writeFileSync(
+        join(root, "b.md"),
+        brief(
+          fileBlock("docs/sub/new.md", "made"),
+          editBlock("docs/a.md", 1, ["start"], ["changed"]),
+        ),
+      );
+      expect(main(["b.md", "--dry"], root, everywhere)).toBe(0);
+      expect(existsSync(join(root, "docs/sub/new.md"))).toBe(false);
+      expect(readFileSync(join(root, "docs/a.md"), "utf8")).toBe("start\n");
+      expect(main(["b.md"], root, everywhere)).toBe(0);
+      expect(readFileSync(join(root, "docs/sub/new.md"), "utf8")).toBe("made\n");
+      expect(readFileSync(join(root, "docs/a.md"), "utf8")).toBe("changed\n");
+      writeFileSync(
+        join(root, "c.md"),
+        brief(fileBlock("docs/c.md", "c"), editBlock("docs/a.md", 1, ["start"], ["x"])),
+      );
+      expect(main(["c.md"], root, everywhere)).toBe(1);
+      expect(existsSync(join(root, "docs/c.md"))).toBe(false);
+      // docs/a.md is a file, so docs/a.md/x.md cannot be staged: docs/ok.md, staged first, is not written either.
+      writeFileSync(
+        join(root, "d.md"),
+        brief(fileBlock("docs/ok.md", "ok"), fileBlock("docs/a.md/x.md", "x")),
+      );
+      expect(main(["d.md"], root, everywhere)).toBe(1);
+      expect(existsSync(join(root, "docs/ok.md"))).toBe(false);
+      expect(existsSync(join(root, "docs/ok.md.apply-blocks-staged"))).toBe(false);
+      expect(main([], root, everywhere)).toBe(2);
+    } finally {
+      out.mockRestore();
+      err.mockRestore();
+    }
   });
 
-  it("BA-5 the wrapper runs apply-blocks.ts with its arguments, and the command line's scope is the kit's scopeVerdict", () => {
-    const wrapper = readFileSync(join(HERE, "apply-blocks.sh"), "utf8");
-    expect(wrapper).toContain('exec bun "$(dirname "$0")/apply-blocks.ts" "$@"');
-    expect(wrapper).toContain("set -euo pipefail");
-    const source = readFileSync(join(HERE, "apply-blocks.ts"), "utf8");
-    expect(source).toContain(
-      'import { PROJECT_DIR, scopeVerdict } from "../../.claude/hooks/lib";',
+  it("BA-5 the wrapper runs the applier with its arguments under the kit's scopeVerdict: before a brief is in force only the standing allowance may change", () => {
+    const root = scratch();
+    writeFileSync(
+      join(root, "b.md"),
+      brief(fileBlock("docs/features/x.md", "allowed"), fileBlock("src/x.ts", "scoped")),
     );
-    expect(source).toContain("allow: Allow = scopeVerdict");
+    const wrapper = (...args: string[]) =>
+      spawnSync("bash", [join(HERE, "apply-blocks.sh"), ...args], {
+        cwd: root,
+        env: { ...process.env, CLAUDE_PROJECT_DIR: root },
+        encoding: "utf8",
+      });
+    const refused = wrapper("b.md");
+    expect(refused.status).toBe(1);
+    expect(refused.stderr).toContain("FILE src/x.ts: src/x.ts: no brief in force yet");
+    expect(existsSync(join(root, "docs/features/x.md"))).toBe(false);
+    const applied = wrapper("b.md", "docs/features/x.md");
+    expect(applied.status).toBe(0);
+    expect(applied.stdout).toContain("applied 1 block(s) to 1 file(s)");
+    expect(readFileSync(join(root, "docs/features/x.md"), "utf8")).toBe("allowed\n");
+  });
+
+  it("BA-6 the applier is the one parser of brief blocks: no other code names a block marker (a planted second parser is named)", () => {
+    expect(
+      secondParsers([
+        { path: "scripts/brief/apply-blocks.ts", text: "OLD-BEGIN" },
+        { path: "scripts/other.ts", text: 'const at = brief.indexOf("NEW-BEGIN");' },
+        { path: "src/x.ts", text: "no markers" },
+      ]),
+    ).toEqual(["scripts/other.ts"]);
+    const files = walkFiles(
+      ["src", "e2e", "scripts", ".claude"].map((d) => join(ROOT, d)),
+      { ext: ["ts", "tsx", "mjs", "js", "cjs", "sh"] },
+    ).map((file) => ({
+      path: relative(ROOT, file).split(sep).join("/"),
+      text: readFileSync(file, "utf8"),
+    }));
+    expect(files.length).toBeGreaterThan(500);
+    expect(secondParsers(files)).toEqual([]);
   });
 });
