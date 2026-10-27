@@ -1,51 +1,51 @@
 # Local backend proof (non-gating)
 
-- Commit: `a308c6b37bcced92f89d7d0f367adc7fe476d224`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40519893778
+- Commit: `0586d7f28089e02d75d6b896a4661edd836df284`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40532962246
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 970 | 117 | applied 345/345 | 194 | 0 | 0 | 62 | 256 |
-| email | 180 | 114 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 675 | 100 | applied 345/345 | 138 | 0 | 0 | 4 | 142 |
-| 2 | 1103 | 106 | applied 345/345 | 133 | 0 | 0 | 3 | 136 |
-| 3 | not run | 107 | applied 345/345 | 0 | 0 | 0 | 0 | 0 |
-| 4 | 606 | 112 | applied 345/345 | 143 | 0 | 0 | 2 | 145 |
-| 5 | not run | 115 | applied 345/345 | 0 | 0 | 0 | 0 | 0 |
-| 6 | 780 | 112 | applied 345/345 | 130 | 0 | 1 | 1 | 132 |
-| 7 | not run | 89 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 8 | 527 | 112 | applied 345/345 | 99 | 0 | 0 | 30 | 129 |
-| 9 | 870 | 113 | applied 345/345 | 142 | 0 | 0 | 2 | 144 |
-| 10 | 817 | 85 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 871 | 100 | applied 345/345 | 122 | 0 | 0 | 1 | 123 |
-| 12 | not run | 110 | applied 345/345 | 0 | 0 | 0 | 0 | 0 |
-| 13 | 601 | 104 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 630 | 100 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 515 | 102 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 577 | 115 | applied 345/345 | 99 | 0 | 0 | 32 | 131 |
-| TOTAL | — | — | — | 1715 | 0 | 1 | 148 | 1864 |
+| smoke | 884 | 116 | applied 345/345 | 194 | 0 | 0 | 62 | 256 |
+| email | 691 | 131 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 684 | 113 | applied 345/345 | 138 | 0 | 0 | 4 | 142 |
+| 2 | 1003 | 140 | applied 345/345 | 133 | 0 | 0 | 3 | 136 |
+| 3 | 847 | 106 | applied 345/345 | 127 | 0 | 0 | 0 | 127 |
+| 4 | 501 | 100 | applied 345/345 | 143 | 0 | 0 | 2 | 145 |
+| 5 | 542 | 106 | applied 345/345 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 1194 | 109 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 463 | 111 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 526 | 105 | applied 345/345 | 99 | 0 | 0 | 30 | 129 |
+| 9 | 870 | 104 | applied 345/345 | 142 | 0 | 0 | 2 | 144 |
+| 10 | 976 | 131 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 1481 | 108 | applied 345/345 | 122 | 0 | 0 | 1 | 123 |
+| 12 | 642 | 106 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 536 | 102 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
+| 14 | 804 | 108 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 581 | 128 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 546 | 113 | applied 345/345 | 99 | 0 | 0 | 32 | 131 |
+| TOTAL | — | — | — | 2233 | 0 | 0 | 159 | 2392 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 2 1103 s
+- Slowest lane: 11 1481 s
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40519893778-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40519893778-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40519893778-local-2
-  - 3: not found
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40519893778-local-4
-  - 5: not found
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-6
-  - 7: not found
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40519893778-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40519893778-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40519893778-local-11
-  - 12: not found
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40519893778-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40519893778-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40519893778-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40532962246-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40532962246-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40532962246-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40532962246-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40532962246-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40532962246-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40532962246-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40532962246-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40532962246-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40532962246-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40532962246-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40532962246-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40532962246-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40532962246-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40532962246-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40532962246-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40532962246-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40532962246-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -66,86 +66,5 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
-
-## Lane 3
-- No JSON results; smoke skipped
-
-## Lane 5
-- No JSON results; smoke skipped
-
-## Lane 6
-- post-wizard-place.spec.ts / POSTING WIZARD / PW-30 review and buyer preview render option labels, units, multi-values and booleans / mobile-360 — Error: PW-30: no place was chosen
-
-## Lane 7
-- No JSON results; smoke skipped
-
-## Lane 7
-## Migration/start failure
-Last migration line: Applying migration 20261007033719_9f7deb8a-e850-4fc3-bfc0-9693f6994666.sql...
-```text
-Applying migration 20260924084842_391d5884-a3d5-4669-8d73-f604da2e5002.sql...
-Applying migration 20260924090042_ac3b25ed-08df-471d-8bb8-c36ef06be517.sql...
-Applying migration 20260924091805_37a1e9bc-3840-4190-a88c-28f4b8f9346a.sql...
-Applying migration 20260924092749_b318bbba-5998-4827-8a19-15044072103f.sql...
-Applying migration 20260924104238_e8b5b8a4-c7f3-4278-b164-71b7bf28f464.sql...
-Applying migration 20260924110035_37aad33d-3037-4982-8d9f-ab82db2317d3.sql...
-Applying migration 20260924215854_ee768e16-1a22-497e-a082-5e18ca24c675.sql...
-Applying migration 20260925004046_22d92338-fb27-4770-b1f6-fd1ce00e490a.sql...
-Applying migration 20260927003341_e91792f9-7172-4f03-8711-ba4c762dc0ef.sql...
-Applying migration 20260927003818_d7b6b698-7ec1-4359-9810-fef9cf054d27.sql...
-Applying migration 20260927004035_8d182773-9769-4c64-b278-cd283581c83b.sql...
-Applying migration 20260927013608_cdc4c834-2257-469c-9e37-58ba828fbbb3.sql...
-Applying migration 20260927045939_ci_local_residency.sql...
-Applying migration 20260927045940_4312566f-339c-434f-b370-b40ec6a9db52.sql...
-Applying migration 20260928002133_f98b5cf0-bb5a-4842-ac89-7bad2fc31517.sql...
-Applying migration 20260928013646_8ea67f86-ab5c-4754-b24a-37ab7ca73aab.sql...
-Applying migration 20260928034942_247a3ed0-ff97-43f9-9e8d-3c2071c810df.sql...
-Applying migration 20260928054510_702a2975-bff1-4d45-a9f0-75f9613761bc.sql...
-Applying migration 20260928072330_07bf3052-3eba-45da-9578-96e07d6885ef.sql...
-Applying migration 20260928135721_6b0f6ae1-97f5-4fa4-aee8-4603737dbcae.sql...
-Applying migration 20260928140742_5d74b795-66be-42ad-a9e3-5b3762b3f5cc.sql...
-Applying migration 20260929045106_bff9822c-6871-4c62-a147-1d9650770a90.sql...
-Applying migration 20260929093107_1dc182d8-e781-4641-8df8-f566c3802c7e.sql...
-Applying migration 20260929201600_ci_local_sub_city.sql...
-Applying migration 20260929201601_a3a572bf-6443-453c-b0a2-f5da33829cb3.sql...
-Applying migration 20260929205914_13cb1b22-957c-448d-b84d-d9660d1aaa1d.sql...
-Applying migration 20260930172006_60cedbed-b971-45b7-a912-14105831be28.sql...
-Applying migration 20261002013936_a35e45fa-1bd1-4eae-a750-01bc675230f1.sql...
-Applying migration 20261003005802_7423f49a-182c-47a8-b92e-d6417ed57452.sql...
-Applying migration 20261003012503_5c25e616-a522-42ef-90f6-2cc838596210.sql...
-Applying migration 20261003215007_b9aa66a4-fa1e-4ef5-910b-31bbfc65b211.sql...
-Applying migration 20261003215042_bb808e1a-2900-4781-941f-6143829efb93.sql...
-Applying migration 20261003221958_2a467fcc-6190-4aec-9112-78d63f638d71.sql...
-Applying migration 20261004010309_60b466e2-a6fd-4b69-9029-d8f067fbe437.sql...
-Applying migration 20261004011235_18556a32-8f3e-4da5-a645-e73223e74e13.sql...
-Applying migration 20261004021819_7a1fd81e-f00f-49ff-806f-7905b0b0cdb1.sql...
-Applying migration 20261004034256_2f361c07-bf81-4d67-ae9d-b088f25d2858.sql...
-Applying migration 20261004055007_5118f016-fe53-417c-8b4a-05ed5604676d.sql...
-Applying migration 20261004055819_756bcd49-c1e6-4e83-8802-d4e12b215875.sql...
-Applying migration 20261004072852_d59800cd-96f3-4a6a-a010-597b97e29208.sql...
-Applying migration 20261004144146_923dd4cb-91bb-43a1-9c0d-e4b418c23c23.sql...
-Applying migration 20261004144628_02084273-6b34-4757-bda7-8bac14dc7ff8.sql...
-Applying migration 20261004212627_e44f20e5-6ff8-46c6-bd2f-75bb6075dee1.sql...
-Applying migration 20261005021121_9347e038-8b61-48f2-9ea3-de2f571decaf.sql...
-Applying migration 20261005165621_78683470-3958-4806-bc4d-b6c46908a3c6.sql...
-Applying migration 20261005171442_6c825c7e-7b30-495c-b373-582990c28ac4.sql...
-Applying migration 20261005172453_59b6772e-37ec-4205-bca4-ebe7174789e9.sql...
-Applying migration 20261006005138_b11e2482-5758-4e23-bf53-1d9725a4f50c.sql...
-Applying migration 20261006010039_22ac0b2a-158a-4a38-b651-60a69e259f11.sql...
-Applying migration 20261006225254_626282eb-da6f-45aa-ac32-ef03407502a5.sql...
-Applying migration 20261007033719_9f7deb8a-e850-4fc3-bfc0-9693f6994666.sql...
-Stopping containers...
-ERROR: deadlock detected (SQLSTATE 40P01)
-Process 217 waits for AccessExclusiveLock on relation 17634 of database 5; blocked by process 243.
-Process 243 waits for ShareLock on transaction 1554; blocked by process 217.
-At statement: 57
-DROP POLICY IF EXISTS locations_admin_insert ON public.locations
-Try rerunning the command with --debug to troubleshoot the error.
-Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:51848              127.0.0.1:54322                                            
-```
-
-## Lane 12
-- No JSON results; smoke skipped
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
