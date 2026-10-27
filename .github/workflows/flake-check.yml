@@ -26,6 +26,7 @@ permissions:
 jobs:
   flake-check:
     runs-on: ubuntu-24.04
+    timeout-minutes: 120
     # DEC-153 (a) / INC-676 — publish-evidence.sh pushes status and failure evidence.
     permissions:
       contents: write
@@ -67,7 +68,8 @@ jobs:
         with:
           bun-version: latest
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Resolve Playwright version
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -77,7 +79,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bunx playwright install --with-deps chromium
       # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
       # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
       # artifact-sharing was not worth the plumbing.

@@ -24,7 +24,7 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - Data-API lists use `readAllPages`: keyset paging, never positional.
 - Lint workflows with `actionlint -shellcheck= -pyflakes=`.
 - Browser tests start only with `bun run e2e:local` / `e2e:changed`, never plain `playwright test`; targets: ethio-staging or CI's temporary backend (`E2E_LOCAL_BACKEND=1`); never supabase/config.toml; a route handler that fetches the real answer goes through whilePageLives (e2e/helpers/route-guard.ts, CF-RG-1).
-- CI: 16 lanes, 1 worker each.
+- CI: 16 lanes, 1 worker each; every job and every outside call carries a deadline — installs run through `scripts/ci/with-deadline.sh` (one loud retry), the lanes reserve the backend's ports first (CF-CID-1, DEC-275).
 - Scanner output in CI logs/ci-evidence: counts only.
 - Action labels: two or three words, no article or bracketed remark, every language; explanations in help text, never a button; a flagged label takes the brief's shorter text.
 - A brief's string text is copied by key, character for character; no Amharic of your own.
