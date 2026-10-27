@@ -12,7 +12,10 @@ import { report, walkFiles } from "./kit";
  * start) declares its own; every install runs through scripts/ci/with-deadline.sh, which retries
  * it once, out loud; and a job that starts the temporary backend first reserves the backend's
  * ports from the kernel's ephemeral range (the four "address already in use" lanes of
- * 2026-10-24 → 10-26).
+ * 2026-10-24 → 10-26). And a package install (`apt-get install`, `playwright install-deps`,
+ * `playwright install --with-deps`) runs ONCE: one cut off part-way leaves the system's package
+ * manager interrupted, so its retry fails at once (lanes 3, 5 and 12 of run 40519893778 —
+ * INC-943, DEC-276); downloads, `apt-get update` and `bun install` may be retried.
  */
 
 export type Step = { line: number; text: string; timeout: boolean };
@@ -75,6 +78,14 @@ const OUTSIDE =
 /** A command line that installs, and so must run through the retrying deadline. */
 const INSTALL = /\b(?:bun install|playwright install|apt-get (?:update|install))\b/;
 const WRAPPER = "scripts/ci/with-deadline.sh";
+/** A package install: cut off part-way it is not safe to repeat, so it runs with one try (INC-943). */
+const PACKAGE_INSTALL =
+  /\b(?:apt-get install|playwright install-deps|playwright install --with-deps)\b/;
+/** The wrapper's tries on a command line, or null when the line does not call it. */
+function triesOf(line: string): number | null {
+  const call = /with-deadline\.sh\s+\d+\s+(\d+)\s+--/.exec(line);
+  return call ? Number(call[1]) : null;
+}
 const RESERVE = "net.ipv4.ip_local_reserved_ports=54320-54329";
 
 /** The command lines of a step: its run text without comments and without its name. */
@@ -86,7 +97,7 @@ function commandLines(step: Step): string[] {
 
 type Finding = { file: string; line: number; what: string };
 
-/** Every breach of the four rules in the given workflows. */
+/** Every breach of the five rules in the given workflows. */
 export function deadlineFindings(files: Array<{ file: string; text: string }>): Finding[] {
   const findings: Finding[] = [];
   for (const { file, text } of files) {
@@ -107,13 +118,21 @@ export function deadlineFindings(files: Array<{ file: string; text: string }>): 
             line: step.line,
             what: "a step that reaches outside declares no timeout-minutes",
           });
-        for (const line of commands)
+        for (const line of commands) {
           if (INSTALL.test(line) && !line.includes(WRAPPER))
             findings.push({
               file,
               line: step.line,
               what: `an install outside ${WRAPPER}: ${line.trim()}`,
             });
+          const tries = triesOf(line);
+          if (PACKAGE_INSTALL.test(line) && tries !== null && tries !== 1)
+            findings.push({
+              file,
+              line: step.line,
+              what: `a package install retried (${String(tries)} tries; it runs once): ${line.trim()}`,
+            });
+        }
         if (commands.some((line) => /\bsupabase start\b/.test(line)) && !reserved)
           findings.push({
             file,
@@ -132,7 +151,7 @@ const workflows = walkFiles([".github/workflows"], { ext: ["yml"] }).map((file) 
 }));
 
 describe("every CI job and every outside call carries a deadline (INC-935)", () => {
-  it("CF-CID-1 every workflow's jobs, outside calls, installs and backend starts keep the four rules", () => {
+  it("CF-CID-1 every workflow's jobs, outside calls, installs and backend starts keep the five rules", () => {
     const jobs = workflows.flatMap(({ file, text }) => readWorkflow(file, text));
     const outside = jobs
       .flatMap((job) => job.steps)
@@ -146,7 +165,7 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
     expect(report(deadlineFindings(workflows))).toBe("");
   });
 
-  it("CF-CID-2 a planted workflow's four breaches are named and its kept steps are not", () => {
+  it("CF-CID-2 a planted workflow's five breaches are named and its kept steps are not", () => {
     const dir = "node_modules/.cache/ci-deadlines";
     mkdirSync(dir, { recursive: true });
     const file = `${dir}/planted.yml`;
@@ -172,6 +191,9 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
           "      - name: Start",
           "        timeout-minutes: 15",
           "        run: supabase start",
+          "      - name: Install the system libraries once",
+          "        timeout-minutes: 27",
+          `        run: bash ${WRAPPER} 1500 1 -- bunx playwright install-deps chromium`,
           "  bare:",
           "    runs-on: ubuntu-24.04",
           "    steps:",
@@ -182,16 +204,20 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
           "        run: |",
           "          # bun install is named in a comment only",
           "          supabase start",
+          "      - name: Install the browser and its libraries twice",
+          "        timeout-minutes: 12",
+          `        run: bash ${WRAPPER} 300 2 -- bunx playwright install --with-deps chromium`,
           "",
         ].join("\n"),
       );
       const text = readFileSync(file, "utf8");
       expect(report(deadlineFindings([{ file, text }]))).toBe(
         [
-          `${file}:19 job "bare" declares no timeout-minutes`,
-          `${file}:22 a step that reaches outside declares no timeout-minutes`,
-          `${file}:22 an install outside ${WRAPPER}: run: bun install --frozen-lockfile`,
-          `${file}:24 the backend starts before its ports are reserved`,
+          `${file}:22 job "bare" declares no timeout-minutes`,
+          `${file}:25 a step that reaches outside declares no timeout-minutes`,
+          `${file}:25 an install outside ${WRAPPER}: run: bun install --frozen-lockfile`,
+          `${file}:27 the backend starts before its ports are reserved`,
+          `${file}:32 a package install retried (2 tries; it runs once): run: bash ${WRAPPER} 300 2 -- bunx playwright install --with-deps chromium`,
         ].join("\n"),
       );
     } finally {
