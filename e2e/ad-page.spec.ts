@@ -9,6 +9,7 @@ import { adPageFixtures } from "./helpers/ad-page";
 import {
   authFields,
   gotoReady,
+  layoutBoxes,
   signInViaSession,
   switchLanguage,
   waitForHydration,
@@ -854,42 +855,20 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
             .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
         )
         .toBe(true);
-      let previous = "";
-      await expect
-        .poll(async () => {
-          const boxes = await Promise.all([
-            page.getByTestId("listing-detail-media").boundingBox(),
-            page.getByTestId("listing-detail-headline").boundingBox(),
-          ]);
-          const current = JSON.stringify(boxes);
-          const settled = boxes.every(Boolean) && current === previous;
-          previous = current;
-          return settled;
-        })
-        .toBe(true);
-      const article = await page.getByTestId("listing-detail").boundingBox();
-      const media = await page.getByTestId("listing-detail-media").boundingBox();
-      const headline = await page.getByTestId("listing-detail-headline").boundingBox();
-      const nav = await page.getByTestId("listing-section-nav").boundingBox();
-      const details = await page.getByTestId("listing-detail-specs").boundingBox();
-      const description = await page.locator("#ad-description").boundingBox();
-      const sellerBox = await page
-        .locator('section[data-testid="listing-detail-seller"]')
-        .boundingBox();
-      const location = await page.getByTestId("listing-detail-location").boundingBox();
-      const safety = await page.getByTestId("listing-safety").boundingBox();
-      if (
-        !article ||
-        !media ||
-        !headline ||
-        !nav ||
-        !details ||
-        !description ||
-        !sellerBox ||
-        !location ||
-        !safety
-      )
-        throw new Error("AP-36 missing layout boxes");
+      // INC-940 — every box in one settled read (four retried passes: the row's boxes were read one
+      // by one while the Location box grew as the still map's code arrived).
+      const { article, media, headline, nav, details, description, sellerBox, location, safety } =
+        await layoutBoxes({
+          article: page.getByTestId("listing-detail"),
+          media: page.getByTestId("listing-detail-media"),
+          headline: page.getByTestId("listing-detail-headline"),
+          nav: page.getByTestId("listing-section-nav"),
+          details: page.getByTestId("listing-detail-specs"),
+          description: page.locator("#ad-description"),
+          sellerBox: page.locator('section[data-testid="listing-detail-seller"]'),
+          location: page.getByTestId("listing-detail-location"),
+          safety: page.getByTestId("listing-safety"),
+        });
       const near = (a: number, b: number, tolerance: number) => Math.abs(a - b) <= tolerance;
       // DEC-201 — the Seller tab shows on phones and medium screens.
       const visibleTargets = await page
@@ -936,9 +915,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         // The bar sticks: after the safety box is scrolled into view, the
         // bar's top lies within 8 px of the sub-band's bottom.
         await page.getByTestId("listing-safety").scrollIntoViewIfNeeded();
-        const stuckNav = await page.getByTestId("listing-section-nav").boundingBox();
-        const band = await page.getByTestId("shell-subband").boundingBox();
-        if (!stuckNav || !band) throw new Error("AP-36 sticky boxes missing");
+        const { stuckNav, band } = await layoutBoxes({
+          stuckNav: page.getByTestId("listing-section-nav"),
+          band: page.getByTestId("shell-subband"),
+        });
         expect(Math.abs(stuckNav.y - band.y - band.height)).toBeLessThanOrEqual(8);
         await page.evaluate(() => window.scrollTo(0, 0));
         await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
@@ -1052,38 +1032,30 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(sellerItem).toHaveAttribute("aria-current", "true");
     // INC-779 — the page is already still: every sample for 600 ms more is still the tapped tab.
     await sampleScroll("seller", 600);
-    await expect
-      .poll(async () => {
-        const seller = await page
-          .locator('section[data-testid="listing-detail-seller"]')
-          .boundingBox();
-        const nav = await bar.boundingBox();
-        return seller && nav ? seller.y - nav.y - nav.height : -1;
-      })
-      .toBeGreaterThanOrEqual(0);
+    // INC-940 — the card and the bar in one settled read.
+    const atSeller = await layoutBoxes({
+      card: page.locator('section[data-testid="listing-detail-seller"]'),
+      nav: bar,
+    });
+    expect(atSeller.card.y - atSeller.nav.y - atSeller.nav.height).toBeGreaterThanOrEqual(0);
     const locationItem = bar.locator('[data-target="location"]');
     await locationItem.click();
     await sampleScroll("location");
     await expect(locationItem).toHaveAttribute("aria-current", "true");
     // INC-779 — the page is already still: every sample for 600 ms more is still the tapped tab.
     await sampleScroll("location", 600);
-    await expect
-      .poll(async () => {
-        const heading = await page
-          .getByTestId("listing-detail-location")
-          .getByRole("heading")
-          .boundingBox();
-        const nav = await bar.boundingBox();
-        return heading && nav ? heading.y - nav.y - nav.height : -1;
-      })
-      .toBeGreaterThanOrEqual(0);
-    await expect
-      .poll(async () => {
-        const nav = await bar.boundingBox();
-        const band = await page.getByTestId("shell-subband").boundingBox();
-        return nav && band ? Math.abs(nav.y - band.y - band.height) : 100;
-      })
-      .toBeLessThanOrEqual(8);
+    // INC-940 — the heading, the bar and the sub-band in one settled read.
+    const atLocation = await layoutBoxes({
+      heading: page.getByTestId("listing-detail-location").getByRole("heading"),
+      nav: bar,
+      band: page.getByTestId("shell-subband"),
+    });
+    expect(atLocation.heading.y - atLocation.nav.y - atLocation.nav.height).toBeGreaterThanOrEqual(
+      0,
+    );
+    expect(
+      Math.abs(atLocation.nav.y - atLocation.band.y - atLocation.band.height),
+    ).toBeLessThanOrEqual(8);
     // Turn 23: a sold ad without a pin has no Location box and no tab.
     const sold = await seed(seller, "sold", { soldAt: -1 });
     await gotoReady(page, (await address(sold)).canonical);
@@ -1251,14 +1223,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const text = page.getByTestId("listing-detail-description");
     const toggle = page.getByTestId("listing-description-toggle");
     await expect(toggle).toHaveText(en["adPage.description.more"]);
-    const folded = await text.boundingBox();
-    if (!folded) throw new Error("AP-41 folded description missing");
+    // INC-940 — the text's box read settled, folded and then open.
+    const folded = (await layoutBoxes({ text })).text;
     await toggle.click();
     await expect(toggle).toHaveText(en["adPage.description.less"]);
     await expect(toggle).toHaveAttribute("aria-expanded", "true");
-    await expect
-      .poll(async () => (await text.boundingBox())?.height ?? 0)
-      .toBeGreaterThan(folded.height);
+    expect((await layoutBoxes({ text })).text.height).toBeGreaterThan(folded.height);
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-expanded", "false");
     await expect(page.getByTestId("listing-places-maps")).toHaveAttribute(
@@ -1350,11 +1320,9 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .eq("id", ad.id);
     expect(pin.error).toBeNull();
     await gotoReady(page, (await address(ad)).canonical);
-    const box = async (id: string) => {
-      const found = await page.getByTestId(id).boundingBox();
-      if (!found) throw new Error(`AP-44 ${id} missing`);
-      return found;
-    };
+    // INC-940 — each step's two boxes in one settled read, after the wheel's scroll has stopped.
+    const pair = (moving: string, bar: string) =>
+      layoutBoxes({ moving: page.getByTestId(moving), bar: page.getByTestId(bar) });
     /** The element at a bar's centre must be INSIDE that bar, never inside the map. */
     const hitInside = (id: string) =>
       page.evaluate((target) => {
@@ -1376,9 +1344,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect
       .poll(async () => {
         await page.mouse.wheel(0, 120);
-        const map = await box("listing-detail-map");
-        const band = await box("shell-band");
-        return map.y < band.y + band.height;
+        const { moving, bar } = await pair("listing-detail-map", "shell-band");
+        return moving.y < bar.y + bar.height;
       })
       .toBe(true);
     expect(await hitInside("shell-band")).toBe("inside");
@@ -1388,9 +1355,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect
       .poll(async () => {
         await page.mouse.wheel(0, 120);
-        const enlarge = await box("listing-map-enlarge");
-        const nav = await box("listing-section-nav");
-        return enlarge.y < nav.y + nav.height;
+        const { moving, bar } = await pair("listing-map-enlarge", "listing-section-nav");
+        return moving.y < bar.y + bar.height;
       })
       .toBe(true);
     expect(await hitInside("listing-section-nav")).toBe("inside");
@@ -1424,43 +1390,33 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     for (const ad of [live, sold]) {
       await gotoReady(page, (await address(ad)).canonical);
       await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
-      let previous = "";
-      await expect
-        .poll(async () => {
-          const current = JSON.stringify(
-            await Promise.all([
-              page.getByTestId("listing-detail-specs").boundingBox(),
-              page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
-            ]),
-          );
-          const stable = previous === current;
-          previous = current;
-          return stable;
-        })
-        .toBe(true);
-      const article = await page.getByTestId("listing-detail").boundingBox();
-      if (!article) throw new Error("AP-42 article missing");
-      if (article.width < 896) throw new Error("AP-42 article under 896 on desktop-1280");
-      const details = await page.getByTestId("listing-detail-specs").boundingBox();
-      const sellerBox = await page
-        .locator('section[data-testid="listing-detail-seller"]')
-        .boundingBox();
-      if (!details || !sellerBox) throw new Error("AP-42 boxes missing");
+      // INC-940 — every box the branch compares, in one settled read.
+      const shared = {
+        article: page.getByTestId("listing-detail"),
+        details: page.getByTestId("listing-detail-specs"),
+        sellerBox: page.locator('section[data-testid="listing-detail-seller"]'),
+      };
       if (ad.id === live.id) {
+        const { article, details, safetyBox } = await layoutBoxes({
+          ...shared,
+          safetyBox: page.getByTestId("listing-safety"),
+        });
+        if (article.width < 896) throw new Error("AP-42 article under 896 on desktop-1280");
         // DEC-197 — no description and no pin: Details alone across the row,
         // then the safety box across; the seller card is in the top row.
         expect(Math.abs(details.width - article.width)).toBeLessThanOrEqual(1);
-        const safetyBox = await page.getByTestId("listing-safety").boundingBox();
-        if (!safetyBox) throw new Error("AP-42 live safety missing");
         expect(Math.abs(safetyBox.width - article.width)).toBeLessThanOrEqual(1);
         expect(safetyBox.y).toBeGreaterThanOrEqual(details.y + details.height);
       } else {
         // DEC-197 — a sold ad with a fact, a description and a pin: Details |
         // Description | Location in thirds; no safety box.
-        const description = await page.locator("#ad-description").boundingBox();
-        const location = await page.getByTestId("listing-detail-location").boundingBox();
-        if (!description || !location) throw new Error("AP-42 sold boxes missing");
         await expect(page.getByTestId("listing-safety")).toHaveCount(0);
+        const { article, details, sellerBox, description, location } = await layoutBoxes({
+          ...shared,
+          description: page.locator("#ad-description"),
+          location: page.getByTestId("listing-detail-location"),
+        });
+        if (article.width < 896) throw new Error("AP-42 article under 896 on desktop-1280");
         for (const item of [details, description, location])
           expect(Math.abs(item.width - (article.width - 32) / 3)).toBeLessThanOrEqual(2);
         expect(sellerBox.y).toBeLessThan(details.y);
@@ -1472,12 +1428,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await gotoReady(page, (await address(noPin)).canonical);
     await expect(page.getByTestId("listing-detail-specs")).toBeVisible();
     await expect(page.getByTestId("listing-detail-location")).toHaveCount(0);
-    const articleBox = await page.getByTestId("listing-detail").boundingBox();
-    const sellerCard = await page
-      .locator('section[data-testid="listing-detail-seller"]')
-      .boundingBox();
-    const safety = await page.getByTestId("listing-safety").boundingBox();
-    if (!articleBox || !sellerCard || !safety) throw new Error("AP-42 no-pin boxes missing");
+    const { articleBox, sellerCard, safety } = await layoutBoxes({
+      articleBox: page.getByTestId("listing-detail"),
+      sellerCard: page.locator('section[data-testid="listing-detail-seller"]'),
+      safety: page.getByTestId("listing-safety"),
+    });
     expect(Math.abs(safety.width - articleBox.width)).toBeLessThanOrEqual(1);
     expect(safety.y).toBeGreaterThan(sellerCard.y);
   });
@@ -1504,22 +1459,12 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // DEC-200 — count and walk the VISIBLE items (three; Seller is hidden at
     // this width).
     await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(3);
-    const settle = async () => {
-      let previous = "";
-      await expect
-        .poll(async () => {
-          const current = JSON.stringify(
-            await Promise.all([
-              bar.boundingBox(),
-              page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
-            ]),
-          );
-          const stable = previous === current && current !== "null";
-          previous = current;
-          return stable;
-        })
-        .toBe(true);
-    };
+    // INC-940 — the tap's scroll has stopped when the bar and the seller card hold still.
+    const settle = () =>
+      layoutBoxes({
+        nav: bar,
+        seller: page.locator('section[data-testid="listing-detail-seller"]'),
+      });
     const tap = async (target: string, card: string) => {
       await bar.locator(`[data-target="${target}"]`).click();
       await settle();
@@ -1532,9 +1477,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
         if ((await item.getAttribute("data-target")) === target) continue;
         await expect(item).not.toHaveAttribute("aria-current", "true");
       }
-      const heading = await page.locator(card).getByRole("heading").boundingBox();
-      const nav = await bar.boundingBox();
-      if (!heading || !nav) throw new Error(`AP-45 ${target} boxes missing`);
+      const { heading, nav } = await layoutBoxes({
+        heading: page.locator(card).getByRole("heading"),
+        nav: bar,
+      });
       expect(heading.y).toBeGreaterThanOrEqual(nav.y + nav.height);
     };
     await tap("description", "#ad-description");
@@ -1605,23 +1551,21 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
           .evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
       )
       .toBe(true);
-    const media = await page.getByTestId("listing-detail-media").boundingBox();
-    const sellerBox = await page
-      .locator('section[data-testid="listing-detail-seller"]')
-      .boundingBox();
-    if (!media || !sellerBox) throw new Error("AP-50 boxes missing");
+    // INC-940 — the four boxes in one settled read.
+    const { media, sellerBox, img, allAds } = await layoutBoxes({
+      media: page.getByTestId("listing-detail-media"),
+      sellerBox: page.locator('section[data-testid="listing-detail-seller"]'),
+      img: page.getByTestId("gallery-main").locator("img"),
+      allAds: page.getByTestId("listing-seller-all-ads"),
+    });
     // The media card grows to the right column: its bottom meets the seller
     // card's bottom, and the photo lies wholly inside the media card.
     expect(Math.abs(media.y + media.height - (sellerBox.y + sellerBox.height))).toBeLessThanOrEqual(
       1,
     );
-    const img = await page.getByTestId("gallery-main").locator("img").boundingBox();
-    if (!img) throw new Error("AP-50 photo missing");
     expect(img.y).toBeGreaterThanOrEqual(media.y);
     expect(img.y + img.height).toBeLessThanOrEqual(media.y + media.height);
     // The seller's-page link sits in the card's lower half.
-    const allAds = await page.getByTestId("listing-seller-all-ads").boundingBox();
-    if (!allAds) throw new Error("AP-50 seller link missing");
     expect(allAds.y).toBeGreaterThanOrEqual(sellerBox.y + sellerBox.height / 2);
   });
 
@@ -1762,34 +1706,17 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await expect(media.getByTestId("listing-share-open")).toHaveCount(0);
     await expect(page.getByTestId("listing-save")).toHaveText(en["adPage.save.add"]);
     await expect(page.getByTestId("listing-share-open")).toHaveText(en["adPage.share.open"]);
-    let previous = "";
-    await expect
-      .poll(async () => {
-        const current = JSON.stringify(
-          await Promise.all([
-            page.getByTestId("listing-detail-actions").boundingBox(),
-            headline.boundingBox(),
-            media.boundingBox(),
-            page.locator('section[data-testid="listing-detail-seller"]').boundingBox(),
-          ]),
-        );
-        const stable = previous === current;
-        previous = current;
-        return stable;
-      })
-      .toBe(true);
-    const actions = await page.getByTestId("listing-detail-actions").boundingBox();
-    const headlineBox = await headline.boundingBox();
-    const mediaBox = await media.boundingBox();
-    if (!actions || !headlineBox || !mediaBox) throw new Error("AP-46 boxes missing");
+    // INC-940 — the five boxes in one settled read.
+    const { actions, headlineBox, mediaBox, article, sellerBox } = await layoutBoxes({
+      actions: page.getByTestId("listing-detail-actions"),
+      headlineBox: headline,
+      mediaBox: media,
+      article: page.getByTestId("listing-detail"),
+      sellerBox: page.locator('section[data-testid="listing-detail-seller"]'),
+    });
     expect(
       Math.abs(actions.y + actions.height - (headlineBox.y + headlineBox.height)),
     ).toBeLessThanOrEqual(24);
-    const article = await page.getByTestId("listing-detail").boundingBox();
-    const sellerBox = await page
-      .locator('section[data-testid="listing-detail-seller"]')
-      .boundingBox();
-    if (!article || !sellerBox) throw new Error("AP-46 article or seller missing");
     // DEC-199 — the last check depends on the width: below 920 px the title
     // box's bottom meets the photo box's bottom; from 920 px the seller card
     // sits under the title box and its bottom meets the photo box's bottom.
@@ -1826,16 +1753,18 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     // At 360 the items share the row: nothing overflows.
     await page.setViewportSize({ width: 360, height: 900 });
     await expect(bar.locator('[data-testid="listing-section-nav-item"]:visible')).toHaveCount(4);
-    const nav = await bar.boundingBox();
-    if (!nav) throw new Error("AP-47 nav missing");
     const overflow = await bar.evaluate((el) => el.scrollWidth - el.clientWidth);
     expect(overflow).toBeLessThanOrEqual(1);
+    // INC-940 — the bar and every visible item in one settled read.
     const items = await bar.locator('[data-testid="listing-section-nav-item"]:visible').all();
-    for (const item of items) {
-      const box = await item.boundingBox();
-      if (!box) throw new Error("AP-47 item missing");
-      expect(box.x).toBeGreaterThanOrEqual(nav.x - 1);
-      expect(box.x + box.width).toBeLessThanOrEqual(nav.x + nav.width + 1);
+    const read = await layoutBoxes({
+      nav: bar,
+      ...Object.fromEntries(items.map((item, index) => [`item${index}`, item])),
+    });
+    for (const [name, box] of Object.entries(read)) {
+      if (name === "nav") continue;
+      expect(box.x).toBeGreaterThanOrEqual(read.nav.x - 1);
+      expect(box.x + box.width).toBeLessThanOrEqual(read.nav.x + read.nav.width + 1);
     }
   });
 
@@ -1853,18 +1782,16 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       const more = page.getByTestId("gallery-strip-more");
       await expect(more).toBeVisible();
       await expect(page.getByTestId("gallery-strip-back")).toHaveCount(0);
-      const stripBox = await strip.boundingBox();
-      const moreBox = await more.boundingBox();
-      if (!stripBox || !moreBox) throw new Error("AP-48 strip boxes missing");
+      // INC-940 — each comparison's boxes in one settled read.
+      const before = await layoutBoxes({ strip, more });
       expect(
-        Math.abs(moreBox.y + moreBox.height - (stripBox.y + stripBox.height)),
+        Math.abs(before.more.y + before.more.height - (before.strip.y + before.strip.height)),
       ).toBeLessThanOrEqual(1);
       await more.click();
       await expect(page.getByTestId("gallery-strip-back")).toBeVisible();
       await expect.poll(async () => strip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
-      const backBox = await page.getByTestId("gallery-strip-back").boundingBox();
-      if (!backBox) throw new Error("AP-48 back box missing");
-      expect(Math.abs(backBox.y - stripBox.y)).toBeLessThanOrEqual(1);
+      const after = await layoutBoxes({ strip, back: page.getByTestId("gallery-strip-back") });
+      expect(Math.abs(after.back.y - after.strip.y)).toBeLessThanOrEqual(1);
     } else {
       // At 360 the thumbnails are a row under the photo: » only, then « after a tap.
       const more = page.getByTestId("gallery-strip-more");
@@ -1880,9 +1807,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     const pageY = await page.evaluate(() => window.scrollY);
     for (let step = 0; step < 9; step++) await page.getByTestId("gallery-next").click();
     await expect(page.getByTestId("gallery-count")).toHaveText("10 / 10");
-    const stripBox = await strip.boundingBox();
-    const tenthBox = await strip.getByTestId("gallery-thumb").nth(9).boundingBox();
-    if (!stripBox || !tenthBox) throw new Error("AP-48 tenth thumbnail missing");
+    const { stripBox, tenthBox } = await layoutBoxes({
+      stripBox: strip,
+      tenthBox: strip.getByTestId("gallery-thumb").nth(9),
+    });
     expect(tenthBox.x).toBeGreaterThanOrEqual(stripBox.x - 1);
     expect(tenthBox.x + tenthBox.width).toBeLessThanOrEqual(stripBox.x + stripBox.width + 1);
     expect(tenthBox.y).toBeGreaterThanOrEqual(stripBox.y - 1);
@@ -1899,9 +1827,10 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await row.evaluate((el) => {
       el.scrollLeft = 0;
     });
-    const rowBox = await row.boundingBox();
-    const firstBox = await row.getByTestId("gallery-thumb").nth(0).boundingBox();
-    if (!rowBox || !firstBox) throw new Error("AP-48 viewer row missing");
+    const { rowBox, firstBox } = await layoutBoxes({
+      rowBox: row,
+      firstBox: row.getByTestId("gallery-thumb").nth(0),
+    });
     expect(firstBox.x).toBeGreaterThanOrEqual(rowBox.x - 1);
   });
 });

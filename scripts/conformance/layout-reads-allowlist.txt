@@ -1,0 +1,69 @@
+# INC-940 (Foundations turn 34f): a test or e2e helper that reads a box by itself with .boundingBox() instead of layoutBoxes (e2e/helpers/ui.ts) — each moves onto layoutBoxes file by file (INC-946); e2e/ad-page.spec.ts moved in this turn. <file>#<test id or title, or fn:<helper>> | <reason> | <until>
+e2e/admin-categories-console.spec.ts#CT-8 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/admin-locations.spec.ts#LT-8 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/admin-shell.spec.ts#IN-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/feed-screens.spec.ts#FS-12 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/house-style.spec.ts#HS-3 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/house-style.spec.ts#HS-4 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/my-listings-ad.spec.ts#MLA-12 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/my-listings-ad.spec.ts#fn:expectPhoneRowUsable | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/phone-frame.spec.ts#fn:checkFrame | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/photo-pipeline.spec.ts#PP-22 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/photo-pipeline.spec.ts#PP-23 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/photo-pipeline.spec.ts#PP-28 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-bundle2.spec.ts#PW-147 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-bundle2.spec.ts#PW-148 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-bundle2.spec.ts#fn:expectPhoneRowUsable | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/post-wizard-category.spec.ts#PW-141 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-category.spec.ts#PW-3 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-category.spec.ts#PW-52 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-place.spec.ts#PW-80 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-place.spec.ts#fn:expectPhoneRowUsable | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/post-wizard-recent.spec.ts#PW-171 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-resets.spec.ts#PW-79 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-units.spec.ts#PW-175 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-where.spec.ts#PW-88 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-where.spec.ts#PW-99 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/post-wizard-where.spec.ts#fn:tickOnCityLine | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/primitives-law.spec.ts#L11 wide columns hide below xl and the first column stays pinned | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell-table-law.spec.ts#admin tables never overflow horizontally | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#B21SC-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#B21SC-2 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#BK-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#FT-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#FV-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#FV-2 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#L3: the footer spans the full width beneath the fixed rail | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#PN-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#RM-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#RM-2 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#RM-3 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#SB-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#SR-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#TB-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#TB-2 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#every rail row carries a leading icon on one gutter | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#exactly one collapse toggle, and the wordmark moves into the bar when collapsed | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#fn:bottomOf | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/shell.spec.ts#fn:expectTapTarget | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/shell.spec.ts#fn:rowPair | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
+e2e/shell.spec.ts#logo cell sits exactly above the rail and beside the top bar | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#long location names share one 32px line | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#md+ rail: items scroll, header fixed | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#menu: items scroll, menu fixed, identity pinned | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#nothing hides under the bar | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#password visibility stays inside the full-width field | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#primary touch targets are at least 44px | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#tablets get the persistent rail and the FULL controls | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the band sits in the rail directly below the logo cell | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the bar and the band stay while the page scrolls | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the bottom bar, signed out | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the feed body is centred with equal left and right gutters | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the lockup's second line spans the wordmark exactly | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the menu opens in place | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the posting wizard keeps the frame | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the rail collapses to icons, shows a tooltip, and remembers the choice | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the strip sits under the fixed bar | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the top bar is ONE band: logo-cell height AND background, location row separate | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#the vertical stack is ordered: top bar, breadcrumbs, location row, body | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#top-bar controls are right-aligned at desktop width | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
