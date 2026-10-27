@@ -13,6 +13,7 @@ jobs:
   guard-proof:
     name: Guard proof (mutation fixtures, ethio-staging)
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     env:
       # ethio-staging — publishable values only; the service-role key is a secret.
       E2E_EMAIL_SINK: ${{ vars.E2E_EMAIL_SINK }}
@@ -29,7 +30,8 @@ jobs:
         with:
           bun-version: latest
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Resolve Playwright version
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
@@ -39,7 +41,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bunx playwright install --with-deps chromium
 
       # INC-021: each guard is proven in BOTH directions (A/B), and the judge is
       # always Playwright's JSON reporter — never the process exit code, which

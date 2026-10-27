@@ -52,6 +52,13 @@ jobs:
       E2E_FAKE_TRANSLATE: "1"
       E2E_FAKE_GEOCODE: "1"
     steps:
+      # INC-935 (DEC-275): the CLI binds fixed host ports (54320-54324) that sit inside Linux's ephemeral range
+      # (32768-60999), so an outgoing connection made while the images download could hold one and the start
+      # failed with "address already in use" (lanes 16, 8, 7 and 10, 2026-10-24 → 10-26). Reserved before any
+      # connection is made, no outgoing connection is given them.
+      - name: Reserve the temporary backend's ports (INC-935)
+        timeout-minutes: 1
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       - name: Begin proof clock
         run: |
           echo "PROOF_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
@@ -72,7 +79,8 @@ jobs:
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: bun-${{ runner.os }}-
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Record install seconds
         if: always()
         run: echo "INSTALL_SECONDS=$(( $(date +%s) - INSTALL_BEGIN ))" >> "$GITHUB_ENV"
@@ -290,6 +298,7 @@ jobs:
           TOML
           echo "PREPARE_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Make the temporary backend's certificate
+        timeout-minutes: 8
         run: |
           # INC-789 — the app keeps only https photo links, so the API serves https
           # from a certificate authority made for this run only. Nothing here is printed.
@@ -319,8 +328,8 @@ jobs:
           if command -v certutil > /dev/null; then
             echo "certutil: present" >> local-backend-status.txt
           else
-            sudo apt-get update > /dev/null
-            sudo apt-get install -y libnss3-tools > /dev/null
+            bash scripts/ci/with-deadline.sh 180 2 -- sudo apt-get update > /dev/null
+            bash scripts/ci/with-deadline.sh 180 2 -- sudo apt-get install -y libnss3-tools > /dev/null
             echo "certutil: installed" >> local-backend-status.txt
           fi
           mkdir -p "$HOME/.pki/nssdb"
@@ -332,6 +341,7 @@ jobs:
           echo "CERT_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Start backend and apply all migrations
         id: backend
+        timeout-minutes: 15
         run: |
           begin=$(date +%s)
           set +e
@@ -342,6 +352,8 @@ jobs:
           echo "START_EXIT=$result" >> "$GITHUB_ENV"
           : > local-backend-failure.txt
           if [ "$result" -ne 0 ]; then
+            # INC-935: who holds the backend's ports, for the evidence (addresses and process names only).
+            { echo "Port holders (54320-54329):"; sudo ss -Htanp | grep -E ':5432[0-9]\b' || echo "none"; } >> local-backend-start.log 2>&1
             # Raw log is never printed: the evidence step redacts credentials.
             exit "$result"
           fi
@@ -472,12 +484,11 @@ jobs:
             exit 1
           fi
       # INC-846 (turn 31): the step's first run read function_executable_by_anon 28 on the temporary
-      # backend against the baseline 19 read from ethio-staging. DEC-240's frozen rule: a count that
-      # differs from staging's for the same commit makes this a ::warning step until the difference is
-      # named (nine unlisted grants, or the backend's default-privilege fixture); the nightly's staging read gates.
+      # backend against the baseline 19 read from ethio-staging; the difference was named (the backend's
+      # default-privilege fixture, fixed on 53aa4e76) and the step has matched the baseline on every run
+      # since — DEC-240's frozen rule: it gates again (turn 34e).
       - name: Database security lints (DEC-240)
         if: matrix.lane == 'smoke'
-        continue-on-error: true
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
           if ! bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"; then
@@ -485,7 +496,7 @@ jobs:
             # ACLs of every anon-executable function go to the lane's kept evidence.
             docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text, coalesce(p.proacl::text, '(default)') from pg_proc p where p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('anon', p.oid, 'EXECUTE') order by 1;" > "local-backend-anon-functions-${{ matrix.lane }}.tsv"
             echo "anon-executable functions outside the allowlist: $(grep -c . "local-backend-anon-functions-${{ matrix.lane }}.tsv") (names in the local-proof-${{ matrix.lane }} artifact)"
-            echo "::warning::Database security lints differ from the baseline on the temporary backend (INC-846; DEC-240: a warning until the difference is named)"
+            echo "::error::Database security lints differ from the baseline on the temporary backend (DEC-240)"
             exit 1
           fi
       - name: Caller-gates guard (DEC-241)
@@ -514,7 +525,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Install Chromium
-        run: bunx playwright install --with-deps chromium
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bunx playwright install --with-deps chromium
       - name: Record browser seconds
         if: always()
         run: |

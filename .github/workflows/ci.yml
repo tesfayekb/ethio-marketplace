@@ -43,6 +43,7 @@ jobs:
   build-and-check:
     name: Build, typecheck, lint
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
         with:
@@ -87,6 +88,7 @@ jobs:
       # commit passed where there is none and failed on the runner.
       # INC-468 / DEC-147: the download retries (5 tries, 5 s apart): one HTTP 500 from the release host must not red the job.
       - name: Workflow lint (actionlint, pinned)
+        timeout-minutes: 5
         env:
           ACTIONLINT_VERSION: 1.7.7
           ACTIONLINT_SHA256: 023070a287cd8cccd71515fedc843f1985bf96c436b7effaecce67290e7e0757
@@ -107,7 +109,8 @@ jobs:
           lint .github/workflows/*.yml
           echo "Workflow lint OK (actionlint ${ACTIONLINT_VERSION}; shell and Python checks off, DEC-141)"
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Typecheck
         run: bun run typecheck
       - name: Format check (pinned prettier; .prettierignore exempts ratified records)
@@ -142,19 +145,22 @@ jobs:
   component-tests:
     name: Component tests
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Component tests (vitest + RTL + jsdom)
         run: bun run test:unit
 
   secrets-scan:
     name: Gitleaks secrets scan
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     # DEC-153 (a) — the action reads a pull request's commits through the API.
     permissions:
       contents: read
@@ -170,6 +176,7 @@ jobs:
   migration-lint:
     name: Migration linter (with self-test)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -186,6 +193,7 @@ jobs:
   i18n-usage-map:
     name: i18n used-on map is fresh (U4i ②)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -202,6 +210,7 @@ jobs:
   string-scan:
     name: Hardcoded string scan (enforcing)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - name: Run string scan
@@ -210,6 +219,7 @@ jobs:
   import-gate:
     name: Import gate guard (with self-test)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -221,6 +231,7 @@ jobs:
   listing-write-seam:
     name: Listing-write seam guard (with self-test)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       # Direction 1: the guard must PASS on real source.
@@ -242,6 +253,7 @@ jobs:
   browse-path-guard:
     name: Browse-path guard (no RBAC seam on the marketplace path, with self-test)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       # Direction 1: the guard must PASS on real source.
@@ -262,6 +274,7 @@ jobs:
   marketplace-weight:
     name: Marketplace weight guard (no heavy deps on the first-paint path)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -273,13 +286,15 @@ jobs:
   bundle-budget:
     name: First-paint bundle budget (gzipped ceiling)
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       - name: Build
         run: bun run build
       # Ratchet, not a suggestion: raising the ceiling is a deliberate commit.
@@ -292,6 +307,7 @@ jobs:
   semgrep:
     name: Semgrep (enforcing on ERROR)
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
       security-events: write
@@ -363,13 +379,15 @@ jobs:
   dependency-audit:
     name: Dependency vulnerability audit (enforcing on high/critical)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       # Law H2 (no known-error debt): the gate FAILS on high/critical findings.
       # Accepted, documented exceptions live in docs/features/dependency-audit.md
       # and are listed here explicitly — never as a blanket "|| true".
@@ -386,6 +404,7 @@ jobs:
   e2e-preflight:
     name: E2E preflight (migration parity, staging)
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     env:
       E2E_SUPABASE_URL: https://jatpuhfdjfzctjipklmk.supabase.co
       E2E_SUPABASE_PUBLISHABLE_KEY: ${{ vars.E2E_SUPABASE_PUBLISHABLE_KEY }}
@@ -405,7 +424,8 @@ jobs:
       - name: Bun cache hit?
         run: echo "bun cache-hit=${{ steps.bun-cache.outputs.cache-hit }}"
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       # INC-074: staging must carry the newest local migration, or the suite
       # fails with N cryptic reds instead of one named file.
       # DEC-171: a migration turn's run WAITS for the operator's staging apply
@@ -445,6 +465,7 @@ jobs:
     needs: [e2e-lanes]
     if: always()
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -621,6 +642,7 @@ jobs:
       ]
     if: github.ref == 'refs/heads/dev' && success()
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       contents: read
     steps:
