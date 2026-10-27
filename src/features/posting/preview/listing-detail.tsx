@@ -197,6 +197,12 @@ export interface ListingDetailView {
   /** D180 — the ad's status word as the gold ribbon on its picture (the seller's ad page); absent elsewhere. */
   ribbon?: string | null;
   coverage: string[];
+  /**
+   * INC-940 — the coverage places' names as the server's document sends them (the ad page), so the
+   * place lines are in the first paint; absent (the seller's and staff's views, built from a draft),
+   * the names come from the country tree once it has loaded.
+   */
+  placeList?: ReadonlyArray<{ id: string; nameEn: string }>;
   country: string | null;
   contactPref: Record<string, unknown>;
   /** The public seller name, and the business name when there is one. */
@@ -270,16 +276,15 @@ export function ListingDetail(view: ListingDetailView) {
   const links = usePhotoLinks(view.photos, view.photoLinks ?? null);
   const images = galleryPhotos(view.photos, links);
 
-  const places = view.coverage
-    .map((id) => nodes.find((node) => node.id === id) ?? null)
-    .filter((node): node is TreeNode => node !== null)
-    .map((node) =>
-      entityName(
-        "location",
-        { id: node.id, nameEn: node.nameEn ?? node.slug, nameAm: null },
-        entities,
-      ),
-    );
+  const places = (
+    view.placeList ??
+    view.coverage
+      .map((id) => nodes.find((node) => node.id === id) ?? null)
+      .filter((node): node is TreeNode => node !== null)
+      .map((node) => ({ id: node.id, nameEn: node.nameEn ?? node.slug }))
+  ).map((place) =>
+    entityName("location", { id: place.id, nameEn: place.nameEn, nameAm: null }, entities),
+  );
 
   const dealText = dealLines({
     deal: view.deal ?? null,

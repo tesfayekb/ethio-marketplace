@@ -107,3 +107,32 @@ describe("the ad page's map holds its box while its code downloads (INC-940)", (
     expect(within(map).queryByTestId("map-frame")).toBeNull();
   });
 });
+
+/**
+ * INC-940 (turn 34f stop 1) — ALS-1 on mobile-360: the Location box grew 32 px when the place line
+ * arrived with the country tree after the page had painted. The ad page's view carries the places'
+ * names from the server's document, so both place lines are in the first paint.
+ */
+describe("the ad page's place lines come with the page (INC-940)", () => {
+  it("LDM-2 with the document's names and no country tree, the title box and the Location box show the places at once", () => {
+    render(
+      <ListingDetail
+        {...BASE}
+        actor="buyer"
+        country="ET"
+        coverage={["scratch-b", "scratch-a"]}
+        placeList={[
+          { id: "scratch-b", nameEn: "Scratch Subcity" },
+          { id: "scratch-a", nameEn: "Scratch City" },
+        ]}
+        directions="scratch directions"
+      />,
+    );
+    expect(screen.getByTestId("listing-detail-places")).toHaveTextContent(
+      "Scratch Subcity, Scratch City",
+    );
+    expect(screen.getByTestId("listing-detail-location")).toHaveTextContent(
+      "Scratch Subcity, Scratch City",
+    );
+  });
+});

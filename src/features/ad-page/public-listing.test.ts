@@ -185,6 +185,37 @@ it("AV-7 the buyer's mapping says buyer and carries no value", () => {
   expect(Object.values(view.contactPref)).toEqual([{ show: true }, { show: true }]);
 });
 
+it("AV-9 the coverage places' names travel into the view in the document's order (INC-940)", () => {
+  const doc = document();
+  doc.places.coverage = ["b", "a"];
+  doc.places.list = [
+    {
+      id: "b",
+      name_en: "Bole",
+      name_am: null,
+      level: "subcity",
+      slug: "bole",
+      country_code: "ET",
+      position: 0,
+      map_visible: true,
+    },
+    {
+      id: "a",
+      name_en: "Addis Ababa",
+      name_am: null,
+      level: "city",
+      slug: "addis-ababa",
+      country_code: "ET",
+      position: 1,
+      map_visible: true,
+    },
+  ];
+  expect(adPageView(doc, "en").placeList).toEqual([
+    { id: "b", nameEn: "Bole" },
+    { id: "a", nameEn: "Addis Ababa" },
+  ]);
+});
+
 it("AV-8 a definition's fact_rank and is_filterable travel into the view", () => {
   const doc = document();
   doc.definitions = [
