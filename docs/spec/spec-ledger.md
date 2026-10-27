@@ -4666,3 +4666,50 @@ RECORDS OWED — block S77's list, with records turns R4 and R5: the roadmap lin
 CURATOR STATE AT THE CLOSE OF THIS BLOCK: unchanged — as block S76 left it.
 
 NUMBERING after this block: next free DEC-277, D239, INC-945, S457, ACT-021.
+
+
+S79 · 2026-10-27 16:1xZ → 2026-10-27 22:0xZ · THE FRESH SUPERVISOR THREAD (INSTRUCTIONS v1.15) — FOUNDATIONS TURN 34f (INC-940: A LATE PART HOLDS ITS BOX — REGISTER ROW 60; A TEST READS A LAYOUT WHOLE — ROW 61) AND 34f-2 (THE AD PAGE'S PLACE NAMES FROM THE SERVER'S DOCUMENT — INC-947), THE NIGHTLY'S HOUR (DEC-277), THE HANDOVER SUPPLEMENT (S457) AND THE OPERATOR'S THREE ANSWERS (DEC-278–DEC-280)
+
+What landed (times Z unless marked local; local is UTC−4):
+- 16:1xZ — the fresh thread's session start (v1.15 §2): dev = main = `0586d7f2`; records turn R5 verified CLEAN (run 40532962246 SUCCESS); the supervisor's tools written back from the Project, every file sha-exact.
+- 18:3xZ — Foundations turn 34f (Claude Code; brief 7f9bfad2… / 120,662 B) stopped once (`0026bd30`, docs/governance/reports/foundations-turn-34f.stop-1.md): its own proof ALS-1 was red on mobile-360 — the place line, drawn from the country tree after the paint, grew the Location box by 32 px. Run 40560297547 SUCCESS (0 flaky).
+- 19:56Z — turn 34f-2 (brief b711cbee… / 36,974 B; the supervisor's ruling, neither of the stop's options): the ad page's view carries the places' names from the server's document (`placeList`; AV-9, LDM-2). Landed `e2287d6d`; every file byte-equal to the prototype; unit 333 files / 2,018 passed; the four e2e files 143 passed, 5 skipped, 0 failed; ALS-1 green three times on both projects. Review READY · 0 BLOCKER · 3 MAJOR · 6 MINOR (the rulings below). Run 40574354034 SUCCESS (20:23:49Z, 0 flaky, main promoted).
+
+THE OPERATOR'S WORDS (local time)
+- 12:14 — the fresh thread, with "Go" for INC-940.
+- 16:5x — the nightly full run to start at 11:30 am Atlanta time; the Flake check queued behind tonight's nightly left to start after its 60-minute staging gate rather than the nightly cancelled.
+- 17:09 — "please cancel your scheduled checks. I will report to you".
+- 17:3x — the handover supplement: "Read the Project doc … whole, then preferences.md and ways-of-working.md in the project memory. It lists what the first handoff left out. Work through its §7 checklist, register its findings, and land it in the repository with your next turn."
+- 17:4x — three answers: the Claude Code reviewer stays on the executor's model; INC-930 (b); an AI verdict about a person is refused when its audit row cannot be written.
+
+DECISIONS
+- DEC-277 (the operator's hour, the supervisor's form, 2026-10-27): the nightly full run starts at 11:30 America/New_York all year — two crons, 15:30 and 16:30 UTC, the job going on only when the New York hour is 11, so the seasonal change needs no re-time (the 2026-07-16 governance's DST rule satisfied by construction). A workflow change: a Lovable turn, with INC-936. Watch: a 280–358-minute nightly from 11:30 runs to about 16:10–17:30 local.
+- DEC-278 (the operator, 2026-10-27 — decision (2) of 2026-10-26): the Claude Code reviewer keeps the executor's model (`model: inherit`) and runs on every turn (his standing directive of 2026-10-26); the kit's full checks run once per code tree — the executor's own check run (protocol step 5) through land.ts's cache, so the landing does not run them again on the same tree. The rule files are not scoped by path (the supervisor's correction after reading, G17: a path-scoped rule loads only when a matching file is read, so a file written new before any read would miss its rule — ESTIMATE 3,000–4,000 tokens saved a session; quality first, G59). A Lovable turn (.claude/** is closed to the Claude Code executor).
+- DEC-279 (the operator, 2026-10-27; INC-930): (b) — for a signed-in visitor the Home page's code is fetched ahead of time (at most 13.5 KB compressed, once, measured 2026-10-26), so an offline sign-out lands on a working page. Rides turn 34c-4.
+- DEC-280 (the operator, 2026-10-27; the security review's N4, INC-952): a verdict about a person (the identity imitation check, the assist's screening) is acted on only once its `ai_calls` row is written; when the row cannot be written the call answers `unavailable`; the tasks that judge no person (category icons, translation) stay best-effort. The stricter reading of G54 (b).
+
+THE SUPERVISOR'S RULINGS ON TURN 34f-2'S REVIEW (G17; overridable)
+- MAJOR 1 (MapLarge's failure place is now MapFrame inside the dialog) — ACCEPTED: the map's word in the map's box everywhere; the allowance's reason (the loading place) stays true.
+- MAJOR 2 (`places.list` has no active rule) — INC-949.
+- MAJOR 3 (the Maps link from the first paint is a names-only query until the tree arrives) — ACCEPTED; the document's list carrying each place's ancestor path rides INC-949's door change.
+- MINORs: listing-preview.tsx :107 and :114–:123 (K2) join INC-947's LEFT list; HB-1's stale-allowance gap — INC-950; e2e/post-wizard-where.spec.ts :931's comment moves with INC-946's file work; the rest accepted as written.
+
+THE HANDOVER SUPPLEMENT (docs/governance/handoffs/2026-10-27-foundations-handover-supplement.md; the Project keeps the full copy): read whole with the project memory's preferences.md and ways-of-working.md and the security review of 2026-10-26; its §7 checklist worked — the tracker's 37 open lines compared with roadmap.md at `e2287d6d` (the lines without a roadmap line are written by records turn R6: INC-949–INC-954, ACT-021, DEC-277/DEC-278's Lovable turn, INC-443's rest; the PW-94 and PW-54 single lines stay on the watch list; the launch items are in docs/governance/launch-gate.md :5, :81, :82); its findings registered; the four speed documents of §6 imported into docs/governance/plans/; the two reminders of §2 offered in the new session.
+
+RULES IN FORCE, ADOPTED IN THIS BLOCK (not yet in the instructions — installed at v1.16, G46): S457's pre-handoff checklist; from the project memory (the operator's dated word, newer than v1.15) — the supervisor applies ethio-staging migrations itself through the Supabase connector (DEC-246), and when the operator applies one the instruction is "apply the new migration to staging" (G45's click-by-click text is older); production migrations only through Lovable's migration tool, never an operator upload (§4's "one recorded exception" withdrawn, 2026-10-17); Lovable is sent its briefs through the connector by default (G56's last clause withdrawn); no scheduled checks and no background CI waits unless the operator says he is away (17:09 today); the next executor prompt goes out as soon as a turn is verified, not after CI (G36's "send the executor nothing until the run has completed" withdrawn — runs queue, DEC-181); his wish of 2026-10-25 that the supervisor start the Claude Code sessions is put to him at v1.16 (G56's practice stands until then).
+
+INCIDENTS — INC-949 (the ad's public document names places the tree hides), INC-950 (HB-1 blind to an outdated exemption), INC-951 (a staff-only door without a rate gate — detail held back, G51), INC-952 (an AI verdict about a person without its audit row — DEC-280), INC-953 (two load-error retries drawn by hand — KEPT as retries, onto QueryState), INC-954 (a country code's shape tested by copies); INC-930's answer (DEC-279). In docs/tracking/incidental-findings.md.
+
+SLIPS — S457 (the first handoff's omissions; the pre-handoff checklist); in docs/governance/instructions-amendments.md §Slips.
+
+ACTIONS — ACT-021 (a phone measurement of the published site after the next Publish); in docs/tracking/action-tracker.md.
+
+OPERATOR STEPS OWED — a Publish of dev's head and one walk (the map's credit now on the map's foot, turn 34f); the Flake check's result for INC-940's judge; the two reminders of the supplement §2 (the DMCA agent registration and the real legal phone number, 2026-10-29) in the new session on his word; the items carried from blocks S76–S78.
+
+JUDGES OPEN AT THE CLOSE OF THIS BLOCK: INC-940 — the operator's Flake check on `e2287d6d` (specs e2e/ad-page.spec.ts e2e/ad-page-layout.spec.ts, grep `AP-36 |AP-37 |AP-42 |AP-45 |AP-46 |ALS-1 `, repeat 12, workers 8; run beside the nightly, a red read before it counts) with no failure, and no AP-36 flake line in the next 20 CI runs from `e2287d6d`; DEC-276's twenty runs; the judges of block S78.
+
+RECORDS OWED — .claude/rules/20-tests.md gains `layoutBoxes` (DEC-278's Lovable turn); system-state.md's position at the next bundle close.
+
+CURATOR STATE AT THE CLOSE OF THIS BLOCK: unchanged — as block S76 left it.
+
+NUMBERING after this block: next free DEC-281, D239, INC-955, S458, ACT-022.
