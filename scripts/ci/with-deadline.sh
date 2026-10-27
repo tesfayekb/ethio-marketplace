@@ -5,7 +5,9 @@
 # command that ignores TERM is killed 15 s later). A failed or overdue try is retried
 # after a 10-second pause, at most <tries> times in all, each retry announced as a
 # GitHub warning so a retry is never silent; the last try's exit code is the step's.
-# Only for steps that can be run again safely (installs, downloads).
+# A retry only for a command that can be run again safely (a download, `apt-get update`, `bun install`);
+# a package install (`apt-get install`, `playwright install-deps`) runs with one try: cut off part-way it
+# leaves the package manager interrupted and its retry fails at once (INC-943, DEC-276; CF-CID-1).
 set -u
 if [ "$#" -lt 4 ] || [ "$3" != "--" ]; then
   echo "usage: with-deadline.sh <seconds> <tries> -- <command> [args...]" >&2
