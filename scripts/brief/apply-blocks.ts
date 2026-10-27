@@ -11,10 +11,19 @@
  * or never ends), a path's EDIT numbers out of order, a path outside the repository or outside the
  * brief's scope (the kit's own `scopeVerdict`), an OLD text found zero times or more than once, a brief
  * with no block for a named path. One refusal writes nothing: every file is staged beside its target
- * first and renamed into place only when all are staged. Each block prints one line; `--dry` writes
- * nothing. docs/features/brief-applier.md describes it; BA-6 names any second parser of the markers.
+ * first (a file keeps its mode) and renamed into place only when all are staged. Each block prints one line;
+ * `--dry` writes nothing. docs/features/brief-applier.md describes it; BA-6 names any second parser of the markers.
  */
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { dirname, join } from "node:path";
 import { PROJECT_DIR, scopeVerdict } from "../../.claude/hooks/lib";
 import { errorText } from "../../src/lib/error-text";
@@ -151,21 +160,46 @@ export function applyBlocks(blocks: Block[], io: Io, only: string[] = []): strin
 
 const STAGED = ".apply-blocks-staged";
 
-/** Writes every file or none: each text is staged beside its target, then all are renamed into place. */
+/**
+ * Writes every file or none: each text is staged beside its target — a file that exists keeps its mode (an
+ * executable script stays executable), a directory standing at a target's path is a refusal — and the staged
+ * files are renamed into place only when all are staged. A rename that fails is a refusal naming the files
+ * already placed, and no staged file is left behind.
+ */
 export function writeAllUnder(root: string, texts: ReadonlyMap<string, string>): void {
   const staged: Array<[string, string]> = [];
+  const clear = () => {
+    for (const [temp] of staged) rmSync(temp, { force: true });
+  };
   try {
     for (const [path, text] of texts) {
       const abs = join(root, path);
+      const existing = existsSync(abs) ? statSync(abs) : null;
+      if (existing?.isDirectory() === true) {
+        throw new ApplyRefused(`${path}: a directory stands at that path`);
+      }
       mkdirSync(dirname(abs), { recursive: true });
-      writeFileSync(`${abs}${STAGED}`, text);
-      staged.push([`${abs}${STAGED}`, abs]);
+      const temp = `${abs}${STAGED}`;
+      writeFileSync(temp, text);
+      staged.push([temp, abs]);
+      if (existing !== null) chmodSync(temp, existing.mode & 0o7777);
     }
   } catch (error) {
-    for (const [temp] of staged) rmSync(temp, { force: true });
+    clear();
     throw new ApplyRefused(`staging the files failed, nothing written: ${errorText(error)}`);
   }
-  for (const [temp, abs] of staged) renameSync(temp, abs);
+  const placed: string[] = [];
+  try {
+    for (const [temp, abs] of staged) {
+      renameSync(temp, abs);
+      placed.push(abs);
+    }
+  } catch (error) {
+    clear();
+    throw new ApplyRefused(
+      `placing the files failed after ${String(placed.length)} of ${String(staged.length)} (${placed.join(", ") || "none"}): ${errorText(error)}`,
+    );
+  }
 }
 
 /** The command line: the saved brief, then `--dry` and the paths to apply (none: every block). */

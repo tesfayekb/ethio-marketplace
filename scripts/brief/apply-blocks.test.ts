@@ -1,5 +1,14 @@
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -72,7 +81,7 @@ const refusal = (run: () => unknown): string => {
 function secondParsers(files: Array<{ path: string; text: string }>): string[] {
   const own = new Set(["scripts/brief/apply-blocks.ts", "scripts/brief/apply-blocks.test.ts"]);
   return files
-    .filter((f) => !own.has(f.path) && /\b(OLD|NEW)-BEGIN\b/.test(f.text))
+    .filter((f) => !own.has(f.path) && /\b(?:OLD|NEW)-BEGIN\b|\bFILE-(?:BEGIN|END)\b/.test(f.text))
     .map((f) => f.path);
 }
 
@@ -182,7 +191,7 @@ describe("the block applier (register row 58)", () => {
     expect(refuses("# no blocks\n", {})).toBe("the brief has no FILE or EDIT block");
   });
 
-  it("BA-4 the command line writes the tree, writes nothing on --dry, a refusal or a file it cannot stage, and asks for a brief", () => {
+  it("BA-4 the command line writes the tree, writes nothing on --dry, a refusal, a file it cannot stage or a directory at a target, keeps an edited file's mode, and asks for a brief", () => {
     const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     try {
@@ -216,6 +225,25 @@ describe("the block applier (register row 58)", () => {
       expect(main(["d.md"], root, everywhere)).toBe(1);
       expect(existsSync(join(root, "docs/ok.md"))).toBe(false);
       expect(existsSync(join(root, "docs/ok.md.apply-blocks-staged"))).toBe(false);
+      // A directory standing at a FILE block's path is refused before anything is placed.
+      mkdirSync(join(root, "docs/dir"));
+      writeFileSync(
+        join(root, "e.md"),
+        brief(fileBlock("docs/ok.md", "ok"), fileBlock("docs/dir", "x")),
+      );
+      expect(main(["e.md"], root, everywhere)).toBe(1);
+      expect(existsSync(join(root, "docs/ok.md"))).toBe(false);
+      expect(existsSync(join(root, "docs/ok.md.apply-blocks-staged"))).toBe(false);
+      // An edited script keeps its mode: an executable stays executable.
+      writeFileSync(join(root, "docs/run.sh"), "echo one\n");
+      chmodSync(join(root, "docs/run.sh"), 0o755);
+      writeFileSync(
+        join(root, "f.md"),
+        brief(editBlock("docs/run.sh", 1, ["echo one"], ["echo two"])),
+      );
+      expect(main(["f.md"], root, everywhere)).toBe(0);
+      expect(readFileSync(join(root, "docs/run.sh"), "utf8")).toBe("echo two\n");
+      expect(statSync(join(root, "docs/run.sh")).mode & 0o777).toBe(0o755);
       expect(main([], root, everywhere)).toBe(2);
     } finally {
       out.mockRestore();
@@ -245,14 +273,15 @@ describe("the block applier (register row 58)", () => {
     expect(readFileSync(join(root, "docs/features/x.md"), "utf8")).toBe("allowed\n");
   });
 
-  it("BA-6 the applier is the one parser of brief blocks: no other code names a block marker (a planted second parser is named)", () => {
+  it("BA-6 the applier is the one parser of brief blocks: no other code names a block marker, EDIT or FILE (planted second parsers are named)", () => {
     expect(
       secondParsers([
         { path: "scripts/brief/apply-blocks.ts", text: "OLD-BEGIN" },
         { path: "scripts/other.ts", text: 'const at = brief.indexOf("NEW-BEGIN");' },
+        { path: "scripts/files-only.ts", text: 'const end = text.indexOf("FILE-END " + path);' },
         { path: "src/x.ts", text: "no markers" },
       ]),
-    ).toEqual(["scripts/other.ts"]);
+    ).toEqual(["scripts/other.ts", "scripts/files-only.ts"]);
     const files = walkFiles(
       ["src", "e2e", "scripts", ".claude"].map((d) => join(ROOT, d)),
       { ext: ["ts", "tsx", "mjs", "js", "cjs", "sh"] },
