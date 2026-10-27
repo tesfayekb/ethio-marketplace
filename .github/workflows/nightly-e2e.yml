@@ -72,9 +72,15 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      # INC-943 (DEC-276): measured over 371 lane runs, the combined install took 14 s at the median, 582 s at the
+      # 90th percentile and 895 s at most. A package install cut off part-way cannot be repeated, so the system
+      # libraries run once with 1500 s; the browser download may be repeated, 900 s a try.
+      - name: Install Chromium's system libraries
+        timeout-minutes: 27
+        run: bash scripts/ci/with-deadline.sh 1500 1 -- bunx playwright install-deps chromium
       - name: Install Chromium
-        timeout-minutes: 12
-        run: bash scripts/ci/with-deadline.sh 300 2 -- bunx playwright install --with-deps chromium
+        timeout-minutes: 32
+        run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium
       # DEC-018: E2E runs the PRODUCTION build in E2E mode. Each job builds its
       # own dist/ (the build is seconds and needs the job's VITE_* env anyway);
       # artifact-sharing was not worth the plumbing.
@@ -323,9 +329,15 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      # INC-943 (DEC-276): measured over 371 lane runs, the combined install took 14 s at the median, 582 s at the
+      # 90th percentile and 895 s at most. A package install cut off part-way cannot be repeated, so the system
+      # libraries run once with 1500 s; the browser download may be repeated, 900 s a try.
+      - name: Install Chromium's system libraries
+        timeout-minutes: 27
+        run: bash scripts/ci/with-deadline.sh 1500 1 -- bunx playwright install-deps chromium
       - name: Install Chromium
-        timeout-minutes: 12
-        run: bash scripts/ci/with-deadline.sh 300 2 -- bunx playwright install --with-deps chromium
+        timeout-minutes: 32
+        run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium
       - name: Build the app for the Cloudflare target (VITE_E2E=1)
         run: bun run build:e2e:cloudflare
       - name: Verify the worker artifact and its pinned compatibility date

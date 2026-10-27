@@ -51,6 +51,482 @@ Supervisor slips are logged with the same honesty as executor slips (record incl
 
 SLIP RECORD ADDENDUM (v1.13) — the record further includes S41 (the LY-6 DEC-030 threshold missed on 09-21), S42 (the flake ledger not read whole 09-19 → 09-25), S43–S45 (the wizard turn-3 prompt rounds), S46 (INC-282's test accepted vacuous), S47 (the D31-M census named the wrong file for submit_listing), S48 ("expected 0" censuses stated unrun), S49 (alias-search walk steps for a finder the wizard does not consume), S50 (walk lines written as "locked row" for settled models), S51 (import checklists without the IE-4b approval step), S52 (a door statement from an incomplete API log), S53 (posting-routes omitted after a contract change — INC-302), S54 (the INC-303 model predicted from an assumption about pointer numbers), S55 ("any move → Undo" without reading the undo path), S56 (a brief contradicting its own walk), S57 (incidents listed without mapping), S58 (a flip direction reversed), S59 (a version formula that would have blanked every root pointer's stamp), S60 (the D62 split without an interim alias — INC-309), S61 (the PW-66 price-pair hypothesis chased before the decisive asEdge line), S62 (co-dependent definitions and links as separate import passes), S63 (the first INC-317 fix that broke Undo), S64 ("the three PW-61 tests" — two exist), S65 (verbatim texts outside the prompt block), S66 (a dictated mark earlier than the file's stamp), S67 (the INC-320 fix that made the INC-329 erasure fire on every Back), S68 ("only the two card rows" for at least two), S69 (each run's flaky list read instead of the seven-day ledger — INC-333/334/335), S70 (the city-required ruling missed — INC-337), S71 (a stricter co-link rule than DEC-057b), S72 (a prefill order written from a 2026-09-15 ruling without checking the code), S73 (proofs allowed to read real places — INC-340), S74 (the alias-spelling rule in neither audit), S75 (a Settings prefill that does not exist), S76 (a step needing a production sign-in), S77 (search words typed into in-form lists), S78 (a curator miscount reported as a live defect), S79 (the map gated on a capability no category carried), S80 ("How it's sold" placed on the wrong step), S81 (the otherNeedsText rule never audited — INC-357), S82 (W6b-1 R2 misquoted), S83 (walk steps without their preconditions), S84 (place-step work recorded as landed without a check on dev), S85 (a settled field described as filled); the unnumbered slips of 2026-10-01 → 2026-10-04 — a walk line repeating a walked check; the dog-size over-detail; a housekeeping approval put to the operator; three scope-list omissions (bundle 1's catalog route; INC-383's two helpers; the search route); prompts drafted while both agents were mid-task; the batch-14 note count unreconciled; the CT-8 flake with no incident at the third occurrence; the importer's option limit missing from the checker; INC-385 recorded without a fix; the batch-15 question asked before the record was read; three wrong walk examples; the brief delivered only as a paste (INC-388); the 7423f49a pre-apply comparison of argument lists only (INC-391); the "cells are empty" statement from an older catalogue copy; "its Remove" without its rule (the PW-83 red); the CSV under docs/ without its ignore line (INC-406); the security gaps named in the public repository before the fix; the ci-evidence fetch asked of the executor (first occurrence, 2026-10-03); the name rules without digits (INC-412); the missing-countries assumption (INC-413); the framework patch declined by its label (INC-418); the re-walk line of behaviour the code never had (INC-422); the name_folds kinds list without the protected names' folds; "bundle2 needs no renumbering"; the untouched-specs check of screen test ids only (PR-18); the three-file local cap that hid the breakage and the 140-test turn; the whole-file runs ordered and not enforced; the age answer given without the ledger; the Privacy draft's position sentence; and S86–S92: S86 (bundle 4 turn 7 verified without checking step 24's third way against the diff — INC-432, found by the records compile), S87 (two prompts told the executor to git fetch origin ci-evidence, which its remote does not carry — second occurrence), S88 (a prompt retyped inline corrupted one Amharic character, caught by a script check before sending), S89 (a helper run spent searching the transcript for the live Knowledge text the operator could hand over in one step), S90 ("a prefill can tick a list" told to the curator from the docs without reading the form — INC-434), S91 ("stop at the apply line" written although the executor's tool applies on save), S92 ("Dishes opens with Doro Wot ticked" written from the catalogue file, not the form — the second walk-expectation slip after INC-422) — all caught and corrected; G29–G53 are the class rules these forged.
 
+## Claude supervisor instructions v1.15 — amendment (2026-10-27; delivered for installation)
+
+The full v1.15 document lands in this repository at `docs/governance/claude-supervisor-instructions-v1.15.md` (108,681 bytes with its final newline; sha256 `99081e8a1d1ceed5c701143af9451604dec7a3ca81f203375007f9afd8c39172`); the operator installs it whole in the Project (§14: rulebooks are delivered whole). Until he does, v1.14 governs. Its header note:
+
+"Version: v1.15 · 2026-10-27 · SUPERSEDES v1.14 (2026-10-23). v1.15 carries every rule of v1.14 and drops what is not a rule: wording a later addendum superseded, precedents, dated quotes and slip lists — each removed span is recorded word for word in docs/governance/instructions-amendments.md (§ v1.15, the moved text) and the Project keeps v1.14 whole (claude/claude-supervisor-instructions-v1.14.md). It installs the rules adopted since v1.14 as G56–G59 (the executors and their channels; checks and waits; briefs landed by the block applier; cost and quality) and corrects three facts: two executors write the repository (Lovable and the Claude Code executor), CI runs queue (DEC-181), and the live Knowledge is v3.11. Where v1.15 and v1.14 differ on a rule, v1.15 governs; G0 governs both."
+
+Method (the operator's approval of 2026-10-27 07:43 local — the supervisor's proposal 5, "v1.15 instructions with a rule-by-rule proof"): v1.15 is v1.14 with 57 recorded moves — wording a later addendum superseded, precedents, dated quotes and slip lists taken out; three facts corrected (two executors; Knowledge v3.11; CI runs queue — DEC-181); the rules adopted since v1.14 installed as G56–G59 — each move listed below word for word, the v1.14 text and what stands in its place. The proof (the supervisor's script, in the Project doc claude/supervisor-tools-2026-10-27.md): every § and G header of v1.14 is in v1.15; every banned-pattern row is kept; and v1.14 with the 57 moves applied, each OLD text found exactly once, equals v1.15 byte for byte. v1.15 is 5% shorter than v1.14 (113,363 → 107,820 characters).
+
+## Moved from the instructions at v1.15 — verbatim
+
+Each entry: why it moved, then the v1.14 text, then what stands in its place in v1.15 ("—" when nothing).
+
+### 1. header
+
+v1.14:
+
+> Version: v1.14 · 2026-10-23 · SUPERSEDES v1.13 (2026-10-05). Additive versioning: prior sections preserved verbatim across bumps; amendments append. The version history and header notes of v0.1 → v1.13 live in docs/governance/instructions-amendments.md and in the Project doc claude/claude-supervisor-instructions-v1.13.md; nothing of them is lost. v1.14 amendment (2026-10-23): the systems audit of 2026-10-23 (seven read-only studies at a413f952) and the operator's directive of the same day — "we should not just patch small fix, we should rather look at the bigger picture … a centralized system that will be much easier to maintain … even if that will take extra effort" — install §12's G0 SYSTEMS, NOT PATCHES as the overriding rule (G0.1–G0.10 and THE SYSTEM header every brief opens with), G54 (the route boundary, the AI gateway and the form kit — the first three mechanisms — and their interim laws), G55 (allowlists, censuses and guard wiring); §3's forward-scan gains the mechanism register; §4's scope, completion-report and pre-flight lines gain the K2 sibling list and the header checks; §6 DRIFT and §7 gain the rows "unrecorded bypass", "side effect before the authority", "hand-rolled boundary", "stand-in on a production path" and "model answer unparsed"; §1's canonical list gains docs/governance/mechanisms.md and docs/features/e2e-harness.md §Authoring laws; §8 gains the sixteen-lane addendum; §10 gains the harness-runs-builds addendum and "design them there"; §11's INC entries name the concern and the mechanism, and the slip record S1–S92 moves to the amendments record with a pointer; G19, G27 (afterEach), G29, G30, G38, G41, G52 gain addenda. Knowledge references advance to v3.11 (2026-10-23; A1, A6, A7 corrected; section J bound from docs/features/e2e-harness.md; section K ONE MECHANISM PER CONCERN added). Every rule of v1.13 stands; G0 governs where it differs.
+
+v1.15: Version: v1.15 · 2026-10-27 · SUPERSEDES v1.14 (2026-10-23). v1.15 carries every rule of v1.14 and drops what is not a rule: wording a later addendum superseded, precedents, dated quotes and slip lists — each removed span is recorded word for word in docs/governance/instructions-amendments.md (§ v1.15, the moved text) and the Project keeps v1.14 whole (claude/claude-supervisor-instructions-v1.14.md). It installs the rules adopted since v1.14 as G56–G59 (the executors and their channels; checks and waits; briefs landed by the block applier; cost and quality) and corrects three facts: two executors write the repository (Lovable and the Claude Code executor), CI runs queue (DEC-181), and the live Knowledge is v3.11. Where v1.15 and v1.14 differ on a rule, v1.15 governs; G0 governs both.
+
+### 2. fact: two executors
+
+v1.14:
+
+> Executor: Lovable (DEC-006; direct-to-dev per DEC-020 — main is promote-on-green only). Cursor: reserve executor.
+
+v1.15: Executors: Lovable (DEC-006; direct-to-dev per DEC-020 — main is promote-on-green only) and the Claude Code executor (DEC-255–DEC-257; G56). Cursor: reserve executor.
+
+### 3. fact: Knowledge v3.11
+
+v1.14:
+
+> additionally governed by in-repo AGENTS.md and Project Knowledge v3.10.
+
+v1.15: additionally governed by in-repo AGENTS.md and Project Knowledge v3.11.
+
+### 4. fact: Knowledge v3.11
+
+v1.14:
+
+> conflicts with Knowledge v3.10 or approved specs?
+
+v1.15: conflicts with Knowledge v3.11 or approved specs?
+
+### 5. fact: Knowledge v3.11
+
+v1.14:
+
+> KNOWLEDGE VERSION ADDENDUM (v1.13): the live Knowledge is v3.10 (2026-09-17); its text has been in Claude's hands since 2026-10-05, when the operator attached it (S89 — ask for a document he holds before searching for it), and the in-repo mirror docs/governance/lovable-knowledge.md (v3.8 until the records turn brings it level) is read as the mirror only once it says v3.10. The Knowledge amendment proposals of ledger blocks S41 and S43 are not installed.
+
+v1.15: KNOWLEDGE VERSION: the live Knowledge is v3.11 (2026-10-23; the Project doc claude/lovable-knowledge-v3.11.md); the in-repo mirror docs/governance/lovable-knowledge.md is read as the mirror only once it names the live version (G46).
+
+### 6. fact: runs queue (DEC-181)
+
+v1.14:
+
+> and because every push to dev cancels the run in flight (ci.yml: cancel-in-progress) main can trail for hours while pushes keep arriving — eight runs cancelled in a row and main 61 commits behind on 2026-10-04.
+
+v1.15: and because runs queue — a newer push replaces only a QUEUED run (DEC-181) — main can trail while pushes keep arriving.
+
+### 7. fact: runs queue (DEC-181)
+
+v1.14:
+
+> the operator's steps say to send the executor nothing for about 25 minutes (any message can cause a push, and a push cancels the run in flight — eight runs in a row on 2026-10-04);
+
+v1.15: the operator's steps say to send the executor nothing until the run has completed (a newer push replaces a queued run — DEC-181);
+
+### 8. superseded: §2 steps 1–4 (the addendum A–E governs)
+
+v1.14:
+
+> 1. Fresh clone of the dev branch (DEC-020): cd /tmp && rm -rf ethio && git clone --branch dev https://github.com/tesfayekb/ethio-marketplace.git ethio — then git fetch origin main and note whether main trails dev by tracking-only ([skip ci]) commits (steady state) or by substantive ones (a promote that has not yet run, or a guard-stopped divergence — reconcile via the sync-main dispatch only after confirming main's extra commits are tracking-only).
+2. Read in order: docs/governance/system-state.md → the latest file in docs/governance/handoffs/ → tail of docs/spec/spec-ledger.md session log → tail of docs/_changelog.md → git log --oneline -10.
+3. State to the operator: HEAD SHA, current phase, last closed step, next planned step — and ask for confirmation before proceeding. Chat memory/summaries are advisory; the repo is the record. Unexplained HEAD movement ⇒ pause and reconcile before new work.
+4. If the operator opens with a task, run the ritual first anyway (30 seconds), then the task, grounded.
+
+v1.15: —
+
+### 9. superseded: §2 heading
+
+v1.14:
+
+> §2 ADDENDUM (v1.13) — THE RITUAL AS OF DEC-098 AND THE BUNDLE ERA (where a step below differs from steps 1–4, the step below governs):
+
+v1.15: THE RITUAL (DEC-098 and the bundle era):
+
+### 10. superseded: no fast lane (LANES)
+
+v1.14:
+
+> (d) A lane-only 'changed' red with a green matrix = noise (fast-lane law).
+
+v1.15: —
+
+### 11. superseded: no fast lane (LANES)
+
+v1.14:
+
+> FAST-LANE LAW (v1.8, DEC-023-B): the 'changed' source is signal-only — it never gates the merged verdict or promote; a lane-only failure with a green full matrix is contention noise by definition, while a deterministic lane failure is read as the early copy of a matrix failure.
+
+v1.15: —
+
+### 12. superseded: no fast lane (LANES)
+
+v1.14:
+
+> and, when present, the DEC-023-B fast lane 'changed'
+
+v1.15: —
+
+### 13. history: slip record pointer (stated in §11 already)
+
+v1.14:
+
+> SLIP RECORD ADDENDUM (v1.13) — moved verbatim to docs/governance/instructions-amendments.md §Slips (v1.14); the rules it forged are G29–G53.
+
+v1.15: —
+
+### 14. history
+
+v1.14:
+
+> The operator never stated this rule; it is the supervisor's practice, accepted by use since 2026-10-01 ("Pasting it is your approval").
+
+v1.15: —
+
+### 15. precedents
+
+v1.14:
+
+> (Precedents: the executor capability census → DEC-006; the E2E harness pass bar → acceptance 2026-08-01; the DEC-019 serve-stack branch rule → 2026-08-28; the DEC-024 worker-knob revert rule → 2026-08-30.) ADDENDUM (v1.13): further precedents — DEC-087 (timing census and spec split), DEC-092 (the framework update, reverted by its own rule), DEC-097 (the E2E account pool), DEC-098 (the evidence branch), DEC-104 (transport retry), DEC-115 (the test selector), DEC-119 (the speed rules).
+
+v1.15: —
+
+### 16. precedent
+
+v1.14:
+
+> The precedent: from 2026-09-28 to 2026-10-04 the ledgers stood at DEC-080 / INC-307 while the running record reached DEC-130 / INC-431 — 50 decisions and 124 defects outside the repository, the newest handoff six days old, system-state.md nine — after five deferrals and two briefs that said "the decision and incident ledgers are not written in this bundle" with no records turn behind them.
+
+v1.15: —
+
+### 17. evidence (the audit)
+
+v1.14:
+
+> The systems audit of 2026-10-23 (seven read-only studies at a413f952; /home/claude/audit/*/report.md, summarised in the Project doc claude/systems-audit-2026-10-23.md) is its evidence: in every area a good shared mechanism existed, screens and routes built after it adopted it, and nothing enumerated the ones that must — the posting form's required-answer mirror (built per step, the contact step exempted by a comment), four field primitives and thirteen hand-rolled forms, six AI calls wiring the shared meter and the one D166 rule by hand, 36 server endpoints with nine response envelopes and no shared parser (zod installed, unused), four copies of the auth chain, 22 defect classes of which 13 had no guard, and a route that acted with the service role before its door answered (INC-830).
+
+v1.15: —
+
+### 18. history
+
+v1.14:
+
+> Three executor-overturned rulings in U4 forged this addendum.
+
+v1.15: —
+
+### 19. slip list
+
+v1.14:
+
+> (S54, S55, S59 — three in one day)
+
+v1.15: —
+
+### 20. slip list
+
+v1.14:
+
+> (S70, S72, S75, S79, S81, S90, S92; the batch-18 "cells are empty" statement; INC-412; INC-413; the Privacy draft's position sentence; the age answer of 2026-10-04)
+
+v1.15: —
+
+### 21. history
+
+v1.14:
+
+> Third logged occurrence of the duplicated-block class (S3, S22, 2026-08-02) — the class has outlived two corrections and now gets a standing check.
+
+v1.15: —
+
+### 22. precedent
+
+v1.14:
+
+> Precedent for the step check: bundle 4 step 24's third way was never built, the turn's verification did not see it, and INC-432 was found by the records compile a week later (S86).
+
+v1.15: —
+
+### 23. slip list
+
+v1.14:
+
+> The class behind it: S49, S50, S77, S80, S83, S85, the three wrong examples of 2026-10-02, INC-422 ("I wrote that walk line without checking when suggestions appear") and S92 ("Dishes opens with Doro Wot ticked", written from the catalogue file — INC-434).
+
+v1.15: —
+
+### 24. quote
+
+v1.14:
+
+> (Operator: "it increases confusion to add more propts on work they do. let those finish and i will give you each of their work. once you verify all then you give me the above propmt with the necessary addendums"; earlier forms 2026-09-29 and 2026-10-01; three "which is final" questions.)
+
+v1.15: —
+
+### 25. precedent
+
+v1.14:
+
+> Claude's running record is never the only copy for longer than one bundle: the week of 2026-09-28 → 2026-10-04, when the ledgers stood at DEC-080 / INC-307 while the running record reached DEC-130 / INC-431 (§11), is the precedent.
+
+v1.15: Claude's running record is never the only copy for longer than one bundle.
+
+### 26. history
+
+v1.14:
+
+> A blanket "decline the framework update" kept a critical reflected-XSS patch out of the repository from 2026-10-01 to 2026-10-04 (INC-418; "declining it was my mistake"); the earlier update applied against the ruling and called "routine" (INC-372; DEC-092, reverted by its own rule) is the other face of the class.
+
+v1.15: —
+
+### 27. history
+
+v1.14:
+
+> (on 2026-10-04 the record stood at v1.9 against v1.12 live, the mirror at v3.8 against v3.10)
+
+v1.15: —
+
+### 28. history
+
+v1.14:
+
+> — five such proposals ran uninstalled from 2026-09-25 to this version
+
+v1.15: —
+
+### 29. history
+
+v1.14:
+
+> (two batches on 2026-10-04)
+
+v1.15: —
+
+### 30. precedent
+
+v1.14:
+
+> The precedent: the handover of 2026-10-04 was planned when the records were a week behind, so the compile ran beside executor turns 9–12 and the stop point moved from "turn 10 green" to "every record in the repository".
+
+v1.15: —
+
+### 31. slip list
+
+v1.14:
+
+> (S41, S42, S69, and the CT-8 flake of 2026-10-02 — ten retried passes since 2026-09-05 with no incident: the fourth occurrence)
+
+v1.15: —
+
+### 32. quote
+
+v1.14:
+
+> (operator, 2026-09-29: "CI red, can give fix prompt together with the next step prompt next so we dont kill time"; twice more on 2026-09-30)
+
+v1.15: —
+
+### 33. quote
+
+v1.14:
+
+> ("CI red, all need to be fixed before we move", 2026-09-30)
+
+v1.15: —
+
+### 34. quote
+
+v1.14:
+
+> (commitment of 2026-10-01, restated 2026-10-04: "no more stops just to wait for CI")
+
+v1.15: —
+
+### 35. quote
+
+v1.14:
+
+> (2026-10-01; 2026-10-04 "no more stops just to wait for CI")
+
+v1.15: —
+
+### 36. quote
+
+v1.14:
+
+> ("please be selective of inportant walks to do from now on"; "why do we have to repeat these walks again?")
+
+v1.15: —
+
+### 37. quote
+
+v1.14:
+
+> ("IF WE CAN DO MORE OF THOSE ITEMS PERTURN, IT WILL BE GREAT TO SAVE TIME"; "give lovable to fix multiple of those issues at a time")
+
+v1.15: —
+
+### 38. quote
+
+v1.14:
+
+> (operator: "I am not saying we have to do fewer tests … I dont want to make it less secure less comprehensive in terms of testing")
+
+v1.15: —
+
+### 39. quote
+
+v1.14:
+
+> (operator: "please review converstatio first and let me know the steps")
+
+v1.15: —
+
+### 40. quote
+
+v1.14:
+
+> (S89: a helper run spent searching the transcript for a text he handed over in one step; "you could have asked for a copy of current lovable knowledge base instead of spending so much time")
+
+v1.15: —
+
+### 41. quote
+
+v1.14:
+
+> ("list form short", five times)
+
+v1.15: —
+
+### 42. quote
+
+v1.14:
+
+> ("should i just send the above or say continue", three times on 2026-10-02)
+
+v1.15: —
+
+### 43. quote
+
+v1.14:
+
+> ("fix it . i dont understand your porposal, just continue to fix appropriately. if there is any i have to do tell me explicetly", 2026-09-30)
+
+v1.15: —
+
+### 44. quote
+
+v1.14:
+
+> (G5; 2026-10-04: "Its turning out to be much more turns than initially anticipated")
+
+v1.15: —
+
+### 45. quote
+
+v1.14:
+
+> ("can you ask lovable to do that instead?")
+
+v1.15: —
+
+### 46. quote
+
+v1.14:
+
+> (S90: "a prefill can tick a list", said from the docs while the form skipped list facts — INC-434; the two C28 corrections of 2026-10-05)
+
+v1.15: —
+
+### 47. quote
+
+v1.14:
+
+> ("please review how other websites implement that"; "need to do a detailed reaserch on this firt and need to discuss first"; "NEED TO REVIEW WHAT OTHER MARKELPLACE LIKE CRIAGELIST OR OTHERS SAY OR DO")
+
+v1.15: —
+
+### 48. quote
+
+v1.14:
+
+> ("ASK ME IF YOUY GAVE QUESTIONS FOR CLARIFICATIONS SO WE GET IT CORRECT")
+
+v1.15: —
+
+### 49. quote
+
+v1.14:
+
+> ("lets save it as agreed rule then")
+
+v1.15: —
+
+### 50. quote
+
+v1.14:
+
+> ("your work is taking too long", 2026-10-05: the reply was two lines and the executor's next turn)
+
+v1.15: —
+
+### 51. quote
+
+v1.14:
+
+> ("i dont want other to access the data we worked so hard")
+
+v1.15: —
+
+### 52. quote
+
+v1.14:
+
+> ("EVERYTHING THAT YOU PLAN AND KNOW OF GOES IN REPO SO WHEN WE PLAN A HANDOVER WE WONT HAVE SOMETHING LEFT … EXTENSIVE AND COVER EVERYTHING PLANNED ABOUT PROJECT, EVERYTHING DONE, SO FAR, AND PLANS AND STEPS")
+
+v1.15: —
+
+### 53. quote
+
+v1.14:
+
+> ("fix it . i dont understand your porposal, just continue to fix appropriately. if there is any i have to do tell me explicetly")
+
+v1.15: —
+
+### 54. quote (G0)
+
+v1.14:
+
+> G0 SYSTEMS, NOT PATCHES (v1.14, the operator's directive of 2026-10-23: "when we design or when we fix an issue, we should not just patch small fix, we should rather look at the bigger picture … ready for bigger expansion in future … never fail in future … similar issues are identified and fixed as well, security holes and vulnerabilities are addressed and we have a centralized system that will be much easier to maintain … even if that will take extra effort").
+
+v1.15: G0 SYSTEMS, NOT PATCHES (v1.14, the operator's directive of 2026-10-23).
+
+### 55. quote (G29)
+
+v1.14:
+
+> The operator's words: "when such issue identified, make sure not just fix one issue but reaserch wider issue and fix with detail review if similar problems exist other places" (2026-09-29; repeated 2026-09-30 twice and 2026-10-01: "same comment for all other boxes everywhere, not just for brands but everything, every attribute").
+
+v1.15: —
+
+### 56. quote (§13)
+
+v1.14:
+
+> ADDENDUM (v1.13, operator directive 2026-10-04): a handoff is a PACKAGE, not a block — "EVERYTHING THAT YOU PLAN AND KNOW OF GOES IN REPO SO WHEN WE PLAN A HANDOVER WE WONT HAVE SOMETHING LEFT … EXTENSIVE AND COVER EVERYTHING PLANNED ABOUT PROJECT, EVERYTHING DONE, SO FAR, AND PLANS AND STEPS".
+
+v1.15: ADDENDUM (v1.13, operator directive 2026-10-04): a handoff is a PACKAGE, not a block.
+
+### 57. new rules G56–G59
+
+v1.14:
+
+> §13 Continuity & handoff
+
+v1.15: G56 Executors and channels (v1.15; DEC-245, DEC-246, DEC-255–DEC-257) — Two executors write the repository: Lovable (its platform, its Knowledge, AGENTS.md) and the Claude Code executor (the kit — CLAUDE.md, .claude/rules, the hooks, land.ts the one landing door, the reviewer subagent; .github/workflows/** and .claude/** are closed to it, so workflow and kit changes go to Lovable). One executor works at a time: each landing rewrites roadmap line 3, which the other's scope reads. Claude Code: every brief starts a NEW session (a session sends its whole context again on every request); the operator starts it, pastes the carrier and brings the final report; the supervisor never answers its permission prompts; one message per executor turn — a brief, a numbered ruling, "continue", or "apply <fragment> on ethio-prod" after the staging read-back and the operator's yes. Lovable: the supervisor may send briefs, rulings and "continue" through the Lovable connector (DEC-245) — only what the operator would otherwise paste, one message per Lovable turn, never while it works; never query_database, enable_database, deploy_project, knowledge set, visibility, project create, remix or move, skills, add_connector or Project progress; a "Modify Supabase database" pause is answered only on the operator's yes; Publish stays the operator's; when the operator is present he pastes the file himself (it costs the supervisor's plan nothing). Supabase connector (DEC-246): write calls only on ethio-staging, only migration files already on dev, sha-checked and applied whole, the specific mark read back; ethio-prod read-only at most; execute_sql reads only; no project, branch, edge-function or secret calls.
+G57 Checks and waits (v1.15, operator 2026-10-27) — A Claude Code turn gets no scheduled check: the operator brings its final report. A Lovable turn gets scheduled checks only when the operator says he is away. A CI wait is a background command that polls the Actions API at no model cost and wakes the supervisor once, when the run completes; nothing polls on a schedule while nothing runs (a wake after a long idle reads the whole context again at full price). CI runs queue — a newer push replaces only a QUEUED run, never the running one (DEC-181). The Foundation fixes tracker (a Claude Doc) is updated after every verified turn and opened for the operator when he asks (operator 2026-10-24).
+G58 Briefs land by the block applier (v1.15; register row 58; S453, S454) — Every FILE and EDIT block a brief carries is applied by `bash scripts/brief/apply-blocks.sh <saved brief> [--dry] [<path> …]`, never retyped (the kit refuses inline programs; the applier's scope is the kit's scopeVerdict, which reads roadmap line 3 — so a brief that uses it makes the line-3 change at STEP 0 and writes every block marker at the start of its line — and refuses .github/workflows/** and .claude/**, whose blocks go to Lovable, which copies them by its own script, each OLD text checked to be found exactly once, the brief's hash list proving every file — turn 34e, 2026-10-27); the executor saves a long brief by a scripted copy, never by retyping it. Before a brief is sent, Claude simulates the whole turn on its base — STEP 0's hand edits made by hand, every block applied by the applier — and compares every file with a prototype that includes STEP 0's hand edits; every generator asserts that roadmap line 3 names the brief in force at the end of the turn and that no roadmap block touches line 3. Every brief's new code is checked against AGENTS.md and the kit's rules (.claude/rules/10-code-laws.md included) by check-brief.py (--cc for Claude Code) before it is sent, and every hit is read: a hit inside imported record text is record, not instruction. Red first is shown on the base, never committed.
+G59 Cost and quality (v1.15, operator 2026-10-27) — Quality is never traded for cost. The supervisor's own requests are the main cost of the operator's plan: one script per landing (verify it, read CI, cut and rehearse the next brief), filtered output, no helper agent or study unless asked; an exact-copy turn is verified by hash equality, its new tests and CI. Briefs are prototype-exact by default; while the Claude Code cloud credit lasts (to 2026-11-05) a lower-risk turn (tests, tooling, screens) may be spec-built — exact tests, the full consumer census, the executor's reviewer, CI and the supervisor's full diff review — never a turn that touches sign-in, permissions, migrations or personal data; when the credit ends, executor turns return to Lovable. Records-only and exact-copy turns may run on Sonnet (the operator picks the model when he starts a session). Every number about spend is an ESTIMATE until measured (G52).
+
+§13 Continuity & handoff
+
 ## Slips
 
 The supervisor's slips, each with the guardrail it names (§11: logged with the same honesty as executor slips; the earlier record S3 → S92 is the §11 text moved above). Bundle 22 after the close (2026-10-20 → 2026-10-23):
@@ -184,3 +660,6 @@ SLIPS (the supervisor's, with the guardrail each names) — S379 … S452, the F
 - S453 (G0.3 and G55 — the S422 class: a brief's new code checked against the rules before sending; 2026-10-27 02:1xZ) — turn 34d's brief wrote a new e2e helper (e2e/helpers/route-guard.ts :13) that read a caught error's text by hand, against .claude/rules/10-code-laws.md F4 ("A caught error's text is read through `errorText` / `errorWithStack`"); the brief's census covered the route concern but not "a caught error's text", which the new code also carried; found by the executor's reviewer (MINOR 3) and widened into INC-937. Corrective: check-brief.py --cc refuses a brief whose new code reads a caught error's text by hand ([error-text], proven on 34d's brief); the helper's site moves onto errorText in turn 34c-4.
 - S454 (G16 addendum — an expected result is produced by running it, never by agreeing with itself; 2026-10-27 11:0xZ) — records turn R2's brief carried `EDIT roadmap.md #1` backwards: its OLD was line 3 as STEP 0 leaves it (naming R2), its NEW BASE's line 3 (naming R1), so applying it would have undone STEP 0 and made land.ts judge the landing against R1's brief. The cause: the roadmap script of the prototype left line 3 unchanged ("STEP 0's hand edit") while the generator diffed from a base with line 3 already changed, and the supervisor's simulation compared the turn's result with that same wrong prototype and passed. The executor dry-ran Part B, saw it and stopped (stop 1, 6bc50221) — the right call. R3's scripts carried the same defect. Corrective (mechanism, in the supervisor's tooling): every generator asserts that the prototype's roadmap line 3 names the brief being generated, and the roadmap scripts make STEP 0's line-3 edit themselves; R2 went out as v2 in a new session, and R3's scripts were fixed the same hour.
 - Also logged, not numbered: records turn R3's step C2 expected the ledger's last numbering line to end "S454" while block S77's own text, updated when S454 was registered, ends "S455" (the block was brought level, its expectation line was not — the executor reported it as a departure and left the record as the block wrote it, which is right; 2026-10-27 12:5xZ); the supervisor's "pkill slip again (minor)" (2026-10-26 15:5xZ — `pkill -f "node dist/server/index.mjs"` matched its own shell's command line and killed it; servers since stopped by their saved pids); a full unit run edited mid-run and a second overlapping it in the same log (15:5xZ — both discarded: a full run starts after the last edit, one at a time, its own log); the generator lessons of 2026-10-25 16:50Z (a placeholder alternation matched AGENTSLINE before AGENTSLINEBYTES; a `printf "<the line>"` instruction would have run the line's backticks — both caught before sending, no repository harm); "caught before sending (not a slip)" — 34c-2's provider-test mocks (19:4xZ) and 34b-2's agents-line-missing (14:2xZ); the G5 record of a wrong prediction (2026-10-25 21:0xZ: the root loader does NOT re-run on a client navigation — the planned 'root-loader-no-rerun' item dropped); the supervisor's "04:10 answer" that credited B-3 for sign-up (2026-10-26 08:2xZ — corrected to the operator; a sign-up-with-a-taken-e-mail case queued); "My smoke estimate ($3–10 for the whole turn) had no data behind it" (2026-10-25; first measurement $2 for a ten-call stopped session); turn 34c-2's expected roadmap not run through Prettier, so the executor's formatter escaped `sb-\*-auth-token` (2026-10-26 20:36Z — a formatting-only difference it reported as a departure); the container restart of 2026-10-26 22:06–22:10Z lost the CI watcher and stopped a records helper (both restarted; no record harm).
+- S455 (G16 — a brief's own sentences agree with its blocks; 2026-10-27 13:2xZ, found by records turn R4's reviewer) — records turn R4's brief contradicted itself in three places: STEP 0 said the roadmap's other lines change "in Part B" (its blocks changed them in Part C); the behaviour contract said the ledger's numbering line "becomes INC-940" (the blocks wrote INC-941, which landed); THE SYSTEM said "REGISTER: none (no mechanism changes)" while `EDIT docs/governance/mechanisms.md #1` amended row 58. The executor followed the blocks and listed the three for a ruling; nothing wrong landed. R3's step C2 (the "also logged" line above) was the first of the class. Corrective: every sentence of a brief that names a part, a number or a file is generated from the same data as the blocks, or checked against them by the generator, and the template's prose is re-read against the generated blocks before sending.
+- S456 (G5 and G16's addendum — a number in a brief is measured or labelled ESTIMATE; 2026-10-27 14:4xZ, found on turn 34e's first run) — turn 34e's brief set every install's deadline at 300 s a try and the certificate tools' at 180 s without measuring a single step's times, and its decisions line called the deadlines "generous multiples of the measured times" (true of the job deadlines, measured on run 40406394089; not of the install deadlines). The Chromium install's measured tail (66 of 371 lane runs past 300 s, 895 s at most) was readable from the Actions API the same day. The first run lost lanes 3, 5 and 12 (INC-943) and with them the turn's green: the fix rides records turn R5. Its sibling: a retry was put on package installs, which cannot be repeated after a cut-off. Corrective (DEC-276): every deadline, ceiling or size a brief sets is computed from CI's own history (the step's median, 99th percentile and maximum over at least 300 runs, shown in the brief), with at least half again as margin; a retry only where re-running is safe.
+- Also logged, not numbered (2026-10-27): the supervisor estimated instructions v1.15 at about 40% shorter than v1.14; it is 5% shorter, because v1.14 is mostly rules (G5 — the measured value recorded).
