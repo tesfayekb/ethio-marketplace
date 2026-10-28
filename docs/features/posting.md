@@ -931,6 +931,17 @@ clears all four when it is called without coordinates. So the pin is saved when
 the seller says Save, and removed when the seller says Remove — never as a side
 effect of typing somewhere else.
 
+**One value, whole or absent** (INC-958, Foundations turn C1;
+`src/features/posting/map/pin.ts`). The app carries a pin as one `Pin`
+(`lat`, `lng`, `precision`), its precision the table's own `'exact' | 'approx'`
+(`PinPrecision`). Every read of the columns goes through `readPin`: the pin when
+all three are there and valid, otherwise `null` — no map and no Maps link —
+with one `[client-error]` line when the table's check should have made that
+impossible. No reader fills a missing precision: before turn C1 five did, with
+"exact", the less private side. A NEW pin starts at `NEW_PIN_PRECISION` in the
+pin map, where the seller sees and changes the choice. CF-PIN-1 refuses a loose
+pin field, a `??` on a precision and a column read outside `readPin`.
+
 **The control** (`src/features/posting/map/map-pin-dropper.tsx`) opens from the
 where step behind "Add a map pin (optional)". It is a LAZY chunk: Leaflet is
 dynamically imported, never statically, both because the package ships a UMD
