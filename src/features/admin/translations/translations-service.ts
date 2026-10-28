@@ -418,6 +418,8 @@ export function translationErrorKey(error: unknown): MessageKey | null {
   if (/badHeader|wrongFile|unknownColumn|duplicateColumn/.test(message))
     return "admin.translations.error.fileShape";
   if (/emptyFile|no file/.test(message)) return "admin.translations.error.fileEmpty";
+  // D1 M5a ruling 4 — the press dial's own 429, named so a real limit is never hidden (F4).
+  if (message === MACHINE_TRANSLATE_RATE_LIMITED) return "admin.translations.ai.rateLimited";
   if (/tooManyRows|rateLimited/.test(message)) return "admin.translations.error.fileTooMany";
   if (/language code/i.test(message)) return "admin.translations.error.codeInvalid";
   return "admin.translations.error.generic";
@@ -431,6 +433,7 @@ export function translationErrorKey(error: unknown): MessageKey | null {
 export function serverMessage(error: unknown): string | null {
   const message = (error as { message?: string } | null)?.message ?? "";
   if (ownValue(TRANSLATE_REASON_KEYS, message) !== undefined) return null;
+  if (message === MACHINE_TRANSLATE_RATE_LIMITED) return null;
   return message.trim() === "" ? null : message;
 }
 
@@ -460,6 +463,9 @@ export interface AiTranslateResult {
   failed: { key: string; reason: string }[];
 }
 
+/** The press dial's refusal (POST /api/translate answered 429). */
+export const MACHINE_TRANSLATE_RATE_LIMITED = "machineTranslateRateLimited";
+
 /** The route's own hard cap; the caller chunks to this size. */
 export const AI_CHUNK_SIZE = 100;
 
@@ -483,6 +489,8 @@ async function postTranslate(body: Record<string, unknown>): Promise<AiTranslate
   });
   if (answer.kind === "signedOut") throw new Error("not signed in");
   if (answer.kind === "unreachable") throw new Error("translation request failed (0)");
+  // D1 M5a ruling 4 — the route's press dial answers 429: its own key says it.
+  if (answer.status === 429) throw new Error(MACHINE_TRANSLATE_RATE_LIMITED);
   // F4 — a refusal is thrown with the SERVER's own words, never swallowed.
   if (!answer.ok) {
     throw new Error(answer.error ?? `translation request failed (${answer.status})`);

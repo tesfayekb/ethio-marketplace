@@ -73,6 +73,19 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     expect(serverMessage(new Error("constructor"))).toBe("constructor");
   });
 
+  it("TRS-6 the press dial's 429 shows admin.translations.ai.rateLimited, with no detail line", async () => {
+    route.answer = answered(429, { error: "rateLimited" });
+    const failure = await aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] }).catch(
+      (error: unknown) => error,
+    );
+    expect(translationErrorKey(failure)).toBe("admin.translations.ai.rateLimited");
+    expect(serverMessage(failure)).toBeNull();
+    // An import's own rateLimited refusal keeps its file key.
+    expect(translationErrorKey(new Error("rateLimited"))).toBe(
+      "admin.translations.error.fileTooMany",
+    );
+  });
+
   it("TRS-2 the three non-answered kinds and a refusal throw today's words", async () => {
     const translate = () => aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] });
     route.answer = { kind: "signedOut" };
