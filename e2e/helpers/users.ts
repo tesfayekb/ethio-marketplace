@@ -7,6 +7,7 @@ import { test } from "@playwright/test";
 
 import { adminClient, authErrorText, authFetch, processId, STATE_FILE } from "../global-setup";
 import { chunkByLength } from "./chunk-by-length";
+import { errorText } from "../../src/lib/error-text";
 
 export { adminClient } from "../global-setup";
 
@@ -169,11 +170,7 @@ export function recordAccount(kind: "pool" | "fresh", id: string): void {
     mkdirSync(dirname(STATE_FILE), { recursive: true });
     appendFileSync(accountLedgerFile(), `${kind} ${id}\n`, "utf8");
   } catch (error) {
-    console.warn(
-      `[e2e:pool] WARNING could not record ${kind} account ${id}: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    console.warn(`[e2e:pool] WARNING could not record ${kind} account ${id}: ${errorText(error)}`);
   }
 }
 

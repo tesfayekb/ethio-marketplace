@@ -25,6 +25,7 @@ import {
   type PersistedSession,
 } from "./session";
 import { totp, totpStep } from "./totp";
+import { errorText } from "../../src/lib/error-text";
 
 /** Escape a catalog value for literal use inside a RegExp. */
 function escapeRe(value: string) {
@@ -543,7 +544,7 @@ export async function signIn(
       error.message = `${error.message}\n[auth-dump] ${dump}`;
       throw error;
     }
-    throw new Error(`${String(error)}\n[auth-dump] ${dump}`);
+    throw new Error(`${errorText(error)}\n[auth-dump] ${dump}`);
   }
 
   await fillUntilStable(emailInput, email, "email");
@@ -682,12 +683,9 @@ export async function enrollAndStepUp(page: Page): Promise<string> {
   } catch (error) {
     const refusal = page.getByTestId("mfa-error");
     const message = (await refusal.isVisible()) ? await refusal.innerText() : "no error shown";
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\nmfa-error: ${message}`,
-      {
-        cause: error,
-      },
-    );
+    throw new Error(`${errorText(error)}\nmfa-error: ${message}`, {
+      cause: error,
+    });
   }
   return secret;
 }
@@ -961,7 +959,7 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
     } catch (error) {
       // A code already spent inside its 30s window is refused; the next
       // window's code is a legitimate retry, never a weakened assertion.
-      lastError = error instanceof Error ? error.message : String(error);
+      lastError = errorText(error);
       if (attempt === 3) break;
       await new Promise((resolve) => setTimeout(resolve, 8000));
     }
@@ -1351,7 +1349,7 @@ export async function describeStringsPage(page: Page): Promise<string> {
         .join("\n");
     });
   } catch (error) {
-    cache = `(query cache read threw: ${(error as Error).message})`;
+    cache = `(query cache read threw: ${errorText(error)})`;
   }
 
   const present: string[] = [];
@@ -1409,7 +1407,7 @@ export async function describeSwitcher(page: Page): Promise<string> {
       return value === undefined ? "(provider never published a snapshot)" : JSON.stringify(value);
     });
   } catch (error) {
-    snapshot = `(snapshot read threw: ${(error as Error).message})`;
+    snapshot = `(snapshot read threw: ${errorText(error)})`;
   }
 
   // INC-121 (b) — A DUMP NEVER DEPENDS ON AN OPEN MENU. The options live in a
@@ -1436,7 +1434,7 @@ export async function describeSwitcher(page: Page): Promise<string> {
     const state = menuOpen === "true" ? "menu open" : "menu closed (options are portalled)";
     options = `${codes.join(",") || "(none)"} · checked: ${checked.join(",") || "(none)"} · ${state}`;
   } catch (error) {
-    options = `(options read threw: ${(error as Error).message})`;
+    options = `(options read threw: ${errorText(error)})`;
   }
 
   const htmlLang = await page

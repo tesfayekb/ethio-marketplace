@@ -32,6 +32,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { errorText } from "../../src/lib/error-text";
 
 const SUPABASE_URL = process.env["SUPABASE_URL"];
 const SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
@@ -450,8 +451,6 @@ async function run(): Promise<void> {
 }
 
 run().catch((error: unknown) => {
-  console.error(
-    `FAIL — unhandled error: ${error instanceof Error ? error.message : String(error)}`,
-  );
+  console.error(`FAIL — unhandled error: ${errorText(error)}`);
   process.exit(1);
 });

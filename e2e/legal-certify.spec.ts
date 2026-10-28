@@ -19,6 +19,7 @@ import {
 import { anonRpc, passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 22 (Stage 1), turn 4 — THE PUBLISHING STATEMENT AND ITS CERTIFICATION (LG-15..LG-18, LGC-1..LGC-3).
@@ -49,7 +50,7 @@ async function answerOf(response: Response) {
   if (!response.ok) {
     const message =
       body !== null && typeof body === "object" && "message" in body
-        ? String((body as { message: unknown }).message)
+        ? errorText(body)
         : `HTTP ${response.status}`;
     return { data: null as unknown, error: message as string | null };
   }

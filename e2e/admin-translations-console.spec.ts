@@ -19,6 +19,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { errorText } from "../src/lib/error-text";
 import {
   langRow,
   actionsOf,
@@ -78,7 +79,7 @@ function watchRoute(page: Page, urlPart: string): Promise<string> {
   return page
     .waitForResponse((response) => response.url().includes(urlPart), { timeout: 60000 })
     .then(async (response) => `${response.status()} ${await response.text()}`)
-    .catch((error: unknown) => `no response observed: ${String(error)}`);
+    .catch((error: unknown) => `no response observed: ${errorText(error)}`);
 }
 
 /** The row as read — all columns — via the service client (J4 table truth). */
@@ -100,9 +101,7 @@ async function expectWithEvidence(
   try {
     await assertion();
   } catch (error) {
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n[e2e:l4c] ${await evidence()}`,
-    );
+    throw new Error(`${errorText(error)}\n[e2e:l4c] ${await evidence()}`);
   }
 }
 
@@ -695,9 +694,9 @@ test.describe("U4b translations console", () => {
         await awaitGuardedOutcome(page, secret, summary.or(runError), { timeout: 90_000 });
       } catch (failure) {
         throw new Error(
-          `TR-12 step 3: the guarded bulk run never resolved for scope ${fence} (${await barState()}) — ${
-            failure instanceof Error ? failure.message : String(failure)
-          }`,
+          `TR-12 step 3: the guarded bulk run never resolved for scope ${fence} (${await barState()}) — ${errorText(
+            failure,
+          )}`,
         );
       }
       await expect(summary.or(runError), {
@@ -1177,7 +1176,7 @@ test.describe("U4b translations console", () => {
         .catch(async (error: unknown) => {
           throw new Error(
             `[e2e:u4e] TR-16 revision-count mismatch for ${key}:\n${lastDump}\n` +
-              `(${error instanceof Error ? error.message : String(error)})`,
+              `(${errorText(error)})`,
           );
         });
     } finally {

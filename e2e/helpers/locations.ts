@@ -5,6 +5,7 @@ import { assertNoStringifiedLeak, settled } from "./ui";
 import { isUserAssigned, readAnchor, scratchCountryCode, seedCountry } from "./countries";
 import { adminClient } from "./users";
 import { chunkByLength } from "./chunk-by-length";
+import { errorText } from "../../src/lib/error-text";
 
 /**
  * LOCATIONS ERA L2a — SHARED LOCATIONS-CONSOLE HELPERS.
@@ -139,9 +140,7 @@ export async function findRow(page: Page, key: string, needle?: string): Promise
   try {
     await expect(row).toBeVisible({ timeout: 20000 });
   } catch (error) {
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${key})`)}`,
-    );
+    throw new Error(`${errorText(error)}\n${await dialogDump(page, `findRow(${key})`)}`);
   }
   await assertNoStringifiedLeak(page, `findRow(${key})`);
   return row;
@@ -153,9 +152,7 @@ export async function openEditor(page: Page, key: string) {
   try {
     await expect(page.getByTestId("location-editor")).toBeVisible({ timeout: 20000 });
   } catch (error) {
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `openEditor(${key})`)}`,
-    );
+    throw new Error(`${errorText(error)}\n${await dialogDump(page, `openEditor(${key})`)}`);
   }
   await settled(page);
 }
@@ -524,7 +521,7 @@ export async function readServedTree(countryCode: string): Promise<{
       codes: [...new Set(nodes.map((node) => node.country_code ?? "").filter((c) => c !== ""))],
     };
   } catch (cause) {
-    return { status: 0, slugs: [], codes: [`fetch failed: ${(cause as Error).message}`] };
+    return { status: 0, slugs: [], codes: [`fetch failed: ${errorText(cause)}`] };
   }
 }
 
@@ -663,7 +660,7 @@ export async function seedSingleOptionMarket() {
       code = candidate;
       break;
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = errorText(error);
       if (!message.includes("countries_pkey")) throw error;
     }
   }

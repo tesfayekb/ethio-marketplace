@@ -15,6 +15,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import { chunkByLength } from "../e2e/helpers/chunk-by-length";
 import { describeRuns, gateEnv, waitForQuiet, yieldWatcher, YieldError } from "./staging-gate";
+import { errorText } from "../src/lib/error-text";
 
 export const TARGET_P95_MS = 50;
 export const TARGET_BYTES = 30720;
@@ -320,7 +321,7 @@ async function main(): Promise<number> {
       if (waited.quiet) console.log(`staging gate: staging quiet after ${waited.waitedSeconds} s`);
       else skipped = `staging busy for ${GATE_WAIT_MINUTES} min: ${describeRuns(waited.busy)}`;
     } catch (error) {
-      skipped = `gate unreadable: ${error instanceof Error ? error.message : String(error)}`;
+      skipped = `gate unreadable: ${errorText(error)}`;
     }
     if (skipped !== undefined) {
       mkdirSync("docs/tracking", { recursive: true });
@@ -511,7 +512,7 @@ async function main(): Promise<number> {
     }
   } catch (error) {
     if (error instanceof YieldError) yielded = error.message;
-    else failure = error instanceof Error ? error.message : String(error);
+    else failure = errorText(error);
     if (seedStart > 0 && seedSeconds === 0) seedSeconds = (Date.now() - seedStart) / 1000;
   } finally {
     // 6. Clean up, whatever happened.
@@ -524,7 +525,7 @@ async function main(): Promise<number> {
       if (sellerId) await deleteSeller(db, sellerId);
       leftovers = await countLeftovers(db, P);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
+      const msg = errorText(error);
       failure = failure ?? `cleanup: ${msg}`;
       leftovers = Math.max(leftovers, 1);
     }
@@ -568,7 +569,7 @@ if (process.argv[1]?.includes("feed-bench")) {
   main().then(
     (code) => process.exit(code),
     (error) => {
-      console.log(`::error::feed-bench: ${error instanceof Error ? error.message : String(error)}`);
+      console.log(`::error::feed-bench: ${errorText(error)}`);
       process.exit(1);
     },
   );

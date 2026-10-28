@@ -14,6 +14,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 16 (My listings), turn 1 — THE SELLER'S DOORS (ML-1..ML-10).
@@ -79,7 +80,7 @@ async function answerOf(response: Response) {
   if (!response.ok) {
     const message =
       body !== null && typeof body === "object" && "message" in body
-        ? String((body as { message: unknown }).message)
+        ? errorText(body)
         : `HTTP ${response.status}`;
     return { data: null as unknown, error: message as string | null };
   }

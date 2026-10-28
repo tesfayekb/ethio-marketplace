@@ -4,6 +4,7 @@ import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { gotoReady, signInViaSession } from "./helpers/ui";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 19, turn 4 (M1) — THE AD PAGE'S DOORS (AP-3..AP-8).
@@ -42,7 +43,7 @@ async function answerOf(response: Response) {
   if (!response.ok) {
     const message =
       body !== null && typeof body === "object" && "message" in body
-        ? String((body as { message: unknown }).message)
+        ? errorText(body)
         : `HTTP ${response.status}`;
     return { data: null as unknown, error: message as string | null };
   }

@@ -1,9 +1,9 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import { walkFiles } from "../../scripts/conformance/kit";
+import { readAllowlist, walkFiles } from "../../scripts/conformance/kit";
 
 import { errorText, errorWithStack } from "./error-text";
 
@@ -83,6 +83,8 @@ function withoutRuleCalls(text: string): string {
       else if (text[at] === ")") depth -= 1;
       at += 1;
     }
+    // The call's own lines stay (as empty lines), so a finding's line is the file's.
+    out += text.slice(match.index, at).replace(/[^\n]/g, "");
     index = at;
     call.lastIndex = at;
   }
@@ -107,22 +109,96 @@ function ssrErrorCalls(text: string): string[] {
   return calls;
 }
 
-describe("the server's caught-error census (INC-625, G29)", () => {
-  it("ERRT-6 server code takes a caught error's text only through errorText or errorWithStack", () => {
-    const banned: [RegExp, string][] = [
-      [/instanceof Error\s*\?\s*\w+\.message/, "instanceof Error ? x.message"],
-      [/(?<!new Error\()\bString\(\s*(?:error|err|e|caught|reason)\s*\)/, "String(error)"],
-      [/as Error\)\.message/, "(error as Error).message"],
-      [/as \{ message: unknown \}\)\.message/, "(error as { message }).message"],
-    ];
-    const found: string[] = [];
-    for (const path of serverSources()) {
-      const text = withoutRuleCalls(readFileSync(path, "utf8"));
-      for (const [pattern, name] of banned) {
-        if (pattern.test(text)) found.push(`${relative(process.cwd(), path)}: ${name}`);
-      }
+/** The four hand reads of a caught error's text the rule replaces (rule 10, F4). */
+const HAND_READS: [RegExp, string][] = [
+  [/instanceof Error\s*\?\s*\w+\.message/, "instanceof Error ? x.message"],
+  [/(?<!new Error\()\bString\(\s*(?:error|err|e|caught|reason)\s*\)/, "String(error)"],
+  [/as Error\)\.message/, "(error as Error).message"],
+  [/as \{ message: unknown \}\)\.message/, "(error as { message }).message"],
+];
+
+/** Every hand read in `paths`, as `<file>:<line> <form>` (an errorText(…) call's own text is not read). */
+export function handReads(paths: string[]): { file: string; line: string }[] {
+  const found: { file: string; line: string }[] = [];
+  for (const path of paths) {
+    const file = relative(process.cwd(), path).split("\\").join("/");
+    withoutRuleCalls(readFileSync(path, "utf8"))
+      .split("\n")
+      .forEach((text, index) => {
+        for (const [pattern, name] of HAND_READS)
+          if (pattern.test(text)) found.push({ file, line: `${file}:${index + 1} ${name}` });
+      });
+  }
+  return found;
+}
+
+/**
+ * INC-937 (Foundations turn C2; G55) — the whole tree: src/, e2e/ and scripts/, tests included (a
+ * test's failure message is a log line too). Two files are the rule itself and are not read: the
+ * rule (error-text.ts, whose `String(value)` names a number or a flag) and this census (its patterns).
+ */
+const THE_RULE = new Set(["src/lib/error-text.ts", "src/lib/error-text.test.ts"]);
+function treeSources(): string[] {
+  const root = process.cwd();
+  return walkFiles(
+    ["src", "e2e", "scripts"].map((dir) => resolve(root, dir)),
+    {
+      ext: ["ts", "tsx", "mjs"],
+    },
+  ).filter((path) => !THE_RULE.has(relative(root, path).split("\\").join("/")));
+}
+
+const ALLOWLIST = "scripts/conformance/error-text-allowlist.txt";
+
+describe("the caught-error census (INC-625, G29; INC-937, G55)", () => {
+  it("ERRT-6 src/, e2e/ and scripts/ take a caught error's text only through errorText or errorWithStack, but the allowlist's files", () => {
+    const sources = treeSources();
+    const found = handReads(sources);
+    const allowed = readAllowlist(ALLOWLIST, new Set(found.map(({ file }) => file)));
+    const outside = found.filter(({ file }) => !allowed.has(file)).map(({ line }) => line);
+    console.log(
+      `[error-text] files read: ${sources.length}; hand reads: ${found.length}; allowed files: ${allowed.size}`,
+    );
+    expect(sources.length).toBeGreaterThan(0);
+    expect(outside).toEqual([]);
+  });
+
+  it("ERRT-8 the census reads each folder and names a planted hand read of each form in each, and passes errorText", () => {
+    const sources = treeSources().map((path) =>
+      relative(process.cwd(), path).split("\\").join("/"),
+    );
+    for (const folder of ["src/", "e2e/", "scripts/"])
+      expect(
+        sources.some((file) => file.startsWith(folder)),
+        `the census reads ${folder}`,
+      ).toBe(true);
+    const dirs = ["src", "e2e", "scripts"].map((dir) => `node_modules/.cache/errt-8/${dir}`);
+    const files = dirs.map((dir) => `${dir}/errt-planted.ts`);
+    const body = [
+      'import { errorText } from "../src/lib/error-text";',
+      "export const a = (error: unknown) => (error instanceof Error ? error.message : 1);",
+      "export const b = (error: unknown) => String(error);",
+      "export const c = (error: unknown) => (error as Error).message;",
+      "export const d = (body: unknown) => String((body as { message: unknown }).message);",
+      "export const e = (error: unknown) => errorText(error instanceof Error ? error.message : 1);",
+      "",
+    ].join("\n");
+    try {
+      dirs.forEach((dir, index) => {
+        mkdirSync(dir, { recursive: true });
+        writeFileSync(files[index] ?? "", body);
+      });
+      expect(handReads(files).map(({ line }) => line)).toEqual(
+        files.flatMap((file) => [
+          `${file}:2 instanceof Error ? x.message`,
+          `${file}:3 String(error)`,
+          `${file}:4 (error as Error).message`,
+          `${file}:5 (error as { message }).message`,
+        ]),
+      );
+    } finally {
+      for (const dir of dirs) rmSync(dir, { recursive: true, force: true });
     }
-    expect(found).toEqual([]);
   });
 
   it("ERRT-7 no [ssr-error] line prints an error's raw .message or String(…), and every route's own log helper uses the rule", () => {

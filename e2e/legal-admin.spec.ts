@@ -8,6 +8,7 @@ import { ensureFenceLanguage } from "./helpers/translations";
 import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
+import { errorText } from "../src/lib/error-text";
 
 // J1: each kind includes run, worker, project and test axes; no real legal document is written.
 const RUN_TAG = `e2e-al-${(process.env["E2E_SHARD"] ?? "local").replace(/[^a-z0-9]/gi, "x").slice(0, 8)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -63,7 +64,7 @@ test.afterEach(async () => {
     try {
       await destroy(kind);
     } catch (error) {
-      failures.push(String(error));
+      failures.push(errorText(error));
     }
   }
   for (const code of [...languages]) {

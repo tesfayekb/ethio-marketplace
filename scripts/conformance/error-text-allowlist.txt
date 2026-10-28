@@ -1,0 +1,15 @@
+# INC-937 (Foundations turn C2) — a file whose caught error's text cannot be read through errorText (src/lib/error-text.ts):
+# src/lib/error-text.test.ts ERRT-6 reads src/, e2e/ and scripts/. Key: `<file>` | reason | until.
+e2e/shell.spec.ts | the read (:3268) sits inside page.evaluate, which runs in the page where none of our modules is loaded, so errorText cannot be imported there | 2026-12-31
+src/features/admin-listings/listing-page.tsx | :330 and :368 read a refusal's message to choose the words shown (moveErrorKey; an empty fallback, not errorText's "no message"); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/admin-listings/listing-photos.tsx | :103 and :132 read a refusal's message to choose the words shown (an empty fallback, not errorText's "no message"); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/admin-listings/listing-settings.tsx | :103 reads a refusal's message to choose the words shown (settingsErrorKey; an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/admin-listings/listings-page.tsx | :291 reads a refusal's message to choose the words shown (an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/admin-screening/photo-changes.tsx | :76 reads a refusal's message to choose the words shown (an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/admin-screening/photo-reviews.tsx | :84 reads a refusal's message to choose the words shown (an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/posting/use-edit-draft.ts | :478 reads a refusal's message to choose the words shown (editErrorKey; an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/lib/error-page.ts | :25 and :27 are the root error page's own describer (an Error's name and message, an object's JSON); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/lib/lovable-error-reporting.ts | :51 names the vendor reporter's error (a Response by its status and address); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/features/auth/auth-client.test.ts | :115 a unit test's capture of a rejection; outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/routes/api/translate.route.test.ts | :71 a unit test's stand-in log of a route error; outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31
+src/test/app-target.test.ts | :14 a unit test's capture of a refusal's message; outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | 2026-12-31

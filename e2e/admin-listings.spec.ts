@@ -26,6 +26,7 @@ import {
   useJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser, createUser } from "./helpers/users";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 11, the Listings console, turn L1 (D134, D136, D137) — THE CONSOLE'S DOORS (AL-1..AL-9).
@@ -98,7 +99,7 @@ async function asPerson(person: { email: string; password: string }) {
     if (!response.ok) {
       const message =
         body !== null && typeof body === "object" && "message" in body
-          ? String((body as { message: unknown }).message)
+          ? errorText(body)
           : `HTTP ${response.status}`;
       return { data: null as unknown, error: message as string | null };
     }

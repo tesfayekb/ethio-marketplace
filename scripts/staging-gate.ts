@@ -5,6 +5,7 @@
  * nightly waits before it starts and records every run that overlapped it.
  * Read through the Actions API with the workflow's own token (actions: read).
  */
+import { errorText } from "../src/lib/error-text";
 
 export const STAGING_WORKFLOWS = ["CI", "Nightly E2E", "Guard Proof", "Feed bench"] as const;
 
@@ -143,7 +144,7 @@ export function yieldWatcher(env: GateEnv, everySeconds = 15): () => Promise<voi
       runs = await recentRuns(env);
     } catch (error) {
       // An unreadable answer mid-run is a warning, never a reason to stop.
-      console.log(`::warning::${error instanceof Error ? error.message : String(error)}`);
+      console.log(`::warning::${errorText(error)}`);
       return;
     }
     const busy = busyRuns(runs, env.selfRunId, env.selfName);
@@ -193,9 +194,7 @@ if (import.meta.main) {
     (code) => process.exit(code),
     (error: unknown) => {
       // The nightly runs anyway: an unreadable gate is a warning, never a stop.
-      console.log(
-        `::warning::staging gate: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      console.log(`::warning::staging gate: ${errorText(error)}`);
       process.exit(0);
     },
   );

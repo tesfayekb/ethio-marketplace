@@ -16,6 +16,7 @@ import {
 } from "./helpers/ui";
 import { adminClient, createUser, leaseUser, releaseStaleScratchAlias } from "./helpers/users";
 import { injectSession, passwordGrant } from "./helpers/session";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Phase U1 — Users section.
@@ -117,7 +118,7 @@ async function describeUserDetail(page: Page): Promise<string> {
         .join("\n");
     });
   } catch (error) {
-    cache = `(query cache read threw: ${(error as Error).message})`;
+    cache = `(query cache read threw: ${errorText(error)})`;
   }
 
   const present: string[] = [];
@@ -162,7 +163,7 @@ async function describeAuditRows(userId: string): Promise<string> {
       ),
     ].join("\n");
   } catch (error) {
-    return `[INC-114] audit_log read threw: ${(error as Error).message}`;
+    return `[INC-114] audit_log read threw: ${errorText(error)}`;
   }
 }
 
@@ -178,7 +179,7 @@ async function expectActivity(page: Page, action: string, userId: string) {
     await expect(page.getByTestId(`activity-${action}`).first()).toBeVisible({ timeout: 15000 });
   } catch (error) {
     throw new Error(
-      `${(error as Error).message}\n\n[INC-115d] expected activity row: ${action}\n${await describeUserDetail(
+      `${errorText(error)}\n\n[INC-115d] expected activity row: ${action}\n${await describeUserDetail(
         page,
       )}\n${await describeAuditRows(userId)}`,
     );

@@ -34,6 +34,7 @@ import {
 } from "./helpers/translations";
 import { fromCsv } from "../src/features/admin/translations/io-formats";
 import { isPseudo, PSEUDO_LANG } from "../src/features/admin/translations/pseudo";
+import { errorText } from "../src/lib/error-text";
 /**
  * Phases U4f/U4g/U4i — publication gate, bulk approval, roster order, orphans,
  * export/import and pseudo-localization.
@@ -96,9 +97,7 @@ test.describe("U4f — publication gate governs language choice", () => {
         .toEqual(expected)
         // U4g-21 (INC-113): a gate-list mismatch dumps the provider snapshot.
         .catch(async (error: unknown) => {
-          throw new Error(
-            `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
-          );
+          throw new Error(`${errorText(error)}\n\n${await describeSwitcher(page)}`);
         });
       await page.keyboard.press("Escape");
 
@@ -170,7 +169,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
             await body();
           } catch (error) {
             throw new Error(
-              `${(error as Error).message}\n\n[INC-112] phase: ${name}\n${await describeStringsPage(page)}`,
+              `${errorText(error)}\n\n[INC-112] phase: ${name}\n${await describeStringsPage(page)}`,
             );
           }
         });
@@ -269,7 +268,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
             .catch(async (error: unknown) => {
               throw new Error(
                 `[e2e:u4g] TR-19 revision mismatch for ${key}:\n${dump}\n` +
-                  `(${error instanceof Error ? error.message : String(error)})`,
+                  `(${errorText(error)})`,
               );
             });
         }
@@ -667,9 +666,7 @@ test.describe("U4g bulk approval, order and orphans", () => {
         // is absent, the dump says whether the gate list arrived and what it
         // held (a cached gate list is the failure this catches).
         .catch(async (error: unknown) => {
-          throw new Error(
-            `${error instanceof Error ? error.message : String(error)}\n\n${await describeSwitcher(page)}`,
-          );
+          throw new Error(`${errorText(error)}\n\n${await describeSwitcher(page)}`);
         });
 
       // 2. Selecting it must RENDER, not crash: the readiness contract is the

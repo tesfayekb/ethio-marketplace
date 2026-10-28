@@ -4,6 +4,7 @@ import { netRetryLedgerFile } from "./helpers/net-retry";
 import { accountLedgerFile } from "./helpers/users";
 
 import { adminClient, authErrorText, processId, STATE_FILE, type E2EUser } from "./global-setup";
+import { errorText } from "../src/lib/error-text";
 
 const NAMESPACE = "@ethio-e2e.invalid";
 const STALE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
@@ -59,9 +60,9 @@ export default async function globalTeardown() {
     users = await listAll(supabase);
   } catch (error) {
     console.warn(
-      `[e2e:teardown] WARNING could not list users for process ${currentProcessId}: ${
-        error instanceof Error ? error.message : String(error)
-      } — the nightly sweep will reap them.`,
+      `[e2e:teardown] WARNING could not list users for process ${currentProcessId}: ${errorText(
+        error,
+      )} — the nightly sweep will reap them.`,
     );
     rmSync(STATE_FILE, { force: true });
     return;
@@ -80,7 +81,7 @@ export default async function globalTeardown() {
       if (error) throw new Error(authErrorText(error));
       deleted += 1;
     } catch (error) {
-      faults.push(`${user.id}: ${error instanceof Error ? error.message : String(error)}`);
+      faults.push(`${user.id}: ${errorText(error)}`);
     }
   }
 
@@ -166,11 +167,7 @@ async function reportSignIns(
     const f = await signedIn(fresh);
     console.log(`[e2e:teardown] accounts signed in this run: ${p + f} (pool ${p}, fresh ${f})`);
   } catch (error) {
-    console.warn(
-      `[e2e:teardown] WARNING could not count sign-ins: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    console.warn(`[e2e:teardown] WARNING could not count sign-ins: ${errorText(error)}`);
   }
   reportTransportRetries();
 }
@@ -201,11 +198,7 @@ function reportTransportRetries(): void {
       rmSync(file, { force: true });
     }
   } catch (error) {
-    console.warn(
-      `[e2e:teardown] WARNING could not read transport retries: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    console.warn(`[e2e:teardown] WARNING could not read transport retries: ${errorText(error)}`);
   }
   const fmt = (m: Map<string, number>) =>
     m.size === 0 ? "none" : [...m].map(([k, v]) => `${k} ${v}`).join(", ");

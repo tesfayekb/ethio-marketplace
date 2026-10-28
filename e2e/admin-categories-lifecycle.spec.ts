@@ -30,6 +30,7 @@ import {
   rand,
 } from "./helpers/categories";
 import { destroyAttribute } from "./helpers/admin-attributes";
+import { errorText } from "../src/lib/error-text";
 /**
  * C2 — LIFECYCLE, STEP-UP AND DELETE (CT-12..CT-17).
  *
@@ -640,7 +641,7 @@ import { destroyAttribute } from "./helpers/admin-attributes";
         try {
           await run();
         } catch (error) {
-          const reason = error instanceof Error ? error.message : String(error);
+          const reason = errorText(error);
           throw new Error(`${label} — ${reason}\n${await dialogDump(page, `CT-17 ${label}`)}`);
         }
       };
@@ -730,7 +731,7 @@ import { destroyAttribute } from "./helpers/admin-attributes";
           await page.getByTestId("category-create-position").selectOption({ label: beforeLabel });
         });
       } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
+        const reason = errorText(error);
         throw new Error(`${reason}\n${await positionDump()}`);
       }
 
@@ -1012,9 +1013,7 @@ test.describe("CAT-IE categories import/export", () => {
         lines.push(`[ct18-dump] (${changed.length - DUMP_ROWS} more changed rows not printed)`);
       }
     } catch (error) {
-      lines.push(
-        `[ct18-dump] unreadable: ${error instanceof Error ? error.message : String(error)}`,
-      );
+      lines.push(`[ct18-dump] unreadable: ${errorText(error)}`);
     }
     return lines.join("\n");
   }

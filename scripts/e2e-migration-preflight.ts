@@ -32,6 +32,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { errorText } from "../src/lib/error-text";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REAL_MIGRATIONS_DIR = join(HERE, "..", "supabase", "migrations");
@@ -169,7 +170,7 @@ function degraded(reason: string): void {
     try {
       appendFileSync(summary, `\n> **${line}**\n`);
     } catch (err) {
-      console.error(`[e2e:preflight] could not write the step summary: ${String(err)}`);
+      console.error(`[e2e:preflight] could not write the step summary: ${errorText(err)}`);
     }
   }
 }
@@ -446,7 +447,7 @@ if (process.argv[1] && process.argv[1].includes("e2e-migration-preflight")) {
     process.exit(selfTest());
   }
   migrationPreflight(process.argv.includes("--dry")).catch((err: unknown) => {
-    console.error(err instanceof Error ? err.message : String(err));
+    console.error(errorText(err));
     process.exit(1);
   });
 }

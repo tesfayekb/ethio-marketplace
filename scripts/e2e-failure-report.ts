@@ -30,6 +30,7 @@ import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * INC-108 — THE OUTPUT PATH AND THE SOURCE LABEL ARE INPUTS, NOT CONSTANTS.
@@ -1619,7 +1620,7 @@ export async function readJson(
   try {
     return { json: (await file.json()) as PwJson, error: null };
   } catch (e) {
-    const message = e instanceof Error ? e.message : String(e);
+    const message = errorText(e);
     return { json: null, error: `results.json exists but could not be parsed: ${redact(message)}` };
   }
 }

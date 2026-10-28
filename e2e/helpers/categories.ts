@@ -10,6 +10,7 @@ import {
 } from "./ui";
 
 import { adminClient } from "./users";
+import { errorText } from "../../src/lib/error-text";
 
 /**
  * L1 (DEC-037) — SHARED CATEGORIES-CONSOLE HELPERS.
@@ -95,7 +96,7 @@ export async function findRow(page: Page, slug: string, createdAt?: number): Pro
     await expect(row).toBeVisible({ timeout: 20000 });
   } catch (error) {
     throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${slug})`)}\n${await rosterDump(page, slug, createdAt)}`,
+      `${errorText(error)}\n${await dialogDump(page, `findRow(${slug})`)}\n${await rosterDump(page, slug, createdAt)}`,
     );
   }
   // DEC-045b PART D — the roster is on screen; it may not carry a leak.
@@ -398,7 +399,7 @@ export async function createViaUi(page: Page, secret: string) {
   try {
     await findRow(page, slug, createdAt);
   } catch (error) {
-    throw new Error(`${error instanceof Error ? error.message : String(error)}\n${afterCreate}`);
+    throw new Error(`${errorText(error)}\n${afterCreate}`);
   }
   return slug;
 }

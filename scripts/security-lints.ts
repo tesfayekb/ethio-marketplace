@@ -17,6 +17,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { errorText } from "../src/lib/error-text";
 
 export type LintLevel = "ERROR" | "WARN";
 
@@ -154,7 +155,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   main()
     .then((code) => process.exit(code))
     .catch((err: unknown) => {
-      console.error(`::error::${err instanceof Error ? err.message : String(err)}`);
+      console.error(`::error::${errorText(err)}`);
       process.exit(1);
     });
 }

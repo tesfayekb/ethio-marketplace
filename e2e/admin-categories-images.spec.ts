@@ -2,6 +2,7 @@ import type { Locator } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
 import { en } from "../src/i18n/locales/en";
+import { errorText } from "../src/lib/error-text";
 import { gotoReady, stepUpIfPrompted } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import {
@@ -229,7 +230,7 @@ import {
         try {
           return await Promise.race([run(), watchdog]);
         } catch (error) {
-          const reason = error instanceof Error ? error.message : String(error);
+          const reason = errorText(error);
           throw new Error(`${reason}\n${await bulkDump(label)}\n[trail]\n  ${trail.join("\n  ")}`);
         }
       };
@@ -327,7 +328,7 @@ import {
       try {
         await Promise.race([chain(), watchdog]);
       } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
+        const reason = errorText(error);
         throw new Error(`${reason}\n${await bulkDump("chain")}\n[trail]\n  ${trail.join("\n  ")}`);
       } finally {
         if (armed !== null) clearTimeout(armed);

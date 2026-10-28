@@ -1,6 +1,7 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { errorText } from "../../src/lib/error-text";
 
 /**
  * DEC-104 — THE TEST SERVICE CLIENT RETRIES A DROPPED CALL (fixes INC-385).
@@ -30,11 +31,7 @@ function appendLedger(line: string): void {
     mkdirSync(dirname(file), { recursive: true });
     appendFileSync(file, `${line}\n`, "utf8");
   } catch (error) {
-    console.warn(
-      `[e2e:net] WARNING could not record a retry: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
+    console.warn(`[e2e:net] WARNING could not record a retry: ${errorText(error)}`);
   }
 }
 

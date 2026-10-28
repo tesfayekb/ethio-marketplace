@@ -4,6 +4,7 @@ import { expect } from "../fixtures";
 import { countrySlotCodes, userAssignedCodes } from "./country-slot";
 import { assertNoStringifiedLeak, settled } from "./ui";
 import { adminClient } from "./users";
+import { errorText } from "../../src/lib/error-text";
 
 export { userAssignedCodes } from "./country-slot";
 
@@ -157,7 +158,7 @@ async function rosterDump(page: Page): Promise<string> {
       `[country-dump] main: ${state.text === "" ? "(empty)" : state.text}`,
     ].join("\n");
   } catch (error) {
-    return `[country-dump] unreadable: ${error instanceof Error ? error.message : String(error)}`;
+    return `[country-dump] unreadable: ${errorText(error)}`;
   }
 }
 
@@ -169,7 +170,7 @@ export async function awaitConsole(page: Page) {
   try {
     await expect(page.getByTestId("country-search")).toBeVisible({ timeout: 20000 });
   } catch (error) {
-    const reason = error instanceof Error ? error.message : String(error);
+    const reason = errorText(error);
     throw new Error(`${reason}\n${await rosterDump(page)}`);
   }
 }
@@ -193,9 +194,7 @@ export async function findRow(page: Page, code: string, needle?: string): Promis
   try {
     await expect(row).toBeVisible({ timeout: 20000 });
   } catch (error) {
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `findRow(${code})`)}`,
-    );
+    throw new Error(`${errorText(error)}\n${await dialogDump(page, `findRow(${code})`)}`);
   }
   await assertNoStringifiedLeak(page, `findRow(${code})`);
   return row;
@@ -207,9 +206,7 @@ export async function openEditor(page: Page, code: string) {
   try {
     await expect(page.getByTestId("country-editor")).toBeVisible({ timeout: 20000 });
   } catch (error) {
-    throw new Error(
-      `${error instanceof Error ? error.message : String(error)}\n${await dialogDump(page, `openEditor(${code})`)}`,
-    );
+    throw new Error(`${errorText(error)}\n${await dialogDump(page, `openEditor(${code})`)}`);
   }
   await settled(page);
 }

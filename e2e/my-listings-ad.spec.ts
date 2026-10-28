@@ -18,6 +18,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { errorText } from "../src/lib/error-text";
 
 /**
  * Bundle 16 (My listings), turn 3 — ONE AD'S PAGE (MLA-1..MLA-6).
@@ -53,7 +54,7 @@ async function answerOf(response: Response) {
   if (!response.ok) {
     const message =
       body !== null && typeof body === "object" && "message" in body
-        ? String((body as { message: unknown }).message)
+        ? errorText(body)
         : `HTTP ${response.status}`;
     return { data: null as unknown, error: message as string | null };
   }
