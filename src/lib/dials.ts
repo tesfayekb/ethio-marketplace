@@ -149,4 +149,40 @@ export const DIALS = {
     limit: { fallback: 30 },
     windowSeconds: 60,
   },
+  /** INC-951 3a (D1 M4) — counted by the doors (rate_gate), equal to their rate_dials rows. */
+  /** import_gate_audit — about two events per import; a real staff day runs dozens. */
+  importAudit: {
+    action: "import_audit",
+    limit: { fallback: 600 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
+  /** accept_legal — a person accepts the few documents in force, once each. */
+  legalAccept: {
+    action: "legal_accept",
+    limit: { fallback: 60 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
+  /** remove_listing_photo — equal to photoRemoveDay; the door is the last line. */
+  photoRemoveDoor: {
+    action: "photo_remove",
+    limit: { fallback: 100 },
+    windowSeconds: 86400,
+    countedBy: "door",
+  },
+  /** begin_impersonation — 15-minute sessions, one at a time; far beyond a support shift. */
+  impersonation: {
+    action: "impersonation",
+    limit: { fallback: 30 },
+    windowSeconds: 86400,
+    countedBy: "door",
+  },
+  /** admin_export_legal_acceptances — first pages only (the audited write). */
+  legalExport: {
+    action: "legal_export",
+    limit: { fallback: 60 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
 } as const satisfies Record<string, Dial>;
