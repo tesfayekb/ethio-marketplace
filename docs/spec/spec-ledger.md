@@ -4759,3 +4759,7 @@ JUDGES OPEN AT THE CLOSE OF THIS BLOCK: INC-940 — the Flake check GREEN (2026-
 CURATOR STATE AT THE CLOSE OF THIS BLOCK: unchanged — as block S76 left it.
 
 NUMBERING after this block: next free DEC-283, D239, INC-962, S462, ACT-022.
+
+S81 · 2026-10-28 · FOUNDATIONS TURN C1-2 LANDED (`ebd91c10`; three stops ruled in the same session); DEC-283 APPROVED; INC-964 AND INC-965 REGISTERED
+- DEC-283 (the operator, 2026-10-28 06:48 New York, "Approve it"): every changed browser test is repeated inside the normal CI run — a nineteenth lane, `repeat`, of local-backend-proof.yml runs the spec files changed against main and the specs importing a changed e2e helper (scripts/e2e-select.ts --repeat) up to six times on each of the two projects, retries 0, beside the eighteen lanes; it starts no backend when nothing is selected, and its test time is capped at 720 s (the slowest lane measured 984 s, run 40655391634), the count shrinking to fit and never below two, the rest listed "not repeated". A failed repetition is red. The Flake check (DEC-184) stays for investigations, never as a routine operator step. Its judge, frozen now: over the first 20 runs in which the lane selected at least one spec, KEEP when the median CI wall clock is not more than 2 minutes above the 20 runs before it and at most one red of the lane is false (a test that then passes 24 of 24 in the Flake check); otherwise the lane becomes non-gating.
+NUMBERING after this block: next free DEC-284, D239, INC-966, S466, ACT-022.

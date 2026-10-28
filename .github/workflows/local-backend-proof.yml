@@ -38,6 +38,7 @@ jobs:
             "14",
             "15",
             "16",
+            repeat,
           ]
     permissions:
       contents: read
@@ -66,6 +67,9 @@ jobs:
         timeout-minutes: 5
         with:
           persist-credentials: false
+          # DEC-283: the repeat lane's selector needs the history back to origin/main; the other lanes keep 1.
+          # Quoted: GitHub's expressions treat a bare 0 as false, so `&& 0 || 1` would always give 1.
+          fetch-depth: ${{ matrix.lane == 'repeat' && '0' || '1' }}
       - name: Record checkout seconds
         run: echo "CHECKOUT_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
       - name: Begin install clock
@@ -84,12 +88,77 @@ jobs:
       - name: Install dependencies
         timeout-minutes: 12
         run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
+      # DEC-283 — the repeat lane repeats the spec files this push changed (and the specs importing a changed
+      # e2e helper), chosen by the one selector. A selector failure is red, never "nothing to repeat". With
+      # nothing selected, every later step that installs, starts the backend, builds or tests is skipped.
+      - name: Select the specs to repeat (DEC-283)
+        if: matrix.lane == 'repeat'
+        timeout-minutes: 5
+        run: |
+          REPEAT_BUDGET_SECONDS=720
+          REPEAT_SECONDS_PER_TEST=4.7
+          set -euo pipefail
+          specs=$(bun run scripts/e2e-select.ts --repeat)
+          : > local-backend-repeat.txt
+          if [ -z "$specs" ]; then
+            echo "- Repeat: nothing to repeat" >> local-backend-repeat.txt
+            { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=0"; } >> "$GITHUB_ENV"
+            exit 0
+          fi
+          # shellcheck disable=SC2086
+          bunx playwright test --list --project=mobile-360 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
+          tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" $specs <<'PY'
+          import re, sys
+          counts = {}
+          for line in open(sys.argv[1]).read().splitlines():
+              m = re.match(r'^\s+\[mobile-360\] › (\S+?):\d+:\d+ › ', line)
+              if m:
+                  counts['e2e/' + m[1]] = counts.get('e2e/' + m[1], 0) + 1
+          with open('repeat-counts.txt', 'w') as out:
+              for spec in sys.argv[2:]:
+                  out.write(spec + ' ' + str(counts.get(spec, 0)) + '\n')
+          print(sum(counts.values()))
+          PY
+          )
+          plan=$(bun -e "import { repeatPlan } from './scripts/e2e-select.ts'; const p = repeatPlan($tests, $REPEAT_BUDGET_SECONDS, $REPEAT_SECONDS_PER_TEST); console.log(p.each + ' ' + p.take);")
+          each=${plan% *}
+          take=${plan#* }
+          chosen=""
+          used=0
+          full=0
+          # In the selector's order while they fit: the first spec that does not fit ends the selection.
+          while read -r spec n; do
+            # A spec whose every test is left out by the tags has nothing to repeat.
+            if [ "$n" -eq 0 ]; then continue; fi
+            if [ "$full" = 0 ] && [ $(( used + n )) -le "$take" ]; then
+              chosen="${chosen:+$chosen }$spec"
+              used=$(( used + n ))
+            else
+              full=1
+              echo "- Not repeated: $spec ($n tests)" >> local-backend-repeat.txt
+            fi
+          done < repeat-counts.txt
+          rm -f repeat-counts.txt
+          if [ -z "$chosen" ]; then
+            echo "- Repeat: nothing to repeat" >> local-backend-repeat.txt
+            { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=$tests"; } >> "$GITHUB_ENV"
+            exit 0
+          fi
+          echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test" >> local-backend-repeat.txt
+          {
+            echo "REPEAT_SPECS=$chosen"
+            echo "REPEAT_TESTS=$tests"
+            echo "REPEAT_EACH=$each"
+            echo "REPEAT_BUDGET_SECONDS=$REPEAT_BUDGET_SECONDS"
+            echo "REPEAT_GLOBAL_TIMEOUT_MS=$(( (REPEAT_BUDGET_SECONDS + 120) * 1000 ))"
+          } >> "$GITHUB_ENV"
       - name: Record install seconds
         if: always()
         run: echo "INSTALL_SECONDS=$(( $(date +%s) - INSTALL_BEGIN ))" >> "$GITHUB_ENV"
       - name: Begin CLI clock
         run: echo "CLI_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
       - uses: supabase/setup-cli@v3.0.1
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 5
         with:
           version: 2.120.0
@@ -97,6 +166,7 @@ jobs:
         if: always()
         run: echo "CLI_SECONDS=$(( $(date +%s) - CLI_BEGIN ))" >> "$GITHUB_ENV"
       - name: Prepare temporary working copy
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         run: |
           begin=$(date +%s)
           mkdir -p .ci-local/supabase/migrations
@@ -302,6 +372,7 @@ jobs:
           TOML
           echo "PREPARE_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Make the temporary backend's certificate
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 8
         run: |
           # INC-789 — the app keeps only https photo links, so the API serves https
@@ -344,6 +415,7 @@ jobs:
           echo "NODE_EXTRA_CA_CERTS=$ca_dir/ca.pem" >> "$GITHUB_ENV"
           echo "CERT_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Start backend and apply all migrations
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         id: backend
         timeout-minutes: 15
         run: |
@@ -503,7 +575,7 @@ jobs:
           fi
       # DEC-215 / D227: every signed-in write door checks acceptance or names its reason.
       - name: Acceptance-doors guard (DEC-215, DEC-216)
-        if: matrix.lane == 'smoke'
+        if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'legal_acceptance_pending\(|legal_certify\(' as checks from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/acceptance-doors.tsv"
           bun scripts/check-acceptance-doors.ts "$RUNNER_TEMP/acceptance-doors.tsv"
@@ -518,7 +590,7 @@ jobs:
       # default-privilege fixture, fixed on 53aa4e76) and the step has matched the baseline on every run
       # since — DEC-240's frozen rule: it gates again (turn 34e).
       - name: Database security lints (DEC-240)
-        if: matrix.lane == 'smoke'
+        if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
           if ! bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"; then
@@ -530,11 +602,12 @@ jobs:
             exit 1
           fi
       - name: Caller-gates guard (DEC-241)
-        if: matrix.lane == 'smoke'
+        if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'assert_caller_active\(|rate_gate\(|has_permission\(|is_super_admin\(' as gated from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/caller-gates.tsv"
           bun scripts/check-caller-gates.ts "$RUNNER_TEMP/caller-gates.tsv"
       - name: Build E2E app against local backend
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         id: build
         run: |
           begin=$(date +%s)
@@ -545,11 +618,13 @@ jobs:
           echo "BUILD_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           exit "$result"
       - name: Resolve Playwright version
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Begin browser clock
         run: echo "BROWSER_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
       - name: Cache Playwright browsers
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 10
         uses: actions/cache@v5
         with:
@@ -559,9 +634,11 @@ jobs:
       # 90th percentile and 895 s at most. A package install cut off part-way cannot be repeated, so the system
       # libraries run once with 1500 s; the browser download may be repeated, 900 s a try.
       - name: Install Chromium's system libraries
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 27
         run: bash scripts/ci/with-deadline.sh 1500 1 -- bunx playwright install-deps chromium
       - name: Install Chromium
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 32
         run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium
       - name: Record browser seconds
@@ -571,6 +648,7 @@ jobs:
             echo "BROWSER_SECONDS=$(( $(date +%s) - BROWSER_BEGIN ))" >> "$GITHUB_ENV"
           fi
       - name: Run proof lane
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         id: smoke
         run: |
           begin=$(date +%s)
@@ -578,12 +656,49 @@ jobs:
           set -o pipefail
           if [ "$PROOF_LANE" = smoke ]; then
             bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state" e2e/smoke-auth-i18n.spec.ts e2e/shell.spec.ts e2e/auth-signout.spec.ts e2e/a11y.spec.ts > "local-backend-lane-$PROOF_LANE.log" 2>&1
+          elif [ "$PROOF_LANE" = repeat ]; then
+            # shellcheck disable=SC2086
+            bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --repeat-each "$REPEAT_EACH" --retries 0 --global-timeout "$REPEAT_GLOBAL_TIMEOUT_MS" $REPEAT_SPECS > "local-backend-lane-$PROOF_LANE.log" 2>&1
           elif [ "$PROOF_LANE" = email ]; then
             E2E_EMAIL_SINK=1 bunx playwright test --project=email-serial --workers=1 > "local-backend-lane-$PROOF_LANE.log" 2>&1
           else
             bunx playwright test --project=mobile-360 --project=desktop-1280 --grep-invert "@global-state|@a11y" --shard="$PROOF_LANE/16" > "local-backend-lane-$PROOF_LANE.log" 2>&1
           fi
           result=$?
+          if [ "$PROOF_LANE" = repeat ] && [ "$result" -ne 0 ]; then
+            # DEC-283: the time cap reached with no failed repetition is green; the tests it left are named.
+            python3 - <<'PY' && result=0
+          import json, sys
+          from pathlib import Path
+          results = Path('test-results/results.json')
+          if not results.exists():
+              sys.exit(1)
+          data = json.loads(results.read_text())
+          errors = [str(e.get('message', e)) for e in data.get('errors', [])]
+          if not errors or not all('Timed out waiting' in e for e in errors):
+              sys.exit(1)
+          left, failed = [], False
+          def walk(suite, parents):
+              global failed
+              context = parents + ([suite['title']] if suite.get('title') else [])
+              for spec in suite.get('specs', []):
+                  for test in spec.get('tests', []):
+                      if test.get('status') == 'unexpected':
+                          failed = True
+                      runs = test.get('results', [])
+                      if not runs or any(r.get('status') == 'interrupted' for r in runs):
+                          left.append(' / '.join(context + [spec.get('title', ''), test.get('projectName', '')]))
+              for child in suite.get('suites', []):
+                  walk(child, context)
+          for suite in data.get('suites', []):
+              walk(suite, [])
+          if failed:
+              sys.exit(1)
+          with open('local-backend-repeat.txt', 'a') as out:
+              for title in sorted(set(left)):
+                  out.write('- Not repeated (time cap): ' + title + '\n')
+          PY
+          fi
           set -e
           echo "TEST_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           echo "JOB_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
@@ -675,13 +790,17 @@ jobs:
                       failures.append('Outside test — ' + str(error.get('message', error)).splitlines()[0])
               except (ValueError, KeyError, TypeError) as error:
                   failures.append('Results could not be parsed: ' + str(error))
-          else:
+          elif not (lane == 'repeat' and env.get('REPEAT_SPECS', '') == ''):
               failures.append('No JSON results; smoke ' + env.get('SMOKE_OUTCOME', 'not run'))
           total = sum(counts.values())
           lines.append('- Smoke: ' + ' · '.join(str(n) + ' ' + k for k, n in counts.items()) + ' · total ' + str(total))
           lane_log = Path('local-backend-lane-' + lane + '.log')
           teardown = [line for line in lane_log.read_text(errors='replace').splitlines() if line.startswith(('[e2e:teardown] deleted', '[e2e:teardown] WARNING'))] if lane_log.exists() else []
           lines.append('- Teardown: ' + redact(teardown[-1] if teardown else 'not found'))
+          # DEC-283: the repeat lane's count, selection and what it did not repeat.
+          repeat_file = Path('local-backend-repeat.txt')
+          if lane == 'repeat':
+              lines += repeat_file.read_text().splitlines() if repeat_file.exists() else ['- Repeat: selection not written']
           lines += ['- Job conclusion before evidence publication: ' + env.get('PROOF_STATUS', 'unknown'), '- Backend/build/smoke: ' + '/'.join(env.get(k, 'not run') for k in ('BACKEND_OUTCOME', 'BUILD_OUTCOME', 'SMOKE_OUTCOME'))]
           if failures:
               lines += ['', '## Failing/flaky tests and setup errors', *['- ' + redact(f) for f in failures]]
@@ -810,7 +929,7 @@ jobs:
           E2E_RESULTS_DIR: lane-results
           E2E_LOGS_DIR: lane-logs
           E2E_CONTEXT_DIR: lane-contexts
-          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16
+          E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
           E2E_GREEN: ${{ needs.proof.result == 'success' && '1' || '0' }}
           E2E_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
           E2E_OUT_PATH: docs/tracking/local-backend-last-failure.md
@@ -842,11 +961,11 @@ jobs:
               text = re.sub(r'(│\s*(?:Access Key|Secret Key)\s*│\s*)[^│]*?(\s*│)', r'\1[masked]\2', text)
               text = re.sub(r'[0-9a-fA-F]{32,}', lambda match: match[0] if match[0] == os.environ['GITHUB_SHA'] else '[masked hex]', text)
               return text
-          lanes = ['smoke', 'email', *map(str, range(1, 17))]
+          lanes = ['smoke', 'email', *map(str, range(1, 17)), 'repeat']
           fragments = {}
           for path in sorted(Path('local-proof-artifacts').rglob('local-backend-proof-*.md')):
               text = path.read_text(errors='replace')
-              match = re.search(r'^- Lane: (smoke|email|[1-9]|1[0-6])$', text, re.M)
+              match = re.search(r'^- Lane: (smoke|email|repeat|[1-9]|1[0-6])$', text, re.M)
               if match:
                   if match[1] in fragments:
                       raise SystemExit('duplicate lane evidence: ' + match[1])
@@ -900,20 +1019,20 @@ jobs:
               heading = '## Migration/start failure'
               if heading in fragment:
                   details += ['', '## Lane ' + lane, *fragment[fragment.index(heading):fragment.index('- Smoke: ' + count_line)]]
-          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the eighteen lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
+          lines += ['| TOTAL | — | — | — | ' + ' | '.join(str(totals[key]) for key in totals) + ' | ' + str(sum(totals.values())) + ' |', '- Full evidence: docs/tracking/local-backend-last-failure.md (CI\'s failure reporter over the nineteen lanes)', '', '- Slowest lane: ' + slowest_lane + ' ' + str(slowest) + ' s', '- Repeat lane (DEC-283): ' + '; '.join(line[2:] for line in fragments.get('repeat', []) if line.startswith(('- Repeat: ', '- Not repeated'))) if fragments.get('repeat') else '- Repeat lane (DEC-283): no evidence', '- Database session samples during each start (INC-944): ' + (', '.join(samples) or 'none')]
           lines += ['- Teardown:', *['  - ' + lane + ': ' + field(fragments.get(lane, []), '- Teardown: ', 'no evidence') for lane in lanes]]
           smoke = fragments.get('smoke', [])
           for heading in ('- Working copy:', '- Parity:', '- Status:'):
               lines += section(smoke, heading)
           lines += details
-          lines += ['', 'DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.']
+          lines += ['', 'DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.']
           text = re.sub(r'\b[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\b', '[account id]', '\n'.join(lines))
           Path('docs/tracking').mkdir(parents=True, exist_ok=True)
           Path('docs/tracking/local-backend-proof.md').write_text(redact(text) + '\n')
           full_evidence = Path('docs/tracking/local-backend-last-failure.md')
           if full_evidence.exists():
               full_evidence.write_text(redact(full_evidence.read_text(errors='replace')))
-          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/18; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
+          print('::notice title=local-backend-proof::lanes finished=' + str(len(fragments)) + '/19; ' + '; '.join(key + '=' + str(totals[key]) for key in totals) + '; slowest=' + str(slowest) + 's')
           PY
       - name: Publish only proof evidence
         if: always()

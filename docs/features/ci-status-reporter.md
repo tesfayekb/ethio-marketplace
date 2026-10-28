@@ -29,6 +29,9 @@ So a red build or guard never needs a log paste, the reporter downloads the log 
 `E2E email` job and `E2E lanes / Lane … on temporary Supabase` (including its
 reporting summary) — because those are the E2E
 failure reporter's own sources and two copies of one failure would disagree.
+The lanes are nineteen since DEC-283: the eighteen and `repeat` (`E2E lanes / Lane
+repeat on temporary Supabase`), which repeats the push's changed specs; its results
+are the reporter's source `repeat`, read like a numbered lane's.
 
 Per failed job it writes two blocks:
 

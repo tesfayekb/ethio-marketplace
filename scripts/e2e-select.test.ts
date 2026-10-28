@@ -1,6 +1,6 @@
 // DEC-115 — unit tests for the e2e selector (scripts/e2e-select.ts).
 import { describe, expect, it } from "vitest";
-import { globToRegExp, matches, selectSpecs, selfTest } from "./e2e-select";
+import { globToRegExp, matches, repeatSpecs, selectSpecs, selfTest } from "./e2e-select";
 
 describe("globToRegExp", () => {
   it("matches * within one directory and ** across directories", () => {
@@ -89,5 +89,40 @@ describe("selectSpecs", () => {
 describe("selfTest", () => {
   it("every spec is reachable and every area glob matches", () => {
     expect(selfTest()).toEqual([]);
+  });
+});
+
+// DEC-283 — the repeat lane's selection (`--repeat`).
+describe("repeatSpecs", () => {
+  it("RPS-1 a changed spec selects itself", () => {
+    expect(repeatSpecs(["e2e/geo.spec.ts"])).toEqual(["e2e/geo.spec.ts"]);
+  });
+
+  it("RPS-2 a changed helper selects its importers, transitively", () => {
+    const list = repeatSpecs(["e2e/helpers/posting.ts"]);
+    expect(list).toContain("e2e/post-wizard-place.spec.ts");
+    expect(list).toContain("e2e/posting-routes.spec.ts");
+    expect(list).not.toContain("e2e/helpers/posting.ts");
+  });
+
+  it("RPS-3 a src-only change, the config and the global setup print nothing (never ALL)", () => {
+    expect(
+      repeatSpecs([
+        "src/lib/something-unmapped.ts",
+        "playwright.config.ts",
+        "e2e/global-setup.ts",
+        "supabase/migrations/20990101000000_test.sql",
+      ]),
+    ).toEqual([]);
+  });
+
+  it("RPS-4 a deleted spec is not printed", () => {
+    expect(repeatSpecs(["e2e/no-such-deleted-file.spec.ts"])).toEqual([]);
+  });
+
+  it("RPS-5 the output is sorted and unique", () => {
+    const list = repeatSpecs(["e2e/geo.spec.ts", "e2e/helpers/posting.ts", "e2e/geo.spec.ts"]);
+    expect(list).toEqual([...new Set(list)].sort());
+    expect(list.filter((s) => s === "e2e/geo.spec.ts")).toHaveLength(1);
   });
 });

@@ -482,7 +482,7 @@ jobs:
 
   e2e-lanes:
     name: E2E lanes
-    # D228 / DEC-211 / DEC-218 / DEC-232 — the gating browser tests: eighteen lanes, each on its own
+    # D228 / DEC-211 / DEC-218 / DEC-232 — the gating browser tests: nineteen lanes (eighteen and the repeat lane, DEC-283), each on its own
     # throwaway Supabase built from the repository's migrations; no secrets.
     # contents: write is for the lanes' summary, which publishes its evidence.
     permissions:
@@ -492,7 +492,7 @@ jobs:
   e2e:
     # HISTORICAL NAME PRESERVED: docs/tracking/ci-status.md lists one row per
     # job, and downstream reads key off this exact string. It is now the MERGED
-    # verdict of the eighteen temporary-backend lanes, the email lane included (DEC-211, DEC-218, DEC-232).
+    # verdict of the nineteen temporary-backend lanes (eighteen and the repeat lane, DEC-283), the email lane included (DEC-211, DEC-218, DEC-232).
     name: E2E (Playwright, ethio-staging)
     needs: [e2e-lanes]
     if: always()
