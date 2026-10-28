@@ -967,11 +967,12 @@ test.describe("IMPORT-GATE attributes-links", () => {
 });
 
 /**
- * IG-6 — bundle 12 turn T10 (F1): the gate's audit row is written only by a
- * caller who may run that family's import. A signed-in account with no role,
- * calling `import_gate_audit` straight at the database, is refused for every
- * family and writes nothing; the super admin's preview through the gate still
- * writes its `import.preview` row.
+ * IG-6 — bundle 12 turn T10 (F1); D1 M4b (INC-951): the gate's audit row is
+ * written only by the server. A signed-in account calling `import_gate_audit`
+ * straight at the database is refused because the role cannot execute it
+ * (42501), for every family, and no audit row exists for the batch it named
+ * (G38); the super admin's preview through the gate still writes its
+ * `import.preview` row.
  */
 test.describe("IMPORT-GATE audit", () => {
   test("IG-6 the import audit row is written only by a caller who may run that family's import", async ({
@@ -1006,6 +1007,7 @@ test.describe("IMPORT-GATE audit", () => {
     ).not.toBe("");
     const before = await importRows(plain.id, "import.%", "import:%");
     for (const family of ["attributes", "categories", "locations", "translations"]) {
+      const batch = crypto.randomUUID();
       const response = await fetch(`${url}/rest/v1/rpc/import_gate_audit`, {
         method: "POST",
         headers: {
@@ -1013,16 +1015,29 @@ test.describe("IMPORT-GATE audit", () => {
           Authorization: `Bearer ${plainToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ p_family: family, p_event: "preview", p_batch: null, p_counts: {} }),
+        body: JSON.stringify({
+          p_actor: plain.id,
+          p_family: family,
+          p_event: "preview",
+          p_batch: batch,
+          p_counts: {},
+        }),
       });
       const text = await response.text();
       expect(
-        response.ok,
-        `IG-6 ${family}: an account with no role wrote an audit row: ${text}`,
-      ).toBe(false);
-      expect(text, `IG-6 ${family}: the refusal is not the permission's`).toContain(
-        `permission denied: import ${family}`,
-      );
+        [401, 403].includes(response.status),
+        `IG-6 ${family}: a browser call was not refused (${response.status}): ${text}`,
+      ).toBe(true);
+      expect(
+        (JSON.parse(text) as { code?: unknown }).code,
+        `IG-6 ${family}: the refusal is not the role's (42501)`,
+      ).toBe("42501");
+      const { count, error } = await adminClient()
+        .from("audit_log")
+        .select("id", { count: "exact", head: true })
+        .eq("entity_id", batch);
+      if (error) throw new Error(`[e2e:ig-6] reading the audit log failed: ${error.message}`);
+      expect(count ?? 0, `IG-6 ${family}: a refused call wrote an audit row`).toBe(0);
     }
     expect(
       await importRows(plain.id, "import.%", "import:%"),
