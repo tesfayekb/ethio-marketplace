@@ -1,6 +1,13 @@
 // DEC-115 — unit tests for the e2e selector (scripts/e2e-select.ts).
 import { describe, expect, it } from "vitest";
-import { globToRegExp, matches, repeatSpecs, selectSpecs, selfTest } from "./e2e-select";
+import {
+  globToRegExp,
+  matches,
+  repeatRanks,
+  repeatSpecs,
+  selectSpecs,
+  selfTest,
+} from "./e2e-select";
 
 describe("globToRegExp", () => {
   it("matches * within one directory and ** across directories", () => {
@@ -120,9 +127,34 @@ describe("repeatSpecs", () => {
     expect(repeatSpecs(["e2e/no-such-deleted-file.spec.ts"])).toEqual([]);
   });
 
-  it("RPS-5 the output is sorted and unique", () => {
-    const list = repeatSpecs(["e2e/geo.spec.ts", "e2e/helpers/posting.ts", "e2e/geo.spec.ts"]);
-    expect(list).toEqual([...new Set(list)].sort());
-    expect(list.filter((s) => s === "e2e/geo.spec.ts")).toHaveLength(1);
+  it("RPS-5 the output is sorted inside each rank and unique", () => {
+    const changed = ["e2e/geo.spec.ts", "e2e/helpers/posting.ts", "e2e/geo.spec.ts"];
+    const ranked = repeatRanks(changed);
+    const one = ranked.filter((r) => r.rank === 1).map((r) => r.spec);
+    const two = ranked.filter((r) => r.rank === 2).map((r) => r.spec);
+    expect(one).toEqual([...one].sort());
+    expect(two).toEqual([...two].sort());
+    expect(repeatSpecs(changed)).toEqual([...one, ...two]);
+    expect(new Set(repeatSpecs(changed)).size).toBe(repeatSpecs(changed).length);
+    expect(repeatSpecs(changed).filter((s) => s === "e2e/geo.spec.ts")).toHaveLength(1);
+  });
+
+  // INC-967 — what the push changed itself comes first.
+  it("RPS-6 a changed spec comes before a changed helper's importers that sort before it", () => {
+    const list = repeatSpecs(["e2e/helpers/posting.ts", "e2e/geo.spec.ts"]);
+    expect(list.some((s) => s < "e2e/geo.spec.ts")).toBe(true);
+    expect(list[0]).toBe("e2e/geo.spec.ts");
+    expect(repeatRanks(["e2e/helpers/posting.ts", "e2e/geo.spec.ts"])[0]).toEqual({
+      spec: "e2e/geo.spec.ts",
+      rank: 1,
+    });
+  });
+
+  it("RPS-7 a spec both changed and importing the changed helper appears once, in rank one", () => {
+    const ranked = repeatRanks(["e2e/helpers/posting.ts", "e2e/posting-routes.spec.ts"]);
+    const hits = ranked.filter((r) => r.spec === "e2e/posting-routes.spec.ts");
+    expect(hits).toEqual([{ spec: "e2e/posting-routes.spec.ts", rank: 1 }]);
+    expect(ranked[0]?.spec).toBe("e2e/posting-routes.spec.ts");
+    expect(ranked.filter((r) => r.rank === 1)).toHaveLength(1);
   });
 });

@@ -25,7 +25,9 @@
 //   --repeat     DEC-283: print the specs the repeat lane repeats — every
 //                changed spec still present and every spec importing a
 //                changed e2e helper; never ALL (src/, migrations, the config
-//                and the global setup are the other lanes' to judge)
+//                and the global setup are the other lanes' to judge);
+//                changed specs first, then a changed helper's importers
+//                (INC-967); `--repeat --ranks` prefixes each with its rank
 
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -418,28 +420,42 @@ export function selectSpecs(changed: string[], opts: SelectOptions = {}): string
 }
 
 /**
- * DEC-283 — the repeat lane's selection. Pure like selectSpecs: a changed
- * spec still present selects itself; a changed e2e file that is not a spec
- * (and not a whole-suite harness file) selects its importers, transitively.
- * Everything else selects nothing. Never "ALL"; sorted and unique.
+ * DEC-283 — the repeat lane's selection, in two ranks (INC-967). Pure like
+ * selectSpecs. Rank 1: every spec file the push changed itself and still
+ * present. Rank 2: every spec that imports a changed e2e file that is not a
+ * spec (and not a whole-suite harness file), transitively, and was not
+ * changed itself. Each rank sorted; no spec twice; never "ALL".
  */
-export function repeatSpecs(changed: string[], opts: { root?: string } = {}): string[] {
+export type RankedSpec = { spec: string; rank: 1 | 2 };
+export function repeatRanks(changed: string[], opts: { root?: string } = {}): RankedSpec[] {
   const root = opts.root ?? ".";
   const specs = listSpecs(root);
   const present = new Set(specs);
-  const selected = new Set<string>();
+  const direct = new Set<string>();
+  const importers = new Set<string>();
   let graph: Map<string, string[]> | undefined;
   for (const raw of changed) {
     const file = raw.replace(/^\.\//, "");
     if (!file.startsWith("e2e/") || ALWAYS_ALL.has(file)) continue;
     if (file.endsWith(".spec.ts")) {
-      if (present.has(file)) selected.add(file);
+      if (present.has(file)) direct.add(file);
       continue;
     }
     graph = graph ?? e2eImportGraph(root);
-    for (const s of specsImporting(file, graph, specs)) selected.add(s);
+    for (const s of specsImporting(file, graph, specs)) importers.add(s);
   }
-  return [...selected].sort();
+  return [
+    ...[...direct].sort().map((spec): RankedSpec => ({ spec, rank: 1 })),
+    ...[...importers]
+      .filter((s) => !direct.has(s))
+      .sort()
+      .map((spec): RankedSpec => ({ spec, rank: 2 })),
+  ];
+}
+
+/** The repeat lane's selection in rank order (rank 1, then rank 2). */
+export function repeatSpecs(changed: string[], opts: { root?: string } = {}): string[] {
+  return repeatRanks(changed, opts).map((r) => r.spec);
 }
 
 /**
@@ -510,7 +526,10 @@ function main(): void {
   }
 
   if (args.includes("--repeat")) {
-    for (const s of repeatSpecs(changedFiles(base))) console.log(s);
+    // `--repeat --ranks` prints "<rank> <spec>" per line, in the same order.
+    const ranked = repeatRanks(changedFiles(base));
+    const withRanks = args.includes("--ranks");
+    for (const r of ranked) console.log(withRanks ? `${r.rank} ${r.spec}` : r.spec);
     return;
   }
 
