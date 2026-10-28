@@ -1,6 +1,7 @@
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { repeatPlan } from "../e2e-select";
+import { walkFiles } from "./kit";
 
 /**
  * DEC-283 (Foundations turn K4) — EVERY CHANGED BROWSER TEST IS REPEATED INSIDE THE NORMAL CI RUN.
@@ -123,9 +124,7 @@ export function inlineCapFindings(files: Record<string, string>): string[] {
 const real = readFileSync(WORKFLOW, "utf8");
 const realCi = readFileSync(CI, "utf8");
 const allWorkflows = Object.fromEntries(
-  readdirSync(WORKFLOWS)
-    .filter((f) => /\.ya?ml$/.test(f))
-    .map((f) => [`${WORKFLOWS}/${f}`, readFileSync(`${WORKFLOWS}/${f}`, "utf8")]),
+  walkFiles([WORKFLOWS], { ext: ["yml", "yaml"] }).map((f) => [f, readFileSync(f, "utf8")]),
 );
 
 function plant(from: string, to: string): string {
