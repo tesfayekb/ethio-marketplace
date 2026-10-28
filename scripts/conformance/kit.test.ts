@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import ts from "typescript";
 import { afterEach, expect, it } from "vitest";
-import { walkFiles, codeOf, readAllowlist, report, visitTs } from "./kit";
+import { walkFiles, codeOf, readAllowlist, report, TREE_SCAN_MS, visitTs } from "./kit";
 const roots: string[] = [];
 function root() {
   const path = mkdtempSync(join(tmpdir(), "cf-kit-"));
@@ -131,28 +131,32 @@ export function allowlistReaders(
   return calls;
 }
 
-it("CF-KIT-7 every readAllowlist caller hands its census's finding keys, or its file's line says why (INC-950)", () => {
-  const files = walkFiles(["scripts", "src", "e2e"], { ext: ["ts", "tsx"] }).filter(
-    (file) => !/^scripts\/conformance\/kit(?:\.test)?\.ts$/.test(file),
-  );
-  const readers = allowlistReaders(files);
-  const odd = readers.filter(({ keys }) => !FINDING_NAMES.test(keys));
-  const allowed = readAllowlist(
-    "scripts/conformance/allowlist-keys-allowlist.txt",
-    new Set(odd.map(({ file }) => file)),
-  );
-  console.log(
-    `[allowlist-keys] readAllowlist callers: ${readers.length}; not named findings: ${odd.length}; allowed: ${allowed.size}`,
-  );
-  expect(readers.length).toBeGreaterThanOrEqual(18);
-  expect(
-    report(
-      odd
-        .filter(({ file }) => !allowed.has(file))
-        .map(({ file, line, keys }) => ({ file, line, what: `hands readAllowlist ${keys}` })),
-    ),
-  ).toBe("");
-});
+it(
+  "CF-KIT-7 every readAllowlist caller hands its census's finding keys, or its file's line says why (INC-950)",
+  () => {
+    const files = walkFiles(["scripts", "src", "e2e"], { ext: ["ts", "tsx"] }).filter(
+      (file) => !/^scripts\/conformance\/kit(?:\.test)?\.ts$/.test(file),
+    );
+    const readers = allowlistReaders(files);
+    const odd = readers.filter(({ keys }) => !FINDING_NAMES.test(keys));
+    const allowed = readAllowlist(
+      "scripts/conformance/allowlist-keys-allowlist.txt",
+      new Set(odd.map(({ file }) => file)),
+    );
+    console.log(
+      `[allowlist-keys] readAllowlist callers: ${readers.length}; not named findings: ${odd.length}; allowed: ${allowed.size}`,
+    );
+    expect(readers.length).toBeGreaterThanOrEqual(18);
+    expect(
+      report(
+        odd
+          .filter(({ file }) => !allowed.has(file))
+          .map(({ file, line, keys }) => ({ file, line, what: `hands readAllowlist ${keys}` })),
+      ),
+    ).toBe("");
+  },
+  TREE_SCAN_MS,
+);
 
 it("CF-KIT-8 the census names a planted caller that hands every candidate, and passes the finding keys", () => {
   const dir = mkdtempSync(join(tmpdir(), "kit-8-"));

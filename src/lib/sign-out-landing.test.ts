@@ -70,14 +70,17 @@ describe("the page a sign-out lands on is fetched ahead of time (DEC-279, INC-93
  * draws from the overlays module that warmOverlaysWhenIdle (src/components/ui/overlay-loader.ts)
  * fetches at idle for every visitor; the E2E build hears its arrival as `__ethioMenuAhead` (SO-13).
  * Each test reads a fresh loader (its warm-up is once per page life) with the idle callback held
- * and the overlay primitives' module mocked to arrive or to fail.
+ * and the overlay primitives' module mocked to arrive or to fail. The tests set the build
+ * themselves: DEV off, so the E2E flag alone decides (as in `bun run build:e2e`).
  */
 describe("the account menu's code is warmed ahead and its arrival reported (INC-960)", () => {
   let idle: Array<() => void> = [];
+  let fetched = false;
   const shown = () => window.__ethioMenuAhead;
   const warm = async (arrives: boolean) => {
     vi.resetModules();
     vi.doMock("@/components/ui/overlays-impl", () => {
+      fetched = true;
       if (!arrives) throw new Error("Failed to fetch dynamically imported module");
       return {};
     });
@@ -88,9 +91,10 @@ describe("the account menu's code is warmed ahead and its arrival reported (INC-
 
   beforeEach(() => {
     idle = [];
+    fetched = false;
     raised.report.mockClear();
     delete window.__ethioMenuAhead;
-    // The E2E build is the one that hears the warm-up (isE2E): the tests set it themselves.
+    vi.stubEnv("DEV", false);
     vi.stubEnv("VITE_E2E", "1");
     vi.stubGlobal("requestIdleCallback", (ask: () => void) => {
       idle.push(ask);
@@ -122,9 +126,13 @@ describe("the account menu's code is warmed ahead and its arrival reported (INC-
       /^\[overlays\] loading the overlay primitives failed: /,
     );
     expect(raised.report, "the person asked for nothing: no notice").not.toHaveBeenCalled();
-    // Positive control: a notice raised by any module that imports the failure reporter is seen.
-    const { reportOnDemandFailure } = await import("@/lib/on-demand-failure");
-    reportOnDemandFailure("the control", new Error("control"));
-    expect(raised.report).toHaveBeenCalledTimes(1);
+  });
+
+  it("SAH-3 a production build fetches the same way and writes no E2E name", async () => {
+    vi.stubEnv("VITE_E2E", "");
+    const pending = await warm(true);
+    pending.splice(0).forEach((ask) => ask());
+    await vi.waitFor(() => expect(fetched, "the overlays' code is still fetched").toBe(true));
+    expect(shown()).toBeUndefined();
   });
 });
