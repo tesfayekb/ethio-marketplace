@@ -23,6 +23,7 @@ import { useMfa } from "@/features/auth/mfa/use-mfa";
 import type { IdentitySummary } from "@/features/auth/types";
 import { useAuth } from "@/features/auth/use-auth";
 import { requireSignedIn } from "@/lib/signed-in-route";
+import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { currentSession, getSupabase } from "@/lib/supabase-door";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useI18n } from "@/i18n";
@@ -140,7 +141,7 @@ function SettingsScreen() {
    */
   useEffect(() => {
     if (authLoading || user !== null) return;
-    void navigate({ to: "/", replace: true });
+    void navigate({ to: SIGN_OUT_LANDING, replace: true });
   }, [authLoading, user, navigate]);
 
   /**

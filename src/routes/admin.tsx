@@ -9,6 +9,7 @@ import { sectionForPath } from "@/features/admin/sections";
 import { ADMIN_PANEL_PERMISSION } from "@/features/permissions/service";
 import { usePermissions } from "@/features/permissions/usePermissions";
 import { useI18n } from "@/i18n";
+import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 
 /**
  * The admin LAYOUT (Phase U0). This route file IS the admin chunk: it is the
@@ -66,7 +67,10 @@ function AdminGate() {
   useEffect(() => {
     if (pending) return;
     if (!allowed) {
-      void navigate({ to: "/", replace: true });
+      // The landing is shared by design (DEC-279, turn C2's ruling 1): a signed-out visitor and a
+      // signed-in one without the admin permission go to the same page — if the sign-out landing
+      // ever moves, a signed-out visitor on /admin must follow it.
+      void navigate({ to: SIGN_OUT_LANDING, replace: true });
       return;
     }
     if (!sectionAllowed) {

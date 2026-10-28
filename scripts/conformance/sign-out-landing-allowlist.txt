@@ -1,4 +1,3 @@
 # Foundations turn C2 (DEC-279) — a sign-out landing written as a literal "/" (scripts/conformance/sign-out-landing.test.ts, CF-SOL-1).
 # Key: `<file> <function>` | reason | until. Every other landing reads SIGN_OUT_LANDING (src/lib/sign-out-landing.ts).
-src/routes/admin.tsx AdminGate | the console gate sends a signed-out (or unpermitted) visitor to the landing page with a literal "/"; src/routes/admin.tsx is outside turn C2's scope (K2) — it reads SIGN_OUT_LANDING in the turn whose brief names the file | 2026-12-31
-src/routes/settings.tsx SettingsScreen | the settings page's live guard (U0j, INC-072) lands a signed-out visitor on the landing page with a literal "/"; src/routes/settings.tsx is outside turn C2's scope (K2) — it reads SIGN_OUT_LANDING in the turn whose brief names the file | 2026-12-31
+# No exception stands (turn C2's ruling 1, R2: settings.tsx and admin.tsx moved onto the constant); a new one needs its line here.
