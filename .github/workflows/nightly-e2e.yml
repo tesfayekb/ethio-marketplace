@@ -4,10 +4,13 @@ name: Nightly E2E
 # docs/features/nightly-e2e.md. Deliberately NOT triggered on push.
 on:
   schedule:
-    # DEC-171 — 18:00 UTC (was 06:00): away from the operator's working hours,
-    # when its @global-state specs and its load shared ethio-staging with the
-    # day's CI runs (INC-545).
-    - cron: "0 18 * * *"
+    # DEC-277 — 11:30 in New York, all year (the operator's hour; DEC-171's
+    # 18:00 UTC retired). GitHub's schedules are UTC, so two: 15:30 UTC (New
+    # York on summer time) and 16:30 UTC (winter time). The `hour` job lets only
+    # the one that falls at 11 o'clock in New York go on
+    # (scripts/ci/nightly-hour.sh), so a clock change needs no re-time.
+    - cron: "30 15 * * *"
+    - cron: "30 16 * * *"
   workflow_dispatch:
 
 # DEC-153 (a) — read-only by default; only the job that publishes the
@@ -16,8 +19,31 @@ permissions:
   contents: read
 
 jobs:
+  # DEC-277 — the one schedule of the day that falls at 11:30 in New York goes
+  # on; the other ends here in seconds and writes no heartbeat. A run started
+  # by hand always goes on. The answer reads the schedule that fired, never the
+  # clock, so a run GitHub starts late is judged by the hour it was due.
+  hour:
+    name: The nightly's hour (DEC-277)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.hour.outputs.go }}
+    steps:
+      - uses: actions/checkout@v5
+        timeout-minutes: 3
+      - name: Is this the nightly's hour?
+        id: hour
+        timeout-minutes: 1
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: bash scripts/ci/nightly-hour.sh "$EVENT" "$SCHEDULE"
+
   nightly-e2e:
     name: Nightly E2E (Playwright, real time, ethio-staging)
+    needs: hour
+    if: needs.hour.outputs.go == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 360
     # DEC-153 (a) — publish-evidence.sh pushes the heartbeat and failure evidence.
@@ -58,7 +84,9 @@ jobs:
       E2E_RETRIES: "0"
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: latest
       - name: Install dependencies
@@ -68,6 +96,7 @@ jobs:
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
+        timeout-minutes: 10
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -189,6 +218,7 @@ jobs:
             echo "::warning::${QUAR} quarantined @global-state failure(s) reported in docs/tracking/nightly-last-failure.md (INC-117/DEC-028) — non-gating."
           fi
       - name: Upload report on failure
+        timeout-minutes: 10
         if: always() && (steps.run.outcome == 'failure' || steps.runfull.outcome == 'failure')
         uses: actions/upload-artifact@v6
         with:
@@ -294,6 +324,8 @@ jobs:
   # is gating.
   cloudflare-parity-smoke:
     name: Cloudflare parity smoke (wrangler-served)
+    needs: hour
+    if: needs.hour.outputs.go == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
@@ -315,7 +347,9 @@ jobs:
       E2E_FAKE_GEOCODE: "1"
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: latest
       - name: Install dependencies
@@ -325,6 +359,7 @@ jobs:
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
+        timeout-minutes: 10
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -355,6 +390,7 @@ jobs:
             exit 1
           }
       - name: Upload report on failure
+        timeout-minutes: 10
         if: failure()
         uses: actions/upload-artifact@v6
         with:

@@ -64,7 +64,9 @@ jobs:
       E2E_RETRIES: "0"
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: latest
       - name: Install dependencies
@@ -74,6 +76,7 @@ jobs:
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache Playwright browsers
+        timeout-minutes: 10
         uses: actions/cache@v5
         with:
           path: ~/.cache/ms-playwright
@@ -113,6 +116,7 @@ jobs:
           set -o pipefail
           bunx playwright test --project=mobile-360 --project=desktop-1280 --grep "${{ inputs.grep }}" --repeat-each ${{ inputs.repeat }} --workers ${{ inputs.workers }} --retries 0 ${{ inputs.specs }} 2>&1 | tee flake.log
       - name: Upload the report
+        timeout-minutes: 10
         if: always()
         uses: actions/upload-artifact@v6
         with:

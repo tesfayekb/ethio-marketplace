@@ -5,20 +5,21 @@ description: Finish a turn — run THE CHECKS and THE END-TO-END CHECK, call the
 
 # Finish a turn (THE CHECKS → review → report → land)
 
-## 1. The checks, in this order (land.ts runs the same list again and caches green steps)
+## 1. The checks, once per code tree (DEC-278)
+
+Commit first (the checks read the committed tree), then:
 
 ```bash
-bun run lint
-bun run typecheck
-bun run test:unit
-bun run i18n:usage && git diff --stat -- docs/generated/i18n-usage.json public/i18n-usage.json   # commit both when they move
-bun run build
-bash scripts/check-migrations.sh        # when supabase/migrations/ changed; paste the guard lines
-bun run format:check                     # LAST
+bun .claude/hooks/land.ts --checks       # Bash timeout 1800000 ms; pushes nothing
 ```
 
-Every red is fixed at its root (no `!`, cast, `any`, `@ts-expect-error`; no loosened assertion), then
-the list runs again from the failed step.
+It runs, in this order and each green step cached for the tree: `bun run lint` → `bun run typecheck`
+→ `bun run test:unit` → `bun run i18n:usage` (commit both maps when they move) → `bun run build` →
+`bash scripts/check-migrations.sh` (when supabase/migrations/ changed) → `bun run format:check` LAST.
+Paste its lines. The landing finds them green for the same tree and does not run them again.
+
+Every red is fixed at its root (no `!`, cast, `any`, `@ts-expect-error`; no loosened assertion) in a
+new commit, then `--checks` runs again (a step already green for the new tree is not repeated).
 
 ## 2. The end-to-end check
 

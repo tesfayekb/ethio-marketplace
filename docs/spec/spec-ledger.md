@@ -4713,3 +4713,49 @@ RECORDS OWED — .claude/rules/20-tests.md gains `layoutBoxes` (DEC-278's Lovabl
 CURATOR STATE AT THE CLOSE OF THIS BLOCK: unchanged — as block S76 left it.
 
 NUMBERING after this block: next free DEC-281, D239, INC-955, S458, ACT-022.
+
+S80 · 2026-10-27 22:1xZ → 2026-10-28 01:xxZ · RECORDS TURN R6 LANDED; THE ORDER OF WORK RECONCILED; THE WALK OF `562db573` (INC-955–INC-957, DEC-281); THE OUTGOING THREAD'S VERDICT (INC-958); FOUNDATIONS TURN 34c-4 (DEC-279 BUILT; INC-959–INC-961); FOUNDATIONS TURN K3 (DEC-277 AND DEC-278 BUILT; INC-941 AND DEC-282; INC-944'S EVIDENCE; RECORDS R7)
+
+What landed (times Z unless marked local; local is UTC−4):
+- 22:13Z — records turn R6 (the Claude Code executor; brief c5b77f38… / 91,145 B), landed `562db573`: run 40590576844 SUCCESS (22:13:14Z, 0 flaky, main promoted). A rebuilt R6 (7df2a4fc…) was never pasted; its parts ride records R7 (this block, in turn K3).
+- 22:35Z — the nightly on `562db573`: SUCCESS (nightly-status.md on ci-evidence).
+- 00:39Z (10-28) — Foundations turn 34c-4 (the Claude Code executor; brief c3c813db… / 93,833 B) landed `8cb2201d`: every file byte-equal to the supervisor's prototype but the two i18n maps (their `scanned` count, 595 → 597 — S461); run 40610714870 SUCCESS (01:02:33Z; one retried pass, ODE-1 — INC-961; main promoted).
+- Foundations turn K3 (Lovable; this block's records ride it) — its result is recorded by the next records turn.
+
+THE OPERATOR'S WORDS (local time)
+- 17:4x — the two reminders set in the new session; the order to be redrawn holding every open roadmap.md and launch-gate.md line (his rule of 2026-10-06); INC-939 to the database turns; INC-938 needs Lovable for .claude/hooks; the nightly must handle 1 November.
+- 17:5x — the outgoing thread's order of work (the Project doc claude/order-of-work-2026-10-27.md) replaces the new thread's order; disagreements listed with file:line; fifteen questions answered; no executor turn before the outgoing thread's verdict.
+- 19:29 — the walk of the published `562db573` (eight lines): 1–6 PASS; line 7 — Amharic reads larger and the Home heading wraps on his iPhone; line 8 — offline, "Enlarge map" shows "Map pin" and the shell's notice hides behind the dialog.
+- 19:38 — "Shorten the Amharic heading, for example “የአዲስ አበባ ማስታወቂያዎች” … is the best" — DEC-281.
+- 19:4x — the outgoing thread's VERDICT on the new thread's answers (the Project doc claude/supervisor-answers-2026-10-27.md), checked at `562db573`: PASS; its corrections to the order accepted; "Proceed with 34c-4"; five additions (below).
+- 19:5x — ACT-U0-1: "Already set" (the 7-day session time-box, the 4-hour inactivity timeout and compromised-refresh-token detection, on both projects).
+
+DECISIONS
+- DEC-281 (the operator, 2026-10-27 19:38 local; INC-957): the Amharic `feed.headingIn` becomes "የ{location} ማስታወቂያዎች" (212.9 px in Noto Sans Ethiopic 600 at 20 px, against 302.7 px today), built by script with its code points checked (G43); the fonts stay the device's own (DEC-262 unchanged). The only key of the concern in use (docs/generated/i18n-usage.json: / and /c/$slug); `feed.heading` is unused (INC-903's list). Rides the cleanup turn.
+- DEC-282 (the supervisor, 2026-10-28, under G17 — reversible CI tooling; overridable): INC-941's action steps get a deadline each before their times are measured, because this session's reads of the Actions API are refused today: a wide ceiling — 5 minutes for checkout and the setup actions (setup-bun, setup-node, setup-python, setup-cli) and the SARIF upload; 10 for caches and artifacts; 8 for gitleaks and the status report's GitHub script; 25 for the ZAP scan; never more than its job's deadline less two minutes (ESTIMATE: each at least ten times the step's usual seconds). DEC-276's rule (every deadline from CI's own measured times: the maximum over at least 300 runs of the step, half again as margin) replaces each value once the times are read. Its judge, frozen now: KEEP when, over the next 20 completed CI runs on dev, no action step fails by its deadline; when one does, that step's times are measured and its deadline set from them.
+- DEC-277 and DEC-278 BUILT in Foundations turn K3: the nightly's `hour` job (scripts/ci/nightly-hour.sh, NH-1…5 — the schedule that fired is judged on the run's UTC day, so a late start never skips both and the clock changes of 2026-11-01 and 2027-03-14 need no re-time); `bun .claude/hooks/land.ts --checks` (EXH-24), protocol step 5 and the turn-report skill.
+
+THE ORDER OF WORK: the outgoing thread's document (claude/order-of-work-2026-10-27.md, written at `e2287d6d`) is the order, with the new thread's corrections accepted by the verdict — decision (2)'s rule-file part has its record (DEC-278: not path-scoped); 34f-2's MAJORs were ruled in block S79; launch-gate :72 is done for ethio-prod (:120); EXIF stripping is done (:69); DEC-277 needs no seasonal re-time; records R7 added; bundle 22's turns 14c, 14d, 15e and 15h spot-checked against block S76 (each landed with its run); INC-786/INC-821 and INC-443's backfill with the door mechanism; INC-952 with the AI gateway follow-up; INC-955, INC-956 and DEC-281 in the cleanup turn. The reconciled order lands in the repository with the next handoff (G53); until then the Project doc and roadmap.md line 3 carry it.
+
+THE OUTGOING THREAD'S FIVE ADDITIONS (adopted): (1) the pin's precision default — INC-958 (the supervisor's "SAFE" withdrawn); (2) INC-957 widened to "a line that must fit at 360 in every language and every platform's font"; (3) DEC-277 is built by turn K3, not before; (4) the tracker marks the turn in progress; (5) ACT-U0-1 asked — answered "Already set". Answer 15's private-repository CI estimate is replaced: 244 job-minutes a CI run, about 540 workflow runs a week — ESTIMATE $900–1,500 a month at hosted Linux rates before included minutes, measured again before the switch (S460).
+
+THE SUPERVISOR'S RULINGS (G17; overridable)
+- Records turn R6's review (READY · 0 BLOCKER · 1 MAJOR · 3 MINOR on 2b0582f): the MAJOR (its own line ticked before its CI) ACCEPTED — a records turn's own line lands unticked (S458); the MINORs — 34c-4's line loses its second INC-930 sentence, ACT-021 moves to the action tracker's end, INC-952 gains its base line numbers — done in turn K3.
+- Turn 34c-4's review (READY · 0 BLOCKER · 1 MAJOR · 7 MINOR on efea10e): the MAJOR (the Home-ahead mechanism has behaviour tests and no conformance census) ACCEPTED — `SIGN_OUT_LANDING` and a census of the sign-out navigations, the cleanup turn; the narrowed "no session" checks of SO-11, SO-12 and SO-13 ACCEPTED as a weakened-proof risk (G38) — `sessionsIn(page)`, the cleanup turn; the route guard's three out-of-date sentences and docs/features/admin-shell.md's DEC-279 line, the cleanup turn; the E2E project address printed in a refusal KEPT (it is publishable). Its departure 1 (the i18n maps) ACCEPTED (S461). Its limit is INC-960.
+- INC-938 needs Bun's type definitions (not installed): a package change, its own turn and DEC under G42 — not turn K3.
+- INC-936: the nightly is green again (22:35Z); its red nights of 10-19 → 10-26 are read whole before any ruling (G21) — not turn K3.
+- The check-brief rules as conformance tests: scripts/ only — the cleanup turn (Claude Code).
+- Launch gate: ACT-U0-1 marked done on the operator's word; INC-433 (closed 2026-10-05) and INC-480/INC-482 (bundle 8's Part A) ticked; leaked-password protection ON on ethio-prod, ethio-staging still to read.
+- Bundle 22's turn lines 12 → 17 (nineteen lines) ticked: each landed with its run in block S76.
+
+INCIDENTS — INC-955 (the on-demand failure notice under an open dialog), INC-956 (the maps' failure place says "Map pin"), INC-957 (a single-line slot wraps in Amharic on an iPhone; DEC-281 its instance), INC-958 (a pin's missing precision defaults to the exact point), INC-959 (the e2e reads of the browser's client wait on nothing), INC-960 (the phone's account menu needs its code for an offline sign-out), INC-961 (ODE-1 retried under the route guard's stricter rule — its third line in seven days); the later words on INC-930 and INC-952; in docs/tracking/incidental-findings.md.
+
+SLIPS — S458 (a records turn's own line ticked before its CI; a review's findings ruled by name), S459 (a walk line not read against the mechanism), S460 (a cost figure quoted, not re-measured), S461 (the i18n maps' result guessed); in docs/governance/instructions-amendments.md §Slips.
+
+OPERATOR STEPS OWED — the leaked-password protection read on ethio-staging; a Publish and one walk at the next bundle close (34c-4's sign-out, the map and the Amharic heading once the cleanup turn lands).
+
+JUDGES OPEN AT THE CLOSE OF THIS BLOCK: INC-940 — the Flake check GREEN (2026-10-27); the second half, no AP-36 line in 20 CI runs from `e2287d6d` — 3 of 20 at run 40610714870, none since the fix. DEC-275 and DEC-276's twenty-run judges, as block S79 left them.
+
+CURATOR STATE AT THE CLOSE OF THIS BLOCK: unchanged — as block S76 left it.
+
+NUMBERING after this block: next free DEC-283, D239, INC-962, S462, ACT-022.

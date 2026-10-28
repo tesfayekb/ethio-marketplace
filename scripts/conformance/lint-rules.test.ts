@@ -49,23 +49,32 @@ function selectorsOf(config: { rules?: Record<string, unknown> } | undefined): s
     );
 }
 
-async function breaches(roots: string[]): Promise<string[]> {
+/** Every file under the roots that lacks a list it owes, and how many files were read (a census
+ * that reads nothing passes nothing — the floor below each test). */
+async function breaches(roots: string[]): Promise<{ read: number; found: string[] }> {
   const eslint = new ESLint({ cwd: ROOT });
   const found: string[] = [];
+  let read = 0;
   for (const full of walkFiles(
     roots.map((r) => join(ROOT, r)),
     { ext: ["ts", "tsx"] },
   )) {
     const rel = relative(ROOT, full).split("\\").join("/");
     if (await eslint.isPathIgnored(full)) continue;
+    read += 1;
     const missing = missingLists(
       owedLists(rel),
       selectorsOf(await eslint.calculateConfigForFile(full)),
     );
     if (missing.length) found.push(`${rel}: ${missing.join(", ")}`);
   }
-  return found;
+  return { read, found };
 }
+
+/** About half of each tree's files at Foundations turn K3 (src 890, e2e 118): far below any honest
+ * count, far above zero — the census fails when its walk reads (almost) nothing. */
+const SRC_FLOOR = 400;
+const E2E_FLOOR = 50;
 
 const PLANTED = "export function planted(e: unknown): boolean {\n  return e instanceof Error;\n}\n";
 
@@ -81,7 +90,10 @@ describe("lint rules reach every file they owe (INC-891)", () => {
   it(
     "CF-LINT-1 every src file carries every list the owed table gives it",
     async () => {
-      expect(await breaches(["src"])).toEqual([]);
+      const { read, found } = await breaches(["src"]);
+      // the floor: a list that matches no file must not pass (records owed, roadmap — CF-LINT floor)
+      expect(read).toBeGreaterThan(SRC_FLOOR);
+      expect(found).toEqual([]);
     },
     TREE_SCAN_MS,
   );
@@ -89,7 +101,19 @@ describe("lint rules reach every file they owe (INC-891)", () => {
   it(
     "CF-LINT-2 every e2e file carries specLint",
     async () => {
-      expect(await breaches(["e2e"])).toEqual([]);
+      const { read, found } = await breaches(["e2e"]);
+      expect(read).toBeGreaterThan(E2E_FLOOR);
+      expect(found).toEqual([]);
+    },
+    TREE_SCAN_MS,
+  );
+
+  it(
+    "CF-LINT-4 a census that reads no file stays under its floor (the floor is what fails it)",
+    async () => {
+      const empty = await breaches(["docs"]);
+      expect(empty).toEqual({ read: 0, found: [] });
+      expect(empty.read).toBeLessThanOrEqual(E2E_FLOOR);
     },
     TREE_SCAN_MS,
   );

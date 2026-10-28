@@ -18,6 +18,11 @@
  *
  * The Bash guard refuses every other `git push`, and the Stop gate refuses to end a turn while
  * commits are unlanded. Run it with a long Bash timeout (it can take 15–25 minutes the first time).
+ *
+ * `bun .claude/hooks/land.ts --checks` (DEC-278) is the protocol's step 5: steps 1, 2 and 7 only —
+ * THE CHECKS on the committed tree, each green step cached for that code tree — and no push. The
+ * landing then finds them green for the same tree (the report's commit is not code) and does not
+ * run them again.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -38,6 +43,14 @@ import {
 
 const turnDir = join(PROJECT_DIR, ".claude", "turn");
 mkdirSync(turnDir, { recursive: true });
+const args = process.argv.slice(2);
+const checksOnly = args.length === 1 && args[0] === "--checks";
+if (args.length > 0 && !checksOnly) {
+  process.stderr.write(
+    `land.ts takes no argument but --checks (THE CHECKS only, no push); it was given: ${args.join(" ")}\n`,
+  );
+  process.exit(2);
+}
 
 function fail(step: string, reason: string): never {
   process.stderr.write(
@@ -141,12 +154,20 @@ if (!ancestor) {
 const commits = unlanded();
 if (commits.length === 0) {
   say(
-    `Nothing to land: HEAD ${git(["rev-parse", "--short", "HEAD"])} is already on origin/${WORK_BRANCH}.`,
+    `Nothing to ${checksOnly ? "check" : "land"}: HEAD ${git(["rev-parse", "--short", "HEAD"])} is already on origin/${WORK_BRANCH}.`,
   );
   process.exit(0);
 }
 const range = `origin/${WORK_BRANCH}..HEAD`;
 const paths = lines(git(["diff", "--name-only", range]));
+
+if (checksOnly) {
+  await theChecks();
+  say(
+    `CHECKS GREEN for code tree ${treeKey()} (${commits.length} unlanded commit(s)). The landing finds them green for this tree; a change to code runs them again.`,
+  );
+  process.exit(0);
+}
 
 // 3. Scope of the whole landing (the diff is the authority, whatever tool wrote the files).
 const scope = readScope();
@@ -274,97 +295,107 @@ if (finalReport === undefined) {
 }
 
 // 7. THE CHECKS, cached per code tree (the reports folder is not code).
-const treeKey = createHash("sha256")
-  .update(
-    git(["ls-tree", "-r", "HEAD"])
-      .split("\n")
-      .filter((l) => !l.includes("\tdocs/governance/reports/"))
-      .join("\n"),
-  )
-  .digest("hex")
-  .slice(0, 16);
-const touched = (re: RegExp) => paths.some((f) => re.test(f));
-type Step = { key: string; name: string; cmd: string[]; timeoutMs: number; when?: () => boolean };
-const steps: Step[] = [
-  { key: "lint", name: "bun run lint", cmd: ["bun", "run", "lint"], timeoutMs: 600_000 },
-  {
-    key: "typecheck",
-    name: "bun run typecheck",
-    cmd: ["bun", "run", "typecheck"],
-    timeoutMs: 600_000,
-  },
-  {
-    key: "unit",
-    name: "bun run test:unit",
-    cmd: ["bun", "run", "test:unit"],
-    timeoutMs: 1_200_000,
-  },
-  {
-    key: "i18n",
-    name: "bun run i18n:usage",
-    cmd: ["bun", "run", "i18n:usage"],
-    timeoutMs: 180_000,
-    when: () => touched(/^(src|e2e)\//),
-  },
-  {
-    key: "i18n-maps",
-    name: "i18n maps committed",
-    cmd: [
-      "git",
-      "diff",
-      "--exit-code",
-      "--stat",
-      "--",
-      "docs/generated/i18n-usage.json",
-      "public/i18n-usage.json",
-    ],
-    timeoutMs: 30_000,
-    when: () => touched(/^(src|e2e)\//),
-  },
-  {
-    key: "build",
-    name: "bun run build",
-    cmd: ["bun", "run", "build"],
-    timeoutMs: 900_000,
-    when: () => touched(/^(src|public|index\.html|vite\.config|package\.json|tsconfig)/),
-  },
-  {
-    key: "migrations",
-    name: "bash scripts/check-migrations.sh",
-    cmd: ["bash", "scripts/check-migrations.sh"],
-    timeoutMs: 180_000,
-    when: () => touched(/^supabase\/migrations\//),
-  },
-  {
-    key: "format",
-    name: "bun run format:check",
-    cmd: ["bun", "run", "format:check"],
-    timeoutMs: 600_000,
-  },
-];
-for (const step of steps) {
-  if (step.when !== undefined && !step.when()) {
-    say(`· ${step.name}: not needed for this landing`);
-    continue;
+await theChecks();
+
+/** The committed tree's key, the reports folder left out (a report is not code). */
+function treeKey(): string {
+  return createHash("sha256")
+    .update(
+      git(["ls-tree", "-r", "HEAD"])
+        .split("\n")
+        .filter((l) => !l.includes("\tdocs/governance/reports/"))
+        .join("\n"),
+    )
+    .digest("hex")
+    .slice(0, 16);
+}
+
+/** Step 7 — THE CHECKS, each green step cached per code tree; shared by the landing and --checks. */
+async function theChecks(): Promise<void> {
+  const key = treeKey();
+  const touched = (re: RegExp) => paths.some((f) => re.test(f));
+  type Step = { key: string; name: string; cmd: string[]; timeoutMs: number; when?: () => boolean };
+  const steps: Step[] = [
+    { key: "lint", name: "bun run lint", cmd: ["bun", "run", "lint"], timeoutMs: 600_000 },
+    {
+      key: "typecheck",
+      name: "bun run typecheck",
+      cmd: ["bun", "run", "typecheck"],
+      timeoutMs: 600_000,
+    },
+    {
+      key: "unit",
+      name: "bun run test:unit",
+      cmd: ["bun", "run", "test:unit"],
+      timeoutMs: 1_200_000,
+    },
+    {
+      key: "i18n",
+      name: "bun run i18n:usage",
+      cmd: ["bun", "run", "i18n:usage"],
+      timeoutMs: 180_000,
+      when: () => touched(/^(src|e2e)\//),
+    },
+    {
+      key: "i18n-maps",
+      name: "i18n maps committed",
+      cmd: [
+        "git",
+        "diff",
+        "--exit-code",
+        "--stat",
+        "--",
+        "docs/generated/i18n-usage.json",
+        "public/i18n-usage.json",
+      ],
+      timeoutMs: 30_000,
+      when: () => touched(/^(src|e2e)\//),
+    },
+    {
+      key: "build",
+      name: "bun run build",
+      cmd: ["bun", "run", "build"],
+      timeoutMs: 900_000,
+      when: () => touched(/^(src|public|index\.html|vite\.config|package\.json|tsconfig)/),
+    },
+    {
+      key: "migrations",
+      name: "bash scripts/check-migrations.sh",
+      cmd: ["bash", "scripts/check-migrations.sh"],
+      timeoutMs: 180_000,
+      when: () => touched(/^supabase\/migrations\//),
+    },
+    {
+      key: "format",
+      name: "bun run format:check",
+      cmd: ["bun", "run", "format:check"],
+      timeoutMs: 600_000,
+    },
+  ];
+  for (const step of steps) {
+    if (step.when !== undefined && !step.when()) {
+      say(`· ${step.name}: not needed for this landing`);
+      continue;
+    }
+    const marker = join(turnDir, `pass-${step.key}-${key}`);
+    if (existsSync(marker)) {
+      say(`✓ ${step.name} (already green for this code tree)`);
+      continue;
+    }
+    const r = await run(step.cmd, { timeoutMs: step.timeoutMs });
+    if (r.code !== 0)
+      fail(
+        `7 ${step.name}`,
+        `${step.timedOut ? "timed out" : `exit ${r.code}`}:\n${r.tail}\nFix the cause (never weaken a check, never --no-verify), commit, land again.`,
+      );
+    if (git(["status", "--porcelain"]) !== "")
+      fail(
+        `7 ${step.name}`,
+        `the step changed files in the tree:\n${git(["status", "--porcelain"])}\nCommit them (the i18n maps travel with the strings), then land again.`,
+      );
+    writeFileSync(marker, new Date().toISOString());
+    say(`✓ ${step.name}`);
   }
-  const marker = join(turnDir, `pass-${step.key}-${treeKey}`);
-  if (existsSync(marker)) {
-    say(`✓ ${step.name} (already green for this code tree)`);
-    continue;
-  }
-  const r = await run(step.cmd, { timeoutMs: step.timeoutMs });
-  if (r.code !== 0)
-    fail(
-      `7 ${step.name}`,
-      `${step.timedOut ? "timed out" : `exit ${r.code}`}:\n${r.tail}\nFix the cause (never weaken a check, never --no-verify), commit, land again.`,
-    );
-  if (git(["status", "--porcelain"]) !== "")
-    fail(
-      `7 ${step.name}`,
-      `the step changed files in the tree:\n${git(["status", "--porcelain"])}\nCommit them (the i18n maps travel with the strings), then land again.`,
-    );
-  writeFileSync(marker, new Date().toISOString());
-  say(`✓ ${step.name}`);
 }
 
 // 8. Push (fast-forward) and read back.
