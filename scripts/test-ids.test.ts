@@ -38,6 +38,21 @@ describe("test ids (INC-536)", () => {
     expect(uses.map((u) => u.line)).toEqual([1, 1, 3]);
   });
 
+  it("TI-6 a census id of several parts (CF-BC-1) is read whole, and refused in two files", () => {
+    const uses = [
+      ...idsIn("scripts/conformance/a.test.ts", 'it("ZZ-QQ-1 one", () => {});'),
+      ...idsIn("src/b.test.ts", 'it("ZZ-QQ-1: two", () => {});\nit("ZZ-QQ-12 three", () => {});'),
+      ...idsIn("e2e/c.spec.ts", 'test("CF-ZZ-QQ-2+ZZ-7 four", () => {});'),
+    ];
+    expect(uses.map((u) => u.id)).toEqual(["ZZ-QQ-1", "ZZ-QQ-1", "ZZ-QQ-12", "CF-ZZ-QQ-2", "ZZ-7"]);
+    expect([...collisions(uses).keys()]).toEqual(["ZZ-QQ-1"]);
+    const repository = repositoryIds(process.cwd()).filter((u) =>
+      /^[A-Z][A-Za-z0-9]*-[A-Z]/.test(u.id),
+    );
+    console.log(`[TI-6] ids of several parts in the repository: ${repository.length}`);
+    expect(repository.length).toBeGreaterThan(50);
+  });
+
   it("TI-5 a title wrapped onto the line after `test(` is read, at its own line", () => {
     const text = [
       "test.describe('d', () => {",

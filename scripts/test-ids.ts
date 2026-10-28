@@ -3,7 +3,8 @@
 // A test id is the record of a test: the flake ledger, the incident ledger and
 // the docs name tests by it, so an id on two tests makes a record ambiguous
 // (G41). This check reads every `it(` / `test(` title in src/, e2e/ and
-// scripts/ that opens with an id ("PW-58 …", "C-1: …", "A-1+A-2: …") and
+// scripts/ that opens with an id ("PW-58 …", "C-1: …", "A-1+A-2: …", a census id of
+// several parts such as "CF-BC-1 …" — Foundations turn C3, TI-6) and
 // refuses:
 // - an id that appears in two files;
 // - an id on two tests of one file, unless the file declares it a case group
@@ -28,7 +29,7 @@ const SKIP_DIRS = new Set(["node_modules", "fixtures", "dist", ".output"]);
 /** This check's own unit tests hold planted titles as text. */
 const SKIP_FILES = new Set(["scripts/test-ids.test.ts"]);
 const TITLE =
-  /\b(?:it|test)(?:\.(?:skip|only|fixme|fail))?\(\s*["'`]((?:[A-Z][A-Za-z0-9]*-\d+[a-z]?)(?:\+[A-Z][A-Za-z0-9]*-\d+[a-z]?)*)(?=[\s:"'`)]|$)/g;
+  /\b(?:it|test)(?:\.(?:skip|only|fixme|fail))?\(\s*["'`]((?:[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*\d+[a-z]?)(?:\+[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*\d+[a-z]?)*)(?=[\s:"'`)]|$)/g;
 
 export interface IdUse {
   id: string;

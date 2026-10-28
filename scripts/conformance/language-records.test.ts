@@ -55,7 +55,7 @@ describe("the language records have one writer (D237, INC-851)", () => {
   );
 
   it("CF-LANG-2 a planted writer is caught", () => {
-    const dir = join(ROOT, "scripts/conformance/.lang-planted");
+    const dir = join(ROOT, "node_modules/.cache/lang-planted");
     mkdirSync(dir, { recursive: true });
     const planted = join(dir, "planted.ts");
     writeFileSync(

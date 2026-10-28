@@ -15,7 +15,8 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * component as a prop's value (DataTable's `loadingState` is drawn by DataTable, while loading). It
  * WAITS FOR ITS WORDS when it draws them under a condition (`{shown ? text : ""}`, `{shown && text}`).
  * An element drawn always that waits for its words is INC-929's always-drawn live region: it carries
- * no `role` attribute. Every other region arrives with its words (a loading caption, the spinner, the
+ * no `role` while it is quiet — a role given only with its words (`role={shown ? liveRole : undefined}`,
+ * ActionMessage, AMSG-2) arrives with them. Every other region arrives with its words (a loading caption, the spinner, the
  * impersonation banner), and its role is its own. A recorded exception is a line in live-regions-allowlist.txt
  * keyed `<file>:<line>` | reason | until.
  */
@@ -29,10 +30,27 @@ export type LiveRegion = {
   role: boolean;
 };
 
-function attributeOf(element: ts.JsxOpeningLikeElement, name: string): boolean {
-  return element.attributes.properties.some(
-    (property) => ts.isJsxAttribute(property) && property.name.getText() === name,
+function attributeOf(element: ts.JsxOpeningLikeElement, name: string): ts.JsxAttribute | undefined {
+  return element.attributes.properties.find(
+    (property): property is ts.JsxAttribute =>
+      ts.isJsxAttribute(property) && property.name.getText() === name,
   );
+}
+
+/**
+ * True when the region carries its role while it is quiet. A role given only with its words
+ * (`role={shown ? liveRole : undefined}`, ActionMessage — AMSG-2) is absent while it waits.
+ */
+function roleWhileQuiet(element: ts.JsxOpeningLikeElement): boolean {
+  const role = attributeOf(element, "role");
+  if (role === undefined) return false;
+  const value = role.initializer;
+  if (value === undefined || !ts.isJsxExpression(value) || value.expression === undefined)
+    return true;
+  const expression = value.expression;
+  if (!ts.isConditionalExpression(expression)) return true;
+  const absent = (branch: ts.Expression) => ts.isIdentifier(branch) && branch.text === "undefined";
+  return !(absent(expression.whenTrue) || absent(expression.whenFalse));
 }
 
 /** True when a condition stands between the element and the function that draws it. */
@@ -83,14 +101,14 @@ export function liveRegions(files: string[]): LiveRegion[] {
   for (const file of files) {
     visitTs(file, (node, source) => {
       if (!ts.isJsxOpeningElement(node) && !ts.isJsxSelfClosingElement(node)) return;
-      if (!attributeOf(node, "aria-live")) return;
+      if (attributeOf(node, "aria-live") === undefined) return;
       const element = ts.isJsxOpeningElement(node) ? node.parent : node;
       regions.push({
         file,
         line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
         always: !drawnUnderCondition(element),
         waits: waitsForWords(element),
-        role: attributeOf(node, "role"),
+        role: roleWhileQuiet(node),
       });
     });
   }
@@ -152,11 +170,11 @@ describe("an always-drawn live region carries aria-live and no role (INC-929)", 
     try {
       writeFileSync(
         bad,
-        'export function A({ t, shown }: { t: string; shown: boolean }) {\n  return <p role="status" aria-live="polite">{shown ? t : ""}</p>;\n}\nexport const B = ({ t }: { t: string }) => (\n  <div>\n    <span aria-live="polite" role={t ? "alert" : undefined}>\n      <b>{t && t}</b>\n    </span>\n  </div>\n);\n',
+        'export function A({ t, shown }: { t: string; shown: boolean }) {\n  return <p role="status" aria-live="polite">{shown ? t : ""}</p>;\n}\nexport const B = ({ t }: { t: string }) => (\n  <div>\n    <span aria-live="polite" role={"alert"}>\n      <b>{t && t}</b>\n    </span>\n  </div>\n);\n',
       );
       writeFileSync(
         good,
-        'export function C({ t, busy }: { t: string; busy: boolean }) {\n  if (busy) return <p role="status" aria-live="polite">{busy ? t : ""}</p>;\n  return (\n    <div>\n      <p aria-live="polite">{busy ? t : ""}</p>\n      {busy && <p role="status" aria-live="polite">{busy ? t : ""}</p>}\n      {busy ? <p role="alert" aria-live="assertive">{t || t}</p> : null}\n      <p role="status" aria-live="polite">{t}</p>\n      <T loadingState={<p role="status" aria-live="polite">{busy ? t : ""}</p>} />\n    </div>\n  );\n}\n',
+        'export function C({ t, busy }: { t: string; busy: boolean }) {\n  if (busy) return <p role="status" aria-live="polite">{busy ? t : ""}</p>;\n  return (\n    <div>\n      <p aria-live="polite">{busy ? t : ""}</p>\n      {busy && <p role="status" aria-live="polite">{busy ? t : ""}</p>}\n      {busy ? <p role="alert" aria-live="assertive">{t || t}</p> : null}\n      <p role="status" aria-live="polite">{t}</p>\n      <p role={busy ? "status" : undefined} aria-live="polite">{busy ? t : ""}</p>\n      <T loadingState={<p role="status" aria-live="polite">{busy ? t : ""}</p>} />\n    </div>\n  );\n}\n',
       );
       expect(report(liveRegionFindings(liveRegions([bad, good])))).toBe(
         [
@@ -174,7 +192,8 @@ describe("an always-drawn live region carries aria-live and no role (INC-929)", 
         "6 false true true",
         "7 false true true",
         "8 true false true",
-        "9 false true true",
+        "9 true true false",
+        "10 false true true",
       ]);
     } finally {
       rmSync(dir, { recursive: true, force: true });

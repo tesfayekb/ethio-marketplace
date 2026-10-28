@@ -1,0 +1,2 @@
+# S431 (scripts/conformance/planted-proofs.test.ts, PPF-1): a recorded exception — a planted write that does not start under the OS temp dir or node_modules/.cache/, or is not removed by its test.
+# key "<file>:<line>" | reason | until
