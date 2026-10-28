@@ -18,8 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane:
-          [
+        lane: [
             smoke,
             email,
             "1",
