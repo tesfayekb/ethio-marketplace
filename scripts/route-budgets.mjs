@@ -42,13 +42,13 @@ export const ROUTE_BUDGETS_KIB = {
   "/admin/legal_/$versionId": { ceiling: 277, public: false }, // 273.2
   "/admin/legal_/edit": { ceiling: 283, public: false }, // 279.3
   "/admin/listings": { ceiling: 353, public: false }, // 349.4
-  "/admin/listings_/$listingId": { ceiling: 375, public: false }, // 371.7
-  "/admin/listings_/$listingId_/edit": { ceiling: 399, public: false }, // 395.1
+  "/admin/listings_/$listingId": { ceiling: 379, public: false }, // 375.6 (turn C1-2: the maps' failure in place; INC-964)
+  "/admin/listings_/$listingId_/edit": { ceiling: 403, public: false }, // 399.1 (turn C1-2: the maps' failure in place; INC-964)
   "/admin/locations": { ceiling: 270, public: false }, // 266.1
   "/admin/places": { ceiling: 338, public: false }, // 335.0
   "/admin/roles": { ceiling: 306, public: false }, // 302.1
   "/admin/roles_/$roleId": { ceiling: 306, public: false }, // 302.7
-  "/admin/screening": { ceiling: 373, public: false }, // 369.5
+  "/admin/screening": { ceiling: 377, public: false }, // 373.5 (turn C1-2: the maps' failure in place; INC-964)
   "/admin/translations": { ceiling: 408, public: false }, // 404.4
   "/admin/translations_/$lang": { ceiling: 320, public: false }, // 316.6
   "/admin/users": { ceiling: 304, public: false }, // 300.6
@@ -60,7 +60,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/dev/primitives": { ceiling: 223, public: false }, // 219.3
   "/dev/style": { ceiling: 242, public: false }, // 238.1
   "/dev/tall": { ceiling: 207, public: false }, // 203.9
-  "/l/$slug": { ceiling: 247, public: true }, // 243.5
+  "/l/$slug": { ceiling: 251, public: true }, // 247.3 (turn C1-2: the maps' failure in place; INC-964)
   "/legal/$kind": { ceiling: 211, public: true }, // 207.5
   "/legal/accept": { ceiling: 218, public: false }, // 215.0
   "/legal/publishing": { ceiling: 212, public: true }, // 208.2
