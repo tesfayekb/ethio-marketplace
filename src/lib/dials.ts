@@ -149,6 +149,34 @@ export const DIALS = {
     limit: { fallback: 30 },
     windowSeconds: 60,
   },
+  /** INC-951 3b (D1 M5a) — src/routes/api/translate.ts: one per machine-translate press, before the AI call. */
+  machineTranslatePress: {
+    action: "machine_translate_press",
+    limit: { fallback: 20 },
+    windowSeconds: 3600,
+  },
+  /** INC-951 3b (D1 M5a) — counted by the doors (rate_gate), equal to their rate_dials rows. */
+  /** listing photo allow/review, admin edit and move — one decision every 6 seconds for an hour. */
+  staffModeration: {
+    action: "staff_moderation",
+    limit: { fallback: 600 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
+  /** admin_save_translation, admin_save_entity_translation — per-key saves. */
+  staffTranslation: {
+    action: "staff_translation",
+    limit: { fallback: 2000 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
+  /** the machine writers, per key: TRANSLATE_MAX_ITEMS (600) × machineTranslatePress (20). */
+  staffMachineTranslation: {
+    action: "staff_machine_translation",
+    limit: { fallback: 12000 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
   /** INC-951 3a (D1 M4) — counted by the doors (rate_gate), equal to their rate_dials rows. */
   /** accept_legal — a person accepts the few documents in force, once each. */
   legalAccept: {

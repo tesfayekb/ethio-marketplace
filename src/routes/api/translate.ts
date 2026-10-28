@@ -8,7 +8,10 @@ import {
 } from "@/lib/schemas/translate";
 import { aiCall, translationLanguages, type TranslationLanguages } from "@/server/ai/gateway";
 import { TRANSLATION_CHUNK } from "@/server/ai/tasks";
+import { DIALS } from "@/lib/dials";
+import { errorText } from "@/lib/error-text";
 import { ok } from "@/server/answer";
+import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
 
@@ -117,6 +120,25 @@ export const Route = createFileRoute("/api/translate")({
             return ok(
               { error: `target language ${target} is not supported by the provider` },
               { status: 422 },
+            );
+          }
+
+          // ---- THE PRESS DIAL (D1 M5a, INC-951) — one per press, before any provider call
+          // or write; a spent dial refuses the whole request. The writers' own per-key dial
+          // (staff_machine_translation) is sized from this one × TRANSLATE_MAX_ITEMS.
+          let press;
+          try {
+            press = await spend(DIALS.machineTranslatePress, userId as string);
+          } catch (error) {
+            logRouteError(PATH, `rate limit ${DIALS.machineTranslatePress.action}: ${errorText(error)}`);
+            return ok({ error: "upstream unavailable" }, { status: 503 });
+          }
+          if (!press.allowed) {
+            return ok(
+              press.resetsAt !== null
+                ? { error: "rateLimited", resetsAt: press.resetsAt }
+                : { error: "rateLimited" },
+              { status: 429 },
             );
           }
 

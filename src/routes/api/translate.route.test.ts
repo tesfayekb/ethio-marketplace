@@ -35,6 +35,8 @@ const state = vi.hoisted(() => ({
   /** The provider's answer for the Nth translate request (1-based); default: echo. */
   failChunk: new Map<number, "status" | "network">(),
   translateRequests: 0,
+  pressAllowed: true,
+  presses: [] as string[],
   languageRequests: 0,
 }));
 
@@ -90,6 +92,12 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       state.audits.push(args);
       return { error: null };
     },
+  },
+}));
+vi.mock("@/server/dials", () => ({
+  spend: async (dial: { action: string }, key: string) => {
+    state.presses.push(`${dial.action} ${key}`);
+    return { allowed: state.pressAllowed, resetsAt: null, remaining: 0 };
   },
 }));
 vi.mock("@/server/stand-in", () => ({ standInMode: () => state.fake }));
