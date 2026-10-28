@@ -25,7 +25,7 @@
 //   --repeat     DEC-283: print the specs the repeat lane repeats — every
 //                changed spec still present and every spec importing a
 //                changed e2e helper; never ALL (src/, migrations, the config
-//                and the global setup are the eighteen lanes' to judge)
+//                and the global setup are the other lanes' to judge)
 
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
