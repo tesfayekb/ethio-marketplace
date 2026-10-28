@@ -12,6 +12,7 @@ Two-step check: the reported commit equals BASE (e1045fb4) — current for BASE.
 FILES:
 docs/generated/i18n-usage.json
 docs/governance/briefs/foundations-turn-c1.md
+docs/governance/reports/foundations-turn-c1.stop-1.md
 e2e/helpers/route-guard.ts
 public/i18n-usage.json
 roadmap.md
@@ -47,7 +48,6 @@ src/features/posting/step-where.tsx
 src/features/posting/use-draft.ts
 src/features/posting/use-edit-draft.test.ts
 src/features/posting/use-edit-draft.ts
-src/i18n/locales/am-base.ts
 src/lib/notice-outlets.ts
 src/routes/l.$slug.tsx
 src/test/e2e-route-guard.test.ts
@@ -95,13 +95,25 @@ QUESTION for the ruling: which side moves — (1) the two Leaflet catches answer
 
 - 6831e81 STEP 0 — brief saved (sha256 1261973e0ae808786811402da71a1d797885e6e0354ed6731b2ed0585190d8d9, 152216 bytes — equal to the carrying message).
 - 2a14876 part B — B1 red on BASE's guard: `Tests  1 failed | 4 passed (5)` (RG-4: "promise rejected "Error: apiResponse.text: Response has bee…" instead of resolving"); B2: `Test Files  2 passed (2)`, `Tests  7 passed (7)`; typecheck clean; lint `0 errors, 39 warnings`; `bun run e2e:local -- e2e/on-demand-failure.spec.ts`: `2 passed (28.8s)`, `[ssr-error]` lines 0.
-- 7ac1138 parts C–E without e2e/ad-page.spec.ts — E1: `applied 81 block(s) to 29 file(s)`; E2: `Test Files  147 passed (147)`, `Tests  877 passed (877)`; typecheck clean; lint `0 errors, 39 warnings`; i18n maps `2 files changed, 18 insertions(+), 2 deletions(-)` (committed).
+- 7ac1138 parts C–E without e2e/ad-page.spec.ts (the am-base.ts value reverted after, with this report — see "Second conflict") — E1: `applied 81 block(s) to 29 file(s)`; E2: `Test Files  147 passed (147)`, `Tests  877 passed (877)`; typecheck clean; lint `0 errors, 39 warnings`; i18n maps `2 files changed, 18 insertions(+), 2 deletions(-)` (committed).
 
 ## Red-first lines shown (not committed)
 
 - K1: `grep -rn "pinLat\|pinLng\|pinPrecision" src e2e scripts … | wc -l` → 55; `grep -rni 'precision ?? "' src … | wc -l` → 6; modal contents → src/components/shell/app-rail.tsx, src/components/shell/toolbar-panel.tsx, src/components/ui/alert-dialog.tsx, src/components/ui/dialog.tsx, src/components/ui/drawer.tsx, src/components/ui/sheet.tsx (all three as expected).
 - C1: `Test Files  6 failed (6)`, `Tests  5 failed | 8 passed (13)` — CF-PIN-1 79 findings (63 loose fields, 6 guessed precisions, 10 column reads; the first `src/features/ad-page/public-listing.test.ts:158 a pin's loose field \`pinLat\``); CF-NO-1 5 (toolbar-panel.tsx:68, alert-dialog.tsx:34, dialog.tsx:49, drawer.tsx:38, sheet.tsx:66); CF-RLF-1 3 (listing-detail.tsx:50, :55, step-where.tsx:56); NH-6 "expected +0 to be 2"; LDF-1 "Unable to find an element by: [data-testid="listing-detail-map"]" (on BASE the `pin` prop does not exist, so the map's box is not drawn at all — the brief expected "no listing-map-failed in the map's box"; red either way); on-demand-notice.test.tsx does not load (`Failed to resolve import "@/components/ui/notice-outlet"`).
 - D1: `2 failed` — `getByTestId('listing-map-dialog').getByTestId('listing-map-large-failed')` element(s) not found, both projects.
+
+## Second conflict, found at the landing: FLAGS against the DEC-281 block
+
+`bun .claude/hooks/land.ts` refused this stop's first landing:
+
+```
+LAND REFUSED at 5 flags:
+FLAGS says no-new-string, but src/i18n/locales/ changed
+A change the brief's FLAGS forbid is a STOP: revert it in a new commit, or STOP and ask for a ruling.
+```
+
+The brief's FLAGS line says `no-new-string`, and the kit (.claude/hooks/land.ts :209) reads that as "no path under src/i18n/locales/ changes"; the brief's own block `EDIT src/i18n/locales/am-base.ts #1` (DEC-281, `feed.headingIn`) changes one value there. As written the brief cannot land. To land this stop, the value was reverted to BASE's in the same commit as this section (`git restore --source=e1045fb4 -- src/i18n/locales/am-base.ts`; `bunx vitest run src/i18n`: `Test Files  9 passed (9)`, `Tests  29 passed (29)`; `bun run i18n:usage` leaves both maps unchanged). DEC-281 is therefore NOT in the tree now. QUESTION 2 for the ruling: the brief's FLAGS line without `no-new-string` (a re-based brief), or DEC-281 in another turn.
 
 ## Departure so far
 
