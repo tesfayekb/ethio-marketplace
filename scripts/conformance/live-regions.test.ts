@@ -38,10 +38,11 @@ function attributeOf(element: ts.JsxOpeningLikeElement, name: string): ts.JsxAtt
 }
 
 /**
- * True when the region carries its role while it is quiet. A role given only with its words
- * (`role={shown ? liveRole : undefined}`, ActionMessage — AMSG-2) is absent while it waits.
+ * True when the region carries its role while it is quiet. A role given only with its words —
+ * `role={shown ? liveRole : undefined}` under the very condition that draws them (`{shown ? text :
+ * null}`; ActionMessage, AMSG-2) — is absent while it waits; any other role is there while quiet.
  */
-function roleWhileQuiet(element: ts.JsxOpeningLikeElement): boolean {
+function roleWhileQuiet(element: ts.JsxOpeningLikeElement, wordConditions: Set<string>): boolean {
   const role = attributeOf(element, "role");
   if (role === undefined) return false;
   const value = role.initializer;
@@ -50,7 +51,11 @@ function roleWhileQuiet(element: ts.JsxOpeningLikeElement): boolean {
   const expression = value.expression;
   if (!ts.isConditionalExpression(expression)) return true;
   const absent = (branch: ts.Expression) => ts.isIdentifier(branch) && branch.text === "undefined";
-  return !(absent(expression.whenTrue) || absent(expression.whenFalse));
+  return !(
+    absent(expression.whenFalse) &&
+    !absent(expression.whenTrue) &&
+    wordConditions.has(expression.condition.getText())
+  );
 }
 
 /** True when a condition stands between the element and the function that draws it. */
@@ -74,26 +79,32 @@ function drawnUnderCondition(node: ts.Node): boolean {
   return false;
 }
 
-/** True when the element draws some of its words under a condition (`?:`, `&&`, `||`). */
-function waitsForWords(element: ts.JsxElement | ts.JsxSelfClosingElement): boolean {
-  if (ts.isJsxSelfClosingElement(element)) return false;
-  let waits = false;
+/**
+ * The conditions under which the element draws some of its words (`{c ? text : ""}`, `{c && text}`,
+ * `{c || text}`, `{c ?? ""}` — each by its condition's text); none when its words are always there.
+ */
+function wordConditions(element: ts.JsxElement | ts.JsxSelfClosingElement): Set<string> {
+  const conditions = new Set<string>();
+  if (ts.isJsxSelfClosingElement(element)) return conditions;
   const visit = (node: ts.Node) => {
     if (ts.isFunctionLike(node)) return;
-    if (
-      ts.isJsxExpression(node) &&
-      node.expression !== undefined &&
-      (ts.isConditionalExpression(node.expression) ||
-        (ts.isBinaryExpression(node.expression) &&
-          [ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken].includes(
-            node.expression.operatorToken.kind,
-          )))
-    )
-      waits = true;
+    if (ts.isJsxExpression(node) && node.expression !== undefined) {
+      const expression = node.expression;
+      if (ts.isConditionalExpression(expression)) conditions.add(expression.condition.getText());
+      else if (
+        ts.isBinaryExpression(expression) &&
+        [
+          ts.SyntaxKind.AmpersandAmpersandToken,
+          ts.SyntaxKind.BarBarToken,
+          ts.SyntaxKind.QuestionQuestionToken,
+        ].includes(expression.operatorToken.kind)
+      )
+        conditions.add(expression.left.getText());
+    }
     ts.forEachChild(node, visit);
   };
   element.children.forEach(visit);
-  return waits;
+  return conditions;
 }
 
 export function liveRegions(files: string[]): LiveRegion[] {
@@ -103,12 +114,13 @@ export function liveRegions(files: string[]): LiveRegion[] {
       if (!ts.isJsxOpeningElement(node) && !ts.isJsxSelfClosingElement(node)) return;
       if (attributeOf(node, "aria-live") === undefined) return;
       const element = ts.isJsxOpeningElement(node) ? node.parent : node;
+      const conditions = wordConditions(element);
       regions.push({
         file,
         line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
         always: !drawnUnderCondition(element),
-        waits: waitsForWords(element),
-        role: roleWhileQuiet(node),
+        waits: conditions.size > 0,
+        role: roleWhileQuiet(node, conditions),
       });
     });
   }
@@ -170,7 +182,7 @@ describe("an always-drawn live region carries aria-live and no role (INC-929)", 
     try {
       writeFileSync(
         bad,
-        'export function A({ t, shown }: { t: string; shown: boolean }) {\n  return <p role="status" aria-live="polite">{shown ? t : ""}</p>;\n}\nexport const B = ({ t }: { t: string }) => (\n  <div>\n    <span aria-live="polite" role={"alert"}>\n      <b>{t && t}</b>\n    </span>\n  </div>\n);\n',
+        'export function A({ t, shown }: { t: string; shown: boolean }) {\n  return <p role="status" aria-live="polite">{shown ? t : ""}</p>;\n}\nexport const B = ({ t }: { t: string }) => (\n  <div>\n    <span aria-live="polite" role={"alert"}>\n      <b>{t && t}</b>\n    </span>\n  </div>\n);\nexport function D({ m, busy }: { m: string | null; busy: boolean }) {\n  return (\n    <div>\n      <p role="status" aria-live="polite">{m ?? ""}</p>\n      <p role={busy ? undefined : "status"} aria-live="polite">{busy ? m : ""}</p>\n      <p role={m ? "status" : undefined} aria-live="polite">{busy ? m : ""}</p>\n    </div>\n  );\n}\n',
       );
       writeFileSync(
         good,
@@ -178,6 +190,9 @@ describe("an always-drawn live region carries aria-live and no role (INC-929)", 
       );
       expect(report(liveRegionFindings(liveRegions([bad, good])))).toBe(
         [
+          `${bad}:14 an always-drawn live region that waits for its words carries a role; aria-live alone (INC-929)`,
+          `${bad}:15 an always-drawn live region that waits for its words carries a role; aria-live alone (INC-929)`,
+          `${bad}:16 an always-drawn live region that waits for its words carries a role; aria-live alone (INC-929)`,
           `${bad}:2 an always-drawn live region that waits for its words carries a role; aria-live alone (INC-929)`,
           `${bad}:6 an always-drawn live region that waits for its words carries a role; aria-live alone (INC-929)`,
         ].join("\n"),

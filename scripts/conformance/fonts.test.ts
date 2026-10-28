@@ -24,7 +24,7 @@ const TOKENS = "src/styles.css";
 const RULE = "(DEC-262: the device's own fonts; no page downloads a font)";
 const SHORTHAND = /(?<![-\w$.])font\s*:\s*([^;}\n]*)/g;
 const SHORTHAND_OK =
-  /^(?:inherit|initial|unset|revert|revert-layer)$|var\(--font-(?:sans|display)\)$/;
+  /^(?:inherit|initial|unset|revert|revert-layer)$|^[^,]*var\(--font-(?:sans|display)\)$/;
 const ALLOWLIST = "scripts/conformance/fonts-allowlist.txt";
 
 /** A shorthand's value as written, without the quotes or comma a script's style object gives it. */
@@ -135,7 +135,7 @@ describe("no page downloads a font (DEC-262)", () => {
       );
       writeFileSync(
         join(dir, "src/features/bad.tsx"),
-        'export const link = { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter" };\nexport const style = { fontFamily: "Inter" };\nexport const cls = "font-[Inter]";\nexport const short = { font: "12px Inter" };\n',
+        'export const link = { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter" };\nexport const style = { fontFamily: "Inter" };\nexport const cls = "font-[Inter]";\nexport const short = { font: "12px Inter" };\nexport const listed = { font: "1rem Inter, var(--font-sans)" };\n',
       );
       writeFileSync(join(dir, "public/fonts/inter.woff2"), "");
       writeFileSync(
@@ -158,6 +158,7 @@ describe("no page downloads a font (DEC-262)", () => {
           `src/features/bad.tsx:2 sets a font family by name; use font-sans or font-display ${RULE}`,
           `src/features/bad.tsx:3 sets a font family by name; use font-sans or font-display ${RULE}`,
           `src/features/bad.tsx:4 sets a font by its shorthand; name the family through var(--font-sans) or var(--font-display) ${RULE}`,
+          `src/features/bad.tsx:5 sets a font by its shorthand; name the family through var(--font-sans) or var(--font-display) ${RULE}`,
         ].join("\n"),
       );
     } finally {

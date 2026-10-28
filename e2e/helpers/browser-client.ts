@@ -35,6 +35,9 @@ export interface BrowserClient {
       data: { session: { access_token: string; user: { id: string } } | null };
       error: { message: string } | null;
     }>;
+    signOut(options?: {
+      scope?: "local" | "global" | "others";
+    }): Promise<{ error: { message: string } | null }>;
     mfa: {
       challengeAndVerify(args: {
         factorId: string;
@@ -47,8 +50,12 @@ export interface BrowserClient {
   };
 }
 
-/** The window the app's E2E hook hands the client to. */
-type HandOffWindow = { __ethioSupabase?: BrowserClient };
+declare global {
+  interface Window {
+    /** The app's client, handed to the page by its E2E hook (src/components/app-shell.tsx). */
+    __ethioSupabase?: BrowserClient;
+  }
+}
 
 /** How long a test waits for the hand-off before it fails (readAal's deadline before INC-959). */
 export const CLIENT_HANDOFF_MS = 15_000;
@@ -64,11 +71,7 @@ export function clientNeverArrived(timeout: number, cause: unknown): string {
 /** Waits for the app's hand-off of its client to the page. */
 export async function awaitBrowserClient(page: Page, timeout = CLIENT_HANDOFF_MS): Promise<void> {
   try {
-    await page.waitForFunction(
-      () => Boolean((window as unknown as HandOffWindow).__ethioSupabase),
-      undefined,
-      { timeout },
-    );
+    await page.waitForFunction(() => Boolean(window.__ethioSupabase), undefined, { timeout });
   } catch (error) {
     throw new Error(clientNeverArrived(timeout, error));
   }
@@ -95,7 +98,7 @@ export async function inBrowserClient<R>(
 ): Promise<R> {
   await awaitBrowserClient(page);
   const client = await page.evaluateHandle(() => {
-    const handed = (window as unknown as HandOffWindow).__ethioSupabase;
+    const handed = window.__ethioSupabase;
     if (handed === undefined) throw new Error("[e2e:browser-client] the page's client went away");
     return handed;
   });

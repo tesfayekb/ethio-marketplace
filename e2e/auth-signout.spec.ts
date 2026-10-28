@@ -45,14 +45,6 @@ import { adminClient, leaseUser } from "./helpers/users";
  * separate, explicitly labelled case.
  */
 
-declare global {
-  interface Window {
-    __ethioSupabase?: {
-      auth: { signOut: (options?: { scope?: "local" | "global" | "others" }) => Promise<unknown> };
-    };
-  }
-}
-
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
   const { data: role, error: roleError } = await supabase

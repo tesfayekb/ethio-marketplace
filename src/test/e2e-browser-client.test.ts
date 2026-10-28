@@ -14,11 +14,8 @@ import {
   type BrowserClient,
 } from "../../e2e/helpers/browser-client";
 
-type HandOff = { __ethioSupabase?: unknown };
-const handOff = window as unknown as HandOff;
-
 afterEach(() => {
-  delete handOff.__ethioSupabase;
+  delete window.__ethioSupabase;
 });
 
 /**
@@ -63,7 +60,7 @@ const client = {
 describe("a test reaches the browser's client one way (INC-959)", () => {
   it("BCL-1 the wait reads the app's hand-off, with the 15-second deadline unless the caller gives one", async () => {
     const calls: string[] = [];
-    handOff.__ethioSupabase = client;
+    window.__ethioSupabase = client;
     await awaitBrowserClient(fakePage(calls));
     await awaitBrowserClient(fakePage(calls), 2_000);
     expect(CLIENT_HANDOFF_MS).toBe(15_000);
@@ -85,7 +82,7 @@ describe("a test reaches the browser's client one way (INC-959)", () => {
 
   it("BCL-3 the test's code runs after the hand-off with the client and its argument, and the handle is released", async () => {
     const calls: string[] = [];
-    handOff.__ethioSupabase = client;
+    window.__ethioSupabase = client;
     const answer = await inBrowserClient(
       fakePage(calls),
       async (given, { name }) => given.rpc(name, { p_id: 1 }),
@@ -99,7 +96,7 @@ describe("a test reaches the browser's client one way (INC-959)", () => {
 
   it("BCL-4 a failure inside the test's code is the test's own and still releases the handle", async () => {
     const calls: string[] = [];
-    handOff.__ethioSupabase = client;
+    window.__ethioSupabase = client;
     await expect(
       inBrowserClient(fakePage(calls), () => {
         throw new Error("the test's own failure");

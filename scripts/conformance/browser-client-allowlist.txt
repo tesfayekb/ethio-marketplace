@@ -11,7 +11,7 @@ e2e/admin-listings.spec.ts (4) | reads the page's client by hand (written before
 e2e/admin-roles.spec.ts (4) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
 e2e/admin-screening.spec.ts (8) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
 e2e/admin-services.spec.ts (4) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
-e2e/auth-signout.spec.ts (3) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
+e2e/auth-signout.spec.ts (2) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
 e2e/import-security.spec.ts (2) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
 e2e/mfa-stepup.spec.ts (4) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
 e2e/my-listings-doors.spec.ts (4) | reads the page's client by hand (written before the helper); it moves onto e2e/helpers/browser-client.ts with its file | INC-959
