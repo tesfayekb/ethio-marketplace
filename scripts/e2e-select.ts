@@ -22,6 +22,10 @@
 //                area, and an area whose spec glob matches nothing fails
 //   --run        run e2e:local with the selector's list; when the selector
 //                says ALL, print that and stop (CI carries the rest)
+//   --repeat     DEC-283: print the specs the repeat lane repeats — every
+//                changed spec still present and every spec importing a
+//                changed e2e helper; never ALL (src/, migrations, the config
+//                and the global setup are the eighteen lanes' to judge)
 
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
@@ -413,6 +417,51 @@ export function selectSpecs(changed: string[], opts: SelectOptions = {}): string
   return [...selected].sort();
 }
 
+/**
+ * DEC-283 — the repeat lane's selection. Pure like selectSpecs: a changed
+ * spec still present selects itself; a changed e2e file that is not a spec
+ * (and not a whole-suite harness file) selects its importers, transitively.
+ * Everything else selects nothing. Never "ALL"; sorted and unique.
+ */
+export function repeatSpecs(changed: string[], opts: { root?: string } = {}): string[] {
+  const root = opts.root ?? ".";
+  const specs = listSpecs(root);
+  const present = new Set(specs);
+  const selected = new Set<string>();
+  let graph: Map<string, string[]> | undefined;
+  for (const raw of changed) {
+    const file = raw.replace(/^\.\//, "");
+    if (!file.startsWith("e2e/") || ALWAYS_ALL.has(file)) continue;
+    if (file.endsWith(".spec.ts")) {
+      if (present.has(file)) selected.add(file);
+      continue;
+    }
+    graph = graph ?? e2eImportGraph(root);
+    for (const s of specsImporting(file, graph, specs)) selected.add(s);
+  }
+  return [...selected].sort();
+}
+
+/**
+ * DEC-283 — the repeat count (C4). `each` = min(6, floor(budget / (tests ×
+ * 2 projects × perTest))); below 2 it is 2 and `take` is the number of tests
+ * that fit at two repetitions on both projects. `take` counts tests, never
+ * more than `tests`.
+ */
+export const REPEAT_MAX_EACH = 6;
+export const REPEAT_MIN_EACH = 2;
+export function repeatPlan(
+  tests: number,
+  budget: number,
+  perTest: number,
+): { each: number; take: number } {
+  if (tests <= 0) return { each: 0, take: 0 };
+  const each = Math.min(REPEAT_MAX_EACH, Math.floor(budget / (tests * 2 * perTest)));
+  if (each >= REPEAT_MIN_EACH) return { each, take: tests };
+  const fit = Math.floor(budget / (2 * REPEAT_MIN_EACH * perTest));
+  return { each: REPEAT_MIN_EACH, take: Math.min(tests, fit) };
+}
+
 /** Files changed against the base commit, including uncommitted work. */
 export function changedFiles(base?: string): string[] {
   const ref = base ?? execSync("git merge-base HEAD origin/main", { encoding: "utf8" }).trim();
@@ -457,6 +506,11 @@ function main(): void {
       process.exit(1);
     }
     console.log("e2e-select self-test OK: every spec is reachable; every area glob matches.");
+    return;
+  }
+
+  if (args.includes("--repeat")) {
+    for (const s of repeatSpecs(changedFiles(base))) console.log(s);
     return;
   }
 
