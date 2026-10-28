@@ -17,6 +17,16 @@ import {
   signedInMarker,
   waitForHydration,
 } from "./helpers/ui";
+import {
+  besideSessionKey,
+  editStoredSession,
+  forgetStoredSession,
+  holdsStoredSession,
+  injectSession,
+  passwordGrant,
+  storageKey,
+  supabaseNamesIn,
+} from "./helpers/session";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -138,13 +148,7 @@ test.describe("U0j sign-out hard reset", () => {
 
     // Distinct from SO-3: no live transition, the session is simply gone when
     // the gated route mounts again.
-    await page.evaluate(() => {
-      const key = Object.keys(localStorage).find(
-        (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
-      );
-      if (!key) throw new Error("no persisted supabase session found");
-      localStorage.removeItem(key);
-    });
+    await forgetStoredSession(page);
     await page.reload();
 
     await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
@@ -207,15 +211,10 @@ test.describe("U0j sign-out hard reset", () => {
     ).toBeVisible();
     // The access token has run out and the auth server cannot be reached.
     await page.route("**/auth/v1/**", (route) => route.abort("failed"));
-    await page.evaluate(() => {
-      const key = Object.keys(localStorage).find(
-        (k) => k.startsWith("sb-") && k.endsWith("-auth-token"),
-      );
-      if (!key) throw new Error("no persisted supabase session found");
-      const session = JSON.parse(localStorage.getItem(key) ?? "{}") as { expires_at?: number };
-      session.expires_at = Math.floor(Date.now() / 1000) - 3600;
-      localStorage.setItem(key, JSON.stringify(session));
-    });
+    await editStoredSession(page, (session) => ({
+      ...session,
+      expires_at: Math.floor(Date.now() / 1000) - 3600,
+    }));
     if (isMobile(page)) {
       await page.getByTestId("account-menu").click();
       await page.getByTestId("account-menu-sign-out").click();
@@ -225,12 +224,9 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(page).toHaveURL(/\/$/, { timeout: 60_000 });
     await expect(signInMarker(page)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
-    expect(
-      await page.evaluate(() =>
-        Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token")),
-      ),
-      "the stored session is gone from this device",
-    ).toBe(false);
+    expect(await holdsStoredSession(page), "the stored session is gone from this device").toBe(
+      false,
+    );
     // The network is back: a fresh load of the page is still signed out.
     await page.unrouteAll({ behavior: "ignoreErrors" });
     await gotoReady(page, "/");
@@ -267,13 +263,72 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
     await expect(page).toHaveURL(/\/$/);
     expect(loads, "no load is tried while offline").toBe(0);
-    expect(
-      await page.evaluate(() =>
-        Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("-auth-token")),
-      ),
-      "the stored session is gone from this device",
-    ).toBe(false);
+    expect(await holdsStoredSession(page), "the stored session is gone from this device").toBe(
+      false,
+    );
     // The connection returns: the page loads afresh, still signed out.
+    await page.context().setOffline(false);
+    await expect
+      .poll(() => loads, { message: "the page loads afresh when the connection returns" })
+      .toBe(1);
+    await waitForHydration(page);
+    await expect(signInMarker(page)).toBeVisible();
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+  });
+
+  test("SO-13 an offline sign-out from a page opened directly lands on a working Home page (DEC-279, INC-930)", async ({
+    page,
+  }) => {
+    // The tab opens on /settings and never visits "/": only the code fetched ahead of time for a
+    // signed-in visitor (src/lib/sign-out-landing.ts) can draw the Home page once the device is
+    // offline. Without it the root's "This page didn't load" view showed until the connection
+    // returned (INC-930).
+    const user = await leaseUser();
+    await injectSession(page, await passwordGrant(user.email, user.password));
+    await gotoReady(page, "/settings");
+    await expect(
+      isMobile(page)
+        ? page.getByTestId("account-menu")
+        : page.getByTestId("app-rail").getByTestId("rail-sign-out"),
+    ).toBeVisible({ timeout: 15_000 });
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => (window as unknown as { __ethioHomeAhead?: string }).__ethioHomeAhead ?? "idle",
+          ),
+        { message: "the Home page's code is fetched ahead of time for a signed-in visitor" },
+      )
+      .toBe("ready");
+    if (isMobile(page)) {
+      // The account menu's code arrives on its first opening: open it once while online.
+      await page.getByTestId("account-menu").click();
+      await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("account-menu-sign-out")).toHaveCount(0);
+    }
+    let loads = 0;
+    page.on("load", () => {
+      loads += 1;
+    });
+    await page.context().setOffline(true);
+    if (isMobile(page)) {
+      await page.getByTestId("account-menu").click();
+      await page.getByTestId("account-menu-sign-out").click();
+    } else {
+      await page.getByTestId("app-rail").getByTestId("rail-sign-out").click();
+    }
+    // Home is drawn by its own code, signed out — not the root's "This page didn't load" view.
+    await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+    await expect(page.getByTestId("feed-container")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("route-error-refresh")).toHaveCount(0);
+    await expect(signInMarker(page)).toBeVisible();
+    await expect(page.getByTestId("account-menu")).toHaveCount(0);
+    expect(loads, "no load is tried while offline").toBe(0);
+    expect(await holdsStoredSession(page), "the stored session is gone from this device").toBe(
+      false,
+    );
+    // The connection returns: the page loads afresh, still signed out (DEC-271).
     await page.context().setOffline(false);
     await expect
       .poll(() => loads, { message: "the page loads afresh when the connection returns" })
@@ -303,12 +358,11 @@ async function overridePolicy(
  * exactly like the supabase token (see src/features/session/session-policy.ts).
  */
 function policyKeys() {
-  const ref = new URL(process.env["E2E_SUPABASE_URL"]!).hostname.split(".")[0];
   return {
-    lastActivityAt: `sb-${ref}-last-activity-at`,
-    sessionStartedAt: `sb-${ref}-session-started-at`,
-    sessionRef: `sb-${ref}-session-ref`,
-    authToken: `sb-${ref}-auth-token`,
+    lastActivityAt: besideSessionKey("last-activity-at"),
+    sessionStartedAt: besideSessionKey("session-started-at"),
+    sessionRef: besideSessionKey("session-ref"),
+    authToken: storageKey(),
   };
 }
 
@@ -516,9 +570,7 @@ test.describe("D189 deactivated session", () => {
       await expect(page).toHaveURL(/\/auth\?.*reason=deactivated/, { timeout: 15000 });
       await expect(page.getByTestId("auth-deactivated")).toHaveText(en["auth.deactivated"]);
       await expect(page.getByTestId("account-menu")).toHaveCount(0);
-      const stored = await page.evaluate(() =>
-        Object.keys(localStorage).filter((k) => k.startsWith("sb-")),
-      );
+      const stored = await supabaseNamesIn(page);
       expect(stored, "SO-8: the session survived the sign-out").toEqual([]);
 
       await page.goto("/auth");
@@ -569,9 +621,7 @@ test.describe("D189 deactivated session", () => {
         );
 
       // The session must be gone.
-      const stored = await page.evaluate(() =>
-        Object.keys(localStorage).filter((k) => k.startsWith("sb-")),
-      );
+      const stored = await supabaseNamesIn(page);
       expect(stored, "SO-9: the session survived the sign-out").toEqual([]);
     } finally {
       const reopened = await admin

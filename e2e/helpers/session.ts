@@ -34,6 +34,8 @@
  */
 import type { Page } from "@playwright/test";
 
+import { authStorageKey, keyBeside, SUPABASE_PREFIX } from "../../src/lib/session-key";
+
 export type PersistedSession = {
   access_token: string;
   token_type: string;
@@ -55,10 +57,73 @@ function publishableKey(): string {
   return key;
 }
 
-/** The exact localStorage key supabase-js derives from the project URL. */
+/**
+ * The exact localStorage key supabase-js derives from the project URL — by the app's own rule
+ * (src/lib/session-key.ts, turn 34c-4), so a test never looks for a session the app keeps elsewhere.
+ */
 export function storageKey(): string {
-  const host = new URL(supabaseUrl()).hostname;
-  return `sb-${host.split(".")[0]}-auth-token`;
+  const key = authStorageKey(supabaseUrl());
+  if (key === null)
+    throw new Error(`[e2e:session] E2E_SUPABASE_URL is not a URL: ${supabaseUrl()}`);
+  return key;
+}
+
+/** A name the app keeps beside the stored session (`besideStoredSession`'s rule): `sb-<ref>-<name>`. */
+export function besideSessionKey(name: string): string {
+  return keyBeside(storageKey(), name);
+}
+
+/** Waits until the page's storage holds this project's session (a sign-in that persisted). */
+export async function waitForStoredSession(page: Page): Promise<void> {
+  await page.waitForFunction(
+    (key: string) => window.localStorage.getItem(key) !== null,
+    storageKey(),
+    {
+      timeout: 15000,
+    },
+  );
+}
+
+/** Whether the page's storage holds this project's session. */
+export async function holdsStoredSession(page: Page): Promise<boolean> {
+  return page.evaluate((key: string) => window.localStorage.getItem(key) !== null, storageKey());
+}
+
+/** The page's stored session as supabase-js keeps it, or null when it holds none. */
+export async function readStoredSession(page: Page): Promise<PersistedSession | null> {
+  const raw = await page.evaluate((key: string) => window.localStorage.getItem(key), storageKey());
+  return raw === null ? null : (JSON.parse(raw) as PersistedSession);
+}
+
+/** Replaces the page's stored session with `edit(session)`; throws when the page holds none. */
+export async function editStoredSession(
+  page: Page,
+  edit: (session: PersistedSession) => PersistedSession,
+): Promise<void> {
+  const session = await readStoredSession(page);
+  if (session === null) throw new Error("[e2e:session] no persisted supabase session found");
+  await page.evaluate(
+    ({ key, value }: { key: string; value: string }) => window.localStorage.setItem(key, value),
+    { key: storageKey(), value: JSON.stringify(edit(session)) },
+  );
+}
+
+/** Removes the page's stored session; throws when the page holds none. */
+export async function forgetStoredSession(page: Page): Promise<void> {
+  const removed = await page.evaluate((key: string) => {
+    if (window.localStorage.getItem(key) === null) return false;
+    window.localStorage.removeItem(key);
+    return true;
+  }, storageKey());
+  if (!removed) throw new Error("[e2e:session] no persisted supabase session found");
+}
+
+/** Every name supabase-js or the app keeps in the page's storage, of any project (`sb-…`). */
+export async function supabaseNamesIn(page: Page): Promise<string[]> {
+  return page.evaluate(
+    (prefix: string) => Object.keys(window.localStorage).filter((k) => k.startsWith(prefix)),
+    SUPABASE_PREFIX,
+  );
 }
 
 /**
@@ -172,8 +237,8 @@ export async function anonRpc(
  * Write-once was user-blind: a sentinel keyed only on the storage key made the
  * SECOND persona's injection a no-op, so multi-persona gating tests kept
  * persona A's session and asserted persona B's permissions. The sentinel now
- * records the TARGET USER ID; a different user clears every
- * `sb-*-auth-token` AND every `sb-*-stepped-up-at` hint before writing the new
+ * records the TARGET USER ID; a different user clears the stored session AND
+ * its step-up hint (this project's names, turn 34c-4) before writing the new
  * grant once, and the same user stays a no-op.
  */
 export function sessionUserId(session: PersistedSession): string {
@@ -188,11 +253,13 @@ export async function injectSession(page: Page, session: PersistedSession): Prom
   await page.addInitScript(
     ({
       key,
+      steppedUp,
       value,
       sentinel,
       userId,
     }: {
       key: string;
+      steppedUp: string;
       value: string;
       sentinel: string;
       userId: string;
@@ -200,11 +267,8 @@ export async function injectSession(page: Page, session: PersistedSession): Prom
       try {
         if (window.localStorage.getItem(sentinel) === userId) return;
         // Switching personas: nothing of the previous identity may survive.
-        for (const k of Object.keys(window.localStorage)) {
-          if (k.startsWith("sb-") && (k.endsWith("-auth-token") || k.endsWith("-stepped-up-at"))) {
-            window.localStorage.removeItem(k);
-          }
-        }
+        window.localStorage.removeItem(key);
+        window.localStorage.removeItem(steppedUp);
         window.localStorage.removeItem(sentinel);
         window.localStorage.setItem(key, value);
         window.localStorage.setItem(sentinel, userId);
@@ -215,6 +279,7 @@ export async function injectSession(page: Page, session: PersistedSession): Prom
     },
     {
       key: storageKey(),
+      steppedUp: besideSessionKey("stepped-up-at"),
       value: JSON.stringify(session),
       sentinel: "__ethio-e2e-injected",
       userId: sessionUserId(session),

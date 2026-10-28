@@ -3,6 +3,7 @@ import type { AuthChangeEvent, Session, SupabaseClient } from "@supabase/supabas
 import type { Database } from "@/integrations/supabase/types";
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
+import { authStorageKey, keyBeside } from "@/lib/session-key";
 
 /**
  * DEC-261 (Foundations turn 34; D234 speed S11) — THE ONE DOOR TO THE SUPABASE
@@ -92,14 +93,8 @@ export function projectEnv(): { url: string; key: string } | null {
   return { url: url.replace(/\/$/, ""), key };
 }
 
-/** supabase-js's default storage key: `sb-<the URL's first host label>-auth-token`. */
-export function authStorageKey(url: string): string | null {
-  try {
-    return `sb-${new URL(url).hostname.split(".")[0]}-auth-token`;
-  } catch {
-    return null;
-  }
-}
+/** supabase-js's default storage key — the rule lives in src/lib/session-key.ts (turn 34c-4). */
+export { authStorageKey };
 
 /** The storage key this project's client keeps its session under, or null without a URL. */
 export function storedSessionKey(): string | null {
@@ -114,7 +109,7 @@ export function storedSessionKey(): string | null {
  */
 export function besideStoredSession(name: string): string | null {
   const key = storedSessionKey();
-  return key === null ? null : `${key.slice(0, -"auth-token".length)}${name}`;
+  return key === null ? null : keyBeside(key, name);
 }
 
 /**

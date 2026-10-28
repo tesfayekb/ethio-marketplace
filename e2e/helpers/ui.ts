@@ -20,6 +20,8 @@ import {
   assertInjectedIdentity,
   injectSession,
   passwordGrant,
+  supabaseNamesIn,
+  waitForStoredSession,
   type PersistedSession,
 } from "./session";
 import { totp, totpStep } from "./totp";
@@ -516,12 +518,8 @@ export async function signIn(
     // when the form did not render. Key names only, never values.
     let dump: string;
     try {
+      const local = await supabaseNamesIn(page);
       const facts = await page.evaluate(() => {
-        const local: string[] = [];
-        for (let i = 0; i < window.localStorage.length; i++) {
-          const key = window.localStorage.key(i);
-          if (key !== null && key.startsWith("sb-")) local.push(key);
-        }
         const session: string[] = [];
         for (let i = 0; i < window.sessionStorage.length; i++) {
           const key = window.sessionStorage.key(i);
@@ -533,12 +531,11 @@ export async function signIn(
           authEmail: document.querySelectorAll("#auth-email").length,
           title: document.title,
           h1: document.querySelector("h1")?.textContent ?? null,
-          localSb: local,
           sessionKeys: session,
           deactivated: deactivated ? deactivated.textContent : null,
         };
       });
-      dump = JSON.stringify({ url: page.url(), ...facts });
+      dump = JSON.stringify({ url: page.url(), ...facts, localSb: local });
     } catch (dumpError) {
       dump = `url=${page.url()} dump failed: ${String(dumpError)}`;
     }
@@ -565,11 +562,7 @@ export async function signIn(
   //    also true mid-render.
   await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
   // 3. Belt: the session is persisted, so a full navigation rehydrates it.
-  await page.waitForFunction(
-    () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
-    undefined,
-    { timeout: 15000 },
-  );
+  await waitForStoredSession(page);
 }
 
 /**
@@ -622,11 +615,7 @@ export async function signInViaSession(page: Page, email: string, password: stri
   // ids here, not surface later as an inexplicable permission assertion.
   await assertInjectedIdentity(page, session);
   await expect(signedInMarker(page)).toBeVisible({ timeout: 15000 });
-  await page.waitForFunction(
-    () => Object.keys(localStorage).some((k) => k.startsWith("sb-") && k.endsWith("auth-token")),
-    undefined,
-    { timeout: 15000 },
-  );
+  await waitForStoredSession(page);
 }
 
 /**

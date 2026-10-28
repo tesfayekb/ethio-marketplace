@@ -19,6 +19,7 @@ import {
   signInAsSuperAdmin,
 } from "./helpers/categories";
 import { destroyAttribute } from "./helpers/admin-attributes";
+import { readStoredSession } from "./helpers/session";
 
 /**
  * Bundle 7 Part E — THE CATEGORY DOORS (CT-38..CT-41).
@@ -234,16 +235,7 @@ test.describe("Bundle 7 category doors", () => {
       const pointer = (await pointersOf(row!.id))[0]!;
 
       // … and the admin's OWN token, sent straight to the data API, is refused.
-      const token = await page.evaluate(() => {
-        for (let i = 0; i < localStorage.length; i += 1) {
-          const name = localStorage.key(i) ?? "";
-          if (name.startsWith("sb-") && name.endsWith("-auth-token")) {
-            return (JSON.parse(localStorage.getItem(name) ?? "{}") as { access_token?: string })
-              .access_token;
-          }
-        }
-        return undefined;
-      });
+      const token = (await readStoredSession(page))?.access_token;
       expect(token, "CT-41 the page holds the admin's session").toBeTruthy();
       const base = process.env["E2E_SUPABASE_URL"]!;
       const apikey = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!;
@@ -374,16 +366,7 @@ test.describe("Bundle 7 category doors", () => {
       ).toEqual([p1Id]);
       const pointerId = pointers[0]!.id;
 
-      const token = await page.evaluate(() => {
-        for (let i = 0; i < localStorage.length; i += 1) {
-          const name = localStorage.key(i) ?? "";
-          if (name.startsWith("sb-") && name.endsWith("-auth-token")) {
-            return (JSON.parse(localStorage.getItem(name) ?? "{}") as { access_token?: string })
-              .access_token;
-          }
-        }
-        return undefined;
-      });
+      const token = (await readStoredSession(page))?.access_token;
       expect(token, "CT-45 the page holds the admin's session").toBeTruthy();
       /** The console's own door, called with the admin's session. */
       const move = async (parentId: string) => {
