@@ -296,6 +296,32 @@ export async function consumeRate(
 }
 
 /**
+ * D1 M4b (INC-951) — THE IMPORT AUDIT ROW, written by the server. `import_gate_audit`
+ * is closed to the browser roles; the row is written through the server-only client
+ * with the actor passed explicitly (auth.uid() is null there). Call it only after the
+ * route boundary has verified the caller; `actor` is that caller's id. The door checks
+ * the actor's own import permission and is never rate-refused, so an import that saved
+ * keeps its audit row. Returns the door's error, never throws for it.
+ */
+export async function writeImportAudit(entry: {
+  actor: string;
+  family: string;
+  event: "preview" | "commit" | "undo";
+  batch: string | null;
+  counts: unknown;
+}): Promise<{ message: string } | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.rpc("import_gate_audit", {
+    p_actor: entry.actor,
+    p_family: entry.family,
+    p_event: entry.event,
+    p_batch: entry.batch as unknown as string,
+    p_counts: (entry.counts ?? {}) as never,
+  });
+  return error ?? null;
+}
+
+/**
  * INC-669 — THE SAME COUNT, READ WITHOUT SPENDING. `peek_rate_limit` answers
  * what is left of the CURRENT window for an action and key — the window
  * `consume_rate_limit` counts in, proven equal by the function's own migration —

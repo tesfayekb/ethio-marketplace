@@ -150,13 +150,6 @@ export const DIALS = {
     windowSeconds: 60,
   },
   /** INC-951 3a (D1 M4) — counted by the doors (rate_gate), equal to their rate_dials rows. */
-  /** import_gate_audit — about two events per import; a real staff day runs dozens. */
-  importAudit: {
-    action: "import_audit",
-    limit: { fallback: 600 },
-    windowSeconds: 3600,
-    countedBy: "door",
-  },
   /** accept_legal — a person accepts the few documents in force, once each. */
   legalAccept: {
     action: "legal_accept",

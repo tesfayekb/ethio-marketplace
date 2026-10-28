@@ -91,7 +91,6 @@ edit_listing(uuid,uuid,text,text,text,jsonb,text,numeric,character,text,timestam
 end_impersonation(uuid) | account | Ends only an impersonation_sessions row whose actor_id is auth.uid() and audits the end; caller’s own security-session exit stays open
 get_attribute_options(uuid) | helper | Writes only the options_read rate meter and returns attribute options/version; no catalogue content is changed
 get_posting_schema(uuid) | helper | Writes only the schema_read rate meter and returns posting schema and plan caps; no listing or schema content is changed
-import_gate_audit(text,text,uuid,jsonb) | staff | Inserts a sanitized import audit_log event only after checking the mapped categories:import, locations:import or translations:manage permission
 mark_sold(uuid) | takedown | Sets the caller’s posted listing to sold, clears kept-clock fields and inserts a state revision; taking down passes acceptance_guard — DEC-216, LG-29
 move_listing_photo(uuid,uuid,integer) | guarded | Reorders listing_photos and replaces cover_photo_id; photo row writes pass acceptance_guard — DEC-216, LG-28
 public_listing(text) | helper | Writes only the listing_read rate meter and returns the existing public listing projection; does not change the ad or reveal an extra contact

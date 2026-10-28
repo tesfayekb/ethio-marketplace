@@ -26,6 +26,7 @@ import { xliffUnits } from "@/features/admin/translations/io-formats";
 import { CATEGORY_ICON_NAMES } from "@/lib/category-icon-names";
 import type { Database } from "@/integrations/supabase/types";
 import { clientError } from "@/server/answer";
+import { writeImportAudit } from "@/server/supabase/user-client";
 import {
   BOUND_RE,
   FAMILIES,
@@ -790,12 +791,13 @@ export async function openImportGate(input: GateInput): Promise<GateResult> {
     batch: string | null,
     counts: unknown,
   ): Promise<void> => {
-    const { error } = await supabase.rpc("import_gate_audit", {
-      p_family: family.id,
-      p_event: event,
-      p_batch: batch as unknown as string,
-      p_counts: (counts ?? {}) as never,
-    });
+    // D1 M4b — written by the server's client for the verified caller (never the browser's).
+    let error: unknown = null;
+    try {
+      error = await writeImportAudit({ actor: userId, family: family.id, event, batch, counts });
+    } catch (thrown) {
+      error = thrown;
+    }
     // F4 — an audit that could not be written is never silent.
     if (error) console.error(`[ssr-error] ${path} audit_failed ${errorText(error)}`);
   };
