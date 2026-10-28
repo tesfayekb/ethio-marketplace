@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createHomeAhead, type HomeAheadState } from "./sign-out-landing";
 
+// The shell's notice is raised through reportOnDemandFailure: SAH-2 watches it for the whole file.
+const raised = vi.hoisted(() => ({ report: vi.fn() }));
+vi.mock("./on-demand-failure", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./on-demand-failure")>()),
+  reportOnDemandFailure: raised.report,
+}));
+
 afterEach(() => vi.restoreAllMocks());
 
 describe("the page a sign-out lands on is fetched ahead of time (DEC-279, INC-930)", () => {
@@ -66,11 +73,6 @@ describe("the page a sign-out lands on is fetched ahead of time (DEC-279, INC-93
  * and the overlay primitives' module mocked to arrive or to fail.
  */
 describe("the account menu's code is warmed ahead and its arrival reported (INC-960)", () => {
-  const raised = vi.hoisted(() => ({ report: vi.fn() }));
-  vi.mock("./on-demand-failure", async (importOriginal) => ({
-    ...(await importOriginal<typeof import("./on-demand-failure")>()),
-    reportOnDemandFailure: raised.report,
-  }));
   let idle: Array<() => void> = [];
   const shown = () => window.__ethioMenuAhead;
   const warm = async (arrives: boolean) => {
@@ -120,5 +122,9 @@ describe("the account menu's code is warmed ahead and its arrival reported (INC-
       /^\[overlays\] loading the overlay primitives failed: /,
     );
     expect(raised.report, "the person asked for nothing: no notice").not.toHaveBeenCalled();
+    // Positive control: a notice raised by any module that imports the failure reporter is seen.
+    const { reportOnDemandFailure } = await import("@/lib/on-demand-failure");
+    reportOnDemandFailure("the control", new Error("control"));
+    expect(raised.report).toHaveBeenCalledTimes(1);
   });
 });

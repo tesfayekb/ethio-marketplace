@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { samePin, type Pin } from "./pin";
+import type { Pin } from "./pin";
 import { useSteadyPin } from "./use-steady-pin";
 
 /**
@@ -28,11 +28,14 @@ describe("a pin keyed by its values (MINOR-4)", () => {
     expect(result.current).toBeNull();
   });
 
-  it("USP-2 samePin: the same point and precision, or two absences", () => {
-    expect(samePin(pin, { ...pin })).toBe(true);
-    expect(samePin(null, null)).toBe(true);
-    expect(samePin(pin, null)).toBe(false);
-    expect(samePin(pin, { ...pin, lng: 38.77 })).toBe(false);
-    expect(samePin(pin, { ...pin, precision: "exact" })).toBe(false);
+  it("USP-2 two absences are the same; a pin after none is taken as it comes", () => {
+    const { result, rerender } = renderHook(({ value }) => useSteadyPin(value), {
+      initialProps: { value: null as Pin | null },
+    });
+    rerender({ value: null });
+    expect(result.current).toBeNull();
+    const copy = { ...pin, lng: 38.77 };
+    rerender({ value: copy });
+    expect(result.current).toBe(copy);
   });
 });

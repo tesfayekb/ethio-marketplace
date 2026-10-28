@@ -36,14 +36,6 @@ export function isPinPrecision(value: unknown): value is PinPrecision {
   return value === "exact" || value === "approx";
 }
 
-/** Whether two pins (or two absences) are the same pin: the same point and the same precision. */
-export function samePin(a: Pin | null, b: Pin | null): boolean {
-  return (
-    a === b ||
-    (a !== null && b !== null && a.lat === b.lat && a.lng === b.lng && a.precision === b.precision)
-  );
-}
-
 /** A finite coordinate, from a number or a numeric string (PostgREST sends numerics as either). */
 function coordinate(value: unknown): number | null {
   const number =
