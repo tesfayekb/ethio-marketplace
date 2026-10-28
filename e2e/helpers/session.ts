@@ -84,11 +84,6 @@ export async function waitForStoredSession(page: Page): Promise<void> {
   );
 }
 
-/** Whether the page's storage holds this project's session. */
-export async function holdsStoredSession(page: Page): Promise<boolean> {
-  return page.evaluate((key: string) => window.localStorage.getItem(key) !== null, storageKey());
-}
-
 /**
  * The names of every project's stored session in the page's storage (turn 34c-4's review, Foundations
  * turn C2) — supabase-js's session name by the app's own rule (src/lib/session-key.ts), whatever the

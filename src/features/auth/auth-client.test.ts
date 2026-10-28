@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { errorText } from "@/lib/error-text";
+
 /**
  * INC-915 (Foundations turn 34, ruling 2) — A FAILED DOWNLOAD OF THE SUPABASE CLIENT IS A
  * FAILED ACTION, NEVER A REJECTION. Every exported action of auth-service.ts is enumerated
@@ -112,7 +114,7 @@ describe("a failed client download is a failed action (INC-915)", () => {
       if (typeof action !== "function") throw new Error(`${name} is not a function`);
       const answer = await Promise.resolve(Reflect.apply(action, undefined, ARGS[name] ?? [])).then(
         (value) => ({ resolved: value }),
-        (error: unknown) => ({ rejected: String(error) }),
+        (error: unknown) => ({ rejected: errorText(error) }),
       );
       expect(answer, name).toEqual({ resolved: ANSWERS[name] });
       expect(errors, name).toHaveBeenCalledWith(

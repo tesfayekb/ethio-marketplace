@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { assertAppTargetsStaging } from "../../e2e/helpers/app-target";
+import { errorText } from "../lib/error-text";
 
 const STAGING_REF = "jatpuhfdjfzctjipklmk";
 const STAGING = `https://${STAGING_REF}.supabase.co`;
@@ -11,7 +12,7 @@ function messageOf(env: Record<string, string | undefined>): string {
   try {
     assertAppTargetsStaging(env, STAGING_REF);
   } catch (error) {
-    return (error as Error).message;
+    return errorText(error);
   }
   return "";
 }

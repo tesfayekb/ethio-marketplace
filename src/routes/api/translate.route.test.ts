@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { errorText } from "@/lib/error-text";
+
 /**
  * Foundations turn 19 — POST and GET /api/translate on defineRoute and aiCall
  * (CHANGE 3 and 4, rulings R2 and R3). The route, the boundary, the gateway
@@ -68,7 +70,7 @@ vi.mock("@/server/supabase/user-client", async (original) => {
     callerHasPermission: async (_client: unknown, _user: string, permission: string) =>
       state.permissions.has(permission),
     logRouteError: (_path: string, error: unknown) => {
-      state.logs.push(String(error));
+      state.logs.push(errorText(error));
     },
   };
 });
