@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
 import { useNearViewport } from "@/lib/use-near-viewport";
 
 import { APPROX_RADIUS_M } from "./geocode";
-import { MapFailedHere } from "./map-frame";
 import { STILL_MAP_BOX, STILL_MAP_CREDIT, stillMapCaptionKey } from "./still-map";
 import {
   addTileLayers,
@@ -45,6 +45,12 @@ export function snap(value: number): number {
   return Math.round(value / SNAP) * SNAP;
 }
 
+/** The test ids of a map's failure in its place when Leaflet or the tile plan cannot download (INC-956) — the same pairs MapFailedHere (map-frame.tsx) draws for the map's own chunk; MOF-1/2 and LDF-1 hold the two to the same ids. */
+export const MAP_FAILED_IDS = {
+  still: { testid: "map-failed", refreshTestid: "map-refresh" },
+  large: { testid: "map-large-failed", refreshTestid: "map-large-refresh" },
+} as const;
+
 export function MapPreview({
   lat,
   lng,
@@ -68,7 +74,7 @@ export function MapPreview({
   // Part H2 — the plan in force's credit, drawn as text (never Leaflet's markup control).
   const [credit, setCredit] = useState("");
   // INC-956 (Foundations turn C1-2) — Leaflet or the tile plan could not download: the map's
-  // place says so (MapFailedHere), once, where the map is — never the shell's notice besides.
+  // place says so (LoadFailedHere with the still map's ids), once, where the map is — never the shell's notice besides.
   const [failed, setFailed] = useState(false);
   // D234 S1 — on the buyer's ad page the map's library, tile plan and tiles wait until
   // the box nears the screen; the seller's preview in the wizard draws at once.
@@ -148,7 +154,7 @@ export function MapPreview({
         />
         {failed && (
           <div className="absolute inset-0 flex items-center justify-center bg-muted p-2">
-            <MapFailedHere />
+            <LoadFailedHere {...MAP_FAILED_IDS.still} />
           </div>
         )}
         {credit !== "" && (

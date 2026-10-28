@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useI18n } from "@/i18n";
 import { errorText } from "@/lib/error-text";
 import { APPROX_RADIUS_M } from "./geocode";
-import { MapFailedHere } from "./map-frame";
-import { snap } from "./map-preview";
+import { MAP_FAILED_IDS, snap } from "./map-preview";
 import {
   addTileLayers,
   creditOf,
@@ -89,7 +89,7 @@ export function MapLarge({
     <div className="relative flex min-h-0 flex-1 flex-col gap-2">
       {failed && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted p-2">
-          <MapFailedHere large />
+          <LoadFailedHere {...MAP_FAILED_IDS.large} />
         </div>
       )}
       <div
