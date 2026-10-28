@@ -3626,6 +3626,10 @@ export type Database = {
       admin_ai_features: { Args: never; Returns: Json }
       admin_ai_spend_days: { Args: { p_days?: number }; Returns: Json }
       admin_allow_listing_photo: { Args: { p_photo_id: string }; Returns: Json }
+      admin_allow_listing_photo_core: {
+        Args: { p_photo_id: string }
+        Returns: Json
+      }
       admin_approve_all_entity_translations: {
         Args: { p_lang: string }
         Returns: Json
@@ -3727,6 +3731,15 @@ export type Database = {
         Returns: Json
       }
       admin_edit_listing: {
+        Args: {
+          p_changes: Json
+          p_listing_id: string
+          p_note?: string
+          p_reason: string
+        }
+        Returns: Json
+      }
+      admin_edit_listing_core: {
         Args: {
           p_changes: Json
           p_listing_id: string
@@ -4225,7 +4238,21 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_machine_entity_translation_core: {
+        Args: {
+          p_field: string
+          p_id: string
+          p_lang: string
+          p_type: string
+          p_value: string
+        }
+        Returns: undefined
+      }
       admin_machine_translation: {
+        Args: { p_key: string; p_lang: string; p_value: string }
+        Returns: undefined
+      }
+      admin_machine_translation_core: {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
@@ -4242,6 +4269,15 @@ export type Database = {
         Returns: undefined
       }
       admin_move_listing: {
+        Args: {
+          p_listing_id: string
+          p_note?: string
+          p_reason: string
+          p_to: string
+        }
+        Returns: Json
+      }
+      admin_move_listing_core: {
         Args: {
           p_listing_id: string
           p_note?: string
@@ -4303,7 +4339,21 @@ export type Database = {
         Args: { p_change_id: string }
         Returns: Json
       }
+      admin_review_photo_change_core: {
+        Args: { p_change_id: string }
+        Returns: Json
+      }
       admin_save_entity_translation: {
+        Args: {
+          p_field: string
+          p_id: string
+          p_lang: string
+          p_type: string
+          p_value: string
+        }
+        Returns: undefined
+      }
+      admin_save_entity_translation_core: {
         Args: {
           p_field: string
           p_id: string
@@ -4326,6 +4376,10 @@ export type Database = {
         Returns: Json
       }
       admin_save_translation: {
+        Args: { p_key: string; p_lang: string; p_value: string }
+        Returns: undefined
+      }
+      admin_save_translation_core: {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
       }
