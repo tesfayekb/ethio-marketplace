@@ -300,13 +300,18 @@ test.describe("U0j sign-out hard reset", () => {
         { message: "the Home page's code is fetched ahead of time for a signed-in visitor" },
       )
       .toBe("ready");
-    if (isMobile(page)) {
-      // The account menu's code arrives on its first opening: open it once while online.
-      await page.getByTestId("account-menu").click();
-      await expect(page.getByTestId("account-menu-sign-out")).toBeVisible();
-      await page.keyboard.press("Escape");
-      await expect(page.getByTestId("account-menu-sign-out")).toHaveCount(0);
-    }
+    // INC-960 (Foundations turn C2, ruling 3) — the account menu draws from the overlays module,
+    // which every page warms at idle; the E2E build reports its arrival, so the phone leg opens
+    // the menu for the first time only once offline: no online opening brings its code here.
+    await expect
+      .poll(
+        () =>
+          page.evaluate(
+            () => (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead ?? "idle",
+          ),
+        { message: "the account menu's code has arrived by the overlays' warm-up" },
+      )
+      .toBe("ready");
     let loads = 0;
     page.on("load", () => {
       loads += 1;

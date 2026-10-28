@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createHomeAhead, type HomeAheadState } from "./sign-out-landing";
 
@@ -55,5 +55,67 @@ describe("the page a sign-out lands on is fetched ahead of time (DEC-279, INC-93
     const nothing = createHomeAhead(() => undefined);
     nothing.consider(true, true);
     await vi.waitFor(() => expect(nothing.state()).toBe("ready"));
+  });
+});
+
+/**
+ * INC-960 (Foundations turn C2, ruling 3) — the phone's account menu, the only Sign out on a phone,
+ * draws from the overlays module that warmOverlaysWhenIdle (src/components/ui/overlay-loader.ts)
+ * fetches at idle for every visitor; the E2E build hears its arrival as `__ethioMenuAhead` (SO-13).
+ * Each test reads a fresh loader (its warm-up is once per page life) with the idle callback held
+ * and the overlay primitives' module mocked to arrive or to fail.
+ */
+describe("the account menu's code is warmed ahead and its arrival reported (INC-960)", () => {
+  const raised = vi.hoisted(() => ({ report: vi.fn() }));
+  vi.mock("./on-demand-failure", async (importOriginal) => ({
+    ...(await importOriginal<typeof import("./on-demand-failure")>()),
+    reportOnDemandFailure: raised.report,
+  }));
+  let idle: Array<() => void> = [];
+  const shown = () => (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead;
+  const warm = async (arrives: boolean) => {
+    vi.resetModules();
+    vi.doMock("@/components/ui/overlays-impl", () => {
+      if (!arrives) throw new Error("Failed to fetch dynamically imported module");
+      return {};
+    });
+    const { warmOverlaysWhenIdle } = await import("@/components/ui/overlay-loader");
+    warmOverlaysWhenIdle();
+    return idle;
+  };
+
+  beforeEach(() => {
+    idle = [];
+    raised.report.mockClear();
+    delete (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead;
+    vi.stubGlobal("requestIdleCallback", (ask: () => void) => {
+      idle.push(ask);
+      return idle.length;
+    });
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.doUnmock("@/components/ui/overlays-impl");
+  });
+
+  it("SAH-1 the warm-up asks at idle and reports loading, then ready, to the E2E build", async () => {
+    const pending = await warm(true);
+    expect(shown(), "nothing is asked before idle").toBeUndefined();
+    expect(pending).toHaveLength(1);
+    pending.splice(0).forEach((ask) => ask());
+    expect(shown()).toBe("loading");
+    await vi.waitFor(() => expect(shown()).toBe("ready"));
+  });
+
+  it("SAH-2 a failed warm-up reports failed, logs once and raises no notice", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const pending = await warm(false);
+    pending.splice(0).forEach((ask) => ask());
+    await vi.waitFor(() => expect(shown()).toBe("failed"));
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toMatch(
+      /^\[overlays\] loading the overlay primitives failed: /,
+    );
+    expect(raised.report, "the person asked for nothing: no notice").not.toHaveBeenCalled();
   });
 });

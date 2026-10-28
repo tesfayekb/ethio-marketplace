@@ -30,6 +30,7 @@ describe("the E2E window instruments (DEC-018, INC-621)", () => {
       .sort();
     expect(census).toEqual([
       "src/components/app-shell.tsx: __ethioClientOff, __ethioHomeAhead, __ethioQueryClient, __ethioSupabase",
+      "src/components/ui/overlay-loader.ts: __ethioMenuAhead",
       "src/features/auth/mfa/mfa-service.ts: __ethioStepUp",
       "src/features/legal/use-legal-gate.ts: __ethioLegalKinds",
       "src/features/session/session-policy.ts: __ethioSessionPolicy",

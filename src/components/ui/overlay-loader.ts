@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 
 import { errorText } from "@/lib/error-text";
+import { isE2E } from "@/lib/env-flags";
 import { loadOnce } from "@/lib/load-once";
 
 /**
@@ -55,6 +56,16 @@ export function useOverlays(): OverlaysImpl | null {
 let warmScheduled = false;
 
 /**
+ * INC-960 (Foundations turn C2, ruling 3) — the E2E build shows the warm-up's state to SO-13 as
+ * `__ethioMenuAhead` ("loading" | "ready" | "failed"): the phone's account menu, the only Sign out
+ * on a phone, draws from this module, so its arrival is what an offline sign-out needs. Written
+ * only inside `isE2E`, so the production build carries none of it.
+ */
+const warmTold = (state: "loading" | "ready" | "failed") => {
+  (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead = state;
+};
+
+/**
  * Asks for the module once the page has loaded and the browser is idle, so a
  * person's first press finds it ready; scheduled once per visit, never on the
  * server. A failure here is logged only: the person asked for nothing, and the
@@ -64,6 +75,15 @@ export function warmOverlaysWhenIdle(): void {
   if (warmScheduled || typeof window === "undefined") return;
   warmScheduled = true;
   const ask = () => {
+    if (isE2E) {
+      // INC-960 — the E2E build hears each state; the production build runs only the line below.
+      warmTold("loading");
+      loadOverlays().then(
+        () => warmTold("ready"),
+        () => warmTold("failed"),
+      );
+      return;
+    }
     loadOverlays().catch(() => undefined);
   };
   const whenIdle = () => {
