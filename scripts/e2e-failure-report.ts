@@ -1214,7 +1214,7 @@ export function countTests(json: PwJson): number {
   return total;
 }
 
-/** `e2e-results-smoke` → `smoke`; `e2e-results-3` → `shard 3`. */
+/** `e2e-results-smoke` → `smoke`; `e2e-results-3` → `shard 3`; `e2e-results-repeat` → `repeat` (DEC-283). */
 export function sourceLabel(artifactDir: string): string {
   const id = artifactDir.replace(/^e2e-results-/, "");
   return /^\d+$/.test(id) ? `shard ${id}` : id;
@@ -1790,7 +1790,11 @@ async function main() {
 
     if (
       sourceLabel("e2e-results-3") !== "shard 3" ||
-      sourceLabel("e2e-results-smoke") !== "smoke"
+      sourceLabel("e2e-results-smoke") !== "smoke" ||
+      // DEC-283: the repeat lane is a source of its own, named `repeat` in every
+      // section and on its flake-ledger line (retries 0: a failed repetition is
+      // a failure, never flaky).
+      sourceLabel("e2e-results-repeat") !== "repeat"
     ) {
       console.error("SELF-TEST FAILED — source labelling is wrong.");
       process.exit(1);
