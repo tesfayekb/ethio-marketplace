@@ -57,7 +57,7 @@ function ifLine(step: Step): string {
 /** Every rule of the repeat lane the workflow text breaks, by name. */
 export function repeatLaneFindings(text: string): string[] {
   const findings: string[] = [];
-  const matrix = /lane:\s*\n\s*\[([\s\S]*?)\]/.exec(text)?.[1] ?? "";
+  const matrix = /lane:\s*\[([\s\S]*?)\]/.exec(text)?.[1] ?? "";
   if (!/^\s*"?repeat"?,?\s*$/m.test(matrix)) findings.push("the matrix has no repeat lane");
   const lanes = /^\s*lanes = \[(.*)\]\s*$/m.exec(text)?.[1] ?? "";
   if (!lanes.includes("'repeat'")) findings.push("the summary's lane list leaves repeat out");
