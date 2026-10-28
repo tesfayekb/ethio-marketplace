@@ -214,6 +214,36 @@ it("AV-9 the coverage places' names travel into the view in the document's order
   ]);
 });
 
+it("AV-10 a place's path travels into the view, country first (INC-949)", () => {
+  const doc = document();
+  doc.places.list = [
+    {
+      id: "b",
+      name_en: "Bole",
+      name_am: null,
+      level: "sub_city",
+      slug: "bole",
+      country_code: "ET",
+      position: 1,
+      map_visible: true,
+      path: [
+        { id: "et", name_en: "Ethiopia", name_am: null, level: "country", slug: "et" },
+        { id: "a", name_en: "Addis Ababa", name_am: null, level: "city", slug: "addis-ababa" },
+      ],
+    },
+  ];
+  expect(adPageView(doc, "en").placeList).toEqual([
+    {
+      id: "b",
+      nameEn: "Bole",
+      path: [
+        { id: "et", nameEn: "Ethiopia" },
+        { id: "a", nameEn: "Addis Ababa" },
+      ],
+    },
+  ]);
+});
+
 it("AV-8 a definition's fact_rank and is_filterable travel into the view", () => {
   const doc = document();
   doc.definitions = [

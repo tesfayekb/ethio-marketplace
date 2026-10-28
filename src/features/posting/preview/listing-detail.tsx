@@ -417,7 +417,9 @@ export function ListingDetail(view: ListingDetailView) {
   const showLocation = hasPin || Boolean(view.directions) || Boolean(view.streetAddress);
   // INC-949 — the document's own paths first; the tree only for a view without them.
   const query =
-    mapsPathQuery(view.placeList ?? []) || mapsPlaceQuery(nodes, view.coverage) || places.join(", ");
+    mapsPathQuery(view.placeList ?? []) ||
+    mapsPlaceQuery(nodes, view.coverage) ||
+    places.join(", ");
   const placesMaps = webPlaceUrl(query);
   const placesApp = appPlaceUrl(query);
   const [mapMaps, setMapMaps] = useState<{ web: string; app: string } | null>(null);

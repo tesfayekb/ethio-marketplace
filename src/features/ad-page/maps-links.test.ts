@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { TreeNode } from "@/components/shell/location-data";
 import {
   mapsPlaceQuery,
+  mapsPathQuery,
   webPlaceUrl,
   webPinUrl,
   appPlaceUrl,
@@ -34,6 +35,26 @@ describe("Maps links", () => {
     expect(mapsPlaceQuery(nodes, ["bole", "adama"])).toBe("Ethiopia");
     expect(mapsPlaceQuery(nodes, ["unknown", "bole"])).toBe("Bole, Addis Ababa, Ethiopia");
     expect(mapsPlaceQuery(nodes, ["unknown"])).toBe("");
+  });
+  it("GML-4 builds the address from the document's paths, never the tree (INC-949)", () => {
+    const et = { id: "et", nameEn: "Ethiopia" };
+    const addis = { id: "addis", nameEn: "Addis Ababa" };
+    const bole = { id: "bole", nameEn: "Bole", path: [et, addis] };
+    const kirkos = { id: "kirkos", nameEn: "Kirkos", path: [et, addis] };
+    const adama = { id: "adama", nameEn: "Adama", path: [et] };
+    expect(mapsPathQuery([bole])).toBe("Bole, Addis Ababa, Ethiopia");
+    expect(mapsPathQuery([bole, kirkos])).toBe("Addis Ababa, Ethiopia");
+    expect(mapsPathQuery([bole, adama])).toBe("Ethiopia");
+  });
+  it("GML-5 a place without a path, or no place, gives no path address", () => {
+    expect(mapsPathQuery([])).toBe("");
+    expect(mapsPathQuery([{ id: "bole", nameEn: "Bole" }])).toBe("");
+    expect(
+      mapsPathQuery([
+        { id: "bole", nameEn: "Bole", path: [{ id: "et", nameEn: "Ethiopia" }] },
+        { id: "kirkos", nameEn: "Kirkos" },
+      ]),
+    ).toBe("");
   });
   it("GML-2 uses the slug when the English name is absent", () => {
     expect(
