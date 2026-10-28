@@ -24,9 +24,13 @@ import { errorText } from "../../src/lib/error-text";
 /** How long a "gone" error waits for the navigation that explains it. */
 export const GONE_WAIT_MS = 2_000;
 
-/** The two errors Playwright gives a handler whose page has gone. */
+/**
+ * The two errors Playwright gives a handler whose page has gone — the second in both its wordings:
+ * "Response has been disposed" (a fetched answer read) and "Fetch response has been disposed"
+ * (`route.fulfill` handed one; ODE-1, run 40697185212, Foundations turn C2).
+ */
 export function pageWentAway(error: unknown): boolean {
-  return /Target page, context or browser has been closed|Response has been disposed/.test(
+  return /Target page, context or browser has been closed|(?:Fetch r|R)esponse has been disposed/.test(
     errorText(error),
   );
 }

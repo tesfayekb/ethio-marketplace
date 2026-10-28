@@ -45,6 +45,9 @@ describe("a test's interception ends with its page (INC-934)", () => {
       ),
     ).toBe(true);
     expect(pageWentAway(new Error("apiResponse.text: Response has been disposed"))).toBe(true);
+    // Turn C2 (ODE-1, run 40697185212) — route.fulfill's own words for a fetched answer whose
+    // document went (Playwright's "Fetch response has been disposed" assertion).
+    expect(pageWentAway(new Error("route.fulfill: Fetch response has been disposed"))).toBe(true);
     expect(pageWentAway(new Error("route.fulfill: Route is already handled!"))).toBe(false);
     expect(pageWentAway(new Error("expect(received).toBe(expected)"))).toBe(false);
     expect(pageWentAway("Target page, context or browser has been closed")).toBe(true);
