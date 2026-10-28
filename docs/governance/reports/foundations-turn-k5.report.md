@@ -138,7 +138,11 @@ No workflow now reads `Timed out waiting` inline (RPL-1).
 
 ## Reviewer
 
-See the section appended below.
+Round 1: NOT READY, one MAJOR. Malformed lists failed open: `"specs": null` read as capped, which is less strict than the removed Python. Fixed: a present list must be an array of objects, and anything else makes the verdict "failed". RCAP-9 was added.
+
+Round 2: NOT READY, one MAJOR. Arrays passed as objects, so `"suites": [[]]` read as capped. Fixed: `isObject` now excludes arrays, and RCAP-9 gained nested-array cases for every list.
+
+Round 3 is recorded in the chat summary. Each round found no other finding in the remaining diff.
 
 ## Departures
 

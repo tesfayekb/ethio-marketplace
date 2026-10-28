@@ -34,7 +34,8 @@ export function isGlobalTimeout(message: unknown): boolean {
 export type CapVerdict = { verdict: "capped"; left: string[] } | { verdict: "failed" };
 
 type Json = Record<string, unknown>;
-const isObject = (v: unknown): v is Json => typeof v === "object" && v !== null;
+const isObject = (v: unknown): v is Json =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
 class Unreadable extends Error {}
 /** An absent list is empty; a present list that is not an array of objects is unreadable. */
 const list = (owner: Json, key: string): Json[] => {

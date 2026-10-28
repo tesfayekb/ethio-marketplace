@@ -95,6 +95,15 @@ describe("the repeat lane's cap reader (INC-966)", () => {
         suites: [{ title: "a", specs: [{ title: "s", tests: [{ results: null }] }] }],
       },
       { errors: cap, suites: [{ title: "a", suites: [null] }] },
+      { errors: cap, suites: [[]] },
+      { errors: cap, suites: [{ title: "a", suites: [[]] }] },
+      { errors: cap, suites: [{ title: "a", specs: [[]] }] },
+      { errors: cap, suites: [{ title: "a", specs: [{ title: "s", tests: [[]] }] }] },
+      {
+        errors: cap,
+        suites: [{ title: "a", specs: [{ title: "s", tests: [{ results: [[]] }] }] }],
+      },
+      { errors: [[]], suites: [] },
     ];
     for (const r of bad) expect(capVerdict(r).verdict, JSON.stringify(r)).toBe("failed");
     expect(capVerdict({ errors: cap }).verdict).toBe("capped");
