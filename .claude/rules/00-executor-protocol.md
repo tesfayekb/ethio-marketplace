@@ -51,11 +51,14 @@ A turn is ONE brief, worked part by part, landed at every stop and at the end.
    (`30-migrations.md`), commit it, land, end the turn. You apply it on production only when the
    supervisor's message says `apply <fragment> on ethio-prod`, through the migration tool, behind the
    operator's approval prompt — never otherwise, never on staging.
-5. **THE CHECKS** (`bun .claude/hooks/land.ts` runs them again before it pushes, and caches each
-   green step per code tree): `bun run lint` → `bun run typecheck` → `bun run test:unit` →
-   `bun run i18n:usage` (both maps committed when they move) → `bun run build` →
-   `bash scripts/check-migrations.sh` (when supabase/migrations/ changed) → `bun run format:check`
-   LAST. Every red is fixed at its root first.
+5. **THE CHECKS** — once per code tree (DEC-278): commit, then `bun .claude/hooks/land.ts --checks`
+   (Bash timeout 1800000 ms; it pushes nothing). It runs `bun run lint` → `bun run typecheck` →
+   `bun run test:unit` → `bun run i18n:usage` (both maps committed when they move) → `bun run build`
+   → `bash scripts/check-migrations.sh` (when supabase/migrations/ changed) → `bun run format:check`
+   LAST, and caches each green step for the committed tree; the landing finds them green for the same
+   tree (the report's commit is not code) and does not run them again. Every red is fixed at its root
+   first, in a new commit, and `--checks` runs again — a step already green for the new tree is not
+   repeated. Paste its lines as THE CHECKS' evidence.
 6. **THE END-TO-END CHECK**: the spec files the turn changed or added (whole, alone, both projects,
    0 retries, fake mode) through `bun run e2e:local -- <files>`, plus every test id the brief names by
    `--grep`. Paste every count line and the server log's `[ssr-error]` count by path. When the

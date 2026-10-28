@@ -64,8 +64,8 @@ function hook(name: string, event: Record<string, unknown>, cwd = repo, extra = 
   return { code: r.status, out: r.stdout, err: r.stderr };
 }
 
-function land(cwd: string) {
-  const r = spawnSync("bun", [join(HOOKS, "land.ts")], {
+function land(cwd: string, args: string[] = []) {
+  const r = spawnSync("bun", [join(HOOKS, "land.ts"), ...args], {
     cwd,
     encoding: "utf8",
     env: { ...ENV, CLAUDE_PROJECT_DIR: cwd },
@@ -451,6 +451,7 @@ describe("bash guard (50-security.md)", () => {
     allowed("git add -A && git commit -m 'turn 99 part B: planted'");
     allowed("git diff --name-only $(git merge-base HEAD origin/dev)..HEAD");
     allowed("bun .claude/hooks/land.ts");
+    allowed("bun .claude/hooks/land.ts --checks");
     allowed("gh run list --branch dev --limit 3");
     allowed('gh api "repos/tesfayekb/ethio-marketplace/actions/runs?branch=dev&per_page=3"');
     allowed('grep -rn "process.env" src/');
@@ -635,6 +636,7 @@ describe("bash guard (50-security.md)", () => {
       "bun run e2e:local -- e2e/smoke-auth-i18n.spec.ts",
       "bunx vitest run src/server/ai/gateway.test.ts",
       "bun .claude/hooks/land.ts",
+      "bun .claude/hooks/land.ts --checks",
       "gh run list --branch dev --limit 3",
       "git branch --show-current",
       "git fetch origin dev:dev",
@@ -792,6 +794,46 @@ describe("the landing door (land.ts)", { timeout: GIT_HEAVY_MS }, () => {
     expect(land(green.dir).out).toMatch(/Nothing to land/);
     const gate = hook("stop-gate", { hook_event_name: "Stop" }, green.dir);
     expect(gate.code, gate.err).toBe(0);
+  });
+
+  it("EXH-24 --checks runs THE CHECKS alone and pushes nothing; the landing then finds them green for the same tree (DEC-278)", () => {
+    const red = freshClone("checks-red", {
+      ...SCRIPTS,
+      lint: "echo 'planted lint error' && exit 1",
+    });
+    write(red.dir, "src/server/ai/new.ts", "export const x = 1;\n");
+    commit(red.dir, "turn 99 part B: new module");
+    const refused = land(red.dir, ["--checks"]);
+    expect(refused.code).toBe(1);
+    expect(refused.err).toMatch(/7 bun run lint/);
+    expect(remoteDev(red.origin)).toBe(sh("git rev-parse origin/dev", red.dir).trim());
+
+    const { dir, origin } = freshClone("checks-green");
+    const before = remoteDev(origin);
+    write(dir, "src/server/ai/new.ts", "export const x = 1;\n");
+    commit(dir, "turn 99 part B: new module");
+    // no report yet and nothing in SCOPE checked: --checks is THE CHECKS alone
+    const checks = land(dir, ["--checks"]);
+    expect(checks.code, checks.err).toBe(0);
+    expect(checks.out).toMatch(/✓ bun run lint\n/);
+    expect(checks.out).toMatch(/CHECKS GREEN for code tree [0-9a-f]{16}/);
+    expect(remoteDev(origin)).toBe(before);
+    expect(land(dir, ["--checks"]).out).toMatch(
+      /bun run lint \(already green for this code tree\)/,
+    );
+    write(dir, STOP_1, STOP_TEXT);
+    const head = commit(dir, "turn 99: stop 1 — which door?");
+    const landed = land(dir);
+    expect(landed.code, landed.err).toBe(0);
+    expect(landed.out).toMatch(/bun run lint \(already green for this code tree\)/);
+    expect(landed.out).toMatch(/bun run format:check \(already green for this code tree\)/);
+    expect(landed.out).toMatch(/LANDED/);
+    expect(remoteDev(origin)).toBe(head);
+    expect(land(dir, ["--checks"]).out).toMatch(/Nothing to check/);
+
+    const wrong = land(dir, ["--check"]);
+    expect(wrong.code).toBe(2);
+    expect(wrong.err).toMatch(/takes no argument but --checks/);
   });
 
   it("EXH-12 a final report must carry the twelve sections, name the last code commit and list every landed path", () => {

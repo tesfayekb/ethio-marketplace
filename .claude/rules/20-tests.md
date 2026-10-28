@@ -66,7 +66,9 @@ the limit); `staleStepUpOnClient` / `afterTotpStep`; `awaitConsole(page)` for th
 fixed-slot fixtures; `chunkByLength(values, 4000)` on every unbounded `.in(...)`; `retryingFetch` on
 every service-role client; the category menu's one reader (`e2e/helpers/category-menu.ts`);
 `stripScratchRows` for whole-export comparisons; `anchorRealRow` / `category-search` instead of page
-position; `gotoReady` / `findRow` (render invariant: no `[object Object]`, `undefined`, `NaN`).
+position; `gotoReady` / `findRow` (render invariant: no `[object Object]`, `undefined`, `NaN`);
+`layoutBoxes({ name: locator, … })` for every box a test compares — read together in one frame after
+`settled(page)`, never `boundingBox()` one by one (INC-940; e2e/helpers/ui.ts).
 
 ## Running tests
 

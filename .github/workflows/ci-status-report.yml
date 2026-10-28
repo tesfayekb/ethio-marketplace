@@ -26,10 +26,12 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           ref: dev
 
       - name: Build status file
+        timeout-minutes: 8
         uses: actions/github-script@v9
         with:
           script: |
@@ -234,15 +236,17 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v7
+        timeout-minutes: 5
         with:
           ref: dev
           fetch-depth: 0
           token: ${{ secrets.PROMOTE_TOKEN }}
 
       - name: Show what will be overwritten
+        timeout-minutes: 5
         run: |
           set -eu
-          git fetch origin main dev
+          bash scripts/ci/with-deadline.sh 120 2 -- git fetch origin main dev
           echo "main HEAD: $(git rev-parse origin/main)"
           echo "dev  HEAD: $(git rev-parse origin/dev)"
           echo "--- commits on main that are NOT on dev (these will be DISCARDED) ---"
@@ -253,6 +257,7 @@ jobs:
           echo "--- end ---"
 
       - name: Force main to dev (lease-protected)
+        timeout-minutes: 5
         run: |
           set -eu
           git push --force-with-lease=main:"$(git rev-parse origin/main)" origin origin/dev:main

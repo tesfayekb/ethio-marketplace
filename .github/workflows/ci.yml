@@ -46,6 +46,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
         with:
           # INC-076: the deletion guard needs the previous main commit in the
           # local object store, so the shallow default will not do.
@@ -63,6 +64,7 @@ jobs:
           SELF_TEST=1 bash scripts/check-shell-pipes.sh
           bash scripts/check-shell-pipes.sh
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       - name: Promote needs every job (with self-test)
@@ -148,7 +150,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       - name: Install dependencies
@@ -167,9 +171,11 @@ jobs:
       pull-requests: read
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v3
+        timeout-minutes: 8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -179,7 +185,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       # Self-tests first: a guard that only ever passes proves nothing.
@@ -196,7 +204,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: latest
       # The map is a pure function of src/: regenerating it must be a no-op.
@@ -213,6 +223,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - name: Run string scan
         run: bash scripts/check-hardcoded-strings.sh
 
@@ -222,7 +233,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
       # The guard passes on real routes AND rejects its own bad fixture (a
       # hand-rolled second door); both directions run in the same step.
       - name: One door for every import/export
@@ -234,6 +247,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       # Direction 1: the guard must PASS on real source.
       - name: Guard src/
         run: bash scripts/check-listing-writes.sh src
@@ -256,6 +270,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       # Direction 1: the guard must PASS on real source.
       - name: Guard src/
         run: bash scripts/check-browse-imports.sh src
@@ -277,7 +292,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: actions/setup-node@v5
+        timeout-minutes: 5
         with:
           node-version: "22"
       - name: Guard the marketplace module graph
@@ -289,7 +306,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       - name: Install dependencies
@@ -316,15 +335,22 @@ jobs:
       SEMGREP_RULES_SHA: a84ff9cc2453ca91d581380de4b8b3f272f6f4be
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: actions/setup-python@v5
+        timeout-minutes: 5
         with:
           python-version: "3.12"
       - name: Install pinned Semgrep
-        run: pip install "semgrep==${SEMGREP_VERSION}"
+        timeout-minutes: 12
+        run: bash scripts/ci/with-deadline.sh 300 2 -- pip install "semgrep==${SEMGREP_VERSION}"
+      # INC-941 — only the pinned commit is fetched (no clone of the default branch), and the
+      # fetch is safe to repeat, so it runs through the retrying deadline.
       - name: Fetch pinned rules
+        timeout-minutes: 12
         run: |
-          git clone --depth 1 https://github.com/semgrep/semgrep-rules /tmp/semgrep-rules
-          git -C /tmp/semgrep-rules fetch --depth 1 origin "$SEMGREP_RULES_SHA"
+          git init --quiet /tmp/semgrep-rules
+          git -C /tmp/semgrep-rules remote add origin https://github.com/semgrep/semgrep-rules
+          bash scripts/ci/with-deadline.sh 300 2 -- git -C /tmp/semgrep-rules fetch --depth 1 origin "$SEMGREP_RULES_SHA"
           git -C /tmp/semgrep-rules checkout --quiet "$SEMGREP_RULES_SHA"
           # Excluded rule (baseline 2026-10-05: 304 noise results; i18n is
           # enforced by our own string scan and usage map).
@@ -365,6 +391,7 @@ jobs:
       # upload is the warning step below. The CI status reporter names every
       # "Warn: " step that ran in guards-last-failure.md.
       - name: Upload SARIF
+        timeout-minutes: 5
         id: sarif
         if: always() && hashFiles('semgrep.sarif') != ''
         continue-on-error: true
@@ -382,7 +409,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       - name: Install dependencies
@@ -411,10 +440,13 @@ jobs:
       E2E_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       - name: Cache bun install
+        timeout-minutes: 10
         id: bun-cache
         uses: actions/cache@v5
         with:
@@ -470,7 +502,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
+        timeout-minutes: 5
       - uses: oven-sh/setup-bun@v2
+        timeout-minutes: 5
         with:
           bun-version: 1.3.14
       # INC-084e — DOWNLOAD RESILIENCE. actions/download-artifact@v4 FAILS the
@@ -479,6 +513,7 @@ jobs:
       # the job before the reporter runs: the reporter's whole purpose is to
       # describe exactly that situation.
       - name: Download shard results
+        timeout-minutes: 10
         uses: actions/download-artifact@v7
         continue-on-error: true
         with:
@@ -487,6 +522,7 @@ jobs:
       # Log tails only exist for RED jobs; a run where every job wrote results
       # downloads nothing here and the step is a no-op.
       - name: Download job log tails
+        timeout-minutes: 10
         uses: actions/download-artifact@v7
         continue-on-error: true
         with:
@@ -500,6 +536,7 @@ jobs:
       # error-context.md. The reporter walks for error-context.md by name, so
       # it handles that shape, the merged-flat shape and the empty directory.
       - name: Download error contexts
+        timeout-minutes: 10
         uses: actions/download-artifact@v7
         continue-on-error: true
         with:
@@ -655,6 +692,7 @@ jobs:
             exit 1
           fi
       - uses: actions/checkout@v5
+        timeout-minutes: 5
         with:
           fetch-depth: 0
           token: ${{ secrets.PROMOTE_TOKEN }}
@@ -663,8 +701,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
       - name: Fast-forward guard (ff-only law — never merge/rebase here)
+        timeout-minutes: 5
         run: |
-          git fetch origin main
+          bash scripts/ci/with-deadline.sh 120 2 -- git fetch origin main
           git merge-base --is-ancestor origin/main HEAD || { echo "::error::MAIN DIVERGED — fast-forward impossible; manual reconcile per DEC-020 (ff-only law, never merge/rebase here); run the sync-main dispatch after confirming main's extra commits are tracking-only"; exit 1; }
       - name: Promote dev to main
+        timeout-minutes: 5
         run: git push origin HEAD:main

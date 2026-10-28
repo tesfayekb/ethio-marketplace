@@ -42,6 +42,7 @@
       "Bash(jq *)",
       "Bash(mkdir -p .claude/turn*)",
       "Bash(bun .claude/hooks/land.ts)",
+      "Bash(bun .claude/hooks/land.ts --checks)",
       "Bash(git switch dev)",
       "Bash(git merge --ff-only origin/dev)",
       "Bash(git branch --show-current)",
