@@ -5087,6 +5087,7 @@ export type Database = {
         }
         Returns: Json
       }
+      place_is_shown: { Args: { p_id: string }; Returns: boolean }
       plan_caps: { Args: { p_plan: string }; Returns: Json }
       plan_photo_cap: { Args: { p_plan: string }; Returns: number }
       price_basis_conflict: {
