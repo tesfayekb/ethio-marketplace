@@ -16,6 +16,12 @@ import { report, walkFiles } from "./kit";
  * `playwright install --with-deps`) runs ONCE: one cut off part-way leaves the system's package
  * manager interrupted, so its retry fails at once (lanes 3, 5 and 12 of run 40519893778 —
  * INC-943, DEC-276); downloads, `apt-get update` and `bun install` may be retried.
+ * INC-941 (Foundations turn K3) — the same rule by its definition: pip's installs and git's network
+ * commands reach outside too (a `pip install` or `git clone` hung is a 15-minute job lost), and
+ * so does every action a step uses (setup-bun, setup-node, setup-python, gitleaks, cache,
+ * artifacts, checkout): each declares its own deadline. A download that is safe to repeat
+ * (`pip install`, `git clone`, `git fetch`) runs through the wrapper; a push does not (it is not
+ * repeated blindly), it carries its step deadline.
  */
 
 export type Step = { line: number; text: string; timeout: boolean };
@@ -74,9 +80,18 @@ export function readWorkflow(file: string, text: string): Job[] {
 
 /** A command line that reaches outside the runner. */
 const OUTSIDE =
-  /\b(?:bun install|playwright install|apt-get (?:update|install)|curl|supabase start)\b/;
-/** A command line that installs, and so must run through the retrying deadline. */
-const INSTALL = /\b(?:bun install|playwright install|apt-get (?:update|install))\b/;
+  /\b(?:bun install|playwright install|apt-get (?:update|install)|curl|wget|supabase start|pip install|git(?: -C \S+)? (?:clone|fetch|push|ls-remote))\b/;
+/** A command line that installs or downloads, and so must run through the retrying deadline. */
+const INSTALL =
+  /\b(?:bun install|playwright install|apt-get (?:update|install)|pip install|git(?: -C \S+)? (?:clone|fetch))\b/;
+/** The action a step uses (`uses: owner/action@ref`), or null — a local `./` workflow is no action. */
+function actionOf(step: Step): string | null {
+  for (const line of step.text.split("\n")) {
+    const use = /^\s*(?:- )?uses:\s*(\S+)/.exec(line);
+    if (use) return (use[1] ?? "").startsWith("./") ? null : (use[1] ?? null);
+  }
+  return null;
+}
 const WRAPPER = "scripts/ci/with-deadline.sh";
 /** A package install: cut off part-way it is not safe to repeat, so it runs with one try (INC-943). */
 const PACKAGE_INSTALL =
@@ -97,7 +112,7 @@ function commandLines(step: Step): string[] {
 
 type Finding = { file: string; line: number; what: string };
 
-/** Every breach of the five rules in the given workflows. */
+/** Every breach of the six rules in the given workflows. */
 export function deadlineFindings(files: Array<{ file: string; text: string }>): Finding[] {
   const findings: Finding[] = [];
   for (const { file, text } of files) {
@@ -112,7 +127,14 @@ export function deadlineFindings(files: Array<{ file: string; text: string }>): 
       for (const step of job.steps) {
         const commands = commandLines(step);
         if (commands.some((line) => line.includes(RESERVE))) reserved = true;
-        if (commands.some((line) => OUTSIDE.test(line)) && !step.timeout)
+        const action = actionOf(step);
+        if (action !== null && !step.timeout)
+          findings.push({
+            file,
+            line: step.line,
+            what: `a step that uses ${action} declares no timeout-minutes`,
+          });
+        else if (commands.some((line) => OUTSIDE.test(line)) && !step.timeout)
           findings.push({
             file,
             line: step.line,
@@ -151,7 +173,7 @@ const workflows = walkFiles([".github/workflows"], { ext: ["yml"] }).map((file) 
 }));
 
 describe("every CI job and every outside call carries a deadline (INC-935)", () => {
-  it("CF-CID-1 every workflow's jobs, outside calls, installs and backend starts keep the five rules", () => {
+  it("CF-CID-1 every workflow's jobs, actions, outside calls, installs and backend starts keep the six rules", () => {
     const jobs = workflows.flatMap(({ file, text }) => readWorkflow(file, text));
     const outside = jobs
       .flatMap((job) => job.steps)
@@ -165,7 +187,7 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
     expect(report(deadlineFindings(workflows))).toBe("");
   });
 
-  it("CF-CID-2 a planted workflow's five breaches are named and its kept steps are not", () => {
+  it("CF-CID-2 a planted workflow's eight breaches are named and its kept steps are not", () => {
     const dir = "node_modules/.cache/ci-deadlines";
     mkdirSync(dir, { recursive: true });
     const file = `${dir}/planted.yml`;
@@ -207,6 +229,22 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
           "      - name: Install the browser and its libraries twice",
           "        timeout-minutes: 12",
           `        run: bash ${WRAPPER} 300 2 -- bunx playwright install --with-deps chromium`,
+          "  actions:",
+          "    runs-on: ubuntu-24.04",
+          "    timeout-minutes: 10",
+          "    steps:",
+          "      - uses: actions/checkout@v5",
+          "      - name: Setup kept",
+          "        timeout-minutes: 5",
+          "        uses: oven-sh/setup-bun@v2",
+          "      - name: Python packages",
+          "        timeout-minutes: 5",
+          "        run: pip install semgrep",
+          "      - name: Rules kept",
+          "        timeout-minutes: 5",
+          `        run: bash ${WRAPPER} 300 2 -- git -C /tmp/rules fetch --depth 1 origin main`,
+          "      - name: Push",
+          "        run: git -C /tmp/rules push origin HEAD:main",
           "",
         ].join("\n"),
       );
@@ -218,6 +256,9 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
           `${file}:25 an install outside ${WRAPPER}: run: bun install --frozen-lockfile`,
           `${file}:27 the backend starts before its ports are reserved`,
           `${file}:32 a package install retried (2 tries; it runs once): run: bash ${WRAPPER} 300 2 -- bunx playwright install --with-deps chromium`,
+          `${file}:39 a step that uses actions/checkout@v5 declares no timeout-minutes`,
+          `${file}:43 an install outside ${WRAPPER}: run: pip install semgrep`,
+          `${file}:49 a step that reaches outside declares no timeout-minutes`,
         ].join("\n"),
       );
     } finally {
