@@ -130,7 +130,10 @@ export const Route = createFileRoute("/api/translate")({
           try {
             press = await spend(DIALS.machineTranslatePress, userId as string);
           } catch (error) {
-            logRouteError(PATH, `rate limit ${DIALS.machineTranslatePress.action}: ${errorText(error)}`);
+            logRouteError(
+              PATH,
+              `rate limit ${DIALS.machineTranslatePress.action}: ${errorText(error)}`,
+            );
             return ok({ error: "upstream unavailable" }, { status: 503 });
           }
           if (!press.allowed) {
