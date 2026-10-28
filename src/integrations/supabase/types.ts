@@ -1785,6 +1785,13 @@ export type Database = {
             referencedRelation: "locations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "listing_locations_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       listing_photo_changes: {
@@ -2295,6 +2302,13 @@ export type Database = {
             referencedRelation: "locations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "listings_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       location_import_revisions: {
@@ -2406,6 +2420,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "locations_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "locations_country_code_fkey"
             columns: ["country_code"]
             isOneToOne: false
@@ -2420,10 +2441,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "locations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "locations_region_id_fkey"
             columns: ["region_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -2632,6 +2667,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_default_post_location_id_fkey"
+            columns: ["default_post_location_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_home_country_code_fkey"
             columns: ["home_country_code"]
             isOneToOne: false
@@ -2650,6 +2692,13 @@ export type Database = {
             columns: ["viewing_location_id"]
             isOneToOne: false
             referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_viewing_location_id_fkey"
+            columns: ["viewing_location_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
             referencedColumns: ["id"]
           },
         ]
@@ -3199,6 +3248,13 @@ export type Database = {
             referencedRelation: "locations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "seller_places_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       site_words: {
@@ -3433,7 +3489,119 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      shown_locations: {
+        Row: {
+          aliases: string[] | null
+          center_lat: number | null
+          center_lng: number | null
+          city_id: string | null
+          country_code: string | null
+          created_at: string | null
+          display_order: number | null
+          id: string | null
+          is_active: boolean | null
+          iso_3166_2: string | null
+          level: string | null
+          name_am: string | null
+          name_en: string | null
+          parent_id: string | null
+          region_id: string | null
+          slug: string | null
+          source: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          aliases?: string[] | null
+          center_lat?: number | null
+          center_lng?: number | null
+          city_id?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          iso_3166_2?: string | null
+          level?: string | null
+          name_am?: string | null
+          name_en?: string | null
+          parent_id?: string | null
+          region_id?: string | null
+          slug?: string | null
+          source?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          aliases?: string[] | null
+          center_lat?: number | null
+          center_lng?: number | null
+          city_id?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string | null
+          is_active?: boolean | null
+          iso_3166_2?: string | null
+          level?: string | null
+          name_am?: string | null
+          name_en?: string | null
+          parent_id?: string | null
+          region_id?: string | null
+          slug?: string | null
+          source?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "locations_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "locations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "locations_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "shown_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_legal: {

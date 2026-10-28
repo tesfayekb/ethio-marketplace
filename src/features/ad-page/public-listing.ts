@@ -145,7 +145,14 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
       })[0] ?? null,
     coverage: doc.places.coverage,
     // INC-940 — the place lines come with the page, never after the country tree.
-    placeList: doc.places.list.map((place) => ({ id: place.id, nameEn: place.name_en })),
+    placeList: doc.places.list.map((place) => ({
+      id: place.id,
+      nameEn: place.name_en,
+      // INC-949 — the ancestors, country first, for the Maps address.
+      ...(place.path
+        ? { path: place.path.map((step) => ({ id: step.id, nameEn: step.name_en })) }
+        : {}),
+    })),
     country: doc.country,
     contactPref: Object.fromEntries(doc.contact_channels.map((name) => [name, { show: true }])),
     sellerAlias: doc.seller.alias,
