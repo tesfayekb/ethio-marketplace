@@ -98,7 +98,10 @@ jobs:
           REPEAT_BUDGET_SECONDS=720
           REPEAT_SECONDS_PER_TEST=4.7
           set -euo pipefail
-          specs=$(bun run scripts/e2e-select.ts --repeat)
+          # INC-967: "<rank> <spec>" lines — rank 1 the specs this push changed, rank 2 the importers of a changed helper.
+          ranked=$(bun run scripts/e2e-select.ts --repeat --ranks)
+          specs=$(printf '%s\n' "$ranked" | awk 'NF { print $2 }')
+          printf '%s\n' "$ranked" | awk 'NF { print $2, $1 }' > "$RUNNER_TEMP/repeat-ranks.txt"
           : > local-backend-repeat.txt
           if [ -z "$specs" ]; then
             echo "- Repeat: nothing to repeat" >> local-backend-repeat.txt
@@ -107,7 +110,7 @@ jobs:
           fi
           # shellcheck disable=SC2086
           bunx playwright test --list --project=mobile-360 --grep-invert "@global-state|@a11y" $specs > "$RUNNER_TEMP/repeat-list.txt"
-          tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" $specs <<'PY'
+          tests=$(python3 - "$RUNNER_TEMP/repeat-list.txt" "$RUNNER_TEMP/repeat-ranks.txt" <<'PY'
           import re, sys
           counts = {}
           for line in open(sys.argv[1]).read().splitlines():
@@ -115,8 +118,9 @@ jobs:
               if m:
                   counts['e2e/' + m[1]] = counts.get('e2e/' + m[1], 0) + 1
           with open('repeat-counts.txt', 'w') as out:
-              for spec in sys.argv[2:]:
-                  out.write(spec + ' ' + str(counts.get(spec, 0)) + '\n')
+              for line in open(sys.argv[2]).read().splitlines():
+                  spec, rank = line.split()
+                  out.write(spec + ' ' + str(counts.get(spec, 0)) + ' ' + rank + '\n')
           print(sum(counts.values()))
           PY
           )
@@ -125,16 +129,18 @@ jobs:
           take=${plan#* }
           chosen=""
           used=0
-          full=0
-          # In the selector's order while they fit: the first spec that does not fit ends the selection.
-          while read -r spec n; do
+          direct_n=0; direct_taken=0; helper_n=0; helper_taken=0
+          # In the selector's order (rank 1, then rank 2): a spec too large for what is left is skipped
+          # and the next one tried (INC-967).
+          while read -r spec n rank; do
             # A spec whose every test is left out by the tags has nothing to repeat.
             if [ "$n" -eq 0 ]; then continue; fi
-            if [ "$full" = 0 ] && [ $(( used + n )) -le "$take" ]; then
+            if [ "$rank" = 1 ]; then direct_n=$(( direct_n + 1 )); else helper_n=$(( helper_n + 1 )); fi
+            if [ $(( used + n )) -le "$take" ]; then
               chosen="${chosen:+$chosen }$spec"
               used=$(( used + n ))
+              if [ "$rank" = 1 ]; then direct_taken=$(( direct_taken + 1 )); else helper_taken=$(( helper_taken + 1 )); fi
             else
-              full=1
               echo "- Not repeated: $spec ($n tests)" >> local-backend-repeat.txt
             fi
           done < repeat-counts.txt
@@ -144,7 +150,7 @@ jobs:
             { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=$tests"; } >> "$GITHUB_ENV"
             exit 0
           fi
-          echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test" >> local-backend-repeat.txt
+          echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test; directly changed: $direct_taken of $direct_n repeated; importers of a changed helper: $helper_taken of $helper_n" >> local-backend-repeat.txt
           {
             echo "REPEAT_SPECS=$chosen"
             echo "REPEAT_TESTS=$tests"
@@ -667,37 +673,9 @@ jobs:
           result=$?
           if [ "$PROOF_LANE" = repeat ] && [ "$result" -ne 0 ]; then
             # DEC-283: the time cap reached with no failed repetition is green; the tests it left are named.
-            python3 - <<'PY' && result=0
-          import json, sys
-          from pathlib import Path
-          results = Path('test-results/results.json')
-          if not results.exists():
-              sys.exit(1)
-          data = json.loads(results.read_text())
-          errors = [str(e.get('message', e)) for e in data.get('errors', [])]
-          if not errors or not all('Timed out waiting' in e for e in errors):
-              sys.exit(1)
-          left, failed = [], False
-          def walk(suite, parents):
-              global failed
-              context = parents + ([suite['title']] if suite.get('title') else [])
-              for spec in suite.get('specs', []):
-                  for test in spec.get('tests', []):
-                      if test.get('status') == 'unexpected':
-                          failed = True
-                      runs = test.get('results', [])
-                      if not runs or any(r.get('status') == 'interrupted' for r in runs):
-                          left.append(' / '.join(context + [spec.get('title', ''), test.get('projectName', '')]))
-              for child in suite.get('suites', []):
-                  walk(child, context)
-          for suite in data.get('suites', []):
-              walk(suite, [])
-          if failed:
-              sys.exit(1)
-          with open('local-backend-repeat.txt', 'a') as out:
-              for title in sorted(set(left)):
-                  out.write('- Not repeated (time cap): ' + title + '\n')
-          PY
+            # The one reader of the cap (INC-966): capped only when every top-level error is Playwright's
+            # global-timeout message and no repetition failed; it names the tests the cap left.
+            bun run scripts/ci/repeat-cap.ts test-results/results.json local-backend-repeat.txt && result=0
           fi
           set -e
           echo "TEST_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
