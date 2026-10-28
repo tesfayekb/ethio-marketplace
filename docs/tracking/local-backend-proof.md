@@ -1,52 +1,52 @@
 # Local backend proof (non-gating)
 
-- Commit: `4658634311f0ee5b47c9d1102ab579513ced1c36`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40680789056
+- Commit: `ebd91c10054b43e0820efabad2b9705af2831677`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40684645197
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 996 | 123 | applied 345/345 | 196 | 0 | 0 | 62 | 258 |
-| email | 182 | 100 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 691 | 95 | applied 345/345 | 131 | 0 | 0 | 4 | 135 |
-| 2 | 1086 | 117 | applied 345/345 | 142 | 0 | 0 | 3 | 145 |
-| 3 | 856 | 105 | applied 345/345 | 123 | 0 | 0 | 0 | 123 |
-| 4 | 671 | 118 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 551 | 103 | applied 345/345 | 118 | 0 | 1 | 6 | 125 |
-| 6 | 632 | 89 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 492 | 103 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 652 | 114 | applied 345/345 | 110 | 0 | 0 | 30 | 140 |
-| 9 | 839 | 117 | applied 345/345 | 133 | 0 | 0 | 2 | 135 |
-| 10 | 837 | 101 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 870 | 89 | applied 345/345 | 123 | 0 | 0 | 1 | 124 |
-| 12 | 564 | 90 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 519 | 107 | applied 345/345 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 802 | 120 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 592 | 114 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 583 | 116 | applied 345/345 | 99 | 0 | 0 | 32 | 131 |
+| smoke | 961 | 114 | applied 345/345 | 196 | 0 | 0 | 62 | 258 |
+| email | 189 | 119 | applied 345/345 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 668 | 112 | applied 345/345 | 131 | 0 | 0 | 4 | 135 |
+| 2 | 948 | 102 | applied 345/345 | 142 | 0 | 0 | 3 | 145 |
+| 3 | 860 | 118 | applied 345/345 | 123 | 0 | 0 | 0 | 123 |
+| 4 | 684 | 114 | applied 345/345 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 441 | 92 | applied 345/345 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 772 | 108 | applied 345/345 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 468 | 90 | applied 345/345 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 662 | 119 | applied 345/345 | 110 | 0 | 0 | 30 | 140 |
+| 9 | 631 | 89 | applied 345/345 | 133 | 0 | 0 | 2 | 135 |
+| 10 | 968 | 104 | applied 345/345 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 862 | 101 | applied 345/345 | 123 | 0 | 0 | 1 | 124 |
+| 12 | 636 | 117 | applied 345/345 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 608 | 106 | applied 345/345 | 119 | 0 | 1 | 5 | 125 |
+| 14 | 727 | 104 | applied 345/345 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 551 | 111 | applied 345/345 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 610 | 117 | applied 345/345 | 99 | 0 | 0 | 32 | 131 |
 | TOTAL | — | — | — | 2240 | 0 | 1 | 159 | 2400 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the eighteen lanes)
 
-- Slowest lane: 2 1086 s
-- Database session samples during each start (INC-944): smoke 14, email 12, 1 12, 2 12, 3 13, 4 13, 5 13, 6 9, 7 10, 8 12, 9 13, 10 9, 11 9, 12 9, 13 10, 14 13, 15 13, 16 13
+- Slowest lane: 10 968 s
+- Database session samples during each start (INC-944): smoke 11, email 13, 1 11, 2 9, 3 13, 4 11, 5 9, 6 12, 7 9, 8 13, 9 9, 10 13, 11 9, 12 11, 13 12, 14 11, 15 12, 16 12
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40680789056-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40680789056-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40680789056-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40680789056-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40680789056-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40680789056-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40680789056-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40680789056-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40680789056-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40680789056-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40680789056-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40680789056-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40680789056-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40680789056-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40680789056-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40680789056-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40680789056-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40680789056-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40684645197-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40684645197-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40684645197-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40684645197-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40684645197-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40684645197-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40684645197-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40684645197-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40684645197-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40684645197-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40684645197-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40684645197-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40684645197-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40684645197-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40684645197-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40684645197-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40684645197-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40684645197-local-16
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -68,7 +68,7 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-## Lane 5
-- on-demand-failure.spec.ts / ON-DEMAND FAILURE — a failed download says so and offers a refresh (INC-911) / ODE-1 a menu whose code cannot download: the notice says so, the page stays, Close hides it and Refresh reloads / mobile-360 — Error: route.fulfill: Fetch response has been disposed
+## Lane 13
+- on-demand-failure.spec.ts / ON-DEMAND FAILURE — a failed download says so and offers a refresh (INC-911) / ODE-1 a menu whose code cannot download: the notice says so, the page stays, Close hides it and Refresh reloads / desktop-1280 — Error: route.fulfill: Fetch response has been disposed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — eighteen lanes, the email lane included; two consecutive full dev runs judge each change.
