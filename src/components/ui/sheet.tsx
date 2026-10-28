@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { NoticeOutlet } from "./notice-outlet";
 
 const Sheet = SheetPrimitive.Root;
 
@@ -74,6 +75,8 @@ const SheetContent = React.forwardRef<
           <span className="sr-only">{t("common.close")}</span>
         </SheetPrimitive.Close>
         {children}
+        {/* INC-955 — the shell's notices are drawn here while this sheet is open. */}
+        <NoticeOutlet />
       </SheetPrimitive.Content>
     </SheetPortal>
   );

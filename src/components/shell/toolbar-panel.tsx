@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 
 import { IconButtonBare } from "@/components/ui/icon-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { NoticeOutlet } from "@/components/ui/notice-outlet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useI18n } from "@/i18n";
 
@@ -93,6 +94,8 @@ export function ToolbarPanel({
                 {foot}
               </div>
             ) : null}
+            {/* INC-955 — the shell's notices are drawn here while this panel is open. */}
+            <NoticeOutlet />
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>

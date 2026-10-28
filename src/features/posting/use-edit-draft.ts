@@ -225,13 +225,12 @@ export function useEditDraft(
           setPhotos(found.photos);
           setPhotosSoon(found.draft.photosSoon);
           setStatus(found.draft.status);
+          // INC-958 — the saved pin as read, whole or absent; its precision is never guessed.
           setPin(
-            found.draft.pinLat === null || found.draft.pinLng === null
+            found.draft.pin === null
               ? null
               : {
-                  lat: found.draft.pinLat,
-                  lng: found.draft.pinLng,
-                  precision: found.draft.pinPrecision ?? "exact",
+                  ...found.draft.pin,
                   street: found.draft.streetAddress,
                   zoom: found.draft.pinZoom,
                 },

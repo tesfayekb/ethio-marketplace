@@ -42,6 +42,7 @@ import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinPlace, PinValue } from "./map/map-pin-dropper";
 import { DETAILS_MAX, sanitizeDetails } from "./map/location-details";
 import { MapFrame } from "./map/map-frame";
+import type { PinPrecision } from "./map/pin";
 import type { Refusal } from "./types";
 
 /**
@@ -49,14 +50,15 @@ import type { Refusal } from "./types";
  * are fetched by the tap that opens the section, so the marketplace's first paint
  * never carries a mapping library (the weight and budget guards prove it), and a
  * seller who never asks for a pin never downloads one. D234 S3 (INC-897) — both
- * are resilientLazy: a preview that cannot download shows the map's word in its
- * box (INC-940: map-frame.tsx), and the pin map offers "Try again", which reloads
- * the page (the draft is saved).
+ * are resilientLazy: a preview that cannot download says so in its box (INC-940:
+ * map-frame.tsx; INC-956: the failure and Refresh, never the loading word), and the pin
+ * map offers "Try again", which reloads the page (the draft is saved).
  */
 const MapPreview = resilientLazy(
   () => import("./map/map-preview").then((mod) => mod.MapPreview),
   "the map",
   NoMap,
+  { inPlace: true },
 );
 const MapPinDropper = resilientLazy(
   () => import("./map/map-pin-dropper").then((mod) => mod.MapPinDropper),
@@ -66,14 +68,14 @@ const MapPinDropper = resilientLazy(
 );
 
 /**
- * The pin preview's place when its map cannot download: the map's word in the still map's box, as
- * while it loads (INC-940 — the place holds the map's size, so the step below it never moves).
+ * The pin preview's place when its map cannot download: the failure and Refresh, in the still
+ * map's box (INC-940 — the place holds the map's size, so the step below it never moves; INC-956
+ * — never the loading word).
  */
-function NoMap({ precision }: { precision: string | null }) {
-  const { t } = useI18n();
+function NoMap({ precision }: { precision: PinPrecision }) {
   return (
     <MapFrame precision={precision}>
-      <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+      <LoadFailedHere testid="post-where-map-failed" refreshTestid="post-where-map-refresh" />
     </MapFrame>
   );
 }
@@ -1842,7 +1844,7 @@ export function StepWhere({
               <div data-testid="post-where-pin-preview">
                 <Suspense
                   fallback={
-                    <MapFrame precision={pin.precision ?? null}>
+                    <MapFrame precision={pin.precision}>
                       <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
                     </MapFrame>
                   }
@@ -1850,7 +1852,7 @@ export function StepWhere({
                   <MapPreview
                     lat={pin.lat}
                     lng={pin.lng}
-                    precision={pin.precision ?? null}
+                    precision={pin.precision}
                     zoom={pin.zoom ?? null}
                   />
                 </Suspense>

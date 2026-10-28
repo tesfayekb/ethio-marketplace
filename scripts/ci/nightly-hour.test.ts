@@ -15,8 +15,8 @@ const SCRIPT = "scripts/ci/nightly-hour.sh";
 const SUMMER = "30 15 * * *";
 const WINTER = "30 16 * * *";
 
-function run(args: string[], output?: string) {
-  const env: NodeJS.ProcessEnv = { ...process.env };
+function run(args: string[], output?: string, extra: NodeJS.ProcessEnv = {}) {
+  const env: NodeJS.ProcessEnv = { ...process.env, ...extra };
   delete env.GITHUB_OUTPUT;
   if (output !== undefined) env.GITHUB_OUTPUT = output;
   const result = spawnSync("bash", [SCRIPT, ...args], { encoding: "utf8", env, timeout: 20_000 });
@@ -86,6 +86,19 @@ describe("the nightly starts at 11:30 in New York, all year (DEC-277)", () => {
       expect(result.code, args.join(" ")).toBe(2);
       expect(result.out).toContain("::error title=nightly-hour::");
       expect(result.out).not.toContain("go=");
+    }
+  });
+
+  it("NH-6 a machine that cannot resolve New York's zone is an error, never a silent stand-down (INC-962)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "nh-zones-"));
+    try {
+      // TZDIR names where the time-zone files are; an empty one is a machine without them.
+      const result = run(["schedule", SUMMER, "2026-07-15"], undefined, { TZDIR: dir });
+      expect(result.code).toBe(2);
+      expect(result.out).toContain("::error title=nightly-hour::the America/New_York time zone");
+      expect(result.out).not.toContain("go=");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 });

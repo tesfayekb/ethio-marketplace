@@ -2,6 +2,7 @@ import * as React from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "@/lib/utils";
+import { NoticeOutlet } from "./notice-outlet";
 
 const Drawer = ({
   shouldScaleBackground = true,
@@ -45,6 +46,8 @@ const DrawerContent = React.forwardRef<
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
       {children}
+      {/* INC-955 — the shell's notices are drawn here while this drawer is open. */}
+      <NoticeOutlet />
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ));

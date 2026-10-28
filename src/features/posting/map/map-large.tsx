@@ -14,6 +14,7 @@ import {
   reportFallback,
   watchTiles,
 } from "./leaflet";
+import type { PinPrecision } from "./pin";
 
 /** D201 §5 — the movable map exists only while its dialog is open. */
 export function MapLarge({
@@ -25,7 +26,7 @@ export function MapLarge({
 }: {
   lat: number;
   lng: number;
-  precision: string | null;
+  precision: PinPrecision;
   zoom?: number | null;
   /** Turn 21 (D201) — "buyer" swaps the seller's preview words for the buyer's own. */
   audience?: "seller" | "buyer";

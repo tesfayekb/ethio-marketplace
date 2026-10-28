@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 
 import { createDoorQueue, type DoorQueue } from "./door-queue";
+import { readPin, type Pin, type PinPrecision } from "./map/pin";
 import type { CategoryFacts, DoorAnswer, Refusal } from "./types";
 import type { VisibleWhen } from "./visible-when";
 import { shapePostingSchema } from "./schema-shape";
@@ -255,10 +256,9 @@ export interface DraftRow {
    * U6-C1-R3b-4 — the map pin as the door stores it. The four columns travel
    * together: `set_listing_pin` writes all four or clears all four, so a resume
    * and the buyer preview read ONE source and cannot disagree about a pin.
+   * INC-958 — one value, whole or absent (map/pin.ts `readPin`).
    */
-  pinLat: number | null;
-  pinLng: number | null;
-  pinPrecision: string | null;
+  pin: Pin | null;
   /** Part L — the zoom the pin was saved at (3–20), or null. */
   pinZoom: number | null;
   streetAddress: string | null;
@@ -438,9 +438,7 @@ export async function readDraft(
         !Array.isArray(own["contact_pref"])
           ? (own["contact_pref"] as Record<string, unknown>)
           : { messages: true },
-      pinLat: numOrNull(own["pin_lat"]),
-      pinLng: numOrNull(own["pin_lng"]),
-      pinPrecision: data.pin_precision,
+      pin: readPin(own["pin_lat"], own["pin_lng"], data.pin_precision, "the draft's pin"),
       pinZoom: typeof data.pin_zoom === "number" ? data.pin_zoom : null,
       streetAddress: data.street_address,
       directions: typeof data.directions === "string" ? data.directions : null,
@@ -495,7 +493,7 @@ export interface LastPlaces {
 export interface LastPin {
   lat: number;
   lng: number;
-  precision: string;
+  precision: PinPrecision;
   zoom: number | null;
   street: string | null;
   directions: string | null;
@@ -574,15 +572,16 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
       .filter((row) => row.location_id !== last.location_id && countryOf(row) === country)
       .map((row) => row.location_id);
     const own = last.pin_precision === null ? null : await readOwnPrivate(last.id);
-    const lat = own === null ? null : numOrNull(own["pin_lat"]);
-    const lng = own === null ? null : numOrNull(own["pin_lng"]);
+    // INC-958 — the pin whole or absent; an unreadable private row is no prefill, as before.
+    const read =
+      own === null
+        ? null
+        : readPin(own["pin_lat"], own["pin_lng"], last.pin_precision, "the last post's pin");
     const pin: LastPin | null =
-      lat === null || lng === null || last.pin_precision === null
+      read === null
         ? null
         : {
-            lat,
-            lng,
-            precision: last.pin_precision,
+            ...read,
             zoom: last.pin_zoom ?? null,
             street: last.street_address ?? null,
             directions: last.directions ?? null,
@@ -601,7 +600,7 @@ export async function readLastListingPlaces(excludeId: string | null): Promise<L
  */
 export interface SellerPlace {
   locationId: string;
-  pin: { lat: number; lng: number; precision: string; zoom: number | null } | null;
+  pin: (Pin & { zoom: number | null }) | null;
   street: string | null;
   directions: string | null;
 }
@@ -672,16 +671,11 @@ export async function readSellerPlace(): Promise<SellerPlace | null> {
       ? (data as Record<string, unknown>)
       : null;
   if (row === null || typeof row["location_id"] !== "string") return null;
-  const lat = numOrNull(row["pin_lat"]);
-  const lng = numOrNull(row["pin_lng"]);
-  const precision = typeof row["pin_precision"] === "string" ? row["pin_precision"] : null;
+  const pin = readPin(row["pin_lat"], row["pin_lng"], row["pin_precision"], "the seller's place");
   const text = (key: string) => (typeof row[key] === "string" ? (row[key] as string) : null);
   return {
     locationId: row["location_id"],
-    pin:
-      lat === null || lng === null || precision === null
-        ? null
-        : { lat, lng, precision, zoom: numOrNull(row["pin_zoom"]) },
+    pin: pin === null ? null : { ...pin, zoom: numOrNull(row["pin_zoom"]) },
     street: text("street_address"),
     directions: text("directions"),
   };
@@ -1180,7 +1174,7 @@ export async function savePin(
   listingId: string,
   lat: number,
   lng: number,
-  precision: string,
+  precision: PinPrecision,
   text: PlaceText,
   zoom: number | null = null,
 ): Promise<boolean> {
@@ -1241,7 +1235,7 @@ export async function readPlaceText(listingId: string): Promise<PlaceText> {
 export async function savePlaceText(
   listingId: string,
   text: PlaceText,
-  pin: { lat: number; lng: number; precision: string } | null,
+  pin: Pin | null,
 ): Promise<"saved" | "contactInNote" | "rateLimited" | "failed"> {
   const { error } = await supabase.rpc("set_listing_pin", {
     p_listing_id: listingId,

@@ -28,6 +28,7 @@ import {
 } from "./leaflet";
 import { DETAILS_MAX } from "./location-details";
 import { insideOutline } from "./outline";
+import { NEW_PIN_PRECISION, type PinPrecision } from "./pin";
 
 /**
  * W6b-2 C3/C4 — THE PIN DROPPER, APEX-STYLE, IN A SHEET.
@@ -63,7 +64,7 @@ const GEO_REASON_KEYS: Record<Exclude<GeoReason, null>, MessageKey> = {
 export interface PinValue {
   lat: number;
   lng: number;
-  precision: string;
+  precision: PinPrecision;
   street: string | null;
   zoom?: number | null;
 }
@@ -93,7 +94,7 @@ export function MapPinDropper({
   onSave: (value: {
     lat: number;
     lng: number;
-    precision: string;
+    precision: PinPrecision;
     zoom: number;
   }) => Promise<boolean>;
   onClose: () => void;
@@ -113,7 +114,8 @@ export function MapPinDropper({
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
     saved === null ? null : { lat: saved.lat, lng: saved.lng },
   );
-  const [precision, setPrecision] = useState<string>(saved?.precision ?? "exact");
+  // INC-958 — a saved pin keeps its own precision; only a NEW pin starts at NEW_PIN_PRECISION.
+  const [precision, setPrecision] = useState<PinPrecision>(saved?.precision ?? NEW_PIN_PRECISION);
   const [tile, setTile] = useState<TileKind>("street");
   const [backup, setBackup] = useState(false);
   const [credit, setCredit] = useState("");

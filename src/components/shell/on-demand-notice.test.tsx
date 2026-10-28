@@ -16,6 +16,7 @@ vi.mock("@/i18n", () => ({
 }));
 
 const { OnDemandNotice } = await import("./on-demand-notice");
+const { NoticeOutlet } = await import("@/components/ui/notice-outlet");
 const { reportOnDemandFailure } = await import("@/lib/on-demand-failure");
 
 describe("OnDemandNotice (INC-911)", () => {
@@ -52,6 +53,45 @@ describe("OnDemandNotice (INC-911)", () => {
     });
     expect(screen.getByTestId("on-demand-failed")).toBeTruthy();
     expect(screen.getAllByRole("status")).toHaveLength(1);
+    errors.mockRestore();
+  });
+
+  it("ODN-3 while an overlay is open the notice is drawn inside its outlet (the topmost of two), and back in the shell when it closes", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const page = (overlays: number) => (
+      <>
+        <OnDemandNotice />
+        {overlays >= 1 ? (
+          <div data-testid="first-overlay">
+            <NoticeOutlet />
+          </div>
+        ) : null}
+        {overlays >= 2 ? (
+          <div data-testid="second-overlay">
+            <NoticeOutlet />
+          </div>
+        ) : null}
+      </>
+    );
+    const { rerender } = render(page(2));
+    act(() => {
+      reportOnDemandFailure("the large map", new Error("offline"));
+    });
+    const inSecond = screen.getByTestId("second-overlay");
+    expect(inSecond.querySelector("[data-testid='on-demand-failed']")).not.toBeNull();
+    expect(screen.getAllByTestId("on-demand-failed")).toHaveLength(1);
+    const outlet = inSecond.querySelector("[data-notice-outlet]");
+    expect(outlet?.getAttribute("aria-live")).toBe("polite");
+    expect(outlet?.getAttribute("role")).toBeNull();
+    rerender(page(1));
+    expect(
+      screen.getByTestId("first-overlay").querySelector("[data-testid='on-demand-failed']"),
+    ).not.toBeNull();
+    rerender(page(0));
+    const shown = screen.getByTestId("on-demand-failed");
+    expect(shown.closest("[data-notice-outlet]")).toBeNull();
+    fireEvent.click(screen.getByTestId("on-demand-close"));
+    expect(screen.queryByTestId("on-demand-failed")).toBeNull();
     errors.mockRestore();
   });
 });

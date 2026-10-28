@@ -3,7 +3,7 @@ import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/revea
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
 import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
 import { revealContact, type ContactState } from "@/features/ad-page/contact";
@@ -172,7 +172,8 @@ function AdPage() {
     void countView(doc.public_id);
   }, [doc.public_id]);
   const { t, language } = useI18n();
-  const view = adPageView(doc, language);
+  // INC-958 — one view (and one pin) per document and language, so the map effects run once.
+  const view = useMemo(() => adPageView(doc, language), [doc, language]);
   const sharePrice = sharePriceText(
     {
       mode: doc.price.mode,

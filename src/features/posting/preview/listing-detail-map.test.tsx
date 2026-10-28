@@ -90,9 +90,7 @@ describe("the ad page's map holds its box while its code downloads (INC-940)", (
       <ListingDetail
         {...BASE}
         actor="buyer"
-        pinLat={9.0054}
-        pinLng={38.7636}
-        pinPrecision="approx"
+        pin={{ lat: 9.0054, lng: 38.7636, precision: "approx" }}
       />,
     );
     const map = screen.getByTestId("listing-detail-map");

@@ -1,10 +1,12 @@
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { refreshPage, useOnDemandFailures } from "@/lib/on-demand-failure";
+import { useTopNoticeOutlet } from "@/lib/notice-outlets";
 import { cn } from "@/lib/utils";
 
 /**
@@ -15,7 +17,10 @@ import { cn } from "@/lib/utils";
  * phone's bottom bar; a polite live region, so a screen reader hears it once. The region is
  * there from the first paint (a live region must exist before its words arrive) and carries no
  * role: an empty role="status" on every page answered a page's own getByRole("status") too
- * (the reset screen's R-2 and R-4, CI on turn 34b-2's landing).
+ * (the reset screen's R-2 and R-4, CI on turn 34b-2's landing). INC-955 — while a dialog, sheet,
+ * drawer or alert is open, the notice is drawn inside the topmost one's NoticeOutlet
+ * (src/lib/notice-outlets.ts), where the person can see, reach and tap it; the shell's
+ * own region stays, empty, for when the overlay closes.
  */
 export function OnDemandNotice() {
   const { t } = useI18n();
@@ -24,42 +29,44 @@ export function OnDemandNotice() {
   useEffect(() => {
     if (failures === 0) setClosedAt(0);
   }, [failures]);
-  const shown = failures > closedAt;
+  const outlet = useTopNoticeOutlet();
+  const notice =
+    failures > closedAt ? (
+      <div
+        data-testid="on-demand-failed"
+        className={cn(
+          CARD_SURFACE,
+          "pointer-events-auto flex max-w-md items-center gap-3 px-3 py-2 text-sm text-foreground",
+        )}
+      >
+        <span>{t("common.loadFailed")}</span>
+        <Button
+          variant="link"
+          size="touch"
+          data-testid="on-demand-refresh"
+          className="shrink-0 px-2"
+          onClick={refreshPage}
+        >
+          {t("common.refreshPage")}
+        </Button>
+        <Button
+          variant="ghost"
+          size="touch"
+          data-testid="on-demand-close"
+          aria-label={t("common.close")}
+          className="w-11 shrink-0 p-0"
+          onClick={() => setClosedAt(failures)}
+        >
+          <X aria-hidden="true" />
+        </Button>
+      </div>
+    ) : null;
   return (
     <div
       aria-live="polite"
       className="pointer-events-none fixed inset-x-0 bottom-16 z-50 flex justify-center px-4 md:bottom-6"
     >
-      {shown ? (
-        <div
-          data-testid="on-demand-failed"
-          className={cn(
-            CARD_SURFACE,
-            "pointer-events-auto flex max-w-md items-center gap-3 px-3 py-2 text-sm text-foreground",
-          )}
-        >
-          <span>{t("common.loadFailed")}</span>
-          <Button
-            variant="link"
-            size="touch"
-            data-testid="on-demand-refresh"
-            className="shrink-0 px-2"
-            onClick={refreshPage}
-          >
-            {t("common.refreshPage")}
-          </Button>
-          <Button
-            variant="ghost"
-            size="touch"
-            data-testid="on-demand-close"
-            aria-label={t("common.close")}
-            className="w-11 shrink-0 p-0"
-            onClick={() => setClosedAt(failures)}
-          >
-            <X aria-hidden="true" />
-          </Button>
-        </div>
-      ) : null}
+      {notice !== null && outlet !== null ? createPortal(notice, outlet) : notice}
     </div>
   );
 }

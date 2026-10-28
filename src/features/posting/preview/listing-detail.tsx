@@ -1,6 +1,6 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { resilientLazy } from "@/lib/resilient-lazy";
 import { cn } from "@/lib/utils";
 import {
@@ -36,43 +36,54 @@ import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from 
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { MapFrame } from "../map/map-frame";
+import type { Pin, PinPrecision } from "../map/pin";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
  * with no pin never downloads Leaflet, and neither does the first paint. D234 S3
  * (INC-897) — the still map's module is fetched once per visit (its component and
  * the pin snap share the one download, src/lib/load-once.ts), and both maps are
- * resilientLazy: a map that cannot download shows its word, never the route's
- * error screen.
+ * resilientLazy: a map that cannot download says so in its own place, never the route's
+ * error screen. INC-956 — in place (`inPlace`): the failure and its one cure, Refresh
+ * (LoadFailedHere), where the person is looking — inside the large map's dialog too, where the
+ * shell's notice could not be reached; the loading word ("Map pin") is the Suspense
+ * fallback's alone.
  */
 const MAP_PREVIEW = loadOnce(() => import("../map/map-preview"));
 const MapPreview = resilientLazy(
   () => MAP_PREVIEW.load().then((mod) => mod.MapPreview),
   "the map",
-  MapUnavailable,
+  MapPreviewUnavailable,
+  { inPlace: true },
 );
 const MapLarge = resilientLazy(
   () => import("../map/map-large").then((mod) => mod.MapLarge),
   "the large map",
-  MapUnavailable,
+  MapLargeUnavailable,
+  { inPlace: true },
 );
 
+type MapPlaceProps = { precision: PinPrecision; audience?: "seller" | "buyer" };
+
 /**
- * What a map's place shows when it cannot download: the map's own word, in the still map's box
- * (INC-940 — the place holds the map's size, so nothing around it moves).
+ * INC-956 — a map's place when its code cannot download: the failure and Refresh, in the still
+ * map's box (INC-940 — the place holds the map's size, so nothing around it moves).
  */
-function MapUnavailable({
-  precision,
-  audience,
-}: {
-  precision: string | null;
-  audience?: "seller" | "buyer";
-}) {
-  const { t } = useI18n();
+function MapPreviewUnavailable({ precision, audience }: MapPlaceProps) {
   return (
     <MapFrame precision={precision} {...(audience === undefined ? {} : { audience })}>
-      <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
+      <LoadFailedHere testid="listing-map-failed" refreshTestid="listing-map-refresh" />
+    </MapFrame>
+  );
+}
+
+/** INC-956 — the large map's place, inside its dialog, when its code cannot download. */
+function MapLargeUnavailable({ precision, audience }: MapPlaceProps) {
+  return (
+    <MapFrame precision={precision} {...(audience === undefined ? {} : { audience })}>
+      <LoadFailedHere testid="listing-map-large-failed" refreshTestid="listing-map-large-refresh" />
     </MapFrame>
   );
 }
@@ -215,10 +226,9 @@ export interface ListingDetailView {
    * U6-C1-R3b-4 — the saved pin, exactly as the door holds it. `approx` is drawn
    * as a 500-metre circle whose centre is snapped inside `MapPreview`, so this
    * component can carry the true coordinates without revealing them.
+   * INC-958 — whole or absent (map/pin.ts): no pin, no map and no Maps link.
    */
-  pinLat?: number | null;
-  pinLng?: number | null;
-  pinPrecision?: string | null;
+  pin?: Pin | null;
   /** Part L — the saved zoom; an approximate pin ignores it. */
   pinZoom?: number | null;
   /** Bundle 2 step 10 — the directions line, then the location details. */
@@ -396,7 +406,8 @@ export function ListingDetail(view: ListingDetailView) {
 
   const sold = typeof view.soldBadge === "string" && view.soldBadge.length > 0;
   const showSections = view.actor === "buyer";
-  const hasPin = typeof view.pinLat === "number" && typeof view.pinLng === "number";
+  const pin = view.pin ?? null;
+  const hasPin = pin !== null;
   // Turn 23 — the Location box and its tab exist only for a place of the
   // seller's own: a pin, directions or location details. An ad with only its
   // city keeps the city in the title box (listing-detail-places).
@@ -409,17 +420,16 @@ export function ListingDetail(view: ListingDetailView) {
   useEffect(() => {
     let active = true;
     setMapMaps(null);
-    const lat = view.pinLat;
-    const lng = view.pinLng;
-    if (typeof lat !== "number" || typeof lng !== "number") return;
-    if (view.pinPrecision !== "approx") {
+    if (pin === null) return;
+    const { lat, lng } = pin;
+    if (pin.precision === "exact") {
       // Google's Maps URLs require the comma between lat and lng as %2C.
       setMapMaps({ web: webPinUrl(lat, lng), app: appPinUrl(lat, lng, 15) });
       return;
     }
     // Keep the still-map module off the marketplace's first-paint graph.
-    // INC-911 — a failed download is reported to the shell's one notice (the map beside it,
-    // the same download, shows its own word in place).
+    // INC-956 — a failed download is logged only: the map beside the link is the same download
+    // and says so in its own place (one message, where the person is looking).
     MAP_PREVIEW.load().then(
       ({ snap }) => {
         if (active) {
@@ -431,12 +441,13 @@ export function ListingDetail(view: ListingDetailView) {
           });
         }
       },
-      (error: unknown) => reportOnDemandFailure("the map's links", error),
+      (error: unknown) =>
+        console.error(`[client-error] the map's links failed to load: ${errorText(error)}`),
     );
     return () => {
       active = false;
     };
-  }, [view.pinLat, view.pinLng, view.pinPrecision]);
+  }, [pin]);
   const Title = view.actor === "buyer" ? "h1" : "h2";
   const [posted, setPosted] = useState<string | null>(null);
   useEffect(() => {
@@ -1161,12 +1172,12 @@ export function ListingDetail(view: ListingDetailView) {
                 </dl>
               )}
 
-              {hasPin && typeof view.pinLat === "number" && typeof view.pinLng === "number" && (
+              {pin !== null && (
                 <div className="relative isolate" data-testid="listing-detail-map">
                   <Suspense
                     fallback={
                       <MapFrame
-                        precision={view.pinPrecision ?? "exact"}
+                        precision={pin.precision}
                         {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
                       >
                         <p className="text-xs text-muted-foreground">{t("post.pin.title")}</p>
@@ -1174,9 +1185,9 @@ export function ListingDetail(view: ListingDetailView) {
                     }
                   >
                     <MapPreview
-                      lat={view.pinLat}
-                      lng={view.pinLng}
-                      precision={view.pinPrecision ?? "exact"}
+                      lat={pin.lat}
+                      lng={pin.lng}
+                      precision={pin.precision}
                       zoom={view.pinZoom ?? null}
                       {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
                     />
@@ -1213,9 +1224,9 @@ export function ListingDetail(view: ListingDetailView) {
                           }
                         >
                           <MapLarge
-                            lat={view.pinLat}
-                            lng={view.pinLng}
-                            precision={view.pinPrecision ?? "exact"}
+                            lat={pin.lat}
+                            lng={pin.lng}
+                            precision={pin.precision}
                             zoom={view.pinZoom ?? null}
                             {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
                           />

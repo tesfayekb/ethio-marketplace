@@ -332,7 +332,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "footer.privacy": "ግላዊነት",
   "footer.rights": "መብቱ በሙሉ የተጠበቀ ነው።",
   "feed.heading": "በ{location} አካባቢ ያሉ ማስታወቂያዎች",
-  "feed.headingIn": "በ{location} ውስጥ ያሉ ማስታወቂያዎች",
+  "feed.headingIn": "የ{location} ማስታወቂያዎች",
   "feed.scopeAll": "እርስዎ",
   "feed.loading": "ማስታወቂያዎች በመጫን ላይ…",
   "feed.emptyTitle": "በአካባቢዎ እስካሁን ምንም የለም",

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useI18n } from "@/i18n";
 
 import { STILL_MAP_BOX, stillMapCaptionKey } from "./still-map";
+import type { PinPrecision } from "./pin";
 
 /**
  * INC-940 — the still map's place while it loads or when it cannot download (the reserver of
@@ -14,7 +15,7 @@ export function MapFrame({
   audience = "seller",
   children,
 }: {
-  precision: string | null;
+  precision: PinPrecision;
   audience?: "seller" | "buyer";
   children?: ReactNode;
 }) {

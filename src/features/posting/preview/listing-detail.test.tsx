@@ -656,7 +656,11 @@ it("LD-21 the Location box and its tab only with a place of the seller's own (tu
   expect(screen.queryByTestId("listing-detail-map")).toBeNull();
   // An exact pin alone: the box shows with the map.
   rerender(
-    <ListingDetail {...BASE} actor="buyer" pinLat={9.0054} pinLng={38.7636} pinPrecision="exact" />,
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      pin={{ lat: 9.0054, lng: 38.7636, precision: "exact" }}
+    />,
   );
   expect(screen.getByTestId("listing-detail-location")).toBeInTheDocument();
   expect(screen.getByTestId("listing-detail-map")).toBeInTheDocument();
@@ -904,9 +908,7 @@ it("LD-24 iPhone home-screen Maps choices preserve the tapped place or pin; ordi
         actor="buyer"
         country="ET"
         coverage={["bole"]}
-        pinLat={8.9876543}
-        pinLng={38.7612345}
-        pinPrecision="exact"
+        pin={{ lat: 8.9876543, lng: 38.7612345, precision: "exact" }}
       />,
     );
     unmount = rendered.unmount;

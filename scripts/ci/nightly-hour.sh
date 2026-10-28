@@ -7,7 +7,8 @@
 # the schedule that fired (github.event.schedule), never the clock: a run GitHub starts late is
 # judged by the hour it was due, so a delay can never skip both. A run started by hand
 # (workflow_dispatch) always goes on. Prints "go=true|false" (and writes it to $GITHUB_OUTPUT
-# when GitHub provides one); a cron it cannot read is an error (exit 2), never a silent skip.
+# when GitHub provides one); a cron it cannot read, or a New York zone this machine cannot
+# resolve (INC-962), is an error (exit 2), never a silent skip.
 set -euo pipefail
 
 readonly WANT_HOUR=11
@@ -28,6 +29,13 @@ if [ "$event" != "schedule" ]; then
   echo "nightly-hour: started by ${event} — runs now"
   say true
   exit 0
+fi
+# INC-962 — the zone must resolve: on a machine without the time-zone files `date` reads
+# America/New_York as UTC without a word, and both schedules would stand down silently.
+if [ "$(TZ=America/New_York date -d 2026-01-15T12:00:00Z +%z 2>/dev/null)" != "-0500" ] ||
+  [ "$(TZ=America/New_York date -d 2026-07-15T12:00:00Z +%z 2>/dev/null)" != "-0400" ]; then
+  echo "::error title=nightly-hour::the America/New_York time zone does not resolve on this machine (no time-zone files?)" >&2
+  exit 2
 fi
 if ! [[ "$cron" =~ ^([0-9]{1,2})\ ([0-9]{1,2})\ \*\ \*\ \*$ ]]; then
   echo "::error title=nightly-hour::cannot read the schedule \"${cron}\" (expected \"M H * * *\")" >&2

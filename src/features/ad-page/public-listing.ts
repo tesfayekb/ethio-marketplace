@@ -1,5 +1,6 @@
 import { shapeAttrOption } from "@/features/posting/attribute-options";
 import { shapeDeal, shapePostingSchema } from "@/features/posting/schema-shape";
+import { readPin } from "@/features/posting/map/pin";
 import type { ListingDetailView } from "@/features/posting/preview/listing-detail";
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 import { catalogText } from "@/i18n/entity";
@@ -143,9 +144,13 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
     sellerBusinessName: doc.seller.business_name,
     sellerPreviousAlias: doc.seller.previous_alias,
     sellerMemberSince: doc.seller.member_since,
-    pinLat: doc.places.pin?.lat ?? null,
-    pinLng: doc.places.pin?.lng ?? null,
-    pinPrecision: doc.places.pin?.precision ?? null,
+    // INC-958 — the document's pin whole or absent; a precision it does not carry is no pin.
+    pin: readPin(
+      doc.places.pin?.lat,
+      doc.places.pin?.lng,
+      doc.places.pin?.precision,
+      "the ad page's pin",
+    ),
     pinZoom: doc.places.pin?.zoom ?? null,
     directions: doc.places.directions,
     streetAddress: doc.places.street_address,

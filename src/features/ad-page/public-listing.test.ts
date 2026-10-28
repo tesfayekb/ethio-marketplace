@@ -155,9 +155,7 @@ describe("ad page view mapping", () => {
     doc.places.pin = null;
     expect(adPageView(doc, "en")).toEqual({
       ...before,
-      pinLat: null,
-      pinLng: null,
-      pinPrecision: null,
+      pin: null,
       pinZoom: null,
     });
   });

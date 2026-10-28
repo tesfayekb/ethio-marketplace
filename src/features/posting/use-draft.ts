@@ -1,6 +1,7 @@
 import { dropRefusedAnswers } from "./catalog-held-answers";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import type { PinPrecision } from "./map/pin";
 import { readDraft, saveDraft, type DraftBody, type DraftPhotoRow } from "./posting-service";
 import {
   IMPLEMENTED_THROUGH,
@@ -90,7 +91,7 @@ const EMPTY_VALUES: DraftValues = {
 export interface DraftPin {
   lat: number;
   lng: number;
-  precision: string;
+  precision: PinPrecision;
   street: string | null;
   /** Part L — the zoom the seller left the dropper at; null when unknown. */
   zoom?: number | null;
@@ -664,13 +665,12 @@ export function useDraft(initialListingId: string | null): UseDraft {
         setPhotos(found.photos);
         setDirections(found.draft.directions);
         setPhotosSoon(found.draft.photosSoon);
+        // INC-958 — the saved pin as read, whole or absent; its precision is never guessed.
         setPin(
-          found.draft.pinLat === null || found.draft.pinLng === null
+          found.draft.pin === null
             ? null
             : {
-                lat: found.draft.pinLat,
-                lng: found.draft.pinLng,
-                precision: found.draft.pinPrecision ?? "exact",
+                ...found.draft.pin,
                 street: found.draft.streetAddress,
                 zoom: found.draft.pinZoom,
               },

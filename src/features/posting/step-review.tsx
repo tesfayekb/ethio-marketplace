@@ -56,6 +56,7 @@ import {
 import { PreviewSheet } from "./preview/preview-sheet";
 import { SellerLine } from "./seller-line";
 import type { DraftValues } from "./use-draft";
+import type { PinPrecision } from "./map/pin";
 import type { DealLists, Refusal } from "./types";
 import { ownValue } from "@/lib/own-key";
 import { readerFailure, type ReaderFailure } from "@/lib/reader-failure";
@@ -170,7 +171,7 @@ export function StepReview({
   pin?: {
     lat: number;
     lng: number;
-    precision: string;
+    precision: PinPrecision;
     street: string | null;
     zoom?: number | null;
   } | null;
@@ -718,9 +719,8 @@ export function StepReview({
               identity?.sellerType === "business" ? (identity?.businessName ?? null) : null,
             sellerPreviousAlias: line?.previousAlias ?? null,
             sellerMemberSince: line?.memberSince ?? null,
-            pinLat: pin?.lat ?? null,
-            pinLng: pin?.lng ?? null,
-            pinPrecision: pin?.precision ?? null,
+            // INC-958 — the held pin itself (one value, the same object while it is unchanged).
+            pin: pin ?? null,
             pinZoom: pin?.zoom ?? null,
             directions,
             streetAddress: pin?.street ?? null,

@@ -17,6 +17,7 @@ import {
   reportFallback,
   watchTiles,
 } from "./leaflet";
+import type { PinPrecision } from "./pin";
 
 /**
  * U6-C1-R3b-4 STEP 3 — THE PIN AS A BUYER SEES IT.
@@ -52,7 +53,7 @@ export function MapPreview({
 }: {
   lat: number;
   lng: number;
-  precision: string | null;
+  precision: PinPrecision;
   /** Part L — the saved zoom for an exact pin; an approximate pin keeps 13 (privacy). */
   zoom?: number | null;
   /** Turn 21 (D201) — "buyer" swaps the seller's preview words for the buyer's own. */

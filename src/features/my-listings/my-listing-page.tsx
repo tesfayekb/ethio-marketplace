@@ -675,9 +675,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               }
               sellerPreviousAlias={line.data?.previousAlias ?? null}
               sellerMemberSince={line.data?.memberSince ?? null}
-              pinLat={draft.draft.pinLat}
-              pinLng={draft.draft.pinLng}
-              pinPrecision={draft.draft.pinPrecision}
+              pin={draft.draft.pin}
               pinZoom={draft.draft.pinZoom}
               directions={draft.draft.directions}
               streetAddress={draft.draft.streetAddress}
