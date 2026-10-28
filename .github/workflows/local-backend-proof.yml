@@ -126,11 +126,14 @@ jobs:
           take=${plan#* }
           chosen=""
           used=0
+          full=0
+          # In the selector's order while they fit: the first spec that does not fit ends the selection.
           while read -r spec n; do
-            if [ $(( used + n )) -le "$take" ]; then
+            if [ "$full" = 0 ] && [ $(( used + n )) -le "$take" ]; then
               chosen="${chosen:+$chosen }$spec"
               used=$(( used + n ))
             else
+              full=1
               echo "- Not repeated: $spec ($n tests)" >> local-backend-repeat.txt
             fi
           done < repeat-counts.txt
