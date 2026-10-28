@@ -3,7 +3,7 @@ import { posix } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { ownValue } from "../../src/lib/own-key";
-import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
+import { failureFormsByFile, readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
  * INC-911 / INC-918 (Foundations turn 34b-2) — A PIECE FETCHED ON DEMAND THAT FAILS TO DOWNLOAD
@@ -18,7 +18,9 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * through a namespace import (Foundations turn 34b-3; 34b-2's reviewer, MAJOR 1) — or `.load()`
  * on a `loadOnce(…)` bound in the same file. Each such file uses the mechanism — it calls or
  * renders an answer imported from on-demand-failure or on-demand-notice (reportOnDemandFailure,
- * refreshPage, LoadFailedHere) — or carries an allowance (`file | reason | until`) in
+ * refreshPage, LoadFailedHere), or renders a form of the in-place failure imported from the file
+ * that defines it (a component that renders LoadFailedHere — MapFailedHere; INC-956, turn C1-2) —
+ * or carries an allowance (`file | reason | until`) in
  * on-demand-failure-allowlist.txt. And each CALL handles its own failure (MAJOR 2): its promise
  * chain carries a rejection handler (`.catch(h)`, `.then(ok, h)`, through Promise.all), or it is
  * awaited inside a try with a catch; a handler that does nothing is a warm-up, allowed only when
@@ -57,15 +59,20 @@ function isLoadOnceCall(node: ts.Node | undefined): boolean {
   );
 }
 
-/** The definer a module specifier names, from `file`: "@/…" is src/…, "./…" is beside it. */
-function definerOf(specifier: string, file: string): string | undefined {
+/** The file of `among` a module specifier names, from `file`: "@/…" is src/…, "./…" is beside it. */
+function fileNamed(specifier: string, file: string, among: Iterable<string>): string | undefined {
   const base = specifier.startsWith("@/")
     ? `src/${specifier.slice(2)}`
     : specifier.startsWith(".")
       ? posix.normalize(posix.join(posix.dirname(file), specifier))
       : undefined;
   if (base === undefined) return undefined;
-  return Object.keys(DEFINERS).find((definer) => definer.replace(/\.tsx?$/, "") === base);
+  return [...among].find((candidate) => candidate.replace(/\.tsx?$/, "") === base);
+}
+
+/** The definer a module specifier names, from `file`. */
+function definerOf(specifier: string, file: string): string | undefined {
+  return fileNamed(specifier, file, Object.keys(DEFINERS));
 }
 
 const PROMISE_COMBINERS = new Set(["all", "allSettled", "race", "any"]);
@@ -193,7 +200,10 @@ function factoryLoads(call: ts.CallExpression): ts.Node[] {
 type LoaderCall = { loader: string; node: ts.Node; line: number };
 
 /** Every loader call in `files` that is not answered through the mechanism. */
-export function onDemandFailureCensus(files: string[]): {
+export function onDemandFailureCensus(
+  files: string[],
+  forms: Map<string, Set<string>> = failureFormsByFile(files),
+): {
   consumers: string[];
   findings: Finding[];
 } {
@@ -218,6 +228,11 @@ export function onDemandFailureCensus(files: string[]): {
                 imported.add(element.name.text);
           return;
         }
+        const formFile = fileNamed(specifier, file, forms.keys());
+        if (formFile !== undefined && bindings !== undefined && ts.isNamedImports(bindings))
+          for (const element of bindings.elements)
+            if (forms.get(formFile)?.has((element.propertyName ?? element.name).text) === true)
+              imported.add(element.name.text);
         const definer = definerOf(specifier, file);
         if (definer === undefined) return;
         const loaders = ownValue(DEFINERS, definer) ?? [];
@@ -230,8 +245,9 @@ export function onDemandFailureCensus(files: string[]): {
           namespaces.set(bindings.name.text, loaders);
         return;
       }
-      // A use is a reference to an answer imported from the mechanism (a call, a handler, a JSX
-      // element) — importing the shell's notice to draw it answers nothing.
+      // A use is a reference to an answer imported from the mechanism, or to a form of the
+      // in-place failure imported from its file (a call, a handler, a JSX element) — importing
+      // the shell's notice to draw it answers nothing.
       if (ts.isIdentifier(node) && imported.has(node.text) && !ts.isImportSpecifier(node.parent))
         uses = true;
       if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name)) {
@@ -480,6 +496,35 @@ describe("a piece fetched on demand that fails to download tells the person (INC
           `${files.emptyCatch}:5 catches a failed download of loadLeaflet silently, and no call in the file handles it`,
           `${files.thenUndefined}:3 leaves a failed download of loadLeaflet unhandled`,
         ].join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("ODC-6 a form of the in-place failure imported from its file answers; another component of that file does not (INC-956)", () => {
+    const dir = "node_modules/.cache/on-demand-failure-6";
+    mkdirSync(dir, { recursive: true });
+    const files = {
+      frame: `${dir}/odc-frame.tsx`,
+      shown: `${dir}/odc-shown.tsx`,
+      other: `${dir}/odc-other.tsx`,
+    };
+    const head =
+      'import { loadLeaflet } from "@/features/posting/map/leaflet";\nimport { useEffect, useState } from "react";\n';
+    const caller = (name: string) =>
+      `${head}import { ${name} } from "./odc-frame";\nexport function Map() {\n  const [failed, setFailed] = useState(false);\n  useEffect(() => {\n    loadLeaflet().catch(() => setFailed(true));\n  }, []);\n  return failed ? <${name} /> : null;\n}\n`;
+    try {
+      writeFileSync(
+        files.frame,
+        'import { LoadFailedHere } from "@/components/shell/on-demand-notice";\nexport function FailedHere() {\n  return <LoadFailedHere testid="f" refreshTestid="r" />;\n}\nexport function Frame() {\n  return <div />;\n}\n',
+      );
+      writeFileSync(files.shown, caller("FailedHere"));
+      writeFileSync(files.other, caller("Frame"));
+      const result = onDemandFailureCensus(Object.values(files));
+      expect(result.consumers).toEqual([files.shown, files.other]);
+      expect(report(result.findings)).toBe(
+        `${files.other}:7 calls an on-demand loader and answers its failure without the mechanism`,
       );
     } finally {
       rmSync(dir, { recursive: true, force: true });

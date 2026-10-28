@@ -90,11 +90,9 @@ describe("a map that cannot download says so in its box (INC-956)", () => {
       />,
     );
     const map = screen.getByTestId("listing-detail-map");
-    const failed = await within(map).findByTestId("listing-map-failed");
+    const failed = await within(map).findByTestId("map-failed");
     expect(failed).toHaveTextContent(en["common.loadFailed"]);
-    expect(within(failed).getByTestId("listing-map-refresh")).toHaveTextContent(
-      en["common.refreshPage"],
-    );
+    expect(within(failed).getByTestId("map-refresh")).toHaveTextContent(en["common.refreshPage"]);
     expect(map).not.toHaveTextContent(en["post.pin.title"]);
     expect(within(map).getByTestId("map-frame")).toContainElement(failed);
     expect(reported).not.toHaveBeenCalled();

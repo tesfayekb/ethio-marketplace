@@ -80,3 +80,33 @@ export function report(findings: Array<{ file: string; line: number; what: strin
     .sort()
     .join("\n");
 }
+
+/**
+ * The in-place failure's forms, by file: each function component that renders LoadFailedHere
+ * (src/components/shell/on-demand-notice.tsx) — MapFailedHere, say. Read by the on-demand
+ * census (ODC-1: rendering a form imported from its file answers a failure through the
+ * mechanism) and by the fallbacks census (CF-RLF-1: a fallback that renders one says so in place).
+ */
+export function failureFormsByFile(files: string[]): Map<string, Set<string>> {
+  const byFile = new Map<string, Set<string>>();
+  for (const file of files) {
+    visitTs(file, (node) => {
+      if (!ts.isFunctionDeclaration(node) || node.name === undefined) return;
+      let renders = false;
+      const visit = (child: ts.Node) => {
+        if (
+          (ts.isJsxSelfClosingElement(child) || ts.isJsxOpeningElement(child)) &&
+          child.tagName.getText() === "LoadFailedHere"
+        )
+          renders = true;
+        ts.forEachChild(child, visit);
+      };
+      ts.forEachChild(node, visit);
+      if (!renders) return;
+      const forms = byFile.get(file) ?? new Set<string>();
+      forms.add(node.name.text);
+      byFile.set(file, forms);
+    });
+  }
+  return byFile;
+}

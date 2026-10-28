@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 
 import { useI18n } from "@/i18n";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { errorText } from "@/lib/error-text";
 import { useNearViewport } from "@/lib/use-near-viewport";
 
 import { APPROX_RADIUS_M } from "./geocode";
+import { MapFailedHere } from "./map-frame";
 import { STILL_MAP_BOX, STILL_MAP_CREDIT, stillMapCaptionKey } from "./still-map";
 import {
   addTileLayers,
@@ -66,6 +67,9 @@ export function MapPreview({
   const caption = stillMapCaptionKey(audience, approx);
   // Part H2 — the plan in force's credit, drawn as text (never Leaflet's markup control).
   const [credit, setCredit] = useState("");
+  // INC-956 (Foundations turn C1-2) — Leaflet or the tile plan could not download: the map's
+  // place says so (MapFailedHere), once, where the map is — never the shell's notice besides.
+  const [failed, setFailed] = useState(false);
   // D234 S1 — on the buyer's ad page the map's library, tile plan and tiles wait until
   // the box nears the screen; the seller's preview in the wizard draws at once.
   const near = useNearViewport(boxRef, { enabled: audience === "buyer" });
@@ -111,8 +115,9 @@ export function MapPreview({
       })
       .catch((error: unknown) => {
         // A map that cannot load leaves the caption below it standing; the page
-        // never blanks over a picture (C4). INC-911 — the shell's notice says so.
-        reportOnDemandFailure("the map", error);
+        // never blanks over a picture (C4). INC-956 — its place says so, in place.
+        console.error(`[client-error] the map failed to load: ${errorText(error)}`);
+        if (!cancelled) setFailed(true);
       });
 
     return () => {
@@ -141,6 +146,11 @@ export function MapPreview({
                 : "post.pin.previewExact",
           )}
         />
+        {failed && (
+          <div className="absolute inset-0 flex items-center justify-center bg-muted p-2">
+            <MapFailedHere />
+          </div>
+        )}
         {credit !== "" && (
           <p className={STILL_MAP_CREDIT} data-testid="listing-map-credit">
             {credit}

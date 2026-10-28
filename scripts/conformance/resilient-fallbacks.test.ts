@@ -1,7 +1,8 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { posix } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
-import { report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
+import { failureFormsByFile, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
  * INC-956 (Foundations turn C1) — A PIECE THAT CANNOT DOWNLOAD SAYS SO ONCE, IN THE RIGHT PLACE,
@@ -15,7 +16,12 @@ import { report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  *     different message) and no LoadFailedHere.
  * The ad page's maps showed the loading word "Map pin" as their failure (the operator's walk of
  * 2026-10-27). The census reads every resilientLazy call under src/ whose fallback is a function
- * declared in the same file. No allowlist.
+ * declared in the same file. A fallback "says so in place" when it renders LoadFailedHere or a
+ * component of src/ that renders it (MapFailedHere, src/features/posting/map/map-frame.tsx).
+ * Foundations turn C1-2 (turn C1's stop 1) — and a piece fetched IN PLACE answers its own later
+ * downloads in place too: the module an `inPlace` call fetches never raises the shell's notice
+ * (`reportOnDemandFailure`) — the still map's Leaflet raised it beside the large map's own word
+ * (AP-55 at 360). No allowlist.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -27,7 +33,77 @@ function functionNamed(source: ts.SourceFile, name: string): ts.FunctionDeclarat
   );
 }
 
-function says(node: ts.Node): { words: boolean; failedHere: boolean } {
+/** The components of the files that render LoadFailedHere: the in-place failure's forms. */
+export function failureForms(files: string[]): Set<string> {
+  const forms = new Set(["LoadFailedHere"]);
+  for (const names of failureFormsByFile(files).values()) for (const name of names) forms.add(name);
+  return forms;
+}
+
+/** The module an `import("…")` inside the fetch names — directly, or through a same-file loadOnce. */
+function fetchedModule(source: ts.SourceFile, fetch: ts.Expression): string | null {
+  let specifier: string | null = null;
+  let viaOnce: string | null = null;
+  const visit = (child: ts.Node) => {
+    if (
+      ts.isCallExpression(child) &&
+      child.expression.kind === ts.SyntaxKind.ImportKeyword &&
+      child.arguments[0] !== undefined &&
+      ts.isStringLiteral(child.arguments[0])
+    )
+      specifier = child.arguments[0].text;
+    if (
+      ts.isPropertyAccessExpression(child) &&
+      child.name.text === "load" &&
+      ts.isIdentifier(child.expression)
+    )
+      viaOnce = child.expression.text;
+    ts.forEachChild(child, visit);
+  };
+  visit(fetch);
+  if (specifier !== null) return specifier;
+  if (viaOnce === null) return null;
+  const once = viaOnce;
+  let found: string | null = null;
+  const find = (child: ts.Node) => {
+    if (
+      ts.isVariableDeclaration(child) &&
+      ts.isIdentifier(child.name) &&
+      child.name.text === once &&
+      child.initializer !== undefined
+    )
+      found = fetchedModule(source, child.initializer);
+    ts.forEachChild(child, find);
+  };
+  find(source);
+  return found;
+}
+
+/** The file a relative or "@/" specifier names from `file`, or null. */
+function moduleFile(specifier: string, file: string): string | null {
+  const base = specifier.startsWith("@/")
+    ? `src/${specifier.slice(2)}`
+    : specifier.startsWith(".")
+      ? posix.normalize(posix.join(posix.dirname(file), specifier))
+      : null;
+  if (base === null) return null;
+  return [`${base}.tsx`, `${base}.ts`].find((candidate) => existsSync(candidate)) ?? null;
+}
+
+function raisesNotice(file: string): boolean {
+  let raises = false;
+  visitTs(file, (node) => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === "reportOnDemandFailure"
+    )
+      raises = true;
+  });
+  return raises;
+}
+
+function says(node: ts.Node, forms: Set<string>): { words: boolean; failedHere: boolean } {
   let words = false;
   let failedHere = false;
   const visit = (child: ts.Node) => {
@@ -39,7 +115,7 @@ function says(node: ts.Node): { words: boolean; failedHere: boolean } {
       words = true;
     if (
       (ts.isJsxSelfClosingElement(child) || ts.isJsxOpeningElement(child)) &&
-      child.tagName.getText() === "LoadFailedHere"
+      forms.has(child.tagName.getText())
     )
       failedHere = true;
     ts.forEachChild(child, visit);
@@ -61,7 +137,10 @@ function inPlaceOf(options: ts.Expression | undefined): boolean {
   );
 }
 
-export function fallbackFindings(files: string[]): { calls: number; findings: Finding[] } {
+export function fallbackFindings(
+  files: string[],
+  forms: Set<string> = failureForms(files),
+): { calls: number; findings: Finding[] } {
   const findings: Finding[] = [];
   let calls = 0;
   for (const file of files) {
@@ -72,7 +151,7 @@ export function fallbackFindings(files: string[]): { calls: number; findings: Fi
         node.expression.text !== "resilientLazy"
       )
         return;
-      const [, , fallback, options] = node.arguments;
+      const [fetch, , fallback, options] = node.arguments;
       if (fallback === undefined || !ts.isIdentifier(fallback)) return;
       calls += 1;
       const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
@@ -85,13 +164,27 @@ export function fallbackFindings(files: string[]): { calls: number; findings: Fi
         });
         return;
       }
-      const { words, failedHere } = says(declared);
+      const { words, failedHere } = says(declared, forms);
       if (inPlaceOf(options)) {
         if (!failedHere)
           findings.push({
             file,
             line,
             what: `${fallback.text} is in place but draws no LoadFailedHere`,
+          });
+        const specifier = fetch === undefined ? null : fetchedModule(source, fetch);
+        const fetched = specifier === null ? null : moduleFile(specifier, file);
+        if (fetched === null)
+          findings.push({
+            file,
+            line,
+            what: "an in-place fetch whose module the census cannot read",
+          });
+        else if (raisesNotice(fetched))
+          findings.push({
+            file,
+            line,
+            what: `${fetched} is fetched in place but raises the shell's notice (say so in place)`,
           });
       } else if (words || failedHere)
         findings.push({
@@ -119,11 +212,20 @@ describe("a piece that cannot download says so once, in the right place (INC-956
     TREE_SCAN_MS,
   );
 
-  it("CF-RLF-2 a planted file's three mismatched fallbacks are named; its two kept ones are not", () => {
+  it("CF-RLF-2 a planted file's mismatched fallbacks and its loud in-place module are named; its kept ones are not", () => {
     const dir = "node_modules/.cache/resilient-fallbacks";
     mkdirSync(dir, { recursive: true });
     const file = `${dir}/planted.tsx`;
     try {
+      writeFileSync(`${dir}/quiet.tsx`, "export function Quiet() { return null; }\n");
+      writeFileSync(
+        `${dir}/loud.tsx`,
+        [
+          "declare function reportOnDemandFailure(label: string, error: unknown): void;",
+          'export function Loud() { reportOnDemandFailure("loud", null); return null; }',
+          "",
+        ].join("\n"),
+      );
       writeFileSync(
         file,
         [
@@ -132,20 +234,23 @@ describe("a piece that cannot download says so once, in the right place (INC-956
           "declare const LoadFailedHere: (p: { testid: string; refreshTestid: string }) => null;",
           "declare const load: () => Promise<never>;",
           'export const A = resilientLazy(load, "a", Holds);',
-          'export const B = resilientLazy(load, "b", Says, { inPlace: true });',
+          'export const B = resilientLazy(() => import("./quiet"), "b", Says, { inPlace: true });',
           'export const C = resilientLazy(load, "c", LoadingWord);',
-          'export const D = resilientLazy(load, "d", Holds, { inPlace: true });',
+          'export const D = resilientLazy(() => import("./quiet"), "d", Holds, { inPlace: true });',
           'export const E = resilientLazy(load, "e", Says);',
+          'export const F = resilientLazy(() => import("./loud"), "f", Wrapped, { inPlace: true });',
           "function Holds() { return <span>—</span>; }",
           'function Says() { return <LoadFailedHere testid="x" refreshTestid="y" />; }',
           'function LoadingWord() { return <p>{t("post.pin.title")}</p>; }',
+          "function Wrapped() { return <Says />; }",
           "",
         ].join("\n"),
       );
       const { calls, findings } = fallbackFindings([file]);
-      expect(calls).toBe(5);
+      expect(calls).toBe(6);
       expect(report(findings)).toBe(
         [
+          `${file}:10 ${dir}/loud.tsx is fetched in place but raises the shell's notice (say so in place)`,
           `${file}:7 LoadingWord reports to the shell's notice and also says words of its own`,
           `${file}:8 Holds is in place but draws no LoadFailedHere`,
           `${file}:9 Says reports to the shell's notice and also says words of its own (LoadFailedHere: use inPlace)`,

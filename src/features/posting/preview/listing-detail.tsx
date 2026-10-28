@@ -36,8 +36,7 @@ import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from 
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
-import { LoadFailedHere } from "@/components/shell/on-demand-notice";
-import { MapFrame } from "../map/map-frame";
+import { MapFailedHere, MapFrame } from "../map/map-frame";
 import type { Pin, PinPrecision } from "../map/pin";
 
 /**
@@ -74,7 +73,7 @@ type MapPlaceProps = { precision: PinPrecision; audience?: "seller" | "buyer" };
 function MapPreviewUnavailable({ precision, audience }: MapPlaceProps) {
   return (
     <MapFrame precision={precision} {...(audience === undefined ? {} : { audience })}>
-      <LoadFailedHere testid="listing-map-failed" refreshTestid="listing-map-refresh" />
+      <MapFailedHere />
     </MapFrame>
   );
 }
@@ -83,7 +82,7 @@ function MapPreviewUnavailable({ precision, audience }: MapPlaceProps) {
 function MapLargeUnavailable({ precision, audience }: MapPlaceProps) {
   return (
     <MapFrame precision={precision} {...(audience === undefined ? {} : { audience })}>
-      <LoadFailedHere testid="listing-map-large-failed" refreshTestid="listing-map-large-refresh" />
+      <MapFailedHere large />
     </MapFrame>
   );
 }

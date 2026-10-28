@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import { useI18n } from "@/i18n";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { errorText } from "@/lib/error-text";
 import { APPROX_RADIUS_M } from "./geocode";
+import { MapFailedHere } from "./map-frame";
 import { snap } from "./map-preview";
 import {
   addTileLayers,
@@ -34,6 +35,8 @@ export function MapLarge({
   const { t } = useI18n();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [credit, setCredit] = useState("");
+  // INC-956 — Leaflet or the tile plan could not download: the place says so, once, in place.
+  const [failed, setFailed] = useState(false);
   const approx = precision === "approx";
   useEffect(() => {
     const box = boxRef.current;
@@ -73,8 +76,9 @@ export function MapLarge({
         large.invalidateSize();
       })
       .catch((error: unknown) => {
-        // INC-911 — the large map stays empty; the shell's notice says why.
-        reportOnDemandFailure("the large map", error);
+        // INC-956 (Foundations turn C1-2) — the large map's place says so, inside its dialog.
+        console.error(`[client-error] the large map failed to load: ${errorText(error)}`);
+        if (!cancelled) setFailed(true);
       });
     return () => {
       cancelled = true;
@@ -82,7 +86,12 @@ export function MapLarge({
     };
   }, [lat, lng, approx, zoom]);
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
+    <div className="relative flex min-h-0 flex-1 flex-col gap-2">
+      {failed && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-muted p-2">
+          <MapFailedHere large />
+        </div>
+      )}
       <div
         ref={boxRef}
         data-testid="listing-map-large"

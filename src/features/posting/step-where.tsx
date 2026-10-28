@@ -41,7 +41,7 @@ import { looksLikeContact } from "./contact-like";
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { PinPlace, PinValue } from "./map/map-pin-dropper";
 import { DETAILS_MAX, sanitizeDetails } from "./map/location-details";
-import { MapFrame } from "./map/map-frame";
+import { MapFailedHere, MapFrame } from "./map/map-frame";
 import type { PinPrecision } from "./map/pin";
 import type { Refusal } from "./types";
 
@@ -75,7 +75,7 @@ const MapPinDropper = resilientLazy(
 function NoMap({ precision }: { precision: PinPrecision }) {
   return (
     <MapFrame precision={precision}>
-      <LoadFailedHere testid="post-where-map-failed" refreshTestid="post-where-map-refresh" />
+      <MapFailedHere />
     </MapFrame>
   );
 }
