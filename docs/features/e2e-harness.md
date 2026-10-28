@@ -528,6 +528,13 @@ builds the E2E app against that stack, and runs the same four smoke files and bo
 viewport projects as staging CI. The runner disposes the backend after the run.
 The prerequisite census and phase 2 gaps are in `docs/features/ci-local-backend.md`.
 
+Since DEC-283 (Foundations turn K4) the workflow runs nineteen lanes: the eighteen
+(smoke, email and the sixteen numbered lanes) and `repeat`, which repeats the spec
+files a push changed — and the specs importing a changed e2e helper — chosen by
+`bun run scripts/e2e-select.ts --repeat`, up to six times on each project with
+`--retries 0` under a 720-second test cap, starting no backend when nothing is
+selected ("nothing to repeat"); scripts/conformance/repeat-lane.test.ts guards it.
+
 The proof's working copy carries named fixes (one skipped never-applied file, three
 patches, six fixtures; the list in `docs/features/ci-local-backend.md`), never edits
 to landed migrations. DEC-209 criterion (1) counts the migrations hosted applied.
