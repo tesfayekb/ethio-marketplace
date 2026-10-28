@@ -35,6 +35,8 @@ const state = vi.hoisted(() => ({
   /** The provider's answer for the Nth translate request (1-based); default: echo. */
   failChunk: new Map<number, "status" | "network">(),
   translateRequests: 0,
+  pressAllowed: true,
+  presses: [] as string[],
   languageRequests: 0,
 }));
 
@@ -90,6 +92,12 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       state.audits.push(args);
       return { error: null };
     },
+  },
+}));
+vi.mock("@/server/dials", () => ({
+  spend: async (dial: { action: string }, key: string) => {
+    state.presses.push(`${dial.action} ${key}`);
+    return { allowed: state.pressAllowed, resetsAt: null, remaining: 0 };
   },
 }));
 vi.mock("@/server/stand-in", () => ({ standInMode: () => state.fake }));
@@ -175,6 +183,8 @@ beforeEach(() => {
   state.failChunk = new Map();
   state.translateRequests = 0;
   state.languageRequests = 0;
+  state.pressAllowed = true;
+  state.presses = [];
   vi.stubEnv("GOOGLE_TRANSLATE_API_KEY", KEY);
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   provider();
@@ -240,6 +250,26 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       "budget",
       "unavailable",
     ]);
+  });
+
+  it("TRR-10 a spent press dial refuses the whole request (429) before any provider call, spend, audit or write; one press spends once", async () => {
+    state.pressAllowed = false;
+    expect(await post({ target_lang: "am", items: items(150) })).toEqual({
+      status: 429,
+      body: { error: "rateLimited" },
+    });
+    expect(state.presses).toEqual(["machine-translate:press e2e-translator"]);
+    expect(state.translateRequests).toBe(0);
+    expect(state.spends).toEqual([]);
+    expect(state.audits).toEqual([]);
+    expect(writes()).toEqual([]);
+
+    state.pressAllowed = true;
+    state.presses = [];
+    const done = await post({ target_lang: "am", items: items(150) });
+    expect(done.status).toBe(200);
+    expect(state.presses).toEqual(["machine-translate:press e2e-translator"]);
+    expect(writes().length).toBe(150);
   });
 
   it("TRR-4 an unsupported target is 422 with no spend, no audit row and no write", async () => {
