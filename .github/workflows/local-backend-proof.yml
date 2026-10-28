@@ -128,6 +128,8 @@ jobs:
           full=0
           # In the selector's order while they fit: the first spec that does not fit ends the selection.
           while read -r spec n; do
+            # A spec whose every test is left out by the tags has nothing to repeat.
+            if [ "$n" -eq 0 ]; then continue; fi
             if [ "$full" = 0 ] && [ $(( used + n )) -le "$take" ]; then
               chosen="${chosen:+$chosen }$spec"
               used=$(( used + n ))
@@ -137,6 +139,11 @@ jobs:
             fi
           done < repeat-counts.txt
           rm -f repeat-counts.txt
+          if [ -z "$chosen" ]; then
+            echo "- Repeat: nothing to repeat" >> local-backend-repeat.txt
+            { echo "REPEAT_SPECS="; echo "REPEAT_TESTS=$tests"; } >> "$GITHUB_ENV"
+            exit 0
+          fi
           echo "- Repeat: each $each on both projects; $tests tests selected, $used repeated; budget ${REPEAT_BUDGET_SECONDS} s at ${REPEAT_SECONDS_PER_TEST} s a test" >> local-backend-repeat.txt
           {
             echo "REPEAT_SPECS=$chosen"

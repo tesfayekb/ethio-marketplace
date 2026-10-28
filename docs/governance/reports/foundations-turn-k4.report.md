@@ -87,7 +87,7 @@ E3 changelog line appended. E4: neither doc counted lanes in words; added one pa
 Independent review on the final tree (self-run, fresh read of the diff): **READY**, no BLOCKER.
 - MINOR: ci.yml:590 (K2 above).
 - MINOR: the time-cap test matches Playwright's global-timeout message ("Timed out waiting …"); unproven here because no browser run is owed — the first capped run proves it.
-- MINOR: nested specs under e2e/nightly/ are listed by the selector like any spec; their `@global-state` tests are dropped by `--grep-invert`, so a changed nightly spec with only such tests counts 0 tests and is passed to Playwright with nothing to run.
+- Found and fixed before landing: a selected spec whose every test the tags drop (for example a nightly `@global-state` spec) counted 0 tests and would have been passed to Playwright, which fails on "No tests found". Such specs are now skipped, and a selection left empty is "nothing to repeat".
 
 ## 12. Limits
 
