@@ -19,7 +19,8 @@ import { appendFileSync, readFileSync } from "node:fs";
 
 const RED_OPEN = "\x1B[31m";
 const RED_CLOSE = "\x1B[39m";
-const TEMPLATE = /^Timed out waiting \d+(?:\.\d+)?s for the [^\n\x1B]+ to run$/;
+const ESC = "\x1B";
+const TEMPLATE = /^Timed out waiting \d+(?:\.\d+)?s for the [^\n]+ to run$/;
 
 /** True only for Playwright's global-timeout message, coloured red or plain. */
 export function isGlobalTimeout(message: unknown): boolean {
@@ -27,7 +28,7 @@ export function isGlobalTimeout(message: unknown): boolean {
   let text = message;
   if (text.startsWith(RED_OPEN) && text.endsWith(RED_CLOSE))
     text = text.slice(RED_OPEN.length, text.length - RED_CLOSE.length);
-  return TEMPLATE.test(text);
+  return !text.includes(ESC) && TEMPLATE.test(text);
 }
 
 export type CapVerdict = { verdict: "capped"; left: string[] } | { verdict: "failed" };
