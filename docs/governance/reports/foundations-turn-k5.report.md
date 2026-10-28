@@ -144,7 +144,7 @@ Round 2: NOT READY, one MAJOR. Arrays passed as objects, so `"suites": [[]]` rea
 
 Round 3: NOT READY, one MAJOR. A test whose status was missing, null or unknown escaped the failure check. Fixed: a test status must be one of Playwright's four outcomes (expected, unexpected, flaky, skipped), and anything else is unreadable and makes the verdict "failed". RCAP-9 gained those cases. This check is stricter than BASE's Python, which had the same gap.
 
-No fourth round was run. Each round found no other finding in the remaining diff.
+No fourth round was run. By the supervisor's ruling after the report (F3, base dev 81ca49c1), no further round was needed: the supervisor read the cap reader in full and accepted the three fixes. Each round found no other finding in the remaining diff.
 
 ## Departures
 
@@ -154,6 +154,24 @@ No fourth round was run. Each round found no other finding in the remaining diff
 4. **RPL-1 gained two rules beyond the brief's two:** the selection reads the ranks, and the cap is read by the script. This makes the mechanism's own use guarded.
 5. **RCAP has eight cases rather than the brief's four kinds.** RCAP-6 covers an unreadable message, RCAP-7 a cap with a failed repetition, and RCAP-8 the file and the command line.
 6. **`.lovable/plan.md` is in the diff from START.** It was committed by plan mode and is left as it is (R8).
+
+7. **THE CHECKS ran `vitest run scripts` only.** ERRT-6 lives in src/lib and reads scripts/, so the whole unit suite is the check for any turn that changes scripts/ (fixed by ruling).
+
+## The ruling after the report (base dev 81ca49c1)
+
+**F1.** ERRT-6 flagged `scripts/ci/repeat-cap.ts:94 String(error)`. The caught error's text is now read through `errorText`, imported by the relative path `../../src/lib/error-text`. The line's meaning is unchanged.
+
+**F2.** The tests:
+- `bunx vitest run src/lib/error-text.test.ts scripts/ci/repeat-cap.test.ts`: `Test Files  2 passed (2)`, `Tests  17 passed (17)`.
+- The whole unit suite, `bunx vitest run`: `Test Files  4 failed | 347 passed (351)`, `Tests  11 failed | 2087 passed | 1 skipped (2099)`. ERRT-6 passed.
+- Each file that failed was run alone:
+  - nightly-hour (NH-1/2/3): fails alone, because the sandbox has no time-zone files (the known limit).
+  - executor-hooks (EXH-4, EXH-5, EXH-21): `Tests  25 passed (25)`.
+  - strings-layers (CF-SL-1, 3, 6): `Tests  6 passed (6)`.
+  - src/features/categories/category-tree.test.ts (INC-788 and "an unmoved version keeps the same tree object"): `Tests  15 passed (15)`. This file is not one this turn touched.
+- `bun run format:check`, run last: `All matched files use Prettier code style!`
+
+**F3.** No further reviewer round was run, by ruling.
 
 ## git diff --name-only a566ac17
 
