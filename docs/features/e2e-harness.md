@@ -534,6 +534,11 @@ files a push changed — and the specs importing a changed e2e helper — chosen
 `bun run scripts/e2e-select.ts --repeat`, up to six times on each project with
 `--retries 0` under a 720-second test cap, starting no backend when nothing is
 selected ("nothing to repeat"); scripts/conformance/repeat-lane.test.ts guards it.
+Since Foundations turn K5 (INC-967) the selector ranks its list — the spec files the
+push changed come first, then the importers of a changed helper (`--repeat --ranks`)
+— and the lane takes rank one before rank two within its budget; the time cap is read
+only by scripts/ci/repeat-cap.ts (INC-966), which answers "capped" solely for
+Playwright's own global-timeout message.
 
 The proof's working copy carries named fixes (one skipped never-applied file, three
 patches, six fixtures; the list in `docs/features/ci-local-backend.md`), never edits
