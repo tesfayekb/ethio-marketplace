@@ -1140,6 +1140,44 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
   });
+
+  /**
+   * INC-956 (the operator's walk of 2026-10-27, line 8) — offline, "Enlarge map" opened the dialog
+   * and its map's place said "Map pin", the loading word, while the shell's notice waited behind
+   * the dialog. The large map whose code cannot download says so inside the dialog, with Refresh
+   * the person can reach, and raises no second notice — not even from the still map below the
+   * fold at 360 px, whose Leaflet download fails offline too (turn C1's stop 1): every map's
+   * place says its own failure (MapFailedHere).
+   */
+  test("AP-55 offline, Enlarge: the large map's place says it did not load and offers Refresh, inside the dialog", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active", { pin: true });
+    // The dialog's own code arrives when the browser is idle after the load (DEC-260); the large
+    // map's code only when it is asked for — the download this test takes away.
+    const overlays = page.waitForResponse((response) =>
+      /\/overlays-impl-[^/]+\.js(?:\?|$)/.test(response.url()),
+    );
+    await gotoReady(page, (await address(ad)).canonical);
+    await overlays;
+    await page.context().setOffline(true);
+    try {
+      await page.getByTestId("listing-map-enlarge").click();
+      const dialog = page.getByTestId("listing-map-dialog");
+      await expect(dialog).toBeVisible();
+      const failed = dialog.getByTestId("map-large-failed");
+      await expect(failed).toContainText(en["common.loadFailed"]);
+      await expect(dialog).not.toContainText(en["post.pin.title"]);
+      const refresh = dialog.getByTestId("map-large-refresh");
+      await expect(refresh).toHaveText(en["common.refreshPage"]);
+      await refresh.focus();
+      await expect(refresh, "the person can reach Refresh inside the dialog").toBeFocused();
+      await expect(page.getByTestId("on-demand-failed")).toHaveCount(0);
+    } finally {
+      await page.context().setOffline(false);
+    }
+  });
   test("AP-40 an address never reveals: only the visitor's own tap does (D201 §14)", async ({
     page,
     browser,
