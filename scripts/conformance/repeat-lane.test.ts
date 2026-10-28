@@ -176,13 +176,20 @@ describe("the repeat lane (DEC-283)", () => {
       "the merged report's expected sources leave repeat? out",
     ]);
     expect(mergedReportFindings(realCi.replace(ciFrom, "16,repeat\n"))).toHaveLength(1);
-    const inline = { ...allWorkflows, [WORKFLOW]: `${real}\n# all('Timed out waiting' in e for e in errors)\n` };
-    expect(inlineCapFindings(inline)).toEqual([`an inline 'Timed out waiting' reading in ${WORKFLOW}`]);
+    const inline = {
+      ...allWorkflows,
+      [WORKFLOW]: `${real}\n# all('Timed out waiting' in e for e in errors)\n`,
+    };
+    expect(inlineCapFindings(inline)).toEqual([
+      `an inline 'Timed out waiting' reading in ${WORKFLOW}`,
+    ]);
     expect(
       repeatLaneFindings(real.replace("bun run scripts/ci/repeat-cap.ts", "python3 cap.py")),
     ).toContain("the cap is not read by scripts/ci/repeat-cap.ts");
     expect(
-      repeatLaneFindings(real.replace("scripts/e2e-select.ts --repeat --ranks", "scripts/e2e-select.ts --repeat")),
+      repeatLaneFindings(
+        real.replace("scripts/e2e-select.ts --repeat --ranks", "scripts/e2e-select.ts --repeat"),
+      ),
     ).toContain("the selection does not read the selector's ranks");
     // The selection moved after the backend's start.
     const steps = proofSteps(real);

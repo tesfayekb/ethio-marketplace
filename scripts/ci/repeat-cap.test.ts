@@ -86,7 +86,9 @@ describe("the repeat lane's cap reader (INC-966)", () => {
       specs: [
         {
           title: "GEO-2",
-          tests: [{ projectName: "mobile-360", status: "unexpected", results: [{ status: "failed" }] }],
+          tests: [
+            { projectName: "mobile-360", status: "unexpected", results: [{ status: "failed" }] },
+          ],
         },
       ],
     };
@@ -107,7 +109,10 @@ describe("the repeat lane's cap reader (INC-966)", () => {
       expect(cli(join(dir, "absent.json")).status).toBe(1);
       expect(readFileSync(evidence, "utf8")).toBe("- Repeat: each 2\n");
 
-      writeFileSync(join(dir, "capped.json"), JSON.stringify(report([red(plain(720, "test suite"))])));
+      writeFileSync(
+        join(dir, "capped.json"),
+        JSON.stringify(report([red(plain(720, "test suite"))])),
+      );
       expect(cli(join(dir, "capped.json")).status).toBe(0);
       expect(readFileSync(evidence, "utf8")).toBe(
         "- Repeat: each 2\n- Not repeated (time cap): geo.spec.ts / GEO-1 the feed is scoped / desktop-1280\n",
