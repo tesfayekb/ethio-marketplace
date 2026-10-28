@@ -5,6 +5,8 @@ import { resilientLazy } from "@/lib/resilient-lazy";
 import { cn } from "@/lib/utils";
 import {
   mapsPlaceQuery,
+  mapsPathQuery,
+  type PathedPlace,
   webPlaceUrl,
   webPinUrl,
   appPlaceUrl,
@@ -214,7 +216,7 @@ export interface ListingDetailView {
    * place lines are in the first paint; absent (the seller's and staff's views, built from a draft),
    * the names come from the country tree once it has loaded.
    */
-  placeList?: ReadonlyArray<{ id: string; nameEn: string }>;
+  placeList?: ReadonlyArray<PathedPlace>;
   country: string | null;
   contactPref: Record<string, unknown>;
   /** The public seller name, and the business name when there is one. */
@@ -413,7 +415,9 @@ export function ListingDetail(view: ListingDetailView) {
   // seller's own: a pin, directions or location details. An ad with only its
   // city keeps the city in the title box (listing-detail-places).
   const showLocation = hasPin || Boolean(view.directions) || Boolean(view.streetAddress);
-  const query = mapsPlaceQuery(nodes, view.coverage) || places.join(", ");
+  // INC-949 — the document's own paths first; the tree only for a view without them.
+  const query =
+    mapsPathQuery(view.placeList ?? []) || mapsPlaceQuery(nodes, view.coverage) || places.join(", ");
   const placesMaps = webPlaceUrl(query);
   const placesApp = appPlaceUrl(query);
   const [mapMaps, setMapMaps] = useState<{ web: string; app: string } | null>(null);
