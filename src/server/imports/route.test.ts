@@ -17,6 +17,7 @@ const state = {
   pulls: 0,
   refreshes: [] as string[],
   logs: [] as string[],
+  auditError: null as { message: string } | null,
 };
 
 async function rpc(name: string, args: Record<string, unknown>) {
@@ -42,6 +43,11 @@ vi.mock("@/server/supabase/user-client", () => {
     refuseUserClient: () => null,
     anonymousClient: () => null,
     consumeRate: async () => ({ allowed: true, resetsAt: null, remaining: 1 }),
+    // D1 M4b — the audit row goes through the server's client, recorded like a door call.
+    writeImportAudit: async (entry: Record<string, unknown>) => {
+      state.rpcs.push({ name: "import_gate_audit", args: entry });
+      return state.auditError;
+    },
     envDial: (_name: string, fallback: number) => fallback,
     upstreamUnavailable: (_path: string, _what: string, _status: number) =>
       routeJson({ error: "upstream unavailable" }, 503),
@@ -164,6 +170,7 @@ beforeEach(() => {
   state.pulls = 0;
   state.refreshes = [];
   state.logs = [];
+  state.auditError = null;
 });
 
 describe("defineImportRoute", () => {
@@ -307,5 +314,61 @@ describe("defineImportRoute", () => {
     expect(done.status).toBe(200);
     expect(await done.json()).toEqual({ batch_id: "b-1", counts: { adds: 1 }, refusals: [] });
     expect(state.refreshes).toEqual(["catalogFind", "nameFolds"]);
+  });
+
+  it("IMR-11 an import that saves always has its audit row, written for the verified caller", async () => {
+    const audits = () => state.rpcs.filter((call) => call.name === "import_gate_audit");
+    const digest = await digestOf([CATEGORIES]);
+    state.answers["admin_commit_category_import"] = {
+      data: { batch_id: "b-1", counts: { adds: 1 }, refusals: [] },
+      error: null,
+    };
+    const done = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
+    expect(done.status).toBe(200);
+    expect(audits()).toEqual([
+      {
+        name: "import_gate_audit",
+        args: {
+          actor: "user-imr",
+          family: "categories",
+          event: "commit",
+          batch: "b-1",
+          counts: { adds: 1, refusals: 0 },
+        },
+      },
+    ]);
+
+    state.rpcs = [];
+    const undone = await send(categories, { mode: "undo", batchId: "b-1" });
+    expect(undone.status).toBe(200);
+    expect(audits().map((call) => call.args)).toEqual([
+      { actor: "user-imr", family: "categories", event: "undo", batch: "b-1", counts: {} },
+    ]);
+
+    state.rpcs = [];
+    state.answers["admin_commit_category_import"] = { data: null, error: { message: "nope" } };
+    const refused = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
+    expect(refused.status).toBe(500);
+    expect(audits()).toEqual([]);
+  });
+
+  it("IMR-12 an audit row that cannot be written is logged (F4), and the saved import still answers", async () => {
+    const errors: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((line: unknown) => {
+      errors.push(String(line));
+    });
+    try {
+      state.auditError = { message: "audit door down" };
+      const digest = await digestOf([CATEGORIES]);
+      state.answers["admin_commit_category_import"] = {
+        data: { batch_id: "b-2", counts: {}, refusals: [] },
+        error: null,
+      };
+      const done = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
+      expect(done.status).toBe(200);
+      expect(errors.join("\n")).toMatch(/audit_failed audit door down/);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
