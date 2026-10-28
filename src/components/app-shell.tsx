@@ -57,7 +57,7 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { errorText } from "@/lib/error-text";
 import { getSupabase } from "@/lib/supabase-door";
 import { sendsToSignIn } from "@/lib/signed-in-pages";
-import { createHomeAhead } from "@/lib/sign-out-landing";
+import { createHomeAhead, SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
@@ -133,7 +133,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const homeAhead = useMemo(
     () =>
       createHomeAhead(
-        () => router.loadRouteChunk(router.routesById["/"]),
+        () => router.loadRouteChunk(router.routesById[SIGN_OUT_LANDING]),
         (state) => {
           if (isE2E) (window as unknown as { __ethioHomeAhead?: string }).__ethioHomeAhead = state;
         },
@@ -678,14 +678,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           // afresh, so no screen, cache or listener of the old session survives.
           clearSessionClocks();
           if (navigator.onLine) {
-            window.location.replace("/");
+            window.location.replace(SIGN_OUT_LANDING);
             return;
           }
           // DEC-271 (Foundations turn 34w) — offline, that load would show the browser's own
           // "cannot open" page: the app stays on screen, signed out (signingOut stays set, so no
           // frame of the old account), its auth-derived reads purged below, and the fresh load
           // comes the moment the connection returns.
-          window.addEventListener("online", () => window.location.replace("/"), { once: true });
+          window.addEventListener("online", () => window.location.replace(SIGN_OUT_LANDING), {
+            once: true,
+          });
         }
         // (2) macrotask boundary: React commits the unmount before the purge.
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -702,7 +704,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         queryClient.removeQueries({ queryKey: ["me"] });
         clearSessionClocks();
         setSessionNotice(notice);
-        await navigate({ to: "/", replace: true });
+        await navigate({ to: SIGN_OUT_LANDING, replace: true });
       } finally {
         // A reloading page stays signed-out until it goes — offline, until the connection returns
         // and it goes (DEC-271): no frame of the old account.
@@ -804,7 +806,8 @@ export function AppShell({ children }: { children: ReactNode }) {
       void navigate({ to: "/auth", search: { reason: "deactivated" }, replace: true });
       return;
     }
-    if (gatedRoute && (!ownSignIn || hadSession)) void navigate({ to: "/", replace: true });
+    if (gatedRoute && (!ownSignIn || hadSession))
+      void navigate({ to: SIGN_OUT_LANDING, replace: true });
   }, [authLoading, user, hadSession, gatedRoute, ownSignIn, navigate, queryClient]);
 
   /**

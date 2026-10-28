@@ -31,11 +31,6 @@ export function pageWentAway(error: unknown): boolean {
   );
 }
 
-/** Whether the page that made the route's request is closed. */
-export function routePageClosed(route: Route): boolean {
-  return route.request().frame().page().isClosed();
-}
-
 /** Each page's main-frame navigations, counted from the first handler that watches it. */
 const navigations = new WeakMap<Page, { count: number }>();
 

@@ -309,6 +309,11 @@ before the INC-661 status read answers — not the user the shell has rendered,
 which that read delays; a sign-out arriving while the read is pending is still
 a sign-out, not a fresh signed-out visit.
 
+Later word (DEC-279; Foundations turns 34c-4 and C2): every sign-out lands on one page,
+named once — `SIGN_OUT_LANDING` in src/lib/sign-out-landing.ts — whose code the shell
+fetches ahead for a signed-in visitor, so an offline sign-out still draws it (CF-SOL-1
+names a landing written as a literal "/").
+
 ## Session policy (U0k)
 
 Sign-out is ONE CLICK: every affordance (rail/drawer foot, account menu) calls

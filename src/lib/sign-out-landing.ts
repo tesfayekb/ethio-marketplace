@@ -16,6 +16,9 @@ import { errorText } from "@/lib/error-text";
  * fix. A stale page's failure is answered by stale-chunk.ts's one reload, as any download's is.
  */
 
+/** DEC-279 — the page every sign-out lands on (app-shell's hard reset, U0j); named once (turn C2). */
+export const SIGN_OUT_LANDING = "/" as const;
+
 export type HomeAheadState = "idle" | "loading" | "ready" | "failed";
 
 export interface HomeAhead {

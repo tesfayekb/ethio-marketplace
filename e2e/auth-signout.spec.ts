@@ -21,9 +21,9 @@ import {
   besideSessionKey,
   editStoredSession,
   forgetStoredSession,
-  holdsStoredSession,
   injectSession,
   passwordGrant,
+  sessionsIn,
   storageKey,
   supabaseNamesIn,
 } from "./helpers/session";
@@ -224,8 +224,8 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(page).toHaveURL(/\/$/, { timeout: 60_000 });
     await expect(signInMarker(page)).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
-    expect(await holdsStoredSession(page), "the stored session is gone from this device").toBe(
-      false,
+    expect(await sessionsIn(page), "no project's stored session is left on this device").toEqual(
+      [],
     );
     // The network is back: a fresh load of the page is still signed out.
     await page.unrouteAll({ behavior: "ignoreErrors" });
@@ -263,8 +263,8 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
     await expect(page).toHaveURL(/\/$/);
     expect(loads, "no load is tried while offline").toBe(0);
-    expect(await holdsStoredSession(page), "the stored session is gone from this device").toBe(
-      false,
+    expect(await sessionsIn(page), "no project's stored session is left on this device").toEqual(
+      [],
     );
     // The connection returns: the page loads afresh, still signed out.
     await page.context().setOffline(false);
@@ -325,8 +325,8 @@ test.describe("U0j sign-out hard reset", () => {
     await expect(signInMarker(page)).toBeVisible();
     await expect(page.getByTestId("account-menu")).toHaveCount(0);
     expect(loads, "no load is tried while offline").toBe(0);
-    expect(await holdsStoredSession(page), "the stored session is gone from this device").toBe(
-      false,
+    expect(await sessionsIn(page), "no project's stored session is left on this device").toEqual(
+      [],
     );
     // The connection returns: the page loads afresh, still signed out (DEC-271).
     await page.context().setOffline(false);

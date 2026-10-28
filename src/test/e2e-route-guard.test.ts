@@ -8,7 +8,7 @@
 import type { Route } from "@playwright/test";
 import { describe, expect, it } from "vitest";
 
-import { pageWentAway, routePageClosed, whilePageLives } from "../../e2e/helpers/route-guard";
+import { pageWentAway, whilePageLives } from "../../e2e/helpers/route-guard";
 
 /**
  * A route whose request's page is closed or open; `navigate()` fires the page's main-frame
@@ -75,8 +75,6 @@ describe("a test's interception ends with its page (INC-934)", () => {
 
   it("RG-3 the same words on a page that is still open are the test's own failure and throw", async () => {
     const open = routeOn(false);
-    expect(routePageClosed(open)).toBe(false);
-    expect(routePageClosed(routeOn(true))).toBe(true);
     await expect(
       whilePageLives(async () => {
         throw new Error("apiResponse.text: Response has been disposed");

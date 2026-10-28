@@ -89,6 +89,17 @@ export async function holdsStoredSession(page: Page): Promise<boolean> {
   return page.evaluate((key: string) => window.localStorage.getItem(key) !== null, storageKey());
 }
 
+/**
+ * The names of every project's stored session in the page's storage (turn 34c-4's review, Foundations
+ * turn C2) — supabase-js's session name by the app's own rule (src/lib/session-key.ts), whatever the
+ * project: a sign-out's "no session" check reads that none is left, not only this project's.
+ */
+export async function sessionsIn(page: Page): Promise<string[]> {
+  const own = storageKey();
+  const sessionName = own.slice(keyBeside(own, "").length);
+  return (await supabaseNamesIn(page)).filter((name) => name.endsWith(`-${sessionName}`));
+}
+
 /** The page's stored session as supabase-js keeps it, or null when it holds none. */
 export async function readStoredSession(page: Page): Promise<PersistedSession | null> {
   const raw = await page.evaluate((key: string) => window.localStorage.getItem(key), storageKey());
