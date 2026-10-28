@@ -258,7 +258,7 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       status: 429,
       body: { error: "rateLimited" },
     });
-    expect(state.presses).toEqual(["machine_translate_press e2e-translator"]);
+    expect(state.presses).toEqual(["machine-translate:press e2e-translator"]);
     expect(state.translateRequests).toBe(0);
     expect(state.spends).toEqual([]);
     expect(state.audits).toEqual([]);
@@ -268,7 +268,7 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
     state.presses = [];
     const done = await post({ target_lang: "am", items: items(150) });
     expect(done.status).toBe(200);
-    expect(state.presses).toEqual(["machine_translate_press e2e-translator"]);
+    expect(state.presses).toEqual(["machine-translate:press e2e-translator"]);
     expect(writes().length).toBe(150);
   });
 

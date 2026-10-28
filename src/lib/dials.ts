@@ -151,7 +151,7 @@ export const DIALS = {
   },
   /** INC-951 3b (D1 M5a) — src/routes/api/translate.ts: one per machine-translate press, before the AI call. */
   machineTranslatePress: {
-    action: "machine_translate_press",
+    action: "machine-translate:press",
     limit: { fallback: 20 },
     windowSeconds: 3600,
   },
