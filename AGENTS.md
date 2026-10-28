@@ -31,7 +31,7 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - A door's new refusal: the census names every caller and the order each reaches it.
 - A map indexed by an outside key is read through `ownValue`, never `map[key]`.
 - CutText for cut names; useLabelRoom per crowded row.
-- Flake-fix proofs use the manual Flake check, never local browsers.
+- A changed spec's repeatability is proven by CI's repeat lane (DEC-283); the manual Flake check (DEC-184) is for investigations; never local browsers for repeats.
 - Import previews in tests use `withinPreviewBudget`; only IG-3 drives the limit, never raised.
 - QR: the encoder lives only in `src/server/qr.ts`, off first paint (a guard); public QR routes check the id's shape, no DB read.
 - Shell: cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:`.
