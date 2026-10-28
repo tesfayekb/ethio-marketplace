@@ -66,9 +66,9 @@ export const ROUTE_BUDGETS_KIB = {
   "/legal/publishing": { ceiling: 212, public: true }, // 208.2
   "/my-listings": { ceiling: 327, public: false }, // 323.4
   "/my-listings_/$listingId": { ceiling: 315, public: false }, // 311.1
-  "/my-listings_/$listingId_/edit": { ceiling: 393, public: false }, // 389.8
-  "/post": { ceiling: 393, public: false }, // 389.8
-  "/post_/$listingId": { ceiling: 393, public: false }, // 389.8
+  "/my-listings_/$listingId_/edit": { ceiling: 397, public: false }, // 393.2 (CI, turn C1)
+  "/post": { ceiling: 397, public: false }, // 393.1 (CI, turn C1)
+  "/post_/$listingId": { ceiling: 397, public: false }, // 393.1 (CI, turn C1)
   "/privacy": { ceiling: 211, public: true }, // 207.5
   "/settings": { ceiling: 271, public: false }, // 267.3
   "/terms": { ceiling: 211, public: true }, // 207.5
