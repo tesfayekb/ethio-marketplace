@@ -72,7 +72,7 @@ describe("the account menu's code is warmed ahead and its arrival reported (INC-
     reportOnDemandFailure: raised.report,
   }));
   let idle: Array<() => void> = [];
-  const shown = () => (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead;
+  const shown = () => window.__ethioMenuAhead;
   const warm = async (arrives: boolean) => {
     vi.resetModules();
     vi.doMock("@/components/ui/overlays-impl", () => {
@@ -87,13 +87,16 @@ describe("the account menu's code is warmed ahead and its arrival reported (INC-
   beforeEach(() => {
     idle = [];
     raised.report.mockClear();
-    delete (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead;
+    delete window.__ethioMenuAhead;
+    // The E2E build is the one that hears the warm-up (isE2E): the tests set it themselves.
+    vi.stubEnv("VITE_E2E", "1");
     vi.stubGlobal("requestIdleCallback", (ask: () => void) => {
       idle.push(ask);
       return idle.length;
     });
   });
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.unstubAllGlobals();
     vi.doUnmock("@/components/ui/overlays-impl");
   });

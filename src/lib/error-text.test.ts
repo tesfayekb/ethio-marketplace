@@ -117,17 +117,25 @@ const HAND_READS: [RegExp, string][] = [
   [/as \{ message: unknown \}\)\.message/, "(error as { message }).message"],
 ];
 
-/** Every hand read in `paths`, as `<file>:<line> <form>` (an errorText(…) call's own text is not read). */
+/**
+ * Every hand read in `paths`, as `<file>:<line> <form>` (an errorText(…) call's own text is not
+ * read). Each form is matched against the whole text, so a read split across lines (`x instanceof
+ * Error` / `? x.message`) is found as at BASE; its line is the line its match starts on.
+ */
 export function handReads(paths: string[]): { file: string; line: string }[] {
   const found: { file: string; line: string }[] = [];
   for (const path of paths) {
     const file = relative(process.cwd(), path).split("\\").join("/");
-    withoutRuleCalls(readFileSync(path, "utf8"))
-      .split("\n")
-      .forEach((text, index) => {
-        for (const [pattern, name] of HAND_READS)
-          if (pattern.test(text)) found.push({ file, line: `${file}:${index + 1} ${name}` });
-      });
+    const text = withoutRuleCalls(readFileSync(path, "utf8"));
+    const lines = new Set<string>();
+    for (const [pattern, name] of HAND_READS) {
+      const every = new RegExp(pattern.source, "g");
+      for (let match = every.exec(text); match !== null; match = every.exec(text)) {
+        const line = `${file}:${text.slice(0, match.index).split("\n").length} ${name}`;
+        if (!lines.has(line)) found.push({ file, line });
+        lines.add(line);
+      }
+    }
   }
   return found;
 }

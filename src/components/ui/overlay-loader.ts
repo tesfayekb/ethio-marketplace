@@ -55,14 +55,23 @@ export function useOverlays(): OverlaysImpl | null {
 
 let warmScheduled = false;
 
+/** The overlays' warm-up as the E2E build shows it (INC-960, SO-13). */
+export type OverlaysWarmState = "loading" | "ready" | "failed";
+
+declare global {
+  interface Window {
+    __ethioMenuAhead?: OverlaysWarmState;
+  }
+}
+
 /**
  * INC-960 (Foundations turn C2, ruling 3) — the E2E build shows the warm-up's state to SO-13 as
- * `__ethioMenuAhead` ("loading" | "ready" | "failed"): the phone's account menu, the only Sign out
- * on a phone, draws from this module, so its arrival is what an offline sign-out needs. Written
- * only inside `isE2E`, so the production build carries none of it.
+ * `__ethioMenuAhead`: the phone's account menu, the only Sign out on a phone, draws from this
+ * module, so its arrival is what an offline sign-out needs. Written only inside `isE2E`, so the
+ * production build carries none of it.
  */
-const warmTold = (state: "loading" | "ready" | "failed") => {
-  (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead = state;
+const warmTold = (state: OverlaysWarmState) => {
+  window.__ethioMenuAhead = state;
 };
 
 /**

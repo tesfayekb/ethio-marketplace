@@ -14,6 +14,7 @@ import { mintEmail } from "./helpers/users";
 import { assertAppTargetsStaging } from "./helpers/app-target";
 import { staleEnKeys, type EnRow } from "../scripts/en-baseline-heal";
 import { readAllPages } from "../src/lib/read-all-pages";
+import { errorText } from "../src/lib/error-text";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const STATE_FILE = join(HERE, ".state", "test-user.json");
@@ -564,10 +565,7 @@ export default async function globalSetup() {
         healed += 1;
       }
     } catch (error) {
-      probeError =
-        error instanceof Error
-          ? error.message
-          : String((error as { message?: unknown })?.message ?? error);
+      probeError = errorText(error);
       console.log(`[e2e:setup] EN baseline probe unavailable: ${probeError}`);
     }
     const healMs = Math.round(performance.now() - healStartedAt);

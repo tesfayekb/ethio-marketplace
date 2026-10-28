@@ -473,9 +473,13 @@ the two, and so do the log helpers: `logRouteError` here, the public routes'
 own `logRouteError`, the two `fail5xx` and the import gate's `refuse`. Its
 census is `src/lib/error-text.test.ts`: ERRT-6 refuses `instanceof Error ?
 x.message`, `String(error)`, `(error as Error).message` and `(error as {
-message }).message` in server code; ERRT-7 refuses a raw `.message` printed on
-the `[ssr-error]` channel and lists the helpers. A plain message keeps its
-words, so the server-error census's allowlist is unchanged.
+message }).message` — since Foundations turn C2 (INC-937) in src/, e2e/ and
+scripts/, tests included, matched over each file's whole text so a read split
+across lines is seen, with `scripts/conformance/error-text-allowlist.txt` for
+the reads that cannot move yet (ERRT-8 plants each form in each folder); ERRT-7
+refuses a raw `.message` printed on the `[ssr-error]` channel and lists the
+helpers. A plain message keeps its words, so the server-error census's
+allowlist is unchanged.
 
 ### The routes
 

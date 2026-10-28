@@ -300,18 +300,16 @@ test.describe("U0j sign-out hard reset", () => {
         { message: "the Home page's code is fetched ahead of time for a signed-in visitor" },
       )
       .toBe("ready");
-    // INC-960 (Foundations turn C2, ruling 3) — the account menu draws from the overlays module,
-    // which every page warms at idle; the E2E build reports its arrival, so the phone leg opens
-    // the menu for the first time only once offline: no online opening brings its code here.
-    await expect
-      .poll(
-        () =>
-          page.evaluate(
-            () => (window as unknown as { __ethioMenuAhead?: string }).__ethioMenuAhead ?? "idle",
-          ),
-        { message: "the account menu's code has arrived by the overlays' warm-up" },
-      )
-      .toBe("ready");
+    if (isMobile(page)) {
+      // INC-960 (Foundations turn C2, ruling 3) — the account menu draws from the overlays module,
+      // which every page warms at idle; the E2E build reports its arrival, so the phone leg opens
+      // the menu for the first time only once offline: no online opening brings its code here.
+      await expect
+        .poll(() => page.evaluate(() => window.__ethioMenuAhead ?? "idle"), {
+          message: "the account menu's code has arrived by the overlays' warm-up",
+        })
+        .toBe("ready");
+    }
     let loads = 0;
     page.on("load", () => {
       loads += 1;

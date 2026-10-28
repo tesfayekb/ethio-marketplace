@@ -9,7 +9,7 @@ src/features/admin-screening/photo-changes.tsx | :76 reads a refusal's message t
 src/features/admin-screening/photo-reviews.tsx | :84 reads a refusal's message to choose the words shown (an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
 src/features/posting/use-edit-draft.ts | :478 reads a refusal's message to choose the words shown (editErrorKey; an empty fallback); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
 src/lib/error-page.ts | :25 and :27 are the root error page's own describer (an Error's name and message, an object's JSON); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
-src/lib/lovable-error-reporting.ts | :51 names the vendor reporter's error (a Response by its status and address); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
+src/lib/lovable-error-reporting.ts | :49 and :51 name the vendor reporter's error (a Response by its status and address); outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
 src/features/auth/auth-client.test.ts | :115 a unit test's capture of a rejection; outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
 src/routes/api/translate.route.test.ts | :71 a unit test's stand-in log of a route error; outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
 src/test/app-target.test.ts | :14 a unit test's capture of a refusal's message; outside turn C2's SCOPE (K2) — moves in the turn whose brief names the file | INC-937
