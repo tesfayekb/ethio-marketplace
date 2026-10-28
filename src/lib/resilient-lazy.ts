@@ -1,6 +1,6 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from "react";
 
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { logOnDemandFailure, reportOnDemandFailure } from "@/lib/on-demand-failure";
 
 /**
  * D234 speed turn S3 (INC-897) — A COMPONENT FETCHED ON DEMAND NEVER BREAKS THE PAGE.
@@ -29,8 +29,7 @@ export function resilientLazy<P extends object>(
     fetchComponent().then(
       (component) => ({ default: component }),
       (error: unknown) => {
-        if (options.inPlace === true)
-          console.error(`[client-error] ${label} failed to load`, error);
+        if (options.inPlace === true) logOnDemandFailure(label, error);
         else reportOnDemandFailure(label, error);
         return { default: fallback };
       },

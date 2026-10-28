@@ -5,6 +5,7 @@ import type { Matcher } from "react-day-picker";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { loadOnce } from "@/lib/load-once";
+import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { cn } from "@/lib/utils";
 
 import type { DateCalendarProps } from "./date-calendar";
@@ -90,7 +91,7 @@ export function DateField({
         if (live) setCalendar(() => next);
       },
       (error: unknown) => {
-        console.error("[client-error] the calendar failed to load", error);
+        logOnDemandFailure("the calendar", error);
         if (live) setCalendarFailed(true);
       },
     );

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import type * as Leaflet from "leaflet";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useI18n } from "@/i18n";
-import { errorText } from "@/lib/error-text";
+import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { APPROX_RADIUS_M } from "./geocode";
-import { MAP_FAILED_IDS, snap } from "./map-preview";
+import { snap } from "./map-preview";
+import { MAP_FAILED_IDS } from "./still-map";
 import {
   addTileLayers,
   creditOf,
@@ -77,7 +78,7 @@ export function MapLarge({
       })
       .catch((error: unknown) => {
         // INC-956 (Foundations turn C1-2) — the large map's place says so, inside its dialog.
-        console.error(`[client-error] the large map failed to load: ${errorText(error)}`);
+        logOnDemandFailure("the large map", error);
         if (!cancelled) setFailed(true);
       });
     return () => {

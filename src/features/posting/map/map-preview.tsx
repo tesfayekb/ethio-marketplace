@@ -3,11 +3,11 @@ import type * as Leaflet from "leaflet";
 
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useI18n } from "@/i18n";
-import { errorText } from "@/lib/error-text";
+import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { useNearViewport } from "@/lib/use-near-viewport";
 
 import { APPROX_RADIUS_M } from "./geocode";
-import { STILL_MAP_BOX, STILL_MAP_CREDIT, stillMapCaptionKey } from "./still-map";
+import { MAP_FAILED_IDS, STILL_MAP_BOX, STILL_MAP_CREDIT, stillMapCaptionKey } from "./still-map";
 import {
   addTileLayers,
   creditOf,
@@ -44,12 +44,6 @@ const SNAP = 0.01;
 export function snap(value: number): number {
   return Math.round(value / SNAP) * SNAP;
 }
-
-/** The test ids of a map's failure in its place when Leaflet or the tile plan cannot download (INC-956) — the same pairs MapFailedHere (map-frame.tsx) draws for the map's own chunk; MOF-1/2 and LDF-1 hold the two to the same ids. */
-export const MAP_FAILED_IDS = {
-  still: { testid: "map-failed", refreshTestid: "map-refresh" },
-  large: { testid: "map-large-failed", refreshTestid: "map-large-refresh" },
-} as const;
 
 export function MapPreview({
   lat,
@@ -122,7 +116,7 @@ export function MapPreview({
       .catch((error: unknown) => {
         // A map that cannot load leaves the caption below it standing; the page
         // never blanks over a picture (C4). INC-956 — its place says so, in place.
-        console.error(`[client-error] the map failed to load: ${errorText(error)}`);
+        logOnDemandFailure("the map", error);
         if (!cancelled) setFailed(true);
       });
 

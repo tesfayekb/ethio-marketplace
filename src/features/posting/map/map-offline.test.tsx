@@ -20,7 +20,8 @@ vi.mock("@/i18n", () => ({
 }));
 const reported = vi.hoisted(() => vi.fn());
 const refreshed = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/on-demand-failure", () => ({
+vi.mock("@/lib/on-demand-failure", async (original) => ({
+  ...(await original<typeof import("@/lib/on-demand-failure")>()),
   reportOnDemandFailure: reported,
   refreshPage: refreshed,
 }));

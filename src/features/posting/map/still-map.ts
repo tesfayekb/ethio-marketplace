@@ -13,6 +13,17 @@ import type { MessageKey } from "@/i18n/types";
  * map-frame.tsx are not fetched on demand: they carry no map code, only the box.
  */
 
+/**
+ * INC-956 — the test ids of a map's failure in its place, one pair for every still map and one for
+ * the large map, in ONE place (turn C1-2's MINOR-1, Foundations turn C2): MapFailedHere
+ * (map-failed-here.tsx, the map's own chunk) and the maps themselves (map-preview.tsx,
+ * map-large.tsx, when Leaflet or the tile plan cannot download) read them here.
+ */
+export const MAP_FAILED_IDS = {
+  still: { testid: "map-failed", refreshTestid: "map-refresh" },
+  large: { testid: "map-large-failed", refreshTestid: "map-large-refresh" },
+} as const;
+
 /** The still map's box: the map draws into it, and its places draw it empty. */
 export const STILL_MAP_BOX = "isolate h-48 w-full overflow-hidden rounded-md border border-border";
 

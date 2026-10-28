@@ -29,8 +29,7 @@ import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel, normalizeTelegram } from "./validate";
 import { formatLocale } from "@/lib/format-locale";
-import { errorText } from "@/lib/error-text";
-import { refreshPage } from "@/lib/on-demand-failure";
+import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -216,7 +215,7 @@ export function StepWho({
       },
       (error: unknown) => {
         // INC-911 — the in-place say-so logs the line every on-demand failure logs.
-        console.error(`[client-error] the phone library failed to load: ${errorText(error)}`);
+        logOnDemandFailure("the phone library", error);
         if (aliveRef.current) setPhoneLibFailed(true);
       },
     );

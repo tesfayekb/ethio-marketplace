@@ -18,7 +18,10 @@ vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 const refreshed = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/on-demand-failure", () => ({ refreshPage: refreshed }));
+vi.mock("@/lib/on-demand-failure", async (original) => ({
+  ...(await original<typeof import("@/lib/on-demand-failure")>()),
+  refreshPage: refreshed,
+}));
 
 const { MapPinDropper } = await import("./map-pin-dropper");
 

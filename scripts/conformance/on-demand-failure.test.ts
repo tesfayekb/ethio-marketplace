@@ -547,4 +547,84 @@ describe("a piece fetched on demand that fails to download tells the person (INC
       if (!file.endsWith("resilient-lazy.ts"))
         expect(readFileSync(file, "utf8"), `${file} binds a loadOnce`).toMatch(/\bloadOnce\(/);
   });
+
+  it(
+    "ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)",
+    () => {
+      const browser = walkFiles(["src"], {
+        ext: ["ts", "tsx"],
+        skipTests: true,
+        skip: /^src\/(?:server\/|server\.ts$|routes\/api\/|test\/|.*\.server\.ts$)/,
+      });
+      const findings = ownLogLines(browser);
+      console.log(`[ODC-7] files read: ${browser.length}; own failure lines: ${findings.length}`);
+      expect(browser.length).toBeGreaterThan(0);
+      expect(report(findings)).toBe("");
+    },
+    TREE_SCAN_MS,
+  );
+
+  it("ODC-8 the log-line census names a planted line of each shape and passes the mechanism's", () => {
+    const dir = "node_modules/.cache/on-demand-failure-8";
+    mkdirSync(dir, { recursive: true });
+    const file = `${dir}/odc-lines.ts`;
+    try {
+      writeFileSync(
+        file,
+        [
+          'import { logOnDemandFailure } from "@/lib/on-demand-failure";',
+          'export const a = (e: unknown) => console.error("[client-error] the calendar failed to load", e);',
+          "export const b = (e: unknown, x: string) => console.error(`[client-error] ${x} failed to load: ${typeof e}`);",
+          "export const c = (e: unknown) => console.error(`[client-error] the map failed to load: ${typeof e}`);",
+          'export const d = (e: unknown) => logOnDemandFailure("the map", e);',
+          'export const f = () => console.error("[client-error] legal gate read failed");',
+          'export const g = () => console.warn("[client-error] the map failed to load");',
+          "",
+        ].join("\n"),
+      );
+      expect(report(ownLogLines([file]))).toBe(
+        [2, 3, 4]
+          .map(
+            (line) => `${file}:${line} writes its own "failed to load" line — logOnDemandFailure`,
+          )
+          .join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
+
+/** Every `console.error(…)` whose first text starts `[client-error]` and says `failed to load` (ODC-7). */
+export function ownLogLines(files: string[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const file of files) {
+    if (file === "src/lib/on-demand-failure.ts") continue;
+    visitTs(file, (node, source) => {
+      if (
+        !ts.isCallExpression(node) ||
+        !ts.isPropertyAccessExpression(node.expression) ||
+        node.expression.getText(source) !== "console.error"
+      )
+        return;
+      const first = node.arguments[0];
+      if (first === undefined) return;
+      const text = ts.isStringLiteralLike(first)
+        ? first.text
+        : ts.isTemplateExpression(first)
+          ? [
+              first.head.text,
+              ...first.templateSpans.map((span) => `\${…}${span.literal.text}`),
+            ].join("")
+          : null;
+      if (text === null || !text.startsWith("[client-error]") || !text.includes("failed to load"))
+        return;
+      findings.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        what: 'writes its own "failed to load" line — logOnDemandFailure',
+      });
+    });
+  }
+  return findings;
+}

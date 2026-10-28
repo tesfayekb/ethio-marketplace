@@ -1147,7 +1147,8 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
    * the dialog. The large map whose code cannot download says so inside the dialog, with Refresh
    * the person can reach, and raises no second notice — not even from the still map below the
    * fold at 360 px, whose Leaflet download fails offline too (turn C1's stop 1): every map's
-   * place says its own failure (MapFailedHere).
+   * place says its own failure — MapFailedHere when the map's own code cannot download, the map
+   * itself (with the same test ids, still-map.ts) when Leaflet or the tile plan cannot.
    */
   test("AP-55 offline, Enlarge: the large map's place says it did not load and offers Refresh, inside the dialog", async ({
     page,

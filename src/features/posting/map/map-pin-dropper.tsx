@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
-import { errorText } from "@/lib/error-text";
+import { logOnDemandFailure } from "@/lib/on-demand-failure";
 
 import { fill } from "../refusal-text";
 import { readOutline, reverseStreet, searchPlaces, type GeoPlace, type GeoReason } from "./geocode";
@@ -268,7 +268,7 @@ export function MapPinDropper({
         // says so and offers a refresh, the one cure — the browser keeps a failed download for
         // the page's life (INC-918). It said "the place search is unavailable, tap the map",
         // with no map to tap.
-        console.error(`[client-error] the pin map failed to load: ${errorText(error)}`);
+        logOnDemandFailure("the pin map", error);
         if (!cancelled) setMapFailed(true);
       });
 

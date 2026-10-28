@@ -1,5 +1,5 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
-import { errorText } from "@/lib/error-text";
+import { logOnDemandFailure } from "@/lib/on-demand-failure";
 import { loadOnce } from "@/lib/load-once";
 import { resilientLazy } from "@/lib/resilient-lazy";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,9 @@ import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from 
 import { SellerLine } from "../seller-line";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
-import { MapFailedHere, MapFrame } from "../map/map-frame";
+import { MapFailedHere } from "../map/map-failed-here";
+import { MapFrame } from "../map/map-frame";
+import { useSteadyPin } from "../map/use-steady-pin";
 import type { Pin, PinPrecision } from "../map/pin";
 
 /**
@@ -416,12 +418,15 @@ export function ListingDetail(view: ListingDetailView) {
   const placesApp = appPlaceUrl(query);
   const [mapMaps, setMapMaps] = useState<{ web: string; app: string } | null>(null);
   const [mapsChoice, setMapsChoice] = useState<{ web: string; app: string } | null>(null);
+  // Turn C1-2's MINOR-4 (Foundations turn C2) — the links follow the pin's values, not the object
+  // that carries them: a render that hands an equal pin keeps its links and asks for nothing again.
+  const steadyPin = useSteadyPin(pin);
   useEffect(() => {
     let active = true;
     setMapMaps(null);
-    if (pin === null) return;
-    const { lat, lng } = pin;
-    if (pin.precision === "exact") {
+    if (steadyPin === null) return;
+    const { lat, lng } = steadyPin;
+    if (steadyPin.precision === "exact") {
       // Google's Maps URLs require the comma between lat and lng as %2C.
       setMapMaps({ web: webPinUrl(lat, lng), app: appPinUrl(lat, lng, 15) });
       return;
@@ -440,13 +445,12 @@ export function ListingDetail(view: ListingDetailView) {
           });
         }
       },
-      (error: unknown) =>
-        console.error(`[client-error] the map's links failed to load: ${errorText(error)}`),
+      (error: unknown) => logOnDemandFailure("the map's links", error),
     );
     return () => {
       active = false;
     };
-  }, [pin]);
+  }, [steadyPin]);
   const Title = view.actor === "buyer" ? "h1" : "h2";
   const [posted, setPosted] = useState<string | null>(null);
   useEffect(() => {

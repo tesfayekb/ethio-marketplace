@@ -14,7 +14,10 @@ vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 const refreshed = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/on-demand-failure", () => ({ refreshPage: refreshed }));
+vi.mock("@/lib/on-demand-failure", async (original) => ({
+  ...(await original<typeof import("@/lib/on-demand-failure")>()),
+  refreshPage: refreshed,
+}));
 
 const { DateField } = await import("./date-field");
 
@@ -31,8 +34,7 @@ describe("DateField offline (D234)", () => {
     fireEvent.click(refresh);
     expect(refreshed).toHaveBeenCalledTimes(1);
     expect(errors).toHaveBeenCalledWith(
-      "[client-error] the calendar failed to load",
-      expect.anything(),
+      expect.stringMatching(/^\[client-error\] the calendar failed to load: /),
     );
     errors.mockRestore();
   });

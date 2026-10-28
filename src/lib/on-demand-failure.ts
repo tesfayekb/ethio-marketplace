@@ -23,9 +23,18 @@ type Listener = () => void;
 const listeners = new Set<Listener>();
 let failures = 0;
 
-/** Logs the failure and asks the shell's notice to show (again). */
-export function reportOnDemandFailure(label: string, error: unknown): void {
+/**
+ * The one `[client-error] <label> failed to load: <errorText>` line (turn C1-2's MINOR-3,
+ * Foundations turn C2). A piece that says its failure in its own place (LoadFailedHere, a map's
+ * own word) logs through this and raises nothing; ODC-7 names any other line of this form.
+ */
+export function logOnDemandFailure(label: string, error: unknown): void {
   console.error(`[client-error] ${label} failed to load: ${errorText(error)}`);
+}
+
+/** Logs the failure (logOnDemandFailure) and asks the shell's notice to show (again). */
+export function reportOnDemandFailure(label: string, error: unknown): void {
+  logOnDemandFailure(label, error);
   failures += 1;
   for (const listener of listeners) listener();
 }

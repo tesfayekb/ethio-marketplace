@@ -5,7 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 import { reportOnDemandFailure } from "./on-demand-failure";
 import { resilientLazy } from "./resilient-lazy";
 
-vi.mock("./on-demand-failure", () => ({ reportOnDemandFailure: vi.fn() }));
+vi.mock("./on-demand-failure", async (original) => ({
+  ...(await original<typeof import("./on-demand-failure")>()),
+  reportOnDemandFailure: vi.fn(),
+}));
 
 /** D234 speed turn S3 (INC-897) — a component fetched on demand never breaks the page. */
 function Piece({ name }: { name: string }) {
@@ -60,10 +63,7 @@ describe("resilientLazy (D234)", () => {
     );
     expect(await screen.findByTestId("piece-fallback")).toBeTruthy();
     expect(reportOnDemandFailure).not.toHaveBeenCalled();
-    expect(errors).toHaveBeenCalledWith(
-      "[client-error] the piece failed to load",
-      expect.anything(),
-    );
+    expect(errors).toHaveBeenCalledWith("[client-error] the piece failed to load: offline");
     errors.mockRestore();
   });
 });
