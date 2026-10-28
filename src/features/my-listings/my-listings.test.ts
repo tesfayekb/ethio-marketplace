@@ -151,7 +151,7 @@ it("a sold ad hidden after 35 days under the default remains visible with 40 day
 });
 
 describe("D224 one rule for what can be shared", () => {
-  it("ML-U12 live with a string public id shares; every other status or a missing id does not", () => {
+  it("ML-U23 live with a string public id shares; every other status or a missing id does not", () => {
     expect(shareable({ status: "active", publicId: "2345678923" })).toBe(true);
     expect(shareable({ status: "active", publicId: null })).toBe(false);
     for (const status of [

@@ -38,14 +38,26 @@ describe("test ids (INC-536)", () => {
     expect(uses.map((u) => u.line)).toEqual([1, 1, 3]);
   });
 
-  it("TI-6 a census id of several parts (CF-BC-1) is read whole, and refused in two files", () => {
+  it("TI-6 a census id of several parts (CF-BC-1) or a lettered number (LR-C1, ML-U12) is read whole, and refused in two files", () => {
     const uses = [
       ...idsIn("scripts/conformance/a.test.ts", 'it("ZZ-QQ-1 one", () => {});'),
       ...idsIn("src/b.test.ts", 'it("ZZ-QQ-1: two", () => {});\nit("ZZ-QQ-12 three", () => {});'),
-      ...idsIn("e2e/c.spec.ts", 'test("CF-ZZ-QQ-2+ZZ-7 four", () => {});'),
+      ...idsIn(
+        "e2e/c.spec.ts",
+        'test("CF-ZZ-QQ-2+ZZ-7 four", () => {});\ntest("ZZ-U9 five", () => {});',
+      ),
+      ...idsIn("src/d.test.ts", 'it("ZZ-U9 six", () => {});'),
     ];
-    expect(uses.map((u) => u.id)).toEqual(["ZZ-QQ-1", "ZZ-QQ-1", "ZZ-QQ-12", "CF-ZZ-QQ-2", "ZZ-7"]);
-    expect([...collisions(uses).keys()]).toEqual(["ZZ-QQ-1"]);
+    expect(uses.map((u) => u.id)).toEqual([
+      "ZZ-QQ-1",
+      "ZZ-QQ-1",
+      "ZZ-QQ-12",
+      "CF-ZZ-QQ-2",
+      "ZZ-7",
+      "ZZ-U9",
+      "ZZ-U9",
+    ]);
+    expect([...collisions(uses).keys()]).toEqual(["ZZ-QQ-1", "ZZ-U9"]);
     const repository = repositoryIds(process.cwd()).filter((u) =>
       /^[A-Z][A-Za-z0-9]*-[A-Z]/.test(u.id),
     );

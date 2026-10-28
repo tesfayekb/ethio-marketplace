@@ -70,6 +70,7 @@ describe("a test reaches the browser's client one way (INC-959)", () => {
         "e2e/admin-users.spec.ts",
         "e2e/admin-translations-data.spec.ts",
         "e2e/admin-translations-console.spec.ts",
+        "e2e/auth-signout.spec.ts",
       ])
         expect(keys.filter((key) => key.startsWith(`${moved} (`))).toEqual([]);
       // The app's hook still hands the client over, and the helper still waits for it.

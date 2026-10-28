@@ -29,7 +29,7 @@ const SKIP_DIRS = new Set(["node_modules", "fixtures", "dist", ".output"]);
 /** This check's own unit tests hold planted titles as text. */
 const SKIP_FILES = new Set(["scripts/test-ids.test.ts"]);
 const TITLE =
-  /\b(?:it|test)(?:\.(?:skip|only|fixme|fail))?\(\s*["'`]((?:[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*\d+[a-z]?)(?:\+[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*\d+[a-z]?)*)(?=[\s:"'`)]|$)/g;
+  /\b(?:it|test)(?:\.(?:skip|only|fixme|fail))?\(\s*["'`]((?:[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*[A-Z]{0,3}\d+[a-z]?)(?:\+[A-Z][A-Za-z0-9]*-(?:[A-Z][A-Za-z0-9]*-)*[A-Z]{0,3}\d+[a-z]?)*)(?=[\s:"'`)]|$)/g;
 
 export interface IdUse {
   id: string;

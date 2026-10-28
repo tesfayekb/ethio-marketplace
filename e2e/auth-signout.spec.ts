@@ -27,6 +27,7 @@ import {
   storageKey,
   supabaseNamesIn,
 } from "./helpers/session";
+import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
@@ -116,11 +117,8 @@ test.describe("U0j sign-out hard reset", () => {
 
     // MECHANISM: the app's own client, no UI involved — this emits a real
     // SIGNED_OUT on onAuthStateChange, which only the LIVE guard can react to.
-    await page.waitForFunction(() => Boolean(window.__ethioSupabase), undefined, {
-      timeout: 15000,
-    });
-    await page.evaluate(async () => {
-      await window.__ethioSupabase!.auth.signOut({ scope: "local" });
+    await inBrowserClient(page, async (client) => {
+      await client.auth.signOut({ scope: "local" });
     });
 
     await expect(page).toHaveURL(/\/$/, { timeout: 15000 });

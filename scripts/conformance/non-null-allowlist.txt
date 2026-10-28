@@ -20,7 +20,6 @@ e2e/admin-translations-data.spec.ts (1) | non-null assertions written before the
 e2e/admin-translations-governance.spec.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/admin-users.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/auth-reset.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
-e2e/auth-signout.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/auth-signup.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/category-image-routes.spec.ts (3) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/category-nav.spec.ts (9) | non-null assertions written before the platform rule was enforced | INC-932
