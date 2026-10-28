@@ -18,7 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        lane: [
+        lane:
+          [
             smoke,
             email,
             "1",
@@ -37,7 +38,6 @@ jobs:
             "14",
             "15",
             "16",
-            # DEC-283 — the repeat lane: the changed specs, repeated (Part C of turn K4).
             repeat,
           ]
     permissions:
