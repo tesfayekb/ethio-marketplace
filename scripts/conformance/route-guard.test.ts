@@ -9,6 +9,8 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * navigation, the test's end — and then throws from inside Playwright, failing the test in its
  * helper. Every such handler goes through `whilePageLives` (e2e/helpers/route-guard.ts); a file
  * whose handlers do not yet is held at its count by its allowlist line, which only falls.
+ * Turn 34c-4 (turn 34d's reviewer): only `whilePageLives` itself, by name, guards a handler — a
+ * handler passed through any other wrapper is read as unguarded.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -50,7 +52,13 @@ export function unguardedHandlers(files: string[]): Map<string, number[]> {
         node.expression.name.text !== "route"
       )
         return;
-      const handler = node.arguments[1];
+      let handler = node.arguments[1];
+      if (handler !== undefined && ts.isCallExpression(handler)) {
+        // The guard by name; any other wrapper's handler is read as written.
+        if (ts.isIdentifier(handler.expression) && handler.expression.text === "whilePageLives")
+          return;
+        handler = handler.arguments[0];
+      }
       if (handler === undefined) return;
       if (!ts.isArrowFunction(handler) && !ts.isFunctionExpression(handler)) return;
       if (!fetchesTheAnswer(handler)) return;
@@ -82,14 +90,17 @@ describe("a test's interception ends with its page (INC-934)", () => {
             what: "a route handler fetches the real answer outside whilePageLives (e2e/helpers/route-guard.ts)",
           });
       }
-      console.log(`[route-guard] files read: ${domain.length}; unguarded handlers: ${keys.length}`);
+      const handlers = [...sites.values()].reduce((sum, lines) => sum + lines.length, 0);
+      console.log(
+        `[route-guard] files read: ${domain.length}; unguarded handlers: ${handlers} in ${keys.length} files`,
+      );
       expect(domain.length).toBeGreaterThan(0);
       expect(report(findings)).toBe("");
     },
     TREE_SCAN_MS,
   );
 
-  it("CF-RG-2 the census names a planted unguarded handler and passes a guarded one and one that never fetches", () => {
+  it("CF-RG-2 the census names a planted unguarded handler and one behind another wrapper, and passes a guarded one and one that never fetches", () => {
     const dir = "node_modules/.cache/route-guard";
     mkdirSync(dir, { recursive: true });
     const file = `${dir}/rg-planted.ts`;
@@ -112,11 +123,21 @@ describe("a test's interception ends with its page (INC-934)", () => {
           "    }),",
           "  );",
           '  await page.route("**/*.png", (route) => route.abort("failed"));',
+          "  await page.route(",
+          '    "**/*.svg",',
+          "    keepAlive(async (route) => {",
+          "      const response = await route.fetch();",
+          "      await route.fulfill({ response });",
+          "    }),",
+          "  );",
+          "}",
+          "function keepAlive<T>(handler: T): T {",
+          "  return handler;",
           "}",
           "",
         ].join("\n"),
       );
-      expect([...unguardedHandlers([file])]).toEqual([[file, [4]]]);
+      expect([...unguardedHandlers([file])]).toEqual([[file, [4, 16]]]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
