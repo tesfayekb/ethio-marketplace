@@ -1,6 +1,6 @@
 # Turn C1-2 — turn C1 completed: a map says its own failures in place, Leaflet's too (INC-956); DEC-281; the posting pages' ceilings; the records
-Base: 24815c467d781a9b7781d174561258f86231fd05 · Final commit: cdb8c5a · Brief: docs/governance/briefs/foundations-turn-c1-2.md (sha256 5983d31fd5af64212159d4ae414915b851b9849c7eed2ea967ebd7cac7e06dde)
-Review: READY · 0 BLOCKER · 1 MAJOR · 9 MINOR · on cdb8c5a
+Base: 24815c467d781a9b7781d174561258f86231fd05 · Final commit: 9170aea · Brief: docs/governance/briefs/foundations-turn-c1-2.md (sha256 5983d31fd5af64212159d4ae414915b851b9849c7eed2ea967ebd7cac7e06dde)
+Review: READY · 0 BLOCKER · 1 MAJOR · 11 MINOR · on 9170aea
 
 ## 1. Done / not done, by part and step
 
@@ -13,7 +13,7 @@ Review: READY · 0 BLOCKER · 1 MAJOR · 9 MINOR · on cdb8c5a
 - Part G — done (a22af22).
 - THE CHECKS — first run green; then `check-bundle-size` red on five pages → STOP 1 (09fd6cf). Ruling 1 (R1–R2: 20826a3) → still four pages over → STOP 2 (16ca17e). Ruling 2 (R7: cdb8c5a) and ruling 1's R5 (9170aea, S465) → THE CHECKS green.
 - THE END-TO-END CHECK — run; one red (PW-13 at mobile-360) → STOP 3 (4658634). Ruling 3: continue, named under Limits.
-- THE INDEPENDENT REVIEW — done on cdb8c5a (see §10 for how it ran).
+- THE INDEPENDENT REVIEW — done on cdb8c5a, then again on 9170aea, the last code commit as land.ts counts it (see §10).
 - THE COMPLETION REPORT — this file.
 
 ## 2. Files changed  (verbatim `git diff --name-only <BASE>`; new files with `git ls-files` proof)
@@ -74,7 +74,7 @@ K1, `grep -rn "reportOnDemandFailure(" src --include=*.ts --include=*.tsx | grep
 - F1: `bunx vitest run src/i18n` → `Test Files  9 passed (9)`, `Tests  29 passed (29)`; i18n maps unchanged.
 - Unit totals (`bun run test:unit` on cdb8c5a's tree + S465): `Test Files  341 passed (341)`, `Tests  2051 passed (2051)` — photo.test.ts's five pass in this lock-exact install.
 - THE END-TO-END CHECK: `bun run e2e:local -- e2e/ad-page.spec.ts e2e/on-demand-failure.spec.ts` → `5 skipped`, `75 passed (7.3m)` (the five are AP-37 at 1280, AP-42/45/50 at 360, OVW-1 at 1280 — their own viewport skips); `[ssr-error]`: 0. `bun run e2e:local -- --grep "PW-13 |PW-39 |PW-96 |PW-100 |ALS-1 |FS-3 |FS-4 |FS-11 |FS-13"` → `1 failed`, `17 passed (2.6m)`: every id green on both projects but PW-13 at mobile-360 (§12); `[ssr-error]`: 1 — `/api/listings/draft` (`residency: Internal server error.`).
-- New ids: MOF-1, MOF-2, ODC-6, AP-55 (grep of titles before: no collision). Re-pointed: LDF-1's two test ids (the brief's blocks). Changed: CF-RLF-2 (six planted calls, the loud in-place module).
+- New ids: MOF-1, MOF-2, ODC-6, AP-55 (grep of titles before: no collision). Re-pointed: LDF-1's two test ids (the brief's blocks). Changed: CF-RLF-2 (six planted calls, the loud in-place module). Turn C1's tests whose mocks changed shape (one `pin` value in place of three fields; behaviour asserted unchanged — named by the reviewer, turn C1 having no report of its own): LD-21 and LD-24 (src/features/posting/preview/listing-detail.test.tsx:659, :911), src/features/posting/preview/listing-detail-map.test.tsx:93, src/features/ad-page/public-listing.test.ts:158, src/features/posting/use-edit-draft.test.ts:59.
 - J-audit (e2e/ad-page.spec.ts): AP-55 seeds a scratch seller and ad (J1, J3), seeds before it navigates (J7), locates by test id (J5), no `waitForTimeout`, no `.first()`, one project-neutral test.
 
 ## 6. K2 — siblings that bypass the mechanism
@@ -100,37 +100,39 @@ none (`git diff <BASE> --stat -- supabase`: empty).
 - STOP 3 (PW-13 red at mobile-360 in THE END-TO-END CHECK) → RULING 3: continue, named under Limits; no re-run.
 - The hash list prints FAILED for exactly four files, the two rulings changing them after the hashes were written: src/features/posting/map/map-preview.tsx, src/features/posting/map/map-large.tsx (ruling 1 R1–R2), scripts/route-budgets.mjs (ruling 2 R7), docs/governance/instructions-amendments.md (ruling 1 R5). Every other line OK.
 - Commit titles: the ruling commits carry the rulings' subjects (20826a3's title says four pages remained over, since R4b failed; R5 had no title in the ruling — `turn C1-2, stop 1 ruling R5: S465 recorded`). Commits were made with `git commit -F <file>`: the Bash guard refused an inline message containing the word "at".
-- The review: requested in the foreground (`run_in_background: false`); the platform started it in the background, and the turn waited for its final line before this report was written.
-- The reviewer's findings, none fixed (no text of the brief or rulings allows it), for the supervisor's ruling:
-  - MAJOR-1: route-budgets.mjs :45, :46, :51, :63 cite INC-964, which the ledger does not hold yet ("Numbering: next free INC-964", incidental-findings.md:5437); the four raises (the public /l/$slug among them, 246.7 → 247.3) are recorded in no changelog or roadmap line; the cause is unproven.
+- The review: requested in the foreground (`run_in_background: false`) both times; the platform started it in the background, and the turn waited for each final line. The first ran on cdb8c5a (`READY · 0 BLOCKER · 1 MAJOR · 9 MINOR · on cdb8c5a`); land.ts then refused this report ("the review ran on cdb8c5a, not on the last code commit 9170aea"), since it counts the S465 commit as code, so the reviewer ran again on 9170aea — its line is this report's third line.
+- The reviewer's findings on 9170aea, none fixed (no text of the brief or the rulings allows it), for the supervisor's ruling:
+  - MAJOR-1: route-budgets.mjs :45, :46, :51, :63 cite INC-964, which the ledger does not hold yet ("Numbering: next free INC-964", incidental-findings.md:5437); no changelog or roadmap line records the four raises (the changelog's C1-2 line names 393 → 397 only); one is public (/l/$slug 247 → 251); the comment names a cause whose bytes are unproven — and error-text.ts is not it: it is already in the entry, through `__root.tsx` and on-demand-failure.ts:3.
   - MINOR-1: the two id pairs exist twice — MapFailedHere (map-frame.tsx:16–21) and MAP_FAILED_IDS (map-preview.tsx:49–52), by R1–R3; still-map.ts (already imported by both) could hold one copy, by a ruling.
-  - MINOR-2: texts still say MapFailedHere draws the Leaflet/tile-plan failures: map-frame.tsx :9–:14, docs/_changelog.md:1155, incidental-findings.md:5433, mechanisms.md:62, e2e/ad-page.spec.ts:1150.
-  - MINOR-3: docs/features/e2e-harness.md:573 (still `routePageClosed`, now `routeDocumentGone`) and docs/features/nightly-e2e.md:23 (no INC-962 zone check / NH-6) are stale — outside this brief's narrowed allowance.
-  - MINOR-4: the in-place "log only" line is written by hand in five places (§6).
-  - MINOR-5: AP-55 asserts no `on-demand-failed` as soon as the dialog shows; a notice raised later would not be seen (MOF-1/2 cover it at unit level).
-  - MINOR-6: CF-RLF-1 reads only the module an in-place call names, not that module's own imports.
-  - MINOR-7: src/test/e2e-route-guard.test.ts:31 keeps one `as unknown as Route` (moved, one before and one after; turn C1).
-  - MINOR-8: e2e/ad-page.spec.ts holds 39 tests (38 at BASE), over the ~25 rule — its split is a tracked item.
-  - MINOR-9: no unit test draws the wizard's NoMap fallback (step-where.tsx :75–:81) for `map-failed`; CF-RLF-1 covers it structurally only.
+  - MINOR-2: texts still say MapFailedHere draws the Leaflet/tile-plan failures: map-frame.tsx:9–14, docs/_changelog.md:1155, docs/governance/mechanisms.md:62, docs/tracking/incidental-findings.md:5433, e2e/ad-page.spec.ts:1150.
+  - MINOR-3: the `[client-error] <label> failed to load: …` line is written by hand at map-preview.tsx:125, map-large.tsx:80, listing-detail.tsx:444, copying reportOnDemandFailure's format with no shared log-only function (siblings map-pin-dropper.tsx:271, step-who.tsx:219 — §6).
+  - MINOR-4: the links effect at listing-detail.tsx:449 is keyed on `[pin]`'s identity; correct only while every caller passes a stable object (l.$slug.tsx:176's `useMemo` among them) — keying on lat, lng and precision would remove the hazard (turn C1).
+  - MINOR-5: CF-RLF-1's `raisesNotice` (resilient-fallbacks.test.ts:93) reads only the module an in-place call names, not that module's imports.
+  - MINOR-6: AP-55 (ad-page.spec.ts:1176) asserts no `on-demand-failed` as soon as the dialog shows; a notice raised later would go unseen (MOF-1/2 cover it at unit level).
+  - MINOR-7: src/test/e2e-route-guard.test.ts:31 keeps one `as unknown as Route` (moved, not added; turn C1).
+  - MINOR-8: `routePageClosed` (e2e/helpers/route-guard.ts:35) has no caller outside its test; docs/features/e2e-harness.md:573 still names it as the rule; docs/features/nightly-e2e.md:23 omits INC-962's zone check and NH-6 — those docs outside this brief's allowance.
+  - MINOR-9: map-frame.tsx now holds two components (MapFailedHere, MapFrame) against docs/conventions.md's "one component per file" — the brief's block.
+  - MINOR-10: e2e/ad-page.spec.ts holds 39 tests (38 at BASE), over the ~25 rule.
+  - MINOR-11: no unit test draws the wizard's NoMap fallback (step-where.tsx:75–81) for `map-failed` (CF-RLF-1 covers it structurally only); turn C1's changed-shape tests were missing from §5 — now listed there.
 
 ## 11. CI
 
-`git show origin/ci-evidence:docs/tracking/ci-status.md | head -6` (read before this report):
+`git show origin/ci-evidence:docs/tracking/ci-status.md | head -6` (read just before this report's last commit):
 
 ```text
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `16ca17ebeda2137a47f2ac61a73b56a5eeb08924` (short `16ca17e`)
-- Conclusion: **FAILURE**
-- Completed (UTC): 2026-10-28T11:24:23Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40677294392
+- Commit: `4658634311f0ee5b47c9d1102ab579513ced1c36` (short `4658634`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-10-28T11:52:23Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40680789056
 ```
 
-Two-step check: the reported commit is 16ca17e (stop 2's landing), not this report's final commit — STALE for cdb8c5a; this landing's run has not completed. In run 40677294392 every job passed but the first-paint bundle budget (the four pages ruling 2 raises: 375.6, 399.1, 373.5, 247.3 KiB); every E2E lane passed (e2e-last-failure.md: "last E2E run 40677294392 passed", flaky 0, 0 server errors off the allowlist). Promote skipped.
+Two-step check: the reported commit is 4658634, stop 3's landing — the last landed commit; it holds this report's final code commit 9170aea and adds only stop-3.md, so CI green on 4658634 covers this turn's code. This report's own landing has not run yet. The run before it, 40677294392 on 16ca17e, failed only the first-paint bundle budget (the four pages ruling 2 raised: 375.6, 399.1, 373.5, 247.3 KiB), with every E2E lane passing.
 
 ## 12. Limits
 
-- PW-13 at mobile-360 failed locally on ethio-staging at the photos step (`getByTestId('post-step-4')` not visible within 10 s, e2e/post-wizard-place.spec.ts:266), before any map or pin is drawn: the server log shows `[slow-rpc] residency_country_for 10049` and `[ssr-error] /api/listings/draft residency: Internal server error.` at that moment; no file this turn changed is on that path. Not re-run (DEC-184, ruling 3); CI's temporary backends run PW-13 on both projects (run 40677294392 on the same product code: every lane green). The draft route's raw 500 on a slow lookup is the supervisor's INC-965.
-- The cause of the remaining 0.6–0.7 KiB on the map pages is not proven: the comparison build of Part B's tree could not be made (the Bash guard refused the copy into the scratchpad); error-text.ts is a candidate only (stop 2).
+- PW-13 at mobile-360 failed locally on ethio-staging at the photos step (`getByTestId('post-step-4')` not visible within 10 s, e2e/post-wizard-place.spec.ts:266), before any map or pin is drawn: the server log shows `[slow-rpc] residency_country_for 10049` and `[ssr-error] /api/listings/draft residency: Internal server error.` at that moment; no file this turn changed is on that path. Not re-run (DEC-184, ruling 3); CI's temporary backends run PW-13 on both projects (runs 40677294392 and 40680789056: every lane green). The draft route's raw 500 on a slow lookup is the supervisor's INC-965.
+- The cause of the remaining 0.6–0.7 KiB on the map pages is not proven: the comparison build of Part B's tree could not be made (the Bash guard refused the copy into the scratchpad). Stop 2's candidate, error-text.ts, is refuted by the reviewer (already in the entry); the cause is INC-964's turn.
 - THE CHECKS cache prints step verdicts, not totals; the unit totals in §5 come from a separate `bun run test:unit` on the same tree.
-- This landing's CI run has not completed (§11).
+- This report's landing's CI run has not completed (§11).
