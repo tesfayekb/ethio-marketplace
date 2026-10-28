@@ -25,7 +25,9 @@
 //   --repeat     DEC-283: print the specs the repeat lane repeats — every
 //                changed spec still present and every spec importing a
 //                changed e2e helper; never ALL (src/, migrations, the config
-//                and the global setup are the other lanes' to judge)
+//                and the global setup are the other lanes' to judge);
+//                changed specs first, then a changed helper's importers
+//                (INC-967); `--repeat --ranks` prefixes each with its rank
 
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync, statSync } from "node:fs";
