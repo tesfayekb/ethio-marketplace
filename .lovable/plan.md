@@ -1,110 +1,97 @@
-# Foundations turn K5: PLAN FIRST answers (read at BASE a566ac17)
+# Foundations turn D1 — PLAN FIRST answers (nothing changed)
 
-HEAD is `a566ac17`, which matches BASE. Nothing was changed.
+I read the tree at the current commit and ran read-only queries against the connected database (ethio-prod). Each full `pg_get_functiondef` text will be read again and pasted into its migration's stop report when that migration is built. Below are the header facts I read today.
 
-## (1) Files and tests the two concerns touch
+## (1) Live definitions, files and consumers
 
-**The selector (INC-967)**
-- `scripts/e2e-select.ts`
-  - :25 is the `--repeat` usage comment.
-  - :421–443 is `repeatSpecs`. It ends with `return [...selected].sort()`, so there is a single sorted rank.
-  - :446–465 is `repeatPlan`.
-  - :512–515 is the `--repeat` branch of `main`.
-- `scripts/e2e-select.test.ts`
-  - RPS-1 to RPS-5 are at :97–127.
-  - **RPS-5 asserts `list == sorted(list)` (:123–127).** That contradicts the ranking, so RPS-5 must be restated as "sorted inside each rank, unique".
+| Concern | Function (live args) | Volatility | Definer | search_path | Execute grants |
+|---|---|---|---|---|---|
+| 2 | `get_location_tree(p_country_code text)` | STABLE | DEFINER | public | anon, authenticated, service_role |
+| 2 | `public_listing_json(l listings, p_viewer uuid)` | STABLE | DEFINER | public | service_role only |
+| 3 | `import_gate_audit(p_family text, p_event text, p_batch uuid, p_counts jsonb)` | VOLATILE | DEFINER | public | authenticated, service_role |
+| 3 | `rate_gate(p_action text)` (the mechanism) | VOLATILE | DEFINER | public | service_role only (called from inside doors) |
+| 4 | `set_listing_pin(p_listing_id uuid, p_lat numeric, p_lng numeric, p_precision text, p_street text, p_zoom smallint, p_directions text)`, all DEFAULT NULL except id | VOLATILE | DEFINER | public | authenticated, service_role |
+| 5 | `validate_listing_draft(p_uid uuid, p_step smallint, … p_price_amount numeric, p_price_currency character, … p_price_bp integer, p_price_negotiable boolean)` (17 args) | VOLATILE | DEFINER | public | service_role only |
 
-**`.github/workflows/local-backend-proof.yml`**
-- :41 is the matrix entry `repeat`.
-- :70–72 sets fetch-depth for the repeat lane.
-- :91–150 is the step "Select the specs to repeat (DEC-283)":
-  - :101 calls `e2e-select.ts --repeat`.
-  - :109 runs `--list`.
-  - :110–122 is inline Python that writes `repeat-counts.txt` in the selector's order.
-  - :123 calls `repeatPlan`.
-  - :127–140 is the take loop.
-  - :147 writes the evidence line.
-  - The step then writes `REPEAT_SPECS` and `REPEAT_TESTS` to `GITHUB_ENV`.
-- :161–651: the heavy steps, gated by `matrix.lane != 'repeat' || env.REPEAT_SPECS != ''`.
-- :659–661 is the repeated run, with `--repeat-each`, `--retries 0` and `--global-timeout`.
-- :668–700 is the cap check:
-  - inline Python, with `'Timed out waiting' in e` at :678;
-  - a walk of the results that names "Not repeated (time cap)" titles;
-  - it writes `local-backend-repeat.txt`.
-- :793–803 is the lane reporter's fragment, which reads `local-backend-repeat.txt`.
-- :932 is the lane reporter's `E2E_EXPECTED_SOURCES: …,16,repeat?`.
-- :964, :968 and :1022 are the summary's lane list, its evidence pattern and the "Repeat lane (DEC-283)" line.
+Live facts the plan depends on:
+- **Concern 4:** the live body has `v_prec := lower(btrim(coalesce(p_precision, 'exact')));`. That is the line to replace. The argument list stays the same, so it can use CREATE OR REPLACE without a DROP.
+- **Concern 5:** `listings_price_pair_check` reads: commission means amount and currency are both NULL; otherwise `price_bp` is NULL and `(price_amount IS NULL) = (price_currency IS NULL)`. The other price checks are `free_has_no_price`, `price_bp` 1–10000, the `price_mode` enum and the `price_period` enum.
+- **Concern 1:** in `storage.buckets`, `listing-photos` is private with no mime list and no size limit. `category-assets` is public with a 10 MiB limit (10,485,760) and no mime list.
 
-**`.github/workflows/ci.yml`**
-- :485 and :495 are the "nineteen lanes" comments.
-- :589–590: the merged report's `E2E_EXPECTED_SOURCES: smoke,email,1,…,16`, with no `repeat`. This is INC-966.
+Files and consumers:
+- **Concern 1:** `src/routes/api/upload/photo.ts` (the server writes listing photos) and `src/features/admin-categories/category-images-service.ts:78–145` (the browser uploads three category pictures into `category-assets`). Specs: `e2e/post-wizard-*` photo steps and the admin category-image specs. I will list them by `rg` at build.
+- **Concern 2:** `public_listing_json` is reached through `src/server/media/links.ts` and the listing page reader. The Maps address (34f-2 MAJOR 3) reads `places.list`. `get_location_tree` is read by the location reader. The specs that read the ad page and the tree are named at build.
+- **Concern 3:** `src/server/imports/gate.ts` (it calls `import_gate_audit` with the user's own client) and `src/server/imports/route.test.ts`. The spec is `e2e/import-security.spec.ts`. Dials go in `src/lib/dials.ts`.
+- **Concern 4:** `src/features/posting/map/pin.ts`, `step-where.tsx`, `posting-service.ts` and `door-queue.ts`. Specs: `e2e/post-wizard-place.spec.ts`, `e2e/helpers/posting.ts`, `e2e/posting-routes-dials.spec.ts` and `e2e/legal-certify.spec.ts`.
+- **Concern 5:** `src/routes/api/listings/draft.ts`, `use-draft.ts`, `validate.ts` and `step-pricing.tsx`. Specs: `e2e/post-wizard-bundle2.spec.ts` and `e2e/posting-routes-dials.spec.ts`.
 
-**Places in `scripts/` that parse the sources**
-- `scripts/e2e-failure-report.ts:2592–2604` parses `E2E_EXPECTED_SOURCES`. It already handles the `?` optional suffix (:2596, :2604), so it needs no change.
-- Other users of the same variable:
-  - `flake-check.yml:136` (`flake`)
-  - `nightly-e2e.yml:187` (`nightly,full`)
+## (2) Concern 3 census
 
-**The guard: `scripts/conformance/repeat-lane.test.ts`**
-- `repeatLaneFindings` is at :58–94. RPL-1 is at :104, RPL-2 (planted copies) at :108 and RPL-3 at :150.
-- **It reads only `local-backend-proof.yml`.** Its sources rule at :67 takes the first `E2E_EXPECTED_SOURCES` match in that file. So ci.yml :590 is not judged today; widening the guard means reading ci.yml as well.
-- `scripts/conformance/ci-deadlines.test.ts` (CF-CID-1) applies to every step, including the selection step's `timeout-minutes: 5`.
+Live catalogue: SECURITY DEFINER, executable by authenticated, with an INSERT in the body. The 21 member doors are already gated (copy/edit/publish/relist/renew/mark_sold/report/reveal/save/pin/price/photos_soon/reserved/seller place/identity/home country, plus admin reveal). These are the ungated ones:
 
-**Docs**
-- `docs/features/e2e-harness.md`: the repeat lane paragraph.
-- `docs/features/ci-local-backend.md`: the lane and its evidence.
-- `docs/tracking/incidental-findings.md`: INC-966 at :5449 and INC-967 at :5459, both OPEN.
+| Door | Inserts per call | Gate | Proposed fix |
+|---|---|---|---|
+| import_gate_audit | 1 audit_log | none | rate_gate + dial `import_gate_audit` (INC-951 named) |
+| accept_legal | 1 legal_acceptances (per document) | none | rate_gate + dial (member door) |
+| remove_listing_photo | 1 listing_photo_changes | none | rate_gate + dial (member door) |
+| begin_impersonation | 1 impersonation_sessions | none | rate_gate + dial |
+| admin_export_legal_acceptances | 1 audit_log | none | rate_gate + dial |
+| admin_allow_listing_photo, admin_review_photo_change, admin_edit_listing, admin_move_listing | audit_log (+ revisions/notices) | none | rate_gate, one shared staff-moderation dial |
+| admin_save_translation, admin_save_entity_translation, admin_machine_translation, admin_machine_entity_translation | 1 row (+ revision) | none | rate_gate, one shared staff-translation dial |
+| admin_commit_* / admin_undo_* imports (6) | N rows per batch | none | gated by the import route's step-up; propose rate_gate per commit |
+| admin_* config writers (≈25: categories, pointers, roles, role_permission, assign_role, legal draft/publish/review/translation, settings, ai feature, policy, countries, locations, languages, attributes, coverage, exclusions, root order, translator languages, sync keys, update_profile) | 1 row or a small set | none | rate_gate, one shared staff-config dial |
 
-## (2) Existing ranking, ordering or capping
+I recommend `rate_gate` everywhere, including `import_gate_audit`. Its caller is the user's own client (`gate.ts` through `user-client.ts`), so moving the write to the server's admin client would add a privileged path. The full per-door list with its exact INSERT count will be written into the migration's proof header.
 
-- **Ranking:** none. `repeatSpecs` returns one sorted set.
-- **Ordering:** the take loop keeps the selector's file order.
-- **Capping:** `repeatPlan` caps the test count (`take`) and `each`. The Playwright `--global-timeout` is the wall cap, and the inline Python at :678 reads it.
-- **Discrepancy with the brief:** Part C says a spec too large is "skipped and the next one tried (as today)". At BASE that is not what happens. :125 says "the first spec that does not fit ends the selection", and :133–137 sets `full=1`, after which every later spec is listed as not repeated. Making it skip and try the next spec is therefore a behaviour change. Requested ruling: implement skip-and-continue, as Part C states, and list it as a departure from "as today".
+## (3) Concern 1 numbers
 
-Nothing is built twice. The ranking goes into `repeatSpecs`, and the cap reading moves out of the inline Python into one script.
+- **listing-photos:**
+  - Mime types: `image/jpeg`, `image/png`, `image/webp`, from `src/routes/api/upload/photo.ts:124–128` (CONTENT_TYPE).
+  - Size: the largest variant dial is the cover's 1 MiB (1,048,576 bytes) at `photo.ts:109`. The others are mid 450 KiB at :110, card 150 KiB at :111 and thumb 30 KiB at :112.
+- **category-assets:**
+  - Mime types: `image/png` and `image/webp`, from `src/features/admin-categories/category-image-variants.ts:179, :201, :211`.
+  - Size: **no byte cap exists in the code.** The only number is the bucket's live 10 MiB. See conflict C2.
 
-## (3) Playwright's global-timeout template
+## (4) Order, marks, proofs
 
-Installed `playwright` 1.58.1, `node_modules/playwright/lib/runner/taskRunner.js:91`:
+At the time of reading, now() was 2026-10-28 22:20 UTC and the ledger's newest mark is 20261025150000. Each mark is re-derived when its migration is written (now() rounded up to the next hour, plus one hour, and above the previous mark).
 
-```text
-      this._reporter.onError?.({ message: import_utils2.colors.red(`Timed out waiting ${this._globalTimeoutForError / 1e3}s for the ${currentTaskName} to run`) });
-```
+1. **INC-963 pin** (smallest change, member door).
+   - Proposed mark: 20261029000000.
+   - Proof: a call with a NULL precision raises the typed refusal, and the listing's pin columns are unchanged.
+2. **INC-793 draft price pair.**
+   - Proof: for steps 1–3, an amount without a currency is either refused with the typed refusal or stored as a pair. A scratch insert of the door's output never raises 23514.
+3. **INC-949 shared place predicate.** This adds `public.place_is_shown(uuid)` (STABLE, INVOKER, with an index on `locations(parent_id)` / `active` confirmed), redeclares `get_location_tree` and redeclares `public_listing_json` whole with an ancestor path.
+   - Proof: a switched-off place, and a place under a switched-off ancestor, are absent from both doors.
+4. **INC-951 rate gates.** One migration redeclares each listed door whole and adds the dials to `src/lib/dials.ts`.
+   - Proof: call n+1 is refused and no row is written.
+5. **INC-939 buckets.** Mime lists and size limits are set through the storage-bucket tool, not SQL.
+   - Mark: a marks-only migration.
+   - Proof: an upload of the wrong type and an upload over the limit are both refused (a route test plus a staging upload).
 
-`colors.red` wraps the message in ANSI red (`\x1b[31m … \x1b[39m`). RCAP fixtures will use both the coloured and the plain form, and in the build I will confirm the exact codes from the installed colors module.
+## (5) Conflicts
 
-K2: a second place reads a Playwright-family message by its text. `scripts/e2e-failure-report.ts` :1723, :1737 and :2053 are fixtures and tests matching the webServer message "Timed out waiting 120000ms from config.webServer.". That is a different message, which I will report and not touch.
+- **C1, no-new-string:** the typed refusals for pin and price need wording. I propose existing keys only. If none fit, that is a STOP for a ruling.
+- **C2, concern 1, category-assets:** no code constant gives a byte cap. Options:
+  - (a) keep 10 MiB and add only the mime list;
+  - (b) add a byte constant in `category-image-variants.ts` with its own refusal and use it.
+  
+  Ruling needed.
+- **C3, listing-photos cap:** the dials can be raised by environment variables (`MAX_COVER_BYTES`), so a fixed bucket limit could refuse what the door allows. I propose 1 MiB with a note, or the bucket's own larger ceiling. Ruling needed.
+- **C4, bucket changes:** the platform forbids SQL on `storage.buckets`, so these go through the bucket tool. The migration only carries the mark and a proof that RAISEs if the settings differ.
+- **C5, concern 3 scope:** about 45 doors in one migration is large. I propose one migration with three shared staff dials (moderation, translation, config) plus per-door dials for the member doors. Ruling needed.
+- No conflict with AGENTS.md was found. A new function needs REVOKE PUBLIC and named grants, and `place_is_shown` gets no browser grant.
 
-## (4) Conflicts with Knowledge or AGENTS.md
+## (6) File list
 
-None blocking.
-- **Pure utilities ONLY in /src/lib:** `scripts/ci/repeat-cap.ts` is CI tooling, the same case as your K4 ruling. It sits beside `with-deadline.sh` and `nightly-hour.sh`. Unless you rule otherwise, I will cite the K4 ruling.
-- **No new dependency:** none. The workflow calls the script with `bun run`, which is already used in this step.
-- **No string, migration or package change:** none of these are needed.
-
-## (5) Proposed file list
-
-Inside SCOPE:
-- `scripts/e2e-select.ts`: two ranks, and `--repeat --ranks` printing `<rank> <spec>`.
-- `scripts/e2e-select.test.ts`: new RPS-6 and RPS-7; RPS-5 restated as sorted inside each rank.
-- `scripts/ci/repeat-cap.ts`: new.
-- `scripts/ci/repeat-cap.test.ts`: new. RCAP-1 to RCAP-5 cover the coloured template, the plain template, a different error, a mix, no errors, and an unreadable message.
-- `.github/workflows/local-backend-proof.yml`: the ranked take loop with skip-and-continue, the per-rank evidence line, and the cap check calling `scripts/ci/repeat-cap.ts`.
-- `.github/workflows/ci.yml`: :590 gains `repeat?`, plus a comment saying why.
-- `scripts/conformance/repeat-lane.test.ts`:
-  - RPL-1 also reads ci.yml's merged-report sources and forbids an inline `'Timed out waiting'`.
-  - RPL-2 gets the two matching planted copies.
-- `docs/features/e2e-harness.md`: the paragraph.
-- `docs/features/ci-local-backend.md`: one sentence on the per-rank evidence line. Optional; drop it if you prefer.
-- `docs/tracking/incidental-findings.md`: the later word on INC-966 and INC-967.
-
-Brief-named extras:
-- `docs/governance/briefs/foundations-turn-k5.md`
-- `roadmap.md` (line 3)
-- `docs/_changelog.md`
-- `docs/governance/reports/foundations-turn-k5.report.md`
-
-Nothing under `src`, `e2e`, `supabase`, `AGENTS.md`, `CLAUDE.md` or the package files changes.
-
-How the cap script is called: the results JSON path is passed in. Its exit code is 0 for "capped" and 1 for "failed", and an unreadable or absent file counts as "failed". The step that walks the tests left by the cap moves into the same script, so there is one reader.
+- `supabase/migrations/` — five new files, one per concern, written by the migration tool.
+- `src/lib/dials.ts` and its test.
+- `src/server/imports/gate.ts`, `src/server/imports/route.test.ts`.
+- `src/features/posting/map/pin.ts`, `posting-service.ts`, `use-draft.ts`, `validate.ts` (only if the client must send currency or precision), and their tests.
+- `src/server/media/links.ts` / the listing reader (ancestor path in `places.list`).
+- `src/features/admin-categories/category-image-variants.ts` (only under C2 option b).
+- `e2e/import-security.spec.ts`, `e2e/post-wizard-place.spec.ts` (only where a door's answer changes).
+- `scripts/public-surface-allowlist.txt` (no new browser grant is expected).
+- `docs/features/` — the posting, locations, media and imports feature docs, plus `_changelog.md`.
+- `docs/tracking/incidental-findings.md`.
+- `docs/governance/reports/foundations-turn-d1.report.md` and the stop reports.
