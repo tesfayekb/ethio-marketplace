@@ -5074,6 +5074,7 @@ export type Database = {
       impersonation_target: { Args: { p_session: string }; Returns: string }
       import_gate_audit: {
         Args: {
+          p_actor: string
           p_batch: string
           p_counts: Json
           p_event: string
