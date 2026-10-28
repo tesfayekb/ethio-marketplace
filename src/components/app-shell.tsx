@@ -1,7 +1,7 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 
 import { Logo } from "@/components/brand/logo";
 import { AppFooter } from "@/components/shell/app-footer";
@@ -57,6 +57,7 @@ import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { errorText } from "@/lib/error-text";
 import { getSupabase } from "@/lib/supabase-door";
 import { sendsToSignIn } from "@/lib/signed-in-pages";
+import { createHomeAhead } from "@/lib/sign-out-landing";
 import { useRailCollapsed, RAIL_INIT_SCRIPT } from "@/providers/rail-state";
 
 import { ShellContext, type LocationNode, type ShellValue } from "./shell-context";
@@ -123,6 +124,28 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { collapsed, toggle } = useRailCollapsed();
   const { t } = useI18n();
   const { user, loading: authLoading, hadSession, signOut } = useAuth();
+  const router = useRouter();
+  /**
+   * DEC-279 (INC-930; Foundations turn 34c-4) — the Home page's code is fetched ahead of time for a
+   * signed-in visitor, so a sign-out made offline from a page opened directly lands on a working
+   * Home page (src/lib/sign-out-landing.ts). The E2E build shows the fetch's state to SO-13.
+   */
+  const homeAhead = useMemo(
+    () =>
+      createHomeAhead(
+        () => router.loadRouteChunk(router.routesById["/"]),
+        (state) => {
+          if (isE2E) (window as unknown as { __ethioHomeAhead?: string }).__ethioHomeAhead = state;
+        },
+      ),
+    [router],
+  );
+  useEffect(() => {
+    const consider = () => homeAhead.consider(user !== null, navigator.onLine);
+    consider();
+    window.addEventListener("online", consider);
+    return () => window.removeEventListener("online", consider);
+  }, [user, homeAhead]);
   const [panelChoice, setPanelChoice] = useState<PanelId>("marketplace");
   const [locationPath, setPathState] = useState<LocationNode[]>([]);
   const [locationCountry, setCountryState] = useState<string | null>(null);
