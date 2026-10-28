@@ -131,7 +131,10 @@ const BROWSER = walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true }).filt
   (file) => !/(?:^|\/)(?:test|server)\//.test(file) && !file.endsWith(".d.ts"),
 );
 const { consumers, findings } = holdsItsBoxCensus(BROWSER);
-const allowances = readAllowlist(ALLOWLIST, consumers);
+const allowances = readAllowlist(
+  ALLOWLIST,
+  findings.map((hit) => hit.file),
+);
 
 describe("a part fetched after the first paint holds its box (INC-940)", () => {
   it(

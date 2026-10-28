@@ -73,3 +73,112 @@ it("CF-KIT-6 visits calls", () => {
   });
   expect(calls).toEqual(["one", "two"]);
 });
+
+/**
+ * INC-950 (Foundations turn C2; G55) — AN ALLOWLIST READER IS HANDED ITS CENSUS'S FINDING KEYS, so
+ * a line that names no finding is stale and fails (`readAllowlist`'s "stale allowance"). Handing it
+ * every candidate instead (HB-1 handed every lazy part, INC-950) lets a line outlive its finding.
+ * The census reads every call of the kit's readAllowlist in scripts/, src/ and e2e/ (the kit and
+ * its own tests aside) and follows the second argument through the file's plain `const`
+ * declarations; the text it reaches must name the census's findings — `findings`, `found`,
+ * `census`, `keys`, `sites`, `breaches` or `hits`, the names every census in the tree gives them. A
+ * destructured binding counts by its own name only (`consumers` from a census is not its findings).
+ * A caller that hands its findings under another name holds a line in
+ * allowlist-keys-allowlist.txt (`<file> | reason | until`), read through the kit itself.
+ */
+const FINDING_NAMES = /\b(?:findings?|found|FOUND|census|keys|sites|breaches|hits?)\b/;
+const KIT_SPECIFIER = /(?:^|\/)kit$/;
+
+export function allowlistReaders(
+  files: string[],
+): Array<{ file: string; line: number; keys: string }> {
+  const calls: Array<{ file: string; line: number; keys: string }> = [];
+  for (const file of files) {
+    const local = new Set<string>();
+    const consts = new Map<string, ts.Expression>();
+    const found: Array<{ call: ts.CallExpression; source: ts.SourceFile }> = [];
+    visitTs(file, (node, source) => {
+      if (
+        ts.isImportDeclaration(node) &&
+        ts.isStringLiteral(node.moduleSpecifier) &&
+        KIT_SPECIFIER.test(node.moduleSpecifier.text) &&
+        node.importClause?.namedBindings !== undefined &&
+        ts.isNamedImports(node.importClause.namedBindings)
+      )
+        for (const element of node.importClause.namedBindings.elements)
+          if ((element.propertyName ?? element.name).text === "readAllowlist")
+            local.add(element.name.text);
+      if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer)
+        consts.set(node.name.text, node.initializer);
+      if (ts.isCallExpression(node) && ts.isIdentifier(node.expression))
+        found.push({ call: node, source });
+    });
+    for (const { call, source } of found) {
+      if (!local.has((call.expression as ts.Identifier).text)) continue;
+      const parts: string[] = [];
+      let next: ts.Expression | undefined = call.arguments[1];
+      for (let hop = 0; next !== undefined && hop < 4; hop += 1) {
+        parts.push(next.getText(source));
+        next = ts.isIdentifier(next) ? consts.get(next.text) : undefined;
+      }
+      calls.push({
+        file,
+        line: source.getLineAndCharacterOfPosition(call.getStart(source)).line + 1,
+        keys: parts.join(" <- "),
+      });
+    }
+  }
+  return calls;
+}
+
+it("CF-KIT-7 every readAllowlist caller hands its census's finding keys, or its file's line says why (INC-950)", () => {
+  const files = walkFiles(["scripts", "src", "e2e"], { ext: ["ts", "tsx"] }).filter(
+    (file) => !/^scripts\/conformance\/kit(?:\.test)?\.ts$/.test(file),
+  );
+  const readers = allowlistReaders(files);
+  const odd = readers.filter(({ keys }) => !FINDING_NAMES.test(keys));
+  const allowed = readAllowlist(
+    "scripts/conformance/allowlist-keys-allowlist.txt",
+    new Set(odd.map(({ file }) => file)),
+  );
+  console.log(
+    `[allowlist-keys] readAllowlist callers: ${readers.length}; not named findings: ${odd.length}; allowed: ${allowed.size}`,
+  );
+  expect(readers.length).toBeGreaterThanOrEqual(18);
+  expect(
+    report(
+      odd
+        .filter(({ file }) => !allowed.has(file))
+        .map(({ file, line, keys }) => ({ file, line, what: `hands readAllowlist ${keys}` })),
+    ),
+  ).toBe("");
+});
+
+it("CF-KIT-8 the census names a planted caller that hands every candidate, and passes the finding keys", () => {
+  const dir = mkdtempSync(join(tmpdir(), "kit-8-"));
+  const file = join(dir, "planted.test.ts");
+  try {
+    writeFileSync(
+      file,
+      [
+        'import { readAllowlist as allow } from "./kit";',
+        "declare function someCensus(files: string[]): { consumers: string[]; findings: { file: string }[] };",
+        'const { consumers, findings } = someCensus(["a"]);',
+        'export const a = allow("x.txt", consumers);',
+        'export const b = allow("x.txt", findings.map((hit) => hit.file));',
+        "const every = consumers.slice();",
+        'export const c = allow("x.txt", every);',
+        "const found = new Set(findings.map((hit) => hit.file));",
+        'export const d = allow("x.txt", found);',
+        "",
+      ].join("\n"),
+    );
+    const readers = allowlistReaders([file]);
+    expect(readers.map(({ line }) => line)).toEqual([4, 5, 7, 9]);
+    expect(readers.filter(({ keys }) => !FINDING_NAMES.test(keys)).map(({ line }) => line)).toEqual(
+      [4, 7],
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

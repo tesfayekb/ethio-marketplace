@@ -17,9 +17,10 @@ import { failureFormsByFile, report, TREE_SCAN_MS, visitTs, walkFiles } from "./
  * The ad page's maps showed the loading word "Map pin" as their failure (the operator's walk of
  * 2026-10-27). The census reads every resilientLazy call under src/ whose fallback is a function
  * declared in the same file. A fallback "says so in place" when it renders LoadFailedHere or a
- * component of src/ that renders it (MapFailedHere, src/features/posting/map/map-frame.tsx).
+ * component of src/ that renders it (MapFailedHere, src/features/posting/map/map-failed-here.tsx).
  * Foundations turn C1-2 (turn C1's stop 1) — and a piece fetched IN PLACE answers its own later
- * downloads in place too: the module an `inPlace` call fetches never raises the shell's notice
+ * downloads in place too: the module an `inPlace` call fetches, and the modules of its own folder
+ * it imports to any depth (Foundations turn C2, CF-RLF-3), never raise the shell's notice
  * (`reportOnDemandFailure`) — the still map's Leaflet raised it beside the large map's own word
  * (AP-55 at 360). No allowlist.
  */
@@ -90,17 +91,42 @@ function moduleFile(specifier: string, file: string): string | null {
   return [`${base}.tsx`, `${base}.ts`].find((candidate) => existsSync(candidate)) ?? null;
 }
 
-function raisesNotice(file: string): boolean {
-  let raises = false;
-  visitTs(file, (node) => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isIdentifier(node.expression) &&
-      node.expression.text === "reportOnDemandFailure"
-    )
-      raises = true;
-  });
-  return raises;
+/**
+ * The module of an in-place piece that raises the shell's notice, or null (turn C1-2's MINOR-5,
+ * Foundations turn C2). The fetched module is read, and every module it imports or re-exports from
+ * its own folder, at any depth — a piece's own later downloads (the map's Leaflet and tile-plan
+ * loaders) live beside it, and one level missed a loader the piece reaches through another of its
+ * modules. Modules outside the piece's folder are not followed: they are shared plumbing (the
+ * overlay facades, resilientLazy, the i18n provider), whose notice answers their own callers.
+ */
+function raisesNotice(fetched: string): string | null {
+  const home = `${posix.dirname(fetched)}/`;
+  const queue = [fetched];
+  const seen = new Set<string>();
+  for (let file = queue.shift(); file !== undefined; file = queue.shift()) {
+    if (seen.has(file)) continue;
+    seen.add(file);
+    let raises = false;
+    const from = file;
+    visitTs(from, (node) => {
+      if (
+        ts.isCallExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "reportOnDemandFailure"
+      )
+        raises = true;
+      if (
+        (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) &&
+        node.moduleSpecifier !== undefined &&
+        ts.isStringLiteral(node.moduleSpecifier)
+      ) {
+        const next = moduleFile(node.moduleSpecifier.text, from);
+        if (next !== null && next.startsWith(home)) queue.push(next);
+      }
+    });
+    if (raises) return file;
+  }
+  return null;
 }
 
 function says(node: ts.Node, forms: Set<string>): { words: boolean; failedHere: boolean } {
@@ -174,17 +200,18 @@ export function fallbackFindings(
           });
         const specifier = fetch === undefined ? null : fetchedModule(source, fetch);
         const fetched = specifier === null ? null : moduleFile(specifier, file);
+        const raiser = fetched === null ? null : raisesNotice(fetched);
         if (fetched === null)
           findings.push({
             file,
             line,
             what: "an in-place fetch whose module the census cannot read",
           });
-        else if (raisesNotice(fetched))
+        else if (raiser !== null)
           findings.push({
             file,
             line,
-            what: `${fetched} is fetched in place but raises the shell's notice (say so in place)`,
+            what: `${fetched} is fetched in place but raises the shell's notice${raiser === fetched ? "" : ` through ${raiser}`} (say so in place)`,
           });
       } else if (words || failedHere)
         findings.push({
@@ -258,6 +285,51 @@ describe("a piece that cannot download says so once, in the right place (INC-956
       );
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("CF-RLF-3 an in-place piece's own modules are read at any depth within its folder; shared modules outside it are not (turn C1-2's MINOR-5)", () => {
+    const root = "node_modules/.cache/resilient-fallbacks-3";
+    const dir = `${root}/piece`;
+    mkdirSync(`${dir}/deep`, { recursive: true });
+    const file = `${dir}/planted.tsx`;
+    const loud = "declare function reportOnDemandFailure(label: string, error: unknown): void;";
+    try {
+      writeFileSync(
+        `${root}/shared.ts`,
+        `${loud}\nexport function shared() { reportOnDemandFailure("shared", null); }\n`,
+      );
+      writeFileSync(
+        `${dir}/deep/deeper.ts`,
+        `${loud}\nexport function later() { reportOnDemandFailure("later", null); }\n`,
+      );
+      writeFileSync(`${dir}/deep/loader.ts`, 'export { later } from "./deeper";\n');
+      writeFileSync(
+        `${dir}/far.tsx`,
+        'import { later } from "./deep/loader";\nexport function Far() { later(); return null; }\n',
+      );
+      writeFileSync(
+        `${dir}/near.tsx`,
+        'import { shared } from "../shared";\nexport function Near() { shared(); return null; }\n',
+      );
+      writeFileSync(
+        file,
+        [
+          "declare function resilientLazy(f: unknown, l: string, c: unknown, o?: unknown): unknown;",
+          "declare const LoadFailedHere: (p: { testid: string; refreshTestid: string }) => null;",
+          'export const G = resilientLazy(() => import("./far"), "g", Says, { inPlace: true });',
+          'export const H = resilientLazy(() => import("./near"), "h", Says, { inPlace: true });',
+          'function Says() { return <LoadFailedHere testid="x" refreshTestid="y" />; }',
+          "",
+        ].join("\n"),
+      );
+      const { calls, findings } = fallbackFindings([file]);
+      expect(calls).toBe(2);
+      expect(report(findings)).toBe(
+        `${file}:3 ${dir}/far.tsx is fetched in place but raises the shell's notice through ${dir}/deep/deeper.ts (say so in place)`,
+      );
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
 });

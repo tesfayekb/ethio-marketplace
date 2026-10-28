@@ -1,0 +1,3 @@
+# INC-950 (Foundations turn C2) — a readAllowlist caller whose second argument does not name its census's findings (scripts/conformance/kit.test.ts CF-KIT-7).
+# Key: `<file>` | reason | until.
+src/server/ai/gateway.census.test.ts | its second argument is its findings under another name: the rows with a provider host outside src/server/ai/providers/, a provider key read outside src/server/ai/ and stand-in.ts, or a stand-in read outside src/server/ai/ — each refused without a line (GWC-1, GWC-2, GWC-6); outside turn C2's SCOPE (K2) — named `found` in the turn whose brief names the file | 2026-12-31
