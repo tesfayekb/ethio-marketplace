@@ -8,6 +8,7 @@ import {
   gotoReady,
   stepUpIfPrompted,
 } from "./helpers/ui";
+import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient } from "./helpers/users";
 import { seedAttribute, destroyAttribute } from "./helpers/admin-attributes";
 import { stripScratchRows } from "./helpers/exports";
@@ -245,14 +246,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
 
       // TR-15 — RUNTIME: the approved value reaches the anon bundle for `am`,
       // and a non-public language still answers `{}` (fallback chain intact).
-      const bundles = await page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
-            };
-          }
-        ).__ethioSupabase;
+      const bundles = await inBrowserClient(page, async (client) => {
         const am = await client.rpc("get_entity_bundle", { p_lang: "am" });
         const om = await client.rpc("get_entity_bundle", { p_lang: "om" });
         return { am: am.data, om: om.data };
@@ -629,16 +623,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
       void secret;
 
       const bearer = async () =>
-        page.evaluate(async () => {
-          const client = (
-            window as unknown as {
-              __ethioSupabase: {
-                auth: {
-                  getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
-                };
-              };
-            }
-          ).__ethioSupabase;
+        inBrowserClient(page, async (client) => {
           const { data } = await client.auth.getSession();
           return data.session?.access_token ?? "";
         });
@@ -654,14 +639,7 @@ export function pruneScratch(value: unknown, ids: Set<string> = new Set<string>(
         // INC-214 — the scratch census is taken at THIS capture's own time, so
         // each capture prunes exactly the fixtures that were live when it read.
         const ids = await scratchIdentities(supabase);
-        const raw = await page.evaluate(async () => {
-          const client = (
-            window as unknown as {
-              __ethioSupabase: {
-                rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown }>;
-              };
-            }
-          ).__ethioSupabase;
+        const raw = await inBrowserClient(page, async (client) => {
           const bundle = await client.rpc("get_entity_bundle", { p_lang: "am" });
           return JSON.stringify(bundle.data);
         });
@@ -795,19 +773,10 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
     await expect.poll(truth, { timeout: 20000 }).toEqual({ value, status: "approved" });
     await expect(entityRow(page, stem)).toContainText(value);
 
-    const refusal = await page.evaluate(
-      async ({ id, fence }) => {
-        const browser = window as unknown as {
-          __ethioSupabase: {
-            rpc: (
-              fn: string,
-              args: Record<string, unknown>,
-            ) => Promise<{
-              error: { message: string } | null;
-            }>;
-          };
-        };
-        const result = await browser.__ethioSupabase.rpc("admin_save_entity_translation", {
+    const refusal = await inBrowserClient(
+      page,
+      async (client, { id, fence }) => {
+        const result = await client.rpc("admin_save_entity_translation", {
           p_type: "attribute",
           p_id: id,
           p_field: "option:z",
@@ -820,25 +789,18 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
     );
     expect(refusal).toBe("unknown entity");
     const optionListCount = async (language: string) => {
-      const rows = await page.evaluate(
-        async ({ language, source }) => {
-          const browser = window as unknown as {
-            __ethioSupabase: {
-              rpc: (
-                fn: string,
-                args: Record<string, unknown>,
-              ) => Promise<{
-                data: Array<{ entity_id: string; field: string }> | null;
-                error: { message: string } | null;
-              }>;
-            };
-          };
-          const result = await browser.__ethioSupabase.rpc("admin_list_entity_translations", {
-            p_lang: language,
-            p_search: source,
-            p_limit: 50,
-            p_offset: 0,
-          });
+      const rows = await inBrowserClient(
+        page,
+        async (client, { language, source }) => {
+          const result = await client.rpc<Array<{ entity_id: string; field: string }>>(
+            "admin_list_entity_translations",
+            {
+              p_lang: language,
+              p_search: source,
+              p_limit: 50,
+              p_offset: 0,
+            },
+          );
           if (result.error) throw new Error(result.error.message);
           return result.data ?? [];
         },
@@ -849,17 +811,10 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
     expect(await optionListCount(fence)).toBe(1);
     expect(await optionListCount("am")).toBe(0);
     for (const fn of ["admin_save_entity_translation", "admin_machine_entity_translation"]) {
-      const amharicRefusal = await page.evaluate(
-        async ({ fn, id }) => {
-          const browser = window as unknown as {
-            __ethioSupabase: {
-              rpc: (
-                fn: string,
-                args: Record<string, unknown>,
-              ) => Promise<{ error: { message: string } | null }>;
-            };
-          };
-          const result = await browser.__ethioSupabase.rpc(fn, {
+      const amharicRefusal = await inBrowserClient(
+        page,
+        async (client, { fn, id }) => {
+          const result = await client.rpc(fn, {
             p_type: "attribute",
             p_id: id,
             p_field: "option:a",
@@ -875,25 +830,18 @@ test.describe("TR-42 answer-option translations (DEC-233)", () => {
     await page.getByTestId("data-search").fill(offSource);
     await expect
       .poll(async () => {
-        const result = await page.evaluate(
-          async ({ fence, offSource }) => {
-            const browser = window as unknown as {
-              __ethioSupabase: {
-                rpc: (
-                  fn: string,
-                  args: Record<string, unknown>,
-                ) => Promise<{
-                  data: Array<{ entity_id: string; field: string }> | null;
-                  error: { message: string } | null;
-                }>;
-              };
-            };
-            const response = await browser.__ethioSupabase.rpc("admin_list_entity_translations", {
-              p_lang: fence,
-              p_search: offSource,
-              p_limit: 50,
-              p_offset: 0,
-            });
+        const result = await inBrowserClient(
+          page,
+          async (client, { fence, offSource }) => {
+            const response = await client.rpc<Array<{ entity_id: string; field: string }>>(
+              "admin_list_entity_translations",
+              {
+                p_lang: fence,
+                p_search: offSource,
+                p_limit: 50,
+                p_offset: 0,
+              },
+            );
             if (response.error) throw new Error(response.error.message);
             return response.data ?? [];
           },

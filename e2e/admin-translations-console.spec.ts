@@ -18,6 +18,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
+import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient, leaseUser } from "./helpers/users";
 import { errorText } from "../src/lib/error-text";
 import {
@@ -56,18 +57,10 @@ import {
  * body, the pooled user id, and the DB row as read. Assertions are unchanged.
  */
 async function logTranslatorScope(page: Page, userId: string): Promise<void> {
-  const scope = await page.evaluate(async () => {
-    const client = (
-      window as unknown as {
-        __ethioSupabase: {
-          rpc: (fn: string) => Promise<{
-            data: Array<{ lang_code: string }> | null;
-            error: { message: string } | null;
-          }>;
-        };
-      }
-    ).__ethioSupabase;
-    const { data, error } = await client.rpc("get_my_translator_languages");
+  const scope = await inBrowserClient(page, async (client) => {
+    const { data, error } = await client.rpc<Array<{ lang_code: string }>>(
+      "get_my_translator_languages",
+    );
     if (error) return `error: ${error.message}`;
     return JSON.stringify((data ?? []).map((row) => row.lang_code));
   });
@@ -260,17 +253,7 @@ test.describe("U4b translations console", () => {
     await gotoReady(page, "/admin/translations");
 
     const flipOm = async () =>
-      page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              rpc: (
-                fn: string,
-                args: Record<string, unknown>,
-              ) => Promise<{ error: { message: string } | null }>;
-            };
-          }
-        ).__ethioSupabase;
+      inBrowserClient(page, async (client) => {
         const { error } = await client.rpc("admin_set_language_flags", {
           p_code: "om",
           p_enabled_admin: true,
@@ -395,18 +378,11 @@ test.describe("U4b translations console", () => {
     test.setTimeout(120_000);
 
     const enTotal = async () => {
-      return page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              rpc: (
-                fn: string,
-                args: Record<string, unknown>,
-              ) => Promise<{ data: Array<{ total: number }> | null; error: unknown }>;
-            };
-          }
-        ).__ethioSupabase;
-        const { data, error } = await client.rpc("admin_translation_stats", { p_lang: "en" });
+      return inBrowserClient(page, async (client) => {
+        const { data, error } = await client.rpc<Array<{ total: number }>>(
+          "admin_translation_stats",
+          { p_lang: "en" },
+        );
         if (error) throw error;
         return data?.[0]?.total ?? 0;
       });
@@ -973,16 +949,7 @@ test.describe("U4b translations console", () => {
       await switchUser(page, user.email, user.password);
       await waitForHydration(page);
 
-      const refusal = await page.evaluate(async () => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              auth: {
-                getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
-              };
-            };
-          }
-        ).__ethioSupabase;
+      const refusal = await inBrowserClient(page, async (client) => {
         const { data } = await client.auth.getSession();
         const response = await fetch("/api/translate", {
           method: "POST",
@@ -1242,18 +1209,9 @@ test.describe("U4b translations console", () => {
     try {
       await signInAsSuperAdmin(page);
       await gotoReady(page, "/admin/translations");
-      const answer = await page.evaluate(
-        async ({ p_en, p_am }) => {
-          const client = (
-            window as unknown as {
-              __ethioSupabase: {
-                rpc: (
-                  fn: string,
-                  args: Record<string, unknown>,
-                ) => Promise<{ data: unknown; error: { message: string } | null }>;
-              };
-            }
-          ).__ethioSupabase;
+      const answer = await inBrowserClient(
+        page,
+        async (client, { p_en, p_am }) => {
           const { data, error } = await client.rpc("admin_sync_ui_keys", { p_en, p_am });
           return { data, error: error?.message ?? null };
         },

@@ -24,6 +24,7 @@ import {
   waitForStoredSession,
   type PersistedSession,
 } from "./session";
+import { inBrowserClient } from "./browser-client";
 import { totp, totpStep } from "./totp";
 import { errorText } from "../../src/lib/error-text";
 
@@ -770,19 +771,7 @@ async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> 
   const sessionDeadline = Date.now() + 10_000;
   let hasSession = false;
   while (Date.now() < sessionDeadline) {
-    lastSessionState = await page.evaluate(async () => {
-      const client = (
-        window as unknown as {
-          __ethioSupabase: {
-            auth: {
-              getSession: () => Promise<{
-                data: { session: { user: { id: string } } | null };
-                error: { message: string } | null;
-              }>;
-            };
-          };
-        }
-      ).__ethioSupabase;
+    lastSessionState = await inBrowserClient(page, async (client) => {
       const { data, error } = await client.auth.getSession();
       if (error) return `error: ${error.message}`;
       return data.session ? `session:${data.session.user.id}` : "null";
@@ -803,22 +792,9 @@ async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> 
 
   let lastError: string | null = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
-    lastError = await page.evaluate(
-      async ([factorId, code]) => {
-        const client = (
-          window as unknown as {
-            __ethioSupabase: {
-              auth: {
-                mfa: {
-                  challengeAndVerify: (args: {
-                    factorId: string;
-                    code: string;
-                  }) => Promise<{ error: { message: string } | null }>;
-                };
-              };
-            };
-          }
-        ).__ethioSupabase;
+    lastError = await inBrowserClient(
+      page,
+      async (client, [factorId, code]) => {
         const { error } = await client.auth.mfa.challengeAndVerify({
           factorId: factorId!,
           code: code!,
@@ -852,17 +828,7 @@ async function elevateInBrowser(page: Page, pool: E2ESuperAdmin): Promise<void> 
  * calls, and say so.
  */
 async function endActiveImpersonation(page: Page): Promise<void> {
-  const ended = await page.evaluate(async () => {
-    const client = (
-      window as unknown as {
-        __ethioSupabase: {
-          rpc: (
-            fn: string,
-            args?: Record<string, unknown>,
-          ) => Promise<{ data: unknown; error: { message: string } | null }>;
-        };
-      }
-    ).__ethioSupabase;
+  const ended = await inBrowserClient(page, async (client) => {
     const active = await client.rpc("get_active_impersonation");
     const rows = (active.data ?? []) as { id?: string }[];
     const id = Array.isArray(rows) ? rows[0]?.id : undefined;
@@ -1209,25 +1175,7 @@ export async function awaitGuardedOutcome(
  * and always saw undefined.
  */
 export async function readAal(page: Page) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(async () => {
-    const client = (
-      window as unknown as {
-        __ethioSupabase: {
-          auth: {
-            mfa: {
-              getAuthenticatorAssuranceLevel: () => Promise<{
-                data: { currentLevel: string | null } | null;
-              }>;
-            };
-          };
-        };
-      }
-    ).__ethioSupabase;
+  return inBrowserClient(page, async (client) => {
     const { data } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
     return data?.currentLevel ?? null;
   });

@@ -14,6 +14,7 @@ import {
   userRow,
   waitForHydration,
 } from "./helpers/ui";
+import { inBrowserClient } from "./helpers/browser-client";
 import { adminClient, createUser, leaseUser, releaseStaleScratchAlias } from "./helpers/users";
 import { injectSession, passwordGrant } from "./helpers/session";
 import { errorText } from "../src/lib/error-text";
@@ -25,13 +26,6 @@ import { errorText } from "../src/lib/error-text";
  * proofs (permission gates, the status guard, the seam) ran in the migration
  * (P1–P6); AU-5/AU-6 re-prove two of them from a real browser session.
  */
-
-type RpcClient = {
-  rpc: (
-    fn: string,
-    args?: Record<string, unknown>,
-  ) => Promise<{ error: { message: string } | null }>;
-};
 
 async function grantRole(userId: string, roleName: string) {
   const supabase = adminClient();
@@ -60,14 +54,9 @@ function bearerClient(token: string) {
 }
 
 async function rpcFromBrowser(page: Page, fn: string, args: Record<string, unknown>) {
-  await page.waitForFunction(
-    () => Boolean((window as unknown as { __ethioSupabase?: unknown }).__ethioSupabase),
-    undefined,
-    { timeout: 15000 },
-  );
-  return page.evaluate(
-    async ([name, payload]) => {
-      const client = (window as unknown as { __ethioSupabase: RpcClient }).__ethioSupabase;
+  return inBrowserClient(
+    page,
+    async (client, [name, payload]) => {
       const result = await client.rpc(name as string, payload as Record<string, unknown>);
       return result.error?.message ?? null;
     },

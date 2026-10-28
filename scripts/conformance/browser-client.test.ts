@@ -63,6 +63,15 @@ describe("a test reaches the browser's client one way (INC-959)", () => {
       );
       expect(files.length).toBeGreaterThan(400);
       expect(report(findings.filter((hit) => !allowances.has(hit.file)))).toBe("");
+      // The files moved onto the helper stay on it.
+      for (const moved of [
+        "e2e/helpers/ui.ts",
+        "e2e/helpers/posting.ts",
+        "e2e/admin-users.spec.ts",
+        "e2e/admin-translations-data.spec.ts",
+        "e2e/admin-translations-console.spec.ts",
+      ])
+        expect(keys.filter((key) => key.startsWith(`${moved} (`))).toEqual([]);
       // The app's hook still hands the client over, and the helper still waits for it.
       expect(codeOf(readFileSync("src/components/app-shell.tsx", "utf8"))).toMatch(
         /\.__ethioSupabase = client;/,

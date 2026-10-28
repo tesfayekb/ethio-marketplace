@@ -1,5 +1,6 @@
 import { expect, type Page, type Response } from "@playwright/test";
 
+import { inBrowserClient } from "./browser-client";
 import { adminClient, leaseUser, type TestUser } from "./users";
 
 /**
@@ -24,16 +25,7 @@ export function scratchCategorySlug(): string {
 
 /** The bearer the browser holds — the routes' only authority (F3). */
 export async function bearerOf(page: Page): Promise<string> {
-  const token = await page.evaluate(async () => {
-    const client = (
-      window as unknown as {
-        __ethioSupabase: {
-          auth: {
-            getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
-          };
-        };
-      }
-    ).__ethioSupabase;
+  const token = await inBrowserClient(page, async (client) => {
     const { data } = await client.auth.getSession();
     return data.session?.access_token ?? "";
   });
