@@ -1,0 +1,26 @@
+# Foundations turn D1 — stop 2: M2 (INC-793) applied on ethio-prod
+
+- File: `supabase/migrations/20261028224333_4ce633e9-2d61-433c-a543-6f7dc00cb769.sql` (cmp-identical to the submitted text).
+- Mark: `20261029010000`. Rule G39: now() was 2026-10-28 22:40 UTC, rounded up to 23:00, plus one hour, gives 20261029000000. That is already M1's mark, so the next hour is used.
+- Read-back on ethio-prod: `select version from public.migration_marks where version = '20261029010000'` → `20261029010000`.
+- Definition read-back: `md5(pg_get_functiondef('public.validate_listing_draft'::regproc))` = `5cd26717e142804b3bce7cde02da0f38` (22,533 characters). This equals the md5 of the scratch text, which was the live definition read at 22:40 UTC (20,614 characters) with the two hunks applied. The diff of scratch against live showed only those hunks.
+- Header and ACL: unchanged. plpgsql, VOLATILE, SECURITY DEFINER, `{search_path=public}`, ACL `{postgres=X/postgres,service_role=X/postgres}`. The proof RAISEs on any difference.
+- Changes:
+  - Hunk 1, the `ELSE` branch of `IF p_step >= 4`: below the price page, these are now judged:
+    - the mode: `price_mode/badValue`;
+    - the period: `price_period/badValue`;
+    - the fixed-price pair: no amount → NULL currency. Amount with no currency → home-market currency, else `price_currency/required`. An unknown currency → `price_currency/unknownCurrency`;
+    - the commission rate, 1–10000.
+  - Hunk 2, step 4 and above: in the commission branch, after the existing `price_bp/required`, a rate outside 1–10000 is refused (ruling item 2).
+- Departure from the approved draft: the rate's reason is `commissionRange`, not `badValue`. This follows C1, which says to use the existing key the wizard already shows for that field. `commissionRange` is the reason the draft route already returns for `listings_price_bp_check` (`src/routes/api/listings/draft.ts:101`), and it maps to the existing key `post.refusal.commissionRange` (`refusal-text.ts:39`). The other refusals reuse pairs the step-4 branch already returns. No new string.
+- Proofs (the migration applied cleanly, so the sentinel `d1-m2-proof-ok` was reached), all on scratch rows that were rolled back:
+  - (a) step 2, fixed 100 with no currency: ok, and the currency is the home currency. The output was inserted into a scratch listing with no 23514.
+  - (b) step 2 with no home market: `price_currency/required`.
+  - (c) mode `bogus`: `price_mode/badValue`.
+  - (d) period `fortnight`: `price_period/badValue`.
+  - (e) a currency with no amount: ok, and both sides of the pair are NULL.
+  - (f) commission with bp 0 at steps 2 and 4: `price_bp/commissionRange`.
+  - After the refusals, the scratch listing's price was unchanged.
+- App: none needed. `use-draft.ts` sends no currency without an amount, and `validate.ts:218` already applies the same range on the client.
+- Linter: 233 pre-existing findings, none from this migration.
+- Open: M3–M7 follow on "continue". The supervisor applies this file on ethio-staging.
