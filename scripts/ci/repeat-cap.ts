@@ -37,6 +37,7 @@ type Json = Record<string, unknown>;
 const isObject = (v: unknown): v is Json =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 class Unreadable extends Error {}
+const TEST_STATUSES = new Set<unknown>(["expected", "unexpected", "flaky", "skipped"]);
 /** An absent list is empty; a present list that is not an array of objects is unreadable. */
 const list = (owner: Json, key: string): Json[] => {
   const v = owner[key];
@@ -60,6 +61,8 @@ export function capVerdict(report: unknown): CapVerdict {
     const context = title ? [...parents, title] : parents;
     for (const spec of list(suite, "specs")) {
       for (const test of list(spec, "tests")) {
+        // Playwright's four test outcomes; anything else is unreadable, never a pass.
+        if (!TEST_STATUSES.has(test["status"])) throw new Unreadable("test.status");
         if (test["status"] === "unexpected") failed = true;
         const runs = list(test, "results");
         const interrupted = runs.some((r) => r["status"] === "interrupted");

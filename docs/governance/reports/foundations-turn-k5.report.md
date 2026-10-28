@@ -142,7 +142,9 @@ Round 1: NOT READY, one MAJOR. Malformed lists failed open: `"specs": null` read
 
 Round 2: NOT READY, one MAJOR. Arrays passed as objects, so `"suites": [[]]` read as capped. Fixed: `isObject` now excludes arrays, and RCAP-9 gained nested-array cases for every list.
 
-Round 3 is recorded in the chat summary. Each round found no other finding in the remaining diff.
+Round 3: NOT READY, one MAJOR. A test whose status was missing, null or unknown escaped the failure check. Fixed: a test status must be one of Playwright's four outcomes (expected, unexpected, flaky, skipped), and anything else is unreadable and makes the verdict "failed". RCAP-9 gained those cases. This check is stricter than BASE's Python, which had the same gap.
+
+No fourth round was run. Each round found no other finding in the remaining diff.
 
 ## Departures
 
