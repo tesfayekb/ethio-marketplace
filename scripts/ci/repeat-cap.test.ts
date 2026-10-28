@@ -80,6 +80,26 @@ describe("the repeat lane's cap reader (INC-966)", () => {
     expect(capVerdict(null).verdict).toBe("failed");
   });
 
+  it("RCAP-9 a report whose lists or entries are malformed is failed, never capped", () => {
+    const cap = [{ message: plain(720, "test suite") }];
+    const bad: unknown[] = [
+      { errors: cap, suites: null },
+      { errors: cap, suites: "x" },
+      { errors: cap, suites: [7] },
+      { errors: cap, suites: [{ title: "a", specs: null }] },
+      { errors: cap, suites: [{ title: "a", specs: [null] }] },
+      { errors: cap, suites: [{ title: "a", specs: [{ title: "s", tests: {} }] }] },
+      { errors: cap, suites: [{ title: "a", specs: [{ title: "s", tests: ["t"] }] }] },
+      {
+        errors: cap,
+        suites: [{ title: "a", specs: [{ title: "s", tests: [{ results: null }] }] }],
+      },
+      { errors: cap, suites: [{ title: "a", suites: [null] }] },
+    ];
+    for (const r of bad) expect(capVerdict(r).verdict, JSON.stringify(r)).toBe("failed");
+    expect(capVerdict({ errors: cap }).verdict).toBe("capped");
+  });
+
   it("RCAP-7 the cap with a failed repetition is failed", () => {
     const failedSuite = {
       title: "geo.spec.ts",

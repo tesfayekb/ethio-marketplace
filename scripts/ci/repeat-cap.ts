@@ -35,7 +35,14 @@ export type CapVerdict = { verdict: "capped"; left: string[] } | { verdict: "fai
 
 type Json = Record<string, unknown>;
 const isObject = (v: unknown): v is Json => typeof v === "object" && v !== null;
-const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+class Unreadable extends Error {}
+/** An absent list is empty; a present list that is not an array of objects is unreadable. */
+const list = (owner: Json, key: string): Json[] => {
+  const v = owner[key];
+  if (v === undefined) return [];
+  if (!Array.isArray(v) || !v.every(isObject)) throw new Unreadable(key);
+  return v;
+};
 
 /** The verdict on a parsed Playwright JSON report. */
 export function capVerdict(report: unknown): CapVerdict {
@@ -47,17 +54,14 @@ export function capVerdict(report: unknown): CapVerdict {
 
   const left = new Set<string>();
   let failed = false;
-  const walk = (suite: unknown, parents: string[]): void => {
-    if (!isObject(suite)) return;
+  const walk = (suite: Json, parents: string[]): void => {
     const title = typeof suite["title"] === "string" ? suite["title"] : "";
     const context = title ? [...parents, title] : parents;
-    for (const spec of list(suite["specs"])) {
-      if (!isObject(spec)) continue;
-      for (const test of list(spec["tests"])) {
-        if (!isObject(test)) continue;
+    for (const spec of list(suite, "specs")) {
+      for (const test of list(spec, "tests")) {
         if (test["status"] === "unexpected") failed = true;
-        const runs = list(test["results"]);
-        const interrupted = runs.some((r) => isObject(r) && r["status"] === "interrupted");
+        const runs = list(test, "results");
+        const interrupted = runs.some((r) => r["status"] === "interrupted");
         if (runs.length === 0 || interrupted) {
           const specTitle = typeof spec["title"] === "string" ? spec["title"] : "";
           const project = typeof test["projectName"] === "string" ? test["projectName"] : "";
@@ -65,9 +69,14 @@ export function capVerdict(report: unknown): CapVerdict {
         }
       }
     }
-    for (const child of list(suite["suites"])) walk(child, context);
+    for (const child of list(suite, "suites")) walk(child, context);
   };
-  for (const suite of list(report["suites"])) walk(suite, []);
+  try {
+    for (const suite of list(report, "suites")) walk(suite, []);
+  } catch (error) {
+    if (error instanceof Unreadable) return { verdict: "failed" };
+    throw error;
+  }
   if (failed) return { verdict: "failed" };
   return { verdict: "capped", left: [...left].sort() };
 }
