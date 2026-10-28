@@ -76,6 +76,8 @@ export interface PublicListingDoc {
       country_code: string;
       position: number;
       map_visible: boolean;
+      /** INC-949 (D1 M3) — the place's ancestors, country first; absent before M3 is applied. */
+      path?: Array<{ id: string; name_en: string; name_am: string | null; level: string; slug: string }>;
     }>;
     pin: { lat: number; lng: number; precision: string | null; zoom: number | null } | null;
     directions: string | null;
