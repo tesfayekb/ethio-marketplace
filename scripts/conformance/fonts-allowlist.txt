@@ -1,0 +1,3 @@
+# The font census (scripts/conformance/fonts.test.ts, CF-FT-1): a recorded exception to DEC-262's family rule — key "<file> (<findings>)" | reason | until.
+# A file that sheds a finding lowers its count here (the old line goes stale and fails).
+src/lib/error-page.ts (2) | the SSR error page is its own document, dependency-free by law (INC-085c): it cannot load src/styles.css's tokens, so its body and cause shorthands name the device's system stack (system-ui, ui-monospace) — nothing is downloaded; held for the supervisor's ruling (Foundations turn C3, no product code) | 2026-12-31

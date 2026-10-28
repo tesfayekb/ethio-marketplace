@@ -1,0 +1,3 @@
+# INC-929's class (scripts/conformance/live-regions.test.ts, LR-C1): a recorded exception — an always-drawn live region that carries a role.
+# key "<file>:<line>" | reason | until
+src/components/ui/action-message.tsx:53 | a persistent ActionMessage is drawn before its words and gains role=status/alert as they arrive (role={shown ? liveRole : undefined}) — INC-929's class in product code, which this tests-and-docs turn does not change; held for the supervisor's ruling (Foundations turn C3) | 2026-12-31

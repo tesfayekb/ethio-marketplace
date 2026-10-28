@@ -571,7 +571,11 @@ A test that polls database truth or navigates after a wizard change calls awaitD
 
 `data-app-ready` is set once the browser has hydrated the placed first screen (DEC-266: src/client.tsx waits for React to place every streamed segment before it hydrates).
 
-`window.__ethioSupabase` arrives when the client's chunk has loaded, not at mount (DEC-261: the E2E hand-off asks the door for it) — read it after a wait, never synchronously at load.
+A test that picks a language while signed in on a shared account restores it before it ends. D237 (the operator, 2026-10-24): "the language picked in the menu becomes the device's favourite and the account's, every tab follows, the ★ folds into the pick (a menuitemradio — G17) … Consequence: a test that picks a language while signed in on a shared account restores it before it ends" — a pooled account's pick reaches every later borrower of it.
+
+`window.__ethioSupabase` arrives when the client's chunk has loaded, not at mount (DEC-261: the E2E hand-off asks the door for it) — a test reaches it only through e2e/helpers/browser-client.ts (INC-959, Foundations turn C3): `awaitBrowserClient(page)` waits for the hand-off (15 s) and fails in one message naming it when the client never arrived; `inBrowserClient(page, (client, arg) => …, arg)` runs the test's code in the page with the client as its first argument, typed once (`BrowserClient` — a call a test needs is added there), no `eval` in the page (BCL-1…5). CF-BC-1 (scripts/conformance/browser-client.test.ts) names any other file that reads it; the files written before the helper hold their counts in scripts/conformance/browser-client-allowlist.txt until INC-959, each leaving when its spec is next touched.
+
+A test reads a colour through the one reader, `okLchOf` (e2e/helpers/colors.ts: `oklch()` and `oklab()` as Chromium reports them, with their alpha — INC-910), and judges it with `isRedFill` / `isGoldFill`, which count a colour as a fill only at an alpha of 0.5 or more; `rgbOf` reads `rgb()` the same way. Its guard is src/test/e2e-colors.test.ts, EC-1…6.
 
 `window.__ethioClientOff`, set by a test's init script, turns that E2E hand-off off, so the page behaves as a production visitor's (SBE-1…5).
 
