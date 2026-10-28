@@ -16,6 +16,7 @@
  * Usage: bun run scripts/ci/repeat-cap.ts <results.json> <evidence-file>
  */
 import { appendFileSync, readFileSync } from "node:fs";
+import { errorText } from "../../src/lib/error-text";
 
 const RED_OPEN = "\x1B[31m";
 const RED_CLOSE = "\x1B[39m";
@@ -91,7 +92,7 @@ export function capVerdictOfFile(path: string): CapVerdict {
   try {
     parsed = JSON.parse(readFileSync(path, "utf8"));
   } catch (error) {
-    console.error(`repeat-cap: cannot read ${path}: ${String(error)}`);
+    console.error(`repeat-cap: cannot read ${path}: ${errorText(error)}`);
     return { verdict: "failed" };
   }
   return capVerdict(parsed);
