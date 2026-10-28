@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40785320552
-- Commit: `573368b2060f23f0ec228cdc6454f557e5b1a8d1`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40787524583
+- Commit: `24808d5fa58e83a3f0513e173a0c40f8809e60df`
 - Attempt: 1
-- Written (UTC): 2026-10-28T23:33:14.057Z
+- Written (UTC): 2026-10-28T23:38:07.229Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -15,7 +15,7 @@ No warning step ran in this run.
 
 ```text
 [90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
-     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 735[2mms[22m[39m
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 1108[2mms[22m[39m
 [90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
@@ -37,26 +37,27 @@ No warning step ran in this run.
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
+     [33m[2m✓[22m[39m OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu [33m 319[2mms[22m[39m
 [90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
 [22m[39m[session-reads] currentSession() calls: 19; without failed: 0
-     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1540[2mms[22m[39m
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1998[2mms[22m[39m
 [90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
 [90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
 [22m[39m[feed-links] /api/feed signing failed
-[22m[39m[ssr-error] /api/feed [incident 7619804a-cbad-4cf4-ad82-951553caa988] ReaderError: feed_page: marker-text-that-must-not-travel
+[22m[39m[ssr-error] /api/feed [incident 609d39b9-92b1-47c6-91e3-9e0c5ae2f96b] ReaderError: feed_page: marker-text-that-must-not-travel
 [22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
 Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
 [22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
 [90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
- [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 371[2mms[22m[39m
- [31m❯[39m scripts/test-ids.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 300[2mms[22m[39m
+ [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 438[2mms[22m[39m
+ [31m❯[39m scripts/test-ids.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 299[2mms[22m[39m
 [22m[39m[save-error] unsave_listing Error: transport
 [22m[39m[save-error] listing_saved Error: transport
-     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 305[2mms[22m[39m
+     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 307[2mms[22m[39m
 [90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
 [41m[1m FAIL [22m[49m scripts/test-ids.test.ts[2m > [22mtest ids (INC-536)[2m > [22mTI-1 no test id is used twice in the repository
 [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m350 passed[39m[22m[90m (351)[39m
-[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2101 passed[39m[22m[90m (2102)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2103 passed[39m[22m[90m (2104)[39m
 ##[error]AssertionError: expected [ Array(1) ] to deeply equal []
 ##[error]Process completed with exit code 1.
 ```
@@ -88,9 +89,9 @@ Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
 
 
 [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m350 passed[39m[22m[90m (351)[39m
-[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2101 passed[39m[22m[90m (2102)[39m
-[2m   Start at [22m 23:17:54
-[2m   Duration [22m 202.67s[2m (transform 9.74s, setup 123.48s, import 54.34s, tests 102.03s, environment 270.27s)[22m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m2103 passed[39m[22m[90m (2104)[39m
+[2m   Start at [22m 23:33:23
+[2m   Duration [22m 269.28s[2m (transform 10.58s, setup 163.36s, import 70.70s, tests 134.78s, environment 361.59s)[22m
 
 
 ##[error]AssertionError: expected [ Array(1) ] to deeply equal []
@@ -111,7 +112,7 @@ error: script "test:unit" exited with code 1
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/53ee97b3-5921-4460-b9a9-cbc4c0235861' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/3372083f-23f7-4585-9a50-dbe7b83c724d' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -139,54 +140,54 @@ Per-page budget failed (D234):
 ### Tail (last 60 lines)
 
 ```text
-    328.9 / 330 KiB  /admin/coverage
+    328.8 / 330 KiB  /admin/coverage
     207.3 / 209 KiB  /admin/images
     307.1 / 308 KiB  /admin/impersonation_/$sessionId
     276.3 / 277 KiB  /admin/legal
     275.6 / 277 KiB  /admin/legal_/$versionId
-    281.8 / 283 KiB  /admin/legal_/edit
-    352.4 / 353 KiB  /admin/listings
+    281.7 / 283 KiB  /admin/legal_/edit
+    352.3 / 353 KiB  /admin/listings
     375.7 / 379 KiB  /admin/listings_/$listingId
-    399.3 / 403 KiB  /admin/listings_/$listingId_/edit
+    399.2 / 403 KiB  /admin/listings_/$listingId_/edit
     268.2 / 270 KiB  /admin/locations
-    337.6 / 338 KiB  /admin/places
+    337.5 / 338 KiB  /admin/places
     304.7 / 306 KiB  /admin/roles
     305.1 / 306 KiB  /admin/roles_/$roleId
     373.7 / 377 KiB  /admin/screening
     407.0 / 408 KiB  /admin/translations
-    319.3 / 320 KiB  /admin/translations_/$lang
-    303.1 / 304 KiB  /admin/users
-    283.6 / 285 KiB  /admin/users_/$userId
+    319.2 / 320 KiB  /admin/translations_/$lang
+    303.0 / 304 KiB  /admin/users
+    283.5 / 285 KiB  /admin/users_/$userId
     218.2 / 219 KiB  /auth
     206.7 / 208 KiB  /auth_/callback
-    208.8 / 210 KiB  /auth_/reset
+    208.7 / 210 KiB  /auth_/reset
     219.2 / 220 KiB  /c/$slug
-    221.5 / 223 KiB  /dev/primitives
+    221.4 / 223 KiB  /dev/primitives
     240.6 / 242 KiB  /dev/style
     206.0 / 207 KiB  /dev/tall
     247.5 / 251 KiB  /l/$slug
     209.6 / 211 KiB  /legal/$kind
-    217.2 / 218 KiB  /legal/accept
+    217.1 / 218 KiB  /legal/accept
     210.3 / 212 KiB  /legal/publishing
-    326.1 / 327 KiB  /my-listings
+    326.0 / 327 KiB  /my-listings
     315.1 / 315 KiB  /my-listings_/$listingId
-    394.0 / 397 KiB  /my-listings_/$listingId_/edit
-    393.9 / 397 KiB  /post
-    393.9 / 397 KiB  /post_/$listingId
-    209.6 / 211 KiB  /privacy
-    269.5 / 271 KiB  /settings
-    209.6 / 211 KiB  /terms
 
 Per-page budget failed (D234):
   /my-listings_/$listingId: 315.1 KiB, over its ceiling of 315 KiB
 
 Code-split the addition behind a dynamic import, or change the page's line in
 scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
+    393.9 / 397 KiB  /my-listings_/$listingId_/edit
+    393.9 / 397 KiB  /post
+    393.9 / 397 KiB  /post_/$listingId
+    209.6 / 211 KiB  /privacy
+    269.4 / 271 KiB  /settings
+    209.6 / 211 KiB  /terms
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/abb07803-8e88-4433-9f64-3fb8e7e5a508' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/ec4aac9f-e6e2-4ac9-8525-92ebbfd5cfdc' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -212,7 +213,6 @@ Cleaning up orphan processes
 ### Tail (last 60 lines)
 
 ```text
-Definer guard: allowlisted files (each cites its closer)
   - 20261004011235_18556a32-8f3e-4da5-a645-e73223e74e13.sql (M2 restates every closer in-file through a format() loop the literal scan cannot read; ACL read-back asserted in its own proof block | closed by 18556a32)
   - 20260907050122_84bead12-f50a-4e83-b3e5-e7bc34a0ec21.sql (C3-UX-2 redeclared five entity-translation definers without restating their grants; window closed by the C3-UX-2b corrective (read-back in file) | closed by 2dcafad6)
   - 20260903044526_7e14ce39-76a6-4095-845b-e5d6e83d772c.sql (admin_create_category REVOKE restated in C2e corrective | closed by 63df0b68)
@@ -254,12 +254,13 @@ Self-marking guard: allowlisted files (each cites its healer)
   - 20260920035859_59a77c4c-ef00-4c57-9bce-79a4284a01d4.sql (Part 2b readers declared mark 20260920000008, which precedes its filename stamp; the ledger rows 20260920035859 and 20260920040000 are recorded by the R-MARK corrective | 20260920072310)
 Self-marking guard OK (floor 20260817054246).
 Public-surface guard FAILED: grants to anon/authenticated/PUBLIC on unlisted objects:
-supabase/migrations/20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql: get_location_treesupabase/migrations/20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql: begin_impersonationsupabase/migrations/20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql: get_location_tree
+supabase/migrations/20261013073618_98a0576f-55bd-4a2c-816a-04dd28c72eba.sql: import_gate_auditsupabase/migrations/20261024220534_7aba0b1c-b2a2-455c-9aec-7c711a41034e.sql: import_gate_auditsupabase/migrations/20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql: get_location_treesupabase/migrations/20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql: import_gate_audit
+supabase/migrations/20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql: begin_impersonationsupabase/migrations/20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql: get_location_tree
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/6638280e-6002-4379-8562-c50e8e5fe759' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/5144ef5e-4d94-42a6-bbbc-fe2bbda842ac' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -301,10 +302,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40785320552
-  E2E_HEAD_COMMIT_MESSAGE: Applied M4 rate gates to prod
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40787524583
+  E2E_HEAD_COMMIT_MESSAGE: Ruled M5a gates, added M5b
 
-X-Lovable-Edit-ID: edt-740202b4-c550-45b1-8a07-fb0e3deed9d4
+X-Lovable-Edit-ID: edt-312aa46c-ad4b-4614-94b2-018bd3a4aaf9
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -338,7 +339,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/bbdf7ae7-90aa-497f-984a-b9047495b7df' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/79d2ff3f-da07-4910-8516-f6dab7857257' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
