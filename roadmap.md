@@ -36,7 +36,7 @@ The brief in force: docs/governance/briefs/foundations-turn-l-2c-3.md (turn L-2c
 - [x] INC-997 — D239 put reader-failure on every page's first download — closed in CI-1 (loaded only when a read fails)
 - [x] INC-998 — eight unit tests fail in the sandbox and pass in CI (NH time zone; EXH-4/5/7/21, LL-1 timeouts) — closed in CI-2 (whole suite 2,216/2,216 in the sandbox)
 - [ ] Turn L-1 — INC-999 evidence excerpt (SXC-1…4) and format.ts/locale.ts with CF-FMT-1 (INC-985, INC-954 app copies)
-- [ ] L-2c Part A continuation — measured candidate restored under L-2c-3's 0.6 KiB ruling; all 50 ceilings +1 KiB with cause; final checks in progress. Part 1 remains done.
+- [x] L-2c Part A continuation — delivered under L-2c-3's 0.6 KiB ruling; all 50 ceilings +1 KiB with cause; exact growth +0.3213–0.5381; 2,237/2,237 units; checks 34 PASS, 0 FAIL, 21 NOT RUN, 931s. Part 1 remains done; Part B is L-2d.
 - [ ] Turn L-2 — page heads in the reader's language (INC-990), starting with its census of routes and keys
 - [ ] Turn L-5 — messages with values: `t(key, values)` for the 226 `.replace("{` sites
 - [ ] Later — the database collation for non-Latin names: prove compareNames (FIXED_ORDER_LOCALE) equals the server's ORDER BY for Amharic names (L-2 A3; needs the operator)

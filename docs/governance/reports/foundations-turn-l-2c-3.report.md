@@ -20,9 +20,9 @@ CF-FMT-1/2 and FMT-9…11 are the measured candidate's tests unchanged. CF-FMT-2
 
 All 50 existing page ceilings move to the next whole KiB above their previous integer ceiling (+1 KiB); no ceiling decreases or extra pages. This preserves the existing ratchet room and resolves the former NEAR lines, rather than rounding a measurement down to a lower ceiling. Every line carries the ruling's exact cause: **the reader-order and country-name mechanism in one shared module, replacing inline copies (L-2c)**.
 
-The previous exact b4250ca0 measurements below are the ruling's approved table, not a claim of this turn's freshly measured output. The checks' build is verified below before completion.
+Fresh exact measurements from this turn's checks-owned build versus its 6039e3f7 baseline are below. They match the ruling's approved b4250ca0 table at four decimals; app sources at both baseline commits are identical. All 50 pages are explained; growth ranges from +0.3213 to +0.5381 KiB, within 0.6 KiB. Entry JS: 206.3789 → 206.8115 KiB (+0.4326).
 
-| Page | Approved baseline KiB | Approved candidate KiB | Growth KiB | Old ceiling | Raised ceiling |
+| Page | 6039e3f7 KiB | Landed candidate KiB | Growth KiB | Old ceiling | Raised ceiling |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `/` | 220.5986 | 220.9424 | +0.3438 | 221 | 222 |
 | `/$name` | 219.2705 | 219.6162 | +0.3457 | 220 | 221 |
@@ -78,7 +78,13 @@ The previous exact b4250ca0 measurements below are the ruling's approved table, 
 ## Tests and checks
 
 Targeted candidate/guard/order proof: **11 files, 38 tests passed**. Existing legal/formatter/name/service proof: **16 files, 138 tests passed**, unchanged.
-Whole unit suite and one full checks run: pending; final evidence appended before closing.
+Whole unit suite: **375 files passed; 2,237 tests passed of 2,237**, at 2 workers (575s). Exactly one full checks run; no FAIL and 0 NEAR.
+
+**Checks last line:** `checks: 34 PASS · 0 FAIL · 21 NOT RUN · 931s`
+
+The 21 NOT RUN steps: build-and-check/component-tests/bundle-budget dependency installs (3); Semgrep Upload SARIF and its upload-warning step (2); dependency-audit install and Audit (2); e2e-preflight Cache bun install, Bun cache hit?, Install dependencies and Migration parity preflight (4); E2E Download shard results, Download job log tails, Download error contexts, Verify artifacts belong to attempt, Publish merged report and Verdict (6); promote Token present, Configure bot, Fast-forward guard and Promote dev to main (4). These require GitHub services, advisory access, staging credentials/backend or CI promotion; no result invented.
+
+**Part 2: done**, under the measured weight ruling. Fresh harness verdict: build OK. No manual push; platform-managed dev landing follows this turn.
 No manual build/typecheck: harness verdict is read by checks, and checks owns its build. No E2E file changed, so no touched-spec run owed; browser authenticated flows are not claimed verified.
 
 ## K2
