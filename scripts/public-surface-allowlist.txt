@@ -145,3 +145,4 @@ admin_set_coverage_plan | admin door; coverage:update and a fresh second factor 
 admin_upsert_country | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
 admin_upsert_location | admin door; locations:create/update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
 admin_upsert_language | admin door; translations:manage and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_list_ai_calls | Foundations turn A2: services:view checked before validation/read; 90-day keyset page, no hashes or actor IDs; profiles:view controls names; core has no API-role execute grant
