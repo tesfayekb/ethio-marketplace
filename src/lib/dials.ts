@@ -149,6 +149,10 @@ export const DIALS = {
     limit: { fallback: 30 },
     windowSeconds: 60,
   },
+  /** INC-951 3c (D1 M6) — src/server/imports/route.ts: every family's commit, before any door. */
+  importCommit: { action: "import:commit", limit: { fallback: 120 }, windowSeconds: 3600 },
+  /** INC-951 3c (D1 M6) — src/server/imports/route.ts: every family's undo, before any door. */
+  importUndo: { action: "import:undo", limit: { fallback: 120 }, windowSeconds: 3600 },
   /** INC-951 3b (D1 M5a) — src/routes/api/translate.ts: one per machine-translate press, before the AI call. */
   machineTranslatePress: {
     action: "machine-translate:press",
