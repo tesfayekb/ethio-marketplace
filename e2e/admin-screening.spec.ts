@@ -303,6 +303,10 @@ test.describe("ADMIN SCREENING", () => {
     await expect(row).toContainText(ad.title);
     await expect(row).toContainText(ad.categoryName);
     await expect(row).toContainText(ad.cityName);
+    // N1a (INC-977) — staff see the names-waiting line, a count or "none", never the read failure.
+    await expect(page.getByTestId("admin-screening-name-checks")).toHaveText(
+      /^(Names waiting for the seller-name check: \d+ \(the oldest since .+\)\.|No names are waiting for the seller-name check\.)$/,
+    );
   });
 
   test("SC-2 Approve puts the ad on the site", async ({ page }) => {
