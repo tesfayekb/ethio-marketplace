@@ -33,8 +33,13 @@ vi.mock("./bundle", () => ({
   fetchEntityBundle: () => Promise.resolve({ bundle: null, reason: "test" }),
 }));
 
-const { I18nProvider, useI18n, LANGUAGE_STAR_STORAGE_KEY, LANGUAGE_STORAGE_KEY } =
-  await import("./provider");
+const {
+  I18nProvider,
+  useI18n,
+  LANGUAGE_STAR_COOKIE,
+  LANGUAGE_STAR_STORAGE_KEY,
+  LANGUAGE_STORAGE_KEY,
+} = await import("./provider");
 
 const GATE = [
   { code: "en", name_en: "English", name_native: "English", rtl: false, sort: 0 },
@@ -82,7 +87,7 @@ const flush = () => act(() => new Promise((resolve) => setTimeout(resolve, 20)))
 
 beforeEach(() => {
   window.localStorage.clear();
-  document.cookie = "ethio_lang_star=; Path=/; Max-Age=0";
+  document.cookie = `${LANGUAGE_STAR_COOKIE}=; Path=/; Max-Age=0`;
   auth.listeners.clear();
   auth.fetchPreferredLanguage.mockReset();
   auth.savePreferredLanguage.mockReset().mockResolvedValue({ ok: true });

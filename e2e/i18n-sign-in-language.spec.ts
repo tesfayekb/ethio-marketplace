@@ -22,6 +22,7 @@ import { destroyListingsOf, leaseSeller } from "./helpers/posting";
 
 const STAR_KEY = "ethio.lang.star";
 const STAR_COOKIE = "ethio_lang_star";
+const CURRENT_KEY = "ethio.lang";
 
 const touched = new Set<string>();
 
@@ -62,14 +63,14 @@ async function unpublishedLanguage(): Promise<string> {
 /** Seeds the device the way a returning browser carries a choice: both stores, pre-boot. */
 async function seedDevice(page: Page, code: string) {
   await page.addInitScript(
-    ({ key, cookie, value }) => {
+    ({ key, current, cookie, value }) => {
       if (window.sessionStorage.getItem("e2e-d239-seeded") === "1") return;
       window.sessionStorage.setItem("e2e-d239-seeded", "1");
       window.localStorage.setItem(key, value);
-      window.localStorage.setItem("ethio.lang", value);
+      window.localStorage.setItem(current, value);
       document.cookie = `${cookie}=${value}; Path=/; Max-Age=31536000; SameSite=Lax`;
     },
-    { key: STAR_KEY, cookie: STAR_COOKIE, value: code },
+    { key: STAR_KEY, current: CURRENT_KEY, cookie: STAR_COOKIE, value: code },
   );
 }
 
