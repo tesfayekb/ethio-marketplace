@@ -5505,4 +5505,3 @@ Defect: after "no leaks found", the action's SARIF artifact upload failed (`Fina
 ## INC-977 — a seller name saved unchecked while the AI check was unavailable is never AI-checked later (2026-10-29 04:18Z; turn A2's plan)
 
 Defect: when name_check answers `unavailable`, identity.ts saves the name and writes `alias.unchecked` (src/routes/api/listings/identity.ts:89, D158). Nothing in src/ or supabase/migrations/ reads that action, and seller_name_sweep() (20261004011235_18556a32…sql:1100) counts only the rule check `alias_rule(..., false)`. So an unchecked name is never AI-checked. Evidence: the A2 plan census (rg over src and migrations). Fix: its own turn after INC-974, plan first. Class: a degraded path without its catch-up (concern: an identity imitation check; mechanism: identity.ts + the seller-name sweep). Status (2026-10-29): OPEN.
-
