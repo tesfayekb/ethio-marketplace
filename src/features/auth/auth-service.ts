@@ -3,6 +3,7 @@ import type { EmailOtpType, UserIdentity } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
 import { errorText } from "@/lib/error-text";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { loadOnce } from "@/lib/load-once";
 import { safeReturnPath } from "@/lib/return-path";
 import {
@@ -697,34 +698,50 @@ export async function completePasswordReset(newPassword: string): Promise<AuthRe
 }
 
 /**
- * U4h — THE ACCOUNT-SYNC SEAM (secondary to the device ★).
+ * D239 — THE ACCOUNT-SYNC SEAM (amends U4h).
  *
- * The account's `preferred_language` is a CARRY, not the authority: it fills a
- * device that has never expressed a star. The provider owns the precedence;
- * these two calls are the only DB seam it uses.
+ * The account's `preferred_language` decides at session start when it is
+ * published; an account with none receives the device's language. The
+ * provider's account rule owns that precedence; these two calls are the only
+ * DB seam it uses.
  *
- * Law F4 — never a silent swallow: both return a discriminated result and the
- * caller logs one named line.
+ * Law F4 — never a silent swallow: a failed read is a typed `ReaderError`,
+ * and signed out is its own answer, never a failure and never "no language".
  */
-export async function fetchPreferredLanguage(): Promise<
-  { code: string | null; reason: null } | { code: null; reason: string }
-> {
+export type PreferredLanguageRead =
+  | { ok: true; code: string | null }
+  | { ok: false; signedOut: true }
+  | { ok: false; signedOut: false; error: ReaderError };
+
+export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
   // DEC-261 — the session through the door: a signed-out device fetches no client.
   const read = await currentSession();
   // INC-914 — a session that could not be read is not "no session".
-  if (read.failed) return { code: null, reason: "the session could not be read" };
+  if (read.failed) {
+    return {
+      ok: false,
+      signedOut: false,
+      error: new ReaderError({ class: "auth", message: "the session could not be read" }),
+    };
+  }
   const userId = read.session?.user?.id;
-  if (!userId) return { code: null, reason: "no session" };
+  if (!userId) return { ok: false, signedOut: true };
   const supabase = await authClient();
-  if (supabase === null) return { code: null, reason: "the client did not load" };
+  if (supabase === null) {
+    return {
+      ok: false,
+      signedOut: false,
+      error: new ReaderError({ class: "network", message: "the client did not load" }),
+    };
+  }
 
   const { data, error } = await supabase
     .from("profiles")
     .select("preferred_language")
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) return { code: null, reason: error.message };
-  return { code: data?.preferred_language ?? null, reason: null };
+  if (error) return { ok: false, signedOut: false, error: new ReaderError(readerFailure(error)) };
+  return { ok: true, code: data?.preferred_language ?? null };
 }
 
 /**

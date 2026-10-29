@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { errorText } from "@/lib/error-text";
+import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * INC-915 (Foundations turn 34, ruling 2) — A FAILED DOWNLOAD OF THE SUPABASE CLIENT IS A
@@ -55,7 +56,11 @@ const ANSWERS: Record<string, unknown> = {
   removeOwnPassword: LOAD_FAILED,
   requestPasswordReset: LOAD_FAILED,
   completePasswordReset: LOAD_FAILED,
-  fetchPreferredLanguage: { code: null, reason: "the client did not load" },
+  fetchPreferredLanguage: {
+    ok: false,
+    signedOut: false,
+    error: new ReaderError({ class: "network", message: "the client did not load" }),
+  },
   savePreferredLanguage: { ok: false, reason: "the client did not load" },
 };
 

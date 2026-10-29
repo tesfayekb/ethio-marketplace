@@ -451,10 +451,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [gateReady, isPublic, setLanguage],
   );
 
-  // Restore the requested choice after hydration. PRECEDENCE (U4h):
+  // Restore the requested choice after hydration. DEVICE PRECEDENCE (U4h, amended by D239):
   //   URL override  ▸  device ★  ▸  last used language  ▸  base
-  // The account preference is NOT in this chain: it is a carry applied by the
-  // effect below, and only onto a device that never starred anything.
+  // D239: this is the device's chain at boot; at session start the ACCOUNT
+  // RULE below decides over it (a published account language replaces the
+  // device's choice).
   // INC-107: no source is validated against the COMPILED registry — a DB-only
   // language is a legitimate preference — only against the code SHAPE here and
   // against the publication gate below.
@@ -483,39 +484,90 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * U4h — THE ACCOUNT CARRY (secondary, applied at most once per identity).
+   * D239 — THE ACCOUNT RULE (the one place; it replaces U4h's carry).
    *
-   * Runs only on a device with NO star, and only once a SESSION exists. The
-   * account's language is applied AND immediately written as the device star,
-   * which is what makes it survive the next sign-out and session expiry: after
-   * this, the device owns the choice. A device that already starred something
-   * is never overwritten by an account.
+   * At SESSION START — each new sign-in and each page load that finds a
+   * session — the account decides, once the publication gate has answered:
+   *  - a published `preferred_language` replaces the device's choice: the star
+   *    (localStorage + cookie) and the current choice follow, and the account
+   *    is not written;
+   *  - an account with none receives the device's current language, only when
+   *    that language is on the gate's list;
+   *  - an unpublished account code changes nothing: the device keeps its
+   *    choice and the account keeps its code, which applies once published;
+   *  - a failed read keeps the device's choice, logs one named line and writes
+   *    nothing.
+   * A `?lang=` URL view is a view, not a choice: on such a page load the rule
+   * waits for the next session start rather than overriding the link.
+   * Every sign-in door reaches this effect through the auth event and the
+   * user-id latch; no door carries its own language code.
    *
    * INC-121 (a) LAW — A ONCE-PER-MOUNT LATCH MUST NOT GUARD A SESSION-DEPENDENT
    * READ. Signing in is an in-page transition (no remount), so the latch is
-   * keyed by the signed-in user id and released on sign-out.
+   * keyed by the signed-in user id and released on sign-out. A token refresh
+   * keeps the id, so it never re-runs the rule.
    */
+  const languageRef = useRef(language);
   useEffect(() => {
-    if (!bootRead || !authSettled) return;
+    languageRef.current = language;
+  }, [language]);
+  useEffect(() => {
+    if (!bootRead || !authSettled || !gateReady) return;
     if (userId === null) {
-      // Signed out: nothing to carry, and the next sign-in gets its own attempt.
+      // Signed out: nothing to decide; the next sign-in gets its own attempt.
       carriedForRef.current = null;
       return;
     }
     if (carriedForRef.current === userId) return;
     carriedForRef.current = userId;
-    if (star !== null) return;
-    void fetchPreferredLanguage().then(({ code, reason }) => {
-      if (reason !== null) {
-        if (reason !== "no session") console.warn(`[i18n] account language read failed: ${reason}`);
+    if (requestedFromUrl() !== null) return;
+    void fetchPreferredLanguage().then((read) => {
+      if (!read.ok) {
+        if (!read.signedOut) {
+          console.warn(`[i18n] account language read failed: ${read.error.failure.message}`);
+        }
         return;
       }
-      if (!isLanguageCode(code)) return;
+      const code = read.code;
+      if (code === null) {
+        const current = languageRef.current;
+        if (!isPublic(current)) return;
+        void savePreferredLanguage(current).then((result) => {
+          if (!result.ok && result.reason !== "no session") {
+            console.warn(`[i18n] account language save failed for ${current}: ${result.reason}`);
+          }
+        });
+        return;
+      }
+      if (!isLanguageCode(code) || !isPublic(code)) return;
       setStarState(code);
       writeDeviceStar(code);
       setLanguageState(code);
+      try {
+        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
+      } catch {
+        // Storage unavailable; the star cookie still carries the choice.
+      }
     });
-  }, [bootRead, authSettled, userId, star]);
+  }, [bootRead, authSettled, gateReady, userId, isPublic]);
+
+  /**
+   * D239 R4 (closes D237's gap) — EVERY OPEN TAB FOLLOWS THE STAR. Another
+   * tab's pick or account switch writes the star; this tab takes it after the
+   * same shape and gate checks, and never writes the account.
+   */
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== LANGUAGE_STAR_STORAGE_KEY) return;
+      const code = event.newValue;
+      if (!isLanguageCode(code)) return;
+      if (gateReady && !isPublic(code)) return;
+      setStarState((current) => (current === code ? current : code));
+      setLanguageState((current) => (current === code ? current : code));
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [gateReady, isPublic]);
 
   // Whatever the source (switcher, storage, URL, account carry), an active
   // language that the gate does not bless is revoked ONCE, as soon as the gate
