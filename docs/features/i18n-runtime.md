@@ -118,3 +118,13 @@ per-chunk overhead on the shell. Fixed server-name order uses `name-collator.ts`
 name tie-break uses `compareCodes` as specifically ruled in L-2b. CF-FMT-1 guards the homes;
 CF-FMT-2 plants DisplayNames, Collator and localeCompare bypasses. Only the language autonym
 and locale-independent CutText grapheme counting have the added reviewed exceptions.
+
+## Base-first page heads (Foundations L-2d, INC-990)
+
+Every reader route calls `pageHead` with its catalogue keys and unchanged base-language
+metadata. A serializable intent travels with that match, preserving dynamic ad content,
+canonical links, images, robots and structured data. `usePageHead` owns the sole client
+effect under the provider: it reads the committed matches and applied catalogue, replacing
+title, description and their Open Graph equivalents without invalidating any loader.
+Server head and body stay base-first (INC-872). Member/admin keys remain in their layers;
+CF-HEAD-1 has only the DEC-018 scratch and three internal development-page exceptions.

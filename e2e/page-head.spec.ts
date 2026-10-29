@@ -32,7 +32,7 @@ test.describe("PAGE HEAD — base first, then the applied reader catalogue", () 
       [
         "/admin",
         "Overview — ethio.com Admin",
-        `${am["nav.overview"]} — ethio.com አስተዳደር`,
+        am["head.admin.pattern.title"].replace("{name}", am["nav.overview"]),
         "admin-landing",
       ],
     ]) {
@@ -51,10 +51,10 @@ test.describe("PAGE HEAD — base first, then the applied reader catalogue", () 
       );
     }
     // Use the router's existing link, not a new document navigation.
-    await page.getByTestId("language-switcher").click();
-    await page.keyboard.press("Escape");
-    const home = page.locator('a[href="/"]').filter({ visible: true });
-    await home.nth(0).click();
+    await page
+      .getByRole("link", { name: en["app.name"], exact: true })
+      .filter({ visible: true })
+      .click();
     await expect(page.getByTestId("feed-container")).toBeVisible();
     await expect(page).toHaveTitle(am["head.home.title"]);
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
