@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { STRINGS_LAYERS } from "../../src/i18n/compiled-catalog";
 import { en } from "../../src/i18n/locales/en";
+import { TREE_SCAN_MS } from "./kit";
 import { LAYERS, catalogueFile, catalogueKeys, misplaced, stringsCensus } from "./strings-layers";
 
 /**
@@ -53,13 +54,17 @@ const PLANTED = {
 };
 
 describe("the strings layers (DEC-258)", () => {
-  it("CF-SL-1 every catalogue key sits in the file the census names", () => {
-    const census = stringsCensus(ROOT);
-    console.log(
-      `[strings-layers] scanned: ${census.scanned}, pages: ${census.pages.size}, keys: ${census.home.size}`,
-    );
-    expect(misplaced(census, ROOT)).toEqual([]);
-  });
+  it(
+    "CF-SL-1 every catalogue key sits in the file the census names",
+    () => {
+      const census = stringsCensus(ROOT);
+      console.log(
+        `[strings-layers] scanned: ${census.scanned}, pages: ${census.pages.size}, keys: ${census.home.size}`,
+      );
+      expect(misplaced(census, ROOT)).toEqual([]);
+    },
+    TREE_SCAN_MS,
+  );
 
   it("CF-SL-2 Amharic mirrors English file by file, and the parts join to the whole catalogue", () => {
     const parts = (["base", ...LAYERS] as const).map((home) => ({
