@@ -16,7 +16,7 @@ STRINGS sha256: `d41a33d0754356f636d2e70ac065f2aa9aceaebbfcc473276ecf632e9468ab0
 - B3: candidate allowlist only scratch legal route and three dev routes. Withdrawn.
 - B4: PGH-E2 passed both projects, no route server-function request on pick and URL unchanged; PGH-E1 failed both projects at raw HTML apostrophe encoding before its hydration/admin/ad assertions. Those assertions remain unverified.
 - B5: STOP; entry 208.2 KiB vs baseline 206.8115 KiB (about +1.39 KiB), above 0.5 KiB. No ceiling raised.
-- B6: PGH-1…6 and guard/seller/layer/selector targeted run: 6 files, 27 tests passed. Whole E2E spec 2 passed, 2 failed, 0 retries. Withdrawn.
+- B6: PGH-1…6 and guard/seller/layer/selector targeted run: 6 files, 37 tests passed. Whole E2E spec 2 passed, 2 failed, 0 retries. Withdrawn.
 - B7: candidate CF-HEAD-1/2 and wiring targeted green. Withdrawn.
 
 ## Measurement limits and causes
@@ -177,7 +177,7 @@ Cause: base head keys in the first catalogue plus the shared builder/effect, int
 | admin | head.admin.role.title | Role | ሚና |
 
 ## Tests and checks
-Targeted candidate: 27 tests passed; existing seller assertion unchanged and green. PGH-E1 raw title contains `Ethiopia&#x27;s`, not a literal apostrophe — the test comparison was wrong, not a demonstrated SSR-language defect. E2E first attempt stopped before build because the expected Chromium revision was absent; installed browser override then ran whole spec in both projects, 0 retries, 2 passed / 2 failed.
+Targeted candidate: 37 tests passed; existing seller assertion unchanged and green. PGH-E1 raw title contains `Ethiopia&#x27;s`, not a literal apostrophe — the test comparison was wrong, not a demonstrated SSR-language defect. E2E first attempt stopped before build because the expected Chromium revision was absent; installed browser override then ran whole spec in both projects, 0 retries, 2 passed / 2 failed.
 Whole checks unit verdict: 2,238 passed / 1 failed assertion; 375 files passed / 2 failed files. One failure is CF-LANG-1 (direct language-storage writes in the candidate E2E); the other is agent-induced: the candidate test file was withdrawn while the unit runner was still discovering it, causing module-not-found. This was an error in my withdrawal sequencing, not a product defect. No green whole-suite proof.
 `checks: 32 PASS · 2 FAIL · 21 NOT RUN · 665s`
 This one run spans candidate/withdrawal and an E2E-overwritten build output; it is NOT a coherent final-tree check. No manual push was attempted. Final harness build OK. Withdrawal recheck: language-records.test.ts whole, 2/2 passed.
