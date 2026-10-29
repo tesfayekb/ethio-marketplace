@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
@@ -21,10 +22,7 @@ export const Route = createFileRoute("/terms")({
     const url = root?.origin ? `${root.origin}/terms` : null;
     return {
       meta: [
-        { title: TITLE },
-        { name: "description", content: DESCRIPTION },
-        { property: "og:title", content: TITLE },
-        { property: "og:description", content: DESCRIPTION },
+      ...pageHead("head.site.pattern.title", "head.terms.description", "legal.kind.terms", null, "Terms of Service — ethio.com").meta,
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary" },
         ...(url ? [{ property: "og:url", content: url }] : []),
