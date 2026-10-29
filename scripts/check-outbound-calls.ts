@@ -15,8 +15,29 @@ import { readFileSync } from "node:fs";
 
 const ALLOWED = "public.job_call(text)";
 
-export function inspect(catalogue: string, config: string): string[] {
+/** INC-984: one recorded platform caller per line, `key | reason | until` (until = "CLI <pin>"). */
+export function allowlist(text: string, cliPin: string): { keys: Set<string>; failures: string[] } {
+  const keys = new Set<string>();
   const failures: string[] = [];
+  for (const line of text.split(/\r?\n/).filter((l) => l.trim() && !l.startsWith("#"))) {
+    const [key, reason, until, extra] = line.split("|").map((x) => x.trim());
+    if (!key || !reason || !until || extra !== undefined || !/\(.*\)$/.test(key)) {
+      failures.push(`allowlist: malformed line "${line}"`);
+      continue;
+    }
+    if (until !== `CLI ${cliPin}`) failures.push(`allowlist: ${key} expired (${until}, pin CLI ${cliPin})`);
+    else keys.add(key);
+  }
+  return { keys, failures };
+}
+
+export function inspect(
+  catalogue: string,
+  config: string,
+  allowed: Set<string> = new Set(),
+): string[] {
+  const failures: string[] = [];
+  const seen = new Set<string>();
   let sawAllowed = false;
   for (const line of catalogue.split(/\r?\n/).filter((l) => l.trim())) {
     const [fn, calls, extra] = line.split("\t");
@@ -26,9 +47,11 @@ export function inspect(catalogue: string, config: string): string[] {
     }
     if (calls !== "t") continue;
     if (fn === ALLOWED) sawAllowed = true;
+    else if (allowed.has(fn)) seen.add(fn);
     else failures.push(`${fn}: calls net.* outside job_call`);
   }
   if (!sawAllowed) failures.push(`${ALLOWED}: absent from the census`);
+  for (const key of allowed) if (!seen.has(key)) failures.push(`allowlist: ${key} stale (not in the census)`);
 
   const api = /^\[api\]\s*$([\s\S]*?)(?=^\[)/m.exec(`${config}\n[end]`)?.[1] ?? "";
   const list = (key: string): string[] => {
@@ -45,13 +68,15 @@ if (process.env["SELF_TEST"] === "1") {
   const [catalogue, config] = readFileSync("scripts/fixtures/outbound-calls-bad.txt", "utf8").split(
     /\r?\n----\r?\n/,
   );
-  const f = inspect(catalogue ?? "", config ?? "");
+  const allowed = new Set(["supabase_functions.http_request()"]);
+  const f = inspect(catalogue ?? "", config ?? "", allowed);
   const want = [
     "public.e2e_planted_caller(): calls net.* outside job_call",
+    "supabase_functions.e2e_planted_caller(): calls net.* outside job_call",
     "[api] schemas exposes net",
     "[api] extra_search_path holds net",
   ];
-  if (!want.every((w) => f.includes(w))) {
+  if (!want.every((w) => f.includes(w)) || f.some((x) => x.startsWith("supabase_functions.http_request"))) {
     console.error("Outbound-calls self-test FAILED: not every planted case refused");
     process.exit(1);
   }
@@ -60,7 +85,18 @@ if (process.env["SELF_TEST"] === "1") {
   const [catalogue, config] = process.argv.slice(2);
   if (!catalogue || !config)
     throw new Error("usage: check-outbound-calls.ts <catalogue.tsv> <config.toml>");
-  const failures = inspect(readFileSync(catalogue, "utf8"), readFileSync(config, "utf8"));
+  const pin = /^\s*version: (\d+\.\d+\.\d+)$/m.exec(
+    readFileSync(".github/workflows/local-backend-proof.yml", "utf8"),
+  )?.[1];
+  const list = allowlist(
+    readFileSync("scripts/conformance/outbound-calls-allowlist.txt", "utf8"),
+    pin ?? "unknown",
+  );
+  const failures = [
+    ...(pin ? [] : ["allowlist: the CLI pin is unreadable"]),
+    ...list.failures,
+    ...inspect(readFileSync(catalogue, "utf8"), readFileSync(config, "utf8"), list.keys),
+  ];
   if (failures.length) {
     for (const line of failures) console.error(`Outbound-calls guard FAIL: ${line}`);
     process.exit(1);
