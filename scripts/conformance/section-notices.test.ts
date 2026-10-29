@@ -15,6 +15,10 @@ import { report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * own ActionMessage. A piece inside a section (the job line inside the held-names
  * section) may report to that section: it draws no table or card of its own. No
  * allowlist.
+ *
+ * CI-2 (SNC-3): the section's message is one mechanism, useSectionNotice + SectionNotice
+ * (src/components/ui/section-notice.tsx). A section's file never holds notice state of its own
+ * — a useState whose type or first value carries a `tone` — outside it.
  */
 
 const ROOT = join(__dirname, "..", "..");
@@ -63,6 +67,29 @@ export function sectionNoticeCensus(
   return findings;
 }
 
+/** A section file's own notice state: a useState whose type argument or first value names `tone`. */
+export function ownNoticeStateCensus(
+  roots: string[],
+): Array<{ file: string; line: number; what: string }> {
+  const findings: Array<{ file: string; line: number; what: string }> = [];
+  for (const file of walkFiles(roots, { ext: ["tsx"], skipTests: true })) {
+    if (!SECTION_MARK.test(readFileSync(file, "utf8"))) continue;
+    visitTs(file, (node, source) => {
+      if (!ts.isCallExpression(node) || node.expression.getText(source) !== "useState") return;
+      const typed = [...(node.typeArguments ?? []), ...node.arguments].some((part) =>
+        /\btone\b/.test(part.getText(source)),
+      );
+      if (!typed) return;
+      findings.push({
+        file: relative(ROOT, file).split("\\").join("/"),
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        what: "a section holds its own notice state; use useSectionNotice + SectionNotice (CI-2)",
+      });
+    });
+  }
+  return findings;
+}
+
 describe("a section's outcome is shown beside its own table (INC-995)", () => {
   it(
     "SNC-1 no file under src/ hands a section an onNotice callback",
@@ -101,6 +128,46 @@ describe("a section's outcome is shown beside its own table (INC-995)", () => {
     try {
       const findings = sectionNoticeCensus([dir]);
       expect(findings.map((f) => `${f.file.split("/").pop()}:${f.line}`)).toEqual(["page.tsx:5"]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it(
+    "SNC-3 no section holds its own notice state outside useSectionNotice",
+    () => {
+      expect(report(ownNoticeStateCensus([join(ROOT, "src")]))).toBe("");
+    },
+    TREE_SCAN_MS,
+  );
+
+  it("SNC-3 the planted CI-1 shape (a section with its own notice state) is caught", () => {
+    const dir = join(ROOT, "node_modules/.cache/section-notice-state-planted");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "own.tsx"),
+      [
+        "export function OwnNotice() {",
+        '  const [notice, setNotice] = useState<{ key: string; tone: "ok" | "error" } | null>(null);',
+        '  return <PageCard testid="x">{notice?.key}</PageCard>;',
+        "}",
+        "",
+      ].join("\n"),
+    );
+    writeFileSync(
+      join(dir, "shared.tsx"),
+      [
+        "export function Shared() {",
+        "  const { notice } = useSectionNotice();",
+        "  const [open, setOpen] = useState<string | null>(null);",
+        '  return <PageCard testid="y"><SectionNotice notice={notice} testid="z" /></PageCard>;',
+        "}",
+        "",
+      ].join("\n"),
+    );
+    try {
+      const findings = ownNoticeStateCensus([dir]);
+      expect(findings.map((f) => `${f.file.split("/").pop()}:${f.line}`)).toEqual(["own.tsx:2"]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
