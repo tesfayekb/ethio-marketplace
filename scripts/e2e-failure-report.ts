@@ -638,6 +638,29 @@ function zeroOrGaps(tag: string, cov: ReturnType<typeof logCoverage>, anyLines: 
   return [];
 }
 
+/**
+ * INC-973 — a source whose backend never started has no results and no lane log,
+ * so the report used to say only "log unavailable". When the lane uploaded its
+ * redacted start-failure lines, name the failing migration and quote the last
+ * ERROR/FATAL lines. One lane's lines stand for every lane that failed the same
+ * way; the first carrier in source order is quoted, the rest are named.
+ */
+export function startFailureSection(sources: Source[]): string[] {
+  const carriers = sources.filter((s) => (s.startFailure ?? []).length > 0);
+  if (carriers.length === 0) return [];
+  const first = carriers[0];
+  return [
+    "## Backend start failure (INC-973)",
+    "",
+    `The temporary backend never came up, so these sources have neither results nor a lane log: ${carriers.map((s) => s.label).join(", ")}. The start log's error lines, redacted, from \`${first.label}\` (one lane's lines stand for every lane that failed the same way):`,
+    "",
+    "```text",
+    ...first.startFailure!,
+    "```",
+    "",
+  ];
+}
+
 /** DEC-084 — `[a11y] <page> <project> serious=<n> critical=<n>`. */
 export function grepA11y(text: string | null): string[] {
   if (!text) return [];
@@ -2639,6 +2662,10 @@ async function main() {
         logRead: log !== null,
         // INC-589 — the log's own count of errors outside any test.
         outsideSummary: outsideSummaryCount(log),
+        // INC-973 — the redacted start-failure lines, when the lane uploaded them.
+        startFailure: startFailureText
+          ? startFailureText.split("\n").filter((line) => line.trim() !== "")
+          : undefined,
       });
     }
   } else {
