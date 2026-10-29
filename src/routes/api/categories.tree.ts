@@ -5,7 +5,6 @@ import { defineRoute, type RouteContext } from "@/server/route";
 import { versionCache } from "@/server/version-cache";
 import { readAllPages } from "@/lib/read-all-pages";
 import { readFailed } from "@/lib/reader-failure";
-import { compareCodes } from "@/lib/compare-codes";
 
 /**
  * INC-263 — THE PUBLIC CATEGORY TREE, VERSION-KEYED.
@@ -89,14 +88,14 @@ async function handler(ctx: RouteContext): Promise<Response> {
           body: {
             version,
             nodes: [...nodes].sort(
-              (a, b) => a.display_order - b.display_order || compareCodes(a.id, b.id),
+              (a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id),
             ),
             pointers: [...pointers]
               .sort(
                 (a, b) =>
                   a.display_order - b.display_order ||
-                  compareCodes(a.created_at, b.created_at) ||
-                  compareCodes(a.id, b.id),
+                  a.created_at.localeCompare(b.created_at) ||
+                  a.id.localeCompare(b.id),
               )
               .map(({ child_id, parent_id, display_order, is_primary }) => ({
                 child_id,

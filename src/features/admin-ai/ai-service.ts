@@ -2,7 +2,6 @@ import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { compareCodes } from "@/lib/compare-codes";
 
 /**
  * Bundle 13 turn 5 (D158) — THE AI SERVICES CONSOLE CLIENT SEAM.
@@ -157,7 +156,7 @@ export function aiFeaturesOf(payload: unknown): AiFeatureRow[] {
     return index === -1 ? AI_FEATURE_ORDER.length : index;
   };
   return (rows as AiFeatureRow[]).sort(
-    (a, b) => rank(a.feature) - rank(b.feature) || compareCodes(a.feature, b.feature),
+    (a, b) => rank(a.feature) - rank(b.feature) || a.feature.localeCompare(b.feature),
   );
 }
 

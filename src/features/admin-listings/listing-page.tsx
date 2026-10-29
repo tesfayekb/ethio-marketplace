@@ -50,7 +50,6 @@ import { errorText } from "@/lib/error-text";
 import { catalogText, entityName } from "@/i18n/entity";
 import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
-import { formatCountryName } from "@/lib/country-name";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -882,6 +881,7 @@ function CertificationsCard({ listingId }: { listingId: string }) {
   const { permissions } = useAdminShell();
   const mayViewLegal = permissions.includes("legal:view");
   const query = useAdminListingCertifications(listingId);
+  const regions = new Intl.DisplayNames([language], { type: "region" });
   const when = dateFormatter("dayTime", language, "UTC");
   const kindName = (kind: string) =>
     kind === "terms" || kind === "privacy" || kind === "publishing"
@@ -932,7 +932,7 @@ function CertificationsCard({ listingId }: { listingId: string }) {
                     kindName(v.kind),
                     v.countryCode === null
                       ? t("admin.legal.scope.global")
-                      : formatCountryName(v.countryCode, language),
+                      : (regions.of(v.countryCode) ?? v.countryCode),
                     t("admin.legal.version").replace("{n}", String(v.version)),
                     v.label,
                   ].join(" · ");

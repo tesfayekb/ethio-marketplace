@@ -3,7 +3,6 @@ import type { MessageKey } from "@/i18n";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { ownValue } from "@/lib/own-key";
 import { compareNames } from "@/lib/name-collator";
-import { compareCodes } from "@/lib/compare-codes";
 
 /**
  * LOCATIONS ERA L2a — THE LOCATIONS CONSOLE CLIENT SEAM.
@@ -109,11 +108,11 @@ export async function listLocations(
   // Sorted back to the door's own order: country, level, display order, name.
   const data = [...pages].sort(
     (a, b) =>
-      compareCodes(a.country_code, b.country_code) ||
+      a.country_code.localeCompare(b.country_code) ||
       (ownValue(LEVEL_RANK, a.level) ?? 3) - (ownValue(LEVEL_RANK, b.level) ?? 3) ||
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
       compareNames(a.name_en, b.name_en) ||
-      compareCodes(a.id, b.id),
+      a.id.localeCompare(b.id),
   );
   return data.map((row) => ({
     id: row.id,
@@ -277,7 +276,7 @@ export function toRoster(rows: LocationRow[]): LocationNode[] {
       (a, b) =>
         levelRank(a.level) - levelRank(b.level) ||
         a.displayOrder - b.displayOrder ||
-        compareNames(a.nameEn, b.nameEn),
+        a.nameEn.localeCompare(b.nameEn),
     );
 
   const out: LocationNode[] = [];

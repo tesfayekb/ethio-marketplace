@@ -6,7 +6,6 @@ import { useI18n } from "@/i18n";
 import { legalDate } from "./legal-dates";
 import { LegalText } from "./legal-text";
 import { legalTextFor, type PublicLegalVersion } from "./legal-reader";
-import { formatCountryName } from "@/lib/country-name";
 
 export type LegalPageAnswer = {
   inForce: PublicLegalVersion | null;
@@ -39,7 +38,7 @@ export function LegalDocumentPage({
           <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
             {t("legal.certify.forCountry").replace(
               "{country}",
-              formatCountryName(countryCode, language),
+              new Intl.DisplayNames([language], { type: "region" }).of(countryCode) ?? countryCode,
             )}
           </p>
         ) : null}
@@ -128,7 +127,8 @@ export function LegalDocumentPage({
               <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
                 {t("legal.certify.forCountry").replace(
                   "{country}",
-                  formatCountryName(section.countryCode, language),
+                  new Intl.DisplayNames([language], { type: "region" }).of(section.countryCode) ??
+                    section.countryCode,
                 )}
               </p>
               {section.data === null ? (

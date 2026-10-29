@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { distanceKm } from "@/lib/geo-distance";
 import { callRoute } from "@/lib/route-client";
 import { UUID_RE } from "@/lib/uuid";
-import { compareNames } from "@/lib/name-collator";
 
 /**
  * LOCATIONS ERA L4b — THE SHELL'S GEOGRAPHY SEAM (B2: one utility, one concern).
@@ -189,7 +188,7 @@ export function parseMarkets(answer: Record<string, unknown> | null): OpenMarket
       displayOrder: Number(row.display_order ?? 0),
     }))
     .filter((row) => CODE_RE.test(row.code))
-    .sort((a, b) => a.displayOrder - b.displayOrder || compareNames(a.nameEn, b.nameEn));
+    .sort((a, b) => a.displayOrder - b.displayOrder || a.nameEn.localeCompare(b.nameEn));
 }
 
 async function fetchTree(country: string): Promise<TreeNode[]> {

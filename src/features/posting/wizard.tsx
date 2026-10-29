@@ -102,7 +102,6 @@ import {
   type CategoryFacts,
   type Refusal,
 } from "./types";
-import { formatCountryName } from "@/lib/country-name";
 
 /** D39 — the rails walk the seller's order; each entry keeps its door number. */
 const WALK = SEQUENCE.map((step) => STEPS[step - 1]);
@@ -420,9 +419,12 @@ function WizardShell({
         entities,
       );
     }
-    // An unknown code comes back as itself and falls through to the market's own name.
-    const name = formatCountryName(tokenCountry, language);
-    if (name !== tokenCountry) return name;
+    try {
+      const name = new Intl.DisplayNames([language], { type: "region" }).of(tokenCountry);
+      if (name !== undefined && name !== tokenCountry) return name;
+    } catch {
+      // An unknown code falls through to the market's own name or the fallback words.
+    }
     return market?.nameEn ?? fallbackCountry;
   }, [tokenCountry, openMarkets.markets, entities, language, fallbackCountry]);
   /** The {category:…} pointer the seller tapped, awaiting the move question. */
