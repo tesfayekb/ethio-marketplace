@@ -17,6 +17,11 @@
  *   inside another page (declared in SECTIONS) takes its host's heading: the
  *   host must draw the section and pass T1 itself.
  * - T2 the toolbar (`TableToolbar`: the search, Filters, Columns).
+ * - T2b (INC-987) the toolbar's search slot holds one search input and nothing
+ *   else: one `<Input>` (or, in a file named in SEARCH_PASSED, the page's own
+ *   search box handed down by name). A choice that narrows the rows lives in
+ *   Filters, so no `NativeSelect` or `Select` sits in the search or Columns slot.
+ *   Read from the file's syntax tree (TypeScript's parser), not by pattern.
  * - T3 Columns (`ColumnsButton`, with `useHiddenColumns`).
  * - T4 a Filters button shows its choices as chips (`FilterChips`).
  * - T5 a row's actions are `RowActions` (Edit, a red Delete, the three-dots
@@ -38,13 +43,15 @@
 import { readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 import { walkFiles } from "./conformance/kit";
 
-export type Rule = "T1" | "T2" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9";
+export type Rule = "T1" | "T2" | "T2b" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9";
 
 export const RULES: Record<Rule, string> = {
   T1: "the page's heading in the header (TableActions)",
   T2: "the toolbar (TableToolbar)",
+  T2b: "the search slot holds one search input; a choice that narrows the rows lives in Filters",
   T3: "Columns (ColumnsButton with useHiddenColumns)",
   T4: "a Filters button's choices as chips (FilterChips)",
   T5: "the row's actions as RowActions (or the toggle of the row's expandedRow)",
@@ -60,6 +67,57 @@ export const SECTIONS: Record<string, string> = {
   "src/features/admin/translations/data-scope.tsx":
     "src/features/admin/translations/strings-page.tsx",
 };
+
+/** Files whose toolbar search slot is the page's own box, handed down by name: file → reason. */
+export const SEARCH_PASSED: Record<string, string> = {
+  "src/features/admin/translations/data-scope.tsx":
+    "the strings page's search Input, passed as the `search` prop (strings-page.tsx draws it)",
+};
+
+const CHOICE_TAGS = new Set(["NativeSelect", "Select", "select"]);
+
+function tagOf(node: ts.Node): string | undefined {
+  if (ts.isJsxElement(node)) return node.openingElement.tagName.getText();
+  if (ts.isJsxSelfClosingElement(node)) return node.tagName.getText();
+  return undefined;
+}
+
+function holdsChoice(node: ts.Node): boolean {
+  const tag = tagOf(node);
+  if (tag !== undefined && CHOICE_TAGS.has(tag)) return true;
+  return ts.forEachChild(node, (child) => (holdsChoice(child) ? true : undefined)) === true;
+}
+
+/** T2b — what each `<TableToolbar>`'s search and columns slots hold, read from the syntax tree. */
+export function searchSlotBreach(file: string, text: string): boolean {
+  const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  let bad = false;
+  const visit = (node: ts.Node) => {
+    if (
+      (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
+      node.tagName.getText() === "TableToolbar"
+    ) {
+      for (const prop of node.attributes.properties) {
+        if (!ts.isJsxAttribute(prop) || prop.initializer === undefined) continue;
+        const slot = prop.name.getText();
+        if (slot !== "search" && slot !== "columns") continue;
+        const value =
+          ts.isJsxExpression(prop.initializer) && prop.initializer.expression
+            ? prop.initializer.expression
+            : prop.initializer;
+        if (holdsChoice(value)) bad = true;
+        if (slot !== "search") continue;
+        const one = ts.isParenthesizedExpression(value) ? value.expression : value;
+        const tag = tagOf(one);
+        const passed = ts.isIdentifier(one) && file in SEARCH_PASSED;
+        if (tag !== "Input" && !passed) bad = true;
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return bad;
+}
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -79,6 +137,7 @@ export function breaches(file: string, text: string): Rule[] {
   const out: Rule[] = [];
   if (!(file in SECTIONS) && !/<TableActions\b/.test(code)) out.push("T1");
   if (!/<TableToolbar\b/.test(code)) out.push("T2");
+  if (/<TableToolbar\b/.test(code) && searchSlotBreach(file, text)) out.push("T2b");
   if (!/<ColumnsButton\b/.test(code) || !/\buseHiddenColumns\(/.test(code)) out.push("T3");
   if (/<FiltersButton\b/.test(code) && !/<FilterChips\b/.test(code)) out.push("T4");
   if (/\browActions=/.test(code) && !/<RowActions\b/.test(code) && !/\bexpandedRow=/.test(code)) {

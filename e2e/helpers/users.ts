@@ -273,6 +273,10 @@ async function reapPoolAccount(id: string, email: string, password: string): Pro
   if (aliases.error) fail("alias history", aliases.error.message);
   const places = await supabase.from("seller_places").delete().eq("user_id", id);
   if (places.error) fail("seller places", places.error.message);
+  // N1b-3a (INC-989) — a lease's name checks never carry into the next: a held
+  // ('imitates') row left by an aborted run would hide a later test's name.
+  const checks = await supabase.from("name_checks").delete().eq("profile_id", id);
+  if (checks.error) fail("name checks", checks.error.message);
   // Bundle 22 (Stage 1) turn 1 — a lease's legal acceptances and legal e-mails never carry into the next.
   const accepts = await supabase.from("legal_acceptances").delete().eq("user_id", id);
   if (accepts.error) fail("legal acceptances", accepts.error.message);

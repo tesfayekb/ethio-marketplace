@@ -27,8 +27,13 @@ test("ACR-E1 staff history filters through the real door and renders its exact p
     await expect(surface.getByTestId(rowId(row.id))).toBeVisible();
   if (answer.data.rows.length === 0)
     await expect(section.getByTestId("data-table-empty")).toBeVisible();
-  await section.getByTestId("ai-calls-feature").selectOption("name_check");
-  await section.getByTestId("ai-calls-outcome").selectOption("timeout");
+  // INC-987 — the choices live in the Filters panel (T2b).
+  await section.getByTestId("ai-calls-filters").click();
+  const panel = page.getByTestId("ai-calls-filters-panel");
+  await panel.getByTestId("ai-calls-feature-name_check").click();
+  await panel.getByTestId("ai-calls-outcome-timeout").click();
+  await page.keyboard.press("Escape");
+  await expect(section.getByTestId("ai-calls-chips-chip-outcome")).toBeVisible();
   const filtered = await inBrowserClient(page, (client) =>
     client.rpc<{ rows: { id: string; feature: string; outcome: string }[] }>(
       "admin_list_ai_calls",

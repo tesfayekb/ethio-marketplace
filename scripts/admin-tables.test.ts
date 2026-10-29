@@ -168,3 +168,39 @@ export function MyListingsPage() {
     ]);
   });
 });
+
+describe("T2b — the toolbar's search slot (INC-987)", () => {
+  const f = "src/features/admin-x/x-page.tsx";
+  const withSearch = (slot: string) =>
+    GOOD.replace("<TableToolbar>", `<TableToolbar search={${slot}}>`);
+
+  it("TBS-1 every toolbar search slot in the tree holds one search input", () => {
+    const sources = readTableSources();
+    const refused = check(sources).refusals.filter((line) => line.includes(": T2b "));
+    const slots = sources.filter((s) => /<TableToolbar\b[\s\S]*?\bsearch=\{/.test(s.text)).length;
+    console.log(`[T2b] files with a search slot: ${slots}`);
+    expect(slots).toBeGreaterThanOrEqual(14);
+    expect(refused).toEqual([]);
+  });
+
+  it("TBS-2 the planted INC-987 shape, a lone choice, and a choice in Columns are refused", () => {
+    expect(breaches(f, withSearch('<Input value={q} aria-label="x" />'))).toEqual([]);
+    // The shape INC-987 found: two choices in a fragment.
+    expect(
+      breaches(f, withSearch("<><NativeSelect value={a} /><NativeSelect value={b} /></>")),
+    ).toEqual(["T2b"]);
+    expect(breaches(f, withSearch("<NativeSelect value={a} />"))).toEqual(["T2b"]);
+    expect(breaches(f, withSearch("<><Input /><Input /></>"))).toEqual(["T2b"]);
+    // A name handed down is allowed only in a file that says why (SEARCH_PASSED).
+    expect(breaches(f, withSearch("search"))).toEqual(["T2b"]);
+    expect(
+      breaches(
+        f,
+        GOOD.replace("<ColumnsButton />", "<ColumnsButton />").replace(
+          "<TableToolbar>",
+          '<TableToolbar search={<Input />} columns={<Select value="x" />}>',
+        ),
+      ),
+    ).toEqual(["T2b"]);
+  });
+});

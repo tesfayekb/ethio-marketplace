@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 612,
-  "dynamicCallSites": 400,
+  "dynamicCallSites": 401,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -8327,6 +8327,7 @@
       "/my-listings"
     ],
     "prim.table.clearAll": [
+      "/admin/ai",
       "/admin/audit",
       "/admin/categories",
       "/admin/countries",
@@ -8374,6 +8375,7 @@
       "/my-listings"
     ],
     "prim.table.filters": [
+      "/admin/ai",
       "/admin/audit",
       "/admin/categories",
       "/admin/countries",
@@ -8481,6 +8483,7 @@
       "/my-listings"
     ],
     "prim.table.removeFilter": [
+      "/admin/ai",
       "/admin/audit",
       "/admin/categories",
       "/admin/countries",
@@ -8567,6 +8570,7 @@
       "/my-listings"
     ],
     "prim.table.showResults": [
+      "/admin/ai",
       "/admin/audit",
       "/admin/categories",
       "/admin/countries",

@@ -425,6 +425,7 @@ Every admin table is built on the blocks above. One rule per element; `scripts/a
 
 - **T1 — the heading:** the page's heading sits in the header (`TableActions`). A table drawn inside another page takes its host's heading; the check's `SECTIONS` declares it (the Data scope inside Strings) and the host must draw it and pass T1.
 - **T2 — the toolbar:** `TableToolbar` — the search, Filters, Columns, in that order.
+- **T2b — the search slot (N1b-3a, INC-987):** `search` holds one `<Input>` and nothing else (a page's own box handed down by name only in a file `SEARCH_PASSED` names, with its reason); a choice that narrows the rows is a `FilterChoices` inside `FiltersButton`, shown as `FilterChips` — never a `NativeSelect` or `Select` in the search or Columns slot. Read from the syntax tree; TBS-1/2.
 - **T3 — Columns:** `ColumnsButton`, the choice kept by `useHiddenColumns`; the name column locked.
 - **T4 — Filters:** a Filters button (`FiltersButton`) shows the chosen filters as chips (`FilterChips`, with Clear all).
 - **T5 — the row's actions:** `RowActions` — Edit, a red Delete, the three-dots menu with the rest (its destructive items red). A row that only opens its own details carries the toggle of the table's `expandedRow` instead (Audit's Details).
