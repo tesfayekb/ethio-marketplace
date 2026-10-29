@@ -161,7 +161,10 @@ export function AdminScreeningPage({
   const schema = useScreeningSchema(previewRow?.categoryId ?? null);
   const nameChecks = useNameCheckSummary();
   // The audit page's day format (admin/audit/audit-page.tsx), for the oldest waiting name.
-  const dayFmt = new Intl.DateTimeFormat(formatLocale(language), { day: "numeric", month: "short" });
+  const dayFmt = new Intl.DateTimeFormat(formatLocale(language), {
+    day: "numeric",
+    month: "short",
+  });
 
   const named = (value: ScreeningRow["category"]) =>
     value === null ? "—" : catalogText(value.name_en, value.name_am, language);

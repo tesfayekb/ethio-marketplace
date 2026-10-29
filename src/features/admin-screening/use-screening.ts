@@ -359,10 +359,17 @@ export interface NameCheckSummary {
 
 export function nameCheckSummaryOf(raw: unknown): NameCheckSummary {
   const malformed = () =>
-    new ReaderError({ class: "malformed", message: "admin_name_check_summary: answer out of shape" });
+    new ReaderError({
+      class: "malformed",
+      message: "admin_name_check_summary: answer out of shape",
+    });
   if (raw === null || typeof raw !== "object" || Array.isArray(raw)) throw malformed();
-  const { unchecked, oldest_since: oldest } = raw as { unchecked?: unknown; oldest_since?: unknown };
-  if (typeof unchecked !== "number" || !Number.isInteger(unchecked) || unchecked < 0) throw malformed();
+  const { unchecked, oldest_since: oldest } = raw as {
+    unchecked?: unknown;
+    oldest_since?: unknown;
+  };
+  if (typeof unchecked !== "number" || !Number.isInteger(unchecked) || unchecked < 0)
+    throw malformed();
   if (oldest !== null && typeof oldest !== "string") throw malformed();
   if (unchecked > 0 && oldest === null) throw malformed();
   return { unchecked, oldestSince: oldest };
