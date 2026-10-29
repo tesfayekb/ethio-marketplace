@@ -65,7 +65,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/legal/accept": { ceiling: 218, public: false }, // 215.0
   "/legal/publishing": { ceiling: 212, public: true }, // 208.2
   "/my-listings": { ceiling: 327, public: false }, // 323.4
-  "/my-listings_/$listingId": { ceiling: 315, public: false }, // 311.1
+  "/my-listings_/$listingId": { ceiling: 316, public: false }, // 315.1 (INC-972: INC-949's mapsPathQuery is first-paint — the Maps address no longer waits for the tree; the six INC-951 dial entries ride the one eager registry, src/lib/dials.ts, which no page may split)
   "/my-listings_/$listingId_/edit": { ceiling: 397, public: false }, // 393.2 (CI, turn C1)
   "/post": { ceiling: 397, public: false }, // 393.1 (CI, turn C1)
   "/post_/$listingId": { ceiling: 397, public: false }, // 393.1 (CI, turn C1)
