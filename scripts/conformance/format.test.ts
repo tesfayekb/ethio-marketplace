@@ -14,7 +14,11 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  *   - `Intl.DateTimeFormat`, `Intl.NumberFormat`, `Intl.RelativeTimeFormat` (constructed or read);
  *   - a `toLocaleString` / `toLocaleDateString` / `toLocaleTimeString` call;
  *   - a literal locale tag (`"am-ET"`, `"en-GB"`, `"en-US"` …);
- *   - the country-code shape `/^[A-Z]{2}$/` or the currency-code shape `/^[A-Z]{3}$/`.
+ *   - the country-code shape `/^[A-Z]{2}$/` or the currency-code shape `/^[A-Z]{3}$/`;
+ *   - (L-2 Part A) `Intl.DisplayNames` outside src/lib/country-name.ts, `Intl.Collator` outside
+ *     src/lib/collator.ts, `Intl.Segmenter` anywhere, and — in src/ — a `localeCompare` with no
+ *     locale argument (the runtime's default locale differs between server and browser: reader
+ *     order is collatorFor, a fixed order compareNames, a machine order compareCodes).
  * A recorded exception is a line in format-allowlist.txt keyed `<file> (<findings>)` | reason | until.
  */
 type Finding = { file: string; line: number; what: string };
@@ -25,6 +29,13 @@ const TO_LOCALE = new Set(["toLocaleString", "toLocaleDateString", "toLocaleTime
 const LOCALE_TAG = /^[a-z]{2,3}-[A-Z]{2}$/;
 const CODE_SHAPE = /^\/\^\[A-Z\]\{[23]\}\$\/[a-z]*$/;
 const RULE = "(INC-985: use src/lib/format.ts / src/lib/locale.ts)";
+/** L-2 Part A — each locale-sensitive Intl API's one home. */
+const INTL_HOMES: Readonly<Record<string, string>> = {
+  DisplayNames: "src/lib/country-name.ts",
+  Collator: "src/lib/collator.ts",
+  Segmenter: "",
+};
+const ORDER_RULE = "(L-2: collatorFor / compareNames / compareCodes)";
 const ALLOWLIST = "scripts/conformance/format-allowlist.txt";
 
 export function formatFindings(files: string[], root: string): Finding[] {
@@ -41,6 +52,22 @@ export function formatFindings(files: string[], root: string): Finding[] {
         INTL.has(node.name.text)
       )
         found.push({ file: name, line: at(), what: `uses Intl.${node.name.text} ${RULE}` });
+      else if (
+        ts.isPropertyAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "Intl" &&
+        Object.prototype.hasOwnProperty.call(INTL_HOMES, node.name.text) &&
+        INTL_HOMES[node.name.text] !== name
+      )
+        found.push({ file: name, line: at(), what: `uses Intl.${node.name.text} ${ORDER_RULE}` });
+      else if (
+        name.startsWith("src/") &&
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        node.expression.name.text === "localeCompare" &&
+        node.arguments.length < 2
+      )
+        found.push({ file: name, line: at(), what: `localeCompare with no locale ${ORDER_RULE}` });
       else if (
         ts.isCallExpression(node) &&
         ts.isPropertyAccessExpression(node.expression) &&
@@ -103,7 +130,19 @@ describe("one formatter per intent, one locale module (CF-FMT-1)", () => {
           "const c = (1).toLocaleString();",
           "const d = /^[A-Z]{2}$/.test(code);",
           "const e = new Intl.RelativeTimeFormat(x);",
+          'const a2 = new Intl.DisplayNames(["am"], { type: "region" });',
+          'const b2 = new Intl.Collator("am");',
+          "const c2 = x.localeCompare(y);",
+          'const ok = x.localeCompare(y, "am");',
         ].join("\n"),
+      );
+      writeFileSync(
+        join(root, "src", "lib", "country-name.ts"),
+        'export const n = new Intl.DisplayNames(["en"], { type: "region" });\n',
+      );
+      writeFileSync(
+        join(root, "src", "lib", "collator.ts"),
+        'export const c = new Intl.Collator("en");\n',
       );
       writeFileSync(
         join(root, "src", "lib", "format.ts"),
@@ -118,6 +157,9 @@ describe("one formatter per intent, one locale module (CF-FMT-1)", () => {
         "src/feature/page.tsx:3",
         "src/feature/page.tsx:4",
         "src/feature/page.tsx:5",
+        "src/feature/page.tsx:6",
+        "src/feature/page.tsx:7",
+        "src/feature/page.tsx:8",
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });
