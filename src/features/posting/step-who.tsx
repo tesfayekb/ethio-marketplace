@@ -1,4 +1,3 @@
-import { collatorFor } from "@/lib/reader-locale";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { readAreaCookie, useOpenMarkets } from "@/components/shell/location-data";
@@ -651,7 +650,7 @@ export function StepWho({
     const marketCodes = new Set(markets.markets.map((market) => market.code));
     const rest = allCountries
       .filter((row) => !marketCodes.has(row.code))
-      .sort((a, b) => collatorFor(language).compare(a.nameEn, b.nameEn));
+      .sort((a, b) => a.nameEn.localeCompare(b.nameEn, language));
     return [
       ...markets.markets.map((market) => ({
         code: market.code,

@@ -1,4 +1,3 @@
-import { compareCodes } from "@/lib/reader-locale";
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
@@ -157,7 +156,7 @@ export function aiFeaturesOf(payload: unknown): AiFeatureRow[] {
     return index === -1 ? AI_FEATURE_ORDER.length : index;
   };
   return (rows as AiFeatureRow[]).sort(
-    (a, b) => rank(a.feature) - rank(b.feature) || compareCodes(a.feature, b.feature),
+    (a, b) => rank(a.feature) - rank(b.feature) || a.feature.localeCompare(b.feature),
   );
 }
 

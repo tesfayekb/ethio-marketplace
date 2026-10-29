@@ -1,5 +1,3 @@
-import { compareNames } from "@/lib/name-collator";
-import { compareCodes } from "@/lib/reader-locale";
 import { ArrowDownUp, Download, MapPin, MoveRight, Plus, RotateCcw, Upload } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 
@@ -118,8 +116,8 @@ export function AdminLocationsPage() {
     return [...rows].sort(
       (a, b) =>
         Number(b.isActive) - Number(a.isActive) ||
-        compareNames(a.nameEn, b.nameEn) ||
-        compareCodes(a.code, b.code),
+        a.nameEn.localeCompare(b.nameEn) ||
+        a.code.localeCompare(b.code),
     );
   }, [countries.data]);
 

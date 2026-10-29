@@ -1,4 +1,3 @@
-import { collatorFor } from "@/lib/reader-locale";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -53,7 +52,7 @@ export function CategoryAttributesDialog({
   guard: GuardFn;
   onClose: () => void;
 }) {
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   // C3-UX-2 — linked names, the card caption and the picker all read the
   // translated label, with the EN definition name as fallback.
   const attributeLabel = useAttributeLabel();
@@ -86,8 +85,7 @@ export function CategoryAttributesDialog({
   const rows: AttributeLink[] = [...(links.data ?? [])].sort(
     (a, b) =>
       a.displayOrder - b.displayOrder ||
-      collatorFor(language).compare(
-        attributeLabel(a.attributeId, a.nameEn),
+      attributeLabel(a.attributeId, a.nameEn).localeCompare(
         attributeLabel(b.attributeId, b.nameEn),
       ),
   );
