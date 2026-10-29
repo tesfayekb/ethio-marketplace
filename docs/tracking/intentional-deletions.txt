@@ -68,3 +68,6 @@ src/lib/compare-codes.test.ts
 src/lib/compare-codes.ts
 src/lib/country-name.test.ts
 src/lib/country-name.ts
+
+# L-2c continuation stop 2: shared Part A withdrawn for over-tolerance growth.
+src/lib/reader-locale.ts
