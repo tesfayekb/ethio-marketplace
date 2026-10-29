@@ -66,6 +66,8 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
   test("NCQ-E2E-1 Allow: a held name is listed with what it imitates; staff allow it under step-up; buyers see it again", async ({
     page,
   }) => {
+    // The pool's seller keeps its audit history across runs: read only this test's rows.
+    const started = new Date().toISOString();
     const seller = await scratchSeller();
     const alias = `eallow_${token()}`;
     await saveOwnAlias(seller, alias);
@@ -100,7 +102,8 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
       .from("audit_log")
       .select("meta")
       .eq("action", "name_check.cleared")
-      .eq("entity_id", seller.id);
+      .eq("entity_id", seller.id)
+      .gte("created_at", started);
     expect(audit.error).toBeNull();
     expect(audit.data?.length).toBe(1);
     expect((audit.data?.[0]?.meta as { reason?: string } | null)?.reason).toBe("e2e staff review");
