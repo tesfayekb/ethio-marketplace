@@ -42,7 +42,6 @@ import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
-import { JobHealthLine } from "./job-line";
 import { NameChecks } from "./name-checks";
 import { PhotoChanges } from "./photo-changes";
 import { PhotoReviews } from "./photo-reviews";
@@ -469,12 +468,6 @@ export function AdminScreeningPage({
                           .replace("{date}", dayFmt.format(new Date(nameChecks.data.oldestSince)))}
                 </p>
               )}
-              <JobHealthLine
-                mayView={mayViewJob}
-                mayResume={mayResumeJob}
-                guard={guard}
-                onNotice={(key, tone) => setNotice({ key, tone })}
-              />
             </div>
 
             {/* INC-570 — the outcome of a decision comes into view wherever the row was. */}
@@ -652,26 +645,19 @@ export function AdminScreeningPage({
             />
 
             {/* Bundle 16 turn 4b (D178) — the photos kept hidden for a person. */}
-            <PhotoReviews
-              mayReview={mayReview}
-              guard={guard}
-              onNotice={(key, tone) => setNotice({ key, tone })}
-            />
+            <PhotoReviews mayReview={mayReview} guard={guard} />
 
             {/* N1b-3c (INC-977) — the seller names held for review. */}
             <NameChecks
               mayList={mayOpenListing}
               mayClear={mayRename}
+              mayViewJob={mayViewJob}
+              mayResumeJob={mayResumeJob}
               guard={guard}
-              onNotice={(key, tone) => setNotice({ key, tone })}
             />
 
             {/* D154 B5 (bundle 13 turn 10) — the photo changes sellers made on live ads. */}
-            <PhotoChanges
-              mayReview={mayReview}
-              guard={guard}
-              onNotice={(key, tone) => setNotice({ key, tone })}
-            />
+            <PhotoChanges mayReview={mayReview} guard={guard} />
 
             <AlertDialog
               open={decision !== null}

@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
+import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import { ADMIN_LISTINGS_KEY } from "@/features/admin-listings/use-admin-listings";
@@ -43,15 +44,10 @@ import { formatLocale } from "@/lib/format-locale";
  * `admin-photo-review-ad`, Allow `admin-photo-review-allow`, Show photos
  * `admin-photo-review-photos`, a refusal `admin-photo-review-problem`.
  */
-export function PhotoReviews({
-  mayReview,
-  guard,
-  onNotice,
-}: {
-  mayReview: boolean;
-  guard: GuardFn;
-  onNotice: (key: MessageKey, tone: "ok" | "error") => void;
-}) {
+export function PhotoReviews({ mayReview, guard }: { mayReview: boolean; guard: GuardFn }) {
+  // INC-995 — this section's outcomes are shown beside its own table (INC-570).
+  const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
+  const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });
   const { t, language } = useI18n();
   const queryClient = useQueryClient();
   const reviews = usePhotoReviews(mayReview);
@@ -96,6 +92,14 @@ export function PhotoReviews({
 
   return (
     <PageCard testid="admin-photo-reviews" className="min-w-0 space-y-3">
+      <ActionMessage
+        persistent
+        role="status"
+        testid="admin-photo-reviews-notice"
+        tone={notice?.tone === "error" ? "error" : "done"}
+        text={notice === null ? null : t(notice.key)}
+        className={notice?.tone === "error" ? undefined : "text-foreground"}
+      />
       <div className="space-y-1">
         <h2 className="text-sm font-semibold text-foreground">
           {t("admin.screening.reviews.title")}

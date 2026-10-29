@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
+import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -39,15 +40,10 @@ const KIND_LABEL: Record<PhotoChangeKind, MessageKey> = {
  * D169 (bundle 14 turn 1): Remove is in Edit on the ad's own page, which the ad's
  * title links to — no photo is removed from Screening.
  */
-export function PhotoChanges({
-  mayReview,
-  guard,
-  onNotice,
-}: {
-  mayReview: boolean;
-  guard: GuardFn;
-  onNotice: (key: MessageKey, tone: "ok" | "error") => void;
-}) {
+export function PhotoChanges({ mayReview, guard }: { mayReview: boolean; guard: GuardFn }) {
+  // INC-995 — this section's outcomes are shown beside its own table (INC-570).
+  const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
+  const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });
   const { t, language } = useI18n();
   const queryClient = useQueryClient();
   const changes = usePhotoChanges(mayReview);
@@ -85,6 +81,14 @@ export function PhotoChanges({
 
   return (
     <PageCard testid="admin-photo-changes" className="min-w-0 space-y-3">
+      <ActionMessage
+        persistent
+        role="status"
+        testid="admin-photo-changes-notice"
+        tone={notice?.tone === "error" ? "error" : "done"}
+        text={notice === null ? null : t(notice.key)}
+        className={notice?.tone === "error" ? undefined : "text-foreground"}
+      />
       <div className="space-y-1">
         <h2 className="text-sm font-semibold text-foreground">
           {t("admin.screening.changes.title")}

@@ -521,34 +521,40 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (carriedForRef.current === userId) return;
     carriedForRef.current = userId;
     if (requestedFromUrl() !== null) return;
-    void fetchPreferredLanguage().then((read) => {
-      if (!read.ok) {
-        if (!read.signedOut) {
-          console.warn(`[i18n] account language read failed: ${read.error.failure.message}`);
-        }
-        return;
-      }
-      const code = read.code;
-      if (code === null) {
-        const current = languageRef.current;
-        if (!isPublic(current)) return;
-        void savePreferredLanguage(current).then((result) => {
-          if (!result.ok && result.reason !== "no session") {
-            console.warn(`[i18n] account language save failed for ${current}: ${result.reason}`);
+    void fetchPreferredLanguage()
+      .then((read) => {
+        if (!read.ok) {
+          if (!read.signedOut) {
+            console.warn(`[i18n] account language read failed: ${read.error.failure.message}`);
           }
-        });
-        return;
-      }
-      if (!isLanguageCode(code) || !isPublic(code)) return;
-      setStarState(code);
-      writeDeviceStar(code);
-      setLanguageState(code);
-      try {
-        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
-      } catch {
-        // Storage unavailable; the star cookie still carries the choice.
-      }
-    });
+          return;
+        }
+        const code = read.code;
+        if (code === null) {
+          const current = languageRef.current;
+          if (!isPublic(current)) return;
+          void savePreferredLanguage(current).then((result) => {
+            if (!result.ok && result.reason !== "no session") {
+              console.warn(`[i18n] account language save failed for ${current}: ${result.reason}`);
+            }
+          });
+          return;
+        }
+        if (!isLanguageCode(code) || !isPublic(code)) return;
+        setStarState(code);
+        writeDeviceStar(code);
+        setLanguageState(code);
+        try {
+          window.localStorage.setItem(LANGUAGE_STORAGE_KEY, code);
+        } catch {
+          // Storage unavailable; the star cookie still carries the choice.
+        }
+      })
+      .catch((error: unknown) => {
+        // The read's own code did not download (reported to the shell's notice): the
+        // device keeps its choice and nothing is written.
+        console.warn(`[i18n] account language read failed: ${errorText(error)}`);
+      });
   }, [bootRead, authSettled, gateReady, userId, isPublic]);
 
   /**

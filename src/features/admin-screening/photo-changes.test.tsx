@@ -69,14 +69,15 @@ vi.mock("./use-photo-changes", async (importOriginal) => ({
   reviewPhotoChange: (...args: unknown[]) => reads.review(...args),
 }));
 
-function mount(options: { mayReview: boolean }, onNotice = vi.fn()) {
+function mount(options: { mayReview: boolean }) {
   const guard = vi.fn() as unknown as GuardFn;
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <PhotoChanges {...options} guard={guard} onNotice={onNotice} />
+      <PhotoChanges {...options} guard={guard} />
     </QueryClientProvider>,
   );
-  return { onNotice };
+  // INC-995 — the section's own outcome line, beside its own list.
+  return { notice: () => screen.getByTestId("admin-photo-changes-notice").textContent ?? "" };
 }
 
 /**
@@ -110,16 +111,14 @@ describe("PhotoChanges (D154 B5)", () => {
 
   it("PCH-4 Mark reviewed calls the door with the change; a change already reviewed is said so", async () => {
     reads.review.mockResolvedValueOnce(undefined);
-    const { onNotice } = mount({ mayReview: true });
+    const { notice } = mount({ mayReview: true });
     const items = screen.getAllByTestId("admin-photo-change");
     fireEvent.click(within(items[0]!).getByTestId("admin-photo-change-review"));
     await waitFor(() => expect(reads.review).toHaveBeenCalledWith("c1"));
-    expect(onNotice).not.toHaveBeenCalled();
+    expect(notice()).toBe("");
     reads.review.mockRejectedValueOnce({ message: "changeGone" });
     fireEvent.click(within(items[1]!).getByTestId("admin-photo-change-review"));
-    await waitFor(() =>
-      expect(onNotice).toHaveBeenCalledWith("admin.screening.changes.gone", "error"),
-    );
+    await waitFor(() => expect(notice()).toBe("admin.screening.changes.gone"));
   });
 
   it("PCH-5 Show photos opens the ad's photos view-only: a photo is removed in Edit on the ad's page (D169)", () => {

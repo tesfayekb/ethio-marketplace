@@ -37,12 +37,14 @@ const answered = (data: unknown) => ({
   isFetching: false,
   refetch: vi.fn(),
 });
+/** INC-994 — markup with no closing tag: drawn as text, it must never become an element. */
+const PAYLOAD = "<img src=x onerror=alert(1)>";
 const row = {
   profileId: "p1",
   subject: "alias" as const,
   name: "CocaColaShop",
   checkedText: "cocacolashop",
-  of: "<b>Coca-Cola</b>",
+  of: PAYLOAD,
   nameHidden: false,
   since: "2026-10-29T10:00:00Z",
   attempts: 1,
@@ -54,7 +56,7 @@ describe("NCQ-U the queue section", () => {
       ...answered(undefined),
       error: new Error("permission denied"),
     });
-    wrap(<NameChecks mayList mayClear guard={guard} onNotice={vi.fn()} />);
+    wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
     expect(screen.getByTestId("admin-name-checks-error").textContent).toBe(
       "admin.screening.names.error",
     );
@@ -72,18 +74,23 @@ describe("NCQ-U the queue section", () => {
         next: null,
       }),
     );
-    const { container } = wrap(<NameChecks mayList mayClear guard={guard} onNotice={vi.fn()} />);
+    const { container } = wrap(
+      <NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />,
+    );
     const lines = screen.getAllByTestId("admin-name-check-of").map((node) => node.textContent);
-    expect(lines).toContain("admin.screening.names.of".replace("{of}", "<b>Coca-Cola</b>"));
+    expect(lines).toContain("admin.screening.names.of".replace("{of}", PAYLOAD));
     expect(lines).toContain("admin.screening.names.noReason");
-    expect(container.querySelector("b")).toBeNull();
+    // INC-994 — the payload is shown as its literal text and never becomes an element.
+    expect(container.querySelector("img")).toBeNull();
     expect(screen.getAllByText("admin.screening.names.nameHidden").length).toBeGreaterThan(0);
   });
 
   it("NCQ-U5 without listings:view nothing is read or drawn", () => {
     state.queue.mockClear();
     state.queue.mockReturnValue(answered(undefined));
-    wrap(<NameChecks mayList={false} mayClear guard={guard} onNotice={vi.fn()} />);
+    wrap(
+      <NameChecks mayList={false} mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />,
+    );
     expect(state.queue).toHaveBeenLastCalledWith(null, false);
     expect(screen.queryByTestId("admin-name-checks")).toBeNull();
   });

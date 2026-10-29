@@ -1323,7 +1323,8 @@ test.describe("ADMIN SCREENING", () => {
 
     await row.getByTestId("admin-photo-review-allow").click();
     await stepUpIfPrompted(page, secret);
-    await expect(page.getByTestId("admin-screening-notice")).toHaveText(
+    // INC-995 — Allow's outcome is shown beside the held-photos section, not the listings table.
+    await expect(page.getByTestId("admin-photo-reviews-notice")).toHaveText(
       en["admin.listings.photos.allowed"],
       { timeout: 20000 },
     );
