@@ -2478,6 +2478,47 @@ export type Database = {
         }
         Relationships: []
       }
+      name_checks: {
+        Row: {
+          attempts: number
+          checked_text: string
+          home_country_code: string | null
+          last_attempt_at: string | null
+          profile_id: string
+          since: string
+          state: string
+          subject: string
+        }
+        Insert: {
+          attempts?: number
+          checked_text: string
+          home_country_code?: string | null
+          last_attempt_at?: string | null
+          profile_id: string
+          since?: string
+          state: string
+          subject: string
+        }
+        Update: {
+          attempts?: number
+          checked_text?: string
+          home_country_code?: string | null
+          last_attempt_at?: string | null
+          profile_id?: string
+          since?: string
+          state?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "name_checks_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       name_folds: {
         Row: {
           fold: string
@@ -4330,6 +4371,7 @@ export type Database = {
         Args: { p_id: string; p_new_parent_id: string }
         Returns: undefined
       }
+      admin_name_check_summary: { Args: never; Returns: Json }
       admin_open_report_counts: {
         Args: { p_listing_ids: string[] }
         Returns: Json
@@ -5327,6 +5369,15 @@ export type Database = {
       my_seller_place: { Args: never; Returns: Json }
       my_viewing_location: { Args: never; Returns: Json }
       name_brand_folds: { Args: never; Returns: string[] }
+      name_check_mark: {
+        Args: {
+          p_profile: string
+          p_state: string
+          p_subject: string
+          p_text: string
+        }
+        Returns: boolean
+      }
       name_claim_folds: { Args: never; Returns: string[] }
       name_fold: { Args: { p: string }; Returns: string }
       name_fold_am: { Args: { p: string }; Returns: string }

@@ -146,3 +146,4 @@ admin_upsert_country | admin door; countries:update and a fresh second factor ch
 admin_upsert_location | admin door; locations:create/update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
 admin_upsert_language | admin door; translations:manage and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
 admin_list_ai_calls | Foundations turn A2: services:view checked before validation/read; 90-day keyset page, no hashes or actor IDs; profiles:view controls names; core has no API-role execute grant
+admin_name_check_summary | Foundations turn N1a (INC-977): staff count of unchecked seller names and the oldest 'since'; listings:view checked inside before the read; returns no name or person
