@@ -1,7 +1,8 @@
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { walkFiles } from "../conformance/kit";
 // @ts-expect-error — plain Node module (the lane job runs it with node), no declaration file.
 import { ECHO_LINES, startFailureExcerpt, TAIL_LINES } from "./start-failure-excerpt.mjs";
 
@@ -27,8 +28,9 @@ const THROUGH_MECHANISM = /start-failure-excerpt\.mjs|step-failures\.mjs/;
 
 export function inlineFailureCuts(dir: string): string[] {
   const found: string[] = [];
-  for (const name of readdirSync(dir).filter((file) => /\.ya?ml$/.test(file)).sort()) {
-    readFileSync(join(dir, name), "utf8")
+  for (const file of walkFiles([dir], { ext: ["yml", "yaml"] })) {
+    const name = basename(file);
+    readFileSync(file, "utf8")
       .split("\n")
       .forEach((line, index) => {
         if (INLINE_CUT.test(line) && FAILURE_LOG.test(line) && !THROUGH_MECHANISM.test(line))
