@@ -18,6 +18,19 @@ export class UpstreamTimeout extends Error {
   }
 }
 
+/**
+ * Foundations turn A1 (INC-888) — THE ONE DEADLINE CLASSIFICATION. A deadline is upstream's own
+ * `UpstreamTimeout`, or the runtime's DOMException a timed-out signal raises while a body is
+ * read ("TimeoutError"; "AbortError" from an older runtime). Every server reader of an outside
+ * answer asks this, never the names (AIA-3).
+ */
+export function isDeadline(error: unknown): boolean {
+  if (error instanceof UpstreamTimeout) return true;
+  const name =
+    typeof error === "object" && error !== null ? (error as { name?: unknown }).name : null;
+  return name === "TimeoutError" || name === "AbortError";
+}
+
 export async function upstream(
   url: string,
   init: RequestInit,
@@ -37,9 +50,7 @@ export async function upstream(
   } catch (error) {
     // Foundations turn 3 — AbortSignal.timeout rejects with a DOMException named
     // "TimeoutError" (an "AbortError" from an older runtime); both are the deadline.
-    const name =
-      typeof error === "object" && error !== null ? (error as { name?: unknown }).name : null;
-    if (name === "TimeoutError" || name === "AbortError") {
+    if (isDeadline(error)) {
       console.error(`[upstream] ${opts.label} timeout ${Date.now() - started}ms`);
       throw new UpstreamTimeout(opts.label, opts.timeoutMs);
     }
