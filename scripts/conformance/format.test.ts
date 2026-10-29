@@ -90,6 +90,8 @@ describe("one formatter per intent, one locale module (CF-FMT-1)", () => {
     try {
       mkdirSync(join(root, "src", "lib"), { recursive: true });
       mkdirSync(join(root, "src", "feature"), { recursive: true });
+      mkdirSync(join(root, "e2e"), { recursive: true });
+      mkdirSync(join(root, "scripts"), { recursive: true });
       writeFileSync(
         join(root, "src", "feature", "page.tsx"),
         [
