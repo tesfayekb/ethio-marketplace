@@ -10,4 +10,4 @@ schemas = ["public", "graphql_public", "net"]
 extra_search_path = ["public", "extensions", "net"]
 
 [db]
-port = 54322
+port = 31322

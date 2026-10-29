@@ -16,3 +16,4 @@ seller_name_sweep | service-only sweep; answers counts, never a name | 2027-04-3
 my_seller_line | owner door; the caller's own name and previous name (R5: the owner keeps their name) | 2027-04-30
 save_posting_identity | owner writer; the caller's own name, stamps released_state | 2027-04-30
 seller_feed_page | public door; reads seller_alias only as the lookup key; the shown name is seller_public_alias and a held name answers unknownSeller (M3a, SPA-3) | 2027-04-30
+name_check_queue_page | staff core (service-only); the held name only behind admin_name_check_list's listings:view + profiles:view gates (N1b-3 M2, NCQ-9) | 2027-04-30

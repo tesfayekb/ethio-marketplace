@@ -34,7 +34,7 @@ describe("the session clocks' keys (turn 34c-2)", () => {
     });
     // The old reading (a pattern on "http(s)://<label>.") named a local backend's clocks
     // "sb-local-…"; the client keeps that session under "sb-localhost-auth-token".
-    vi.stubEnv("VITE_SUPABASE_URL", "http://localhost:54321");
+    vi.stubEnv("VITE_SUPABASE_URL", "http://localhost:31321");
     expect(sessionPolicyKeys()?.sessionRef).toBe("sb-localhost-session-ref");
   });
 

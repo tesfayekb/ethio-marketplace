@@ -552,7 +552,7 @@ job-scoped: the one evidence-producing job has contents write, but checkout
 persists no credential and only the publication step receives the write token.
 
 The staging fence retains its default. Only `E2E_LOCAL_BACKEND=1` permits the
-exact `http://127.0.0.1:54321` service/client URL; an explicitly configured server
+exact `http://127.0.0.1:31321` service/client URL; an explicitly configured server
 URL must match it too. With that flag, staging-looking and production URLs are
 refused with the unchanged messages. The CI-only config lives in the proof
 workflow, never the platform-owned `supabase/config.toml`.

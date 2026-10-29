@@ -24,14 +24,14 @@
 export const ROUTE_BUDGETS_KIB = {
   "/": { ceiling: 220, public: true }, // 217.0
   "/$name": { ceiling: 219, public: true }, // 215.7
-  "/account": { ceiling: 266, public: false }, // 262.9
+  "/account": { ceiling: 267, public: false }, // 266.1 on CI 7a95706a (N1b-2c: three post.seller.* strings in the base locale — the owner notice draws on the public ad page)
   "/account_/legal": { ceiling: 209, public: false }, // 205.4
   "/account_/legal_/$versionId": { ceiling: 210, public: false }, // 206.9
   "/account_/saved": { ceiling: 219, public: false }, // 215.8
   "/admin": { ceiling: 208, public: false }, // 204.5
   "/admin/": { ceiling: 209, public: false }, // 205.4
   "/admin/ai": { ceiling: 333, public: false }, // 332.3 (INC-974: A2's call history — admin.ai +1.2, en/am-admin +0.6, data-table keyset +0.1 — and the rail seed +0.4; a split is bigger, INC-978)
-  "/admin/attributes": { ceiling: 347, public: false }, // 343.9
+  "/admin/attributes": { ceiling: 348, public: false }, // 347.1 on CI 7a95706a (N1b-2c: three post.seller.* strings in the base locale)
   "/admin/audit": { ceiling: 308, public: false }, // 304.1
   "/admin/categories": { ceiling: 356, public: false }, // 352.1
   "/admin/countries": { ceiling: 337, public: false }, // 333.7
@@ -41,7 +41,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/admin/legal": { ceiling: 277, public: false }, // 273.9
   "/admin/legal_/$versionId": { ceiling: 277, public: false }, // 273.2
   "/admin/legal_/edit": { ceiling: 283, public: false }, // 279.3
-  "/admin/listings": { ceiling: 353, public: false }, // 349.4
+  "/admin/listings": { ceiling: 354, public: false }, // 353.1 on CI 7a95706a (N1b-2c: three post.seller.* strings in the base locale)
   "/admin/listings_/$listingId": { ceiling: 379, public: false }, // 375.6 (turn C1-2: the maps' failure in place; INC-964)
   "/admin/listings_/$listingId_/edit": { ceiling: 403, public: false }, // 399.1 (turn C1-2: the maps' failure in place; INC-964)
   "/admin/locations": { ceiling: 270, public: false }, // 266.1
