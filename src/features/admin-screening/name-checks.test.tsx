@@ -74,7 +74,9 @@ describe("NCQ-U the queue section", () => {
         next: null,
       }),
     );
-    const { container } = wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+    const { container } = wrap(
+      <NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />,
+    );
     const lines = screen.getAllByTestId("admin-name-check-of").map((node) => node.textContent);
     expect(lines).toContain("admin.screening.names.of".replace("{of}", PAYLOAD));
     expect(lines).toContain("admin.screening.names.noReason");
@@ -86,7 +88,9 @@ describe("NCQ-U the queue section", () => {
   it("NCQ-U5 without listings:view nothing is read or drawn", () => {
     state.queue.mockClear();
     state.queue.mockReturnValue(answered(undefined));
-    wrap(<NameChecks mayList={false} mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
+    wrap(
+      <NameChecks mayList={false} mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />,
+    );
     expect(state.queue).toHaveBeenLastCalledWith(null, false);
     expect(screen.queryByTestId("admin-name-checks")).toBeNull();
   });
