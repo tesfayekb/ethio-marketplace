@@ -72,20 +72,32 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     const old = typecheckVerdict({ mtimeMs: 1_000, text: "=== build x ===\nbuild OK\n" }, 2_000);
     expect(old.verdict).toBe("NOT RUN");
     expect(old.reason).toMatch(/older than the newest change/);
-    expect(typecheckVerdict({ mtimeMs: 3_000, text: "=== build x ===\nbuild OK\n" }, 2_000)).toEqual({
+    expect(
+      typecheckVerdict({ mtimeMs: 3_000, text: "=== build x ===\nbuild OK\n" }, 2_000),
+    ).toEqual({
       verdict: "PASS",
     });
     expect(
-      typecheckVerdict({ mtimeMs: 3_000, text: "=== build a ===\nbuild OK\n=== build b ===\nsrc/x.ts(1,1): error TS2304\n" }, 2_000)
-        .verdict,
+      typecheckVerdict(
+        {
+          mtimeMs: 3_000,
+          text: "=== build a ===\nbuild OK\n=== build b ===\nsrc/x.ts(1,1): error TS2304\n",
+        },
+        2_000,
+      ).verdict,
     ).toBe("FAIL");
     const pinned = steps.find((s) => s.key === "secrets-scan › Secrets scan (gitleaks, pinned)");
     expect(pinned).toBeDefined();
     if (pinned === undefined) return;
-    expect(fetchFailure(pinned, "curl: (6) Could not resolve host: github.com")).toMatch(/could not be fetched/);
-    expect(fetchFailure(pinned, "/tmp/x.tar.gz: FAILED\nsha256sum: WARNING: 1 computed checksum did NOT match")).toMatch(
-      /checksum failed/,
+    expect(fetchFailure(pinned, "curl: (6) Could not resolve host: github.com")).toMatch(
+      /could not be fetched/,
     );
+    expect(
+      fetchFailure(
+        pinned,
+        "/tmp/x.tar.gz: FAILED\nsha256sum: WARNING: 1 computed checksum did NOT match",
+      ),
+    ).toMatch(/checksum failed/);
     // A real refusal from a pinned tool stays a FAIL, and an unpinned step never reads as a fetch.
     expect(fetchFailure(pinned, "leaks found: 1")).toBeUndefined();
     const unpinned = steps.find((s) => s.key === "string-scan › Run string scan");
@@ -113,7 +125,9 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
         "    277.0 / 277 KiB  /admin/legal",
       ].join("\n"),
     );
-    const base = pageSizes(["    219.4 / 220 KiB  /", "    277.0 / 277 KiB  /admin/legal"].join("\n"));
+    const base = pageSizes(
+      ["    219.4 / 220 KiB  /", "    277.0 / 277 KiB  /admin/legal"].join("\n"),
+    );
     const near = nearBand(now, base);
     expect(near).toEqual([
       { page: "/", kib: 219.9, ceiling: 220, growth: 0.5 },
