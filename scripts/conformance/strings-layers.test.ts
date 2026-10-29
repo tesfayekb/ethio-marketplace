@@ -92,10 +92,12 @@ describe("the strings layers (DEC-258)", () => {
     expect([...(pages.get("index") ?? [])]).toEqual([]);
     expect([...(pages.get("c.$slug") ?? [])]).toEqual([]);
     expect([...(pages.get("__root") ?? [])]).toEqual([]);
-    for (const layers of pages.values()) {
-      for (const layer of layers) expect(STRINGS_LAYERS as readonly string[]).toContain(layer);
-    }
-  });
+      for (const layers of pages.values()) {
+        for (const layer of layers) expect(STRINGS_LAYERS as readonly string[]).toContain(layer);
+      }
+    },
+    TREE_SCAN_MS,
+  );
 
   it("CF-SL-4 planted: a key only a member page shows belongs in the member part; a public page's, the root's and a type-only import's do not move it", () => {
     const root = tree(PLANTED);
