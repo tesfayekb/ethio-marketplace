@@ -1,3 +1,4 @@
+import { formatCountryName } from "@/lib/reader-locale";
 import { useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
@@ -38,7 +39,7 @@ export function LegalDocumentPage({
           <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
             {t("legal.certify.forCountry").replace(
               "{country}",
-              new Intl.DisplayNames([language], { type: "region" }).of(countryCode) ?? countryCode,
+              formatCountryName(countryCode, language),
             )}
           </p>
         ) : null}
@@ -127,8 +128,7 @@ export function LegalDocumentPage({
               <p data-testid="legal-public-country" className="text-sm font-medium text-foreground">
                 {t("legal.certify.forCountry").replace(
                   "{country}",
-                  new Intl.DisplayNames([language], { type: "region" }).of(section.countryCode) ??
-                    section.countryCode,
+                  formatCountryName(section.countryCode, language),
                 )}
               </p>
               {section.data === null ? (

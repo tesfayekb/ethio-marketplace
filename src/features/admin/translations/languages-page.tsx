@@ -1,3 +1,4 @@
+import { compareCodes } from "@/lib/reader-locale";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, Languages } from "lucide-react";
 import { useState } from "react";
@@ -73,7 +74,7 @@ function nativeNameOf(code: string, fallback: string): string {
  * order from the one on screen.
  */
 function sortLanguages(data: LanguageRow[] | undefined): LanguageRow[] {
-  return [...(data ?? [])].sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code));
+  return [...(data ?? [])].sort((a, b) => a.sort - b.sort || compareCodes(a.code, b.code));
 }
 
 /**

@@ -107,3 +107,14 @@ removed then). The formatter rides a page's first download only where that page 
 number; `legalDate`/`legalMoment` live in `src/features/legal/legal-dates.ts`, apart from the
 gate rules every page loads. LF-E1 (`e2e/locale-format.spec.ts`) proves an Amharic account's
 full month on My listings.
+
+## Reader and fixed ordering (Foundations L-2 Part A)
+
+`reader-locale.ts` holds `collatorFor` (base sensitivity, numeric order), `formatCountryName`
+(unknown or malformed region codes stay codes), and `compareCodes` (code-point order).
+The reader helpers resolve their locale through `formatLocale`. This single shared module avoids
+per-chunk overhead on the shell. Fixed server-name order uses `name-collator.ts` on
+`FIXED_ORDER_LOCALE`; non-Latin database parity remains a roadmap follow-up. The shell market
+name tie-break uses `compareCodes` as specifically ruled in L-2b. CF-FMT-1 guards the homes;
+CF-FMT-2 plants DisplayNames, Collator and localeCompare bypasses. Only the language autonym
+and locale-independent CutText grapheme counting have the added reviewed exceptions.
