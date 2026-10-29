@@ -1,3 +1,3 @@
 # AGENTS.md's budget (scripts/conformance/agents-lines.test.ts, AGL-2): a recorded exception — key "AGENTS.md (<bytes after the LOVABLE block>)" | reason | until.
 # A file that grows or shrinks makes the line stale; the line follows the file only with its reason.
-AGENTS.md (9409) | over the 5,120-byte budget recorded at S326 (INC-735) since turn 33's exception (S384) replaced the file whole; the no-agents-change flag closes AGENTS.md to this turn, so the budget in force is held for the supervisor's ruling (Foundations turn C3) | 2026-12-31
+AGENTS.md (9736) | over the 5,120-byte budget recorded at S326 (INC-735) since turn 33's exception (S384) replaced the file whole; the no-agents-change flag closes AGENTS.md to this turn, so the budget in force is held for the supervisor's ruling (Foundations turn C3); the Foundations turn D1 final-report ruling mandated the CI-first line verbatim, adding 326 bytes | 2026-12-31

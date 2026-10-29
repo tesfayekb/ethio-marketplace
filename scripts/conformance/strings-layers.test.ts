@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { STRINGS_LAYERS } from "../../src/i18n/compiled-catalog";
 import { en } from "../../src/i18n/locales/en";
+import { TREE_SCAN_MS } from "./kit";
 import { LAYERS, catalogueFile, catalogueKeys, misplaced, stringsCensus } from "./strings-layers";
 
 /**
@@ -53,13 +54,17 @@ const PLANTED = {
 };
 
 describe("the strings layers (DEC-258)", () => {
-  it("CF-SL-1 every catalogue key sits in the file the census names", () => {
-    const census = stringsCensus(ROOT);
-    console.log(
-      `[strings-layers] scanned: ${census.scanned}, pages: ${census.pages.size}, keys: ${census.home.size}`,
-    );
-    expect(misplaced(census, ROOT)).toEqual([]);
-  });
+  it(
+    "CF-SL-1 every catalogue key sits in the file the census names",
+    () => {
+      const census = stringsCensus(ROOT);
+      console.log(
+        `[strings-layers] scanned: ${census.scanned}, pages: ${census.pages.size}, keys: ${census.home.size}`,
+      );
+      expect(misplaced(census, ROOT)).toEqual([]);
+    },
+    TREE_SCAN_MS,
+  );
 
   it("CF-SL-2 Amharic mirrors English file by file, and the parts join to the whole catalogue", () => {
     const parts = (["base", ...LAYERS] as const).map((home) => ({
@@ -72,23 +77,27 @@ describe("the strings layers (DEC-258)", () => {
     expect(all.slice().sort()).toEqual(Object.keys(en).sort());
   });
 
-  it("CF-SL-3 the routes' declarations: posting and my listings load member, admin screens both, the listings pages none", () => {
-    const { pages } = stringsCensus(ROOT);
-    expect(LAYERS).toEqual(STRINGS_LAYERS);
-    expect([...(pages.get("post") ?? [])]).toEqual(["member"]);
-    expect([...(pages.get("my-listings_.$listingId_.edit") ?? [])]).toEqual(["member"]);
-    expect([...(pages.get("admin.users") ?? [])].sort()).toEqual(["admin", "member"]);
-    expect([...(pages.get("admin.listings_.$listingId_.edit") ?? [])].sort()).toEqual([
-      "admin",
-      "member",
-    ]);
-    expect([...(pages.get("index") ?? [])]).toEqual([]);
-    expect([...(pages.get("c.$slug") ?? [])]).toEqual([]);
-    expect([...(pages.get("__root") ?? [])]).toEqual([]);
-    for (const layers of pages.values()) {
-      for (const layer of layers) expect(STRINGS_LAYERS as readonly string[]).toContain(layer);
-    }
-  });
+  it(
+    "CF-SL-3 the routes' declarations: posting and my listings load member, admin screens both, the listings pages none",
+    () => {
+      const { pages } = stringsCensus(ROOT);
+      expect(LAYERS).toEqual(STRINGS_LAYERS);
+      expect([...(pages.get("post") ?? [])]).toEqual(["member"]);
+      expect([...(pages.get("my-listings_.$listingId_.edit") ?? [])]).toEqual(["member"]);
+      expect([...(pages.get("admin.users") ?? [])].sort()).toEqual(["admin", "member"]);
+      expect([...(pages.get("admin.listings_.$listingId_.edit") ?? [])].sort()).toEqual([
+        "admin",
+        "member",
+      ]);
+      expect([...(pages.get("index") ?? [])]).toEqual([]);
+      expect([...(pages.get("c.$slug") ?? [])]).toEqual([]);
+      expect([...(pages.get("__root") ?? [])]).toEqual([]);
+      for (const layers of pages.values()) {
+        for (const layer of layers) expect(STRINGS_LAYERS as readonly string[]).toContain(layer);
+      }
+    },
+    TREE_SCAN_MS,
+  );
 
   it("CF-SL-4 planted: a key only a member page shows belongs in the member part; a public page's, the root's and a type-only import's do not move it", () => {
     const root = tree(PLANTED);
@@ -122,10 +131,14 @@ describe("the strings layers (DEC-258)", () => {
     expect(census.shownOn.get("a.form")).toEqual(["index", "post"]);
   });
 
-  it("CF-SL-6 the census reads the whole tree", () => {
-    const census = stringsCensus(ROOT);
-    expect(census.scanned).toBeGreaterThanOrEqual(500);
-    expect(census.pages.size).toBeGreaterThanOrEqual(45);
-    expect(census.home.size).toBe(Object.keys(en).length);
-  });
+  it(
+    "CF-SL-6 the census reads the whole tree",
+    () => {
+      const census = stringsCensus(ROOT);
+      expect(census.scanned).toBeGreaterThanOrEqual(500);
+      expect(census.pages.size).toBeGreaterThanOrEqual(45);
+      expect(census.home.size).toBe(Object.keys(en).length);
+    },
+    TREE_SCAN_MS,
+  );
 });
