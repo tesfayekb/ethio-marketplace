@@ -13,7 +13,10 @@ import { failedStepLines, TAIL_LINES } from "./step-failures.mjs";
  */
 
 const WORKFLOW = readFileSync(".github/workflows/local-backend-proof.yml", "utf8");
-const PROOF_JOB = WORKFLOW.slice(WORKFLOW.indexOf("\n  proof:\n"), WORKFLOW.indexOf("\n  summary:\n"));
+const PROOF_JOB = WORKFLOW.slice(
+  WORKFLOW.indexOf("\n  proof:\n"),
+  WORKFLOW.indexOf("\n  summary:\n"),
+);
 
 function stepsOf(job: string): string[] {
   return job.split(/\n(?= {6}- )/).filter((block) => block.startsWith("      - "));
@@ -22,7 +25,9 @@ function stepsOf(job: string): string[] {
 describe("a lane step's failure reaches the evidence (INC-992)", () => {
   it("SFE-1 every lane step has a unique id, run steps use the keeping shell, and the naming step runs always", () => {
     const steps = stepsOf(PROOF_JOB);
-    const ids = steps.map((step) => /\n {8}id: (\S+)/.exec(step)?.[1] ?? `(none) ${step.slice(0, 60)}`);
+    const ids = steps.map(
+      (step) => /\n {8}id: (\S+)/.exec(step)?.[1] ?? `(none) ${step.slice(0, 60)}`,
+    );
     expect(ids.filter((id) => id.startsWith("(none)"))).toEqual([]);
     expect(new Set(ids).size).toBe(ids.length);
     expect(PROOF_JOB).toContain("        shell: bash scripts/ci/step-shell.sh {0}");
@@ -44,7 +49,10 @@ describe("a lane step's failure reaches the evidence (INC-992)", () => {
       mkdirSync(logs);
       // The run shell keeps the planted step's output, as it does on the runner.
       const script = join(dir, "planted.sh");
-      writeFileSync(script, 'for i in $(seq 1 30); do echo "line $i"; done\necho "boom" >&2\nexit 3\n');
+      writeFileSync(
+        script,
+        'for i in $(seq 1 30); do echo "line $i"; done\necho "boom" >&2\nexit 3\n',
+      );
       const shell = spawnSync("bash", ["scripts/ci/step-shell.sh", script], {
         encoding: "utf8",
         env: { PATH: process.env["PATH"] ?? "", RUNNER_TEMP: dir, GITHUB_ACTION: "run-proof-lane" },
@@ -59,7 +67,12 @@ describe("a lane step's failure reaches the evidence (INC-992)", () => {
       const failure = join(dir, "local-backend-failure.txt");
       const run = spawnSync("node", ["scripts/ci/step-failures.mjs"], {
         encoding: "utf8",
-        env: { PATH: process.env["PATH"] ?? "", RUNNER_TEMP: dir, STEPS_JSON: steps, FAILURE_FILE: failure },
+        env: {
+          PATH: process.env["PATH"] ?? "",
+          RUNNER_TEMP: dir,
+          STEPS_JSON: steps,
+          FAILURE_FILE: failure,
+        },
       });
       expect(run.status, run.stderr).toBe(0);
       const lines = readFileSync(failure, "utf8").trimEnd().split("\n");
@@ -78,7 +91,11 @@ describe("a lane step's failure reaches the evidence (INC-992)", () => {
   });
 
   it("SFE-3 nothing failed writes nothing; unreadable steps say so", () => {
-    expect(failedStepLines(JSON.stringify({ a: { outcome: "success" } }), "/nonexistent")).toEqual([]);
-    expect(failedStepLines("{", "/nonexistent")).toEqual(["Name failed steps: STEPS_JSON unreadable"]);
+    expect(failedStepLines(JSON.stringify({ a: { outcome: "success" } }), "/nonexistent")).toEqual(
+      [],
+    );
+    expect(failedStepLines("{", "/nonexistent")).toEqual([
+      "Name failed steps: STEPS_JSON unreadable",
+    ]);
   });
 });

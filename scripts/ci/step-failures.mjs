@@ -45,6 +45,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
     join(process.env.RUNNER_TEMP ?? "/tmp", "step-logs"),
   );
   if (lines.length > 0)
-    appendFileSync(process.env.FAILURE_FILE ?? "local-backend-failure.txt", lines.join("\n") + "\n");
+    appendFileSync(
+      process.env.FAILURE_FILE ?? "local-backend-failure.txt",
+      lines.join("\n") + "\n",
+    );
   console.log(`Name failed steps: ${lines.filter((l) => l.startsWith("Step ")).length} failed`);
 }
