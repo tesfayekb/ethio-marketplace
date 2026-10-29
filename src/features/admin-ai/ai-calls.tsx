@@ -165,7 +165,10 @@ export function AiCalls() {
                   onChange={choose(setOutcome)}
                   options={[
                     { value: "", label: t("admin.ai.log.allOutcomes") },
-                    ...AI_OUTCOMES.map((id) => ({ value: id, label: t(`admin.ai.log.outcome.${id}`) })),
+                    ...AI_OUTCOMES.map((id) => ({
+                      value: id,
+                      label: t(`admin.ai.log.outcome.${id}`),
+                    })),
                   ]}
                 />
               </FiltersButton>
