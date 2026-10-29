@@ -337,7 +337,7 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
 });
 
 describe("JRF — one typed line per refusal (INC-1000)", () => {
-  const refusals = (spy: ReturnType<typeof vi.spyOn>) =>
+  const refusals = (spy: { mock: { calls: unknown[][] } }) =>
     spy.mock.calls
       .map((call) => String(call[0]))
       .filter((line) => line.startsWith("[job-refused]"));

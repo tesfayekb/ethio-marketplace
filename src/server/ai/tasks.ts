@@ -103,8 +103,9 @@ const nameCheckOutput = z
       .string()
       .trim()
       .max(80)
-      .nullish()
-      .transform((value) => value ?? undefined),
+      .nullable()
+      .transform((value) => value ?? undefined)
+      .optional(),
   })
   .strict();
 
