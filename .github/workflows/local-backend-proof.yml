@@ -620,13 +620,30 @@ jobs:
         timeout-minutes: 3
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.pronamespace::regnamespace::text || '.' || p.proname || '(' || oidvectortypes(p.proargtypes) || ')', (pg_get_functiondef(p.oid) ~ '\mnet\.[a-z_]+\s*\(') from pg_proc p where p.prokind = 'f' and p.pronamespace not in ('net'::regnamespace, 'pg_catalog'::regnamespace, 'information_schema'::regnamespace) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and p.prorettype <> 'event_trigger'::regtype and p.prolang in (select oid from pg_language where lanname in ('sql', 'plpgsql')) order by 1;" > "$RUNNER_TEMP/outbound-calls.tsv"
-          bun scripts/check-outbound-calls.ts "$RUNNER_TEMP/outbound-calls.tsv" .ci-local/supabase/config.toml
+          # INC-984: every failing line also goes to local-backend-failure.txt, which the lane's proof
+          # fragment carries as "- Step failure:" and the merge publishes under "## Lane smoke" in
+          # docs/tracking/local-backend-proof.md (redacted there like every other line).
+          set +e
+          bun scripts/check-outbound-calls.ts "$RUNNER_TEMP/outbound-calls.tsv" .ci-local/supabase/config.toml 2> "$RUNNER_TEMP/outbound-calls.err"
+          guard=$?
+          set -e
+          cat "$RUNNER_TEMP/outbound-calls.err" >&2
+          if [ "$guard" -ne 0 ]; then
+            grep '^Outbound-calls guard FAIL:' "$RUNNER_TEMP/outbound-calls.err" >> local-backend-failure.txt || echo "Outbound-calls guard FAIL: exit $guard with no FAIL line" >> local-backend-failure.txt
+            echo "::error::Outbound-calls guard failed (INC-981); the lines are in local-backend-proof.md"
+            exit 1
+          fi
           # S5 live: the temporary backend's Data API refuses the net schema (loopback, per-run certificate).
           for header in "Accept-Profile: net" "Content-Profile: net"; do
-            answer=$(curl -sk --max-time 20 -X "$([ "$header" = "Accept-Profile: net" ] && echo GET || echo POST)" -H "apikey: $E2E_SUPABASE_PUBLISHABLE_KEY" -H "$header" -H "Content-Type: application/json" -d '{}' "$E2E_SUPABASE_URL/rest/v1/$([ "$header" = "Accept-Profile: net" ] && echo 'http_request_queue?limit=1' || echo 'rpc/http_post')")
-            case "$answer" in
+            answer=$(curl -sk --max-time 20 -w '\n%{http_code}' -X "$([ "$header" = "Accept-Profile: net" ] && echo GET || echo POST)" -H "apikey: $E2E_SUPABASE_PUBLISHABLE_KEY" -H "$header" -H "Content-Type: application/json" -d '{}' "$E2E_SUPABASE_URL/rest/v1/$([ "$header" = "Accept-Profile: net" ] && echo 'http_request_queue?limit=1' || echo 'rpc/http_post')" || true)
+            status=${answer##*$'\n'}
+            body=${answer%$'\n'*}
+            case "$body" in
               *PGRST106*) echo "S5 live: $header refused (PGRST106)" ;;
-              *) echo "::error::S5 live: $header was not refused with PGRST106 (INC-981)"; exit 1 ;;
+              *)
+                # The reporter redacts keys, JWTs, e-mails and long hex before publishing.
+                printf 'S5 live FAIL: %s answered HTTP %s: %s\n' "$header" "$status" "$(printf '%s' "$body" | tr '\n\r' '  ' | cut -c1-300)" >> local-backend-failure.txt
+                echo "::error::S5 live: $header was not refused with PGRST106 (INC-981)"; exit 1 ;;
             esac
           done
       - name: Build E2E app against local backend
