@@ -149,3 +149,5 @@ admin_list_ai_calls | Foundations turn A2: services:view checked before validati
 admin_name_check_summary | Foundations turn N1a (INC-977): staff count of unchecked seller names and the oldest 'since'; listings:view checked inside before the read; returns no name or person
 admin_name_check_list | Foundations turn N1b-3 M2 (INC-977): the staff queue of held seller names; listings:view checked inside before any read; names, checked text and the model's reason only with profiles:view as well
 admin_name_check_clear | Foundations turn N1b-3 M2 (INC-977): staff clear a held seller name; profiles:update then step-up inside before the capture; stale text writes nothing; audits name_check.cleared
+admin_job_health | Foundations turn N1b-3 M3 (INC-977): a scheduled job's last run, unanswered dispatch and pause for staff; services:view checked inside before any read; counts and codes only, no name
+admin_job_resume | Foundations turn N1b-3 M3 (INC-977): staff resume a paused job; services:manage then step-up inside before the capture; no pause writes nothing; audits job.resumed
