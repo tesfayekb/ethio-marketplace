@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { errorText } from "@/lib/error-text";
+
 /**
  * Foundations turn 3 (DEC-237) — THE IDENTITY ROUTE ON defineRoute (D1).
  * user-client.ts mocked whole; the rpc, the fetch and the dial counted, so a
@@ -32,7 +34,7 @@ vi.mock("@/server/supabase/user-client", () => {
   return {
     routeJson,
     logRouteError: (_path: string, error: unknown) => {
-      state.logs.push(String(error));
+      state.logs.push(errorText(error));
     },
     userClientFromRequest: async () => ({
       supabase: {
