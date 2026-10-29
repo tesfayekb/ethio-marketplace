@@ -4,13 +4,13 @@ The brief in force: docs/governance/briefs/foundations-turn-a1.md (Foundations t
 
 - [x] Turn D1 — M1 pin (applied on prod, stop 1) · M2 price pair · M3 place predicate (app `path` shape first) · M4 3a · M5 3b · M6 3c · M7 buckets (after the operator sets the mime lists) · THE CHECKS · reviewer · report. — closed (final report; unit-suite fix 4819f7cc)
 - [x] Turn A1 — the AI gateway's follow-ups: Parts A–D (INC-952, INC-886, INC-885, INC-887, INC-888) and the AGL-1 follow-up (local-backend-proof.md by allowlist line).
-- [ ] Turn A2 Part 0 — E2E admin-ai-calls (staging level), allowlist until column, remove admin.ai.log.standIn.
-- [ ] INC-974 — the rail's category names in the first paint (seed via root loader, glyph boxes, data-rail-ready, RFT-1…5, e2e/rail-first-paint.spec.ts).
-- [ ] Turn A2 — built/applied on prod; 2,139 unit tests passed. Blocked: staging applies 4a7e258a and 175bb84e, then whole admin-ai-calls E2E spec on both projects; final report records parity limit.
+- [x] Turn A2 Part 0 — E2E admin-ai-calls (staging level), allowlist until column, remove admin.ai.log.standIn. — INC-974 turn (ACR-E1 cards id fixed, DTK-1; until already 2026-12-31; key removed by script)
+- [x] INC-974 — the rail's category names in the first paint — INC-974 turn (first-rail seed via root loader, glyph boxes, data-rail-ready, RFT-1…5, FSP-8…10, e2e/rail-first-paint.spec.ts)
+- [x] INC-978 — an on-demand split of a section whose modules the page shares makes the page bigger (/admin/ai 333.8 against 331.9; nine table pages +0.9–1.0 KiB) — recorded in the INC-974 turn; split not kept
+- [x] Turn A2 — built/applied on prod; 2,139 unit tests passed; staging level and ACR-E1 green in the INC-974 turn. Was blocked: staging applies 4a7e258a and 175bb84e, then whole admin-ai-calls E2E spec on both projects; final report records parity limit.
 - [x] INC-975 — the secrets scan walks every commit on dev not yet on main, merges included — Foundations turn A2 (ci.yml secrets-scan; replay 0 → 2 and 0 → 31 commits)
 - [x] INC-976 — the secrets scan's outside calls carry a deadline; no artifact upload — Foundations turn A2 (pinned gitleaks via with-deadline.sh)
 - [ ] INC-977 — a seller name saved unchecked (AI check unavailable) is AI-checked later — its own turn after INC-974, plan first
-- [ ] INC-974 — the left rail's slow first draw — its own turn after A2
 - [x] Turn 17b S353 ruling — LG-29 proves each scratch acceptance is still owed through service-client truth; LG-30 uses draft pin, photos-soon, cover and submit_listing save, not set_listing_price; whole certification file 39 passed / 1 existing skip and LAC-1 2 passed on both projects, zero retries; required checks passed. M13 remains unchanged; the CI wait report closes this turn, with GitHub's replay still pending.
 
 ## Truth pass (bundle 4 step 0, 2026-10-04) — lines unticked before bundle 4

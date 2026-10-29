@@ -61,6 +61,11 @@ The frame measures the plot area with a `ResizeObserver` and calls `children({ w
 
 `DataTable({ rowHref })` applies to BOTH responsive twins: the 360 card is a whole-card `Link`, and from md the table row is fully clickable — the first `primary` column renders as a `Link` (`<rowTestId>-link`), the `<tr>` carries `role="link"`, `tabIndex=0`, click-to-navigate and Enter-to-navigate, with a `hover:bg-muted/50 cursor-pointer` affordance. Selection and row-action cells stop propagation so inner controls keep working. Law L8 in `e2e/primitives-law.spec.ts` proves click (non-primary cell), keyboard (Enter) and the 360 card. CLASS RULE: every primitive INTERACTION contract has a law test on `/dev/primitives`, not just geometry.
 
+## Keyset paging and the cards' row ids (A2, INC-974 turn)
+
+- An empty keyset page keeps its Previous/Next at every width (DTK-1): `keyset` mode draws the empty state AND the footer, so a person who stepped to an empty page can always step back. Offset mode's empty page draws no footer.
+- On the cards layout (below `cardUntil`) a row's test id is `<rowTestId>-card`; the table row is `<rowTestId>`. A spec that reads rows on both widths names the twin by width. ACR-E1's 14 red runs came from missing this rule.
+
 ## Adoption
 
 Feature screens adopt these primitives as each U section ships; no feature page was migrated in U1c.
