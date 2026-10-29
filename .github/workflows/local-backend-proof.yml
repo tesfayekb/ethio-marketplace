@@ -312,7 +312,7 @@ jobs:
 
           [api]
           enabled = true
-          port = 54321
+          port = 31321
           schemas = ["public", "graphql_public"]
           extra_search_path = ["public", "extensions"]
           max_rows = 1000
@@ -323,8 +323,8 @@ jobs:
           key_path = "certs/api.key"
 
           [db]
-          port = 54322
-          shadow_port = 54320
+          port = 31322
+          shadow_port = 31320
           major_version = 17
 
           [db.seed]
@@ -338,7 +338,7 @@ jobs:
 
           [inbucket]
           enabled = true
-          port = 54324
+          port = 31324
 
           [storage]
           enabled = true
@@ -458,7 +458,7 @@ jobs:
           : > local-backend-failure.txt
           if [ "$result" -ne 0 ]; then
             # INC-935: who holds the backend's ports, for the evidence (addresses and process names only).
-            { echo "Port holders (54320-54329):"; sudo ss -Htanp | grep -E ':5432[0-9]\b' || echo "none"; } >> local-backend-start.log 2>&1
+            { echo "Port holders (31320-31329, DEC-284; 54320-54329, the retired block):"; sudo ss -Htanp | grep -E ':(3132|5432)[0-9]\b' || echo "none"; } >> local-backend-start.log 2>&1
             # INC-944: the database's busy sessions at the last sample before the start failed.
             {
               echo "Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):"
@@ -500,7 +500,7 @@ jobs:
               match = re.fullmatch(r'([A-Z0-9_]+)="?([^"\n]*)"?', line)
               if match:
                   values[match[1]] = match[2]
-          if values.get('API_URL') != 'https://127.0.0.1:54321':
+          if values.get('API_URL') != 'https://127.0.0.1:31321':
               fail('CLI status did not report the exact local https API URL')
           browser = 'ANON_KEY' if values.get('ANON_KEY') else 'PUBLISHABLE_KEY'
           server = 'SERVICE_ROLE_KEY' if values.get('SERVICE_ROLE_KEY') else 'SECRET_KEY'
@@ -513,7 +513,7 @@ jobs:
           with open('local-backend-status.txt', 'a') as out:
               out.write('Status variables: ' + ', '.join(sorted(values)) + '\n')
               out.write('Keys used: ' + browser + ', ' + server + '\n')
-              out.write('API: https://127.0.0.1:54321 (per-run certificate authority)\n')
+              out.write('API: https://127.0.0.1:31321 (per-run certificate authority)\n')
           aliases = {
               'API_URL': ['E2E_SUPABASE_URL', 'VITE_SUPABASE_URL', 'SUPABASE_URL'],
               browser: ['E2E_SUPABASE_PUBLISHABLE_KEY', 'VITE_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_PUBLISHABLE_KEY'],
