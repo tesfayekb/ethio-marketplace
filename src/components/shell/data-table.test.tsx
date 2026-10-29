@@ -112,6 +112,7 @@ describe("DataTable C7 contract", () => {
         columns={columns()}
         rows={[]}
         rowKey={(row: (typeof ROWS)[number]) => row.id}
+        rowTestId={(row: (typeof ROWS)[number]) => row.id}
         caption="fixture"
         emptyState="empty"
         keyset={{ hasPrevious: true, hasNext: false, onNext: vi.fn(), onPrevious: previous }}
@@ -125,6 +126,7 @@ describe("DataTable C7 contract", () => {
         columns={columns()}
         rows={[]}
         rowKey={(row: (typeof ROWS)[number]) => row.id}
+        rowTestId={(row: (typeof ROWS)[number]) => row.id}
         caption="fixture"
         emptyState="empty"
       />,
