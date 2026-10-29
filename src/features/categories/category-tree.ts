@@ -239,7 +239,7 @@ export function buildTree(rows: CategoryNode[], pointers: TreePointer[]): Catego
   return { nodes: rows, parentOf, childrenOf, byId, rootOrder };
 }
 
-interface TreePayload {
+export interface TreePayload {
   version: string;
   nodes: {
     id: string;
