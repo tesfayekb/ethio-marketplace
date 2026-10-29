@@ -59,7 +59,7 @@ export function doorKeyText(
 ): string | null {
   const { key: code, tail } = splitRefusal(raw.trim());
   const key = code === "rateLimited" ? RATE_LIMITED_KEY : code;
-  if (!DOOR_KEY.test(key)) return null;
+  if (key !== RATE_LIMITED_KEY && !DOOR_KEY.test(key)) return null;
   const text = translate(key);
   if (text === undefined || text === "" || text === key) return null;
   return fillRefusal(text, tail);
