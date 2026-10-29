@@ -2502,6 +2502,34 @@ async function main() {
         ],
         ["R1a a11y never states zero with a gap", !gapped.includes("No `[a11y]` lines")],
       );
+      // INC-973 — a lane whose backend never started uploads its redacted
+      // start-failure lines; the report quotes them instead of a bare gap.
+      const startFailed: Source = {
+        label: "shard 7",
+        json: null,
+        logTail: null,
+        logRead: false,
+        startFailure: [
+          "migration: Applying migration 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql",
+          "ERROR:  P0001: INC-951 3a proof: two versions in force are needed",
+        ],
+      };
+      const startRed = renderSources([startFailed, noLog], meta, new Map(), []);
+      const startQuiet = renderSources([noLog], meta, new Map(), []);
+      checks.push(
+        [
+          "INC-973 a failed start's lines reach the report",
+          startRed.includes("## Backend start failure (INC-973)") &&
+            startRed.includes("Applying migration 20261028230748") &&
+            startRed.includes("two versions in force are needed") &&
+            startRed.includes("`shard 7`"),
+        ],
+        [
+          "INC-973 no start-failure file keeps the bare gap",
+          !startQuiet.includes("## Backend start failure") &&
+            startQuiet.includes("Sources without results: shard 5"),
+        ],
+      );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
       const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
