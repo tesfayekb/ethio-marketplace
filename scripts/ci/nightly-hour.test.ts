@@ -14,9 +14,15 @@ import { describe, expect, it } from "vitest";
 const SCRIPT = "scripts/ci/nightly-hour.sh";
 const SUMMER = "30 15 * * *";
 const WINTER = "30 16 * * *";
+/**
+ * INC-998 — the tests pin New York's zone themselves: the US rule since 2007, written out, so
+ * they never depend on the machine's time-zone files (the sandbox has none). NH-6 alone drops
+ * it, to prove the named zone's missing-files refusal.
+ */
+const NEW_YORK_RULE = "EST5EDT,M3.2.0,M11.1.0";
 
 function run(args: string[], output?: string, extra: NodeJS.ProcessEnv = {}) {
-  const env: NodeJS.ProcessEnv = { ...process.env, ...extra };
+  const env: NodeJS.ProcessEnv = { ...process.env, NIGHTLY_ZONE: NEW_YORK_RULE, ...extra };
   delete env.GITHUB_OUTPUT;
   if (output !== undefined) env.GITHUB_OUTPUT = output;
   const result = spawnSync("bash", [SCRIPT, ...args], { encoding: "utf8", env, timeout: 20_000 });
@@ -93,7 +99,10 @@ describe("the nightly starts at 11:30 in New York, all year (DEC-277)", () => {
     const dir = mkdtempSync(join(tmpdir(), "nh-zones-"));
     try {
       // TZDIR names where the time-zone files are; an empty one is a machine without them.
-      const result = run(["schedule", SUMMER, "2026-07-15"], undefined, { TZDIR: dir });
+      const result = run(["schedule", SUMMER, "2026-07-15"], undefined, {
+        TZDIR: dir,
+        NIGHTLY_ZONE: undefined,
+      });
       expect(result.code).toBe(2);
       expect(result.out).toContain("::error title=nightly-hour::the America/New_York time zone");
       expect(result.out).not.toContain("go=");

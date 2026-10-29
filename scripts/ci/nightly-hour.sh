@@ -12,6 +12,9 @@
 set -euo pipefail
 
 readonly WANT_HOUR=11
+# INC-998 — the zone's name. CI uses the named zone; a test pins its own zone with New York's
+# rule written out (NIGHTLY_ZONE="EST5EDT,M3.2.0,M11.1.0"), so it passes on any machine.
+readonly ZONE="${NIGHTLY_ZONE:-America/New_York}"
 event="${1:-}"
 cron="${2:-}"
 day="${3:-$(date -u +%F)}"
@@ -32,8 +35,8 @@ if [ "$event" != "schedule" ]; then
 fi
 # INC-962 — the zone must resolve: on a machine without the time-zone files `date` reads
 # America/New_York as UTC without a word, and both schedules would stand down silently.
-if [ "$(TZ=America/New_York date -d 2026-01-15T12:00:00Z +%z 2>/dev/null)" != "-0500" ] ||
-  [ "$(TZ=America/New_York date -d 2026-07-15T12:00:00Z +%z 2>/dev/null)" != "-0400" ]; then
+if [ "$(TZ="$ZONE" date -d 2026-01-15T12:00:00Z +%z 2>/dev/null)" != "-0500" ] ||
+  [ "$(TZ="$ZONE" date -d 2026-07-15T12:00:00Z +%z 2>/dev/null)" != "-0400" ]; then
   echo "::error title=nightly-hour::the America/New_York time zone does not resolve on this machine (no time-zone files?)" >&2
   exit 2
 fi
@@ -52,7 +55,7 @@ if ! [[ "$day" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
   exit 2
 fi
 due=$(printf '%sT%02d:%02d:00Z' "$day" "$hour" "$minute")
-if ! local_time=$(TZ=America/New_York date -d "$due" +%H:%M 2>/dev/null); then
+if ! local_time=$(TZ="$ZONE" date -d "$due" +%H:%M 2>/dev/null); then
   echo "::error title=nightly-hour::cannot read the day \"${day}\"" >&2
   exit 2
 fi
