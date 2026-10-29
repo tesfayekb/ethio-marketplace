@@ -7,8 +7,9 @@
  *
  * The census rule for tables (src/test/pool-reset-map.test.ts applies it to
  * src/integrations/supabase/types.ts): a public table whose Row has a column
- * named user_id, seller_id, viewer_id, actor_id, target_id, actor, reviewer
- * or *_by.
+ * named user_id, profile_id, seller_id, viewer_id, actor_id, target_id, actor,
+ * reviewer or *_by, OR whose Relationships hold a foreign key to profiles under
+ * any column name (N1b-3a, INC-989: name_checks keyed by profile_id was missed).
  * A new table matching that rule fails the guard until it is placed here.
  */
 
@@ -30,6 +31,8 @@ export const POOL_RESET_TABLES = {
     "reporter_id rows deleted (B19 M4 — a lease's own reports never carry into a later lease)",
   reveal_flags:
     "viewer_id rows deleted (B19 M5 — a day's sellers-cap flags never carry into a later lease)",
+  name_checks:
+    "profile_id rows deleted (N1b-3a, INC-989 — a held name never carries into a later lease)",
   alias_history: "user_id rows deleted (a pooled account's past names never block a later test)",
   seller_places: "user_id row deleted (a saved shop place never carries into a later lease)",
   legal_acceptances:
