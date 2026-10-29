@@ -934,6 +934,8 @@ export interface SellerLineFacts {
    */
   nextChangeAt: string | null;
   correctionUntil: string | null;
+  /** N1b-2c (INC-977) — true while the owner's name is held for review (M3a); false otherwise. */
+  underReview: boolean;
 }
 
 /**
@@ -955,6 +957,7 @@ export async function readSellerLine(): Promise<SellerLineFacts | null> {
     memberSince: text("member_since"),
     nextChangeAt: text("next_change_at"),
     correctionUntil: text("correction_until"),
+    underReview: row.under_review === true,
   };
 }
 
