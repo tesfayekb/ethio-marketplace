@@ -728,26 +728,41 @@ REAL_ROW_ALLOWLIST_FILE="${REAL_ROW_ALLOWLIST_FILE:-$SCRIPT_DIR/migration-real-r
 real_row_split() {
   # DEC-151. $1 = offender lines, $2 = allowlist. Refused lines go to stdout;
   # allowlisted ones are printed to stderr as "<file> | <head> | <reason>".
+  # D1 stop-12 ruling: a line may name the statement as
+  # "sha256:<first 16 hex of sha256 of the head, normalized exactly as the
+  # guard normalizes it>" in place of the raw head, so a head containing '|'
+  # (which the line format cannot hold) can still be allowlisted.
   local list="$2"
   [ -f "$list" ] || list=/dev/null
-  printf '%s' "$1" | awk -v list="$list" '
-    BEGIN {
-      while ((getline l < list) > 0) {
-        if (l ~ /^[[:space:]]*#/ || l ~ /^[[:space:]]*$/) continue
-        n = split(l, f, "|"); if (n < 3) continue
-        for (i = 1; i <= 3; i++) gsub(/^[[:space:]]+|[[:space:]]+$/, "", f[i])
-        why[f[1] "\034" f[2]] = f[3]
+  printf '%s' "$1" | perl -MDigest::SHA=sha256_hex -e '
+    my $list = $ARGV[0];
+    my (%why, %why_sha);
+    if (open(my $a, "<", $list)) {
+      while (my $l = <$a>) {
+        chomp $l;
+        next if $l =~ /^\s*#/ || $l =~ /^\s*$/;
+        my @f = split /\|/, $l;
+        next if @f < 3;
+        for my $i (0 .. 2) { $f[$i] =~ s/^\s+|\s+$//g; }
+        if ($f[1] =~ /^sha256:([0-9a-f]{16})$/) { $why_sha{$f[0] . "\034" . $1} = $f[2]; }
+        else { $why{$f[0] . "\034" . $f[1]} = $f[2]; }
       }
     }
-    NF == 0 { next }
-    {
-      i = index($0, ": "); path = substr($0, 1, i - 1); head = substr($0, i + 2)
-      base = path; sub(/.*\//, "", base)
-      k = base "\034" head
-      if (k in why) print "  - " base " | " head " | " why[k] > "/dev/stderr"
-      else print
+    while (my $line = <STDIN>) {
+      chomp $line;
+      next if $line =~ /^\s*$/;
+      my $i = index($line, ": ");
+      my $path = substr($line, 0, $i);
+      my $head = substr($line, $i + 2);
+      (my $base = $path) =~ s/.*\///;
+      my $k = $base . "\034" . $head;
+      my $sha = substr(sha256_hex($head), 0, 16);
+      my $ks = $base . "\034" . $sha;
+      if (exists $why{$k}) { print STDERR "  - $base | $head | $why{$k}\n"; }
+      elsif (exists $why_sha{$ks}) { print STDERR "  - $base | sha256:$sha | $why_sha{$ks}\n"; }
+      else { print "$line\n"; }
     }
-  '
+  ' "$list"
 }
 
 if [ -z "$(real_row_offenders "$FIXTURE_DIR/bad-real-row-proof-example.sql")" ]; then
