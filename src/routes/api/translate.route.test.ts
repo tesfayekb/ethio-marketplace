@@ -27,6 +27,8 @@ const state = vi.hoisted(() => ({
   /** The writer's refusal text by key (UI) or entity id. */
   writerErrors: new Map<string, string>(),
   flaggedKeys: [] as string[],
+  /** The flag read-back's own failure text, when it fails (INC-885). */
+  flagError: null as string | null,
   gate: { on: true } as { on: true } | { on: false; reason: "staff" | "budget" | "unavailable" },
   spends: [] as { feature: string; units: number }[],
   audits: [] as Record<string, unknown>[],
@@ -56,7 +58,9 @@ vi.mock("@/server/supabase/user-client", async (original) => {
         return { data: null, error: message === undefined ? null : { message }, status: 200 };
       }
       if (name === "admin_list_translations") {
-        return { data: state.flaggedKeys.map((key) => ({ key })), error: null, status: 200 };
+        return state.flagError === null
+          ? { data: state.flaggedKeys.map((key) => ({ key })), error: null, status: 200 }
+          : { data: null, error: { message: state.flagError }, status: 500 };
       }
       return { data: null, error: { message: `unexpected rpc ${name}` }, status: 400 };
     },
@@ -175,6 +179,7 @@ beforeEach(() => {
   state.calls = [];
   state.writerErrors = new Map();
   state.flaggedKeys = [];
+  state.flagError = null;
   state.gate = { on: true };
   state.spends = [];
   state.audits = [];
@@ -219,10 +224,14 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
     expect(state.translateRequests + state.languageRequests).toBe(0);
     expect(state.spends).toEqual([]);
     expect(state.audits).toEqual([]);
-    // A scope read that fails keeps today's answer, its text in the log only.
+    // A scope read that fails answers the one read-failure shape (Foundations turn A1,
+    // readFailure: a 500 with its incident), its text in the log only.
     state.scopeError = "canceling statement due to statement timeout";
     const failed = await post({ target_lang: "om", items: items(1) });
-    expect(failed).toEqual({ status: 500, body: { error: "internal error" } });
+    expect(failed).toEqual({
+      status: 500,
+      body: { error: "server error", incident: expect.stringMatching(/^[0-9a-f-]{36}$/) },
+    });
     expect(state.logs.some((line) => line.includes(state.scopeError ?? "-"))).toBe(true);
     expect(state.translateRequests).toBe(0);
     expect(state.spends).toEqual([]);
@@ -519,6 +528,19 @@ describe("POST /api/translate on defineRoute and aiCall (Foundations turn 19)", 
       status: 200,
       body: { done: 2, flagged: 1, failed: [] },
     });
+  });
+
+  it("RFL-2 a flag read-back that fails answers flagged null with flagRead failed, logged — never 0, the writes reported", async () => {
+    state.flaggedKeys = ["e2e.trr.1"];
+    state.flagError = "canceling statement due to statement timeout";
+    expect(await post({ target_lang: "am", items: items(2) })).toEqual({
+      status: 200,
+      body: { done: 2, flagged: null, flagRead: "failed", failed: [] },
+    });
+    expect(writes()).toHaveLength(2);
+    expect(state.logs.some((line) => line.includes("flag read-back admin_list_translations"))).toBe(
+      true,
+    );
   });
 });
 

@@ -110,6 +110,33 @@ export function clientError(
   return routeJson({ error: code, ...extra }, status);
 }
 
+/**
+ * Foundations turn A1 (INC-886) — THE WORDED REFUSAL BEYOND THE CLIENT'S OWN: a request the
+ * route understood but cannot serve (422 — the provider does not offer it), an outside answer
+ * that failed (502) or a service not reachable or switched off (503). The same `{ error, …extra }`
+ * shape clientError answers; no route sends a status of 400 or more through `ok` (RFL-1).
+ */
+export function refused(
+  code: string,
+  status: 422 | 502 | 503,
+  extra?: Record<string, string | number>,
+): Response {
+  return routeJson({ error: code, ...extra }, status);
+}
+
+/**
+ * Foundations turn A1 (INC-886) — a model provider's own 4xx, worded once for every AI route:
+ * 400/422 the model refused the request, 401/403 the key refused, 429 rate limited; any other
+ * 4xx is an outside answer that failed (502).
+ */
+export function providerRefusal(status: number, extra?: Record<string, string | number>): Response {
+  if (status === 400) return clientError("modelRefused", 400, extra);
+  if (status === 422) return refused("modelRefused", 422, extra);
+  if (status === 401 || status === 403) return clientError("modelKeyRefused", status, extra);
+  if (status === 429) return clientError("modelRateLimited", 429, extra);
+  return refused("modelCallFailed", 502, extra);
+}
+
 /** Foundations turn 12 — the step-up answer every staff door gives (428, P0009). */
 export function stepUpRequired(): Response {
   return routeJson({ error: "step-up required", code: "P0009" }, 428);

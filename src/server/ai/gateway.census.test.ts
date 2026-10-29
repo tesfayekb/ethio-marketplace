@@ -265,4 +265,26 @@ describe("AI gateway conformance", () => {
       ].sort(),
     );
   });
+  /**
+   * Foundations turn A1 (INC-952, DEC-280) — every task declares whether it judges a person, in
+   * its own registry entry, literally true or false: the type requires the key, and this census
+   * reads the source so a task cannot inherit, spread or compute its mark.
+   */
+  it("GWC-10 every task in tasks.ts declares its person-mark literally, and a planted task without one is reported", () => {
+    const unmarked = (source: string): string[] =>
+      source
+        .split("defineTask({")
+        .slice(1)
+        .filter((entry) => !/\n\s*judgesPerson: (?:true|false),/.test(entry))
+        .map((entry) => /id: "([^"]+)"/.exec(entry)?.[1] ?? "<no id>");
+    const source = readFileSync("src/server/ai/tasks.ts", "utf8");
+    expect(source.split("defineTask({").length - 1).toBe(AI_TASKS.length);
+    expect(unmarked(source)).toEqual([]);
+    for (const task of AI_TASKS) expect(typeof task.judgesPerson).toBe("boolean");
+    const planted = [
+      'defineTask({\n    id: "marked",\n    judgesPerson: true,\n  })',
+      'defineTask({\n    id: "planted_judge",\n    feature: "x",\n  })',
+    ].join("\n");
+    expect(unmarked(planted)).toEqual(["planted_judge"]);
+  });
 });

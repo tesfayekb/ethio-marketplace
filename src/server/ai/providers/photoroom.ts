@@ -1,4 +1,4 @@
-import { upstream, UpstreamTimeout } from "@/server/upstream";
+import { isDeadline, upstream } from "@/server/upstream";
 import { IMAGE_ANSWER_MAX_BYTES, type AiImage } from "../tasks";
 
 /**
@@ -70,9 +70,7 @@ export async function photoroomSegment(input: {
     try {
       bytes = new Uint8Array(await response.arrayBuffer());
     } catch (error) {
-      const name =
-        typeof error === "object" && error !== null ? (error as { name?: unknown }).name : null;
-      if (name === "TimeoutError" || name === "AbortError") return { kind: "timeout" };
+      if (isDeadline(error)) return { kind: "timeout" };
       return { kind: "unusable", status: response.status };
     }
     if (bytes.byteLength === 0 || bytes.byteLength > MAX_CUTOUT_BYTES) {
@@ -80,6 +78,6 @@ export async function photoroomSegment(input: {
     }
     return { kind: "image", status: response.status, bytes, mime };
   } catch (error) {
-    return error instanceof UpstreamTimeout ? { kind: "timeout" } : { kind: "network" };
+    return isDeadline(error) ? { kind: "timeout" } : { kind: "network" };
   }
 }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { upstream, UpstreamTimeout } from "@/server/upstream";
+import { isDeadline, upstream } from "@/server/upstream";
 import { decodeEntities, maskTokens, restoreTokens } from "../translate-tokens";
 
 /**
@@ -53,11 +53,6 @@ const languagesEnvelope = z.object({
 function apiKey(): string {
   // The provider's key, read inside the call and never echoed (F1).
   return (process.env["GOOGLE_TRANSLATE_API_KEY"] ?? "").trim();
-}
-
-function isDeadline(error: unknown): boolean {
-  const name = typeof error === "object" && error !== null && "name" in error ? error.name : null;
-  return error instanceof UpstreamTimeout || name === "TimeoutError" || name === "AbortError";
 }
 
 /** One chunk of texts into one target language, masked, sent and restored. */

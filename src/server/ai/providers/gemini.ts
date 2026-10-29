@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { upstream, UpstreamTimeout } from "@/server/upstream";
+import { isDeadline, upstream } from "@/server/upstream";
 import { UNTRUSTED_RULE } from "@/lib/untrusted-text";
 import { IMAGE_ANSWER_MAX_BYTES, type AiImage } from "../tasks";
 
@@ -93,14 +93,11 @@ export async function geminiImage(input: {
         ? { kind: "unusable", status: response.status }
         : { kind: "image", status: response.status, bytes, mime };
     } catch (error) {
-      const name =
-        typeof error === "object" && error !== null && "name" in error ? error.name : null;
-      if (error instanceof UpstreamTimeout || name === "AbortError" || name === "TimeoutError")
-        return { kind: "timeout" };
+      if (isDeadline(error)) return { kind: "timeout" };
       return { kind: "unusable", status: response.status };
     }
   } catch (error) {
-    return error instanceof UpstreamTimeout ? { kind: "timeout" } : { kind: "network" };
+    return isDeadline(error) ? { kind: "timeout" } : { kind: "network" };
   }
 }
 
@@ -207,9 +204,7 @@ export async function geminiText(input: {
     try {
       parsed = envelope.safeParse(await response.json());
     } catch (error) {
-      const name =
-        typeof error === "object" && error !== null ? (error as { name?: unknown }).name : null;
-      if (name === "TimeoutError" || name === "AbortError") return { kind: "timeout" };
+      if (isDeadline(error)) return { kind: "timeout" };
       return { kind: "unusable", status: response.status };
     }
     return {
@@ -218,6 +213,6 @@ export async function geminiText(input: {
       text: parsed.success ? (parsed.data.candidates?.[0]?.content?.parts?.[0]?.text ?? "") : "",
     };
   } catch (error) {
-    return error instanceof UpstreamTimeout ? { kind: "timeout" } : { kind: "network" };
+    return isDeadline(error) ? { kind: "timeout" } : { kind: "network" };
   }
 }

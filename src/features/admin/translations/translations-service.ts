@@ -459,7 +459,11 @@ export interface AiTranslateItem {
 
 export interface AiTranslateResult {
   done: number;
-  flagged: number;
+  /**
+   * Foundations turn A1 (INC-885) — null when the route could not read the flags back
+   * (`flagRead: "failed"`): unknown, never 0.
+   */
+  flagged: number | null;
   failed: { key: string; reason: string }[];
 }
 
@@ -499,7 +503,10 @@ async function postTranslate(body: Record<string, unknown>): Promise<AiTranslate
   const failed = payload !== null && Array.isArray(payload.failed) ? payload.failed : [];
   return {
     done: Number(payload?.done ?? 0),
-    flagged: Number(payload?.flagged ?? 0),
+    flagged:
+      payload?.flagRead === "failed" || typeof payload?.flagged !== "number"
+        ? null
+        : payload.flagged,
     failed: failed.filter(isTranslateFailure),
   };
 }

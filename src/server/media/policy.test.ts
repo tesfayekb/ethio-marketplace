@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({
   siteCap: true,
   spends: [] as string[],
   writes: [] as Record<string, unknown>[],
+  auditFails: false,
 }));
 
 vi.mock("@/server/ai/meter", async (importOriginal) => ({
@@ -27,7 +28,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     rpc: async (_door: string, args: Record<string, unknown>) => {
       state.writes.push(args);
-      return { error: null };
+      return { error: state.auditFails ? { message: "audit write failure" } : null };
     },
   },
 }));
@@ -96,6 +97,7 @@ beforeEach(() => {
   state.siteCap = true;
   state.spends = [];
   state.writes = [];
+  state.auditFails = false;
   vi.spyOn(console, "error").mockImplementation(() => undefined);
 });
 
@@ -479,4 +481,30 @@ describe("the screen's switch and cap through the gateway (D158, D184)", () => {
         ),
     );
   }
+});
+
+/**
+ * Foundations turn A1 (INC-952, DEC-280) — photo_screen judges a person (a verdict holds or
+ * refuses a seller's ad): with its `ai_calls` row unwritten the refusal is never acted on; the
+ * screen answers the existing "try again later" verdict (providerUnavailable, with retry), and
+ * the one spend the gateway's order records stands.
+ */
+describe("a photo verdict without its audit row (INC-952)", () => {
+  it("AIV-3 the audit write failing turns the provider's refusal into providerUnavailable", async () => {
+    provider({ allowed: false, code: "variant_mismatch", evidence: "second image differs" });
+    state.auditFails = true;
+    const result = await screenPhotoPolicy(variants, () => {}, ctx());
+    expect(verdictOf(result)).toEqual({
+      ok: false,
+      code: "providerUnavailable",
+      evidence: "screening is unavailable",
+    });
+    expect(state.spends).toEqual(["photo_screen"]);
+    expect(state.writes).toHaveLength(1);
+  });
+  it("AIV-4 the same refusal with its row written is the provider's own verdict", async () => {
+    provider({ allowed: false, code: "variant_mismatch", evidence: "second image differs" });
+    const result = await screenPhotoPolicy(variants, () => {}, ctx());
+    expect(verdictOf(result)).toMatchObject({ ok: false, code: "variant_mismatch" });
+  });
 });

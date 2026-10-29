@@ -12,6 +12,9 @@ const state = {
   pulls: 0,
   listing: { id: "l-1" } as unknown,
   fetchMode: "ok" as "ok" | "timeout",
+  auditFails: false,
+  auditWrites: 0,
+  spends: 0,
 };
 
 function builder(table: string) {
@@ -69,11 +72,20 @@ vi.mock("@/server/catalog-find.server", () => ({
 vi.mock("@/server/ai/meter", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/server/ai/meter")>()),
   aiGate: async () => ({ on: true }),
-  recordAiSpend: async () => undefined,
+  recordAiSpend: async () => {
+    state.spends += 1;
+  },
 }));
 vi.mock("@/server/stand-in", () => ({ standInMode: () => false }));
 vi.mock("@/server/media/links", () => ({ signPhotoRows: async () => ({}) }));
-vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: {} }));
+vi.mock("@/integrations/supabase/client.server", () => ({
+  supabaseAdmin: {
+    rpc: async () => {
+      state.auditWrites += 1;
+      return { error: state.auditFails ? { message: "audit write failure" } : null };
+    },
+  },
+}));
 
 const { Route } = await import("@/routes/api/listings/assist");
 
@@ -124,12 +136,18 @@ beforeEach(() => {
   state.pulls = 0;
   state.listing = { id: "l-1" };
   state.fetchMode = "ok";
+  state.auditFails = false;
+  state.auditWrites = 0;
+  state.spends = 0;
   vi.stubEnv("GEMINI_API_KEY", "test-key");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async () => {
     state.fetches += 1;
     if (state.fetchMode === "timeout") throw new DOMException("signal timed out", "TimeoutError");
-    return new Response("{}", { status: 200 });
+    const text = JSON.stringify({ title: "Toyota Corolla 2015", description: "One owner." });
+    return new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] }), {
+      status: 200,
+    });
   });
 });
 afterEach(() => {
@@ -181,5 +199,24 @@ describe("POST /api/listings/assist on defineRoute (D2)", () => {
       refusals: [{ field: "assist", reason: "providerUnavailable" }],
     });
     expect(state.fetches).toBe(1);
+  });
+
+  // Foundations turn A1 (INC-952, DEC-280) — the assist's screening judges a person.
+  it("AIV-5 with its audit row unwritten the assist answers providerUnavailable, never the answer", async () => {
+    state.auditFails = true;
+    const response = await post(BODY);
+    expect(await response.json()).toEqual({
+      ok: false,
+      refusals: [{ field: "assist", reason: "providerUnavailable" }],
+    });
+    expect(state.fetches).toBe(1);
+    expect(state.auditWrites).toBe(1);
+    expect(state.spends).toBe(1);
+    expect(state.rpcCalls).toBe(0);
+  });
+  it("AIV-6 the same call with its row written answers the helper's text", async () => {
+    const response = await post(BODY);
+    expect(await response.json()).toMatchObject({ ok: true, title: "Toyota Corolla 2015" });
+    expect(state.auditWrites).toBe(1);
   });
 });

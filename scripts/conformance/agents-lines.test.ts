@@ -59,6 +59,22 @@ export function agentsLineFindings(
 
 const ALLOWLIST = "scripts/conformance/agents-lines-allowlist.txt";
 
+/**
+ * Foundations turn A1 (the D1 follow-up) — a bare name AGENTS.md cites that lives only off this
+ * branch (a ci-evidence file CI writes) is held by an allowlist line `names <file> | reason | until`
+ * in the same file as AGL-2's budget line, so both tests read every key the file can hold and a
+ * line neither needs is stale.
+ */
+function nameKey(finding: Finding): string {
+  const match = /^names (\S+),/.exec(finding.what);
+  return match ? `names ${match[1]}` : `${finding.file}:${finding.line} ${finding.what}`;
+}
+
+function allowlistKeys(text: string, findings: Finding[]): string[] {
+  const bytes = bytesAfterBlock(text);
+  return [...findings.map(nameKey), ...(bytes > AGENTS_BUDGET ? [`AGENTS.md (${bytes})`] : [])];
+}
+
 describe("AGENTS.md stays inside its budget and points only to files that exist (G55)", () => {
   it(
     "AGL-1 every path and file name AGENTS.md points to exists",
@@ -76,7 +92,10 @@ describe("AGENTS.md stays inside its budget and points only to files that exist 
         `[AGL-1] AGENTS.md lines: ${text.split("\n").length}; pointers read: ${pointers}`,
       );
       expect(pointers).toBeGreaterThan(40);
-      expect(report(agentsLineFindings(text, existsSync, names))).toBe("");
+      const findings = agentsLineFindings(text, existsSync, names);
+      const keys = allowlistKeys(text, findings);
+      const allowances = readAllowlist(ALLOWLIST, keys);
+      expect(report(findings.filter((f) => !allowances.has(nameKey(f))))).toBe("");
     },
     TREE_SCAN_MS,
   );
@@ -84,7 +103,16 @@ describe("AGENTS.md stays inside its budget and points only to files that exist 
   it("AGL-2 AGENTS.md after its LOVABLE block stays inside the 5,120-byte budget, or a recorded exception holds its count", () => {
     const bytes = bytesAfterBlock(readFileSync("AGENTS.md", "utf8"));
     const findings = bytes > AGENTS_BUDGET ? [`AGENTS.md (${bytes})`] : [];
-    const allowances = readAllowlist(ALLOWLIST, findings);
+    const text = readFileSync("AGENTS.md", "utf8");
+    const names = new Set(
+      walkFiles(["src", "e2e", "scripts", "docs", "supabase", "public", ".claude", ".github"], {
+        ext: ["ts", "tsx", "mjs", "sh", "md", "txt", "css", "json", "sql", "yml"],
+      }).map((path) => basename(path)),
+    );
+    names.add("AGENTS.md");
+    names.add("package.json");
+    const keys = allowlistKeys(text, agentsLineFindings(text, existsSync, names));
+    const allowances = readAllowlist(ALLOWLIST, keys);
     console.log(
       `[AGL-2] AGENTS.md after the LOVABLE block: ${bytes} bytes; budget ${AGENTS_BUDGET}`,
     );

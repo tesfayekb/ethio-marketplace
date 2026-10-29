@@ -80,7 +80,8 @@ export function AiBulkBar({
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [summary, setSummary] = useState<{
     done: number;
-    flagged: number;
+    /** Foundations turn A1 (INC-885) — null: a chunk's flag count could not be read. */
+    flagged: number | null;
     failed: { key: string; reason: string }[];
   } | null>(null);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
@@ -179,7 +180,7 @@ export function AiBulkBar({
     }
 
     let done = 0;
-    let flagged = 0;
+    let flagged: number | null = 0;
     const failed: { key: string; reason: string }[] = [];
     setProgress({ done: 0, total: items.length });
     try {
@@ -205,7 +206,8 @@ export function AiBulkBar({
         }
         if (result !== null) {
           done += result.done;
-          flagged += result.flagged;
+          // One unread chunk makes the run's count unknown: never a partial sum shown as whole.
+          flagged = flagged === null || result.flagged === null ? null : flagged + result.flagged;
           failed.push(...result.failed);
         }
         setProgress({ done: index + chunk.length, total: items.length });
@@ -312,9 +314,14 @@ export function AiBulkBar({
           <p>
             {t("admin.translations.ai.summary")
               .replace("{done}", String(summary.done))
-              .replace("{flagged}", String(summary.flagged))
+              .replace("{flagged}", summary.flagged === null ? "?" : String(summary.flagged))
               .replace("{failed}", String(summary.failed.length))}
           </p>
+          {summary.flagged === null ? (
+            <p role="alert" data-testid="ai-bulk-flags-unread" className="text-xs text-destructive">
+              {t("admin.translations.strings.error")}
+            </p>
+          ) : null}
           {summary.failed.length > 0 ? (
             <p data-testid="ai-bulk-failed" className="text-xs text-destructive">
               {t("admin.translations.ai.failedList").replace(

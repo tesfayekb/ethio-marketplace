@@ -1,6 +1,8 @@
+import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { codeOf, walkFiles } from "../../scripts/conformance/kit";
 
-import { upstream, UpstreamTimeout } from "@/server/upstream";
+import { isDeadline, upstream, UpstreamTimeout } from "@/server/upstream";
 
 /**
  * Foundations turn 2 (DEC-237) — the one outside call (UPS-1…UPS-3).
@@ -91,5 +93,29 @@ describe("upstream (B3)", () => {
     expect(error).toHaveBeenCalledTimes(1);
     expect(error.mock.calls[0].join(" ")).toContain("[upstream] provider 404");
     expect(info).not.toHaveBeenCalled();
+  });
+});
+
+/** Foundations turn A1 (INC-888) — one deadline classification, and its census. */
+describe("isDeadline (INC-888)", () => {
+  it("AIA-1 upstream's timeout and the runtime's two deadline names are deadlines; nothing else is", () => {
+    expect(isDeadline(new UpstreamTimeout("provider", 10))).toBe(true);
+    expect(isDeadline(new DOMException("signal timed out", "TimeoutError"))).toBe(true);
+    expect(isDeadline(new DOMException("aborted", "AbortError"))).toBe(true);
+    expect(isDeadline(new TypeError("fetch failed"))).toBe(false);
+    expect(isDeadline({ name: "NetworkError" })).toBe(false);
+    expect(isDeadline(null)).toBe(false);
+    expect(isDeadline("TimeoutError")).toBe(false);
+  });
+  it("AIA-3 no server file outside upstream.ts names a deadline error; a planted copy is reported", () => {
+    const copies = (path: string, text: string): string[] =>
+      /["'](?:TimeoutError|AbortError)["']/.test(codeOf(text)) ? [path] : [];
+    const found = walkFiles(["src/server", "src/routes/api"], { ext: ["ts", "tsx"] })
+      .filter((path) => !/\.test\.tsx?$/.test(path) && !path.endsWith("src/server/upstream.ts"))
+      .flatMap((path) => copies(path, readFileSync(path, "utf8")));
+    expect(found).toEqual([]);
+    expect(
+      copies("src/server/planted.ts", 'if (name === "TimeoutError") return { kind: "timeout" };'),
+    ).toEqual(["src/server/planted.ts"]);
   });
 });
