@@ -30,6 +30,13 @@ import {
  * default of 5 s per test cut them short there. Their suites and the shared setup state a budget.
  */
 const GIT_HEAVY_MS = 120_000;
+/**
+ * INC-998 — the bash guard's tests judge each command through a real `bun` process, one per
+ * command, as Claude Code runs the hook (stdin event, exit code): EXH-4/5/7/21 start 30–60 each.
+ * The hook is the executor kit's pinned file, so it is not split into an importable function
+ * here; under the whole suite's load those starts outgrow vitest's 5 s, so the suite states it.
+ */
+const HOOK_PROCESS_MS = 60_000;
 
 const HOOKS = join(process.cwd(), ".claude", "hooks");
 let root = "";
@@ -320,7 +327,7 @@ describe("scope guard (law A1)", () => {
   });
 });
 
-describe("bash guard (50-security.md)", () => {
+describe("bash guard (50-security.md)", { timeout: HOOK_PROCESS_MS }, () => {
   const refused = (command: string, why: RegExp) => {
     const r = hook("bash-guard", { tool_name: "Bash", tool_input: { command } });
     expect(r.code, command).toBe(2);
