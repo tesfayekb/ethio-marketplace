@@ -57,8 +57,8 @@ describe("scheduled job routes check the signature first (INC-977)", () => {
     const planted = `${JOBS_PREFIX}.planted.ts`;
     expect(report(jobRouteBreaches([{ file: planted, text: bad }]))).toBe(
       [
-        `${planted}:1 jobs route not on jobHandler`,
         `${planted}:1 jobs route auth is not "none"`,
+        `${planted}:1 jobs route not on jobHandler`,
       ].join("\n"),
     );
     const real = `${JOBS_PREFIX}.$job.ts`;
