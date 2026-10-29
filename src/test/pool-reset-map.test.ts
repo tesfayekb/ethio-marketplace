@@ -48,12 +48,12 @@ describe("DEC-099 pool reset map", () => {
     expect(both).toEqual([]);
   });
 
-  it("PRM-1 the census finds name_checks, and it is RESET", () => {
+  it("PRR-1 the census finds name_checks, and it is RESET", () => {
     expect(tablesWithUserColumn()).toContain("name_checks");
     expect(Object.keys(POOL_RESET_TABLES)).toContain("name_checks");
   });
 
-  it("PRM-2 a planted profile_id column and a planted foreign key to profiles under another name are found", () => {
+  it("PRR-2 a planted profile_id column and a planted foreign key to profiles under another name are found", () => {
     const planted = `Tables: {
       e2e_planted_by_column: {
         Row: {
@@ -89,7 +89,7 @@ describe("DEC-099 pool reset map", () => {
     expect(tablesWithUserColumn(planted)).toEqual(["e2e_planted_by_column", "e2e_planted_by_key"]);
   });
 
-  it("PRM-3 the reap names every RESET table it deletes from by hand, name_checks by profile_id", () => {
+  it("PRR-3 the reap names every RESET table it deletes from by hand, name_checks by profile_id", () => {
     const users = readFileSync(resolve(process.cwd(), "e2e/helpers/users.ts"), "utf8");
     const start = users.indexOf("async function reapPoolAccount(");
     const body = users.slice(start, users.indexOf("\n}\n", start));
