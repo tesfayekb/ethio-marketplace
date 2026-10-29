@@ -581,7 +581,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       aria-label={t("shell.categoriesLabel")}
       className={cn(compact && "flex min-h-full flex-col")}
     >
-      <ul className={cn("flex flex-col gap-0.5", compact && "flex-1")}>
+      <ul
+        className={cn("flex flex-col gap-0.5", compact && "flex-1")}
+        data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
+      >
         {level ? (
           <li className={cn(compact && "flex min-h-8 max-h-10 flex-1 flex-col")}>
             <Button
