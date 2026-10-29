@@ -38,6 +38,8 @@ The brief in force: docs/governance/briefs/foundations-turn-l-2.md (turn L-2: co
 - [ ] Turn L-1 — INC-999 evidence excerpt (SXC-1…4) and format.ts/locale.ts with CF-FMT-1 (INC-985, INC-954 app copies)
 - [ ] Turn L-2 — page heads in the reader's language (INC-990), starting with its census of routes and keys
 - [ ] Turn L-5 — messages with values: `t(key, values)` for the 226 `.replace("{` sites
+- [ ] Later — the database collation for non-Latin names: prove compareNames (FIXED_ORDER_LOCALE) equals the server's ORDER BY for Amharic names (L-2 A3; needs the operator)
+- [ ] Later — a category page's title names the category (L-2 B1; c.$slug has no loader data, a head never adds a request)
 - [ ] D239's account rule loads only once a session exists — the speed work, not built now (the rule weighs every page, public ones included, for signed-out visitors too)
 - [x] CI-2 — `bun run checks` (scripts/ci/turn-checks.sh, TCK-1…5), shared section notice + SNC-3, NEAR raises, AGENTS line, CI doc + register row
 - [ ] D239 flash — hold the sign-in redirect for the account rule's answer, under a short deadline — a sign-in flow change, its own plan and DEC
