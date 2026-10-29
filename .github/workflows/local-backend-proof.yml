@@ -820,15 +820,15 @@ jobs:
           fixture_count = sum(line.startswith('- fixture ') for line in working_lines)
           start_log = Path('local-backend-start.log')
           if not ok and start_log.exists():
-              text = redact(start_log.read_text(errors='replace'))
-              applied_lines = [line for line in text.splitlines() if 'Applying migration' in line]
-              lines += ['', '## Migration/start failure', 'Last migration line: ' + (applied_lines[-1] if applied_lines else 'no migration reached'), '```text', *text.splitlines()[-60:], '```']
-              # INC-973: the merged failure report reads no fragment; give it the failing
-              # migration's name and the last ERROR/FATAL lines, redacted like the rest.
-              error_lines = [line for line in text.splitlines() if 'ERROR' in line or 'FATAL' in line]
-              Path('local-backend-start-failure.txt').write_text('\n'.join(
-                  ['migration: ' + (applied_lines[-1] if applied_lines else 'no migration reached')]
-                  + error_lines[-20:]) + '\n')
+              # INC-999: redaction first, then the one excerpt (scripts/ci/start-failure-excerpt.mjs)
+              # keeps the last migration line, the cause lines whole, the cut statement echo and the tail.
+              redacted_log = Path(os.environ.get('RUNNER_TEMP', '.')) / 'local-backend-start.redacted.log'
+              redacted_log.write_text(redact(start_log.read_text(errors='replace')))
+              import subprocess
+              excerpt = json.loads(subprocess.run(['node', 'scripts/ci/start-failure-excerpt.mjs', str(redacted_log)], capture_output=True, text=True, check=True).stdout)
+              lines += ['', '## Migration/start failure', *excerpt['section']]
+              # INC-973: the merged failure report reads no fragment; it gets the same excerpt's migration and cause lines.
+              Path('local-backend-start-failure.txt').write_text('\n'.join(excerpt['failure']) + '\n')
           counts = {'passed': 0, 'failed': 0, 'flaky': 0, 'skipped': 0}
           failures = []
           results = Path('test-results/results.json')
