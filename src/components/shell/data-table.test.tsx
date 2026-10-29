@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DataTable, DataTablePagination, type DataTableColumn } from "./data-table";
@@ -70,6 +70,19 @@ function renderTable(props: Partial<React.ComponentProps<typeof DataTable<Row>>>
 }
 
 describe("DataTable C7 contract", () => {
+  it("ACR-5 keyset mode preserves the whole server page and only permits available navigation", () => {
+    const next = vi.fn(); const previous = vi.fn();
+    const { rerender } = renderTable({ page: 7, pageSize: 1, keyset: { hasPrevious: false, hasNext: true, onNext: next, onPrevious: previous } });
+    expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(3);
+    fireEvent.click(screen.getByRole("button", { name: "prim.table.previous" }));
+    fireEvent.click(screen.getByRole("button", { name: "prim.table.next" }));
+    expect(previous).not.toHaveBeenCalled(); expect(next).toHaveBeenCalledTimes(1);
+    rerender(<DataTable columns={columns()} rows={ROWS} rowKey={row => row.id} rowTestId={row => row.id} caption="fixture" emptyState={null}
+      keyset={{ hasPrevious: true, hasNext: false, busy: true, onNext: next, onPrevious: previous }} />);
+    fireEvent.click(screen.getByRole("button", { name: "prim.table.previous" }));
+    fireEvent.click(screen.getByRole("button", { name: "prim.table.next" }));
+    expect(previous).not.toHaveBeenCalled(); expect(next).toHaveBeenCalledTimes(1);
+  });
   it("splits the twins at md when cardUntil is absent (default path)", () => {
     renderTable();
     expect(screen.getByTestId("data-table-cards").className).toContain("tbl-md:hidden");

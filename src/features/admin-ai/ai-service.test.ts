@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   aiErrorKey,
+  aiCallsOf,
+  taskLabelKey,
   aiFeatureOf,
   aiFeaturesOf,
   aiSpendDaysOf,
@@ -35,6 +37,20 @@ const ROW = {
 };
 
 describe("the AI console's seam (D158)", () => {
+  it("ACR-1 reads a private projection and preserves the server cursor", () => {
+    const row = { id: "scratch", created_at: "2026-10-29T00:00:00Z", feature: "name_check", task: "name_check", task_version: 1,
+      model: "model", outcome: "ok", provider_status: null, latency_ms: 12, fake: false, actor: { kind: "hidden" }, input_hash: "private", actor_id: "private" };
+    const page = aiCallsOf({ rows: [row], next: { at: row.created_at, id: row.id } });
+    expect(page.rows[0]?.actor).toEqual({ kind: "hidden" });
+    expect(page.rows[0]).not.toHaveProperty("input_hash"); expect(page.rows[0]).not.toHaveProperty("actor_id");
+    expect(page.next).toEqual({ at: row.created_at, id: row.id });
+    expect(() => aiCallsOf({ rows: [{ ...row, latency_ms: null }], next: null })).toThrow("out of shape");
+    expect(() => aiCallsOf({ rows: [row] })).toThrow("out of shape");
+  });
+  it("ACR-2 unknown tasks remain data, never inherited map members", () => {
+    expect(taskLabelKey("category_icon")).toBe("admin.ai.feature.category_icons");
+    expect(taskLabelKey("toString")).toBeNull(); expect(taskLabelKey("future_task")).toBeNull();
+  });
   it("AIS-1 a row is read as the door promises it, and any field out of shape refuses the row", () => {
     expect(aiFeatureOf(ROW)).toEqual({
       feature: "writing_helper",
