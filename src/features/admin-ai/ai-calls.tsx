@@ -5,7 +5,8 @@ import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-sta
 import { TableToolbar } from "@/components/shell/table-toolbar";
 import { CutText } from "@/components/ui/cut-text";
 import { Button } from "@/components/ui/button";
-import { NativeSelect } from "@/components/ui/native-select";
+import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
+import { FilterChoices } from "@/components/shell/filter-choices";
 import { useI18n } from "@/i18n";
 import { formatLocale } from "@/lib/format-locale";
 import {
@@ -28,6 +29,31 @@ export function AiCalls() {
   const name = (id: string) => {
     const key = featureLabelKey(id);
     return key ? t(key) : id;
+  };
+  // INC-987 — the two choices narrow the rows, so they live in Filters (T2b),
+  // shown as chips under the toolbar; any change goes back to the first page.
+  const choose = (set: (value: string) => void) => (value: string) => {
+    set(value);
+    setHistory([null]);
+  };
+  const chips = [
+    ...(feature === ""
+      ? []
+      : [{ key: "feature", label: name(feature), onRemove: () => choose(setFeature)("") }]),
+    ...(outcome === ""
+      ? []
+      : [
+          {
+            key: "outcome",
+            label: t(`admin.ai.log.outcome.${outcome}`),
+            onRemove: () => choose(setOutcome)(""),
+          },
+        ]),
+  ];
+  const clearAll = () => {
+    setFeature("");
+    setOutcome("");
+    setHistory([null]);
   };
   const locale = formatLocale(language);
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "medium" });
@@ -115,42 +141,36 @@ export function AiCalls() {
         toolbar={
           <TableToolbar
             testid="ai-calls-toolbar"
-            search={
-              <>
-                <NativeSelect
-                  data-testid="ai-calls-feature"
-                  aria-label={t("admin.ai.col.feature")}
+            filters={
+              <FiltersButton
+                testid="ai-calls-filters"
+                count={chips.length}
+                state={`${feature}|${outcome}`}
+                onClearAll={clearAll}
+              >
+                <FilterChoices
+                  testid="ai-calls-feature"
+                  label={t("admin.ai.col.feature")}
                   value={feature}
-                  onChange={(event) => {
-                    setFeature(event.target.value);
-                    setHistory([null]);
-                  }}
-                >
-                  <option value="">{t("admin.ai.days.all")}</option>
-                  {AI_FEATURE_ORDER.map((id) => (
-                    <option key={id} value={id}>
-                      {name(id)}
-                    </option>
-                  ))}
-                </NativeSelect>
-                <NativeSelect
-                  data-testid="ai-calls-outcome"
-                  aria-label={t("admin.ai.log.col.outcome")}
+                  onChange={choose(setFeature)}
+                  options={[
+                    { value: "", label: t("admin.ai.days.all") },
+                    ...AI_FEATURE_ORDER.map((id) => ({ value: id, label: name(id) })),
+                  ]}
+                />
+                <FilterChoices
+                  testid="ai-calls-outcome"
+                  label={t("admin.ai.log.col.outcome")}
                   value={outcome}
-                  onChange={(event) => {
-                    setOutcome(event.target.value);
-                    setHistory([null]);
-                  }}
-                >
-                  <option value="">{t("admin.ai.log.allOutcomes")}</option>
-                  {AI_OUTCOMES.map((id) => (
-                    <option key={id} value={id}>
-                      {t(`admin.ai.log.outcome.${id}`)}
-                    </option>
-                  ))}
-                </NativeSelect>
-              </>
+                  onChange={choose(setOutcome)}
+                  options={[
+                    { value: "", label: t("admin.ai.log.allOutcomes") },
+                    ...AI_OUTCOMES.map((id) => ({ value: id, label: t(`admin.ai.log.outcome.${id}`) })),
+                  ]}
+                />
+              </FiltersButton>
             }
+            chips={<FilterChips testid="ai-calls-chips" chips={chips} onClearAll={clearAll} />}
             columns={
               <ColumnsButton
                 testid="ai-calls-columns"
