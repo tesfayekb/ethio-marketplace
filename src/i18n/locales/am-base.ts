@@ -1,6 +1,21 @@
 import type { enBase } from "./en-base";
 
 export const amBase: { [K in keyof typeof enBase]: string } = {
+  "head.auth.description": "ይግቡ ወይም ነጻ የ ethio.com አካውንትዎን ይፍጠሩ።",
+  "head.authCallback.description": "የ ethio.com አካውንትዎን ማረጋገጥ ይጨርሱ።",
+  "head.authCallback.title": "ኢሜይልዎን ያረጋግጡ",
+  "head.authReset.description": "ለ ethio.com አካውንትዎ አዲስ የይለፍ ቃል ይምረጡ።",
+  "head.category.description": "በዚህ ምድብ ውስጥ በአቅራቢያዎ ካሉ ሻጮች ማስታወቂያዎችን ይመልከቱ።",
+  "head.category.title": "ምድብ",
+  "head.home.description": "በአቅራቢያዎ ካሉ ሻጮች ማስታወቂያዎችን ይመልከቱ። መለጠፍም መመልከትም ነጻ ነው።",
+  "head.home.title": "ethio.com — የኢትዮጵያ ገበያ",
+  "head.legalAccept.description": "የአገልግሎት ውሎቹን እና የግላዊነት መመሪያውን ይቀበሉ።",
+  "head.privacy.description": "የ ethio.com የግላዊነት መመሪያ፣ በሥራ ላይ ያለው ስሪት እና ቀጣዩ።",
+  "head.publishing.description": "እያንዳንዱ ሻጭ ማስታወቂያው በቀጥታ ከመውጣቱ በፊት የሚያረጋግጠው የማስታወቂያ ማረጋገጫ ቃል።",
+  "head.seller.description": "በ ethio.com ላይ የ{name} ማስታወቂያዎች።",
+  "head.site.description": "የኢትዮጵያ ገበያ — በቅርቡ ይመጣል።",
+  "head.site.pattern.title": "{name} — ethio.com",
+  "head.terms.description": "የ ethio.com የአገልግሎት ውሎች፣ በሥራ ላይ ያለው ስሪት እና ቀጣዩ።",
   "legal.fallbackNote": "ይህ ጽሑፍ በቋንቋዎ ገና ስላልተዘጋጀ በእንግሊዝኛ ቀርቧል።",
   "app.name": "ethio.com",
   "app.tagline": "ይግዙ እና ይሽጡ",
@@ -446,7 +461,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.translations.error.deleteBase": "የመሰረት ቋንቋ ሊሰረዝ አይችልም።",
 
   // U6-C1a — THE POSTING WIZARD (D1: no literal UI string).
-  "post.head.title": "ማስታወቂያ ይለጥፉ — ethio.com",
   "post.head.description": "የሚሸጡትን በጥቂት ደረጃዎች በethio.com ላይ ይለጥፉ።",
   "post.step.category": "ምድብ",
   "post.step.photos": "ፎቶዎች",

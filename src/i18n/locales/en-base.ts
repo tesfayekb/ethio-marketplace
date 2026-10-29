@@ -1,4 +1,19 @@
 export const enBase = {
+  "head.auth.description": "Sign in or create your free ethio.com account.",
+  "head.authCallback.description": "Finish confirming your ethio.com account.",
+  "head.authCallback.title": "Confirm your email",
+  "head.authReset.description": "Choose a new password for your ethio.com account.",
+  "head.category.description": "Browse listings in this category from sellers near you.",
+  "head.category.title": "Category",
+  "head.home.description": "Browse listings from sellers near you. Free to post, free to browse.",
+  "head.home.title": "ethio.com — Ethiopia's marketplace",
+  "head.legalAccept.description": "Accept the Terms of Service and the Privacy Policy.",
+  "head.privacy.description": "The Privacy Policy of ethio.com, the version in force and the next one.",
+  "head.publishing.description": "The publishing statement every seller certifies before an ad goes live.",
+  "head.seller.description": "Ads by {name} on ethio.com.",
+  "head.site.description": "Ethiopia's marketplace — coming soon.",
+  "head.site.pattern.title": "{name} — ethio.com",
+  "head.terms.description": "The Terms of Service of ethio.com, the version in force and the next one.",
   "legal.fallbackNote":
     "This text is not yet available in your language, so it is shown in English.",
   "app.name": "ethio.com",
@@ -477,7 +492,6 @@ export const enBase = {
   "admin.translations.error.deleteBase": "The base language cannot be deleted.",
 
   // U6-C1a — THE POSTING WIZARD (D1: no literal UI string).
-  "post.head.title": "Post a listing — ethio.com",
   "post.head.description": "Post what you are selling on ethio.com in a few steps.",
   "post.step.category": "Category",
   "post.step.photos": "Photos",
