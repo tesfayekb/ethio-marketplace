@@ -16,25 +16,25 @@ import { adminClient } from "./helpers/users";
  *
  * The oracle is independent of src/lib/format.ts: the two Amharic names of September are written
  * here. The seller is a pool lease (J9) with a scratch branch, place and listing (J1), all
- * destroyed in afterEach, the account's language put back to NULL (J3); every row is found by id.
+ * destroyed in afterEach, the account's language put back to the value read before (J3, INC-377); every row is found by id.
  */
 
 const FULL = "ሴፕቴምበር";
 const SHORT_ONLY = /ሴፕቴ(?!ምበር)/;
 const FIRST_POSTED = "2026-09-15T12:00:00.000Z";
 
-const sellers: string[] = [];
+const sellers: { id: string; prior: string | null }[] = [];
 const regions: string[] = [];
 const branches: string[][] = [];
 
 test.afterEach(async () => {
-  const ids = sellers.splice(0);
-  for (const id of ids) await destroyListingsOf(id);
-  if (ids.length > 0) {
+  // L-2 Part 0.2 (INC-377) — a leased account gets back exactly the value it had.
+  for (const { id, prior } of sellers.splice(0)) {
+    await destroyListingsOf(id);
     const { error } = await adminClient()
       .from("profiles")
-      .update({ preferred_language: null })
-      .in("user_id", ids);
+      .update({ preferred_language: prior })
+      .eq("user_id", id);
     if (error) throw new Error(`[e2e:lf] restoring preference: ${error.message}`);
   }
   for (const slug of regions.splice(0)) await destroyLocation(slug);
@@ -43,7 +43,13 @@ test.afterEach(async () => {
 
 test("LF-E1 an Amharic account sees the full Amharic month on My listings", async ({ page }) => {
   const seller = await leaseSeller({ alias: true, named: true });
-  sellers.push(seller.id);
+  const before = await adminClient()
+    .from("profiles")
+    .select("preferred_language")
+    .eq("user_id", seller.id)
+    .single();
+  if (before.error) throw new Error(`[e2e:lf] reading preference: ${before.error.message}`);
+  sellers.push({ id: seller.id, prior: before.data.preferred_language });
   const { parent, leaf } = await seedCategoryBranch();
   branches.push([parent.slug as string, leaf.slug as string]);
   const chain = await seedScratchChain("ET");
