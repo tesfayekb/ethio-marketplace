@@ -257,7 +257,8 @@ describe("defineImportRoute", () => {
   });
 
   it("IMR-6 a spent dial on preview answers 429 rateLimited with no RPC; commit metering follows budgetModes", async () => {
-    state.dialAllowed = false;
+    // The family meters are spent; the shared import:commit dial is not (D1 M6).
+    state.caps = { "import:categories": 0, "import:translations": 0 };
     const limited = await send(categories, { categories: CATEGORIES });
     expect(limited.status).toBe(429);
     expect(await limited.json()).toEqual({ error: "rateLimited" });
