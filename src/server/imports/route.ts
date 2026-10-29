@@ -220,12 +220,21 @@ export function defineImportRoute(
         gate.detail === undefined ? undefined : { detail: gate.detail },
       );
 
-    if (budgetModes.includes(mode)) {
+    // INC-951 3c (D1 M6, ruling 3 of stop 6) — every family's commit spends the shared
+    // import_commit dial and every undo the shared import_undo dial, after the family's own
+    // budgetModes meter and before any door is called (G54a).
+    const shared =
+      mode === "commit" ? DIALS.importCommit : mode === "undo" ? DIALS.importUndo : null;
+    const meters: Dial[] = [
+      ...(budgetModes.includes(mode) ? [meter] : []),
+      ...(shared === null ? [] : [shared]),
+    ];
+    for (const dialToSpend of meters) {
       let spent;
       try {
-        spent = await spend(meter, userId);
+        spent = await spend(dialToSpend, userId);
       } catch {
-        return upstreamUnavailable(path, `rate limit ${meter.action}`, 0);
+        return upstreamUnavailable(path, `rate limit ${dialToSpend.action}`, 0);
       }
       if (!spent.allowed)
         return clientError(

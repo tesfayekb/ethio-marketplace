@@ -91,6 +91,8 @@ there are no counts to paste. The run happens once both are on staging.
 
 ## 8. K2 / open
 
+- Ruled (stop 9): E2 means restate the existing grants, not add new ones; `admin_import_translations` keeps its live ACL with no service_role, because a new grant would be a new surface with no reason.
+
 - E2 service_role grant on `admin_import_translations` (section 2): needs a ruling.
 - The bulk callers have no dial of their own until M6 (commit/undo dials). Until then they are bounded
   only by their own permission and step-up checks. This was expected by ruling 3.
