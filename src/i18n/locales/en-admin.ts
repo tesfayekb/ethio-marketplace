@@ -1997,4 +1997,5 @@ export const enAdmin = {
   "head.admin.languageStrings.title": "Language strings",
   "head.admin.user.title": "User",
   "head.admin.role.title": "Role",
+  "nav.locations": "Locations",
 } as const;
