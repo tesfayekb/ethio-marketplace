@@ -64,7 +64,6 @@ export function legalDocName(
   return `${name} · ${country}`;
 }
 
-
 /**
  * D236 — a legal kind's audience, mirrored from public.legal_kind_signed_in_only
  * (M24): the publishing statement and the e2e-pub- scratch class are for
