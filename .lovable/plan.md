@@ -1,99 +1,122 @@
-# D239 — Signing in switches the site to the account's language (plan only)
+# Foundations turn L — plan (locale and format, code part; INC-999 evidence first)
 
-Base: dev 9b8a8cdc. Tier A (the sign-in flow, Knowledge I5: the supervisor drafts the DEC from the facts below).
+Base dev e65a78e7. Plan only; no migration in any part. Counts below are from `rg` at plan time (src/e2e/scripts, tests excluded unless named) and are re-run as the census in the build.
 
-## 0. CI first
+## 1. Part A — INC-999 evidence
 
-- Newest completed run in ci-evidence: `e150cc6e`, FAILURE. Every job in ci-status.md passed except "E2E (Playwright, ethio-staging)". That job follows from the lanes, and its cause is Lane smoke (INC-993), which 9b8a8cdc fixes.
-- The run on 9b8a8cdc had not landed when this plan was written. The build's first step is to read it. Any red there is fixed at its root before D239 work starts.
+**Where it is cut.** `.github/workflows/local-backend-proof.yml:825` keeps `text.splitlines()[-60:]` of the start log. A long statement echo pushes the CLI's `ERROR:`/`SQLSTATE` lines above the 60-line window; only "Try rerunning the command with --debug" survives. Line 828 (INC-973's `local-backend-start-failure.txt`) keeps `ERROR`/`FATAL` lines but not `SQLSTATE`, `DETAIL`, `HINT`, `CONTEXT`. The merger at :1090 copies the fragment as written, so the fix belongs at the source.
 
-## 1. Today's precedence (file:line)
+**Rule.** Move the excerpt out of inline Python into `scripts/ci/start-failure-excerpt.py` (one function `excerpt(text) -> list[str]`), called from :825 and :828:
+1. "Last migration line" (as now);
+2. a **Cause** block: every line matching `^\s*(ERROR|FATAL|PANIC|SQLSTATE|DETAIL|HINT|CONTEXT|LINE \d+|QUERY)\b` or `\(SQLSTATE [0-9A-Z]{5}\)`, in order, each kept whole (cap 40 lines, newest kept, with "N earlier cause lines omitted");
+3. the statement echo, cut to its first 10 and last 10 lines with "N lines omitted";
+4. the last 20 lines of the log.
+Cause lines are never subject to the tail cut. Redaction runs before, unchanged.
 
-The one mechanism is `I18nProvider` in `src/i18n/provider.tsx`.
+**Test.** Fixture captured, not authored (I1): run the pinned CLI 2.120.0 against a scratch local backend with a one-off file in a temp copy of `supabase/` (a `CREATE FUNCTION` echo of >200 lines then `SELECT 1/0`), save the redacted log to `scripts/ci/fixtures/start-failure-cli.log` with its capture command in a header. If no local backend can start in the sandbox, the fallback is the CLI's own error-printing shape read from its pinned source (`pkg/migration` / pgconn error formatting), cited file:line, and the fixture is marked "shape from source"; the report says which. Tests (Python via `bun test` wrapper or `python3 -m unittest` run by a unit test):
+- SFE-1: captured log → excerpt contains ERROR and SQLSTATE lines.
+- SFE-2: same log with the echo padded to 5,000 lines → cause lines still present.
+- SFE-3: no cause lines → excerpt says "no ERROR/SQLSTATE line in the log", never empty.
+- SFE-4 (guard, class INC-984/992/999): a census over `.github/workflows/*.yml` fails on any `splitlines()[-N:]` / `tail -n` excerpt of a failure log not routed through `start-failure-excerpt.py` or the lane-step excerpt; allowlist `key | reason | until`; planted proof; wired in wired.test.ts.
 
-| What | Where | Read / write |
+**LEFT:** the proof's own cause on lane 3 of run 40884980032 (one lane in nineteen) is read once evidence exists; its fix is a migration-file change → operator.
+
+## 2. Part B — dates, times, numbers (INC-985)
+
+### src/lib/locale.ts (constants, K4)
+`LANGUAGES = ["en","am"] as const` (the formatter-known codes; om/ti join as rows), `LOCALE_TAG: Record<Lang,string> = { en: "en-GB", am: "am-ET" }`, `FALLBACK_LANGUAGE = "en"`, `COUNTRY_CODE = /^[A-Z]{2}$/`, `isCountryCode()`. `format-locale.ts` reads its tags from here (its literals at :7–8, :10, :13 move).
+
+### src/lib/format.ts (intents)
+One cached instance per (intent, resolved locale) in a `Map`; unknown language → `formatLocale` → en-GB.
+
+| Intent | en | am |
 |---|---|---|
-| Current choice ("last used") | localStorage `ethio.lang` (`LANGUAGE_STORAGE_KEY`, :40) | written by `setLanguage` :406–:420; read at boot :470–:476 |
-| Device star | localStorage `ethio.lang.star` + cookie `ethio_lang_star` (:53–:55) | `readDeviceStar` :77 (storage first, then cookie); `writeDeviceStar` :96–:108 |
-| Boot precedence | :455–:477 | URL override ▸ device star ▸ last used ▸ base |
-| Account `preferred_language` | `fetchPreferredLanguage` (`auth-service.ts` :705–:725, a `profiles` select) and `savePreferredLanguage` (:731–:746, the `user_set_preferred_language` RPC, publication-gated in the database) | read by the account-carry effect `provider.tsx` :492–:517; written only by `setStar` :436–:452 |
-| Account carry (U4h) | :492–:517 | runs once per user id (`carriedForRef`) and **only when there is no device star**: it applies the account's code and writes it as the device star |
-| Gate reconcile | :523–:540 | once the gate answers, an unpublished active language falls back to base, and an unpublished star is cleared |
-| Server first paint | `src/routes/__root.tsx` :163 (`getCookie(LANGUAGE_STAR_COOKIE)`), then `serverShellLanguage` | the cookie only |
-| Session identity | `useAuthIdentity` :264–:292 | `onAuthChange` mirrors `userId` with no Supabase call (I5) and settles on a macrotask hop |
+| `formatDay` | `{dateStyle:"medium"}` (29 Oct 2026) | `{day:"numeric",month:"long",year:"numeric"}` |
+| `formatDayFull` | `{dateStyle:"full"}` | `{weekday:"long",day:"numeric",month:"long",year:"numeric"}` |
+| `formatDayShort` (no year) | `{day:"numeric",month:"short"}` | `{day:"numeric",month:"long"}` |
+| `formatDayTime` | `{dateStyle:"medium",timeStyle:"short"}` | day as above + `{hour:"numeric",minute:"2-digit"}` |
+| `formatMoment` (seconds, audit) | `{dateStyle:"short",timeStyle:"medium"}` | day long + `{hour,minute,second}` |
+| `formatTime` | `{timeStyle:"short"}` | `{hour:"numeric",minute:"2-digit"}` |
+| `formatMonthYear` | `{month:"long",year:"numeric"}` | same |
+| `formatRelative(date, now)` | `RelativeTimeFormat {numeric:"auto"}` with the unit table now in relative-time.ts | same |
+| `formatCount` | `NumberFormat()` integer | same |
+| `formatNumber(n, {maxFraction})` | `NumberFormat({maximumFractionDigits})` | same |
+| `weekdayNarrow`, `monthName` | for date-field only | same |
 
-What each way in does today:
-- **E-mail sign-in, sign-up, Google (OAuth return), the Telegram flow, magic and confirmation links (`verifyOtp`/`setSession`, `auth-service.ts` :537–:580), a session restored at reload, a token refresh:** none of them touch the language. Each fires an auth event, `userId` changes, and the carry effect runs once for that user id. A token refresh keeps the same id, so the latch makes it a no-op. Because the carry only fills a device with no star, an account's language **never** replaces a device that has a star (the U4h comment at `auth-service.ts` :696–:705).
-- **Picking a language (D237 / INC-851):** the menu pick calls `setStar`, which writes the star, the cookie and the current choice, and saves to the account when signed in. A signed-out pick goes as far as the RPC wrapper and comes back as "no session" with no write. **That is already the D239 rule.**
-- **An account with no language:** today nothing is saved. The carry reads `null` and returns. The account is written only by a pick. The brief's "the device's current choice is saved to the account, *as today*" does not match the code: that save is new behaviour, and it needs a ruling (Q1).
-- **Sign-out:** `userId` becomes `null` and the latch is released. The star, cookie and current choice stay, so the language does not change.
-- **Cross-tab:** the provider has no `storage` listener. `supabase-door.ts` :325 only loads the client when another tab signs in. An open tab keeps its language until it reloads. A new tab or a reload reads the star. **"every open tab follows" is not met today**, for a pick or for a sign-in.
-- **Staff impersonation:** `begin_impersonation` opens a read-only view for the staff member's own session (DEC-016; full view-as-user is still DEC-021, `en-admin.ts` :1966). No session is swapped and no auth event fires, so the staff member's device language does not change when the view starts or ends. The build re-checks this by reading the impersonation route before writing the test.
+Rule: in am, `month` is never `"short"`/`dateStyle:"medium"|"short"` (CLDR am-ET short month gives "ኦክቶ"). `relative-time.ts` and `posted.ts` become thin callers or are retired into format.ts (posted.ts kept as a re-export only if callers need it; else deleted and listed in intentional-deletions).
 
-## 2. The one change
+### Consumers (src, 59 hits) — verdict
+Moves (each to the intent named):
+- settings.tsx:423 day · screening-page.tsx:169 dayShort (was month short), :178 dayTime · photo-reviews.tsx:62, photo-changes.tsx:59, job-line.tsx:46 dayTime · name-checks.tsx:94 dayTime, :98 count
+- ai-calls.tsx:55 moment, :56 count · posting/step-who.tsx:103 day, :937 dayTime · seller-line.tsx:38 monthYear · step-pricing.tsx:403 number · price-line.ts:50 number · attribute-display.ts:91 number (fraction)
+- admin-listings/listings-page.tsx:174 day, :175 dayFull, :176 dayShort (was month short) · listing-page.tsx:162 day, :163 dayTime, :885 dayTime
+- account-overview.tsx:151 day · users-list.tsx:109 · user-detail.tsx:55 · impersonation-view.tsx:71 · user-legal-card.tsx:18 · legal-version-view.tsx:174 · legal-page.tsx:69 · legal-kinds.ts:70, :84 (each per its current options → day/dayTime)
+- my-listing-page.tsx:269, :273 · my-listings-page.tsx:206, :215 (full), :218
+- audit-page.tsx:129 time, :134 dayShort (was month short)
+- relative-time.ts:22, posted.ts:9 → formatRelative
+- date-field.tsx:114–117 → day, dayFull, monthYear, weekdayNarrow (locale passed in today; it moves to language)
 
-D239 goes in **one place**: the account-carry effect (`provider.tsx` :492–:517), renamed in its comment to "the account rule (D239)". No sign-in door changes. Every door reaches the rule the way it does today: through the auth event, `userId`, then the effect.
+Stays (allowlist, reason):
+- ai-service.ts:256/262/268 — `en-US` USD cost formatters (provider money in USD, register row 16 exception), until: never (reviewed).
+- components/ui/calendar.tsx:35, :157 and components/ui/chart.tsx:225 — UI kit (row 16); calendar is used only via date-field, which overrides labels; `data-day` is a non-visible key.
+- Ethiopian-calendar year (row 16): `rg` finds no `ethiopic` Intl use in src today; the exception is kept as a named allowlist key for when it lands, else dropped (report states which).
+- format-locale.ts itself (`supportedLocalesOf`) — the locale picker.
 
-The new rule, run once per signed-in user id, after the gate answers:
-1. Read the account's code (`fetchPreferredLanguage`).
-2. **The read failed** (no session, client did not load, error): keep the device's choice, log one named line, and change nothing. The page is never blank and never shows key names.
-3. **The code is set and on the gate's list:** call `setStar(code)` without the account save. That writes the star (localStorage + cookie) and the current choice, and switches the language. The device star no longer blocks the account (U4h's "star wins" is removed).
-4. **The code is set but not on the gate's list:** the device choice stays and the account is **not** written. The preference applies at the first sign-in after that language is published. This needs a new wait on `gateReady`; today the carry does not wait for the gate.
-5. **The code is null:** save the device's current language to the account (`savePreferredLanguage`), only if it is on the list. This is new behaviour; see Q1.
+e2e: ad-page.spec.ts:1325 (`"am"` RelativeTimeFormat) and legal-pages.spec.ts:204 (`"en-GB"`) — tests compute the expected value independently by design (a test must not use the code under test); they stay, allowlisted under `e2e/` with reason "independent oracle". scripts/: no hits.
 
-**Session start only, or every restore?** Recommendation: **session start only**, meaning the first auth identity per page load and each new sign-in, under the existing user-id latch. A reload is a new page load, so it does apply. The reason: a reload re-reading the account would undo a signed-out pick made before the session was restored. That cannot happen while signed in, because a signed-in pick writes the account too. So a reload is safe, and a token refresh (same id, latch held) is excluded. Net effect: sign-in, sign-up, every link type, Google, Telegram and a reload all apply the rule; a token refresh never does.
+### Guard CF-FMT-1 (scripts/conformance/format.test.ts)
+Fails on `Intl.DateTimeFormat|NumberFormat|RelativeTimeFormat`, `toLocale(Date|Time)?String`, a literal `"am-ET"|"en-GB"|"en-US"` locale, or `/^[A-Z]{2}$/` outside format.ts/locale.ts/format-locale.ts. AST-based (TS compiler, like T2b) so comments/strings in tests don't trip it. Allowlist `key | reason | until`; stale/expired fail. Planted bypass proof; wired.test.ts names `test:unit`.
 
-**Cross-tab:** add one `storage` listener in the same provider for `ethio.lang.star`. When another tab writes the star, this tab calls `setLanguageState(code)` after the same shape and gate checks, with no account write. This makes D237's "every tab follows" literally true for picks and for D239 switches. No second mechanism is added.
+INC-954 app copies: legal-kinds.ts:101, legal-service.ts:107, calling-codes.ts:131, pricing-data.ts:277 → `isCountryCode`. pricing-data's `/^[A-Z]{3}$/` (currency) is a K2 (no constant asked). **LEFT:** the SQL half (23 functions with `'am'/'en'` literals → `base_languages()`, INC-954 DB copies).
 
-**No flash of the wrong language:**
-- Server first paint already renders from the star cookie. After a D239 switch the cookie is updated before any navigation, so the next server render is right.
-- On the in-page switch, the catalog loads through the existing `appliedLanguage` path (INC-872). `<html lang>` and the text change together once the catalog is in, so the page never shows mixed text.
-- The sign-in screen redirects after the event. To avoid one frame in the old language there, the redirect already waits on `authSettled`, and the rule runs in the same settle. The build measures this. If a frame of the old language is visible, we report it rather than hiding it.
+## 3. Part C — page heads in the reader's language (INC-990)
 
-**The publication gate's list is the only allowlist:** shape check (`isLanguageCode`) plus `isPublic`. The database function stays the authority on writes. Oromo, Tigrinya or any later language joins through the gate's rows, with no code change.
+**Builder** `src/lib/page-head.ts`: `pageHead({ title: MessageKey, description?: MessageKey, values?, og?: {image?, type}, canonical?, hreflang? }, ctx)` → TanStack `head()` object; adds the site suffix from key `head.siteSuffix`; dynamic parts (seller name, ad title) are inserted as values (text only; React head renders them as text nodes / attribute values, never HTML). Public routes keep G1: absolute og URL from `getRequestOrigin`, `og:locale` = declared language, hreflang from the publication gate (existing code moves behind the builder, not changed).
 
-## 3. Tests (ids grep-checked free at build; proposed `LANG-D239-*` for units, `D239-E*` for E2E)
+**Language and catalogue.**
+- Server first paint: `server-shell-language.ts` already resolves the cookie language (DEC-287); the root route loader exposes `{ language }` in router context; `head()` reads `match.context.language`.
+- Catalogue: head keys live in a new tiny layer `head` (en-head/am-head, DEC-258 layers) — only head strings (~55 keys × 2). On the server it is imported statically (server bundle, no client cost). In the browser, `head()` re-runs on navigation; the `head` layer is joined into **en-base/am-base already shipped** only if measured cost ≤0.1 KiB/page; otherwise the client head keeps the SSR title until the strings layer for that route loads, then `StringsLayerGate`'s load triggers `router.invalidate()`-free re-head via a `useHead` sync of `document.title`. Decision taken by measurement in turn L-3 (both builds measured against base; cause written). Missing key → English catalogue → never raw key (compiled.en fallback, D3).
+- Admin heads: their keys go in the admin layer (already loaded before draw).
 
-Unit (provider, with the auth/door modules mocked):
-- U1 account `en`, device star `am`, gate has both → switch to `en`, star and cookie written, no account save.
-- U2 account null → device language saved once to the account (if Q1 is yes).
-- U3 account code unpublished → device kept, **no** save call (refusal: asserts the RPC mock was not called).
-- U4 a failed account read → device kept, one warn line, no save.
-- U5 a token refresh (same id) → no second read.
-- U6 sign-out → language and star unchanged.
-- U7 another tab's star `storage` event → the language follows, with no account save.
-- U8 a signed-out pick → `savePreferredLanguage` returns "no session"; refusal test that no RPC was sent.
+**Consumers.** 52 route files with `head:` (full list produced by `rg -l "head: " src/routes` in the census and pasted into the report), plus `src/features/seller/seller-head.ts` ("Ads by ${name} on ethio.com.") and any `head` helper under features (`rg "title:" src/features/**/*head*`). seller-head becomes a caller of `pageHead` with `values: { name }`; INC-990's two English literals become keys.
 
-E2E (`bun run e2e:local`, both projects, whole file, 0 retries, pool accounts, restored in afterEach):
-- E1 device `am`, account `en` → sign in → `en`; the cookie reads `en`; a second open tab follows.
-- E2 an account with no language takes the device's (the DB row reads the device code).
-- E3 a signed-out pick leaves the account alone (a DB read proves the row did not change).
-- E4 an unpublished account preference is ignored and kept (seeded through the service door, reverted in afterEach).
-- E5 sign-out keeps the current language.
-- E6 impersonation: start and end the view; the staff member's language and star do not change.
+**Guard CF-HEAD-1** (scripts/conformance/page-head.test.ts): AST over src/routes and `*head*.ts`: a string/template literal in a `title` meta, `description`, `og:title`, `og:description`, `twitter:*` outside page-head.ts fails. Planted literal proof; allowlist form as above; wired.
 
-E4 and E6 may hit J6 (gate rows are global to the backend). If so, they run in desktop-1280 only, as N1b-3's Resume does, stated for ruling.
+**New keys** (names only; EN/AM sent by script, G43): `head.siteSuffix`, `head.<route>.title` and `head.<route>.description` per route (≈52 × 2, exact list emitted by the census script `scripts/conformance/head-keys.ts --list` in L-3 and sent to you before strings land), `head.seller.title`, `head.seller.description`, `head.seller.notFound.title`. Existing keys reused where a route already shows the same heading (listed per route).
 
-## 4. DEC facts (for the supervisor's draft)
+**First-download cost.** Builder ≈0.3 KiB min (shared root chunk). Target ≤0.1 KiB gzip per public page; measured per page in route-budgets with cause. If the builder exceeds it, it is split: server-only formatting in the head path, client only `document.title` sync. Over-tolerance = STOP (G60).
 
-- **Changes:** at session start, the account's published `preferred_language` overrides the device star. Today the star wins (U4h). An account with no language receives the device's. A token refresh never re-applies. Open tabs follow a star change.
-- **Why:** operator D239. One person, one language across devices.
-- **Cost:** one `profiles` read per session start. It already happens today when there is no star; with D239 it happens on every sign-in. No first-paint round trip is added: the server still reads only the cookie. A person who picks a language on a shared device and then signs into an account with a different saved language will see the account's language. That is intended.
-- **Security:** values are closed-list codes (shape + gate) in the cookie, storage and the account. The database function refuses unpublished codes. Nothing from the URL is written to the account: the URL override stays view-only. No new grant, migration or RPC. The cookie still carries only a code (`SameSite=Lax`).
+## 4. Part D — messages with values
 
-## 5. Conflicts, K2, sizing
+**Out of this work; own turn (L-5).** 226 `.replace("{` sites in src (non-test); heaviest import-dialog.tsx (11), approve-bar.tsx (5), screening-page.tsx:467–468, listings-page.tsx:317–324, listing-page.tsx:256/300/340, auth.tsx:464/504/513/680, invite-card.tsx:36–39, data-table.tsx:361, filter-chips.tsx:140, feed.tsx:127, location-selector.tsx:313, app-shell.tsx:918, settings.tsx:635, country-dialogs.tsx:58, country-verb-dialogs.tsx:78. Full by-definition list emitted by the L-5 census. Mechanism there: `t(key, values)` with typed placeholders from catalog-tokens.ts, plus guard. Part C's builder uses the same `values` shape so L-5 only swaps its interpolation.
 
-Conflicts:
-- U4h's precedence comment (`auth-service.ts` :696–:705, `provider.tsx` :455–:458 and :479–:491) is rewritten; the DEC must name it.
-- **Q1:** "save the device's choice when the account has none, as today" is new, not today's behaviour. It needs a yes/no.
-- I5: the rule's read still runs after the macrotask hop, never inside the auth callback. That is unchanged.
-- Knowledge v3.12 has not been read. The project knowledge in context is v3.11; a v3.12 conflict check is owed at build.
+## 5. Tests (ids grep-checked free at plan time; re-grepped at build)
+- Unit: SFE-1…4; FMT-1…8 (each intent en + am; FMT-3 asserts am month full "ኦክቶበር" not "ኦክቶ"; FMT-7 unknown language → en-GB; FMT-8 cache returns same instance); LOC-1…3 (country shape, tags, fallback); CF-FMT-1 planted; HEAD-1…5 (keys→text in am, values as text with `<img src=x onerror=alert(1)>` literal, missing am key → en, unknown language → en, public head carries absolute og/hreflang); CF-HEAD-1 planted.
+- E2E (both projects, whole files, 0 retries, `bun run e2e:local`): `e2e/locale-format.spec.ts` LF-E1 an Amharic account sees a full Amharic month on My listings; LF-E2 `/` and an ad page SSR `<title>` in Amharic with cookie am (read from response HTML before hydration); LF-E3 English unchanged. Touched specs run whole.
 
-K2:
-- The cross-tab gap predates D239 (D237 said every tab follows). It is fixed in the same place.
-- `fetchPreferredLanguage` returns `reason` strings rather than a typed `ReaderError` (constitution: a reader's door error is a typed `ReaderError`). Proposed as part of this turn, because it is the rule's input.
+## 6. Conflicts
+- Knowledge v3.11 A6 vs CI-2 R1/AGENTS.md `bun run checks` (runs build): governed by the CI-2 ruling until v3.12.
+- Platform "never run typechecks" — checks reads harness verdict (as ruled).
+- D1/C: route `head()` must stay synchronous/SSR; catalogue must not enter public first downloads (DEC-261/D234 budgets) — handled by the measured decision in §3.
+- K4 vs e2e oracles holding `"am"`/`"en-GB"` — allowlisted with reason; needs your ruling if not accepted.
+- Part A edits a workflow file and adds a script; no migration.
+- No conflict found with AGENTS.md otherwise.
 
-Sizing (G37), one turn, no migration:
-- D239-1: CI first, the rule, the storage listener, units, E2E, docs (feature doc, changelog, register row), i18n maps (no new strings expected).
+## 7. K2
+- pricing-data.ts:277 currency shape `/^[A-Z]{3}$/` — no constant (reported).
+- calendar.tsx:35 `"default"` locale month short — UI kit, overridden by date-field; reported.
+- chart.tsx:225 `toLocaleString()` without locale.
+- 226 `.replace("{` sites (Part D).
+- SQL `'am'/'en'` literals in 23 functions and INC-954 DB copies (LEFT).
+- e2e oracles with literal locales.
 
-ESTIMATE: 1 turn (band 1–2). It becomes 2 if E2E multi-tab or impersonation needs harness work.
+## 8. Sizing (G37, G0.10)
+| Turn | Content | Estimate |
+|---|---|---|
+| L-1 | Part A excerpt script, workflow wiring, captured fixture, SFE-1…4 guard | 1 turn, band S–M |
+| L-2 | locale.ts, format.ts, CF-FMT-1 + allowlist, INC-954 four app copies, FMT/LOC tests | 1 turn, M |
+| L-3 | Move the ~45 Part B consumers; E2E LF-E1; budgets | 1 turn, M–L |
+| L-4 | page-head.ts, language in context, head layer + measurement, CF-HEAD-1, key list to you; then (after strings arrive) 52 routes + seller-head, LF-E2/E3 | 1–2 turns, L |
+| L-5 | Part D `t(key, values)` + guard + 226 sites | own turn(s), L |
+
+Total L-1…L-4: 4–5 turns (band 4–6). LEFT for the operator: SQL locale literals → `base_languages()`, INC-954 DB copies, INC-999's proof fix (migration-file change).
