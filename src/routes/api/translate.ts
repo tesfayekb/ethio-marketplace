@@ -10,7 +10,7 @@ import { aiCall, translationLanguages, type TranslationLanguages } from "@/serve
 import { TRANSLATION_CHUNK } from "@/server/ai/tasks";
 import { DIALS } from "@/lib/dials";
 import { errorText } from "@/lib/error-text";
-import { clientError, ok, readFailure, refused, serverError } from "@/server/answer";
+import { clientError, ok, readFailure, refused } from "@/server/answer";
 import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
