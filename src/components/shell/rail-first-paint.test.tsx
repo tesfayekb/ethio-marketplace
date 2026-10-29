@@ -48,8 +48,9 @@ vi.mock("@/i18n", async (original) => ({
 }));
 
 const { CategoryNav, RailVariantContext } = await import("./app-rail");
-const { CategoryTreeSeedContext, firstRailPayload, forgetCategoryTree } =
+const { CategoryTreeSeedContext, forgetCategoryTree } =
   await import("@/features/categories/category-tree");
+const { firstRailPayload } = await import("@/server/first-screen");
 type Seed = import("@/features/categories/category-tree").CategoryTreeSeed;
 
 function row(id: string, slug: string, order: number) {
