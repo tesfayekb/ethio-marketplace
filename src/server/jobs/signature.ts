@@ -19,21 +19,32 @@ export function signJob(job: string, ts: number, secret: string): string {
   return createHmac("sha256", secret).update(`${job}.${ts}`, "utf8").digest("hex");
 }
 
-/** The timestamp when the request is genuine and in the window; null otherwise. */
-export function verifyJobSignature(input: {
+/** INC-1000 — why a call was refused; logged by name, never with a value. */
+export type JobRefusal = "secret_missing" | "bad_signature" | "stale";
+
+/** The timestamp when the request is genuine and in the window; the refusal's reason otherwise. */
+export function jobSignatureVerdict(input: {
   job: string;
   timestamp: string | null;
   signature: string | null;
   secret: string | undefined;
   nowSeconds: number;
-}): number | null {
+}): { ok: true; ts: number } | { ok: false; reason: JobRefusal } {
   const secret = (input.secret ?? "").trim();
   const given = input.signature ?? "";
   // Always compute and compare, so a missing secret or header costs the same work.
   const ts = /^\d{1,12}$/.test(input.timestamp ?? "") ? Number(input.timestamp) : -1;
   const expected = signJob(input.job, ts, secret === "" ? "\u0000missing" : secret);
   const same = timingSafeEqual(digest(expected), digest(given.toLowerCase()));
-  if (secret === "" || ts < 0 || !same) return null;
-  if (ts < input.nowSeconds - WINDOW_PAST_S || ts > input.nowSeconds + WINDOW_AHEAD_S) return null;
-  return ts;
+  if (secret === "") return { ok: false, reason: "secret_missing" };
+  if (ts < 0 || !same) return { ok: false, reason: "bad_signature" };
+  if (ts < input.nowSeconds - WINDOW_PAST_S || ts > input.nowSeconds + WINDOW_AHEAD_S)
+    return { ok: false, reason: "stale" };
+  return { ok: true, ts };
+}
+
+/** The timestamp when the request is genuine and in the window; null otherwise. */
+export function verifyJobSignature(input: Parameters<typeof jobSignatureVerdict>[0]): number | null {
+  const verdict = jobSignatureVerdict(input);
+  return verdict.ok ? verdict.ts : null;
 }

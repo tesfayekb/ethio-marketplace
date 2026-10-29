@@ -2,7 +2,7 @@ import type { JobName } from "@/lib/schemas/jobs";
 import { clientError, ok, upstreamUnavailable } from "@/server/answer";
 import type { RouteContext } from "@/server/route";
 import { runNameCheckCatchup, type RunResult } from "@/server/jobs/name-check-catchup";
-import { verifyJobSignature } from "@/server/jobs/signature";
+import { jobSignatureVerdict, type JobRefusal } from "@/server/jobs/signature";
 
 /**
  * N1b-1 (INC-977, concern A) — THE SCHEDULED JOBS' ONE HANDLER, for every route
@@ -29,23 +29,39 @@ export const JOBS: Readonly<Record<JobName, Core>> = {
 
 export const refused = (): Response => clientError("unauthorized", 401);
 
+/**
+ * INC-1000 — one typed line per refusal, for the operator's logs; the caller still gets
+ * DEC-285's one constant 401. Only the job's name and the reason: never a secret, a
+ * signature, a timestamp or a header.
+ */
+export function logRefusal(job: JobName, reason: JobRefusal | "replay"): void {
+  console.warn(`[job-refused] ${job} ${reason}`);
+}
+
 export async function jobHandler(
   ctx: RouteContext<unknown, { job: JobName }, unknown>,
 ): Promise<Response> {
   const { job } = ctx.params;
-  const ts = verifyJobSignature({
+  const verdict = jobSignatureVerdict({
     job,
     timestamp: ctx.request.headers.get("x-job-timestamp"),
     signature: ctx.request.headers.get("x-job-signature"),
     secret: process.env["JOB_SECRET"],
     nowSeconds: Math.floor(Date.now() / 1000),
   });
-  if (ts === null) return refused();
+  if (!verdict.ok) {
+    logRefusal(job, verdict.reason);
+    return refused();
+  }
+  const ts = verdict.ts;
 
   const admin = await ctx.service();
   const claim = await admin.rpc("job_run_claim", { p_job: job, p_ts: ts });
   if (claim.error) {
-    if ((claim.error.message ?? "").startsWith("refused:")) return refused();
+    if ((claim.error.message ?? "").startsWith("refused:")) {
+      logRefusal(job, "replay");
+      return refused();
+    }
     return upstreamUnavailable(ctx.path, "job_run_claim", claim.status ?? 0);
   }
   const run = claim.data;
