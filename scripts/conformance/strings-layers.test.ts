@@ -81,17 +81,17 @@ describe("the strings layers (DEC-258)", () => {
     "CF-SL-3 the routes' declarations: posting and my listings load member, admin screens both, the listings pages none",
     () => {
       const { pages } = stringsCensus(ROOT);
-    expect(LAYERS).toEqual(STRINGS_LAYERS);
-    expect([...(pages.get("post") ?? [])]).toEqual(["member"]);
-    expect([...(pages.get("my-listings_.$listingId_.edit") ?? [])]).toEqual(["member"]);
-    expect([...(pages.get("admin.users") ?? [])].sort()).toEqual(["admin", "member"]);
-    expect([...(pages.get("admin.listings_.$listingId_.edit") ?? [])].sort()).toEqual([
-      "admin",
-      "member",
-    ]);
-    expect([...(pages.get("index") ?? [])]).toEqual([]);
-    expect([...(pages.get("c.$slug") ?? [])]).toEqual([]);
-    expect([...(pages.get("__root") ?? [])]).toEqual([]);
+      expect(LAYERS).toEqual(STRINGS_LAYERS);
+      expect([...(pages.get("post") ?? [])]).toEqual(["member"]);
+      expect([...(pages.get("my-listings_.$listingId_.edit") ?? [])]).toEqual(["member"]);
+      expect([...(pages.get("admin.users") ?? [])].sort()).toEqual(["admin", "member"]);
+      expect([...(pages.get("admin.listings_.$listingId_.edit") ?? [])].sort()).toEqual([
+        "admin",
+        "member",
+      ]);
+      expect([...(pages.get("index") ?? [])]).toEqual([]);
+      expect([...(pages.get("c.$slug") ?? [])]).toEqual([]);
+      expect([...(pages.get("__root") ?? [])]).toEqual([]);
       for (const layers of pages.values()) {
         for (const layer of layers) expect(STRINGS_LAYERS as readonly string[]).toContain(layer);
       }
