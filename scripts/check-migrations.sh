@@ -799,6 +799,33 @@ rm -rf "$RR_DIR"
 echo "Real-row proof guard self-test OK (the bad fixture is refused)."
 echo "Real-row proof guard self-test OK (an allowlisted statement is skipped and printed; the other statement of its file and the bad fixture are still refused)."
 
+# Self-test (D1 stop-12 ruling): a statement whose head contains '||' cannot be
+# named by a raw allowlist line (the line format splits on '|'), so it is named
+# by sha256 of its normalized head. Refused without its line, skipped with its
+# sha256 line, and a stale sha256 line does not skip it.
+RR_SHA_DIR="$(mktemp -d)"
+cat > "$RR_SHA_DIR/29990101000000_ssss1111.sql" <<'SQL'
+DO $proof$
+DECLARE v uuid;
+BEGIN
+  SELECT id INTO v FROM public.profiles WHERE handle = 'a' || 'b';
+END $proof$;
+SQL
+# sha256 of the normalized head "BEGIN SELECT id INTO v FROM public.profiles WHERE handle = 'a' || 'b'":
+printf '%s\n' '29990101000000_ssss1111.sql | sha256:9dacdee4ae630a9d | self-test: delimiter-safe key form' > "$RR_SHA_DIR/allow.txt"
+printf '%s\n' '29990101000000_ssss1111.sql | sha256:0000000000000000 | self-test: stale sha256' > "$RR_SHA_DIR/stale.txt"
+rr_sha_refused="$(real_row_split "$(real_row_offenders "$RR_SHA_DIR/29990101000000_ssss1111.sql")" /dev/null 2>/dev/null)"
+rr_sha_skipped="$(real_row_split "$(real_row_offenders "$RR_SHA_DIR/29990101000000_ssss1111.sql")" "$RR_SHA_DIR/allow.txt" 2>&1 >/dev/null)"
+rr_sha_stale="$(real_row_split "$(real_row_offenders "$RR_SHA_DIR/29990101000000_ssss1111.sql")" "$RR_SHA_DIR/stale.txt" 2>/dev/null)"
+if ! grep -q "|| 'b'" <<<"$rr_sha_refused" \
+  || ! grep -q 'sha256:9dacdee4ae630a9d' <<<"$rr_sha_skipped" \
+  || ! grep -q "|| 'b'" <<<"$rr_sha_stale"; then
+  echo "Real-row proof guard self-test FAILED: the sha256 key form matched the wrong statement."
+  rm -rf "$RR_SHA_DIR"; exit 1
+fi
+rm -rf "$RR_SHA_DIR"
+echo "Real-row proof guard self-test OK (a head containing '||' is refused without its line, skipped by its sha256 line, and a stale sha256 line does not skip it)."
+
 real_row_found=""
 while IFS= read -r -d '' file; do
   base="$(basename "$file")"
