@@ -16,15 +16,9 @@ export function pageHead<T extends Head>(
 ): T {
   return {
     ...head,
-    meta: head.meta?.map((meta) => {
-      if (!meta.title) return meta;
-      const copy = { ...meta };
-      Object.defineProperty(copy, "pageHead", {
-        value: [title, description, nameKey, name] satisfies Intent,
-        enumerable: false,
-      });
-      return copy;
-    }),
+    meta: head.meta?.some((meta) => meta.title)
+      ? [...head.meta, { name: "ethio:page-head", content: JSON.stringify([title, description, nameKey, name] satisfies Intent) }]
+      : head.meta,
   };
 }
 
@@ -40,7 +34,8 @@ export function headText(
   const title = meta.find((item) => item?.title);
   if (!title) return null;
   const description = meta.find((item) => item?.name === "description")?.content ?? "";
-  const intent = title.pageHead;
+  const encoded = meta.find((item) => item?.name === "ethio:page-head")?.content;
+  const intent = encoded ? (JSON.parse(encoded) as Intent) : undefined;
   if (!intent) return { title: title.title ?? "", description };
   const [titleKey, descriptionKey, nameKey, rawName] = intent;
   const name = nameKey ? t(nameKey) : (rawName ?? "");
