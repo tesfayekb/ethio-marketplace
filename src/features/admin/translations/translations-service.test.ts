@@ -131,4 +131,19 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     });
     expect(await listProviderLanguages()).toEqual([{ code: "am", name: "Amharic" }]);
   });
+
+  it("RFL-3 a flag read-back the route could not make reads as unknown (null), never 0", async () => {
+    route.answer = answered(200, { done: 2, flagged: null, flagRead: "failed", failed: [] });
+    expect(await aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] })).toEqual({
+      done: 2,
+      flagged: null,
+      failed: [],
+    });
+    route.answer = answered(200, { done: 2, failed: [] });
+    expect((await aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] })).flagged).toBe(
+      null,
+    );
+    route.answer = answered(200, { done: 2, flagged: 0, failed: [] });
+    expect((await aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] })).flagged).toBe(0);
+  });
 });
