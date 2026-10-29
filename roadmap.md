@@ -34,9 +34,9 @@ The brief in force: docs/governance/briefs/foundations-turn-ci-2.md (Foundations
 - [x] INC-995 — Admin › Screening sends every section's outcome to one page message above the listings table; the job line sits at the page top — closed in CI-1 (report foundations-turn-ci-1.report.md)
 - [x] INC-996 — i18n-coverage.spec.ts sets the language on the device only, then signs in; under D239 the account decides — closed in CI-1 (report foundations-turn-ci-1.report.md)
 - [x] INC-997 — D239 put reader-failure on every page's first download — closed in CI-1 (loaded only when a read fails)
-- [ ] INC-998 — eight unit tests fail in the sandbox and pass in CI (NH time zone; EXH-4/5/7/21, LL-1 timeouts) — open, CI-2
+- [x] INC-998 — eight unit tests fail in the sandbox and pass in CI (NH time zone; EXH-4/5/7/21, LL-1 timeouts) — closed in CI-2 (whole suite 2,216/2,216 in the sandbox)
 - [ ] D239's account rule loads only once a session exists — the speed work, not built now (the rule weighs every page, public ones included, for signed-out visitors too)
-- [ ] CI-2 — `bun run checks` (scripts/ci/turn-checks.sh, TCK-1…5), shared section notice + SNC-3, NEAR raises, AGENTS line, CI doc + register row
+- [x] CI-2 — `bun run checks` (scripts/ci/turn-checks.sh, TCK-1…5), shared section notice + SNC-3, NEAR raises, AGENTS line, CI doc + register row
 - [ ] D239 flash — hold the sign-in redirect for the account rule's answer, under a short deadline — a sign-in flow change, its own plan and DEC
 - [ ] CI-1 Part B — `bun run checks` (scripts/ci/turn-checks.sh) with its ci.yml mirror guard — open, built after its plan is ruled
 - [x] D237's gap — an open tab does not follow a star picked in another tab ("every tab follows") — closed by D239-1's storage listener
