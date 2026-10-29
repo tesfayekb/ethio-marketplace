@@ -284,12 +284,12 @@ function turnBase(): string {
 }
 
 /**
- * The secrets scan's local form: CI walks origin/main..HEAD; this sandbox holds no origin/main, so
- * the walk is <base>..HEAD (never the whole history), and the work not yet committed is scanned
- * too (`gitleaks git --pre-commit`). Counts only.
+ * The secrets scan's local form: CI walks origin/main..HEAD, the commits main does not hold yet. The
+ * sandbox's origin/main is never fetched here (no stateful git), so it is far behind and would walk
+ * thousands of old commits; the walk is <base>..HEAD instead, and the work not yet committed is
+ * scanned too (`gitleaks git --pre-commit`). Counts only.
  */
-export function localSecretsScan(run: string, base: string, hasMain: boolean): string {
-  if (hasMain) return run;
+export function localSecretsScan(run: string, base: string): string {
   const tail = [
     "set +e",
     '"$RUNNER_TEMP/gitleaks" git --pre-commit --redact --no-banner --exit-code=2 . > "$RUNNER_TEMP/gitleaks-wt.log" 2>&1',
@@ -298,7 +298,7 @@ export function localSecretsScan(run: string, base: string, hasMain: boolean): s
     'echo "Uncommitted work:"; grep -E "leaks found|no leaks found" "$RUNNER_TEMP/gitleaks-wt.log" | sed -E "s/^.*(INF|WRN|ERR) //"',
     'if [ "$code" -ne 0 ]; then exit "$code"; fi',
   ].join("\n");
-  return `${run.replace('range="HEAD"', `range="${base}..HEAD"`)}\n${tail}\n`;
+  return `${run.replace('range="origin/main..HEAD"', `range="${base}..HEAD"`).replace('range="HEAD"', `range="${base}..HEAD"`)}\n${tail}\n`;
 }
 
 /** The turn's base build: the base's tree, exported (git archive, read-only) and built once. */
@@ -416,11 +416,7 @@ function main(): number {
     }
     const text =
       step.key === "secrets-scan › Secrets scan (gitleaks, pinned)"
-        ? localSecretsScan(
-            step.run,
-            turnBase(),
-            spawnSync("git", ["rev-parse", "--verify", "--quiet", "origin/main"]).status === 0,
-          )
+        ? localSecretsScan(step.run, turnBase())
         : step.run;
     const r = sh(
       text,
