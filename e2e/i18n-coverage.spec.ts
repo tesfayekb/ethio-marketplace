@@ -105,13 +105,14 @@ async function useAmharic(page: Page) {
  * the fresh-user baseline (NULL, INC-173b) back.
  */
 const accountsSet = new Set<string>();
-async function useAmharicAccount(page: Page, userId: string) {
+async function setAmharicAccount(page: Page, userId: string) {
   accountsSet.add(userId);
   const { error } = await adminClient()
     .from("profiles")
     .update({ preferred_language: "am" })
     .eq("user_id", userId);
   if (error) throw new Error(`[e2e:i18n] setting the account language failed: ${error.message}`);
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- a harness helper, not a React hook
   await useAmharic(page);
 }
 
@@ -260,7 +261,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     // English labels. Then the account and the device are set to Amharic (INC-996:
     // the account decides at session start, D239), so /admin is measured in Amharic.
     await signIn(page, staff.email, staff.password);
-    await useAmharicAccount(page, staff.id);
+    await setAmharicAccount(page, staff.id);
     await gotoReady(page, "/admin");
     await expect(page.locator("html")).toHaveAttribute("lang", "am");
 
@@ -285,7 +286,7 @@ test.describe("i18n chrome coverage (Amharic)", () => {
     if (error || !role) throw new Error(`[e2e:i18n] super_admin role not found`);
 
     await signIn(page, staff.email, staff.password);
-    await useAmharicAccount(page, staff.id);
+    await setAmharicAccount(page, staff.id);
     await gotoReady(page, `/admin/roles/${role.id}`);
     await expect(page.getByTestId("role-permissions")).toBeVisible({ timeout: 20000 });
 
