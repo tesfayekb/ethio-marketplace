@@ -675,3 +675,11 @@ CF-CID-1 gains its sixth rule: every step that uses an action (checkout, setup-b
 ## Foundations turn K5 — the repeat lane takes what a push changed first (INC-967, INC-966)
 
 The repeat lane's evidence line now ends "directly changed: <taken> of <n> repeated; importers of a changed helper: <taken> of <m>", counting the specs of each rank (`scripts/e2e-select.ts --repeat --ranks`) the budget let it repeat.
+
+### DEC-284 — the backend's ports below the ephemeral range (INC-991)
+
+Run 40854479197 lost lane 3's start: "failed to bind host port 0.0.0.0:54324" while Runner.Worker held an established connection on local port 54324, opened at job start before the INC-935 reservation could run. The reservation cannot reach such a connection, so the CI-local config's four ports moved to the block 31320–31329 (API 31321, database 31322, shadow 31320, Inbucket 31324), below Linux's ephemeral range (32768–60999), where no outgoing connection is given a port. `e2e/global-setup.ts`, `e2e/helpers/app-target.ts` and their tests accept only `https://127.0.0.1:31321`. CF-CID-3/4 (scripts/conformance/ci-deadlines.test.ts) refuse a config port outside the block. The 54320–54329 reservation step stays until the rule closes. Rule (frozen): over the next 20 completed CI runs, zero lanes lost to a bind failure on the backend's ports → KEEP; any such loss → a new INC and a revisit.
+
+### INC-992 — every failed lane step reaches the evidence
+
+The lane job's run steps use `scripts/ci/step-shell.sh` (GitHub's own bash flags, output also kept under `$RUNNER_TEMP/step-logs/<step id>.log`); every lane step carries an id. "Name failed steps (INC-992)", `if: always()`, immediately before "Write lane evidence", reads `toJSON(steps)` and appends each step whose outcome is not success/skipped — `Step <id>: outcome <outcome>` and its last 20 lines — to `local-backend-failure.txt`, which appears under "## Lane N" in local-backend-proof.md, redacted. A step that `uses:` an action keeps no log and says so; steps after the naming step (evidence, uploads, disposal) are not named. INC-984's outbound-calls lines stay as the guard's own exact FAIL lines. SFE-1…3 judge.
