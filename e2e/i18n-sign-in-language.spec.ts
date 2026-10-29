@@ -96,18 +96,23 @@ test.describe("D239 — the account's language at sign-in", () => {
     const user = await leaseUser();
     await setAccountLanguage(user.id, "en");
     await seedDevice(page, "am");
-    // R7 — the flash measurement: every <html lang> value from the sign-in click on.
+    // R7 — the flash measurement: every <html lang> value and the main text's
+    // language marker, recorded in node with a timestamp, from the sign-in click on.
+    const seen: Array<{ at: number; path: string; lang: string }> = [];
+    await page.exposeFunction("e2eD239Lang", (path: string, lang: string) => {
+      seen.push({ at: Date.now(), path, lang });
+    });
     await page.addInitScript(() => {
-      const seen: string[] = JSON.parse(window.sessionStorage.getItem("e2e-d239-langs") ?? "[]");
-      const record = () => {
-        seen.push(`${location.pathname}:${document.documentElement.lang}`);
-        window.sessionStorage.setItem("e2e-d239-langs", JSON.stringify(seen));
-      };
-      new MutationObserver(record).observe(document.documentElement, {
+      const report = () =>
+        (window as unknown as { e2eD239Lang: (p: string, l: string) => void }).e2eD239Lang(
+          location.pathname,
+          document.documentElement.lang,
+        );
+      new MutationObserver(report).observe(document.documentElement, {
         attributes: true,
         attributeFilter: ["lang"],
       });
-      document.addEventListener("DOMContentLoaded", record);
+      document.addEventListener("DOMContentLoaded", report);
     });
 
     await gotoReady(page, "/");
@@ -116,6 +121,7 @@ test.describe("D239 — the account's language at sign-in", () => {
     await gotoReady(tab, "/");
     await expect(tab.locator("html")).toHaveAttribute("lang", "am");
 
+    const clickedAt = Date.now();
     await signIn(page, user.email, user.password);
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute(
       "lang",
@@ -129,8 +135,10 @@ test.describe("D239 — the account's language at sign-in", () => {
     // The account was not written: it already said en.
     expect(await accountLanguage(user.id)).toBe("en");
 
-    const sequence = await page.evaluate(() => window.sessionStorage.getItem("e2e-d239-langs"));
-    console.log(`[e2e:d239] R7 lang sequence: ${sequence}`);
+    const after = seen
+      .filter((entry) => entry.at >= clickedAt)
+      .map((entry) => `${entry.at - clickedAt}ms ${entry.path} ${entry.lang}`);
+    console.log(`[e2e:d239] R7 lang sequence after the sign-in click: ${after.join(" | ")}`);
     await tab.close();
   });
 
