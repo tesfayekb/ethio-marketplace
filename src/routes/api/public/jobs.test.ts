@@ -201,7 +201,13 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     expect(JSON.stringify(body)).not.toMatch(/abebe|cocacola|Coca-Cola/i);
     expect(state.rpc.filter((c) => c.name === "name_check_mark").map((c) => c.args)).toEqual([
       { p_profile: "p1", p_subject: "alias", p_text: "abebe", p_state: "clean" },
-      { p_profile: "p2", p_subject: "alias", p_text: "cocacolashop", p_state: "imitates" },
+      {
+        p_profile: "p2",
+        p_subject: "alias",
+        p_text: "cocacolashop",
+        p_state: "imitates",
+        p_of: "Coca-Cola",
+      },
     ]);
     expect(finish()).toEqual({
       p_run: "run-1",
@@ -213,6 +219,27 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
       p_unavailable: 0,
     });
     expect(rpcNames().at(-2)).toBe("job_lease_release");
+  });
+
+  it("NCJ-12 `of` reaches name_check_mark only on a hold, trimmed; a clean or blank one never does", async () => {
+    state.answers = [
+      { ok: true, value: { imitates: false, of: "Coca-Cola" } },
+      { ok: true, value: { imitates: true, of: "   " } },
+    ];
+    const body = await (await post(signed())).json();
+    expect(JSON.stringify(body)).not.toMatch(/Coca-Cola/);
+    const args = state.rpc.filter((c) => c.name === "name_check_mark").map((c) => c.args);
+    expect(args.map((a) => a["p_state"])).toEqual(["clean", "imitates"]);
+    expect(args.every((a) => !("p_of" in a))).toBe(true);
+    state.rpc = [];
+    state.answers = [
+      { ok: true, value: { imitates: false } },
+      { ok: true, value: { imitates: true, of: "  Ethio Telecom " } },
+    ];
+    await post(signed(now() - 1));
+    expect(
+      state.rpc.filter((c) => c.name === "name_check_mark").map((c) => c.args["p_of"]),
+    ).toEqual([undefined, "Ethio Telecom"]);
   });
 
   it("NCJ-7 a failed model call is 'unavailable' (state unchanged by the door), never clean", async () => {
