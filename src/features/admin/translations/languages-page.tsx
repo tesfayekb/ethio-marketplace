@@ -50,6 +50,7 @@ import {
   useTranslationStats,
   useUpsertLanguage,
 } from "./use-translations";
+import { compareCodes } from "@/lib/compare-codes";
 
 /** Provider codes can carry a region subtag (`zh-CN`); the roster stores them lowercased. */
 const LANGUAGE_CODE_RE = /^[a-z]{2,8}(-[a-z0-9]{2,8})?$/;
@@ -73,7 +74,7 @@ function nativeNameOf(code: string, fallback: string): string {
  * order from the one on screen.
  */
 function sortLanguages(data: LanguageRow[] | undefined): LanguageRow[] {
-  return [...(data ?? [])].sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code));
+  return [...(data ?? [])].sort((a, b) => a.sort - b.sort || compareCodes(a.code, b.code));
 }
 
 /**

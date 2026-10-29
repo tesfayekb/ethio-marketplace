@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
+import { compareNames } from "@/lib/name-collator";
 
 /**
  * C2-UI — the Categories console client seam.
@@ -268,7 +269,7 @@ export function toRoster(rows: CategoryRow[]): CategoryNode[] {
     byParent.set(row.parentId, bucket);
   }
   for (const bucket of byParent.values()) {
-    bucket.sort((a, b) => a.displayOrder - b.displayOrder || a.nameEn.localeCompare(b.nameEn));
+    bucket.sort((a, b) => a.displayOrder - b.displayOrder || compareNames(a.nameEn, b.nameEn));
   }
   const out: CategoryNode[] = [];
   const walk = (parentId: string | null, depth: number) => {

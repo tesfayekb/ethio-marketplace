@@ -31,6 +31,7 @@ import { checkChannel, normalizeTelegram } from "./validate";
 import { dateFormatter } from "@/lib/format";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { Button } from "@/components/ui/button";
+import { collatorFor } from "@/lib/collator";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -650,7 +651,7 @@ export function StepWho({
     const marketCodes = new Set(markets.markets.map((market) => market.code));
     const rest = allCountries
       .filter((row) => !marketCodes.has(row.code))
-      .sort((a, b) => a.nameEn.localeCompare(b.nameEn, language));
+      .sort((a, b) => collatorFor(language).compare(a.nameEn, b.nameEn));
     return [
       ...markets.markets.map((market) => ({
         code: market.code,

@@ -22,6 +22,7 @@ import {
 import { LegalFactsCard } from "./legal-facts-card";
 import { useLegalDocuments, useLegalSettings, useLegalVersion, useLegalWrites } from "./use-legal";
 import { dateFormatter } from "@/lib/format";
+import { compareCodes } from "@/lib/compare-codes";
 
 /** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
 function InForceText({ id }: { id: string }) {
@@ -311,7 +312,7 @@ export function LegalPage() {
           {LEGAL_KINDS.map((kind) => {
             const docs = (documents.data ?? [])
               .filter((doc) => doc.kind === kind)
-              .sort((a, b) => (a.country_code ?? "").localeCompare(b.country_code ?? ""));
+              .sort((a, b) => compareCodes(a.country_code ?? "", b.country_code ?? ""));
             const available = (countries.data ?? []).filter(
               (c) => !docs.some((doc) => doc.country_code === c.code),
             );

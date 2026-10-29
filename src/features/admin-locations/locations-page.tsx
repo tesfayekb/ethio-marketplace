@@ -42,6 +42,8 @@ import {
   type LocationNode,
 } from "./locations-service";
 import { ADMIN_LOCATIONS_KEY, useAdminLocations, useAllCountries } from "./use-locations";
+import { compareCodes } from "@/lib/compare-codes";
+import { compareNames } from "@/lib/name-collator";
 
 /**
  * LOCATIONS ERA L2a-R — THE LOCATIONS CONSOLE, PART 1, RECONCILED.
@@ -116,8 +118,8 @@ export function AdminLocationsPage() {
     return [...rows].sort(
       (a, b) =>
         Number(b.isActive) - Number(a.isActive) ||
-        a.nameEn.localeCompare(b.nameEn) ||
-        a.code.localeCompare(b.code),
+        compareNames(a.nameEn, b.nameEn) ||
+        compareCodes(a.code, b.code),
     );
   }, [countries.data]);
 

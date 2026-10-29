@@ -24,6 +24,12 @@ export const FALLBACK_TAG = LOCALE_TAGS[FALLBACK_LANGUAGE] ?? "en-GB";
  */
 export const LONG_MONTH_LANGUAGES: ReadonlySet<string> = new Set(["am"]);
 
+/**
+ * Part H5 / L-2 A3 — the fixed name order's locale (name-collator.ts): a list put back in the
+ * server's order never depends on the language of the admin's browser.
+ */
+export const FIXED_ORDER_LOCALE = "en";
+
 /** A country code's shape (ISO 3166-1 alpha-2). */
 export const COUNTRY_CODE = /^[A-Z]{2}$/;
 /** A currency code's shape (ISO 4217 alpha-3). */

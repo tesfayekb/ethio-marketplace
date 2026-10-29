@@ -11,6 +11,7 @@ import {
 import { useI18n } from "@/i18n";
 import type { Language } from "@/i18n/types";
 import { cn } from "@/lib/utils";
+import { compareCodes } from "@/lib/compare-codes";
 
 const LABEL_KEYS = {
   en: "language.english",
@@ -80,7 +81,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           onValueChange={(code) => setStar(code as Language)}
         >
           {[...publicLanguages]
-            .sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code))
+            .sort((a, b) => a.sort - b.sort || compareCodes(a.code, b.code))
             .map((row) => {
               const key = LABEL_KEYS[row.code as keyof typeof LABEL_KEYS];
               return (

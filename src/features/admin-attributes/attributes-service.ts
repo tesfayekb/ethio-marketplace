@@ -5,6 +5,7 @@ import type { Json } from "@/integrations/supabase/types";
 import type { NumberFieldsValue, TextFieldsValue } from "./components/attribute-v2-fields";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
 import { compareNames } from "@/lib/name-collator";
+import { compareCodes } from "@/lib/compare-codes";
 
 /**
  * C3c — THE ATTRIBUTE LIBRARY client seam.
@@ -390,7 +391,7 @@ export async function listCategoryLinks(
     (a, b) =>
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
       compareNames(a.name_en, b.name_en) ||
-      a.link_id.localeCompare(b.link_id),
+      compareCodes(a.link_id, b.link_id),
   );
   // The additive M2 cell may be absent until its final migration applies.
   return data.map((storedRow) => {
@@ -594,8 +595,8 @@ export async function listAttributeCategoriesPaged(pageRows: number): Promise<At
   const data = [...pages].sort(
     (a, b) =>
       compareNames(a.category_name_en, b.category_name_en) ||
-      a.category_slug.localeCompare(b.category_slug) ||
-      a.link_id.localeCompare(b.link_id),
+      compareCodes(a.category_slug, b.category_slug) ||
+      compareCodes(a.link_id, b.link_id),
   );
   return data.map((row) => ({
     linkId: row.link_id,
@@ -659,7 +660,7 @@ export async function listEffectiveCategoryLinks(
       Number(a.inherited) - Number(b.inherited) ||
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
       compareNames(a.name_en, b.name_en) ||
-      a.link_id.localeCompare(b.link_id),
+      compareCodes(a.link_id, b.link_id),
   );
   // The additive M2 cell may be absent until its final migration applies.
   return data.map((storedRow) => {

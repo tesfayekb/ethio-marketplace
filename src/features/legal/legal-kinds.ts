@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { isCountryCode } from "@/lib/locale";
+import { formatCountryName } from "@/lib/country-name";
 
 /** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */
 export type LegalRole = "terms" | "privacy" | "other";
@@ -59,8 +60,7 @@ export function legalDocName(
         ? t("legal.kind.privacy")
         : row.kind;
   if (!row.country_code) return name;
-  const country =
-    new Intl.DisplayNames([language], { type: "region" }).of(row.country_code) ?? row.country_code;
+  const country = formatCountryName(row.country_code, language);
   return `${name} · ${country}`;
 }
 

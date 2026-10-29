@@ -8,6 +8,8 @@
  * seller typed into "+" code digits.
  */
 import { isCountryCode } from "@/lib/locale";
+import { collatorFor } from "@/lib/collator";
+import { formatCountryName } from "@/lib/country-name";
 const TABLE =
   "AD376 AE971 AF93 AG1 AI1 AL355 AM374 AO244 AR54 AS1 AT43 AU61 AW297 AX358 AZ994 " +
   "BA387 BB1 BD880 BE32 BF226 BG359 BH973 BI257 BJ229 BL590 BM1 BN673 BO591 BQ599 BR55 " +
@@ -110,18 +112,13 @@ export function orderCountries(
   const seen = new Set(first);
   const rest = [...known]
     .filter((iso) => !seen.has(iso))
-    .sort((a, b) => nameOf(a).localeCompare(nameOf(b), language));
+    .sort((a, b) => collatorFor(language).compare(nameOf(a), nameOf(b)));
   return [...first, ...rest];
 }
 
 /** The country name in the UI language; the ISO code when Intl has none. */
 export function countryDisplayName(iso: string, language: string): string {
-  try {
-    const names = new Intl.DisplayNames([language], { type: "region" });
-    return names.of(iso) ?? iso;
-  } catch {
-    return iso;
-  }
+  return formatCountryName(iso, language);
 }
 
 /**
