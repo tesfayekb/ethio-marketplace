@@ -133,7 +133,7 @@ const ITEM_ACTIVE = "bg-nav-active font-semibold text-primary";
 
 const CollapsedContext = createContext(false);
 /** The persistent rail, phone icon strip and opened phone menu. */
-const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
+export const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
 
 /** Icons-only hiding belongs to the persistent rail alone. */
 function useHide(): string {
@@ -180,6 +180,8 @@ type RailNode = {
   favourite?: boolean;
   accessibleLabel?: string;
   icon?: NavItem["icon"];
+  /** INC-974 (row 60) — the glyph map is still on its way: the row holds the glyph's box. */
+  glyphPending?: boolean;
   path?: string;
   /**
    * U6-C1-R3a — an ANCHOR item: a section of a page another item already owns
@@ -257,6 +259,12 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         ) : (
           <Icon className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")} aria-hidden="true" />
         )
+      ) : node.glyphPending ? (
+        <span
+          data-testid="rail-glyph-box"
+          aria-hidden="true"
+          className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")}
+        />
       ) : null}
       <CutText className={cn(hide, strip && "sr-only")} text={node.label} />
     </>
@@ -506,17 +514,18 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   );
 }
 
-/** Marketplace rail = the LIVE category tree, read from the database. */
-function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
+/** Marketplace rail = the LIVE category tree, read from the database (exported for RFT, rail-first-paint.test.tsx). */
+export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
   const compact = variant === "strip" || variant === "menu";
   const hide = useHide();
   const { t, entities } = useI18n();
-  const { tree, isLoading: treeLoading, error } = useCategoryTree();
-  // D234 S1 — the glyph map arrives after the first paint; the skeleton stays until it settles.
+  const { tree, isLoading: treeLoading, error, firstRail } = useCategoryTree();
+  // INC-974 (row 60) — the names draw at once (the server's first-rail seed or the read);
+  // the glyph map arrives after the first paint and fills each row's fixed box.
   const glyphs = useCategoryGlyphs();
-  const isLoading = treeLoading || !glyphs.settled;
+  const isLoading = treeLoading && firstRail !== true;
   const { selectedCategorySlug } = useShell();
   const favourite = useFavouriteCategory();
   const favouriteCategory = tree.nodes.find((category) => category.slug === favourite.slug);
@@ -553,6 +562,7 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     icon: category.icon
       ? (glyphs.glyphOf(category.icon) ?? undefined)
       : categoryIcon(category.slug),
+    glyphPending: category.icon !== null && !glyphs.settled,
     active: category.slug === selectedCategorySlug,
     ancestorActive: !level && ancestors.some((ancestor) => ancestor.id === category.id),
     categoryBranch: !iconsOnly && childrenOf(tree, category.id).length > 0,
@@ -571,7 +581,10 @@ function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       aria-label={t("shell.categoriesLabel")}
       className={cn(compact && "flex min-h-full flex-col")}
     >
-      <ul className={cn("flex flex-col gap-0.5", compact && "flex-1")}>
+      <ul
+        className={cn("flex flex-col gap-0.5", compact && "flex-1")}
+        data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
+      >
         {level ? (
           <li className={cn(compact && "flex min-h-8 max-h-10 flex-1 flex-col")}>
             <Button

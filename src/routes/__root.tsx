@@ -33,6 +33,10 @@ import { Button } from "@/components/ui/button";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
 import type { FirstFeedPage } from "@/features/feed/feed-page";
 import { HeldFirstPage } from "@/features/feed/held-first-page";
+import {
+  CategoryTreeSeedContext,
+  type CategoryTreeSeed,
+} from "@/features/categories/category-tree";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
 /**
@@ -120,8 +124,26 @@ const getFirstFeedPage = createServerFn({ method: "GET" })
     return readFirstFeedPage(getRequest(), rawArea && AREA_SHAPE.test(rawArea) ? rawArea : null);
   });
 
+/** INC-974 — the rail's categories for the first paint (awaited, deadline-bound), or null. */
+const getFirstCategoryTree = createServerFn({ method: "GET" })
+  .validator(NoInputSchema)
+  .handler(async (): Promise<CategoryTreeSeed | null> => {
+    const { readFirstCategoryTree } = await import("../server/first-screen");
+    return readFirstCategoryTree(getRequest());
+  });
+
+/** Never a rejection: a failed hand-over is one [first-screen] line and the rail reads as before. */
+function firstCategoryTree(): Promise<CategoryTreeSeed | null> {
+  return getFirstCategoryTree().catch((error: unknown) => {
+    console.warn("[first-screen] the rail's categories were not handed over:", errorText(error));
+    return null;
+  });
+}
+
 /** The root's loader data: the request's language and area facts, and the feed's first page. */
 type RootData = SsrLangContext & {
+  /** INC-974 — the server's own document only; a client navigation carries none. */
+  firstTree: CategoryTreeSeed | null;
   /** D234 S5 — the server's own document only; a client navigation carries none. */
   firstFeed: HeldFirstPage | null;
 };
@@ -300,14 +322,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // D234 S5 — the server starts the feed's first page at once and hands it over
     // unawaited: the page's shell is sent without waiting, the page streams in.
     const firstFeed = typeof window === "undefined" ? startFirstFeedPage() : null;
-    const data = await getSsrLangContext();
-    if (typeof window === "undefined") return { ...data, firstFeed };
+    // INC-974 — the rail's categories are awaited (the names belong in the first HTML),
+    // beside the language facts, never on a client navigation.
+    const [data, firstTree] =
+      typeof window === "undefined"
+        ? await Promise.all([getSsrLangContext(), firstCategoryTree()])
+        : [await getSsrLangContext(), null];
+    if (typeof window === "undefined") return { ...data, firstFeed, firstTree };
     return {
       ...data,
       origin: window.location.origin,
       path: window.location.pathname,
       firstReads: [],
       firstFeed: null,
+      firstTree,
     };
   },
   // DEC-272 (Foundations turn 34w-2, INC-927) — the root's facts (the published languages, the
@@ -410,6 +438,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // INC-974 — the rail's first-paint seed, from this request's loader data (never module state).
+  const firstTree = Route.useLoaderData({ select: (data) => data.firstTree });
 
   useEffect(() => {
     // INC-085f — the E2E hydration contract: set only after React has
@@ -428,6 +458,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <ThemeProvider>
+          <CategoryTreeSeedContext.Provider value={firstTree}>
           <AppShell>
             {/* DEC-258 — a route that declares strings layers draws once they are in. */}
             <StringsLayerGate>
@@ -435,6 +466,7 @@ function RootComponent() {
               <Outlet />
             </StringsLayerGate>
           </AppShell>
+          </CategoryTreeSeedContext.Provider>
         </ThemeProvider>
       </I18nProvider>
     </QueryClientProvider>

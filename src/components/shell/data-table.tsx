@@ -534,7 +534,48 @@ export function DataTable<T>({
 
   if (loading) return stateBox("data-table-loading", loadingState);
   if (error) return stateBox("data-table-error", errorState);
-  if (rows.length === 0) return stateBox("data-table-empty", emptyState);
+  // A2 — the keyset footer; an empty keyset page keeps it, so Previous stays reachable.
+  const keysetFooter = keyset ? (
+        <div
+          className={cn("flex min-w-0 justify-end gap-2", FOOTER_AT[cardUntil])}
+          data-testid="data-table-keyset"
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="size-11 p-0"
+            aria-label={t("prim.table.previous")}
+            disabled={keyset.busy || !keyset.hasPrevious}
+            onClick={keyset.onPrevious}
+          >
+            <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="size-11 p-0"
+            aria-label={t("prim.table.next")}
+            disabled={keyset.busy || !keyset.hasNext}
+            onClick={keyset.onNext}
+          >
+            <ChevronRight aria-hidden="true" className="rtl:rotate-180" />
+          </Button>
+        </div>
+  ) : null;
+  if (rows.length === 0)
+    return keyset
+      ? frame(
+          <>
+            <div
+              data-testid="data-table-empty"
+              className={cn(CARD_SURFACE, "min-w-0 p-6", STATE_AT[cardUntil])}
+            >
+              {emptyState}
+            </div>
+            {keysetFooter}
+          </>,
+        )
+      : stateBox("data-table-empty", emptyState);
 
   /**
    * C2-UI-FIX-3 — when the split is at `xl` the card twin is the ONLY
@@ -960,31 +1001,7 @@ export function DataTable<T>({
       </div>
 
       {keyset ? (
-        <div
-          className={cn("flex min-w-0 justify-end gap-2", FOOTER_AT[cardUntil])}
-          data-testid="data-table-keyset"
-        >
-          <Button
-            type="button"
-            variant="outline"
-            className="size-11 p-0"
-            aria-label={t("prim.table.previous")}
-            disabled={keyset.busy || !keyset.hasPrevious}
-            onClick={keyset.onPrevious}
-          >
-            <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="size-11 p-0"
-            aria-label={t("prim.table.next")}
-            disabled={keyset.busy || !keyset.hasNext}
-            onClick={keyset.onNext}
-          >
-            <ChevronRight aria-hidden="true" className="rtl:rotate-180" />
-          </Button>
-        </div>
+        keysetFooter
       ) : pagination ? (
         <div className={cn("min-w-0", FOOTER_AT[cardUntil])}>{pagination}</div>
       ) : null}

@@ -140,7 +140,7 @@ vi.mock("@/routes/api/feed", () => ({
   },
 }));
 
-import { FIRST_PAGE_DEADLINE_MS, readFirstFeedPage } from "./first-screen";
+import { FIRST_PAGE_DEADLINE_MS, readFirstCategoryTree, readFirstFeedPage } from "./first-screen";
 
 const ORIGIN = "https://ethio.example";
 const at = (path: string, headers: Record<string, string> = {}) =>
@@ -246,6 +246,32 @@ describe("readFirstFeedPage (D234 S5)", () => {
       "/api/categories/tree",
       "answered a tree that does not parse",
     );
+    warn.mockRestore();
+  });
+
+  it("FSP-8 INC-974: the rail's seed and the /c/<slug> lookup share ONE tree read per request", async () => {
+    const request = at("/c/phones");
+    const [seed, held] = await Promise.all([
+      readFirstCategoryTree(request),
+      readFirstFeedPage(request, null),
+    ]);
+    expect(held?.path).toBe(`/api/feed?category=${LEAF}`);
+    expect(seed?.seed).toBe("first-rail");
+    expect(state.asked.filter((path) => path === "/api/categories/tree")).toHaveLength(1);
+    state.asked = [];
+    await readFirstCategoryTree(at("/c/phones"));
+    expect(state.asked.filter((path) => path === "/api/categories/tree")).toHaveLength(1);
+  });
+
+  it("FSP-9 INC-974: a malformed tree or the E2E switch → no seed (the rail reads as before)", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    state.treeBody = { nodes: "not a list" };
+    expect(await readFirstCategoryTree(at("/"))).toBeNull();
+    state.treeBody = null;
+    state.e2e = true;
+    expect(
+      await readFirstCategoryTree(at("/", { cookie: "e2e_first_screen=off" })),
+    ).toBeNull();
     warn.mockRestore();
   });
 });

@@ -11,7 +11,9 @@ import {
 import {
   CATEGORY_TREE_PATH,
   feedRouteOf,
+  firstRailPayload,
   parseCategoryTree,
+  type CategoryTreeSeed,
 } from "@/features/categories/category-tree";
 import {
   feedPath,
@@ -76,6 +78,70 @@ async function answerOf(
     : null;
 }
 
+/**
+ * INC-974 — ONE TREE READ PER REQUEST. The rail's first-paint seed and the feed's
+ * /c/<slug> lookup ask the tree route once: the answer is held per Request object
+ * (a WeakMap — per-request, never state shared between two visitors) and dropped
+ * with the request.
+ */
+const treeAnswers = new WeakMap<Request, Promise<Record<string, unknown> | null>>();
+
+function treeAnswerOf(request: Request): Promise<Record<string, unknown> | null> {
+  let held = treeAnswers.get(request);
+  if (held === undefined) {
+    held = answerOf(categoryTreeGet, new URL(request.url).origin, CATEGORY_TREE_PATH).catch(
+      (error: unknown) => {
+        console.warn("[first-screen]", CATEGORY_TREE_PATH, "was not read:", errorText(error));
+        return null;
+      },
+    );
+    treeAnswers.set(request, held);
+  }
+  return held;
+}
+
+/**
+ * INC-974 — the longest the page's HTML waits for the rail's categories (the
+ * FIRST_PAGE_DEADLINE_MS family; this one is awaited, so it is shorter). Past it
+ * the rail draws its skeleton and the browser reads the tree, as before.
+ */
+export const FIRST_TREE_DEADLINE_MS = 600;
+
+/**
+ * INC-974 — THE RAIL'S CATEGORY NAMES ARRIVE WITH THE PAGE. The tree route's
+ * in-process, version-cached answer, shaped to what the first paint draws
+ * (`first-rail`: the roots and the selected category's path; the full tree's
+ * gzip is over the 3 KiB ruling), or null — deadline, refusal, failure, or the
+ * E2E switch — with one line. Never throws. The browser's own read fills in the
+ * rest; a first-rail seed is never taken for the full tree (category-tree.ts).
+ */
+export async function readFirstCategoryTree(request: Request): Promise<CategoryTreeSeed | null> {
+  if (isE2E && /(?:^|;\s*)e2e_first_screen=off(?:;|$)/.test(request.headers.get("cookie") ?? "")) {
+    return null;
+  }
+  const slug = feedRouteOf(new URL(request.url).pathname)?.slug ?? null;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<"deadline">((resolve) => {
+    timer = setTimeout(() => resolve("deadline"), FIRST_TREE_DEADLINE_MS);
+  });
+  try {
+    const answer = await Promise.race([treeAnswerOf(request), deadline]);
+    if (answer === "deadline") {
+      console.warn("[first-screen] tree deadline passed; the browser reads the tree");
+      return null;
+    }
+    if (answer === null) return null;
+    const payload = firstRailPayload(answer, slug);
+    if (payload === null) {
+      console.warn("[first-screen]", CATEGORY_TREE_PATH, "answered a tree that does not parse");
+      return null;
+    }
+    return { seed: "first-rail", payload };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function read(request: Request, areaCookie: string | null): Promise<FirstFeedPage | null> {
   const url = new URL(request.url);
   const route = feedRouteOf(url.pathname);
@@ -85,7 +151,7 @@ async function read(request: Request, areaCookie: string | null): Promise<FirstF
   const geo = geoGuess(request);
   const [markets, categories] = await Promise.all([
     answerOf(openMarketsGet, url.origin, MARKETS_PATH),
-    route.slug === null ? null : answerOf(categoryTreeGet, url.origin, CATEGORY_TREE_PATH),
+    route.slug === null ? null : treeAnswerOf(request),
   ]);
   if (markets === null) return null;
   let categoryId: string | null = null;

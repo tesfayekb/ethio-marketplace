@@ -105,6 +105,32 @@ describe("DataTable C7 contract", () => {
     expect(previous).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
   });
+  it("ACR-6 an empty keyset page keeps its footer, so Previous stays reachable; an offset empty page draws none", () => {
+    const previous = vi.fn();
+    const { rerender } = render(
+      <DataTable
+        columns={columns()}
+        rows={[]}
+        rowKey={(row: (typeof ROWS)[number]) => row.id}
+        caption="fixture"
+        emptyState="empty"
+        keyset={{ hasPrevious: true, hasNext: false, onNext: vi.fn(), onPrevious: previous }}
+      />,
+    );
+    expect(screen.getByTestId("data-table-empty").textContent).toBe("empty");
+    fireEvent.click(screen.getByRole("button", { name: "prim.table.previous" }));
+    expect(previous).toHaveBeenCalledTimes(1);
+    rerender(
+      <DataTable
+        columns={columns()}
+        rows={[]}
+        rowKey={(row: (typeof ROWS)[number]) => row.id}
+        caption="fixture"
+        emptyState="empty"
+      />,
+    );
+    expect(screen.queryByTestId("data-table-keyset")).toBeNull();
+  });
   it("splits the twins at md when cardUntil is absent (default path)", () => {
     renderTable();
     expect(screen.getByTestId("data-table-cards").className).toContain("tbl-md:hidden");
