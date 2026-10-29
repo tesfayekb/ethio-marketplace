@@ -609,6 +609,8 @@ export type Source = {
   logRead?: boolean;
   /** INC-589 — the count in the log's "N error(s) … not a part of any test" line; 0 when absent. */
   outsideSummary?: number;
+  /** INC-973 — the lane's redacted start-failure lines (failing migration + last ERROR/FATAL), when the backend never came up. */
+  startFailure?: string[];
   /** INC-398 — every `[ssr-error]` line with the tests that finished next in its log. */
   ssrNext?: { line: string; next: string[] }[];
 };
@@ -2610,6 +2612,11 @@ async function main() {
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
       const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
+      // INC-973: when the backend never started there is no lane log at all; the
+      // lane then uploads its redacted start-failure lines beside it.
+      const startFailureText = logsDir
+        ? await readLog(`${logsDir}/e2e-log-${id}/local-backend-start-failure.txt`)
+        : null;
       // INC-088: error lines from the WHOLE log first, then the final 10 —
       // never a bare tail, which quotes the noise and hides the cause.
       const tail = summarizeLog(log);
