@@ -89,9 +89,10 @@ describe("a seller's name reaches the public only through the helper (INC-977)",
       },
     ];
     expect(report(nameReaders(latestBodies(planted)))).toBe(
-      ["29990101000000_planted.sql:1 e2e_planted_name", "29990101000000_planted.sql:1 e2e_planted_prev"].join(
-        "\n",
-      ),
+      [
+        "29990101000000_planted.sql:1 e2e_planted_name",
+        "29990101000000_planted.sql:1 e2e_planted_prev",
+      ].join("\n"),
     );
     // A later redeclaration that stops reading the column clears its finding.
     const fixed = [
@@ -101,12 +102,20 @@ describe("a seller's name reaches the public only through the helper (INC-977)",
         text: "CREATE OR REPLACE FUNCTION public.e2e_planted_name(p uuid) RETURNS text LANGUAGE sql AS $$ SELECT public.seller_public_alias(p) $$;",
       },
     ];
-    expect(report(nameReaders(latestBodies(fixed)))).toBe("29990101000000_planted.sql:1 e2e_planted_prev");
+    expect(report(nameReaders(latestBodies(fixed)))).toBe(
+      "29990101000000_planted.sql:1 e2e_planted_prev",
+    );
     expect(
       report(
         serverNameReads([
-          { file: "src/server/planted.ts", text: 'await db.from("profiles").select("seller_alias");' },
-          { file: "src/server/quiet.ts", text: "// seller_alias in a comment only\nexport const x = 1;" },
+          {
+            file: "src/server/planted.ts",
+            text: 'await db.from("profiles").select("seller_alias");',
+          },
+          {
+            file: "src/server/quiet.ts",
+            text: "// seller_alias in a comment only\nexport const x = 1;",
+          },
         ]),
       ),
     ).toBe("src/server/planted.ts:1 names a seller-name column");

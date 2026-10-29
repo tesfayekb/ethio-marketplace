@@ -622,7 +622,8 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "post.seller.previously": "ቀደም ሲል {name}",
   "post.seller.neutral": "ሻጭ",
   "post.seller.underReview": "የሻጭ ስምዎ እየተገመገመ ነው",
-  "post.seller.underReviewHelp": "ቡድናችን ግምገማውን እስኪጨርስ ድረስ ገዢዎች ከስምዎ ይልቅ «ሻጭ» ያያሉ፤ «የዚህ ሻጭ ሁሉም ማስታወቂያዎች» ገጽዎም አይታይም። ማስታወቂያዎችዎ ባሉበት ይቆያሉ።",
+  "post.seller.underReviewHelp":
+    "ቡድናችን ግምገማውን እስኪጨርስ ድረስ ገዢዎች ከስምዎ ይልቅ «ሻጭ» ያያሉ፤ «የዚህ ሻጭ ሁሉም ማስታወቂያዎች» ገጽዎም አይታይም። ማስታወቂያዎችዎ ባሉበት ይቆያሉ።",
   "post.seller.memberSince": "አባል ከ{date} ጀምሮ",
   "post.review.notGiven": "አልተሰጠም",
   "post.refusal.belowModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በፊት ነው።",
