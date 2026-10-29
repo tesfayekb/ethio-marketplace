@@ -2600,6 +2600,7 @@ export type Database = {
           since: string
           state: string
           subject: string
+          unusable_streak: number
         }
         Insert: {
           attempts?: number
@@ -2611,6 +2612,7 @@ export type Database = {
           since?: string
           state: string
           subject: string
+          unusable_streak?: number
         }
         Update: {
           attempts?: number
@@ -2622,6 +2624,7 @@ export type Database = {
           since?: string
           state?: string
           subject?: string
+          unusable_streak?: number
         }
         Relationships: [
           {
