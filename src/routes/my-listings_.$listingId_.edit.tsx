@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { EditWizard } from "@/features/posting/wizard";
@@ -27,14 +28,8 @@ export const Route = createFileRoute("/my-listings_/$listingId_/edit")({
   },
   head: () => ({
     meta: [
+      ...pageHead("head.site.pattern.title", "head.editAd.description", "post.edit.title", null, "Edit your ad — ethio.com", "Change one of your ads on ethio.com, step by step.").meta,
       { name: "robots", content: "noindex" },
-      { title: "Edit your ad — ethio.com" },
-      { name: "description", content: "Change one of your ads on ethio.com, step by step." },
-      { property: "og:title", content: "Edit your ad — ethio.com" },
-      {
-        property: "og:description",
-        content: "Change one of your ads on ethio.com, step by step.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

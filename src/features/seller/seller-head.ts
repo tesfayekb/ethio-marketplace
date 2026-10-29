@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 /**
  * N1b-2c (INC-977, SPA-9) — the seller page's head, from the loader's answer only.
  *
@@ -11,15 +12,10 @@ export function sellerHead(data: SellerHeadData) {
   // Bundle 19 turn 17 — noindex until the store spec ([6.19]) keeps the address.
   const robots = { name: "robots", content: "noindex" };
   if (data === undefined) return { meta: [robots] };
-  const title = `${data.name} — ethio.com`;
-  const description = `Ads by ${data.name} on ethio.com.`;
   return {
     meta: [
-      { title },
-      { name: "description", content: description },
+      ...pageHead("head.site.pattern.title", "head.seller.description", null, data.name).meta,
       robots,
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

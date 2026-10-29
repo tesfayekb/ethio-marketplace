@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
 import { PostingWizard } from "@/features/posting/wizard";
@@ -36,10 +37,7 @@ export const Route = createFileRoute("/post_/$listingId")({
   },
   head: () => ({
     meta: [
-      { title: "Continue your listing — ethio.com" },
-      { name: "description", content: "Finish the listing you started on ethio.com." },
-      { property: "og:title", content: "Continue your listing — ethio.com" },
-      { property: "og:description", content: "Finish the listing you started on ethio.com." },
+      ...pageHead("head.site.pattern.title", "head.continuePost.description", "head.continuePost.title", null, "Continue your listing — ethio.com", "Finish the listing you started on ethio.com.").meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },

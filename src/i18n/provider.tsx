@@ -12,6 +12,10 @@ import {
 import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/auth-service";
 import { isE2E } from "@/lib/env-flags";
 
+import { loadOnce } from "@/lib/load-once";
+
+const pageHeadClient = loadOnce(() => import("@/lib/page-head-client"));
+
 import { errorText } from "@/lib/error-text";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { onAuthChange, projectEnv } from "@/lib/supabase-door";
@@ -730,7 +734,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     const rtl = publicLanguages.find((row) => row.code === appliedLanguage)?.rtl ?? false;
     document.documentElement.lang = appliedLanguage;
     document.documentElement.dir = rtl ? "rtl" : "ltr";
-  }, [appliedLanguage, publicLanguages]);
+    if (appliedLanguage === BASE_LANGUAGE && pageHeadClient.ready() === null) return;
+    let cancelled = false;
+    void pageHeadClient.load().then(
+      (head) => { if (!cancelled) head.applyPageHead((key) => messages[key] ?? enFirstPaint[key]); },
+      (reason: unknown) => reportOnDemandFailure("page head", reason),
+    );
+    return () => { cancelled = true; };
+  }, [appliedLanguage, publicLanguages, messages]);
 
   // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored
   // state only: nothing in the app reads it, and it is written, never watched.
