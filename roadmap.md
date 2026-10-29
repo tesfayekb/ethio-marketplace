@@ -11,8 +11,8 @@ The brief in force: docs/governance/briefs/foundations-turn-n1b.md (Foundations 
 - [x] INC-975 — the secrets scan walks every commit on dev not yet on main, merges included — Foundations turn A2 (ci.yml secrets-scan; replay 0 → 2 and 0 → 31 commits)
 - [x] INC-976 — the secrets scan's outside calls carry a deadline; no artifact upload — Foundations turn A2 (pinned gitleaks via with-deadline.sh)
 - [x] INC-977 N1a — the name-check state (name_checks) written by the doors that save a name, name_check_mark service-only, admin_name_check_summary in Admin › Screening; auditUnchecked and `alias.unchecked` retired — Foundations turn N1a (560e36c8 → mark 20261029210000; NCU-1…8; SC-1's count line)
-- [ ] INC-979 — the 5 pre-N1a seller aliases have no name_checks row; fixed by N1b-1's M1 backfill — open
-- [ ] INC-977 N1b-1 — M1 INC-979 backfill · M2 pg_net + job_call · M3 job_runs + lease + pause · M4 schedule (each its own stop) · the jobs route + secret + catch-up core · jobs guard · NCJ tests · report — in progress
+- [x] INC-979 — the 5 pre-N1a seller aliases have no name_checks row — fixed by N1b-1 M1 (a58307eb; prod 5 aliases, 0 without a row)
+- [ ] INC-977 N1b-1 — M1 INC-979 backfill · M2 pg_net + job_call · M3 job_runs + lease + pause · M4 schedule (each its own stop) · the jobs route + secret + catch-up core · jobs guard · NCJ tests · report — built (M1–M6 applied on prod; route, core, guards, NCJ-1…11; report foundations-turn-n1b-1.report.md); live run waits on the operator's secrets
 - [ ] INC-977 N1b-2 — the hide helper on every public seller-name read; /<name> not-found while 'imitates'; no links; the owner's notice — open, after N1b-1
 - [ ] INC-977 N1b-3 — staff queue (listings:view + profiles:view), Clear (profiles:update + step-up), Rename; E2E; docs, register row, DEC wiring — open, after N1b-2
 - [ ] Launch gate — at the DNS cutover, the job_base_url Vault entry changes to https://ethio.com in the same session (N1b R2) — open, waits on the cutover
