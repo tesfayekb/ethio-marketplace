@@ -133,7 +133,7 @@ const ITEM_ACTIVE = "bg-nav-active font-semibold text-primary";
 
 const CollapsedContext = createContext(false);
 /** The persistent rail, phone icon strip and opened phone menu. */
-const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
+export const RailVariantContext = createContext<"rail" | "strip" | "menu">("rail");
 
 /** Icons-only hiding belongs to the persistent rail alone. */
 function useHide(): string {
@@ -514,8 +514,8 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   );
 }
 
-/** Marketplace rail = the LIVE category tree, read from the database. */
-function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
+/** Marketplace rail = the LIVE category tree, read from the database (exported for RFT, rail-first-paint.test.tsx). */
+export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const variant = useContext(RailVariantContext);
   const strip = variant === "strip";
   const compact = variant === "strip" || variant === "menu";
