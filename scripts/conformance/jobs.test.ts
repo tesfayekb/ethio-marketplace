@@ -26,7 +26,8 @@ export function jobRouteBreaches(entries: Array<{ file: string; text: string }>)
     }
     if (!code.includes('from "@/server/jobs/route"') || !/handler:\s*jobHandler\b/.test(code))
       found.push({ file, line: 1, what: "jobs route not on jobHandler" });
-    if (!/auth:\s*"none"/.test(code)) found.push({ file, line: 1, what: 'jobs route auth is not "none"' });
+    if (!/auth:\s*"none"/.test(code))
+      found.push({ file, line: 1, what: 'jobs route auth is not "none"' });
     if (/\b(body|rate|form):/.test(code))
       found.push({ file, line: 1, what: "jobs route declares a body, form or dial" });
   }
@@ -55,12 +56,17 @@ describe("scheduled job routes check the signature first (INC-977)", () => {
       'import { defineRoute } from "@/server/route";\nexport const h = defineRoute({ path: "/api/public/jobs/x", auth: "anon", handler: async () => run() });\n';
     const planted = `${JOBS_PREFIX}.planted.ts`;
     expect(report(jobRouteBreaches([{ file: planted, text: bad }]))).toBe(
-      [`${planted}:1 jobs route not on jobHandler`, `${planted}:1 jobs route auth is not "none"`].join(
-        "\n",
-      ),
+      [
+        `${planted}:1 jobs route not on jobHandler`,
+        `${planted}:1 jobs route auth is not "none"`,
+      ].join("\n"),
     );
     const real = `${JOBS_PREFIX}.$job.ts`;
-    expect(jobRouteBreaches([{ file: real, text: readFileSync(`src/routes/api/public/jobs.$job.ts`, "utf8") }])).toEqual([]);
+    expect(
+      jobRouteBreaches([
+        { file: real, text: readFileSync(`src/routes/api/public/jobs.$job.ts`, "utf8") },
+      ]),
+    ).toEqual([]);
     expect(
       report(jobRouteBreaches([{ file: "src/routes/api/feed.ts", text: "handler: jobHandler" }])),
     ).toBe("src/routes/api/feed.ts:1 jobHandler outside the jobs prefix");

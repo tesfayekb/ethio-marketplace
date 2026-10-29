@@ -51,7 +51,9 @@ vi.mock("@/integrations/supabase/client.server", () => {
     select: (cols: string) => (state.query.push(`select ${cols}`), builder),
     eq: (c: string, v: string) => (state.query.push(`eq ${c}=${v}`), builder),
     order: (c: string, o: { ascending: boolean; nullsFirst?: boolean }) => (
-      state.query.push(`order ${c} ${o.ascending ? "asc" : "desc"}${o.nullsFirst ? " nulls first" : ""}`),
+      state.query.push(
+        `order ${c} ${o.ascending ? "asc" : "desc"}${o.nullsFirst ? " nulls first" : ""}`,
+      ),
       builder
     ),
     limit: async (n: number) => {
@@ -79,7 +81,9 @@ async function post(
 ): Promise<Response> {
   const handlers = (
     Route.options as unknown as {
-      server: { handlers: { POST: (ctx: { request: Request; params: unknown }) => Promise<Response> } };
+      server: {
+        handlers: { POST: (ctx: { request: Request; params: unknown }) => Promise<Response> };
+      };
     }
   ).server.handlers;
   return handlers.POST({
@@ -167,7 +171,10 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
   });
 
   it("NCJ-5 a run asks at most 20 unchecked names, least recently tried first (never tried first), then the oldest since", async () => {
-    state.answers = [{ ok: true, value: { imitates: false } }, { ok: true, value: { imitates: true, of: "Coca-Cola" } }];
+    state.answers = [
+      { ok: true, value: { imitates: false } },
+      { ok: true, value: { imitates: true, of: "Coca-Cola" } },
+    ];
     const response = await post(signed());
     expect(response.status).toBe(200);
     expect(state.query).toEqual([
@@ -191,18 +198,26 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     expect(body).toEqual({ outcome: "ok", asked: 2, clean: 1, imitates: 1, unavailable: 0 });
     expect(JSON.stringify(body)).not.toMatch(/abebe|cocacola|Coca-Cola/i);
     expect(state.rpc.filter((c) => c.name === "name_check_mark").map((c) => c.args)).toEqual([
-      { p_profile: "p1", subject: undefined, p_subject: "alias", p_text: "abebe", p_state: "clean" },
-      { p_profile: "p2", subject: undefined, p_subject: "alias", p_text: "cocacolashop", p_state: "imitates" },
-    ].map(({ subject: _s, ...rest }) => rest));
+      { p_profile: "p1", p_subject: "alias", p_text: "abebe", p_state: "clean" },
+      { p_profile: "p2", p_subject: "alias", p_text: "cocacolashop", p_state: "imitates" },
+    ]);
     expect(finish()).toEqual({
-      p_run: "run-1", p_outcome: "ok", p_reason: null,
-      p_asked: 2, p_clean: 1, p_imitates: 1, p_unavailable: 0,
+      p_run: "run-1",
+      p_outcome: "ok",
+      p_reason: null,
+      p_asked: 2,
+      p_clean: 1,
+      p_imitates: 1,
+      p_unavailable: 0,
     });
     expect(rpcNames().at(-2)).toBe("job_lease_release");
   });
 
   it("NCJ-7 a failed model call is 'unavailable' (state unchanged by the door), never clean", async () => {
-    state.answers = [{ ok: false, reason: "timeout" }, { ok: false, reason: "unavailable" }];
+    state.answers = [
+      { ok: false, reason: "timeout" },
+      { ok: false, reason: "unavailable" },
+    ];
     await post(signed());
     expect(marks()).toEqual(["unavailable", "unavailable"]);
     expect(finish()?.["p_unavailable"]).toBe(2);
@@ -224,12 +239,21 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     for (const [answers, reason] of [
       [[{ ok: false, reason: "providerError", status: 402 }], "credits"],
       [[{ ok: false, reason: "providerError", status: 403 }], "policy"],
-      [[{ ok: false, reason: "providerError", status: 429 }, { ok: false, reason: "providerError", status: 429 }], "rate_limit"],
+      [
+        [
+          { ok: false, reason: "providerError", status: 429 },
+          { ok: false, reason: "providerError", status: 429 },
+        ],
+        "rate_limit",
+      ],
     ] as Array<[Answer[], string]>) {
       state.rpc = [];
       state.answers = answers;
       await post(signed());
-      expect(state.rpc.find((c) => c.name === "job_pause_set")?.args).toEqual({ p_job: "name-check-catchup", p_reason: reason });
+      expect(state.rpc.find((c) => c.name === "job_pause_set")?.args).toEqual({
+        p_job: "name-check-catchup",
+        p_reason: reason,
+      });
       expect(finish()?.["p_outcome"]).toBe("paused");
     }
     state.rpc = [];
@@ -244,7 +268,13 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
 
   it("NCJ-10 an empty run and a busy lease still write their heartbeat; a failed read is 'failed', never 'ok'", async () => {
     state.rows = [];
-    expect(await (await post(signed())).json()).toEqual({ outcome: "ok", asked: 0, clean: 0, imitates: 0, unavailable: 0 });
+    expect(await (await post(signed())).json()).toEqual({
+      outcome: "ok",
+      asked: 0,
+      clean: 0,
+      imitates: 0,
+      unavailable: 0,
+    });
     expect(finish()?.["p_outcome"]).toBe("ok");
     state.rpc = [];
     state.leaseFree = false;
@@ -268,7 +298,7 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     const result = await runNameCheckCatchup(supabaseAdmin as never, "run-9", {
       now: () => {
         const t = clock;
-        clock += 41_000;
+        clock += 25_000;
         return t;
       },
     });

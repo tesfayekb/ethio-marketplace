@@ -37,8 +37,7 @@ export function inspect(catalogue: string, config: string): string[] {
   };
   for (const s of list("schemas"))
     if (s === "net" || s === "extensions") failures.push(`[api] schemas exposes ${s}`);
-  if (list("extra_search_path").includes("net"))
-    failures.push("[api] extra_search_path holds net");
+  if (list("extra_search_path").includes("net")) failures.push("[api] extra_search_path holds net");
   return failures;
 }
 
@@ -59,7 +58,8 @@ if (process.env["SELF_TEST"] === "1") {
   console.log("Outbound-calls self-test OK: the planted caller and both exposures refused");
 } else {
   const [catalogue, config] = process.argv.slice(2);
-  if (!catalogue || !config) throw new Error("usage: check-outbound-calls.ts <catalogue.tsv> <config.toml>");
+  if (!catalogue || !config)
+    throw new Error("usage: check-outbound-calls.ts <catalogue.tsv> <config.toml>");
   const failures = inspect(readFileSync(catalogue, "utf8"), readFileSync(config, "utf8"));
   if (failures.length) {
     for (const line of failures) console.error(`Outbound-calls guard FAIL: ${line}`);

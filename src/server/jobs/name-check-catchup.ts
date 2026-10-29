@@ -145,9 +145,10 @@ export async function runNameCheckCatchup(
     return { outcome, reason, ...counts };
   } finally {
     if (leased) {
-      const released = await admin
-        .rpc("job_lease_release", { p_job: JOB, p_holder: holder })
-        .then((r) => r.error, (error: unknown) => error);
+      const released = await admin.rpc("job_lease_release", { p_job: JOB, p_holder: holder }).then(
+        (r) => r.error,
+        (error: unknown) => error,
+      );
       if (released) logRouteError(PATH, `job_lease_release failed`);
     }
     const finish = await admin
@@ -160,7 +161,10 @@ export async function runNameCheckCatchup(
         p_imitates: counts.imitates,
         p_unavailable: counts.unavailable,
       })
-      .then((r) => r.error, (error: unknown) => error);
+      .then(
+        (r) => r.error,
+        (error: unknown) => error,
+      );
     if (finish) logRouteError(PATH, `job_run_finish failed`);
   }
 }
