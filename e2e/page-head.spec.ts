@@ -60,19 +60,19 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
   await gotoReady(page, canonical);
   await expect(page.getByTestId("ad-page")).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
-  await headText(page, `${ad.title} — ethio.com`, ad.description.slice(0, 160));
+  await headText(page, `${ad.title} — ethio.com`, String(ad.description).slice(0, 160));
   // A real client navigation: the brand link commits another page's head, no hard reload.
-  await page.locator('a[href="/"]').filter({ visible: true }).first().click();
+  await page.getByTestId("brand-link").click();
   await headText(page, am["head.home.title"], am["head.home.description"]);
 
   const staff = await signInAsSuperAdmin(page);
   const before = await adminClient()
     .from("profiles")
     .select("preferred_language")
-    .eq("user_id", staff.id)
+    .eq("user_id", staff.user.id)
     .single();
   if (before.error) throw new Error(`[e2e:pgh] reading preference: ${before.error.message}`);
-  preferences.push({ id: staff.id, prior: before.data.preferred_language });
+  preferences.push({ id: staff.user.id, prior: before.data.preferred_language });
   await switchLanguage(page, "am");
   const title = am["head.admin.pattern.title"].replace("{name}", am["admin.section.ai.title"]);
   const description = am["head.admin.pattern.description"].replace(
@@ -84,7 +84,7 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
   await expect(page.getByTestId("admin-panel-root")).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   await headText(page, title, description);
-  await page.locator('a[href="/"]').filter({ visible: true }).first().click();
+  await page.getByTestId("brand-link").click();
   await headText(page, am["head.home.title"], am["head.home.description"]);
 });
 
