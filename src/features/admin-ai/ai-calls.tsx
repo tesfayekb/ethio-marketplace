@@ -6,8 +6,8 @@ import { useI18n } from "@/i18n";
 import { formatLocale } from "@/lib/format-locale";
 import {
   AI_OUTCOMES,
-  AI_TASK_ORDER,
-  taskLabelKey,
+  AI_FEATURE_ORDER,
+  featureLabelKey,
   type AiCallRow,
   type AiCallsCursor,
 } from "./ai-service";
@@ -15,13 +15,13 @@ import { useAiCalls } from "./use-ai-calls";
 
 export function AiCalls() {
   const { t, language } = useI18n();
-  const [task, setTask] = useState("");
+  const [feature, setFeature] = useState("");
   const [outcome, setOutcome] = useState("");
   const [history, setHistory] = useState<Array<AiCallsCursor | null>>([null]);
   const before = history[history.length - 1] ?? null;
-  const query = useAiCalls(task, outcome, before);
+  const query = useAiCalls(feature, outcome, before);
   const name = (id: string) => {
-    const key = taskLabelKey(id);
+    const key = featureLabelKey(id);
     return key ? t(key) : id;
   };
   const locale = formatLocale(language);
@@ -36,11 +36,11 @@ export function AiCalls() {
       cell: (row) => date.format(new Date(row.created_at)),
     },
     {
-      key: "task",
+      key: "feature",
       header: t("admin.ai.col.feature"),
       priority: "primary",
       card: "title",
-      cell: (row) => name(row.task),
+      cell: (row) => name(row.feature),
     },
     {
       key: "model",
@@ -72,13 +72,6 @@ export function AiCalls() {
         row.actor.kind === "person"
           ? row.actor.name
           : t(row.actor.kind === "system" ? "admin.audit.system" : "admin.ai.log.personHidden"),
-    },
-    {
-      key: "fake",
-      header: t("admin.ai.log.standIn"),
-      priority: "detail",
-      card: "foot",
-      cell: (row) => (row.fake ? t("admin.ai.log.standIn") : "—"),
     },
   ];
   return (
@@ -115,16 +108,16 @@ export function AiCalls() {
         toolbar={
           <>
             <NativeSelect
-              data-testid="ai-calls-task"
+              data-testid="ai-calls-feature"
               aria-label={t("admin.ai.col.feature")}
-              value={task}
+              value={feature}
               onChange={(event) => {
-                setTask(event.target.value);
+                setFeature(event.target.value);
                 setHistory([null]);
               }}
             >
               <option value="">{t("admin.ai.days.all")}</option>
-              {AI_TASK_ORDER.map((id) => (
+              {AI_FEATURE_ORDER.map((id) => (
                 <option key={id} value={id}>
                   {name(id)}
                 </option>

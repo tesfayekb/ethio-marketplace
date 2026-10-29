@@ -22,7 +22,14 @@ vi.mock("@/features/auth/mfa/step-up-gate", () => ({
     children(async (work: () => Promise<void>) => work()),
 }));
 vi.mock("@/lib/use-settling", () => ({ useSettling: () => false }));
-vi.mock("./use-ai-calls", () => ({ useAiCalls: () => ({ data: { rows: [], next: null }, isLoading: false, isFetching: false, error: null }) }));
+vi.mock("./use-ai-calls", () => ({
+  useAiCalls: () => ({
+    data: { rows: [], next: null },
+    isLoading: false,
+    isFetching: false,
+    error: null,
+  }),
+}));
 
 const ROWS: AiFeatureRow[] = [
   {
