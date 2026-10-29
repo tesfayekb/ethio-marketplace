@@ -152,7 +152,15 @@ export const LOCAL = {
   "bundle-budget › Build": "build-and-check › Build, reused",
   "secrets-scan › Secrets scan (gitleaks, pinned)":
     "the walk is <base>..HEAD plus the uncommitted work",
+  "component-tests › Component tests (vitest + RTL + jsdom)":
+    "the sandbox's shared CPU: the full suite at default workers times out (INC-1001)",
 } as const;
+
+/** INC-1001 — the same vitest suite, bounded to at most 2 workers here; CI's command is unchanged. */
+export const LOCAL_UNIT_BOUND = "--maxWorkers=2";
+export function localUnitTests(run: string): string {
+  return `${run} -- ${LOCAL_UNIT_BOUND}`;
+}
 
 /** R1 — the harness's typecheck verdict, never re-run, never older than the tree. */
 export function typecheckVerdict(
@@ -419,7 +427,9 @@ function main(): number {
     const text =
       step.key === "secrets-scan › Secrets scan (gitleaks, pinned)"
         ? localSecretsScan(step.run, turnBase())
-        : step.run;
+        : step.key === "component-tests › Component tests (vitest + RTL + jsdom)"
+          ? localUnitTests(step.run)
+          : step.run;
     const r = sh(
       text,
       { ...baseEnv, ...step.env },
@@ -429,7 +439,12 @@ function main(): number {
     const notFetched = r.code !== 0 ? fetchFailure(step, r.output) : undefined;
     const line: Line =
       r.code === 0
-        ? { verdict: "PASS", key: step.key, seconds: secs() }
+        ? {
+            verdict: "PASS",
+            key: step.key,
+            seconds: secs(),
+            reason: (LOCAL as Record<string, string>)[step.key],
+          }
         : notFetched
           ? { verdict: "NOT RUN", key: step.key, seconds: secs(), reason: notFetched }
           : {
