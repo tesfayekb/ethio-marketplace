@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { DataTable, type DataTableColumn } from "@/components/shell/data-table";
+import { ColumnsButton } from "@/components/shell/columns-button";
+import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
+import { TableToolbar } from "@/components/shell/table-toolbar";
+import { CutText } from "@/components/ui/cut-text";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
@@ -17,6 +21,7 @@ export function AiCalls() {
   const { t, language } = useI18n();
   const [feature, setFeature] = useState("");
   const [outcome, setOutcome] = useState("");
+  const [hidden, toggleColumn] = useHiddenColumns("admin-ai-calls");
   const [history, setHistory] = useState<Array<AiCallsCursor | null>>([null]);
   const before = history[history.length - 1] ?? null;
   const query = useAiCalls(feature, outcome, before);
@@ -40,14 +45,14 @@ export function AiCalls() {
       header: t("admin.ai.col.feature"),
       priority: "primary",
       card: "title",
-      cell: (row) => name(row.feature),
+      cell: (row) => <CutText text={name(row.feature)} />,
     },
     {
       key: "model",
       header: t("admin.ai.log.col.model"),
       priority: "secondary",
       card: "meta",
-      cell: (row) => row.model,
+      cell: (row) => <CutText text={row.model} />,
     },
     {
       key: "outcome",
@@ -70,7 +75,7 @@ export function AiCalls() {
       card: "meta",
       cell: (row) =>
         row.actor.kind === "person"
-          ? row.actor.name
+          ? <CutText text={row.actor.name} />
           : t(row.actor.kind === "system" ? "admin.audit.system" : "admin.ai.log.personHidden"),
     },
   ];
@@ -81,7 +86,7 @@ export function AiCalls() {
         <p className="text-xs text-muted-foreground">{t("admin.ai.log.hint")}</p>
       </div>
       <DataTable
-        columns={columns}
+        columns={visibleColumns(columns, hidden, ["time", "feature", "outcome"])}
         rows={query.data?.rows ?? []}
         rowKey={(row) => row.id}
         rowTestId={(row) => `ai-call-${row.id}`}
@@ -106,7 +111,7 @@ export function AiCalls() {
           </p>
         }
         toolbar={
-          <>
+          <TableToolbar testid="ai-calls-toolbar" search={<>
             <NativeSelect
               data-testid="ai-calls-feature"
               aria-label={t("admin.ai.col.feature")}
@@ -139,7 +144,7 @@ export function AiCalls() {
                 </option>
               ))}
             </NativeSelect>
-          </>
+          </>} columns={<ColumnsButton testid="ai-calls-columns" columns={columns.map(column => ({ key: column.key, label: String(column.header), locked: ["time", "feature", "outcome"].includes(column.key) }))} hidden={hidden} onToggle={toggleColumn} />} />
         }
         keyset={{
           hasPrevious: history.length > 1,

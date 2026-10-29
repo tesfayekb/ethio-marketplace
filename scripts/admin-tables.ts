@@ -56,6 +56,7 @@ export const RULES: Record<Rule, string> = {
 
 /** Tables drawn inside another page: the section's file → its host page's file. */
 export const SECTIONS: Record<string, string> = {
+  "src/features/admin-ai/ai-calls.tsx": "src/features/admin-ai/ai-page.tsx",
   "src/features/admin/translations/data-scope.tsx":
     "src/features/admin/translations/strings-page.tsx",
 };
@@ -84,8 +85,8 @@ export function breaches(file: string, text: string): Rule[] {
     out.push("T5");
   }
   if (
-    !/<DataTablePagination\b/.test(code) ||
-    !/\buseKeptPage\(/.test(code) ||
+    (!/\bkeyset=\{/.test(code) &&
+      (!/<DataTablePagination\b/.test(code) || !/\buseKeptPage\(/.test(code))) ||
     /\blocalStorage\b/.test(code)
   ) {
     out.push("T6");
