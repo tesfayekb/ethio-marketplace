@@ -84,9 +84,25 @@ function envOf(raw: Record<string, unknown> | undefined): Record<string, string>
   return out;
 }
 
+/**
+ * Bun's own YAML reader (no new dependency). Under vitest (node) the same reader runs in a
+ * `bun` child, so the tests read ci.yml exactly as the script does.
+ */
+export function parseYaml(text: string): unknown {
+  const bun = (globalThis as { Bun?: { YAML: { parse(t: string): unknown } } }).Bun;
+  if (bun) return bun.YAML.parse(text);
+  const r = spawnSync(
+    "bun",
+    ["-e", "process.stdout.write(JSON.stringify(Bun.YAML.parse(await Bun.stdin.text())))"],
+    { input: text, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+  );
+  if (r.status !== 0) throw new Error(`ci.yml could not be read: ${r.stderr}`);
+  return JSON.parse(r.stdout);
+}
+
 /** Every job's named steps, in ci.yml's order. `uses:` steps without a name are setup. */
 export function planFrom(yamlText: string): Step[] {
-  const doc = Bun.YAML.parse(yamlText) as { jobs: Record<string, WorkflowJob> };
+  const doc = parseYaml(yamlText) as { jobs: Record<string, WorkflowJob> };
   const steps: Step[] = [];
   for (const [job, spec] of Object.entries(doc.jobs)) {
     for (const step of spec.steps ?? []) {
