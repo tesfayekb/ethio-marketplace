@@ -85,7 +85,6 @@ import {
   type MyListingRow,
   type MyListingsFilters,
 } from "./my-listings";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { listingPath } from "@/features/ad-page/address";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
@@ -200,7 +199,6 @@ export function MyListingsPage() {
     rows.flatMap((row) => (row.coverPhotoId === null ? [] : [{ id: row.coverPhotoId }])),
   );
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
-  const locale = formatLocale(language);
   const day = (iso: string | null) =>
     iso === null
       ? ""

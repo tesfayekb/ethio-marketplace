@@ -54,7 +54,6 @@ import {
   type AdminListingRow,
   type ListingView,
 } from "./use-admin-listings";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**
@@ -171,7 +170,6 @@ export function AdminListingsPage() {
     paging.setPage(0);
     setSelected([]);
   };
-  const locale = formatLocale(language);
   const dateFmt = dateFormatter("day", language);
   const fullFmt = dateFormatter("dayFull", language);
   const shortFmt = dateFormatter("dayMonth", language);

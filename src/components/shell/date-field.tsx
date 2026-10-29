@@ -11,7 +11,6 @@ import { cn } from "@/lib/utils";
 import type { DateCalendarProps } from "./date-calendar";
 import { isoDay, parseDay } from "./date-day";
 import { LoadFailedHere } from "./on-demand-notice";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**
@@ -100,7 +99,6 @@ export function DateField({
       live = false;
     };
   }, [open, Calendar, calendarFailed]);
-  const locale = formatLocale(language);
   const selected = parseDay(value);
   const earliest = min === undefined ? null : parseDay(min);
   const latest = max === undefined ? null : parseDay(max);

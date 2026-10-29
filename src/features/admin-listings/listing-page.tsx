@@ -48,7 +48,7 @@ import {
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
 import { errorText } from "@/lib/error-text";
 import { catalogText, entityName } from "@/i18n/entity";
-import { formatLocale, languageRowName } from "@/lib/format-locale";
+import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**
@@ -159,7 +159,6 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
         )),
   );
 
-  const locale = formatLocale(language);
   const dayFmt = dateFormatter("day", language);
   const momentFmt = dateFormatter("dayTime", language);
   const day = (iso: string | null) => (iso === null ? "—" : dayFmt.format(new Date(iso)));
