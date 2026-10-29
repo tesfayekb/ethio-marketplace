@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
@@ -59,14 +60,15 @@ export const Route = createFileRoute("/settings")({
   },
   head: () => ({
     meta: [
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.settings.description",
+        "head.settings.title",
+        null,
+        "Account settings — ethio.com",
+        "Manage your ethio.com sign-in methods and security.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { title: "Account settings — ethio.com" },
-      { name: "description", content: "Manage your ethio.com sign-in methods and security." },
-      { property: "og:title", content: "Account settings — ethio.com" },
-      {
-        property: "og:description",
-        content: "Manage your ethio.com sign-in methods and security.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

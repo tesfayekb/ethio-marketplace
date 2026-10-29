@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
@@ -11,9 +12,6 @@ const termsPageFn = createServerFn({ method: "GET" })
     return legalPage("terms");
   });
 
-const TITLE = "Terms of Service — ethio.com";
-const DESCRIPTION = "The Terms of Service of ethio.com, the version in force and the next one.";
-
 export const Route = createFileRoute("/terms")({
   loader: () => termsPageFn(),
   head: ({ matches }) => {
@@ -21,10 +19,13 @@ export const Route = createFileRoute("/terms")({
     const url = root?.origin ? `${root.origin}/terms` : null;
     return {
       meta: [
-        { title: TITLE },
-        { name: "description", content: DESCRIPTION },
-        { property: "og:title", content: TITLE },
-        { property: "og:description", content: DESCRIPTION },
+        ...pageHead(
+          "head.site.pattern.title",
+          "head.terms.description",
+          "legal.kind.terms",
+          null,
+          "Terms of Service — ethio.com",
+        ).meta,
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary" },
         ...(url ? [{ property: "og:url", content: url }] : []),

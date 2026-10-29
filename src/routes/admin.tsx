@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
@@ -25,11 +26,15 @@ import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin — ethio.com" },
-      { name: "description", content: "Administration panel for ethio.com staff." },
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.admin.panel.description",
+        "panel.admin",
+        null,
+        "Admin — ethio.com",
+        "Administration panel for ethio.com staff.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin — ethio.com" },
-      { property: "og:description", content: "Administration panel for ethio.com staff." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

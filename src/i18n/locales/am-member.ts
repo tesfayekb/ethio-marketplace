@@ -1,6 +1,20 @@
 import type { enMember } from "./en-member";
 
 export const amMember: { [K in keyof typeof enMember]: string } = {
+  "head.account.description": "የ ethio.com አካውንትዎን እና የማስታወቂያ እንቅስቃሴዎን ይመልከቱ።",
+  "head.continuePost.description": "በ ethio.com ላይ የጀመሩትን ማስታወቂያ ይጨርሱ።",
+  "head.continuePost.title": "ማስታወቂያዎን ይቀጥሉ",
+  "head.editAd.description": "በ ethio.com ላይ ካሉ ማስታወቂያዎችዎ አንዱን ደረጃ በደረጃ ይቀይሩ።",
+  "head.myLegal.description": "በ ethio.com ላይ የተቀበሏቸው ሕጋዊ ሰነዶች።",
+  "head.myLegalDocument.description": "በ ethio.com ላይ የተቀበሉት ሕጋዊ ሰነድ።",
+  "head.myLegalDocument.title": "ሕጋዊ ሰነድ",
+  "head.myListing.description": "በ ethio.com ላይ ካሉ ማስታወቂያዎችዎ አንዱ፦ ሁኔታው፣ ታሪኩ እና እርምጃዎቹ።",
+  "head.myListing.title": "የእኔ ማስታወቂያ",
+  "head.myListings.description": "በ ethio.com ላይ ያሉ ማስታወቂያዎችዎ፦ በቀጥታ ያሉ፣ በግምገማ ላይ ያሉ፣ የተዘጉ እና የተሸጡ።",
+  "head.post.description": "የሚሸጡትን በጥቂት አጭር ደረጃዎች በ ethio.com ላይ ይለጥፉ።",
+  "head.saved.description": "በ ethio.com ላይ ያስቀመጧቸው ማስታወቂያዎች።",
+  "head.settings.description": "የ ethio.com መግቢያ መንገዶችዎን እና ደህንነትዎን ያስተዳድሩ።",
+  "head.settings.title": "የአካውንት ቅንብሮች",
   "settings.title": "ቅንብሮች",
   "settings.identity": "የእርስዎ አካውንት",
   "settings.displayName": "ስም",

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { MyListingPage } from "@/features/my-listings/my-listing-page";
@@ -20,17 +21,15 @@ export const Route = createFileRoute("/my-listings_/$listingId")({
   },
   head: () => ({
     meta: [
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.myListing.description",
+        "head.myListing.title",
+        null,
+        "My listing — ethio.com",
+        "One of your ads on ethio.com: its state, history and actions.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { title: "My listing — ethio.com" },
-      {
-        name: "description",
-        content: "One of your ads on ethio.com: its state, history and actions.",
-      },
-      { property: "og:title", content: "My listing — ethio.com" },
-      {
-        property: "og:description",
-        content: "One of your ads on ethio.com: its state, history and actions.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

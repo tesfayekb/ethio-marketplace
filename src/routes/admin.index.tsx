@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -16,11 +17,15 @@ import { useI18n } from "@/i18n";
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { title: "Overview — ethio.com Admin" },
-      { name: "description", content: "Overview in the ethio.com staff panel." },
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "nav.overview",
+        null,
+        "Overview — ethio.com Admin",
+        "Overview in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Overview — ethio.com Admin" },
-      { property: "og:description", content: "Overview in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

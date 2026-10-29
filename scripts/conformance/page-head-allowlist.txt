@@ -1,0 +1,4 @@
+src/routes/legal.$kind.tsx | DEC-018 E2E-only scratch legal seam keeps its title | 2027-04-30
+src/routes/dev.primitives.tsx | DEC-018 development-only accessibility fixture | 2027-04-30
+src/routes/dev.tall.tsx | DEC-018 development-only layout fixture | 2027-04-30
+src/routes/dev.style.tsx | DEC-018 development-only style fixture | 2027-04-30

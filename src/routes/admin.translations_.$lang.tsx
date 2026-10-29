@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -15,11 +16,15 @@ import {
 export const Route = createFileRoute("/admin/translations_/$lang")({
   head: () => ({
     meta: [
-      { title: "Language strings — ethio.com Admin" },
-      { name: "description", content: "Language strings in the ethio.com staff panel." },
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "head.admin.languageStrings.title",
+        null,
+        "Language strings — ethio.com Admin",
+        "Language strings in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Language strings — ethio.com Admin" },
-      { property: "og:description", content: "Language strings in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

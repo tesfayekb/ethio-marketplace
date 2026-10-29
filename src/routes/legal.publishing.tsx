@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, type ErrorComponentProps } from "@tanstack/react-router";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { shapedCountries } from "@/features/legal/legal-kinds";
@@ -8,9 +9,6 @@ import { ReaderError } from "@/lib/reader-failure";
 import { requireSignedIn } from "@/lib/signed-in-route";
 
 const SCRATCH_PUBLISHING = /^e2e-pub-[a-z0-9-]{1,36}$/;
-const PUBLISHING_TITLE = "Publishing statement — ethio.com";
-const PUBLISHING_DESCRIPTION =
-  "The publishing statement every seller certifies before an ad goes live.";
 
 type PublishingSearch = { countries: string[]; kind: string };
 
@@ -57,9 +55,14 @@ export const Route = createFileRoute("/legal/publishing")({
   },
   head: () => ({
     meta: [
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.publishing.description",
+        "legal.kind.publishing",
+        null,
+        "Publishing statement — ethio.com",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { title: PUBLISHING_TITLE },
-      { name: "description", content: PUBLISHING_DESCRIPTION },
     ],
   }),
   errorComponent: PublishingError,

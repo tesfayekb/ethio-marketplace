@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { postReturnPath, postSearchOf, type PostSearch } from "@/features/posting/post-prefill";
@@ -30,17 +31,15 @@ export const Route = createFileRoute("/post")({
   },
   head: () => ({
     meta: [
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.post.description",
+        "post.title",
+        null,
+        "Post a listing — ethio.com",
+        "Post what you are selling on ethio.com in a few short steps.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { title: "Post a listing — ethio.com" },
-      {
-        name: "description",
-        content: "Post what you are selling on ethio.com in a few short steps.",
-      },
-      { property: "og:title", content: "Post a listing — ethio.com" },
-      {
-        property: "og:description",
-        content: "Post what you are selling on ethio.com in a few short steps.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

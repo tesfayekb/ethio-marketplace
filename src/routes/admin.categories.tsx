@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminCategoriesPage } from "@/features/admin-categories/categories-page";
@@ -9,11 +10,15 @@ import { AdminCategoriesPage } from "@/features/admin-categories/categories-page
 export const Route = createFileRoute("/admin/categories")({
   head: () => ({
     meta: [
-      { title: "Categories — ethio.com Admin" },
-      { name: "description", content: "Categories in the ethio.com staff panel." },
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.categories.title",
+        null,
+        "Categories — ethio.com Admin",
+        "Categories in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Categories — ethio.com Admin" },
-      { property: "og:description", content: "Categories in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

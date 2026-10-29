@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminRolesList } from "@/features/admin/roles/roles-list";
@@ -5,11 +6,15 @@ import { AdminRolesList } from "@/features/admin/roles/roles-list";
 export const Route = createFileRoute("/admin/roles")({
   head: () => ({
     meta: [
-      { title: "Roles & Permissions — ethio.com Admin" },
-      { name: "description", content: "Roles & Permissions in the ethio.com staff panel." },
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.roles.title",
+        null,
+        "Roles & Permissions — ethio.com Admin",
+        "Roles & Permissions in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Roles & Permissions — ethio.com Admin" },
-      { property: "og:description", content: "Roles & Permissions in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

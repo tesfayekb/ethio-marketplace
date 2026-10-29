@@ -8,13 +8,11 @@
 #
 # scripts/check-deletions.sh (INC-076) is the guard; SELF_TEST=1 proves both doors.
 
-roadmap.md
 
 # INC-271 (2026-09-23): the root-level roadmap.md was deleted again in this push
 # (the canonical roadmap is docs/governance/roadmap.md). The line above is
 # pre-existing and therefore declares nothing for this range, so the path is
 # re-declared here, travelling with the deletion as the guard requires.
-roadmap.md
 
 # DEC-082 / INC-308 (2026-09-28): category image variants are cut in the admin's
 # browser; the Worker no longer decodes or encodes images, so the server raster
@@ -69,9 +67,4 @@ src/lib/country-name.ts
 # L-2c continuation stop 2: shared Part A withdrawn for over-tolerance growth.
 
 # Foundations L-2d candidate withdrawn at B5 weight STOP
-e2e/page-head.spec.ts
-scripts/conformance/page-head-allowlist.txt
-scripts/conformance/page-head.test.ts
 scripts/conformance/page-head.ts
-src/lib/page-head.test.ts
-src/lib/page-head.ts

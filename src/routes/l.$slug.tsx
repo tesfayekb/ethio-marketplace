@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
@@ -44,8 +45,14 @@ export const Route = createFileRoute("/l/$slug")({
   head: ({ loaderData, matches }) => {
     if (!loaderData) return {};
     const { doc, canonical } = loaderData;
-    const title = `${doc.title} — ethio.com`;
-    const description = doc.description.slice(0, 160);
+    const head = pageHead(
+      "head.site.pattern.title",
+      null,
+      null,
+      doc.title,
+      undefined,
+      doc.description.slice(0, 160),
+    );
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
     const url = root?.origin ? `${root.origin}${canonical}` : null;
     const image = root?.origin
@@ -57,10 +64,7 @@ export const Route = createFileRoute("/l/$slug")({
       : null;
     return {
       meta: [
-        { title },
-        { name: "description", content: description },
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
+        ...head.meta,
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
         ...(url ? [{ property: "og:url", content: url }] : []),

@@ -118,3 +118,7 @@ per-chunk overhead on the shell. Fixed server-name order uses `name-collator.ts`
 name tie-break uses `compareCodes` as specifically ruled in L-2b. CF-FMT-1 guards the homes;
 CF-FMT-2 plants DisplayNames, Collator and localeCompare bypasses. Only the language autonym
 and locale-independent CutText grapheme counting have the added reviewed exceptions.
+
+## INC-990 — base-first page heads (L-2d-2)
+
+`pageHead` resolves first-byte English keys from en-base; member/admin fallbacks remain in their own route chunks, never imported into the base. The provider loads `page-head-client` through `loadOnce` only when the applied catalogue is non-base (or it was already loaded); its one observer re-titles committed head changes without invalidating loaders. Failed download reports through the shell notice. Data attributes carry keys and loader-owned names, never a request; user ad descriptions stay unchanged. The server, hydration and body remain base-first (INC-872); applied catalogue messages alone update title, description and their Open Graph counterparts.

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -44,11 +45,15 @@ import { useI18n, type MessageKey } from "@/i18n";
 export const Route = createFileRoute("/admin/listings_/$listingId_/edit")({
   head: () => ({
     meta: [
-      { title: "Edit listing — ethio.com Admin" },
-      { name: "description", content: "Edit listing in the ethio.com staff panel." },
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "head.admin.editListing.title",
+        null,
+        "Edit listing — ethio.com Admin",
+        "Edit listing in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Edit listing — ethio.com Admin" },
-      { property: "og:description", content: "Edit listing in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

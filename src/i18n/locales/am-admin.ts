@@ -1,6 +1,22 @@
 import type { enAdmin } from "./en-admin";
 
 export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
+  "nav.locations": "አካባቢዎች",
+  "head.admin.editListing.title": "ማስታወቂያውን ያርትዑ",
+  "head.admin.impersonation.title": "የመወከል ክፍለ ጊዜ",
+  "head.admin.languageStrings.title": "የቋንቋ ሐረጎች",
+  "head.admin.legal.description": "በ ethio.com ላይ የሕጋዊ ሰነዶችን ስሪቶች እና ሲታተሙ የሚቀመጡ መረጃዎችን ያስተዳድሩ።",
+  "head.admin.legal.title": "ሕጋዊ ሰነዶች",
+  "head.admin.legalDraft.description": "በ ethio.com ላይ ባለ ሁለት ቋንቋ የሕጋዊ ሰነድ ረቂቆችን ይጻፉ እና ያትሙ።",
+  "head.admin.legalDraft.title": "የሕጋዊ ሰነድ ረቂቅ",
+  "head.admin.legalVersion.description": "በ ethio.com ላይ የሕጋዊ ሰነድ ስሪትን እና ሲታተም የተቀመጡ መረጃዎቹን ያንብቡ።",
+  "head.admin.legalVersion.title": "የሕጋዊ ሰነድ ስሪት",
+  "head.admin.listing.title": "ማስታወቂያ",
+  "head.admin.panel.description": "ለ ethio.com ሠራተኞች የአስተዳደር ክፍል።",
+  "head.admin.pattern.description": "{name} በ ethio.com የሠራተኞች ክፍል ውስጥ።",
+  "head.admin.pattern.title": "{name} — ethio.com አስተዳደር",
+  "head.admin.role.title": "ሚና",
+  "head.admin.user.title": "ተጠቃሚ",
   "admin.ai.log.title": "የቅርብ ጊዜ የሰው ሰራሽ አስተውሎት ጥሪዎች",
   "admin.ai.log.hint": "ያለፉት 90 ቀናት፣ አዲሱ መጀመሪያ። የተላኩ ጥያቄዎችና የተገኙ መልሶች ፈጽሞ አይቀመጡም።",
   "admin.ai.log.loading": "የሰው ሰራሽ አስተውሎት ጥሪዎች በመጫን ላይ…",
