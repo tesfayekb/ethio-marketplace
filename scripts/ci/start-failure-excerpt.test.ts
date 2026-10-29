@@ -46,7 +46,7 @@ describe("a failed backend start names its cause (INC-999)", () => {
     );
     expect(section).toContain("ERROR: proof: replay accepted (SQLSTATE P0001)");
     expect(section).toContain("At statement: 41");
-    expect(section).toContain("(120 lines omitted)");
+    expect(section).toContain("(121 lines omitted)");
     expect(section.slice(-TAIL_LINES - 1, -1)).toContain(
       "Try rerunning the command with --debug to troubleshoot the error.",
     );
