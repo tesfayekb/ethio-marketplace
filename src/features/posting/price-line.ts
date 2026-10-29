@@ -3,7 +3,8 @@ import { basisNoun, formatCommission } from "./price-basis";
 import { fill } from "./refusal-text";
 import { ownValue } from "@/lib/own-key";
 import { catalogText } from "@/i18n/entity";
-import { formatLocale } from "@/lib/format-locale";
+import { formatNumber } from "@/lib/format";
+import { FALLBACK_LANGUAGE } from "@/lib/locale";
 
 /**
  * Bundle 4 step 10 — THE ONE PRICE LINE. The card, the wizard's preview, the
