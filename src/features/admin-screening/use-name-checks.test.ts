@@ -107,3 +107,27 @@ describe("JHL-U the re-check's line", () => {
     }
   });
 });
+
+describe("NCR — a name the AI could not check, and a lost run (J-1)", () => {
+  it("NCR-1 a needs_review row reads with its state; a row with no state (a door before J-1) is a hold", () => {
+    const page = nameQueuePageOf({
+      rows: [{ ...shown, state: "needs_review", of: null }, shown],
+      next: null,
+    });
+    expect(page.rows.map((row) => row.state)).toEqual(["needs_review", "imitates"]);
+  });
+
+  it("NCR-2 an unknown state is a typed failure, never a row", () => {
+    expect(() => nameQueuePageOf({ rows: [{ ...shown, state: "clean" }], next: null })).toThrow(
+      ReaderError,
+    );
+  });
+
+  it("NCR-3 a lost run is the line's last outcome, with its own words", () => {
+    expect(jobLineOf(job({ last: run("lost") }))).toEqual({
+      kind: "lastRun",
+      outcome: "lost",
+      at: "2026-10-29T10:00:20Z",
+    });
+  });
+});
