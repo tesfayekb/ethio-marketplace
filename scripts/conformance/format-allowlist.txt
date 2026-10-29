@@ -1,0 +1,1 @@
+# The formatter census (scripts/conformance/format.test.ts, CF-FMT-1): a recorded exception to INC-985 / register row 16 — key "<file> (<findings>)" | reason | until.
