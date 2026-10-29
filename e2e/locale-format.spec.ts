@@ -89,7 +89,7 @@ test("LF-E1 an Amharic account sees the full Amharic month on My listings", asyn
   await signInViaSession(page, seller.email, seller.password);
   await gotoReady(page, `/my-listings/${id}`);
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
-  const main = page.locator("main");
-  await expect(main).toContainText(FULL);
-  expect(SHORT_ONLY.test(await main.innerText())).toBe(false);
+  const posted = page.getByTestId("my-listing-first-posted");
+  await expect(posted).toContainText(FULL);
+  expect(SHORT_ONLY.test(await posted.innerText())).toBe(false);
 });
