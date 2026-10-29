@@ -206,7 +206,15 @@ nav.locations moved from the base layer to the admin layer (both languages, same
 
 ## 6. Checks
 
-CHECKS_LINE
+Unit: 377 files, 2,245/2,245 tests passed (component-tests job). Budget job: "Check the first-paint budget" PASS; "the NEAR band (R4)" PASS — 18 NEAR, none grew.
+
+Last line of `bun run checks` on the final tree:
+
+```text
+checks: 34 PASS · 0 FAIL · 21 NOT RUN · 1015s
+```
+
+NOT RUN (21): the install steps (dependencies already installed; a package change is its own turn), the steps needing a backend or a browser, and the promote steps (only CI promotes, DEC-020).
 
 ## 7. K2
 
