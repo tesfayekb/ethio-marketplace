@@ -17,7 +17,13 @@ export function pageHead<T extends Head>(
   return {
     ...head,
     meta: head.meta?.some((meta) => meta.title)
-      ? [...head.meta, { name: "ethio:page-head", content: JSON.stringify([title, description, nameKey, name] satisfies Intent) }]
+      ? [
+          ...head.meta,
+          {
+            name: "ethio:page-head",
+            content: JSON.stringify([title, description, nameKey, name] satisfies Intent),
+          },
+        ]
       : head.meta,
   };
 }
