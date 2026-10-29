@@ -464,6 +464,30 @@ describe("turn 14 sharing and counts", () => {
   });
 });
 
+it("SPA-8b a held seller: the neutral label, no All ads link, and the notice only on the owner's surface", () => {
+  // N1b-2c (INC-977) — the public read gives no name and the page passes no key.
+  const { rerender } = render(
+    <ListingDetail {...BASE} actor="buyer" sellerAlias={null} sellerBusinessName={null} sellerAdsKey={null} />,
+  );
+  expect(screen.getByTestId("listing-detail-seller-name")).toHaveTextContent(/^Seller$/);
+  expect(screen.queryByText(en["post.review.notGiven"])).toBeNull();
+  expect(screen.queryByTestId("listing-seller-all-ads")).toBeNull();
+  expect(screen.queryByTestId("listing-detail-seller-review")).toBeNull();
+  rerender(
+    <ListingDetail
+      {...BASE}
+      actor="buyer"
+      sellerAlias={null}
+      sellerBusinessName={null}
+      sellerAdsKey={null}
+      sellerUnderReview
+    />,
+  );
+  const notice = screen.getByTestId("listing-detail-seller-review");
+  expect(notice).toHaveTextContent(en["post.seller.underReview"]);
+  expect(notice).toHaveTextContent(en["post.seller.underReviewHelp"]);
+});
+
 it("LD-15 seller line precedes contact, which precedes All ads", () => {
   render(
     <ListingDetail
