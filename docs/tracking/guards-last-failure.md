@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40827819679
-- Commit: `31d5fb6b131e43d4a5a3345f3a267021d1321bf1`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40828995446
+- Commit: `7e2006a78bc076bc39348c0c3344720d0c3ba1d1`
 - Attempt: 1
-- Written (UTC): 2026-10-29T06:34:00.730Z
+- Written (UTC): 2026-10-29T06:50:40.804Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -31,6 +31,12 @@ Per-page budget failed (D234):
     352.8 / 353 KiB  /admin/listings
     376.3 / 379 KiB  /admin/listings_/$listingId
     399.7 / 403 KiB  /admin/listings_/$listingId_/edit
+
+Per-page budget failed (D234):
+  /admin/places: 338.0 KiB, over its ceiling of 338 KiB
+
+Code-split the addition behind a dynamic import, or change the page's line in
+scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
     268.5 / 270 KiB  /admin/locations
     338.0 / 338 KiB  /admin/places
     305.1 / 306 KiB  /admin/roles
@@ -38,12 +44,6 @@ Per-page budget failed (D234):
     374.2 / 377 KiB  /admin/screening
     408.1 / 409 KiB  /admin/translations
     319.8 / 320 KiB  /admin/translations_/$lang
-
-Per-page budget failed (D234):
-  /admin/places: 338.0 KiB, over its ceiling of 338 KiB
-
-Code-split the addition behind a dynamic import, or change the page's line in
-scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
     303.5 / 304 KiB  /admin/users
     283.9 / 285 KiB  /admin/users_/$userId
     218.6 / 219 KiB  /auth
@@ -69,7 +69,7 @@ scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/1cdea40b-8ff0-4d32-8663-a8ec165d2c45' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/62576f63-b494-4cce-af4d-a9a1ea3261f7' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
