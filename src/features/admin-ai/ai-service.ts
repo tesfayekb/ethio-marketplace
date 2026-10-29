@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 /**
  * Bundle 13 turn 5 (D158) — THE AI SERVICES CONSOLE CLIENT SEAM.
@@ -316,6 +317,74 @@ export function unitCostOf(unit: AiUnit, raw: string): number | null {
   if (value === null) return null;
   const micro = Math.round(unit === "call" ? value * 1_000_000 : value);
   return micro > MAX_UNIT_COST_MICROUSD ? null : micro;
+}
+
+/** A2: a page is already keyed by the door; never infer totals or expose hashes/IDs. */
+export const AI_OUTCOMES = ["ok", "featureOff", "budget", "unavailable", "timeout", "providerError", "unusableAnswer"] as const;
+export type AiOutcome = (typeof AI_OUTCOMES)[number];
+export type AiCallsCursor = { at: string; id: string };
+export interface AiCallRow {
+  id: string;
+  created_at: string;
+  feature: string;
+  task: string;
+  task_version: number;
+  model: string;
+  outcome: AiOutcome;
+  provider_status: number | null;
+  latency_ms: number;
+  fake: boolean;
+  actor: { kind: "system" | "hidden" } | { kind: "person"; name: string };
+}
+export interface AiCallsPage { rows: AiCallRow[]; next: AiCallsCursor | null }
+const TASK_LABELS: Record<string, MessageKey> = {
+  photo_screen: "admin.ai.feature.photo_screen", writing_helper: "admin.ai.feature.writing_helper",
+  name_check: "admin.ai.feature.name_check", category_image: "admin.ai.feature.category_images",
+  category_icon: "admin.ai.feature.category_icons", translation: "admin.ai.feature.translations",
+  background_removal: "admin.ai.feature.background_removal",
+};
+export const AI_TASK_ORDER = Object.keys(TASK_LABELS);
+export function taskLabelKey(task: string): MessageKey | null {
+  return ownValue<MessageKey>(TASK_LABELS, task) ?? null;
+}
+export function aiCallsOf(raw: unknown): AiCallsPage {
+  const malformed = () => new ReaderError({ class: "malformed", message: "admin_list_ai_calls: answer out of shape" });
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) throw malformed();
+  const page = raw as Record<string, unknown>;
+  if (!Array.isArray(page["rows"])) throw malformed();
+  const rows = page["rows"].map((value): AiCallRow => {
+    if (value === null || typeof value !== "object") throw malformed();
+    const row = value as Record<string, unknown>;
+    for (const key of ["id", "created_at", "feature", "task", "model"]) {
+      if (typeof row[key] !== "string" || row[key] === "") throw malformed();
+    }
+    if (!Number.isFinite(Date.parse(String(row["created_at"]))) || whole(row["task_version"]) === null || row["task_version"] === 0 ||
+      whole(row["latency_ms"]) === null || typeof row["fake"] !== "boolean" ||
+      !AI_OUTCOMES.includes(row["outcome"] as AiOutcome) ||
+      (row["provider_status"] !== null && (whole(row["provider_status"]) === null || Number(row["provider_status"]) < 100 || Number(row["provider_status"]) > 599))) throw malformed();
+    const actor = row["actor"] as Record<string, unknown> | null;
+    if (!actor || !["system", "hidden", "person"].includes(String(actor["kind"])) ||
+      (actor["kind"] === "person" && typeof actor["name"] !== "string")) throw malformed();
+    return { id: String(row["id"]), created_at: String(row["created_at"]), feature: String(row["feature"]),
+      task: String(row["task"]), task_version: Number(row["task_version"]), model: String(row["model"]),
+      outcome: row["outcome"] as AiOutcome, provider_status: row["provider_status"] as number | null,
+      latency_ms: Number(row["latency_ms"]), fake: row["fake"],
+      actor: actor["kind"] === "person" ? { kind: "person", name: String(actor["name"]) } : { kind: actor["kind"] as "hidden" | "system" } };
+  });
+  const next = page["next"];
+  if (next === null) return { rows, next: null };
+  if (!next || typeof next !== "object" || Array.isArray(next)) throw malformed();
+  const cursor = next as Record<string, unknown>;
+  if (typeof cursor["at"] !== "string" || !Number.isFinite(Date.parse(cursor["at"])) || typeof cursor["id"] !== "string") throw malformed();
+  return { rows, next: { at: cursor["at"], id: cursor["id"] } };
+}
+export async function fetchAiCalls(task: string, outcome: string, before: AiCallsCursor | null): Promise<AiCallsPage> {
+  const { data, error } = await supabase.rpc("admin_list_ai_calls", {
+    ...(task ? { p_task: task } : {}), ...(outcome ? { p_outcome: outcome } : {}),
+    ...(before ? { p_before_at: before.at, p_before_id: before.id } : {}), p_limit: 50,
+  });
+  if (error) throw new ReaderError(readerFailure(error));
+  return aiCallsOf(data);
 }
 
 /** The fields as the form first shows them: the stored values, typed back. */
