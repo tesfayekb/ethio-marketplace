@@ -182,6 +182,7 @@ export type Database = {
           home_country_code: string | null
           id: number
           released_at: string | null
+          released_state: string | null
           taken_at: string
           user_id: string
         }
@@ -191,6 +192,7 @@ export type Database = {
           home_country_code?: string | null
           id?: number
           released_at?: string | null
+          released_state?: string | null
           taken_at?: string
           user_id: string
         }
@@ -200,6 +202,7 @@ export type Database = {
           home_country_code?: string | null
           id?: number
           released_at?: string | null
+          released_state?: string | null
           taken_at?: string
           user_id?: string
         }
@@ -5681,6 +5684,14 @@ export type Database = {
       }
       seller_name_sweep: { Args: never; Returns: number }
       seller_plan: { Args: { p_user_id: string }; Returns: string }
+      seller_public_alias: {
+        Args: { p_profile: string; p_subject?: string }
+        Returns: string
+      }
+      seller_public_previous_alias: {
+        Args: { p_profile: string }
+        Returns: string
+      }
       set_cover_photo: {
         Args: { p_listing_id: string; p_photo_id: string }
         Returns: Json

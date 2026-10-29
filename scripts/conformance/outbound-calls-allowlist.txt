@@ -1,0 +1,3 @@
+# The outbound-calls guard's recorded platform callers (scripts/check-outbound-calls.ts, INC-981/INC-984).
+# key | reason | until — "until" names the CLI pin; a pin change in local-backend-proof.yml expires the line.
+supabase_functions.http_request() | created by the CLI's local stack, not by our migrations; absent on ethio-prod (read 2026-10-29) | CLI 2.120.0

@@ -1,5 +1,7 @@
 public.job_call(text)	t
 public.e2e_planted_caller()	t
+supabase_functions.http_request()	t
+supabase_functions.e2e_planted_caller()	t
 public.feed_page(jsonb)	f
 ----
 [api]

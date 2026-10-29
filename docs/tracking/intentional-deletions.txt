@@ -59,3 +59,5 @@ src/i18n/compiled-admin-loader.test.ts
 # Foundations turn A1 (declared retrospectively in A2; INC-076): the ruled
 # CI-evidence name allowance replaces the misleading dev-branch pointer stub.
 docs/tracking/local-backend-proof.md
+# Foundations turn N1b-2a (INC-984): the fixture moved to .txt so prettier cannot rewrite it.
+scripts/fixtures/lane-smoke-step-failure.md
