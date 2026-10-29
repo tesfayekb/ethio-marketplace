@@ -604,7 +604,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.translations.ai.summary": "{done} ተተርጉመዋል፣ {flagged} ተለይተዋል፣ {failed} አልተሳኩም።",
   "admin.translations.ai.failedList": "ያልተተረጎሙ: {keys}",
   "admin.translations.ai.error": "የማሽን ትርጉሙን ማጠናቀቅ አልተቻለም።",
-  "admin.translations.ai.rateLimited": "ባለፈው ሰዓት ውስጥ ብዙ የማሽን ትርጉሞች ተደርገዋል። ቆይተው እንደገና ይሞክሩ።",
+  "admin.error.rateLimited": "ባለፈው ሰዓት ውስጥ ብዙ ለውጦች ተደርገዋል። ቆይተው እንደገና ይሞክሩ።",
   "admin.translations.translator.title": "የተርጓሚ ቋንቋዎች",
   "admin.translations.translator.scopeNote":
     "ለትርጉም አስተዳዳሪዎች ብቻ የታይ። የተመደቡ ቋንቋዎች ይህ ሰው የትኞቹን ቋንቋዎች ሊያስተካክል እንደሚችል ይወስናል፤ የተርጓሚው ሚና ራሱ የማስተካከል ፈቃድ ይሰጣል።",

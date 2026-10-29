@@ -128,3 +128,13 @@ admin_machine_entity_translation | restated grant (not a new surface), bundle 22
 user_set_preferred_language | restated grant (not a new surface); the caller's own preferred language, audited (M20)
 end_impersonation | restated grant (not a new surface); ends the caller's own impersonation session, audited (M20)
 remove_own_password | restated grant (not a new surface); the caller's own password, after a fresh password proof, rate-gated password_remove, audited (M20, DEC-242)
+get_location_tree | restated grant (not a new surface); the public place tree, now read through shown_locations (D1 M3, M3b)
+import_gate_audit | historical authenticated grants in files before D1 M4b; M4b revoked them, the door is service_role only now
+begin_impersonation | restated grant (not a new surface); staff door, permission and step-up inside, rate-gated impersonation (D1 M4)
+admin_save_translation | restated grant (not a new surface); staff door, checks then the staff_translation gate, then its _core (D1 M5a)
+admin_machine_translation | restated grant (not a new surface); staff door, checks then the staff_machine_translation gate, then its _core (D1 M5a)
+admin_import_translations | restated grant (not a new surface); staff bulk door, its own checks, calls the _core (D1 M5b)
+admin_commit_location_import | restated grant (not a new surface); staff bulk door, its own checks, calls the _core (D1 M5b)
+admin_add_category_pointer | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
+admin_create_category | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
+admin_set_country_exclusions | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)

@@ -35,6 +35,13 @@ export function fillRefusal(text: string, tail: string | undefined): string {
     .join(tail);
 }
 
+/**
+ * Turn D1 stop 11 (G0.2) — a database rate gate raises the bare code
+ * `rateLimited` (rate_gate, INC-951). Every staff screen reads it as ONE shared
+ * sentence; a screen with its own specific rateLimited key maps it before here.
+ */
+export const RATE_LIMITED_KEY = "admin.error.rateLimited";
+
 /** A door's refusal key: `admin.<family>.error.<name>`. */
 export const DOOR_KEY = /^admin\.[a-z_-]+\.error\.[A-Za-z0-9_.-]+$/;
 
@@ -50,8 +57,9 @@ export function doorKeyText(
   raw: string,
   translate: (key: string) => string | undefined,
 ): string | null {
-  const { key, tail } = splitRefusal(raw.trim());
-  if (!DOOR_KEY.test(key)) return null;
+  const { key: code, tail } = splitRefusal(raw.trim());
+  const key = code === "rateLimited" ? RATE_LIMITED_KEY : code;
+  if (key !== RATE_LIMITED_KEY && !DOOR_KEY.test(key)) return null;
   const text = translate(key);
   if (text === undefined || text === "" || text === key) return null;
   return fillRefusal(text, tail);
