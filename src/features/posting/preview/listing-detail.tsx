@@ -36,6 +36,7 @@ import { boxLayout } from "./box-layout";
 import { keyFacts } from "../key-facts";
 import { Suspense, useEffect, useRef, useState, type ReactNode, type Ref } from "react";
 import { SellerLine } from "../seller-line";
+import { SellerReviewNotice } from "@/features/seller/seller-review-notice";
 import { fill } from "../refusal-text";
 import { ownValue } from "@/lib/own-key";
 import { MapFailedHere } from "../map/map-failed-here";
@@ -225,6 +226,8 @@ export interface ListingDetailView {
   /** Bundle 3 step 20 — "previously" (365 days) and member since; absent = unknown. */
   sellerPreviousAlias?: string | null;
   sellerMemberSince?: string | null;
+  /** N1b-2c (INC-977) — the owner's own surfaces only: true while their name is held for review. */
+  sellerUnderReview?: boolean;
   /**
    * U6-C1-R3b-4 — the saved pin, exactly as the door holds it. `approx` is drawn
    * as a 500-metre circle whose centre is snapped inside `MapPreview`, so this
@@ -942,6 +945,10 @@ export function ListingDetail(view: ListingDetailView) {
                   testId="listing-detail-seller"
                 />
               </div>
+              <SellerReviewNotice
+                underReview={view.sellerUnderReview === true}
+                testId="listing-detail-seller-review"
+              />
               {!sold &&
                 (view.actor === "buyer"
                   ? view.contact?.viewer !== "unknown"
