@@ -25,13 +25,7 @@ export function useSectionNotice(): {
   return { notice, say };
 }
 
-export function SectionNotice({
-  notice,
-  testid,
-}: {
-  notice: SectionNoticeState;
-  testid: string;
-}) {
+export function SectionNotice({ notice, testid }: { notice: SectionNoticeState; testid: string }) {
   const { t } = useI18n();
   const error = notice?.tone === "error";
   return (
