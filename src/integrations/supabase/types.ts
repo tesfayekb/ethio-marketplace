@@ -2594,6 +2594,7 @@ export type Database = {
           attempts: number
           checked_text: string
           home_country_code: string | null
+          imitates_of: string | null
           last_attempt_at: string | null
           profile_id: string
           since: string
@@ -2604,6 +2605,7 @@ export type Database = {
           attempts?: number
           checked_text: string
           home_country_code?: string | null
+          imitates_of?: string | null
           last_attempt_at?: string | null
           profile_id: string
           since?: string
@@ -2614,6 +2616,7 @@ export type Database = {
           attempts?: number
           checked_text?: string
           home_country_code?: string | null
+          imitates_of?: string | null
           last_attempt_at?: string | null
           profile_id?: string
           since?: string
@@ -5512,6 +5515,7 @@ export type Database = {
       name_brand_folds: { Args: never; Returns: string[] }
       name_check_mark: {
         Args: {
+          p_of?: string
           p_profile: string
           p_state: string
           p_subject: string
