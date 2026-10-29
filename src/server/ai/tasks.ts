@@ -66,7 +66,6 @@ export type AiTask<O> = {
   fields: readonly AiField[];
   images?: AiImageRules;
   output: z.ZodType<O>;
-  responseSchema?: Record<string, unknown>;
   temperature?: number;
   fakeFlag: string;
   fake: (material: AiMaterial) => unknown;
@@ -97,7 +96,16 @@ function defineTask<I extends string, O>(task: AiTask<O> & { id: I }): AiTask<O>
 }
 
 const nameCheckOutput = z
-  .object({ imitates: z.boolean(), of: z.string().trim().max(80).optional() })
+  .object({
+    imitates: z.boolean(),
+    // INC-1002 — null reads as absent; the stored answer keeps its shape.
+    of: z
+      .string()
+      .trim()
+      .max(80)
+      .nullish()
+      .transform((value) => value ?? undefined),
+  })
   .strict();
 
 const categoryIconOutput = z.object({ icon: z.string().trim().max(60) }).strict();
@@ -158,7 +166,8 @@ const photoScreenOutput = z.object({
   allowed: z.boolean(),
   code: z.string().max(40),
   evidence: z.string().transform((value) => value.trim().slice(0, 200)),
-  warnings: z.array(z.unknown()).optional(),
+  // INC-1002: string items, as the provider is asked; warningsOf still drops an unknown code.
+  warnings: z.array(z.string()).optional(),
 });
 
 /**
@@ -294,7 +303,7 @@ export const AI_TASKS = [
     instruction: [
       "Does this marketplace seller name imitate or impersonate a well-known company,",
       "brand, bank, government body or public figure?",
-      'Answer JSON only: {"imitates": boolean, "of": string}.',
+      'Answer JSON only: {"imitates": boolean, "of": string}, with "of" only when imitates is true.',
       "Answer false for ordinary personal names, generic words and small local shops.",
     ].join(" "),
     fields: [{ key: "alias", label: "Seller name", max: 120 }],
@@ -325,11 +334,6 @@ export const AI_TASKS = [
       { key: "parent", label: "Parent section", max: 120 },
     ],
     output: categoryIconOutput,
-    responseSchema: {
-      type: "OBJECT",
-      properties: { icon: { type: "STRING" } },
-      required: ["icon"],
-    },
     fakeFlag: "GEMINI_FAKE",
     fake: () => ({ icon: "Store" }),
   }),
@@ -470,16 +474,6 @@ export const AI_TASKS = [
     // copies at low detail. `all`: nothing is stored unscreened.
     images: { max: 4, maxBytes: 4_000_000, min: 3, all: true, lowDetailAfterFirst: true },
     output: photoScreenOutput,
-    responseSchema: {
-      type: "OBJECT",
-      properties: {
-        allowed: { type: "BOOLEAN" },
-        code: { type: "STRING" },
-        evidence: { type: "STRING" },
-        warnings: { type: "ARRAY", items: { type: "STRING" } },
-      },
-      required: ["allowed", "code", "evidence"],
-    },
     temperature: 0,
     fakeFlag: "E2E_FAKE_PHOTO_POLICY",
     // Today's width rule (policy.ts's FAKE_*_WIDTH constants), written as the
