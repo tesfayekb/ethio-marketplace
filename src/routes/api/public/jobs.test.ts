@@ -338,7 +338,9 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
 
 describe("JRF — one typed line per refusal (INC-1000)", () => {
   const refusals = (spy: ReturnType<typeof vi.spyOn>) =>
-    spy.mock.calls.map((call) => String(call[0])).filter((line) => line.startsWith("[job-refused]"));
+    spy.mock.calls
+      .map((call) => String(call[0]))
+      .filter((line) => line.startsWith("[job-refused]"));
 
   it("JRF-1 a missing server secret logs secret_missing, and the 401 is the constant one", async () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});

@@ -44,7 +44,9 @@ export function jobSignatureVerdict(input: {
 }
 
 /** The timestamp when the request is genuine and in the window; null otherwise. */
-export function verifyJobSignature(input: Parameters<typeof jobSignatureVerdict>[0]): number | null {
+export function verifyJobSignature(
+  input: Parameters<typeof jobSignatureVerdict>[0],
+): number | null {
   const verdict = jobSignatureVerdict(input);
   return verdict.ok ? verdict.ts : null;
 }

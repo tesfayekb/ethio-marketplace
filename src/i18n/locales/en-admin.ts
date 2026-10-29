@@ -463,6 +463,7 @@ export const enAdmin = {
   "admin.screening.names.of": "The AI says it imitates: {of}",
   "admin.screening.names.noReason": "No reason recorded",
   "admin.screening.names.nameHidden": "Name hidden",
+  "admin.screening.names.unusable": "The AI could not check this name. Buyers still see it.",
   "admin.screening.names.action.clear": "Allow this name",
   "admin.screening.names.action.rename": "Rename",
   "admin.screening.names.clear.title": "Allow this seller name?",
@@ -471,6 +472,7 @@ export const enAdmin = {
   "admin.screening.names.clear.reason": "Reason (optional)",
   "admin.screening.names.clear.reasonHelp": "Kept in the audit log with your decision.",
   "admin.screening.names.clear.done": "The name is allowed. Buyers see it again.",
+  "admin.screening.names.clear.doneVisible": "The name is allowed. Buyers already saw it.",
   "admin.screening.names.clear.stale":
     "This name changed after the list was loaded, so nothing was changed. Reload the list.",
   "admin.screening.job.title": "Seller-name re-check",
@@ -489,6 +491,7 @@ export const enAdmin = {
   "admin.screening.job.outcome.budget_spent": "Over budget",
   "admin.screening.job.outcome.failed": "Failed",
   "admin.screening.job.outcome.dispatched": "Sent, waiting for the site",
+  "admin.screening.job.outcome.lost": "Not taken: the site never answered",
   "admin.screening.job.pause.credits": "the AI provider's credits ran out",
   "admin.screening.job.pause.policy": "the AI provider refused the request",
   "admin.screening.job.pause.rate_limit": "the AI provider asked us to slow down",

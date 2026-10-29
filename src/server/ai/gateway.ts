@@ -384,13 +384,13 @@ export async function aiCall<T extends TaskId>(
               const refused = task.validate !== undefined && !task.validate(parsed.data, resolved);
               if (refused) log("unusable answer: shape");
               answer = refused
-                  ? { ok: false, reason: "unusableAnswer" }
-                  : {
-                      ok: true,
-                      value: parsed.data,
-                      fake,
-                      latencyMs: Math.max(0, Date.now() - started),
-                    };
+                ? { ok: false, reason: "unusableAnswer" }
+                : {
+                    ok: true,
+                    value: parsed.data,
+                    fake,
+                    latencyMs: Math.max(0, Date.now() - started),
+                  };
             } else {
               log("unusable answer: shape");
               answer = { ok: false, reason: "unusableAnswer" };
