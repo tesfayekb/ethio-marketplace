@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -10,22 +9,16 @@ import { useI18n } from "@/i18n";
 import { safeReturnPath } from "@/lib/return-path";
 
 export const Route = createFileRoute("/auth_/callback")({
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.authCallback.description",
-      {
-        meta: [
-          { title: "Confirm your email — ethio.com" },
-          { name: "description", content: "Finish confirming your ethio.com account." },
-          { property: "og:title", content: "Confirm your email — ethio.com" },
-          { property: "og:description", content: "Finish confirming your ethio.com account." },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
-      },
-      "head.authCallback.title",
-    ),
+  head: () => ({
+    meta: [
+      { title: "Confirm your email — ethio.com" },
+      { name: "description", content: "Finish confirming your ethio.com account." },
+      { property: "og:title", content: "Confirm your email — ethio.com" },
+      { property: "og:description", content: "Finish confirming your ethio.com account." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: AuthCallback,
 });
 

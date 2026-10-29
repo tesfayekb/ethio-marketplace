@@ -1,4 +1,0 @@
-src/routes/legal.$kind.tsx | DEC-018 E2E-only scratch seam keeps its kind title | 2027-04-30
-src/routes/dev.primitives.tsx | Internal display reference, not a reader page | 2027-04-30
-src/routes/dev.style.tsx | Internal house-style reference, not a reader page | 2027-04-30
-src/routes/dev.tall.tsx | Internal layout reference, not a reader page | 2027-04-30

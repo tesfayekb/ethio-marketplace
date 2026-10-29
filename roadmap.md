@@ -690,3 +690,5 @@ What bundle 7 added to the order, item by item with its place: docs/governance/h
 - [ ] Later — a page in the reader's language for crawlers (the language in the URL, with hreflang per language); the head stays base-first until then.
 
 - [x] L-2B continuation unit blocker — INC-1001 delivered in L-2c Part 1 (2-worker full suite green); Part A continues under L-2c-3; Part B belongs to L-2d.
+
+- [ ] Foundations L-2d Part B — withdrawn: candidate entry +1.39 KiB exceeds B5 0.5 KiB; raw HTML proof needs decoded title comparison (apostrophe escaped); resume after weight ruling.

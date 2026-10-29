@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/features/admin/legal/legal-page";
 export const Route = createFileRoute("/admin/legal")({
@@ -15,27 +14,21 @@ export const Route = createFileRoute("/admin/legal")({
       return { outcome: "published", version: search.version };
     return {};
   },
-  head: () =>
-    pageHead(
-      "head.admin.pattern.title",
-      "head.admin.legal.description",
+  head: () => ({
+    meta: [
+      { title: "Legal documents — ethio.com Admin" },
       {
-        meta: [
-          { title: "Legal documents — ethio.com Admin" },
-          {
-            name: "description",
-            content: "Manage legal document versions and publishing facts on ethio.com.",
-          },
-          { property: "og:title", content: "Legal documents — ethio.com Admin" },
-          {
-            property: "og:description",
-            content: "Manage legal document versions and publishing facts on ethio.com.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary" },
-        ],
+        name: "description",
+        content: "Manage legal document versions and publishing facts on ethio.com.",
       },
-      "head.admin.legal.title",
-    ),
+      { property: "og:title", content: "Legal documents — ethio.com Admin" },
+      {
+        property: "og:description",
+        content: "Manage legal document versions and publishing facts on ethio.com.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LegalPage,
 });

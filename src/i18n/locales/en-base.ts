@@ -292,6 +292,7 @@ export const enBase = {
   "nav.screeningQueue": "Screening queue",
   "nav.allListings": "All listings",
   "nav.categories": "Categories",
+  "nav.locations": "Locations",
   "nav.pages": "Pages",
   "nav.translations": "Translations",
   "nav.supportTickets": "Support tickets",
@@ -476,7 +477,7 @@ export const enBase = {
   "admin.translations.error.deleteBase": "The base language cannot be deleted.",
 
   // U6-C1a — THE POSTING WIZARD (D1: no literal UI string).
-
+  "post.head.title": "Post a listing — ethio.com",
   "post.head.description": "Post what you are selling on ethio.com in a few steps.",
   "post.step.category": "Category",
   "post.step.photos": "Photos",
@@ -743,22 +744,4 @@ export const enBase = {
     "Terms, Privacy and the publishing statement in named versions, final once published, and the facts they quote.",
   "admin.translations.ai.rateLimited":
     "Too many machine translations in the last hour. Try again later.",
-  "head.site.pattern.title": "{name} — ethio.com",
-  "head.site.description": "Ethiopia's marketplace — coming soon.",
-  "head.home.title": "ethio.com — Ethiopia's marketplace",
-  "head.home.description": "Browse listings from sellers near you. Free to post, free to browse.",
-  "head.category.title": "Category",
-  "head.category.description": "Browse listings in this category from sellers near you.",
-  "head.seller.description": "Ads by {name} on ethio.com.",
-  "head.privacy.description":
-    "The Privacy Policy of ethio.com, the version in force and the next one.",
-  "head.terms.description":
-    "The Terms of Service of ethio.com, the version in force and the next one.",
-  "head.publishing.description":
-    "The publishing statement every seller certifies before an ad goes live.",
-  "head.auth.description": "Sign in or create your free ethio.com account.",
-  "head.authCallback.title": "Confirm your email",
-  "head.authCallback.description": "Finish confirming your ethio.com account.",
-  "head.authReset.description": "Choose a new password for your ethio.com account.",
-  "head.legalAccept.description": "Accept the Terms of Service and the Privacy Policy.",
 } as const;

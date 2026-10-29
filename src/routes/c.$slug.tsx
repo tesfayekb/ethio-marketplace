@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Suspense } from "react";
@@ -13,28 +12,22 @@ import { useI18n } from "@/i18n";
  * slug from here, so they can never disagree again.
  */
 export const Route = createFileRoute("/c/$slug")({
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.category.description",
+  head: () => ({
+    meta: [
+      { title: "Category — ethio.com" },
       {
-        meta: [
-          { title: "Category — ethio.com" },
-          {
-            name: "description",
-            content: "Browse listings in this category from sellers near you.",
-          },
-          { property: "og:title", content: "Category — ethio.com" },
-          {
-            property: "og:description",
-            content: "Browse listings in this category from sellers near you.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
+        name: "description",
+        content: "Browse listings in this category from sellers near you.",
       },
-      "head.category.title",
-    ),
+      { property: "og:title", content: "Category — ethio.com" },
+      {
+        property: "og:description",
+        content: "Browse listings in this category from sellers near you.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: CategoryFeed,
 });
 

@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { useQueryClient } from "@tanstack/react-query";
@@ -25,25 +24,19 @@ import type { MessageKey } from "@/i18n";
 const MIN_PASSWORD_LENGTH = 8;
 
 export const Route = createFileRoute("/auth_/reset")({
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.authReset.description",
+  head: () => ({
+    meta: [
+      { title: "Reset your password — ethio.com" },
+      { name: "description", content: "Choose a new password for your ethio.com account." },
+      { property: "og:title", content: "Reset your password — ethio.com" },
       {
-        meta: [
-          { title: "Reset your password — ethio.com" },
-          { name: "description", content: "Choose a new password for your ethio.com account." },
-          { property: "og:title", content: "Reset your password — ethio.com" },
-          {
-            property: "og:description",
-            content: "Choose a new password for your ethio.com account.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
+        property: "og:description",
+        content: "Choose a new password for your ethio.com account.",
       },
-      "auth.resetTitle",
-    ),
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: ResetScreen,
 });
 

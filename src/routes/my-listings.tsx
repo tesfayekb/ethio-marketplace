@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { MyListingsPage } from "@/features/my-listings/my-listings-page";
@@ -15,29 +14,20 @@ export const Route = createFileRoute("/my-listings")({
   beforeLoad: async () => {
     await requireSignedIn("/my-listings");
   },
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.myListings.description",
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex" },
+      { title: "My listings — ethio.com" },
+      { name: "description", content: "Your ads on ethio.com: live, in review, closed and sold." },
+      { property: "og:title", content: "My listings — ethio.com" },
       {
-        meta: [
-          { name: "robots", content: "noindex" },
-          { title: "My listings — ethio.com" },
-          {
-            name: "description",
-            content: "Your ads on ethio.com: live, in review, closed and sold.",
-          },
-          { property: "og:title", content: "My listings — ethio.com" },
-          {
-            property: "og:description",
-            content: "Your ads on ethio.com: live, in review, closed and sold.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
+        property: "og:description",
+        content: "Your ads on ethio.com: live, in review, closed and sold.",
       },
-      "nav.myListings",
-    ),
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingsPage,

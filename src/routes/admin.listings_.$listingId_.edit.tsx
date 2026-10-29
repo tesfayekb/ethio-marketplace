@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -43,23 +42,17 @@ import { useI18n, type MessageKey } from "@/i18n";
  * second factor leaves the Review as it was; a refusal is said under the actions.
  */
 export const Route = createFileRoute("/admin/listings_/$listingId_/edit")({
-  head: () =>
-    pageHead(
-      "head.admin.pattern.title",
-      "head.admin.pattern.description",
-      {
-        meta: [
-          { title: "Edit listing — ethio.com Admin" },
-          { name: "description", content: "Edit listing in the ethio.com staff panel." },
-          { name: "robots", content: "noindex" },
-          { property: "og:title", content: "Edit listing — ethio.com Admin" },
-          { property: "og:description", content: "Edit listing in the ethio.com staff panel." },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary" },
-        ],
-      },
-      "head.admin.editListing.title",
-    ),
+  head: () => ({
+    meta: [
+      { title: "Edit listing — ethio.com Admin" },
+      { name: "description", content: "Edit listing in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Edit listing — ethio.com Admin" },
+      { property: "og:description", content: "Edit listing in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (search: Record<string, unknown>): { from?: "screening" } =>
     search.from === "screening" ? { from: "screening" } : {},
   component: AdminListingEditRoute,

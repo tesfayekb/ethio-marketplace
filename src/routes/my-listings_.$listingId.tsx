@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { MyListingPage } from "@/features/my-listings/my-listing-page";
@@ -19,29 +18,23 @@ export const Route = createFileRoute("/my-listings_/$listingId")({
   beforeLoad: async ({ params }) => {
     await requireSignedIn(`/my-listings/${encodeURIComponent(params.listingId)}`);
   },
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.myListing.description",
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex" },
+      { title: "My listing — ethio.com" },
       {
-        meta: [
-          { name: "robots", content: "noindex" },
-          { title: "My listing — ethio.com" },
-          {
-            name: "description",
-            content: "One of your ads on ethio.com: its state, history and actions.",
-          },
-          { property: "og:title", content: "My listing — ethio.com" },
-          {
-            property: "og:description",
-            content: "One of your ads on ethio.com: its state, history and actions.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
+        name: "description",
+        content: "One of your ads on ethio.com: its state, history and actions.",
       },
-      "head.myListing.title",
-    ),
+      { property: "og:title", content: "My listing — ethio.com" },
+      {
+        property: "og:description",
+        content: "One of your ads on ethio.com: its state, history and actions.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingRoute,

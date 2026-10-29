@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
@@ -56,32 +55,26 @@ export const Route = createFileRoute("/l/$slug")({
           ? new URL(doc.category.illustration_url, root.origin).href
           : null
       : null;
-    return pageHead(
-      "head.site.pattern.title",
-      null,
-      {
-        meta: [
-          { title },
-          { name: "description", content: description },
-          { property: "og:title", content: title },
-          { property: "og:description", content: description },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-          ...(url ? [{ property: "og:url", content: url }] : []),
-          ...(image
-            ? [
-                { property: "og:image", content: image },
-                { name: "twitter:image", content: image },
-              ]
-            : []),
-          ...(doc.is_sold ? [{ name: "robots", content: "noindex" }] : []),
-        ],
-        links: url ? [{ rel: "canonical", href: url }] : [],
-        scripts: url ? [{ type: "application/ld+json", children: adJsonLd(doc, url, image) }] : [],
-      },
-      null,
-      doc.title,
-    );
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        ...(url ? [{ property: "og:url", content: url }] : []),
+        ...(image
+          ? [
+              { property: "og:image", content: image },
+              { name: "twitter:image", content: image },
+            ]
+          : []),
+        ...(doc.is_sold ? [{ name: "robots", content: "noindex" }] : []),
+      ],
+      links: url ? [{ rel: "canonical", href: url }] : [],
+      scripts: url ? [{ type: "application/ld+json", children: adJsonLd(doc, url, image) }] : [],
+    };
   },
   component: AdPage,
 });

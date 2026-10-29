@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { LocationsOverview } from "@/features/admin-overview/locations-overview";
@@ -8,23 +7,17 @@ import { LocationsOverview } from "@/features/admin-overview/locations-overview"
  * permission-filtered; the /admin layout owns the panel gate.
  */
 export const Route = createFileRoute("/admin/locations")({
-  head: () =>
-    pageHead(
-      "head.admin.pattern.title",
-      "head.admin.pattern.description",
-      {
-        meta: [
-          { title: "Locations — ethio.com Admin" },
-          { name: "description", content: "Locations in the ethio.com staff panel." },
-          { name: "robots", content: "noindex" },
-          { property: "og:title", content: "Locations — ethio.com Admin" },
-          { property: "og:description", content: "Locations in the ethio.com staff panel." },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary" },
-        ],
-      },
-      "nav.locations",
-    ),
+  head: () => ({
+    meta: [
+      { title: "Locations — ethio.com Admin" },
+      { name: "description", content: "Locations in the ethio.com staff panel." },
+      { name: "robots", content: "noindex" },
+      { property: "og:title", content: "Locations — ethio.com Admin" },
+      { property: "og:description", content: "Locations in the ethio.com staff panel." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: AdminLocationsRoute,
 });
 

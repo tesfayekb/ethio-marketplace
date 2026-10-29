@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute, type ErrorComponentProps } from "@tanstack/react-router";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
 import { shapedCountries } from "@/features/legal/legal-kinds";
@@ -56,19 +55,13 @@ export const Route = createFileRoute("/legal/publishing")({
     ]);
     return { global, countries: deps.countries.map((code, i) => ({ code, data: countries[i] })) };
   },
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.publishing.description",
-      {
-        meta: [
-          { name: "robots", content: "noindex" },
-          { title: PUBLISHING_TITLE },
-          { name: "description", content: PUBLISHING_DESCRIPTION },
-        ],
-      },
-      "legal.kind.publishing",
-    ),
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex" },
+      { title: PUBLISHING_TITLE },
+      { name: "description", content: PUBLISHING_DESCRIPTION },
+    ],
+  }),
   errorComponent: PublishingError,
   component: PublishingPage,
 });

@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalEditor } from "@/features/admin/legal/legal-editor";
 export const Route = createFileRoute("/admin/legal_/edit")({
@@ -6,28 +5,22 @@ export const Route = createFileRoute("/admin/legal_/edit")({
     kind: typeof search.kind === "string" ? search.kind : "",
     ...(typeof search.country === "string" ? { country: search.country } : {}),
   }),
-  head: () =>
-    pageHead(
-      "head.admin.pattern.title",
-      "head.admin.legalDraft.description",
+  head: () => ({
+    meta: [
+      { title: "Legal draft — ethio.com Admin" },
       {
-        meta: [
-          { title: "Legal draft — ethio.com Admin" },
-          {
-            name: "description",
-            content: "Write and publish bilingual legal document drafts on ethio.com.",
-          },
-          { property: "og:title", content: "Legal draft — ethio.com Admin" },
-          {
-            property: "og:description",
-            content: "Write and publish bilingual legal document drafts on ethio.com.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary" },
-        ],
+        name: "description",
+        content: "Write and publish bilingual legal document drafts on ethio.com.",
       },
-      "head.admin.legalDraft.title",
-    ),
+      { property: "og:title", content: "Legal draft — ethio.com Admin" },
+      {
+        property: "og:description",
+        content: "Write and publish bilingual legal document drafts on ethio.com.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: LegalEditorRoute,
 });
 function LegalEditorRoute() {

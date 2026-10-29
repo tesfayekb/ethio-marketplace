@@ -283,7 +283,7 @@ export const AREAS: Area[] = [
   {
     name: "routes",
     src: ["src/routes/**"],
-    specs: ["e2e/a11y.spec.ts", "e2e/page-head.spec.ts"],
+    specs: ["e2e/a11y.spec.ts"],
   },
 ];
 

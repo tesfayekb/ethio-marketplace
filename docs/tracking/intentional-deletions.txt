@@ -67,3 +67,11 @@ src/lib/compare-codes.ts
 src/lib/country-name.ts
 
 # L-2c continuation stop 2: shared Part A withdrawn for over-tolerance growth.
+
+# Foundations L-2d candidate withdrawn at B5 weight STOP
+e2e/page-head.spec.ts
+scripts/conformance/page-head-allowlist.txt
+scripts/conformance/page-head.test.ts
+scripts/conformance/page-head.ts
+src/lib/page-head.test.ts
+src/lib/page-head.ts

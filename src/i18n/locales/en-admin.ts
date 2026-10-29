@@ -1979,23 +1979,4 @@ export const enAdmin = {
   "impersonation.profile.country": "Country",
   "impersonation.profile.status": "Status",
   "impersonation.profile.joined": "Joined",
-  "head.admin.pattern.title": "{name} — ethio.com Admin",
-  "head.admin.pattern.description": "{name} in the ethio.com staff panel.",
-  "head.admin.panel.description": "Administration panel for ethio.com staff.",
-  "head.admin.impersonation.title": "Impersonation session",
-  "head.admin.legal.title": "Legal documents",
-  "head.admin.legal.description":
-    "Manage legal document versions and publishing facts on ethio.com.",
-  "head.admin.legalVersion.title": "Legal version",
-  "head.admin.legalVersion.description":
-    "Read a legal document version and its frozen facts on ethio.com.",
-  "head.admin.legalDraft.title": "Legal draft",
-  "head.admin.legalDraft.description":
-    "Write and publish bilingual legal document drafts on ethio.com.",
-  "head.admin.listing.title": "Listing",
-  "head.admin.editListing.title": "Edit listing",
-  "head.admin.languageStrings.title": "Language strings",
-  "head.admin.user.title": "User",
-  "head.admin.role.title": "Role",
-  "nav.locations": "Locations",
 } as const;

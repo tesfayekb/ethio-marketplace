@@ -1,4 +1,3 @@
-import { pageHead } from "@/lib/page-head";
 import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
@@ -58,26 +57,20 @@ export const Route = createFileRoute("/settings")({
   beforeLoad: async () => {
     await requireSignedIn("/settings");
   },
-  head: () =>
-    pageHead(
-      "head.site.pattern.title",
-      "head.settings.description",
+  head: () => ({
+    meta: [
+      { name: "robots", content: "noindex" },
+      { title: "Account settings — ethio.com" },
+      { name: "description", content: "Manage your ethio.com sign-in methods and security." },
+      { property: "og:title", content: "Account settings — ethio.com" },
       {
-        meta: [
-          { name: "robots", content: "noindex" },
-          { title: "Account settings — ethio.com" },
-          { name: "description", content: "Manage your ethio.com sign-in methods and security." },
-          { property: "og:title", content: "Account settings — ethio.com" },
-          {
-            property: "og:description",
-            content: "Manage your ethio.com sign-in methods and security.",
-          },
-          { property: "og:type", content: "website" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
+        property: "og:description",
+        content: "Manage your ethio.com sign-in methods and security.",
       },
-      "head.settings.title",
-    ),
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: SettingsScreen,

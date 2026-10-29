@@ -1175,5 +1175,3 @@
 - 2026-10-29 Foundations turn L-1: INC-999 start-failure excerpt (scripts/ci/start-failure-excerpt.mjs, SXC-1…4); src/lib/format.ts + src/lib/locale.ts with CF-FMT-1 (INC-985, INC-954 app copies).
 - 2026-10-29 Foundations turn L-1, continued (L-1b): the excerpt's fixture committed (.gitignore's *.log had hidden it); legal dates move to legal-dates.ts so the formatter stays off pages that draw no date; eleven page ceilings +1 KiB (format.ts by right); LF-E1 (e2e/locale-format.spec.ts); never-ending CF-FMT-1 lines reviewed 2027-04-30.
 - 2026-10-29 Foundations L-2c continuation: reader-locale.ts shares reader ordering, country names and machine comparison; fixed name order uses FIXED_ORDER_LOCALE; CF-FMT-1 widened, CF-FMT-2 planted a/b/c, FMT-9…11; Part B deferred to L-2d.
-
-- 2026-10-29 — Foundations L-2d (INC-990): base-first route heads retain exact English, with the reader catalogue applied by one page-head effect; 44 ruled EN/AM keys by script, member/admin layers preserved, CF-HEAD-1 and PGH proofs; L-2c ceilings lowered to the smallest whole KiB accepted by the NEAR rule.
