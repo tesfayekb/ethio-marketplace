@@ -1,5 +1,5 @@
 import { Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -16,12 +16,13 @@ import { useKeptPage } from "@/components/shell/use-kept-page";
 import { Input } from "@/components/ui/input";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
+import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { useI18n } from "@/i18n";
+import { resilientLazy } from "@/lib/resilient-lazy";
 import { useSettling } from "@/lib/use-settling";
 
 import { AiEditorDialog } from "./ai-editor";
 import { AiSpendDays } from "./ai-spend-days";
-import { AiCalls } from "./ai-calls";
 import {
   AI_COLUMN_PRIORITIES,
   budgetText,
@@ -33,6 +34,17 @@ import {
   type AiFeatureRow,
 } from "./ai-service";
 import { ADMIN_AI_KEY, useAiFeatures } from "./use-ai-features";
+
+/** INC-974 CI-first (budget): the calls history sits below the spend table, so it is on demand. */
+function AiCallsUnavailable() {
+  return <LoadFailedHere testid="ai-calls-failed" refreshTestid="ai-calls-retry" />;
+}
+const AiCalls = resilientLazy(
+  () => import("./ai-calls").then((mod) => mod.AiCalls),
+  "the AI call history",
+  AiCallsUnavailable,
+  { inPlace: true },
+);
 
 /**
  * Bundle 13 turn 5 (D158, the operator, 2026-10-13: "per feature an on/off
@@ -299,7 +311,9 @@ export function AdminAiPage() {
             }
           />
           <AiSpendDays />
-          <AiCalls />
+          <Suspense fallback={null}>
+            <AiCalls />
+          </Suspense>
           {selected !== null && dialog.kind === "editor" ? (
             <AiEditorDialog
               key={selected.feature}
