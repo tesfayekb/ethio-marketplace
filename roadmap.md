@@ -30,9 +30,9 @@ The brief in force: docs/governance/briefs/foundations-turn-ci-1.md (Foundations
 - [x] INC-977 N1b-3 — staff queue (listings:view + profiles:view), Clear (profiles:update + step-up), Rename; E2E; docs, register row, DEC wiring — closed in N1b-3c (register row 74)
 - [ ] caller-gates-allowlist.txt and a migration-healer fixture allowlist end without a final newline — the class that ran two acceptance lines together (run 40862076281); a form check per allowlist reader — open, K2 of N1b-3c
 - [x] D239-1 — the account rule at session start (provider.tsx), the cross-tab star listener, fetchPreferredLanguage on ReaderError, LANG-D239-U1…U8, D239-E1…E6, docs — closed (report foundations-turn-d239.report.md)
-- [ ] INC-994 — the string scan refuses name-checks.test.tsx's `<b>…</b>` fixture; its findings never reached the evidence — open, fixed in CI-1
-- [ ] INC-995 — Admin › Screening sends every section's outcome to one page message above the listings table; the job line sits at the page top — open, fixed in CI-1
-- [ ] INC-996 — i18n-coverage.spec.ts sets the language on the device only, then signs in; under D239 the account decides — open, fixed in CI-1
+- [x] INC-994 — the string scan refuses name-checks.test.tsx's `<b>…</b>` fixture; its findings never reached the evidence — closed in CI-1 (report foundations-turn-ci-1.report.md)
+- [x] INC-995 — Admin › Screening sends every section's outcome to one page message above the listings table; the job line sits at the page top — closed in CI-1 (report foundations-turn-ci-1.report.md)
+- [x] INC-996 — i18n-coverage.spec.ts sets the language on the device only, then signs in; under D239 the account decides — closed in CI-1 (report foundations-turn-ci-1.report.md)
 - [ ] D239 flash — hold the sign-in redirect for the account rule's answer, under a short deadline — a sign-in flow change, its own plan and DEC
 - [ ] CI-1 Part B — `bun run checks` (scripts/ci/turn-checks.sh) with its ci.yml mirror guard — open, built after its plan is ruled
 - [x] D237's gap — an open tab does not follow a star picked in another tab ("every tab follows") — closed by D239-1's storage listener
