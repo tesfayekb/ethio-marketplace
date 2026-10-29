@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `a03e28d11800e7ece4795b6f0e8420314d6f3871`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40817717415
+- Commit: `34a898079ee1a627e4ce2c3f4de52a5a62677c75`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40820695815
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 858 | 94 | applied 365/365 | 196 | 0 | 0 | 62 | 258 |
-| email | 150 | 98 | applied 365/365 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 736 | 117 | applied 365/365 | 131 | 0 | 0 | 4 | 135 |
-| 2 | 1061 | 117 | applied 365/365 | 142 | 0 | 0 | 3 | 145 |
-| 3 | 865 | 114 | applied 365/365 | 123 | 0 | 0 | 0 | 123 |
-| 4 | 529 | 89 | applied 365/365 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 411 | 83 | applied 365/365 | 119 | 0 | 0 | 6 | 125 |
-| 6 | 750 | 107 | applied 365/365 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 555 | 108 | applied 365/365 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 647 | 117 | applied 365/365 | 110 | 0 | 0 | 30 | 140 |
-| 9 | 763 | 117 | applied 365/365 | 133 | 0 | 0 | 2 | 135 |
-| 10 | 891 | 113 | applied 365/365 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 983 | 118 | applied 365/365 | 123 | 0 | 0 | 1 | 124 |
-| 12 | 653 | 116 | applied 365/365 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 602 | 117 | applied 365/365 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 793 | 118 | applied 365/365 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 610 | 119 | applied 365/365 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 521 | 100 | applied 365/365 | 99 | 0 | 0 | 32 | 131 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2241 | 0 | 0 | 159 | 2400 |
+| smoke | 956 | 99 | applied 367/367 | 196 | 0 | 0 | 62 | 258 |
+| email | 141 | 93 | applied 367/367 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 689 | 99 | applied 367/367 | 131 | 1 | 0 | 4 | 136 |
+| 2 | 940 | 118 | applied 367/367 | 129 | 0 | 0 | 3 | 132 |
+| 3 | 909 | 116 | applied 367/367 | 136 | 0 | 0 | 0 | 136 |
+| 4 | 618 | 117 | applied 367/367 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 579 | 115 | applied 367/367 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 808 | 119 | applied 367/367 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 498 | 104 | applied 367/367 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 613 | 110 | applied 367/367 | 110 | 0 | 0 | 30 | 140 |
+| 9 | 795 | 118 | applied 367/367 | 133 | 1 | 0 | 2 | 136 |
+| 10 | 940 | 104 | applied 367/367 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 816 | 97 | applied 367/367 | 123 | 0 | 0 | 1 | 124 |
+| 12 | 671 | 117 | applied 367/367 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 557 | 106 | applied 367/367 | 120 | 0 | 0 | 5 | 125 |
+| 14 | 709 | 110 | applied 367/367 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 562 | 117 | applied 367/367 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 581 | 118 | applied 367/367 | 99 | 0 | 0 | 32 | 131 |
+| repeat | 342 | 118 | applied 367/367 | 0 | 12 | 0 | 0 | 12 |
+| TOTAL | — | — | — | 2241 | 14 | 0 | 159 | 2414 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 2 1061 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 9, email 9, 1 13, 2 13, 3 12, 4 9, 5 8, 6 12, 7 13, 8 13, 9 13, 10 10, 11 13, 12 13, 13 13, 14 13, 15 13, 16 9, repeat not run
+- Slowest lane: smoke 956 s
+- Repeat lane (DEC-283): Repeat: each 6 on both projects; 1 tests selected, 1 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 12, email 9, 1 10, 2 13, 3 10, 4 11, 5 13, 6 13, 7 11, 8 10, 9 13, 10 13, 11 9, 12 13, 13 10, 14 10, 15 13, 16 12, repeat 13
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40817717415-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40817717415-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40817717415-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40817717415-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40817717415-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40817717415-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40817717415-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40817717415-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40817717415-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40817717415-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40817717415-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40817717415-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40817717415-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40817717415-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40817717415-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40817717415-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40817717415-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40817717415-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40820695815-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40820695815-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40820695815-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40820695815-local-2
+  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40820695815-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40820695815-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40820695815-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40820695815-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40820695815-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40820695815-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40820695815-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40820695815-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40820695815-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40820695815-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40820695815-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40820695815-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40820695815-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40820695815-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 40820695815-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -70,5 +70,25 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
+
+## Lane 1
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+
+## Lane 9
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+
+## Lane repeat
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
+- admin-ai-calls.spec.ts / ACR-E1 staff history filters through the real door and renders its exact page / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeDisabled[2m([22m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
