@@ -10,4 +10,3 @@ src/features/posting/preview/listing-detail.tsx#MapLarge | the large map opens i
 src/features/posting/step-where.tsx#MapPinDropper | the pin map opens as a fixed full-screen sheet over the step; the one line it shows while it downloads is covered as the sheet opens | 2027-04-27
 src/routes/c.$slug.tsx#Feed | the category feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945
 src/routes/index.tsx#Feed | the home feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945
-src/features/admin-ai/ai-page.tsx#AiCalls | the call history is the page's last section, below the spend table; while it downloads, and if it cannot, nothing sits below it to move (the editor is a dialog) | 2027-04-29

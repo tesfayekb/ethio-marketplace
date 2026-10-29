@@ -129,7 +129,7 @@ export function check(sources: Source[]): { tables: string[]; refusals: string[]
     const hostText = byFile.get(host);
     const name = section.replace(/^.*\//, "").replace(/\.tsx$/, "");
     if (!byFile.has(section)) continue;
-    if (hostText === undefined || !new RegExp(`from "\\./${name}"|import\\("\\./${name}"\\)`).test(hostText)) {
+    if (hostText === undefined || !new RegExp(`from "\\./${name}"`).test(hostText)) {
       refusals.push(`${section}: T1 — its host ${host} does not draw it`);
     } else if (breaches(host, hostText).includes("T1")) {
       refusals.push(`${section}: T1 — its host ${host} has no heading in the header`);
