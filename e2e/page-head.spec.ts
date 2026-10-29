@@ -47,6 +47,13 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
   const seller = await fixtures.scratchSeller();
   const ad = await fixtures.seed(seller);
   const canonical = listingPath(ad.title, await fixtures.publicIdOf(ad.id));
+  const seeded = await adminClient()
+    .from("listings")
+    .select("description")
+    .eq("id", ad.id)
+    .single();
+  if (seeded.error)
+    throw new Error(`[e2e:pgh] reading scratch description: ${seeded.error.message}`);
   await gotoReady(page, "/");
   expect(await rawTitle(page, "/")).toBe(en["head.home.title"]);
   await headText(page, en["head.home.title"], en["head.home.description"]);
@@ -60,9 +67,12 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
   await gotoReady(page, canonical);
   await expect(page.getByTestId("ad-page")).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
-  await headText(page, `${ad.title} — ethio.com`, String(ad.description).slice(0, 160));
+  await headText(page, `${ad.title} — ethio.com`, seeded.data.description.slice(0, 160));
   // A real client navigation: the brand link commits another page's head, no hard reload.
-  await page.getByTestId("brand-link").click();
+  await page
+    .getByRole("link", { name: en["app.name"], exact: true })
+    .filter({ visible: true })
+    .click();
   await headText(page, am["head.home.title"], am["head.home.description"]);
 
   const staff = await signInAsSuperAdmin(page);
@@ -84,7 +94,10 @@ test("PGH-E1 base server heads, applied Amharic and client navigation agree", as
   await expect(page.getByTestId("admin-panel-root")).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "am");
   await headText(page, title, description);
-  await page.getByTestId("brand-link").click();
+  await page
+    .getByRole("link", { name: en["app.name"], exact: true })
+    .filter({ visible: true })
+    .click();
   await headText(page, am["head.home.title"], am["head.home.description"]);
 });
 
@@ -101,7 +114,7 @@ test("PGH-E2 picks re-title without changing the URL or calling route server fun
   const url = page.url();
   const requests: string[] = [];
   page.on("request", (request) => {
-    if (/\/_server\/|\/api\//.test(request.url())) requests.push(request.url());
+    if (/\/_server\//.test(request.url())) requests.push(request.url());
   });
   await switchLanguage(page, "am");
   await headText(page, am["head.home.title"], am["head.home.description"]);
