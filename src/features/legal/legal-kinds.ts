@@ -1,5 +1,4 @@
 import type { MessageKey } from "@/i18n";
-import { dateFormatter } from "@/lib/format";
 import { isCountryCode } from "@/lib/locale";
 
 /** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */
@@ -63,24 +62,6 @@ export function legalDocName(
   const country =
     new Intl.DisplayNames([language], { type: "region" }).of(row.country_code) ?? row.country_code;
   return `${name} · ${country}`;
-}
-
-/** A legal date in the page's language (dateStyle medium). */
-export function legalDate(value: string | null | undefined, language: string): string {
-  if (!value) return "";
-  return dateFormatter("day", language).format(new Date(value));
-}
-/**
- * Turn 12: an acceptance's or an e-mail's moment, stored in UTC, shown in the viewer's own time zone
- * with the zone named. `timeZone` is for tests only; the screens pass none.
- */
-export function legalMoment(
-  value: string | null | undefined,
-  language: string,
-  timeZone?: string,
-): string {
-  if (!value) return "";
-  return dateFormatter("dayTimeZone", language, timeZone).format(new Date(value));
 }
 
 /**

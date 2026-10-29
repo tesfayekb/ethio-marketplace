@@ -1,0 +1,151 @@
+# start-failure-cli.log — SHAPE FROM SOURCE, not a captured run: no container runtime in the sandbox (INC-999, L-1 A2).
+# Shape: supabase/cli v2.120.0 apps/cli-go/pkg/migration/file.go :126-148 (formatError), internal/utils/misc.go :41 (debug hint).
+Starting database...
+Initialising schema...
+Seeding globals from roles.sql...
+Applying migration 20261029050000_aa11bb22.sql...
+Applying migration 20261029073342_cba46fd4.sql...
+ERROR: proof: replay accepted (SQLSTATE P0001)
+At statement: 41
+do $proof$
+declare
+  v_claim jsonb;
+begin
+  -- proof step 1: perform public.job_run_claim(...);
+  -- proof step 2: perform public.job_run_claim(...);
+  -- proof step 3: perform public.job_run_claim(...);
+  -- proof step 4: perform public.job_run_claim(...);
+  -- proof step 5: perform public.job_run_claim(...);
+  -- proof step 6: perform public.job_run_claim(...);
+  -- proof step 7: perform public.job_run_claim(...);
+  -- proof step 8: perform public.job_run_claim(...);
+  -- proof step 9: perform public.job_run_claim(...);
+  -- proof step 10: perform public.job_run_claim(...);
+  -- proof step 11: perform public.job_run_claim(...);
+  -- proof step 12: perform public.job_run_claim(...);
+  -- proof step 13: perform public.job_run_claim(...);
+  -- proof step 14: perform public.job_run_claim(...);
+  -- proof step 15: perform public.job_run_claim(...);
+  -- proof step 16: perform public.job_run_claim(...);
+  -- proof step 17: perform public.job_run_claim(...);
+  -- proof step 18: perform public.job_run_claim(...);
+  -- proof step 19: perform public.job_run_claim(...);
+  -- proof step 20: perform public.job_run_claim(...);
+  -- proof step 21: perform public.job_run_claim(...);
+  -- proof step 22: perform public.job_run_claim(...);
+  -- proof step 23: perform public.job_run_claim(...);
+  -- proof step 24: perform public.job_run_claim(...);
+  -- proof step 25: perform public.job_run_claim(...);
+  -- proof step 26: perform public.job_run_claim(...);
+  -- proof step 27: perform public.job_run_claim(...);
+  -- proof step 28: perform public.job_run_claim(...);
+  -- proof step 29: perform public.job_run_claim(...);
+  -- proof step 30: perform public.job_run_claim(...);
+  -- proof step 31: perform public.job_run_claim(...);
+  -- proof step 32: perform public.job_run_claim(...);
+  -- proof step 33: perform public.job_run_claim(...);
+  -- proof step 34: perform public.job_run_claim(...);
+  -- proof step 35: perform public.job_run_claim(...);
+  -- proof step 36: perform public.job_run_claim(...);
+  -- proof step 37: perform public.job_run_claim(...);
+  -- proof step 38: perform public.job_run_claim(...);
+  -- proof step 39: perform public.job_run_claim(...);
+  -- proof step 40: perform public.job_run_claim(...);
+  -- proof step 41: perform public.job_run_claim(...);
+  -- proof step 42: perform public.job_run_claim(...);
+  -- proof step 43: perform public.job_run_claim(...);
+  -- proof step 44: perform public.job_run_claim(...);
+  -- proof step 45: perform public.job_run_claim(...);
+  -- proof step 46: perform public.job_run_claim(...);
+  -- proof step 47: perform public.job_run_claim(...);
+  -- proof step 48: perform public.job_run_claim(...);
+  -- proof step 49: perform public.job_run_claim(...);
+  -- proof step 50: perform public.job_run_claim(...);
+  -- proof step 51: perform public.job_run_claim(...);
+  -- proof step 52: perform public.job_run_claim(...);
+  -- proof step 53: perform public.job_run_claim(...);
+  -- proof step 54: perform public.job_run_claim(...);
+  -- proof step 55: perform public.job_run_claim(...);
+  -- proof step 56: perform public.job_run_claim(...);
+  -- proof step 57: perform public.job_run_claim(...);
+  -- proof step 58: perform public.job_run_claim(...);
+  -- proof step 59: perform public.job_run_claim(...);
+  -- proof step 60: perform public.job_run_claim(...);
+  -- proof step 61: perform public.job_run_claim(...);
+  -- proof step 62: perform public.job_run_claim(...);
+  -- proof step 63: perform public.job_run_claim(...);
+  -- proof step 64: perform public.job_run_claim(...);
+  -- proof step 65: perform public.job_run_claim(...);
+  -- proof step 66: perform public.job_run_claim(...);
+  -- proof step 67: perform public.job_run_claim(...);
+  -- proof step 68: perform public.job_run_claim(...);
+  -- proof step 69: perform public.job_run_claim(...);
+  -- proof step 70: perform public.job_run_claim(...);
+  -- proof step 71: perform public.job_run_claim(...);
+  -- proof step 72: perform public.job_run_claim(...);
+  -- proof step 73: perform public.job_run_claim(...);
+  -- proof step 74: perform public.job_run_claim(...);
+  -- proof step 75: perform public.job_run_claim(...);
+  -- proof step 76: perform public.job_run_claim(...);
+  -- proof step 77: perform public.job_run_claim(...);
+  -- proof step 78: perform public.job_run_claim(...);
+  -- proof step 79: perform public.job_run_claim(...);
+  -- proof step 80: perform public.job_run_claim(...);
+  -- proof step 81: perform public.job_run_claim(...);
+  -- proof step 82: perform public.job_run_claim(...);
+  -- proof step 83: perform public.job_run_claim(...);
+  -- proof step 84: perform public.job_run_claim(...);
+  -- proof step 85: perform public.job_run_claim(...);
+  -- proof step 86: perform public.job_run_claim(...);
+  -- proof step 87: perform public.job_run_claim(...);
+  -- proof step 88: perform public.job_run_claim(...);
+  -- proof step 89: perform public.job_run_claim(...);
+  -- proof step 90: perform public.job_run_claim(...);
+  -- proof step 91: perform public.job_run_claim(...);
+  -- proof step 92: perform public.job_run_claim(...);
+  -- proof step 93: perform public.job_run_claim(...);
+  -- proof step 94: perform public.job_run_claim(...);
+  -- proof step 95: perform public.job_run_claim(...);
+  -- proof step 96: perform public.job_run_claim(...);
+  -- proof step 97: perform public.job_run_claim(...);
+  -- proof step 98: perform public.job_run_claim(...);
+  -- proof step 99: perform public.job_run_claim(...);
+  -- proof step 100: perform public.job_run_claim(...);
+  -- proof step 101: perform public.job_run_claim(...);
+  -- proof step 102: perform public.job_run_claim(...);
+  -- proof step 103: perform public.job_run_claim(...);
+  -- proof step 104: perform public.job_run_claim(...);
+  -- proof step 105: perform public.job_run_claim(...);
+  -- proof step 106: perform public.job_run_claim(...);
+  -- proof step 107: perform public.job_run_claim(...);
+  -- proof step 108: perform public.job_run_claim(...);
+  -- proof step 109: perform public.job_run_claim(...);
+  -- proof step 110: perform public.job_run_claim(...);
+  -- proof step 111: perform public.job_run_claim(...);
+  -- proof step 112: perform public.job_run_claim(...);
+  -- proof step 113: perform public.job_run_claim(...);
+  -- proof step 114: perform public.job_run_claim(...);
+  -- proof step 115: perform public.job_run_claim(...);
+  -- proof step 116: perform public.job_run_claim(...);
+  -- proof step 117: perform public.job_run_claim(...);
+  -- proof step 118: perform public.job_run_claim(...);
+  -- proof step 119: perform public.job_run_claim(...);
+  -- proof step 120: perform public.job_run_claim(...);
+  -- proof step 121: perform public.job_run_claim(...);
+  -- proof step 122: perform public.job_run_claim(...);
+  -- proof step 123: perform public.job_run_claim(...);
+  -- proof step 124: perform public.job_run_claim(...);
+  -- proof step 125: perform public.job_run_claim(...);
+  -- proof step 126: perform public.job_run_claim(...);
+  -- proof step 127: perform public.job_run_claim(...);
+  -- proof step 128: perform public.job_run_claim(...);
+  -- proof step 129: perform public.job_run_claim(...);
+  -- proof step 130: perform public.job_run_claim(...);
+  -- proof step 131: perform public.job_run_claim(...);
+  -- proof step 132: perform public.job_run_claim(...);
+  -- proof step 133: perform public.job_run_claim(...);
+  -- proof step 134: perform public.job_run_claim(...);
+  -- proof step 135: perform public.job_run_claim(...);
+end
+$proof$;
+Try rerunning the command with --debug to troubleshoot the error.

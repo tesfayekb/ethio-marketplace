@@ -6,12 +6,12 @@ import {
   gateExempt,
   gateKinds,
   legalDocName,
-  legalMoment,
   legalRole,
   shapedCountries,
   signedInOnlyKind,
   tickKey,
 } from "./legal-kinds";
+import { legalMoment } from "./legal-dates";
 
 describe("signedInOnlyKind (D236)", () => {
   it("LK-mirror the TypeScript answer equals the migration's predicate (M24)", () => {

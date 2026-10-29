@@ -7,7 +7,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { useI18n, type MessageKey } from "@/i18n";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ownValue } from "@/lib/own-key";
-import { legalMoment } from "./legal-kinds";
+import { legalMoment } from "./legal-dates";
 import { legalDocName } from "./legal-kinds";
 import { myLegalHistory } from "./legal-reader";
 import { languageRowName } from "@/lib/format-locale";

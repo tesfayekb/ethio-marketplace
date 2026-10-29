@@ -148,6 +148,12 @@ export const AREAS: Area[] = [
     specs: ["e2e/my-listings*.spec.ts"],
   },
   {
+    // Foundations turn L-1 (INC-985) — one formatter per intent: an Amharic reader's full month.
+    name: "locale-format",
+    src: ["src/lib/format.ts", "src/lib/locale.ts", "src/lib/format-locale.ts"],
+    specs: ["e2e/locale-format.spec.ts"],
+  },
+  {
     // Bundle 13 (D158) — the AI switches and meter (turn 1) and their page, /admin/ai (turn 5).
     name: "admin-services",
     src: ["src/server/ai/**", "src/routes/admin.ai.tsx", "src/features/admin-ai/**"],

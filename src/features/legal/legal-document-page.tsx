@@ -3,7 +3,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
-import { legalDate } from "./legal-kinds";
+import { legalDate } from "./legal-dates";
 import { LegalText } from "./legal-text";
 import { legalTextFor, type PublicLegalVersion } from "./legal-reader";
 
