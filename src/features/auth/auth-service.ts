@@ -29,7 +29,7 @@ import type {
 const supabaseJs = loadOnce(() => import("@supabase/supabase-js"));
 // INC-864 — reader-failure stays off the first paint: it loads only when a read failed.
 const readerFailureModule = loadOnce(() => import("@/lib/reader-failure"));
-async function readError(
+async function typedReadError(
   failure: { class: "auth" | "network"; message: string } | { error: unknown },
 ): Promise<ReaderError> {
   const mod = await readerFailureModule();
@@ -729,7 +729,7 @@ export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
     return {
       ok: false,
       signedOut: false,
-      error: await readError({ class: "auth", message: "the session could not be read" }),
+      error: await typedReadError({ class: "auth", message: "the session could not be read" }),
     };
   }
   const userId = read.session?.user?.id;
@@ -739,7 +739,7 @@ export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
     return {
       ok: false,
       signedOut: false,
-      error: await readError({ class: "network", message: "the client did not load" }),
+      error: await typedReadError({ class: "network", message: "the client did not load" }),
     };
   }
 
@@ -748,7 +748,7 @@ export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
     .select("preferred_language")
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) return { ok: false, signedOut: false, error: await readError({ error }) };
+  if (error) return { ok: false, signedOut: false, error: await typedReadError({ error }) };
   return { ok: true, code: data?.preferred_language ?? null };
 }
 
