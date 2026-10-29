@@ -11,6 +11,7 @@ import {
 } from "@/features/posting/posting-service";
 import { supabase } from "@/integrations/supabase/client";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
+import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * Bundle 10 E3a — THE SCREENING QUEUE READ (D109).
@@ -343,4 +344,39 @@ export async function revealContact(
     return { ok: false, reason: payload["reason"] };
   }
   throw new Error("reveal returned no answer");
+}
+
+/**
+ * N1a (INC-977) — THE NAMES WAITING FOR THE SELLER-NAME CHECK. The door
+ * `admin_name_check_summary()` (listings:view, the page's own gate) answers the
+ * count and the oldest `since`, nothing else. A failed or out-of-shape read is a
+ * thrown typed failure (INC-885), never shown as 0.
+ */
+export interface NameCheckSummary {
+  unchecked: number;
+  oldestSince: string | null;
+}
+
+export function nameCheckSummaryOf(raw: unknown): NameCheckSummary {
+  const malformed = () =>
+    new ReaderError({ class: "malformed", message: "admin_name_check_summary: answer out of shape" });
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) throw malformed();
+  const { unchecked, oldest_since: oldest } = raw as { unchecked?: unknown; oldest_since?: unknown };
+  if (typeof unchecked !== "number" || !Number.isInteger(unchecked) || unchecked < 0) throw malformed();
+  if (oldest !== null && typeof oldest !== "string") throw malformed();
+  if (unchecked > 0 && oldest === null) throw malformed();
+  return { unchecked, oldestSince: oldest };
+}
+
+export async function readNameCheckSummary(): Promise<NameCheckSummary> {
+  const { data, error } = await supabase.rpc("admin_name_check_summary");
+  if (error) throw error;
+  return nameCheckSummaryOf(data);
+}
+
+export function useNameCheckSummary() {
+  return useQuery({
+    queryKey: [...ADMIN_SCREENING_KEY, "nameChecks"],
+    queryFn: readNameCheckSummary,
+  });
 }
