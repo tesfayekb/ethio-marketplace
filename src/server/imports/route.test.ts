@@ -10,6 +10,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = {
   allowed: true,
   dialAllowed: true,
+  /** D1 M6 — a per-action cap: the n+1th spend of a capped action is refused. */
+  caps: {} as Record<string, number>,
   spends: [] as string[],
   rpcs: [] as { name: string; args: Record<string, unknown> }[],
   answers: {} as Record<string, { data: unknown; error: unknown }>,
@@ -81,7 +83,10 @@ vi.mock("@/server/catalog-find.server", () => ({
 vi.mock("@/server/dials", () => ({
   spend: async (dial: { action: string }, key: string) => {
     state.spends.push(`${dial.action} ${key}`);
-    return { allowed: state.dialAllowed, resetsAt: null, remaining: 0 };
+    const cap = state.caps[dial.action];
+    const used = state.spends.filter((line) => line.startsWith(`${dial.action} `)).length;
+    const allowed = state.dialAllowed && (cap === undefined || used <= cap);
+    return { allowed, resetsAt: null, remaining: 0 };
   },
 }));
 vi.mock("@/integrations/supabase/client.server", () => ({ supabaseAdmin: {} }));
@@ -97,6 +102,7 @@ const header = (family: string, file: string) =>
     .join(",");
 const CATEGORIES = `${header("categories", "categories")}\r\n,e2e-imr,,Probe,,10,true,true,,true,,,,30,,,,,,,\r\n`;
 const COUNTRIES = `${header("locations", "countries")}\r\nZQ,Probe,false,metric,,0,\r\n`;
+const DEFINITIONS = `${header("attributes", "definitions")}\r\n`;
 const STRINGS = `${header("translations", "strings")}\r\ne2e.imr.key,"src","value","note"\r\n`;
 
 const categories = defineImportRoute("categories", {
@@ -121,6 +127,19 @@ const locations = defineImportRoute("locations", {
     p_scope: scope,
   }),
   refresh: ["nameFolds"],
+});
+const attributes = defineImportRoute("attributes", {
+  rpcs: {
+    preview: "admin_preview_attribute_import",
+    commit: "admin_commit_attribute_import",
+    undo: "admin_undo_attribute_import",
+  },
+  args: (rows, scope) => ({
+    p_definitions: rows["definitions"] ?? [],
+    p_links: rows["links"] ?? [],
+    p_scope: scope,
+  }),
+  refresh: [],
 });
 const translations = defineImportRoute("translations", {
   rpcs: { commit: "admin_import_translations", undo: "admin_undo_import" },
@@ -163,6 +182,7 @@ const doorCalls = () =>
 beforeEach(() => {
   state.allowed = true;
   state.dialAllowed = true;
+  state.caps = {};
   state.spends = [];
   state.rpcs = [];
   state.answers = {};
@@ -248,7 +268,8 @@ describe("defineImportRoute", () => {
     const digest = await digestOf([CATEGORIES]);
     const commit = await send(categories, { mode: "commit", categories: CATEGORIES, digest });
     expect(commit.status).toBe(200);
-    expect(state.spends).toEqual([]);
+    // D1 M6 — the family meter stays preview-only; the commit spends the shared dial.
+    expect(state.spends).toEqual(["import:commit user-imr"]);
 
     state.spends = [];
     const strings = await send(translations, { lang: "am", strings: STRINGS });
@@ -369,6 +390,92 @@ describe("defineImportRoute", () => {
       expect(errors.join("\n")).toMatch(/audit_failed audit door down/);
     } finally {
       spy.mockRestore();
+    }
+  });
+  describe("IMR-13 (D1 M6, INC-951 3c) the n+1th commit or undo is refused before any write", () => {
+    const families = [
+      {
+        id: "categories",
+        route: categories,
+        commit: "admin_commit_category_import",
+        undo: "admin_undo_category_import",
+        files: { categories: CATEGORIES },
+        texts: [CATEGORIES],
+      },
+      {
+        id: "attributes",
+        route: attributes,
+        commit: "admin_commit_attribute_import",
+        undo: "admin_undo_attribute_import",
+        files: { definitions: DEFINITIONS },
+        texts: [DEFINITIONS, ""],
+      },
+      {
+        id: "locations",
+        route: locations,
+        commit: "admin_commit_location_import",
+        undo: "admin_undo_location_import",
+        files: { countries: COUNTRIES },
+        texts: [COUNTRIES, ""],
+      },
+      {
+        id: "translations",
+        route: translations,
+        commit: "admin_import_translations",
+        undo: "admin_undo_import",
+        files: { lang: "am", strings: STRINGS },
+        texts: null,
+      },
+    ] as const;
+    const audits = () => state.rpcs.filter((call) => call.name === "import_gate_audit");
+
+    for (const family of families) {
+      it(`${family.id}: commit 2 of a 1-commit window answers 429 with no door call and no audit row`, async () => {
+        state.caps = { "import:commit": 1 };
+        state.answers[family.commit] = {
+          data: { batch_id: "b-1", counts: {}, refusals: [], imported: 1 },
+          error: null,
+        };
+        const digest = family.texts === null ? undefined : await digestOf([...family.texts]);
+        const body = {
+          mode: "commit",
+          ...family.files,
+          ...(digest === undefined ? {} : { digest }),
+        };
+        const first = await send(family.route, body);
+        expect(first.status).toBe(200);
+        expect(doorCalls().filter((call) => call.name === family.commit)).toHaveLength(1);
+
+        state.rpcs = [];
+        const second = await send(family.route, body);
+        expect(second.status).toBe(429);
+        expect(await second.json()).toEqual({ error: "rateLimited" });
+        expect(doorCalls()).toEqual([]);
+        expect(audits()).toEqual([]);
+      });
+
+      it(`${family.id}: undo 2 of a 1-undo window answers 429 with no door call and no audit row`, async () => {
+        state.caps = { "import:undo": 1 };
+        const first = await send(family.route, {
+          mode: "undo",
+          batchId: "b-1",
+          ...(family.id === "translations" ? { lang: "am" } : {}),
+        });
+        expect(first.status).toBe(200);
+        expect(doorCalls().filter((call) => call.name === family.undo)).toHaveLength(1);
+
+        state.rpcs = [];
+        const second = await send(family.route, {
+          mode: "undo",
+          batchId: "b-1",
+          ...(family.id === "translations" ? { lang: "am" } : {}),
+        });
+        expect(second.status).toBe(429);
+        expect(await second.json()).toEqual({ error: "rateLimited" });
+        expect(doorCalls()).toEqual([]);
+        expect(audits()).toEqual([]);
+        expect(state.spends.filter((line) => line.startsWith("import:undo "))).toHaveLength(2);
+      });
     }
   });
 });

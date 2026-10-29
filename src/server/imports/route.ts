@@ -223,7 +223,8 @@ export function defineImportRoute(
     // INC-951 3c (D1 M6, ruling 3 of stop 6) — every family's commit spends the shared
     // import_commit dial and every undo the shared import_undo dial, after the family's own
     // budgetModes meter and before any door is called (G54a).
-    const shared = mode === "commit" ? DIALS.importCommit : mode === "undo" ? DIALS.importUndo : null;
+    const shared =
+      mode === "commit" ? DIALS.importCommit : mode === "undo" ? DIALS.importUndo : null;
     const meters: Dial[] = [
       ...(budgetModes.includes(mode) ? [meter] : []),
       ...(shared === null ? [] : [shared]),
