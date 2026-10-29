@@ -357,12 +357,13 @@ describe("the one AI call", () => {
     expect(evidence).not.toContain("private-material-marker");
     expect(evidence).not.toContain("test-only-provider-key");
   });
-  it("AIG-10 an audit-write failure logs once and preserves the answer", async () => {
+  it("AIG-10 an audit-write failure logs once and preserves an unmarked task's answer (best-effort)", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-only-provider-key");
     state.auditError = true;
-    expect(await aiCall("name_check", {}, ctx)).toEqual({
+    state.text = '{"icon":"car"}';
+    expect(await aiCall("category_icon", { name: "Cars" }, ctx)).toEqual({
       ok: true,
-      value: { imitates: false },
+      value: { icon: "car" },
       fake: false,
       latencyMs: expect.any(Number),
     });
@@ -1036,5 +1037,38 @@ describe("the translation task and its Google Translate adapter", () => {
     });
     expect(seen).toHaveLength(1);
     expect(state.writes).toEqual([]);
+  });
+
+  // Foundations turn A1 (INC-952, DEC-280) — every task that judges a person answers
+  // `unavailable` when its audit row is not written; its spend (the gateway's order) stands.
+  it.each(AI_TASKS.filter((task) => task.judgesPerson).map((task) => task.id))(
+    "AIV-7 %s: an unwritten audit row answers unavailable, never the verdict",
+    async (id) => {
+      state.e2e = true;
+      state.fake = true;
+      state.auditError = true;
+      const answer = await aiCall(id, { alias: "abebe", name: "Sofas" }, ctx);
+      expect(answer).toEqual({ ok: false, reason: "unavailable" });
+      expect(state.writes).toHaveLength(1);
+      state.auditError = false;
+      expect((await aiCall(id, { alias: "abebe", name: "Sofas" }, ctx)).ok).toBe(true);
+    },
+  );
+  it("AIV-8 the person-marks are the ruled list (Foundations turn A1)", () => {
+    expect(
+      AI_TASKS.filter((task) => task.judgesPerson)
+        .map((task) => task.id)
+        .sort(),
+    ).toEqual(["name_check", "photo_screen", "writing_helper"]);
+  });
+  // INC-887 — a field-less task hashes what it was asked.
+  it("AIA-2 two translations of different texts write different audit hashes", async () => {
+    state.e2e = true;
+    state.fake = true;
+    await aiCall("translation", { target: "am", texts: ["Hello"] }, ctx);
+    await aiCall("translation", { target: "am", texts: ["Goodbye"] }, ctx);
+    expect(state.writes).toHaveLength(2);
+    expect(state.writes[0]?.p_input_hash).toMatch(/^[0-9a-f]{64}$/);
+    expect(state.writes[1]?.p_input_hash).not.toBe(state.writes[0]?.p_input_hash);
   });
 });

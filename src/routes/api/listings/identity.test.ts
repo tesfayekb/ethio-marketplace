@@ -13,6 +13,10 @@ const state = {
   fetches: 0,
   modelAnswer: "{}",
   fake: false,
+  realGateway: false,
+  auditFails: false,
+  audits: [] as string[],
+  spends: 0,
 };
 
 vi.mock("@/server/supabase/user-client", () => {
@@ -52,14 +56,39 @@ vi.mock("@/server/catalog-find.server", () => ({
   clientAddress: () => "203.0.113.9",
   hashAddress: (address: string) => `hashed:${address}`,
 }));
-vi.mock("@/server/ai/gateway", () => ({
-  aiCall: async () => {
-    state.fetches += 1;
-    return { ok: true, value: JSON.parse(state.modelAnswer), fake: state.fake };
+vi.mock("@/server/ai/gateway", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/server/ai/gateway")>();
+  return {
+    ...actual,
+    // Foundations turn A1 — AIV-1/2 run the real gateway (its audit write mocked below).
+    aiCall: async (...args: Parameters<typeof actual.aiCall>) => {
+      if (state.realGateway) return actual.aiCall(...args);
+      state.fetches += 1;
+      return { ok: true, value: JSON.parse(state.modelAnswer), fake: state.fake };
+    },
+  };
+});
+vi.mock("@/server/ai/meter", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/ai/meter")>()),
+  aiGate: async () => ({ on: true }),
+  recordAiSpend: async () => {
+    state.spends += 1;
   },
 }));
+vi.mock("@/server/stand-in", () => ({ standInMode: () => false }));
 vi.mock("@/integrations/supabase/client.server", () => ({
-  supabaseAdmin: { from: () => ({ insert: async () => ({ error: null }) }) },
+  supabaseAdmin: {
+    from: (table: string) => ({
+      insert: async (row: { action?: string }) => {
+        state.audits.push(`${table}:${row.action ?? ""}`);
+        return { error: null };
+      },
+    }),
+    rpc: async (name: string) => {
+      state.audits.push(name);
+      return { error: state.auditFails ? { message: "audit write failure" } : null };
+    },
+  },
 }));
 
 const { Route } = await import("@/routes/api/listings/identity");
@@ -89,6 +118,10 @@ beforeEach(() => {
   state.fetches = 0;
   state.modelAnswer = "{}";
   state.fake = false;
+  state.realGateway = false;
+  state.auditFails = false;
+  state.audits = [];
+  state.spends = 0;
   vi.stubEnv("GEMINI_API_KEY", "test-key");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async () => {
@@ -148,6 +181,34 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
     expect(payload.refusals[0]?.reason).toBe("aliasImitatesBrand");
     expect(payload.refusals[0]?.detail).toBe("B".repeat(200));
     expect(state.fetches).toBe(1);
+    expect(state.rpcCalls).toEqual([]);
+  });
+
+  /**
+   * Foundations turn A1 (INC-952, DEC-280) — name_check judges a person. With its `ai_calls` row
+   * unwritten the imitation verdict is never acted on: the gateway answers `unavailable`, and the
+   * route takes its existing "could not check" path (D158 / bundle 3 step 19): no
+   * aliasImitatesBrand refusal; the name goes to the door unchecked, recorded `alias.unchecked`.
+   */
+  it("AIV-1 an imitation verdict whose audit row failed is not acted on", async () => {
+    state.realGateway = true;
+    state.auditFails = true;
+    state.modelAnswer = JSON.stringify({ imitates: true, of: "BigBrand" });
+    const response = await post({ alias: "bigbrand" });
+    const payload = (await response.json()) as { refusals?: { reason: string }[] };
+    expect(JSON.stringify(payload)).not.toContain("aliasImitatesBrand");
+    expect(state.fetches).toBe(1);
+    expect(state.spends).toBe(1);
+    expect(state.audits).toEqual(["ai_record_call", "audit_log:alias.unchecked"]);
+    expect(state.rpcCalls).toEqual(["save_posting_identity"]);
+  });
+  it("AIV-2 the same verdict with its row written refuses the name, and nothing is saved", async () => {
+    state.realGateway = true;
+    state.modelAnswer = JSON.stringify({ imitates: true, of: "BigBrand" });
+    const response = await post({ alias: "bigbrand" });
+    const payload = (await response.json()) as { refusals: { reason: string }[] };
+    expect(payload.refusals[0]?.reason).toBe("aliasImitatesBrand");
+    expect(state.audits).toEqual(["ai_record_call"]);
     expect(state.rpcCalls).toEqual([]);
   });
 });
