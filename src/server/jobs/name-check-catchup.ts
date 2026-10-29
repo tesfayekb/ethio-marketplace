@@ -133,7 +133,8 @@ export async function runNameCheckCatchup(
         ...(of === undefined ? {} : { p_of: of }),
       });
       if (mark.error) logRouteError(PATH, `name_check_mark: ${mark.error.message}`);
-      else if (mark.data === true) counts[state] += 1;
+      else if (mark.data === true) counts[state === "unusable" ? "unavailable" : state] += 1;
+      // J-1: the run keeps four figures; an unusable answer counts under unavailable (follow-up: its own count).
       // false: the name changed since it was read; the door already reset its row.
       if (pauseWith !== null) {
         const set = await admin.rpc("job_pause_set", { p_job: JOB, p_reason: pauseWith });
