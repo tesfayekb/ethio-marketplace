@@ -129,10 +129,7 @@ export function refused(
  * 400/422 the model refused the request, 401/403 the key refused, 429 rate limited; any other
  * 4xx is an outside answer that failed (502).
  */
-export function providerRefusal(
-  status: number,
-  extra?: Record<string, string | number>,
-): Response {
+export function providerRefusal(status: number, extra?: Record<string, string | number>): Response {
   if (status === 400) return clientError("modelRefused", 400, extra);
   if (status === 422) return refused("modelRefused", 422, extra);
   if (status === 401 || status === 403) return clientError("modelKeyRefused", status, extra);

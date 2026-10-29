@@ -55,7 +55,6 @@ function apiKey(): string {
   return (process.env["GOOGLE_TRANSLATE_API_KEY"] ?? "").trim();
 }
 
-
 /** One chunk of texts into one target language, masked, sent and restored. */
 export async function translateBatch(input: {
   target: string;

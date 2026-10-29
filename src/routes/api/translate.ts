@@ -232,7 +232,11 @@ export const Route = createFileRoute("/api/translate")({
             }
           }
 
-          return ok(flagRead === undefined ? { done, flagged, failed } : { done, flagged, flagRead, failed });
+          return ok(
+            flagRead === undefined
+              ? { done, flagged, failed }
+              : { done, flagged, flagRead, failed },
+          );
         },
       }),
       GET: defineRoute({
