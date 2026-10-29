@@ -16,26 +16,30 @@ export function pageHead<T extends Head>(
 ): T {
   return {
     ...head,
-    meta: head.meta?.map((meta) =>
-      meta.title
-        ? { ...meta, pageHead: [title, description, nameKey, name] satisfies Intent }
-        : meta,
-    ),
+    meta: head.meta?.map((meta) => {
+      if (!meta.title) return meta;
+      const copy = { ...meta };
+      Object.defineProperty(copy, "pageHead", {
+        value: [title, description, nameKey, name] satisfies Intent,
+        enumerable: false,
+      });
+      return copy;
+    }),
   };
 }
 
 /** One placeholder, not the future general-purpose translation/interpolation API (L-5). */
 export function fillOne(pattern: string, name: string): string {
-  return pattern.replaceAll("{name}", name);
+  return pattern.replaceAll("{name}", () => name);
 }
 
 export function headText(
-  meta: Array<Meta & { pageHead?: Intent }>,
+  meta: Array<(Meta & { pageHead?: Intent }) | undefined>,
   t: (key: MessageKey) => string,
 ) {
-  const title = meta.find((item) => item.title);
+  const title = meta.find((item) => item?.title);
   if (!title) return null;
-  const description = meta.find((item) => item.name === "description")?.content ?? "";
+  const description = meta.find((item) => item?.name === "description")?.content ?? "";
   const intent = title.pageHead;
   if (!intent) return { title: title.title ?? "", description };
   const [titleKey, descriptionKey, nameKey, rawName] = intent;
@@ -51,7 +55,7 @@ export function usePageHead() {
   const { t, appliedLanguage } = useI18n();
   const matches = useRouterState({ select: (state) => state.matches });
   useEffect(() => {
-    const match = [...matches].reverse().find((item) => item.meta?.some((meta) => meta.title));
+    const match = [...matches].reverse().find((item) => item.meta?.some((meta) => meta?.title));
     if (!match?.meta) return;
     const text = headText(match.meta, t);
     if (!text) return;
