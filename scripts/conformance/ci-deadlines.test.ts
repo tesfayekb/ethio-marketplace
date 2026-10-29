@@ -266,3 +266,39 @@ describe("every CI job and every outside call carries a deadline (INC-935)", () 
     }
   });
 });
+
+/**
+ * DEC-284 (INC-991) — THE TEMPORARY BACKEND'S PORTS SIT BELOW THE EPHEMERAL RANGE. Lane 3 of run
+ * 40854479197 lost its start to a connection the runner opened on 54324 at job start, before the
+ * reservation step could run (INC-935's class). Every `port`/`shadow_port` the CI-local config
+ * declares lies in 31320–31329, below Linux's ephemeral range (32768–60999).
+ */
+export const BACKEND_PORT_BLOCK = { low: 31320, high: 31329 } as const;
+const PORT_LINE = /^\s*(?:shadow_)?port\s*=\s*(\d+)\s*$/;
+
+/** Every config port outside the block, with its line. */
+export function portBlockFindings(file: string, text: string): string[] {
+  const out: string[] = [];
+  text.split("\n").forEach((line, i) => {
+    const m = PORT_LINE.exec(line);
+    if (!m) return;
+    const port = Number(m[1]);
+    if (port < BACKEND_PORT_BLOCK.low || port > BACKEND_PORT_BLOCK.high)
+      out.push(`${file}:${i + 1} backend port ${port} outside 31320-31329 (DEC-284)`);
+  });
+  return out;
+}
+
+describe("the temporary backend's ports sit below the ephemeral range (DEC-284)", () => {
+  const PROOF = ".github/workflows/local-backend-proof.yml";
+  it("CF-CID-3 every port the CI-local config declares is in 31320-31329, and there are four", () => {
+    const text = readFileSync(PROOF, "utf8");
+    expect(portBlockFindings(PROOF, text)).toEqual([]);
+    expect(text.split("\n").filter((l) => PORT_LINE.test(l))).toHaveLength(4);
+  });
+  it("CF-CID-4 a planted ephemeral-range port is named", () => {
+    expect(portBlockFindings("x.yml", "[db]\nport = 31322\nshadow_port = 54320\n")).toEqual([
+      "x.yml:3 backend port 54320 outside 31320-31329 (DEC-284)",
+    ]);
+  });
+});
