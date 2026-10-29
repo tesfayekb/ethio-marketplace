@@ -29,8 +29,8 @@ The brief in force: docs/governance/briefs/foundations-turn-d239.md (Foundations
 - [ ] Tie-break — when seller_public_previous_alias or my_seller_line is next redeclared, order releases by released_at DESC, then taken_at DESC, then the row id, so two releases in one transaction resolve the same way every time (N1b-2 stop 4 K2) — open, with the next redeclaration
 - [x] INC-977 N1b-3 — staff queue (listings:view + profiles:view), Clear (profiles:update + step-up), Rename; E2E; docs, register row, DEC wiring — closed in N1b-3c (register row 74)
 - [ ] caller-gates-allowlist.txt and a migration-healer fixture allowlist end without a final newline — the class that ran two acceptance lines together (run 40862076281); a form check per allowlist reader — open, K2 of N1b-3c
-- [ ] D239-1 — the account rule at session start (provider.tsx), the cross-tab star listener, fetchPreferredLanguage on ReaderError, LANG-D239-U1…U8, D239-E1…E6, docs — open, this turn
-- [ ] D237's gap — an open tab does not follow a star picked in another tab ("every tab follows") — closed by D239-1's storage listener
+- [~] D239-1 — the account rule at session start (provider.tsx), the cross-tab star listener, fetchPreferredLanguage on ReaderError, LANG-D239-U1…U8, D239-E1…E6, docs — open, this turn
+- [x] D237's gap — an open tab does not follow a star picked in another tab ("every tab follows") — closed by D239-1's storage listener
 - [ ] Allowlists without a final newline — the shared reading refuses them; done for acceptance-doors-allowlist.txt, the rest listed (caller-gates-allowlist.txt, the migration-healer fixture) — open, follow-up of N1b-3 (INC-993)
 - [ ] readNameCheckSummary throws the raw error and fills {n}/{date} with .replace — onto ReaderError and the t-values form with the open t(key, values) mechanism — open, follow-up of N1b-3
 - [ ] The queue's Owner column shows the account id — admin_name_check_list returns the owner's display name under profiles:view — open, follow-up of N1b-3
