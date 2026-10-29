@@ -16,7 +16,7 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  *   - a literal locale tag (`"am-ET"`, `"en-GB"`, `"en-US"` …);
  *   - the country-code shape `/^[A-Z]{2}$/` or the currency-code shape `/^[A-Z]{3}$/`;
  *   - (L-2 Part A) `Intl.DisplayNames` outside src/lib/country-name.ts, `Intl.Collator` outside
- *     src/lib/collator.ts, `Intl.Segmenter` anywhere, and — in src/ — a `localeCompare` with no
+ *     src/lib/collator.ts, `Intl.Segmenter` anywhere in src/ (tests may count graphemes as oracles), and a `localeCompare` with no
  *     locale argument (the runtime's default locale differs between server and browser: reader
  *     order is collatorFor, a fixed order compareNames, a machine order compareCodes).
  * A recorded exception is a line in format-allowlist.txt keyed `<file> (<findings>)` | reason | until.
@@ -53,6 +53,7 @@ export function formatFindings(files: string[], root: string): Finding[] {
       )
         found.push({ file: name, line: at(), what: `uses Intl.${node.name.text} ${RULE}` });
       else if (
+        name.startsWith("src/") &&
         ts.isPropertyAccessExpression(node) &&
         ts.isIdentifier(node.expression) &&
         node.expression.text === "Intl" &&
