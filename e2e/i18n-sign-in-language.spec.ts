@@ -121,11 +121,9 @@ test.describe("D239 — the account's language at sign-in", () => {
     await expect(tab.locator("html")).toHaveAttribute("lang", "am");
 
     await signIn(page, user.email, user.password);
-    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute(
-      "lang",
-      "en",
-      { timeout: 15000 },
-    );
+    await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "en", {
+      timeout: 15000,
+    });
     expect(await page.evaluate((k) => window.localStorage.getItem(k), STAR_KEY)).toBe("en");
     expect(await starCookie(page)).toBe("en");
     // The open tab follows the star (R4), without a reload.
