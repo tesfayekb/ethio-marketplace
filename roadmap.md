@@ -36,6 +36,7 @@ The brief in force: docs/governance/briefs/foundations-turn-l-2c-2.md (turn L-2c
 - [x] INC-997 — D239 put reader-failure on every page's first download — closed in CI-1 (loaded only when a read fails)
 - [x] INC-998 — eight unit tests fail in the sandbox and pass in CI (NH time zone; EXH-4/5/7/21, LL-1 timeouts) — closed in CI-2 (whole suite 2,216/2,216 in the sandbox)
 - [ ] Turn L-1 — INC-999 evidence excerpt (SXC-1…4) and format.ts/locale.ts with CF-FMT-1 (INC-985, INC-954 app copies)
+- [ ] L-2c Part A continuation — withdrawn at stop 2: shared layout exceeds 0.4 KiB on a page (max exact /admin/locations +0.5381); waits on the operator's weight ruling. Part 1 remains done.
 - [ ] Turn L-2 — page heads in the reader's language (INC-990), starting with its census of routes and keys
 - [ ] Turn L-5 — messages with values: `t(key, values)` for the 226 `.replace("{` sites
 - [ ] Later — the database collation for non-Latin names: prove compareNames (FIXED_ORDER_LOCALE) equals the server's ORDER BY for Amharic names (L-2 A3; needs the operator)
