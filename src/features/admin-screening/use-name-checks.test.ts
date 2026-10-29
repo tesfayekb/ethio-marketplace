@@ -86,7 +86,9 @@ describe("JHL-U the re-check's line", () => {
       ),
     ).toEqual({ kind: "noAnswer", sentAt: "2026-10-29T10:00:00Z" });
     expect(
-      jobLineOf(job({ last: run("ok"), paused: { reason: "credits", since: "2026-10-29T09:00:00Z" } })),
+      jobLineOf(
+        job({ last: run("ok"), paused: { reason: "credits", since: "2026-10-29T09:00:00Z" } }),
+      ),
     ).toEqual({ kind: "paused", reason: "credits", since: "2026-10-29T09:00:00Z" });
   });
 

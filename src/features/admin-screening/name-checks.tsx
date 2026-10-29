@@ -174,9 +174,7 @@ export function NameChecks({
 
   return (
     <section data-testid="admin-name-checks" className="min-w-0 space-y-3">
-      <h2 className="text-sm font-semibold text-foreground">
-        {t("admin.screening.names.title")}
-      </h2>
+      <h2 className="text-sm font-semibold text-foreground">{t("admin.screening.names.title")}</h2>
       <DataTable
         columns={visibleColumns(columns, hidden, LOCKED)}
         rows={query.data?.rows ?? []}
