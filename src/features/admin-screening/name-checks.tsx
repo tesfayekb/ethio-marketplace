@@ -59,16 +59,23 @@ const LOCKED = ["name"];
 export function NameChecks({
   mayList,
   mayClear,
+  mayViewJob,
+  mayResumeJob,
   guard,
-  onNotice,
 }: {
   /** listings:view — the list door's gate. */
   mayList: boolean;
   /** profiles:update — Allow's and Rename's gate. */
   mayClear: boolean;
+  /** services:view — the re-check job's line (INC-995: it sits with the names it checks). */
+  mayViewJob: boolean;
+  /** services:manage — Resume's gate. */
+  mayResumeJob: boolean;
   guard: GuardFn;
-  onNotice: (key: MessageKey, tone: "ok" | "error") => void;
 }) {
+  // INC-995 — this section's outcomes (Allow, Resume) are shown beside its own table (INC-570).
+  const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
+  const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });
   const { t, language } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -80,7 +87,7 @@ export function NameChecks({
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (!mayList) return null;
+  if (!mayList && !mayViewJob) return null;
 
   const when = new Intl.DateTimeFormat(formatLocale(language), {
     dateStyle: "short",
@@ -175,6 +182,21 @@ export function NameChecks({
   return (
     <section data-testid="admin-name-checks" className="min-w-0 space-y-3">
       <h2 className="text-sm font-semibold text-foreground">{t("admin.screening.names.title")}</h2>
+      <JobHealthLine
+        mayView={mayViewJob}
+        mayResume={mayResumeJob}
+        guard={guard}
+        onNotice={onNotice}
+      />
+      <ActionMessage
+        persistent
+        role="status"
+        testid="admin-name-checks-notice"
+        tone={notice?.tone === "error" ? "error" : "done"}
+        text={notice === null ? null : t(notice.key)}
+        className={notice?.tone === "error" ? undefined : "text-foreground"}
+      />
+      {mayList ? (
       <DataTable
         columns={visibleColumns(columns, hidden, LOCKED)}
         rows={query.data?.rows ?? []}
