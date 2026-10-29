@@ -1,180 +1,99 @@
-# Foundations turn N1b-3 — the staff queue for held seller names, the job's health, and two fixes first (INC-987, INC-989)
+# D239 — Signing in switches the site to the account's language (plan only)
 
-Base: dev 7a95706a. Plan only; nothing has been changed.
+Base: dev 9b8a8cdc. Tier A (the sign-in flow, Knowledge I5: the supervisor drafts the DEC from the facts below).
 
-## CI first
+## 0. CI first
 
-ci-evidence (read 10:0xZ) still names `3ee69785` as the newest completed run: SUCCESS, with no guard failure and no E2E failure. The run on `7a95706a` had not completed when I read it. The build reads it first: any red, including EXH-4/5 or AAN-1 in the unit job, goes ahead of Part A.
+- Newest completed run in ci-evidence: `e150cc6e`, FAILURE. Every job in ci-status.md passed except "E2E (Playwright, ethio-staging)". That job follows from the lanes, and its cause is Lane smoke (INC-993), which 9b8a8cdc fixes.
+- The run on 9b8a8cdc had not landed when this plan was written. The build's first step is to read it. Any red there is fixed at its root before D239 work starts.
 
-## Part A1 — INC-987: the search slot holds one search input
+## 1. Today's precedence (file:line)
 
-Census:
-- 20 files under src/ draw `TableToolbar`.
-- 15 of them pass `search=`. 14 pass one `Input`, or the page's own box (data-scope.tsx). One, `ai-calls.tsx:116–151`, passes two `NativeSelect` in a fragment.
-- The toolbar's search box (`table-toolbar.tsx:44–51`) is one `relative md:max-w-80` box with an absolute magnifier. That is why the two selects stack under it.
+The one mechanism is `I18nProvider` in `src/i18n/provider.tsx`.
 
-Fix:
-- `ai-calls.tsx`: the feature and outcome choices move into `FiltersButton`, with `FilterChips` under the toolbar, in the form `audit-page.tsx` uses.
-- The table has no text search, so its `search` slot is left empty. The chips' clear resets the keyset history (`setHistory([null])`), as the selects did.
+| What | Where | Read / write |
+|---|---|---|
+| Current choice ("last used") | localStorage `ethio.lang` (`LANGUAGE_STORAGE_KEY`, :40) | written by `setLanguage` :406–:420; read at boot :470–:476 |
+| Device star | localStorage `ethio.lang.star` + cookie `ethio_lang_star` (:53–:55) | `readDeviceStar` :77 (storage first, then cookie); `writeDeviceStar` :96–:108 |
+| Boot precedence | :455–:477 | URL override ▸ device star ▸ last used ▸ base |
+| Account `preferred_language` | `fetchPreferredLanguage` (`auth-service.ts` :705–:725, a `profiles` select) and `savePreferredLanguage` (:731–:746, the `user_set_preferred_language` RPC, publication-gated in the database) | read by the account-carry effect `provider.tsx` :492–:517; written only by `setStar` :436–:452 |
+| Account carry (U4h) | :492–:517 | runs once per user id (`carriedForRef`) and **only when there is no device star**: it applies the account's code and writes it as the device star |
+| Gate reconcile | :523–:540 | once the gate answers, an unpublished active language falls back to base, and an unpublished star is cleared |
+| Server first paint | `src/routes/__root.tsx` :163 (`getCookie(LANGUAGE_STAR_COOKIE)`), then `serverShellLanguage` | the cookie only |
+| Session identity | `useAuthIdentity` :264–:292 | `onAuthChange` mirrors `userId` with no Supabase call (I5) and settles on a macrotask hop |
 
-Guard T2b — the design choice:
-- **Chosen: an AST read** (the TypeScript compiler API, the way `kit.test.ts`'s `allowlistReaders` already reads calls). For every `<TableToolbar search={X}>`, X must be one JSX element, either `Input` or an identifier the census follows to the page's search-box prop. A fragment, `NativeSelect`, `Select`, or more than one element fails. Separately, any `NativeSelect` or `Select` inside a `TableToolbar`'s `search` or `columns` slot fails, with the rule "a choice that narrows the rows lives in Filters".
-- Cost to consumers: none. All 14 already pass. `data-scope.tsx`'s `search={search}` is followed to its prop type, or else it becomes one allowlist line with a reason and an until.
-- **Rejected: the toolbar owning its own search input by props** (`searchValue`, `onSearch`). It would change all 14 consumers and their tests, for the same protection.
-- The census is shown red on the planted current shape (a fragment of two selects) and on a planted lone select.
+What each way in does today:
+- **E-mail sign-in, sign-up, Google (OAuth return), the Telegram flow, magic and confirmation links (`verifyOtp`/`setSession`, `auth-service.ts` :537–:580), a session restored at reload, a token refresh:** none of them touch the language. Each fires an auth event, `userId` changes, and the carry effect runs once for that user id. A token refresh keeps the same id, so the latch makes it a no-op. Because the carry only fills a device with no star, an account's language **never** replaces a device that has a star (the U4h comment at `auth-service.ts` :696–:705).
+- **Picking a language (D237 / INC-851):** the menu pick calls `setStar`, which writes the star, the cookie and the current choice, and saves to the account when signed in. A signed-out pick goes as far as the RPC wrapper and comes back as "no session" with no write. **That is already the D239 rule.**
+- **An account with no language:** today nothing is saved. The carry reads `null` and returns. The account is written only by a pick. The brief's "the device's current choice is saved to the account, *as today*" does not match the code: that save is new behaviour, and it needs a ruling (Q1).
+- **Sign-out:** `userId` becomes `null` and the latch is released. The star, cookie and current choice stay, so the language does not change.
+- **Cross-tab:** the provider has no `storage` listener. `supabase-door.ts` :325 only loads the client when another tab signs in. An open tab keeps its language until it reloads. A new tab or a reload reads the star. **"every open tab follows" is not met today**, for a pick or for a sign-in.
+- **Staff impersonation:** `begin_impersonation` opens a read-only view for the staff member's own session (DEC-016; full view-as-user is still DEC-021, `en-admin.ts` :1966). No session is swapped and no auth event fires, so the staff member's device language does not change when the view starts or ends. The build re-checks this by reading the impersonation route before writing the test.
 
-Tests:
-- **TBS-1:** T2b passes over the tree.
-- **TBS-2:** the planted fragment and the planted select are refused.
-- **TBS-3:** the AI calls table filters by feature and outcome through Filters, its chips show, and clearing resets to the first page.
-- The existing admin-ai E2E locators (`ai-calls-feature`, `ai-calls-outcome`) move to the Filters panel. Those spec edits are in scope.
+## 2. The one change
 
-## Part A2 — INC-989: every table holding a person's id is reset or exempt
+D239 goes in **one place**: the account-carry effect (`provider.tsx` :492–:517), renamed in its comment to "the account rule (D239)". No sign-in door changes. Every door reaches the rule the way it does today: through the auth event, `userId`, then the effect.
 
-Census, read on prod:
-- **By definition, 23 tables.** 20 have a foreign key to auth.users or profiles. The column names `user_id`, `profile_id`, `seller_id` and `actor_id` add `audit_log`, `impersonation_sessions`, `listing_revisions`, `seller_notices` and `translator_languages`.
-- **Today's map:** 47 entries in `e2e/helpers/pool-reset-map.ts`.
-- **The gap:** `name_checks`. Its column, `profile_id`, matches neither today's column pattern in `src/test/pool-reset-map.test.ts` nor any foreign-key read, because the census reads only `types.ts`.
+The new rule, run once per signed-in user id, after the gate answers:
+1. Read the account's code (`fetchPreferredLanguage`).
+2. **The read failed** (no session, client did not load, error): keep the device's choice, log one named line, and change nothing. The page is never blank and never shows key names.
+3. **The code is set and on the gate's list:** call `setStar(code)` without the account save. That writes the star (localStorage + cookie) and the current choice, and switches the language. The device star no longer blocks the account (U4h's "star wins" is removed).
+4. **The code is set but not on the gate's list:** the device choice stays and the account is **not** written. The preference applies at the first sign-in after that language is published. This needs a new wait on `gateReady`; today the carry does not wait for the gate.
+5. **The code is null:** save the device's current language to the account (`savePreferredLanguage`), only if it is on the list. This is new behaviour; see Q1.
 
-Fix:
-- `name_checks` joins `POOL_RESET_TABLES` ("profile_id rows deleted; a held name never carries into a later lease"), and `reapPoolAccount()` deletes them.
-- The census is widened in two ways:
-  1. `profile_id` joins the column pattern.
-  2. A foreign-key reading: every table whose `Relationships` in `types.ts` reference `profiles` or `users`.
+**Session start only, or every restore?** Recommendation: **session start only**, meaning the first auth identity per page load and each new sign-in, under the existing user-id latch. A reload is a new page load, so it does apply. The reason: a reload re-reading the account would undo a signed-out pick made before the session was restored. That cannot happen while signed in, because a signed-in pick writes the account too. So a reload is safe, and a token refresh (same id, latch held) is excluded. Net effect: sign-in, sign-up, every link type, Google, Telegram and a reload all apply the rule; a token refresh never does.
 
-  Every table it finds is RESET or EXEMPT (EXEMPT lines keep their reason; new ones carry an until).
+**Cross-tab:** add one `storage` listener in the same provider for `ethio.lang.star`. When another tab writes the star, this tab calls `setLanguageState(code)` after the same shape and gate checks, with no account write. This makes D237's "every tab follows" literally true for picks and for D239 switches. No second mechanism is added.
 
-Tests:
-- **PRM-1:** the census finds `name_checks`.
-- **PRM-2:** a planted `Row` with a `profile_id` column, and a planted relationship to `profiles` under another column name, are both refused.
-- **PRM-3:** the reset clears a scratch `name_checks` row. This is a unit test on the reap statement list; the existing pool E2E runs it live.
+**No flash of the wrong language:**
+- Server first paint already renders from the star cookie. After a D239 switch the cookie is updated before any navigation, so the next server render is right.
+- On the in-page switch, the catalog loads through the existing `appliedLanguage` path (INC-872). `<html lang>` and the text change together once the catalog is in, so the page never shows mixed text.
+- The sign-in screen redirects after the event. To avoid one frame in the old language there, the redirect already waits on `authSettled`, and the rule runs in the same settle. The build measures this. If a frame of the old language is visible, we report it rather than hiding it.
 
-## Part B — the staff queue
+**The publication gate's list is the only allowlist:** shape check (`isLanguageCode`) plus `isPublic`. The database function stays the authority on writes. Oromo, Tigrinya or any later language joins through the gate's rows, with no code change.
 
-### Who sees what
+## 3. Tests (ids grep-checked free at build; proposed `LANG-D239-*` for units, `D239-E*` for E2E)
 
-| Part | Gate |
-| --- | --- |
-| Queue list (`admin_name_check_list`) | `listings:view`; the name and the model's `of` only with `profiles:view` as well (otherwise null, and the row says "name hidden") |
-| Clear (`admin_name_check_clear`) | `profiles:update` + fresh step-up (`step_up_if_needed('profiles','update')`), the same as Rename |
-| Rename | existing `admin_update_profile`; staff names land clean, and M3b stamps the outgoing name `imitates` |
-| Job health (`admin_job_health`) | `services:view` (the AI page's read gate) |
-| Resume (`admin_job_resume`) | `services:manage` — the gate of `admin_set_ai_feature`, the AI switch's door |
+Unit (provider, with the auth/door modules mocked):
+- U1 account `en`, device star `am`, gate has both → switch to `en`, star and cookie written, no account save.
+- U2 account null → device language saved once to the account (if Q1 is yes).
+- U3 account code unpublished → device kept, **no** save call (refusal: asserts the RPC mock was not called).
+- U4 a failed account read → device kept, one warn line, no save.
+- U5 a token refresh (same id) → no second read.
+- U6 sign-out → language and star unchanged.
+- U7 another tab's star `storage` event → the language follows, with no account save.
+- U8 a signed-out pick → `savePreferredLanguage` returns "no session"; refusal test that no RPC was sent.
 
-### A row in the queue
+E2E (`bun run e2e:local`, both projects, whole file, 0 retries, pool accounts, restored in afterEach):
+- E1 device `am`, account `en` → sign in → `en`; the cookie reads `en`; a second open tab follows.
+- E2 an account with no language takes the device's (the DB row reads the device code).
+- E3 a signed-out pick leaves the account alone (a DB read proves the row did not change).
+- E4 an unpublished account preference is ignored and kept (seeded through the service door, reverted in afterEach).
+- E5 sign-out keeps the current language.
+- E6 impersonation: start and end the view; the staff member's language and star do not change.
 
-The queue is a new section in Admin › Screening, `src/features/admin-screening/name-checks.tsx`, beside `photo-reviews.tsx`. It uses DataTable keyset mode, TableToolbar, ColumnsButton and RowActions. Each row shows:
-- the name;
-- since;
-- attempts;
-- the owner, as a link to `/admin/users/$userId`;
-- "Model said it imitates: <of>" as plain text, never HTML or a link (G54 b).
+E4 and E6 may hit J6 (gate rows are global to the backend). If so, they run in desktop-1280 only, as N1b-3's Resume does, stated for ruling.
 
-Row actions are Clear (step-up gated) and Rename (a link to the user page's existing editor). Only `imitates` rows are listed, ordered by `since`, then `profile_id`.
+## 4. DEC facts (for the supervisor's draft)
 
-### Keeping the model's `of`
+- **Changes:** at session start, the account's published `preferred_language` overrides the device star. Today the star wins (U4h). An account with no language receives the device's. A token refresh never re-applies. Open tabs follow a star change.
+- **Why:** operator D239. One person, one language across devices.
+- **Cost:** one `profiles` read per session start. It already happens today when there is no star; with D239 it happens on every sign-in. No first-paint round trip is added: the server still reads only the cookie. A person who picks a language on a shared device and then signs into an account with a different saved language will see the account's language. That is intended.
+- **Security:** values are closed-list codes (shape + gate) in the cookie, storage and the account. The database function refuses unpublished codes. Nothing from the URL is written to the account: the URL override stays view-only. No new grant, migration or RPC. The cookie still carries only a code (`SameSite=Lax`).
 
-- New column `name_checks.imitates_of text NULL`, with `CHECK (char_length(imitates_of) <= 80)`.
-- Only `name_check_mark` writes it. The function is redeclared whole as `name_check_mark(p_profile, p_subject, p_text, p_state, p_of text DEFAULT NULL)`. A DROP and CREATE is needed because the argument list changes; the closers are restated (service-only).
-- It is set only with `imitates`, cleared on `clean` and `unchecked`, and left unchanged on `unavailable`. Every door that resets a check row to `unchecked` (`save_posting_identity`, `admin_update_profile`) also nulls it — through a trigger on `name_checks`, not by redeclaring the two writers.
-- The catch-up (`src/server/jobs/name-check-catchup.ts:121`) passes `answer.of`.
-- **Rows from before this turn:** none are held today (0 rows read on prod). A held row without `of` shows "No reason recorded", a new key; never blank, never "0".
+## 5. Conflicts, K2, sizing
 
-### The job's health line
+Conflicts:
+- U4h's precedence comment (`auth-service.ts` :696–:705, `provider.tsx` :455–:458 and :479–:491) is rewritten; the DEC must name it.
+- **Q1:** "save the device's choice when the account has none, as today" is new, not today's behaviour. It needs a yes/no.
+- I5: the rule's read still runs after the macrotask hop, never inside the auth callback. That is unchanged.
+- Knowledge v3.12 has not been read. The project knowledge in context is v3.11; a v3.12 conflict check is owed at build.
 
-- One read, `admin_job_health(p_job)`, uses the index `job_runs_job_started_idx` for the newest row, plus `job_pauses` by its primary key. It answers:
-  - the last outcome and its time;
-  - `dispatched_unclaimed` when the newest row is `dispatched`, has no `claimed_at`, and `started_at` is more than 2 minutes old;
-  - the pause's reason and since.
-- **Lines:**
-  - "Last run: <outcome>, <time>";
-  - "The site did not answer (sent <time>)";
-  - "Paused: <reason> since <time>", with a Resume action;
-  - "Not set up yet" for `not_configured`;
-  - an error line when the read fails, never "healthy".
-- Resume calls `admin_job_resume(p_job)`. It is gated by `services:manage`, calls `job_pause_clear` inside itself (the service door stays service-only), and audits `job.resumed` with the old reason.
-- The health door takes its job by parameter, from the `job_runs` CHECK list, so the next scheduled job needs no new door.
+K2:
+- The cross-tab gap predates D239 (D237 said every tab follows). It is fixed in the same place.
+- `fetchPreferredLanguage` returns `reason` strings rather than a typed `ReaderError` (constitution: a reader's door error is a typed `ReaderError`). Proposed as part of this turn, because it is the rule's input.
 
-### Clear
+Sizing (G37), one turn, no migration:
+- D239-1: CI first, the rule, the storage listener, units, E2E, docs (feature doc, changelog, register row), i18n maps (no new strings expected).
 
-`admin_name_check_clear(p_profile, p_subject, p_text, p_reason)`. The order is gates → capture → mutate (F5):
-1. permission;
-2. step-up;
-3. the row is `imitates` and `checked_text = lower(btrim(p_text))`. Otherwise the answer is `stale` and nothing is written.
-4. Set `clean`, null `imitates_of`, and audit `name_check.cleared` (old state and `of`, new state, reason).
-
-Afterwards the public reads show the name again through `seller_public_alias`, with no other change.
-
-## Migrations (each its own stop; guard OK line pasted before each apply; no trial on ethio-prod)
-
-| | Contents | Size estimate |
-| --- | --- | --- |
-| M1 | `imitates_of` column + CHECK; trigger nulling it on any state other than imitates/unavailable; `name_check_mark` redeclared | ~7 KB |
-| M2 | `admin_name_check_list` + `admin_name_check_clear` (+ audit action registered, `admin.audit.action.*` keys) | ~10 KB |
-| M3 | `admin_job_health` + `admin_job_resume` | ~6 KB |
-
-- Each new function restates `REVOKE ALL FROM PUBLIC, anon`, `GRANT EXECUTE TO authenticated`, `GRANT ALL TO service_role`.
-- Each grant to `authenticated` gets its line in `scripts/public-surface-allowlist.txt`. Each new staff door gets its seller-names allowlist line (SPA-10a), with a reason.
-- Proofs run on their own scratch user and profile rows (the legacy mixed-case shape included), with mutation and readback in separate statements, raising on failure, rolled back whole. A whole-table read uses the id-scoped form. No proof assumes the Vault is empty or calls `job_call`, and job proofs use their own scratch job rows by id.
-- Marks are chosen at apply time.
-
-## Tests (ids grep-checked free: NCQ-, JHL-, TBS-, PRM-)
-
-**NCQ — the queue doors** (SQL proofs; refusal proofs read back that nothing changed):
-- NCQ-1: without `listings:view`, no list.
-- NCQ-2: without `profiles:view`, name and `of` are null.
-- NCQ-3: Clear without step-up is refused; state, audit and public read are unchanged.
-- NCQ-4: Clear with stale text answers `stale`; nothing changes.
-- NCQ-5: Clear restores the name on `public_listing_json` and `seller_feed_page`, and audits.
-- NCQ-6: Rename through `admin_update_profile` lands clean and the history row is stamped `imitates`.
-- NCQ-7: `of` is bounded at 80, written only with `imitates`, and nulled on reset.
-- NCQ-8: `name_check_mark`'s ACL stays service-only.
-
-**JHL — the job health doors** (SQL proofs):
-- JHL-1…5: each health state — last run, unclaimed after 2 minutes, paused, not configured, no rows.
-- JHL-6: Resume clears the pause and audits.
-- JHL-7: Resume without `services:manage` is refused and the pause remains.
-
-**Unit tests:**
-- The queue section shows a failed read as an error, never "none".
-- The health line's error never says healthy.
-- `of` is drawn as text.
-- The catch-up passes `of`.
-
-**E2E:** `e2e/name-check-queue.spec.ts`, both projects:
-- Clear: the hold is made through service `name_check_mark`; staff Clear under step-up; the ad shows the name again.
-- Rename: the same hold; staff Rename; the new name shows.
-
-Each spec restores its row in afterEach.
-
-## Strings (new keys; the supervisor sends EN/AM)
-
-`admin.screening.names.title`, `.help`, `.col.name`, `.col.since`, `.col.attempts`, `.col.owner`, `.col.imitates`, `.noReason`, `.nameHidden`, `.empty`, `.error`, `.clear`, `.clearHelp`, `.cleared`, `.stale`, `.rename`, `admin.screening.job.title`, `.lastRun`, `.outcome.<ok|failed|not_configured|paused|...>` (one per CHECK value), `.notAnswered`, `.paused`, `.notSetUp`, `.error`, `.resume`, `.resumed`, `admin.audit.action.name_check.cleared`, `admin.audit.action.job.resumed`, `admin.roles.perm.*` (none new: the existing permissions are reused). The AI table's filters reuse existing keys.
-
-## K2
-
-- **Business name (D222):** still not re-checked. The doors take `p_subject`.
-- **INC-990:** English literals in the seller head. Roadmap line, with INC-985.
-- **Duplicated status-note form:** `my-listing-info` and `SellerReviewNotice` share the plain-text note form with no primitive. Records turn.
-- **`seller_name_sweep`** (the older SQL sweep) still exists beside the catch-up; reported, not touched.
-- **Audit filters:** `admin_list_audit` facets need the two new actions; they are listed in M2.
-
-## Conflicts
-
-- **Wording:** none with Knowledge v3.12 or AGENTS.md.
-- **`name_check_mark`:** it takes a DROP+CREATE because its argument list grows. E2 allows this for a changed shape; the brief's "no DROP" in N1b-2 applied to unchanged lists. This needs the supervisor's word.
-- **Platform:** the step-up depends on the existing MFA flow, with no change.
-
-## DEC facts (staff decision on an AI verdict about a person)
-
-- A model verdict alone only hides a name. Showing it again or replacing it needs a person holding `profiles:update`, under a fresh step-up, audited with the model's stated reason.
-- The model's text is kept bounded (80 characters) and is shown to staff with `profiles:view` only, as text.
-- Resuming the job is a services decision, audited.
-
-## Sizing (G37)
-
-- N1b-3a: CI reds (if any), A1, A2.
-- N1b-3b: M1, M2, M3, each a stop.
-- N1b-3c: the UI section, health line, catch-up `of`, tests, E2E, docs, register, report.
-
-**Estimate:** 3 turns plus 3 migration stops. Band: 3–5 sessions. The risk is the step-up E2E and the T2b AST read.
+ESTIMATE: 1 turn (band 1–2). It becomes 2 if E2E multi-tab or impersonation needs harness work.
