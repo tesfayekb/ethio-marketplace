@@ -33,8 +33,15 @@ function rowIn(page: Page, profileId: string): Locator {
     : section.getByRole("table").getByTestId(`admin-name-check-${profileId}`);
 }
 
+/** The row's three-dots: in a phone card it sits in the card's box (`<row>-actions`), beside `-card`. */
 async function chooseInRow(page: Page, profileId: string, key: "allow" | "rename") {
-  const row = rowIn(page, profileId);
+  const cards = (page.viewportSize()?.width ?? 1280) < 1024;
+  const row = cards
+    ? page
+        .getByTestId("admin-name-checks")
+        .getByTestId("data-table-cards")
+        .getByTestId(`admin-name-check-${profileId}-actions`)
+    : rowIn(page, profileId);
   await row.getByTestId(`admin-name-check-${profileId}-actions-more`).click();
   await page.getByTestId(`admin-name-check-${profileId}-actions-more-${key}`).click();
 }
