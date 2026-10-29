@@ -109,8 +109,13 @@ export async function runNameCheckCatchup(
       }
       counts.asked += 1;
       let state: "clean" | "imitates" | "unavailable";
+      // N1b-3 (R3): what the model says the name imitates, kept on the hold only
+      // (name_checks' CHECK refuses it on any other state; the door bounds it to 80).
+      let of: string | undefined;
       if (answer.ok) {
         state = answer.value.imitates === true ? "imitates" : "clean";
+        const said = answer.value.of?.trim();
+        if (state === "imitates" && said) of = said;
       } else {
         state = "unavailable";
         const status = answer.reason === "providerError" ? answer.status : undefined;
@@ -123,6 +128,7 @@ export async function runNameCheckCatchup(
         p_subject: row.subject,
         p_text: row.checked_text,
         p_state: state,
+        ...(of === undefined ? {} : { p_of: of }),
       });
       if (mark.error) logRouteError(PATH, `name_check_mark: ${mark.error.message}`);
       else if (mark.data === true) counts[state] += 1;

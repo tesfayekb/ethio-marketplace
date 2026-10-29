@@ -92,6 +92,24 @@ if (process.env["SELF_TEST"] === "1") {
   for (const failure of result.failures)
     console.log(`Acceptance-doors self-test refused: ${failure}`);
   console.log("Acceptance-doors self-test OK: all three bad fixture functions refused");
+  // The real allowance's own form, judged without a database (the smoke lane
+  // was the first to see two lines run together in run 40862076281).
+  const real = readFileSync("scripts/acceptance-doors-allowlist.txt", "utf8");
+  const formFailures: string[] = [];
+  if (real.length && !real.endsWith("\n")) formFailures.push("allowlist: no final newline");
+  for (const line of real.split(/\r?\n/)) {
+    if (!line.trim() || line.trimStart().startsWith("#")) continue;
+    const parts = line.split("|").map((part) => part.trim());
+    if (parts.length !== 3 || !parts[0] || !parts[2])
+      formFailures.push(`${parts[0] ?? "allowlist"}: malformed allowance`);
+    else if (!classes.some((name) => name === parts[1]))
+      formFailures.push(`${parts[0]}: unknown class ${parts[1]}`);
+  }
+  if (formFailures.length) {
+    for (const failure of formFailures) console.error(`Acceptance-doors guard FAIL: ${failure}`);
+    process.exit(1);
+  }
+  console.log("Acceptance-doors self-test OK: the real allowance is well formed");
 } else {
   const path = process.argv[2];
   if (!path) throw new Error("Acceptance-doors guard requires a catalogue TSV path");

@@ -128,8 +128,13 @@ export const AREAS: Area[] = [
   },
   {
     name: "admin-screening",
-    src: ["src/routes/admin.screening.tsx", "src/features/admin-screening/**"],
-    specs: ["e2e/admin-screening.spec.ts"],
+    // N1b-3c (INC-977) — the held names' queue and the re-check's line live on this page.
+    src: [
+      "src/routes/admin.screening.tsx",
+      "src/features/admin-screening/**",
+      "src/server/jobs/**",
+    ],
+    specs: ["e2e/admin-screening.spec.ts", "e2e/name-check-queue.spec.ts"],
   },
   {
     name: "admin-listings",

@@ -66,6 +66,7 @@ export const SECTIONS: Record<string, string> = {
   "src/features/admin-ai/ai-calls.tsx": "src/features/admin-ai/ai-page.tsx",
   "src/features/admin/translations/data-scope.tsx":
     "src/features/admin/translations/strings-page.tsx",
+  "src/features/admin-screening/name-checks.tsx": "src/features/admin-screening/screening-page.tsx",
 };
 
 /** Files whose toolbar search slot is the page's own box, handed down by name: file → reason. */

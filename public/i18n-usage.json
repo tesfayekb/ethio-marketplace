@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 612,
-  "dynamicCallSites": 401,
+  "scanned": 615,
+  "dynamicCallSites": 403,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3735,6 +3735,27 @@
     "admin.screening.empty": [
       "/admin/screening"
     ],
+    "admin.screening.job.action.resume": [
+      "/admin/screening"
+    ],
+    "admin.screening.job.error": [
+      "/admin/screening"
+    ],
+    "admin.screening.job.lastRun": [
+      "/admin/screening"
+    ],
+    "admin.screening.job.noAnswer": [
+      "/admin/screening"
+    ],
+    "admin.screening.job.notConfigured": [
+      "/admin/screening"
+    ],
+    "admin.screening.job.paused": [
+      "/admin/screening"
+    ],
+    "admin.screening.job.title": [
+      "/admin/screening"
+    ],
     "admin.screening.nameChecks.error": [
       "/admin/screening"
     ],
@@ -3742,6 +3763,54 @@
       "/admin/screening"
     ],
     "admin.screening.nameChecks.waiting": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.action.clear": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.action.rename": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.clear.body": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.clear.reason": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.clear.reasonHelp": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.clear.title": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.col.attempts": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.col.name": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.col.owner": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.col.since": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.empty": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.error": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.nameHidden": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.noReason": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.of": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.title": [
       "/admin/screening"
     ],
     "admin.screening.open": [

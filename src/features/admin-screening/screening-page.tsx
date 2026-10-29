@@ -42,6 +42,8 @@ import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 
+import { JobHealthLine } from "./job-line";
+import { NameChecks } from "./name-checks";
 import { PhotoChanges } from "./photo-changes";
 import { PhotoReviews } from "./photo-reviews";
 import { useWarnedListings } from "./use-photo-changes";
@@ -119,6 +121,10 @@ export function AdminScreeningPage({
   const mayEnforce = permissions.includes("listings:enforce");
   /** D169 — the preview links to the ad's own page in Admin › Listings, where Edit removes a photo. */
   const mayOpenListing = permissions.includes("listings:view");
+  // N1b-3c (INC-977) — the held names' queue and the re-check's line; each door re-checks (F3).
+  const mayRename = permissions.includes("profiles:update");
+  const mayViewJob = permissions.includes("services:view");
+  const mayResumeJob = permissions.includes("services:manage");
   const section = sectionById("screening");
   const queryClient = useQueryClient();
   const markets = useOpenMarkets();
@@ -463,6 +469,12 @@ export function AdminScreeningPage({
                           .replace("{date}", dayFmt.format(new Date(nameChecks.data.oldestSince)))}
                 </p>
               )}
+              <JobHealthLine
+                mayView={mayViewJob}
+                mayResume={mayResumeJob}
+                guard={guard}
+                onNotice={(key, tone) => setNotice({ key, tone })}
+              />
             </div>
 
             {/* INC-570 — the outcome of a decision comes into view wherever the row was. */}
@@ -642,6 +654,14 @@ export function AdminScreeningPage({
             {/* Bundle 16 turn 4b (D178) — the photos kept hidden for a person. */}
             <PhotoReviews
               mayReview={mayReview}
+              guard={guard}
+              onNotice={(key, tone) => setNotice({ key, tone })}
+            />
+
+            {/* N1b-3c (INC-977) — the seller names held for review. */}
+            <NameChecks
+              mayList={mayOpenListing}
+              mayClear={mayRename}
               guard={guard}
               onNotice={(key, tone) => setNotice({ key, tone })}
             />
