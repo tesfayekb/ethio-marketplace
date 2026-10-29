@@ -15,9 +15,7 @@ export function UserLegalCard({ userId }: { userId: string }) {
   const history = useUserLegalHistory(userId);
   const countries = useCountries();
   const date = (value?: string) =>
-    value
-      ? dateFormatter("dayTimeZone", language).format(new Date(value))
-      : "—";
+    value ? dateFormatter("dayTimeZone", language).format(new Date(value)) : "—";
   const caption = (row: LegalHistoryRow) => {
     const key = kindKey(row.kind);
     return `${key ? t(key) : row.kind} · ${row.country_code ? (countries.data?.find((c) => c.code === row.country_code)?.nameEn ?? row.country_code) : t("admin.legal.scope.global")} · ${t("admin.legal.version").replace("{n}", String(row.version))}${row.label ? ` · ${row.label}` : ""}`;

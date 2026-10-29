@@ -65,9 +65,7 @@ export function LegalPage() {
   const [reviewSaved, setReviewSaved] = useState(false);
   const now = Date.now();
   const date = (value: string | null) =>
-    value
-      ? dateFormatter("day", language).format(new Date(value))
-      : "—";
+    value ? dateFormatter("day", language).format(new Date(value)) : "—";
   const scope = (code: string | null) =>
     code
       ? (countries.data?.find((c) => c.code === code)?.nameEn ?? code)

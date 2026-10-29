@@ -20,7 +20,8 @@ export function relativeTime(iso: string, language: string): string {
   if (Number.isNaN(then)) return "";
   const seconds = Math.round((then - Date.now()) / 1000);
   for (const [unit, size] of UNITS) {
-    if (Math.abs(seconds) >= size) return formatRelative(Math.round(seconds / size), unit, language);
+    if (Math.abs(seconds) >= size)
+      return formatRelative(Math.round(seconds / size), unit, language);
   }
   return formatRelative(Math.round(seconds), "second", language);
 }

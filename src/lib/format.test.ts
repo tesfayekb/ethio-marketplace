@@ -21,7 +21,14 @@ describe("formatters by intent (INC-985)", () => {
   });
 
   it("FMT-3 Amharic writes the month in full, never the cut CLDR short month", () => {
-    for (const intent of ["day", "dayFull", "dayMonth", "dayTime", "dayTimeZone", "monthYear"] as const) {
+    for (const intent of [
+      "day",
+      "dayFull",
+      "dayMonth",
+      "dayTime",
+      "dayTimeZone",
+      "monthYear",
+    ] as const) {
       const text = formatDate(intent, OCTOBER, "am", "UTC");
       expect(text, intent).toContain("ኦክቶበር");
       expect(`${text} `, intent).not.toMatch(/ኦክቶ /);
@@ -49,7 +56,9 @@ describe("formatters by intent (INC-985)", () => {
   it("FMT-7 an unknown or malformed language formats in English", () => {
     expect(formatDate("day", OCTOBER, "zz-not-a-tag!", "UTC")).toBe("29 Oct 2026");
     expect(formatRelative(-1, "day", "!!")).toBe("yesterday");
-    expect(formatRelative(-1, "day", "am")).toBe(new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(-1, "day"));
+    expect(formatRelative(-1, "day", "am")).toBe(
+      new Intl.RelativeTimeFormat("am", { numeric: "auto" }).format(-1, "day"),
+    );
   });
 
   it("FMT-8 one cached instance per intent and resolved locale", () => {

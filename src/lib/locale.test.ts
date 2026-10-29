@@ -6,7 +6,8 @@ import { isCountryCode, isCurrencyCode, localeTagOf } from "./locale";
 describe("locale constants (K4)", () => {
   it("LCL-1 a country code is two capital letters, nothing else", () => {
     expect(isCountryCode("ET")).toBe(true);
-    for (const bad of ["et", "ETH", "E", "", " ET", 12, null, undefined]) expect(isCountryCode(bad)).toBe(false);
+    for (const bad of ["et", "ETH", "E", "", " ET", 12, null, undefined])
+      expect(isCountryCode(bad)).toBe(false);
   });
 
   it("LCL-2 a currency code is three capital letters, nothing else", () => {

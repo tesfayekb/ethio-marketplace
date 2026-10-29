@@ -96,7 +96,5 @@ export function signedInOnlyKind(kind: string): boolean {
 /** The root passes raw search through; only distinct uppercase country codes reach the door. */
 export function shapedCountries(value: unknown): string[] {
   const values = typeof value === "string" ? value.split(",") : Array.isArray(value) ? value : [];
-  return [
-    ...new Set(values.filter((v): v is string => isCountryCode(v))),
-  ].slice(0, 5);
+  return [...new Set(values.filter((v): v is string => isCountryCode(v)))].slice(0, 5);
 }

@@ -200,11 +200,7 @@ export function MyListingsPage() {
   );
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
   const day = (iso: string | null) =>
-    iso === null
-      ? ""
-      : dateFormatter("day", language).format(
-          new Date(iso),
-        );
+    iso === null ? "" : dateFormatter("day", language).format(new Date(iso));
   const tableDay = (iso: string | null) =>
     iso === null ? (
       <span className="text-muted-foreground">—</span>

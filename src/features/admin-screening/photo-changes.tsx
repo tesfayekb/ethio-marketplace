@@ -55,8 +55,7 @@ export function PhotoChanges({ mayReview, guard }: { mayReview: boolean; guard: 
 
   if (!mayReview) return null;
 
-  const when = (iso: string) =>
-    dateFormatter("dayTimeNumeric", language).format(new Date(iso));
+  const when = (iso: string) => dateFormatter("dayTimeNumeric", language).format(new Date(iso));
 
   const review = async (row: PhotoChange) => {
     setBusy(row.id);

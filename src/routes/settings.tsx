@@ -419,11 +419,7 @@ function SettingsScreen() {
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.memberSince")}</dt>
               <dd className="text-foreground">
-                {memberSince
-                  ? dateFormatter("day", language).format(
-                      new Date(memberSince),
-                    )
-                  : "—"}
+                {memberSince ? dateFormatter("day", language).format(new Date(memberSince)) : "—"}
               </dd>
             </div>
           </dl>

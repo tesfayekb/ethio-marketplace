@@ -42,8 +42,7 @@ export function JobHealthLine({
 
   if (!mayView || health.isLoading) return null;
 
-  const when = (iso: string) =>
-    dateFormatter("dayTimeNumeric", language).format(new Date(iso));
+  const when = (iso: string) => dateFormatter("dayTimeNumeric", language).format(new Date(iso));
 
   const sentence = (line: JobLine): string => {
     switch (line.kind) {

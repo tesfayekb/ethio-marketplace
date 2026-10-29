@@ -171,8 +171,7 @@ export function AdminScreeningPage({
   const named = (value: ScreeningRow["category"]) =>
     value === null ? "—" : catalogText(value.name_en, value.name_am, language);
 
-  const sentAt = (iso: string) =>
-    dateFormatter("dayTimeNumeric", language).format(new Date(iso));
+  const sentAt = (iso: string) => dateFormatter("dayTimeNumeric", language).format(new Date(iso));
 
   const marketName = (code: string) => {
     const market = markets.markets.find((m) => m.code === code);

@@ -170,9 +170,7 @@ export function LegalVersionView({
     return fact === null || (fact !== undefined && String(fact).trim() === "");
   });
   const date = (value: string | null) =>
-    value
-      ? dateFormatter("day", language).format(new Date(value))
-      : "—";
+    value ? dateFormatter("day", language).format(new Date(value)) : "—";
   return (
     <StepUpGate>
       {(guard) => (

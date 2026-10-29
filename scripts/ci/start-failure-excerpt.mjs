@@ -22,7 +22,8 @@ export const CAUSE_LINES = 40;
 export const ECHO_LINES = 10;
 export const TAIL_LINES = 20;
 
-const CAUSE = /^\s*(?:(?:ERROR|FATAL|PANIC|SQLSTATE|DETAIL|HINT|CONTEXT|QUERY)\b\s*:?|LINE \d+:)|\(SQLSTATE [0-9A-Z]{5}\)/i;
+const CAUSE =
+  /^\s*(?:(?:ERROR|FATAL|PANIC|SQLSTATE|DETAIL|HINT|CONTEXT|QUERY)\b\s*:?|LINE \d+:)|\(SQLSTATE [0-9A-Z]{5}\)/i;
 const STATEMENT = /^At statement:? \d+\s*$/;
 const DEBUG_HINT = /^Try rerunning the command with --debug/;
 

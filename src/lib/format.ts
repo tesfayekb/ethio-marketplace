@@ -48,8 +48,14 @@ const DATE_INTENTS: Record<DateIntent, readonly [Options, Options]> = {
     { day: "numeric", month: "short" },
     { day: "numeric", month: "long" },
   ],
-  dayTime: [{ dateStyle: "medium", timeStyle: "short" }, { ...LONG_DAY, ...MINUTE }],
-  dayTimeNumeric: [{ dateStyle: "short", timeStyle: "short" }, { ...NUMERIC_DAY, ...MINUTE }],
+  dayTime: [
+    { dateStyle: "medium", timeStyle: "short" },
+    { ...LONG_DAY, ...MINUTE },
+  ],
+  dayTimeNumeric: [
+    { dateStyle: "short", timeStyle: "short" },
+    { ...NUMERIC_DAY, ...MINUTE },
+  ],
   moment: [
     { dateStyle: "short", timeStyle: "medium" },
     { ...NUMERIC_DAY, ...MINUTE, second: "2-digit" },

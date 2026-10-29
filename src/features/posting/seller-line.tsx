@@ -35,9 +35,7 @@ export function SellerLine({
   const sinceText =
     since === null || Number.isNaN(since.getTime())
       ? null
-      : dateFormatter("monthYear", language).format(
-          since,
-        );
+      : dateFormatter("monthYear", language).format(since);
   return (
     <>
       {/* N1b-2c (INC-977, SPA-8) — a name missing from the data (held, or never given)

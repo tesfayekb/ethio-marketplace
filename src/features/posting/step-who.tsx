@@ -98,9 +98,7 @@ type AliasState = "idle" | "checking" | "ok" | "refused";
 /** A door timestamp as a day in the reader's language; the raw value if unreadable. */
 function formatDay(value: string, lang: string): string {
   const date = new Date(value);
-  return Number.isNaN(date.getTime())
-    ? value
-    : dateFormatter("day", lang).format(date);
+  return Number.isNaN(date.getTime()) ? value : dateFormatter("day", lang).format(date);
 }
 
 function channelOf(
@@ -934,7 +932,9 @@ export function StepWho({
                     lineFacts.correctionUntil !== null &&
                     new Date(lineFacts.correctionUntil).getTime() > Date.now()
                   ? fill(t("post.who.aliasCorrectionWindow"), {
-                      when: dateFormatter("dayTime", language).format(new Date(lineFacts.correctionUntil)),
+                      when: dateFormatter("dayTime", language).format(
+                        new Date(lineFacts.correctionUntil),
+                      ),
                     })
                   : lineFacts !== null && lineFacts.nextChangeAt !== null
                     ? fill(t("post.who.aliasNextChange"), {

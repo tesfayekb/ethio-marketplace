@@ -52,7 +52,10 @@ export function formatFindings(files: string[], root: string): Finding[] {
         LOCALE_TAG.test(node.text)
       )
         found.push({ file: name, line: at(), what: `names the locale tag "${node.text}" ${RULE}` });
-      else if (node.kind === ts.SyntaxKind.RegularExpressionLiteral && CODE_SHAPE.test(node.getText(source)))
+      else if (
+        node.kind === ts.SyntaxKind.RegularExpressionLiteral &&
+        CODE_SHAPE.test(node.getText(source))
+      )
         found.push({ file: name, line: at(), what: `re-declares a code's shape ${RULE}` });
     });
   }

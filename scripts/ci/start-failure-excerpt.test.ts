@@ -34,7 +34,9 @@ export function inlineFailureCuts(dir: string): string[] {
       .split("\n")
       .forEach((line, index) => {
         if (INLINE_CUT.test(line) && FAILURE_LOG.test(line) && !THROUGH_MECHANISM.test(line))
-          found.push(`${name}:${index + 1} cuts a failure log inline; use scripts/ci/start-failure-excerpt.mjs`);
+          found.push(
+            `${name}:${index + 1} cuts a failure log inline; use scripts/ci/start-failure-excerpt.mjs`,
+          );
       });
   }
   return found;

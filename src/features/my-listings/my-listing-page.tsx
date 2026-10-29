@@ -264,13 +264,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const unitLabels = usePriceUnitLabels(row !== null && row.priceUnit !== null);
 
   const day = (iso: string | null) =>
-    iso === null
-      ? ""
-      : dateFormatter("day", language).format(
-          new Date(iso),
-        );
-  const moment = (iso: string) =>
-    dateFormatter("dayTime", language).format(new Date(iso));
+    iso === null ? "" : dateFormatter("day", language).format(new Date(iso));
+  const moment = (iso: string) => dateFormatter("dayTime", language).format(new Date(iso));
 
   const reload = async () => {
     await refreshAfterWrite(queryClient, { queryKey: adKey(listingId) });
