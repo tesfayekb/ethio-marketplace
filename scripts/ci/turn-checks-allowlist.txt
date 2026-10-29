@@ -1,0 +1,11 @@
+# Foundations turn CI-2 — the CI steps `bun run checks` does not run, each with its reason.
+# `job › step | reason | until` (a whole job: `job › *`); a stale or expired line fails (TCK-2).
+build-and-check › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
+component-tests › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
+bundle-budget › Install dependencies | the sandbox's dependencies are already installed; a package change is its own turn | 2027-04-30
+semgrep › Upload SARIF | GitHub's code-scanning upload, only GitHub can receive it | 2027-04-30
+semgrep › Warn: the SARIF upload failed | answers the GitHub-only upload above | 2027-04-30
+dependency-audit › * | the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge | 2027-04-30
+e2e-preflight › * | compares migrations with ethio-staging through the staging credentials, which the script never holds | 2027-04-30
+e2e › * | merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers | 2027-04-30
+promote › * | pushes main with the promote token; only CI promotes (DEC-020) | 2027-04-30

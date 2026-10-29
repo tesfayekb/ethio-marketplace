@@ -244,7 +244,9 @@ function mapsHash(): string {
 
 /** The turn's base build: HEAD's tree, exported (git archive, read-only) and built once. */
 function baseSizes(): { sizes: Map<string, { kib: number; ceiling: number }>; sha: string } | null {
-  const sha = (process.env.CHECKS_BASE ?? "").trim() || spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+  const sha =
+    (process.env.CHECKS_BASE ?? "").trim() ||
+    spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
   if (!/^[0-9a-f]{7,40}$/.test(sha)) return null;
   const cached = join(CACHE, "base-sizes", `${sha}.txt`);
   if (!existsSync(cached)) {
@@ -254,7 +256,12 @@ function baseSizes(): { sizes: Map<string, { kib: number; ceiling: number }>; sh
     const ex = sh(`git archive ${sha} | tar -x -C ${JSON.stringify(dir)}`, {}, 300, "base-export");
     if (ex.code !== 0) return null;
     symlinkSync(join(process.cwd(), "node_modules"), join(dir, "node_modules"));
-    const b = sh(`cd ${JSON.stringify(dir)} && bun run build >/dev/null 2>&1; node scripts/check-bundle-size.mjs`, {}, 900, "base-build");
+    const b = sh(
+      `cd ${JSON.stringify(dir)} && bun run build >/dev/null 2>&1; node scripts/check-bundle-size.mjs`,
+      {},
+      900,
+      "base-build",
+    );
     if (pageSizes(b.output).size === 0) return null;
     mkdirSync(join(CACHE, "base-sizes"), { recursive: true });
     writeFileSync(cached, b.output);
@@ -305,7 +312,12 @@ function main(): number {
     if (step.conditional) continue; // TCK-1 refuses this shape; never reached on a guarded ci.yml
     const earlier = failedJobs.get(step.job);
     if (earlier) {
-      print({ verdict: "NOT RUN", key: step.key, seconds: 0, reason: `an earlier step failed (${earlier})` });
+      print({
+        verdict: "NOT RUN",
+        key: step.key,
+        seconds: 0,
+        reason: `an earlier step failed (${earlier})`,
+      });
       continue;
     }
     if (step.key === "build-and-check › Typecheck") {
@@ -313,7 +325,12 @@ function main(): number {
         ? { mtimeMs: statSync(HARNESS_LOG).mtimeMs, text: readFileSync(HARNESS_LOG, "utf8") }
         : null;
       const v = typecheckVerdict(log, newestChange());
-      print({ verdict: v.verdict, key: step.key, seconds: secs(), reason: v.reason ?? LOCAL[step.key] });
+      print({
+        verdict: v.verdict,
+        key: step.key,
+        seconds: secs(),
+        reason: v.reason ?? LOCAL[step.key],
+      });
       if (v.verdict === "FAIL") failedJobs.set(step.job, step.name);
       continue;
     }
@@ -328,16 +345,24 @@ function main(): number {
         verdict: same ? "PASS" : "FAIL",
         key: step.key,
         seconds: secs(),
-        reason: same ? LOCAL[step.key] : "the maps changed on regenerating: keep the regenerated maps",
+        reason: same
+          ? LOCAL[step.key]
+          : "the maps changed on regenerating: keep the regenerated maps",
       });
       continue;
     }
     if (step.key === "i18n-usage-map › Regenerate the map") mapsBefore = mapsHash();
     if (step.job === "semgrep" && step.name.startsWith("Install")) {
       rmSync("/tmp/semgrep-rules", { recursive: true, force: true });
-      if (!existsSync(join(venv, "bin", "pip"))) sh(`python3 -m venv ${JSON.stringify(venv)}`, {}, 120, "semgrep-venv");
+      if (!existsSync(join(venv, "bin", "pip")))
+        sh(`python3 -m venv ${JSON.stringify(venv)}`, {}, 120, "semgrep-venv");
     }
-    const r = sh(step.run, { ...baseEnv, ...step.env }, step.timeoutS, step.key.replace(/[^\w]+/g, "-"));
+    const r = sh(
+      step.run,
+      { ...baseEnv, ...step.env },
+      step.timeoutS,
+      step.key.replace(/[^\w]+/g, "-"),
+    );
     const notFetched = r.code !== 0 ? fetchFailure(step, r.output) : undefined;
     const line: Line =
       r.code === 0
@@ -348,7 +373,10 @@ function main(): number {
               verdict: "FAIL",
               key: step.key,
               seconds: secs(),
-              reason: r.code === 124 ? `past its ${step.timeoutS}s deadline` : `exit ${r.code}; log ${CACHE}/logs`,
+              reason:
+                r.code === 124
+                  ? `past its ${step.timeoutS}s deadline`
+                  : `exit ${r.code}; log ${CACHE}/logs`,
             };
     print(line);
     if (step.key === "build-and-check › Build") buildResult = line;
@@ -360,7 +388,9 @@ function main(): number {
       for (const n of near)
         console.log(
           `  NEAR   ${n.page}  ${n.kib.toFixed(1)} / ${n.ceiling} KiB  ${
-            n.growth === null ? "growth unknown (no base build)" : `${n.growth >= 0 ? "+" : ""}${n.growth.toFixed(1)} KiB since ${base?.sha}`
+            n.growth === null
+              ? "growth unknown (no base build)"
+              : `${n.growth >= 0 ? "+" : ""}${n.growth.toFixed(1)} KiB since ${base?.sha}`
           }`,
         );
       const owed = nearOwed(near);
