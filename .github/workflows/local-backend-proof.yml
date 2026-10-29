@@ -179,9 +179,11 @@ jobs:
           cp supabase/migrations/*.sql .ci-local/supabase/migrations/
           cat > .ci-local/supabase/migrations/00000000000000_ci_local_buckets.sql <<'SQL'
           -- Census c1/c2: buckets are operator-created on hosted staging.
-          INSERT INTO storage.buckets (id, name, public)
-          VALUES ('category-assets', 'category-assets', true),
-                 ('listing-photos', 'listing-photos', false)
+          -- D1 M7 (INC-939): the seed carries the operator-set limits too, so the
+          -- migration's read-back proof judges the same law on every backend.
+          INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+          VALUES ('category-assets', 'category-assets', true, 10485760, '{image/png,image/webp}'::text[]),
+                 ('listing-photos', 'listing-photos', false, 1048576, '{image/jpeg,image/png,image/webp}'::text[])
           ON CONFLICT DO NOTHING;
           SQL
           # D228 turn 14b: the working copy's named fixes (DEC-209: in the proof's working copy, never in a landed migration).

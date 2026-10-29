@@ -71,6 +71,17 @@ Details: `docs/features/security-scanning.md`.
   hashes are computed the same way — an `md5(prosrc)` proof is not portable
   across the hand-apply path (the SQL editor turns LF into CRLF). No guard
   lints this yet; landed files stay as they are.
+- Computed insertion (D1 stop-16 ruling, from M6c on): a door body over about
+  10 KB is redeclared by computed insertion with md5 guards, never retyped —
+  the migration reads the live body, checks the CR-normalised old md5, inserts
+  the gate with `replace()` on an anchor asserted unique, checks the new md5,
+  applies with `EXECUTE CREATE OR REPLACE` built from the live header, and
+  asserts the ACL, security flag, volatility, search_path and argument defaults
+  unchanged. `CREATE OR REPLACE` preserves the live grants; the file carries a
+  born-closed allowlist line naming that assert.
+- Inline size ceiling (D1 stop-14 ruling): a migration the tool applies inline
+  stays at or under about 25 KB; one over that is split by concern before it is
+  written, never after a cut-off.
 
 ## Migration linter — proof scratch tables, real-row allowlist, drafts (DEC-151)
 
