@@ -1,89 +1,15 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40842401853
-- Commit: `37ff1f047facb03f0fb5677765d9d1d649ffe57c`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40845931124
+- Commit: `7583664d69905a81dd1c9aadc1379f5e77b537d7`
 - Attempt: 1
-- Written (UTC): 2026-10-29T09:00:49.127Z
+- Written (UTC): 2026-10-29T09:22:44.373Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
 
-## Gitleaks secrets scan — failure
-
-### Evidence lines
-
-```text
-##[error]secrets scan exit 2
-##[error]Process completed with exit code 2.
-```
-
-### Tail (last 60 lines)
-
-```text
-37ff1f047facb03f0fb5677765d9d1d649ffe57c
-##[endgroup]
-##[group]Determining the checkout info
-##[endgroup]
-[command]/usr/bin/git sparse-checkout disable
-[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-##[group]Checking out the ref
-[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
-Switched to a new branch 'dev'
-branch 'dev' set up to track 'origin/dev'.
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-37ff1f047facb03f0fb5677765d9d1d649ffe57c
-##[group]Run tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-[36;1mtarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"[0m
-[36;1mbash scripts/ci/with-deadline.sh 120 2 -- curl -sSfL -o "$RUNNER_TEMP/$tarball" \[0m
-[36;1m  "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$tarball"[0m
-[36;1mecho "$GITLEAKS_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -[0m
-[36;1mtar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" gitleaks[0m
-[36;1mif git rev-parse --verify --quiet origin/main >/dev/null; then[0m
-[36;1m  range="origin/main..HEAD"[0m
-[36;1melse[0m
-[36;1m  range="HEAD"[0m
-[36;1mfi[0m
-[36;1mcommits="$(git rev-list --count "$range")"[0m
-[36;1mecho "Secrets scan: $commits commits in $range"[0m
-[36;1mset +e[0m
-[36;1m"$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code=2 \[0m
-[36;1m  --log-opts="--diff-merges=first-parent $range" . > "$RUNNER_TEMP/gitleaks.log" 2>&1[0m
-[36;1mcode=$?[0m
-[36;1mset -e[0m
-[36;1mgrep -E 'commits scanned|leaks found|no leaks found' "$RUNNER_TEMP/gitleaks.log" | sed -E 's/^.*(INF|WRN|ERR) //'[0m
-[36;1mif [ "$code" -ne 0 ]; then echo "::error::secrets scan exit $code"; exit "$code"; fi[0m
-shell: /usr/bin/bash -e {0}
-env:
-  GITLEAKS_VERSION: 8.24.3
-  GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
-##[endgroup]
-/home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz: OK
-Secrets scan: 22 commits in origin/main..HEAD
-[90m8:41AM[0m [32mINF[0m [1m22 commits scanned.[0m
-[90m8:41AM[0m [33mWRN[0m [1mleaks found: 2[0m
-##[error]secrets scan exit 2
-##[error]Process completed with exit code 2.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/546e3587-f279-4be1-9b47-44316f6fd98d' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## i18n used-on map is fresh (U4i ②) — failure
+## Migration linter (with self-test) — failure
 
 ### Evidence lines
 
@@ -94,133 +20,54 @@ Cleaning up orphan processes
 ### Tail (last 60 lines)
 
 ```text
-with:
-  bun-version: latest
-  no-cache: false
-  token: ***
-##[endgroup]
-Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip
-[command]/usr/bin/unzip -o -q /home/runner/work/_temp/e99b2ec5-8f28-43f1-8954-acaefa6aef83.zip
-[command]/home/runner/.bun/bin/bun --revision
-1.4.4+38afee6c8
-##[group]Run bun run i18n:usage
-[36;1mbun run i18n:usage[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-$ bun run scripts/i18n-usage-map.ts
-i18n usage map: 1749 keys across 609 files (400 dynamic call sites)
-##[group]Run git diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json
-[36;1mgit diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-diff --git a/docs/generated/i18n-usage.json b/docs/generated/i18n-usage.json
-index a3e2ad0..48ce2b8 100644
---- a/docs/generated/i18n-usage.json
-+++ b/docs/generated/i18n-usage.json
-@@ -1,6 +1,6 @@
- {
-   "generator": "scripts/i18n-usage-map.ts",
--  "scanned": 604,
-+  "scanned": 609,
-   "dynamicCallSites": 400,
-   "keys": {
-     "account.deactivatedBanner": [
-diff --git a/public/i18n-usage.json b/public/i18n-usage.json
-index a3e2ad0..48ce2b8 100644
---- a/public/i18n-usage.json
-+++ b/public/i18n-usage.json
-@@ -1,6 +1,6 @@
- {
-   "generator": "scripts/i18n-usage-map.ts",
--  "scanned": 604,
-+  "scanned": 609,
-   "dynamicCallSites": 400,
-   "keys": {
-     "account.deactivatedBanner": [
+  - 20261004144146_923dd4cb-91bb-43a1-9c0d-e4b418c23c23.sql (M5 declares mark 20261004090000, earlier than its filename stamp; the M5b healer (02084273, mark 20261004160000) writes a mark after it | 20261004144628)
+  - 20260920035859_59a77c4c-ef00-4c57-9bce-79a4284a01d4.sql (Part 2b readers declared mark 20260920000008, which precedes its filename stamp; the ledger rows 20260920035859 and 20260920040000 are recorded by the R-MARK corrective | 20260920072310)
+Self-marking guard OK (floor 20260817054246).
+Public-surface guard OK (floor 20261003215043).
+Real-row proof guard self-test OK (the bad fixture is refused).
+Real-row proof guard self-test OK (an allowlisted statement is skipped and printed; the other statement of its file and the bad fixture are still refused).
+Real-row proof guard self-test OK (a head containing '||' is refused without its line, skipped by its sha256 line, and a stale sha256 line does not skip it).
+Real-row proof guard: allowlisted statements (each cites its reason)
+  - 20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql | the proof uses it. SELECT a.id INTO v_anc FROM public.locations a WHERE a.country_code = v_code AND a.level = 'country' | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3); recorded in D1 stop 12, file applied and not editable
+  - 20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql | IF v_anc IS NULL OR (SELECT count(*) FROM public.locations a WHERE a.country_code = v_code AND a.level = 'country') <> 1 | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3); recorded in D1 stop 12, file applied and not editable
+  - 20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql | UPDATE public.locations SET is_active = true WHERE id = v_anc | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3); recorded in D1 stop 12, file applied and not editable
+  - 20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql | -- R2 is switched off after its city is placed (the ancestry guard refuses an active -- city under an inactive region), | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3); recorded in D1 stop 12, file applied and not editable
+  - 20261019063635_0e901b95-3cfb-4daf-bb72-6a6d3f691897.sql | -- the acceptance and notice rows below are deleted by the rollback) SELECT p.user_id INTO v_uid FROM public.profiles p | INC-760: a real profile borrowed by the proof (banned: real rows in a proof, G27). The file was applied on ethio-prod and ethio-staging before this guard ran and cannot be edited; every statement that used the row ran in the sub-block that rolled itself back, so nothing was kept. Not a precedent: every other statement and every later file is still refused; read by the supervisor 2026-10-19
+  - 20261029044433_175bb84e-0bb9-4d2e-aa3c-40dd1045d387.sql | UPDATE public.profiles SET display_name=v_feature WHERE user_id=v_uid | updates only the proof's scratch user inserted directly above; rolled back on A2 sentinel
+  - 20261029044433_175bb84e-0bb9-4d2e-aa3c-40dd1045d387.sql | IF EXISTS(SELECT 1 FROM public.ai_features WHERE feature=v_feature) OR EXISTS(SELECT 1 FROM auth.users WHERE id=v_uid) T | confirms rollback of only the proof's own scratch feature and user
+  - 20261029001111_b124ab89-23bf-4bdb-9836-ae9dbe20a538.sql | sha256:ec6ba245d821b3ec | reads the proof's own scratch rows (v_tag slugs)
+  - 20261029001111_b124ab89-23bf-4bdb-9836-ae9dbe20a538.sql | sha256:671c34e1f9b50ab7 | reads the proof's own scratch rows (v_tag slugs)
+  - 20261029043847_4a7e258a-9b47-419b-8d1b-7910ab9cd56e.sql | UPDATE public.profiles SET display_name=v_feature WHERE user_id=v_uid | updates only the proof's scratch user inserted directly above; rolled back on A2 sentinel
+  - 20261029043847_4a7e258a-9b47-419b-8d1b-7910ab9cd56e.sql | IF EXISTS(SELECT 1 FROM public.ai_features WHERE feature=v_feature) OR EXISTS(SELECT 1 FROM auth.users WHERE id=v_uid) T | confirms rollback of only the proof's own scratch feature and user
+  - 20261028224333_4ce633e9-2d61-433c-a543-6f7dc00cb769.sql | UPDATE public.user_directory SET home_country_code = v_home WHERE user_id = v_uid | the directory row is the proof's own scratch user (v_uid, inserted in the proof) (D1 M2); recorded in D1 stop 12, file applied and not editable
+  - 20261028224333_4ce633e9-2d61-433c-a543-6f7dc00cb769.sql | -- (b) step 2, fixed with an amount and no home market: price_currency/required. UPDATE public.user_directory SET home_c | the directory row is the proof's own scratch user (v_uid, inserted in the proof) (D1 M2); recorded in D1 stop 12, file applied and not editable
+  - 20261029073342_cba46fd4-8476-4450-8253-ec69daedcf2b.sql | IF EXISTS (SELECT 1 FROM auth.users WHERE id = v_u1) OR EXISTS (SELECT 1 FROM public.name_checks WHERE profile_id = v_u1 | the proof's rollback check: reads only its own scratch e2e-n1b user (v_u1), scratch job runs (v_run, v_old) and scratch lease holders (v_h1, v_h2), all created in the proof (INC-980)
+  - 20261007033719_9f7deb8a-e850-4fc3-bfc0-9693f6994666.sql | UPDATE public.attributes SET depends_on = v_p WHERE id = v_c | the row is the proof's own scratch attribute: v_c is returned by the INSERT of the e2e-mig- key two statements above (M11 :509-510); read by the supervisor 2026-10-07
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | -- u1: a legacy alias with no row (upper case, to prove the lower-cased text). UPDATE public.profiles SET seller_alias = | reads or writes only the proof's own scratch e2e-n1b users (v_u1/v_u2/v_u3, inserted in the proof); rolled back on the M1 sentinel
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | -- u2: an alias whose row is already 'clean' (must stay untouched). UPDATE public.profiles SET seller_alias = v_a2 WHERE | reads or writes only the proof's own scratch e2e-n1b users (v_u1/v_u2/v_u3, inserted in the proof); rolled back on the M1 sentinel
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | -- u3: no alias (must get no row). UPDATE public.profiles SET seller_alias = NULL WHERE user_id = v_u3 | reads or writes only the proof's own scratch e2e-n1b users (v_u1/v_u2/v_u3, inserted in the proof); rolled back on the M1 sentinel
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | INSERT INTO public.name_checks(profile_id, subject, checked_text, state, since, home_country_code) SELECT p.user_id, 'al | INC-979: the backfill statement under test (and its no-alias-left check) spans every profile by design; inside the proof it ran in the sub-block that rolled itself back, so nothing was kept; file applied on ethio-prod and not editable
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | nothing changes (idempotent). INSERT INTO public.name_checks(profile_id, subject, checked_text, state, since, home_count | INC-979: the backfill statement under test (and its no-alias-left check) spans every profile by design; inside the proof it ran in the sub-block that rolled itself back, so nothing was kept; file applied on ethio-prod and not editable
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | IF EXISTS (SELECT 1 FROM public.profiles p WHERE p.seller_alias IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.name_ch | INC-979: the backfill statement under test (and its no-alias-left check) spans every profile by design; inside the proof it ran in the sub-block that rolled itself back, so nothing was kept; file applied on ethio-prod and not editable
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | IF EXISTS (SELECT 1 FROM auth.users WHERE id IN (v_u1,v_u2,v_u3)) OR EXISTS (SELECT 1 FROM public.name_checks WHERE prof | reads or writes only the proof's own scratch e2e-n1b users (v_u1/v_u2/v_u3, inserted in the proof); rolled back on the M1 sentinel
+  - 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql | BEGIN IF EXISTS (SELECT 1 FROM public.profiles p WHERE p.seller_alias IS NOT NULL AND NOT EXISTS (SELECT 1 FROM public.n | the post-apply read-back outside the proof (INC-979): asserts no alias is left without a name_checks row; reads, never writes
+  - 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql | IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE user_id = v_target) THEN RAISE EXCEPTION 'INC-951 3a proof: the scrat | the profile is the proof's own scratch target user (v_target, inserted in the proof) (D1 M4); recorded in D1 stop 12, file applied and not editable
+  - 20261028223430_631c8680-d4a9-4b2f-bab9-8c83d604a445.sql | SELECT p.home_country_code INTO v_home FROM public.profiles p WHERE p.user_id = v_uid | the profile is the proof's own scratch user (v_uid, inserted in the proof) (D1 M1); recorded in D1 stop 12, file applied and not editable
+  - 20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql | SELECT a.id INTO v_anc FROM public.locations a WHERE a.country_code = v_code AND a.level = 'country' | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3b); recorded in D1 stop 12, file applied and not editable
+  - 20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql | UPDATE public.locations SET is_active = true WHERE id = v_anc | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3b); recorded in D1 stop 12, file applied and not editable
+  - 20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql | UPDATE public.locations SET is_active = false WHERE id = v_r2 | the rows are the proof's own scratch country (v_code) and its auto-created anchor and places (D1 M3b); recorded in D1 stop 12, file applied and not editable
+  - 20261029063150_560e36c8-6f0f-4ab9-a021-bfe1582a9431.sql | IF (v_r->>'ok')::boolean IS NOT TRUE OR v_c.state IS DISTINCT FROM 'unchecked' OR v_c.checked_text<>v_a1 OR (SELECT sell | reads only the proof's own scratch e2e-n1 users (v_u1/v_u2, inserted in the proof) and their scratch role; rolled back on the N1a sentinel
+  - 20261029063150_560e36c8-6f0f-4ab9-a021-bfe1582a9431.sql | IF (SELECT seller_alias FROM public.profiles WHERE user_id=v_u1)<>v_a2 OR EXISTS (SELECT 1 FROM public.alias_history WHE | reads only the proof's own scratch e2e-n1 users (v_u1/v_u2, inserted in the proof) and their scratch role; rolled back on the N1a sentinel
+  - 20261029063150_560e36c8-6f0f-4ab9-a021-bfe1582a9431.sql | IF v_c.state<>'clean' OR v_c.checked_text<>v_a4 OR (SELECT seller_alias FROM public.profiles WHERE user_id=v_u1)<>v_a4 T | reads only the proof's own scratch e2e-n1 users (v_u1/v_u2, inserted in the proof) and their scratch role; rolled back on the N1a sentinel
+  - 20261029063150_560e36c8-6f0f-4ab9-a021-bfe1582a9431.sql | IF EXISTS (SELECT 1 FROM auth.users WHERE id IN (v_u1,v_u2)) OR EXISTS (SELECT 1 FROM public.roles WHERE id=v_role) OR E | reads only the proof's own scratch e2e-n1 users (v_u1/v_u2, inserted in the proof) and their scratch role; rolled back on the N1a sentinel
+Real-row proof guard FAILED: a proof reads a real row (use an e2e-mig- scratch row):
+supabase/migrations/20261029085507_709fb25b-c8da-47f0-b50f-c1e6a5ab9b80.sql: IF (SELECT seller_alias FROM public.profiles WHERE user_id = v_u) IS DISTINCT FROM v_a THEN RAISE EXCEPTION 'SPA-1c colu
+supabase/migrations/20261029085507_709fb25b-c8da-47f0-b50f-c1e6a5ab9b80.sql: IF EXISTS (SELECT 1 FROM auth.users WHERE id = v_u) OR EXISTS (SELECT 1 FROM public.alias_history WHERE user_id = v_u) T
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/632807af-62ca-497c-9548-cdded50d8461' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## E2E (Playwright, ethio-staging) — failure
-
-### Evidence lines
-
-```text
-[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
-[36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
-[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-[36;1mexit 0[0m
-shell: /usr/bin/bash -e {0}
-env:
-  E2E_RESULTS_DIR: shard-results
-  E2E_LOGS_DIR: shard-logs
-  E2E_CONTEXT_DIR: shard-contexts
-  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
-  E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40842401853
-  E2E_HEAD_COMMIT_MESSAGE: Update plan
-
-Plan file updated during planning mode
-
-X-Lovable-Edit-ID: edt-b61231a5-dfb6-4fa1-bb86-27d837cc43e9
-Co-authored-by: tesfayekb <tesfayekb@me.com>
-##[endgroup]
-  layout OK — per-artifact subdir: 1 context file(s), report rendered.
-  layout OK — merged flat: 1 context file(s), report rendered.
-  layout OK — zero artifacts: 0 context file(s), report rendered.
-  layout OK — missing directory: 0 context file(s), report rendered.
-DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
-DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
-ok — R1a census names the missing log
-ok — R1a a11y never states zero with a gap
-ok — R1b census: all N logs read
-ok — R1b a11y: all N logs read
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-context download: 0 context files found.
-  glob: shard-contexts/**/error-context.md
-  searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (17/18 source(s) with usable results, 0 context file(s) found).
-publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "lanes=failure"
-[36;1mecho "lanes=failure"[0m
-[36;1mif [ "failure" != "success" ]; then[0m
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-[36;1m  exit 1[0m
-[36;1mfi[0m
-[36;1mecho "Every temporary-backend lane passed (the email lane included)."[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-lanes=failure
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/a97289b6-d819-4294-b810-c4257caf440e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/315b8f24-3823-433d-9286-8fd8b2a70ef0' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
