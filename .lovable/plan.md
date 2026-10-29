@@ -1,119 +1,180 @@
-# N1b-2 — An imitating seller name hidden from buyers (INC-977) — PLAN
+# Foundations turn N1b-3 — the staff queue for held seller names, the job's health, and two fixes first (INC-987, INC-989)
 
-Base dev c0e006ee. Plan only; nothing changed.
+Base: dev 7a95706a. Plan only; nothing has been changed.
 
-## 0. CI first (red goes first)
+## CI first
 
-- ci-evidence (raw) still shows the last completed run as 79bd0d0d CANCELLED (preflight cancelled; every other job green). The c0e006ee run is not in the evidence yet.
-- Disclosure: I also read the GitHub check-runs list for c0e006ee (public API, not the evidence branch). While the run was still going, 3 checks had failed: **E2E Lane smoke**, **Gitleaks secrets scan**, **i18n used-on map is fresh (U4i ②)**. Their logs need a sign-in, so I have not classified them.
-- Build step 0: once the run lands, read ci-status / guards-last-failure / e2e-last-failure, classify each red and fix it at its root before N1b-2 work. Likely causes, to confirm and not assume: i18n map not regenerated for the N1b-1 strings; gitleaks catching the HMAC test vector or `JOB_SECRET` sample in NCJ fixtures (INC-975/976 scan of the merge diff); smoke depending on one of these or on the new route. Also watch AAN-1 in the unit job.
+ci-evidence (read 10:0xZ) still names `3ee69785` as the newest completed run: SUCCESS, with no guard failure and no E2E failure. The run on `7a95706a` had not completed when I read it. The build reads it first: any red, including EXH-4/5 or AAN-1 in the unit job, goes ahead of Part A.
 
-## 1. Census (by definition: any place a non-owner, non-staff viewer, search engine or cache can get the name)
+## Part A1 — INC-987: the search slot holds one search input
 
-### 1a. SQL — live functions that read `seller_alias` (prod `pg_proc`)
+Census:
+- 20 files under src/ draw `TableToolbar`.
+- 15 of them pass `search=`. 14 pass one `Input`, or the page's own box (data-scope.tsx). One, `ai-calls.tsx:116–151`, passes two `NativeSelect` in a fragment.
+- The toolbar's search box (`table-toolbar.tsx:44–51`) is one `relative md:max-w-80` box with an absolute magnifier. That is why the two selects stack under it.
 
-| Function                                                                                                                         | Grants                               | Class                                                   | N1b-2                                                                                                                                                                              |
-| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `seller_feed_page(text,jsonb,int)` DEFINER                                                                                       | anon+auth                            | **public** (seller page, `/api/seller`, `sellerExists`) | switch                                                                                                                                                                             |
-| `public_listing_json(listings,uuid)` DEFINER                                                                                     | internal (called by public ad doors) | **public** (ad page `seller.alias`, `previous_alias`)   | switch                                                                                                                                                                             |
-| `my_seller_line()`                                                                                                               | auth                                 | owner                                                   | add review flag; still reads the column                                                                                                                                            |
-| `check_seller_alias` → `alias_verdict`                                                                                           | auth / internal                      | caller's own proposal                                   | answers only ok/refusal + reason; never another person's name (checked: it returns `alias_verdict` jsonb) — build test confirms the reason payload carries no other person's alias |
-| `suggest_seller_aliases`                                                                                                         | auth                                 | caller                                                  | made from the caller's own inputs, filtered by `alias_taken`; never another person's name — test confirms                                                                          |
-| `alias_taken`, `alias_verdict`, `legal_acceptance_guard`, `seller_name_sweep`, `validate_listing_draft`, `save_posting_identity` | internal / auth writer               | no name goes out                                        | unchanged                                                                                                                                                                          |
-| `admin_*`, `impersonated_get_profile`                                                                                            | auth + permission                    | staff                                                   | unchanged                                                                                                                                                                          |
+Fix:
+- `ai-calls.tsx`: the feature and outcome choices move into `FiltersButton`, with `FilterChips` under the toolbar, in the form `audit-page.tsx` uses.
+- The table has no text search, so its `search` slot is left empty. The chips' clear resets the keyset history (`setHistory([null])`), as the selects did.
 
-Build also re-runs this query plus a scan for `alias_history.alias` reads, and lists every public caller of `public_listing_json` with its grants.
+Guard T2b — the design choice:
+- **Chosen: an AST read** (the TypeScript compiler API, the way `kit.test.ts`'s `allowlistReaders` already reads calls). For every `<TableToolbar search={X}>`, X must be one JSX element, either `Input` or an identifier the census follows to the page's search-box prop. A fragment, `NativeSelect`, `Select`, or more than one element fails. Separately, any `NativeSelect` or `Select` inside a `TableToolbar`'s `search` or `columns` slot fails, with the rule "a choice that narrows the rows lives in Filters".
+- Cost to consumers: none. All 14 already pass. `data-scope.tsx`'s `search={search}` is followed to its prop type, or else it becomes one allowlist line with a reason and an until.
+- **Rejected: the toolbar owning its own search input by props** (`searchValue`, `onSearch`). It would change all 14 consumers and their tests, for the same protection.
+- The census is shown red on the planted current shape (a fragment of two selects) and on a planted lone select.
 
-### 1b. Server
+Tests:
+- **TBS-1:** T2b passes over the tree.
+- **TBS-2:** the planted fragment and the planted select are refused.
+- **TBS-3:** the AI calls table filters by feature and outcome through Filters, its chips show, and clearing resets to the first page.
+- The existing admin-ai E2E locators (`ai-calls-feature`, `ai-calls-outcome`) move to the Filters panel. Those spec edits are in scope.
 
-- `/$name` (`src/routes/$name.tsx:31` → `sellerExists`, `src/server/seller-page.ts:13` → `seller_feed_page`, `unknownSeller` → not found).
-- `/$name` head (`$name.tsx:38–43`): title, og:title, og:description are built from the **address**, not the database. With the new rule the loader returns not-found before head gets a name, so the head shows the not-found title (fix: the head must use the not-found title when the loader says not found; test).
-- Ad page `src/routes/l.$slug.tsx`: head (title/description from the ad), JSON-LD `src/features/ad-page/json-ld.ts` (test fixture shows `seller` input; build confirms whether any name goes out — if yes, it reads the helper's value).
-- Sitemap: none in `src/` (grep found none). Share text: build greps `navigator.share`/share builders. E-mail/notifications naming a seller to someone else: none found under `src/server`; build confirms in SQL (`net`/mail triggers).
+## Part A2 — INC-989: every table holding a person's id is reset or exempt
 
-### 1c. Browser
+Census, read on prod:
+- **By definition, 23 tables.** 20 have a foreign key to auth.users or profiles. The column names `user_id`, `profile_id`, `seller_id` and `actor_id` add `audit_log`, `impersonation_sessions`, `listing_revisions`, `seller_notices` and `translator_languages`.
+- **Today's map:** 47 entries in `e2e/helpers/pool-reset-map.ts`.
+- **The gap:** `name_checks`. Its column, `profile_id`, matches neither today's column pattern in `src/test/pool-reset-map.test.ts` nor any foreign-key read, because the census reads only `types.ts`.
 
-- `SellerLine` `src/features/posting/seller-line.tsx:41` today falls back to `post.review.notGiven` — change to the neutral label.
-- `public-listing.ts:158/160` (alias, previous_alias) → `listing-detail.tsx:938–940`.
-- Link to the seller's other ads: `l.$slug.tsx:210` `sellerAdsKey` from `doc.seller.alias` → `listing-detail.tsx:1009–1013`. Hidden alias = null → no link drawn (already guarded).
-- Seller page `seller-page.tsx:75/82` (`seller.alias` in title). Unreachable while hidden (not found), still null-safe.
-- Feed cards / similar ads: no seller name found in `src/features/feed`; build confirms on the card shape that `feed_page` returns.
+Fix:
+- `name_checks` joins `POOL_RESET_TABLES` ("profile_id rows deleted; a held name never carries into a later lease"), and `reapPoolAccount()` deletes them.
+- The census is widened in two ways:
+  1. `profile_id` joins the column pattern.
+  2. A foreign-key reading: every table whose `Relationships` in `types.ts` reference `profiles` or `users`.
 
-### 1d. Caches
+  Every table it finds is RESET or EXEMPT (EXEMPT lines keep their reason; new ones carry an until).
 
-- `/api/seller`: `public, max-age=60, stale-while-revalidate=300` → up to ~6 min stale at browser/edge.
-- Ad page SSR HTML and the `public_listing_json` reads: build reads the exact headers/version cache and adds them here.
-- Window: up to max-age + SWR after the verdict. Plan: no purge; it is bounded at ≤ 6 min and the job runs every 15 min, so it is the same as the time-to-detect. If the supervisor wants zero, the purge would bump the public version-cache key on an `imitates` mark (`name_check_mark`) and use `no-store` on `/api/seller` — named, not built.
+Tests:
+- **PRM-1:** the census finds `name_checks`.
+- **PRM-2:** a planted `Row` with a `profile_id` column, and a planted relationship to `profiles` under another column name, are both refused.
+- **PRM-3:** the reset clears a scratch `name_checks` row. This is a unit test on the reap statement list; the existing pool E2E runs it live.
 
-## 2. The helper
+## Part B — the staff queue
 
-`public.seller_public_alias(p_profile uuid, p_subject text DEFAULT 'alias') RETURNS text`
+### Who sees what
 
-- `LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp` (definer because `name_checks` is closed).
-- Body: the alias, or NULL when `name_checks(p_profile, p_subject).state = 'imitates'` **and** its `checked_text` folds to the current alias. One primary-key lookup on `name_checks(profile_id, subject)`; EXPLAIN in the proof shows an index scan.
-- Grants: REVOKE FROM PUBLIC, anon, authenticated; GRANT EXECUTE to service_role only. Called only from inside definer functions, so no new browser grant and no allowlist line.
-- `p_subject` takes `business_name` later (D222) with no new signature.
-- `seller_feed_page` calls it once per page (for the seller), not once per ad.
+| Part | Gate |
+| --- | --- |
+| Queue list (`admin_name_check_list`) | `listings:view`; the name and the model's `of` only with `profiles:view` as well (otherwise null, and the row says "name hidden") |
+| Clear (`admin_name_check_clear`) | `profiles:update` + fresh step-up (`step_up_if_needed('profiles','update')`), the same as Rename |
+| Rename | existing `admin_update_profile`; staff names land clean, and M3b stamps the outgoing name `imitates` |
+| Job health (`admin_job_health`) | `services:view` (the AI page's read gate) |
+| Resume (`admin_job_resume`) | `services:manage` — the gate of `admin_set_ai_feature`, the AI switch's door |
 
-## 3. Previous name
+### A row in the queue
 
-- Stored in `alias_history` (`alias`, `released_at`); read by `my_seller_line` and `public_listing_json` (latest released within 365 days). `name_checks` keeps only the current text, so a previous name has **no check row of its own**.
-- Rule: add `alias_history.released_state text` (null for older rows), set in the same transaction by `save_posting_identity` and `admin_update_profile` from the outgoing `name_checks` state when the alias is released.
-- Public line shows the previous name only if `released_state` is `clean` or `unchecked`; `imitates` → no line. Legacy null → **withheld on public reads** (recommended: it is unknown, and hiding a "previously" line costs the buyer little; the build counts rows). The owner always sees their own.
-- Supervisor ruling needed: withhold legacy null (recommended) or show it.
+The queue is a new section in Admin › Screening, `src/features/admin-screening/name-checks.tsx`, beside `photo-reviews.tsx`. It uses DataTable keyset mode, TableToolbar, ColumnsButton and RowActions. Each row shows:
+- the name;
+- since;
+- attempts;
+- the owner, as a link to `/admin/users/$userId`;
+- "Model said it imitates: <of>" as plain text, never HTML or a link (G54 b).
 
-## 4. `/<name>` while `imitates`
+Row actions are Clear (step-up gated) and Rename (a link to the user page's existing editor). Only `imitates` rows are listed, ordered by `since`, then `profile_id`.
 
-`seller_feed_page` treats a hidden key as `unknownSeller` → same 404 status and the same not-found page and head as an unknown name. No public page links to it (1c link reads null).
+### Keeping the model's `of`
 
-## 5. Neutral label
+- New column `name_checks.imitates_of text NULL`, with `CHECK (char_length(imitates_of) <= 80)`.
+- Only `name_check_mark` writes it. The function is redeclared whole as `name_check_mark(p_profile, p_subject, p_text, p_state, p_of text DEFAULT NULL)`. A DROP and CREATE is needed because the argument list changes; the closers are restated (service-only).
+- It is set only with `imitates`, cleared on `clean` and `unchecked`, and left unchanged on `unavailable`. Every door that resets a check row to `unchecked` (`save_posting_identity`, `admin_update_profile`) also nulls it — through a trigger on `name_checks`, not by redeclaring the two writers.
+- The catch-up (`src/server/jobs/name-check-catchup.ts:121`) passes `answer.of`.
+- **Rows from before this turn:** none are held today (0 rows read on prod). A held row without `of` shows "No reason recorded", a new key; never blank, never "0".
 
-New key `post.seller.neutral` with the same words as `post.preview.sellerLabel` ("Seller" / "ሻጭ"), copied by script. Why its own key: `sellerLabel` is the section heading/aria label; changing the heading later must not change what a hidden name says (D5). SellerLine draws `business ?? alias ?? t("post.seller.neutral")`; `notGiven` is no longer used there.
+### The job's health line
 
-## 6. Owner's notice
+- One read, `admin_job_health(p_job)`, uses the index `job_runs_job_started_idx` for the newest row, plus `job_pauses` by its primary key. It answers:
+  - the last outcome and its time;
+  - `dispatched_unclaimed` when the newest row is `dispatched`, has no `claimed_at`, and `started_at` is more than 2 minutes old;
+  - the pause's reason and since.
+- **Lines:**
+  - "Last run: <outcome>, <time>";
+  - "The site did not answer (sent <time>)";
+  - "Paused: <reason> since <time>", with a Resume action;
+  - "Not set up yet" for `not_configured`;
+  - an error line when the read fails, never "healthy".
+- Resume calls `admin_job_resume(p_job)`. It is gated by `services:manage`, calls `job_pause_clear` inside itself (the service door stays service-only), and audits `job.resumed` with the old reason.
+- The health door takes its job by parameter, from the `job_runs` CHECK list, so the next scheduled job needs no new door.
 
-`my_seller_line` redeclared whole, adding `under_review boolean` (state `imitates` on the current alias). Owner sees their own name in: account overview (`account-overview.tsx:107`), posting review step (`step-review.tsx:617`), my listing page (`my-listing-page.tsx:670`), own ad page / own seller page when signed in (public reads → owner sees the neutral label there, with the notice). Notice shows on the account overview and the review step via a single `SellerReviewNotice` beside SellerLine. Keys (EN/AM from supervisor, G43): `post.seller.underReview`, `post.seller.underReviewHelp`. Census decides whether the own ad page also shows it (proposed: yes, same component).
+### Clear
 
-## 7. Migrations (each stops after prod apply: "apply <fragment> → expect mark <value>")
+`admin_name_check_clear(p_profile, p_subject, p_text, p_reason)`. The order is gates → capture → mutate (F5):
+1. permission;
+2. step-up;
+3. the row is `imitates` and `checked_text = lower(btrim(p_text))`. Otherwise the answer is `stale` and nothing is written.
+4. Set `clean`, null `imitates_of`, and audit `name_check.cleared` (old state and `of`, new state, reason).
 
-- M1: `alias_history.released_state` + `seller_public_alias` (+ grants, closers, mark).
-- M2: `public_listing_json` redeclared whole from live `pg_get_functiondef` (~13 KB), argument list unchanged.
-- M3: `seller_feed_page` + `my_seller_line` + `save_posting_identity` + `admin_update_profile` (release stamping), whole, ~18 KB.
-- Proofs: own scratch profiles/ads only, id-scoped form, rolled back whole, raise on failure; no proof assumes the Vault is empty or calls `job_call`.
+Afterwards the public reads show the name again through `seller_public_alias`, with no other change.
 
-## 8. Tests (ids grep-checked free at build)
+## Migrations (each its own stop; guard OK line pasted before each apply; no trial on ethio-prod)
 
-- SPA-1 helper: imitates → null; unchecked/clean → name; stale `checked_text` → name.
-- SPA-2 `public_listing_json` hides alias and previous; SPA-3 `seller_feed_page` unknownSeller for a hidden key; SPA-4 unchecked/clean still shown.
-- SPA-5 previous-name rule (imitates, null legacy, clean).
-- SPA-6 owner `my_seller_line` keeps name + `under_review`; SPA-7 staff `admin_listing_detail` keeps name.
-- SPA-8 SellerLine draws the neutral label, never `notGiven`; no seller-ads link with a null key.
-- SPA-9 `/$name` head uses the not-found title.
-- Guard `scripts/conformance/seller-name.test.ts`: every function executable by anon/authenticated (or called by one) that reads `profiles.seller_alias` / `alias_history.alias` outside the helper fails; planted bypass self-test; allowlist `key | reason | until` (owner/staff doors listed with reasons).
-- E2E (both projects): imitating seller's ad shows "Seller", no link, and `/<name>` is not found.
+| | Contents | Size estimate |
+| --- | --- | --- |
+| M1 | `imitates_of` column + CHECK; trigger nulling it on any state other than imitates/unavailable; `name_check_mark` redeclared | ~7 KB |
+| M2 | `admin_name_check_list` + `admin_name_check_clear` (+ audit action registered, `admin.audit.action.*` keys) | ~10 KB |
+| M3 | `admin_job_health` + `admin_job_resume` | ~6 KB |
 
-## 9. K2
+- Each new function restates `REVOKE ALL FROM PUBLIC, anon`, `GRANT EXECUTE TO authenticated`, `GRANT ALL TO service_role`.
+- Each grant to `authenticated` gets its line in `scripts/public-surface-allowlist.txt`. Each new staff door gets its seller-names allowlist line (SPA-10a), with a reason.
+- Proofs run on their own scratch user and profile rows (the legacy mixed-case shape included), with mutation and readback in separate statements, raising on failure, rolled back whole. A whole-table read uses the id-scoped form. No proof assumes the Vault is empty or calls `job_call`, and job proofs use their own scratch job rows by id.
+- Marks are chosen at apply time.
 
-- D222 business name: not re-checked today; shown on ad and seller page as is. Listed, not built.
-- `/$name` head builds title/og from the raw address (`$name.tsx:38–43`).
-- `SellerLine` member-since uses raw `Intl.DateTimeFormat` with `formatLocale` (OK) but `fill` interpolation (noted in N1a).
-- `seller-page.tsx:75` falls back to `""` for the name.
+## Tests (ids grep-checked free: NCQ-, JHL-, TBS-, PRM-)
 
-## 10. Conflicts
+**NCQ — the queue doors** (SQL proofs; refusal proofs read back that nothing changed):
+- NCQ-1: without `listings:view`, no list.
+- NCQ-2: without `profiles:view`, name and `of` are null.
+- NCQ-3: Clear without step-up is refused; state, audit and public read are unchanged.
+- NCQ-4: Clear with stale text answers `stale`; nothing changes.
+- NCQ-5: Clear restores the name on `public_listing_json` and `seller_feed_page`, and audits.
+- NCQ-6: Rename through `admin_update_profile` lands clean and the history row is stamped `imitates`.
+- NCQ-7: `of` is bounded at 80, written only with `imitates`, and nulled on reset.
+- NCQ-8: `name_check_mark`'s ACL stays service-only.
 
-- CI evidence rule vs. my API read of check-runs (disclosed in §0; build uses evidence only).
-- Volatile helper under SECURITY DEFINER is allowed by E7; no browser grant, so no public-surface line.
-- No conflict found with AGENTS.md or the platform's guidance.
+**JHL — the job health doors** (SQL proofs):
+- JHL-1…5: each health state — last run, unclaimed after 2 minutes, paused, not configured, no rows.
+- JHL-6: Resume clears the pause and audits.
+- JHL-7: Resume without `services:manage` is refused and the pause remains.
 
-## 11. Sizing (G37)
+**Unit tests:**
+- The queue section shows a failed read as an error, never "none".
+- The health line's error never says healthy.
+- `of` is drawn as text.
+- The catch-up passes `of`.
 
-1. N1b-2a: CI reds + M1 (+ stop).
-2. N1b-2b: M2 + M3 (two stops).
-3. N1b-2c: browser label/notice, guard, tests, E2E, docs, register row, report.
-   ESTIMATE: 3 turns, band 3–5 (wider if a CI red has a deep cause or the cache purge is ruled in).
+**E2E:** `e2e/name-check-queue.spec.ts`, both projects:
+- Clear: the hold is made through service `name_check_mark`; staff Clear under step-up; the ad shows the name again.
+- Rename: the same hold; staff Rename; the new name shows.
 
-## Rulings asked
+Each spec restores its row in afterEach.
 
-1. Legacy previous names with no recorded state: withhold (recommended) or show.
-2. Cache window ≤ ~6 min: accept, or build the purge.
-3. Own ad page shows the owner's notice: yes/no.
+## Strings (new keys; the supervisor sends EN/AM)
+
+`admin.screening.names.title`, `.help`, `.col.name`, `.col.since`, `.col.attempts`, `.col.owner`, `.col.imitates`, `.noReason`, `.nameHidden`, `.empty`, `.error`, `.clear`, `.clearHelp`, `.cleared`, `.stale`, `.rename`, `admin.screening.job.title`, `.lastRun`, `.outcome.<ok|failed|not_configured|paused|...>` (one per CHECK value), `.notAnswered`, `.paused`, `.notSetUp`, `.error`, `.resume`, `.resumed`, `admin.audit.action.name_check.cleared`, `admin.audit.action.job.resumed`, `admin.roles.perm.*` (none new: the existing permissions are reused). The AI table's filters reuse existing keys.
+
+## K2
+
+- **Business name (D222):** still not re-checked. The doors take `p_subject`.
+- **INC-990:** English literals in the seller head. Roadmap line, with INC-985.
+- **Duplicated status-note form:** `my-listing-info` and `SellerReviewNotice` share the plain-text note form with no primitive. Records turn.
+- **`seller_name_sweep`** (the older SQL sweep) still exists beside the catch-up; reported, not touched.
+- **Audit filters:** `admin_list_audit` facets need the two new actions; they are listed in M2.
+
+## Conflicts
+
+- **Wording:** none with Knowledge v3.12 or AGENTS.md.
+- **`name_check_mark`:** it takes a DROP+CREATE because its argument list grows. E2 allows this for a changed shape; the brief's "no DROP" in N1b-2 applied to unchanged lists. This needs the supervisor's word.
+- **Platform:** the step-up depends on the existing MFA flow, with no change.
+
+## DEC facts (staff decision on an AI verdict about a person)
+
+- A model verdict alone only hides a name. Showing it again or replacing it needs a person holding `profiles:update`, under a fresh step-up, audited with the model's stated reason.
+- The model's text is kept bounded (80 characters) and is shown to staff with `profiles:view` only, as text.
+- Resuming the job is a services decision, audited.
+
+## Sizing (G37)
+
+- N1b-3a: CI reds (if any), A1, A2.
+- N1b-3b: M1, M2, M3, each a stop.
+- N1b-3c: the UI section, health line, catch-up `of`, tests, E2E, docs, register, report.
+
+**Estimate:** 3 turns plus 3 migration stops. Band: 3–5 sessions. The risk is the step-up E2E and the T2b AST read.
