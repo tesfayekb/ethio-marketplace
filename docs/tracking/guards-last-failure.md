@@ -1,75 +1,77 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40821484703
-- Commit: `3afc773a0ddc5da40f7ba711f8a8c7147befe8af`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40824018057
+- Commit: `7f9b0cba1f9ed6e1392eeb4f24b8efba80b14f25`
 - Attempt: 1
-- Written (UTC): 2026-10-29T05:35:36.187Z
+- Written (UTC): 2026-10-29T05:53:15.163Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
 
-## First-paint bundle budget (gzipped ceiling) — failure
+## Build, typecheck, lint — failure
 
 ### Evidence lines
 
 ```text
-[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
-Per-page budget failed (D234):
-##[error]Process completed with exit code 1.
+[36;1m  *) echo "::error::promote-needs self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
+[36;1m  *) echo "::error::actionlint self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
+src/components/shell/data-table.test.tsx(111,8): error TS2741: Property 'rowTestId' is missing in type '{ columns: DataTableColumn<Row>[]; rows: never[]; rowKey: (row: Row) => string; caption: string; emptyState: string; keyset: { hasPrevious: true; hasNext: false; onNext: Mock<...>; onPrevious: Mock<...>; }; }' but required in type 'DataTableProps<Row>'.
+src/components/shell/data-table.test.tsx(124,8): error TS2741: Property 'rowTestId' is missing in type '{ columns: DataTableColumn<Row>[]; rows: never[]; rowKey: (row: Row) => string; caption: string; emptyState: string; }' but required in type 'DataTableProps<Row>'.
+##[error]Process completed with exit code 2.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-Code-split the addition behind a dynamic import, or change the page's line in
-scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
-    346.6 / 347 KiB  /admin/attributes
-    306.6 / 308 KiB  /admin/audit
-    354.8 / 356 KiB  /admin/categories
-    336.4 / 337 KiB  /admin/countries
-    329.0 / 330 KiB  /admin/coverage
-    207.3 / 209 KiB  /admin/images
-    307.2 / 308 KiB  /admin/impersonation_/$sessionId
-    276.3 / 277 KiB  /admin/legal
-    275.6 / 277 KiB  /admin/legal_/$versionId
-    281.8 / 283 KiB  /admin/legal_/edit
-    352.5 / 353 KiB  /admin/listings
-    376.0 / 379 KiB  /admin/listings_/$listingId
-    399.4 / 403 KiB  /admin/listings_/$listingId_/edit
-    268.2 / 270 KiB  /admin/locations
-    337.7 / 338 KiB  /admin/places
-    304.8 / 306 KiB  /admin/roles
-    305.4 / 306 KiB  /admin/roles_/$roleId
-    373.8 / 377 KiB  /admin/screening
-    407.8 / 408 KiB  /admin/translations
-    319.5 / 320 KiB  /admin/translations_/$lang
-    303.2 / 304 KiB  /admin/users
-    283.6 / 285 KiB  /admin/users_/$userId
-    218.3 / 219 KiB  /auth
-    206.7 / 208 KiB  /auth_/callback
-    208.8 / 210 KiB  /auth_/reset
-    219.2 / 220 KiB  /c/$slug
-    221.5 / 223 KiB  /dev/primitives
-    240.7 / 242 KiB  /dev/style
-    206.0 / 207 KiB  /dev/tall
-    247.5 / 251 KiB  /l/$slug
-    209.6 / 211 KiB  /legal/$kind
-    217.3 / 218 KiB  /legal/accept
-    210.3 / 212 KiB  /legal/publishing
-    326.2 / 327 KiB  /my-listings
-    315.2 / 316 KiB  /my-listings_/$listingId
-    394.1 / 397 KiB  /my-listings_/$listingId_/edit
-    394.0 / 397 KiB  /post
-    394.0 / 397 KiB  /post_/$listingId
-    209.6 / 211 KiB  /privacy
-    269.5 / 271 KiB  /settings
-    209.6 / 211 KiB  /terms
-##[error]Process completed with exit code 1.
++ @radix-ui/react-toggle-group@1.1.11
++ @radix-ui/react-tooltip@1.2.8
++ @supabase/supabase-js@2.110.9
++ @tailwindcss/vite@4.2.4
++ @tanstack/react-query@5.101.1
++ @tanstack/react-router@1.170.41
++ @tanstack/react-start@1.168.60
++ @tanstack/router-plugin@1.168.42
++ @types/pngjs@6.0.5
++ class-variance-authority@0.7.1
++ clsx@2.1.1
++ cmdk@1.1.1
++ date-fns@4.1.0
++ embla-carousel-react@8.6.0
++ input-otp@1.4.2
++ jpeg-js@0.4.4
++ leaflet@1.9.4
++ libphonenumber-js@1.11.18
++ lucide-react@0.575.0
++ pngjs@7.0.0
++ qrcode-generator@2.0.4
++ react@19.2.5
++ react-day-picker@9.14.0
++ react-dom@19.2.5
++ react-hook-form@7.73.1
++ react-resizable-panels@4.10.0
++ recharts@2.15.4
++ sonner@2.0.7
++ tailwind-merge@3.5.0
++ tailwindcss@4.2.4
++ tw-animate-css@1.4.0
++ vaul@1.1.2
++ vite-tsconfig-paths@6.1.1
++ zod@4.6.7
+
+542 packages installed [10.24s]
+##[group]Run bun run typecheck
+[36;1mbun run typecheck[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+$ tsc --noEmit
+src/components/shell/data-table.test.tsx(111,8): error TS2741: Property 'rowTestId' is missing in type '{ columns: DataTableColumn<Row>[]; rows: never[]; rowKey: (row: Row) => string; caption: string; emptyState: string; keyset: { hasPrevious: true; hasNext: false; onNext: Mock<...>; onPrevious: Mock<...>; }; }' but required in type 'DataTableProps<Row>'.
+src/components/shell/data-table.test.tsx(124,8): error TS2741: Property 'rowTestId' is missing in type '{ columns: DataTableColumn<Row>[]; rows: never[]; rowKey: (row: Row) => string; caption: string; emptyState: string; }' but required in type 'DataTableProps<Row>'.
+##[error]Process completed with exit code 2.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/6cb2bf8f-d215-4419-9f19-e802b498f673' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/ddd5a6eb-54d3-4a91-80c8-eda9f8595db1' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -84,71 +86,193 @@ Cleaning up orphan processes
 
 ```
 
-## E2E (Playwright, ethio-staging) — failure
+## Component tests — failure
 
 ### Evidence lines
 
 ```text
-[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
-[36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
-[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+[90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 1091[2mms[22m[39m
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mRFL-2 a flag read-back that fails answers flagged null with flagRead failed, logged — never 0, the writes reported
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
+     [33m[2m✓[22m[39m OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu [33m 343[2mms[22m[39m
+[90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
+[22m[39m[session-reads] currentSession() calls: 19; without failed: 0
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1911[2mms[22m[39m
+[90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
+[90mstdout[2m | src/routes/api/listings/identity.test.ts[2m > [22m[2mPOST /api/listings/identity on defineRoute (D1)[2m > [22m[2mAIV-1 an imitation verdict whose audit row failed is not acted on
+ [31m❯[39m scripts/e2e-select.test.ts [2m([22m[2m19 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 382[2mms[22m[39m
+[90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
+[22m[39m[feed-links] /api/feed signing failed
+[22m[39m[ssr-error] /api/feed [incident 2e6da026-420c-408e-843f-3efa65ea7855] ReaderError: feed_page: marker-text-that-must-not-travel
+ [31m❯[39m scripts/conformance/layout-reads.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 18[2mms[22m[39m
+[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
+Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
+[22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
+[90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
+ [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 401[2mms[22m[39m
+ [31m❯[39m scripts/test-ids.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 335[2mms[22m[39m
+[22m[39m[save-error] unsave_listing Error: transport
+[22m[39m[save-error] listing_saved Error: transport
+     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 308[2mms[22m[39m
+[90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
+[41m[1m FAIL [22m[49m scripts/e2e-select.test.ts[2m > [22mselfTest[2m > [22mevery spec is reachable and every area glob matches
+[41m[1m FAIL [22m[49m scripts/test-ids.test.ts[2m > [22mtest ids (INC-536)[2m > [22mTI-1 no test id is used twice in the repository
+[41m[1m FAIL [22m[49m scripts/conformance/layout-reads.test.ts[2m > [22ma test reads a layout whole, once it has stopped moving (INC-940)[2m > [22mBX-1 every box read in e2e/ is a layoutBoxes read, or its test has a live allowance
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m352 passed[39m[22m[90m (355)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2145 passed[39m[22m[90m (2148)[39m
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+##[error]AssertionError: expected 'e2e/rail-first-paint.spec.ts#RFP-2:43…' to be '' // Object.is equality
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
-[36;1m  exit "$reporter"[0m
-[36;1mfi[0m
-[36;1mexit 0[0m
-shell: /usr/bin/bash -e {0}
-env:
-  E2E_RESULTS_DIR: shard-results
-  E2E_LOGS_DIR: shard-logs
-  E2E_CONTEXT_DIR: shard-contexts
-  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
-  E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40821484703
-  E2E_HEAD_COMMIT_MESSAGE: Update plan
+[2m   Duration [22m 270.42s[2m (transform 10.97s, setup 162.82s, import 70.67s, tests 134.51s, environment 364.06s)[22m
 
-Plan file updated during planning mode
 
-X-Lovable-Edit-ID: edt-fbc5847d-da11-48a4-9778-96e8feee124b
-Co-authored-by: tesfayekb <tesfayekb@me.com>
-##[endgroup]
-  layout OK — per-artifact subdir: 1 context file(s), report rendered.
-  layout OK — merged flat: 1 context file(s), report rendered.
-  layout OK — zero artifacts: 0 context file(s), report rendered.
-  layout OK — missing directory: 0 context file(s), report rendered.
-DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
-DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
-ok — R1a census names the missing log
-ok — R1a a11y never states zero with a gap
-ok — R1b census: all N logs read
-ok — R1b a11y: all N logs read
-Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
-Wrote docs/tracking/e2e-last-failure.md (19/19 source(s) with usable results, 14 context file(s) found).
-publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
-##[group]Run echo "lanes=failure"
-[36;1mecho "lanes=failure"[0m
-[36;1mif [ "failure" != "success" ]; then[0m
-[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
-[36;1m  exit 1[0m
-[36;1mfi[0m
-[36;1mecho "Every temporary-backend lane passed (the email lane included)."[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-lanes=failure
-##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "spec not reachable from any area: e2e/rail-first-paint.spec.ts",
++ ]
+
+ ❯ scripts/e2e-select.test.ts:98:24
+
+
+
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "ACR-6: src/components/shell/data-table.test.tsx:108, scripts/admin-tables.test.ts:34",
++ ]
+
+ ❯ scripts/test-ids.test.ts:12:19
+
+
+
+##[error]AssertionError: expected 'e2e/rail-first-paint.spec.ts#RFP-2:43…' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ e2e/rail-first-paint.spec.ts#RFP-2:43 reads a box by itself; compare boxes through layoutBoxes (e2e/helpers/ui.ts)
++ e2e/rail-first-paint.spec.ts#RFP-2:47 reads a box by itself; compare boxes through layoutBoxes (e2e/helpers/ui.ts)
+
+ ❯ scripts/conformance/layout-reads.test.ts:99:75
+
+
+error: script "test:unit" exited with code 1
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/974edaf3-e7df-4bf2-adbd-52f709300e67' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/3992c401-7245-4416-88ec-968abff7644d' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
+
+## First-paint bundle budget (gzipped ceiling) — failure
+
+### Evidence lines
+
+```text
+[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
+Per-page budget failed (D234):
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+    307.6 / 308 KiB  /admin/impersonation_/$sessionId
+    276.6 / 277 KiB  /admin/legal
+    276.0 / 277 KiB  /admin/legal_/$versionId
+    282.2 / 283 KiB  /admin/legal_/edit
+    352.9 / 353 KiB  /admin/listings
+
+Per-page budget failed (D234):
+  /admin/ai: 332.4 KiB, over its ceiling of 331 KiB
+  /admin/places: 338.0 KiB, over its ceiling of 338 KiB
+  /admin/translations: 408.2 KiB, over its ceiling of 408 KiB
+
+Code-split the addition behind a dynamic import, or change the page's line in
+scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
+    376.3 / 379 KiB  /admin/listings_/$listingId
+    399.7 / 403 KiB  /admin/listings_/$listingId_/edit
+    268.6 / 270 KiB  /admin/locations
+    338.0 / 338 KiB  /admin/places
+    305.1 / 306 KiB  /admin/roles
+    305.7 / 306 KiB  /admin/roles_/$roleId
+    374.2 / 377 KiB  /admin/screening
+    408.2 / 408 KiB  /admin/translations
+    319.8 / 320 KiB  /admin/translations_/$lang
+    303.5 / 304 KiB  /admin/users
+    284.0 / 285 KiB  /admin/users_/$userId
+    218.7 / 219 KiB  /auth
+    207.0 / 208 KiB  /auth_/callback
+    209.1 / 210 KiB  /auth_/reset
+    219.5 / 220 KiB  /c/$slug
+    221.9 / 223 KiB  /dev/primitives
+    241.0 / 242 KiB  /dev/style
+    206.4 / 207 KiB  /dev/tall
+    247.8 / 251 KiB  /l/$slug
+    209.9 / 211 KiB  /legal/$kind
+    217.6 / 218 KiB  /legal/accept
+    210.6 / 212 KiB  /legal/publishing
+    326.6 / 327 KiB  /my-listings
+    315.5 / 316 KiB  /my-listings_/$listingId
+    394.4 / 397 KiB  /my-listings_/$listingId_/edit
+    394.4 / 397 KiB  /post
+    394.3 / 397 KiB  /post_/$listingId
+    209.9 / 211 KiB  /privacy
+    269.8 / 271 KiB  /settings
+    209.9 / 211 KiB  /terms
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/0b9cc158-0e40-401d-83b0-8d89b3476b17' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
