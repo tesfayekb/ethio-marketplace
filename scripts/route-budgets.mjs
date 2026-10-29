@@ -45,7 +45,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/admin/listings_/$listingId": { ceiling: 379, public: false }, // 375.6 (turn C1-2: the maps' failure in place; INC-964)
   "/admin/listings_/$listingId_/edit": { ceiling: 403, public: false }, // 399.1 (turn C1-2: the maps' failure in place; INC-964)
   "/admin/locations": { ceiling: 270, public: false }, // 266.1
-  "/admin/places": { ceiling: 338, public: false }, // 335.0
+  "/admin/places": { ceiling: 339, public: false }, // 338.0 on CI 31d5fb6b (INC-974: the rail seed, +0.3–0.4 on every page — the blank-menu fix)
   "/admin/roles": { ceiling: 306, public: false }, // 302.1
   "/admin/roles_/$roleId": { ceiling: 306, public: false }, // 302.7
   "/admin/screening": { ceiling: 377, public: false }, // 373.5 (turn C1-2: the maps' failure in place; INC-964)
