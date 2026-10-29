@@ -82,6 +82,8 @@ jobs:
         run: SELF_TEST=1 bun scripts/check-acceptance-doors.ts
       - name: Caller-gates guard self-test (DEC-241)
         run: SELF_TEST=1 bun scripts/check-caller-gates.ts
+      - name: Outbound-calls guard self-test (INC-981)
+        run: SELF_TEST=1 bun scripts/check-outbound-calls.ts
       # INC-457 / DEC-140: a workflow file GitHub rejects starts no job and
       # leaves no evidence, so every workflow is linted by a pinned actionlint
       # that first proves it fails on a known-bad step.
