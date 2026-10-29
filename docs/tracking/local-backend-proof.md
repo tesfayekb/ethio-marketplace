@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `3ee6978543200fe5183525a3f806d373e84e0ec2`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40849853483
+- Commit: `7a95706a45e6ffe56644e5d8b58abfc5db4c57d5`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40854479197
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 847 | 89 | applied 378/378 | 196 | 0 | 0 | 62 | 258 |
-| email | 185 | 108 | applied 378/378 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 740 | 120 | applied 378/378 | 132 | 0 | 0 | 4 | 136 |
-| 2 | 908 | 111 | applied 378/378 | 129 | 0 | 0 | 3 | 132 |
-| 3 | 997 | 133 | applied 378/378 | 136 | 0 | 0 | 0 | 136 |
-| 4 | 622 | 106 | applied 378/378 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 566 | 117 | applied 378/378 | 119 | 0 | 0 | 6 | 125 |
-| 6 | 796 | 116 | applied 378/378 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 515 | 101 | applied 378/378 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 526 | 120 | applied 378/378 | 101 | 0 | 0 | 30 | 131 |
-| 9 | 866 | 117 | applied 378/378 | 145 | 0 | 0 | 2 | 147 |
-| 10 | 973 | 105 | applied 378/378 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 969 | 104 | applied 378/378 | 123 | 0 | 0 | 1 | 124 |
-| 12 | 627 | 111 | applied 378/378 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 634 | 121 | applied 378/378 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 813 | 119 | applied 378/378 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 626 | 115 | applied 378/378 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 576 | 116 | applied 378/378 | 101 | 0 | 0 | 32 | 133 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2247 | 0 | 0 | 159 | 2406 |
+| smoke | 971 | 108 | applied 378/378 | 196 | 0 | 0 | 62 | 258 |
+| email | 158 | 100 | applied 378/378 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 737 | 119 | applied 378/378 | 132 | 0 | 0 | 4 | 136 |
+| 2 | 942 | 108 | applied 378/378 | 129 | 0 | 0 | 3 | 132 |
+| 3 | not run | 112 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 4 | 690 | 120 | applied 378/378 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 444 | 92 | applied 378/378 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 833 | 121 | applied 378/378 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 559 | 105 | applied 378/378 | 131 | 0 | 0 | 0 | 131 |
+| 8 | not run | 118 | applied 378/378 | 0 | 0 | 0 | 0 | 0 |
+| 9 | 855 | 112 | applied 378/378 | 145 | 0 | 0 | 2 | 147 |
+| 10 | 986 | 122 | applied 378/378 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 838 | 94 | applied 378/378 | 123 | 0 | 0 | 1 | 124 |
+| 12 | 654 | 110 | applied 378/378 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 604 | 117 | applied 378/378 | 120 | 0 | 0 | 5 | 125 |
+| 14 | 661 | 89 | applied 378/378 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 487 | 103 | applied 378/378 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 555 | 110 | applied 378/378 | 102 | 0 | 0 | 32 | 134 |
+| repeat | 219 | 108 | applied 378/378 | 12 | 0 | 0 | 0 | 12 |
+| TOTAL | — | — | — | 2023 | 0 | 0 | 129 | 2152 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 3 997 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 9, email 14, 1 13, 2 11, 3 13, 4 10, 5 13, 6 13, 7 11, 8 12, 9 13, 10 13, 11 13, 12 11, 13 13, 14 13, 15 13, 16 13, repeat not run
+- Slowest lane: 10 986 s
+- Repeat lane (DEC-283): Repeat: each 6 on both projects; 1 tests selected, 1 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 13, email 10, 1 13, 2 13, 3 8, 4 13, 5 9, 6 13, 7 12, 8 13, 9 11, 10 14, 11 9, 12 12, 13 13, 14 9, 15 10, 16 10, repeat 13
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40849853483-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40849853483-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40849853483-local-1
-  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40849853483-local-2
-  - 3: [e2e:teardown] deleted 21 user(s) owned by process 40849853483-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40849853483-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40849853483-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40849853483-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40849853483-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40849853483-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40849853483-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40849853483-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40849853483-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40849853483-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40849853483-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40849853483-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40849853483-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40849853483-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40854479197-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40854479197-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40854479197-local-1
+  - 2: [e2e:teardown] deleted 6 user(s) owned by process 40854479197-local-2
+  - 3: not found
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40854479197-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40854479197-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40854479197-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40854479197-local-7
+  - 8: not found
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40854479197-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40854479197-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40854479197-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40854479197-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40854479197-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40854479197-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40854479197-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40854479197-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 40854479197-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -70,5 +70,77 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:54321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
+
+## Lane 3
+- No JSON results; smoke skipped
+
+## Lane 3
+## Migration/start failure
+Last migration line: Applying migration 20261029092611_0cd49f0d-bdbc-4c3d-b789-f1fbe20db2c7.sql...
+```text
+Applying migration 20261021222622_b1ecffc0-4aab-4eeb-9a5e-eb2f304061ee.sql...
+Applying migration 20261022013727_00da12a2-034a-4684-9981-9aa7ea6c6233.sql...
+Applying migration 20261022023137_e74aeb54-2bcb-4488-a137-67c8898c12ca.sql...
+Applying migration 20261023100132_a09c454f-65ba-4170-805d-eda4921dacbe.sql...
+Applying migration 20261023144720_55ed5bb4-3823-46a3-9020-f4ad79ddd4a7.sql...
+Applying migration 20261024041937_d4858894-6ceb-4f2d-a9bf-76e32c72a738.sql...
+Applying migration 20261024045415_fce0ec68-3190-41bf-bee9-5883c1e8c4c0.sql...
+Applying migration 20261024065107_5e8d01eb-edf3-4456-93e4-96ad2c7cee6f.sql...
+Applying migration 20261024220534_7aba0b1c-b2a2-455c-9aec-7c711a41034e.sql...
+Applying migration 20261025005245_f5f6c8fb-4cf3-49f7-872f-43f50851aa9c.sql...
+Applying migration 20261025011447_71ad0a58-9d87-4e98-a83e-8f4e07951230.sql...
+Applying migration 20261028223430_631c8680-d4a9-4b2f-bab9-8c83d604a445.sql...
+Applying migration 20261028224333_4ce633e9-2d61-433c-a543-6f7dc00cb769.sql...
+Applying migration 20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql...
+Applying migration 20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql...
+Applying migration 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql...
+Applying migration 20261028231519_fd0c7d09-e0a4-40eb-b323-2a46a323708f.sql...
+Applying migration 20261028233839_7aad90ab-4b74-453d-99a2-59426ac3206e.sql...
+Applying migration 20261028235443_3e3ea913-f01e-472e-a2dd-671adba96a2e.sql...
+Applying migration 20261029001111_b124ab89-23bf-4bdb-9836-ae9dbe20a538.sql...
+Applying migration 20261029002140_5a30bc87-f056-4c92-bc22-14656fdceeb8.sql...
+Applying migration 20261029013346_0780a3a2-a07d-44c4-ac84-2ebeec7d3897.sql...
+Applying migration 20261029015441_88c7da1c-4a03-4af4-8551-0b105ecb73a0.sql...
+Applying migration 20261029015903_c9372052-a28e-4b34-832f-c91b218dcaac.sql...
+Applying migration 20261029022748_3b9ead33-b459-43fe-9e95-364b3b337975.sql...
+Applying migration 20261029024207_4f6a133e-4917-4651-a1c5-a3a45dc385e5.sql...
+Applying migration 20261029024340_4eb166c1-9395-449e-8353-f42bdfded58b.sql...
+Applying migration 20261029024420_357d93d5-c90f-4030-b5bd-046675f4aee2.sql...
+Applying migration 20261029024515_a34b87bb-1a15-4ad7-ae8a-ea6c38c5d939.sql...
+Applying migration 20261029024619_b8c031b9-9f2e-4a7f-86c6-4361375d2fa0.sql...
+Applying migration 20261029025242_89f5cbc9-3222-4933-b007-97dda867e59e.sql...
+Applying migration 20261029043847_4a7e258a-9b47-419b-8d1b-7910ab9cd56e.sql...
+Applying migration 20261029044433_175bb84e-0bb9-4d2e-aa3c-40dd1045d387.sql...
+Applying migration 20261029063150_560e36c8-6f0f-4ab9-a021-bfe1582a9431.sql...
+Applying migration 20261029071034_a58307eb-0c91-4d26-b14b-00a662e90432.sql...
+Applying migration 20261029072455_be0270dc-e88a-4a72-abee-14468885579d.sql...
+Applying migration 20261029073342_cba46fd4-8476-4450-8253-ec69daedcf2b.sql...
+Applying migration 20261029073837_44a91d3e-8f13-4122-97c5-8a9edde98f7a.sql...
+Applying migration 20261029074251_2206e389-eb7f-4c54-a303-2db5a95ae5f8.sql...
+Applying migration 20261029074846_5b5658e1-90fe-4f91-b351-ee24134c3bc6.sql...
+Applying migration 20261029085507_709fb25b-c8da-47f0-b50f-c1e6a5ab9b80.sql...
+Applying migration 20261029090431_2c2b5ef0-8a9e-4cf5-a1cd-2a1c2cdb1b92.sql...
+Applying migration 20261029091909_85de2619-cec0-459c-b6c0-4e58f4e906b8.sql...
+Applying migration 20261029092611_0cd49f0d-bdbc-4c3d-b789-f1fbe20db2c7.sql...
+Starting containers...
+Stopping containers...
+failed to start docker container "supabase_inbucket_ethio-ci-local": Error response from daemon: failed to set up container networking: driver failed programming external connectivity on endpoint supabase_inbucket_ethio-ci-local ([masked hex]): failed to bind host port for 0.0.0.0:54324:172.18.0.5:8025/tcp: address already in use
+Error: failed to start containers: [masked hex]
+Try rerunning the command with --debug to troubleshoot the error.
+Port holders (54320-54329):
+TIME-WAIT  0      0                127.0.0.1:44794               127.0.0.1:54322                                            
+ESTAB      0      0      [::ffff:10.1.0.128]:54324  [::ffff:20.85.130.105]:443   users:(("Runner.Worker",pid=1928,fd=172))  
+Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
+10:05:25 | 231 | @effect/sql-pg | active | : | GRANT EXECUTE ON FUNCTION public.admin_screening_facts(uuid) TO authenticated
+10:05:25 | 213 |  |  | Activity:AutovacuumMain | 
+10:05:25 | 215 | pg_cron scheduler |  | Extension:Extension | 
+10:05:25 | 216 |  |  | Activity:LogicalLauncherMain | 
+10:05:25 | 209 |  |  | Activity:CheckpointerMain | 
+10:05:25 | 210 |  |  | Activity:BgwriterMain | 
+10:05:25 | 212 |  |  | Activity:WalWriterMain | 
+```
+
+## Lane 8
+- No JSON results; smoke skipped
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
