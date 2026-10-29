@@ -8,6 +8,7 @@ import { adJsonLd } from "@/features/ad-page/json-ld";
 import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
 import { revealContact, type ContactState } from "@/features/ad-page/contact";
 import { countView } from "@/features/ad-page/count-view";
+import { readSellerReview } from "@/features/seller/seller-review";
 import { useAuth } from "@/features/auth/use-auth";
 import { fill } from "@/features/posting/refusal-text";
 import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
@@ -137,6 +138,25 @@ function AdPage() {
       })
       .finally(() => setSaveBusy(false));
   };
+  // N1b-2c (INC-977, R3) — the owner's own ad page tells them their name is held; the
+  // public read already shows them the neutral label. Asked only of the owner; a failed
+  // read is logged and the notice is not drawn (the page never claims "not held").
+  const [underReview, setUnderReview] = useState(false);
+  const owner = user !== null && (doc.viewer.owner || ownAd);
+  useEffect(() => {
+    setUnderReview(false);
+    if (!owner) return;
+    let active = true;
+    readSellerReview().then(
+      (held) => {
+        if (active) setUnderReview(held);
+      },
+      (error: unknown) => console.error("[seller-review] my_seller_line", error),
+    );
+    return () => {
+      active = false;
+    };
+  }, [owner]);
   const revealing = useRef(false);
   const returnedReveal = useRef<string | null>(null);
   const onReveal = useCallback(() => {
@@ -208,6 +228,7 @@ function AdPage() {
         }
         publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}
         sellerAdsKey={doc.seller.alias === null ? null : doc.seller.alias.toLowerCase()}
+        sellerUnderReview={underReview}
         ribbon={ribbonKey ? t(ribbonKey) : null}
         soldBadge={doc.is_sold && soldKey !== undefined ? t(soldKey) : null}
         save={

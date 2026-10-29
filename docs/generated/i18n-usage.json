@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 609,
+  "scanned": 612,
   "dynamicCallSites": 400,
   "keys": {
     "account.deactivatedBanner": [
@@ -7088,14 +7088,7 @@
       "/post/$listingId"
     ],
     "post.review.notGiven": [
-      "(every page)",
-      "/$name",
-      "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -7284,9 +7277,48 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.seller.neutral": [
+      "(every page)",
+      "/$name",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.seller.previously": [
       "(every page)",
       "/$name",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.seller.underReview": [
+      "(every page)",
+      "/account",
+      "/admin/listings/$listingId",
+      "/admin/listings/$listingId/edit",
+      "/admin/screening",
+      "/l/$id/photo[/]jpg",
+      "/l/$slug",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.seller.underReviewHelp": [
+      "(every page)",
+      "/account",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
       "/admin/screening",

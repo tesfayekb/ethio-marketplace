@@ -1,0 +1,18 @@
+# N1b-2c (INC-977, R6) — functions whose latest body reads profiles.seller_alias or alias_history, other than the two helpers.
+# function | reason | until
+admin_get_user | staff door (has_permission users/profiles view); staff see the name | 2027-04-30
+admin_list_listings | staff door (has_permission listings view); staff see the name | 2027-04-30
+admin_list_users | staff door (has_permission users view); staff see the name | 2027-04-30
+admin_listing_detail | staff door (has_permission listings view); staff see the name (SPA-7) | 2027-04-30
+admin_screening_facts | staff door (has_permission listings review); staff see the name | 2027-04-30
+admin_update_profile | staff writer (profiles:update + step-up); stamps released_state, answers no name | 2027-04-30
+impersonated_get_profile | staff impersonation door (gated, audited); reads the impersonated owner's own row | 2027-04-30
+alias_next_change_at | internal judge; answers a date, never a name | 2027-04-30
+alias_taken | internal judge; answers a boolean, never another person's name | 2027-04-30
+alias_verdict | internal judge; answers a refusal reason, never another person's name | 2027-04-30
+legal_acceptance_guard | trigger; compares the writer's own row, answers no name | 2027-04-30
+validate_listing_draft | owner door; reads the caller's own name only to refuse a missing one | 2027-04-30
+seller_name_sweep | service-only sweep; answers counts, never a name | 2027-04-30
+my_seller_line | owner door; the caller's own name and previous name (R5: the owner keeps their name) | 2027-04-30
+save_posting_identity | owner writer; the caller's own name, stamps released_state | 2027-04-30
+seller_feed_page | public door; reads seller_alias only as the lookup key; the shown name is seller_public_alias and a held name answers unknownSeller (M3a, SPA-3) | 2027-04-30

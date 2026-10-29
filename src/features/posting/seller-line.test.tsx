@@ -53,4 +53,22 @@ describe("SellerLine", () => {
     expect(screen.queryByTestId("b-previous")).toBeNull();
     expect(screen.queryByTestId("b-since")).toBeNull();
   });
+
+  it("SPA-8a a name missing from the data draws the neutral label, never Not given", () => {
+    // N1b-2c (INC-977) — a held name arrives as null; an empty one is no name either.
+    for (const alias of [null, ""]) {
+      const { unmount } = render(
+        <SellerLine
+          alias={alias}
+          businessName={null}
+          previousAlias={null}
+          memberSince={null}
+          testId="h"
+        />,
+      );
+      expect(screen.getByTestId("h-name").textContent).toBe("post.seller.neutral");
+      expect(screen.queryByText("post.review.notGiven")).toBeNull();
+      unmount();
+    }
+  });
 });

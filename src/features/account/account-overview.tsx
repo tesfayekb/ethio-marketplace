@@ -20,6 +20,8 @@ import {
 } from "@/features/my-listings/my-listings";
 import { formatLocale } from "@/lib/format-locale";
 import { currentSession } from "@/lib/supabase-door";
+import { readSellerReview } from "@/features/seller/seller-review";
+import { SellerReviewNotice } from "@/features/seller/seller-review-notice";
 
 type Profile = {
   seller_alias: string | null;
@@ -37,10 +39,18 @@ type State = {
   memberSince: string | null;
   /** Bundle 16 turn 2 (INC-469) — the six groups of My listings, counted by the door. */
   counts: GroupCounts | null;
+  /** N1b-2c (INC-977) — the owner's name is held for review. */
+  underReview: boolean;
   error: boolean;
 };
 
-const initialState: State = { profile: null, memberSince: null, counts: null, error: false };
+const initialState: State = {
+  profile: null,
+  memberSince: null,
+  counts: null,
+  underReview: false,
+  error: false,
+};
 
 /** The signed-in Account overview, composed only from existing owner reads. */
 export function AccountOverview() {
@@ -56,7 +66,7 @@ export function AccountOverview() {
       // Turn 34c-5 (INC-933) — the member-since date from the door's session read (local), not
       // a server round trip (`auth.getUser()` was one); a read that failed is the page's error.
       const read = await currentSession();
-      const [profile, listings] = await Promise.all([
+      const [profile, listings, review] = await Promise.all([
         supabase
           .from("profiles")
           .select(
@@ -68,9 +78,17 @@ export function AccountOverview() {
         // door that serves My listings (one row asked for; the counts cover all),
         // so no status is mapped twice and none can fall through to a wrong word.
         readMyListings("live", 1, 0),
+        // N1b-2c (INC-977) — a failed review read is the page's error, never "not held".
+        readSellerReview().then(
+          (held) => ({ held }),
+          (error: unknown) => {
+            console.error("[seller-review] my_seller_line", error);
+            return null;
+          },
+        ),
       ]);
       if (!active) return;
-      if (read.failed || profile.error || listings === null) {
+      if (read.failed || profile.error || listings === null || review === null) {
         setState((current) => ({ ...current, error: true }));
         setLoading(false);
         return;
@@ -79,6 +97,7 @@ export function AccountOverview() {
         profile: profile.data,
         memberSince: read.session?.user.created_at ?? null,
         counts: listings.counts,
+        underReview: review.held,
         error: false,
       });
       setLoading(false);
@@ -105,6 +124,12 @@ export function AccountOverview() {
                 <dt className="text-muted-foreground">{t("account.overview.alias")}</dt>
                 <dd className="text-foreground">
                   {state.profile?.seller_alias ?? t("account.overview.notSet")}
+                </dd>
+                <dd className="mt-1">
+                  <SellerReviewNotice
+                    underReview={state.underReview}
+                    testId="account-seller-review"
+                  />
                 </dd>
               </div>
               <div>

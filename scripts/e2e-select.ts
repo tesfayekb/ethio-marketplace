@@ -263,6 +263,17 @@ export const AREAS: Area[] = [
     specs: ["e2e/ad-page-routes.spec.ts", "e2e/ad-page*.spec.ts"],
   },
   {
+    // N1b-2c (INC-977) — the hidden seller name: the seller page, its head, the owner's notice.
+    name: "seller-name",
+    src: [
+      "src/routes/$name.tsx",
+      "src/features/seller/**",
+      "src/features/posting/seller-line.tsx",
+      "src/server/seller-page.ts",
+    ],
+    specs: ["e2e/seller-name-hidden.spec.ts"],
+  },
+  {
     name: "routes",
     src: ["src/routes/**"],
     specs: ["e2e/a11y.spec.ts"],

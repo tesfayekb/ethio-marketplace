@@ -55,6 +55,7 @@ import {
 } from "./posting-service";
 import { PreviewSheet } from "./preview/preview-sheet";
 import { SellerLine } from "./seller-line";
+import { SellerReviewNotice } from "@/features/seller/seller-review-notice";
 import type { DraftValues } from "./use-draft";
 import type { PinPrecision } from "./map/pin";
 import type { DealLists, Refusal } from "./types";
@@ -617,6 +618,10 @@ export function StepReview({
                       previousAlias={line?.previousAlias ?? null}
                       memberSince={line?.memberSince ?? null}
                       testId="post-review-seller"
+                    />
+                    <SellerReviewNotice
+                      underReview={line?.underReview === true}
+                      testId="post-review-seller-review"
                     />
                   </dd>
                 )}
