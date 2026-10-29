@@ -15,6 +15,10 @@ jobs:
     # start 359 s, cancelled at 45 minutes after 165 of 194 tests); DEC-211's
     # criterion (3) still judges each lane at 25 minutes.
     timeout-minutes: 60
+    # INC-992: every run step's output is kept for "Name failed steps" (scripts/ci/step-shell.sh).
+    defaults:
+      run:
+        shell: bash scripts/ci/step-shell.sh {0}
     strategy:
       fail-fast: false
       matrix:
@@ -61,12 +65,17 @@ jobs:
       # failed with "address already in use" (lanes 16, 8, 7 and 10, 2026-10-24 → 10-26). Reserved before any
       # connection is made, no outgoing connection is given them.
       - name: Reserve the temporary backend's ports (INC-935)
+        id: reserve-the-temporary-backend-s-ports
         timeout-minutes: 1
+        shell: bash
         run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       - name: Begin proof clock
+        id: begin-proof-clock
+        shell: bash
         run: |
           echo "PROOF_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
       - uses: actions/checkout@v5
+        id: checkout
         timeout-minutes: 5
         with:
           persist-credentials: false
@@ -74,14 +83,18 @@ jobs:
           # Quoted: GitHub's expressions treat a bare 0 as false, so `&& 0 || 1` would always give 1.
           fetch-depth: ${{ matrix.lane == 'repeat' && '0' || '1' }}
       - name: Record checkout seconds
+        id: record-checkout-seconds
         run: echo "CHECKOUT_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
       - name: Begin install clock
+        id: begin-install-clock
         run: echo "INSTALL_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
       - uses: oven-sh/setup-bun@v2
+        id: setup-bun
         timeout-minutes: 5
         with:
           bun-version: 1.3.14
       - name: Cache bun install
+        id: cache-bun-install
         timeout-minutes: 10
         uses: actions/cache@v5
         with:
@@ -89,12 +102,14 @@ jobs:
           key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
           restore-keys: bun-${{ runner.os }}-
       - name: Install dependencies
+        id: install-dependencies
         timeout-minutes: 12
         run: bash scripts/ci/with-deadline.sh 300 2 -- bun install --frozen-lockfile
       # DEC-283 — the repeat lane repeats the spec files this push changed (and the specs importing a changed
       # e2e helper), chosen by the one selector. A selector failure is red, never "nothing to repeat". With
       # nothing selected, every later step that installs, starts the backend, builds or tests is skipped.
       - name: Select the specs to repeat (DEC-283)
+        id: select-the-specs-to-repeat
         if: matrix.lane == 'repeat'
         timeout-minutes: 5
         run: |
@@ -162,19 +177,24 @@ jobs:
             echo "REPEAT_GLOBAL_TIMEOUT_MS=$(( (REPEAT_BUDGET_SECONDS + 120) * 1000 ))"
           } >> "$GITHUB_ENV"
       - name: Record install seconds
+        id: record-install-seconds
         if: always()
         run: echo "INSTALL_SECONDS=$(( $(date +%s) - INSTALL_BEGIN ))" >> "$GITHUB_ENV"
       - name: Begin CLI clock
+        id: begin-cli-clock
         run: echo "CLI_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
       - uses: supabase/setup-cli@v3.0.1
+        id: setup-cli
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 5
         with:
           version: 2.120.0
       - name: Record CLI seconds
+        id: record-cli-seconds
         if: always()
         run: echo "CLI_SECONDS=$(( $(date +%s) - CLI_BEGIN ))" >> "$GITHUB_ENV"
       - name: Prepare temporary working copy
+        id: prepare-temporary-working-copy
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         run: |
           begin=$(date +%s)
@@ -383,6 +403,7 @@ jobs:
           TOML
           echo "PREPARE_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Make the temporary backend's certificate
+        id: make-the-temporary-backend-s-certificate
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 8
         run: |
@@ -586,6 +607,7 @@ jobs:
           fi
       # DEC-215 / D227: every signed-in write door checks acceptance or names its reason.
       - name: Acceptance-doors guard (DEC-215, DEC-216)
+        id: acceptance-doors-guard
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'legal_acceptance_pending\(|legal_certify\(' as checks from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/acceptance-doors.tsv"
@@ -601,6 +623,7 @@ jobs:
       # default-privilege fixture, fixed on 53aa4e76) and the step has matched the baseline on every run
       # since — DEC-240's frozen rule: it gates again (turn 34e).
       - name: Database security lints (DEC-240)
+        id: database-security-lints
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
@@ -613,12 +636,14 @@ jobs:
             exit 1
           fi
       - name: Caller-gates guard (DEC-241)
+        id: caller-gates-guard
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'assert_caller_active\(|rate_gate\(|has_permission\(|is_super_admin\(' as gated from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/caller-gates.tsv"
           bun scripts/check-caller-gates.ts "$RUNNER_TEMP/caller-gates.tsv"
       # N1b-1 (INC-977/INC-981, S4 + S5): only public.job_call calls net.*, and net is not exposed.
       - name: Outbound-calls guard (INC-981)
+        id: outbound-calls-guard
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         timeout-minutes: 3
         run: |
@@ -665,8 +690,10 @@ jobs:
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Begin browser clock
+        id: begin-browser-clock
         run: echo "BROWSER_BEGIN=$(date +%s)" >> "$GITHUB_ENV"
       - name: Cache Playwright browsers
+        id: cache-playwright-browsers
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 10
         uses: actions/cache@v5
@@ -677,14 +704,17 @@ jobs:
       # 90th percentile and 895 s at most. A package install cut off part-way cannot be repeated, so the system
       # libraries run once with 1500 s; the browser download may be repeated, 900 s a try.
       - name: Install Chromium's system libraries
+        id: install-chromium-s-system-libraries
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 27
         run: bash scripts/ci/with-deadline.sh 1500 1 -- bunx playwright install-deps chromium
       - name: Install Chromium
+        id: install-chromium
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         timeout-minutes: 32
         run: bash scripts/ci/with-deadline.sh 900 2 -- bunx playwright install chromium
       - name: Record browser seconds
+        id: record-browser-seconds
         if: always()
         run: |
           if [ -n "${BROWSER_BEGIN:-}" ]; then
@@ -718,7 +748,20 @@ jobs:
           echo "TEST_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           echo "JOB_SECONDS=$(( $(date +%s) - PROOF_BEGIN ))" >> "$GITHUB_ENV"
           exit "$result"
+      # INC-992 (class rule): every lane step's failure reaches the evidence by this one step. Each step
+      # whose outcome is not success/skipped is named by id and outcome with its kept last lines, into
+      # local-backend-failure.txt ("- Step failure:" under "## Lane N"). INC-984's guard lines stay: they
+      # are the outbound-calls guard's own FAIL lines, more exact than its tail.
+      - name: Name failed steps (INC-992)
+        id: name-failed-steps
+        if: always()
+        timeout-minutes: 1
+        shell: bash
+        env:
+          STEPS_JSON: ${{ toJSON(steps) }}
+        run: node scripts/ci/step-failures.mjs || echo "::warning::Name failed steps exited $?"
       - name: Write lane evidence
+        id: write-lane-evidence
         if: always()
         env:
           PROOF_STATUS: ${{ job.status }}
@@ -844,6 +887,7 @@ jobs:
               Path(lane + '.log').write_text(redact(lane_log.read_text(errors='replace')))
           PY
       - name: Keep lane JSON, log and proof evidence
+        id: keep-lane-json-log-and-proof-evidence
         timeout-minutes: 10
         if: always()
         uses: actions/upload-artifact@v6
@@ -858,6 +902,7 @@ jobs:
           retention-days: 7
           overwrite: true
       - name: Upload lane results
+        id: upload-lane-results
         timeout-minutes: 10
         if: always()
         uses: actions/upload-artifact@v6
@@ -868,6 +913,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Upload lane log
+        id: upload-lane-log
         timeout-minutes: 10
         if: always()
         uses: actions/upload-artifact@v6
@@ -880,6 +926,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
       - name: Upload lane error contexts
+        id: upload-lane-error-contexts
         timeout-minutes: 10
         if: always()
         uses: actions/upload-artifact@v6
@@ -890,6 +937,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Dispose temporary backend
+        id: dispose-temporary-backend
         if: always()
         run: |
           if command -v supabase >/dev/null && [ -f .ci-local/supabase/config.toml ]; then
