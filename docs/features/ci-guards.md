@@ -11,7 +11,7 @@ DEC-133 (2026-10-05): every job runs on ubuntu-24.04, pinned — GitHub moves ub
 | --------------- | ----------------------------------------------------------------------- | -------- |
 | build-and-check | `bun install` → `bun run typecheck` → `bun run lint` → `bun run build`. | **FAIL** |
 | bundle-report   | Prints total client JS output size after build (informational).         | log-only |
-| secrets-scan    | `gitleaks/gitleaks-action@v3` — scans repo history for leaked secrets.  | **FAIL** |
+| secrets-scan    | pinned gitleaks 8.24.3 (SHA-256 checked) over every commit on dev that main does not hold yet, merges included (INC-975); exit code is the verdict, no artifact (INC-976). | **FAIL** |
 | migration-lint  | Runs `scripts/check-migrations.sh` (see below).                         | **FAIL** |
 | string-scan     | Runs `scripts/check-hardcoded-strings.sh`.                              | **WARN** |
 
