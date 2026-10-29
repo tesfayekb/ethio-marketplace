@@ -1,4 +1,4 @@
-import { pageHead } from "@/lib/page-head";
+import { pageHead, usePageHead } from "@/lib/page-head";
 import { installInputModality } from "@/lib/input-modality";
 import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -456,6 +456,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
+        <PageHeadEffect />
         <ThemeProvider>
           <CategoryTreeSeedContext.Provider value={firstTree}>
             <AppShell>
@@ -470,4 +471,9 @@ function RootComponent() {
       </I18nProvider>
     </QueryClientProvider>
   );
+}
+
+function PageHeadEffect() {
+  usePageHead();
+  return null;
 }

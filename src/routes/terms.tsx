@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { LegalDocumentPage } from "@/features/legal/legal-document-page";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/terms")({
   head: ({ matches }) => {
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
     const url = root?.origin ? `${root.origin}/terms` : null;
-    return {
+    return pageHead("head.site.pattern.title", "head.terms.description", {
       meta: [
         { title: TITLE },
         { name: "description", content: DESCRIPTION },
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/terms")({
         ...(url ? [{ property: "og:url", content: url }] : []),
       ],
       links: url ? [{ rel: "canonical", href: url }] : [],
-    };
+    }, "legal.kind.terms");
   },
   errorComponent: TermsError,
   component: TermsPage,

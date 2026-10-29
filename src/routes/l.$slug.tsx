@@ -43,7 +43,7 @@ export const Route = createFileRoute("/l/$slug")({
   },
   notFoundComponent: GonePage,
   head: ({ loaderData, matches }) => {
-    if (!loaderData) return pageHead("head.site.pattern.title", null, {};
+    if (!loaderData) return {};
     const { doc, canonical } = loaderData;
     const title = `${doc.title} — ethio.com`;
     const description = doc.description.slice(0, 160);
@@ -56,7 +56,7 @@ export const Route = createFileRoute("/l/$slug")({
           ? new URL(doc.category.illustration_url, root.origin).href
           : null
       : null;
-    return {
+    return pageHead("head.site.pattern.title", null, {
       meta: [
         { title },
         { name: "description", content: description },

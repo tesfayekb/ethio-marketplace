@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
@@ -57,7 +58,7 @@ export const Route = createFileRoute("/settings")({
   beforeLoad: async () => {
     await requireSignedIn("/settings");
   },
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.settings.description", {
     meta: [
       { name: "robots", content: "noindex" },
       { title: "Account settings — ethio.com" },
@@ -70,7 +71,7 @@ export const Route = createFileRoute("/settings")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  }, "head.settings.title"),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: SettingsScreen,

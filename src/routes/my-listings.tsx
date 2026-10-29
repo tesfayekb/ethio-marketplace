@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { MyListingsPage } from "@/features/my-listings/my-listings-page";
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/my-listings")({
   beforeLoad: async () => {
     await requireSignedIn("/my-listings");
   },
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.myListings.description", {
     meta: [
       { name: "robots", content: "noindex" },
       { title: "My listings — ethio.com" },
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/my-listings")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  }, "nav.myListings"),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingsPage,

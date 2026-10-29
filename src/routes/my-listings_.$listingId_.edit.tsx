@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
 import { EditWizard } from "@/features/posting/wizard";
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/my-listings_/$listingId_/edit")({
   beforeLoad: async ({ params }) => {
     await requireSignedIn(`/my-listings/${encodeURIComponent(params.listingId)}/edit`);
   },
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.editAd.description", {
     meta: [
       { name: "robots", content: "noindex" },
       { title: "Edit your ad — ethio.com" },
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/my-listings_/$listingId_/edit")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  }, "post.edit.title"),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingEditRoute,
