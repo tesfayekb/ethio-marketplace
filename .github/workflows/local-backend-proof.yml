@@ -53,6 +53,9 @@ jobs:
       E2E_FAKE_TRANSLATE: "1"
       E2E_FAKE_GEOCODE: "1"
     steps:
+      # DEC-284 (INC-991): the backend's ports now sit at 31320-31329, below Linux's ephemeral range, so no
+      # connection the runner opens at job start can hold one. This reservation of the retired block stays until
+      # DEC-284's rule closes (20 completed runs without a lane lost to a bind failure).
       # INC-935 (DEC-275): the CLI binds fixed host ports (54320-54324) that sit inside Linux's ephemeral range
       # (32768-60999), so an outgoing connection made while the images download could hold one and the start
       # failed with "address already in use" (lanes 16, 8, 7 and 10, 2026-10-24 → 10-26). Reserved before any
