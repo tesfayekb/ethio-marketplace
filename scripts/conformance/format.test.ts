@@ -85,7 +85,7 @@ describe("one formatter per intent, one locale module (CF-FMT-1)", () => {
     TREE_SCAN_MS,
   );
 
-  it("CF-FMT-1 planted: each bypass form is caught, the homes are not", () => {
+  it("CF-FMT-2 planted: each bypass form is caught, the homes are not", () => {
     const root = mkdtempSync(join(tmpdir(), "cf-fmt-1-"));
     try {
       mkdirSync(join(root, "src", "lib"), { recursive: true });
