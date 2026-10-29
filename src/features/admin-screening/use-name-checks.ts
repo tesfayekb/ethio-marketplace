@@ -34,6 +34,11 @@ export type NameQueueCursor = { since: string; profileId: string };
 export interface NameQueueRow {
   profileId: string;
   subject: "alias";
+  /**
+   * J-1 (INC-1002): 'imitates' (hidden from buyers) or 'needs_review' (the AI could not check it;
+   * buyers still see it). A door from before J-1 names no state and lists only 'imitates'.
+   */
+  state: NameQueueState;
   /** null when the reader lacks profiles:view (`nameHidden`). */
   name: string | null;
   checkedText: string | null;
@@ -42,6 +47,9 @@ export interface NameQueueRow {
   since: string;
   attempts: number;
 }
+
+export const NAME_QUEUE_STATES = ["imitates", "needs_review"] as const;
+export type NameQueueState = (typeof NAME_QUEUE_STATES)[number];
 
 export interface NameQueuePage {
   rows: NameQueueRow[];
@@ -69,7 +77,9 @@ export function nameQueuePageOf(raw: unknown): NameQueuePage {
     const of = row["of"] ?? null;
     const hidden = row["name_hidden"];
     const attempts = row["attempts"];
+    const state = row["state"] ?? "imitates";
     if (typeof profileId !== "string" || profileId === "") throw malformed();
+    if (!(NAME_QUEUE_STATES as readonly unknown[]).includes(state)) throw malformed();
     if (row["subject"] !== "alias") throw malformed();
     if (!optionalText(name) || !optionalText(checkedText) || !optionalText(of)) throw malformed();
     if (typeof hidden !== "boolean") throw malformed();
@@ -82,6 +92,7 @@ export function nameQueuePageOf(raw: unknown): NameQueuePage {
     return {
       profileId,
       subject: "alias",
+      state: state as NameQueueState,
       name,
       checkedText,
       of,
@@ -150,6 +161,7 @@ export const JOB_OUTCOMES = [
   "switch_off",
   "budget_spent",
   "failed",
+  "lost",
 ] as const;
 export type JobOutcome = (typeof JOB_OUTCOMES)[number];
 export const PAUSE_REASONS = ["credits", "policy", "rate_limit"] as const;
@@ -164,6 +176,7 @@ export const OUTCOME_KEY: Record<Exclude<JobOutcome, "not_configured">, MessageK
   switch_off: "admin.screening.job.outcome.switch_off",
   budget_spent: "admin.screening.job.outcome.budget_spent",
   failed: "admin.screening.job.outcome.failed",
+  lost: "admin.screening.job.outcome.lost",
 };
 
 export const PAUSE_KEY: Record<PauseReason, MessageKey> = {
