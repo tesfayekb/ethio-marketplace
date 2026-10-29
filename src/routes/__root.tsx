@@ -128,17 +128,15 @@ const getFirstFeedPage = createServerFn({ method: "GET" })
 const getFirstCategoryTree = createServerFn({ method: "GET" })
   .validator(NoInputSchema)
   .handler(async (): Promise<CategoryTreeSeed | null> => {
-    const { readFirstCategoryTree } = await import("../server/first-screen");
-    return readFirstCategoryTree(getRequest());
+    // Server-only: the read, its deadline and its log lines never ship to the browser (ruling 2b).
+    try {
+      const { readFirstCategoryTree } = await import("../server/first-screen");
+      return await readFirstCategoryTree(getRequest());
+    } catch (error: unknown) {
+      console.warn("[first-screen] the rail's categories were not handed over:", errorText(error));
+      return null;
+    }
   });
-
-/** Never a rejection: a failed hand-over is one [first-screen] line and the rail reads as before. */
-function firstCategoryTree(): Promise<CategoryTreeSeed | null> {
-  return getFirstCategoryTree().catch((error: unknown) => {
-    console.warn("[first-screen] the rail's categories were not handed over:", errorText(error));
-    return null;
-  });
-}
 
 /** The root's loader data: the request's language and area facts, and the feed's first page. */
 type RootData = SsrLangContext & {
@@ -326,7 +324,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     // beside the language facts, never on a client navigation.
     const [data, firstTree] =
       typeof window === "undefined"
-        ? await Promise.all([getSsrLangContext(), firstCategoryTree()])
+        ? await Promise.all([getSsrLangContext(), getFirstCategoryTree()])
         : [await getSsrLangContext(), null];
     if (typeof window === "undefined") return { ...data, firstFeed, firstTree };
     return {
@@ -459,13 +457,13 @@ function RootComponent() {
       <I18nProvider>
         <ThemeProvider>
           <CategoryTreeSeedContext.Provider value={firstTree}>
-          <AppShell>
-            {/* DEC-258 — a route that declares strings layers draws once they are in. */}
-            <StringsLayerGate>
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-            </StringsLayerGate>
-          </AppShell>
+            <AppShell>
+              {/* DEC-258 — a route that declares strings layers draws once they are in. */}
+              <StringsLayerGate>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </StringsLayerGate>
+            </AppShell>
           </CategoryTreeSeedContext.Provider>
         </ThemeProvider>
       </I18nProvider>

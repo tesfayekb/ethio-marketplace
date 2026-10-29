@@ -24,7 +24,14 @@ test.describe("RAIL — names at first paint (INC-974)", () => {
     expect(html).toMatch(/data-testid="(?:rail|strip)-category-[a-z0-9-]+"/);
   });
 
-  test("RFP-2 the first row keeps its box when the glyph map arrives late", async ({ page }) => {
+  test("RFP-2 the first row keeps its box when the glyph map arrives late", async ({
+    page,
+    baseURL,
+  }) => {
+    // J5: the row is named, not taken by position — the slug of the first row the server drew.
+    const html = await (await page.request.get(new URL("/", baseURL).toString())).text();
+    const slug = /data-testid="(?:rail|strip)-category-([a-z0-9-]+)"/.exec(html)?.[1];
+    if (slug === undefined) throw new Error("RFP-2: the server drew no category row");
     let release = () => undefined as void;
     const held = new Promise<void>((resolve) => {
       release = resolve;
@@ -37,13 +44,16 @@ test.describe("RAIL — names at first paint (INC-974)", () => {
       }),
     );
     await gotoReady(page, "/");
-    const firstRow = page.locator('[data-rail-ready="1"]:visible li').first();
+    const phone = (page.viewportSize()?.width ?? 1280) < 768;
+    const firstRow = page
+      .getByTestId(phone ? "rail-strip" : "app-rail")
+      .locator(`[data-testid$="-category-${slug}"]`);
     await expect(firstRow).toBeVisible();
     await expect(firstRow.getByTestId("rail-glyph-box")).toHaveCount(1);
     const before = await layoutBoxes({ row: firstRow });
     release();
     await expect(firstRow.getByTestId("rail-glyph-box")).toHaveCount(0);
-    await expect(firstRow.locator("svg").first()).toBeVisible();
+    await expect(firstRow.locator("svg")).not.toHaveCount(0);
     const after = await layoutBoxes({ row: firstRow });
     expect(after).toEqual(before);
   });

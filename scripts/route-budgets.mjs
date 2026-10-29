@@ -30,7 +30,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/account_/saved": { ceiling: 219, public: false }, // 215.8
   "/admin": { ceiling: 208, public: false }, // 204.5
   "/admin/": { ceiling: 209, public: false }, // 205.4
-  "/admin/ai": { ceiling: 331, public: false }, // 327.7
+  "/admin/ai": { ceiling: 333, public: false }, // 332.3 (INC-974: A2's call history — admin.ai +1.2, en/am-admin +0.6, data-table keyset +0.1 — and the rail seed +0.4; a split is bigger, INC-978)
   "/admin/attributes": { ceiling: 347, public: false }, // 343.9
   "/admin/audit": { ceiling: 308, public: false }, // 304.1
   "/admin/categories": { ceiling: 356, public: false }, // 352.1
@@ -49,7 +49,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/admin/roles": { ceiling: 306, public: false }, // 302.1
   "/admin/roles_/$roleId": { ceiling: 306, public: false }, // 302.7
   "/admin/screening": { ceiling: 377, public: false }, // 373.5 (turn C1-2: the maps' failure in place; INC-964)
-  "/admin/translations": { ceiling: 408, public: false }, // 404.4
+  "/admin/translations": { ceiling: 409, public: false }, // 408.4 (INC-974: the rail seed, +0.3 on every page — the blank-menu fix)
   "/admin/translations_/$lang": { ceiling: 320, public: false }, // 316.6
   "/admin/users": { ceiling: 304, public: false }, // 300.6
   "/admin/users_/$userId": { ceiling: 285, public: false }, // 281.1

@@ -4754,7 +4754,6 @@
     ],
     "common.loadFailed": [
       "(every page)",
-      "/admin/ai",
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId",
@@ -4795,7 +4794,6 @@
     ],
     "common.refreshPage": [
       "(every page)",
-      "/admin/ai",
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId",

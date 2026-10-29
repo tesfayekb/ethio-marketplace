@@ -42,14 +42,20 @@ vi.mock("@tanstack/react-router", () => ({
   ),
   useRouterState: () => ({}),
 }));
+// The server module's shaping is tested here; its in-process routes are never called.
+vi.mock("@/routes/api/categories.tree", () => ({ categoryTreeGet: vi.fn() }));
+vi.mock("@/routes/api/feed", () => ({ feedGet: vi.fn() }));
+vi.mock("@/routes/api/locations", () => ({ openMarketsGet: vi.fn() }));
+vi.mock("@/routes/api/locations.$country", () => ({ countryTreeGet: vi.fn() }));
 vi.mock("@/i18n", async (original) => ({
   ...(await original<Record<string, unknown>>()),
   useI18n: () => ({ t: (key: string) => key, entities: { map: {}, lang: "en" }, lang: "en" }),
 }));
 
 const { CategoryNav, RailVariantContext } = await import("./app-rail");
-const { CategoryTreeSeedContext, firstRailPayload, forgetCategoryTree } =
+const { CategoryTreeSeedContext, forgetCategoryTree } =
   await import("@/features/categories/category-tree");
+const { firstRailPayload } = await import("@/server/first-screen");
 type Seed = import("@/features/categories/category-tree").CategoryTreeSeed;
 
 function row(id: string, slug: string, order: number) {
