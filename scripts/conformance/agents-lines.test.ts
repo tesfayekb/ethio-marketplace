@@ -93,7 +93,8 @@ describe("AGENTS.md stays inside its budget and points only to files that exist 
       );
       expect(pointers).toBeGreaterThan(40);
       const findings = agentsLineFindings(text, existsSync, names);
-      const allowances = readAllowlist(ALLOWLIST, allowlistKeys(text, findings));
+      const keys = allowlistKeys(text, findings);
+      const allowances = readAllowlist(ALLOWLIST, keys);
       expect(report(findings.filter((f) => !allowances.has(nameKey(f))))).toBe("");
     },
     TREE_SCAN_MS,
@@ -110,10 +111,8 @@ describe("AGENTS.md stays inside its budget and points only to files that exist 
     );
     names.add("AGENTS.md");
     names.add("package.json");
-    const allowances = readAllowlist(
-      ALLOWLIST,
-      allowlistKeys(text, agentsLineFindings(text, existsSync, names)),
-    );
+    const keys = allowlistKeys(text, agentsLineFindings(text, existsSync, names));
+    const allowances = readAllowlist(ALLOWLIST, keys);
     console.log(
       `[AGL-2] AGENTS.md after the LOVABLE block: ${bytes} bytes; budget ${AGENTS_BUDGET}`,
     );
