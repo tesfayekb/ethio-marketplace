@@ -59,7 +59,7 @@ function text(value: unknown): string | null {
  * FAKE MODE (`E2E_FAKE_ASSIST=1` / `E2E_FAKE_TRANSLATE=1`): an alias containing
  * "cocacola" imitates, everything else does not — no provider call, no spend.
  */
-/** `checked: false` — the provider could not answer (bundle 3 step 19 audits it). */
+/** `checked: false` — the provider could not answer; the door's `unchecked` state stays (N1a). */
 interface Imitation {
   of: string | null;
   checked: boolean;
@@ -75,23 +75,26 @@ async function imitationOf(alias: string, userId: string): Promise<Imitation> {
 }
 
 /**
- * Bundle 3 step 19 — a name accepted while the imitation check could not answer
- * is recorded as `alias.unchecked` in `audit_log`, the table the admin paths
- * write (`admin_update_profile` → `user.alias_assigned`). Clients cannot insert
- * there (deny-all), so the server's own client writes it after the door saved.
- * A failed audit write is logged, never silent, and does not undo the save.
+ * N1a (INC-977) — THE NAME'S CHECK STATE. The door `save_posting_identity` writes
+ * every new name as `unchecked` in `name_checks`, in the same transaction as the
+ * save, so no path through it can skip the state, and a person cannot assert
+ * "clean". Only after the caller-scoped door answered ok (G54 a) does the server's
+ * own client record a clean answer through the service-only `name_check_mark`,
+ * for the exact text that was asked. A failed mark leaves the name `unchecked`
+ * (the safe direction, re-asked by the catch-up) and is logged, never silent.
+ * Retires bundle 3 step 19's best-effort `alias.unchecked` audit row.
  */
-async function auditUnchecked(userId: string, alias: string): Promise<void> {
+async function markClean(userId: string, alias: string): Promise<void> {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("audit_log").insert({
-      actor_id: userId,
-      action: "alias.unchecked",
-      entity_type: "profile",
-      entity_id: userId,
-      meta: { alias },
+    const { data, error } = await supabaseAdmin.rpc("name_check_mark", {
+      p_profile: userId,
+      p_subject: "alias",
+      p_text: alias,
+      p_state: "clean",
     });
-    if (error) logRouteError(PATH, `alias.unchecked audit: ${error.message}`);
+    if (error) logRouteError(PATH, `name_check_mark: ${error.message}`);
+    else if (data !== true) logRouteError(PATH, "name_check_mark: no row for the asked text");
   } catch (error) {
     logRouteError(PATH, error);
   }
@@ -134,7 +137,7 @@ async function handle(
   }
 
   const alias = text(body.alias);
-  let unchecked = false;
+  let clean = false;
   if (alias !== null) {
     // dial in the handler: spent on one branch only — INC-859
     // INC-442 — counted BEFORE the paid model call; a refused verdict never asks it.
@@ -145,9 +148,9 @@ async function handle(
       ]);
     }
     // D158 — the check is a paid call behind its switch. Switched off (or a gate
-    // that could not be read), the name is not asked about: it goes to the door
-    // unchecked and is audited `alias.unchecked`, exactly as when the provider
-    // cannot answer — a switch never becomes a ban list. An answer is metered.
+    // that could not be read), the name is not asked about: it goes to the door,
+    // which records it `unchecked` (N1a), exactly as when the provider cannot
+    // answer — a switch never becomes a ban list. An answer is metered.
     const imitated = await imitationOf(alias.toLowerCase(), userId);
     if (imitated.of !== null) {
       // INC-866 — the model's free text reaches the client bounded.
@@ -155,7 +158,7 @@ async function handle(
         { field: "alias", reason: "aliasImitatesBrand", detail: imitated.of.trim().slice(0, 200) },
       ]);
     }
-    unchecked = !imitated.checked;
+    clean = imitated.checked;
   }
   /**
    * U6-C1-R3a / STEP 8 — THE CONTACT SHAPE IS JUDGED BEFORE THE PROFILE IS
@@ -202,13 +205,13 @@ async function handle(
   });
   const result = saved as DoorResult | null;
   if (
-    unchecked &&
+    clean &&
     alias !== null &&
     result !== null &&
     result.error === null &&
     (result.data as { ok?: unknown } | null)?.ok === true
   ) {
-    await auditUnchecked(userId, alias.toLowerCase());
+    await markClean(userId, alias.toLowerCase());
   }
   return answer;
 }
