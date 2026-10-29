@@ -1,122 +1,142 @@
-# Foundations turn L — plan (locale and format, code part; INC-999 evidence first)
+# Foundations turn L-2: plan (country names, reader order, page titles)
 
-Base dev e65a78e7. Plan only; no migration in any part. Counts below are from `rg` at plan time (src/e2e/scripts, tests excluded unless named) and are re-run as the census in the build.
+Base dev 5d61def7. No migration. Request sha256 432b3d55… (supplied). CI on 5d61def7 is read first in the build turn; any red is fixed before anything else.
 
-## 1. Part A — INC-999 evidence
+## 0. Part 0: three corrections (built first)
 
-**Where it is cut.** `.github/workflows/local-backend-proof.yml:825` keeps `text.splitlines()[-60:]` of the start log. A long statement echo pushes the CLI's `ERROR:`/`SQLSTATE` lines above the 60-line window; only "Try rerunning the command with --debug" survives. Line 828 (INC-973's `local-backend-start-failure.txt`) keeps `ERROR`/`FATAL` lines but not `SQLSTATE`, `DETAIL`, `HINT`, `CONTEXT`. The merger at :1090 copies the fragment as written, so the fix belongs at the source.
+0.1 Selector (`scripts/e2e-select.ts` :150–:155). Remove the `locale-format` area. Add `e2e/locale-format.spec.ts` to the `my-listings` area's specs. With no area, `src/lib/format.ts`, `locale.ts` and `format-locale.ts` again select ALL. To show it: paste `bun scripts/e2e-select.ts --self-test` passing, and paste the output for a change to `src/lib/format.ts` (ALL). Add one self-test case to keep it that way: shared `src/lib` formatter → ALL.
 
-**Rule.** Move the excerpt out of inline Python into `scripts/ci/start-failure-excerpt.py` (one function `excerpt(text) -> list[str]`), called from :825 and :828:
-1. "Last migration line" (as now);
-2. a **Cause** block: every line matching `^\s*(ERROR|FATAL|PANIC|SQLSTATE|DETAIL|HINT|CONTEXT|LINE \d+|QUERY)\b` or `\(SQLSTATE [0-9A-Z]{5}\)`, in order, each kept whole (cap 40 lines, newest kept, with "N earlier cause lines omitted");
-3. the statement echo, cut to its first 10 and last 10 lines with "N lines omitted";
-4. the last 20 lines of the log.
-Cause lines are never subject to the tail cut. Redaction runs before, unchanged.
+0.2 LF-E1's afterEach (lines 30–36 currently write `preferred_language: null`). Before setting the value to `am` (line 54), read and keep the seller's prior `preferred_language`. afterEach writes back exactly that value, including NULL, and the comment at :19 is changed to match. If the read fails, the test fails (no default).
 
-**Test.** Fixture captured, not authored (I1): run the pinned CLI 2.120.0 against a scratch local backend with a one-off file in a temp copy of `supabase/` (a `CREATE FUNCTION` echo of >200 lines then `SELECT 1/0`), save the redacted log to `scripts/ci/fixtures/start-failure-cli.log` with its capture command in a header. If no local backend can start in the sandbox, the fallback is the CLI's own error-printing shape read from its pinned source (`pkg/migration` / pgconn error formatting), cited file:line, and the fixture is marked "shape from source"; the report says which. Tests (Python via `bun test` wrapper or `python3 -m unittest` run by a unit test):
-- SFE-1: captured log → excerpt contains ERROR and SQLSTATE lines.
-- SFE-2: same log with the echo padded to 5,000 lines → cause lines still present.
-- SFE-3: no cause lines → excerpt says "no ERROR/SQLSTATE line in the log", never empty.
-- SFE-4 (guard, class INC-984/992/999): a census over `.github/workflows/*.yml` fails on any `splitlines()[-N:]` / `tail -n` excerpt of a failure log not routed through `start-failure-excerpt.py` or the lane-step excerpt; allowlist `key | reason | until`; planted proof; wired in wired.test.ts.
+0.3 Red first (G38). Locally restore the My listings date code from e65a78e7 (`git show e65a78e7:<file>` into the working tree, never committed). Run `bun run e2e:local -- e2e/locale-format.spec.ts` on both projects with 0 retries and paste the failure line. Restore the fixed code (proved with `git diff --exit-code` on that file), run again, and paste the green summary.
 
-**LEFT:** the proof's own cause on lane 3 of run 40884980032 (one lane in nineteen) is read once evidence exists; its fix is a migration-file change → operator.
+## 1. Part A: locale-sensitive Intl APIs
 
-## 2. Part B — dates, times, numbers (INC-985)
+Helpers, both in `src/lib/format.ts`, each cached per language:
+- `formatCountryName(code, language)`: `Intl.DisplayNames([formatLocale(language)], {type:"region"})`. Returns `.of(code) ?? code`, and also returns `code` when `.of` throws on a malformed code. This matches today's behaviour.
+- `collatorFor(language)`: moves from `src/lib/place-order.ts` :11–:20 into format.ts, keeping the same options (`sensitivity:"base"`, `numeric:true`) and now taking its locale from `formatLocale`. place-order.ts imports it. It is created in one place only. A `compareForReader(a,b,language)` wrapper is not added; callers use `collatorFor(l).compare`.
 
-### src/lib/locale.ts (constants, K4)
-`LANGUAGES = ["en","am"] as const` (the formatter-known codes; om/ti join as rows), `LOCALE_TAG: Record<Lang,string> = { en: "en-GB", am: "am-ET" }`, `FALLBACK_LANGUAGE = "en"`, `COUNTRY_CODE = /^[A-Z]{2}$/`, `isCountryCode()`. `format-locale.ts` reads its tags from here (its literals at :7–8, :10, :13 move).
+Site verdicts:
 
-### src/lib/format.ts (intents)
-One cached instance per (intent, resolved locale) in a `Map`; unknown language → `formatLocale` → en-GB.
+| Site | Verdict |
+|---|---|
+| legal-kinds.ts :63 | formatCountryName |
+| legal-document-page.tsx :41, :130 | formatCountryName (through legal-dates.ts's slice so format.ts stays off the four legal pages; L-1's measurement repeated) |
+| listing-page.tsx :884 | formatCountryName |
+| wizard.tsx :423 | formatCountryName |
+| calling-codes.ts :120 | formatCountryName |
+| languages-page.tsx :62 | stays an allowlisted exception: a language's name in its own language is the autonym the admin is registering, not the reader's locale; a formatLocale fallback would give the wrong answer |
+| place-order.ts sortPlacesByName | collatorFor (moved) |
+| calling-codes.ts :113 | collatorFor(language).compare |
+| step-who.tsx :653 | collatorFor(language).compare |
+| name-collator.ts :6 | fixed order. It reproduces Postgres `ORDER BY name_en` under the database's collation for Latin names (the "server's order" Part H5 restores after optimistic edits). `"en"` moves to `locale.ts` as `FIXED_ORDER_LOCALE` with the H5 reason; compareNames stays the only fixed-order mechanism |
+| location-data.ts :191 | fixed order → compareNames (mirrors the server's display_order, name_en) |
+| categories-service.ts :271 | fixed order → compareNames |
+| locations-service.ts :279 | fixed order → compareNames |
+| locations-page.tsx :119 | fixed order → compareNames; :120 machine order |
+| category-attributes-dialog.tsx :88 | reader order (shown label in the admin's language) → collatorFor |
+| Machine order: attributes-service.ts :393, :597–:598, :662; locations-service.ts :111–:115; categories.tree.ts :91–:98; language-switcher.tsx :83; languages-page.tsx :76; legal-page.tsx :314; ai-service.ts :159 | plain code-point compare via one `compareCodes(a,b)` in `src/lib/compare-codes.ts` (`a<b?-1:a>b?1:0`). The census lists these sites as "machine order" |
+| cut-text.tsx Segmenter | out of scope: grapheme segmentation does not depend on locale (`undefined` locale), and it gives the same result on server and browser for counting. Allowlisted with that reason so the guard can see it |
 
-| Intent | en | am |
+Guard: CF-FMT-1 widens to refuse `new Intl.DisplayNames`, `new Intl.Collator` and `Intl.Segmenter` outside format.ts / locale.ts (allowlist: languages-page :62, cut-text, UI-kit chart from L-1), and any `.localeCompare(x)` with fewer than two arguments, anywhere in `src`. Three planted bypasses (DisplayNames, Collator, bare localeCompare) each fail, in the existing planted-proof test form (CF-FMT-2 extended to cases a/b/c). Register row 16 and docs/features/i18n-runtime.md are updated.
+
+## 2. Part B: page heads (INC-990)
+
+API (`src/lib/page-head.ts`, pure, server-safe):
+```text
+pageHead({ language, catalog, title: HeadText, description: HeadText,
+           suffix: "site"|"admin"|"none", og?: {url, image?, type},
+           extra?: meta[]/links[] })  -> { meta, links }
+HeadText = { key } | { key, value: string } | { data: string }
+```
+- `catalog` is the applied catalogue lookup (`DB[lang] ▸ compiled[lang] ▸ compiled.en`, D3). An unknown language falls back to en, and a missing am key falls back to en.
+- Filling values until L-5: the pattern keys hold one `{name}` token, replaced by one internal `fillOne(pattern, value)` using `split("{name}").join(value)`. This avoids `$&` problems with `.replace`. The value is plain text and is never parsed. L-5 swaps only `fillOne` for `t(key, values)`, and the call sites do not change.
+- og:title and og:description always equal the title and description. og:type, twitter:card, absolute og:url, image, hreflang and canonical come through `og`/`extra` unchanged, so G1 behaviour holds; today's root hreflang from the publication gate is untouched.
+- `seller-head.ts` becomes a pageHead consumer (data name + `head.seller.description` pattern).
+
+Language:
+- Server: head() reads the language the root context already resolves from the cookie (DEC-287) and the applied catalogue for that route's layers. The router context passes them to head().
+- Browser: head() re-runs when the router context's language changes (the switcher already invalidates context). If it does not, the switcher calls `router.invalidate()` after the catalogue is applied. Test PGH-E2 proves document.title changes without a navigation.
+
+Where the keys live: admin heads in en-admin/am-admin (already loaded by admin.tsx), member heads in en-member/am-member, auth heads in the layer their routes declare. Public pages need only the two suffix/description patterns plus `head.home.title`, `head.home.description`, `head.category.description` and `head.ad.description`. Measurement: `scripts/check-bundle-size` before/after, per page, gzip. If base grows by more than 0.1 KiB on any page, the public keys move to a new `public-head` slice served in the SSR payload for public routes only. That is LEFT for a ruling, not built silently.
+
+Route table (title / description; og = equal in every row):
+
+| Route | Title | Description |
 |---|---|---|
-| `formatDay` | `{dateStyle:"medium"}` (29 Oct 2026) | `{day:"numeric",month:"long",year:"numeric"}` |
-| `formatDayFull` | `{dateStyle:"full"}` | `{weekday:"long",day:"numeric",month:"long",year:"numeric"}` |
-| `formatDayShort` (no year) | `{day:"numeric",month:"short"}` | `{day:"numeric",month:"long"}` |
-| `formatDayTime` | `{dateStyle:"medium",timeStyle:"short"}` | day as above + `{hour:"numeric",minute:"2-digit"}` |
-| `formatMoment` (seconds, audit) | `{dateStyle:"short",timeStyle:"medium"}` | day long + `{hour,minute,second}` |
-| `formatTime` | `{timeStyle:"short"}` | `{hour:"numeric",minute:"2-digit"}` |
-| `formatMonthYear` | `{month:"long",year:"numeric"}` | same |
-| `formatRelative(date, now)` | `RelativeTimeFormat {numeric:"auto"}` with the unit table now in relative-time.ts | same |
-| `formatCount` | `NumberFormat()` integer | same |
-| `formatNumber(n, {maxFraction})` | `NumberFormat({maximumFractionDigits})` | same |
-| `weekdayNarrow`, `monthName` | for date-field only | same |
+| __root | `head.site.name` (new) | `head.site.description` (new) |
+| index | `head.home.title` (new) | `head.home.description` (new) |
+| c.$slug | data: category name + site | `head.category.description` (new, {name}) |
+| l.$slug | data: ad title + site | data: ad summary, else `head.ad.description` (new) |
+| $name | data: seller name + site | `head.seller.description` (new, {name}) |
+| legal.$kind, privacy, terms, legal.publishing | existing legal kind label key + site | existing legal summary key, else `head.legal.description` (new) |
+| legal.accept | existing heading key + site | `head.member.description` (new, {name}) |
+| auth, auth_.callback, auth_.reset | existing page heading keys + site | `head.member.description` |
+| account, account_.legal, account_.legal_.$versionId, account_.saved, settings, my-listings, my-listings_.$listingId, my-listings_.$listingId_.edit, post, post_.$listingId | existing menu/heading key + site | `head.member.description` |
+| admin | `head.admin.panel` (new) | `head.admin.description` (new, {name}) |
+| 25 admin.* leaf routes | existing rail section label key (sections.ts) or page heading key + `head.admin.suffix` | `head.admin.description` |
+| dev.primitives, dev.style, dev.tall | none: allowlisted, dev-only, unlisted (reason line) |
 
-Rule: in am, `month` is never `"short"`/`dateStyle:"medium"|"short"` (CLDR am-ET short month gives "ኦክቶ"). `relative-time.ts` and `posted.ts` become thin callers or are retired into format.ts (posted.ts kept as a re-export only if callers need it; else deleted and listed in intentional-deletions).
+The build turn's first step is a per-route census of the exact existing key for each row, listed in the report. A row with no existing key gets a new key, named in the build ruling's string list before it is created.
 
-### Consumers (src, 59 hits) — verdict
-Moves (each to the intent named):
-- settings.tsx:423 day · screening-page.tsx:169 dayShort (was month short), :178 dayTime · photo-reviews.tsx:62, photo-changes.tsx:59, job-line.tsx:46 dayTime · name-checks.tsx:94 dayTime, :98 count
-- ai-calls.tsx:55 moment, :56 count · posting/step-who.tsx:103 day, :937 dayTime · seller-line.tsx:38 monthYear · step-pricing.tsx:403 number · price-line.ts:50 number · attribute-display.ts:91 number (fraction)
-- admin-listings/listings-page.tsx:174 day, :175 dayFull, :176 dayShort (was month short) · listing-page.tsx:162 day, :163 dayTime, :885 dayTime
-- account-overview.tsx:151 day · users-list.tsx:109 · user-detail.tsx:55 · impersonation-view.tsx:71 · user-legal-card.tsx:18 · legal-version-view.tsx:174 · legal-page.tsx:69 · legal-kinds.ts:70, :84 (each per its current options → day/dayTime)
-- my-listing-page.tsx:269, :273 · my-listings-page.tsx:206, :215 (full), :218
-- audit-page.tsx:129 time, :134 dayShort (was month short)
-- relative-time.ts:22, posted.ts:9 → formatRelative
-- date-field.tsx:114–117 → day, dayFull, monthYear, weekdayNarrow (locale passed in today; it moves to language)
+Guard: CF-HEAD-1 is an AST census of every `head:` in src/routes and src/features/**/\*-head.ts. It fails when a string or template literal is the value of `title` or the `content` of description/og:title/og:description outside page-head.ts. The allowlist holds only dev.* routes. It is proven on a planted literal and wired in wired.test.ts.
 
-Stays (allowlist, reason):
-- ai-service.ts:256/262/268 — `en-US` USD cost formatters (provider money in USD, register row 16 exception), until: never (reviewed).
-- components/ui/calendar.tsx:35, :157 and components/ui/chart.tsx:225 — UI kit (row 16); calendar is used only via date-field, which overrides labels; `data-day` is a non-visible key.
-- Ethiopian-calendar year (row 16): `rg` finds no `ethiopic` Intl use in src today; the exception is kept as a named allowlist key for when it lands, else dropped (report states which).
-- format-locale.ts itself (`supportedLocalesOf`) — the locale picker.
+## 3. New keys (English)
 
-e2e: ad-page.spec.ts:1325 (`"am"` RelativeTimeFormat) and legal-pages.spec.ts:204 (`"en-GB"`) — tests compute the expected value independently by design (a test must not use the code under test); they stay, allowlisted under `e2e/` with reason "independent oracle". scripts/: no hits.
+- head.site.suffix: "{name} — ethio.com"
+- head.admin.suffix: "{name} — ethio.com Admin"
+- head.site.name: "ethio.com"
+- head.site.description: "Buy and sell with people near you on ethio.com."
+- head.home.title: "ethio.com — the marketplace for {country} and beyond" (market-neutral; {country} is filled from the settings value, not a literal)
+- head.home.description: "Browse ads near you and contact sellers on ethio.com."
+- head.category.description: "Ads in {name} on ethio.com."
+- head.ad.description: "An ad on ethio.com."
+- head.seller.description: "Ads by {name} on ethio.com."
+- head.legal.description: "Read this document on ethio.com."
+- head.member.description: "{name} on ethio.com."
+- head.admin.panel: "Admin — ethio.com"
+- head.admin.description: "{name} in the ethio.com staff panel."
 
-### Guard CF-FMT-1 (scripts/conformance/format.test.ts)
-Fails on `Intl.DateTimeFormat|NumberFormat|RelativeTimeFormat`, `toLocale(Date|Time)?String`, a literal `"am-ET"|"en-GB"|"en-US"` locale, or `/^[A-Z]{2}$/` outside format.ts/locale.ts/format-locale.ts. AST-based (TS compiler, like T2b) so comments/strings in tests don't trip it. Allowlist `key | reason | until`; stale/expired fail. Planted bypass proof; wired.test.ts names `test:unit`.
+13 keys. The existing English for these titles is replaced (D5: new keys). The operator sends the Amharic by script (G43).
 
-INC-954 app copies: legal-kinds.ts:101, legal-service.ts:107, calling-codes.ts:131, pricing-data.ts:277 → `isCountryCode`. pricing-data's `/^[A-Z]{3}$/` (currency) is a K2 (no constant asked). **LEFT:** the SQL half (23 functions with `'am'/'en'` literals → `base_languages()`, INC-954 DB copies).
+## 4. Tests (IDs grep-checked free at 5d61def7; PH- is taken, so PGH-)
 
-## 3. Part C — page heads in the reader's language (INC-990)
+Unit `src/lib/page-head.test.ts`:
+- PGH-1: am catalogue gives Amharic title/description, and og is equal to them.
+- PGH-2: a value `<img src=x onerror=alert(1)>` is kept literal in the title and og:title.
+- PGH-3: a missing am key falls back to en.
+- PGH-4: an unknown language (`xx`) falls back to en.
+- PGH-5: a public head keeps an absolute og:url/og:image, and hreflang/canonical pass through unchanged.
+- PGH-6: fillOne treats `$&` and `$1` in a value literally.
 
-**Builder** `src/lib/page-head.ts`: `pageHead({ title: MessageKey, description?: MessageKey, values?, og?: {image?, type}, canonical?, hreflang? }, ctx)` → TanStack `head()` object; adds the site suffix from key `head.siteSuffix`; dynamic parts (seller name, ad title) are inserted as values (text only; React head renders them as text nodes / attribute values, never HTML). Public routes keep G1: absolute og URL from `getRequestOrigin`, `og:locale` = declared language, hreflang from the publication gate (existing code moves behind the builder, not changed).
+Format: FMT-9 formatCountryName (am, unknown code → code, malformed → code), FMT-10 collatorFor is cached once per language and orders am names, FMT-11 compareCodes is code-point order.
 
-**Language and catalogue.**
-- Server first paint: `server-shell-language.ts` already resolves the cookie language (DEC-287); the root route loader exposes `{ language }` in router context; `head()` reads `match.context.language`.
-- Catalogue: head keys live in a new tiny layer `head` (en-head/am-head, DEC-258 layers) — only head strings (~55 keys × 2). On the server it is imported statically (server bundle, no client cost). In the browser, `head()` re-runs on navigation; the `head` layer is joined into **en-base/am-base already shipped** only if measured cost ≤0.1 KiB/page; otherwise the client head keeps the SSR title until the strings layer for that route loads, then `StringsLayerGate`'s load triggers `router.invalidate()`-free re-head via a `useHead` sync of `document.title`. Decision taken by measurement in turn L-3 (both builds measured against base; cause written). Missing key → English catalogue → never raw key (compiled.en fallback, D3).
-- Admin heads: their keys go in the admin layer (already loaded before draw).
+E2E `e2e/page-head.spec.ts`, both projects, 0 retries, by `bun run e2e:local`:
+- PGH-E1: with the am cookie, the raw server HTML (`request.get`, no JS) has an Amharic `<title>` on `/`, a seeded J1 ad page and `/admin/categories`.
+- PGH-E2: pick Amharic in the switcher and the title changes with the URL unchanged.
+- The selector gets a `page-head` area.
 
-**Consumers.** 52 route files with `head:` (full list produced by `rg -l "head: " src/routes` in the census and pasted into the report), plus `src/features/seller/seller-head.ts` ("Ads by ${name} on ethio.com.") and any `head` helper under features (`rg "title:" src/features/**/*head*`). seller-head becomes a caller of `pageHead` with `values: { name }`; INC-990's two English literals become keys.
+All touched specs are run whole. The unit suite runs through `bun run checks`.
 
-**Guard CF-HEAD-1** (scripts/conformance/page-head.test.ts): AST over src/routes and `*head*.ts`: a string/template literal in a `title` meta, `description`, `og:title`, `og:description`, `twitter:*` outside page-head.ts fails. Planted literal proof; allowlist form as above; wired.
+## 5. Conflicts
 
-**New keys** (names only; EN/AM sent by script, G43): `head.siteSuffix`, `head.<route>.title` and `head.<route>.description` per route (≈52 × 2, exact list emitted by the census script `scripts/conformance/head-keys.ts --list` in L-3 and sent to you before strings land), `head.seller.title`, `head.seller.description`, `head.seller.notFound.title`. Existing keys reused where a route already shows the same heading (listed per route).
+- Head data for public pages vs G60 0.1 KiB: possible. Measured, and if over, a ruling is needed (see above).
+- `head()` receiving the catalogue: TanStack head() gets only `{params, loaderData, match}`. The language/catalogue must come through router context or loaderData. Using root loaderData can't be reached from a leaf, so router context is used. If context isn't re-read on invalidate, the fallback is a small client effect owned by page-head.ts (one mechanism).
+- Market-neutral home title needs a `{country}` value: the settings read is already in root context, but a second value goes beyond `fillOne`'s one-token rule. Option: keep the home title country-free. A ruling is needed; my default is country-free.
+- D5 retires no keys (titles were literals).
+- No platform conflict found; no migration.
 
-**First-download cost.** Builder ≈0.3 KiB min (shared root chunk). Target ≤0.1 KiB gzip per public page; measured per page in route-budgets with cause. If the builder exceeds it, it is split: server-only formatting in the head path, client only `document.title` sync. Over-tolerance = STOP (G60).
+## 6. K2
 
-## 4. Part D — messages with values
+- `seller-head.ts` builds English inline (INC-990's own copy), fixed here.
+- `legal.$kind` title interpolates the raw URL param (`${params.kind}`), fixed by using the kind key.
+- languages-page :62 and cut-text are allowlisted, not moved.
+- Root `og:type` and others stay in __root as defaults.
+- The 226 `.replace("{` sites remain for L-5.
+- name-collator vs DB collation is not proven equal for non-Latin names (LEFT; database work for the operator).
 
-**Out of this work; own turn (L-5).** 226 `.replace("{` sites in src (non-test); heaviest import-dialog.tsx (11), approve-bar.tsx (5), screening-page.tsx:467–468, listings-page.tsx:317–324, listing-page.tsx:256/300/340, auth.tsx:464/504/513/680, invite-card.tsx:36–39, data-table.tsx:361, filter-chips.tsx:140, feed.tsx:127, location-selector.tsx:313, app-shell.tsx:918, settings.tsx:635, country-dialogs.tsx:58, country-verb-dialogs.tsx:78. Full by-definition list emitted by the L-5 census. Mechanism there: `t(key, values)` with typed placeholders from catalog-tokens.ts, plus guard. Part C's builder uses the same `values` shape so L-5 only swaps its interpolation.
+## 7. Sizing
 
-## 5. Tests (ids grep-checked free at plan time; re-grepped at build)
-- Unit: SFE-1…4; FMT-1…8 (each intent en + am; FMT-3 asserts am month full "ኦክቶበር" not "ኦክቶ"; FMT-7 unknown language → en-GB; FMT-8 cache returns same instance); LOC-1…3 (country shape, tags, fallback); CF-FMT-1 planted; HEAD-1…5 (keys→text in am, values as text with `<img src=x onerror=alert(1)>` literal, missing am key → en, unknown language → en, public head carries absolute og/hreflang); CF-HEAD-1 planted.
-- E2E (both projects, whole files, 0 retries, `bun run e2e:local`): `e2e/locale-format.spec.ts` LF-E1 an Amharic account sees a full Amharic month on My listings; LF-E2 `/` and an ad page SSR `<title>` in Amharic with cookie am (read from response HTML before hydration); LF-E3 English unchanged. Touched specs run whole.
+One turn: Part 0 + Part A (about 25 sites, 2 helpers, guard) + Part B (51 routes + seller head, builder, guard, 13 keys, 2 specs). ESTIMATE: 1 turn, band M–L. If the platform time limit cuts it, the split point is after Part A lands green (Part 0 + A = L-2a, B = L-2b).
 
-## 6. Conflicts
-- Knowledge v3.11 A6 vs CI-2 R1/AGENTS.md `bun run checks` (runs build): governed by the CI-2 ruling until v3.12.
-- Platform "never run typechecks" — checks reads harness verdict (as ruled).
-- D1/C: route `head()` must stay synchronous/SSR; catalogue must not enter public first downloads (DEC-261/D234 budgets) — handled by the measured decision in §3.
-- K4 vs e2e oracles holding `"am"`/`"en-GB"` — allowlisted with reason; needs your ruling if not accepted.
-- Part A edits a workflow file and adds a script; no migration.
-- No conflict found with AGENTS.md otherwise.
-
-## 7. K2
-- pricing-data.ts:277 currency shape `/^[A-Z]{3}$/` — no constant (reported).
-- calendar.tsx:35 `"default"` locale month short — UI kit, overridden by date-field; reported.
-- chart.tsx:225 `toLocaleString()` without locale.
-- 226 `.replace("{` sites (Part D).
-- SQL `'am'/'en'` literals in 23 functions and INC-954 DB copies (LEFT).
-- e2e oracles with literal locales.
-
-## 8. Sizing (G37, G0.10)
-| Turn | Content | Estimate |
-|---|---|---|
-| L-1 | Part A excerpt script, workflow wiring, captured fixture, SFE-1…4 guard | 1 turn, band S–M |
-| L-2 | locale.ts, format.ts, CF-FMT-1 + allowlist, INC-954 four app copies, FMT/LOC tests | 1 turn, M |
-| L-3 | Move the ~45 Part B consumers; E2E LF-E1; budgets | 1 turn, M–L |
-| L-4 | page-head.ts, language in context, head layer + measurement, CF-HEAD-1, key list to you; then (after strings arrive) 52 routes + seller-head, LF-E2/E3 | 1–2 turns, L |
-| L-5 | Part D `t(key, values)` + guard + 226 sites | own turn(s), L |
-
-Total L-1…L-4: 4–5 turns (band 4–6). LEFT for the operator: SQL locale literals → `base_languages()`, INC-954 DB copies, INC-999's proof fix (migration-file change).
+LEFT: SQL language literals and INC-954 database copies; INC-999 proof fix; a public-head slice if base is over budget.
