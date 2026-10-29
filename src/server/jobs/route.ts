@@ -1,6 +1,3 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import type { Database } from "@/integrations/supabase/types";
 import type { JobName } from "@/lib/schemas/jobs";
 import { clientError, ok, upstreamUnavailable } from "@/server/answer";
 import type { RouteContext } from "@/server/route";
@@ -22,7 +19,10 @@ import { verifyJobSignature } from "@/server/jobs/signature";
  * Every refusal is the same constant 401 body. The answer is counts only
  * (INC-981: pg_net's response table is readable at the SQL level).
  */
-type Core = (admin: SupabaseClient<Database>, run: string) => Promise<RunResult>;
+type Core = (
+  admin: Awaited<ReturnType<RouteContext["service"]>>,
+  run: string,
+) => Promise<RunResult>;
 export const JOBS: Readonly<Record<JobName, Core>> = {
   "name-check-catchup": (admin, run) => runNameCheckCatchup(admin, run),
 };

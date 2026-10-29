@@ -1,6 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import type { Database } from "@/integrations/supabase/types";
+import type { RouteContext } from "@/server/route";
 import { aiCall } from "@/server/ai/gateway";
 import { logRouteError } from "@/server/supabase/user-client";
 
@@ -35,7 +33,7 @@ export type RunOutcome = "ok" | "busy" | "paused" | "switch_off" | "budget_spent
 export type RunCounts = { asked: number; clean: number; imitates: number; unavailable: number };
 export type RunResult = { outcome: RunOutcome; reason: string | null } & RunCounts;
 
-type Admin = SupabaseClient<Database>;
+type Admin = Awaited<ReturnType<RouteContext["service"]>>;
 type PauseReason = "credits" | "policy" | "rate_limit";
 
 export async function runNameCheckCatchup(

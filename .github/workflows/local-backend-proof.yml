@@ -617,12 +617,13 @@ jobs:
       # N1b-1 (INC-977/INC-981, S4 + S5): only public.job_call calls net.*, and net is not exposed.
       - name: Outbound-calls guard (INC-981)
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
+        timeout-minutes: 3
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.pronamespace::regnamespace::text || '.' || p.proname || '(' || oidvectortypes(p.proargtypes) || ')', (pg_get_functiondef(p.oid) ~ '\mnet\.[a-z_]+\s*\(') from pg_proc p where p.prokind = 'f' and p.pronamespace not in ('net'::regnamespace, 'pg_catalog'::regnamespace, 'information_schema'::regnamespace) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and p.prorettype <> 'event_trigger'::regtype and p.prolang in (select oid from pg_language where lanname in ('sql', 'plpgsql')) order by 1;" > "$RUNNER_TEMP/outbound-calls.tsv"
           bun scripts/check-outbound-calls.ts "$RUNNER_TEMP/outbound-calls.tsv" .ci-local/supabase/config.toml
           # S5 live: the temporary backend's Data API refuses the net schema (loopback, per-run certificate).
           for header in "Accept-Profile: net" "Content-Profile: net"; do
-            answer=$(curl -sk -X "$([ "$header" = "Accept-Profile: net" ] && echo GET || echo POST)" -H "apikey: $E2E_SUPABASE_PUBLISHABLE_KEY" -H "$header" -H "Content-Type: application/json" -d '{}' "$E2E_SUPABASE_URL/rest/v1/$([ "$header" = "Accept-Profile: net" ] && echo 'http_request_queue?limit=1' || echo 'rpc/http_post')")
+            answer=$(curl -sk --max-time 20 -X "$([ "$header" = "Accept-Profile: net" ] && echo GET || echo POST)" -H "apikey: $E2E_SUPABASE_PUBLISHABLE_KEY" -H "$header" -H "Content-Type: application/json" -d '{}' "$E2E_SUPABASE_URL/rest/v1/$([ "$header" = "Accept-Profile: net" ] && echo 'http_request_queue?limit=1' || echo 'rpc/http_post')")
             case "$answer" in
               *PGRST106*) echo "S5 live: $header refused (PGRST106)" ;;
               *) echo "::error::S5 live: $header was not refused with PGRST106 (INC-981)"; exit 1 ;;
