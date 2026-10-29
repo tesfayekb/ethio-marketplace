@@ -75,7 +75,7 @@ describe("Maps links", () => {
       "comgooglemaps://?q=9.01,38.76&center=9.01,38.76&zoom=13",
     );
   });
-  it("GML-4 detects only standalone true", () => {
+  it("GML-6 detects only standalone true", () => {
     const original = Object.getOwnPropertyDescriptor(navigator, "standalone");
     try {
       for (const value of [true, false, undefined]) {

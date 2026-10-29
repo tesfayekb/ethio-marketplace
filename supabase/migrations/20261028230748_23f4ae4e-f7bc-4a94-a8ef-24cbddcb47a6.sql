@@ -276,6 +276,7 @@ DECLARE
   v_p2      uuid;
   v_va      uuid;
   v_vb      uuid;
+  v_doc     uuid;
   v_n       integer;
   v_msg     text;
   v_sig     text;
@@ -296,13 +297,18 @@ BEGIN
     END IF;
   END LOOP;
   BEGIN
-    SELECT v.id INTO v_va FROM public.legal_versions v JOIN public.legal_documents d ON d.id = v.document_id
-     WHERE v.status = 'published' AND v.effective_at <= now() AND d.country_code IS NULL
-     ORDER BY v.id LIMIT 1;
-    SELECT v.id INTO v_vb FROM public.legal_versions v JOIN public.legal_documents d ON d.id = v.document_id
-     WHERE v.status = 'published' AND v.effective_at <= now() AND d.country_code IS NULL AND v.id <> v_va
-     ORDER BY v.id LIMIT 1;
-    IF v_va IS NULL OR v_vb IS NULL THEN RAISE EXCEPTION 'INC-951 3a proof: two versions in force are needed'; END IF;
+    -- INC-970: the proof creates its own document and two published, in-force versions — a
+    -- landed proof must replay on an empty database (the M13/M14/M16 legal proofs are the
+    -- pattern); reading real published versions made the temporary backend's replay fail here.
+    INSERT INTO public.legal_documents (kind) VALUES ('e2e-d1-m4-proof') RETURNING id INTO v_doc;
+    INSERT INTO public.legal_versions (document_id, version, status, label, body_en, body_am, changelog,
+                                       material, effective_at, published_at, settings_snapshot)
+    VALUES (v_doc, 1, 'published', 'v1', 'e', 'a', 'c', false, now() - interval '2 days', now(), '{}'::jsonb)
+    RETURNING id INTO v_va;
+    INSERT INTO public.legal_versions (document_id, version, status, label, body_en, body_am, changelog,
+                                       material, effective_at, published_at, settings_snapshot)
+    VALUES (v_doc, 2, 'published', 'v2', 'e', 'a', 'c', false, now() - interval '1 day', now(), '{}'::jsonb)
+    RETURNING id INTO v_vb;
 
     INSERT INTO auth.users (id, email, raw_user_meta_data, aud, role, created_at, updated_at) VALUES
       (v_uid, 'e2e-d1-m4-' || v_uid || '@example.invalid', '{}'::jsonb, 'authenticated', 'authenticated', now(), now()),

@@ -609,6 +609,8 @@ export type Source = {
   logRead?: boolean;
   /** INC-589 — the count in the log's "N error(s) … not a part of any test" line; 0 when absent. */
   outsideSummary?: number;
+  /** INC-973 — the lane's redacted start-failure lines (failing migration + last ERROR/FATAL), when the backend never came up. */
+  startFailure?: string[];
   /** INC-398 — every `[ssr-error]` line with the tests that finished next in its log. */
   ssrNext?: { line: string; next: string[] }[];
 };
@@ -634,6 +636,29 @@ function zeroOrGaps(tag: string, cov: ReturnType<typeof logCoverage>, anyLines: 
     return [`${cov.missing.map((m) => `\`${m}\``).join(", ")}: log unavailable.`, ""];
   if (!anyLines) return [`No \`[${tag}]\` lines in any source (all ${cov.read} logs read).`, ""];
   return [];
+}
+
+/**
+ * INC-973 — a source whose backend never started has no results and no lane log,
+ * so the report used to say only "log unavailable". When the lane uploaded its
+ * redacted start-failure lines, name the failing migration and quote the last
+ * ERROR/FATAL lines. One lane's lines stand for every lane that failed the same
+ * way; the first carrier in source order is quoted, the rest are named.
+ */
+export function startFailureSection(sources: Source[]): string[] {
+  const carriers = sources.filter((s) => (s.startFailure ?? []).length > 0);
+  if (carriers.length === 0) return [];
+  const first = carriers[0];
+  return [
+    "## Backend start failure (INC-973)",
+    "",
+    `The temporary backend never came up, so these sources have neither results nor a lane log: ${carriers.map((s) => s.label).join(", ")}. The start log's error lines, redacted, from \`${first.label}\` (one lane's lines stand for every lane that failed the same way):`,
+    "",
+    "```text",
+    ...first.startFailure!,
+    "```",
+    "",
+  ];
 }
 
 /** DEC-084 — `[a11y] <page> <project> serious=<n> critical=<n>`. */
@@ -1374,6 +1399,8 @@ export function renderSources(
     ...flakyBodiesSection(flaky, contexts),
     // INC-589 — rendered on every red form, whatever else failed.
     ...outsideErrorsSection(sources),
+    // INC-973 — when the backend never started, the start log's error lines.
+    ...startFailureSection(sources),
     // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
     ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
@@ -2475,6 +2502,34 @@ async function main() {
         ],
         ["R1a a11y never states zero with a gap", !gapped.includes("No `[a11y]` lines")],
       );
+      // INC-973 — a lane whose backend never started uploads its redacted
+      // start-failure lines; the report quotes them instead of a bare gap.
+      const startFailed: Source = {
+        label: "shard 7",
+        json: null,
+        logTail: null,
+        logRead: false,
+        startFailure: [
+          "migration: Applying migration 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql",
+          "ERROR:  P0001: INC-951 3a proof: two versions in force are needed",
+        ],
+      };
+      const startRed = renderSources([startFailed, noLog], meta, new Map(), []);
+      const startQuiet = renderSources([noLog], meta, new Map(), []);
+      checks.push(
+        [
+          "INC-973 a failed start's lines reach the report",
+          startRed.includes("## Backend start failure (INC-973)") &&
+            startRed.includes("Applying migration 20261028230748") &&
+            startRed.includes("two versions in force are needed") &&
+            startRed.includes("`shard 7`"),
+        ],
+        [
+          "INC-973 no start-failure file keeps the bare gap",
+          !startQuiet.includes("## Backend start failure") &&
+            startQuiet.includes("Sources without results: shard 5"),
+        ],
+      );
       // (b) every expected log read, none carrying either tag: REAL captured
       // smoke log from the existing fixture tree (no [ssr-error]/[a11y] lines).
       const quietLog = redact(await Bun.file("scripts/fixtures/e2e-log-boot-crash.log.txt").text());
@@ -2610,6 +2665,11 @@ async function main() {
       // produced no results — `[ssr-error]` lines matter most next to a
       // failure that DID get recorded.
       const log = logsDir ? await readLog(`${logsDir}/e2e-log-${id}/${id}.log`) : null;
+      // INC-973: when the backend never started there is no lane log at all; the
+      // lane then uploads its redacted start-failure lines beside it.
+      const startFailureText = logsDir
+        ? await readLog(`${logsDir}/e2e-log-${id}/local-backend-start-failure.txt`)
+        : null;
       // INC-088: error lines from the WHOLE log first, then the final 10 —
       // never a bare tail, which quotes the noise and hides the cause.
       const tail = summarizeLog(log);
@@ -2632,6 +2692,10 @@ async function main() {
         logRead: log !== null,
         // INC-589 — the log's own count of errors outside any test.
         outsideSummary: outsideSummaryCount(log),
+        // INC-973 — the redacted start-failure lines, when the lane uploaded them.
+        startFailure: startFailureText
+          ? startFailureText.split("\n").filter((line) => line.trim() !== "")
+          : undefined,
       });
     }
   } else {
