@@ -135,6 +135,7 @@ test.describe("D239 — the account's language at sign-in", () => {
     // The account was not written: it already said en.
     expect(await accountLanguage(user.id)).toBe("en");
 
+    console.log(`[e2e:d239] all: ${JSON.stringify(seen.map((e) => [e.at - clickedAt, e.path, e.lang]))}`);
     const after = seen
       .filter((entry) => entry.at >= clickedAt)
       .map((entry) => `${entry.at - clickedAt}ms ${entry.path} ${entry.lang}`);
