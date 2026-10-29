@@ -181,6 +181,7 @@ export const AREAS: Area[] = [
       "e2e/category-nav.spec.ts",
       "e2e/locations-tree.spec.ts",
       "e2e/viewing-place.spec.ts",
+      "e2e/rail-first-paint.spec.ts",
     ],
   },
   {

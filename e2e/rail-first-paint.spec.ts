@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 import { whilePageLives } from "./helpers/route-guard";
-import { gotoReady } from "./helpers/ui";
+import { gotoReady, layoutBoxes } from "./helpers/ui";
 
 /**
  * INC-974 — THE RAIL'S NAMES ARE IN THE FIRST PAINT. The operator saw a blank left
@@ -40,11 +40,11 @@ test.describe("RAIL — names at first paint (INC-974)", () => {
     const firstRow = page.locator('[data-rail-ready="1"]:visible li').first();
     await expect(firstRow).toBeVisible();
     await expect(firstRow.getByTestId("rail-glyph-box")).toHaveCount(1);
-    const before = await firstRow.boundingBox();
+    const before = await layoutBoxes({ row: firstRow });
     release();
     await expect(firstRow.getByTestId("rail-glyph-box")).toHaveCount(0);
     await expect(firstRow.locator("svg").first()).toBeVisible();
-    const after = await firstRow.boundingBox();
+    const after = await layoutBoxes({ row: firstRow });
     expect(after).toEqual(before);
   });
 });

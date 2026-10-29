@@ -105,13 +105,14 @@ describe("DataTable C7 contract", () => {
     expect(previous).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
   });
-  it("ACR-6 an empty keyset page keeps its footer, so Previous stays reachable; an offset empty page draws none", () => {
+  it("DTK-1 an empty keyset page keeps its footer, so Previous stays reachable; an offset empty page draws none", () => {
     const previous = vi.fn();
     const { rerender } = render(
       <DataTable
         columns={columns()}
         rows={[]}
         rowKey={(row: (typeof ROWS)[number]) => row.id}
+        rowTestId={(row: (typeof ROWS)[number]) => row.id}
         caption="fixture"
         emptyState="empty"
         keyset={{ hasPrevious: true, hasNext: false, onNext: vi.fn(), onPrevious: previous }}
@@ -125,6 +126,7 @@ describe("DataTable C7 contract", () => {
         columns={columns()}
         rows={[]}
         rowKey={(row: (typeof ROWS)[number]) => row.id}
+        rowTestId={(row: (typeof ROWS)[number]) => row.id}
         caption="fixture"
         emptyState="empty"
       />,
