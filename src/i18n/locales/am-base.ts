@@ -289,7 +289,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "nav.screeningQueue": "የምርመራ ወረፋ",
   "nav.allListings": "ሁሉም ማስታወቂያዎች",
   "nav.categories": "ምድቦች",
-  "nav.locations": "አካባቢዎች",
   "nav.pages": "ገጾች",
   "nav.translations": "ትርጉሞች",
   "nav.supportTickets": "የድጋፍ ጥያቄዎች",

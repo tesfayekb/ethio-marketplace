@@ -6,14 +6,23 @@ let observer: MutationObserver | undefined;
 export function applyPageHead(t: (key: MessageKey) => string): void {
   read = t;
   const update = () => {
-    for (const property of ["og:title", "og:description"]) {
+    const intent = document.head.querySelector<HTMLMetaElement>('meta[name="ethio-head"]');
+    if (!intent) return;
+    const [titleKey, descriptionKey, nameKey, rawName] = JSON.parse(intent.content) as [
+      MessageKey,
+      MessageKey | null,
+      MessageKey | null,
+      string | null,
+    ];
+    const name = nameKey ? read(nameKey) : (rawName ?? "");
+    for (const [property, key] of [
+      ["og:title", titleKey],
+      ["og:description", descriptionKey],
+    ] as const) {
+      if (!key) continue;
       const meta = document.head.querySelector<HTMLMetaElement>(`meta[property="${property}"]`);
-      const key = meta?.dataset.headKey;
-      if (!meta || !key) continue;
-      const nameKey = meta.dataset.headNameKey;
-      const name = nameKey ? read(nameKey as MessageKey) : (meta.dataset.headName ?? "");
-      const text = read(key as MessageKey)?.replace("{name}", name);
-      if (text === undefined) continue;
+      const text = read(key)?.replace("{name}", name);
+      if (!meta || text === undefined) continue;
       if (meta.content !== text) meta.content = text;
       if (property === "og:title") {
         if (document.title !== text) document.title = text;

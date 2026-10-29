@@ -1,4 +1,5 @@
 export const enAdmin = {
+  "nav.locations": "Locations",
   "head.admin.editListing.title": "Edit listing",
   "head.admin.impersonation.title": "Impersonation session",
   "head.admin.languageStrings.title": "Language strings",

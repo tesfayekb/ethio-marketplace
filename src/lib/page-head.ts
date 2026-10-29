@@ -25,20 +25,9 @@ export function pageHead(
     meta: [
       { title },
       { name: "description", content: description },
-      {
-        property: "og:title",
-        content: title,
-        "data-head-key": titleKey,
-        "data-head-name-key": nameKey ?? "",
-        "data-head-name": name ?? "",
-      },
-      {
-        property: "og:description",
-        content: description,
-        "data-head-key": descriptionKey ?? "",
-        "data-head-name-key": nameKey ?? "",
-        "data-head-name": name ?? "",
-      },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { name: "ethio-head", content: JSON.stringify([titleKey, descriptionKey, nameKey, name]) },
     ],
   };
 }

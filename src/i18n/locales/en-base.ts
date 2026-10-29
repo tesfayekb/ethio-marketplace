@@ -310,7 +310,6 @@ export const enBase = {
   "nav.screeningQueue": "Screening queue",
   "nav.allListings": "All listings",
   "nav.categories": "Categories",
-  "nav.locations": "Locations",
   "nav.pages": "Pages",
   "nav.translations": "Translations",
   "nav.supportTickets": "Support tickets",

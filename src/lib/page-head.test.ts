@@ -53,7 +53,7 @@ it("PGH-4 loader name is text and a raw ad description is kept", () => {
 });
 it("PGH-5 applied catalogue re-titles all four text fields", () => {
   document.head.innerHTML =
-    '<title>base</title><meta name="description"><meta property="og:title" data-head-key="head.home.title"><meta property="og:description" data-head-key="head.home.description">';
+    '<title>base</title><meta name="description"><meta property="og:title"><meta property="og:description"><meta name="ethio-head" content=\'["head.home.title","head.home.description",null,null]\'>';
   applyPageHead((key) => am[key]);
   expect(document.title).toBe(am["head.home.title"]);
   expect(document.querySelector<HTMLMetaElement>('meta[name="description"]')?.content).toBe(
@@ -68,14 +68,14 @@ it("PGH-5 applied catalogue re-titles all four text fields", () => {
 });
 it("PGH-6 navigation head mutations re-title with the current catalogue, then base returns", async () => {
   document.head.innerHTML =
-    '<title>base</title><meta name="description"><meta property="og:title" data-head-key="head.home.title"><meta property="og:description" data-head-key="head.home.description">';
+    '<title>base</title><meta name="description"><meta property="og:title"><meta property="og:description"><meta name="ethio-head" content=\'["head.home.title","head.home.description",null,null]\'>';
   applyPageHead((key) => am[key]);
   document
-    .querySelector<HTMLMetaElement>('meta[property="og:title"]')
-    ?.setAttribute("data-head-key", "head.site.pattern.title");
-  document
-    .querySelector<HTMLMetaElement>('meta[property="og:title"]')
-    ?.setAttribute("data-head-name-key", "auth.signIn");
+    .querySelector<HTMLMetaElement>('meta[name="ethio-head"]')
+    ?.setAttribute(
+      "content",
+      JSON.stringify(["head.site.pattern.title", "head.home.description", "auth.signIn", null]),
+    );
   await Promise.resolve();
   expect(document.title).toBe(fillOne(am["head.site.pattern.title"], am["auth.signIn"]));
   applyPageHead((key) => en[key]);

@@ -1,6 +1,7 @@
 import type { enAdmin } from "./en-admin";
 
 export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
+  "nav.locations": "አካባቢዎች",
   "head.admin.editListing.title": "ማስታወቂያውን ያርትዑ",
   "head.admin.impersonation.title": "የመወከል ክፍለ ጊዜ",
   "head.admin.languageStrings.title": "የቋንቋ ሐረጎች",
