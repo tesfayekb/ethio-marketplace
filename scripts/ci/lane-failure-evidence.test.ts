@@ -47,7 +47,12 @@ describe("a lane's step failure is published (INC-984)", () => {
       const result = spawnSync("python3", ["-c", heredoc("Write proof summary and notice")], {
         cwd: dir,
         encoding: "utf8",
-        env: { PATH: process.env["PATH"] ?? "", GITHUB_SHA: "f".repeat(40), GITHUB_REPOSITORY: "o/r", GITHUB_RUN_ID: "1" },
+        env: {
+          PATH: process.env["PATH"] ?? "",
+          GITHUB_SHA: "f".repeat(40),
+          GITHUB_REPOSITORY: "o/r",
+          GITHUB_RUN_ID: "1",
+        },
         timeout: 20_000,
       });
       expect(result.status, result.stderr).toBe(0);
@@ -56,7 +61,9 @@ describe("a lane's step failure is published (INC-984)", () => {
       expect(lane).toContain(
         "Outbound-calls guard FAIL: supabase_functions.e2e_planted_caller(): calls net.* outside job_call",
       );
-      expect(lane).toContain("S5 live FAIL: Accept-Profile: net answered HTTP 200: [] apikey [masked JWT]");
+      expect(lane).toContain(
+        "S5 live FAIL: Accept-Profile: net answered HTTP 200: [] apikey [masked JWT]",
+      );
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

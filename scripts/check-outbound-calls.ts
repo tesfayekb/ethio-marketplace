@@ -25,7 +25,8 @@ export function allowlist(text: string, cliPin: string): { keys: Set<string>; fa
       failures.push(`allowlist: malformed line "${line}"`);
       continue;
     }
-    if (until !== `CLI ${cliPin}`) failures.push(`allowlist: ${key} expired (${until}, pin CLI ${cliPin})`);
+    if (until !== `CLI ${cliPin}`)
+      failures.push(`allowlist: ${key} expired (${until}, pin CLI ${cliPin})`);
     else keys.add(key);
   }
   return { keys, failures };
@@ -51,7 +52,8 @@ export function inspect(
     else failures.push(`${fn}: calls net.* outside job_call`);
   }
   if (!sawAllowed) failures.push(`${ALLOWED}: absent from the census`);
-  for (const key of allowed) if (!seen.has(key)) failures.push(`allowlist: ${key} stale (not in the census)`);
+  for (const key of allowed)
+    if (!seen.has(key)) failures.push(`allowlist: ${key} stale (not in the census)`);
 
   const api = /^\[api\]\s*$([\s\S]*?)(?=^\[)/m.exec(`${config}\n[end]`)?.[1] ?? "";
   const list = (key: string): string[] => {
@@ -76,7 +78,10 @@ if (process.env["SELF_TEST"] === "1") {
     "[api] schemas exposes net",
     "[api] extra_search_path holds net",
   ];
-  if (!want.every((w) => f.includes(w)) || f.some((x) => x.startsWith("supabase_functions.http_request"))) {
+  if (
+    !want.every((w) => f.includes(w)) ||
+    f.some((x) => x.startsWith("supabase_functions.http_request"))
+  ) {
     console.error("Outbound-calls self-test FAILED: not every planted case refused");
     process.exit(1);
   }
