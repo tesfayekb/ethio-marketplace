@@ -41,4 +41,20 @@ In the browser, `SellerLine` draws a missing name as `post.seller.neutral` ("Sel
 ## Not covered here
 
 - The business name (D222) is not re-checked. The helper takes it by its `p_subject` parameter when it is.
-- The staff queue, Clear and Rename are N1b-3.
+
+## The staff queue and the re-check's line (N1b-3)
+
+Admin › Screening draws two pieces for this concern (register row 74).
+
+**The seller names held for review** (`src/features/admin-screening/name-checks.tsx`). Every `imitates` row, oldest hold first (`since`, then `profile_id`), in keyset pages of 50 through `admin_name_check_list` (listings:view). The name, its checked text and the model's `of` come only with profiles:view; without it the row says "Name hidden". `of` is drawn as text ("The AI says it imitates: …"), never HTML or a link; a hold without one says "No reason recorded". A failed or out-of-shape read is the table's error state, never "No seller names are held for review."
+
+- **Allow this name** (`admin_name_check_clear`): profiles:update, then the second factor, then the row locked FOR UPDATE. The reason is optional (trimmed, at most 500, null when empty), the same as Rename's. A name that changed after the list loaded answers `stale`: nothing is written, and staff are told to reload.
+- **Rename** opens the user's page at its editor (`/admin/users/<id>#edit-seller-alias`); `admin_update_profile` lands a staff-assigned name clean and stamps the outgoing name's state (M3b).
+
+**The seller-name re-check** (`src/features/admin-screening/job-line.tsx`, services:view, `admin_job_health`). One line: the last run's outcome and time; "The site did not answer" for a run sent over two minutes ago that never arrived; "Paused since …: <reason>" with **Resume** for services:manage (`admin_job_resume`, under the second factor); "Not set up yet" before the Vault entries exist. A failed read says "The re-check's status could not be loaded." — never a healthy line, never a count.
+
+**Why neither door spends a rate dial (INC-951, ruled at N1b-3 stop 3).** INC-951's concern is a staff door writing an unbounded row per call. Allow writes its audit row only on a real hold (a stale text writes nothing), and Resume only on a real pause (`notPaused` writes nothing). Each write is bounded by a state change, which is the safe shape, so neither door spends a dial.
+
+**What the model said** (`name_checks.imitates_of`, ≤ 80 characters): kept only on an `imitates` row (CHECK, and a BEFORE UPDATE trigger that nulls it when the state moves away); written only by `name_check_mark`, which the catch-up calls with the answer's `of`, trimmed, on a hold only (NCJ-12).
+
+Tests: SQL proofs NCQ-7…13 (M1, M2) and NJH-1…5 (M3); unit NCQ-U1…5 (`use-name-checks.test.ts`, `name-checks.test.tsx`), JHL-U1…4, NCJ-12; E2E `e2e/name-check-queue.spec.ts` — NCQ-E2E-1 Allow and NCQ-E2E-2 Rename in both projects; NCQ-E2E-3 Resume in desktop-1280 only, because `job_pauses` holds one row per job for the whole backend and two projects would undo each other (J6). Holds are made only through `name_check_mark`, the pause only through `job_pause_set`; afterEach releases both.
