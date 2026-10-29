@@ -5326,6 +5326,33 @@ export type Database = {
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       job_call: { Args: { p_job: string }; Returns: Json }
+      job_lease_release: {
+        Args: { p_holder: string; p_job: string }
+        Returns: boolean
+      }
+      job_lease_take: {
+        Args: { p_holder: string; p_job: string; p_seconds: number }
+        Returns: boolean
+      }
+      job_pause_clear: { Args: { p_job: string }; Returns: boolean }
+      job_pause_read: { Args: { p_job: string }; Returns: Json }
+      job_pause_set: {
+        Args: { p_job: string; p_reason: string }
+        Returns: undefined
+      }
+      job_run_claim: { Args: { p_job: string; p_ts: number }; Returns: string }
+      job_run_finish: {
+        Args: {
+          p_asked: number
+          p_clean: number
+          p_imitates: number
+          p_outcome: string
+          p_reason: string
+          p_run: string
+          p_unavailable: number
+        }
+        Returns: boolean
+      }
       legal_acceptance_pending: {
         Args: { p_listing_id: string; p_uid: string }
         Returns: boolean
