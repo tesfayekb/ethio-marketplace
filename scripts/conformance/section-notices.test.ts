@@ -134,42 +134,39 @@ describe("a section's outcome is shown beside its own table (INC-995)", () => {
   });
 
   it(
-    "SNC-3 no section holds its own notice state outside useSectionNotice",
+    "SNC-3 no section holds its own notice state outside useSectionNotice; the planted CI-1 shape is caught",
     () => {
       expect(report(ownNoticeStateCensus([join(ROOT, "src")]))).toBe("");
+      const dir = join(ROOT, "node_modules/.cache/section-notice-state-planted");
+      mkdirSync(dir, { recursive: true });
+      writeFileSync(
+        join(dir, "own.tsx"),
+        [
+          "export function OwnNotice() {",
+          '  const [notice, setNotice] = useState<{ key: string; tone: "ok" | "error" } | null>(null);',
+          '  return <PageCard testid="x">{notice?.key}</PageCard>;',
+          "}",
+          "",
+        ].join("\n"),
+      );
+      writeFileSync(
+        join(dir, "shared.tsx"),
+        [
+          "export function Shared() {",
+          "  const { notice } = useSectionNotice();",
+          "  const [open, setOpen] = useState<string | null>(null);",
+          '  return <PageCard testid="y"><SectionNotice notice={notice} testid="z" /></PageCard>;',
+          "}",
+          "",
+        ].join("\n"),
+      );
+      try {
+        const findings = ownNoticeStateCensus([dir]);
+        expect(findings.map((f) => `${f.file.split("/").pop()}:${f.line}`)).toEqual(["own.tsx:2"]);
+      } finally {
+        rmSync(dir, { recursive: true, force: true });
+      }
     },
     TREE_SCAN_MS,
   );
-
-  it("SNC-3 the planted CI-1 shape (a section with its own notice state) is caught", () => {
-    const dir = join(ROOT, "node_modules/.cache/section-notice-state-planted");
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(
-      join(dir, "own.tsx"),
-      [
-        "export function OwnNotice() {",
-        '  const [notice, setNotice] = useState<{ key: string; tone: "ok" | "error" } | null>(null);',
-        '  return <PageCard testid="x">{notice?.key}</PageCard>;',
-        "}",
-        "",
-      ].join("\n"),
-    );
-    writeFileSync(
-      join(dir, "shared.tsx"),
-      [
-        "export function Shared() {",
-        "  const { notice } = useSectionNotice();",
-        "  const [open, setOpen] = useState<string | null>(null);",
-        '  return <PageCard testid="y"><SectionNotice notice={notice} testid="z" /></PageCard>;',
-        "}",
-        "",
-      ].join("\n"),
-    );
-    try {
-      const findings = ownNoticeStateCensus([dir]);
-      expect(findings.map((f) => `${f.file.split("/").pop()}:${f.line}`)).toEqual(["own.tsx:2"]);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  });
 });

@@ -41,6 +41,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { createHash } from "node:crypto";
 
+import { errorText } from "../../src/lib/error-text";
 import { readAllowlist } from "../conformance/kit";
 
 export const CI_FILE = ".github/workflows/ci.yml";
@@ -293,7 +294,7 @@ function main(): number {
   try {
     allow = allowed(steps);
   } catch (error) {
-    console.log(`FAIL     the allowlist  (0s) — ${(error as Error).message}`);
+    console.log(`FAIL     the allowlist  (0s) — ${errorText(error)}`);
     console.log(summary([{ verdict: "FAIL", key: "allowlist", seconds: 0 }], 0));
     return 1;
   }
