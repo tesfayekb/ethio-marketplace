@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { dateFormatter } from "@/lib/format";
+import { isCountryCode } from "@/lib/locale";
 
 /** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */
 export type LegalRole = "terms" | "privacy" | "other";
@@ -92,11 +93,10 @@ export function signedInOnlyKind(kind: string): boolean {
   return kind === "publishing" || /^e2e-pub-/.test(kind);
 }
 
-const COUNTRY = /^[A-Z]{2}$/;
 /** The root passes raw search through; only distinct uppercase country codes reach the door. */
 export function shapedCountries(value: unknown): string[] {
   const values = typeof value === "string" ? value.split(",") : Array.isArray(value) ? value : [];
   return [
-    ...new Set(values.filter((v): v is string => typeof v === "string" && COUNTRY.test(v))),
+    ...new Set(values.filter((v): v is string => isCountryCode(v))),
   ].slice(0, 5);
 }
