@@ -102,3 +102,8 @@ language (Amharic) a month is always written in full and `dateStyle` medium/shor
 Locale tags, the fallback and the country/currency code shapes live only in `src/lib/locale.ts`.
 CF-FMT-1 (`scripts/conformance/format.test.ts`) refuses a bypass; its allowlist holds only the
 named exceptions (AI USD formatters, UI kit calendar/chart, `supportedLocalesOf`, e2e oracles).
+Never-ending allowlist lines carry the review date 2027-04-30 (renewed with their reason or
+removed then). The formatter rides a page's first download only where that page draws a date or a
+number; `legalDate`/`legalMoment` live in `src/features/legal/legal-dates.ts`, apart from the
+gate rules every page loads. LF-E1 (`e2e/locale-format.spec.ts`) proves an Amharic account's
+full month on My listings.
