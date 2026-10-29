@@ -47,7 +47,7 @@ export function priceLine(
   if (input.mode === "free") return t("price.free");
   if (input.mode === "contact") return t("price.contact");
   if (input.amount === null) return empty;
-  const amount = input.amount.toLocaleString(formatLocale(language ?? "en"));
+  const amount = formatNumber(input.amount, language ?? FALLBACK_LANGUAGE);
   const currency = input.currency ?? "";
   if (input.unit !== null && input.unit.trim() !== "") {
     return fill(t("post.review.pricePer"), { amount, currency, basis: input.unit.trim() });
