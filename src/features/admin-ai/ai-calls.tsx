@@ -40,15 +40,11 @@ export function AiCalls() {
     ...(feature === ""
       ? []
       : [{ key: "feature", label: name(feature), onRemove: () => choose(setFeature)("") }]),
-    ...(outcome === ""
-      ? []
-      : [
-          {
-            key: "outcome",
-            label: t(`admin.ai.log.outcome.${outcome}`),
-            onRemove: () => choose(setOutcome)(""),
-          },
-        ]),
+    ...AI_OUTCOMES.filter((id) => id === outcome).map((id) => ({
+      key: "outcome",
+      label: t(`admin.ai.log.outcome.${id}`),
+      onRemove: () => choose(setOutcome)(""),
+    })),
   ];
   const clearAll = () => {
     setFeature("");
