@@ -3735,6 +3735,15 @@
     "admin.screening.empty": [
       "/admin/screening"
     ],
+    "admin.screening.nameChecks.error": [
+      "/admin/screening"
+    ],
+    "admin.screening.nameChecks.none": [
+      "/admin/screening"
+    ],
+    "admin.screening.nameChecks.waiting": [
+      "/admin/screening"
+    ],
     "admin.screening.open": [
       "/admin/screening"
     ],

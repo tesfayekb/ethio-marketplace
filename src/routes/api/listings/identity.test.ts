@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { errorText } from "@/lib/error-text";
+
 /**
  * Foundations turn 3 (DEC-237) — THE IDENTITY ROUTE ON defineRoute (D1).
  * user-client.ts mocked whole; the rpc, the fetch and the dial counted, so a
@@ -17,6 +19,10 @@ const state = {
   auditFails: false,
   audits: [] as string[],
   spends: 0,
+  aiUnavailable: false,
+  markFails: false,
+  markArgs: [] as unknown[],
+  logs: [] as string[],
 };
 
 vi.mock("@/server/supabase/user-client", () => {
@@ -27,7 +33,9 @@ vi.mock("@/server/supabase/user-client", () => {
     });
   return {
     routeJson,
-    logRouteError: () => undefined,
+    logRouteError: (_path: string, error: unknown) => {
+      state.logs.push(errorText(error));
+    },
     userClientFromRequest: async () => ({
       supabase: {
         rpc: async (name: string) => {
@@ -63,6 +71,7 @@ vi.mock("@/server/ai/gateway", async (importOriginal) => {
     // Foundations turn A1 — AIV-1/2 run the real gateway (its audit write mocked below).
     aiCall: async (...args: Parameters<typeof actual.aiCall>) => {
       if (state.realGateway) return actual.aiCall(...args);
+      if (state.aiUnavailable) return { ok: false, reason: "unavailable" };
       state.fetches += 1;
       return { ok: true, value: JSON.parse(state.modelAnswer), fake: state.fake };
     },
@@ -84,8 +93,14 @@ vi.mock("@/integrations/supabase/client.server", () => ({
         return { error: null };
       },
     }),
-    rpc: async (name: string) => {
+    rpc: async (name: string, args?: unknown) => {
       state.audits.push(name);
+      if (name === "name_check_mark") {
+        state.markArgs.push(args);
+        return state.markFails
+          ? { data: null, error: { message: "mark write failure" } }
+          : { data: true, error: null };
+      }
       return { error: state.auditFails ? { message: "audit write failure" } : null };
     },
   },
@@ -122,6 +137,10 @@ beforeEach(() => {
   state.auditFails = false;
   state.audits = [];
   state.spends = 0;
+  state.aiUnavailable = false;
+  state.markFails = false;
+  state.markArgs = [];
+  state.logs = [];
   vi.stubEnv("GEMINI_API_KEY", "test-key");
   vi.spyOn(console, "error").mockImplementation(() => undefined);
   vi.stubGlobal("fetch", async () => {
@@ -188,7 +207,8 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
    * Foundations turn A1 (INC-952, DEC-280) — name_check judges a person. With its `ai_calls` row
    * unwritten the imitation verdict is never acted on: the gateway answers `unavailable`, and the
    * route takes its existing "could not check" path (D158 / bundle 3 step 19): no
-   * aliasImitatesBrand refusal; the name goes to the door unchecked, recorded `alias.unchecked`.
+   * aliasImitatesBrand refusal; the name goes to the door, which records it `unchecked` (N1a), and
+   * the route marks nothing clean.
    */
   it("AIV-1 an imitation verdict whose audit row failed is not acted on", async () => {
     state.realGateway = true;
@@ -199,7 +219,7 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
     expect(JSON.stringify(payload)).not.toContain("aliasImitatesBrand");
     expect(state.fetches).toBe(1);
     expect(state.spends).toBe(1);
-    expect(state.audits).toEqual(["ai_record_call", "audit_log:alias.unchecked"]);
+    expect(state.audits).toEqual(["ai_record_call"]);
     expect(state.rpcCalls).toEqual(["save_posting_identity"]);
   });
   it("AIV-2 the same verdict with its row written refuses the name, and nothing is saved", async () => {
@@ -210,5 +230,37 @@ describe("POST /api/listings/identity on defineRoute (D1)", () => {
     expect(payload.refusals[0]?.reason).toBe("aliasImitatesBrand");
     expect(state.audits).toEqual(["ai_record_call"]);
     expect(state.rpcCalls).toEqual([]);
+  });
+
+  /**
+   * N1a (INC-977) — NCU-3: the route's three cases. The door records every new name
+   * `unchecked`; only a clean answer, after the door answered ok, is marked clean,
+   * through the service-only name_check_mark for the exact text asked.
+   */
+  it("NCU-3a a clean answer is marked clean after the door saved", async () => {
+    state.modelAnswer = JSON.stringify({ imitates: false });
+    const response = await post({ alias: "AbebeShop" });
+    expect(await response.json()).toMatchObject({ ok: true });
+    expect(state.rpcCalls).toEqual(["save_posting_identity"]);
+    expect(state.audits).toEqual(["name_check_mark"]);
+    expect(state.markArgs).toEqual([
+      { p_profile: "seller-1", p_subject: "alias", p_text: "abebeshop", p_state: "clean" },
+    ]);
+  });
+  it("NCU-3b an unavailable check marks nothing: the door's unchecked state stays", async () => {
+    state.aiUnavailable = true;
+    const response = await post({ alias: "abebeshop" });
+    expect(await response.json()).toMatchObject({ ok: true });
+    expect(state.rpcCalls).toEqual(["save_posting_identity"]);
+    expect(state.audits).toEqual([]);
+    expect(state.logs).toEqual([]);
+  });
+  it("NCU-3c a failed mark leaves the name unchecked and is logged; the save still answers", async () => {
+    state.modelAnswer = JSON.stringify({ imitates: false });
+    state.markFails = true;
+    const response = await post({ alias: "abebeshop" });
+    expect(await response.json()).toMatchObject({ ok: true });
+    expect(state.audits).toEqual(["name_check_mark"]);
+    expect(state.logs).toEqual(["name_check_mark: mark write failure"]);
   });
 });

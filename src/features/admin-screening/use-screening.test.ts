@@ -29,6 +29,7 @@ vi.mock("@/integrations/supabase/client", () => {
 
 import {
   listScreening,
+  nameCheckSummaryOf,
   parseScreeningFacts,
   readScreeningRow,
   revealProblemKey,
@@ -198,6 +199,32 @@ describe("readScreeningRow", () => {
       expect(await readScreeningRow("l-2")).toBeNull();
     } finally {
       answer.rows = [];
+    }
+  });
+});
+
+/** N1a (INC-977, INC-885) — the summary door's answer, or a typed failure; never an invented 0. */
+describe("nameCheckSummaryOf", () => {
+  it("NCU-8 reads the count and the oldest; an answer out of shape is a typed failure, not 0", () => {
+    expect(nameCheckSummaryOf({ unchecked: 3, oldest_since: "2026-10-29T06:00:00Z" })).toEqual({
+      unchecked: 3,
+      oldestSince: "2026-10-29T06:00:00Z",
+    });
+    expect(nameCheckSummaryOf({ unchecked: 0, oldest_since: null })).toEqual({
+      unchecked: 0,
+      oldestSince: null,
+    });
+    for (const bad of [
+      null,
+      [],
+      {},
+      { unchecked: "3" },
+      { unchecked: -1, oldest_since: null },
+      { unchecked: 2, oldest_since: null },
+    ]) {
+      expect(() => nameCheckSummaryOf(bad)).toThrow(
+        "admin_name_check_summary: answer out of shape",
+      );
     }
   });
 });

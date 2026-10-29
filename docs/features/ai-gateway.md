@@ -26,7 +26,7 @@ A second provider and an image answer (CHANGE 4): `provider: "gemini-text" | "ge
 
 ## Consumers
 
-The seller-name route spends its existing imitation dial before `aiCall`; every non-success remains pass-unchecked and keeps the `alias.unchecked` audit. Staff icon suggestions use `defineRoute`, `categories:assets`, the strict body from `src/lib/schemas/category-icon.ts` and `checkIcon`'s allowlist/fallback. The writing helper (src/routes/api/listings/assist.ts) reserves its assist dial through `aiCall`'s reserve callback after the gate answers on, fetches up to three photos lazily, and maps the gateway's reasons onto today's refusal payload; its validator refuses an answer carrying an e-mail, a web address or a run of nine or more digits.
+The seller-name route spends its existing imitation dial before `aiCall`; every non-success remains pass-unchecked: the door `save_posting_identity` records every new name `unchecked` in `name_checks` in the same transaction, and only a clean answer, after the door answered ok, is marked clean by the service-only `name_check_mark` for the exact text asked (Foundations turn N1a, INC-977; the `alias.unchecked` audit row is retired). A name staff assign through `admin_update_profile` is recorded clean. Staff see the count waiting and the oldest in Admin › Screening (`admin_name_check_summary`, listings:view). Staff icon suggestions use `defineRoute`, `categories:assets`, the strict body from `src/lib/schemas/category-icon.ts` and `checkIcon`'s allowlist/fallback. The writing helper (src/routes/api/listings/assist.ts) reserves its assist dial through `aiCall`'s reserve callback after the gate answers on, fetches up to three photos lazily, and maps the gateway's reasons onto today's refusal payload; its validator refuses an answer carrying an e-mail, a web address or a run of nine or more digits.
 
 Photo screening (turn 17, CHANGE 5): `photo_screen` carries today's instruction, the category/title fields rendered only when given, every stored size as images (`max 4, maxBytes 4 MB, min 3, all, lowDetailAfterFirst`) and today's width-rule stand-in written as the provider's JSON shape, so one mapping — `screenAnswerOf` in src/server/media/policy.ts — serves fake and real alike: ok → today's verdict mapping; `featureOff`/`budget`/`reserved` → held; any other non-ok → `providerUnavailable` with retry. The site's day cap on paid screens (D184) is the call's reservation, skipped for a stand-in.
 
@@ -40,7 +40,7 @@ The existing own-key Gemini text adapter lives in `providers/gemini.ts`, calls `
 
 An audit failure logs once (F4). Foundations turn A1 (INC-952, DEC-280) adds the person-mark: every task in `tasks.ts` declares `judgesPerson`, literally true or false (GWC-10). `name_check`, `writing_helper` (the assist's screening) and `photo_screen` are marked. `photo_screen` is marked by the supervisor's ruling, beyond DEC-280's two named examples, because a photo verdict holds or refuses a person's ad; the operator may overrule. For a marked task whose row cannot be written, the gateway answers `unavailable`, never the verdict, and each caller takes its existing path:
 
-- the identity check takes D158's unchecked path: the name goes to the door and is recorded `alias.unchecked`;
+- the identity check takes D158's unchecked path: the name goes to the door and stays `unchecked` in `name_checks` (N1a);
 - the assist answers `providerUnavailable`;
 - the photo screen answers `providerUnavailable` with retry.
 
