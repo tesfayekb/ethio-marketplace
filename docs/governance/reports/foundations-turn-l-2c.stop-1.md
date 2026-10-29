@@ -31,7 +31,7 @@ Machine-order value kinds: as stated in stop 1 (unchanged).
 
 ## Checks
 
-One `bun run checks` run on this tree; last line recorded below when it finished.
+One `bun run checks` run on this tree (unit step at 2 workers: PASS, 581s). Last line: `checks: 34 PASS · 0 FAIL · 21 NOT RUN · 887s`.
 
 ## K2
 
