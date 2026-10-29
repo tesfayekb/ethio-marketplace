@@ -1,54 +1,54 @@
 # Local backend proof (non-gating)
 
-- Commit: `c7bb093ae4d52fe53b186c0244c285c17ab791e0`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40809236156
+- Commit: `4819f7cc673ab1469848f7601217f728f314d23d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40811239666
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 908 | 111 | applied 365/365 | 196 | 0 | 0 | 62 | 258 |
-| email | 177 | 114 | applied 365/365 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 749 | 120 | applied 365/365 | 131 | 0 | 0 | 4 | 135 |
-| 2 | 908 | 85 | applied 365/365 | 142 | 0 | 0 | 3 | 145 |
-| 3 | 762 | 102 | applied 365/365 | 123 | 0 | 0 | 0 | 123 |
-| 4 | 620 | 95 | applied 365/365 | 148 | 0 | 0 | 2 | 150 |
-| 5 | 573 | 120 | applied 365/365 | 119 | 0 | 0 | 6 | 125 |
-| 6 | 787 | 116 | applied 365/365 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 513 | 108 | applied 365/365 | 131 | 0 | 0 | 0 | 131 |
-| 8 | 642 | 116 | applied 365/365 | 110 | 0 | 0 | 30 | 140 |
-| 9 | 778 | 117 | applied 365/365 | 133 | 0 | 0 | 2 | 135 |
-| 10 | 945 | 112 | applied 365/365 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 1006 | 119 | applied 365/365 | 123 | 0 | 0 | 1 | 124 |
-| 12 | 658 | 117 | applied 365/365 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 631 | 119 | applied 365/365 | 120 | 0 | 0 | 5 | 125 |
-| 14 | 790 | 111 | applied 365/365 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 539 | 107 | applied 365/365 | 130 | 0 | 0 | 1 | 131 |
-| 16 | 562 | 116 | applied 365/365 | 99 | 0 | 0 | 32 | 131 |
-| repeat | 1032 | 118 | applied 365/365 | 98 | 0 | 0 | 46 | 144 |
-| TOTAL | — | — | — | 2339 | 0 | 0 | 205 | 2544 |
+| smoke | 996 | 107 | applied 365/365 | 196 | 0 | 0 | 62 | 258 |
+| email | 198 | 121 | applied 365/365 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 664 | 111 | applied 365/365 | 131 | 0 | 0 | 4 | 135 |
+| 2 | 1005 | 117 | applied 365/365 | 142 | 0 | 0 | 3 | 145 |
+| 3 | 762 | 99 | applied 365/365 | 123 | 0 | 0 | 0 | 123 |
+| 4 | 622 | 99 | applied 365/365 | 148 | 0 | 0 | 2 | 150 |
+| 5 | 557 | 116 | applied 365/365 | 119 | 0 | 0 | 6 | 125 |
+| 6 | 784 | 97 | applied 365/365 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 476 | 103 | applied 365/365 | 131 | 0 | 0 | 0 | 131 |
+| 8 | 552 | 85 | applied 365/365 | 110 | 0 | 0 | 30 | 140 |
+| 9 | 697 | 107 | applied 365/365 | 133 | 0 | 0 | 2 | 135 |
+| 10 | 799 | 93 | applied 365/365 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 865 | 104 | applied 365/365 | 123 | 0 | 0 | 1 | 124 |
+| 12 | 655 | 111 | applied 365/365 | 140 | 0 | 0 | 5 | 145 |
+| 13 | 573 | 121 | applied 365/365 | 120 | 0 | 0 | 5 | 125 |
+| 14 | 810 | 117 | applied 365/365 | 129 | 0 | 0 | 3 | 132 |
+| 15 | 594 | 117 | applied 365/365 | 130 | 0 | 0 | 1 | 131 |
+| 16 | 587 | 119 | applied 365/365 | 99 | 0 | 0 | 32 | 131 |
+| repeat | 999 | 115 | applied 365/365 | 93 | 0 | 0 | 51 | 144 |
+| TOTAL | — | — | — | 2334 | 0 | 0 | 210 | 2544 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: repeat 1032 s
+- Slowest lane: 2 1005 s
 - Repeat lane (DEC-283): Repeat: each 4 on both projects; 18 tests selected, 18 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE attributes / @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE attributes / IG-1 attributes: malformed, foreign, oversized and unreadable files are refused whole / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE attributes / IG-2 attributes: dangerous cells refuse their own row and name the reason / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE attributes-links / IG-5 attributes-links: an undeclared column is refused by name and the declared cells are not / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE audit / IG-6 the import audit row is written only by a caller who may run that family's import / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE categories / @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE categories / IG-1 categories: malformed, foreign, oversized and unreadable files are refused whole / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE categories / IG-2 categories: dangerous cells refuse their own row and name the reason / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE locations-countries / @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE locations-countries / IG-1 locations-countries: malformed, foreign, oversized and unreadable files are refused whole / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE locations-countries / IG-2 locations-countries: dangerous cells refuse their own row and name the reason / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE locations-locations / @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE locations-locations / IG-1 locations-locations: malformed, foreign, oversized and unreadable files are refused whole / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE locations-locations / IG-2 locations-locations: dangerous cells refuse their own row and name the reason / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE translations / @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE translations / IG-1 translations: malformed, foreign, oversized and unreadable files are refused whole / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE translations / IG-2 translations: dangerous cells refuse their own row and name the reason / desktop-1280; Not repeated (time cap): import-security.spec.ts / IMPORT-GATE translations / IG-4 translations: XLIFF enters the same door and is judged by the same law / desktop-1280
-- Database session samples during each start (INC-944): smoke 11, email 10, 1 13, 2 9, 3 9, 4 10, 5 13, 6 12, 7 11, 8 12, 9 13, 10 12, 11 13, 12 13, 13 13, 14 13, 15 11, 16 10, repeat 13
+- Database session samples during each start (INC-944): smoke 13, email 13, 1 10, 2 11, 3 9, 4 9, 5 13, 6 12, 7 9, 8 8, 9 11, 10 9, 11 10, 12 13, 13 10, 14 12, 15 13, 16 13, repeat 13
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40809236156-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 40809236156-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40809236156-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40809236156-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40809236156-local-3
-  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40809236156-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40809236156-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40809236156-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40809236156-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40809236156-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40809236156-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40809236156-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40809236156-local-11
-  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40809236156-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40809236156-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40809236156-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40809236156-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40809236156-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 40811239666-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 40811239666-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 40811239666-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 40811239666-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 40811239666-local-3
+  - 4: [e2e:teardown] deleted 14 user(s) owned by process 40811239666-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 40811239666-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 40811239666-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 40811239666-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 40811239666-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 40811239666-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 40811239666-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 40811239666-local-11
+  - 12: [e2e:teardown] deleted 14 user(s) owned by process 40811239666-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 40811239666-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 40811239666-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 40811239666-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 40811239666-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
