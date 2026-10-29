@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { isCountryCode, isCurrencyCode } from "@/lib/locale";
 import { callRoute } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
 import { supabase } from "@/integrations/supabase/client";
@@ -274,7 +275,7 @@ export async function readMarketCurrencies(): Promise<MarketCurrency[]> {
           .toUpperCase(),
         displayOrder: Number(row.display_order ?? 0),
       }))
-      .filter((row) => /^[A-Z]{2}$/.test(row.country) && /^[A-Z]{3}$/.test(row.currencyCode))
+      .filter((row) => isCountryCode(row.country) && isCurrencyCode(row.currencyCode))
       .sort((a, b) => a.displayOrder - b.displayOrder);
   } catch {
     return [];
