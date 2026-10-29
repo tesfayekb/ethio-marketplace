@@ -10,7 +10,7 @@ import { aiCall, translationLanguages, type TranslationLanguages } from "@/serve
 import { TRANSLATION_CHUNK } from "@/server/ai/tasks";
 import { DIALS } from "@/lib/dials";
 import { errorText } from "@/lib/error-text";
-import { ok } from "@/server/answer";
+import { clientError, ok, readFailure, refused, serverError } from "@/server/answer";
 import { spend } from "@/server/dials";
 import { defineRoute } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
@@ -79,9 +79,9 @@ function writerReason(message: string): TranslateReason {
 function languagesFailure(reason: Extract<TranslationLanguages, { ok: false }>["reason"]) {
   if (reason === "noKey") {
     logRouteError(PATH, "translation provider is not configured");
-    return ok({ error: "internal error" }, { status: 503 });
+    return refused("internal error", 503);
   }
-  return ok({ error: "internal error" }, { status: 502 });
+  return refused("internal error", 502);
 }
 
 export const Route = createFileRoute("/api/translate")({
@@ -94,7 +94,7 @@ export const Route = createFileRoute("/api/translate")({
         limits: { bodyBytes: MAX_BODY_BYTES },
         badShape: ({ path, code }) => {
           const word = issueWord({ path, code });
-          return ok({ error: word.error }, { status: word.status });
+          return clientError(word.error, word.status);
         },
         handler: async ({ body, supabase, userId }) => {
           if (supabase === null) throw new Error("staff client missing");
@@ -105,22 +105,19 @@ export const Route = createFileRoute("/api/translate")({
             p_lang: target,
           });
           if (scopeError) {
-            // Today's answer for a failed gate read: 500, the text in the log only.
-            logRouteError(PATH, `translation scope: ${scopeError.message}`);
-            return ok({ error: "internal error" }, { status: 500 });
+            // A failed gate read: the one read-failure answer (503 when not reached, else 500
+            // with its incident), the text in the log only.
+            return readFailure(PATH, "translation_scope_ok", scopeError);
           }
           if (inScope !== true) {
-            return ok({ error: "not assigned to this language" }, { status: 403 });
+            return clientError("not assigned to this language", 403);
           }
 
           // ---- THE TARGETS (the stand-in translates any code, as today) --
           const languages = await translationLanguages({ path: PATH });
           if (!languages.ok) return languagesFailure(languages.reason);
           if (!languages.fake && !languages.languages.some((entry) => entry.code === target)) {
-            return ok(
-              { error: `target language ${target} is not supported by the provider` },
-              { status: 422 },
-            );
+            return refused(`target language ${target} is not supported by the provider`, 422);
           }
 
           // ---- THE PRESS DIAL (D1 M5a, INC-951) — one per press, before any provider call
@@ -134,14 +131,13 @@ export const Route = createFileRoute("/api/translate")({
               PATH,
               `rate limit ${DIALS.machineTranslatePress.action}: ${errorText(error)}`,
             );
-            return ok({ error: "upstream unavailable" }, { status: 503 });
+            return refused("upstream unavailable", 503);
           }
           if (!press.allowed) {
-            return ok(
-              press.resetsAt !== null
-                ? { error: "rateLimited", resetsAt: press.resetsAt }
-                : { error: "rateLimited" },
-              { status: 429 },
+            return clientError(
+              "rateLimited",
+              429,
+              press.resetsAt !== null ? { resetsAt: press.resetsAt } : undefined,
             );
           }
 
@@ -158,10 +154,10 @@ export const Route = createFileRoute("/api/translate")({
             if (!answer.ok) {
               if (index === 0 && "gate" in answer && answer.gate === true) {
                 const reason = answer.reason === "featureOff" ? "staff" : answer.reason;
-                return ok(
-                  { error: `machine translation is switched off (${reason})` },
-                  { status: answer.reason === "unavailable" ? 503 : 409 },
-                );
+                const word = `machine translation is switched off (${reason})`;
+                return answer.reason === "unavailable"
+                  ? refused(word, 503)
+                  : clientError(word, 409);
               }
               const status =
                 "status" in answer && answer.status !== undefined ? ` ${answer.status}` : "";
@@ -209,12 +205,15 @@ export const Route = createFileRoute("/api/translate")({
             done += 1;
           }
 
-          let flagged = 0;
+          let flagged: number | null = 0;
+          let flagRead: "failed" | undefined;
           // Entity names carry no {placeholders}, so the validator has nothing to flag;
           // the flag read-back is a UI-scope concern only.
           if (done > 0 && scope === "ui") {
-            // Flag count read back from the rows the writer just validated.
-            const { data: rows } = await supabase.rpc("admin_list_translations", {
+            // Flag count read back from the rows the writer just validated. Foundations turn A1
+            // (INC-885): the writes are done, so a failed read is not a 5xx that would hide
+            // them — it is `flagged: null` with the typed `flagRead: "failed"`, logged, never 0.
+            const { data: rows, error: flagError } = await supabase.rpc("admin_list_translations", {
               p_lang: target,
               p_status: "machine",
               p_flagged: true,
@@ -222,11 +221,17 @@ export const Route = createFileRoute("/api/translate")({
               p_limit: TRANSLATE_MAX_ITEMS,
               p_offset: 0,
             });
-            const keys = new Set(translated.keys());
-            flagged = (rows ?? []).filter((row) => keys.has(row.key)).length;
+            if (flagError) {
+              logRouteError(PATH, `flag read-back admin_list_translations: ${flagError.message}`);
+              flagged = null;
+              flagRead = "failed";
+            } else {
+              const keys = new Set(translated.keys());
+              flagged = (rows ?? []).filter((row) => keys.has(row.key)).length;
+            }
           }
 
-          return ok({ done, flagged, failed });
+          return ok(flagRead === undefined ? { done, flagged, failed } : { done, flagged, flagRead, failed });
         },
       }),
       GET: defineRoute({

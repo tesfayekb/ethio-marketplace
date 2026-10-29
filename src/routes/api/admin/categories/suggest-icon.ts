@@ -14,7 +14,7 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 import { aiCall } from "@/server/ai/gateway";
-import { ok, serverError } from "@/server/answer";
+import { clientError, ok, providerRefusal, refused, serverError } from "@/server/answer";
 import { defineRoute } from "@/server/route";
 import { checkIcon } from "@/server/category-images/icons";
 import { SuggestIconBody } from "@/lib/schemas/category-icon";
@@ -29,16 +29,13 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
         auth: { staff: { resource: "categories", action: "assets" } },
         body: SuggestIconBody,
         badShape: ({ path, code }) =>
-          ok(
-            {
-              error:
-                code === "invalid_json"
-                  ? "invalid json body"
-                  : path === "parentName"
-                    ? "invalid parentName"
-                    : "invalid name",
-            },
-            { status: 400 },
+          clientError(
+            code === "invalid_json"
+              ? "invalid json body"
+              : path === "parentName"
+                ? "invalid parentName"
+                : "invalid name",
+            400,
           ),
         handler: async ({ body, userId }) => {
           const answer = await aiCall(
@@ -58,10 +55,10 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
             answer.reason === "unavailable"
           ) {
             const reason = answer.reason === "featureOff" ? "staff" : answer.reason;
-            return ok(
-              { error: `AI feature category_icons is off (${reason})`, stage: "switched-off" },
-              { status: reason === "unavailable" ? 503 : 409 },
-            );
+            const word = `AI feature category_icons is off (${reason})`;
+            return reason === "unavailable"
+              ? refused(word, 503, { stage: "switched-off" })
+              : clientError(word, 409, { stage: "switched-off" });
           }
           const status = "status" in answer ? answer.status : undefined;
           if (
@@ -70,19 +67,15 @@ export const Route = createFileRoute("/api/admin/categories/suggest-icon")({
             status >= 400 &&
             status < 500
           ) {
-            const code =
-              status === 400 || status === 422
-                ? "modelRefused"
-                : status === 401 || status === 403
-                  ? "modelKeyRefused"
-                  : status === 429
-                    ? "modelRateLimited"
-                    : "modelCallFailed";
-            return ok({ error: code }, { status });
+            return providerRefusal(status);
           }
-          const response = serverError(PATH, `ai category_icon ${answer.reason}`);
-          // Keep the boundary's incident-bearing envelope and the established 502 status.
-          return ok(await response.json(), { status: 502 });
+          // The boundary's incident-bearing envelope (its log line under the same id) at the
+          // established 502 status.
+          const logged = (await serverError(PATH, `ai category_icon ${answer.reason}`).json()) as {
+            error: string;
+            incident: string;
+          };
+          return refused(logged.error, 502, { incident: logged.incident });
         },
       }),
     },

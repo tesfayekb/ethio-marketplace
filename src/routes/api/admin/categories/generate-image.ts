@@ -4,7 +4,7 @@ import { GenerateImageBody, GenerateImageProbeQuery } from "@/lib/schemas/catego
 import type { Infer } from "@/lib/schemas/primitives";
 import { aiCall, renderTask, type AiAnswer } from "@/server/ai/gateway";
 import type { OutputOf } from "@/server/ai/tasks";
-import { bytes, ok } from "@/server/answer";
+import { bytes, clientError, ok, providerRefusal, refused } from "@/server/answer";
 import { defineRoute, type RouteContext } from "@/server/route";
 import { logRouteError } from "@/server/supabase/user-client";
 
@@ -18,25 +18,17 @@ function failure(answer: Exclude<AiAnswer<OutputOf<"category_image">>, { ok: tru
     answer.reason === "unavailable"
   ) {
     const reason = answer.reason === "featureOff" ? "staff" : answer.reason;
-    return ok(
-      { error: `AI feature category_images is off (${reason})`, stage: "switched-off" },
-      { status: reason === "unavailable" ? 503 : 409, cache: "no-store" },
-    );
+    const word = `AI feature category_images is off (${reason})`;
+    return reason === "unavailable"
+      ? refused(word, 503, { stage: "switched-off" })
+      : clientError(word, 409, { stage: "switched-off" });
   }
   const status = "status" in answer ? answer.status : undefined;
   logRouteError(PATH, `image_generate_failed stage=model-call ${answer.reason}`);
   if (answer.reason === "providerError" && status !== undefined && status >= 400 && status < 500) {
-    const code =
-      status === 400 || status === 422
-        ? "modelRefused"
-        : status === 401 || status === 403
-          ? "modelKeyRefused"
-          : status === 429
-            ? "modelRateLimited"
-            : "modelCallFailed";
-    return ok({ error: code, stage: "model-call" }, { status, cache: "no-store" });
+    return providerRefusal(status, { stage: "model-call" });
   }
-  return ok({ error: "server error", stage: "model-call" }, { status: 502, cache: "no-store" });
+  return refused("server error", 502, { stage: "model-call" });
 }
 
 async function generate(ctx: RouteContext, categoryId: string, probe: boolean): Promise<Response> {
@@ -49,10 +41,9 @@ async function generate(ctx: RouteContext, categoryId: string, probe: boolean): 
     .maybeSingle();
   if (error) {
     logRouteError(PATH, error.message);
-    return ok({ error: "server error", stage: "model-call" }, { status: 502, cache: "no-store" });
+    return refused("server error", 502, { stage: "model-call" });
   }
-  if (category === null)
-    return ok({ error: "category not found" }, { status: 404, cache: "no-store" });
+  if (category === null) return clientError("category not found", 404);
   const { data: pointer } = await supabase
     .from("category_tree_pointers")
     .select("parent_id, display_order")
@@ -100,10 +91,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         auth: AUTH,
         body: GenerateImageBody,
         badShape: ({ code }) =>
-          ok(
-            { error: code === "invalid_json" ? "invalid json body" : "invalid categoryId" },
-            { status: 400 },
-          ),
+          clientError(code === "invalid_json" ? "invalid json body" : "invalid categoryId", 400),
         handler: async (ctx) => generate(ctx, ctx.body.categoryId, false),
       }),
       GET: defineRoute<unknown, unknown, Infer<typeof GenerateImageProbeQuery>>({
@@ -111,10 +99,7 @@ export const Route = createFileRoute("/api/admin/categories/generate-image")({
         auth: AUTH,
         query: GenerateImageProbeQuery,
         badShape: ({ path }) =>
-          ok(
-            { error: path === "probe" ? "probe=1 required" : "invalid categoryId" },
-            { status: 400 },
-          ),
+          clientError(path === "probe" ? "probe=1 required" : "invalid categoryId", 400),
         handler: async (ctx) => generate(ctx, ctx.query.categoryId, true),
       }),
     },
