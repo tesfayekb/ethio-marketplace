@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import type { DateCalendarProps } from "./date-calendar";
 import { isoDay, parseDay } from "./date-day";
 import { LoadFailedHere } from "./on-demand-notice";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /**
  * Bundle 11, turn L1b (INC-549) — THE HOUSE DATE FIELD.
@@ -99,7 +99,6 @@ export function DateField({
       live = false;
     };
   }, [open, Calendar, calendarFailed]);
-  const locale = formatLocale(language);
   const selected = parseDay(value);
   const earliest = min === undefined ? null : parseDay(min);
   const latest = max === undefined ? null : parseDay(max);
@@ -111,10 +110,10 @@ export function DateField({
   if (latest && shown > latest) shown = latest;
   if (earliest && shown < earliest) shown = earliest;
 
-  const dayLabel = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
-  const fullLabel = new Intl.DateTimeFormat(locale, { dateStyle: "full" });
-  const captionLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" });
-  const weekdayLabel = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
+  const dayLabel = dateFormatter("day", language);
+  const fullLabel = dateFormatter("dayFull", language);
+  const captionLabel = dateFormatter("monthYear", language);
+  const weekdayLabel = dateFormatter("weekdayNarrow", language);
 
   return (
     <div className={cn("min-w-0 space-y-2", className)}>

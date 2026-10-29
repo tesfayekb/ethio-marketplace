@@ -29,7 +29,7 @@ import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /** Mirrors the server's password rule; the server remains the authority. */
 const MIN_PASSWORD_LENGTH = 8;
@@ -419,11 +419,7 @@ function SettingsScreen() {
             <div className="flex justify-between gap-3">
               <dt className="text-muted-foreground">{t("settings.memberSince")}</dt>
               <dd className="text-foreground">
-                {memberSince
-                  ? new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
-                      new Date(memberSince),
-                    )
-                  : "—"}
+                {memberSince ? dateFormatter("day", language).format(new Date(memberSince)) : "—"}
               </dd>
             </div>
           </dl>

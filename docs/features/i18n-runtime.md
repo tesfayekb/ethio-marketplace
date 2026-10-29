@@ -90,3 +90,15 @@ DEC-231's admin layer is now one of the named `STRINGS_LAYERS`: admin and member
 The root's `StringsLayerGate` asks through `useStringsLayers` and draws the route once every declared layer is ready. It shows a spinner while loading, or an error line with the shared Button's Try again action on failure. Each English part is kept under a failed language part (INC-816), so translated-layer failure leaves English text, never blank text. `useAdminStrings` is retired; the admin permission gate remains the authority for its screens.
 
 `scripts/conformance/strings-layers.ts` decides each key's file from the pages that reach its readers and those pages' declarations. Keys no page shows stay where they are (INC-903). `en.ts` and `am.ts` join every part for tests, scripts and the strings console; the first paint reads only the base part.
+
+## Formatter intents (INC-985, Foundations turn L-1)
+
+Every date, time, relative time and number a reader sees is formatted by `src/lib/format.ts`
+(`dateFormatter`/`formatDate`, `numberFormatter`/`formatNumber`, `formatRelative`), on
+`formatLocale`, one cached instance per (intent, resolved locale, time zone). Date intents: `day`,
+`dayFull`, `dayNumeric`, `dayMonth`, `dayTime`, `dayTimeNumeric`, `moment`, `dayTimeZone`,
+`monthYear`, `weekdayNarrow`; number intents: `count`, `exact`. In a `LONG_MONTH_LANGUAGES`
+language (Amharic) a month is always written in full and `dateStyle` medium/short is never used.
+Locale tags, the fallback and the country/currency code shapes live only in `src/lib/locale.ts`.
+CF-FMT-1 (`scripts/conformance/format.test.ts`) refuses a bypass; its allowlist holds only the
+named exceptions (AI USD formatters, UI kit calendar/chart, `supportedLocalesOf`, e2e oracles).

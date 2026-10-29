@@ -1,16 +1,19 @@
+import { FALLBACK_TAG, localeTagOf } from "@/lib/locale";
+
 /**
  * DEC-229 (bundle 22 turn 24) — one language rule for dates and numbers: the
- * reader's language, else English. Amharic formats as am-ET, English as en-GB;
- * any other code formats as itself when the runtime knows it, else en-GB.
+ * reader's language, else English. A known language formats as its tag in
+ * src/lib/locale.ts (Amharic am-ET, English en-GB); any other code formats as
+ * itself when the runtime knows it, else the fallback tag.
  */
 export function formatLocale(language: string): string {
-  if (language === "am") return "am-ET";
-  if (language === "en") return "en-GB";
+  const known = localeTagOf(language);
+  if (known !== undefined) return known;
   try {
-    return Intl.DateTimeFormat.supportedLocalesOf([language]).length > 0 ? language : "en-GB";
+    return Intl.DateTimeFormat.supportedLocalesOf([language]).length > 0 ? language : FALLBACK_TAG;
   } catch {
     // A code that is not a well-formed language tag formats in English.
-    return "en-GB";
+    return FALLBACK_TAG;
   }
 }
 

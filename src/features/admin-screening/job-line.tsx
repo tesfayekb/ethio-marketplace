@@ -6,7 +6,7 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { OUTCOME_KEY, PAUSE_KEY, resumeJob, useJobLine, type JobLine } from "./use-name-checks";
@@ -42,11 +42,7 @@ export function JobHealthLine({
 
   if (!mayView || health.isLoading) return null;
 
-  const when = (iso: string) =>
-    new Intl.DateTimeFormat(formatLocale(language), {
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(new Date(iso));
+  const when = (iso: string) => dateFormatter("dayTimeNumeric", language).format(new Date(iso));
 
   const sentence = (line: JobLine): string => {
     switch (line.kind) {

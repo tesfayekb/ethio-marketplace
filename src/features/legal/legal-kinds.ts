@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
+import { isCountryCode } from "@/lib/locale";
 
 /** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */
 export type LegalRole = "terms" | "privacy" | "other";
@@ -67,9 +68,7 @@ export function legalDocName(
 /** A legal date in the page's language (dateStyle medium). */
 export function legalDate(value: string | null | undefined, language: string): string {
   if (!value) return "";
-  return new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "medium",
-  }).format(new Date(value));
+  return dateFormatter("day", language).format(new Date(value));
 }
 /**
  * Turn 12: an acceptance's or an e-mail's moment, stored in UTC, shown in the viewer's own time zone
@@ -81,11 +80,7 @@ export function legalMoment(
   timeZone?: string,
 ): string {
   if (!value) return "";
-  return new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "medium",
-    timeStyle: "long",
-    timeZone,
-  }).format(new Date(value));
+  return dateFormatter("dayTimeZone", language, timeZone).format(new Date(value));
 }
 
 /**
@@ -98,11 +93,8 @@ export function signedInOnlyKind(kind: string): boolean {
   return kind === "publishing" || /^e2e-pub-/.test(kind);
 }
 
-const COUNTRY = /^[A-Z]{2}$/;
 /** The root passes raw search through; only distinct uppercase country codes reach the door. */
 export function shapedCountries(value: unknown): string[] {
   const values = typeof value === "string" ? value.split(",") : Array.isArray(value) ? value : [];
-  return [
-    ...new Set(values.filter((v): v is string => typeof v === "string" && COUNTRY.test(v))),
-  ].slice(0, 5);
+  return [...new Set(values.filter((v): v is string => isCountryCode(v)))].slice(0, 5);
 }

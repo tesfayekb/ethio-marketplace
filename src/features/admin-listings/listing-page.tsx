@@ -48,7 +48,8 @@ import {
 import { ADMIN_LISTINGS_KEY, moveAdminListing } from "./use-admin-listings";
 import { errorText } from "@/lib/error-text";
 import { catalogText, entityName } from "@/i18n/entity";
-import { formatLocale, languageRowName } from "@/lib/format-locale";
+import { languageRowName } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -158,9 +159,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
         )),
   );
 
-  const locale = formatLocale(language);
-  const dayFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
-  const momentFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" });
+  const dayFmt = dateFormatter("day", language);
+  const momentFmt = dateFormatter("dayTime", language);
   const day = (iso: string | null) => (iso === null ? "—" : dayFmt.format(new Date(iso)));
   const both = (en: string | null, am: string | null) =>
     en === null ? "—" : catalogText(en, am, language);
@@ -882,11 +882,7 @@ function CertificationsCard({ listingId }: { listingId: string }) {
   const mayViewLegal = permissions.includes("legal:view");
   const query = useAdminListingCertifications(listingId);
   const regions = new Intl.DisplayNames([language], { type: "region" });
-  const when = new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "UTC",
-  });
+  const when = dateFormatter("dayTime", language, "UTC");
   const kindName = (kind: string) =>
     kind === "terms" || kind === "privacy" || kind === "publishing"
       ? t(`legal.kind.${kind}`)

@@ -9,7 +9,7 @@ import type { AttrDef } from "./posting-service";
 import { conditionMet } from "./visible-when";
 import { catalogWords, type CatalogTokens } from "@/i18n";
 import type { EntityBundle } from "@/i18n/entity";
-import { formatLocale } from "@/lib/format-locale";
+import { numberFormatter } from "@/lib/format";
 
 /**
  * INC-587 — A HELD CHOICE IS SHOWN ONLY WHEN IT HAS WORDS. An answer whose
@@ -88,9 +88,7 @@ const PLAIN_DECIMAL = /^-?\d+(\.\d+)?$/;
  * input box. Returns null for anything that is not such a value.
  */
 export function numberText(value: unknown, language: string): string | null {
-  const format = new Intl.NumberFormat(formatLocale(language), {
-    maximumFractionDigits: 20,
-  });
+  const format = numberFormatter("exact", language);
   if (typeof value === "number") return Number.isFinite(value) ? format.format(value) : null;
   if (typeof value === "string" && PLAIN_DECIMAL.test(value.trim())) {
     // A decimal string is formatted as written (no float round-trip).

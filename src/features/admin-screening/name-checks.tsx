@@ -24,7 +24,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { fill } from "@/features/posting/refusal-text";
 import { SectionNotice, useSectionNotice } from "@/components/ui/section-notice";
 import { useI18n, type MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter, numberFormatter } from "@/lib/format";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 
 import { JobHealthLine } from "./job-line";
@@ -91,11 +91,8 @@ export function NameChecks({
 
   if (!mayList && !mayViewJob) return null;
 
-  const when = new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
-  const number = new Intl.NumberFormat(formatLocale(language));
+  const when = dateFormatter("dayTimeNumeric", language);
+  const number = numberFormatter("count", language);
   const label = (row: NameQueueRow) => row.name ?? t("admin.screening.names.nameHidden");
 
   const allow = async () => {

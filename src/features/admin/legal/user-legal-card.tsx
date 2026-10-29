@@ -6,7 +6,8 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { kindKey, type LegalHistoryRow } from "./legal-service";
 import { useUserLegalHistory } from "./use-legal";
-import { formatLocale, languageRowName } from "@/lib/format-locale";
+import { languageRowName } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 export function UserLegalCard({ userId }: { userId: string }) {
   const { t, language, publicLanguages } = useI18n();
@@ -14,12 +15,7 @@ export function UserLegalCard({ userId }: { userId: string }) {
   const history = useUserLegalHistory(userId);
   const countries = useCountries();
   const date = (value?: string) =>
-    value
-      ? new Intl.DateTimeFormat(formatLocale(language), {
-          dateStyle: "medium",
-          timeStyle: "long",
-        }).format(new Date(value))
-      : "—";
+    value ? dateFormatter("dayTimeZone", language).format(new Date(value)) : "—";
   const caption = (row: LegalHistoryRow) => {
     const key = kindKey(row.kind);
     return `${key ? t(key) : row.kind} · ${row.country_code ? (countries.data?.find((c) => c.code === row.country_code)?.nameEn ?? row.country_code) : t("admin.legal.scope.global")} · ${t("admin.legal.version").replace("{n}", String(row.version))}${row.label ? ` · ${row.label}` : ""}`;

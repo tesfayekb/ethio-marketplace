@@ -1,0 +1,10 @@
+# The formatter census (scripts/conformance/format.test.ts, CF-FMT-1): a recorded exception to INC-985 / register row 16 — key "<file> (<findings>)" | reason | until.
+src/features/admin-ai/ai-service.ts (6) | register row 16: the AI service's three en-US USD formatters (dollars, fine, count) — provider cost is billed and shown in US dollars, in en-US, whatever the reader's language; reviewed | 2099-12-31
+src/components/ui/calendar.tsx (2) | register row 16: the UI kit's calendar (react-day-picker's month dropdown and its data-day key, not shown text); the app draws it only through date-field.tsx, which passes its own labels from format.ts | 2099-12-31
+src/components/ui/chart.tsx (1) | register row 16: the UI kit's chart tooltip; K2 — its bare toLocaleString() at :225 formats in the device's locale, not the reader's language, and no app chart passes a formatter to it yet | 2099-12-31
+src/lib/format-locale.ts (1) | the locale picker itself: Intl.DateTimeFormat.supportedLocalesOf decides whether an unknown code formats as itself, else English | 2099-12-31
+e2e/ad-page.spec.ts (1) | independent oracle: the test computes the expected Amharic relative day with Intl, independently of the code under test (ruled L-1 B3) | 2099-12-31
+e2e/legal-pages.spec.ts (2) | independent oracle: the test computes the expected English date with Intl, independently of the code under test (ruled L-1 B3) | 2099-12-31
+e2e/my-listings-ad.spec.ts (1) | independent oracle: the test asserts a stored country code's shape with its own pattern, independently of the code under test (B3's reason; departure reported in L-1) | 2099-12-31
+e2e/post-wizard-resets.spec.ts (1) | independent oracle: the test asserts a currency code's shape with its own pattern, independently of the code under test (B3's reason; departure reported in L-1) | 2099-12-31
+e2e/posting-routes.spec.ts (1) | independent oracle: the test asserts a currency code's shape with its own pattern, independently of the code under test (B3's reason; departure reported in L-1) | 2099-12-31

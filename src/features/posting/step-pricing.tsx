@@ -30,7 +30,7 @@ import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./
 import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
 import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 import { ownValue } from "@/lib/own-key";
-import { formatLocale } from "@/lib/format-locale";
+import { numberFormatter } from "@/lib/format";
 
 /**
  * U6-C2a / U6-C1-R1 — STEP 5: WHAT IT COSTS (DEC-067, D13).
@@ -400,7 +400,7 @@ export function StepPricing({
   const shownAmount =
     values.priceAmount === null
       ? ""
-      : new Intl.NumberFormat(formatLocale(language)).format(values.priceAmount);
+      : numberFormatter("count", language).format(values.priceAmount);
 
   return (
     <div className="space-y-5" data-testid="post-pricing">

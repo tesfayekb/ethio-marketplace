@@ -18,7 +18,7 @@ import {
   totalOf,
   type GroupCounts,
 } from "@/features/my-listings/my-listings";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 import { currentSession } from "@/lib/supabase-door";
 import { readSellerReview } from "@/features/seller/seller-review";
 import { SellerReviewNotice } from "@/features/seller/seller-review-notice";
@@ -148,9 +148,7 @@ export function AccountOverview() {
                 <dt className="text-muted-foreground">{t("account.overview.memberSince")}</dt>
                 <dd className="text-foreground">
                   {state.memberSince
-                    ? new Intl.DateTimeFormat(formatLocale(language), {
-                        dateStyle: "medium",
-                      }).format(new Date(state.memberSince))
+                    ? dateFormatter("day", language).format(new Date(state.memberSince))
                     : t("account.overview.notSet")}
                 </dd>
               </div>

@@ -24,7 +24,7 @@ import { useI18n } from "@/i18n";
 
 import type { AuditRow } from "./audit-service";
 import { useAuditFacets, useAuditList, useAuditStats } from "./use-audit";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 const TABLE_ID = "admin-audit";
 const LOCKED = ["action"];
@@ -126,15 +126,9 @@ export function AdminAuditPage() {
   const rows = list.data?.rows ?? [];
   const total = list.data?.totalCount ?? 0;
 
-  const timeFmt = new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "short",
-    timeStyle: "short",
-  });
+  const timeFmt = dateFormatter("dayTimeNumeric", language);
 
-  const dayFmt = new Intl.DateTimeFormat(formatLocale(language), {
-    day: "numeric",
-    month: "short",
-  });
+  const dayFmt = dateFormatter("dayMonth", language);
   const days = stats.data?.days ?? [];
   const barLabel = (day: string, count: number) =>
     t("admin.audit.chart.bar")

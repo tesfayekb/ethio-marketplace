@@ -68,7 +68,7 @@ import {
 } from "./my-listing";
 import { GROUP_LABEL, shareable } from "./my-listings";
 import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /**
  * Bundle 16 turn 3 — ONE OF THE SELLER'S ADS (/my-listings/<id>; D138; D173–D176;
@@ -264,16 +264,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const unitLabels = usePriceUnitLabels(row !== null && row.priceUnit !== null);
 
   const day = (iso: string | null) =>
-    iso === null
-      ? ""
-      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
-          new Date(iso),
-        );
-  const moment = (iso: string) =>
-    new Intl.DateTimeFormat(formatLocale(language), {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(new Date(iso));
+    iso === null ? "" : dateFormatter("day", language).format(new Date(iso));
+  const moment = (iso: string) => dateFormatter("dayTime", language).format(new Date(iso));
 
   const reload = async () => {
     await refreshAfterWrite(queryClient, { queryKey: adKey(listingId) });

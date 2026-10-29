@@ -54,7 +54,7 @@ import {
   type AdminListingRow,
   type ListingView,
 } from "./use-admin-listings";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /**
  * Bundle 11, the Listings console, turn L2 (D134, D136) — ADMIN › LISTINGS ›
@@ -170,10 +170,9 @@ export function AdminListingsPage() {
     paging.setPage(0);
     setSelected([]);
   };
-  const locale = formatLocale(language);
-  const dateFmt = new Intl.DateTimeFormat(locale, { dateStyle: "medium" });
-  const fullFmt = new Intl.DateTimeFormat(locale, { dateStyle: "full" });
-  const shortFmt = new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" });
+  const dateFmt = dateFormatter("day", language);
+  const fullFmt = dateFormatter("dayFull", language);
+  const shortFmt = dateFormatter("dayMonth", language);
   const thisYear = new Date().getFullYear();
   /** The card's date: day, month and year. */
   const day = (iso: string | null) => (iso === null ? "—" : dateFmt.format(new Date(iso)));

@@ -85,7 +85,7 @@ import {
   type MyListingRow,
   type MyListingsFilters,
 } from "./my-listings";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 import { listingPath } from "@/features/ad-page/address";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { stateLine } from "./state-line";
@@ -199,23 +199,18 @@ export function MyListingsPage() {
     rows.flatMap((row) => (row.coverPhotoId === null ? [] : [{ id: row.coverPhotoId }])),
   );
   const unitLabels = usePriceUnitLabels(rows.some((row) => row.priceUnit !== null));
-  const locale = formatLocale(language);
   const day = (iso: string | null) =>
-    iso === null
-      ? ""
-      : new Intl.DateTimeFormat(formatLocale(language), { dateStyle: "medium" }).format(
-          new Date(iso),
-        );
+    iso === null ? "" : dateFormatter("day", language).format(new Date(iso));
   const tableDay = (iso: string | null) =>
     iso === null ? (
       <span className="text-muted-foreground">—</span>
     ) : (
       <time
         dateTime={iso}
-        title={new Intl.DateTimeFormat(locale, { dateStyle: "full" }).format(new Date(iso))}
+        title={dateFormatter("dayFull", language).format(new Date(iso))}
         className="tabular-nums text-muted-foreground"
       >
-        {new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(new Date(iso))}
+        {dateFormatter("day", language).format(new Date(iso))}
       </time>
     );
   const roots = rootsOf(tree);

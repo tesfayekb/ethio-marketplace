@@ -3,7 +3,8 @@ import { basisNoun, formatCommission } from "./price-basis";
 import { fill } from "./refusal-text";
 import { ownValue } from "@/lib/own-key";
 import { catalogText } from "@/i18n/entity";
-import { formatLocale } from "@/lib/format-locale";
+import { formatNumber } from "@/lib/format";
+import { FALLBACK_LANGUAGE } from "@/lib/locale";
 
 /**
  * Bundle 4 step 10 — THE ONE PRICE LINE. The card, the wizard's preview, the
@@ -47,7 +48,7 @@ export function priceLine(
   if (input.mode === "free") return t("price.free");
   if (input.mode === "contact") return t("price.contact");
   if (input.amount === null) return empty;
-  const amount = input.amount.toLocaleString(formatLocale(language ?? "en"));
+  const amount = formatNumber(input.amount, language ?? FALLBACK_LANGUAGE);
   const currency = input.currency ?? "";
   if (input.unit !== null && input.unit.trim() !== "") {
     return fill(t("post.review.pricePer"), { amount, currency, basis: input.unit.trim() });

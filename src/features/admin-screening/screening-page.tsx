@@ -61,7 +61,7 @@ import {
   useScreeningSchema,
   type ScreeningRow,
 } from "./use-screening";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 import { catalogText } from "@/i18n/entity";
 
 /**
@@ -166,19 +166,12 @@ export function AdminScreeningPage({
   const schema = useScreeningSchema(previewRow?.categoryId ?? null);
   const nameChecks = useNameCheckSummary();
   // The audit page's day format (admin/audit/audit-page.tsx), for the oldest waiting name.
-  const dayFmt = new Intl.DateTimeFormat(formatLocale(language), {
-    day: "numeric",
-    month: "short",
-  });
+  const dayFmt = dateFormatter("dayMonth", language);
 
   const named = (value: ScreeningRow["category"]) =>
     value === null ? "—" : catalogText(value.name_en, value.name_am, language);
 
-  const sentAt = (iso: string) =>
-    new Intl.DateTimeFormat(formatLocale(language), {
-      dateStyle: "short",
-      timeStyle: "short",
-    }).format(new Date(iso));
+  const sentAt = (iso: string) => dateFormatter("dayTimeNumeric", language).format(new Date(iso));
 
   const marketName = (code: string) => {
     const market = markets.markets.find((m) => m.code === code);

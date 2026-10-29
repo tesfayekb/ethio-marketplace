@@ -5,6 +5,7 @@ import type { LegalFacts } from "@/features/legal/legal-markdown";
 import { errorText } from "@/lib/error-text";
 import { parseLegalVersion } from "@/features/legal/legal-reader";
 import { SCRATCH_KIND } from "@/features/legal/legal-kinds";
+import { isCountryCode } from "@/lib/locale";
 
 export const LEGAL_KINDS = ["terms", "privacy", "publishing"] as const;
 export type MissingLegalLanguage = { code: string; name_en: string };
@@ -104,7 +105,7 @@ export type LegalHistory = { acceptances: LegalHistoryRow[]; notices: LegalHisto
 export function validDocument(kind: string, country?: string): boolean {
   return (
     ((LEGAL_KINDS as readonly string[]).includes(kind) || SCRATCH_KIND.test(kind)) &&
-    (country === undefined || /^[A-Z]{2}$/.test(country))
+    (country === undefined || isCountryCode(country))
   );
 }
 export function kindKey(kind: string): MessageKey | null {

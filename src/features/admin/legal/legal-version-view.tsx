@@ -24,7 +24,7 @@ import {
 } from "./legal-service";
 import { useLegalWrites, useLegalDocuments, useLegalSettings, useLegalVersion } from "./use-legal";
 import { errorText } from "@/lib/error-text";
-import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /** Bundle 22 turn 13 — Compare: this version's text against the previous version's, line by line. */
 function CompareText({
@@ -170,11 +170,7 @@ export function LegalVersionView({
     return fact === null || (fact !== undefined && String(fact).trim() === "");
   });
   const date = (value: string | null) =>
-    value
-      ? new Intl.DateTimeFormat(formatLocale(language), {
-          dateStyle: "medium",
-        }).format(new Date(value))
-      : "—";
+    value ? dateFormatter("day", language).format(new Date(value)) : "—";
   return (
     <StepUpGate>
       {(guard) => (

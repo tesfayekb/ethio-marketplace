@@ -7,6 +7,7 @@
  * The door's rule (^\+[0-9]{7,15}$) is unchanged; join() only shapes what the
  * seller typed into "+" code digits.
  */
+import { isCountryCode } from "@/lib/locale";
 const TABLE =
   "AD376 AE971 AF93 AG1 AI1 AL355 AM374 AO244 AR54 AS1 AT43 AU61 AW297 AX358 AZ994 " +
   "BA387 BB1 BD880 BE32 BF226 BG359 BH973 BI257 BJ229 BL590 BM1 BN673 BO591 BQ599 BR55 " +
@@ -128,7 +129,7 @@ export function countryDisplayName(iso: string, language: string): string {
  * indicator letters); no image files. An unknown or malformed code has none.
  */
 export function flagOf(iso: string): string {
-  if (!/^[A-Z]{2}$/.test(iso)) return "";
+  if (!isCountryCode(iso)) return "";
   return String.fromCodePoint(...[...iso].map((letter) => 0x1f1e6 + letter.charCodeAt(0) - 65));
 }
 
