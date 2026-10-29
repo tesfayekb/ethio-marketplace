@@ -649,13 +649,14 @@ export function startFailureSection(sources: Source[]): string[] {
   const carriers = sources.filter((s) => (s.startFailure ?? []).length > 0);
   if (carriers.length === 0) return [];
   const first = carriers[0];
+  const firstLines = first.startFailure ?? [];
   return [
     "## Backend start failure (INC-973)",
     "",
     `The temporary backend never came up, so these sources have neither results nor a lane log: ${carriers.map((s) => s.label).join(", ")}. The start log's error lines, redacted, from \`${first.label}\` (one lane's lines stand for every lane that failed the same way):`,
     "",
     "```text",
-    ...first.startFailure!,
+    ...firstLines,
     "```",
     "",
   ];
