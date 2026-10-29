@@ -107,6 +107,7 @@ export const Route = createFileRoute("/api/translate")({
           if (scopeError) {
             // A failed gate read: the one read-failure answer (503 when not reached, else 500
             // with its incident), the text in the log only.
+            logRouteError(PATH, `translation scope: ${scopeError.message}`);
             return readFailure(PATH, "translation_scope_ok", scopeError);
           }
           if (inScope !== true) {
