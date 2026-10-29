@@ -1177,3 +1177,4 @@
 - 2026-10-29 Foundations L-2c continuation: reader-locale.ts shares reader ordering, country names and machine comparison; fixed name order uses FIXED_ORDER_LOCALE; CF-FMT-1 widened, CF-FMT-2 planted a/b/c, FMT-9…11; Part B deferred to L-2d.
 
 - Foundations L-2d-2: INC-990 base-first keyed route heads with on-demand applied-catalogue re-title, exact EN/AM keys, head census and PGH proofs.
+- Foundations J-1: INC-1003 CI ceilings + NEAR band; INC-1002 derived provider response schemas (ARS census), name_check null-of, needs_review after 5 unusable answers (still public); INC-1000 typed [job-refused] lines and lost dispatched runs.

@@ -5,6 +5,7 @@ import { errorText } from "@/lib/error-text";
 import { ownValue } from "@/lib/own-key";
 import { aiGate, recordAiSpend, type AiGate } from "./meter";
 import { geminiImage, geminiText } from "./providers/gemini";
+import { providerSchemaOf } from "./response-schema";
 import { photoroomSegment } from "./providers/photoroom";
 import {
   providerLanguages,
@@ -345,7 +346,8 @@ export async function aiCall<T extends TaskId>(
               model,
               ...rendered,
               images: sent,
-              responseSchema: task.responseSchema,
+              // INC-1002: the provider is asked for exactly the shape the parse reads.
+              responseSchema: providerSchemaOf(task.output),
               temperature: task.temperature,
               timeoutMs: task.timeoutMs,
               label: `gemini ${task.id}`,
@@ -358,6 +360,8 @@ export async function aiCall<T extends TaskId>(
               try {
                 raw = JSON.parse(provider.text);
               } catch {
+                // INC-1002 — content-free sub-reason: never the text, a name or the answer.
+                log("unusable answer: parse");
                 answer = { ok: false, reason: "unusableAnswer" };
               }
             } else if (provider.kind === "unusable") {
@@ -377,16 +381,18 @@ export async function aiCall<T extends TaskId>(
           if (billed && raw !== undefined) {
             const parsed = task.output.safeParse(raw);
             if (parsed.success) {
-              answer =
-                task.validate !== undefined && !task.validate(parsed.data, resolved)
-                  ? { ok: false, reason: "unusableAnswer" }
-                  : {
-                      ok: true,
-                      value: parsed.data,
-                      fake,
-                      latencyMs: Math.max(0, Date.now() - started),
-                    };
+              const refused = task.validate !== undefined && !task.validate(parsed.data, resolved);
+              if (refused) log("unusable answer: shape");
+              answer = refused
+                ? { ok: false, reason: "unusableAnswer" }
+                : {
+                    ok: true,
+                    value: parsed.data,
+                    fake,
+                    latencyMs: Math.max(0, Date.now() - started),
+                  };
             } else {
+              log("unusable answer: shape");
               answer = { ok: false, reason: "unusableAnswer" };
             }
           }

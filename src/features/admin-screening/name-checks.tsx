@@ -99,6 +99,8 @@ export function NameChecks({
     if (allowing === null) return;
     setBusy(true);
     let answer: "done" | "stale";
+    // J-1: a name the AI could not check was never hidden, so its Clear says so.
+    const visible = allowing.state === "needs_review";
     try {
       answer = await guard(() => clearNameCheck(allowing, reason));
     } catch (error) {
@@ -117,7 +119,11 @@ export function NameChecks({
     setHistory([null]);
     await refreshAfterWrite(queryClient, { queryKey: ADMIN_SCREENING_KEY });
     onNotice(
-      answer === "done" ? "admin.screening.names.clear.done" : "admin.screening.names.clear.stale",
+      answer === "done"
+        ? visible
+          ? "admin.screening.names.clear.doneVisible"
+          : "admin.screening.names.clear.done"
+        : "admin.screening.names.clear.stale",
       answer === "done" ? "ok" : "error",
     );
   };
@@ -133,7 +139,14 @@ export function NameChecks({
           <span className="block font-medium" data-testid="admin-name-check-name">
             <CutText text={label(row)} />
           </span>
-          {row.nameHidden ? null : (
+          {row.state === "needs_review" ? (
+            <span
+              className="mt-0.5 block break-words text-xs text-muted-foreground"
+              data-testid="admin-name-check-unusable"
+            >
+              {t("admin.screening.names.unusable")}
+            </span>
+          ) : row.nameHidden ? null : (
             <span
               className="mt-0.5 block break-words text-xs text-muted-foreground"
               data-testid="admin-name-check-of"
