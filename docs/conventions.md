@@ -31,3 +31,8 @@
 
 Before creating any new component, hook, utility, translation key, or table,
 search for an existing one and use or extend it.
+
+## Migration proofs
+
+- A proof of a statement that spans a whole table (a prune, a sweep, a backfill) runs a service-only core that takes an optional id scope (`<name>_core(p_only uuid[])`), called with the proof's own scratch ids; only the live wrapper (`<name>()` → core(NULL)) spans real rows, and the proof never calls it (INC-980; house form since N1b-1 M5, `job_runs_prune_core`).
+- A function call and the check of its effect are never in one SQL expression: call, then read back in a separate statement (N1b-1 M3).
