@@ -12,7 +12,11 @@ import { safeReturnPath } from "@/lib/return-path";
 export const Route = createFileRoute("/auth_/callback")({
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.authCallback.description", "head.authCallback.title").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.authCallback.description",
+        "head.authCallback.title",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

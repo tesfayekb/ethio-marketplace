@@ -12,7 +12,14 @@ import { ImpersonationView } from "@/features/admin/impersonation/impersonation-
 export const Route = createFileRoute("/admin/impersonation_/$sessionId")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "head.admin.impersonation.title", null, "Impersonation session — ethio.com Admin", "Impersonation session in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "head.admin.impersonation.title",
+        null,
+        "Impersonation session — ethio.com Admin",
+        "Impersonation session in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

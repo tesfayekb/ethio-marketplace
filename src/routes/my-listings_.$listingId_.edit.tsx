@@ -28,7 +28,14 @@ export const Route = createFileRoute("/my-listings_/$listingId_/edit")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.editAd.description", "post.edit.title", null, "Edit your ad — ethio.com", "Change one of your ads on ethio.com, step by step.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.editAd.description",
+        "post.edit.title",
+        null,
+        "Edit your ad — ethio.com",
+        "Change one of your ads on ethio.com, step by step.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

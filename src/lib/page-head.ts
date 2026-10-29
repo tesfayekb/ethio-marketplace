@@ -12,16 +12,33 @@ export function pageHead(
 ) {
   const base = enBase as Partial<Record<MessageKey, string>>;
   const value = name ?? (nameKey ? base[nameKey] : "") ?? "";
-  const title = base[titleKey]?.replace("{name}", value) || titleFallback || "";
+  const title =
+    (nameKey && base[nameKey] === undefined
+      ? titleFallback
+      : base[titleKey]?.replace("{name}", value)) ??
+    titleFallback ??
+    "";
   const description = descriptionKey
     ? base[descriptionKey]?.replace("{name}", value) || descriptionFallback || ""
-    : descriptionFallback ?? "";
+    : (descriptionFallback ?? "");
   return {
     meta: [
       { title },
       { name: "description", content: description },
-      { property: "og:title", content: title, "data-head-key": titleKey, "data-head-name-key": nameKey ?? "", "data-head-name": name ?? "" },
-      { property: "og:description", content: description, "data-head-key": descriptionKey ?? "", "data-head-name-key": nameKey ?? "", "data-head-name": name ?? "" },
+      {
+        property: "og:title",
+        content: title,
+        "data-head-key": titleKey,
+        "data-head-name-key": nameKey ?? "",
+        "data-head-name": name ?? "",
+      },
+      {
+        property: "og:description",
+        content: description,
+        "data-head-key": descriptionKey ?? "",
+        "data-head-name-key": nameKey ?? "",
+        "data-head-name": name ?? "",
+      },
     ],
   };
 }

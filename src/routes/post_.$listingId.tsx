@@ -37,7 +37,14 @@ export const Route = createFileRoute("/post_/$listingId")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.continuePost.description", "head.continuePost.title", null, "Continue your listing — ethio.com", "Finish the listing you started on ethio.com.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.continuePost.description",
+        "head.continuePost.title",
+        null,
+        "Continue your listing — ethio.com",
+        "Finish the listing you started on ethio.com.",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: "noindex" },

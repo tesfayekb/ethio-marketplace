@@ -33,7 +33,13 @@ export const Route = createFileRoute("/legal/accept")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.legalAccept.description", "legal.accept.title", null, "Before you continue — ethio.com").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.legalAccept.description",
+        "legal.accept.title",
+        null,
+        "Before you continue — ethio.com",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

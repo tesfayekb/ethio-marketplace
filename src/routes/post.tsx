@@ -31,7 +31,14 @@ export const Route = createFileRoute("/post")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.post.description", "post.title", null, "Post a listing — ethio.com", "Post what you are selling on ethio.com in a few short steps.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.post.description",
+        "post.title",
+        null,
+        "Post a listing — ethio.com",
+        "Post what you are selling on ethio.com in a few short steps.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

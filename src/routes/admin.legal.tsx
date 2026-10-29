@@ -17,7 +17,14 @@ export const Route = createFileRoute("/admin/legal")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.legal.description", "head.admin.legal.title", null, "Legal documents — ethio.com Admin", "Manage legal document versions and publishing facts on ethio.com.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.legal.description",
+        "head.admin.legal.title",
+        null,
+        "Legal documents — ethio.com Admin",
+        "Manage legal document versions and publishing facts on ethio.com.",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

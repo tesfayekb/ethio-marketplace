@@ -26,7 +26,14 @@ import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.admin.panel.description", "panel.admin", null, "Admin — ethio.com", "Administration panel for ethio.com staff.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.admin.panel.description",
+        "panel.admin",
+        null,
+        "Admin — ethio.com",
+        "Administration panel for ethio.com staff.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

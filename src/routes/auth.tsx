@@ -62,7 +62,13 @@ export const Route = createFileRoute("/auth")({
 
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.auth.description", "auth.signIn", null, "Sign in — ethio.com").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.auth.description",
+        "auth.signIn",
+        null,
+        "Sign in — ethio.com",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

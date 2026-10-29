@@ -19,7 +19,14 @@ import { AdminScreeningPage } from "@/features/admin-screening/screening-page";
 export const Route = createFileRoute("/admin/screening")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.screening.title", null, "Screening queue — ethio.com Admin", "Screening queue in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.screening.title",
+        null,
+        "Screening queue — ethio.com Admin",
+        "Screening queue in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

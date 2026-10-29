@@ -11,7 +11,14 @@ import { AdminListingsPage } from "@/features/admin-listings/listings-page";
 export const Route = createFileRoute("/admin/listings")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.listings.title", null, "All listings — ethio.com Admin", "All listings in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.listings.title",
+        null,
+        "All listings — ethio.com Admin",
+        "All listings in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

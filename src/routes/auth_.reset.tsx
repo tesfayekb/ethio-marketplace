@@ -27,7 +27,13 @@ const MIN_PASSWORD_LENGTH = 8;
 export const Route = createFileRoute("/auth_/reset")({
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.authReset.description", "auth.resetTitle", null, "Reset your password — ethio.com").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.authReset.description",
+        "auth.resetTitle",
+        null,
+        "Reset your password — ethio.com",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

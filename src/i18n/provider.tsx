@@ -737,10 +737,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (appliedLanguage === BASE_LANGUAGE && pageHeadClient.ready() === null) return;
     let cancelled = false;
     void pageHeadClient.load().then(
-      (head) => { if (!cancelled) head.applyPageHead((key) => messages[key] ?? enFirstPaint[key]); },
+      (head) => {
+        if (!cancelled) head.applyPageHead((key) => messages[key] ?? enFirstPaint[key]);
+      },
       (reason: unknown) => reportOnDemandFailure("page head", reason),
     );
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [appliedLanguage, publicLanguages, messages]);
 
   // U4g-21 (INC-113) — the gate snapshot an E2E failure dump reads. Mirrored

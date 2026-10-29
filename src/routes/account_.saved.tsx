@@ -10,7 +10,14 @@ export const Route = createFileRoute("/account_/saved")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.saved.description", "nav.saved", null, "Saved — ethio.com", "Your saved ads on ethio.com.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.saved.description",
+        "nav.saved",
+        null,
+        "Saved — ethio.com",
+        "Your saved ads on ethio.com.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

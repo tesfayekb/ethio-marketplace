@@ -7,7 +7,14 @@ export const Route = createFileRoute("/admin/legal_/$versionId")({
     search.translate === "1" || search.translate === 1 ? { translate: "1" } : {},
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.legalVersion.description", "head.admin.legalVersion.title", null, "Legal version — ethio.com Admin", "Read a legal document version and its frozen facts on ethio.com.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.legalVersion.description",
+        "head.admin.legalVersion.title",
+        null,
+        "Legal version — ethio.com Admin",
+        "Read a legal document version and its frozen facts on ethio.com.",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

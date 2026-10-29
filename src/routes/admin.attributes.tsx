@@ -13,7 +13,14 @@ import { AdminAttributesPage } from "@/features/admin-attributes/attributes-page
 export const Route = createFileRoute("/admin/attributes")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.attributes.title", null, "Attributes — ethio.com Admin", "Attributes in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.attributes.title",
+        null,
+        "Attributes — ethio.com Admin",
+        "Attributes in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

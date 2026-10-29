@@ -10,7 +10,14 @@ import { AdminTranslationsLanguagesPage } from "@/features/admin/translations/la
 export const Route = createFileRoute("/admin/translations")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.translations.title", null, "Translations — ethio.com Admin", "Translations in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.translations.title",
+        null,
+        "Translations — ethio.com Admin",
+        "Translations in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

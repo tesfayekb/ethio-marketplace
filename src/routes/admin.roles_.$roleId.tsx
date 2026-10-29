@@ -11,7 +11,14 @@ import { AdminRoleDetailPage } from "@/features/admin/roles/role-detail";
 export const Route = createFileRoute("/admin/roles_/$roleId")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "head.admin.role.title", null, "Role — ethio.com Admin", "Role in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "head.admin.role.title",
+        null,
+        "Role — ethio.com Admin",
+        "Role in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -10,7 +10,14 @@ export const Route = createFileRoute("/account_/legal")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.myLegal.description", "myLegal.title", null, "My legal documents — ethio.com", "The legal documents you accepted on ethio.com.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.myLegal.description",
+        "myLegal.title",
+        null,
+        "My legal documents — ethio.com",
+        "The legal documents you accepted on ethio.com.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

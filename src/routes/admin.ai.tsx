@@ -11,7 +11,14 @@ import { AdminAiPage } from "@/features/admin-ai/ai-page";
 export const Route = createFileRoute("/admin/ai")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.ai.title", null, "AI — ethio.com Admin", "AI in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.ai.title",
+        null,
+        "AI — ethio.com Admin",
+        "AI in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

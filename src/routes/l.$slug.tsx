@@ -45,7 +45,14 @@ export const Route = createFileRoute("/l/$slug")({
   head: ({ loaderData, matches }) => {
     if (!loaderData) return {};
     const { doc, canonical } = loaderData;
-    const head = pageHead("head.site.pattern.title", null, null, doc.title, undefined, doc.description.slice(0, 160));
+    const head = pageHead(
+      "head.site.pattern.title",
+      null,
+      null,
+      doc.title,
+      undefined,
+      doc.description.slice(0, 160),
+    );
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
     const url = root?.origin ? `${root.origin}${canonical}` : null;
     const image = root?.origin

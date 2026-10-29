@@ -95,3 +95,5 @@ Seeded at bundle 22's records turn (turn 31, 2026-10-23) from the systems audit 
 - Allowlists: rows 2 and 8 and the RLS/definer allowlists carry no `until` (G55 format) — migrated by the door manifest and the conformance kit.
 - Live regions: an always-drawn live region carries `aria-live` and no role (S446, INC-929) — ODN-2, FN-1 and AMSG-2 pin the three known (the shell's on-demand notice, FadingNotice, ActionMessage `persistent`); no census of an always-drawn `role="status"` yet. ✓ Foundations turn C3: LR-C1/2 (row 70).
 - Weight: `scripts/check-marketplace-imports.mjs` has no self-test (a planted heavy import is proven by hand; it skipped side-effect imports until Foundations turn 31) — owes a SELF_TEST mode with a bad and a good fixture (row 40).
+
+INC-990 page heads: `src/lib/page-head.ts` resolves base keys and one name, keeping layer fallbacks in their route; `page-head-client.ts` is fetched through loadOnce only after a non-base catalogue applies and owns re-titling on catalogue changes and committed head changes. CF-HEAD-1/2 in `scripts/conformance/page-head.test.ts` census every route and seller-head.

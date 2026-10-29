@@ -8,12 +8,15 @@ export const enBase = {
   "head.home.description": "Browse listings from sellers near you. Free to post, free to browse.",
   "head.home.title": "ethio.com — Ethiopia's marketplace",
   "head.legalAccept.description": "Accept the Terms of Service and the Privacy Policy.",
-  "head.privacy.description": "The Privacy Policy of ethio.com, the version in force and the next one.",
-  "head.publishing.description": "The publishing statement every seller certifies before an ad goes live.",
+  "head.privacy.description":
+    "The Privacy Policy of ethio.com, the version in force and the next one.",
+  "head.publishing.description":
+    "The publishing statement every seller certifies before an ad goes live.",
   "head.seller.description": "Ads by {name} on ethio.com.",
   "head.site.description": "Ethiopia's marketplace — coming soon.",
   "head.site.pattern.title": "{name} — ethio.com",
-  "head.terms.description": "The Terms of Service of ethio.com, the version in force and the next one.",
+  "head.terms.description":
+    "The Terms of Service of ethio.com, the version in force and the next one.",
   "legal.fallbackNote":
     "This text is not yet available in your language, so it is shown in English.",
   "app.name": "ethio.com",

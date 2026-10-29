@@ -11,19 +11,26 @@ export function applyPageHead(t: (key: MessageKey) => string): void {
       const key = meta?.dataset.headKey;
       if (!meta || !key) continue;
       const nameKey = meta.dataset.headNameKey;
-      const name = nameKey ? read(nameKey as MessageKey) : meta.dataset.headName ?? "";
+      const name = nameKey ? read(nameKey as MessageKey) : (meta.dataset.headName ?? "");
       const text = read(key as MessageKey)?.replace("{name}", name);
       if (text === undefined) continue;
       if (meta.content !== text) meta.content = text;
       if (property === "og:title") {
         if (document.title !== text) document.title = text;
       } else {
-        const description = document.head.querySelector<HTMLMetaElement>('meta[name="description"]');
+        const description = document.head.querySelector<HTMLMetaElement>(
+          'meta[name="description"]',
+        );
         if (description && description.content !== text) description.content = text;
       }
     }
   };
   observer ??= new MutationObserver(update);
-  observer.observe(document.head, { childList: true, subtree: true, attributes: true, characterData: true });
+  observer.observe(document.head, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    characterData: true,
+  });
   update();
 }

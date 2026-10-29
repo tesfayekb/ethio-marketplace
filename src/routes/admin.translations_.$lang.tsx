@@ -16,7 +16,14 @@ import {
 export const Route = createFileRoute("/admin/translations_/$lang")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "head.admin.languageStrings.title", null, "Language strings — ethio.com Admin", "Language strings in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "head.admin.languageStrings.title",
+        null,
+        "Language strings — ethio.com Admin",
+        "Language strings in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

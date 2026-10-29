@@ -15,7 +15,8 @@ import { useI18n } from "@/i18n";
 export const Route = createFileRoute("/c/$slug")({
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.category.description", "head.category.title").meta,
+      ...pageHead("head.site.pattern.title", "head.category.description", "head.category.title")
+        .meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

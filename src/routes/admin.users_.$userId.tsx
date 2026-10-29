@@ -12,7 +12,14 @@ import { AdminUserDetailPage } from "@/features/admin/users/user-detail";
 export const Route = createFileRoute("/admin/users_/$userId")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "head.admin.user.title", null, "User — ethio.com Admin", "User in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "head.admin.user.title",
+        null,
+        "User — ethio.com Admin",
+        "User in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

@@ -8,7 +8,14 @@ export const Route = createFileRoute("/admin/legal_/edit")({
   }),
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.legalDraft.description", "head.admin.legalDraft.title", null, "Legal draft — ethio.com Admin", "Write and publish bilingual legal document drafts on ethio.com.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.legalDraft.description",
+        "head.admin.legalDraft.title",
+        null,
+        "Legal draft — ethio.com Admin",
+        "Write and publish bilingual legal document drafts on ethio.com.",
+      ).meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

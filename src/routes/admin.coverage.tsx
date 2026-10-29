@@ -11,7 +11,14 @@ import { AdminCoveragePage } from "@/features/admin-coverage/coverage-page";
 export const Route = createFileRoute("/admin/coverage")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.coverage.title", null, "Coverage — ethio.com Admin", "Coverage in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.coverage.title",
+        null,
+        "Coverage — ethio.com Admin",
+        "Coverage in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

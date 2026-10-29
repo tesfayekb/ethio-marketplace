@@ -11,7 +11,14 @@ import { AdminCountriesPage } from "@/features/admin-countries/countries-page";
 export const Route = createFileRoute("/admin/countries")({
   head: () => ({
     meta: [
-      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.countries.title", null, "Countries — ethio.com Admin", "Countries in the ethio.com staff panel.").meta,
+      ...pageHead(
+        "head.admin.pattern.title",
+        "head.admin.pattern.description",
+        "admin.section.countries.title",
+        null,
+        "Countries — ethio.com Admin",
+        "Countries in the ethio.com staff panel.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

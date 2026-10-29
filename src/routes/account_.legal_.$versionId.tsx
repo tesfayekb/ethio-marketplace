@@ -10,7 +10,14 @@ export const Route = createFileRoute("/account_/legal_/$versionId")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.myLegalDocument.description", "head.myLegalDocument.title", null, "A legal document — ethio.com", "A legal document you accepted on ethio.com.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.myLegalDocument.description",
+        "head.myLegalDocument.title",
+        null,
+        "A legal document — ethio.com",
+        "A legal document you accepted on ethio.com.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

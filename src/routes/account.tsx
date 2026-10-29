@@ -11,7 +11,14 @@ export const Route = createFileRoute("/account")({
   },
   head: () => ({
     meta: [
-      ...pageHead("head.site.pattern.title", "head.account.description", "account.overview.title", null, "Account — ethio.com", "Review your ethio.com account and listing activity.").meta,
+      ...pageHead(
+        "head.site.pattern.title",
+        "head.account.description",
+        "account.overview.title",
+        null,
+        "Account — ethio.com",
+        "Review your ethio.com account and listing activity.",
+      ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
