@@ -55,7 +55,11 @@ const ANSWERS: Record<string, unknown> = {
   removeOwnPassword: LOAD_FAILED,
   requestPasswordReset: LOAD_FAILED,
   completePasswordReset: LOAD_FAILED,
-  fetchPreferredLanguage: { code: null, reason: "the client did not load" },
+  fetchPreferredLanguage: {
+    ok: false,
+    signedOut: false,
+    error: new ReaderError({ class: "network", message: "the client did not load" }),
+  },
   savePreferredLanguage: { ok: false, reason: "the client did not load" },
 };
 
