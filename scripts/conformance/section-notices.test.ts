@@ -77,7 +77,7 @@ describe("a section's outcome is shown beside its own table (INC-995)", () => {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, "held.tsx"),
-      "export function HeldNames(props: { onNotice: (k: string) => void }) {\n  return <PageCard testid=\"x\">{null}</PageCard>;\n}\n",
+      'export function HeldNames(props: { onNotice: (k: string) => void }) {\n  return <PageCard testid="x">{null}</PageCard>;\n}\n',
     );
     writeFileSync(
       join(dir, "inner.tsx"),
@@ -89,7 +89,7 @@ describe("a section's outcome is shown beside its own table (INC-995)", () => {
         "export function Page() {",
         "  return (",
         "    <div>",
-        "      <ActionMessage text={null} tone=\"done\" />",
+        '      <ActionMessage text={null} tone="done" />',
         "      <HeldNames onNotice={(k) => k} />",
         "      <InnerLine onNotice={(k) => k} />",
         "    </div>",
