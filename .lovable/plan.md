@@ -1,108 +1,115 @@
-# Foundations turn A1 — the AI gateway's follow-ups (plan only)
+# Turn A2 — the ai_calls admin read (plan; nothing changed)
 
-CI line read at turn start: run 40809236156, commit c7bb093a, **FAILURE** (Component tests only; migration linter, Semgrep, browse-path guard green; all E2E lanes started, 365/365 migrations, 0 failed). The fix for that red is 4819f7cc; its run has not completed. It is read first when the build turn opens; any red is fixed first.
+## 0. CI line and the A1 follow-ups
 
-D1 follow-up (build phase, first item): delete `docs/tracking/local-backend-proof.md`; AGENTS.md's CI line names it as a ci-evidence address. AGL-1 (`scripts/conformance/agents-lines.test.ts`) resolves names through `existsSync` plus `agents-lines-allowlist.txt`. I will check whether AGL-1 already skips names under the raw ci-evidence URL (how the other three files resolve). If it does, the line is rewritten to that form. If it does not, an allowlist line is added: `local-backend-proof.md | written only on the ci-evidence branch by CI | until a frozen copy exists on dev`.
+- **CI line read:** the last completed run is 40812371557 on `5f2c5396` (A1's plan commit), and it is a **FAILURE**. The only red is the Gitleaks secrets scan. The scan itself said "no leaks found"; the step failed afterwards, when the gitleaks action uploaded its own artifact (`Failed to FinalizeArtifact … ETIMEDOUT`). Every other job passed: all E2E lanes, and 365/365 migrations applied.
+  - **Root fix, first in the build:** the step in `.github/workflows/ci.yml` (:177) sets `GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"`. The verdict is the exit code; the SARIF artifact is a convenience. If the report is wanted, a bounded upload step follows, with its own deadline. Linted with actionlint.
+  - **Second finding:** the log says "0 commits scanned" for the push range. I will check whether `--first-parent --no-merges` skips this branch's commits. That is a scope hole for the scanner, and I will report it, not guess at it.
+- **Your point 1 (the sweep):** I cannot confirm it. No file:line exists where the sweep picks up `alias.unchecked` names.
+  - `seller_name_sweep()` (`20261004011235_18556a32…sql:1100–1111`) counts names that the rule check `alias_rule(..., false)` refuses (b–d). It does not ask the AI check, and it does not read the audit log.
+  - `alias.unchecked` is written only at `src/routes/api/listings/identity.ts:89`. Nothing in `src/` or `supabase/migrations/` reads it.
+  - So a name saved unchecked is never AI-checked later; only the rule check sees it again.
+  - This is a gap for your ruling. I propose an INC (next free number, grep-checked) for its own turn, not A2.
+- **Your point 3:** the 500-with-incident (failed scope read) and the 502 `modelCallFailed` (unusual provider 4xx) are not yet in `docs/features/ai-gateway.md`. The build adds them in one sentence each.
+- **The duplicate row 13:** it is already fixed. Turn C2 renumbered the vendor-seams row to 65 (`docs/_changelog.md:1157`). `mechanisms.md` today numbers rows 1–71 with no duplicate. Only roadmap line 563 is stale. The build ticks it with "— Foundations turn C2 (row 65)" and renumbers nothing. RFL-1 joins row 13's guards cell.
+- **Roadmap:** line 553 (INC-952) is still unticked although A1 closed it. The build ticks it.
 
-## 1. Files and tests per part
+## 6. Whole unit suite (this plan phase, base f1b4b404)
 
-**Part A: person-mark (INC-952, DEC-280)**
-- `src/server/ai/tasks.ts`: an `AiTask.judgesPerson: boolean`, required with no default, on all seven tasks.
-- `src/server/ai/audit.ts`: `recordAiCall` returns `{ written: boolean }` and keeps its F4 log line. The doc comment "audit failure never changes a billed answer" is reworded.
-- `src/server/ai/gateway.ts` :390: when `!written && task.judgesPerson`, the answer becomes `{ ok:false, reason:"unavailable" }` and the billed spend stands (the G38 addendum: spending order unchanged).
-- Callers of marked tasks keep their existing `unavailable` branches. No new strings:
-  - `src/routes/api/listings/identity.ts:69`: no alias stored.
-  - `src/routes/api/listings/assist.ts:298`: `providerUnavailable` verdict, no draft change.
-  - `src/server/media/policy.ts:189` and `hold.ts` (if photo_screen is marked): no listing state change.
-- Tests: `gateway.test.ts` (AIV-1 for the unmarked best-effort path) and the route tests beside identity, assist and policy (AIV-2…n, one per marked task: audit forced to fail → `unavailable`, no row/verdict/listing write, spend count only as the gateway order spends).
-- Census: `gateway.census.test.ts` gains GWC-10 (every task declares `judgesPerson`; planted task without it is reported).
-- Docs: register row 11 (mechanisms.md) extended; `docs/features/ai-gateway.md`; INC-952 closed in incidental-findings; `_changelog.md`.
+353 files: 352 passed, 1 failed. Tests: 2,130 passed, 3 failed, 1 skipped (2,134).
+- The three failures are NH-1/2/3 (`scripts/ci/nightly-hour.test.ts`). The sandbox has no time-zone data on its default path.
+- With `TZDIR` pointed at the installed tzdata, the file passes 6/6. CI has the data, so this is not a code failure.
+- CF-KIT-7 passes in the full run.
 
-**Part B: worded refusals (INC-886)**
-- `src/server/answer.ts`: worded refusals for 422, 502 and 503 (`unprocessable`, `upstreamFailed`, `upstreamUnavailable`), reusing the existing `upstreamFailed`/`upstreamUnavailable` (re-exported at :199) if their shape already fits, before adding anything new.
-- Census of `ok({ error … }, { status })` across src/routes (found at 4819f7cc):
-  - `api/translate.ts` :82, :84, :97, :110 (500), :113 (403), :137
-  - `api/admin/categories/generate-image.ts` :37, :39, :52, :55 (404)
-  - `api/admin/categories/suggest-icon.ts` :81
-- A full census by the concern's definition (any non-2xx through `ok`) is rerun with ast-grep at build time. The 403/404/500 sites map to `clientError` / `serverError`.
-- Browser readers of those error bodies (`src/features/admin-translations`, `admin-categories` services) are censused and their tests updated.
-- Guard: RFL-1 in the routes census (`routes.test.ts`). `ok(...)` with a status ≥400 is refused; a planted file is reported.
+## 1. Files and tests, by area
 
-**Part C: failed read (INC-885)**
-- `api/translate.ts:216`: `{ data: rows }` drops `error`. It goes through `readFailure`.
-- Census targets: `?? 0`, `|| 0` and `.length` after an unchecked `{ data }` in src/server and src/routes/api. Every hit is listed in the report.
-- Test: RFL-2 in translate's route test.
+- **Database (one migration):** the new door `admin_list_ai_calls` (section 2).
+  - It joins `scripts/public-surface-allowlist.txt` with one line, in the form of the `admin_ai_spend_days` line (:73).
+  - Migration guards: `scripts/check-migrations.sh` (born-closed, self-marking, proof shape).
+  - `src/integrations/supabase/types.ts` is regenerated by the platform, never hand-edited.
+- **Reader:** `src/features/admin-ai/ai-service.ts` gains `fetchAiCalls` (the RPC, and a shape check per row, as `aiFeatureOf` does). A door error is a typed `ReaderError`. It also gains `taskLabelKey(task)`, read through `ownValue`, the same pattern as `featureLabelKey`.
+  - `src/features/admin-ai/use-ai-calls.ts`: query options, plus a keyset "next page".
+- **Page:** `src/features/admin-ai/ai-calls.tsx` holds the DataTable with its own toolbar (task and outcome filters as direct children, no labels above the controls), cardUntil='lg', QueryState for loading, empty and error-with-retry. `ai-page.tsx` places it under `AiSpendDays`. The route file is unchanged.
+- **Strings:** `en-admin.ts` / `am-admin.ts` (admin layer, CF-SL-1):
+  - the title and hint;
+  - column names: time, task, provider, model, outcome, latency, person;
+  - one label per outcome (7) and per task (7);
+  - "person hidden" and "system".
+  - The Amharic comes from your brief, copied by script. **I will not write Amharic.** The ruling needs to supply AM text for every new key, or name existing keys to reuse.
+  - `bun run i18n:usage` updates both maps.
+- **Tests:**
+  - **unit:** `ai-calls.test.tsx` (the DataTable consumer) and `ai-service.test.ts` additions (the row shape and unknown-task fallback);
+  - **E2E:** a new test in `e2e/admin-services.spec.ts` (SV-6), using seeded `e2e-` scratch rows; the whole file on both projects, 0 retries;
+  - censuses the new code must satisfy: the strings layers, overlays, `ownValue`, CF-NN-1 (no new `!`), the DataTable census and the hardcoded-string scan.
+- **Docs:** `docs/features/ai-gateway.md` (the reader; your point 3), `docs/governance/mechanisms.md` (row 11, and row 13 gains RFL-1), and `docs/_changelog.md`. The report is `docs/governance/reports/foundations-turn-a2.report.md`.
 
-**Part D: hash and deadline (INC-887, INC-888)**
-- `gateway.ts` `hashMaterial`: covers the canonical JSON of the task's material, plus the rendered text and images. For translation the texts are hashed, not empty text.
-- `upstream.ts`: exports `isDeadline(error)`. It is used by its own catch (:42) and by the four copies:
-  - `providers/gemini.ts:98`
-  - `providers/photoroom.ts:75` and `:83`
-  - `providers/google-translate.ts:60` (local `isDeadline`, removed)
-- Tests: `upstream.test.ts` (AIA-1); gateway hash test (AIA-2: two translation inputs give different hashes). AIG tests that pin a hash value are recomputed by script, never retyped.
-- Guard: AIA-3 census: no `"TimeoutError"`/`"AbortError"` literal outside upstream.ts.
+## 2. The migration
 
-**Part E: admin read of ai_calls (DEC-247)**
-- New door `admin_list_ai_calls(p_task, p_outcome, p_before timestamptz, p_before_id uuid, p_limit)`: keyset paging (Knowledge: `readAllPages`, never offset).
-- Files:
-  - `src/features/admin-ai/ai-service.ts` + test
-  - new `ai-calls-table.tsx` + test (DataTable, toolbar filters task/outcome, C8)
-  - `ai-page.tsx` + test
-  - EN/AM keys in `en-admin`/`am-admin`
-  - i18n maps
-  - `scripts/public-surface-allowlist.txt` line
-  - new e2e spec `e2e/admin-ai-calls.spec.ts`
-- Person shown via the existing admin identity reader (censused first; no new name lookup).
+```text
+admin_list_ai_calls(
+  p_task      text        DEFAULT NULL,
+  p_outcome   text        DEFAULT NULL,
+  p_before_at timestamptz DEFAULT NULL,
+  p_before_id uuid        DEFAULT NULL,
+  p_limit     integer     DEFAULT 50)
+RETURNS jsonb  -- { rows: [...], next: {at, id} | null }
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
+```
 
-## 2. Task list, proposed marks
+- **Order:** no caller → `not authenticated`; no `services:view` → `permission denied`; then the arguments:
+  - `badValue:limit` outside 1–100;
+  - `badValue:outcome` outside the table's CHECK list;
+  - `badValue:task` failing the task regex;
+  - `badValue:cursor` when only one of the pair is sent.
+- **Rows:** `id, created_at, feature, task, task_version, model, outcome, provider_status, latency_ms, fake, actor` (section 3).
+  - Never `input_hash` or `actor_id` in the answer.
+  - Scratch `e2e-` features are left out, as the spend door does.
+  - Only rows with `created_at > now() - interval '90 days'` are returned (DEC-247).
+  - Keyset order: `(created_at, id) < (p_before_at, p_before_id)`, ordered `created_at DESC, id DESC`, reading `p_limit + 1` rows to know whether there is a next page. Never OFFSET.
+- **Two fields the table does not store:**
+  - **provider:** `ai_calls` has no provider column. I propose showing the model, which names the provider in its id, and a provider column derived in the browser from the model id's own prefix. If you want a stored provider, that is a writer change for its own turn.
+  - **units:** not stored per call. They live in `ai_spend_days` and are already shown below. So there is no units column.
+- **Index:** `ai_calls_created_at_idx (created_at DESC)` exists. I add an index only if EXPLAIN (ANALYZE) on prod, run twice with filters and without, shows a sort or a scan beyond the page. EXPLAIN is pasted in the report either way.
+- **Closers in the file:** REVOKE ALL FROM PUBLIC, anon; GRANT EXECUTE TO authenticated; GRANT ALL TO service_role. Plus a read-back of the header, ACL and security, and a normalised md5 (INC-968). The mark is chosen at apply time. The file is under 25 KB, inline.
+- **Proof (scratch only, rolled back on its sentinel, INC-970):**
+  - a scratch feature `e2e-…`, a scratch staff user with `services:view`, a scratch plain user, and scratch rows across two tasks, two outcomes and the 90-day edge (89 and 91 days);
+  - deny: no caller, then no permission, both refused before any read;
+  - allow, plus keyset order across two pages (no overlap, no gap);
+  - each filter;
+  - the 91-day row is absent and the 89-day row present.
+  - Because the door hides `e2e-` features, the proof calls an internal core over a parameter, or else uses a non-`e2e-` scratch feature. **For your ruling:** I propose a scratch feature named `proof-a2-<uuid>`, created and rolled back inside the proof.
 
-| Task | Mark | Reason |
-| --- | --- | --- |
-| name_check | **judges** | DEC-280 names it: refuses a person's chosen name |
-| writing_helper | **judges** | DEC-280's "assist's screening": the assist call that answers for the seller's listing |
-| photo_screen | **judges (proposed, ruling asked)** | refuses or holds a person's ad (allowed/code/evidence); a verdict acted on against the seller. DEC-280 does not name it, so this goes beyond the decision |
-| background_removal | best-effort | image transform, no verdict |
-| category_icon | best-effort | staff catalogue glyph; DEC-280 names it unmarked |
-| category_image | best-effort | staff catalogue image |
-| translation | best-effort | DEC-280 names it unmarked |
+## 3. The person column
 
-The registry ids are `category_icon` (singular), not "category_icons" as in the brief and register row 11.
+There is no shared admin identity reader to reuse. `admin_list_audit` joins `profiles.display_name` inside its own door (`20260903033520…sql:59`).
 
-## 3. Part E migration
+I propose the same join inside the door, gated by `has_permission(caller, 'users', 'view')`:
+- staff with `users:view` see the display name;
+- staff without it see the word "Hidden" (a key), never the id or the name;
+- a call with no person (`actor_id` NULL) shows "System".
 
-Yes, one migration. **Recommended: split E into its own turn (A2).** It carries a migration, a new page section, keys and an E2E spec. A–D need no migration.
+The no-users:view case is in the proof and in the unit test.
 
-What the migration carries:
-- **Door:** `SECURITY DEFINER`, `STABLE`, `SET search_path = public`.
-- **Permission:** `has_permission(auth.uid(),'services','view')` is checked first and raises `permission denied` (the precedent is 20261014103719).
-- **Inputs:** limit bounded 1–100; task and outcome optional.
-- **Retention:** rows older than 90 days are not returned.
-- **Columns:** created_at, task, feature, model, outcome, provider_status, latency_ms, units if stored (otherwise cost units come from the meter: to verify against the ai_calls columns), fake, actor_id. Never input_hash.
-- **Index:** `ai_calls_created_at_idx` exists. Add `(task, created_at DESC, id DESC)` and `(outcome, created_at DESC, id DESC)` only if the proof's EXPLAIN demands it. The EXPLAIN is pasted in the report, with no planner assertion (memory rule).
-- **Closers:** REVOKE ALL FROM PUBLIC, anon; GRANT EXECUTE TO authenticated; GRANT ALL TO service_role; ACL read-back; allowlist line.
-- **Proof:** scratch staff user and scratch rows only, rolled back on the sentinel (INC-970). It covers deny, allow, keyset order, the filter, and the 90-day edge.
-- **Mark:** chosen at apply time; reported as "apply <fragment> → expect mark <value>".
+## 4. Conflicts and mechanisms reused
 
-## 4. Conflicts and existing mechanisms
+- **Reused:**
+  - the services:view door shape from `admin_ai_spend_days` (precedent 20261025…; newer than 20261014103719);
+  - DataTable and QueryState, `ReaderError`, `ownValue` and `featureLabelKey`'s fallback pattern;
+  - the public-surface allowlist and `formatLocale` for the time.
+- **Conflict for your ruling:** your brief says keyset paging, never offset. DataTable's built-in pagination is page-numbered (`DataTablePagination`). I propose a "Next / Previous" pair through the same toolbar slot. If DataTable has no keyset footer, adding one is a primitive change, and I will report that before writing it.
+- **Conflict:** "task names translated by key" and "a new task appears without code" pull against each other. The plan follows `featureLabelKey`: a known task shows its key, and an unknown one shows its raw id as data.
+- **K2 siblings:**
+  - `admin_list_audit` pages by offset;
+  - `AiSpendDays` puts a label above its picker (C8);
+  - the audit page shows `display_name` without a `users:view` check.
+  - Reported, not touched.
 
-- Existing mechanisms reused:
-  - `aiCall`/`recordAiCall` (A)
-  - `answer.ts` `clientError`/`serverError`/`upstreamFailed`/`upstreamUnavailable`/`readFailure` (B, C)
-  - `UpstreamTimeout` in upstream.ts (D)
-  - DataTable and the admin-ai page, the `services:view` precedent (E)
-- Nothing new except `judgesPerson`, `isDeadline`, and the door with its table.
-- Conflicts:
-  - A marked call keeps its billed spend while the caller gets `unavailable`. This follows the gateway order, as the brief allows; stated for the ruling.
-  - Part C: translate's writes are done before the read-back. A whole `readFailure` 5xx would hide `done`/`failed`. Proposed: `flagged: null` plus a typed `flagRead: "failed"` in the 200 body, logged. The alternative is `readFailure` as the brief says. Ruling asked.
-  - Knowledge cites v3.12; the project knowledge in context is v3.11. No rule I read conflicts.
-  - `local-backend-proof.md` is an AGENTS.md name; handled above.
+## 5. Test ids (grep-checked free at f1b4b404)
 
-## 5. Test ids
+- **ACR-1…n:** the reader and the consumer unit tests. `ACR-` has 0 hits in src, scripts, e2e and supabase.
+- **SV-6:** the E2E test in `admin-services.spec.ts`. SV-1…5 exist.
+- The migration proof's cases are named in its header as ACR-P1…P6.
 
-AIV-, AIA- and RFL- are free (`rg "\b(AIV|AIA|RFL)-[0-9]"` over src, e2e, scripts and docs: 0). GWC-10 is the next GWC id, after GWC-1…9. Part E would use AIV-E… unless A2 gets its own prefix (AIC-, checked at A2).
+## 7. Estimate
 
-## 6. Estimate
-
-- A–D: 1 turn (band 1–2). A migration-free build plus the full unit suite.
-- E: 1 turn (band 1–2). One migration stop plus the page and E2E.
-- Total 2, band 2–4.
+One turn with one migration stop: write and prove → stop report → you apply on staging → continue with the page, tests and E2E. Band: 1 to 2 turns. The second turn comes only if DataTable needs a keyset footer, or if EXPLAIN demands an index.
