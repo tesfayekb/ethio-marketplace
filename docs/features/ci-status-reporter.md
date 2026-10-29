@@ -94,6 +94,27 @@ Reading order on a red run:
 3. docs/tracking/guards-last-failure.md — for every other failed job (build,
    typecheck, lint, format, guards, migration checks).
 
+## Before the push: `bun run checks` (CI-2)
+
+`bun run checks` (`scripts/ci/turn-checks.sh` → `scripts/ci/turn-checks.ts`) runs, before a push, every
+CI step that needs no backend: it reads `.github/workflows/ci.yml` itself and runs each job's `run:`
+steps in CI's order with their own env and deadline, so actionlint, gitleaks and semgrep come from the
+versions and checksums ci.yml pins (downloads cached under `~/.cache/ethio-checks`, never committed).
+It never stops at a FAIL; inside a job a failed step ends that job, as in CI.
+
+- One line per step: `PASS`, `FAIL` or `NOT RUN` with its reason; the last line
+  `checks: N PASS · N FAIL · N NOT RUN · Ns`. Scanner output stays in the step's log (counts only).
+- Steps it does not run are lines of `scripts/ci/turn-checks-allowlist.txt` (`job › step | reason |
+until`): the installs, the SARIF upload, the dependency audit, the staging preflight, the E2E merge
+  and promote.
+- Typecheck is the platform harness's verdict (`/tmp/observability/build-errors.log`): PASS only when
+  newer than every change under src/, e2e/ and scripts/ with no error; otherwise NOT RUN.
+- A pinned download or checksum that fails is NOT RUN; no unpinned stand-in.
+- The NEAR band: after the budget check, each page within 0.3 KiB of its line, with its growth
+  against the turn's base build (HEAD's tree, built once per base and cached); a NEAR page that grew
+  is a FAIL until its line is raised with the cause.
+- Guard: `scripts/ci/turn-checks.test.ts` TCK-1…5.
+
 ## Known limitations
 
 - The reporter does not report its own health. If its job fails, ci-status.md keeps

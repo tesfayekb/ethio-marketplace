@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { resolve, relative } from "node:path";
 import ts from "typescript";
 import { expect, it } from "vitest";
@@ -22,6 +23,10 @@ it("LL-1 cards never carry a plain border", () => {
     skipTests: true,
     skip: /[\\/]src[\\/]components[\\/]ui$/,
   })) {
+    // INC-998 — the scan reads only what it needs: a file without both class names cannot
+    // carry a plain card border, so it is never parsed (parsing every .tsx outgrew 5 s under load).
+    const text = readFileSync(path, "utf8");
+    if (!text.includes("bg-card") || !text.includes("border-border")) continue;
     visitTs(path, (node, source) => {
       if (
         ts.isStringLiteral(node) ||

@@ -23,7 +23,7 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - A console save never drops a field it does not show: editors round-trip every stored field.
 - CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, e2e-last-failure.md, guards-last-failure.md; never dev/main copies or a git fetch of it.
 - Every turn starts by reading the last COMPLETED CI run at the raw ci-evidence addresses (ci-status.md, guards-last-failure.md, e2e-last-failure.md, local-backend-proof.md); any red is fixed first, at its root, then the work continues; never end a turn only to wait for CI; the report opens with that CI line (sha + verdict).
-- Before a turn ends: after adding, moving or removing any file under src/, or changing a t() call, run bun run i18n:usage and commit both maps (INC-982).
+- Before every push, run `bun run checks`; fix every FAIL and run it again whole; name every NOT RUN; the report pastes its last line.
 - Market-neutral wording: a market-dependent statement names no single country — use {country}.
 - Data-API lists use `readAllPages`: keyset paging, never positional.
 - Lint workflows with `actionlint -shellcheck= -pyflakes=`.
