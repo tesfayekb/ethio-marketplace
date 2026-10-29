@@ -41,7 +41,7 @@ describe("a lane's step failure is published (INC-984)", () => {
     try {
       mkdirSync(join(dir, "local-proof-artifacts", "local-proof-smoke"), { recursive: true });
       copyFileSync(
-        "scripts/fixtures/lane-smoke-step-failure.md",
+        "scripts/fixtures/lane-smoke-step-failure.txt",
         join(dir, "local-proof-artifacts", "local-proof-smoke", "local-backend-proof-smoke.md"),
       );
       const result = spawnSync("python3", ["-c", heredoc("Write proof summary and notice")], {
