@@ -33,6 +33,10 @@ import { Button } from "@/components/ui/button";
 import { firstReadLinks, type FirstReadLink } from "@/lib/first-reads";
 import type { FirstFeedPage } from "@/features/feed/feed-page";
 import { HeldFirstPage } from "@/features/feed/held-first-page";
+import {
+  CategoryTreeSeedContext,
+  type CategoryTreeSeed,
+} from "@/features/categories/category-tree";
 import { NoInputSchema } from "@/lib/schemas/server-fns";
 
 /**
