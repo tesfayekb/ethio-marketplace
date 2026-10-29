@@ -278,9 +278,7 @@ describe("readFirstFeedPage (D234 S5)", () => {
     expect(await readFirstCategoryTree(at("/"))).toBeNull();
     state.treeBody = null;
     state.e2e = true;
-    expect(
-      await readFirstCategoryTree(at("/", { cookie: "e2e_first_screen=off" })),
-    ).toBeNull();
+    expect(await readFirstCategoryTree(at("/", { cookie: "e2e_first_screen=off" }))).toBeNull();
     warn.mockRestore();
   });
 

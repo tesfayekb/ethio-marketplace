@@ -138,7 +138,6 @@ const getFirstCategoryTree = createServerFn({ method: "GET" })
     }
   });
 
-
 /** The root's loader data: the request's language and area facts, and the feed's first page. */
 type RootData = SsrLangContext & {
   /** INC-974 — the server's own document only; a client navigation carries none. */
@@ -458,13 +457,13 @@ function RootComponent() {
       <I18nProvider>
         <ThemeProvider>
           <CategoryTreeSeedContext.Provider value={firstTree}>
-          <AppShell>
-            {/* DEC-258 — a route that declares strings layers draws once they are in. */}
-            <StringsLayerGate>
-              {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-              <Outlet />
-            </StringsLayerGate>
-          </AppShell>
+            <AppShell>
+              {/* DEC-258 — a route that declares strings layers draws once they are in. */}
+              <StringsLayerGate>
+                {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+                <Outlet />
+              </StringsLayerGate>
+            </AppShell>
           </CategoryTreeSeedContext.Provider>
         </ThemeProvider>
       </I18nProvider>

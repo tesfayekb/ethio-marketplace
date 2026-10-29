@@ -278,8 +278,6 @@ export interface CategoryTreeSeed {
 }
 export const CategoryTreeSeedContext = createContext<CategoryTreeSeed | null>(null);
 
-
-
 /** One parse per seed object (the seed lives as long as its request or page). */
 const seededTrees = new WeakMap<CategoryTreeSeed, CategoryTree | null>();
 function seededTree(seed: CategoryTreeSeed | null): CategoryTree | null {
