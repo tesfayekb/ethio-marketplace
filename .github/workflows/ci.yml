@@ -165,19 +165,48 @@ jobs:
     name: Gitleaks secrets scan
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    # DEC-153 (a) — the action reads a pull request's commits through the API.
     permissions:
       contents: read
-      pull-requests: read
     steps:
       - uses: actions/checkout@v5
         timeout-minutes: 5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v3
+      # INC-975 — the gitleaks action walked a push as `--no-merges --first-parent before^..after`.
+      # Every commit the platform brings to dev arrives through a merge, so that walk scanned 0
+      # commits (5f2c5396). The scan now walks every commit on dev that main does not hold yet:
+      # main advances only on a green run (DEC-020), so no commit reaches main unscanned, and a run
+      # cancelled by a newer push (concurrency) loses nothing. `--diff-merges=first-parent` also
+      # scans what each merge itself brings. No main ref yet → the whole history.
+      # INC-976 — the action's own artifact upload had no deadline (ETIMEDOUT after "no leaks
+      # found"). The verdict is the exit code; no SARIF artifact is uploaded. The pinned download
+      # runs through with-deadline (INC-935) and is checked against the release's SHA-256.
+      # Counts only in the log (Knowledge: scanner output in CI logs is counts only).
+      - name: Secrets scan (gitleaks, pinned)
         timeout-minutes: 8
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: 8.24.3
+          GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
+        run: |
+          tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          bash scripts/ci/with-deadline.sh 120 2 -- curl -sSfL -o "$RUNNER_TEMP/$tarball" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$tarball"
+          echo "$GITLEAKS_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" gitleaks
+          if git rev-parse --verify --quiet origin/main >/dev/null; then
+            range="origin/main..HEAD"
+          else
+            range="HEAD"
+          fi
+          commits="$(git rev-list --count "$range")"
+          echo "Secrets scan: $commits commits in $range"
+          set +e
+          "$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code=2 \
+            --log-opts="--diff-merges=first-parent $range" . > "$RUNNER_TEMP/gitleaks.log" 2>&1
+          code=$?
+          set -e
+          grep -E 'commits scanned|leaks found|no leaks found' "$RUNNER_TEMP/gitleaks.log" | sed -E 's/^.*(INF|WRN|ERR) //'
+          if [ "$code" -ne 0 ]; then echo "::error::secrets scan exit $code"; exit "$code"; fi
 
   migration-lint:
     name: Migration linter (with self-test)
