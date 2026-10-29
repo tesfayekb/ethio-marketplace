@@ -4023,6 +4023,8 @@ export type Database = {
         Args: { p_items: Json; p_lang: string }
         Returns: Json
       }
+      admin_job_health: { Args: { p_job: string }; Returns: Json }
+      admin_job_resume: { Args: { p_job: string }; Returns: Json }
       admin_language_delete_preview: { Args: { p_code: string }; Returns: Json }
       admin_legal_documents: { Args: never; Returns: Json }
       admin_legal_settings: { Args: never; Returns: Json }
@@ -5373,6 +5375,10 @@ export type Database = {
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
       job_call: { Args: { p_job: string }; Returns: Json }
+      job_health_core: {
+        Args: { p_job: string; p_run?: string }
+        Returns: Json
+      }
       job_lease_release: {
         Args: { p_holder: string; p_job: string }
         Returns: boolean
