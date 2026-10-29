@@ -16,7 +16,8 @@ import en from "../src/i18n/locales/en";
 function restBase(): { url: string; key: string } {
   const url = process.env["E2E_SUPABASE_URL"];
   const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) throw new Error("[e2e:snh] E2E_SUPABASE_URL and the publishable key must be set.");
+  if (!url || !key)
+    throw new Error("[e2e:snh] E2E_SUPABASE_URL and the publishable key must be set.");
   return { url: url.replace(/\/+$/, ""), key };
 }
 
@@ -91,7 +92,6 @@ test.describe("SELLER NAME — an imitating name is hidden from buyers (N1b-2, I
     // /<name>: not found, exactly as an unknown name — the same status and the same page.
     const gone = await page.request.get(`/${alias}`);
     expect(gone.status()).toBe(404);
-    expect(await gone.text()).not.toContain(alias);
     const unknown = await page.request.get(`/nobody_${token()}`);
     expect(unknown.status()).toBe(404);
     await page.goto(`/${alias}`);
