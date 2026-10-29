@@ -62,12 +62,8 @@ docs/tracking/local-backend-proof.md
 # Foundations turn N1b-2a (INC-984): the fixture moved to .txt so prettier cannot rewrite it.
 scripts/fixtures/lane-smoke-step-failure.md
 # L-2 stop 1: Part A withdrawn (first paint +0.8 KiB over A1's 0.1 KiB); its diff is in docs/governance/reports/foundations-turn-l-2.stop-1.md
-src/lib/collator.test.ts
 src/lib/collator.ts
-src/lib/compare-codes.test.ts
 src/lib/compare-codes.ts
-src/lib/country-name.test.ts
 src/lib/country-name.ts
 
 # L-2c continuation stop 2: shared Part A withdrawn for over-tolerance growth.
-src/lib/reader-locale.ts

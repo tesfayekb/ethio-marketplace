@@ -14,7 +14,9 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  *   - `Intl.DateTimeFormat`, `Intl.NumberFormat`, `Intl.RelativeTimeFormat` (constructed or read);
  *   - a `toLocaleString` / `toLocaleDateString` / `toLocaleTimeString` call;
  *   - a literal locale tag (`"am-ET"`, `"en-GB"`, `"en-US"` …);
- *   - the country-code shape `/^[A-Z]{2}$/` or the currency-code shape `/^[A-Z]{3}$/`.
+ *   - the country-code shape `/^[A-Z]{2}$/` or the currency-code shape `/^[A-Z]{3}$/`;
+ *   - in src/, Intl.DisplayNames/Collator outside reader-locale.ts (fixed Collator in
+ *     name-collator.ts), Intl.Segmenter, or localeCompare without a locale argument.
  * A recorded exception is a line in format-allowlist.txt keyed `<file> (<findings>)` | reason | until.
  */
 type Finding = { file: string; line: number; what: string };
@@ -25,6 +27,8 @@ const TO_LOCALE = new Set(["toLocaleString", "toLocaleDateString", "toLocaleTime
 const LOCALE_TAG = /^[a-z]{2,3}-[A-Z]{2}$/;
 const CODE_SHAPE = /^\/\^\[A-Z\]\{[23]\}\$\/[a-z]*$/;
 const RULE = "(INC-985: use src/lib/format.ts / src/lib/locale.ts)";
+const ORDER_RULE = "(L-2: reader-locale.ts / name-collator.ts)";
+const READER_HOME = "src/lib/reader-locale.ts";
 const ALLOWLIST = "scripts/conformance/format-allowlist.txt";
 
 export function formatFindings(files: string[], root: string): Finding[] {
@@ -41,6 +45,26 @@ export function formatFindings(files: string[], root: string): Finding[] {
         INTL.has(node.name.text)
       )
         found.push({ file: name, line: at(), what: `uses Intl.${node.name.text} ${RULE}` });
+      else if (
+        name.startsWith("src/") &&
+        ts.isPropertyAccessExpression(node) &&
+        ts.isIdentifier(node.expression) &&
+        node.expression.text === "Intl" &&
+        ((node.name.text === "DisplayNames" && name !== READER_HOME) ||
+          (node.name.text === "Collator" &&
+            name !== READER_HOME &&
+            name !== "src/lib/name-collator.ts") ||
+          node.name.text === "Segmenter")
+      )
+        found.push({ file: name, line: at(), what: `uses Intl.${node.name.text} ${ORDER_RULE}` });
+      else if (
+        name.startsWith("src/") &&
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        node.expression.name.text === "localeCompare" &&
+        node.arguments.length < 2
+      )
+        found.push({ file: name, line: at(), what: `localeCompare with no locale ${ORDER_RULE}` });
       else if (
         ts.isCallExpression(node) &&
         ts.isPropertyAccessExpression(node.expression) &&
@@ -103,7 +127,20 @@ describe("one formatter per intent, one locale module (CF-FMT-1)", () => {
           "const c = (1).toLocaleString();",
           "const d = /^[A-Z]{2}$/.test(code);",
           "const e = new Intl.RelativeTimeFormat(x);",
+          'const a2 = new Intl.DisplayNames([language], { type: "region" });',
+          "const b2 = new Intl.Collator(language);",
+          "const c2 = x.localeCompare(y);",
+          "const ok = x.localeCompare(y, language);",
+          "const d2 = new Intl.Segmenter(undefined);",
         ].join("\n"),
+      );
+      writeFileSync(
+        join(root, "src", "lib", "reader-locale.ts"),
+        'const n = new Intl.DisplayNames([language], { type: "region" });\nconst c = new Intl.Collator(language);\n',
+      );
+      writeFileSync(
+        join(root, "src", "lib", "name-collator.ts"),
+        "const c = new Intl.Collator(FIXED_ORDER_LOCALE);\n",
       );
       writeFileSync(
         join(root, "src", "lib", "format.ts"),
@@ -118,6 +155,10 @@ describe("one formatter per intent, one locale module (CF-FMT-1)", () => {
         "src/feature/page.tsx:3",
         "src/feature/page.tsx:4",
         "src/feature/page.tsx:5",
+        "src/feature/page.tsx:6",
+        "src/feature/page.tsx:7",
+        "src/feature/page.tsx:8",
+        "src/feature/page.tsx:10",
       ]);
     } finally {
       rmSync(root, { recursive: true, force: true });

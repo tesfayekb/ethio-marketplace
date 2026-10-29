@@ -1,3 +1,4 @@
+import { compareCodes } from "@/lib/reader-locale";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageCard } from "@/components/shell/page-card";
@@ -311,7 +312,7 @@ export function LegalPage() {
           {LEGAL_KINDS.map((kind) => {
             const docs = (documents.data ?? [])
               .filter((doc) => doc.kind === kind)
-              .sort((a, b) => (a.country_code ?? "").localeCompare(b.country_code ?? ""));
+              .sort((a, b) => compareCodes(a.country_code ?? "", b.country_code ?? ""));
             const available = (countries.data ?? []).filter(
               (c) => !docs.some((doc) => doc.country_code === c.code),
             );

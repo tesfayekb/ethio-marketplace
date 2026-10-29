@@ -1,3 +1,4 @@
+import { formatCountryName } from "@/lib/reader-locale";
 import { CutText } from "@/components/ui/cut-text";
 import { readerFailure } from "@/lib/reader-failure";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -419,12 +420,9 @@ function WizardShell({
         entities,
       );
     }
-    try {
-      const name = new Intl.DisplayNames([language], { type: "region" }).of(tokenCountry);
-      if (name !== undefined && name !== tokenCountry) return name;
-    } catch {
-      // An unknown code falls through to the market's own name or the fallback words.
-    }
+    // An unknown code comes back as itself and falls through to the market's own name.
+    const name = formatCountryName(tokenCountry, language);
+    if (name !== tokenCountry) return name;
     return market?.nameEn ?? fallbackCountry;
   }, [tokenCountry, openMarkets.markets, entities, language, fallbackCountry]);
   /** The {category:…} pointer the seller tapped, awaiting the move question. */

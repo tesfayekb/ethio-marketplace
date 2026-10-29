@@ -1,3 +1,4 @@
+import { compareCodes } from "@/lib/reader-locale";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { conditional, notModified, readFailure } from "@/server/answer";
@@ -88,14 +89,14 @@ async function handler(ctx: RouteContext): Promise<Response> {
           body: {
             version,
             nodes: [...nodes].sort(
-              (a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id),
+              (a, b) => a.display_order - b.display_order || compareCodes(a.id, b.id),
             ),
             pointers: [...pointers]
               .sort(
                 (a, b) =>
                   a.display_order - b.display_order ||
-                  a.created_at.localeCompare(b.created_at) ||
-                  a.id.localeCompare(b.id),
+                  compareCodes(a.created_at, b.created_at) ||
+                  compareCodes(a.id, b.id),
               )
               .map(({ child_id, parent_id, display_order, is_primary }) => ({
                 child_id,

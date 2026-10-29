@@ -1,3 +1,4 @@
+import { formatCountryName } from "@/lib/reader-locale";
 import type { MessageKey } from "@/i18n";
 import { isCountryCode } from "@/lib/locale";
 
@@ -59,8 +60,7 @@ export function legalDocName(
         ? t("legal.kind.privacy")
         : row.kind;
   if (!row.country_code) return name;
-  const country =
-    new Intl.DisplayNames([language], { type: "region" }).of(row.country_code) ?? row.country_code;
+  const country = formatCountryName(row.country_code, language);
   return `${name} · ${country}`;
 }
 
