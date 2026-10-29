@@ -335,3 +335,61 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     expect(result).toMatchObject({ outcome: "ok", reason: "time_cap", asked: 1 });
   });
 });
+
+describe("JRF — one typed line per refusal (INC-1000)", () => {
+  const refusals = (spy: ReturnType<typeof vi.spyOn>) =>
+    spy.mock.calls.map((call) => String(call[0])).filter((line) => line.startsWith("[job-refused]"));
+
+  it("JRF-1 a missing server secret logs secret_missing, and the 401 is the constant one", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubEnv("JOB_SECRET", "");
+    await expectRefused(await post(signed()));
+    expect(refusals(spy)).toEqual(["[job-refused] name-check-catchup secret_missing"]);
+    spy.mockRestore();
+  });
+
+  it("JRF-2 a wrong signature and a missing header log bad_signature", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expectRefused(await post(signed(now(), "another-secret-of-the-same-size-00000")));
+    await expectRefused(await post({}));
+    expect(refusals(spy)).toEqual([
+      "[job-refused] name-check-catchup bad_signature",
+      "[job-refused] name-check-catchup bad_signature",
+    ]);
+    spy.mockRestore();
+  });
+
+  it("JRF-3 a timestamp out of the window logs stale", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expectRefused(await post(signed(now() - 301)));
+    expect(refusals(spy)).toEqual(["[job-refused] name-check-catchup stale"]);
+    spy.mockRestore();
+  });
+
+  it("JRF-4 a refused claim logs replay", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    state.claim = { data: null, error: { message: "refused:replay" } };
+    await expectRefused(await post(signed()));
+    expect(refusals(spy)).toEqual(["[job-refused] name-check-catchup replay"]);
+    spy.mockRestore();
+  });
+
+  it("JRF-5 no line carries the secret, the signature, the timestamp or an unknown job's name", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const ts = now() - 400;
+    const headers = signed(ts);
+    await expectRefused(await post(headers));
+    await expectRefused(await post(signed(now(), SECRET, "drop-tables"), "drop-tables"));
+    const text = spy.mock.calls.flat().map(String).join("\n");
+    for (const value of [SECRET, headers["x-job-signature"], String(ts), "drop-tables"])
+      expect(text).not.toContain(value);
+    spy.mockRestore();
+  });
+
+  it("JRF-6 a genuine call logs no refusal", async () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect((await post(signed())).status).toBe(200);
+    expect(refusals(spy)).toEqual([]);
+    spy.mockRestore();
+  });
+});
