@@ -47,9 +47,9 @@ export const ROUTE_BUDGETS_KIB = {
   "/admin/locations": { ceiling: 270, public: false }, // 266.1
   "/admin/places": { ceiling: 339, public: false }, // 338.0 on CI 31d5fb6b (INC-974: the rail seed, +0.3–0.4 on every page — the blank-menu fix)
   "/admin/roles": { ceiling: 306, public: false }, // 302.1
-  "/admin/roles_/$roleId": { ceiling: 306, public: false }, // 302.7
-  "/admin/screening": { ceiling: 377, public: false }, // 373.5 (turn C1-2: the maps' failure in place; INC-964)
-  "/admin/translations": { ceiling: 409, public: false }, // 408.4 (INC-974: the rail seed, +0.3 on every page — the blank-menu fix)
+  "/admin/roles_/$roleId": { ceiling: 307, public: false }, // 306.4 (CI-1, run on 9b8a8cdc: N1b-3c's 37 admin-layer strings)
+  "/admin/screening": { ceiling: 379, public: false }, // 378.2 (CI-1, run on 9b8a8cdc: N1b-3c's held-names section, the job line and its 37 admin strings); was 373.5 (turn C1-2: the maps' failure in place; INC-964)
+  "/admin/translations": { ceiling: 410, public: false }, // 409.8 (CI-1, run on 9b8a8cdc: N1b-3c's 37 admin-layer strings); was 408.4 (INC-974: the rail seed, +0.3 on every page — the blank-menu fix)
   "/admin/translations_/$lang": { ceiling: 320, public: false }, // 316.6
   "/admin/users": { ceiling: 304, public: false }, // 300.6
   "/admin/users_/$userId": { ceiling: 285, public: false }, // 281.1
@@ -65,7 +65,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/legal/accept": { ceiling: 218, public: false }, // 215.0
   "/legal/publishing": { ceiling: 212, public: true }, // 208.2
   "/my-listings": { ceiling: 327, public: false }, // 323.4
-  "/my-listings_/$listingId": { ceiling: 316, public: false }, // 315.1 (INC-972: INC-949's mapsPathQuery is first-paint — the Maps address no longer waits for the tree; the six INC-951 dial entries ride the one eager registry, src/lib/dials.ts, which no page may split)
+  "/my-listings_/$listingId": { ceiling: 317, public: false }, // 316.0 (CI-1, run on 9b8a8cdc: N1b-2c's review notice on my listing page); was 315.1 (INC-972: INC-949's mapsPathQuery is first-paint — the Maps address no longer waits for the tree; the six INC-951 dial entries ride the one eager registry, src/lib/dials.ts, which no page may split)
   "/my-listings_/$listingId_/edit": { ceiling: 397, public: false }, // 393.2 (CI, turn C1)
   "/post": { ceiling: 397, public: false }, // 393.1 (CI, turn C1)
   "/post_/$listingId": { ceiling: 397, public: false }, // 393.1 (CI, turn C1)
