@@ -77,8 +77,10 @@ describe("the strings layers (DEC-258)", () => {
     expect(all.slice().sort()).toEqual(Object.keys(en).sort());
   });
 
-  it("CF-SL-3 the routes' declarations: posting and my listings load member, admin screens both, the listings pages none", () => {
-    const { pages } = stringsCensus(ROOT);
+  it(
+    "CF-SL-3 the routes' declarations: posting and my listings load member, admin screens both, the listings pages none",
+    () => {
+      const { pages } = stringsCensus(ROOT);
     expect(LAYERS).toEqual(STRINGS_LAYERS);
     expect([...(pages.get("post") ?? [])]).toEqual(["member"]);
     expect([...(pages.get("my-listings_.$listingId_.edit") ?? [])]).toEqual(["member"]);
