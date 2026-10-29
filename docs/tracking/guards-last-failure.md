@@ -1,208 +1,13 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40790717317
-- Commit: `d55255e66ac9792928ade29a5cceacd244726ef5`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40792606430
+- Commit: `7c025b1ae5cb669189ced4e44024accbc8414a7e`
 - Attempt: 1
-- Written (UTC): 2026-10-29T00:14:10.296Z
+- Written (UTC): 2026-10-29T00:31:31.047Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
-
-## First-paint bundle budget (gzipped ceiling) — failure
-
-### Evidence lines
-
-```text
-[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
-Per-page budget failed (D234):
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-    328.8 / 330 KiB  /admin/coverage
-    207.3 / 209 KiB  /admin/images
-    307.1 / 308 KiB  /admin/impersonation_/$sessionId
-    276.3 / 277 KiB  /admin/legal
-    275.6 / 277 KiB  /admin/legal_/$versionId
-    281.8 / 283 KiB  /admin/legal_/edit
-    352.3 / 353 KiB  /admin/listings
-    375.7 / 379 KiB  /admin/listings_/$listingId
-    399.3 / 403 KiB  /admin/listings_/$listingId_/edit
-
-Per-page budget failed (D234):
-  /my-listings_/$listingId: 315.1 KiB, over its ceiling of 315 KiB
-
-Code-split the addition behind a dynamic import, or change the page's line in
-scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
-    268.2 / 270 KiB  /admin/locations
-    337.5 / 338 KiB  /admin/places
-    304.7 / 306 KiB  /admin/roles
-    305.1 / 306 KiB  /admin/roles_/$roleId
-    373.7 / 377 KiB  /admin/screening
-    407.1 / 408 KiB  /admin/translations
-    319.3 / 320 KiB  /admin/translations_/$lang
-    303.1 / 304 KiB  /admin/users
-    283.6 / 285 KiB  /admin/users_/$userId
-    218.3 / 219 KiB  /auth
-    206.7 / 208 KiB  /auth_/callback
-    208.7 / 210 KiB  /auth_/reset
-    219.2 / 220 KiB  /c/$slug
-    221.4 / 223 KiB  /dev/primitives
-    240.6 / 242 KiB  /dev/style
-    206.0 / 207 KiB  /dev/tall
-    247.5 / 251 KiB  /l/$slug
-    209.6 / 211 KiB  /legal/$kind
-    217.2 / 218 KiB  /legal/accept
-    210.3 / 212 KiB  /legal/publishing
-    326.1 / 327 KiB  /my-listings
-    315.1 / 315 KiB  /my-listings_/$listingId
-    394.0 / 397 KiB  /my-listings_/$listingId_/edit
-    394.0 / 397 KiB  /post
-    394.0 / 397 KiB  /post_/$listingId
-    209.6 / 211 KiB  /privacy
-    269.4 / 271 KiB  /settings
-    209.6 / 211 KiB  /terms
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/3c453eaf-1aba-49b0-aeea-15969bfda44a' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## Component tests — failure
-
-### Evidence lines
-
-```text
-[90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
-     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 629[2mms[22m[39m
-[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
-[90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
-[90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
-[22m[39m[session-reads] currentSession() calls: 19; without failed: 0
-     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1463[2mms[22m[39m
-[90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
-[90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
-[22m[39m[feed-links] /api/feed signing failed
-[22m[39m[ssr-error] /api/feed [incident 045c4c4d-7b99-4afb-bba7-47077d61bbb8] ReaderError: feed_page: marker-text-that-must-not-travel
- [31m❯[39m scripts/conformance/strings-layers.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 5558[2mms[22m[39m
-[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
-Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
-[22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
-[90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
- [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 366[2mms[22m[39m
- [31m❯[39m scripts/test-ids.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 301[2mms[22m[39m
-[22m[39m[save-error] unsave_listing Error: transport
-[22m[39m[save-error] listing_saved Error: transport
-     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 306[2mms[22m[39m
-[90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
-[41m[1m FAIL [22m[49m scripts/test-ids.test.ts[2m > [22mtest ids (INC-536)[2m > [22mTI-1 no test id is used twice in the repository
-[41m[1m FAIL [22m[49m scripts/conformance/strings-layers.test.ts[2m > [22mthe strings layers (DEC-258)[2m > [22mCF-SL-1 every catalogue key sits in the file the census names
-[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m350 passed[39m[22m[90m (352)[39m
-[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2106 passed[39m[22m[90m (2108)[39m
-##[error]AssertionError: expected [ Array(1) ] to deeply equal []
-##[error]AssertionError: expected [ Array(1) ] to deeply equal []
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-    [90m 60|[39m     )[33m;[39m
-    [90m 61|[39m     [34mexpect[39m([34mmisplaced[39m(census[33m,[39m [33mROOT[39m))[33m.[39m[34mtoEqual[39m([])[33m;[39m
-    [90m   |[39m                                     [31m^[39m
-    [90m 62|[39m   })[33m;[39m
-    [90m 63|[39m
-
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
-
-
-[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m350 passed[39m[22m[90m (352)[39m
-[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2106 passed[39m[22m[90m (2108)[39m
-[2m   Start at [22m 23:59:07
-[2m   Duration [22m 196.19s[2m (transform 8.87s, setup 118.44s, import 51.75s, tests 98.41s, environment 264.49s)[22m
-
-
-##[error]AssertionError: expected [ Array(1) ] to deeply equal []
-
-- Expected
-+ Received
-
-- []
-+ [
-+   "GML-4: src/features/ad-page/maps-links.test.ts:39, src/features/ad-page/maps-links.test.ts:78",
-+ ]
-
- ❯ scripts/test-ids.test.ts:12:19
-
-
-
-##[error]AssertionError: expected [ Array(1) ] to deeply equal []
-
-- Expected
-+ Received
-
-- []
-+ [
-+   "admin.translations.ai.rateLimited — in en-admin.ts, belongs in en-base.ts (shown on: __root, admin.legal_.edit, admin.translations, admin.translations_.$lang, admin.users_.$userId)",
-+ ]
-
- ❯ scripts/conformance/strings-layers.test.ts:61:37
-
-
-error: script "test:unit" exited with code 1
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/d4615b26-ed68-49cf-af77-3695f2a311eb' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
 
 ## Migration linter (with self-test) — failure
 
@@ -215,8 +20,6 @@ Cleaning up orphan processes
 ### Tail (last 60 lines)
 
 ```text
-  - 20260903044526_7e14ce39-76a6-4095-845b-e5d6e83d772c.sql (admin_create_category REVOKE restated in C2e corrective | closed by 63df0b68)
-  - 20260831064939_4a00896e-bc69-4919-bb1e-8181a7e65034.sql (tool split placed the REVOKE in the next file; window closed by paired apply | closed by f18f1883)
   - 20260908041703_62e6566c-a1c9-4212-a78b-c68e0bf95169.sql (DEC-045a redeclared admin_delete_attribute, admin_unlink_attribute and admin_merge_attributes without restating their REVOKE/GRANT; window closed by the DEC-045a-fix corrective (ACL read-back loop in file) | closed by d9267b5f)
 Born-closed guard OK (floor 20261007143529).
 Definer guard OK.
@@ -254,7 +57,9 @@ Self-marking guard: allowlisted files (each cites its healer)
   - 20260920035859_59a77c4c-ef00-4c57-9bce-79a4284a01d4.sql (Part 2b readers declared mark 20260920000008, which precedes its filename stamp; the ledger rows 20260920035859 and 20260920040000 are recorded by the R-MARK corrective | 20260920072310)
 Self-marking guard OK (floor 20260817054246).
 Public-surface guard FAILED: grants to anon/authenticated/PUBLIC on unlisted objects:
-supabase/migrations/20261013073618_98a0576f-55bd-4a2c-816a-04dd28c72eba.sql: import_gate_auditsupabase/migrations/20261024220534_7aba0b1c-b2a2-455c-9aec-7c711a41034e.sql: import_gate_auditsupabase/migrations/20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql: get_location_treesupabase/migrations/20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql: import_gate_audit
+supabase/migrations/20261013073618_98a0576f-55bd-4a2c-816a-04dd28c72eba.sql: import_gate_auditsupabase/migrations/20261024220534_7aba0b1c-b2a2-455c-9aec-7c711a41034e.sql: import_gate_auditsupabase/migrations/20261028225001_e419d062-9dd9-4a04-83aa-e7948c69b23d.sql: get_location_treesupabase/migrations/20261029001111_b124ab89-23bf-4bdb-9836-ae9dbe20a538.sql: admin_add_category_pointer
+supabase/migrations/20261029001111_b124ab89-23bf-4bdb-9836-ae9dbe20a538.sql: admin_create_category
+supabase/migrations/20261029001111_b124ab89-23bf-4bdb-9836-ae9dbe20a538.sql: admin_set_country_exclusionssupabase/migrations/20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql: import_gate_audit
 supabase/migrations/20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql: begin_impersonationsupabase/migrations/20261028233839_7aad90ab-4b74-453d-99a2-59426ac3206e.sql: admin_save_translation
 supabase/migrations/20261028233839_7aad90ab-4b74-453d-99a2-59426ac3206e.sql: admin_machine_translationsupabase/migrations/20261028225628_e2358bd4-2732-40ce-adcc-f4537ee64564.sql: get_location_treesupabase/migrations/20261028235443_3e3ea913-f01e-472e-a2dd-671adba96a2e.sql: admin_import_translations
 supabase/migrations/20261028235443_3e3ea913-f01e-472e-a2dd-671adba96a2e.sql: admin_commit_location_import
@@ -262,7 +67,202 @@ supabase/migrations/20261028235443_3e3ea913-f01e-472e-a2dd-671adba96a2e.sql: adm
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/246d2653-d1f4-4def-9136-2d5631af3c96' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/92fceda0-424f-4513-94a5-e0db52a07e8e' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
+
+## Component tests — failure
+
+### Evidence lines
+
+```text
+[90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 997[2mms[22m[39m
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
+[90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
+[22m[39m[session-reads] currentSession() calls: 19; without failed: 0
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1928[2mms[22m[39m
+[90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
+[90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
+[22m[39m[feed-links] /api/feed signing failed
+[22m[39m[ssr-error] /api/feed [incident d1d7515a-e60b-4cbf-8669-c2975c6bf104] ReaderError: feed_page: marker-text-that-must-not-travel
+ [31m❯[39m scripts/conformance/strings-layers.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 7753[2mms[22m[39m
+[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
+Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
+[22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
+[90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
+ [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 403[2mms[22m[39m
+ [31m❯[39m scripts/test-ids.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 340[2mms[22m[39m
+[22m[39m[save-error] unsave_listing Error: transport
+[22m[39m[save-error] listing_saved Error: transport
+     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 306[2mms[22m[39m
+[90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
+[41m[1m FAIL [22m[49m scripts/test-ids.test.ts[2m > [22mtest ids (INC-536)[2m > [22mTI-1 no test id is used twice in the repository
+[41m[1m FAIL [22m[49m scripts/conformance/strings-layers.test.ts[2m > [22mthe strings layers (DEC-258)[2m > [22mCF-SL-1 every catalogue key sits in the file the census names
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m350 passed[39m[22m[90m (352)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2114 passed[39m[22m[90m (2116)[39m
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+    [90m 60|[39m     )[33m;[39m
+    [90m 61|[39m     [34mexpect[39m([34mmisplaced[39m(census[33m,[39m [33mROOT[39m))[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   |[39m                                     [31m^[39m
+    [90m 62|[39m   })[33m;[39m
+    [90m 63|[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m350 passed[39m[22m[90m (352)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2114 passed[39m[22m[90m (2116)[39m
+[2m   Start at [22m 00:14:13
+[2m   Duration [22m 264.28s[2m (transform 10.61s, setup 158.99s, import 69.23s, tests 130.18s, environment 358.26s)[22m
+
+
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "GML-4: src/features/ad-page/maps-links.test.ts:39, src/features/ad-page/maps-links.test.ts:78",
++ ]
+
+ ❯ scripts/test-ids.test.ts:12:19
+
+
+
+##[error]AssertionError: expected [ Array(1) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "admin.translations.ai.rateLimited — in en-admin.ts, belongs in en-base.ts (shown on: __root, admin.legal_.edit, admin.translations, admin.translations_.$lang, admin.users_.$userId)",
++ ]
+
+ ❯ scripts/conformance/strings-layers.test.ts:61:37
+
+
+error: script "test:unit" exited with code 1
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/84fe130f-146b-4ba8-8412-7bb304e8dd12' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
+
+## First-paint bundle budget (gzipped ceiling) — failure
+
+### Evidence lines
+
+```text
+[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
+Per-page budget failed (D234):
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+    328.8 / 330 KiB  /admin/coverage
+    207.3 / 209 KiB  /admin/images
+    307.1 / 308 KiB  /admin/impersonation_/$sessionId
+    276.3 / 277 KiB  /admin/legal
+    275.6 / 277 KiB  /admin/legal_/$versionId
+    281.8 / 283 KiB  /admin/legal_/edit
+    352.4 / 353 KiB  /admin/listings
+    375.7 / 379 KiB  /admin/listings_/$listingId
+    399.4 / 403 KiB  /admin/listings_/$listingId_/edit
+    268.2 / 270 KiB  /admin/locations
+    337.5 / 338 KiB  /admin/places
+    304.7 / 306 KiB  /admin/roles
+    305.1 / 306 KiB  /admin/roles_/$roleId
+    373.7 / 377 KiB  /admin/screening
+    407.1 / 408 KiB  /admin/translations
+    319.3 / 320 KiB  /admin/translations_/$lang
+    303.1 / 304 KiB  /admin/users
+    283.6 / 285 KiB  /admin/users_/$userId
+    218.3 / 219 KiB  /auth
+    206.7 / 208 KiB  /auth_/callback
+
+Per-page budget failed (D234):
+  /my-listings_/$listingId: 315.2 KiB, over its ceiling of 315 KiB
+
+Code-split the addition behind a dynamic import, or change the page's line in
+scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
+    208.8 / 210 KiB  /auth_/reset
+    219.2 / 220 KiB  /c/$slug
+    221.4 / 223 KiB  /dev/primitives
+    240.6 / 242 KiB  /dev/style
+    206.0 / 207 KiB  /dev/tall
+    247.5 / 251 KiB  /l/$slug
+    209.6 / 211 KiB  /legal/$kind
+    217.2 / 218 KiB  /legal/accept
+    210.3 / 212 KiB  /legal/publishing
+    326.1 / 327 KiB  /my-listings
+    315.2 / 315 KiB  /my-listings_/$listingId
+    394.1 / 397 KiB  /my-listings_/$listingId_/edit
+    394.0 / 397 KiB  /post
+    394.0 / 397 KiB  /post_/$listingId
+    209.6 / 211 KiB  /privacy
+    269.4 / 271 KiB  /settings
+    209.6 / 211 KiB  /terms
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/072df8fb-8466-4970-a05c-a29bb95be63b' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -304,10 +304,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40790717317
-  E2E_HEAD_COMMIT_MESSAGE: Ruled 5 test + M5b staging move
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40792606430
+  E2E_HEAD_COMMIT_MESSAGE: D1 ruled M6a, stop 11
 
-X-Lovable-Edit-ID: edt-a35125d1-a178-4334-b868-5c6c4502f93b
+X-Lovable-Edit-ID: edt-936be498-5d01-4d43-95f8-f4514efbf8e1
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -341,7 +341,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/fa39ad00-bcde-4348-9afb-73facdd36e99' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/4a790d2d-dde7-42da-aedd-8012fa7f93bc' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
