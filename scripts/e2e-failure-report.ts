@@ -1399,6 +1399,8 @@ export function renderSources(
     ...flakyBodiesSection(flaky, contexts),
     // INC-589 — rendered on every red form, whatever else failed.
     ...outsideErrorsSection(sources),
+    // INC-973 — when the backend never started, the start log's error lines.
+    ...startFailureSection(sources),
     // DEC-083 / DEC-084 — rendered on every red form, failed sources or not.
     ...ssrCensusSection(ssrCensus(sources, ssrAllowlist), sources),
     ...a11ySection(sources),
