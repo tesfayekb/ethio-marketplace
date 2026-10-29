@@ -9,20 +9,26 @@ export const Route = createFileRoute("/account")({
   beforeLoad: async () => {
     await requireSignedIn("/account");
   },
-  head: () => pageHead("head.site.pattern.title", "head.account.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: "Account — ethio.com" },
-      { name: "description", content: "Review your ethio.com account and listing activity." },
-      { property: "og:title", content: "Account — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.account.description",
       {
-        property: "og:description",
-        content: "Review your ethio.com account and listing activity.",
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: "Account — ethio.com" },
+          { name: "description", content: "Review your ethio.com account and listing activity." },
+          { property: "og:title", content: "Account — ethio.com" },
+          {
+            property: "og:description",
+            content: "Review your ethio.com account and listing activity.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "account.overview.title"),
+      "account.overview.title",
+    ),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: AccountOverview,

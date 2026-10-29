@@ -25,19 +25,25 @@ import type { MessageKey } from "@/i18n";
 const MIN_PASSWORD_LENGTH = 8;
 
 export const Route = createFileRoute("/auth_/reset")({
-  head: () => pageHead("head.site.pattern.title", "head.authReset.description", {
-    meta: [
-      { title: "Reset your password — ethio.com" },
-      { name: "description", content: "Choose a new password for your ethio.com account." },
-      { property: "og:title", content: "Reset your password — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.authReset.description",
       {
-        property: "og:description",
-        content: "Choose a new password for your ethio.com account.",
+        meta: [
+          { title: "Reset your password — ethio.com" },
+          { name: "description", content: "Choose a new password for your ethio.com account." },
+          { property: "og:title", content: "Reset your password — ethio.com" },
+          {
+            property: "og:description",
+            content: "Choose a new password for your ethio.com account.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "auth.resetTitle"),
+      "auth.resetTitle",
+    ),
   component: ResetScreen,
 });
 

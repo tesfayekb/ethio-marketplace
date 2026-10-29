@@ -9,17 +9,23 @@ import { AdminUsersList } from "@/features/admin/users/users-list";
  * component state for now (queued in docs/features/admin-roles.md).
  */
 export const Route = createFileRoute("/admin/users")({
-  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
-    meta: [
-      { title: "Users — ethio.com Admin" },
-      { name: "description", content: "Users in the ethio.com staff panel." },
-      { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Users — ethio.com Admin" },
-      { property: "og:description", content: "Users in the ethio.com staff panel." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }, "admin.section.users.title"),
+  head: () =>
+    pageHead(
+      "head.admin.pattern.title",
+      "head.admin.pattern.description",
+      {
+        meta: [
+          { title: "Users — ethio.com Admin" },
+          { name: "description", content: "Users in the ethio.com staff panel." },
+          { name: "robots", content: "noindex" },
+          { property: "og:title", content: "Users — ethio.com Admin" },
+          { property: "og:description", content: "Users in the ethio.com staff panel." },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+        ],
+      },
+      "admin.section.users.title",
+    ),
   validateSearch: (search: Record<string, unknown>): { role?: string } => {
     const role = typeof search["role"] === "string" ? search["role"].trim() : "";
     return role && role !== "all" ? { role } : {};

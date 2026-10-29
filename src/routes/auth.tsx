@@ -60,20 +60,26 @@ export const Route = createFileRoute("/auth")({
     ...(search["reason"] === "deactivated" ? { reason: "deactivated" as const } : {}),
   }),
 
-  head: () => pageHead("head.site.pattern.title", "head.auth.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: "Sign in — ethio.com" },
-      { name: "description", content: "Sign in or create your free ethio.com account." },
-      { property: "og:title", content: "Sign in — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.auth.description",
       {
-        property: "og:description",
-        content: "Sign in or create your free ethio.com account.",
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: "Sign in — ethio.com" },
+          { name: "description", content: "Sign in or create your free ethio.com account." },
+          { property: "og:title", content: "Sign in — ethio.com" },
+          {
+            property: "og:description",
+            content: "Sign in or create your free ethio.com account.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "auth.signIn"),
+      "auth.signIn",
+    ),
   component: AuthScreen,
 });
 

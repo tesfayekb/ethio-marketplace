@@ -345,43 +345,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // A navigation elsewhere never re-read them; a fresh load reads them again (the error view's
   // Refresh, turn 34c).
   shouldReload: false,
-  head: ({ loaderData }) => pageHead("app.name", "head.site.description", {
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ethio.com" },
-      { name: "description", content: "Ethiopia's marketplace — coming soon." },
-      { name: "author", content: "ethio-marketplace" },
-      { property: "og:title", content: "ethio.com" },
-      { property: "og:description", content: "Ethiopia's marketplace — coming soon." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@ethio_market" },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      // D234 S4 — the reads every page makes start with the page (src/lib/first-reads.ts).
-      ...(loaderData?.firstReads ?? []),
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      // DEC-262 — no web font: the page draws with the device's own fonts
-      // (src/styles.css --font-sans), so nothing waits on a font server.
-      // DEC-195 — an early connection to the photo server's origin (the
-      // project's own Supabase address, read from the public env, never
-      // hard-coded), so the first cards' photos start sooner.
-      ...(PHOTO_ORIGIN === null
-        ? []
-        : [
-            { rel: "preconnect", href: PHOTO_ORIGIN },
-            { rel: "dns-prefetch", href: PHOTO_ORIGIN },
-          ]),
-    ],
-    // NO FLASH OF WRONG THEME: this runs in <head>, before the body paints, so
-    // data-mode + the .dark class are already correct on the first frame.
-    scripts: [{ children: THEME_INIT_SCRIPT }],
-  }),
+  head: ({ loaderData }) =>
+    pageHead("app.name", "head.site.description", {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "ethio.com" },
+        { name: "description", content: "Ethiopia's marketplace — coming soon." },
+        { name: "author", content: "ethio-marketplace" },
+        { property: "og:title", content: "ethio.com" },
+        { property: "og:description", content: "Ethiopia's marketplace — coming soon." },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:site", content: "@ethio_market" },
+      ],
+      links: [
+        {
+          rel: "stylesheet",
+          href: appCss,
+        },
+        // D234 S4 — the reads every page makes start with the page (src/lib/first-reads.ts).
+        ...(loaderData?.firstReads ?? []),
+        { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+        // DEC-262 — no web font: the page draws with the device's own fonts
+        // (src/styles.css --font-sans), so nothing waits on a font server.
+        // DEC-195 — an early connection to the photo server's origin (the
+        // project's own Supabase address, read from the public env, never
+        // hard-coded), so the first cards' photos start sooner.
+        ...(PHOTO_ORIGIN === null
+          ? []
+          : [
+              { rel: "preconnect", href: PHOTO_ORIGIN },
+              { rel: "dns-prefetch", href: PHOTO_ORIGIN },
+            ]),
+      ],
+      // NO FLASH OF WRONG THEME: this runs in <head>, before the body paints, so
+      // data-mode + the .dark class are already correct on the first frame.
+      scripts: [{ children: THEME_INIT_SCRIPT }],
+    }),
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

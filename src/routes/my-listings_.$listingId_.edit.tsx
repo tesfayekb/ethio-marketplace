@@ -26,20 +26,26 @@ export const Route = createFileRoute("/my-listings_/$listingId_/edit")({
   beforeLoad: async ({ params }) => {
     await requireSignedIn(`/my-listings/${encodeURIComponent(params.listingId)}/edit`);
   },
-  head: () => pageHead("head.site.pattern.title", "head.editAd.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: "Edit your ad — ethio.com" },
-      { name: "description", content: "Change one of your ads on ethio.com, step by step." },
-      { property: "og:title", content: "Edit your ad — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.editAd.description",
       {
-        property: "og:description",
-        content: "Change one of your ads on ethio.com, step by step.",
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: "Edit your ad — ethio.com" },
+          { name: "description", content: "Change one of your ads on ethio.com, step by step." },
+          { property: "og:title", content: "Edit your ad — ethio.com" },
+          {
+            property: "og:description",
+            content: "Change one of your ads on ethio.com, step by step.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "post.edit.title"),
+      "post.edit.title",
+    ),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingEditRoute,

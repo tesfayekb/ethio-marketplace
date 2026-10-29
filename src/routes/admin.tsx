@@ -24,17 +24,23 @@ import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
  * has_permission on the server.
  */
 export const Route = createFileRoute("/admin")({
-  head: () => pageHead("head.site.pattern.title", "head.admin.panel.description", {
-    meta: [
-      { title: "Admin — ethio.com" },
-      { name: "description", content: "Administration panel for ethio.com staff." },
-      { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin — ethio.com" },
-      { property: "og:description", content: "Administration panel for ethio.com staff." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }, "panel.admin"),
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.admin.panel.description",
+      {
+        meta: [
+          { title: "Admin — ethio.com" },
+          { name: "description", content: "Administration panel for ethio.com staff." },
+          { name: "robots", content: "noindex" },
+          { property: "og:title", content: "Admin — ethio.com" },
+          { property: "og:description", content: "Administration panel for ethio.com staff." },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+        ],
+      },
+      "panel.admin",
+    ),
   // DEC-258 — the admin screens show the admin and member strings layers; the
   // shell's gate loads both before this layout draws.
   staticData: { strings: ["admin", "member"] },

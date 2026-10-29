@@ -9,17 +9,23 @@ import { AdminRoleDetailPage } from "@/features/admin/roles/role-detail";
  * this file renders the body only.
  */
 export const Route = createFileRoute("/admin/roles_/$roleId")({
-  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
-    meta: [
-      { title: "Role — ethio.com Admin" },
-      { name: "description", content: "Role in the ethio.com staff panel." },
-      { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Role — ethio.com Admin" },
-      { property: "og:description", content: "Role in the ethio.com staff panel." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }, "head.admin.role.title"),
+  head: () =>
+    pageHead(
+      "head.admin.pattern.title",
+      "head.admin.pattern.description",
+      {
+        meta: [
+          { title: "Role — ethio.com Admin" },
+          { name: "description", content: "Role in the ethio.com staff panel." },
+          { name: "robots", content: "noindex" },
+          { property: "og:title", content: "Role — ethio.com Admin" },
+          { property: "og:description", content: "Role in the ethio.com staff panel." },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+        ],
+      },
+      "head.admin.role.title",
+    ),
   component: AdminRoleDetailRoute,
 });
 

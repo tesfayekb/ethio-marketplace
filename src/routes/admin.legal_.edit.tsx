@@ -6,22 +6,28 @@ export const Route = createFileRoute("/admin/legal_/edit")({
     kind: typeof search.kind === "string" ? search.kind : "",
     ...(typeof search.country === "string" ? { country: search.country } : {}),
   }),
-  head: () => pageHead("head.admin.pattern.title", "head.admin.legalDraft.description", {
-    meta: [
-      { title: "Legal draft — ethio.com Admin" },
+  head: () =>
+    pageHead(
+      "head.admin.pattern.title",
+      "head.admin.legalDraft.description",
       {
-        name: "description",
-        content: "Write and publish bilingual legal document drafts on ethio.com.",
+        meta: [
+          { title: "Legal draft — ethio.com Admin" },
+          {
+            name: "description",
+            content: "Write and publish bilingual legal document drafts on ethio.com.",
+          },
+          { property: "og:title", content: "Legal draft — ethio.com Admin" },
+          {
+            property: "og:description",
+            content: "Write and publish bilingual legal document drafts on ethio.com.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+        ],
       },
-      { property: "og:title", content: "Legal draft — ethio.com Admin" },
-      {
-        property: "og:description",
-        content: "Write and publish bilingual legal document drafts on ethio.com.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }, "head.admin.legalDraft.title"),
+      "head.admin.legalDraft.title",
+    ),
   component: LegalEditorRoute,
 });
 function LegalEditorRoute() {

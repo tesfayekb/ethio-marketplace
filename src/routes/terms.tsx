@@ -20,18 +20,23 @@ export const Route = createFileRoute("/terms")({
   head: ({ matches }) => {
     const root = matches[0]?.loaderData as { origin?: string } | undefined;
     const url = root?.origin ? `${root.origin}/terms` : null;
-    return pageHead("head.site.pattern.title", "head.terms.description", {
-      meta: [
-        { title: TITLE },
-        { name: "description", content: DESCRIPTION },
-        { property: "og:title", content: TITLE },
-        { property: "og:description", content: DESCRIPTION },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary" },
-        ...(url ? [{ property: "og:url", content: url }] : []),
-      ],
-      links: url ? [{ rel: "canonical", href: url }] : [],
-    }, "legal.kind.terms");
+    return pageHead(
+      "head.site.pattern.title",
+      "head.terms.description",
+      {
+        meta: [
+          { title: TITLE },
+          { name: "description", content: DESCRIPTION },
+          { property: "og:title", content: TITLE },
+          { property: "og:description", content: DESCRIPTION },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+          ...(url ? [{ property: "og:url", content: url }] : []),
+        ],
+        links: url ? [{ rel: "canonical", href: url }] : [],
+      },
+      "legal.kind.terms",
+    );
   },
   errorComponent: TermsError,
   component: TermsPage,

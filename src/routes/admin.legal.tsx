@@ -15,21 +15,27 @@ export const Route = createFileRoute("/admin/legal")({
       return { outcome: "published", version: search.version };
     return {};
   },
-  head: () => pageHead("head.admin.pattern.title", "head.admin.legal.description", {
-    meta: [
-      { title: "Legal documents — ethio.com Admin" },
+  head: () =>
+    pageHead(
+      "head.admin.pattern.title",
+      "head.admin.legal.description",
       {
-        name: "description",
-        content: "Manage legal document versions and publishing facts on ethio.com.",
+        meta: [
+          { title: "Legal documents — ethio.com Admin" },
+          {
+            name: "description",
+            content: "Manage legal document versions and publishing facts on ethio.com.",
+          },
+          { property: "og:title", content: "Legal documents — ethio.com Admin" },
+          {
+            property: "og:description",
+            content: "Manage legal document versions and publishing facts on ethio.com.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+        ],
       },
-      { property: "og:title", content: "Legal documents — ethio.com Admin" },
-      {
-        property: "og:description",
-        content: "Manage legal document versions and publishing facts on ethio.com.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }, "head.admin.legal.title"),
+      "head.admin.legal.title",
+    ),
   component: LegalPage,
 });

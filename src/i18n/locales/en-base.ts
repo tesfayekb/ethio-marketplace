@@ -751,9 +751,12 @@ export const enBase = {
   "head.category.title": "Category",
   "head.category.description": "Browse listings in this category from sellers near you.",
   "head.seller.description": "Ads by {name} on ethio.com.",
-  "head.privacy.description": "The Privacy Policy of ethio.com, the version in force and the next one.",
-  "head.terms.description": "The Terms of Service of ethio.com, the version in force and the next one.",
-  "head.publishing.description": "The publishing statement every seller certifies before an ad goes live.",
+  "head.privacy.description":
+    "The Privacy Policy of ethio.com, the version in force and the next one.",
+  "head.terms.description":
+    "The Terms of Service of ethio.com, the version in force and the next one.",
+  "head.publishing.description":
+    "The publishing statement every seller certifies before an ad goes live.",
   "head.auth.description": "Sign in or create your free ethio.com account.",
   "head.authCallback.title": "Confirm your email",
   "head.authCallback.description": "Finish confirming your ethio.com account.",

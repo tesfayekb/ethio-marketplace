@@ -31,20 +31,26 @@ export const Route = createFileRoute("/legal/accept")({
       throw redirect({ href: safeReturnPath(search.next), replace: true });
     return { userId, kinds };
   },
-  head: () => pageHead("head.site.pattern.title", "head.legalAccept.description", {
-    meta: [
-      { title: "Before you continue — ethio.com" },
-      { name: "description", content: "Accept the Terms of Service and the Privacy Policy." },
-      { property: "og:title", content: "Before you continue — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.legalAccept.description",
       {
-        property: "og:description",
-        content: "Accept the Terms of Service and the Privacy Policy.",
+        meta: [
+          { title: "Before you continue — ethio.com" },
+          { name: "description", content: "Accept the Terms of Service and the Privacy Policy." },
+          { property: "og:title", content: "Before you continue — ethio.com" },
+          {
+            property: "og:description",
+            content: "Accept the Terms of Service and the Privacy Policy.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+          { name: "robots", content: "noindex" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
-    ],
-  }, "legal.accept.title"),
+      "legal.accept.title",
+    ),
   component: AcceptRoute,
 });
 

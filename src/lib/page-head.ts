@@ -60,6 +60,7 @@ export function usePageHead() {
       ['meta[name="description"]', text.description],
       ['meta[property="og:title"]', text.title],
       ['meta[property="og:description"]', text.description],
-    ]) document.head.querySelector(selector)?.setAttribute("content", content);
+    ])
+      document.head.querySelector(selector)?.setAttribute("content", content);
   }, [matches, t, appliedLanguage]);
 }

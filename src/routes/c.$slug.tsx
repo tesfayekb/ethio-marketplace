@@ -13,22 +13,28 @@ import { useI18n } from "@/i18n";
  * slug from here, so they can never disagree again.
  */
 export const Route = createFileRoute("/c/$slug")({
-  head: () => pageHead("head.site.pattern.title", "head.category.description", {
-    meta: [
-      { title: "Category — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.category.description",
       {
-        name: "description",
-        content: "Browse listings in this category from sellers near you.",
+        meta: [
+          { title: "Category — ethio.com" },
+          {
+            name: "description",
+            content: "Browse listings in this category from sellers near you.",
+          },
+          { property: "og:title", content: "Category — ethio.com" },
+          {
+            property: "og:description",
+            content: "Browse listings in this category from sellers near you.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:title", content: "Category — ethio.com" },
-      {
-        property: "og:description",
-        content: "Browse listings in this category from sellers near you.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "head.category.title"),
+      "head.category.title",
+    ),
   component: CategoryFeed,
 });
 

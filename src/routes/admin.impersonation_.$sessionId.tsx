@@ -10,20 +10,26 @@ import { ImpersonationView } from "@/features/admin/impersonation/impersonation-
  * so a shared link grants nothing.
  */
 export const Route = createFileRoute("/admin/impersonation_/$sessionId")({
-  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
-    meta: [
-      { title: "Impersonation session — ethio.com Admin" },
-      { name: "description", content: "Impersonation session in the ethio.com staff panel." },
-      { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Impersonation session — ethio.com Admin" },
+  head: () =>
+    pageHead(
+      "head.admin.pattern.title",
+      "head.admin.pattern.description",
       {
-        property: "og:description",
-        content: "Impersonation session in the ethio.com staff panel.",
+        meta: [
+          { title: "Impersonation session — ethio.com Admin" },
+          { name: "description", content: "Impersonation session in the ethio.com staff panel." },
+          { name: "robots", content: "noindex" },
+          { property: "og:title", content: "Impersonation session — ethio.com Admin" },
+          {
+            property: "og:description",
+            content: "Impersonation session in the ethio.com staff panel.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }, "head.admin.impersonation.title"),
+      "head.admin.impersonation.title",
+    ),
   component: ImpersonationRoute,
 });
 

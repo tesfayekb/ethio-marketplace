@@ -12,11 +12,20 @@ export function headFindings(files: string[], root: string) {
       if (!isHead && !isSeller) return;
       let builder = false;
       const walk = (child: ts.Node) => {
-        if (ts.isCallExpression(child) && ["pageHead", "sellerHead"].includes(child.expression.getText(source))) builder = true;
+        if (
+          ts.isCallExpression(child) &&
+          ["pageHead", "sellerHead"].includes(child.expression.getText(source))
+        )
+          builder = true;
         ts.forEachChild(child, walk);
       };
       ts.forEachChild(node, walk);
-      if (!builder) found.push({ file: relative(root, file), line: source.getLineAndCharacterOfPosition(node.getStart()).line + 1, what: "head bypasses pageHead" });
+      if (!builder)
+        found.push({
+          file: relative(root, file),
+          line: source.getLineAndCharacterOfPosition(node.getStart()).line + 1,
+          what: "head bypasses pageHead",
+        });
     });
   }
   return found;

@@ -56,13 +56,19 @@ export const Route = createFileRoute("/legal/publishing")({
     ]);
     return { global, countries: deps.countries.map((code, i) => ({ code, data: countries[i] })) };
   },
-  head: () => pageHead("head.site.pattern.title", "head.publishing.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: PUBLISHING_TITLE },
-      { name: "description", content: PUBLISHING_DESCRIPTION },
-    ],
-  }, "legal.kind.publishing"),
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.publishing.description",
+      {
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: PUBLISHING_TITLE },
+          { name: "description", content: PUBLISHING_DESCRIPTION },
+        ],
+      },
+      "legal.kind.publishing",
+    ),
   errorComponent: PublishingError,
   component: PublishingPage,
 });

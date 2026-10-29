@@ -15,20 +15,29 @@ export const Route = createFileRoute("/my-listings")({
   beforeLoad: async () => {
     await requireSignedIn("/my-listings");
   },
-  head: () => pageHead("head.site.pattern.title", "head.myListings.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: "My listings — ethio.com" },
-      { name: "description", content: "Your ads on ethio.com: live, in review, closed and sold." },
-      { property: "og:title", content: "My listings — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.myListings.description",
       {
-        property: "og:description",
-        content: "Your ads on ethio.com: live, in review, closed and sold.",
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: "My listings — ethio.com" },
+          {
+            name: "description",
+            content: "Your ads on ethio.com: live, in review, closed and sold.",
+          },
+          { property: "og:title", content: "My listings — ethio.com" },
+          {
+            property: "og:description",
+            content: "Your ads on ethio.com: live, in review, closed and sold.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "nav.myListings"),
+      "nav.myListings",
+    ),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingsPage,

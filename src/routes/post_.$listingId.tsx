@@ -35,17 +35,23 @@ export const Route = createFileRoute("/post_/$listingId")({
       throw redirect({ to: "/my-listings/$listingId", params: { listingId: params.listingId } });
     }
   },
-  head: () => pageHead("head.site.pattern.title", "head.continuePost.description", {
-    meta: [
-      { title: "Continue your listing — ethio.com" },
-      { name: "description", content: "Finish the listing you started on ethio.com." },
-      { property: "og:title", content: "Continue your listing — ethio.com" },
-      { property: "og:description", content: "Finish the listing you started on ethio.com." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "robots", content: "noindex" },
-    ],
-  }, "head.continuePost.title"),
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.continuePost.description",
+      {
+        meta: [
+          { title: "Continue your listing — ethio.com" },
+          { name: "description", content: "Finish the listing you started on ethio.com." },
+          { property: "og:title", content: "Continue your listing — ethio.com" },
+          { property: "og:description", content: "Finish the listing you started on ethio.com." },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "robots", content: "noindex" },
+        ],
+      },
+      "head.continuePost.title",
+    ),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: PostResumeScreen,

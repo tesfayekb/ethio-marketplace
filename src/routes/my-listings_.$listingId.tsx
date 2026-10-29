@@ -19,23 +19,29 @@ export const Route = createFileRoute("/my-listings_/$listingId")({
   beforeLoad: async ({ params }) => {
     await requireSignedIn(`/my-listings/${encodeURIComponent(params.listingId)}`);
   },
-  head: () => pageHead("head.site.pattern.title", "head.myListing.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: "My listing — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.myListing.description",
       {
-        name: "description",
-        content: "One of your ads on ethio.com: its state, history and actions.",
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: "My listing — ethio.com" },
+          {
+            name: "description",
+            content: "One of your ads on ethio.com: its state, history and actions.",
+          },
+          { property: "og:title", content: "My listing — ethio.com" },
+          {
+            property: "og:description",
+            content: "One of your ads on ethio.com: its state, history and actions.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:title", content: "My listing — ethio.com" },
-      {
-        property: "og:description",
-        content: "One of your ads on ethio.com: its state, history and actions.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "head.myListing.title"),
+      "head.myListing.title",
+    ),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyListingRoute,

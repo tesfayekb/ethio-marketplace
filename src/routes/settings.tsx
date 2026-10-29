@@ -58,20 +58,26 @@ export const Route = createFileRoute("/settings")({
   beforeLoad: async () => {
     await requireSignedIn("/settings");
   },
-  head: () => pageHead("head.site.pattern.title", "head.settings.description", {
-    meta: [
-      { name: "robots", content: "noindex" },
-      { title: "Account settings — ethio.com" },
-      { name: "description", content: "Manage your ethio.com sign-in methods and security." },
-      { property: "og:title", content: "Account settings — ethio.com" },
+  head: () =>
+    pageHead(
+      "head.site.pattern.title",
+      "head.settings.description",
       {
-        property: "og:description",
-        content: "Manage your ethio.com sign-in methods and security.",
+        meta: [
+          { name: "robots", content: "noindex" },
+          { title: "Account settings — ethio.com" },
+          { name: "description", content: "Manage your ethio.com sign-in methods and security." },
+          { property: "og:title", content: "Account settings — ethio.com" },
+          {
+            property: "og:description",
+            content: "Manage your ethio.com sign-in methods and security.",
+          },
+          { property: "og:type", content: "website" },
+          { name: "twitter:card", content: "summary_large_image" },
+        ],
       },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }, "head.settings.title"),
+      "head.settings.title",
+    ),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: SettingsScreen,
