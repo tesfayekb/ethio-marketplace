@@ -3885,6 +3885,28 @@ export type Database = {
         }
         Returns: string
       }
+      admin_list_ai_calls: {
+        Args: {
+          p_before_at?: string
+          p_before_id?: string
+          p_feature?: string
+          p_limit?: number
+          p_outcome?: string
+        }
+        Returns: Json
+      }
+      admin_list_ai_calls_core: {
+        Args: {
+          p_before_at: string
+          p_before_id: string
+          p_feature: string
+          p_hide_e2e: boolean
+          p_limit: number
+          p_outcome: string
+          p_show_person: boolean
+        }
+        Returns: Json
+      }
       admin_list_attribute_categories: {
         Args: never
         Returns: {

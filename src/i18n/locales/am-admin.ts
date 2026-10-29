@@ -1,6 +1,26 @@
 import type { enAdmin } from "./en-admin";
 
 export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
+  "admin.ai.log.title": "የቅርብ ጊዜ የሰው ሰራሽ አስተውሎት ጥሪዎች",
+  "admin.ai.log.hint": "ያለፉት 90 ቀናት፣ አዲሱ መጀመሪያ። የተላኩ ጥያቄዎችና የተገኙ መልሶች ፈጽሞ አይቀመጡም።",
+  "admin.ai.log.loading": "የሰው ሰራሽ አስተውሎት ጥሪዎች በመጫን ላይ…",
+  "admin.ai.log.error": "የሰው ሰራሽ አስተውሎት ጥሪዎችን መጫን አልተቻለም።",
+  "admin.ai.log.col.model": "ሞዴል",
+  "admin.ai.log.col.outcome": "ውጤት",
+  "admin.ai.log.col.latency": "የፈጀው ጊዜ",
+  "admin.ai.log.col.person": "ሰው",
+  "admin.ai.log.allOutcomes": "ሁሉም ውጤቶች",
+  "admin.ai.log.latencyMs": "{ms} ሚሊሰከንድ",
+  "admin.ai.log.personHidden": "የተደበቀ",
+  "admin.ai.log.standIn": "ምትክ",
+  "admin.ai.log.outcome.ok": "መልስ ተሰጥቷል",
+  "admin.ai.log.outcome.featureOff": "ጠፍቷል",
+  "admin.ai.log.outcome.budget": "ከበጀት በላይ",
+  "admin.ai.log.outcome.unavailable": "አይገኝም",
+  "admin.ai.log.outcome.timeout": "ጊዜው አልፏል",
+  "admin.ai.log.outcome.providerError": "የአቅራቢው ስህተት",
+  "admin.ai.log.outcome.unusableAnswer": "ጥቅም ላይ የማይውል መልስ",
+
   "admin.legal.field.textOptional": "የ{language} ጽሑፍ (አማራጭ)",
   "admin.legal.translation.add": "ትርጉም ጨምር",
   "admin.legal.translation.hint": "በታተመ ስሪት ላይ የሚጨመር ትርጉም የመጨረሻ ነው። ከእንግሊዝኛው ቢለይ የእንግሊዝኛው ይሠራል።",

@@ -185,6 +185,14 @@ export interface DataTableProps<T> {
   selectionFrom?: "md";
   /** Pagination controls slot, rendered under the table. */
   pagination?: ReactNode;
+  /** Server-keyed pages: no total, page number, or local row slicing. */
+  keyset?: {
+    hasPrevious: boolean;
+    hasNext: boolean;
+    busy?: boolean;
+    onPrevious: () => void;
+    onNext: () => void;
+  };
   /**
    * INC-172 — PAGINATION LIVES IN THE PRIMITIVE. Declare the zero-based `page`
    * and its `pageSize` alongside the `pagination` element and the primitive
@@ -458,6 +466,7 @@ export function DataTable<T>({
   selectionActions,
   selectionFrom,
   pagination,
+  keyset,
   page,
   pageSize,
   sortKey,
@@ -471,7 +480,7 @@ export function DataTable<T>({
   const navigate = useNavigate();
   /** INC-172 — the primitive owns the page window. */
   const rows =
-    pageSize && pageSize > 0
+    !keyset && pageSize && pageSize > 0
       ? allRows.slice((page ?? 0) * pageSize, (page ?? 0) * pageSize + pageSize)
       : allRows;
   const cardsHiddenClass =
@@ -950,7 +959,35 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {pagination ? <div className={cn("min-w-0", FOOTER_AT[cardUntil])}>{pagination}</div> : null}
+      {keyset ? (
+        <div
+          className={cn("flex min-w-0 justify-end gap-2", FOOTER_AT[cardUntil])}
+          data-testid="data-table-keyset"
+        >
+          <Button
+            type="button"
+            variant="outline"
+            className="size-11 p-0"
+            aria-label={t("prim.table.previous")}
+            disabled={keyset.busy || !keyset.hasPrevious}
+            onClick={keyset.onPrevious}
+          >
+            <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="size-11 p-0"
+            aria-label={t("prim.table.next")}
+            disabled={keyset.busy || !keyset.hasNext}
+            onClick={keyset.onNext}
+          >
+            <ChevronRight aria-hidden="true" className="rtl:rotate-180" />
+          </Button>
+        </div>
+      ) : pagination ? (
+        <div className={cn("min-w-0", FOOTER_AT[cardUntil])}>{pagination}</div>
+      ) : null}
     </div>,
   );
 }

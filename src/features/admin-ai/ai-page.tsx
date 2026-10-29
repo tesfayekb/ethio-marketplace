@@ -21,6 +21,7 @@ import { useSettling } from "@/lib/use-settling";
 
 import { AiEditorDialog } from "./ai-editor";
 import { AiSpendDays } from "./ai-spend-days";
+import { AiCalls } from "./ai-calls";
 import {
   AI_COLUMN_PRIORITIES,
   budgetText,
@@ -298,6 +299,7 @@ export function AdminAiPage() {
             }
           />
           <AiSpendDays />
+          <AiCalls />
           {selected !== null && dialog.kind === "editor" ? (
             <AiEditorDialog
               key={selected.feature}

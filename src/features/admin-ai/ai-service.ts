@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { ownValue } from "@/lib/own-key";
+import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 /**
  * Bundle 13 turn 5 (D158) — THE AI SERVICES CONSOLE CLIENT SEAM.
@@ -316,6 +317,96 @@ export function unitCostOf(unit: AiUnit, raw: string): number | null {
   if (value === null) return null;
   const micro = Math.round(unit === "call" ? value * 1_000_000 : value);
   return micro > MAX_UNIT_COST_MICROUSD ? null : micro;
+}
+
+/** A2: a page is already keyed by the door; never infer totals or expose hashes/IDs. */
+export const AI_OUTCOMES = [
+  "ok",
+  "featureOff",
+  "budget",
+  "unavailable",
+  "timeout",
+  "providerError",
+  "unusableAnswer",
+] as const;
+export type AiOutcome = (typeof AI_OUTCOMES)[number];
+export type AiCallsCursor = { at: string; id: string };
+export interface AiCallRow {
+  id: string;
+  created_at: string;
+  feature: string;
+  model: string;
+  outcome: AiOutcome;
+  latency_ms: number;
+  actor: { kind: "system" | "hidden" } | { kind: "person"; name: string };
+}
+export interface AiCallsPage {
+  rows: AiCallRow[];
+  next: AiCallsCursor | null;
+}
+export function aiCallsOf(raw: unknown): AiCallsPage {
+  const malformed = () =>
+    new ReaderError({ class: "malformed", message: "admin_list_ai_calls: answer out of shape" });
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) throw malformed();
+  const page = raw as Record<string, unknown>;
+  if (!Array.isArray(page["rows"])) throw malformed();
+  const rows = page["rows"].map((value): AiCallRow => {
+    if (value === null || typeof value !== "object") throw malformed();
+    const row = value as Record<string, unknown>;
+    for (const key of ["id", "created_at", "feature", "model"]) {
+      if (typeof row[key] !== "string" || row[key] === "") throw malformed();
+    }
+    if (
+      !Number.isFinite(Date.parse(String(row["created_at"]))) ||
+      whole(row["latency_ms"]) === null ||
+      !AI_OUTCOMES.includes(row["outcome"] as AiOutcome)
+    )
+      throw malformed();
+    const actor = row["actor"] as Record<string, unknown> | null;
+    if (
+      !actor ||
+      !["system", "hidden", "person"].includes(String(actor["kind"])) ||
+      (actor["kind"] === "person" && typeof actor["name"] !== "string")
+    )
+      throw malformed();
+    return {
+      id: String(row["id"]),
+      created_at: String(row["created_at"]),
+      feature: String(row["feature"]),
+      model: String(row["model"]),
+      outcome: row["outcome"] as AiOutcome,
+      latency_ms: Number(row["latency_ms"]),
+      actor:
+        actor["kind"] === "person"
+          ? { kind: "person", name: String(actor["name"]) }
+          : { kind: actor["kind"] as "hidden" | "system" },
+    };
+  });
+  const next = page["next"];
+  if (next === null) return { rows, next: null };
+  if (!next || typeof next !== "object" || Array.isArray(next)) throw malformed();
+  const cursor = next as Record<string, unknown>;
+  if (
+    typeof cursor["at"] !== "string" ||
+    !Number.isFinite(Date.parse(cursor["at"])) ||
+    typeof cursor["id"] !== "string"
+  )
+    throw malformed();
+  return { rows, next: { at: cursor["at"], id: cursor["id"] } };
+}
+export async function fetchAiCalls(
+  feature: string,
+  outcome: string,
+  before: AiCallsCursor | null,
+): Promise<AiCallsPage> {
+  const { data, error } = await supabase.rpc("admin_list_ai_calls", {
+    ...(feature ? { p_feature: feature } : {}),
+    ...(outcome ? { p_outcome: outcome } : {}),
+    ...(before ? { p_before_at: before.at, p_before_id: before.id } : {}),
+    p_limit: 50,
+  });
+  if (error) throw new ReaderError(readerFailure(error));
+  return aiCallsOf(data);
 }
 
 /** The fields as the form first shows them: the stored values, typed back. */

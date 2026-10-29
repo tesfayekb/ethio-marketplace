@@ -20,6 +20,10 @@ exit 0 for now.
 
 ## Migration linter
 
+Foundations turn A2 (INC-975/976): replacing the gitleaks action with the pinned,
+checksum-checked binary changes CI's closed surface (G22). The supervisor records
+that decision as a DEC at the records turn; the scan remains a gating verdict.
+
 `scripts/check-migrations.sh` scans every `.sql` file in
 `supabase/migrations/`. Any file containing `CREATE TABLE` must also contain
 `ENABLE ROW LEVEL SECURITY`, at least one `CREATE POLICY`, and at least one

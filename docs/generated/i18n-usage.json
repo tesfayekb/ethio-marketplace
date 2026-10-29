@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 602,
-  "dynamicCallSites": 396,
+  "scanned": 604,
+  "dynamicCallSites": 400,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -566,6 +566,36 @@
       "/admin/ai"
     ],
     "admin.ai.loading": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.allOutcomes": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.col.latency": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.col.model": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.col.outcome": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.col.person": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.error": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.hint": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.latencyMs": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.loading": [
+      "/admin/ai"
+    ],
+    "admin.ai.log.title": [
       "/admin/ai"
     ],
     "admin.ai.note": [
@@ -1205,6 +1235,7 @@
       "/admin/audit"
     ],
     "admin.audit.col.time": [
+      "/admin/ai",
       "/admin/audit"
     ],
     "admin.audit.collapse": [

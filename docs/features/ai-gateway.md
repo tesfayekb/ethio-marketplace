@@ -48,7 +48,15 @@ The spend already recorded stands: in the gateway's order the provider was asked
 
 Outside-call deadlines are classified once by `isDeadline` (src/server/upstream.ts, INC-888; AIA-1). AIA-3 refuses a deadline-error name elsewhere in src/server or src/routes/api. Actor and provider-status RPC parameters are omitted by conditional spreads when null, using M2's trailing `DEFAULT NULL` arguments; generated types are not hand-edited.
 
-DEC-247 retention is enforced in `public.ai_calls_prune()`: rows older than 90 days are purged daily at `17 4 * * *` UTC. Every run writes `ai_calls_prune_runs`, including zero deletions; heartbeats older than 14 days are purged. Both tables and functions are closed to browser roles. An admin last-calls reader remains a later task.
+DEC-247 retention is enforced in `public.ai_calls_prune()`: rows older than 90 days are purged daily at `17 4 * * *` UTC. Every run writes `ai_calls_prune_runs`, including zero deletions; heartbeats older than 14 days are purged. Both tables and functions are closed to browser roles.
+
+## Staff last calls (Foundations turn A2)
+
+`admin_list_ai_calls(p_feature, p_outcome, p_before_at, p_before_id, p_limit)` gates authentication then `services:view`, validates the paired cursor and the 1–100 limit, and invokes the private SECURITY INVOKER core with `p_hide_e2e=true`. The core has no PUBLIC, anon, authenticated or service_role execute grant. The public door intentionally is SECURITY DEFINER with fixed search_path; linter 0029 flags its intended signed-in grant just as the existing staff readers. Deny and ACL proofs passed; the warning is reviewed, not removed by opening the table or deleting the required door.
+
+Newest first by `(created_at,id)`, strictly newer than the 90-day edge, feature/outcome filters and one lookahead row. Returns only time, feature, model, outcome, latency, row id/cursor and the person projection. No task, provider, units, hash, prompt, answer or actor id. Uses the existing `profiles.display_name` identity source: names only with `profiles:view`, otherwise `kind:hidden`; null actor is `kind:system`. Existing time and feature/time indexes suffice in live EXPLAIN; no index was added.
+
+The AI page reuses DataTable's toolbar/columns and new keyset mode, with Next/Previous and cursor history. A ReaderError or malformed result shows the translated error with retry, never an empty-success table. QueryState is not installed in this tree (register row 18 lists it as future); the existing DataTable state slots are reused rather than adding a second mechanism. ACR-1…6 cover the reader/consumer/primitive/census; ACR-E1 is the real-door page check. A failed scope read returns 500 with an incident id; an unusual provider 4xx returns 502 `modelCallFailed` (A1 rulings).
 
 M1 `f5f6c8fb` declares mark `20261025140000`; operator-ruled M2 `71ad0a58` declares `20261025150000`, replaces the unused audit signature with nullable trailing defaults and keeps the same INSERT body and service-only ACL. Both projects hold both marks per operator read-back.
 

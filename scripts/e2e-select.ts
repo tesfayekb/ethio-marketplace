@@ -146,7 +146,7 @@ export const AREAS: Area[] = [
     // Bundle 13 (D158) — the AI switches and meter (turn 1) and their page, /admin/ai (turn 5).
     name: "admin-services",
     src: ["src/server/ai/**", "src/routes/admin.ai.tsx", "src/features/admin-ai/**"],
-    specs: ["e2e/admin-services.spec.ts"],
+    specs: ["e2e/admin-services.spec.ts", "e2e/admin-ai-calls.spec.ts"],
   },
   {
     name: "admin-imports",
