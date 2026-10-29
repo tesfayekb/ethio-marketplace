@@ -91,3 +91,7 @@ New keys. They need Amharic from the ruling; none will land without it.
 ## Next, after the ruling
 
 I write the migration on the ruled option and apply it on ethio-prod. Then I report "apply <fragment> → expect mark 20261029190000", the EXPLAIN (ANALYZE) and the read-back, and stop.
+
+## Ruling continuation
+
+Superseded by the final A2 report: core/door approved, applied 4a7e258a then append-only feature-only correction 175bb84e, exact EN/AM landed. Full unit suite passed; E2E blocked by staging parity, not another migration proof failure.
