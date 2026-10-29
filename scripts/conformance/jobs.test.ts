@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
 
@@ -13,10 +13,10 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
 type Finding = { file: string; line: number; what: string };
 const JOBS_PREFIX = "src/routes/api/public/jobs";
 
-export function jobRouteBreaches(files: string[]): Finding[] {
+export function jobRouteBreaches(entries: Array<{ file: string; text: string }>): Finding[] {
   const found: Finding[] = [];
-  for (const file of files) {
-    const code = codeOf(readFileSync(file, "utf8"));
+  for (const { file, text } of entries) {
+    const code = codeOf(text);
     const isJobs = file.startsWith(JOBS_PREFIX);
     const names = /\bjobHandler\b/.test(code);
     if (!isJobs) {
@@ -33,7 +33,12 @@ export function jobRouteBreaches(files: string[]): Finding[] {
   return found;
 }
 
-const census = jobRouteBreaches(walkFiles(["src/routes"], { ext: ["ts", "tsx"], skipTests: true }));
+const census = jobRouteBreaches(
+  walkFiles(["src/routes"], { ext: ["ts", "tsx"], skipTests: true }).map((file) => ({
+    file,
+    text: readFileSync(file, "utf8"),
+  })),
+);
 
 describe("scheduled job routes check the signature first (INC-977)", () => {
   it(
@@ -45,32 +50,19 @@ describe("scheduled job routes check the signature first (INC-977)", () => {
     TREE_SCAN_MS,
   );
 
-  it("JOBS-2 the census refuses a planted jobs route on its own handler", () => {
-    const dir = "node_modules/.cache/jobs-guard";
-    mkdirSync(dir, { recursive: true });
-    const bad = `${dir}/bad.ts`;
-    try {
-      writeFileSync(
-        bad,
-        'import { defineRoute } from "@/server/route";\nexport const h = defineRoute({ path: "/api/public/jobs/x", auth: "anon", handler: async () => run() });\n',
-      );
-      // The census keys on the path prefix; judge the planted text as if it lived there.
-      const planted = `${JOBS_PREFIX}.planted.ts`;
-      const findings = jobRouteBreaches([bad]).length;
-      expect(findings).toBe(0);
-      writeFileSync(planted, readFileSync(bad, "utf8"));
-      try {
-        expect(report(jobRouteBreaches([planted]))).toBe(
-          [
-            `${planted}:1 jobs route not on jobHandler`,
-            `${planted}:1 jobs route auth is not "none"`,
-          ].join("\n"),
-        );
-      } finally {
-        rmSync(planted, { force: true });
-      }
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
+  it("JOBS-2 the census refuses a planted jobs route on its own handler, and passes the real one", () => {
+    const bad =
+      'import { defineRoute } from "@/server/route";\nexport const h = defineRoute({ path: "/api/public/jobs/x", auth: "anon", handler: async () => run() });\n';
+    const planted = `${JOBS_PREFIX}.planted.ts`;
+    expect(report(jobRouteBreaches([{ file: planted, text: bad }]))).toBe(
+      [`${planted}:1 jobs route not on jobHandler`, `${planted}:1 jobs route auth is not "none"`].join(
+        "\n",
+      ),
+    );
+    const real = `${JOBS_PREFIX}.$job.ts`;
+    expect(jobRouteBreaches([{ file: real, text: readFileSync(`src/routes/api/public/jobs.$job.ts`, "utf8") }])).toEqual([]);
+    expect(
+      report(jobRouteBreaches([{ file: "src/routes/api/feed.ts", text: "handler: jobHandler" }])),
+    ).toBe("src/routes/api/feed.ts:1 jobHandler outside the jobs prefix");
   });
 });
