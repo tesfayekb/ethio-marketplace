@@ -259,11 +259,51 @@ function mapsHash(): string {
   return h.digest("hex");
 }
 
-/** The turn's base build: HEAD's tree, exported (git archive, read-only) and built once. */
+/**
+ * The turn's base: CHECKS_BASE, else the "Base: dev <sha>" of the brief roadmap line 3 names (the
+ * platform commits during a turn, so HEAD is not the base), else HEAD.
+ */
+export function briefBase(
+  roadmap: string,
+  readBrief: (path: string) => string | null,
+): string | null {
+  const path = roadmap.split("\n")[2]?.match(/docs\/governance\/briefs\/[\w.-]+\.md/)?.[0];
+  const text = path ? readBrief(path) : null;
+  return text?.match(/Base: dev ([0-9a-f]{7,40})\b/)?.[1] ?? null;
+}
+
+function turnBase(): string {
+  const env = (process.env.CHECKS_BASE ?? "").trim();
+  if (env) return env;
+  const fromBrief = existsSync("roadmap.md")
+    ? briefBase(readFileSync("roadmap.md", "utf8"), (p) =>
+        existsSync(p) ? readFileSync(p, "utf8") : null,
+      )
+    : null;
+  return fromBrief ?? spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+}
+
+/**
+ * The secrets scan's local form: CI walks origin/main..HEAD; this sandbox holds no origin/main, so
+ * the walk is <base>..HEAD (never the whole history), and the work not yet committed is scanned
+ * too (`gitleaks git --pre-commit`). Counts only.
+ */
+export function localSecretsScan(run: string, base: string, hasMain: boolean): string {
+  if (hasMain) return run;
+  const tail = [
+    "set +e",
+    '"$RUNNER_TEMP/gitleaks" git --pre-commit --redact --no-banner --exit-code=2 . > "$RUNNER_TEMP/gitleaks-wt.log" 2>&1',
+    "code=$?",
+    "set -e",
+    'echo "Uncommitted work:"; grep -E "leaks found|no leaks found" "$RUNNER_TEMP/gitleaks-wt.log" | sed -E "s/^.*(INF|WRN|ERR) //"',
+    'if [ "$code" -ne 0 ]; then exit "$code"; fi',
+  ].join("\n");
+  return `${run.replace('range="HEAD"', `range="${base}..HEAD"`)}\n${tail}\n`;
+}
+
+/** The turn's base build: the base's tree, exported (git archive, read-only) and built once. */
 function baseSizes(): { sizes: Map<string, { kib: number; ceiling: number }>; sha: string } | null {
-  const sha =
-    (process.env.CHECKS_BASE ?? "").trim() ||
-    spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).stdout.trim();
+  const sha = turnBase();
   if (!/^[0-9a-f]{7,40}$/.test(sha)) return null;
   const cached = join(CACHE, "base-sizes", `${sha}.txt`);
   if (!existsSync(cached)) {
@@ -374,8 +414,16 @@ function main(): number {
       if (!existsSync(join(venv, "bin", "pip")))
         sh(`python3 -m venv ${JSON.stringify(venv)}`, {}, 120, "semgrep-venv");
     }
+    const text =
+      step.key === "secrets-scan › Secrets scan (gitleaks, pinned)"
+        ? localSecretsScan(
+            step.run,
+            turnBase(),
+            spawnSync("git", ["rev-parse", "--verify", "--quiet", "origin/main"]).status === 0,
+          )
+        : step.run;
     const r = sh(
-      step.run,
+      text,
       { ...baseEnv, ...step.env },
       step.timeoutS,
       step.key.replace(/[^\w]+/g, "-"),
