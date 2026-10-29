@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from "react";
 
 import { callRoute } from "@/lib/route-client";
 import { entityName, type EntityBundle } from "@/i18n";
@@ -261,6 +261,71 @@ interface TreePayload {
   }[];
 }
 
+/**
+ * INC-974 — THE RAIL'S FIRST-PAINT SEED. The server hands the page the tree's
+ * route answer in the root loader's data (src/server/first-screen.ts), either
+ * whole (`full`) or shaped to what the first paint draws (`first-rail`: the
+ * roots and the selected category's path, images left out). It reaches the hook
+ * through the root's loader data and this context — per request on the server,
+ * never module state. A `first-rail` seed draws names but is never the held
+ * tree: `cache` is written only by the browser's own read, which still runs.
+ */
+export type TreeSeedShape = "first-rail" | "full";
+export interface CategoryTreeSeed {
+  seed: TreeSeedShape;
+  /** The route's own payload shape (version, nodes, pointers) — plain data. */
+  payload: TreePayload;
+}
+export const CategoryTreeSeedContext = createContext<CategoryTreeSeed | null>(null);
+
+/** The pointer a child calls home: its primary, else its first (buildTree's rule). */
+function homeOf(pointers: TreePayload["pointers"], childId: string) {
+  const own = pointers.filter((pointer) => pointer.child_id === childId);
+  return own.find((pointer) => pointer.is_primary) ?? own[0];
+}
+
+/**
+ * INC-974 — the first-rail shape: the roots, the selected category's home chain,
+ * and the children of every node on that chain; image links left out (the rail
+ * draws none). Null for a payload that does not parse (F4).
+ */
+export function firstRailPayload(payload: unknown, slug: string | null): TreePayload | null {
+  if (!isTreePayload(payload)) return null;
+  const keep = new Set<string>();
+  const pointers = payload.pointers.filter((pointer) => pointer.parent_id === null);
+  for (const pointer of pointers) keep.add(pointer.child_id);
+  const selected = slug === null ? undefined : payload.nodes.find((node) => node.slug === slug);
+  const chain = new Set<string>();
+  for (let id = selected?.id; id !== undefined && !chain.has(id); ) {
+    chain.add(id);
+    keep.add(id);
+    id = homeOf(payload.pointers, id)?.parent_id ?? undefined;
+  }
+  for (const pointer of payload.pointers) {
+    if (pointer.parent_id !== null && chain.has(pointer.parent_id)) {
+      pointers.push(pointer);
+      keep.add(pointer.child_id);
+    } else if (pointer.parent_id !== null && chain.has(pointer.child_id)) {
+      pointers.push(pointer);
+    }
+  }
+  return {
+    version: payload.version,
+    nodes: payload.nodes
+      .filter((node) => keep.has(node.id))
+      .map((node) => ({ ...node, image_url: null, image_thumb_url: null })),
+    pointers: [...new Set(pointers)],
+  };
+}
+
+/** One parse per seed object (the seed lives as long as its request or page). */
+const seededTrees = new WeakMap<CategoryTreeSeed, CategoryTree | null>();
+function seededTree(seed: CategoryTreeSeed | null): CategoryTree | null {
+  if (seed === null) return null;
+  if (!seededTrees.has(seed)) seededTrees.set(seed, parseCategoryTree(seed.payload)?.tree ?? null);
+  return seededTrees.get(seed) ?? null;
+}
+
 /** The route's envelope is data; a malformed answer is a read failure (F4), never a cast. */
 function isTreePayload(payload: unknown): payload is TreePayload {
   if (payload === null || typeof payload !== "object" || Array.isArray(payload)) return false;
@@ -439,6 +504,12 @@ export interface UseCategoryTreeResult {
   isLoading: boolean;
   /** F4 — a failed read is visible, never a silently empty tree. */
   error: boolean;
+  /**
+   * INC-974 — true while the tree drawn is the server's first-rail seed (names
+   * for the first paint), not the read: `isLoading` stays true for every other
+   * reader; only the rail draws from it.
+   */
+  firstRail?: boolean;
 }
 
 /**
@@ -451,12 +522,16 @@ export interface UseCategoryTreeResult {
  * INC-788 — one held tree for the whole page: every mount asks, and the answer reaches every reader at once, so two readers never show two versions.
  */
 export function useCategoryTree(): UseCategoryTreeResult {
+  const seed = useContext(CategoryTreeSeedContext);
+  const seeded = seededTree(seed);
   const tree = useSyncExternalStore(
     subscribe,
-    () => cache?.tree ?? EMPTY_TREE,
-    () => EMPTY_TREE,
+    () => cache?.tree ?? seeded ?? EMPTY_TREE,
+    () => seeded ?? EMPTY_TREE,
   );
-  const [isLoading, setIsLoading] = useState(cache === null);
+  const [isLoading, setIsLoading] = useState(
+    cache === null && !(seed?.seed === "full" && seeded !== null),
+  );
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -486,7 +561,7 @@ export function useCategoryTree(): UseCategoryTreeResult {
     };
   }, []);
 
-  return { tree, isLoading, error };
+  return { tree, isLoading, error, firstRail: cache === null && seeded !== null };
 }
 
 /**
