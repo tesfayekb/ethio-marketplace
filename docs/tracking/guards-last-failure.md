@@ -1,88 +1,13 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40862076281
-- Commit: `0c2ede76b04bc7470ddac0b2ca276cea7d7fbb98`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40863361240
+- Commit: `e150cc6ee72d83e7df70a249911a9d9d75876e94`
 - Attempt: 1
-- Written (UTC): 2026-10-29T11:21:27.112Z
+- Written (UTC): 2026-10-29T11:41:00.147Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
-
-## First-paint bundle budget (gzipped ceiling) — failure
-
-### Evidence lines
-
-```text
-[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
-Per-page budget failed (D234):
-##[error]Process completed with exit code 1.
-```
-
-### Tail (last 60 lines)
-
-```text
-    307.1 / 308 KiB  /admin/audit
-    355.3 / 356 KiB  /admin/categories
-    336.8 / 337 KiB  /admin/countries
-    329.4 / 330 KiB  /admin/coverage
-    207.7 / 209 KiB  /admin/images
-    307.6 / 308 KiB  /admin/impersonation_/$sessionId
-    276.7 / 277 KiB  /admin/legal
-    276.0 / 277 KiB  /admin/legal_/$versionId
-    282.2 / 283 KiB  /admin/legal_/edit
-    353.1 / 354 KiB  /admin/listings
-    377.0 / 379 KiB  /admin/listings_/$listingId
-    400.4 / 403 KiB  /admin/listings_/$listingId_/edit
-    268.6 / 270 KiB  /admin/locations
-    338.1 / 339 KiB  /admin/places
-    305.2 / 306 KiB  /admin/roles
-    305.8 / 306 KiB  /admin/roles_/$roleId
-    375.0 / 377 KiB  /admin/screening
-    408.5 / 409 KiB  /admin/translations
-    319.9 / 320 KiB  /admin/translations_/$lang
-    303.6 / 304 KiB  /admin/users
-    284.0 / 285 KiB  /admin/users_/$userId
-    218.7 / 219 KiB  /auth
-    207.1 / 208 KiB  /auth_/callback
-    209.2 / 210 KiB  /auth_/reset
-    219.6 / 220 KiB  /c/$slug
-    222.0 / 223 KiB  /dev/primitives
-    241.1 / 242 KiB  /dev/style
-    206.4 / 207 KiB  /dev/tall
-    249.1 / 251 KiB  /l/$slug
-    210.0 / 211 KiB  /legal/$kind
-    217.7 / 218 KiB  /legal/accept
-    210.7 / 212 KiB  /legal/publishing
-    326.7 / 327 KiB  /my-listings
-    316.0 / 316 KiB  /my-listings_/$listingId
-    394.9 / 397 KiB  /my-listings_/$listingId_/edit
-    394.8 / 397 KiB  /post
-    394.8 / 397 KiB  /post_/$listingId
-    210.0 / 211 KiB  /privacy
-    269.9 / 271 KiB  /settings
-    210.0 / 211 KiB  /terms
-
-Code-split the addition behind a dynamic import, or change the page's line in
-scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
-##[error]Process completed with exit code 1.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/14de4082-21c4-42cb-bcf6-e516b46d3e9a' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
 
 ## E2E (Playwright, ethio-staging) — failure
 
@@ -111,10 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40862076281
-  E2E_HEAD_COMMIT_MESSAGE: Fixed CI build errors
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40863361240
+  E2E_HEAD_COMMIT_MESSAGE: Applied M3 to ethio-prod
 
-X-Lovable-Edit-ID: edt-ab8d102b-1392-4e28-9b27-1f9d61c05cff
+X-Lovable-Edit-ID: edt-d9d9bba9-90ae-4187-b72c-c0ba67cb8dcb
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -148,7 +73,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/9d6ce03f-6719-432e-9aaa-547c491f8e80' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/27f9fcf8-d4df-4937-ad12-9a734d2f559e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
