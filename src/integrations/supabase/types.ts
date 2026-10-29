@@ -3619,6 +3619,10 @@ export type Database = {
         Args: { p_child_id: string; p_parent_id: string }
         Returns: string
       }
+      admin_add_category_pointer_core: {
+        Args: { p_child_id: string; p_parent_id: string }
+        Returns: string
+      }
       admin_add_legal_translation: {
         Args: { p_body: string; p_language: string; p_version_id: string }
         Returns: Json
@@ -3691,6 +3695,20 @@ export type Database = {
         Returns: Json
       }
       admin_create_category: {
+        Args: {
+          p_allow_listings?: boolean
+          p_expiry_days?: number
+          p_icon?: string
+          p_name_en: string
+          p_parent_id?: string
+          p_price_enabled?: boolean
+          p_slug?: string
+          p_visible_from?: string
+          p_visible_until?: string
+        }
+        Returns: string
+      }
+      admin_create_category_core: {
         Args: {
           p_allow_listings?: boolean
           p_expiry_days?: number
@@ -4424,6 +4442,10 @@ export type Database = {
         Returns: undefined
       }
       admin_set_country_exclusions: {
+        Args: { p_country_codes: string[]; p_id: string }
+        Returns: undefined
+      }
+      admin_set_country_exclusions_core: {
         Args: { p_country_codes: string[]; p_id: string }
         Returns: undefined
       }

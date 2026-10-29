@@ -149,9 +149,13 @@ export const DIALS = {
     limit: { fallback: 30 },
     windowSeconds: 60,
   },
-  /** INC-951 3c (D1 M6) — src/server/imports/route.ts: every family's commit, before any door. */
+  /** INC-951 3c (D1 M6) — src/server/imports/route.ts: every family's commit, before any door.
+      Twin: the database's import_commit rate_dials row (M6c) gates the commit doors at the same
+      limit, for direct calls; change one, change the other. */
   importCommit: { action: "import:commit", limit: { fallback: 120 }, windowSeconds: 3600 },
-  /** INC-951 3c (D1 M6) — src/server/imports/route.ts: every family's undo, before any door. */
+  /** INC-951 3c (D1 M6) — src/server/imports/route.ts: every family's undo, before any door.
+      Twin: the database's import_undo rate_dials row (M6c) gates the undo doors at the same
+      limit, for direct calls; change one, change the other. */
   importUndo: { action: "import:undo", limit: { fallback: 120 }, windowSeconds: 3600 },
   /** INC-951 3b (D1 M5a) — src/routes/api/translate.ts: one per machine-translate press, before the AI call. */
   machineTranslatePress: {
@@ -161,6 +165,13 @@ export const DIALS = {
   },
   /** INC-951 3b (D1 M5a) — counted by the doors (rate_gate), equal to their rate_dials rows. */
   /** listing photo allow/review, admin edit and move — one decision every 6 seconds for an hour. */
+  /** INC-951 3c (D1 M6a) — staff settings and catalogue saves, one every 6 seconds for an hour. */
+  staffConfig: {
+    action: "staff_config",
+    limit: { fallback: 600 },
+    windowSeconds: 3600,
+    countedBy: "door",
+  },
   staffModeration: {
     action: "staff_moderation",
     limit: { fallback: 600 },
