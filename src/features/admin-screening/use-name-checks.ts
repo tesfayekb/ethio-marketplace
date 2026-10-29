@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import type { MessageKey } from "@/i18n";
-import { supabase } from "@/integrations/supabase/client";
+import { rpc } from "@/lib/supabase-door";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 
 import { ADMIN_SCREENING_KEY } from "./use-screening";
@@ -18,6 +18,9 @@ import { ADMIN_SCREENING_KEY } from "./use-screening";
  *   admin_job_health        services:view; the job's newest run and its pause
  *   admin_job_resume        services:manage → step-up → the pause FOR UPDATE;
  *                           no pause answers `notPaused` and writes nothing
+ *
+ * The calls go through the browser's one door to the client (DEC-261,
+ * src/lib/supabase-door.ts), never the client module itself (DEC-250).
  *
  * F4 / INC-885: every read that fails, or answers out of shape, is a thrown
  * typed ReaderError — never an empty queue, never a healthy line.
@@ -99,7 +102,7 @@ export function nameQueuePageOf(raw: unknown): NameQueuePage {
 }
 
 export async function fetchNameQueue(after: NameQueueCursor | null): Promise<NameQueuePage> {
-  const { data, error } = await supabase.rpc("admin_name_check_list", {
+  const { data, error } = await rpc("admin_name_check_list", {
     ...(after ? { p_after_since: after.since, p_after_profile: after.profileId } : {}),
     p_limit: NAME_QUEUE_LIMIT,
   });
@@ -123,7 +126,7 @@ export type ClearAnswer = "done" | "stale";
 export async function clearNameCheck(row: NameQueueRow, reason: string): Promise<ClearAnswer> {
   if (row.checkedText === null) throw new Error("clearNameCheck: no checked text to match");
   const trimmed = reason.trim();
-  const { data, error } = await supabase.rpc("admin_name_check_clear", {
+  const { data, error } = await rpc("admin_name_check_clear", {
     p_profile: row.profileId,
     p_subject: row.subject,
     p_text: row.checkedText,
@@ -218,7 +221,7 @@ export function jobLineOf(raw: unknown): JobLine {
 }
 
 export async function fetchJobLine(): Promise<JobLine> {
-  const { data, error } = await supabase.rpc("admin_job_health", { p_job: NAME_JOB });
+  const { data, error } = await rpc("admin_job_health", { p_job: NAME_JOB });
   if (error) throw new ReaderError(readerFailure(error));
   return jobLineOf(data);
 }
@@ -235,7 +238,7 @@ export function useJobLine(enabled: boolean) {
 export type ResumeAnswer = "done" | "notPaused";
 
 export async function resumeJob(): Promise<ResumeAnswer> {
-  const { data, error } = await supabase.rpc("admin_job_resume", { p_job: NAME_JOB });
+  const { data, error } = await rpc("admin_job_resume", { p_job: NAME_JOB });
   if (error) throw error;
   const answer = data as { ok?: unknown; reason?: unknown } | null;
   if (answer?.ok === true) return "done";
