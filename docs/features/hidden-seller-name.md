@@ -58,3 +58,7 @@ Admin › Screening draws two pieces for this concern (register row 74).
 **What the model said** (`name_checks.imitates_of`, ≤ 80 characters): kept only on an `imitates` row (CHECK, and a BEFORE UPDATE trigger that nulls it when the state moves away); written only by `name_check_mark`, which the catch-up calls with the answer's `of`, trimmed, on a hold only (NCJ-12).
 
 Tests: SQL proofs NCQ-7…13 (M1, M2) and NJH-1…5 (M3); unit NCQ-U1…5 (`use-name-checks.test.ts`, `name-checks.test.tsx`), JHL-U1…4, NCJ-12; E2E `e2e/name-check-queue.spec.ts` — NCQ-E2E-1 Allow and NCQ-E2E-2 Rename in both projects; NCQ-E2E-3 Resume in desktop-1280 only, because `job_pauses` holds one row per job for the whole backend and two projects would undo each other (J6). Holds are made only through `name_check_mark`, the pause only through `job_pause_set`; afterEach releases both.
+
+## A name the AI cannot check (J-1, INC-1002)
+
+After 5 unusable answers in a row (`name_checks.unusable_streak`) an unchecked name moves to `needs_review`. It stays public exactly as `unchecked` does: only `imitates` hides a name (DEC-286). Admin › Screening lists it with "The AI could not check this name" and allows it with Clear. `unavailable` (provider down) does not count. `clean` or `imitates` resets the streak, and a new name resets the row.

@@ -39,3 +39,7 @@ One mechanism for a server task that runs on a schedule (register row 72).
 ## Adding a job
 
 Add its name to `JOB_NAMES` (src/lib/schemas/jobs.ts), to `job_call`'s and `job_runs`' CHECK lists in a migration, and to `JOBS`. Then schedule it with `cron.schedule`.
+
+## Refusals and lost calls (J-1, INC-1000)
+
+The route answers every refusal with the one constant 401 (DEC-285), and it logs one line, `[job-refused] <job> secret_missing | bad_signature | stale | replay`, with no secret, signature or timestamp. `job_call` closes the job's older unclaimed `dispatched` rows (past 10 minutes, beyond job_run_claim's window) as `lost`/`never_claimed`, and Admin › Screening's health line shows them as the last outcome.
