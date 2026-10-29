@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { errorText } from "@/lib/error-text";
@@ -72,7 +73,8 @@ vi.mock("@/integrations/supabase/client.server", () => {
 const { Route } = await import("@/routes/api/public/jobs.$job");
 const { signJob } = await import("@/server/jobs/signature");
 
-const SECRET = "test-secret-0123456789abcdef0123456789";
+// INC-983: the fake secret is made at run time; no secret-shaped literal sits in the tree.
+const SECRET = randomBytes(32).toString("hex");
 const now = () => Math.floor(Date.now() / 1000);
 
 async function post(

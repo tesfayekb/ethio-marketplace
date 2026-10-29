@@ -40,3 +40,9 @@ a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01e
 a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:815
 a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:828
 a082ce8756bdf6d828f1ff7ba2fb04a6cfb5899a:supabase/migrations/20260920075213_f01ed897-05cf-475c-aa33-49b8e849e23b.sql:generic-api-key:848
+
+# INC-983 — src/routes/api/public/jobs.test.ts held `const SECRET = "test-secret-…"`, a made-up
+# test value, human-ruled benign; the rule stays armed everywhere else. The test now makes its
+# fake secret at run time; both commits stay in the origin/main..dev range until main advances.
+ce908c8ff72143ef85d1919238f8ebc584d26f87:src/routes/api/public/jobs.test.ts:generic-api-key:73
+c0e006ee8101f26e80b5d36b3b4f1b5acd97cbd4:src/routes/api/public/jobs.test.ts:generic-api-key:75
