@@ -11,24 +11,28 @@ Base dev c0e006ee. Plan only; nothing changed.
 ## 1. Census (by definition: any place a non-owner, non-staff viewer, search engine or cache can get the name)
 
 ### 1a. SQL — live functions that read `seller_alias` (prod `pg_proc`)
-| Function | Grants | Class | N1b-2 |
-|---|---|---|---|
-| `seller_feed_page(text,jsonb,int)` DEFINER | anon+auth | **public** (seller page, `/api/seller`, `sellerExists`) | switch |
-| `public_listing_json(listings,uuid)` DEFINER | internal (called by public ad doors) | **public** (ad page `seller.alias`, `previous_alias`) | switch |
-| `my_seller_line()` | auth | owner | add review flag; still reads the column |
-| `check_seller_alias` → `alias_verdict` | auth / internal | caller's own proposal | answers only ok/refusal + reason; never another person's name (checked: it returns `alias_verdict` jsonb) — build test confirms the reason payload carries no other person's alias |
-| `suggest_seller_aliases` | auth | caller | made from the caller's own inputs, filtered by `alias_taken`; never another person's name — test confirms |
-| `alias_taken`, `alias_verdict`, `legal_acceptance_guard`, `seller_name_sweep`, `validate_listing_draft`, `save_posting_identity` | internal / auth writer | no name goes out | unchanged |
-| `admin_*`, `impersonated_get_profile` | auth + permission | staff | unchanged |
+
+| Function                                                                                                                         | Grants                               | Class                                                   | N1b-2                                                                                                                                                                              |
+| -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `seller_feed_page(text,jsonb,int)` DEFINER                                                                                       | anon+auth                            | **public** (seller page, `/api/seller`, `sellerExists`) | switch                                                                                                                                                                             |
+| `public_listing_json(listings,uuid)` DEFINER                                                                                     | internal (called by public ad doors) | **public** (ad page `seller.alias`, `previous_alias`)   | switch                                                                                                                                                                             |
+| `my_seller_line()`                                                                                                               | auth                                 | owner                                                   | add review flag; still reads the column                                                                                                                                            |
+| `check_seller_alias` → `alias_verdict`                                                                                           | auth / internal                      | caller's own proposal                                   | answers only ok/refusal + reason; never another person's name (checked: it returns `alias_verdict` jsonb) — build test confirms the reason payload carries no other person's alias |
+| `suggest_seller_aliases`                                                                                                         | auth                                 | caller                                                  | made from the caller's own inputs, filtered by `alias_taken`; never another person's name — test confirms                                                                          |
+| `alias_taken`, `alias_verdict`, `legal_acceptance_guard`, `seller_name_sweep`, `validate_listing_draft`, `save_posting_identity` | internal / auth writer               | no name goes out                                        | unchanged                                                                                                                                                                          |
+| `admin_*`, `impersonated_get_profile`                                                                                            | auth + permission                    | staff                                                   | unchanged                                                                                                                                                                          |
+
 Build also re-runs this query plus a scan for `alias_history.alias` reads, and lists every public caller of `public_listing_json` with its grants.
 
 ### 1b. Server
+
 - `/$name` (`src/routes/$name.tsx:31` → `sellerExists`, `src/server/seller-page.ts:13` → `seller_feed_page`, `unknownSeller` → not found).
 - `/$name` head (`$name.tsx:38–43`): title, og:title, og:description are built from the **address**, not the database. With the new rule the loader returns not-found before head gets a name, so the head shows the not-found title (fix: the head must use the not-found title when the loader says not found; test).
 - Ad page `src/routes/l.$slug.tsx`: head (title/description from the ad), JSON-LD `src/features/ad-page/json-ld.ts` (test fixture shows `seller` input; build confirms whether any name goes out — if yes, it reads the helper's value).
 - Sitemap: none in `src/` (grep found none). Share text: build greps `navigator.share`/share builders. E-mail/notifications naming a seller to someone else: none found under `src/server`; build confirms in SQL (`net`/mail triggers).
 
 ### 1c. Browser
+
 - `SellerLine` `src/features/posting/seller-line.tsx:41` today falls back to `post.review.notGiven` — change to the neutral label.
 - `public-listing.ts:158/160` (alias, previous_alias) → `listing-detail.tsx:938–940`.
 - Link to the seller's other ads: `l.$slug.tsx:210` `sellerAdsKey` from `doc.seller.alias` → `listing-detail.tsx:1009–1013`. Hidden alias = null → no link drawn (already guarded).
@@ -36,6 +40,7 @@ Build also re-runs this query plus a scan for `alias_history.alias` reads, and l
 - Feed cards / similar ads: no seller name found in `src/features/feed`; build confirms on the card shape that `feed_page` returns.
 
 ### 1d. Caches
+
 - `/api/seller`: `public, max-age=60, stale-while-revalidate=300` → up to ~6 min stale at browser/edge.
 - Ad page SSR HTML and the `public_listing_json` reads: build reads the exact headers/version cache and adds them here.
 - Window: up to max-age + SWR after the verdict. Plan: no purge; it is bounded at ≤ 6 min and the job runs every 15 min, so it is the same as the time-to-detect. If the supervisor wants zero, the purge would bump the public version-cache key on an `imitates` mark (`name_check_mark`) and use `no-store` on `/api/seller` — named, not built.
@@ -43,6 +48,7 @@ Build also re-runs this query plus a scan for `alias_history.alias` reads, and l
 ## 2. The helper
 
 `public.seller_public_alias(p_profile uuid, p_subject text DEFAULT 'alias') RETURNS text`
+
 - `LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public, pg_temp` (definer because `name_checks` is closed).
 - Body: the alias, or NULL when `name_checks(p_profile, p_subject).state = 'imitates'` **and** its `checked_text` folds to the current alias. One primary-key lookup on `name_checks(profile_id, subject)`; EXPLAIN in the proof shows an index scan.
 - Grants: REVOKE FROM PUBLIC, anon, authenticated; GRANT EXECUTE to service_role only. Called only from inside definer functions, so no new browser grant and no allowlist line.
@@ -104,9 +110,10 @@ New key `post.seller.neutral` with the same words as `post.preview.sellerLabel` 
 1. N1b-2a: CI reds + M1 (+ stop).
 2. N1b-2b: M2 + M3 (two stops).
 3. N1b-2c: browser label/notice, guard, tests, E2E, docs, register row, report.
-ESTIMATE: 3 turns, band 3–5 (wider if a CI red has a deep cause or the cache purge is ruled in).
+   ESTIMATE: 3 turns, band 3–5 (wider if a CI red has a deep cause or the cache purge is ruled in).
 
 ## Rulings asked
+
 1. Legacy previous names with no recorded state: withhold (recommended) or show.
 2. Cache window ≤ ~6 min: accept, or build the purge.
 3. Own ad page shows the owner's notice: yes/no.

@@ -10,13 +10,13 @@ When the seller-name re-check (row 72's catch-up) finds a name that imitates ano
 
 ## Who reads what
 
-| Surface | Reads | While held |
-| --- | --- | --- |
-| Ad page (`public_listing_json`) | both helpers | no name, no previous name, no "All ads" link |
-| Seller page `/<name>` (`seller_feed_page`) | the helper | `unknownSeller`: the same 404 page and head as an unknown name, for everyone, the owner included (R5) |
-| `/<name>` head (`src/features/seller/seller-head.ts`) | the loader's answer only | no name; the root title |
-| Owner: `my_seller_line` | the column + `under_review` | own name, and the notice |
-| Staff doors (`admin_*`) | the column | the name |
+| Surface                                               | Reads                       | While held                                                                                            |
+| ----------------------------------------------------- | --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Ad page (`public_listing_json`)                       | both helpers                | no name, no previous name, no "All ads" link                                                          |
+| Seller page `/<name>` (`seller_feed_page`)            | the helper                  | `unknownSeller`: the same 404 page and head as an unknown name, for everyone, the owner included (R5) |
+| `/<name>` head (`src/features/seller/seller-head.ts`) | the loader's answer only    | no name; the root title                                                                               |
+| Owner: `my_seller_line`                               | the column + `under_review` | own name, and the notice                                                                              |
+| Staff doors (`admin_*`)                               | the column                  | the name                                                                                              |
 
 In the browser, `SellerLine` draws a missing name as `post.seller.neutral` ("Seller"), never `post.review.notGiven`. `SellerReviewNotice` (`src/features/seller/seller-review-notice.tsx`) shows `post.seller.underReview` and its help on the account overview, the posting review step, my listing page and the owner's own ad page. On the public ad page the owner's flag is read through `readSellerReview` (the supabase door, DEC-261). A failed read is a typed ReaderError: the account overview shows its error, and the ad page logs it and draws no notice — it never says "not held".
 
