@@ -32,10 +32,17 @@ const without = (text: string, piece: string) => {
 
 describe("the agreed tables' check — planted files", () => {
   it("ACR-6 keyset accepts server navigation only; removing it still fails the footer rule", () => {
-    const keyed = GOOD.replace('const { page, pageSize } = useKeptPage("ethio.admin.x.pageSize");', "")
-      .replace("pagination={<DataTablePagination />}", "keyset={{ hasNext, hasPrevious, onNext, onPrevious }}");
+    const keyed = GOOD.replace(
+      'const { page, pageSize } = useKeptPage("ethio.admin.x.pageSize");',
+      "",
+    ).replace(
+      "pagination={<DataTablePagination />}",
+      "keyset={{ hasNext, hasPrevious, onNext, onPrevious }}",
+    );
     expect(breaches("src/features/admin-x/x-page.tsx", keyed)).toEqual([]);
-    expect(breaches("src/features/admin-x/x-page.tsx", keyed.replace("keyset=", "missing="))).toEqual(["T6"]);
+    expect(
+      breaches("src/features/admin-x/x-page.tsx", keyed.replace("keyset=", "missing=")),
+    ).toEqual(["T6"]);
   });
   it("TBL-1 a page on every block passes; each missing block names its own rule", () => {
     expect(drawsTable(GOOD)).toBe(true);

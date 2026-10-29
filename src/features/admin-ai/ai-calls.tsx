@@ -74,9 +74,11 @@ export function AiCalls() {
       priority: "secondary",
       card: "meta",
       cell: (row) =>
-        row.actor.kind === "person"
-          ? <CutText text={row.actor.name} />
-          : t(row.actor.kind === "system" ? "admin.audit.system" : "admin.ai.log.personHidden"),
+        row.actor.kind === "person" ? (
+          <CutText text={row.actor.name} />
+        ) : (
+          t(row.actor.kind === "system" ? "admin.audit.system" : "admin.ai.log.personHidden")
+        ),
     },
   ];
   return (
@@ -111,40 +113,57 @@ export function AiCalls() {
           </p>
         }
         toolbar={
-          <TableToolbar testid="ai-calls-toolbar" search={<>
-            <NativeSelect
-              data-testid="ai-calls-feature"
-              aria-label={t("admin.ai.col.feature")}
-              value={feature}
-              onChange={(event) => {
-                setFeature(event.target.value);
-                setHistory([null]);
-              }}
-            >
-              <option value="">{t("admin.ai.days.all")}</option>
-              {AI_FEATURE_ORDER.map((id) => (
-                <option key={id} value={id}>
-                  {name(id)}
-                </option>
-              ))}
-            </NativeSelect>
-            <NativeSelect
-              data-testid="ai-calls-outcome"
-              aria-label={t("admin.ai.log.col.outcome")}
-              value={outcome}
-              onChange={(event) => {
-                setOutcome(event.target.value);
-                setHistory([null]);
-              }}
-            >
-              <option value="">{t("admin.ai.log.allOutcomes")}</option>
-              {AI_OUTCOMES.map((id) => (
-                <option key={id} value={id}>
-                  {t(`admin.ai.log.outcome.${id}`)}
-                </option>
-              ))}
-            </NativeSelect>
-          </>} columns={<ColumnsButton testid="ai-calls-columns" columns={columns.map(column => ({ key: column.key, label: String(column.header), locked: ["time", "feature", "outcome"].includes(column.key) }))} hidden={hidden} onToggle={toggleColumn} />} />
+          <TableToolbar
+            testid="ai-calls-toolbar"
+            search={
+              <>
+                <NativeSelect
+                  data-testid="ai-calls-feature"
+                  aria-label={t("admin.ai.col.feature")}
+                  value={feature}
+                  onChange={(event) => {
+                    setFeature(event.target.value);
+                    setHistory([null]);
+                  }}
+                >
+                  <option value="">{t("admin.ai.days.all")}</option>
+                  {AI_FEATURE_ORDER.map((id) => (
+                    <option key={id} value={id}>
+                      {name(id)}
+                    </option>
+                  ))}
+                </NativeSelect>
+                <NativeSelect
+                  data-testid="ai-calls-outcome"
+                  aria-label={t("admin.ai.log.col.outcome")}
+                  value={outcome}
+                  onChange={(event) => {
+                    setOutcome(event.target.value);
+                    setHistory([null]);
+                  }}
+                >
+                  <option value="">{t("admin.ai.log.allOutcomes")}</option>
+                  {AI_OUTCOMES.map((id) => (
+                    <option key={id} value={id}>
+                      {t(`admin.ai.log.outcome.${id}`)}
+                    </option>
+                  ))}
+                </NativeSelect>
+              </>
+            }
+            columns={
+              <ColumnsButton
+                testid="ai-calls-columns"
+                columns={columns.map((column) => ({
+                  key: column.key,
+                  label: String(column.header),
+                  locked: ["time", "feature", "outcome"].includes(column.key),
+                }))}
+                hidden={hidden}
+                onToggle={toggleColumn}
+              />
+            }
+          />
         }
         keyset={{
           hasPrevious: history.length > 1,
