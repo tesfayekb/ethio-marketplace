@@ -108,14 +108,6 @@ function treeAnswerOf(request: Request): Promise<Record<string, unknown> | null>
  */
 export const FIRST_TREE_DEADLINE_MS = 600;
 
-/**
- * INC-974 — THE RAIL'S CATEGORY NAMES ARRIVE WITH THE PAGE. The tree route's
- * in-process, version-cached answer, shaped to what the first paint draws
- * (`first-rail`: the roots and the selected category's path; the full tree's
- * gzip is over the 3 KiB ruling), or null — deadline, refusal, failure, or the
- * E2E switch — with one line. Never throws. The browser's own read fills in the
- * rest; a first-rail seed is never taken for the full tree (category-tree.ts).
- */
 /** The pointer a child calls home: its primary, else its first (buildTree's rule). */
 function homeOf(pointers: TreePayload["pointers"], childId: string) {
   const own = pointers.filter((pointer) => pointer.child_id === childId);
@@ -156,6 +148,14 @@ export function firstRailPayload(payload: unknown, slug: string | null): TreePay
   };
 }
 
+/**
+ * INC-974 — THE RAIL'S CATEGORY NAMES ARRIVE WITH THE PAGE. The tree route's
+ * in-process, version-cached answer, shaped to what the first paint draws
+ * (`first-rail`: the roots and the selected category's path; the full tree's
+ * gzip is over the 3 KiB ruling), or null — deadline, refusal, failure, or the
+ * E2E switch — with one line. Never throws. The browser's own read fills in the
+ * rest; a first-rail seed is never taken for the full tree (category-tree.ts).
+ */
 export async function readFirstCategoryTree(request: Request): Promise<CategoryTreeSeed | null> {
   if (isE2E && /(?:^|;\s*)e2e_first_screen=off(?:;|$)/.test(request.headers.get("cookie") ?? "")) {
     return null;
