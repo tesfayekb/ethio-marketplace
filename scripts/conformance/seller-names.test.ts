@@ -51,7 +51,7 @@ const migrations = walkFiles(["supabase/migrations"], { ext: ["sql"] })
   .sort()
   .map((file) => ({ file, text: readFileSync(file, "utf8") }));
 const bodies = latestBodies(migrations);
-const readers = nameReaders(bodies);
+const findings = nameReaders(bodies);
 
 describe("a seller's name reaches the public only through the helper (INC-977)", () => {
   it(
@@ -60,10 +60,10 @@ describe("a seller's name reaches the public only through the helper (INC-977)",
       for (const helper of HELPERS) expect(bodies.has(helper)).toBe(true);
       const allowed = readAllowlist(
         ALLOWLIST,
-        readers.map((f) => f.what),
+        findings.map((f) => f.what),
       );
-      const open = readers.filter((f) => !allowed.has(f.what));
-      console.log(`[SPA-10a] readers: ${readers.length}, allowlisted: ${allowed.size}`);
+      const open = findings.filter((f) => !allowed.has(f.what));
+      console.log(`[SPA-10a] readers: ${findings.length}, allowlisted: ${allowed.size}`);
       expect(report(open)).toBe("");
     },
     TREE_SCAN_MS,

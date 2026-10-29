@@ -625,7 +625,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "post.seller.underReviewHelp":
     "ቡድናችን ግምገማውን እስኪጨርስ ድረስ ገዢዎች ከስምዎ ይልቅ «ሻጭ» ያያሉ፤ «የዚህ ሻጭ ሁሉም ማስታወቂያዎች» ገጽዎም አይታይም። ማስታወቂያዎችዎ ባሉበት ይቆያሉ።",
   "post.seller.memberSince": "አባል ከ{date} ጀምሮ",
-  "post.review.notGiven": "አልተሰጠም",
   "post.refusal.belowModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በፊት ነው።",
   "post.refusal.aboveModelYear": "ይህ ይህ ሞዴል ከተሠራበት ዓመት በኋላ ነው።",
   "post.refusal.optionNotAllowed": "ይህ ምርጫ በዚህ ምድብ ውስጥ አይቀርብም።",

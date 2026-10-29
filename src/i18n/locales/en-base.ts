@@ -676,7 +676,6 @@ export const enBase = {
   "post.seller.underReviewHelp":
     "Until our team finishes, buyers see “Seller” instead of your name, and your “All ads by this seller” page is hidden. Your ads stay up.",
   "post.seller.memberSince": "Member since {date}",
-  "post.review.notGiven": "Not given",
   "post.refusal.belowModelYear": "That is earlier than this model was made.",
   "post.refusal.aboveModelYear": "That is later than this model was made.",
   "post.refusal.optionNotAllowed": "That choice is not offered in this category.",

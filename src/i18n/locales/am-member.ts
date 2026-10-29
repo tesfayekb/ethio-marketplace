@@ -462,6 +462,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "post.who.countryNone": "አገር ይምረጡ",
   "post.who.countryRequired": "ከመለጠፍዎ በፊት የትውልድ አገርዎን ያረጋግጡ።",
   // U6-C2b — ደረጃ 8፦ ማረጋገጥና ማውጣት።
+  "post.review.notGiven": "አልተሰጠም",
   "post.review.why": "ገዢ የሚያየው ይህ ነው። ይፈትሹ፣ ከዚያ ያውጡ።",
   "post.review.channels": "{count} የሚያገኙዎት መንገዶች",
   "post.review.publish": "አውጣ",

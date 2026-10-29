@@ -480,6 +480,7 @@ export const enMember = {
   "post.who.countryNone": "Choose a country",
   "post.who.countryRequired": "Confirm your home country before you post.",
   // U6-C2b — step 8: review and publish.
+  "post.review.notGiven": "Not given",
   "post.review.why": "This is what a buyer will see. Check it, then publish.",
   "post.review.channels": "{count} ways to reach you",
   "post.review.publish": "Publish",
