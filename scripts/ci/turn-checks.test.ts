@@ -10,6 +10,7 @@ import {
   allowed,
   fetchFailure,
   lineText,
+  localSecretsScan,
   nearBand,
   nearOwed,
   pageSizes,
@@ -41,6 +42,12 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(uncovered(steps, allow)).toEqual([]);
     const keys = new Set(steps.map((s) => s.key));
     expect(Object.keys(LOCAL).filter((k) => !keys.has(k))).toEqual([]);
+    // The secrets scan's local walk replaces both of CI's ranges, so it never walks the old history.
+    const scan = steps.find((s) => s.key === "secrets-scan › Secrets scan (gitleaks, pinned)");
+    const local = localSecretsScan(scan?.run ?? "", "f9569298");
+    expect(local).not.toMatch(/range="(?:origin\/main\.\.)?HEAD"/);
+    expect(local.match(/range="f9569298\.\.HEAD"/g)?.length).toBe(2);
+    expect(local).toContain("git --pre-commit");
     // Planted: a new job's run step joins the plan by being written; a new `uses:` step must be excused.
     const planted = ciText.replace(
       /^jobs:\n/m,

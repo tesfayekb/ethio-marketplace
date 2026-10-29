@@ -150,6 +150,8 @@ export const LOCAL = {
   "build-and-check › Typecheck": "the platform harness's verdict (R1)",
   "i18n-usage-map › Assert no drift": "the maps' bytes before and after regenerating",
   "bundle-budget › Build": "build-and-check › Build, reused",
+  "secrets-scan › Secrets scan (gitleaks, pinned)":
+    "the walk is <base>..HEAD plus the uncommitted work",
 } as const;
 
 /** R1 — the harness's typecheck verdict, never re-run, never older than the tree. */
