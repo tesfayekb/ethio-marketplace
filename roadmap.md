@@ -4,6 +4,8 @@ The brief in force: docs/governance/briefs/foundations-turn-a1.md (Foundations t
 
 - [x] Turn D1 — M1 pin (applied on prod, stop 1) · M2 price pair · M3 place predicate (app `path` shape first) · M4 3a · M5 3b · M6 3c · M7 buckets (after the operator sets the mime lists) · THE CHECKS · reviewer · report. — closed (final report; unit-suite fix 4819f7cc)
 - [x] Turn A1 — the AI gateway's follow-ups: Parts A–D (INC-952, INC-886, INC-885, INC-887, INC-888) and the AGL-1 follow-up (local-backend-proof.md by allowlist line).
+- [ ] Turn A2 Part 0 — E2E admin-ai-calls (staging level), allowlist until column, remove admin.ai.log.standIn.
+- [ ] INC-974 — the rail's category names in the first paint (seed via root loader, glyph boxes, data-rail-ready, RFT-1…5, e2e/rail-first-paint.spec.ts).
 - [ ] Turn A2 — built/applied on prod; 2,139 unit tests passed. Blocked: staging applies 4a7e258a and 175bb84e, then whole admin-ai-calls E2E spec on both projects; final report records parity limit.
 - [x] INC-975 — the secrets scan walks every commit on dev not yet on main, merges included — Foundations turn A2 (ci.yml secrets-scan; replay 0 → 2 and 0 → 31 commits)
 - [x] INC-976 — the secrets scan's outside calls carry a deadline; no artifact upload — Foundations turn A2 (pinned gitleaks via with-deadline.sh)
