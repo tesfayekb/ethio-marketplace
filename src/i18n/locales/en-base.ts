@@ -739,4 +739,6 @@ export const enBase = {
   "admin.section.legal.title": "Legal",
   "admin.section.legal.body":
     "Terms, Privacy and the publishing statement in named versions, final once published, and the facts they quote.",
+  "admin.translations.ai.rateLimited":
+    "Too many machine translations in the last hour. Try again later.",
 } as const;

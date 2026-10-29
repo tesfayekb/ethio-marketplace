@@ -685,4 +685,5 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.legal.title": "ሕጋዊ",
   "admin.section.legal.body":
     "ውሎች፣ ግላዊነት እና የማስታወቂያ ማረጋገጫ ቃል በስም በተሰየሙ ስሪቶች — ከታተሙ በኋላ አይለወጡም — እና የሚጠቅሷቸው መረጃዎች።",
+  "admin.translations.ai.rateLimited": "ባለፈው ሰዓት ውስጥ ብዙ የማሽን ትርጉሞች ተደርገዋል። ቆይተው እንደገና ይሞክሩ።",
 };
