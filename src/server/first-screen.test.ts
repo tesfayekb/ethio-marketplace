@@ -95,6 +95,13 @@ vi.mock("@/routes/api/categories.tree", () => ({
     });
   },
 }));
+const held = vi.hoisted(() => ({ request: null as Request | null }));
+vi.mock("@tanstack/react-start/server", () => ({
+  getRequest: () => {
+    if (held.request === null) throw new Error("no request held");
+    return held.request;
+  },
+}));
 vi.mock("@/routes/api/feed", () => ({
   feedGet: async ({ request }: { request: Request }) => {
     record(request);
@@ -139,6 +146,8 @@ vi.mock("@/routes/api/feed", () => ({
     });
   },
 }));
+
+import { getRequest } from "@tanstack/react-start/server";
 
 import { FIRST_PAGE_DEADLINE_MS, readFirstCategoryTree, readFirstFeedPage } from "./first-screen";
 
@@ -273,5 +282,20 @@ describe("readFirstFeedPage (D234 S5)", () => {
       await readFirstCategoryTree(at("/", { cookie: "e2e_first_screen=off" })),
     ).toBeNull();
     warn.mockRestore();
+  });
+
+  it("FSP-10 INC-974: the root's two server steps, each reading getRequest(), make ONE tree read on a /c/<slug> page", async () => {
+    // __root.tsx's getFirstCategoryTree and getFirstFeedPage each call getRequest(); in one SSR
+    // request Start returns the one h3 event's Request, which this stub stands in for.
+    held.request = at("/c/phones");
+    state.asked = [];
+    const [seed, feed] = await Promise.all([
+      readFirstCategoryTree(getRequest()),
+      readFirstFeedPage(getRequest(), null),
+    ]);
+    expect(seed?.seed).toBe("first-rail");
+    expect(feed?.path).toBe(`/api/feed?category=${LEAF}`);
+    expect(state.asked.filter((path) => path === "/api/categories/tree")).toHaveLength(1);
+    held.request = null;
   });
 });
