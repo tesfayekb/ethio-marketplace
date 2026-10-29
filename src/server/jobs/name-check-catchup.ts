@@ -108,7 +108,7 @@ export async function runNameCheckCatchup(
         break;
       }
       counts.asked += 1;
-      let state: "clean" | "imitates" | "unavailable";
+      let state: "clean" | "imitates" | "unavailable" | "unusable";
       // N1b-3 (R3): what the model says the name imitates, kept on the hold only
       // (name_checks' CHECK refuses it on any other state; the door bounds it to 80).
       let of: string | undefined;
@@ -117,7 +117,9 @@ export async function runNameCheckCatchup(
         const said = answer.value.of?.trim();
         if (state === "imitates" && said) of = said;
       } else {
-        state = "unavailable";
+        // J-1 (INC-1002): an answer out of shape counts toward staff review (N = 5, in SQL);
+        // every other failure is ours or the provider's and never moves the name.
+        state = answer.reason === "unusableAnswer" ? "unusable" : "unavailable";
         const status = answer.reason === "providerError" ? answer.status : undefined;
         if (status === 402) pauseWith = "credits";
         else if (status === 403) pauseWith = "policy";

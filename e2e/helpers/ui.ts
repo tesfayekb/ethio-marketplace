@@ -1223,9 +1223,16 @@ export function userRow(page: Page, userId: string) {
 
 export async function switchLanguage(page: Page, code: "en" | "am") {
   await waitForHydration(page);
+  /**
+   * INC-1004 — a person opens the switcher only when no menu is open: a click
+   * on the trigger while the previous menu is still closing is lost, and the
+   * option never shows. The pick waits for that state, and leaves it behind.
+   */
+  await expect(page.getByRole("menu")).toHaveCount(0);
   await page.getByTestId("language-switcher").click();
   await page.getByTestId(`language-option-${code}`).click();
   await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
+  await expect(page.getByRole("menu"), "the language menu stayed open after a pick (INC-1004)").toHaveCount(0);
   /**
    * INC-173b — `html[lang]` flips from React state, and the durable record the
    * NEXT page load reads (`localStorage["ethio.lang"]`) is written just after.
