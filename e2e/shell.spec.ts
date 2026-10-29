@@ -2398,7 +2398,7 @@ test.describe("U4h device language star", () => {
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute("lang", "am");
   });
 
-  test("TR-37 the account carries onto a starless device, and never over a star", async ({
+  test("TR-37 the account carries onto a starless device, and (D239) over a star too", async ({
     page,
   }) => {
     const supabase = adminClient();
@@ -2427,7 +2427,8 @@ test.describe("U4h device language star", () => {
       expect(star, await describeSwitcher(page)).toBe("am");
 
       // Persona B — the same account preference, but this device already starred
-      // English. The device wins; the account never overwrites an explicit star.
+      // English. D239 (amends U4h): a published account language replaces the
+      // device's star at sign-in.
       await signOutViaUi(page);
       const overridden = await leaseUser();
       seeded.push(overridden.id);
@@ -2444,10 +2445,10 @@ test.describe("U4h device language star", () => {
         await signIn(fresh, overridden.email, overridden.password);
         await expect(fresh.locator("html"), await describeSwitcher(fresh)).toHaveAttribute(
           "lang",
-          "en",
+          "am",
         );
         expect(await fresh.evaluate(() => window.localStorage.getItem("ethio.lang.star"))).toBe(
-          "en",
+          "am",
         );
       } finally {
         await context.close();
