@@ -17,6 +17,7 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 
 - New tables, sequences and functions in public are born closed to browser roles: the migration names each GRANT (a browser grant needs its scripts/public-surface-allowlist.txt line); each new function restates REVOKE … FROM PUBLIC. A finality trigger lets its own ON DELETE SET NULL keys through. Owner writes to ads, photos and seller names pass acceptance_guard (takedowns pass); other signed-in write doors check acceptance or sit in scripts/acceptance-doors-allowlist.txt.
 - The database tool applies its input at once: check a scratch copy, then submit FINAL text once (never a stub, comment or draft); remove the scratch.
+- Every deletion lands with its path added to docs/tracking/intentional-deletions.txt in the same turn, so the deletion guard can distinguish intent from a stale checkout.
 - Text attributes: preset allowlist (`attr_preset_ok`), never free regex; option records: the strict shape `value, label_en, label_am, parent, active, bounds, aliases`, unknown keys refused, defaults omitted.
 - A console save never drops a field it does not show: editors round-trip every stored field.
 - CI evidence: https://raw.githubusercontent.com/tesfayekb/ethio-marketplace/ci-evidence/docs/tracking/ — ci-status.md, e2e-last-failure.md, guards-last-failure.md; never dev/main copies or a git fetch of it.

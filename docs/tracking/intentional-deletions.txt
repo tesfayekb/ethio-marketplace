@@ -55,3 +55,7 @@ src/server/category-images/prompt.ts
 # Deleted in a018721a..1990ac5d, whose run the deletion guard refused for want of these lines.
 src/i18n/locales/admin-layer.test.ts
 src/i18n/compiled-admin-loader.test.ts
+
+# Foundations turn A1 (declared retrospectively in A2; INC-076): the ruled
+# CI-evidence name allowance replaces the misleading dev-branch pointer stub.
+docs/tracking/local-backend-proof.md
