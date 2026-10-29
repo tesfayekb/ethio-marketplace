@@ -1,35 +1,35 @@
 # Local backend proof (non-gating)
 
-- Commit: `7c025b1ae5cb669189ced4e44024accbc8414a7e`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40792606430
+- Commit: `17ef198fac52c555fa14851a92d2d659237b5fcb`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40794666365
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | not run | 81 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| email | not run | 97 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 1 | not run | 106 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 2 | not run | 108 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 3 | not run | 94 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 4 | not run | 98 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 5 | not run | 107 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 6 | not run | 99 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 7 | not run | 77 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 8 | not run | 79 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 9 | not run | 104 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 10 | not run | 92 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| smoke | not run | 90 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| email | not run | 109 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 1 | not run | 109 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 2 | not run | 101 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 3 | not run | 80 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 4 | not run | 89 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 5 | not run | 97 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 6 | not run | 100 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 7 | not run | 99 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 8 | not run | 78 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 9 | not run | 100 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 10 | not run | 105 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | 11 | not run | 93 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 12 | not run | 90 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 13 | not run | 91 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 14 | not run | 77 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 15 | not run | 109 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 16 | not run | 94 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| repeat | not run | 108 | not confirmed; backend failure | 0 | 0 | 0 | 18 | 18 |
+| 12 | not run | 78 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 13 | not run | 87 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 14 | not run | 96 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 15 | not run | 108 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 16 | not run | 110 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| repeat | not run | 99 | not confirmed; backend failure | 0 | 0 | 0 | 18 | 18 |
 | TOTAL | — | — | — | 0 | 0 | 0 | 18 | 18 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
 - Slowest lane: none 0 s
 - Repeat lane (DEC-283): Repeat: each 4 on both projects; 18 tests selected, 18 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 7, email 8, 1 10, 2 10, 3 8, 4 10, 5 10, 6 10, 7 6, 8 7, 9 9, 10 10, 11 7, 12 10, 13 6, 14 6, 15 11, 16 11, repeat 10
+- Database session samples during each start (INC-944): smoke 7, email 11, 1 11, 2 8, 3 7, 4 7, 5 10, 6 10, 7 8, 8 7, 9 11, 10 10, 11 10, 12 6, 13 6, 14 11, 15 10, 16 11, repeat 8
 - Teardown:
   - smoke: not found
   - email: not found
@@ -124,15 +124,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:55300              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:56008               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:28 | 232 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:15:28 | 207 |  |  | Activity:AutovacuumMain | 
-00:15:28 | 209 | pg_cron scheduler |  | Extension:Extension | 
-00:15:28 | 210 |  |  | Activity:LogicalLauncherMain | 
-00:15:28 | 203 |  |  | Activity:CheckpointerMain | 
-00:15:28 | 204 |  |  | Activity:BgwriterMain | 
-00:15:28 | 206 |  |  | Activity:WalWriterMain | 
+00:35:26 | 231 | @effect/sql-pg | active | : | -- Proofs — a scratch admin and scratch rows inside a block that always rolls back. DO $p$ DECLARE v_uid uuid := gen_ran
+00:35:26 | 206 |  |  | Activity:AutovacuumMain | 
+00:35:26 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:35:26 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:35:26 | 202 |  |  | Activity:CheckpointerMain | 
+00:35:26 | 203 |  |  | Activity:BgwriterMain | 
+00:35:26 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane email
@@ -193,15 +193,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:60540              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:59054               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:44 | 231 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:15:44 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:44 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:44 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:44 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:44 | 203 |  |  | Activity:BgwriterMain | 
-00:15:44 | 205 |  |  | Activity:WalWriterMain | 
+00:34:18 | 231 | @effect/sql-pg | active | : | -- ===== 1 and 2 — the columns ===== ALTER TABLE public.legal_settings ADD COLUMN operator_details text NULL CONSTRAINT 
+00:34:18 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:18 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:18 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:18 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:18 | 203 |  |  | Activity:BgwriterMain | 
+00:34:18 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 1
@@ -211,6 +211,7 @@ Database sessions at the last sample (INC-944; time | pid | application | state 
 ## Migration/start failure
 Last migration line: Applying migration 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql...
 ```text
+    IF v_msg IS DISTINCT FROM 'rateLimited' OR v_n <> 1 THEN
       RAISE EXCEPTION 'INC-951 3a proof (accept_legal): % rows %', coalesce(v_msg, 'success'), v_n;
     END IF;
 
@@ -262,15 +263,14 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:33332              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:32808               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:16:18 | 230 | @effect/sql-pg | active | : | -- ── 10. After: the same timings on the new rules ─────────────────────── DO $t$ DECLARE v_name text; i int; t0 timesta
-00:16:18 | 212 |  |  | Activity:AutovacuumMain | 
-00:16:18 | 214 | pg_cron scheduler |  | Extension:Extension | 
-00:16:18 | 215 |  |  | Activity:LogicalLauncherMain | 
-00:16:18 | 208 |  |  | Activity:CheckpointerMain | 
-00:16:18 | 209 |  |  | Activity:BgwriterMain | 
-00:16:18 | 211 |  |  | Activity:WalWriterMain | 
+00:34:33 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:33 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:33 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:33 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:33 | 203 |  |  | Activity:BgwriterMain | 
+00:34:33 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 2
@@ -331,15 +331,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:53352              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:53420               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:55 | 231 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:15:55 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:55 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:55 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:55 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:55 | 203 |  |  | Activity:BgwriterMain | 
-00:15:55 | 205 |  |  | Activity:WalWriterMain | 
+00:35:19 | 231 | @effect/sql-pg | active | : | CREATE OR REPLACE FUNCTION public.attr_import_plan(p_definitions jsonb, p_links jsonb, p_scope text) RETURNS jsonb LANGU
+00:35:19 | 206 |  |  | Activity:AutovacuumMain | 
+00:35:19 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:35:19 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:35:19 | 202 |  |  | Activity:CheckpointerMain | 
+00:35:19 | 203 |  |  | Activity:BgwriterMain | 
+00:35:19 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 3
@@ -400,15 +400,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:55672              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:41722               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:44 | 230 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
-00:15:44 | 212 |  |  | Activity:AutovacuumMain | 
-00:15:44 | 214 | pg_cron scheduler |  | Extension:Extension | 
-00:15:44 | 215 |  |  | Activity:LogicalLauncherMain | 
-00:15:44 | 208 |  |  | Activity:CheckpointerMain | 
-00:15:44 | 209 |  |  | Activity:BgwriterMain | 
-00:15:44 | 211 |  |  | Activity:WalWriterMain | 
+00:33:34 | 231 | @effect/sql-pg | active | : | -- edit_listing CREATE OR REPLACE FUNCTION public.edit_listing( p_listing_id uuid, p_category_id uuid, p_title text, p_d
+00:33:34 | 206 |  |  | Activity:AutovacuumMain | 
+00:33:34 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:33:34 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:33:34 | 202 |  |  | Activity:CheckpointerMain | 
+00:33:34 | 203 |  |  | Activity:BgwriterMain | 
+00:33:34 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 4
@@ -469,15 +469,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:46806              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:42098               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:45 | 232 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:15:45 | 207 |  |  | Activity:AutovacuumMain | 
-00:15:45 | 209 | pg_cron scheduler |  | Extension:Extension | 
-00:15:45 | 210 |  |  | Activity:LogicalLauncherMain | 
-00:15:45 | 203 |  |  | Activity:CheckpointerMain | 
-00:15:45 | 204 |  |  | Activity:BgwriterMain | 
-00:15:45 | 206 |  |  | Activity:WalWriterMain | 
+00:33:44 | 231 | @effect/sql-pg | active | : | -- 6. Proofs on scratch rows only; everything inside the inner block is rolled back. DO $proof$ DECLARE v_tag text := re
+00:33:44 | 206 |  |  | Activity:AutovacuumMain | 
+00:33:44 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:33:44 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:33:44 | 202 |  |  | Activity:CheckpointerMain | 
+00:33:44 | 203 |  |  | Activity:BgwriterMain | 
+00:33:44 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 5
@@ -538,15 +538,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:33510              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:60434               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:16:17 | 230 | @effect/sql-pg | active | : | -- ── 9. Proofs (behaviour only; every scratch row is rolled back) ──────── DO $proof$ DECLARE r text[]; v_user uuid; v_
-00:16:17 | 212 |  |  | Activity:AutovacuumMain | 
-00:16:17 | 214 | pg_cron scheduler |  | Extension:Extension | 
-00:16:17 | 215 |  |  | Activity:LogicalLauncherMain | 
-00:16:17 | 208 |  |  | Activity:CheckpointerMain | 
-00:16:17 | 209 |  |  | Activity:BgwriterMain | 
-00:16:17 | 211 |  |  | Activity:WalWriterMain | 
+00:34:11 | 231 | @effect/sql-pg | active | : | -- ── 9. Proofs (behaviour only; every scratch row is rolled back) ──────── DO $proof$ DECLARE r text[]; v_user uuid; v_
+00:34:11 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:11 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:11 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:11 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:11 | 203 |  |  | Activity:BgwriterMain | 
+00:34:11 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 6
@@ -607,15 +607,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0              127.0.0.1:41580              127.0.0.1:54322                                            
+TIME-WAIT  0      0               127.0.0.1:51000               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:55 | 231 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
-00:15:55 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:55 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:55 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:55 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:55 | 203 |  |  | Activity:BgwriterMain | 
-00:15:55 | 205 |  |  | Activity:WalWriterMain | 
+00:34:04 | 232 | @effect/sql-pg | active | : | -- ===== C — proofs (scratch rows only; no auth.users row; the caller is a random id) ===== DO $proof$ DECLARE v_key tex
+00:34:04 | 207 |  |  | Activity:AutovacuumMain | 
+00:34:04 | 209 | pg_cron scheduler |  | Extension:Extension | 
+00:34:04 | 210 |  |  | Activity:LogicalLauncherMain | 
+00:34:04 | 203 |  |  | Activity:CheckpointerMain | 
+00:34:04 | 204 |  |  | Activity:BgwriterMain | 
+00:34:04 | 206 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 7
@@ -676,15 +676,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:57766              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:37414               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:24 | 231 | @effect/sql-pg | active | : | DO $t$ DECLARE v_name text; i int; t0 timestamptz; v text; b boolean; BEGIN -- The fold sets the rewrite relies on hold 
-00:15:24 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:24 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:24 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:24 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:24 | 203 |  |  | Activity:BgwriterMain | 
-00:15:24 | 205 |  |  | Activity:WalWriterMain | 
+00:34:02 | 231 | @effect/sql-pg | active | : | -- ===== C — reveal_flags ===== CREATE TABLE IF NOT EXISTS public.reveal_flags ( viewer_id uuid NOT NULL REFERENCES auth
+00:34:02 | 212 |  |  | Activity:AutovacuumMain | 
+00:34:02 | 214 | pg_cron scheduler |  | Extension:Extension | 
+00:34:02 | 215 |  |  | Activity:LogicalLauncherMain | 
+00:34:02 | 208 |  |  | Activity:CheckpointerMain | 
+00:34:02 | 209 |  |  | Activity:BgwriterMain | 
+00:34:02 | 211 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 8
@@ -745,15 +745,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:58040              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:34082               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:17:10 | 231 | @effect/sql-pg | active | : | -- ===== C — proofs (scratch rows only; no auth.users row; the caller is a random id) ===== DO $proof$ DECLARE v_key tex
-00:17:10 | 206 |  |  | Activity:AutovacuumMain | 
-00:17:10 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:17:10 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:17:10 | 202 |  |  | Activity:CheckpointerMain | 
-00:17:10 | 203 |  |  | Activity:BgwriterMain | 
-00:17:10 | 205 |  |  | Activity:WalWriterMain | 
+00:34:35 | 231 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
+00:34:35 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:35 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:35 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:35 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:35 | 203 |  |  | Activity:BgwriterMain | 
+00:34:35 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 9
@@ -814,15 +814,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:52028              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:54122               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:56 | 231 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
-00:15:56 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:56 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:56 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:56 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:56 | 203 |  |  | Activity:BgwriterMain | 
-00:15:56 | 205 |  |  | Activity:WalWriterMain | 
+00:34:03 | 231 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
+00:34:03 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:03 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:03 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:03 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:03 | 203 |  |  | Activity:BgwriterMain | 
+00:34:03 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 10
@@ -883,15 +883,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:43144              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:40092               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:43 | 231 | @effect/sql-pg | active | : | -- Proof: the rebuild runs under safe-update (as the API connection does), returns -- rows above zero, and writes one ne
-00:15:43 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:43 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:43 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:43 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:43 | 203 |  |  | Activity:BgwriterMain | 
-00:15:43 | 205 |  |  | Activity:WalWriterMain | 
+00:34:08 | 230 | @effect/sql-pg | active | : | -- ===== C — cat_import_plan (redeclared whole) ===== CREATE OR REPLACE FUNCTION public.cat_import_plan(p_rows jsonb, p_
+00:34:08 | 212 |  |  | Activity:AutovacuumMain | 
+00:34:08 | 214 | pg_cron scheduler |  | Extension:Extension | 
+00:34:08 | 215 |  |  | Activity:LogicalLauncherMain | 
+00:34:08 | 208 |  |  | Activity:CheckpointerMain | 
+00:34:08 | 209 |  |  | Activity:BgwriterMain | 
+00:34:08 | 211 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 11
@@ -952,15 +952,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:53398              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:37298               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:40 | 232 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:15:40 | 207 |  |  | Activity:AutovacuumMain | 
-00:15:40 | 209 | pg_cron scheduler |  | Extension:Extension | 
-00:15:40 | 210 |  |  | Activity:LogicalLauncherMain | 
-00:15:40 | 203 |  |  | Activity:CheckpointerMain | 
-00:15:40 | 204 |  |  | Activity:BgwriterMain | 
-00:15:40 | 206 |  |  | Activity:WalWriterMain | 
+00:35:38 | 231 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
+00:35:38 | 206 |  |  | Activity:AutovacuumMain | 
+00:35:38 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:35:38 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:35:38 | 202 |  |  | Activity:CheckpointerMain | 
+00:35:38 | 203 |  |  | Activity:BgwriterMain | 
+00:35:38 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 12
@@ -1021,15 +1021,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:36324              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:54006               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:16:28 | 232 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
-00:16:28 | 207 |  |  | Activity:AutovacuumMain | 
-00:16:28 | 209 | pg_cron scheduler |  | Extension:Extension | 
-00:16:28 | 210 |  |  | Activity:LogicalLauncherMain | 
-00:16:28 | 203 |  |  | Activity:CheckpointerMain | 
-00:16:28 | 204 |  |  | Activity:BgwriterMain | 
-00:16:28 | 206 |  |  | Activity:WalWriterMain | 
+00:33:35 | 231 | @effect/sql-pg | active | : | -- suggest_seller_aliases proof: its OWN scratch identity (a random uuid claim, -- no real account), cleaned up in the s
+00:33:35 | 206 |  |  | Activity:AutovacuumMain | 
+00:33:35 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:33:35 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:33:35 | 202 |  |  | Activity:CheckpointerMain | 
+00:33:35 | 203 |  |  | Activity:BgwriterMain | 
+00:33:35 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 13
@@ -1090,15 +1090,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:37442              127.0.0.1:54322                                            
+TIME-WAIT  0      0               127.0.0.1:48394               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:38 | 230 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:15:38 | 212 |  |  | Activity:AutovacuumMain | 
-00:15:38 | 214 | pg_cron scheduler |  | Extension:Extension | 
-00:15:38 | 215 |  |  | Activity:LogicalLauncherMain | 
-00:15:38 | 208 |  |  | Activity:CheckpointerMain | 
-00:15:38 | 209 |  |  | Activity:BgwriterMain | 
-00:15:38 | 211 |  |  | Activity:WalWriterMain | 
+00:34:25 | 231 | @effect/sql-pg | active | : | DO $t$ DECLARE v_name text; i int; t0 timestamptz; v text; b boolean; BEGIN -- The fold sets the rewrite relies on hold 
+00:34:25 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:25 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:25 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:25 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:25 | 203 |  |  | Activity:BgwriterMain | 
+00:34:25 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 14
@@ -1159,15 +1159,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0              127.0.0.1:51084              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:46824               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:23 | 230 | @effect/sql-pg | active | : | -- PROOFS — every row is an ASSERT; a wrong verdict fails the migration. DO $$ BEGIN ASSERT public.alias_rule('telebirr1
-00:15:23 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:23 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:23 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:23 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:23 | 203 |  |  | Activity:BgwriterMain | 
-00:15:23 | 205 |  |  | Activity:WalWriterMain | 
+00:33:48 | 231 | @effect/sql-pg | active | : | -- ===== B — proofs (RAISE EXCEPTION on any failure; a clean apply is the pass) ===== DO $proof$ DECLARE v_src text; BEG
+00:33:48 | 206 |  |  | Activity:AutovacuumMain | 
+00:33:48 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:33:48 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:33:48 | 202 |  |  | Activity:CheckpointerMain | 
+00:33:48 | 203 |  |  | Activity:BgwriterMain | 
+00:33:48 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 15
@@ -1228,15 +1228,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0               127.0.0.1:45446              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:35040               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:16:04 | 232 | @effect/sql-pg | active | : | -- e2e-areas: legal -- Bundle 22 turn 23 M17 (DEC-228). Published translations are added once. -- Ruling: the finality t
-00:16:04 | 206 |  |  | Activity:AutovacuumMain | 
-00:16:04 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:16:04 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:16:04 | 202 |  |  | Activity:CheckpointerMain | 
-00:16:04 | 203 |  |  | Activity:BgwriterMain | 
-00:16:04 | 205 |  |  | Activity:WalWriterMain | 
+00:34:25 | 231 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
+00:34:25 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:25 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:25 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:25 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:25 | 203 |  |  | Activity:BgwriterMain | 
+00:34:25 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane 16
@@ -1246,6 +1246,7 @@ Database sessions at the last sample (INC-944; time | pid | application | state 
 ## Migration/start failure
 Last migration line: Applying migration 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql...
 ```text
+    IF v_msg IS DISTINCT FROM 'rateLimited' OR v_n <> 1 THEN
       RAISE EXCEPTION 'INC-951 3a proof (accept_legal): % rows %', coalesce(v_msg, 'success'), v_n;
     END IF;
 
@@ -1297,15 +1298,14 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:38152              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:60286               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:15:50 | 231 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
-00:15:50 | 206 |  |  | Activity:AutovacuumMain | 
-00:15:50 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:15:50 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:15:50 | 202 |  |  | Activity:CheckpointerMain | 
-00:15:50 | 203 |  |  | Activity:BgwriterMain | 
-00:15:50 | 205 |  |  | Activity:WalWriterMain | 
+00:34:28 | 206 |  |  | Activity:AutovacuumMain | 
+00:34:28 | 208 | pg_cron scheduler |  | Extension:Extension | 
+00:34:28 | 209 |  |  | Activity:LogicalLauncherMain | 
+00:34:28 | 202 |  |  | Activity:CheckpointerMain | 
+00:34:28 | 203 |  |  | Activity:BgwriterMain | 
+00:34:28 | 205 |  |  | Activity:WalWriterMain | 
 ```
 
 ## Lane repeat
@@ -1363,15 +1363,15 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Port holders (54320-54329):
-TIME-WAIT  0      0                127.0.0.1:42486              127.0.0.1:54322                                            
+TIME-WAIT  0      0                127.0.0.1:39854               127.0.0.1:54322                                            
 Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):
-00:16:04 | 231 | @effect/sql-pg | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-00:16:04 | 206 |  |  | Activity:AutovacuumMain | 
-00:16:04 | 208 | pg_cron scheduler |  | Extension:Extension | 
-00:16:04 | 209 |  |  | Activity:LogicalLauncherMain | 
-00:16:04 | 202 |  |  | Activity:CheckpointerMain | 
-00:16:04 | 203 |  |  | Activity:BgwriterMain | 
-00:16:04 | 205 |  |  | Activity:WalWriterMain | 
+00:35:55 | 231 | @effect/sql-pg | active | : | SELECT public.name_folds_rebuild()
+00:35:55 | 213 |  |  | Activity:AutovacuumMain | 
+00:35:55 | 215 | pg_cron scheduler |  | Extension:Extension | 
+00:35:55 | 216 |  |  | Activity:LogicalLauncherMain | 
+00:35:55 | 209 |  |  | Activity:CheckpointerMain | 
+00:35:55 | 210 |  |  | Activity:BgwriterMain | 
+00:35:55 | 212 |  |  | Activity:WalWriterMain | 
 ```
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
