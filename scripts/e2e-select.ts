@@ -145,13 +145,9 @@ export const AREAS: Area[] = [
     // Bundle 16 (D138, D172–D177) — the seller's My listings page and its state doors.
     name: "my-listings",
     src: ["src/features/my-listings/**", "src/routes/my-listings*.tsx"],
-    specs: ["e2e/my-listings*.spec.ts"],
-  },
-  {
-    // Foundations turn L-1 (INC-985) — one formatter per intent: an Amharic reader's full month.
-    name: "locale-format",
-    src: ["src/lib/format.ts", "src/lib/locale.ts", "src/lib/format-locale.ts"],
-    specs: ["e2e/locale-format.spec.ts"],
+    // LF-E1 (L-1, INC-985) drives My listings; the shared formatters match no area, so a
+    // change to them selects ALL (L-2 Part 0.1, DEC-119).
+    specs: ["e2e/my-listings*.spec.ts", "e2e/locale-format.spec.ts"],
   },
   {
     // Bundle 13 (D158) — the AI switches and meter (turn 1) and their page, /admin/ai (turn 5).
@@ -515,6 +511,13 @@ export function changedFiles(base?: string): string[] {
   ].sort();
 }
 
+/** Shared modules with many consumers: a change to one of them selects ALL. */
+export const SHARED_SELECTS_ALL = [
+  "src/lib/format.ts",
+  "src/lib/locale.ts",
+  "src/lib/format-locale.ts",
+] as const;
+
 /** Guard: every spec reachable from an area; every area glob matches. */
 export function selfTest(root = "."): string[] {
   const specs = listSpecs(root);
@@ -528,6 +531,11 @@ export function selfTest(root = "."): string[] {
       if (!specs.some((s) => matches(glob, s)))
         problems.push(`area "${area.name}" spec glob matches nothing: ${glob}`);
     }
+  }
+  // L-2 Part 0.1 — a shared formatter module is never narrowed to one spec.
+  for (const shared of SHARED_SELECTS_ALL) {
+    if (selectSpecs([shared], { root }) !== "ALL")
+      problems.push(`shared module narrowed, must select ALL: ${shared}`);
   }
   return problems;
 }
