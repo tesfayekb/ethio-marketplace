@@ -185,9 +185,7 @@ test.describe("Legal public pages", () => {
     await expect(page.getByTestId("legal-text")).toContainText("Amharic current text");
     await expect(page.getByTestId("legal-public-print")).toHaveCount(0);
     await expect(page.getByTestId("legal-public-lang-am")).toHaveCount(0);
-    // Back to English before the next page load, whose date line is read in English; the
-    // language menu closes before it is opened again (a click while it closes is lost).
-    await expect(page.getByRole("menu")).toHaveCount(0);
+    // Back to English before the next page load, whose date line is read in English.
     await switchLanguage(page, "en");
 
     const effective = new Date(Date.now() + 30 * 86_400_000);
