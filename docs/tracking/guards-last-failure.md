@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40820695815
-- Commit: `34a898079ee1a627e4ce2c3f4de52a5a62677c75`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40821484703
+- Commit: `3afc773a0ddc5da40f7ba711f8a8c7147befe8af`
 - Attempt: 1
-- Written (UTC): 2026-10-29T05:22:00.478Z
+- Written (UTC): 2026-10-29T05:35:36.187Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -22,6 +22,12 @@ Per-page budget failed (D234):
 ### Tail (last 60 lines)
 
 ```text
+Code-split the addition behind a dynamic import, or change the page's line in
+scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
+    346.6 / 347 KiB  /admin/attributes
+    306.6 / 308 KiB  /admin/audit
+    354.8 / 356 KiB  /admin/categories
+    336.4 / 337 KiB  /admin/countries
     329.0 / 330 KiB  /admin/coverage
     207.3 / 209 KiB  /admin/images
     307.2 / 308 KiB  /admin/impersonation_/$sessionId
@@ -32,12 +38,6 @@ Per-page budget failed (D234):
     376.0 / 379 KiB  /admin/listings_/$listingId
     399.4 / 403 KiB  /admin/listings_/$listingId_/edit
     268.2 / 270 KiB  /admin/locations
-
-Per-page budget failed (D234):
-  /admin/ai: 332.0 KiB, over its ceiling of 331 KiB
-
-Code-split the addition behind a dynamic import, or change the page's line in
-scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
     337.7 / 338 KiB  /admin/places
     304.8 / 306 KiB  /admin/roles
     305.4 / 306 KiB  /admin/roles_/$roleId
@@ -69,7 +69,7 @@ scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/a6498e86-0be4-4c8d-910a-c2ca4461c8ab' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/6cb2bf8f-d215-4419-9f19-e802b498f673' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -101,8 +101,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1mfi[0m
-[36;1mif [ "$reporter" -ne 0 ]; then[0m
 [36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
@@ -114,10 +112,12 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40820695815
-  E2E_HEAD_COMMIT_MESSAGE: Fixed CI to use feature-only
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40821484703
+  E2E_HEAD_COMMIT_MESSAGE: Update plan
 
-X-Lovable-Edit-ID: edt-52fa26a5-5d06-41d7-a107-fa7d2db2aa6a
+Plan file updated during planning mode
+
+X-Lovable-Edit-ID: edt-fbc5847d-da11-48a4-9778-96e8feee124b
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -148,7 +148,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/1d202c6a-0ea6-4eff-86c7-fc870ad10cf6' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/974edaf3-e7df-4bf2-adbd-52f709300e67' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
