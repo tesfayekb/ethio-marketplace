@@ -30,7 +30,6 @@ import { PRICE_MODES, PRICE_PERIODS, type CategoryFacts, type Refusal } from "./
 import { formatCommission, percentToBp, priceShapeFor } from "./price-basis";
 import { checkNumber, checkPriceBasis, mergeRefusals } from "./validate";
 import { ownValue } from "@/lib/own-key";
-import { formatLocale } from "@/lib/format-locale";
 import { numberFormatter } from "@/lib/format";
 
 /**

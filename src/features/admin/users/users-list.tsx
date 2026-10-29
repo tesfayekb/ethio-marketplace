@@ -20,7 +20,6 @@ import { useI18n } from "@/i18n";
 
 import type { AdminUserRow } from "./admin-users-service";
 import { useAdminRoles, useAdminUsers, useDebounced } from "./use-admin-users";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 const TABLE_ID = "admin-users";

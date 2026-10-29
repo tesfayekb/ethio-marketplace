@@ -29,7 +29,6 @@ import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { useI18n } from "@/i18n";
 import { relativeTime } from "@/lib/relative-time";
 import type { MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /** Mirrors the server's password rule; the server remains the authority. */

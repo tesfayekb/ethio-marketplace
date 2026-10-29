@@ -24,7 +24,6 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { fill } from "@/features/posting/refusal-text";
 import { SectionNotice, useSectionNotice } from "@/components/ui/section-notice";
 import { useI18n, type MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter, numberFormatter } from "@/lib/format";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 

@@ -27,7 +27,6 @@ import {
   useImpersonatedListings,
   useImpersonatedProfile,
 } from "./use-impersonation";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**

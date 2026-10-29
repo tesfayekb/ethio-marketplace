@@ -23,7 +23,6 @@ import {
   type PhotoReviewRow,
 } from "./use-photo-reviews";
 import { ADMIN_SCREENING_KEY } from "./use-screening";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**

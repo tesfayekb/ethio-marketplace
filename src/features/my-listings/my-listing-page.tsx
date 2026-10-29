@@ -68,7 +68,6 @@ import {
 } from "./my-listing";
 import { GROUP_LABEL, shareable } from "./my-listings";
 import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**

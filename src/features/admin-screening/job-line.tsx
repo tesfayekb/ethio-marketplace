@@ -6,7 +6,6 @@ import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 

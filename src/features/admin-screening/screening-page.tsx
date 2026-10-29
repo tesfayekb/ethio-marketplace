@@ -61,7 +61,6 @@ import {
   useScreeningSchema,
   type ScreeningRow,
 } from "./use-screening";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { catalogText } from "@/i18n/entity";
 

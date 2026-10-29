@@ -1,6 +1,5 @@
 import { useI18n } from "@/i18n";
 import { fill } from "./refusal-text";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**

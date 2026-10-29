@@ -9,7 +9,6 @@ import type { AttrDef } from "./posting-service";
 import { conditionMet } from "./visible-when";
 import { catalogWords, type CatalogTokens } from "@/i18n";
 import type { EntityBundle } from "@/i18n/entity";
-import { formatLocale } from "@/lib/format-locale";
 import { numberFormatter } from "@/lib/format";
 
 /**

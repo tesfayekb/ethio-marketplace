@@ -20,7 +20,6 @@ import {
   type PhotoChangeKind,
 } from "./use-photo-changes";
 import { ADMIN_SCREENING_KEY } from "./use-screening";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 const KIND_LABEL: Record<PhotoChangeKind, MessageKey> = {

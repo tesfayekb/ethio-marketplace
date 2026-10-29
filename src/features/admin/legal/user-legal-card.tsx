@@ -6,7 +6,7 @@ import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 import { kindKey, type LegalHistoryRow } from "./legal-service";
 import { useUserLegalHistory } from "./use-legal";
-import { formatLocale, languageRowName } from "@/lib/format-locale";
+import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 export function UserLegalCard({ userId }: { userId: string }) {

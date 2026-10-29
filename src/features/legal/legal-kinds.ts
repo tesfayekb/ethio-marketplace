@@ -1,5 +1,4 @@
 import type { MessageKey } from "@/i18n";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /** Bundle 22 turn 3 — pure rules of the acceptance gate; turn 12 (DEC-206): one tick, the 18+ statement only the first time. */

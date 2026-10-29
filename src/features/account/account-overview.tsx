@@ -18,7 +18,6 @@ import {
   totalOf,
   type GroupCounts,
 } from "@/features/my-listings/my-listings";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { currentSession } from "@/lib/supabase-door";
 import { readSellerReview } from "@/features/seller/seller-review";

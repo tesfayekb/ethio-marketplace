@@ -28,7 +28,6 @@ import {
 import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel, normalizeTelegram } from "./validate";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { Button } from "@/components/ui/button";

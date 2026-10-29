@@ -26,7 +26,6 @@ import {
   useSetAccountStatus,
   useUpdateProfile,
 } from "./use-admin-users";
-import { formatLocale } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
 
 /**
