@@ -10,7 +10,6 @@ export const enAdmin = {
   "admin.ai.log.allOutcomes": "All outcomes",
   "admin.ai.log.latencyMs": "{ms} ms",
   "admin.ai.log.personHidden": "Hidden",
-  "admin.ai.log.standIn": "Stand-in",
   "admin.ai.log.outcome.ok": "Answered",
   "admin.ai.log.outcome.featureOff": "Switched off",
   "admin.ai.log.outcome.budget": "Over budget",

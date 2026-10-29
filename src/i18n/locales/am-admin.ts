@@ -12,7 +12,6 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.ai.log.allOutcomes": "ሁሉም ውጤቶች",
   "admin.ai.log.latencyMs": "{ms} ሚሊሰከንድ",
   "admin.ai.log.personHidden": "የተደበቀ",
-  "admin.ai.log.standIn": "ምትክ",
   "admin.ai.log.outcome.ok": "መልስ ተሰጥቷል",
   "admin.ai.log.outcome.featureOff": "ጠፍቷል",
   "admin.ai.log.outcome.budget": "ከበጀት በላይ",
