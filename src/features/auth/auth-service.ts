@@ -3,7 +3,7 @@ import type { EmailOtpType, UserIdentity } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
 import { errorText } from "@/lib/error-text";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import type { ReaderError } from "@/lib/reader-failure";
 import { loadOnce } from "@/lib/load-once";
 import { safeReturnPath } from "@/lib/return-path";
 import {
@@ -27,6 +27,14 @@ import type {
 
 /** DEC-261 — supabase-js itself, for the current-password verifier only; fetched once on demand. */
 const supabaseJs = loadOnce(() => import("@supabase/supabase-js"));
+// INC-864 — reader-failure stays off the first paint: it loads only when a read failed.
+const readerFailureModule = loadOnce(() => import("@/lib/reader-failure"));
+async function readError(
+  failure: { class: "auth" | "network"; message: string } | { error: unknown },
+): Promise<ReaderError> {
+  const mod = await readerFailureModule();
+  return new mod.ReaderError("error" in failure ? mod.readerFailure(failure.error) : failure);
+}
 
 type Client = Awaited<ReturnType<typeof getSupabase>>;
 
@@ -721,7 +729,7 @@ export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
     return {
       ok: false,
       signedOut: false,
-      error: new ReaderError({ class: "auth", message: "the session could not be read" }),
+      error: await readError({ class: "auth", message: "the session could not be read" }),
     };
   }
   const userId = read.session?.user?.id;
@@ -731,7 +739,7 @@ export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
     return {
       ok: false,
       signedOut: false,
-      error: new ReaderError({ class: "network", message: "the client did not load" }),
+      error: await readError({ class: "network", message: "the client did not load" }),
     };
   }
 
@@ -740,7 +748,7 @@ export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
     .select("preferred_language")
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) return { ok: false, signedOut: false, error: new ReaderError(readerFailure(error)) };
+  if (error) return { ok: false, signedOut: false, error: await readError({ error }) };
   return { ok: true, code: data?.preferred_language ?? null };
 }
 
