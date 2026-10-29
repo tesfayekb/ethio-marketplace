@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminTranslationsLanguagesPage } from "@/features/admin/translations/languages-page";
@@ -9,11 +10,8 @@ import { AdminTranslationsLanguagesPage } from "@/features/admin/translations/la
 export const Route = createFileRoute("/admin/translations")({
   head: () => ({
     meta: [
-      { title: "Translations — ethio.com Admin" },
-      { name: "description", content: "Translations in the ethio.com staff panel." },
+      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "admin.section.translations.title", null, "Translations — ethio.com Admin", "Translations in the ethio.com staff panel.").meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Translations — ethio.com Admin" },
-      { property: "og:description", content: "Translations in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Suspense } from "react";
@@ -14,16 +15,7 @@ import { useI18n } from "@/i18n";
 export const Route = createFileRoute("/c/$slug")({
   head: () => ({
     meta: [
-      { title: "Category — ethio.com" },
-      {
-        name: "description",
-        content: "Browse listings in this category from sellers near you.",
-      },
-      { property: "og:title", content: "Category — ethio.com" },
-      {
-        property: "og:description",
-        content: "Browse listings in this category from sellers near you.",
-      },
+      ...pageHead("head.site.pattern.title", "head.category.description", "head.category.title").meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

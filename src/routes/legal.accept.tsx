@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { LegalAcceptScreen } from "@/features/legal/legal-accept-screen";
 import { myLegalStatus } from "@/features/legal/legal-reader";
@@ -32,13 +33,7 @@ export const Route = createFileRoute("/legal/accept")({
   },
   head: () => ({
     meta: [
-      { title: "Before you continue — ethio.com" },
-      { name: "description", content: "Accept the Terms of Service and the Privacy Policy." },
-      { property: "og:title", content: "Before you continue — ethio.com" },
-      {
-        property: "og:description",
-        content: "Accept the Terms of Service and the Privacy Policy.",
-      },
+      ...pageHead("head.site.pattern.title", "head.legalAccept.description", "legal.accept.title", null, "Before you continue — ethio.com").meta,
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },

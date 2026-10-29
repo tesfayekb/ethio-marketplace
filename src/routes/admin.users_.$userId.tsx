@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminUserDetailPage } from "@/features/admin/users/user-detail";
@@ -11,11 +12,8 @@ import { AdminUserDetailPage } from "@/features/admin/users/user-detail";
 export const Route = createFileRoute("/admin/users_/$userId")({
   head: () => ({
     meta: [
-      { title: "User — ethio.com Admin" },
-      { name: "description", content: "User in the ethio.com staff panel." },
+      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "head.admin.user.title", null, "User — ethio.com Admin", "User in the ethio.com staff panel.").meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "User — ethio.com Admin" },
-      { property: "og:description", content: "User in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

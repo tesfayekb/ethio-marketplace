@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { installInputModality } from "@/lib/input-modality";
 import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -346,13 +347,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   shouldReload: false,
   head: ({ loaderData }) => ({
     meta: [
+      ...pageHead("app.name", "head.site.description").meta,
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "ethio.com" },
-      { name: "description", content: "Ethiopia's marketplace — coming soon." },
       { name: "author", content: "ethio-marketplace" },
-      { property: "og:title", content: "ethio.com" },
-      { property: "og:description", content: "Ethiopia's marketplace — coming soon." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@ethio_market" },

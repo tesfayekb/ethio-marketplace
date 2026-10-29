@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -61,14 +62,8 @@ export const Route = createFileRoute("/auth")({
 
   head: () => ({
     meta: [
+      ...pageHead("head.site.pattern.title", "head.auth.description", "auth.signIn", null, "Sign in — ethio.com").meta,
       { name: "robots", content: "noindex" },
-      { title: "Sign in — ethio.com" },
-      { name: "description", content: "Sign in or create your free ethio.com account." },
-      { property: "og:title", content: "Sign in — ethio.com" },
-      {
-        property: "og:description",
-        content: "Sign in or create your free ethio.com account.",
-      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

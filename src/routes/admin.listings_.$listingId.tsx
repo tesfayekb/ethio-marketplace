@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminListingPage } from "@/features/admin-listings/listing-page";
@@ -11,11 +12,8 @@ import { AdminListingPage } from "@/features/admin-listings/listing-page";
 export const Route = createFileRoute("/admin/listings_/$listingId")({
   head: () => ({
     meta: [
-      { title: "Listing — ethio.com Admin" },
-      { name: "description", content: "Listing in the ethio.com staff panel." },
+      ...pageHead("head.admin.pattern.title", "head.admin.pattern.description", "head.admin.listing.title", null, "Listing — ethio.com Admin", "Listing in the ethio.com staff panel.").meta,
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Listing — ethio.com Admin" },
-      { property: "og:description", content: "Listing in the ethio.com staff panel." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
