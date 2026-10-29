@@ -1,3 +1,4 @@
+import { compareCodes } from "@/lib/reader-locale";
 import { CutText } from "@/components/ui/cut-text";
 import { ChevronDown } from "lucide-react";
 
@@ -80,7 +81,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           onValueChange={(code) => setStar(code as Language)}
         >
           {[...publicLanguages]
-            .sort((a, b) => a.sort - b.sort || a.code.localeCompare(b.code))
+            .sort((a, b) => a.sort - b.sort || compareCodes(a.code, b.code))
             .map((row) => {
               const key = LABEL_KEYS[row.code as keyof typeof LABEL_KEYS];
               return (

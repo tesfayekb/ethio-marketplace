@@ -1,3 +1,4 @@
+import { collatorFor, formatCountryName } from "@/lib/reader-locale";
 /**
  * Bundle 2 step 13 (Q1) — the one static table of international calling codes
  * (ISO 3166-1 alpha-2 → ITU-T E.164 country code, digits only), and the pure
@@ -110,18 +111,13 @@ export function orderCountries(
   const seen = new Set(first);
   const rest = [...known]
     .filter((iso) => !seen.has(iso))
-    .sort((a, b) => nameOf(a).localeCompare(nameOf(b), language));
+    .sort((a, b) => collatorFor(language).compare(nameOf(a), nameOf(b)));
   return [...first, ...rest];
 }
 
 /** The country name in the UI language; the ISO code when Intl has none. */
 export function countryDisplayName(iso: string, language: string): string {
-  try {
-    const names = new Intl.DisplayNames([language], { type: "region" });
-    return names.of(iso) ?? iso;
-  } catch {
-    return iso;
-  }
+  return formatCountryName(iso, language);
 }
 
 /**

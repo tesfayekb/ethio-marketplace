@@ -1,3 +1,4 @@
+import { compareCodes } from "@/lib/reader-locale";
 import { useEffect, useState } from "react";
 
 import { distanceKm } from "@/lib/geo-distance";
@@ -188,7 +189,7 @@ export function parseMarkets(answer: Record<string, unknown> | null): OpenMarket
       displayOrder: Number(row.display_order ?? 0),
     }))
     .filter((row) => CODE_RE.test(row.code))
-    .sort((a, b) => a.displayOrder - b.displayOrder || a.nameEn.localeCompare(b.nameEn));
+    .sort((a, b) => a.displayOrder - b.displayOrder || compareCodes(a.nameEn, b.nameEn));
 }
 
 async function fetchTree(country: string): Promise<TreeNode[]> {

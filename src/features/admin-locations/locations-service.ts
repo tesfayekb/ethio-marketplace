@@ -1,3 +1,4 @@
+import { compareCodes } from "@/lib/reader-locale";
 import { supabase } from "@/integrations/supabase/client";
 import type { MessageKey } from "@/i18n";
 import { PAGE_ROWS, readAllPages } from "@/lib/read-all-pages";
@@ -108,11 +109,11 @@ export async function listLocations(
   // Sorted back to the door's own order: country, level, display order, name.
   const data = [...pages].sort(
     (a, b) =>
-      a.country_code.localeCompare(b.country_code) ||
+      compareCodes(a.country_code, b.country_code) ||
       (ownValue(LEVEL_RANK, a.level) ?? 3) - (ownValue(LEVEL_RANK, b.level) ?? 3) ||
       Number(a.display_order ?? 0) - Number(b.display_order ?? 0) ||
       compareNames(a.name_en, b.name_en) ||
-      a.id.localeCompare(b.id),
+      compareCodes(a.id, b.id),
   );
   return data.map((row) => ({
     id: row.id,
@@ -276,7 +277,7 @@ export function toRoster(rows: LocationRow[]): LocationNode[] {
       (a, b) =>
         levelRank(a.level) - levelRank(b.level) ||
         a.displayOrder - b.displayOrder ||
-        a.nameEn.localeCompare(b.nameEn),
+        compareNames(a.nameEn, b.nameEn),
     );
 
   const out: LocationNode[] = [];

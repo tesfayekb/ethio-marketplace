@@ -1,3 +1,4 @@
+import { formatCountryName } from "@/lib/reader-locale";
 import { REPORT_REASONS } from "@/features/ad-page/report";
 import { useListingReports } from "./use-listing-reports";
 import { useQueryClient } from "@tanstack/react-query";
@@ -881,7 +882,6 @@ function CertificationsCard({ listingId }: { listingId: string }) {
   const { permissions } = useAdminShell();
   const mayViewLegal = permissions.includes("legal:view");
   const query = useAdminListingCertifications(listingId);
-  const regions = new Intl.DisplayNames([language], { type: "region" });
   const when = dateFormatter("dayTime", language, "UTC");
   const kindName = (kind: string) =>
     kind === "terms" || kind === "privacy" || kind === "publishing"
@@ -932,7 +932,7 @@ function CertificationsCard({ listingId }: { listingId: string }) {
                     kindName(v.kind),
                     v.countryCode === null
                       ? t("admin.legal.scope.global")
-                      : (regions.of(v.countryCode) ?? v.countryCode),
+                      : formatCountryName(v.countryCode, language),
                     t("admin.legal.version").replace("{n}", String(v.version)),
                     v.label,
                   ].join(" · ");
