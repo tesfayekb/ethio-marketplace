@@ -35,7 +35,8 @@ export const refused = (): Response => clientError("unauthorized", 401);
  * signature, a timestamp or a header.
  */
 export function logRefusal(job: JobName, reason: JobRefusal | "replay"): void {
-  console.warn(`[job-refused] ${job} ${reason}`);
+  const name = Object.hasOwn(JOBS, job) ? job : "unknown";
+  console.warn(`[job-refused] ${name} ${reason}`);
 }
 
 export async function jobHandler(
