@@ -3889,9 +3889,9 @@ export type Database = {
         Args: {
           p_before_at?: string
           p_before_id?: string
+          p_feature?: string
           p_limit?: number
           p_outcome?: string
-          p_task?: string
         }
         Returns: Json
       }
@@ -3904,7 +3904,6 @@ export type Database = {
           p_limit: number
           p_outcome: string
           p_show_person: boolean
-          p_task: string
         }
         Returns: Json
       }
