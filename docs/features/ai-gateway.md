@@ -36,7 +36,16 @@ The existing own-key Gemini text adapter lives in `providers/gemini.ts`, calls `
 
 ## Audit and retention
 
-`audit.ts` awaits service-only `ai_record_call` before returning. `ai_calls` records feature, task/version, model, actor UUID or NULL, the SHA-256 input hash, outcome, provider status or NULL, latency and fake status. No prompt, material, provider body or key is stored. An audit failure logs once without changing the answer. Actor and provider-status RPC parameters are omitted by conditional spreads when null, using M2's trailing `DEFAULT NULL` arguments; generated types are not hand-edited.
+`audit.ts` awaits service-only `ai_record_call` before returning. `ai_calls` records feature, task/version, model, actor UUID or NULL, the SHA-256 input hash, outcome, provider status or NULL, latency and fake status. No prompt, material, provider body or key is stored. The hash covers the task id and version, the rendered text, the material itself as key-sorted JSON, and each sent image's length and SHA-256 (Foundations turn A1, INC-887), so a field-less task such as translation hashes what it was asked.
+
+An audit failure logs once (F4). Foundations turn A1 (INC-952, DEC-280) adds the person-mark: every task in `tasks.ts` declares `judgesPerson`, literally true or false (GWC-10). `name_check`, `writing_helper` (the assist's screening) and `photo_screen` are marked. `photo_screen` is marked by the supervisor's ruling, beyond DEC-280's two named examples, because a photo verdict holds or refuses a person's ad; the operator may overrule. For a marked task whose row cannot be written, the gateway answers `unavailable`, never the verdict, and each caller takes its existing path:
+- the identity check takes D158's unchecked path: the name goes to the door and is recorded `alias.unchecked`;
+- the assist answers `providerUnavailable`;
+- the photo screen answers `providerUnavailable` with retry.
+
+The spend already recorded stands: in the gateway's order the provider was asked and billed before the row is written. Unmarked tasks (`background_removal`, `category_icon`, `category_image`, `translation`) stay best-effort: the answer is kept. Proofs: AIV-1…8.
+
+Outside-call deadlines are classified once by `isDeadline` (src/server/upstream.ts, INC-888; AIA-1). AIA-3 refuses a deadline-error name elsewhere in src/server or src/routes/api. Actor and provider-status RPC parameters are omitted by conditional spreads when null, using M2's trailing `DEFAULT NULL` arguments; generated types are not hand-edited.
 
 DEC-247 retention is enforced in `public.ai_calls_prune()`: rows older than 90 days are purged daily at `17 4 * * *` UTC. Every run writes `ai_calls_prune_runs`, including zero deletions; heartbeats older than 14 days are purged. Both tables and functions are closed to browser roles. An admin last-calls reader remains a later task.
 
