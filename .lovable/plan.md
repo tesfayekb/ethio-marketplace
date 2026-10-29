@@ -1,115 +1,64 @@
-# Turn A2 — the ai_calls admin read (plan; nothing changed)
+# INC-974 — the rail's category names in the first paint (plan)
 
-## 0. CI line and the A1 follow-ups
+Base: dev 34a89807. Tier B (shell, first paint). Held A2 items (a)–(c) are NOT in this turn; they land in the next build message as ruled.
 
-- **CI line read:** the last completed run is 40812371557 on `5f2c5396` (A1's plan commit), and it is a **FAILURE**. The only red is the Gitleaks secrets scan. The scan itself said "no leaks found"; the step failed afterwards, when the gitleaks action uploaded its own artifact (`Failed to FinalizeArtifact … ETIMEDOUT`). Every other job passed: all E2E lanes, and 365/365 migrations applied.
-  - **Root fix, first in the build:** the step in `.github/workflows/ci.yml` (:177) sets `GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"`. The verdict is the exit code; the SARIF artifact is a convenience. If the report is wanted, a bounded upload step follows, with its own deadline. Linted with actionlint.
-  - **Second finding:** the log says "0 commits scanned" for the push range. I will check whether `--first-parent --no-merges` skips this branch's commits. That is a scope hole for the scanner, and I will report it, not guess at it.
-- **Your point 1 (the sweep):** I cannot confirm it. No file:line exists where the sweep picks up `alias.unchecked` names.
-  - `seller_name_sweep()` (`20261004011235_18556a32…sql:1100–1111`) counts names that the rule check `alias_rule(..., false)` refuses (b–d). It does not ask the AI check, and it does not read the audit log.
-  - `alias.unchecked` is written only at `src/routes/api/listings/identity.ts:89`. Nothing in `src/` or `supabase/migrations/` reads it.
-  - So a name saved unchecked is never AI-checked later; only the rule check sees it again.
-  - This is a gap for your ruling. I propose an INC (next free number, grep-checked) for its own turn, not A2.
-- **Your point 3:** the 500-with-incident (failed scope read) and the 502 `modelCallFailed` (unusual provider 4xx) are not yet in `docs/features/ai-gateway.md`. The build adds them in one sentence each.
-- **The duplicate row 13:** it is already fixed. Turn C2 renumbered the vendor-seams row to 65 (`docs/_changelog.md:1157`). `mechanisms.md` today numbers rows 1–71 with no duplicate. Only roadmap line 563 is stale. The build ticks it with "— Foundations turn C2 (row 65)" and renumbers nothing. RFL-1 joins row 13's guards cell.
-- **Roadmap:** line 553 (INC-952) is still unticked although A1 closed it. The build ticks it.
+## 1. The hypothesis — CONFIRMED, with one addition
 
-## 6. Whole unit suite (this plan phase, base f1b4b404)
+- `src/components/shell/app-rail.tsx:516–519` — `CategoryNav` sets `isLoading = treeLoading || !glyphs.settled` and draws its skeleton while true. Both conditions hold.
+- (1) The tree is a client read only. `src/features/categories/category-tree.ts:453–459`: `useSyncExternalStore(..., () => cache?.tree ?? EMPTY_TREE, () => EMPTY_TREE)` — the **server snapshot is always EMPTY_TREE**, and `isLoading` starts `cache === null` (true on every first load, server and client). The read starts in `useEffect` (:463) → `loadCategoryTree()` (:340) → `/api/categories/tree` (:276) after hydration. `firstReadLinks` (src/lib/first-reads.ts:66) preloads that address, which cuts the round trip but not the wait for hydration.
+- (2) The glyph module: `src/components/shell/use-category-glyphs.ts:31–56` — `settled` is false until the `loadOnce` import of `category-glyphs` lands (or fails); the file's own header (:8–20) states the skeleton is held for it on purpose (D234 S1).
+- Addition: the server **already reads the tree in-process** during the first flush, but only on `/c/<slug>` and only to find the category id: `src/server/first-screen.ts:86–102` (`answerOf(categoryTreeGet, …)`, the route's `versionCache` at `src/routes/api/categories.tree.ts:29`). The answer is discarded, not handed to the shell.
+- So on a slow phone the blank rail lasts: HTML → JS download → hydration → tree read (preloaded, may be in hand) AND glyph chunk download. The "few seconds" is the JS + glyph chunk on slow 4G.
 
-353 files: 352 passed, 1 failed. Tests: 2,130 passed, 3 failed, 1 skipped (2,134).
-- The three failures are NH-1/2/3 (`scripts/ci/nightly-hour.test.ts`). The sandbox has no time-zone data on its default path.
-- With `TZDIR` pointed at the installed tzdata, the file passes 6/6. CI has the data, so this is not a code failure.
-- CF-KIT-7 passes in the full run.
+## 2. Consumers that wait on a client read for first paint (census, by the concern)
 
-## 1. Files and tests, by area
+Waits for the tree (server snapshot EMPTY_TREE), first-paint visible:
+- `src/components/shell/app-rail.tsx:516` CategoryNav (rail, strip, menu) — skeleton. **The concern.**
+- `src/components/shell/app-rail.tsx:82` (rail's favourite/selected helper) — empty until read.
+- `src/components/app-shell.tsx:566` — shell's selected-category facts.
+- `src/components/shell/breadcrumbs.tsx:116`, `src/components/shell/ad-crumbs.tsx:15` — crumbs empty until read.
+- `src/features/feed/use-feed.ts:255`, `src/components/marketplace/feed.tsx:148`, `src/components/marketplace/listing-card.tsx:46` — public listings pages (feed's first page already arrives via HeldFirstPage; category pictures/names wait on the tree).
+Signed-in / staff (not first-paint of a public page; listed for K2, fixed for free by the same seed): `posting/wizard.tsx:226`, `my-listings-page.tsx:154`, `my-listing-page.tsx:177`, `admin-listings/listings-page.tsx:119`, `listing-page.tsx:134`, `admin-screening/screening-page.tsx:151`.
+Glyph map: only `app-rail.tsx:518` holds first paint on it.
 
-- **Database (one migration):** the new door `admin_list_ai_calls` (section 2).
-  - It joins `scripts/public-surface-allowlist.txt` with one line, in the form of the `admin_ai_spend_days` line (:73).
-  - Migration guards: `scripts/check-migrations.sh` (born-closed, self-marking, proof shape).
-  - `src/integrations/supabase/types.ts` is regenerated by the platform, never hand-edited.
-- **Reader:** `src/features/admin-ai/ai-service.ts` gains `fetchAiCalls` (the RPC, and a shape check per row, as `aiFeatureOf` does). A door error is a typed `ReaderError`. It also gains `taskLabelKey(task)`, read through `ownValue`, the same pattern as `featureLabelKey`.
-  - `src/features/admin-ai/use-ai-calls.ts`: query options, plus a keyset "next page".
-- **Page:** `src/features/admin-ai/ai-calls.tsx` holds the DataTable with its own toolbar (task and outcome filters as direct children, no labels above the controls), cardUntil='lg', QueryState for loading, empty and error-with-retry. `ai-page.tsx` places it under `AiSpendDays`. The route file is unchanged.
-- **Strings:** `en-admin.ts` / `am-admin.ts` (admin layer, CF-SL-1):
-  - the title and hint;
-  - column names: time, task, provider, model, outcome, latency, person;
-  - one label per outcome (7) and per task (7);
-  - "person hidden" and "system".
-  - The Amharic comes from your brief, copied by script. **I will not write Amharic.** The ruling needs to supply AM text for every new key, or name existing keys to reuse.
-  - `bun run i18n:usage` updates both maps.
-- **Tests:**
-  - **unit:** `ai-calls.test.tsx` (the DataTable consumer) and `ai-service.test.ts` additions (the row shape and unknown-task fallback);
-  - **E2E:** a new test in `e2e/admin-services.spec.ts` (SV-6), using seeded `e2e-` scratch rows; the whole file on both projects, 0 retries;
-  - censuses the new code must satisfy: the strings layers, overlays, `ownValue`, CF-NN-1 (no new `!`), the DataTable census and the hardcoded-string scan.
-- **Docs:** `docs/features/ai-gateway.md` (the reader; your point 3), `docs/governance/mechanisms.md` (row 11, and row 13 gains RFL-1), and `docs/_changelog.md`. The report is `docs/governance/reports/foundations-turn-a2.report.md`.
+## 3. The change — on existing mechanisms, nothing new
 
-## 2. The migration
+A. The tree rides the server's first flush (G1, version-cached), on the S5 pattern:
+- `src/server/first-screen.ts`: one exported `readFirstCategoryTree(request)` that calls the same `answerOf(categoryTreeGet, …)` (same versionCache, same deadline family as `FIRST_PAGE_DEADLINE_MS`), and `readFirstFeedPage` reuses its answer for the `/c/<slug>` lookup (one read, not two).
+- `src/routes/__root.tsx` loader: on the server only, **awaited** (names must be in the first HTML, so it cannot stream like the feed) with its own short deadline; the result is the route's plain payload (`{ nodes, pointers, version }`, SSR-serializable) on `RootData.firstTree`, or null on failure/deadline (one `[first-screen]` line, never a rejection). Client navigations carry null.
+- `src/features/categories/category-tree.ts`: one `seedCategoryTree(payload)` that parses through `parseCategoryTree` and sets `cache` only when `cache === null` (a held newer tree wins). The shell calls it from root loader data before the first render on both server and client (server: per-request snapshot via the hook's server-snapshot reading the seeded value from router context, never module state shared between requests). `isLoading` then starts false. INC-263's "every mount asks" stays: the effect still revalidates (a 304 on an unmoved version, same object → no re-render, I3).
+- A failed/late server read → `firstTree: null` → today's behaviour exactly (skeleton, client read, then the error).
 
-```text
-admin_list_ai_calls(
-  p_task      text        DEFAULT NULL,
-  p_outcome   text        DEFAULT NULL,
-  p_before_at timestamptz DEFAULT NULL,
-  p_before_id uuid        DEFAULT NULL,
-  p_limit     integer     DEFAULT 50)
-RETURNS jsonb  -- { rows: [...], next: {at, id} | null }
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path TO 'public'
-```
+B. The glyphs stop holding the names hostage (register row 60, "a late part holds its box"):
+- `app-rail.tsx`: `isLoading = treeLoading` only. Each row's glyph sits in its existing fixed-size icon box (`size-*` already on the icon slot; verified at build and made explicit if not), empty until the map lands, then filled. No row shifts. Strip variant (icons-only) draws the box plus its accessible name; its visible label is unchanged.
+- `use-category-glyphs.ts`: header comment rewritten to the new contract; failure path unchanged (names kept, `reportOnDemandFailure` once, INC-911).
+- `firstReadLinks`: the tree preload link is dropped when `firstTree` was handed over (the read is already in the HTML), kept otherwise.
 
-- **Order:** no caller → `not authenticated`; no `services:view` → `permission denied`; then the arguments:
-  - `badValue:limit` outside 1–100;
-  - `badValue:outcome` outside the table's CHECK list;
-  - `badValue:task` failing the task regex;
-  - `badValue:cursor` when only one of the pair is sent.
-- **Rows:** `id, created_at, feature, task, task_version, model, outcome, provider_status, latency_ms, fake, actor` (section 3).
-  - Never `input_hash` or `actor_id` in the answer.
-  - Scratch `e2e-` features are left out, as the spend door does.
-  - Only rows with `created_at > now() - interval '90 days'` are returned (DEC-247).
-  - Keyset order: `(created_at, id) < (p_before_at, p_before_id)`, ordered `created_at DESC, id DESC`, reading `p_limit + 1` rows to know whether there is a next page. Never OFFSET.
-- **Two fields the table does not store:**
-  - **provider:** `ai_calls` has no provider column. I propose showing the model, which names the provider in its id, and a provider column derived in the browser from the model id's own prefix. If you want a stored provider, that is a writer change for its own turn.
-  - **units:** not stored per call. They live in `ai_spend_days` and are already shown below. So there is no units column.
-- **Index:** `ai_calls_created_at_idx (created_at DESC)` exists. I add an index only if EXPLAIN (ANALYZE) on prod, run twice with filters and without, shows a sort or a scan beyond the page. EXPLAIN is pasted in the report either way.
-- **Closers in the file:** REVOKE ALL FROM PUBLIC, anon; GRANT EXECUTE TO authenticated; GRANT ALL TO service_role. Plus a read-back of the header, ACL and security, and a normalised md5 (INC-968). The mark is chosen at apply time. The file is under 25 KB, inline.
-- **Proof (scratch only, rolled back on its sentinel, INC-970):**
-  - a scratch feature `e2e-…`, a scratch staff user with `services:view`, a scratch plain user, and scratch rows across two tasks, two outcomes and the 90-day edge (89 and 91 days);
-  - deny: no caller, then no permission, both refused before any read;
-  - allow, plus keyset order across two pages (no overlap, no gap);
-  - each filter;
-  - the 91-day row is absent and the 89-day row present.
-  - Because the door hides `e2e-` features, the proof calls an internal core over a parameter, or else uses a non-`e2e-` scratch feature. **For your ruling:** I propose a scratch feature named `proof-a2-<uuid>`, created and rolled back inside the proof.
+## 4. First-download effect, per page class (lock-exact build, G60)
 
-## 3. The person column
+- JS: must not grow on any page; `category-glyphs` stays in PUBLIC_MUST_STAY_LAZY; check-bundle-size and `scripts/route-budgets.mjs` judge, no budget raised.
+- HTML: grows by the tree payload once (dehydrated loader data) plus the drawn rail rows. The build measures, per page class (home, /c/<slug>, ad page, legal/static, signed-in shell, admin), the gzip HTML before/after from the lock-exact build and reports each against G60's tolerance; the tree's own gzip size is pasted. If any class exceeds tolerance → STOP with the numbers (option: hand over only the roots + first level).
+- One fewer request on first visit (the preloaded tree fetch becomes a 304-able revalidation).
 
-There is no shared admin identity reader to reuse. `admin_list_audit` joins `profiles.display_name` inside its own door (`20260903033520…sql:59`).
+## 5. Measurement and tests
 
-I propose the same join inside the door, gated by `has_permission(caller, 'users', 'view')`:
-- staff with `users:view` see the display name;
-- staff without it see the word "Hidden" (a key), never the id or the name;
-- a call with no person (`actor_id` NULL) shows "System".
+- Speed lab, slow-4G phone profile, first and repeat visit: time to the rail's first row via a dedicated mark (`data-rail-ready` on CategoryNav's list when its first row draws, beside `data-app-ready`), before and after, medians pasted. Computer profile once each.
+- Unit (ids grep-checked free at build; proposed RFT-1…5):
+  - RFT-1 server render of the shell with a seeded tree contains every root's name in rail, strip and menu markup, no skeleton.
+  - RFT-2 glyphs unsettled → names drawn, icon boxes present at final size; settled → same box sizes (no shift).
+  - RFT-3 glyph download fails → names kept, one on-demand report.
+  - RFT-4 `firstTree: null` → skeleton then error, as today.
+  - RFT-5 `seedCategoryTree` never replaces a held tree; per-request server snapshot never leaks between two requests.
+- E2E (new spec `e2e/rail-first-paint.spec.ts`, both projects, whole file, 0 retries, via `bun run e2e:local`): with JS blocked on first response, the HTML already lists the category names (phone and desktop widths); with the glyph chunk delayed by route, the first row's bounding box is unchanged after it lands (CLS 0 for the rail). Route handlers through whilePageLives (CF-RG-1).
+- Whole unit suite before the turn ends.
 
-The no-users:view case is in the proof and in the unit test.
+## 6. Conflicts
 
-## 4. Conflicts and mechanisms reused
-
-- **Reused:**
-  - the services:view door shape from `admin_ai_spend_days` (precedent 20261025…; newer than 20261014103719);
-  - DataTable and QueryState, `ReaderError`, `ownValue` and `featureLabelKey`'s fallback pattern;
-  - the public-surface allowlist and `formatLocale` for the time.
-- **Conflict for your ruling:** your brief says keyset paging, never offset. DataTable's built-in pagination is page-numbered (`DataTablePagination`). I propose a "Next / Previous" pair through the same toolbar slot. If DataTable has no keyset footer, adding one is a primitive change, and I will report that before writing it.
-- **Conflict:** "task names translated by key" and "a new task appears without code" pull against each other. The plan follows `featureLabelKey`: a known task shows its key, and an unknown one shows its raw id as data.
-- **K2 siblings:**
-  - `admin_list_audit` pages by offset;
-  - `AiSpendDays` puts a label above its picker (C8);
-  - the audit page shows `display_name` without a `users:view` check.
-  - Reported, not touched.
-
-## 5. Test ids (grep-checked free at f1b4b404)
-
-- **ACR-1…n:** the reader and the consumer unit tests. `ACR-` has 0 hits in src, scripts, e2e and supabase.
-- **SV-6:** the E2E test in `admin-services.spec.ts`. SV-1…5 exist.
-- The migration proof's cases are named in its header as ACR-P1…P6.
+- AGENTS.md "speed": the listings feed is streamed unawaited; this tree is awaited. Justified: names-in-first-HTML is the concern, and the tree is a cached in-process read; a deadline bounds it. Stated as a DEC request for the supervisor (awaited first read in the root loader).
+- D234 S1's comment ("rows never draw without their glyph") is superseded by row 60; record in docs/features (categories / speed) and _changelog.
+- I5 (first-frame Supabase reads belong to the auth flow): not touched — the tree read is a public route in-process on the server, no browser Supabase call.
+- Module-level `cache` must not be written on the server across requests (INC-788 one-store rule kept on the client; server reads via context). No other conflict found with the kit.
 
 ## 7. Estimate
 
-One turn with one migration stop: write and prove → stop report → you apply on staging → continue with the page, tests and E2E. Band: 1 to 2 turns. The second turn comes only if DataTable needs a keyset footer, or if EXPLAIN demands an index.
+Medium: 1 build turn, band 0.75–1.5 turns. Risk to the top of the band: the per-request server snapshot wiring and any page class landing over the HTML tolerance.
