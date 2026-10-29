@@ -56,7 +56,7 @@ describe("NCQ-U the queue section", () => {
       ...answered(undefined),
       error: new Error("permission denied"),
     });
-    wrap(<NameChecks mayList mayClear guard={guard} onNotice={vi.fn()} />);
+    wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
     expect(screen.getByTestId("admin-name-checks-error").textContent).toBe(
       "admin.screening.names.error",
     );
@@ -74,7 +74,7 @@ describe("NCQ-U the queue section", () => {
         next: null,
       }),
     );
-    const { container } = wrap(<NameChecks mayList mayClear guard={guard} onNotice={vi.fn()} />);
+    const { container } = wrap(<NameChecks mayList mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
     const lines = screen.getAllByTestId("admin-name-check-of").map((node) => node.textContent);
     expect(lines).toContain("admin.screening.names.of".replace("{of}", PAYLOAD));
     expect(lines).toContain("admin.screening.names.noReason");
@@ -86,7 +86,7 @@ describe("NCQ-U the queue section", () => {
   it("NCQ-U5 without listings:view nothing is read or drawn", () => {
     state.queue.mockClear();
     state.queue.mockReturnValue(answered(undefined));
-    wrap(<NameChecks mayList={false} mayClear guard={guard} onNotice={vi.fn()} />);
+    wrap(<NameChecks mayList={false} mayClear mayViewJob={false} mayResumeJob={false} guard={guard} />);
     expect(state.queue).toHaveBeenLastCalledWith(null, false);
     expect(screen.queryByTestId("admin-name-checks")).toBeNull();
   });
@@ -95,7 +95,7 @@ describe("NCQ-U the queue section", () => {
 describe("JHL-U the job line", () => {
   it("JHL-U3 a failed read says so, never healthy, and offers no Resume", () => {
     state.job.mockReturnValue({ ...answered(undefined), error: new Error("boom") });
-    wrap(<JobHealthLine mayView mayResume guard={guard} onNotice={vi.fn()} />);
+    wrap(<JobHealthLine mayView mayResume guard={guard} />);
     const line = screen.getByTestId("admin-job-line");
     expect(line.getAttribute("data-state")).toBe("error");
     expect(line.textContent).toContain("admin.screening.job.error");
@@ -107,13 +107,13 @@ describe("JHL-U the job line", () => {
     state.job.mockReturnValue(
       answered({ kind: "paused", reason: "rate_limit", since: "2026-10-29T09:00:00Z" }),
     );
-    const { unmount } = wrap(<JobHealthLine mayView mayResume guard={guard} onNotice={vi.fn()} />);
+    const { unmount } = wrap(<JobHealthLine mayView mayResume guard={guard} />);
     expect(screen.getByTestId("admin-job-line").textContent).toContain(
       "admin.screening.job.pause.rate_limit",
     );
     expect(screen.getByTestId("admin-job-resume")).toBeTruthy();
     unmount();
-    wrap(<JobHealthLine mayView mayResume={false} guard={guard} onNotice={vi.fn()} />);
+    wrap(<JobHealthLine mayView mayResume={false} guard={guard} />);
     expect(screen.queryByTestId("admin-job-resume")).toBeNull();
   });
 });

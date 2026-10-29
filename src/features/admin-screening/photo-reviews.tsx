@@ -44,13 +44,7 @@ import { formatLocale } from "@/lib/format-locale";
  * `admin-photo-review-ad`, Allow `admin-photo-review-allow`, Show photos
  * `admin-photo-review-photos`, a refusal `admin-photo-review-problem`.
  */
-export function PhotoReviews({
-  mayReview,
-  guard,
-}: {
-  mayReview: boolean;
-  guard: GuardFn;
-}) {
+export function PhotoReviews({ mayReview, guard }: { mayReview: boolean; guard: GuardFn }) {
   // INC-995 — this section's outcomes are shown beside its own table (INC-570).
   const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
   const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });

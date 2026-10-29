@@ -15,6 +15,7 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,8 @@ import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
 import { formatLocale } from "@/lib/format-locale";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
+
+import { JobHealthLine } from "./job-line";
 
 import {
   clearNameCheck,
@@ -197,87 +200,88 @@ export function NameChecks({
         className={notice?.tone === "error" ? undefined : "text-foreground"}
       />
       {mayList ? (
-      <DataTable
-        columns={visibleColumns(columns, hidden, LOCKED)}
-        rows={query.data?.rows ?? []}
-        rowKey={(row) => `${row.profileId}:${row.subject}`}
-        rowTestId={(row) => `admin-name-check-${row.profileId}`}
-        caption={t("admin.screening.names.title")}
-        cardUntil="lg"
-        loading={query.isLoading}
-        loadingState={<p>{t("common.loading")}</p>}
-        error={query.error}
-        errorState={
-          <div className="flex flex-wrap items-center gap-2">
-            <p role="alert" className="text-destructive" data-testid="admin-name-checks-error">
-              {t("admin.screening.names.error")}
+        <DataTable
+          columns={visibleColumns(columns, hidden, LOCKED)}
+          rows={query.data?.rows ?? []}
+          rowKey={(row) => `${row.profileId}:${row.subject}`}
+          rowTestId={(row) => `admin-name-check-${row.profileId}`}
+          caption={t("admin.screening.names.title")}
+          cardUntil="lg"
+          loading={query.isLoading}
+          loadingState={<p>{t("common.loading")}</p>}
+          error={query.error}
+          errorState={
+            <div className="flex flex-wrap items-center gap-2">
+              <p role="alert" className="text-destructive" data-testid="admin-name-checks-error">
+                {t("admin.screening.names.error")}
+              </p>
+              <Button variant="outline" size="touch" onClick={() => void query.refetch()}>
+                {t("common.retry")}
+              </Button>
+            </div>
+          }
+          emptyState={
+            <p className="text-muted-foreground" data-testid="admin-name-checks-empty">
+              {t("admin.screening.names.empty")}
             </p>
-            <Button variant="outline" size="touch" onClick={() => void query.refetch()}>
-              {t("common.retry")}
-            </Button>
-          </div>
-        }
-        emptyState={
-          <p className="text-muted-foreground" data-testid="admin-name-checks-empty">
-            {t("admin.screening.names.empty")}
-          </p>
-        }
-        toolbar={
-          <TableToolbar
-            testid="admin-name-checks-toolbar"
-            columns={
-              <ColumnsButton
-                testid="admin-name-checks-columns"
-                columns={columns.map((column) => ({
-                  key: column.key,
-                  label: String(column.header),
-                  locked: LOCKED.includes(column.key),
-                }))}
-                hidden={hidden}
-                onToggle={toggleColumn}
-              />
-            }
-          />
-        }
-        rowActions={(row) => (
-          <RowActions
-            testid={`admin-name-check-${row.profileId}-actions`}
-            name={label(row)}
-            more={[
-              {
-                key: "allow",
-                label: t("admin.screening.names.action.clear"),
-                disabled: !mayClear || row.checkedText === null || busy,
-                onSelect: () => {
-                  setReason("");
-                  setAllowing(row);
+          }
+          toolbar={
+            <TableToolbar
+              testid="admin-name-checks-toolbar"
+              columns={
+                <ColumnsButton
+                  testid="admin-name-checks-columns"
+                  columns={columns.map((column) => ({
+                    key: column.key,
+                    label: String(column.header),
+                    locked: LOCKED.includes(column.key),
+                  }))}
+                  hidden={hidden}
+                  onToggle={toggleColumn}
+                />
+              }
+            />
+          }
+          rowActions={(row) => (
+            <RowActions
+              testid={`admin-name-check-${row.profileId}-actions`}
+              name={label(row)}
+              more={[
+                {
+                  key: "allow",
+                  label: t("admin.screening.names.action.clear"),
+                  disabled: !mayClear || row.checkedText === null || busy,
+                  onSelect: () => {
+                    setReason("");
+                    setAllowing(row);
+                  },
                 },
-              },
-              {
-                key: "rename",
-                label: t("admin.screening.names.action.rename"),
-                disabled: !mayClear,
-                onSelect: () =>
-                  void navigate({
-                    to: "/admin/users/$userId",
-                    params: { userId: row.profileId },
-                    hash: "edit-seller-alias",
-                  }),
-              },
-            ]}
-          />
-        )}
-        keyset={{
-          hasPrevious: history.length > 1,
-          hasNext: query.data?.next !== null && query.data?.next !== undefined,
-          busy: query.isFetching,
-          onPrevious: () => setHistory((current) => current.slice(0, -1)),
-          onNext: () => {
-            const next = query.data?.next;
-            if (next) setHistory((current) => [...current, next]);
-          },
-        }}
-      />
+                {
+                  key: "rename",
+                  label: t("admin.screening.names.action.rename"),
+                  disabled: !mayClear,
+                  onSelect: () =>
+                    void navigate({
+                      to: "/admin/users/$userId",
+                      params: { userId: row.profileId },
+                      hash: "edit-seller-alias",
+                    }),
+                },
+              ]}
+            />
+          )}
+          keyset={{
+            hasPrevious: history.length > 1,
+            hasNext: query.data?.next !== null && query.data?.next !== undefined,
+            busy: query.isFetching,
+            onPrevious: () => setHistory((current) => current.slice(0, -1)),
+            onNext: () => {
+              const next = query.data?.next;
+              if (next) setHistory((current) => [...current, next]);
+            },
+          }}
+        />
+      ) : null}
 
       <AlertDialog
         open={allowing !== null}

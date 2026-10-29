@@ -40,13 +40,7 @@ const KIND_LABEL: Record<PhotoChangeKind, MessageKey> = {
  * D169 (bundle 14 turn 1): Remove is in Edit on the ad's own page, which the ad's
  * title links to — no photo is removed from Screening.
  */
-export function PhotoChanges({
-  mayReview,
-  guard,
-}: {
-  mayReview: boolean;
-  guard: GuardFn;
-}) {
+export function PhotoChanges({ mayReview, guard }: { mayReview: boolean; guard: GuardFn }) {
   // INC-995 — this section's outcomes are shown beside its own table (INC-570).
   const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
   const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });
