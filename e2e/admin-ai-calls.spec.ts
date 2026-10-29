@@ -19,12 +19,12 @@ test("ACR-E1 staff history filters through the real door and renders its exact p
   );
   expect(answer.error).toBeNull();
   if (!answer.data) throw new Error("ACR-E1 missing real door page");
-  const surface =
-    (page.viewportSize()?.width ?? 1280) < 1024
-      ? section.getByTestId("data-table-cards")
-      : section.getByRole("table");
+  // The cards twin names a row `<rowTestId>-card` (DataTable's contract); the table row is `<rowTestId>`.
+  const cards = (page.viewportSize()?.width ?? 1280) < 1024;
+  const surface = cards ? section.getByTestId("data-table-cards") : section.getByRole("table");
+  const rowId = (id: string) => (cards ? `ai-call-${id}-card` : `ai-call-${id}`);
   for (const row of answer.data.rows)
-    await expect(surface.getByTestId(`ai-call-${row.id}`)).toBeVisible();
+    await expect(surface.getByTestId(rowId(row.id))).toBeVisible();
   if (answer.data.rows.length === 0)
     await expect(section.getByTestId("data-table-empty")).toBeVisible();
   await section.getByTestId("ai-calls-feature").selectOption("name_check");
@@ -40,7 +40,7 @@ test("ACR-E1 staff history filters through the real door and renders its exact p
   for (const row of filtered.data.rows) {
     expect(row.feature).toBe("name_check");
     expect(row.outcome).toBe("timeout");
-    await expect(surface.getByTestId(`ai-call-${row.id}`)).toBeVisible();
+    await expect(surface.getByTestId(rowId(row.id))).toBeVisible();
   }
   if (filtered.data.rows.length === 0)
     await expect(section.getByTestId("data-table-empty")).toBeVisible();
