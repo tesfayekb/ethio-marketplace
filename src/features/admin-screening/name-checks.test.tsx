@@ -7,7 +7,11 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 /** N1b-3c (INC-977) — the queue and the job line as staff read them. */
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => key, language: "en" }),
+  // The paused line keeps its placeholders, so the reason drawn into it can be read.
+  useI18n: () => ({
+    t: (key: string) => (key === "admin.screening.job.paused" ? `${key} {time}: {reason}` : key),
+    language: "en",
+  }),
 }));
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
