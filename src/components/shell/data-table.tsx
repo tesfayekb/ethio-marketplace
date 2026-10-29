@@ -536,31 +536,31 @@ export function DataTable<T>({
   if (error) return stateBox("data-table-error", errorState);
   // A2 — the keyset footer; an empty keyset page keeps it, so Previous stays reachable.
   const keysetFooter = keyset ? (
-        <div
-          className={cn("flex min-w-0 justify-end gap-2", FOOTER_AT[cardUntil])}
-          data-testid="data-table-keyset"
-        >
-          <Button
-            type="button"
-            variant="outline"
-            className="size-11 p-0"
-            aria-label={t("prim.table.previous")}
-            disabled={keyset.busy || !keyset.hasPrevious}
-            onClick={keyset.onPrevious}
-          >
-            <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="size-11 p-0"
-            aria-label={t("prim.table.next")}
-            disabled={keyset.busy || !keyset.hasNext}
-            onClick={keyset.onNext}
-          >
-            <ChevronRight aria-hidden="true" className="rtl:rotate-180" />
-          </Button>
-        </div>
+    <div
+      className={cn("flex min-w-0 justify-end gap-2", FOOTER_AT[cardUntil])}
+      data-testid="data-table-keyset"
+    >
+      <Button
+        type="button"
+        variant="outline"
+        className="size-11 p-0"
+        aria-label={t("prim.table.previous")}
+        disabled={keyset.busy || !keyset.hasPrevious}
+        onClick={keyset.onPrevious}
+      >
+        <ChevronLeft aria-hidden="true" className="rtl:rotate-180" />
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="size-11 p-0"
+        aria-label={t("prim.table.next")}
+        disabled={keyset.busy || !keyset.hasNext}
+        onClick={keyset.onNext}
+      >
+        <ChevronRight aria-hidden="true" className="rtl:rotate-180" />
+      </Button>
+    </div>
   ) : null;
   if (rows.length === 0)
     return keyset
