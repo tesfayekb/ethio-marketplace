@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AccountOverview } from "@/features/account/account-overview";
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/account")({
   beforeLoad: async () => {
     await requireSignedIn("/account");
   },
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.account.description", {
     meta: [
       { name: "robots", content: "noindex" },
       { title: "Account — ethio.com" },
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/account")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  }, "account.overview.title"),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: AccountOverview,

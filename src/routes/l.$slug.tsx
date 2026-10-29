@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { certifyRefusal } from "@/features/legal/certify-refusal";
 import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/reveal-intent";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
@@ -42,7 +43,7 @@ export const Route = createFileRoute("/l/$slug")({
   },
   notFoundComponent: GonePage,
   head: ({ loaderData, matches }) => {
-    if (!loaderData) return {};
+    if (!loaderData) return pageHead("head.site.pattern.title", null, {};
     const { doc, canonical } = loaderData;
     const title = `${doc.title} — ethio.com`;
     const description = doc.description.slice(0, 160);
@@ -74,7 +75,7 @@ export const Route = createFileRoute("/l/$slug")({
       ],
       links: url ? [{ rel: "canonical", href: url }] : [],
       scripts: url ? [{ type: "application/ld+json", children: adJsonLd(doc, url, image) }] : [],
-    };
+    }, null, doc.title);
   },
   component: AdPage,
 });

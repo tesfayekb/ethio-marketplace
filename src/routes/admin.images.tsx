@@ -1,9 +1,10 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminSectionPage } from "@/features/admin/section-page";
 
 export const Route = createFileRoute("/admin/images")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Images — ethio.com Admin" },
       { name: "description", content: "Images in the ethio.com staff panel." },
@@ -13,7 +14,7 @@ export const Route = createFileRoute("/admin/images")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "admin.section.images.title"),
   component: AdminImagesPage,
 });
 

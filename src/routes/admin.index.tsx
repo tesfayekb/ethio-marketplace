@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { useAdminShell } from "@/features/admin/admin-context";
@@ -14,7 +15,7 @@ import { useI18n } from "@/i18n";
  * theme is applied to every panel as it is built.
  */
 export const Route = createFileRoute("/admin/")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Overview — ethio.com Admin" },
       { name: "description", content: "Overview in the ethio.com staff panel." },
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/admin/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "nav.overview"),
   component: AdminLanding,
 });
 

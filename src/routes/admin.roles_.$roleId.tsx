@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminRoleDetailPage } from "@/features/admin/roles/role-detail";
@@ -8,7 +9,7 @@ import { AdminRoleDetailPage } from "@/features/admin/roles/role-detail";
  * this file renders the body only.
  */
 export const Route = createFileRoute("/admin/roles_/$roleId")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Role — ethio.com Admin" },
       { name: "description", content: "Role in the ethio.com staff panel." },
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/admin/roles_/$roleId")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "head.admin.role.title"),
   component: AdminRoleDetailRoute,
 });
 

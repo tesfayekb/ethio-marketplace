@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Suspense } from "react";
@@ -12,7 +13,7 @@ import { useI18n } from "@/i18n";
  * slug from here, so they can never disagree again.
  */
 export const Route = createFileRoute("/c/$slug")({
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.category.description", {
     meta: [
       { title: "Category — ethio.com" },
       {
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/c/$slug")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  }, "head.category.title"),
   component: CategoryFeed,
 });
 

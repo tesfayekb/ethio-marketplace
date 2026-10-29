@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/features/admin/legal/legal-page";
 export const Route = createFileRoute("/admin/legal")({
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/admin/legal")({
       return { outcome: "published", version: search.version };
     return {};
   },
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.legal.description", {
     meta: [
       { title: "Legal documents — ethio.com Admin" },
       {
@@ -29,6 +30,6 @@ export const Route = createFileRoute("/admin/legal")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "head.admin.legal.title"),
   component: LegalPage,
 });

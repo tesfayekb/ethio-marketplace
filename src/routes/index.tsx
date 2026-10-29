@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { Suspense } from "react";
@@ -7,7 +8,7 @@ import { Feed } from "@/components/marketplace/feed";
 import { useI18n } from "@/i18n";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
+  head: () => pageHead("head.home.title", "head.home.description", {
     meta: [
       { title: "ethio.com — Ethiopia's marketplace" },
       {

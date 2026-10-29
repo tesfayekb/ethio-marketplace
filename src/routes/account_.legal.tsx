@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { MyLegalPage } from "@/features/legal/my-legal-page";
 import { requireSignedIn } from "@/lib/signed-in-route";
@@ -7,7 +8,7 @@ export const Route = createFileRoute("/account_/legal")({
   beforeLoad: async () => {
     await requireSignedIn("/account/legal");
   },
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.myLegal.description", {
     meta: [
       { name: "robots", content: "noindex" },
       { title: "My legal documents — ethio.com" },
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/account_/legal")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "myLegal.title"),
   // DEC-258 — this screen shows the member strings layer; the shell's gate loads it first.
   staticData: { strings: ["member"] },
   component: MyLegalPage,

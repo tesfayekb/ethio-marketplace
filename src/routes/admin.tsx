@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
@@ -23,7 +24,7 @@ import { SIGN_OUT_LANDING } from "@/lib/sign-out-landing";
  * has_permission on the server.
  */
 export const Route = createFileRoute("/admin")({
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.admin.panel.description", {
     meta: [
       { title: "Admin — ethio.com" },
       { name: "description", content: "Administration panel for ethio.com staff." },
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/admin")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "panel.admin"),
   // DEC-258 — the admin screens show the admin and member strings layers; the
   // shell's gate loads both before this layout draws.
   staticData: { strings: ["admin", "member"] },

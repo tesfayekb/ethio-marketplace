@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminCountriesPage } from "@/features/admin-countries/countries-page";
@@ -8,7 +9,7 @@ import { AdminCountriesPage } from "@/features/admin-countries/countries-page";
  * step-up inside the door (F3).
  */
 export const Route = createFileRoute("/admin/countries")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Countries — ethio.com Admin" },
       { name: "description", content: "Countries in the ethio.com staff panel." },
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/admin/countries")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "admin.section.countries.title"),
   component: AdminCountriesRoute,
 });
 

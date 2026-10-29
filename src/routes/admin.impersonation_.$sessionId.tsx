@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ImpersonationView } from "@/features/admin/impersonation/impersonation-view";
@@ -9,7 +10,7 @@ import { ImpersonationView } from "@/features/admin/impersonation/impersonation-
  * so a shared link grants nothing.
  */
 export const Route = createFileRoute("/admin/impersonation_/$sessionId")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Impersonation session — ethio.com Admin" },
       { name: "description", content: "Impersonation session in the ethio.com staff panel." },
@@ -22,7 +23,7 @@ export const Route = createFileRoute("/admin/impersonation_/$sessionId")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "head.admin.impersonation.title"),
   component: ImpersonationRoute,
 });
 

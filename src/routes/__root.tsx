@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { installInputModality } from "@/lib/input-modality";
 import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -344,7 +345,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // A navigation elsewhere never re-read them; a fresh load reads them again (the error view's
   // Refresh, turn 34c).
   shouldReload: false,
-  head: ({ loaderData }) => ({
+  head: ({ loaderData }) => pageHead("app.name", "head.site.description", {
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },

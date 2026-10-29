@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminCoveragePage } from "@/features/admin-coverage/coverage-page";
@@ -8,7 +9,7 @@ import { AdminCoveragePage } from "@/features/admin-coverage/coverage-page";
  * inside the door (F3).
  */
 export const Route = createFileRoute("/admin/coverage")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Coverage — ethio.com Admin" },
       { name: "description", content: "Coverage in the ethio.com staff panel." },
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/admin/coverage")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "admin.section.coverage.title"),
   component: AdminCoverageRoute,
 });
 

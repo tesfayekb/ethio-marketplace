@@ -446,7 +446,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.translations.error.deleteBase": "የመሰረት ቋንቋ ሊሰረዝ አይችልም።",
 
   // U6-C1a — THE POSTING WIZARD (D1: no literal UI string).
-  "post.head.title": "ማስታወቂያ ይለጥፉ — ethio.com",
+
   "post.head.description": "የሚሸጡትን በጥቂት ደረጃዎች በethio.com ላይ ይለጥፉ።",
   "post.step.category": "ምድብ",
   "post.step.photos": "ፎቶዎች",

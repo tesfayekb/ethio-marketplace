@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalEditor } from "@/features/admin/legal/legal-editor";
 export const Route = createFileRoute("/admin/legal_/edit")({
@@ -5,7 +6,7 @@ export const Route = createFileRoute("/admin/legal_/edit")({
     kind: typeof search.kind === "string" ? search.kind : "",
     ...(typeof search.country === "string" ? { country: search.country } : {}),
   }),
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.legalDraft.description", {
     meta: [
       { title: "Legal draft — ethio.com Admin" },
       {
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/admin/legal_/edit")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "head.admin.legalDraft.title"),
   component: LegalEditorRoute,
 });
 function LegalEditorRoute() {

@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -13,7 +14,7 @@ import {
  * shareable and reproducible. validateSearch is the single parse point.
  */
 export const Route = createFileRoute("/admin/translations_/$lang")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Language strings — ethio.com Admin" },
       { name: "description", content: "Language strings in the ethio.com staff panel." },
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/admin/translations_/$lang")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "head.admin.languageStrings.title"),
   validateSearch: (search: Record<string, unknown>): StringsSearch => ({
     ...(typeof search["status"] === "string" ? { status: search["status"] } : {}),
     ...(search["flagged"] === true || search["flagged"] === "true" ? { flagged: true } : {}),

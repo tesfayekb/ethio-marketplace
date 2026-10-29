@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/auth")({
     ...(search["reason"] === "deactivated" ? { reason: "deactivated" as const } : {}),
   }),
 
-  head: () => ({
+  head: () => pageHead("head.site.pattern.title", "head.auth.description", {
     meta: [
       { name: "robots", content: "noindex" },
       { title: "Sign in — ethio.com" },
@@ -72,7 +73,7 @@ export const Route = createFileRoute("/auth")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-  }),
+  }, "auth.signIn"),
   component: AuthScreen,
 });
 

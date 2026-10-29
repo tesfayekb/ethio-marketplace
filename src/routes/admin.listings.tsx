@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminListingsPage } from "@/features/admin-listings/listings-page";
@@ -8,7 +9,7 @@ import { AdminListingsPage } from "@/features/admin-listings/listings-page";
  * `admin_list_listings`, which re-checks `listings:view` (F3).
  */
 export const Route = createFileRoute("/admin/listings")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "All listings — ethio.com Admin" },
       { name: "description", content: "All listings in the ethio.com staff panel." },
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/admin/listings")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "admin.section.listings.title"),
   component: AdminListingsRoute,
 });
 

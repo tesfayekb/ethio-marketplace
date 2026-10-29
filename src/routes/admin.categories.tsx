@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminCategoriesPage } from "@/features/admin-categories/categories-page";
@@ -7,7 +8,7 @@ import { AdminCategoriesPage } from "@/features/admin-categories/categories-page
  * gate and the AdminShellProvider; this file renders the body only.
  */
 export const Route = createFileRoute("/admin/categories")({
-  head: () => ({
+  head: () => pageHead("head.admin.pattern.title", "head.admin.pattern.description", {
     meta: [
       { title: "Categories — ethio.com Admin" },
       { name: "description", content: "Categories in the ethio.com staff panel." },
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/admin/categories")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
-  }),
+  }, "admin.section.categories.title"),
   component: AdminCategoriesRoute,
 });
 
