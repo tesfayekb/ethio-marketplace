@@ -9,6 +9,7 @@ import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
 import { useI18n } from "@/i18n";
 import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter, numberFormatter } from "@/lib/format";
 import {
   AI_OUTCOMES,
   AI_FEATURE_ORDER,
@@ -52,8 +53,8 @@ export function AiCalls() {
     setHistory([null]);
   };
   const locale = formatLocale(language);
-  const date = new Intl.DateTimeFormat(locale, { dateStyle: "short", timeStyle: "medium" });
-  const number = new Intl.NumberFormat(locale);
+  const date = dateFormatter("moment", language);
+  const number = numberFormatter("count", language);
   const columns: DataTableColumn<AiCallRow>[] = [
     {
       key: "time",

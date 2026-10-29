@@ -29,6 +29,7 @@ import { draftRefusalKey, fill, refusalFor } from "./refusal-text";
 import type { Refusal } from "./types";
 import { checkChannel, normalizeTelegram } from "./validate";
 import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { Button } from "@/components/ui/button";
 
@@ -100,7 +101,7 @@ function formatDay(value: string, lang: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? value
-    : new Intl.DateTimeFormat(formatLocale(lang), { dateStyle: "medium" }).format(date);
+    : dateFormatter("day", lang).format(date);
 }
 
 function channelOf(
@@ -934,10 +935,7 @@ export function StepWho({
                     lineFacts.correctionUntil !== null &&
                     new Date(lineFacts.correctionUntil).getTime() > Date.now()
                   ? fill(t("post.who.aliasCorrectionWindow"), {
-                      when: new Intl.DateTimeFormat(formatLocale(language), {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }).format(new Date(lineFacts.correctionUntil)),
+                      when: dateFormatter("dayTime", language).format(new Date(lineFacts.correctionUntil)),
                     })
                   : lineFacts !== null && lineFacts.nextChangeAt !== null
                     ? fill(t("post.who.aliasNextChange"), {

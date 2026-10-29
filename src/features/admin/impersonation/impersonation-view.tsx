@@ -28,6 +28,7 @@ import {
   useImpersonatedProfile,
 } from "./use-impersonation";
 import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /**
  * U3 / DEC-016 — THE IMPERSONATION VIEW (v1, READ-ONLY BY CONSTRUCTION).
@@ -68,9 +69,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
     (active.isFetched && active.data?.id !== sessionId);
   const countdown = useCountdown(expired ? null : (active.data?.expiresAt ?? null));
 
-  const fmt = new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "medium",
-  });
+  const fmt = dateFormatter("day", language);
 
   if (expired) {
     return (

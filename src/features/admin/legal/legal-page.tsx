@@ -22,6 +22,7 @@ import {
 import { LegalFactsCard } from "./legal-facts-card";
 import { useLegalDocuments, useLegalSettings, useLegalVersion, useLegalWrites } from "./use-legal";
 import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /** Bundle 22 turn 13 — the text in force, read in place (its facts as frozen at publishing). */
 function InForceText({ id }: { id: string }) {
@@ -66,9 +67,7 @@ export function LegalPage() {
   const now = Date.now();
   const date = (value: string | null) =>
     value
-      ? new Intl.DateTimeFormat(formatLocale(language), {
-          dateStyle: "medium",
-        }).format(new Date(value))
+      ? dateFormatter("day", language).format(new Date(value))
       : "—";
   const scope = (code: string | null) =>
     code

@@ -7,6 +7,7 @@ import { ownValue } from "@/lib/own-key";
 import { kindKey, type LegalHistoryRow } from "./legal-service";
 import { useUserLegalHistory } from "./use-legal";
 import { formatLocale, languageRowName } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 export function UserLegalCard({ userId }: { userId: string }) {
   const { t, language, publicLanguages } = useI18n();
@@ -15,10 +16,7 @@ export function UserLegalCard({ userId }: { userId: string }) {
   const countries = useCountries();
   const date = (value?: string) =>
     value
-      ? new Intl.DateTimeFormat(formatLocale(language), {
-          dateStyle: "medium",
-          timeStyle: "long",
-        }).format(new Date(value))
+      ? dateFormatter("dayTimeZone", language).format(new Date(value))
       : "—";
   const caption = (row: LegalHistoryRow) => {
     const key = kindKey(row.kind);

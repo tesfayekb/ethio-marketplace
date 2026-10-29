@@ -27,6 +27,7 @@ import {
   useUpdateProfile,
 } from "./use-admin-users";
 import { formatLocale } from "@/lib/format-locale";
+import { dateFormatter } from "@/lib/format";
 
 /**
  * The per-user detail (Phase U1). Buttons are hidden without the matching
@@ -52,10 +53,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
   const [reasonError, setReasonError] = useState(false);
   const [selectedRole, setSelectedRole] = useState("");
 
-  const fmt = new Intl.DateTimeFormat(formatLocale(language), {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
+  const fmt = dateFormatter("dayTime", language);
   const when = (value: string | null) => (value ? fmt.format(new Date(value)) : "—");
 
   /**
