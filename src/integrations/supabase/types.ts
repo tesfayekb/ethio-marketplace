@@ -4485,6 +4485,23 @@ export type Database = {
         Args: { p_id: string; p_new_parent_id: string }
         Returns: undefined
       }
+      admin_name_check_clear: {
+        Args: {
+          p_profile: string
+          p_reason?: string
+          p_subject: string
+          p_text: string
+        }
+        Returns: Json
+      }
+      admin_name_check_list: {
+        Args: {
+          p_after_profile?: string
+          p_after_since?: string
+          p_limit?: number
+        }
+        Returns: Json
+      }
       admin_name_check_summary: { Args: never; Returns: Json }
       admin_open_report_counts: {
         Args: { p_listing_ids: string[] }
@@ -5522,6 +5539,16 @@ export type Database = {
           p_text: string
         }
         Returns: boolean
+      }
+      name_check_queue_page: {
+        Args: {
+          p_after_profile: string
+          p_after_since: string
+          p_limit: number
+          p_only?: string[]
+          p_show_names: boolean
+        }
+        Returns: Json
       }
       name_claim_folds: { Args: never; Returns: string[] }
       name_fold: { Args: { p: string }; Returns: string }
