@@ -1,11 +1,11 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-last E2E run 40855224390 passed
+last E2E run 40858084623 passed
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40855224390
-- Commit: `c8410ef2612996fcc963621611a843dcf0b9d609`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40858084623
+- Commit: `69339baf4ff27167fb3b9dea7f410d37ef2d3588`
 - Attempt: 1
-- Written (UTC): 2026-10-29T10:38:10.811Z
+- Written (UTC): 2026-10-29T10:57:52.633Z
 - Post-test warnings: 57
 - Flaky (passed on retry, DEC-030, non-gating): 0
 - Errors outside any test (INC-589): none
@@ -66,114 +66,114 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| smoke | 2026-10-29T10:23:47.821Z | 12.6 min |
-| email | 2026-10-29T10:25:47.987Z | 0.4 min |
-| shard 1 | 2026-10-29T10:24:04.016Z | 9.6 min |
-| shard 2 | 2026-10-29T10:23:26.441Z | 11.4 min |
-| shard 3 | 2026-10-29T10:23:18.871Z | 12.2 min |
-| shard 4 | 2026-10-29T10:23:36.348Z | 6.4 min |
-| shard 5 | 2026-10-29T10:23:44.588Z | 6.7 min |
-| shard 6 | 2026-10-29T10:23:37.909Z | 9.3 min |
-| shard 7 | 2026-10-29T10:23:44.685Z | 6.8 min |
-| shard 8 | 2026-10-29T10:23:39.591Z | 6.1 min |
-| shard 9 | 2026-10-29T10:23:30.218Z | 11.9 min |
-| shard 10 | 2026-10-29T10:23:46.667Z | 13.9 min |
-| shard 11 | 2026-10-29T10:23:27.987Z | 12.3 min |
-| shard 12 | 2026-10-29T10:23:57.024Z | 9.1 min |
-| shard 13 | 2026-10-29T10:23:27.260Z | 6.6 min |
-| shard 14 | 2026-10-29T10:24:28.532Z | 8.5 min |
-| shard 15 | 2026-10-29T10:24:07.038Z | 7.0 min |
-| shard 16 | 2026-10-29T10:23:30.141Z | 6.4 min |
-| repeat | 2026-10-29T10:23:40.581Z | 0.7 min |
+| smoke | 2026-10-29T10:43:43.949Z | 13.6 min |
+| email | 2026-10-29T10:41:19.823Z | 0.3 min |
+| shard 1 | 2026-10-29T10:40:59.715Z | 7.8 min |
+| shard 2 | 2026-10-29T10:41:12.278Z | 12.2 min |
+| shard 3 | 2026-10-29T10:41:35.232Z | 13.8 min |
+| shard 4 | 2026-10-29T10:41:47.002Z | 8.6 min |
+| shard 5 | 2026-10-29T10:42:58.541Z | 6.7 min |
+| shard 6 | 2026-10-29T10:41:19.606Z | 8.4 min |
+| shard 7 | 2026-10-29T10:41:44.095Z | 6.7 min |
+| shard 8 | 2026-10-29T10:41:11.319Z | 5.6 min |
+| shard 9 | 2026-10-29T10:41:30.547Z | 12.2 min |
+| shard 10 | 2026-10-29T10:41:25.630Z | 13.8 min |
+| shard 11 | 2026-10-29T10:41:39.393Z | 13.4 min |
+| shard 12 | 2026-10-29T10:41:44.810Z | 8.0 min |
+| shard 13 | 2026-10-29T10:41:29.974Z | 6.8 min |
+| shard 14 | 2026-10-29T10:40:58.966Z | 8.3 min |
+| shard 15 | 2026-10-29T10:41:20.538Z | 7.0 min |
+| shard 16 | 2026-10-29T10:41:17.724Z | 7.1 min |
+| repeat | 2026-10-29T10:41:44.958Z | 9.1 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `shell.spec.ts` | 436 | 18.1 min | smoke, shard 8, shard 16 |
-| `auth-signout.spec.ts` | 68 | 6.1 min | smoke, shard 3, shard 11 |
-| `admin-attributes-library.spec.ts` | 42 | 5.7 min | shard 1, shard 9 |
+| `shell.spec.ts` | 436 | 18.9 min | smoke, shard 8, shard 16 |
+| `admin-attributes-editor.spec.ts` | 108 | 10.2 min | shard 1, shard 9, repeat |
+| `auth-signout.spec.ts` | 68 | 6.5 min | smoke, shard 3, shard 11 |
+| `admin-attributes-library.spec.ts` | 42 | 5.4 min | shard 1, shard 9 |
 | `post-wizard-specs.spec.ts` | 82 | 5.0 min | shard 7, shard 15 |
-| `post-wizard-bundle2.spec.ts` | 70 | 4.9 min | shard 6, shard 14 |
-| `feed-screens.spec.ts` | 36 | 4.7 min | shard 4, shard 12 |
-| `admin-locations.spec.ts` | 38 | 4.6 min | shard 2, shard 10 |
-| `admin-categories-console.spec.ts` | 34 | 4.2 min | shard 2, shard 10 |
-| `admin-translations-console.spec.ts` | 44 | 4.2 min | shard 3, shard 11 |
-| `admin-attributes-links.spec.ts` | 34 | 4.1 min | shard 1, shard 9 |
-| `import-security.spec.ts` | 36 | 4.0 min | shard 4, shard 12 |
-| `admin-roles.spec.ts` | 26 | 4.0 min | shard 3, shard 11 |
-| `viewing-place.spec.ts` | 22 | 3.9 min | shard 9, shard 16 |
-| `post-wizard-place.spec.ts` | 38 | 3.8 min | shard 6, shard 14 |
-| `post-wizard-where.spec.ts` | 32 | 3.8 min | shard 7, shard 15 |
-| `admin-screening.spec.ts` | 52 | 3.7 min | shard 3, shard 11 |
-| `admin-categories-lifecycle.spec.ts` | 52 | 3.7 min | shard 2, shard 10 |
-| `photo-pipeline.spec.ts` | 68 | 3.5 min | shard 5, shard 13 |
-| `admin-users.spec.ts` | 28 | 3.5 min | shard 3, shard 11 |
-| `admin-attributes-editor.spec.ts` | 36 | 3.4 min | shard 1, shard 9 |
-| `my-listings-ad.spec.ts` | 36 | 3.3 min | shard 5, shard 13 |
-| `admin-listings.spec.ts` | 62 | 3.3 min | shard 2, shard 10 |
-| `ad-page.spec.ts` | 78 | 3.2 min | shard 1, shard 9 |
-| `post-wizard-pricing.spec.ts` | 52 | 2.8 min | shard 6, shard 14 |
-| `posting-routes.spec.ts` | 80 | 2.7 min | shard 7, shard 15 |
+| `import-security.spec.ts` | 36 | 4.9 min | shard 4, shard 12 |
+| `admin-locations.spec.ts` | 38 | 4.7 min | shard 2, shard 10 |
+| `feed-screens.spec.ts` | 36 | 4.6 min | shard 4, shard 12 |
+| `admin-translations-console.spec.ts` | 44 | 4.6 min | shard 3, shard 11 |
+| `post-wizard-bundle2.spec.ts` | 70 | 4.4 min | shard 6, shard 14 |
+| `admin-roles.spec.ts` | 26 | 4.4 min | shard 3, shard 11 |
+| `admin-categories-console.spec.ts` | 34 | 4.3 min | shard 2, shard 10 |
+| `admin-screening.spec.ts` | 52 | 4.3 min | shard 3, shard 11 |
+| `viewing-place.spec.ts` | 22 | 4.0 min | shard 9, shard 16 |
+| `admin-users.spec.ts` | 28 | 3.9 min | shard 3, shard 11 |
+| `admin-attributes-links.spec.ts` | 34 | 3.8 min | shard 1, shard 9 |
+| `admin-categories-lifecycle.spec.ts` | 52 | 3.8 min | shard 2, shard 10 |
+| `post-wizard-where.spec.ts` | 32 | 3.7 min | shard 7, shard 15 |
+| `admin-listings.spec.ts` | 62 | 3.7 min | shard 2, shard 10 |
+| `post-wizard-place.spec.ts` | 38 | 3.6 min | shard 6, shard 14 |
+| `photo-pipeline.spec.ts` | 68 | 3.6 min | shard 5, shard 13 |
+| `my-listings-ad.spec.ts` | 36 | 3.4 min | shard 5, shard 13 |
+| `ad-page.spec.ts` | 78 | 2.9 min | shard 1, shard 9 |
+| `post-wizard-pricing.spec.ts` | 52 | 2.7 min | shard 6, shard 14 |
+| `posting-routes.spec.ts` | 80 | 2.6 min | shard 7, shard 15 |
 | `admin-attributes-safety.spec.ts` | 18 | 2.6 min | shard 2, shard 10 |
-| `post-wizard-resets.spec.ts` | 34 | 2.3 min | shard 6, shard 14 |
-| `post-wizard-category.spec.ts` | 48 | 2.3 min | shard 6, shard 14 |
 | `admin-countries.spec.ts` | 18 | 2.2 min | shard 2, shard 10 |
-| `legal-admin.spec.ts` | 42 | 2.0 min | shard 4, shard 12 |
-| `admin-translations-data.spec.ts` | 10 | 2.0 min | shard 3, shard 11 |
-| `admin-attributes-import.spec.ts` | 40 | 1.8 min | shard 1, shard 9 |
-| `admin-translations-governance.spec.ts` | 8 | 1.8 min | shard 3, shard 11 |
-| `legal-certify.spec.ts` | 42 | 1.7 min | shard 4, shard 12 |
+| `post-wizard-resets.spec.ts` | 34 | 2.2 min | shard 6, shard 14 |
+| `legal-admin.spec.ts` | 42 | 2.1 min | shard 4, shard 12 |
+| `admin-translations-data.spec.ts` | 10 | 2.1 min | shard 3, shard 11 |
+| `post-wizard-category.spec.ts` | 48 | 2.0 min | shard 6, shard 14 |
+| `admin-translations-governance.spec.ts` | 8 | 1.9 min | shard 3, shard 11 |
+| `legal-certify.spec.ts` | 42 | 1.8 min | shard 4, shard 12 |
 | `admin-categories-home.spec.ts` | 10 | 1.7 min | shard 2, shard 10 |
-| `mfa-stepup.spec.ts` | 18 | 1.4 min | shard 5, shard 13 |
+| `admin-attributes-import.spec.ts` | 40 | 1.6 min | shard 1, shard 9 |
+| `mfa-stepup.spec.ts` | 18 | 1.5 min | shard 5, shard 13 |
+| `ad-page-doors.spec.ts` | 90 | 1.5 min | shard 1, shard 9, repeat |
 | `admin-audit.spec.ts` | 14 | 1.4 min | shard 2, shard 10 |
 | `locations-tree.spec.ts` | 8 | 1.1 min | shard 5, shard 13 |
 | `phone-frame.spec.ts` | 18 | 1.0 min | shard 5, shard 13 |
-| `my-listings-page.spec.ts` | 16 | 0.8 min | shard 5, shard 13 |
+| `admin-shell.spec.ts` | 12 | 0.9 min | shard 3, shard 11 |
 | `admin-coverage.spec.ts` | 16 | 0.8 min | shard 2, shard 10 |
-| `admin-shell.spec.ts` | 12 | 0.7 min | shard 3, shard 11 |
+| `my-listings-page.spec.ts` | 16 | 0.8 min | shard 5, shard 13 |
 | `legal-doors.spec.ts` | 34 | 0.7 min | shard 5, shard 13 |
-| `posting-routes-catalog.spec.ts` | 18 | 0.7 min | shard 7, shard 15 |
+| `posting-routes-catalog.spec.ts` | 18 | 0.6 min | shard 7, shard 15 |
 | `post-wizard-removed.spec.ts` | 4 | 0.6 min | shard 6, shard 14 |
 | `i18n-bundle.spec.ts` | 6 | 0.6 min | shard 4, shard 12 |
-| `seller-name-hidden.spec.ts` | 14 | 0.5 min | shard 8, shard 16, repeat |
+| `account-saved.spec.ts` | 12 | 0.5 min | shard 1, shard 9, repeat |
 | `posting-routes-dials.spec.ts` | 18 | 0.5 min | shard 7, shard 15 |
-| `ad-page-doors.spec.ts` | 30 | 0.5 min | shard 1, shard 9 |
 | `admin-categories-images.spec.ts` | 2 | 0.5 min | shard 2, shard 10 |
-| `legal-accept.spec.ts` | 12 | 0.4 min | shard 4, shard 12 |
+| `legal-accept.spec.ts` | 12 | 0.5 min | shard 4, shard 12 |
 | `my-listings-doors.spec.ts` | 28 | 0.4 min | shard 5, shard 13 |
 | `supabase-door.spec.ts` | 12 | 0.4 min | shard 8, shard 16 |
-| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6, shard 14 |
-| `primitives-law.spec.ts` | 24 | 0.4 min | shard 7, shard 15 |
-| `post-wizard-details.spec.ts` | 8 | 0.4 min | shard 6, shard 14 |
 | `auth-caller-gates.spec.ts` | 8 | 0.4 min | shard 3, shard 11 |
-| `settings.spec.ts` | 9 | 0.3 min | shard 8 |
+| `primitives-law.spec.ts` | 24 | 0.4 min | shard 7, shard 15 |
+| `post-wizard-finder.spec.ts` | 8 | 0.4 min | shard 6, shard 14 |
+| `post-wizard-details.spec.ts` | 8 | 0.3 min | shard 6, shard 14 |
 | `house-style.spec.ts` | 12 | 0.3 min | shard 4, shard 12 |
-| `auth-signup.spec.ts` | 6 | 0.3 min | email |
-| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 7, shard 15 |
-| `legal-pages.spec.ts` | 10 | 0.3 min | shard 5, shard 13 |
+| `a11y.spec.ts` | 4 | 0.3 min | smoke |
 | `breadcrumbs.spec.ts` | 6 | 0.3 min | shard 3, shard 11 |
-| `a11y.spec.ts` | 4 | 0.2 min | smoke |
-| `i18n-coverage.spec.ts` | 14 | 0.2 min | shard 4, shard 12 |
-| `smoke-auth-i18n.spec.ts` | 4 | 0.2 min | smoke, shard 8, shard 16 |
-| `feed-index.spec.ts` | 30 | 0.2 min | shard 4, shard 12 |
+| `post-wizard-units.spec.ts` | 4 | 0.3 min | shard 7, shard 15 |
+| `i18n-coverage.spec.ts` | 14 | 0.3 min | shard 4, shard 12 |
+| `admin-services.spec.ts` | 10 | 0.3 min | shard 3, shard 11 |
+| `smoke-auth-i18n.spec.ts` | 4 | 0.3 min | smoke, shard 8, shard 16 |
+| `legal-pages.spec.ts` | 10 | 0.3 min | shard 5, shard 13 |
+| `settings.spec.ts` | 9 | 0.2 min | shard 8 |
 | `category-nav.spec.ts` | 10 | 0.2 min | shard 4, shard 12 |
-| `legal-history.spec.ts` | 6 | 0.2 min | shard 5, shard 13 |
+| `feed-index.spec.ts` | 30 | 0.2 min | shard 4, shard 12 |
+| `admin-ai-calls.spec.ts` | 6 | 0.2 min | shard 1, shard 9, repeat |
+| `auth-signup.spec.ts` | 6 | 0.2 min | email |
 | `layout.spec.ts` | 10 | 0.2 min | shard 4, shard 12 |
-| `admin-services.spec.ts` | 10 | 0.2 min | shard 3, shard 11 |
-| `account-saved.spec.ts` | 4 | 0.2 min | shard 1, shard 9 |
-| `feed-route.spec.ts` | 22 | 0.2 min | shard 4, shard 12 |
+| `seller-name-hidden.spec.ts` | 6 | 0.2 min | shard 8, shard 16, repeat |
+| `legal-history.spec.ts` | 6 | 0.2 min | shard 5, shard 13 |
 | `auth-reset.spec.ts` | 6 | 0.2 min | shard 3 |
-| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 7, shard 15 |
+| `ad-page-layout.spec.ts` | 6 | 0.2 min | shard 1, shard 9, repeat |
+| `feed-route.spec.ts` | 22 | 0.2 min | shard 4, shard 12 |
 | `rbac.spec.ts` | 6 | 0.2 min | shard 8, shard 16 |
+| `posting-routes-identity.spec.ts` | 4 | 0.2 min | shard 7, shard 15 |
 | `auth-signin-errors.spec.ts` | 5 | 0.1 min | shard 3 |
 | `post-wizard-recent.spec.ts` | 2 | 0.1 min | shard 6, shard 14 |
+| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
 | `shell-table-law.spec.ts` | 2 | 0.1 min | shard 8, shard 16 |
+| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 4, shard 11 |
 | `i18n-layers.spec.ts` | 6 | 0.1 min | shard 4, shard 12 |
 | `overlays.spec.ts` | 6 | 0.1 min | shard 5, shard 13 |
-| `category-image-routes.spec.ts` | 10 | 0.1 min | shard 4, shard 11 |
 | `on-demand-failure.spec.ts` | 2 | 0.1 min | shard 5, shard 13 |
-| `auth-callback.spec.ts` | 4 | 0.1 min | shard 3 |
-| `admin-ai-calls.spec.ts` | 2 | 0.1 min | shard 1, shard 9 |
-| `ad-page-layout.spec.ts` | 2 | 0.1 min | shard 1, shard 9 |
 | `fonts.spec.ts` | 2 | 0.0 min | shard 4, shard 12 |
 | `rail-first-paint.spec.ts` | 4 | 0.0 min | shard 8, shard 16 |
 | `auth-google.spec.ts` | 2 | 0.0 min | shard 3 |
@@ -184,18 +184,18 @@ Results read: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 38.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 36.9 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 33.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 33.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 42.2 s |
+| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | desktop-1280 | 39.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 38.0 s |
+| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 37.5 s |
+| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | mobile-360 | 36.2 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | desktop-1280 | 34.0 s |
+| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 33.9 s |
 | `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 32.7 s |
+| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 32.4 s |
 | `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | mobile-360 | 32.3 s |
-| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.2 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 31.8 s |
-| `my-listings-ad.spec.ts` › MLA-15 Edit, complete: a second city and a channel apply at once from the Place and Contact steps; typed directions go to review; the pin map opens on the new city (D194, INC-659) | mobile-360 | 30.9 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | mobile-360 | 30.6 s |
-| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 30.6 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.5 s |
-| `import-security.spec.ts` › @private-identity IG-3 attributes: a changed file cannot be committed and previews are rate limited | desktop-1280 | 30.5 s |
-| `viewing-place.spec.ts` › VP-8 this browser's newer pick wins and is saved on the account | desktop-1280 | 30.2 s |
-| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | desktop-1280 | 30.2 s |
+| `locations-tree.spec.ts` › LR-3 a row disappears when an ancestor is retired, and the version moves | desktop-1280 | 32.3 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | mobile-360 | 30.7 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | mobile-360 | 30.7 s |
+| `viewing-place.spec.ts` › VP-9 the account's newer pick wins over this browser's older one | desktop-1280 | 30.7 s |
+| `viewing-place.spec.ts` › VP-10 a browser pick saved before D106 (no time) loses to the account's place | desktop-1280 | 30.7 s |
