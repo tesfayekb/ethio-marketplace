@@ -105,7 +105,7 @@ describe("DataTable C7 contract", () => {
     expect(previous).not.toHaveBeenCalled();
     expect(next).toHaveBeenCalledTimes(1);
   });
-  it("ACR-6 an empty keyset page keeps its footer, so Previous stays reachable; an offset empty page draws none", () => {
+  it("DTK-1 an empty keyset page keeps its footer, so Previous stays reachable; an offset empty page draws none", () => {
     const previous = vi.fn();
     const { rerender } = render(
       <DataTable
