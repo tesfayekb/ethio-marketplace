@@ -33,3 +33,45 @@ No new source census was completed. Previously reported tooling localeCompare si
 - docs/governance/reports/foundations-turn-l-2b.stop-2.md
 
 No app file, migration, dependency or secret changed. The platform manages commits; no manual push was run.
+
+## Final initial-check verdict
+
+`checks: 33 PASS · 1 FAIL · 21 NOT RUN · 1252s`
+
+The one FAIL is the whole unit phase described above. Semgrep passed (360 seconds); first-paint budget passed, with 0 NEAR and none grew. No final whole-checks rerun could be completed before this time-limit stop.
+
+### NOT RUN (21 steps)
+
+- build-and-check › Install dependencies  (0s) — the sandbox's dependencies are already installed; a package change is its own turn
+- component-tests › Install dependencies  (0s) — the sandbox's dependencies are already installed; a package change is its own turn
+- bundle-budget › Install dependencies  (0s) — the sandbox's dependencies are already installed; a package change is its own turn
+- semgrep › Upload SARIF  (0s) — GitHub's code-scanning upload, only GitHub can receive it
+- semgrep › Warn: the SARIF upload failed  (0s) — answers the GitHub-only upload above
+- dependency-audit › Install dependencies  (0s) — the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge
+- dependency-audit › Audit  (0s) — the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge
+- e2e-preflight › Cache bun install  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+- e2e-preflight › Bun cache hit?  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+- e2e-preflight › Install dependencies  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+- e2e-preflight › Migration parity preflight (staging)  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+- e2e › Download shard results  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+- e2e › Download job log tails  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+- e2e › Download error contexts  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+- e2e › Verify the downloaded artifacts belong to this attempt  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+- e2e › Publish merged E2E report  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+- e2e › Verdict  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+- promote › Promote token present (DEC-210)  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+- promote › Configure the actions bot  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+- promote › Fast-forward guard (ff-only law — never merge/rebase here)  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+- promote › Promote dev to main  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+
+### Files relative to 5d61def7
+
+- .lovable/plan.md
+- docs/governance/briefs/foundations-turn-l-2.md
+- docs/governance/briefs/foundations-turn-l-2b.md
+- docs/governance/reports/foundations-turn-l-2.stop-1.md
+- docs/governance/reports/foundations-turn-l-2b.stop-2.md
+- docs/tracking/intentional-deletions.txt
+- e2e/locale-format.spec.ts
+- roadmap.md
+- scripts/e2e-select.ts

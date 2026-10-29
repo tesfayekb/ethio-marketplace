@@ -687,3 +687,5 @@ What bundle 7 added to the order, item by item with its place: docs/governance/h
 13. When the staged order above is complete: remind the operator to re-discuss the ahead-of-Jiji plan (D179, the operator 2026-10-14: "keep … we will rediscuss and need to remind me after completing our staged implementations"; docs/governance/plans/ahead-of-jiji.md). Each stage's spec reads that plan's items for its stage first.
 
 - [ ] Later — a page in the reader's language for crawlers (the language in the URL, with hreflang per language); the head stays base-first until then.
+
+- [ ] L-2B continuation — initial checks finished: 33 PASS, 1 FAIL (unit timeouts; five whole files rechecked: 60 passed), 21 NOT RUN. Whole checks still need green before restoring Part A; then Part B (stop-2 report).
