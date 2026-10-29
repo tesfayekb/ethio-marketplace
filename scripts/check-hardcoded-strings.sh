@@ -74,7 +74,9 @@ fi
 findings=0
 report="$(scan "${targets[@]}")"
 if [ -n "$report" ]; then
-  printf '%s\n' "$report"
+  # INC-994 — each finding is its own FAIL line, so the CI evidence reporter's
+  # line filter (ci-status-report.yml, EVIDENCE) carries it, not only the verdict.
+  printf '%s\n' "$report" | sed 's/^/FAIL finding: /'
   findings=$(printf '%s\n' "$report" | grep -c .)
 fi
 
