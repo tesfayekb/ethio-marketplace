@@ -66,6 +66,11 @@ Details: `docs/features/security-scanning.md`.
   block reading identity/reference tables without the `e2e-mig-` scratch
   namespace is refused. Self-test fixture:
   `scripts/fixtures/bad-real-row-proof-example.sql`.
+- Body fingerprints in proofs (INC-968, from M6b on): a proof that fingerprints a
+  function body compares `md5(replace(prosrc, E'\r', ''))`, and its expected
+  hashes are computed the same way — an `md5(prosrc)` proof is not portable
+  across the hand-apply path (the SQL editor turns LF into CRLF). No guard
+  lints this yet; landed files stay as they are.
 
 ## Migration linter — proof scratch tables, real-row allowlist, drafts (DEC-151)
 
