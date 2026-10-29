@@ -1,13 +1,87 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40840907117
-- Commit: `c0e006ee8101f26e80b5d36b3b4f1b5acd97cbd4`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40842401853
+- Commit: `37ff1f047facb03f0fb5677765d9d1d649ffe57c`
 - Attempt: 1
-- Written (UTC): 2026-10-29T08:44:10.849Z
+- Written (UTC): 2026-10-29T09:00:49.127Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
+
+## Gitleaks secrets scan — failure
+
+### Evidence lines
+
+```text
+##[error]secrets scan exit 2
+##[error]Process completed with exit code 2.
+```
+
+### Tail (last 60 lines)
+
+```text
+37ff1f047facb03f0fb5677765d9d1d649ffe57c
+##[endgroup]
+##[group]Determining the checkout info
+##[endgroup]
+[command]/usr/bin/git sparse-checkout disable
+[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+##[group]Checking out the ref
+[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+Switched to a new branch 'dev'
+branch 'dev' set up to track 'origin/dev'.
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+37ff1f047facb03f0fb5677765d9d1d649ffe57c
+##[group]Run tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+[36;1mtarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"[0m
+[36;1mbash scripts/ci/with-deadline.sh 120 2 -- curl -sSfL -o "$RUNNER_TEMP/$tarball" \[0m
+[36;1m  "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$tarball"[0m
+[36;1mecho "$GITLEAKS_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -[0m
+[36;1mtar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" gitleaks[0m
+[36;1mif git rev-parse --verify --quiet origin/main >/dev/null; then[0m
+[36;1m  range="origin/main..HEAD"[0m
+[36;1melse[0m
+[36;1m  range="HEAD"[0m
+[36;1mfi[0m
+[36;1mcommits="$(git rev-list --count "$range")"[0m
+[36;1mecho "Secrets scan: $commits commits in $range"[0m
+[36;1mset +e[0m
+[36;1m"$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code=2 \[0m
+[36;1m  --log-opts="--diff-merges=first-parent $range" . > "$RUNNER_TEMP/gitleaks.log" 2>&1[0m
+[36;1mcode=$?[0m
+[36;1mset -e[0m
+[36;1mgrep -E 'commits scanned|leaks found|no leaks found' "$RUNNER_TEMP/gitleaks.log" | sed -E 's/^.*(INF|WRN|ERR) //'[0m
+[36;1mif [ "$code" -ne 0 ]; then echo "::error::secrets scan exit $code"; exit "$code"; fi[0m
+shell: /usr/bin/bash -e {0}
+env:
+  GITLEAKS_VERSION: 8.24.3
+  GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
+##[endgroup]
+/home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz: OK
+Secrets scan: 22 commits in origin/main..HEAD
+[90m8:41AM[0m [32mINF[0m [1m22 commits scanned.[0m
+[90m8:41AM[0m [33mWRN[0m [1mleaks found: 2[0m
+##[error]secrets scan exit 2
+##[error]Process completed with exit code 2.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/546e3587-f279-4be1-9b47-44316f6fd98d' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
 
 ## i18n used-on map is fresh (U4i ②) — failure
 
@@ -26,7 +100,7 @@ with:
   token: ***
 ##[endgroup]
 Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip
-[command]/usr/bin/unzip -o -q /home/runner/work/_temp/7820d2c8-d3ef-4f4f-8815-f08d61b4672d.zip
+[command]/usr/bin/unzip -o -q /home/runner/work/_temp/e99b2ec5-8f28-43f1-8954-acaefa6aef83.zip
 [command]/home/runner/.bun/bin/bun --revision
 1.4.4+38afee6c8
 ##[group]Run bun run i18n:usage
@@ -67,81 +141,7 @@ index a3e2ad0..48ce2b8 100644
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/1f4f3bcc-95c4-46af-8fda-28dad825253f' before making global git config changes
-Adding repository directory to the temporary git global config as a safe directory
-[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
-[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
-http.https://github.com/.extraheader
-[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
-[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
-[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
-[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
-Cleaning up orphan processes
-
-```
-
-## Gitleaks secrets scan — failure
-
-### Evidence lines
-
-```text
-##[error]secrets scan exit 2
-##[error]Process completed with exit code 2.
-```
-
-### Tail (last 60 lines)
-
-```text
-c0e006ee8101f26e80b5d36b3b4f1b5acd97cbd4
-##[endgroup]
-##[group]Determining the checkout info
-##[endgroup]
-[command]/usr/bin/git sparse-checkout disable
-[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
-##[group]Checking out the ref
-[command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
-Switched to a new branch 'dev'
-branch 'dev' set up to track 'origin/dev'.
-##[endgroup]
-[command]/usr/bin/git log -1 --format=%H
-c0e006ee8101f26e80b5d36b3b4f1b5acd97cbd4
-##[group]Run tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-[36;1mtarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"[0m
-[36;1mbash scripts/ci/with-deadline.sh 120 2 -- curl -sSfL -o "$RUNNER_TEMP/$tarball" \[0m
-[36;1m  "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/$tarball"[0m
-[36;1mecho "$GITLEAKS_SHA256  $RUNNER_TEMP/$tarball" | sha256sum -c -[0m
-[36;1mtar -xzf "$RUNNER_TEMP/$tarball" -C "$RUNNER_TEMP" gitleaks[0m
-[36;1mif git rev-parse --verify --quiet origin/main >/dev/null; then[0m
-[36;1m  range="origin/main..HEAD"[0m
-[36;1melse[0m
-[36;1m  range="HEAD"[0m
-[36;1mfi[0m
-[36;1mcommits="$(git rev-list --count "$range")"[0m
-[36;1mecho "Secrets scan: $commits commits in $range"[0m
-[36;1mset +e[0m
-[36;1m"$RUNNER_TEMP/gitleaks" git --redact --no-banner --exit-code=2 \[0m
-[36;1m  --log-opts="--diff-merges=first-parent $range" . > "$RUNNER_TEMP/gitleaks.log" 2>&1[0m
-[36;1mcode=$?[0m
-[36;1mset -e[0m
-[36;1mgrep -E 'commits scanned|leaks found|no leaks found' "$RUNNER_TEMP/gitleaks.log" | sed -E 's/^.*(INF|WRN|ERR) //'[0m
-[36;1mif [ "$code" -ne 0 ]; then echo "::error::secrets scan exit $code"; exit "$code"; fi[0m
-shell: /usr/bin/bash -e {0}
-env:
-  GITLEAKS_VERSION: 8.24.3
-  GITLEAKS_SHA256: 9991e0b2903da4c8f6122b5c3186448b927a5da4deef1fe45271c3793f4ee29c
-##[endgroup]
-/home/runner/work/_temp/gitleaks_8.24.3_linux_x64.tar.gz: OK
-Secrets scan: 20 commits in origin/main..HEAD
-[90m8:23AM[0m [32mINF[0m [1m20 commits scanned.[0m
-[90m8:23AM[0m [33mWRN[0m [1mleaks found: 2[0m
-##[error]secrets scan exit 2
-##[error]Process completed with exit code 2.
-Post job cleanup.
-[command]/usr/bin/git version
-git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/849b477b-5ab1-4713-abf1-763a8ccc3a87' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/632807af-62ca-497c-9548-cdded50d8461' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -173,8 +173,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
-[36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
@@ -183,10 +181,12 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40840907117
-  E2E_HEAD_COMMIT_MESSAGE: Finalized N1b-1 route and CI
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40842401853
+  E2E_HEAD_COMMIT_MESSAGE: Update plan
 
-X-Lovable-Edit-ID: edt-46bb0fc1-141d-42b3-9544-baf2995d3289
+Plan file updated during planning mode
+
+X-Lovable-Edit-ID: edt-b61231a5-dfb6-4fa1-bb86-27d837cc43e9
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -220,7 +220,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/7419a692-f11d-44c4-814c-d13054486d93' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/a97289b6-d819-4294-b810-c4257caf440e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
