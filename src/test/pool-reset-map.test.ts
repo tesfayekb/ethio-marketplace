@@ -19,7 +19,7 @@ export function tablesWithUserColumn(
   const found: string[] = [];
   for (const match of tables.matchAll(/\n {6}(\w+): \{\n {8}Row: \{([\s\S]*?)\n {8}\}/g)) {
     const columns = [...match[2]!.matchAll(/\n {10}(\w+)\??:/g)].map((c) => c[1]!);
-    const rest = tables.slice(match.index! + match[0].length);
+    const rest = tables.slice((match.index ?? 0) + match[0].length);
     const end = rest.search(/\n {6}\}/);
     const relationships = rest.slice(rest.indexOf("Relationships:"), end === -1 ? undefined : end);
     const personKey = /referencedRelation: "(?:profiles|users)"/.test(relationships);
