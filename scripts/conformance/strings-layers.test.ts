@@ -131,10 +131,14 @@ describe("the strings layers (DEC-258)", () => {
     expect(census.shownOn.get("a.form")).toEqual(["index", "post"]);
   });
 
-  it("CF-SL-6 the census reads the whole tree", () => {
-    const census = stringsCensus(ROOT);
-    expect(census.scanned).toBeGreaterThanOrEqual(500);
-    expect(census.pages.size).toBeGreaterThanOrEqual(45);
-    expect(census.home.size).toBe(Object.keys(en).length);
-  });
+  it(
+    "CF-SL-6 the census reads the whole tree",
+    () => {
+      const census = stringsCensus(ROOT);
+      expect(census.scanned).toBeGreaterThanOrEqual(500);
+      expect(census.pages.size).toBeGreaterThanOrEqual(45);
+      expect(census.home.size).toBe(Object.keys(en).length);
+    },
+    TREE_SCAN_MS,
+  );
 });
