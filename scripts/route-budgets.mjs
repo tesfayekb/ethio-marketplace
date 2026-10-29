@@ -30,7 +30,7 @@ export const ROUTE_BUDGETS_KIB = {
   "/account_/saved": { ceiling: 219, public: false }, // 215.8
   "/admin": { ceiling: 208, public: false }, // 204.5
   "/admin/": { ceiling: 209, public: false }, // 205.4
-  "/admin/ai": { ceiling: 333, public: false }, // 332.3 (INC-974: A2's call history — admin.ai +1.2, en/am-admin +0.6, data-table keyset +0.1 — and the rail seed +0.4; a split is bigger, INC-978)
+  "/admin/ai": { ceiling: 334, public: false }, // 333.8 on CI 69339baf (N1b-3a A1, INC-987: the shared Filters blocks — FiltersButton, FilterChips — now on the AI calls table)
   "/admin/attributes": { ceiling: 348, public: false }, // 347.1 on CI 7a95706a (N1b-2c: three post.seller.* strings in the base locale)
   "/admin/audit": { ceiling: 308, public: false }, // 304.1
   "/admin/categories": { ceiling: 356, public: false }, // 352.1
