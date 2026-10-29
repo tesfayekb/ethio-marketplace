@@ -24,6 +24,7 @@ const NEW_YORK_RULE = "EST5EDT,M3.2.0,M11.1.0";
 function run(args: string[], output?: string, extra: NodeJS.ProcessEnv = {}) {
   const env: NodeJS.ProcessEnv = { ...process.env, NIGHTLY_ZONE: NEW_YORK_RULE, ...extra };
   delete env.GITHUB_OUTPUT;
+  if (env.NIGHTLY_ZONE === undefined) delete env.NIGHTLY_ZONE;
   if (output !== undefined) env.GITHUB_OUTPUT = output;
   const result = spawnSync("bash", [SCRIPT, ...args], { encoding: "utf8", env, timeout: 20_000 });
   return { code: result.status, out: `${result.stdout}${result.stderr}` };
