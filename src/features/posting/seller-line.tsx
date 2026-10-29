@@ -30,6 +30,7 @@ export function SellerLine({
 }: SellerLineProps) {
   const { t, language } = useI18n();
   const business = businessName !== null && businessName !== "" ? businessName : null;
+  const shownAlias = alias !== null && alias !== "" ? alias : null;
   const since = memberSince === null ? null : new Date(memberSince);
   const sinceText =
     since === null || Number.isNaN(since.getTime())
@@ -39,8 +40,10 @@ export function SellerLine({
         );
   return (
     <>
+      {/* N1b-2c (INC-977, SPA-8) — a name missing from the data (held, or never given)
+          draws the neutral label, never "Not given" or an empty line. */}
       <p className="text-sm font-medium text-foreground" data-testid={`${testId}-name`}>
-        {business ?? alias ?? t("post.review.notGiven")}
+        {business ?? shownAlias ?? t("post.seller.neutral")}
       </p>
       {business !== null && alias !== null && alias !== "" && (
         <p className="text-xs text-muted-foreground" data-testid={`${testId}-alias`}>
