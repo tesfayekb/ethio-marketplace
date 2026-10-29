@@ -156,9 +156,6 @@ export function firstRailPayload(payload: unknown, slug: string | null): TreePay
   };
 }
 
-/**
- * (moved here: server-only shaping, never shipped to the browser — INC-974 ruling 2b)
- */
 export async function readFirstCategoryTree(request: Request): Promise<CategoryTreeSeed | null> {
   if (isE2E && /(?:^|;\s*)e2e_first_screen=off(?:;|$)/.test(request.headers.get("cookie") ?? "")) {
     return null;
