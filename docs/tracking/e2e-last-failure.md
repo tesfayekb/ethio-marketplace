@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40799971071
-- Commit: `c224cf70140f5d8932fac0ab11c677297ffb155e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/40801344124
+- Commit: `2ede505583d75a471398be914e9d0c57899b9ce6`
 - Attempt: 1
-- Written (UTC): 2026-10-29T01:26:29.530Z
+- Written (UTC): 2026-10-29T01:40:20.258Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
