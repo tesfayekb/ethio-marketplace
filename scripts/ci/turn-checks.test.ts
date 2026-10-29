@@ -7,10 +7,12 @@ import {
   ALLOWLIST,
   CI_FILE,
   LOCAL,
+  LOCAL_UNIT_BOUND,
   allowed,
   fetchFailure,
   lineText,
   localSecretsScan,
+  localUnitTests,
   nearBand,
   nearOwed,
   pageSizes,
@@ -24,7 +26,7 @@ import {
 /**
  * Foundations turn CI-2 — `bun run checks` (scripts/ci/turn-checks.sh → turn-checks.ts) mirrors
  * ci.yml: TCK-1 coverage, TCK-2 the allowlist's law, TCK-3 NOT RUN never PASS, TCK-4 the last
- * line's counts, TCK-5 the NEAR band.
+ * line's counts, TCK-5 the NEAR band, TCK-6 the local unit step's worker bound (INC-1001).
  */
 const ciText = readFileSync(CI_FILE, "utf8");
 const steps = planFrom(ciText);
@@ -142,5 +144,18 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
       { page: "/admin/roles_/$roleId", kib: 306.8, ceiling: 307, growth: null },
     ]);
     expect(nearOwed(near).map((n) => n.page)).toEqual(["/"]);
+  });
+
+  it("TCK-6 the local unit step carries the 2-worker bound; ci.yml's command does not", () => {
+    const key = "component-tests › Component tests (vitest + RTL + jsdom)";
+    const unit = steps.find((s) => s.key === key);
+    expect(unit?.run).toBe("bun run test:unit");
+    expect(unit?.run).not.toContain("maxWorkers");
+    expect(ciText).not.toContain("maxWorkers");
+    expect(localUnitTests(unit?.run ?? "")).toBe("bun run test:unit -- --maxWorkers=2");
+    expect(LOCAL_UNIT_BOUND).toBe("--maxWorkers=2");
+    expect(LOCAL[key]).toBe(
+      "the sandbox's shared CPU: the full suite at default workers times out (INC-1001)",
+    );
   });
 });
