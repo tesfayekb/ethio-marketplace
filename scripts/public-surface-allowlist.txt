@@ -138,3 +138,9 @@ admin_commit_location_import | restated grant (not a new surface); staff bulk do
 admin_add_category_pointer | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
 admin_create_category | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
 admin_set_country_exclusions | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
+admin_link_attribute | admin door; categories:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_set_country_active | admin door; countries:activate and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_set_country_root_order | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_set_coverage_plan | admin door; coverage:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_upsert_country | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_upsert_location | admin door; locations:create/update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
