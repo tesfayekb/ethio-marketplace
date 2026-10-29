@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   aiErrorKey,
   aiCallsOf,
-  featureLabelKey,
   aiFeatureOf,
   aiFeaturesOf,
   aiSpendDaysOf,
