@@ -4,7 +4,6 @@ import { useState } from "react";
 
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
-import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
 import { ADMIN_LISTINGS_KEY } from "@/features/admin-listings/use-admin-listings";
@@ -13,6 +12,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { photoUrl } from "@/features/posting/photo-links";
 import { fill, photoRefusalKey } from "@/features/posting/refusal-text";
 import { usePhotoLinks } from "@/features/posting/use-photo-links";
+import { SectionNotice, useSectionNotice } from "@/components/ui/section-notice";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import {
@@ -46,8 +46,7 @@ import { formatLocale } from "@/lib/format-locale";
  */
 export function PhotoReviews({ mayReview, guard }: { mayReview: boolean; guard: GuardFn }) {
   // INC-995 — this section's outcomes are shown beside its own table (INC-570).
-  const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
-  const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });
+  const { notice, say: onNotice } = useSectionNotice();
   const { t, language } = useI18n();
   const queryClient = useQueryClient();
   const reviews = usePhotoReviews(mayReview);
@@ -92,14 +91,7 @@ export function PhotoReviews({ mayReview, guard }: { mayReview: boolean; guard: 
 
   return (
     <PageCard testid="admin-photo-reviews" className="min-w-0 space-y-3">
-      <ActionMessage
-        persistent
-        role="status"
-        testid="admin-photo-reviews-notice"
-        tone={notice?.tone === "error" ? "error" : "done"}
-        text={notice === null ? null : t(notice.key)}
-        className={notice?.tone === "error" ? undefined : "text-foreground"}
-      />
+      <SectionNotice notice={notice} testid="admin-photo-reviews-notice" />
       <div className="space-y-1">
         <h2 className="text-sm font-semibold text-foreground">
           {t("admin.screening.reviews.title")}

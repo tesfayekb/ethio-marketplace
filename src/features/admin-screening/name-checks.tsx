@@ -15,7 +15,6 @@ import {
   AlertDialogFooter,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ActionMessage } from "@/components/ui/action-message";
 import { Button } from "@/components/ui/button";
 import { CutText } from "@/components/ui/cut-text";
 import { Label } from "@/components/ui/label";
@@ -23,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { fill } from "@/features/posting/refusal-text";
+import { SectionNotice, useSectionNotice } from "@/components/ui/section-notice";
 import { useI18n, type MessageKey } from "@/i18n";
 import { formatLocale } from "@/lib/format-locale";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
@@ -77,8 +77,7 @@ export function NameChecks({
   guard: GuardFn;
 }) {
   // INC-995 — this section's outcomes (Allow, Resume) are shown beside its own table (INC-570).
-  const [notice, setNotice] = useState<{ key: MessageKey; tone: "ok" | "error" } | null>(null);
-  const onNotice = (key: MessageKey, tone: "ok" | "error") => setNotice({ key, tone });
+  const { notice, say: onNotice } = useSectionNotice();
   const { t, language } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -191,14 +190,7 @@ export function NameChecks({
         guard={guard}
         onNotice={onNotice}
       />
-      <ActionMessage
-        persistent
-        role="status"
-        testid="admin-name-checks-notice"
-        tone={notice?.tone === "error" ? "error" : "done"}
-        text={notice === null ? null : t(notice.key)}
-        className={notice?.tone === "error" ? undefined : "text-foreground"}
-      />
+      <SectionNotice notice={notice} testid="admin-name-checks-notice" />
       {mayList ? (
         <DataTable
           columns={visibleColumns(columns, hidden, LOCKED)}
