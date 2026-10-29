@@ -96,23 +96,22 @@ test.describe("D239 — the account's language at sign-in", () => {
     const user = await leaseUser();
     await setAccountLanguage(user.id, "en");
     await seedDevice(page, "am");
-    // R7 — the flash measurement: every <html lang> value and the main text's
-    // language marker, recorded in node with a timestamp, from the sign-in click on.
-    const seen: Array<{ at: number; path: string; lang: string }> = [];
-    await page.exposeFunction("e2eD239Lang", (path: string, lang: string) => {
-      seen.push({ at: Date.now(), path, lang });
-    });
+    // R7 — the flash measurement: one sample per animation frame of the page's
+    // path and <html lang>, kept in the page (sign-in is an in-page transition).
     await page.addInitScript(() => {
-      const report = () =>
-        (window as unknown as { e2eD239Lang: (p: string, l: string) => void }).e2eD239Lang(
+      const w = window as unknown as { __d239: Array<[number, string, string]> };
+      w.__d239 = [];
+      const sample = () => {
+        const last = w.__d239[w.__d239.length - 1];
+        const now: [number, string, string] = [
+          Math.round(performance.now()),
           location.pathname,
           document.documentElement.lang,
-        );
-      new MutationObserver(report).observe(document.documentElement, {
-        attributes: true,
-        attributeFilter: ["lang"],
-      });
-      document.addEventListener("DOMContentLoaded", report);
+        ];
+        if (!last || last[1] !== now[1] || last[2] !== now[2]) w.__d239.push(now);
+        requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
     });
 
     await gotoReady(page, "/");
@@ -121,7 +120,6 @@ test.describe("D239 — the account's language at sign-in", () => {
     await gotoReady(tab, "/");
     await expect(tab.locator("html")).toHaveAttribute("lang", "am");
 
-    const clickedAt = Date.now();
     await signIn(page, user.email, user.password);
     await expect(page.locator("html"), await describeSwitcher(page)).toHaveAttribute(
       "lang",
@@ -135,11 +133,10 @@ test.describe("D239 — the account's language at sign-in", () => {
     // The account was not written: it already said en.
     expect(await accountLanguage(user.id)).toBe("en");
 
-    console.log(`[e2e:d239] all: ${JSON.stringify(seen.map((e) => [e.at - clickedAt, e.path, e.lang]))}`);
-    const after = seen
-      .filter((entry) => entry.at >= clickedAt)
-      .map((entry) => `${entry.at - clickedAt}ms ${entry.path} ${entry.lang}`);
-    console.log(`[e2e:d239] R7 lang sequence after the sign-in click: ${after.join(" | ")}`);
+    const frames = await page.evaluate(
+      () => (window as unknown as { __d239: Array<[number, string, string]> }).__d239,
+    );
+    console.log(`[e2e:d239] R7 frames (ms, path, lang): ${JSON.stringify(frames)}`);
     await tab.close();
   });
 
