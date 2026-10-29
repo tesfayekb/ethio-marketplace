@@ -743,6 +743,12 @@ jobs:
               text = redact(start_log.read_text(errors='replace'))
               applied_lines = [line for line in text.splitlines() if 'Applying migration' in line]
               lines += ['', '## Migration/start failure', 'Last migration line: ' + (applied_lines[-1] if applied_lines else 'no migration reached'), '```text', *text.splitlines()[-60:], '```']
+              # INC-973: the merged failure report reads no fragment; give it the failing
+              # migration's name and the last ERROR/FATAL lines, redacted like the rest.
+              error_lines = [line for line in text.splitlines() if 'ERROR' in line or 'FATAL' in line]
+              Path('local-backend-start-failure.txt').write_text('\n'.join(
+                  ['migration: ' + (applied_lines[-1] if applied_lines else 'no migration reached')]
+                  + error_lines[-20:]) + '\n')
           counts = {'passed': 0, 'failed': 0, 'flaky': 0, 'skipped': 0}
           failures = []
           results = Path('test-results/results.json')
@@ -830,7 +836,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: e2e-log-${{ matrix.lane }}
-          path: ${{ matrix.lane }}.log
+          path: |
+            ${{ matrix.lane }}.log
+            local-backend-start-failure.txt
           overwrite: true
           if-no-files-found: warn
           retention-days: 7
