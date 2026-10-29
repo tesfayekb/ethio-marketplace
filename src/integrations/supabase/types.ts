@@ -1156,6 +1156,90 @@ export type Database = {
         }
         Relationships: []
       }
+      job_leases: {
+        Row: {
+          expires_at: string
+          holder: string
+          job: string
+        }
+        Insert: {
+          expires_at: string
+          holder: string
+          job: string
+        }
+        Update: {
+          expires_at?: string
+          holder?: string
+          job?: string
+        }
+        Relationships: []
+      }
+      job_pauses: {
+        Row: {
+          job: string
+          reason: string
+          since: string
+        }
+        Insert: {
+          job: string
+          reason: string
+          since?: string
+        }
+        Update: {
+          job?: string
+          reason?: string
+          since?: string
+        }
+        Relationships: []
+      }
+      job_runs: {
+        Row: {
+          asked: number
+          claimed_at: string | null
+          clean: number
+          finished_at: string | null
+          id: string
+          imitates: number
+          job: string
+          net_request_id: number | null
+          outcome: string
+          reason: string | null
+          started_at: string
+          ts: number | null
+          unavailable: number
+        }
+        Insert: {
+          asked?: number
+          claimed_at?: string | null
+          clean?: number
+          finished_at?: string | null
+          id?: string
+          imitates?: number
+          job: string
+          net_request_id?: number | null
+          outcome: string
+          reason?: string | null
+          started_at?: string
+          ts?: number | null
+          unavailable?: number
+        }
+        Update: {
+          asked?: number
+          claimed_at?: string | null
+          clean?: number
+          finished_at?: string | null
+          id?: string
+          imitates?: number
+          job?: string
+          net_request_id?: number | null
+          outcome?: string
+          reason?: string | null
+          started_at?: string
+          ts?: number | null
+          unavailable?: number
+        }
+        Relationships: []
+      }
       languages: {
         Row: {
           code: string
@@ -5241,6 +5325,7 @@ export type Database = {
       }
       import_sanitize: { Args: { p_payload: Json }; Returns: Json }
       is_super_admin: { Args: { p_user_id: string }; Returns: boolean }
+      job_call: { Args: { p_job: string }; Returns: Json }
       legal_acceptance_pending: {
         Args: { p_listing_id: string; p_uid: string }
         Returns: boolean
