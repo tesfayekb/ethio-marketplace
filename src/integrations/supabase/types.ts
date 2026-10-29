@@ -1240,6 +1240,30 @@ export type Database = {
         }
         Relationships: []
       }
+      job_runs_prune_runs: {
+        Row: {
+          created_at: string
+          deleted: number
+          id: number
+          ran_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted: number
+          id?: number
+          ran_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted?: number
+          id?: number
+          ran_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       languages: {
         Row: {
           code: string
@@ -5353,6 +5377,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      job_runs_prune: { Args: never; Returns: number }
+      job_runs_prune_core: { Args: { p_only: string[] }; Returns: number }
       legal_acceptance_pending: {
         Args: { p_listing_id: string; p_uid: string }
         Returns: boolean
