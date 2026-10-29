@@ -95,6 +95,7 @@ import { Route as ApiAdminLocationsImportRouteImport } from './routes/api/admin/
 import { Route as ApiAdminTranslationsImportRouteImport } from './routes/api/admin/translations/import'
 import { Route as ApiAttributesIdOptionsRouteImport } from './routes/api/attributes.$id.options'
 import { Route as ApiListingsPhotosIdRouteImport } from './routes/api/listings/photos.$id'
+import { Route as ApiPublicJobsJobRouteImport } from './routes/api/public/jobs.$job'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -535,6 +536,11 @@ const ApiListingsPhotosIdRoute = ApiListingsPhotosIdRouteImport.update({
   path: '/api/listings/photos/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicJobsJobRoute = ApiPublicJobsJobRouteImport.update({
+  id: '/api/public/jobs/$job',
+  path: '/api/public/jobs/$job',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -623,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
   '/api/attributes/$id/options': typeof ApiAttributesIdOptionsRoute
   '/api/listings/photos/$id': typeof ApiListingsPhotosIdRoute
+  '/api/public/jobs/$job': typeof ApiPublicJobsJobRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -710,6 +717,7 @@ export interface FileRoutesByTo {
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
   '/api/attributes/$id/options': typeof ApiAttributesIdOptionsRoute
   '/api/listings/photos/$id': typeof ApiListingsPhotosIdRoute
+  '/api/public/jobs/$job': typeof ApiPublicJobsJobRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -799,6 +807,7 @@ export interface FileRoutesById {
   '/api/admin/translations/import': typeof ApiAdminTranslationsImportRoute
   '/api/attributes/$id/options': typeof ApiAttributesIdOptionsRoute
   '/api/listings/photos/$id': typeof ApiListingsPhotosIdRoute
+  '/api/public/jobs/$job': typeof ApiPublicJobsJobRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -889,6 +898,7 @@ export interface FileRouteTypes {
     | '/api/admin/translations/import'
     | '/api/attributes/$id/options'
     | '/api/listings/photos/$id'
+    | '/api/public/jobs/$job'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -976,6 +986,7 @@ export interface FileRouteTypes {
     | '/api/admin/translations/import'
     | '/api/attributes/$id/options'
     | '/api/listings/photos/$id'
+    | '/api/public/jobs/$job'
   id:
     | '__root__'
     | '/'
@@ -1064,6 +1075,7 @@ export interface FileRouteTypes {
     | '/api/admin/translations/import'
     | '/api/attributes/$id/options'
     | '/api/listings/photos/$id'
+    | '/api/public/jobs/$job'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1125,6 +1137,7 @@ export interface RootRouteChildren {
   ApiAdminTranslationsImportRoute: typeof ApiAdminTranslationsImportRoute
   ApiAttributesIdOptionsRoute: typeof ApiAttributesIdOptionsRoute
   ApiListingsPhotosIdRoute: typeof ApiListingsPhotosIdRoute
+  ApiPublicJobsJobRoute: typeof ApiPublicJobsJobRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1731,6 +1744,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiListingsPhotosIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/jobs/$job': {
+      id: '/api/public/jobs/$job'
+      path: '/api/public/jobs/$job'
+      fullPath: '/api/public/jobs/$job'
+      preLoaderRoute: typeof ApiPublicJobsJobRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1876,6 +1896,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminTranslationsImportRoute: ApiAdminTranslationsImportRoute,
   ApiAttributesIdOptionsRoute: ApiAttributesIdOptionsRoute,
   ApiListingsPhotosIdRoute: ApiListingsPhotosIdRoute,
+  ApiPublicJobsJobRoute: ApiPublicJobsJobRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
