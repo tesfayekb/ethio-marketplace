@@ -1,166 +1,194 @@
-# Turn N1 — INC-977: a seller name saved unchecked is AI-checked later (PLAN)
+# Foundations N1b (INC-977 second half + INC-979) — plan
 
-Base: dev 31d5fb6b. Plan only; nothing changed. Claims below were read at 31d5fb6b unless marked **(read at build)**.
+Base dev 07cfcf15. This is a plan only. The facts below come from reads done on 29 Oct. Anything marked "census at build" has not been read yet and is not claimed.
 
 ## 0. CI first (build turn)
-Read the run on 31d5fb6b at the raw ci-evidence addresses before anything. 7063a727's three reds (format:check on `__root.tsx` / `first-screen.test.ts`, U4i ② used-on map, first-paint budget) are fixed first if 31d5fb6b still shows them. STEP 0 adds the roadmap line for INC-974's K2 list: the other `useCategoryTree` readers still wait on the browser read.
+- Read the ci-evidence run on 07cfcf15 before anything else. Any red is fixed first, at its root.
+- Watch /admin/listings: it measured 353.0 against its 353 line. If CI turns it red, raise the line to its measured value rounded up, with the cause named. No other line moves.
 
-## 1. What the concern touches (found by its definition)
+## 1. Census by definition
 
-**Paths that save a seller name or business name**
-- `src/routes/api/listings/identity.ts`: `imitationOf` :68, `auditUnchecked` :84 (best-effort, written after the save), `unchecked = !imitated.checked` :158, door `save_posting_identity` :200, audit :204–211. Its test: `identity.test.ts`.
-- `src/routes/api/listings/alias.ts` (+ `alias.test.ts`) and `src/routes/api/seller.ts` also name `alias`. **(read at build)** whether either saves a name without `name_check`. Any that does is K2 and joins the same state write, because one state means every writer.
-- Staff writer `admin_update_profile` → `user.alias_assigned`. A staff-assigned name counts as checked by a person: it clears the state and is never queued.
-- SQL: `save_posting_identity`, `admin_update_profile`, `seller_name_sweep()` (only definition: 20261004011235). Each is redeclared whole from **live** `pg_get_functiondef` on ethio-prod (G39), never from the file.
+### A. Scheduled server task (new mechanism)
+- New route: `src/routes/api/public/jobs/$job.ts`.
+  - It goes through `defineRoute`, with a strict schema shape for the job name and the body.
+  - It is registered in routes.test.ts.
+- New module `src/server/jobs/`:
+  - `secret.ts`: a constant-time compare of the job secret.
+  - `registry.ts`: one row per job.
+  - `name-check-catchup.ts`: the job's core.
+- New guard `scripts/conformance/jobs.test.ts`, wired through wired.test.ts. It checks two things:
+  - every handler under the jobs prefix calls `checkJobSecret` before any other await. A planted file must fail.
+  - every `cron.schedule` that reaches `net.http_post` does so only through `public.job_call(text)`.
+- Existing heartbeat pattern, read from the database: the per-job `*_runs` tables (ai_calls_prune_runs, catalog_find_sweep_runs, seller_name_sweep_runs, …). There are 7 cron jobs today and all are SQL-only. No shared heartbeat table exists. I propose one `job_runs` table for every called-out job, recorded as a new register row in mechanisms.md. Ruling R1 decides between that and one more per-job `*_runs` table.
 
-**Readers of the check's state**
-- Today none: `alias.unchecked` has no reader (INC-977). New readers: the catch-up, the staff count, and the screening queue.
+### B. The catch-up
+- Reuses:
+  - `aiCall("name_check")` in tasks.ts:287, with judgesPerson.
+  - `name_check_mark`, extended by a state argument (see M5).
+  - the switch and budget in ai_features/ai_spend_days.
+- Existing name logic, to be read whole at build: `seller_name_sweep()` (daily at 02:23) and `alias_verdict`. If the sweep overlaps this job, that goes in the report as K2; it is not merged.
 
-**AI path**
-- `src/server/ai/tasks.ts` `name_check` (`judgesPerson: true`), `gateway.ts` (audit before verdict), `meter.ts` (switch, budget), plus the `gateway.census.test.ts`, `meter.test.ts` and `ai-service` tests.
+### C. Public reads of a seller's name
+These come from the database: functions whose body mentions seller_alias, with their EXECUTE grants.
 
-**Censuses and allowlists a new name must join**
-- `scripts/public-surface-allowlist.txt`: one line per new public function or table grant.
-- `scripts/acceptance-doors-allowlist.txt`: only if a new signed-in write door appears. None is planned.
-- The caller-gates census for VOLATILE signed-in doors.
-- The routes census (`routes.test.ts`: `defineRoute` plus a `src/lib/schemas` `.strict()` shape).
-- The GWC census (AI calls only via `aiCall`).
-- `DIALS` (`src/lib/dials.ts`) for the per-run cap.
-- `scripts/migration-real-row-allowlist.txt`: only if the proof needs an IF EXISTS check, with a reason and an until date.
-- i18n maps (EN+AM) and the string layers (admin).
-- Register rows 11/12 (`docs/governance/mechanisms.md`), plus a new row if option T1 below is chosen.
+**Public or reachable by any signed-in person:**
+- `public_listing_json` (service_role only). It builds the ad page's JSON. The seller line is at line 220 of migration 20261028225001.
+- `seller_feed_page`: granted to anon and authenticated. It serves the seller page.
+- `my_seller_line`: authenticated. This is the owner's own line, so it is not hidden; it carries the notice.
+- `check_seller_alias` and `suggest_seller_aliases`: authenticated. Both are name tools; whether either exposes another person's name gets checked at build.
 
-## 2. Where the state lives
+**Staff only, gated:** admin_get_user, admin_list_listings, admin_list_users, admin_listing_detail, admin_screening_facts, impersonated_get_profile. These stay unhidden.
 
-**Recommended: a table of its own, `public.name_checks`.**
-- Columns: `profile_id uuid PK → profiles ON DELETE CASCADE`, `subject text CHECK (subject IN ('alias'))`. The subject is a parameter, so the business name joins it when D222 lands. With a subject column the key becomes (`profile_id`, `subject`), and the PK is `(profile_id, subject)` from birth.
-- More columns: `checked_text text`, `state text CHECK (state IN ('unchecked','clean','imitates'))`, `since timestamptz`, `attempts int`, `last_attempt_at timestamptz`, `home_country_code` (E3, copied from the profile).
-- Why not a column on profiles:
-  - profiles already has 27 columns and its own policies;
-  - a separate table keeps the catch-up's writes off the hot profile row;
-  - closed RLS is simpler on a service-only table.
+**Internal (no browser grant):** alias_taken, alias_verdict, legal_acceptance_guard, validate_listing_draft, save_posting_identity, seller_name_sweep.
 
-**Door change: `save_posting_identity`, redeclared whole.**
-- When `p_alias` is given and differs from the stored alias, the door upserts `name_checks(profile_id, 'alias', checked_text = lower(alias), state = p_name_state)` in the same transaction.
-- New argument `p_name_state text`, either `'clean'` or `'unchecked'`. The route passes it from `imitated.checked`.
-- The argument list changes, so the function is DROPped and recreated. Its closers are restated: REVOKE PUBLIC, anon; GRANT EXECUTE authenticated; GRANT ALL service_role.
-- An argument outside the allowed set raises. So "cannot record the state" means the save is refused (behaviour 1), never saved as checked.
-- `auditUnchecked` is deleted from the route. Its audit line moves into the door, in the same transaction, so the audit has no hole.
-- The door body is over 10 KB, so it is built by computed insertion **(size read at build)**.
+**Browser code:**
+- `src/features/ad-page/public-listing.ts:158` (sellerAlias from doc.seller.alias)
+- `src/features/posting/preview/listing-detail.tsx:223/938`
+- account-overview.tsx, my-listing-page.tsx, step-review.tsx (the owner's own views)
+- the staff files listed by grep (admin-listings, admin/users, impersonation, admin-screening)
 
-**ACL and RLS on `name_checks`**
-- Born closed: REVOKE ALL FROM PUBLIC, anon, authenticated; GRANT ALL service_role.
-- RLS enabled, with deny policies for the four operations (the 20261004011235 house form).
-- No browser grant, so no public-surface line for the table.
+**Not carriers:** feed_index and catalog_find_index have no seller column (columns read), so the feed cards, search and similar ads carry no name unless they join profiles. Census at build: each feed function's body is read for a profiles join.
 
-**Index:** a partial index `(since) WHERE state = 'unchecked'` for the catch-up's batch and for the staff count. It is kept only if EXPLAIN on the proof shows it is used (index decision pasted).
+**Mechanism:** one SQL helper, `public.seller_public_alias(p_profile uuid) RETURNS text`. It returns NULL when name_checks.state is 'imitates', otherwise the alias. `public_listing_json` and `seller_feed_page` call it in place of the bare column, so the browser already draws its neutral label for a NULL alias. A guard fails on any anon- or authenticated-granted function, or any `public_*` function, that selects `seller_alias` without the helper (except my_seller_line, which has an allowlist line).
 
-## 3. The catch-up trigger
+### D. Staff queue
+- It extends `src/features/admin-screening/screening-page.tsx` and its service. It does not add a new page.
+- Each queue row shows:
+  - the name, which needs profiles:view
+  - the model's bounded answer (INC-866), joined from ai_calls by the run's ids
+  - since and attempts
+- **Clear** is a new door, `admin_name_check_clear(p_profile)`, gated by listings:edit plus step-up as the screening actions are. It sets the state to 'clean' when the text still matches and audits `name_check.cleared`.
+- **Rename** reuses `admin_update_profile`, which already marks the name 'clean' and audits.
 
-**Existing mechanisms that run code on a schedule**
-- pg_cron SQL jobs (eight listed; SQL only, so they cannot reach the TypeScript gateway).
-- GitHub Actions (CI only; no scheduled workflow calls the app today **(confirm at build)**).
-- `src/routes/api/public/`: does not exist at 31d5fb6b, so no route a scheduler can call exists.
-- No owner-visit hook runs a catch-up.
+## 2. Migrations, in order. One stop report each; staging apply by the supervisor.
 
-| Option | How | Security cost |
-|---|---|---|
-| T1 | pg_cron + pg_net calls `POST /api/public/jobs/name-check-catchup` with a shared secret (Vault → header; route checks it with a timing-safe compare) | The first public job route and the first pg_net callback. The secret lives in Vault and in server env. The platform's managed schedule path does not cover a user-managed Supabase, so the HTTP callback SQL would be hand-authored (Lovable guidance discourages this). That needs a DEC. |
-| T2 | A scheduled GitHub workflow (cron) calls the same route with a secret from repo secrets | The secret sits in GitHub plus the server. The repository is public, but the workflow keeps the secret masked. The job's runs are visible in CI, and its deadline comes via `with-deadline.sh`. It depends on GitHub's scheduler (delays of 15+ minutes, and schedules are disabled after 60 days without repo activity). |
-| T3 | Catch-up on the owner's next signed-in request, plus a staff "Check now" action (`services:manage`, existing permission **(confirm id at build)**) that runs a capped batch | No new public surface and no secret. On its own it fails behaviour 2 for an owner who never returns, unless staff press the button. |
+**M1 — INC-979 backfill.**
+- Inserts an 'unchecked' row for every profile with a seller_alias and no name_checks row: checked_text is the lower-cased alias, since is now(), and home_country_code comes from the profile.
+- It is idempotent (ON CONFLICT DO NOTHING).
+- The proof runs on its own scratch profiles and rolls back. The live count is read back after the apply (expected: 0 aliases without a row).
+- After M1, markClean's "no row" log becomes a real anomaly, not the normal path.
 
-**Recommendation: T2 + T3's staff action.**
-- T2 gives the automatic cover for an owner who never returns, with no hand-written pg_net SQL and no Vault plumbing.
-- Its secret is one server env value (`NAME_CHECK_JOB_SECRET`, added by the operator in the secrets dialog).
-- The route rejects any call without the secret, including a signed-in person's.
-- The staff action is the same capped core behind a gated door, so staff are never stuck waiting for the scheduler.
-- T1 is the fallback if the operator prefers the job inside the database. It costs a DEC for the pg_net callback.
-- Either way:
-  - one server core (`src/server/name-check-catchup.ts`) carries the subject parameter;
-  - its lease row gives single-flight;
-  - each run is capped, idempotent per row and has a circuit breaker on 402/403/repeated 429;
-  - each run writes a heartbeat row in `name_check_runs` (ran_at, asked, clean, imitates, failed, paused_reason), so "ran with nothing to do" differs from "never ran".
-- Register: a new row, "a scheduled server task", with its guard: a census that every `/api/public/jobs/*` route verifies the secret before any read.
+**M2 — pg_net.**
+- `CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions` (0.20.4 is available on prod and staging).
+- REVOKE on the `net` schema from anon and authenticated.
+- `public.job_call(p_job text)`: SECURITY DEFINER and service-only (REVOKE PUBLIC/anon/authenticated).
+  - It reads the Vault entries `job_secret` and `job_base_url` from `vault.decrypted_secrets`.
+  - If either is missing, it writes a `job_runs` row ('not_configured') and returns without calling. This is staging's path, and CI's.
+  - Otherwise it calls `net.http_post(base_url || '/api/public/jobs/' || p_job, headers {x-job-secret}, timeout 10 s)` and records the request id.
+- CI temporary backends: the Supabase local image ships pg_net, so the migration replays. With no Vault rows there, every run is not_configured. Census at build: confirm the CI image version.
 
-## 4. Where an "imitates" answer goes
+**M3 — job_runs heartbeat** (or the per-job `*_runs` table, per R1).
+- Columns: job, started_at, finished_at, outcome ('ok','not_configured','paused','switch_off','budget_spent','busy','failed'), asked, clean, imitates, unavailable, net_request_id.
+- Born closed with deny policies.
+- Writers: job_call (dispatch rows) and the route via a service-only `job_run_finish`.
+- A 14-day prune is added to the existing rate_limits_prune pattern, as the ai-calls heartbeat history does.
+- A lease row `job_leases(job, holder, expires_at)` gives single-flight runs, with a service-only `job_lease_take`/`release`.
+- The breaker state `job_pauses(job, reason, since)` is shown to staff.
 
-**Queue: Admin › Screening (`src/features/admin-screening`).** It is the queue staff already work for verdicts about a person's content.
-- Staff see: the name, since when, the model's bounded answer (`of`, max 200 characters, INC-866), and the ai_calls time.
-- Staff can do:
-  - Clear: the name is marked clean;
-  - Rename via the existing `admin_update_profile` (staff act, audited).
-- The model never renames anyone.
+**M4 — the cron job.**
+- `cron.schedule('name-check-catchup', '*/15 * * * *', 'SELECT public.job_call(''name-check-catchup'')')`.
+- That is 96 calls a day. On a run with nothing waiting, the route ends after one indexed count. The cap is 20 names per run (an estimate: 5 legacy names today, low new-name volume). Worst-case delay is 15 minutes plus the queue depth divided by 20.
 
-**Product choice for the operator:**
-- (a) **Leave the name live while staff review.** The seller is unaffected until a person decides. A brand imitation stays public for the review window.
-- (b) **Hide the name from public view until staff decide.** The listing shows a neutral seller label. This protects the brand and the buyers, but it is a model-triggered effect on a person, so DEC-280 needs it stated.
-- (c) **Hold the seller's new listings** (existing listings unchanged) until staff decide.
+**M5 — hide helper and staff doors.**
+- `seller_public_alias` (described in 1C).
+- `public_listing_json` and `seller_feed_page` are redeclared whole from live pg_get_functiondef. The signatures don't change, so there is no DROP (G39).
+- `name_check_mark` is extended to accept 'imitates' and 'unavailable'. 'unavailable' bumps attempts and last_attempt_at but leaves the state. The extension is a new overload or a whole redeclaration; it stays service-only and still requires the text to match.
+- `my_seller_line` gains `name_review: boolean`.
+- `admin_name_check_list` (keyset, listings:view + profiles:view) and `admin_name_check_clear`.
+- The partial index `name_checks(since) WHERE state IN ('unchecked','imitates')` is added only if EXPLAIN uses it.
+- M5 is split M5a (public reads) and M5b (staff doors) if it goes over about 25 KB, which is likely given two whole redeclarations.
 
-Recommended: (a), because the verdict "never acts alone" (behaviour 3). (b) is offered for the operator.
+Every migration carries:
+- the closers
+- read-back of the definitions and grants
+- proofs on its own rows, rolled back whole and raising on failure
+- public-surface allowlist lines for its grants
+- a mark chosen at apply time, reported as `apply <fragment> → expect mark <value>`
 
-**Fallback:** if Screening's shape cannot carry a profile row without a new mechanism **(read at build)**, the queue is a section in Admin › Users. The plan stops for a ruling before building it.
+## 3. The route: POST /api/public/jobs/$job
+1. First statement: read `x-job-secret` and compare it to `process.env.JOB_SECRET` with a constant-time compare over equal-length buffers. If the server secret is missing, or the header is missing or wrong, the answer is `answer.refuse` 401 with a constant body. Nothing is read, spent, logged with its value, or leased.
+2. Parse `$job` against the registry enum through the schema helper. An unknown job gets 404.
+3. A person's session never opens it: the Authorization header is ignored, and only the secret counts.
+4. The core:
+   - Take the lease; if it is busy, the heartbeat says 'busy' and the run ends.
+   - Read the pause; if paused (402/403), process one probe item only.
+   - Check the switch and budget through the gateway's own preflight; if off or spent, the heartbeat says 'switch_off' or 'budget_spent', and nothing is marked or asked.
+   - Select up to 20 'unchecked' rows, oldest since first. For each one, call `aiCall("name_check")` with the gateway's named deadline (`NAME_CHECK_DEADLINE_MS`, reused from the alias route), then call `name_check_mark(profile,'alias',checked_text, verdict)`.
+   - If the text changed in between, the mark changes nothing, and that is counted.
+   - The audit row is written before the verdict (DEC-280; the gateway already orders this).
+   - On 402 or 403, or a third 429, stop, store the pause reason, and write the heartbeat.
+   - Release the lease and write `job_run_finish`.
+5. Answer `{ ok, outcome, asked, clean, imitates, unavailable }` with counts only. No names or texts.
 
-## 5. K2 sibling (not built)
-- `businessName` is never asked the imitation question. It is passed straight to the door at `identity.ts:186` (`p_business_name: text(body.businessName)`). D222 bundle 23 owns that rule. The `subject` column and parameter are ready for it.
-- `auditUnchecked`'s best-effort post-save write (`identity.ts:84`, :211) is removed by this turn.
-- The other `useCategoryTree` readers (INC-974 K2) get their roadmap line only.
+## 4. The secret on both sides
+- **Server secret `JOB_SECRET`.** The operator enters it in Lovable → Project Settings → Secrets (the secret dialog), as a value they generate themselves, for example with `openssl rand -hex 32`. It is a shared secret, so it is not generated by the tool.
+- **Vault on ethio-prod, in the SQL editor:**
+  - `select vault.create_secret('<same value>','job_secret');`
+  - `select vault.create_secret('https://my-market-dawn.lovable.app','job_base_url');`
+  - The URL could instead be the stable `project--b0521dfa-…lovable.app`. Ruling R2.
+- **Staging:** no Vault rows. Every run is not_configured with a heartbeat, and nothing is called.
+- **Rotation:** change both values, Vault first, then the server secret. Runs in between refuse, and the heartbeat shows 'failed' with a 401.
 
-## 6. Conflicts and existing mechanisms
-- **Reused:**
-  - `aiCall` (audit before verdict, switch and budget via the meter);
-  - `spend`/`DIALS` for the run cap;
-  - `defineRoute` + strict schema;
-  - `doorCall`, `readFailure` and `DataTable` (the staff count and queue);
-  - the existing admin identity reader;
-  - `ai_calls` (spend shows in Admin › Services › AI with no new code, since the feature is `name_check`'s).
-- **Conflicts:**
-  - Knowledge says "Do NOT use Edge Functions" / public routes bypass auth: handled by the secret check plus a deny proof.
-  - Knowledge's schedule guidance discourages hand-written pg_net HTTP callbacks: this is why T1 needs a DEC and T2 is recommended.
-  - The background-jobs skill's five requirements (bound, lease, idempotent marking, circuit breaker, paused guard) are met by the core.
-  - A new public route needs an AGENTS.md rule for the jobs prefix.
-  - No new dependency.
-- **Open question for the supervisor:** whether `alias.unchecked` audit rows stay as well as the state row. Proposed: yes, written by the door, so the audit trail keeps its existing action name.
+## 5. Tests (IDs grep-checked free at build; prefix NCJ-)
+- NCJ-1: no secret → 401; no lease, no ai_calls, no mark (spies prove none were called).
+- NCJ-2: wrong secret of the same length, and of a different length → 401, same proof of nothing done.
+- NCJ-3: a valid session bearer with no secret → 401.
+- NCJ-4: unknown job → 404 after the secret check.
+- NCJ-5: catch-up clean, imitates and unavailable; at most 20 per run, oldest first.
+- NCJ-6: a stale text marks nothing.
+- NCJ-7: switch off / budget spent → heartbeat with the reason, zero model calls.
+- NCJ-8: 402 → paused, then one probe next run; a third 429 → paused.
+- NCJ-9: lease busy → 'busy', no calls.
+- NCJ-10: empty queue → 'ok', asked 0.
+- SQL proofs:
+  - helper hides 'imitates' in public_listing_json and seller_feed_page, and shows 'clean'/'unchecked'
+  - staff doors see the name
+  - my_seller_line returns the name plus name_review
+  - Clear: allowed, denied without the permission, and stale text
+  - Rename through admin_update_profile
+  - job_call writes not_configured with no Vault rows
+- Unit tests:
+  - the owner's notice renders
+  - the ad page draws the neutral label for a NULL alias, extending the listing-detail tests
+- Guards: the jobs secret-first census and the seller_alias-without-helper census, each with a planted failure.
+- E2E: the existing admin-screening spec gains the queue row and Clear, both projects, whole file, 0 retries.
+- The whole unit suite runs.
 
-## 7. Tests (ids NCU-*, grep-checked free in src/, e2e/, scripts/ at 31d5fb6b; rechecked at build)
+## 6. Conflicts
+- **Platform guidance:**
+  - The platform says not to hand-author pg_cron + pg_net HTTP callbacks for user-managed Supabase. Its alternatives are a SQL-only job or an external scheduler.
+  - The operator chose T1, which goes against it. The platform needs nothing switched on, but its managed schedule and auth tools do not cover this project.
+  - Our own route therefore owns authentication (the shared secret), and Vault plus job_call own the call.
+  - The supervisor's ruling is the authority; this is recorded in the DEC.
+- **Knowledge:**
+  - "Born closed": pg_net's `net` schema grants are revoked explicitly.
+  - "outside calls via `upstream()`" does not apply to the database's outgoing call. It applies to the route's model call, which goes through aiCall.
+  - "no request.json/new Response": the route uses defineRoute and answer.ts.
+- **Background-jobs skill:** bounded runs, a lease, idempotent marks, a breaker and a paused guard are all covered. The route lives under `/api/public/` as required.
+- **AGENTS.md:** a new jobs rule is added, one line.
 
-| Id | Behaviour | Proof |
-|---|---|---|
-| NCU-1 | 1: unchecked is written with the save | The door call with `p_name_state = 'unchecked'` saves the alias and the `name_checks` row in one transaction. A bad state value refuses the save: the alias is unchanged and no row exists. |
-| NCU-2 | 1: the route passes the state | `identity.test.ts`: gateway `unavailable` → door args carry `unchecked`. Clean → `clean`. No post-save audit insert happens. |
-| NCU-3 | 2: catch-up asks unchecked names | Core with a stub gateway: N unchecked rows, cap K → K asked, oldest first. Switch off, budget spent or provider down → rows still unchecked, attempts +1, no rename. |
-| NCU-4 | 3: imitates → the screening queue, never a rename | The ai_calls row exists before the queue row. The alias is unchanged, the profile status is unchanged, and the bounded `of` is ≤ 200 characters. |
-| NCU-5 | 3: audit write failure → no queue row | The marked task answers `unavailable`, so no verdict is stored and no queue row is written (G38). |
-| NCU-6 | 4: clean is never asked again | The row is clean, and a second run asks 0. A changed alias resets to unchecked. |
-| NCU-7 | 5: staff count and since | The gated door returns the count and the oldest `since`. Without the permission it is refused (deny). |
-| NCU-8 | 6: cap, lease, heartbeat | A second concurrent run exits on the lease. Every run writes a heartbeat, including an empty run. 402 → paused_reason is stored and the next run stops before any call. |
-| NCU-9 | Route security | `/api/public/jobs/name-check-catchup`: no secret, a wrong secret, or a signed-in person's bearer → 401, with no read and no spend. |
-| NCU-10 | Census | Every `/api/public/jobs/*` route checks the secret first (planted file fails). |
-| e2e `name-check-catchup.spec.ts` | Staff view | Staff see the count and an imitates row in Screening. Both projects, whole file, 0 retries. |
+## 7. DEC facts (for the supervisor to draft)
+- **New:**
+  - the first outgoing HTTP call from the database (the pg_net extension, a SECURITY DEFINER job_call reading Vault)
+  - the first scheduled-job route, with its secret-first mechanism and guard
+  - the first verdict acted on automatically about a person (a name hidden from buyers)
+- **Why:** the operator's choice to keep schedules in one place, with no dependency on GitHub Actions minutes once the repository is private.
+- **Security cost:**
+  - one internet-reachable route whose only protection is a 32-byte secret
+  - the secret lives in two stores (Vault and server secrets), and anyone with database owner access can read it
+  - pg_net can reach any URL, limited to the one SECURITY DEFINER caller with the URL from Vault
+  - a false 'imitates' hides a real seller's name until staff act, softened by the owner's notice and the staff queue
+- **Failure posture:** every failure leaves the state as it was and writes a heartbeat.
 
-## 8. Migrations (each its own stop, G39; proofs create their own scratch `e2e-n1-<hex>` rows and roll back whole)
-- **M1:** `name_checks` + `name_check_runs` + lease, ACL/RLS, index; `save_posting_identity` redeclared with `p_name_state`. Proofs: NCU-1, deny for anon/authenticated on the tables.
-- **M2:** service-only `name_check_catchup_batch(p_subject, p_limit)` (claims rows FOR UPDATE SKIP LOCKED with a lease), `name_check_record(...)` (writes the answer and the queue row); the gated staff doors `admin_name_check_summary` and `admin_name_check_run` (staff "Check now"). Proofs: NCU-4/6/7/8 at the SQL level.
-- **M3 (only if T1 is chosen):** the pg_cron + pg_net job. With T2 there is no M3; the GitHub workflow lands instead, linted with actionlint and run via with-deadline.
-- `seller_name_sweep()` stays rule-only. Its "unchecked" count is read from `name_checks` by the staff summary, so a second sweep is not forked.
+## 8. Sizing (G37)
+1. **N1b-1:** CI first; M1 backfill, M2 pg_net + job_call, M3 heartbeat/lease/pause, M4 schedule; the route + secret + core; the jobs guard; NCJ-1…10. Stops after each migration.
+2. **N1b-2:** M5a hide helper + public reads redeclared; the owner's notice (strings from the supervisor); the seller_alias guard; listing-detail tests.
+3. **N1b-3:** M5b staff doors; queue + Clear/Rename UI with the model answer; E2E; docs, register row, DEC wiring, final report.
 
-**Sizing (G37):** split into two turns.
-- **N1a:** state + door + route (behaviour 1) + the staff count (5).
-- **N1b:** the catch-up core, trigger, queue and heartbeat (2, 3, 4, 6).
-- N1a alone already closes the hole of a name saved without a mark.
+ESTIMATE: 3 turns, band 3–5 (more if the CI image lacks pg_net or the M5 redeclarations go over the size limit).
 
-## 9. Estimate
-- 2 turns (N1a, N1b), band 2–3. The third turn arrives if the operator picks T1 (a DEC plus pg_net) or option (b) hide-from-public, which touches public seller reads.
-
-## Five lenses
-- **Security:**
-  - the answer is parsed against `name_check`'s schema and bounded (INC-866), with user text as data;
-  - the job route is secret-gated, with deny proofs (NCU-9);
-  - staff doors are gated, with deny proofs (NCU-7);
-  - no browser grant on the new tables.
-- **Performance:** the save path gains one upsert. The catch-up is capped per run, uses an indexed partial scan, and runs single-flight.
-- **Failure modes:**
-  - provider down, budget spent or switch off → the row stays unchecked and visible to staff;
-  - each run is logged with a heartbeat;
-  - a paused reason is persisted and shown.
-- **Consistency:** one state table, one catch-up core, one queue (Screening).
-- **Future growth:** the business name and Stage 2's judge join through `subject`, a parameter, not a fork.
+## Rulings needed
+- R1: one shared `job_runs` table (recommended) or a per-job `name_check_runs` table, following the existing `*_runs` pattern.
+- R2: Vault base URL: the published domain or the stable project URL (recommended: stable).
+- R3: cap 20 per run and every 15 minutes (estimate) confirmed.
+- R4: Clear's permission: listings:edit + step-up (recommended), or a new screening action.
