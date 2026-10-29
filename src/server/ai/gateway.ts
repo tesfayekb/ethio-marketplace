@@ -87,13 +87,30 @@ function hexOf(hash: ArrayBuffer): string {
   return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-/** The audit hash covers the rendered text and each sent image's byte length and SHA-256. */
+/** Key-sorted JSON, so one material hashes the same whatever order its keys were built in. */
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value !== null && typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([, item]) => item !== undefined)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
+    return `{${entries.map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+/**
+ * The audit hash covers the rendered text, the task's material itself (Foundations turn A1,
+ * INC-887: a field-less task such as translation renders no user text, so it hashes what it was
+ * asked) and each sent image's byte length and SHA-256.
+ */
 async function hashMaterial(
   task: { id: string; version: number },
   renderedUser: string,
+  material: unknown,
   images: readonly AiImage[],
 ): Promise<string> {
-  const parts = [`${task.id}\n${task.version}\n${renderedUser}`];
+  const parts = [`${task.id}\n${task.version}\n${renderedUser}\n${canonicalJson(material)}`];
   for (const image of images) {
     const digest = await crypto.subtle.digest("SHA-256", image.bytes as BufferSource);
     parts.push(`${image.bytes.byteLength}:${hexOf(digest)}`);
@@ -179,6 +196,7 @@ export async function aiCall<T extends TaskId>(
   let sent: readonly AiImage[] = [];
   let inputHash: string | null = null;
   let units = 1;
+  let resolvedMaterial: unknown = null;
   try {
     model = (process.env[task.model.env] ?? "").trim() || task.model.fallback;
     // A gate read that throws is a switch that could not be read: off, with
@@ -229,8 +247,9 @@ export async function aiCall<T extends TaskId>(
           // count, the cover's width) reads true; in fake mode the render only
           // feeds the hash and the stand-in.
           const resolved = typeof material === "function" ? await material() : material;
+          resolvedMaterial = resolved;
           rendered = render(task, resolved);
-          inputHash = await hashMaterial(task, rendered.user, sent);
+          inputHash = await hashMaterial(task, rendered.user, resolved, sent);
           // Turn 19, CHANGE (2) — a task's own units, a pure function of its
           // material (GWC-9); a task without it is metered as 1.
           units = task.units !== undefined ? task.units(resolved) : 1;
@@ -382,12 +401,17 @@ export async function aiCall<T extends TaskId>(
     // A gate-off or keyless answer or a throw before the hash still writes its
     // row (the door wants 64 hex); the hash then covers the rendered text alone.
     try {
-      inputHash = await hashMaterial(task, rendered?.user ?? "<unavailable>", sent);
+      inputHash = await hashMaterial(
+        task,
+        rendered?.user ?? "<unavailable>",
+        resolvedMaterial ?? (typeof material === "function" ? null : material),
+        sent,
+      );
     } catch {
       inputHash = "0".repeat(64);
     }
   }
-  await recordAiCall(
+  const written = await recordAiCall(
     {
       feature: task.feature,
       task: task.id,
@@ -402,6 +426,13 @@ export async function aiCall<T extends TaskId>(
     },
     log,
   );
+  // Foundations turn A1 (INC-952, DEC-280) — a verdict about a person is acted on only once its
+  // row is written: a marked task whose row failed answers `unavailable`, never the verdict. The
+  // spend already recorded stands (the gateway's order: the provider was asked and billed).
+  if (!written && task.judgesPerson && answer.ok) {
+    log("audit row not written: a verdict about a person answers unavailable");
+    return { ok: false, reason: "unavailable" };
+  }
   return answer;
 }
 

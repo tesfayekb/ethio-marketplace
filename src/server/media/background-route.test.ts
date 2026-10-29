@@ -99,7 +99,7 @@ vi.mock("@/server/ai/meter", async (importOriginal) => ({
     state.spent.push(feature);
   },
 }));
-vi.mock("@/server/ai/audit", () => ({ recordAiCall: async () => undefined }));
+vi.mock("@/server/ai/audit", () => ({ recordAiCall: async () => true }));
 vi.mock("@/server/media/links", () => ({
   signPhotoRows: async (_service: unknown, rows: { id: string }[], variants: readonly string[]) => {
     state.signed.push({ ids: rows.map((row) => row.id), variants });

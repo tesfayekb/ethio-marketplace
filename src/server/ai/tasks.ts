@@ -51,6 +51,13 @@ export type AiTask<O> = {
   id: string;
   version: number;
   feature: AiFeature;
+  /**
+   * Foundations turn A1 (INC-952, DEC-280) — the task's answer is a verdict about a person
+   * (a name refused, a seller's ad held or refused, the assist's screening of a seller's words).
+   * Required on every task (GWC-10): when the `ai_calls` row of a marked task cannot be written,
+   * the gateway answers `unavailable`, never the verdict; an unmarked task stays best-effort.
+   */
+  judgesPerson: boolean;
   provider: "gemini-text" | "gemini-image" | "photoroom-segment" | "google-translate";
   promptMode?: "inline";
   model: { env: string; fallback: string };
@@ -242,6 +249,7 @@ export const AI_TASKS = [
     id: "category_image",
     version: 1,
     feature: "category_images",
+    judgesPerson: false,
     provider: "gemini-image",
     model: { env: "GEMINI_IMAGE_MODEL", fallback: "gemini-3.1-flash-image" },
     timeoutMs: 60_000,
@@ -279,6 +287,7 @@ export const AI_TASKS = [
     id: "name_check",
     version: 1,
     feature: "name_check",
+    judgesPerson: true,
     provider: "gemini-text",
     model: { env: "GEMINI_TEXT_MODEL", fallback: "gemini-3.5-flash-lite" },
     timeoutMs: 15_000,
@@ -302,6 +311,7 @@ export const AI_TASKS = [
     id: "category_icon",
     version: 1,
     feature: "category_icons",
+    judgesPerson: false,
     provider: "gemini-text",
     model: { env: "GEMINI_TEXT_MODEL", fallback: "gemini-3.5-flash-lite" },
     timeoutMs: 15_000,
@@ -327,6 +337,7 @@ export const AI_TASKS = [
     id: "writing_helper",
     version: 1,
     feature: "writing_helper",
+    judgesPerson: true,
     provider: "gemini-text",
     model: { env: "GEMINI_TEXT_MODEL", fallback: "gemini-3.5-flash-lite" },
     timeoutMs: 20_000,
@@ -419,6 +430,7 @@ export const AI_TASKS = [
     id: "photo_screen",
     version: 1,
     feature: "photo_screen",
+    judgesPerson: true,
     provider: "gemini-text",
     model: { env: "GEMINI_VISION_MODEL", fallback: "gemini-3.1-flash-image" },
     timeoutMs: 20_000,
@@ -509,6 +521,7 @@ export const AI_TASKS = [
     id: "background_removal",
     version: 1,
     feature: "background_removal",
+    judgesPerson: false,
     provider: "photoroom-segment",
     // An audit label only: the segment endpoint takes no model argument.
     model: { env: "PHOTOROOM_MODEL", fallback: "segment-v1" },
@@ -529,6 +542,7 @@ export const AI_TASKS = [
     id: "translation",
     version: 1,
     feature: "translations",
+    judgesPerson: false,
     provider: "google-translate",
     // An audit label only: Cloud Translation v2 takes no model argument.
     model: { env: "GOOGLE_TRANSLATE_MODEL", fallback: "v2-nmt" },

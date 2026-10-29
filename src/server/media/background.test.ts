@@ -11,7 +11,7 @@ vi.mock("@/server/ai/meter", async (importOriginal) => ({
   aiGate: vi.fn(async () => ({ on: true })),
   recordAiSpend: vi.fn(async () => undefined),
 }));
-vi.mock("@/server/ai/audit", () => ({ recordAiCall: vi.fn(async () => undefined) }));
+vi.mock("@/server/ai/audit", () => ({ recordAiCall: vi.fn(async () => true) }));
 
 /**
  * Bundle 13 turn 12 — D155b / D159, on the AI gateway since Foundations turn
