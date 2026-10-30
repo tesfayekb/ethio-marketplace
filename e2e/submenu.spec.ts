@@ -98,7 +98,7 @@ test.describe("DEC-288 side panel, coarse pointer (touch at 1024 px)", () => {
       .locator("[data-submenu-row]")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height)))
       expect(height, "SMN-E3 a panel row is at least 44 px").toBeGreaterThanOrEqual(44);
-    await page.locator("main").tap({ position: { x: 600, y: 400 } });
+    await page.locator("main").tap({ position: { x: 4, y: 4 } });
     await expect(panel).toHaveCount(0);
   });
 });
