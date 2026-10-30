@@ -330,7 +330,7 @@ function Panel({
         {showHeader ? (
           <p
             data-testid="submenu-header"
-            className="flex min-h-9 shrink-0 items-center px-3 text-sm font-semibold"
+            className="flex min-h-9 shrink-0 items-center border-b border-border px-3 text-sm font-semibold"
           >
             {level.header}
           </p>
