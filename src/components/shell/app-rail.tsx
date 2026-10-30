@@ -580,8 +580,8 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   // D255 (R1d-c) — the menu and the strip read ONE level state (menu-level.ts).
   const storedLevel = useMenuLevel();
   const pathname = useShownPathname();
-  const hash = useRouterState({ select: (s) => s.location.hash }).replace(/^#/, "");
-  const at = { pathname, hash };
+  // Categories are never anchored: the path alone marks the current row.
+  const at = { pathname, hash: "" };
   // D246 — the current row is in view once per opening (no smooth scroll).
   const navRef = useRef<HTMLElement>(null);
   const currentInView = useRef(false);
