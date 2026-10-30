@@ -195,6 +195,7 @@ function Panel({
   }, [opener, depth, edgeOf]);
 
   useEffect(() => {
+    console.info("[smn-dbg]", Boolean(place), opener.focus, rowsOf(own.current).length);
     if (place && opener.focus) rowsOf(own.current)[0]?.focus();
   }, [place, opener]);
 
