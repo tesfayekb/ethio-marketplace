@@ -163,7 +163,11 @@ describe("the rail's first paint (INC-974)", () => {
     const two = renderToString(<Rail seed={seedFor("cars")} variant="rail" />);
     const three = renderToString(<Rail seed={null} variant="rail" />);
     expect(one).not.toContain("Name sedans");
-    expect(two).toContain("Name sedans");
+    // DEC-288 (turn R1b) — the persistent rail draws the main rows only; the selected
+    // path's sub-items open in the side panel, so the seed's isolation is read from the seed.
+    expect(two).toContain("Name vehicles");
+    expect(two).not.toContain("Name sedans");
+    expect(seedFor(null).payload.nodes.map((node) => node.slug)).not.toContain("sedans");
     expect(three).not.toContain("Name ");
     const shaped = seedFor("cars").payload;
     expect(shaped.nodes.map((node) => node.slug).sort()).toEqual(
