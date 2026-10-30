@@ -167,31 +167,62 @@ function Panel({
   itemsOf: (key: string) => SubmenuLevel | null;
   edgeOf: (opener: HTMLElement) => Element;
   panelRef: React.MutableRefObject<HTMLElement | null>;
+  /** D244 — never above this (the top bar's bottom), at every level. */
+  floor: number;
+  /** D244 — bumped on a window resize: the panel is placed again. */
+  tick: number;
   onEnter: () => void;
   onLeave: (at: Point) => void;
   onClose: (focusOpener: boolean) => void;
 }) {
   const own = useRef<HTMLDivElement | null>(null);
+  /** The top bar's bottom: the first panel reads it from the rail; deeper ones inherit it. */
+  const [ownFloor, setFloor] = useState(0);
   const [place, setPlace] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
   const child = useIntent();
   const childLevel = child.opened ? itemsOf(child.opened.key) : null;
 
-  // Placed once per opening, from the rects of this moment (I3: nothing observed).
+  // D244 (INC-1008) — placed when it opens, and again on every window resize (`tick`, from
+  // the first panel's one listener, so a child follows its parent's new place). Rects are
+  // read on these events only (I3: nothing observed). The natural height is read with the
+  // panel's own bound lifted, so a panel that shrank can grow back.
   useLayoutEffect(() => {
     const el = own.current;
     if (!el) return;
-    const edgeEl = edgeOf(opener.el);
-    const edge = boxOf(edgeEl);
+    const bound = el.style.maxHeight;
+    el.style.maxHeight = "none";
+    const natural = el.scrollHeight;
+    el.style.maxHeight = bound;
+    const edge = boxOf(edgeOf(opener.el));
+    const top = depth === 0 ? Math.max(0, edge.top) : floor;
     const placed = placePanel({
       anchor: boxOf(opener.el),
       edge,
-      size: { width: el.offsetWidth, height: el.scrollHeight },
+      size: { width: el.offsetWidth, height: natural },
       viewport: { width: window.innerWidth, height: window.innerHeight },
       rtl: isRtl(opener.el),
-      minTop: Math.max(0, depth === 0 ? edge.top : 0),
+      minTop: top,
     });
+    setFloor(top);
     setPlace({ left: placed.left, top: placed.top, maxHeight: placed.maxHeight });
-  }, [opener, depth, edgeOf]);
+  }, [opener, depth, edgeOf, floor, tick]);
+
+  // The first panel listens; its children follow through `tick`.
+  const [ownTick, setOwnTick] = useState(0);
+  useEffect(() => {
+    if (depth !== 0) return;
+    let frame = 0;
+    const resized = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setOwnTick((value) => value + 1));
+    };
+    window.addEventListener("resize", resized);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resized);
+    };
+  }, [depth]);
+  const childTick = depth === 0 ? ownTick : tick;
 
   useEffect(() => {
     if (!place || !opener.focus) return;
