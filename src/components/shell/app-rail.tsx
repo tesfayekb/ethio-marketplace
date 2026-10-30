@@ -528,12 +528,13 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       ? selected.id
       : (tree.parentOf.get(selected.id) ?? null)
     : null;
-  // D246 — every phone opening starts at the URL's level (the open category's children, or a
+  // D246 — the phone menu opens at the URL's level (the open category's children, or a
   // leaf's siblings); back rows move up without navigating, and a navigation follows the URL.
-  const [localLevel, setLocalLevel] = useState<{
-    slug: string | null;
-    id: string | null | undefined;
-  }>(() => ({ slug: selectedCategorySlug, id: undefined }));
+  // D255 (R1d-c) — the menu and the strip read ONE level state (menu-level.ts).
+  const storedLevel = useMenuLevel();
+  const pathname = useShownPathname();
+  const hash = useRouterState({ select: (s) => s.location.hash }).replace(/^#/, "");
+  const at = { pathname, hash };
   // D246 — the current row is in view once per opening (no smooth scroll).
   const navRef = useRef<HTMLElement>(null);
   const currentInView = useRef(false);
@@ -544,16 +545,11 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     currentInView.current = true;
     current.scrollIntoView({ block: "nearest" });
   });
-  if (localLevel.slug !== selectedCategorySlug) {
-    setLocalLevel({ slug: selectedCategorySlug, id: undefined });
-  }
   const iconsOnly = strip || (variant === "rail" && collapsed);
-  const levelId =
-    localLevel.slug === selectedCategorySlug && localLevel.id !== undefined
-      ? localLevel.id
-      : fromUrl;
+  const levelId = levelFor(storedLevel, selectedCategorySlug, fromUrl);
   // DEC-288 — from 768 px the rail keeps the main rows; sub-items open in the side panel.
-  const level = variant === "menu" && levelId ? tree.byId.get(levelId) : undefined;
+  // D255 — below 768 the menu and the strip show the same level.
+  const level = variant !== "rail" && levelId ? tree.byId.get(levelId) : undefined;
   const panels = variant === "rail";
   const overlays = useOverlays();
   const parentId = level ? tree.parentOf.get(level.id) : undefined;
@@ -568,7 +564,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       ? (glyphs.glyphOf(category.icon) ?? undefined)
       : categoryIcon(category.slug),
     glyphPending: category.icon !== null && !glyphs.settled,
-    active: category.slug === selectedCategorySlug,
+    active: isCurrentAt({ path: categoryPath(category.slug) }, at),
     ancestorActive: !level && ancestors.some((ancestor) => ancestor.id === category.id),
     categoryBranch: !iconsOnly && childrenOf(tree, category.id).length > 0,
     submenu: panels && childrenOf(tree, category.id).length > 0 ? category.id : undefined,
@@ -577,10 +573,23 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     preload: "intent",
     onSelect: () => {
       if (childrenOf(tree, category.id).length === 0) onNavigate();
-      else if (!panels) setLocalLevel({ slug: selectedCategorySlug, id: category.id });
+      else if (!panels) setMenuLevel({ slug: category.slug, id: category.id });
     },
   });
-  const nodes = (level ? [level, ...childrenOf(tree, level.id)] : roots).map(toNode);
+  // D259 (R1d-c) — the main level's first row is Home: every category's listings ("/").
+  const home: RailNode = {
+    key: "home",
+    testid: "rail-home",
+    label: t("nav.home"),
+    icon: House,
+    path: "/",
+    active: isCurrentAt({ path: "/" }, at),
+    onSelect: onNavigate,
+  };
+  // D255 — the strip's sub-level shows the sub-items; its back item sits above (StripBack).
+  const nodes = level
+    ? (strip ? childrenOf(tree, level.id) : [level, ...childrenOf(tree, level.id)]).map(toNode)
+    : [home, ...roots.map(toNode)];
   // DEC-288 — a panel's rows come from the same seeded tree: no request of their own.
   const itemsOf = (id: string) => {
     const opened = tree.byId.get(id);
@@ -597,7 +606,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           : categoryIcon(category.slug),
         to: "/c/$slug",
         params: { slug: category.slug },
-        active: category.slug === selectedCategorySlug,
+        active: isCurrentAt({ path: categoryPath(category.slug) }, at),
         ancestorActive: ancestors.some((ancestor) => ancestor.id === category.id),
         hasChildren: childrenOf(tree, category.id).length > 0,
       })),
@@ -614,18 +623,19 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         // D247 — the list fits its region before it scrolls (src/styles.css `.menu-fit`).
         className={cn("menu-fit flex flex-col", compact && "flex-1", panels && "rail-spread")}
         data-many={
-          nodes.length + (level ? 1 : 0) + (!level && favouriteCategory ? 1 : 0) > MENU_FIT_MAX
+          nodes.length + (level && !strip ? 1 : 0) + (!level && favouriteCategory ? 1 : 0) >
+          MENU_FIT_MAX
             ? ""
             : undefined
         }
         data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
       >
-        {level ? (
+        {level && !strip ? (
           <li className={cn(compact && COMPACT_ROW)}>
             <Button
               variant="ghost"
               data-testid="rail-menu-back"
-              onClick={() => setLocalLevel({ slug: selectedCategorySlug, id: parent?.id ?? null })}
+              onClick={() => setMenuLevel({ slug: selectedCategorySlug, id: parent?.id ?? null })}
               style={{ "--rail-pad": "0.75rem" } as React.CSSProperties}
               className={cn(
                 ITEM_CORE,
@@ -646,6 +656,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
             </Button>
           </li>
         ) : null}
+        {!level && !isLoading ? <RailRow node={home} /> : null}
         {!level && favouriteCategory ? (
           <>
             <RailRow
@@ -694,9 +705,15 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 </div>
               </li>
             ))
-          : nodes.map((node, index) => (
-              <RailRow key={node.key} node={node} depth={level && index > 0 ? 1 : 0} />
-            ))}
+          : nodes
+              .filter((node) => node !== home)
+              .map((node, index) => (
+                <RailRow
+                  key={node.key}
+                  node={node}
+                  depth={level && !strip && index > 0 ? 1 : 0}
+                />
+              ))}
         {!compact && !isLoading && roots.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", hide)}>
             {t("shell.categoriesEmpty")}
