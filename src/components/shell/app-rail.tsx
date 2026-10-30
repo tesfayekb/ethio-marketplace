@@ -43,6 +43,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { ITEM_ACTIVE, ITEM_CORE, ITEM_IDLE } from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
