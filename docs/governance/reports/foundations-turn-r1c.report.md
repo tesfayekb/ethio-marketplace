@@ -84,4 +84,25 @@ CHECKS_LINE
 
 ## 12. git diff --name-only b2ba8e8e
 
-DIFF_LIST
+- `docs/_changelog.md`
+- `docs/features/panels.md`
+- `docs/governance/briefs/foundations-turn-r1c.md`
+- `docs/governance/mechanisms.md`
+- `docs/governance/reports/foundations-turn-r1c.report.md`
+- `e2e/helpers/posting.ts`
+- `e2e/menu-rows.spec.ts`
+- `e2e/shell.spec.ts`
+- `e2e/submenu-touch.spec.ts`
+- `e2e/submenu.spec.ts`
+- `roadmap.md`
+- `scripts/conformance/menu-rows-allowlist.txt`
+- `scripts/conformance/menu-rows.test.ts`
+- `scripts/conformance/submenu.test.ts`
+- `scripts/e2e-select.ts`
+- `scripts/route-budgets.mjs`
+- `src/components/shell/app-rail.tsx`
+- `src/components/shell/submenu/submenu-signal.ts`
+- `src/components/ui/submenu-geometry.ts`
+- `src/components/ui/submenu-impl.test.tsx`
+- `src/components/ui/submenu-impl.tsx`
+- `src/styles.css`
