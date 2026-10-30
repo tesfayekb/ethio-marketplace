@@ -2094,7 +2094,8 @@ test.describe("desktop layout laws (U0g)", () => {
     await expect(page.getByTestId("breadcrumbs")).toBeInViewport();
   });
 
-  test("C1: a rail row is 36–48 px high with a mouse from md (DEC-288 item 7)", async ({
+  // G38 — D247 (R1c) replaces DEC-288 item 7's 36–48 px: rows share the height, 32–48 px.
+  test("C1: a rail row is 32–48 px high from md (D247)", async ({
     page,
     viewport,
   }) => {
@@ -2110,7 +2111,7 @@ test.describe("desktop layout laws (U0g)", () => {
     const first = heights[0];
     expect(first).toBeDefined();
     if (first === undefined) throw new Error("the rail has no link");
-    expect(first).toBeGreaterThanOrEqual(36);
+    expect(first).toBeGreaterThanOrEqual(32);
     expect(first).toBeLessThanOrEqual(48);
   });
 
