@@ -10,7 +10,9 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { ITEM_ACTIVE, ITEM_CORE, ITEM_IDLE } from "@/components/shell/menu-row";
 import type { SubmenuSignal } from "@/components/shell/submenu/submenu-signal";
+import { CutText } from "@/components/ui/cut-text";
 import { cn } from "@/lib/utils";
 
 import {
@@ -19,6 +21,7 @@ import {
   SUBMENU_OPEN_MS,
   inSafeTriangle,
   placePanel,
+  snapToGrid,
   type Box,
   type Point,
 } from "./submenu-geometry";
@@ -161,13 +164,8 @@ function useClosing<T extends { key: string }>(opened: T | null): T | null {
   return closing && closing.key !== opened?.key ? closing : null;
 }
 
-/** D247 — the row's height comes from the list (src/styles.css `.menu-fit`), never the row. */
-const ROW =
-  "flex w-full items-center gap-2 rounded-none border-b border-border px-3 py-1.5 text-start text-sm " +
-  "break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-// D245 — the old site's hover tint (#e9ecef) as a token, with no hover transition.
-const IDLE = "text-popover-foreground hover:bg-muted";
-const ACTIVE = "bg-nav-active font-semibold text-primary";
+/** D248 — the panel's rows are the main menu's (src/components/shell/menu-row.ts). */
+const PAD = { "--rail-pad": "0.75rem" } as React.CSSProperties;
 
 function Panel({
   opener,
@@ -207,7 +205,12 @@ function Panel({
   const own = useRef<HTMLDivElement | null>(null);
   /** The top bar's bottom: the first panel reads it from the rail; deeper ones inherit it. */
   const [ownFloor, setFloor] = useState(0);
-  const [place, setPlace] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
+  const [place, setPlace] = useState<{
+    left: number;
+    top: number;
+    height: number;
+    rowHeight: number;
+  } | null>(null);
   const child = useIntent();
   const childClosing = useClosing(child.opened);
   /** A fading panel's element is never the live panel the safe triangle aims at. */
@@ -232,28 +235,40 @@ function Panel({
 
   // D244 (INC-1008) — placed when it opens, and again on every window resize (`tick`, from
   // the first panel's one listener, so a child follows its parent's new place). Rects are
-  // read on these events only (I3: nothing observed). The natural height is read with the
-  // panel's own bound lifted, so a panel that shrank can grow back.
+  // read on these events only (I3: nothing observed). D248 — the rows snap to the opener's
+  // menu: its row height, its row grid, never below its last row (snapToGrid).
+  const count = level.items.length + (showHeader ? 1 : 0);
   useLayoutEffect(() => {
     const el = own.current;
     if (!el) return;
-    const bound = el.style.maxHeight;
-    el.style.maxHeight = "none";
-    const natural = el.scrollHeight;
-    el.style.maxHeight = bound;
     const edge = boxOf(edgeOf(opener.el));
     const top = depth === 0 ? Math.max(0, edge.top) : floor;
+    const row = opener.el.closest("li") ?? opener.el;
+    const listed = Array.from(row.parentElement?.children ?? []).filter(
+      (item) => item.tagName === "LI" && !item.hasAttribute("aria-hidden"),
+    );
+    const region = boxOf(opener.el.closest("[data-menu-region]") ?? edgeOf(opener.el));
+    const own0 = boxOf(row);
+    const first = listed[0] ? boxOf(listed[0]) : own0;
+    const last = listed[listed.length - 1] ? boxOf(listed[listed.length - 1] as Element) : own0;
+    const snap = snapToGrid({
+      openerTop: own0.top,
+      rowHeight: own0.bottom - own0.top,
+      menuTop: Math.max(top, region.top, first.top),
+      menuBottom: Math.min(window.innerHeight, region.bottom, last.bottom),
+      count,
+    });
     const placed = placePanel({
       anchor: boxOf(opener.el),
       edge,
-      size: { width: el.offsetWidth, height: natural },
+      size: { width: el.offsetWidth, height: snap.height },
       viewport: { width: window.innerWidth, height: window.innerHeight },
       rtl: isRtl(opener.el),
       minTop: top,
     });
     setFloor(top);
-    setPlace({ left: placed.left, top: placed.top, maxHeight: placed.maxHeight });
-  }, [opener, depth, edgeOf, floor, childTick]);
+    setPlace({ left: placed.left, top: snap.top, height: snap.height, rowHeight: snap.rowHeight });
+  }, [opener, depth, edgeOf, floor, childTick, count]);
 
   useEffect(() => {
     if (!place || !opener.focus) return;
@@ -307,6 +322,7 @@ function Panel({
         aria-hidden={closing ? true : undefined}
         inert={closing ? true : undefined}
         data-level={depth + 2}
+        data-menu-region=""
         onPointerEnter={onEnter}
         onPointerLeave={(event) => onLeave({ x: event.clientX, y: event.clientY })}
         onKeyDown={keyDown}
@@ -315,14 +331,16 @@ function Panel({
             ? {
                 left: place.left,
                 top: place.top,
-                maxHeight: place.maxHeight,
+                height: place.height,
                 opacity: closing ? 0 : 1,
+                ["--menu-row-h" as string]: `${place.rowHeight}px`,
               }
             : { left: 0, top: 0, opacity: 0 }
         }
-        // D245 — ethio.com's surface and its 300 ms opacity fade, in and out, at every level.
+        // D248 — the rail's surface (bg-sidebar, its shadow, rounded, no border); D245's
+        // 300 ms opacity fade, in and out, at every level.
         className={cn(
-          "fixed z-30 flex w-64 flex-col overflow-y-auto overscroll-contain rounded-none border border-border bg-popover text-popover-foreground shadow-none",
+          "fixed z-30 flex w-64 flex-col overflow-y-auto overflow-x-hidden overscroll-contain rounded-lg bg-sidebar px-2 text-foreground shadow-side",
           "transition-opacity duration-300 ease-[ease] motion-reduce:transition-none",
           closing && "pointer-events-none",
         )}
@@ -330,13 +348,15 @@ function Panel({
         {showHeader ? (
           <p
             data-testid="submenu-header"
-            className="flex min-h-9 shrink-0 items-center border-b border-border px-3 text-sm font-semibold"
+            title={level.header}
+            className="flex h-[var(--menu-row-h)] shrink-0 items-center px-3 text-sm font-semibold"
           >
-            {level.header}
+            <CutText text={level.header} />
           </p>
         ) : null}
         <ul
-          className="menu-fit menu-natural min-h-0 flex-1 [&>li:last-child>a]:border-b-0"
+          className="menu-fit menu-snap min-h-0 shrink-0"
+          style={PAD}
           data-many={level.items.length > fitMax ? "" : undefined}
         >
           {level.items.map((item) => {
@@ -363,12 +383,20 @@ function Panel({
                       child.leave({ x: event.clientX, y: event.clientY });
                   }}
                   onClick={() => onClose(false)}
-                  className={cn(ROW, item.active || item.ancestorActive ? ACTIVE : IDLE)}
+                  aria-label={item.label}
+                  title={item.label}
+                  className={cn(
+                    ITEM_CORE,
+                    item.active || item.ancestorActive ? ITEM_ACTIVE : ITEM_IDLE,
+                  )}
                 >
                   {Icon ? <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /> : null}
-                  <span className="min-w-0 flex-1">{item.label}</span>
+                  <CutText text={item.label} />
                   {item.hasChildren ? (
-                    <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 rtl:rotate-180" />
+                    <ChevronRight
+                      aria-hidden="true"
+                      className="ms-auto h-4 w-4 shrink-0 rtl:rotate-180"
+                    />
                   ) : null}
                 </Link>
               </li>
