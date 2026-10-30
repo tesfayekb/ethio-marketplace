@@ -18,3 +18,10 @@ export function isCurrentAt(target: MenuTarget, at: MenuAt, anchored = false): b
 
 /** The category page's own path (the category list's items). */
 export const categoryPath = (slug: string) => `/c/${encodeURIComponent(slug)}`;
+
+/**
+ * The router's Link marks itself `aria-current="page"` by its own matching, which would
+ * overrule this rule (it lit "Sign-in and security" on /settings). Every menu row's Link
+ * takes these options, so the router's own mark is only ever a subset of this rule's.
+ */
+export const MENU_LINK_ACTIVE = { exact: true, includeHash: true, includeSearch: false } as const;

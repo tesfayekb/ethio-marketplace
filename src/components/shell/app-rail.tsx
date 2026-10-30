@@ -18,7 +18,7 @@ import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { levelFor, setMenuLevel, useMenuLevel } from "@/components/shell/menu-level";
-import { categoryPath, isCurrentAt } from "@/components/shell/menu-current";
+import { MENU_LINK_ACTIVE, categoryPath, isCurrentAt } from "@/components/shell/menu-current";
 import {
   MENU_FIT_MAX,
   SUBMENU_SIGNALS,
@@ -332,6 +332,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         {node.path ? (
           <Link
             to={node.path}
+            activeOptions={MENU_LINK_ACTIVE}
             onClick={node.onSelect}
             data-testid={testid}
             data-alert={node.alert ? "true" : undefined}
@@ -430,6 +431,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <Link
             {...trigger}
             to={node.path}
+            activeOptions={MENU_LINK_ACTIVE}
             params={node.params}
             hash={node.hash}
             preload={node.preload}

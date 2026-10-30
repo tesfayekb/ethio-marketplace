@@ -284,7 +284,9 @@ test.describe("D240 the admin, account and seller menus' side panels", () => {
     expect(href, "SMN-E11 the group opens a page").toMatch(/^\/admin\//);
     await opener.click();
     await expect(page).toHaveURL(new RegExp(`${href ?? ""}$`));
-    await expect(opener).toHaveAttribute("aria-current", "true");
+    // Catalog has a page of its own: on it the group's row is that page ("page"); on a
+    // member's page it holds the current item ("true").
+    await expect(opener).toHaveAttribute("aria-current", /^(page|true)$/);
   });
 
   test("SMN-E12 the seller's Manage group opens its panel; the account menu has no group", async ({
