@@ -55,6 +55,8 @@ for (const pointer of ["fine", "coarse"] as const) {
           for (const folded of [false, true]) {
             await setFolded(page, folded);
             const label = `${width} ${folded ? "folded" : "open"}`;
+            // INC-1020: the signed-in panel tabs render after the ready mark; read the rows once they show.
+            if (signedIn) await expect(page.getByTestId("panel-tabs")).toBeVisible();
             const rows = await bandHeights(page);
             const ids = rows.map((row) => row.id);
             expect(ids, `${label}: the band rows`).toEqual(

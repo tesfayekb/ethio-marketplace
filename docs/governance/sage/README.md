@@ -1,4 +1,4 @@
-<!-- Imported 2026-10-30 (turn P0) from the designer's bundle "ethio-sage-files"; no word below is changed. The boards it lists (boards/*.dc.html, about 420 KB of canvas files) are not in the repository: they stay on the canvas "ethio.com — Sage 3D design", and the spec (sage-3d-style-change-spec.md, records turn R9) and sage-tokens.css carry their values. -->
+<!-- Imported 2026-10-30 (turn P0) from the designer's bundle "ethio-sage-files"; no word below is changed. The boards it lists (boards/*.dc.html, about 420 KB of canvas files) are not in the repository: they stay on the canvas "ethio.com — Sage 3D design", and the spec (sage-3d-style-change-spec.md, turn P1) and sage-tokens.css carry their values. -->
 
 # ethio.com — Sage 3D design files
 
