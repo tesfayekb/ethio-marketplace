@@ -10,6 +10,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { withoutEmptyLayers } from "./helpers/shadows";
+import { adPageFixtures } from "./helpers/ad-page";
 
 type Mode = "light" | "dark";
 type Token = keyof typeof THEMES.sage.light;
@@ -54,6 +55,8 @@ async function open(page: Page, width: number, mode: Mode) {
 for (const width of WIDTHS) {
   for (const mode of MODES) {
     test.describe(`Sage bands at ${width}, ${mode}`, () => {
+      const feed = adPageFixtures();
+      test.afterEach(async () => { await feed.cleanup(); });
       test.beforeEach(async ({ page }, testInfo) => {
         test.skip(
           width < 768 !== (testInfo.project.name === "mobile-360"),
@@ -99,9 +102,13 @@ for (const width of WIDTHS) {
       test(`SGB-4 adjacent bands meet with one groove and one last-row drop (${width}, ${mode})`, async ({
         page,
       }, testInfo) => {
-        const user = await leaseUser();
-        await signIn(page, user.email, user.password);
-        await gotoReady(page, "/");
+        // J3: a scratch category feed supplies real scroll height at every width.
+        const seller = await feed.scratchSeller();
+        const ids = [];
+        for (let i = 0; i < 15; i++) ids.push(await feed.seed(seller));
+        await signIn(page, seller.email, seller.password);
+        await gotoReady(page, `/c/${seller.leafSlug}`);
+        await expect(page.getByTestId("listing-card")).toHaveCount(ids.length);
         await expect(page.getByTestId("panel-tabs")).toBeAttached();
         const sticky = page.getByTestId("shell-subband");
         const locationBand = page.getByTestId("shell-location-band");
@@ -109,6 +116,7 @@ for (const width of WIDTHS) {
         const drop = await tokenStyle(page, mode, "lift-subband", "box-shadow");
         for (const scrolled of [false, true]) {
           await page.evaluate((scrolled) => window.scrollTo(0, scrolled ? 180 : 0), scrolled);
+          await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled ? 180 : 0);
           if (scrolled) await expect(sticky).toHaveAttribute("data-location-covered", "");
           else await expect(sticky).not.toHaveAttribute("data-location-covered");
           const rows = page.locator(
