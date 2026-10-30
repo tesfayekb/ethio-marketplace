@@ -75,6 +75,8 @@ function useIntent(onChange?: (key: string | null) => void) {
   const safe = () => {
     const el = panel.current;
     if (!apex.current || !el) return false;
+    // A pointer that has not moved since it left makes no progress toward the panel.
+    if (point.current.x === apex.current.x && point.current.y === apex.current.y) return false;
     return inSafeTriangle(point.current, apex.current, boxOf(el), isRtl(el));
   };
 
@@ -104,7 +106,10 @@ function useIntent(onChange?: (key: string | null) => void) {
   };
   const leave = (at?: Point) => {
     window.clearTimeout(openTimer.current);
-    if (at) apex.current = at;
+    if (at) {
+      apex.current = at;
+      point.current = at;
+    }
     window.clearTimeout(closeTimer.current);
     const tryClose = () => {
       if (safe()) {
