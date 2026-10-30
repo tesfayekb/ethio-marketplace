@@ -2,7 +2,9 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { catalogueRows } from "./helpers/category-menu";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, layoutBoxes, openRailScope } from "./helpers/ui";
+import { grantRole } from "./helpers/categories";
+import { gotoReady, layoutBoxes, openPanel, openRailScope, signIn } from "./helpers/ui";
+import { leaseUser } from "./helpers/users";
 
 /**
  * SMN-E1, SMN-E2 (SMN-E3, the touch context, is submenu-touch.spec.ts) (DEC-288, turn R1b) — the marketplace tree on the sub-menu mechanism,
@@ -215,4 +217,99 @@ test.describe("D244 every panel on screen", () => {
       await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
     });
   }
+});
+
+/**
+ * SMN-E11, SMN-E12 (D240, D248, D254; Foundations turn R1d-c) — the admin, account and
+ * seller menus on the sub-menu mechanism from 768 px: a group's row opens its items in a
+ * side panel (hover, keys), the panel takes the rail's rows and surface, and a click opens
+ * the group's first permitted page. The groups and their items are read from the menu this
+ * backend draws for the admin role (G27).
+ */
+test.describe("D240 the admin, account and seller menus' side panels", () => {
+  test("SMN-E11 an admin group opens its panel by hover and by the keys; a click opens its first page", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+    const staff = await leaseUser();
+    await grantRole(staff.id, "admin");
+    await signIn(page, staff.email, staff.password);
+    await gotoReady(page, "/admin");
+    const rail = page.getByTestId("app-rail");
+    const opener = rail.getByTestId("admin-group-categories");
+    await expect(opener).toBeVisible({ timeout: 15000 });
+    await expect(opener).toHaveAttribute("aria-expanded", "false");
+    // Hover: the panel beside the rail, its rows the rail's rows (D248, D254).
+    await opener.hover();
+    const panel = page.getByTestId("submenu-panel");
+    await expect(panel).toBeVisible();
+    await expect(opener).toHaveAttribute("aria-expanded", "true");
+    const [railBox, panelBox] = [await rail.boundingBox(), await panel.boundingBox()];
+    if (!railBox || !panelBox) throw new Error("SMN-E11 missing rail or panel box");
+    expect(Math.abs(panelBox.x - (railBox.x + railBox.width))).toBeLessThanOrEqual(1);
+    const look = await panel.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { border: style.borderTopWidth, bg: style.backgroundColor };
+    });
+    const railBg = await rail.evaluate((el) => getComputedStyle(el).backgroundColor);
+    expect(look.border).toBe("0px");
+    expect(look.bg).toBe(railBg);
+    const railRow = await opener.evaluate((el) => el.getBoundingClientRect().height);
+    const rows = panel.locator("[data-submenu-row]");
+    await expect.poll(() => rows.count()).toBeGreaterThan(0);
+    for (const height of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    ))
+      expect(Math.abs(height - railRow), "SMN-E11 a panel row equals a rail row").toBeLessThanOrEqual(1);
+    await page.mouse.move(900, 700);
+    await expect(panel).toHaveCount(0);
+    // Keys: the arrow enters, Escape returns to the opener.
+    await opener.focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.getByTestId("submenu-panel")).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.activeElement ===
+            document.querySelector('[data-testid="submenu-panel"] [data-submenu-row]'),
+        ),
+      )
+      .toBe(true);
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+    await expect(opener).toBeFocused();
+    // A click opens the group's first permitted page; the group's row is then marked.
+    const href = await opener.getAttribute("href");
+    expect(href, "SMN-E11 the group opens a page").toMatch(/^\/admin\//);
+    await opener.click();
+    await expect(page).toHaveURL(new RegExp(`${href ?? ""}$`));
+    await expect(opener).toHaveAttribute("aria-current", "true");
+  });
+
+  test("SMN-E12 the seller's Manage group opens its panel; the account menu has no group", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+    const user = await leaseUser();
+    await signIn(page, user.email, user.password);
+    await gotoReady(page, "/settings");
+    await openPanel(page, "my-listings");
+    const rail = page.getByTestId("app-rail");
+    const manage = rail.getByTestId("rail-item-ml-manage");
+    await expect(manage).toBeVisible({ timeout: 15000 });
+    await expect(manage).toHaveAttribute("aria-expanded", "false");
+    await expect(rail.getByTestId("rail-item-ml-settings")).toHaveCount(0);
+    await manage.hover();
+    const panel = page.getByTestId("submenu-panel");
+    await expect(panel.getByTestId("rail-item-ml-settings")).toBeVisible();
+    // URL marking (one rule, menu-current.ts): on /settings the item and its group are marked.
+    await expect(panel.getByTestId("rail-item-ml-settings")).toHaveAttribute("aria-current", "page");
+    await expect(manage).toHaveAttribute("aria-current", "true");
+    await page.mouse.move(900, 700);
+    await expect(panel).toHaveCount(0);
+    await openPanel(page, "account");
+    await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible({ timeout: 15000 });
+    await expect(rail.locator("[data-submenu]")).toHaveCount(0);
+  });
 });
