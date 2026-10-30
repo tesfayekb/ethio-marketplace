@@ -116,17 +116,8 @@ const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 const COMPACT_ROW = "flex min-h-8 max-h-10 flex-1 flex-col";
 const COMPACT_HEAD = "h-8 min-h-8 max-h-10 flex-1";
 
-const ITEM_CORE =
-  "flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
-  "ps-[var(--rail-pad)]";
 const ITEM_ICONS = "rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0";
 const ITEM_BASE = `${ITEM_CORE} ${ITEM_ICONS}`;
-/** Hover stays on the SIDEBAR token family — bg-muted is a content-surface
- *  token and read as a foreign grey against bg-sidebar (INC-042). */
-const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
-/** Selection is GREEN, never a cream tint — the one emphasis surface. */
-/** C2h.2 — ONE selected look: the bar's pill tint, in every menu. */
-const ITEM_ACTIVE = "bg-nav-active font-semibold text-primary";
 
 /**
  * C5i PART B.3 — THE STORED ICON IS THE GLYPH.
