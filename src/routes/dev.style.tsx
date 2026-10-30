@@ -171,11 +171,7 @@ function SageGrid() {
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {Object.keys(themes[name].dark).map((token) => (
-                <div
-                  key={token}
-                  data-testid={`style-swatch-${token}-${mode}`}
-                  className="flex flex-col items-center gap-1 text-[11px]"
-                >
+                <div key={token} className="flex flex-col items-center gap-1 text-[11px]">
                   <span
                     className="block h-8 w-12 rounded-md shadow-tile"
                     style={{

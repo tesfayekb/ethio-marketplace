@@ -98,16 +98,17 @@ export const MODED_TOKENS = [
   "lift-track",
   "lift-segment",
   "lift-card",
-  "lift-card-md",
-  "lift-card-lg",
   "lift-badge",
   "lift-bar-up",
   "lift-premium",
   "lift-featured",
 ] as const;
 
-/** Tokens a theme sets once, in its light set (the radii; :root only). */
+/** Tokens a theme sets once, in its light set (the radii, and the wider cards' lift — dark cards keep
+ * one lift at every width; :root only). */
 export const MODE_FREE_TOKENS = [
+  "lift-card-md",
+  "lift-card-lg",
   "radius",
   "card-radius",
   "card-radius-md",
@@ -142,10 +143,9 @@ const moded = Object.fromEntries(MODED_TOKENS.map((name) => [name, grammarOf(nam
   (typeof MODED_TOKENS)[number],
   z.ZodString
 >;
-const modeFree = Object.fromEntries(MODE_FREE_TOKENS.map((name) => [name, length])) as Record<
-  (typeof MODE_FREE_TOKENS)[number],
-  z.ZodString
->;
+const modeFree = Object.fromEntries(
+  MODE_FREE_TOKENS.map((name) => [name, name.startsWith("lift-") ? shadow : length]),
+) as Record<(typeof MODE_FREE_TOKENS)[number], z.ZodString>;
 
 export const ThemeModeSet = z.object(moded).strict();
 export const ThemeLightSet = z.object({ ...moded, ...modeFree }).strict();

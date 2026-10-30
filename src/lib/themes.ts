@@ -230,8 +230,6 @@ const SAGE: ThemeSetValue = {
     "lift-track": "inset 0 2px 4px oklch(0 0 0 / 0.45)",
     "lift-segment": "0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3)",
     "lift-card": "0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35)",
-    "lift-card-md": "0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35)",
-    "lift-card-lg": "0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35)",
     "lift-badge":
       "inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18), 0 3px 8px oklch(0 0 0 / 0.45)",
     "lift-bar-up": "0 -1px 0 oklch(0.339 0.02 159.5), 0 -10px 24px -10px oklch(0 0 0 / 0.5)",

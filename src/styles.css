@@ -484,8 +484,6 @@
   --lift-track: inset 0 2px 4px oklch(0 0 0 / 0.45);
   --lift-segment: 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3);
   --lift-card: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
-  --lift-card-md: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
-  --lift-card-lg: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
   --lift-badge:
     inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
     0 3px 8px oklch(0 0 0 / 0.45);
@@ -495,18 +493,22 @@
 }
 
 /* Sage 3D (turn SAGE-S0) — the sizes that step with the cards a row (3 below 768 px, 4 to
-   1023 px, 5 from 1024 px). Declared after :root and .dark so each mode's -md / -lg value wins. */
+   1023 px, 5 from 1024 px). Dark cards keep one lift at every width (spec §13). */
 @media (min-width: 48rem) {
   :root {
     --card-radius: var(--card-radius-md);
-    --lift-card: var(--lift-card-md);
     --track-radius: var(--track-radius-md);
     --segment-radius: var(--segment-radius-md);
+  }
+  :root:not(.dark) {
+    --lift-card: var(--lift-card-md);
   }
 }
 @media (min-width: 64rem) {
   :root {
     --card-radius: var(--card-radius-lg);
+  }
+  :root:not(.dark) {
     --lift-card: var(--lift-card-lg);
   }
 }
