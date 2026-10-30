@@ -508,6 +508,54 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 /** The first panel opens beside the rail itself. */
 const railEdge = (opener: HTMLElement): Element => opener.closest("aside") ?? opener;
 
+/** D246 — the URL's level: the open category's children, or a leaf's siblings (its parent). */
+function urlLevelOf(tree: CategoryTree, selected: CategoryNode | undefined): string | null {
+  if (!selected) return null;
+  return childrenOf(tree, selected.id).length > 0
+    ? selected.id
+    : (tree.parentOf.get(selected.id) ?? null);
+}
+
+/**
+ * D255 (R1d-c) — the phone strip's back item, at a sub-level only: the open category's icon;
+ * a tap does what the menu's "‹" row does (one level up, no navigation) without opening the
+ * menu. It reads the one level state the menu reads (menu-level.ts).
+ */
+function StripBack() {
+  const { t, entities } = useI18n();
+  const { activePanel, selectedCategorySlug } = useShell();
+  const { tree } = useCategoryTree();
+  const glyphs = useCategoryGlyphs();
+  const stored = useMenuLevel();
+  if (activePanel !== "marketplace") return null;
+  const selected = tree.nodes.find((category) => category.slug === selectedCategorySlug);
+  const levelId = levelFor(stored, selectedCategorySlug, urlLevelOf(tree, selected));
+  const level = levelId ? tree.byId.get(levelId) : undefined;
+  if (!level) return null;
+  const parentId = tree.parentOf.get(level.id) ?? null;
+  const parent = parentId ? tree.byId.get(parentId) : undefined;
+  const Icon =
+    (level.icon ? glyphs.glyphOf(level.icon) : categoryIcon(level.slug)) ?? ChevronLeft;
+  // The menu's "‹" row's own words: where the tap goes (the parent, or the main menu).
+  const name = parent ? entityName("category", parent, entities) : t("shell.mainMenu");
+  return (
+    <button
+      type="button"
+      data-testid="strip-back"
+      aria-label={name}
+      title={name}
+      onClick={(event) => {
+        event.stopPropagation();
+        setMenuLevel({ slug: selectedCategorySlug, id: parentId });
+      }}
+      className={cn(ITEM_CORE, ITEM_IDLE, "min-h-11 shrink-0 justify-center gap-0 ps-0 pe-0")}
+    >
+      <ChevronLeft aria-hidden="true" className="h-3 w-3 shrink-0 rtl:rotate-180" />
+      <Icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+    </button>
+  );
+}
+
 /** Marketplace rail = the LIVE category tree, read from the database (exported for RFT, rail-first-paint.test.tsx). */
 export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const variant = useContext(RailVariantContext);
@@ -525,11 +573,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const favouriteCategory = tree.nodes.find((category) => category.slug === favourite.slug);
   const collapsed = useContext(CollapsedContext);
   const selected = tree.nodes.find((category) => category.slug === selectedCategorySlug);
-  const fromUrl = selected
-    ? childrenOf(tree, selected.id).length > 0
-      ? selected.id
-      : (tree.parentOf.get(selected.id) ?? null)
-    : null;
+  const fromUrl = urlLevelOf(tree, selected);
   // D246 — the phone menu opens at the URL's level (the open category's children, or a
   // leaf's siblings); back rows move up without navigating, and a navigation follows the URL.
   // D255 (R1d-c) — the menu and the strip read ONE level state (menu-level.ts).
@@ -1003,13 +1047,17 @@ export function AppRail() {
       <RailVariantContext.Provider value="strip">
         <div
           data-testid="rail-strip"
-          aria-hidden="true"
           onClick={() => changeMenu(true)}
           className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-[38] flex w-12 flex-col bg-sidebar shadow-side md:hidden"
         >
+          {/* D255 — the one control on the strip; its painted rows stay aria-hidden (D205). */}
+          <StripBack />
+          {/* D255 — a sub-level can hold more rows than the strip's height: it scrolls, its
+              scrollbar shown (D247). */}
           <div
             data-testid="strip-scroll"
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
+            aria-hidden="true"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
           >
             <RailBody onNavigate={() => undefined} />
           </div>
