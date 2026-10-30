@@ -616,7 +616,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       )}
     >
       <ul
-        className={cn("flex flex-col gap-0.5", compact && "flex-1", panels && RAIL_SPREAD)}
+        className={cn("flex flex-col gap-0.5", compact && "flex-1", panels && "rail-spread")}
         data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
       >
         {level ? (
@@ -703,7 +703,12 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         ) : null}
       </ul>
       {panels && overlays ? (
-        <overlays.submenu.SubmenuLayer itemsOf={itemsOf} edgeOf={railEdge} showHeader={collapsed} />
+        <overlays.submenu.SubmenuLayer
+          itemsOf={itemsOf}
+          edgeOf={railEdge}
+          showHeader={collapsed}
+          signals={SUBMENU_SIGNALS}
+        />
       ) : null}
       {error ? (
         <p role="alert" className="px-3 text-sm text-destructive">
