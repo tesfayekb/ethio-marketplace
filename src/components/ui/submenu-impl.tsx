@@ -287,7 +287,7 @@ function Panel({
           depth={depth + 1}
           showHeader={false}
           itemsOf={itemsOf}
-          edgeOf={() => own.current ?? child.opened!.el}
+          edgeOf={() => own.current ?? document.body}
           panelRef={child.panel}
           onEnter={() => {
             child.stay();
