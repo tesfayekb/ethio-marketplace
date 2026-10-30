@@ -22,6 +22,7 @@ import {
 import { adminClient, createUser } from "./helpers/users";
 import {
   leaseSeller,
+  pickCity,
   seedCatchAllLeaf,
   activeCityOf,
   attributesOf,

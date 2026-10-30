@@ -2823,12 +2823,19 @@ export async function pickCity(
     .eq("id", city.id)
     .single();
   if (error || !data?.parent_id)
-    throw new Error(`[e2e:place] the region of ${city.slug} was not read: ${error?.message ?? "none"}`);
-  const awaitOption = async (picker: ReturnType<Page["getByTestId"]>, value: string, what: string) => {
+    throw new Error(
+      `[e2e:place] the region of ${city.slug} was not read: ${error?.message ?? "none"}`,
+    );
+  const awaitOption = async (
+    picker: ReturnType<Page["getByTestId"]>,
+    value: string,
+    what: string,
+  ) => {
     const option = picker.locator(`option[value="${value}"]`);
-    const arrived = await option
-      .waitFor({ state: "attached", timeout: 20_000 })
-      .then(() => true, () => false);
+    const arrived = await option.waitFor({ state: "attached", timeout: 20_000 }).then(
+      () => true,
+      () => false,
+    );
     if (!arrived) {
       const evidence = refusal ? `\n${await refusal()}` : "";
       throw new Error(`[e2e:place] ${what} never reached the picker${evidence}`);
