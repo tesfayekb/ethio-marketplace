@@ -24,6 +24,7 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 const { SubmenuLayer } = await import("./submenu-impl");
+console.log("LINKX", String((await import("@tanstack/react-router")).Link).slice(0, 60));
 
 /**
  * SMN-1…SMN-6 (DEC-288, turn R1b) — the sub-menu mechanism: placement, the safe
