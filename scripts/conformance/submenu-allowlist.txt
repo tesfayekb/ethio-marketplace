@@ -1,2 +1,2 @@
 # CF-SUB-1 (scripts/conformance/submenu.test.ts): "<file> (<in-place sites>)" | reason | until — the count only falls.
-src/components/shell/app-rail.tsx (3) | the strip's painted rows, the admin groups and MenuNav's collapsible still draw sub-items in place; they move to the side panel and the phone split in R1c/R1d (DEC-288) | 2026-11-30
+src/components/shell/app-rail.tsx (3) | phones keep today's menu (D255, 2026-10-30): the strip's painted rows, the phone menu's admin groups and its collapsible draw sub-items in place below 768 px; from 768 px every group opens a side panel (R1d-c), and the three sites stay because each still serves phones | 2026-11-30
