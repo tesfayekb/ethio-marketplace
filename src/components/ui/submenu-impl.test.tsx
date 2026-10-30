@@ -184,7 +184,12 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     fireEvent.pointerEnter(opener, { pointerType: "touch" });
     act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS * 2));
     expect(panels()).toHaveLength(0);
-    opener.dispatchEvent(new PointerEvent("click", { bubbles: true, pointerType: "touch" }));
+    // A tap's click carries its pointer's kind (Chromium dispatches a PointerEvent).
+    const tap = new MouseEvent("click", { bubbles: true, cancelable: true });
+    Object.defineProperty(tap, "pointerType", { value: "touch" });
+    act(() => {
+      opener.dispatchEvent(tap);
+    });
     expect(panels()).toHaveLength(1);
     expect(panels()[0]?.className).toContain("motion-reduce:animate-none");
   });

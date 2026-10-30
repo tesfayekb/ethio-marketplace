@@ -259,7 +259,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const submenuKey = useSyncExternalStore(
     submenuOpen.subscribe,
     submenuOpen.get,
-    submenuOpen.server,
+    () => null,
   );
   const trigger = node.submenu
     ? submenuTriggerProps(node.submenu, submenuKey === node.submenu)
