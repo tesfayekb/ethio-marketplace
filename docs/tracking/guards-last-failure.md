@@ -1,12 +1,169 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41007752198
-- Commit: `b2ba8e8e2157b16835415563e5961fb7f5178f9a`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41011892858
+- Commit: `1c43379bfa34a1c7b0cf15b19ec7d7f1e83a9b19`
 - Attempt: 1
-- Written (UTC): 2026-10-30T05:47:33.546Z
+- Written (UTC): 2026-10-30T06:24:07.849Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
 
-No failed build/guard jobs in this run.
+## Build, typecheck, lint — failure
+
+### Evidence lines
+
+```text
+[36;1m  *) echo "::error::promote-needs self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
+[36;1m  *) echo "::error::actionlint self-test: the bad fixture failed for another reason"; exit 1 ;;[0m
+/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/submenu-touch.spec.ts
+  77:18  error  twin helpers per J5  no-restricted-syntax
+/home/runner/work/ethio-marketplace/ethio-marketplace/e2e/submenu.spec.ts
+  114:19  error  twin helpers per J5  no-restricted-syntax
+✖ 46 problems (2 errors, 44 warnings)
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin-locations/location-form-fields.tsx
+  36:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  49:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/admin/admin-context.tsx
+  32:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/field.tsx
+  108:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  133:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  272:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  281:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  312:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/map/map-preview.tsx
+  44:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/preview/listing-detail.tsx
+  151:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components                                                                                                                                react-refresh/only-export-components
+  336:3   warning  React Hook useEffect contains a call to 'setContactHighlight'. Without a list of dependencies, this can lead to an infinite chain of updates. To fix this, pass [view.contact.focusOnReturn, view.contact.viewer] as a second argument to the useEffect Hook  react-hooks/exhaustive-deps
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/step-pricing.tsx
+  84:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/step-specifications.tsx
+  1941:14  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/features/posting/step-who.tsx
+  127:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/i18n/provider.tsx
+   81:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  791:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+  805:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+/home/runner/work/ethio-marketplace/ethio-marketplace/src/providers/theme-provider.tsx
+  27:17  warning  Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components  react-refresh/only-export-components
+
+✖ 46 problems (2 errors, 44 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
+error: script "lint" exited with code 1
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/31935abc-7622-4d0b-8eb3-f3ed44b58447' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
+
+## E2E (Playwright, ethio-staging) — failure
+
+### Evidence lines
+
+```text
+[36;1m  || echo "::warning::DEC-030 flake-ledger pass failed"[0m
+[36;1mPUBLISH_EVIDENCE_PREPARE='if [ -f "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" ]; then cp "$EVIDENCE_DIR/docs/tracking/flake-ledger.md" docs/tracking/flake-ledger.md && { E2E_FLAKE_ONLY=1 bun scripts/e2e-failure-report.ts || echo "::warning::DEC-030 flake-ledger re-append failed"; }; fi' \[0m
+[36;1m  echo "::error::E2E failure reporter self-test failed (exit ${selftest})"[0m
+Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+##[error]Process completed with exit code 1.
+```
+
+### Tail (last 60 lines)
+
+```text
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
+[36;1mexit 0[0m
+shell: /usr/bin/bash -e {0}
+env:
+  E2E_RESULTS_DIR: shard-results
+  E2E_LOGS_DIR: shard-logs
+  E2E_CONTEXT_DIR: shard-contexts
+  E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
+  E2E_GREEN: 0
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41011892858
+  E2E_HEAD_COMMIT_MESSAGE: Update plan
+
+Plan file updated during planning mode
+
+X-Lovable-Edit-ID: edt-9f0d6c24-0f4e-4eab-a2c7-49b72c07748c
+Co-authored-by: tesfayekb <tesfayekb@me.com>
+##[endgroup]
+  layout OK — per-artifact subdir: 1 context file(s), report rendered.
+  layout OK — merged flat: 1 context file(s), report rendered.
+  layout OK — zero artifacts: 0 context file(s), report rendered.
+  layout OK — missing directory: 0 context file(s), report rendered.
+DEC-078: flaky body rendered after the ledger; ledger line byte-identical; cap flip of 11 rendered 10 bodies + 1 "body omitted: cap".
+DEC-078 part 2: green form carries passed → Flake ledger → Flaky bodies → the flipped first line; a clean green renders non-gating): 0 and no flake section.
+ok — R1a census names the missing log
+ok — R1a a11y never states zero with a gap
+ok — R1b census: all N logs read
+ok — R1b a11y: all N logs read
+Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sums, 15 slowest, coverage gap, both forms), DEC-083 server-error census and DEC-084 a11y line (real local capture: 54 lines counted uncapped, one off-allowlist message named with the tests that finished next (INC-398), quiet line, both forms), DEC-059 post-test band (real shard-6 capture: the [e2e:teardown] fetch-failed line and the trailing Error: block extracted and rendered under 'Post-test errors: shard 6', no test line leaked, no count changed, green form names its warning count), DEC-030 flake ledger (flaky leaves the failure list, is rendered and ledgered; a clean red renders no ledger), DEC-028 verdict split (quarantined excluded, ordinary red still gating), attempt line (INC-100), failures, quoted error-context, missing-context branch, source labels, crash quoting, redaction, all three artifact layouts, describe-nested titlePath matching, the [ssr-error] and [client-error] tag-greps, the containment fallback (switcher slug + its refusal of a foreign directory), the zero-test wipeout case (real empty capture), malformed-results survival, the REPORTER ERROR path, Playwright's exact output-directory name (INC-429: two real captures, two names computed by Playwright 1.58.1) and the flake ledger's one line per test, source and run (INC-495) and the errors outside any test, from the results file and from the log's summary, on both forms (INC-589: a real capture whose two tests passed and whose run exited 1) verified (real captured fixtures).
+Wrote docs/tracking/e2e-last-failure.md (19/19 source(s) with usable results, 9 context file(s) found).
+publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
+##[group]Run echo "lanes=failure"
+[36;1mecho "lanes=failure"[0m
+[36;1mif [ "failure" != "success" ]; then[0m
+[36;1m  echo "::error::E2E failed — see docs/tracking/e2e-last-failure.md"[0m
+[36;1m  exit 1[0m
+[36;1mfi[0m
+[36;1mecho "Every temporary-backend lane passed (the email lane included)."[0m
+shell: /usr/bin/bash -e {0}
+##[endgroup]
+lanes=failure
+##[error]E2E failed — see docs/tracking/e2e-last-failure.md
+##[error]Process completed with exit code 1.
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/81190247-0f0e-41b9-bc3b-dc615e4e2b00' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
