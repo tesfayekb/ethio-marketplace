@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
 import { gotoReady, openRailScope } from "./helpers/ui";
 
 /**
@@ -37,37 +38,66 @@ const scrollOf = (page: Page) =>
       client: el.clientHeight,
     }));
 
-test("ROWS-E3 the rail's list fits at 1280×600 when its rows fit at 32 px; it does not scroll", async ({
-  page,
-}, testInfo) => {
-  test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
-  await page.setViewportSize({ width: 1280, height: 600 });
-  await gotoReady(page, "/");
-  const { region, rows } = await railList(page);
-  const count = await rows.count();
-  const { client } = await scrollOf(page);
-  const many = await region.locator("nav > ul.menu-fit").getAttribute("data-many");
-  if (count > 16) {
-    // A backend whose tree holds more than 16 roots (the local one's scratch rows): the
-    // rule's other branch, full-size rows and a visible scroll, is what this tree shows.
-    expect(many, "ROWS-E3 a list of more than 16 is marked data-many").toBe("");
-    await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
-    expect((await scrollOf(page)).bar, "ROWS-E3 the scrollbar takes width").toBeGreaterThan(0);
-    test.info().annotations.push({ type: "D247", description: `${count} roots: the >16 branch` });
-    return;
-  }
-  expect(many, "ROWS-E3 a list of 16 or fewer is not data-many").toBeNull();
-  // The real tree (15 roots, no favourite) fits at 600 px.
-  expect(count * 32, "ROWS-E3 the tree's rows fit at 32 px in this region").toBeLessThanOrEqual(
-    client,
-  );
-  await expect.poll(async () => (await scrollOf(page)).overflow).toBeLessThanOrEqual(0);
-  for (const height of await rows.evaluateAll((els) =>
-    els.map((el) => el.getBoundingClientRect().height),
-  )) {
-    expect(height, "ROWS-E3 a row is 32–48 px").toBeGreaterThanOrEqual(31.5);
-    expect(height, "ROWS-E3 a row is 32–48 px").toBeLessThanOrEqual(48);
-  }
+test.describe("D247 the rail's list", () => {
+  const SEEDED = 12;
+  let branch: { root: string; kids: string[] } | null = null;
+  test.afterEach(async () => {
+    if (branch) await destroyCategoryBranch([...branch.kids, branch.root]);
+    branch = null;
+  });
+
+  const judge = async (page: Page, label: string) => {
+    const { region, rows } = await railList(page);
+    const count = await rows.count();
+    const many = await region.locator("nav > ul.menu-fit").getAttribute("data-many");
+    if (count > 16) {
+      expect(many, `${label}: a list of more than 16 is marked data-many`).toBe("");
+      await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
+      expect((await scrollOf(page)).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
+      return count;
+    }
+    expect(many, `${label}: a list of 16 or fewer is not data-many`).toBeNull();
+    const { client } = await scrollOf(page);
+    if (count * 32 <= client) {
+      await expect.poll(async () => (await scrollOf(page)).overflow).toBeLessThanOrEqual(0);
+      for (const height of await rows.evaluateAll((els) =>
+        els.map((el) => el.getBoundingClientRect().height),
+      )) {
+        expect(height, `${label}: a row is 32–48 px`).toBeGreaterThanOrEqual(31.5);
+        expect(height, `${label}: a row is 32–48 px`).toBeLessThanOrEqual(48);
+      }
+    }
+    return count;
+  };
+
+  test("ROWS-E3 the rail at 1280×600 follows the 16-item rule; a seeded list of 12 fits without scrolling", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
+    branch = await seedScratchBranch(SEEDED, "rows-e3");
+    await page.setViewportSize({ width: 1280, height: 600 });
+    await gotoReady(page, "/");
+    // The main list, judged for the count this backend holds at run time (G27, G28).
+    await judge(page, "ROWS-E3 the main list");
+    // The 16-or-fewer branch on the test's own list: its side panel's 12 rows fit, no scroll.
+    const { rail } = await railList(page);
+    const opener = rail.getByTestId(`rail-category-${branch.root}`);
+    await opener.scrollIntoViewIfNeeded();
+    await opener.hover();
+    const panel = page.getByTestId("submenu-panel");
+    await expect(panel).toBeVisible();
+    const rows = panel.locator("[data-submenu-row]");
+    await expect(rows).toHaveCount(SEEDED);
+    await expect
+      .poll(() => panel.evaluate((el) => el.scrollHeight - el.clientHeight))
+      .toBeLessThanOrEqual(1);
+    for (const height of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    )) {
+      expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeGreaterThanOrEqual(31.5);
+      expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeLessThanOrEqual(48);
+    }
+  });
 });
 
 test("ROWS-E4 with the favourite the rail is too short even at 32 px: it scrolls with a visible scrollbar", async ({

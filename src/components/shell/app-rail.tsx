@@ -536,12 +536,22 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       ? selected.id
       : (tree.parentOf.get(selected.id) ?? null)
     : null;
-  // Each phone opening starts over the strip's main rows. After navigation the
-  // same mounted menu follows the whole URL tree, including third-level leaves.
+  // D246 — every phone opening starts at the URL's level (the open category's children, or a
+  // leaf's siblings); back rows move up without navigating, and a navigation follows the URL.
   const [localLevel, setLocalLevel] = useState<{
     slug: string | null;
     id: string | null | undefined;
-  }>(() => ({ slug: selectedCategorySlug, id: variant === "menu" ? null : undefined }));
+  }>(() => ({ slug: selectedCategorySlug, id: undefined }));
+  // D246 — the current row is in view once per opening (no smooth scroll).
+  const navRef = useRef<HTMLElement>(null);
+  const currentInView = useRef(false);
+  useEffect(() => {
+    if (variant !== "menu" || currentInView.current || treeLoading) return;
+    const current = navRef.current?.querySelector('[aria-current="page"]');
+    if (!current) return;
+    currentInView.current = true;
+    current.scrollIntoView({ block: "nearest" });
+  });
   if (localLevel.slug !== selectedCategorySlug) {
     setLocalLevel({ slug: selectedCategorySlug, id: undefined });
   }
@@ -600,6 +610,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
 
   return (
     <nav
+      ref={navRef}
       aria-label={t("shell.categoriesLabel")}
       className={cn(compact && "flex min-h-full flex-col", panels && "rail-spread-nav")}
     >

@@ -14,7 +14,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *    is the phone menu's alone);
  *  - a hover intent or side panel built outside the mechanism (its timings by name);
  *  - D244 (INC-1008; R1c): a panel that is never placed again on a resize, or a deeper
- *    level whose floor is 0 (under the top bar) instead of its parent's.
+ *    level whose floor is 0 (under the top bar) instead of its parent's;
+ *  - D246 (R1c): the phone menu seeding its opening level with a literal null or
+ *    undefined for the "menu" variant instead of the URL's level.
  */
 type Finding = { file: string; line: number; what: string };
 
@@ -28,6 +30,7 @@ const OWN_INTENT = /SUBMENU_(?:OPEN|CLOSE)_MS|inSafeTriangle|placePanel/;
 const RAIL = "src/components/shell/app-rail.tsx";
 const LEVEL_GATE = /const level = variant === "menu" && levelId/;
 const IMPL = "src/components/ui/submenu-impl.tsx";
+const MENU_STARTS_OVER = /variant === "menu" \?\s*(?:null|undefined)\b/;
 const RESIZE = /addEventListener\("resize"/;
 const FLOOR_ZERO = /depth === 0 \?[^:\n]+:\s*0\b/;
 
@@ -65,6 +68,12 @@ export function submenuFindings(files: { name: string; text: string }[]): {
         file: RAIL,
         line: 1,
         what: "the marketplace tree drills in place on the persistent rail (DEC-288)",
+      });
+    if (file.name === RAIL && MENU_STARTS_OVER.test(code))
+      findings.push({
+        file: RAIL,
+        line: 1,
+        what: "the phone menu opens at a fixed level, not the URL's (D246)",
       });
   }
   return { counts, findings };
@@ -125,6 +134,18 @@ describe("CF-SUB-1 sub-items open in a side panel", () => {
     expect(findings.map((f) => f.what)).toEqual([
       "a panel is never placed again when the window is resized (D244)",
       "a deeper panel's floor is 0, under the top bar (D244)",
+    ]);
+  });
+
+  it("self-test (D246): a phone menu that starts over at the main list is refused", () => {
+    const { findings } = submenuFindings([
+      {
+        name: RAIL,
+        text: 'const level = variant === "menu" && levelId;\nuseState(() => ({ slug, id: variant === "menu" ? null : undefined }));',
+      },
+    ]);
+    expect(findings.map((f) => f.what)).toEqual([
+      "the phone menu opens at a fixed level, not the URL's (D246)",
     ]);
   });
 });

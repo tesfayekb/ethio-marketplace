@@ -9,8 +9,12 @@ export type Point = { x: number; y: number };
 /** The hover intent's timings (D98): open after 150 ms at rest, close 300 ms after leaving. */
 export const SUBMENU_OPEN_MS = 150;
 export const SUBMENU_CLOSE_MS = 300;
-/** The panel's own inset above its first row: the row, not the panel, is level with the trigger. */
-export const PANEL_INSET = 4;
+/** The panel's own inset above its first row (its 1 px border, D245): the row, not the panel, is level with the trigger. */
+export const PANEL_INSET = 1;
+/** D245 — the panel sits flush, its 1 px border overlapping the rail's (or parent panel's) edge. */
+export const PANEL_OVERLAP = 1;
+/** D245 — the panel fades in and out over 300 ms; a closing panel stays mounted this long. */
+export const PANEL_FADE_MS = 300;
 const MARGIN = 8;
 
 export type Placement = { left: number; top: number; maxHeight: number; flipped: boolean };
@@ -29,8 +33,8 @@ export function placePanel(input: {
   minTop: number;
 }): Placement {
   const { anchor, edge, size, viewport, rtl, minTop } = input;
-  const atEnd = rtl ? edge.left - size.width : edge.right;
-  const atStart = rtl ? edge.right : edge.left - size.width;
+  const atEnd = rtl ? edge.left - size.width + PANEL_OVERLAP : edge.right - PANEL_OVERLAP;
+  const atStart = rtl ? edge.right - PANEL_OVERLAP : edge.left - size.width + PANEL_OVERLAP;
   const fitsEnd = rtl ? atEnd >= MARGIN : atEnd + size.width <= viewport.width - MARGIN;
   const fitsStart = rtl ? atStart + size.width <= viewport.width - MARGIN : atStart >= MARGIN;
   const flipped = !fitsEnd && fitsStart;

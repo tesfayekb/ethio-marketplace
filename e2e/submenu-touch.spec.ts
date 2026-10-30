@@ -1,5 +1,6 @@
 import { expect, test } from "./fixtures";
 import { catalogueRows } from "./helpers/category-menu";
+import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
 import { gotoReady, openRailScope } from "./helpers/ui";
 
 /**
@@ -15,7 +16,9 @@ test.use({
       : {}),
     // Headless Chromium claims a fine pointer with hover (chromium.js, the blink-settings
     // line); this context claims a touch screen's coarse pointer without hover.
+    // ROWS-E1 measures the scrollbar, so `--hide-scrollbars` is dropped too (as OVS does).
     ignoreDefaultArgs: [
+      "--hide-scrollbars",
       "--blink-settings=primaryHoverType=2,availableHoverTypes=2,primaryPointerType=4,availablePointerTypes=4",
     ],
     args: [
@@ -64,40 +67,90 @@ test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, 
  * main list and a subcategory list of the real tree fit with no scroll (16 items or
  * fewer), every row at least 32 px. Measured before the rule: 688 px of rows in 528.
  */
-test("ROWS-E1 a touch phone's menu lists fit at 360×640 without scrolling", async ({
+test.describe("D247 a touch phone's lists", () => {
+  const SEEDED = 12;
+  let branch: { root: string; kids: string[] } | null = null;
+  test.afterEach(async () => {
+    if (branch) await destroyCategoryBranch([...branch.kids, branch.root]);
+    branch = null;
+  });
+
+  test("ROWS-E1 a touch phone's menu lists follow the 16-item rule at 360×640", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
+    branch = await seedScratchBranch(SEEDED, "rows-e1");
+    await page.setViewportSize({ width: 360, height: 640 });
+    await gotoReady(page, "/");
+    expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
+    const menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    const region = menu.getByTestId("rail-scroll");
+    const list = region.locator("nav > ul.menu-fit");
+    const rows = list.locator(":scope > li:not([aria-hidden])");
+    const scroll = () =>
+      region.evaluate((el) => ({
+        overflow: el.scrollHeight - el.clientHeight,
+        bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+      }));
+    // The rule for the count this backend holds at run time (G27, G28: lanes add roots).
+    const judge = async (label: string, expected?: number) => {
+      if (expected !== undefined) await expect(rows).toHaveCount(expected);
+      const count = await rows.count();
+      if (count > 16) {
+        expect(await list.getAttribute("data-many"), `${label}: data-many`).toBe("");
+        await expect.poll(async () => (await scroll()).overflow).toBeGreaterThan(0);
+        expect((await scroll()).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
+        return count;
+      }
+      expect(await list.getAttribute("data-many"), `${label}: not data-many`).toBeNull();
+      await expect
+        .poll(async () => (await scroll()).overflow, { message: `${label}: the list scrolls` })
+        .toBeLessThanOrEqual(0);
+      for (const height of await rows.evaluateAll((els) =>
+        els.map((el) => el.getBoundingClientRect().height),
+      ))
+        expect(height, `${label}: a row is at least 32 px`).toBeGreaterThanOrEqual(31.5);
+      return count;
+    };
+    await judge("ROWS-E1 the main list");
+    // The 16-or-fewer branch on a list this test seeded itself: the back row and the opened
+    // root's row head its 12 subcategories, 14 rows.
+    await menu.getByTestId(`rail-category-${branch.root}`).tap();
+    await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
+    expect(await judge("ROWS-E1 the seeded list", SEEDED + 2)).toBe(SEEDED + 2);
+  });
+});
+
+/**
+ * SMN-E6 (DEC-288 item 5; Foundations turn R1c) — the folded rail (64 px) on a touch screen
+ * at 1024: a tap on a folded icon opens its page and its side panel, headed by its name on
+ * the panel's own surface (D245).
+ */
+test("SMN-E6 a tap on the folded rail opens the page and the panel headed by its name", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
-  await page.setViewportSize({ width: 360, height: 640 });
   await gotoReady(page, "/");
-  expect(await page.evaluate(() => matchMedia("(pointer: coarse)").matches)).toBe(true);
-  const menu = await openRailScope(page);
-  await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
-  const check = async (label: string) => {
-    const list = menu.locator("nav > ul.menu-fit").first();
-    const count = await list.locator(":scope > li:not([aria-hidden])").count();
-    if (count > 16) {
-      // The local backend's tree holds scratch roots: the >16 branch, marked and scrolling.
-      expect(await list.getAttribute("data-many"), `${label}: data-many`).toBe("");
-      return;
-    }
-    expect(await list.getAttribute("data-many"), `${label}: not data-many`).toBeNull();
-    const region = menu.getByTestId("rail-scroll");
-    await expect
-      .poll(() => region.evaluate((el) => el.scrollHeight - el.clientHeight), {
-        message: `${label}: the list scrolls`,
-      })
-      .toBeLessThanOrEqual(0);
-    const heights = await list
-      .locator(":scope > li:not([aria-hidden])")
-      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
-    for (const height of heights)
-      expect(height, `${label}: a row is at least 32 px`).toBeGreaterThanOrEqual(31.5);
-  };
-  await check("ROWS-E1 the main list");
-  // The subcategory list is the real 16-or-fewer branch on every backend.
-  await menu.getByTestId("rail-category-electronics").tap();
+  const rail = await openRailScope(page);
+  await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+  const html = page.locator("html");
+  await page.getByTestId("shell-logo-cell").getByTestId("rail-collapse-toggle").tap();
+  await expect(html).toHaveAttribute("data-rail", "collapsed");
+  const electronics = rail.getByTestId("rail-category-electronics");
+  const name = await electronics.getAttribute("aria-label");
+  if (name === null) throw new Error("SMN-E6 the folded Electronics row has no aria-label");
+  await electronics.tap();
   await expect(page).toHaveURL(/\/c\/electronics$/);
-  await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
-  await check("ROWS-E1 a subcategory list");
+  const panel = page.getByTestId("submenu-panel");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByTestId("submenu-header")).toContainText(name);
+  const surface = await panel.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { radius: style.borderTopLeftRadius, border: style.borderTopWidth };
+  });
+  expect(surface, "SMN-E6 the folded header's panel takes D245's surface").toEqual({
+    radius: "0px",
+    border: "1px",
+  });
 });

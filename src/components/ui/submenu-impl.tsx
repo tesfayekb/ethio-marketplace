@@ -14,6 +14,7 @@ import type { SubmenuSignal } from "@/components/shell/submenu/submenu-signal";
 import { cn } from "@/lib/utils";
 
 import {
+  PANEL_FADE_MS,
   SUBMENU_CLOSE_MS,
   SUBMENU_OPEN_MS,
   inSafeTriangle,
@@ -139,11 +140,33 @@ function useIntent(onChange?: (key: string | null) => void) {
   return { opened, enter, leave, stay, now, panel };
 }
 
+/**
+ * D245 (R1c) — the panel that just closed stays mounted PANEL_FADE_MS, fading out,
+ * non-interactive and aria-hidden; under prefers-reduced-motion it goes at once.
+ */
+function useClosing<T extends { key: string }>(opened: T | null): T | null {
+  const [closing, setClosing] = useState<T | null>(null);
+  const previous = useRef<T | null>(opened);
+  useEffect(() => {
+    const was = previous.current;
+    previous.current = opened;
+    if (!was || was.key === opened?.key) return;
+    const still =
+      typeof window.matchMedia !== "function" ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (still) return;
+    setClosing(was);
+    window.setTimeout(() => setClosing((now) => (now === was ? null : now)), PANEL_FADE_MS);
+  }, [opened]);
+  return closing && closing.key !== opened?.key ? closing : null;
+}
+
 /** D247 — the row's height comes from the list (src/styles.css `.menu-fit`), never the row. */
 const ROW =
-  "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-start text-sm " +
+  "flex w-full items-center gap-2 rounded-none border-b border-border px-3 py-1.5 text-start text-sm " +
   "break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-const IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
+// D245 — the old site's hover tint (#e9ecef) as a token, with no hover transition.
+const IDLE = "text-popover-foreground hover:bg-muted";
 const ACTIVE = "bg-nav-active font-semibold text-primary";
 
 function Panel({
@@ -157,6 +180,7 @@ function Panel({
   floor,
   tick,
   fitMax,
+  closing,
   onEnter,
   onLeave,
   onClose,
@@ -174,6 +198,8 @@ function Panel({
   tick: number;
   /** D247 — more items than this and the list keeps full-size rows and scrolls. */
   fitMax: number;
+  /** D245 — fading out: non-interactive and aria-hidden. */
+  closing: boolean;
   onEnter: () => void;
   onLeave: (at: Point) => void;
   onClose: (focusOpener: boolean) => void;
@@ -183,7 +209,9 @@ function Panel({
   const [ownFloor, setFloor] = useState(0);
   const [place, setPlace] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
   const child = useIntent();
-  const childLevel = child.opened ? itemsOf(child.opened.key) : null;
+  const childClosing = useClosing(child.opened);
+  /** A fading panel's element is never the live panel the safe triangle aims at. */
+  const stray = useRef<HTMLElement | null>(null);
 
   // The first panel listens; its children follow through `tick`.
   const [ownTick, setOwnTick] = useState(0);
@@ -274,28 +302,41 @@ function Panel({
         id={`submenu-${opener.key}`}
         role="region"
         aria-label={level.header}
-        data-testid="submenu-panel"
+        data-testid={closing ? "submenu-panel-closing" : "submenu-panel"}
+        data-state={closing ? "closed" : "open"}
+        aria-hidden={closing ? true : undefined}
+        inert={closing ? true : undefined}
         data-level={depth + 2}
         onPointerEnter={onEnter}
         onPointerLeave={(event) => onLeave({ x: event.clientX, y: event.clientY })}
         onKeyDown={keyDown}
         style={
           place
-            ? { left: place.left, top: place.top, maxHeight: place.maxHeight }
+            ? {
+                left: place.left,
+                top: place.top,
+                maxHeight: place.maxHeight,
+                opacity: closing ? 0 : 1,
+              }
             : { left: 0, top: 0, opacity: 0 }
         }
-        className="fixed z-30 flex w-64 flex-col overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 motion-reduce:animate-none"
+        // D245 — ethio.com's surface and its 300 ms opacity fade, in and out, at every level.
+        className={cn(
+          "fixed z-30 flex w-64 flex-col overflow-y-auto overscroll-contain rounded-none border border-border bg-popover text-popover-foreground shadow-none",
+          "transition-opacity duration-300 ease-[ease] motion-reduce:transition-none",
+          closing && "pointer-events-none",
+        )}
       >
         {showHeader ? (
           <p
             data-testid="submenu-header"
-            className="flex min-h-9 shrink-0 items-center px-3 text-sm font-semibold"
+            className="flex min-h-9 shrink-0 items-center border-b border-border px-3 text-sm font-semibold"
           >
             {level.header}
           </p>
         ) : null}
         <ul
-          className="menu-fit menu-natural min-h-0 flex-1"
+          className="menu-fit menu-natural min-h-0 flex-1 [&>li:last-child>a]:border-b-0"
           data-many={level.items.length > fitMax ? "" : undefined}
         >
           {level.items.map((item) => {
@@ -335,35 +376,41 @@ function Panel({
           })}
         </ul>
       </div>
-      {child.opened && childLevel ? (
-        <Panel
-          key={child.opened.key}
-          opener={child.opened}
-          level={childLevel}
-          depth={depth + 1}
-          floor={ownFloor}
-          tick={childTick}
-          fitMax={fitMax}
-          showHeader={false}
-          itemsOf={itemsOf}
-          edgeOf={() => own.current ?? document.body}
-          panelRef={child.panel}
-          onEnter={() => {
-            child.stay();
-            onEnter();
-          }}
-          onLeave={(at) => {
-            child.leave(at);
-            onLeave(at);
-          }}
-          onClose={(focus) => {
-            const el = child.opened?.el;
-            child.now(null);
-            if (focus) el?.focus();
-            else onClose(false);
-          }}
-        />
-      ) : null}
+      {[childClosing, child.opened].map((shown) => {
+        const shownLevel = shown ? itemsOf(shown.key) : null;
+        if (!shown || !shownLevel) return null;
+        const fading = closing || shown === childClosing;
+        return (
+          <Panel
+            key={shown.key}
+            opener={shown}
+            level={shownLevel}
+            depth={depth + 1}
+            floor={ownFloor}
+            tick={childTick}
+            fitMax={fitMax}
+            closing={fading}
+            showHeader={false}
+            itemsOf={itemsOf}
+            edgeOf={() => own.current ?? document.body}
+            panelRef={fading ? stray : child.panel}
+            onEnter={() => {
+              child.stay();
+              onEnter();
+            }}
+            onLeave={(at) => {
+              child.leave(at);
+              onLeave(at);
+            }}
+            onClose={(focus) => {
+              const el = child.opened?.el;
+              child.now(null);
+              if (focus) el?.focus();
+              else onClose(false);
+            }}
+          />
+        );
+      })}
     </>,
     document.body,
   );
@@ -450,27 +497,37 @@ export function SubmenuLayer({
     };
   }, [opened]);
 
-  const level = opened ? itemsOf(opened.key) : null;
-  if (!opened || !level) return null;
+  const closing = useClosing(opened);
+  const stray = useRef<HTMLElement | null>(null);
   return (
-    <Panel
-      key={opened.key}
-      opener={opened}
-      level={level}
-      depth={0}
-      floor={0}
-      tick={0}
-      fitMax={signals.fitMax}
-      showHeader={showHeader}
-      itemsOf={itemsOf}
-      edgeOf={edgeOf}
-      panelRef={intent.panel}
-      onEnter={intent.stay}
-      onLeave={(at) => intent.leave(at)}
-      onClose={(focus) => {
-        intent.now(null);
-        if (focus) opened.el.focus();
-      }}
-    />
+    <>
+      {[closing, opened].map((shown) => {
+        const level = shown ? itemsOf(shown.key) : null;
+        if (!shown || !level) return null;
+        const fading = shown === closing;
+        return (
+          <Panel
+            key={shown.key}
+            opener={shown}
+            level={level}
+            depth={0}
+            floor={0}
+            tick={0}
+            fitMax={signals.fitMax}
+            closing={fading}
+            showHeader={showHeader}
+            itemsOf={itemsOf}
+            edgeOf={edgeOf}
+            panelRef={fading ? stray : intent.panel}
+            onEnter={intent.stay}
+            onLeave={(at) => intent.leave(at)}
+            onClose={(focus) => {
+              intent.now(null);
+              if (focus) shown.el.focus();
+            }}
+          />
+        );
+      })}
+    </>
   );
 }
