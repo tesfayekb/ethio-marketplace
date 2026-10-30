@@ -184,6 +184,23 @@ function Panel({
   const child = useIntent();
   const childLevel = child.opened ? itemsOf(child.opened.key) : null;
 
+  // The first panel listens; its children follow through `tick`.
+  const [ownTick, setOwnTick] = useState(0);
+  useEffect(() => {
+    if (depth !== 0) return;
+    let frame = 0;
+    const resized = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setOwnTick((value) => value + 1));
+    };
+    window.addEventListener("resize", resized);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resized);
+    };
+  }, [depth]);
+  const childTick = depth === 0 ? ownTick : tick;
+
   // D244 (INC-1008) — placed when it opens, and again on every window resize (`tick`, from
   // the first panel's one listener, so a child follows its parent's new place). Rects are
   // read on these events only (I3: nothing observed). The natural height is read with the
@@ -207,24 +224,9 @@ function Panel({
     });
     setFloor(top);
     setPlace({ left: placed.left, top: placed.top, maxHeight: placed.maxHeight });
-  }, [opener, depth, edgeOf, floor, tick]);
+  }, [opener, depth, edgeOf, floor, childTick]);
 
-  // The first panel listens; its children follow through `tick`.
-  const [ownTick, setOwnTick] = useState(0);
-  useEffect(() => {
-    if (depth !== 0) return;
-    let frame = 0;
-    const resized = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => setOwnTick((value) => value + 1));
-    };
-    window.addEventListener("resize", resized);
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", resized);
-    };
-  }, [depth]);
-  const childTick = depth === 0 ? ownTick : tick;
+
 
   useEffect(() => {
     if (!place || !opener.focus) return;
