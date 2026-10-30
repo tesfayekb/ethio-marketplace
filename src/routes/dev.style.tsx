@@ -139,7 +139,7 @@ function SageGrid() {
       reportOnDemandFailure("the theme data", error);
     });
   }, [themes]);
-  if (!themes) return <div data-testid="style-sage-grid" className="mt-4" aria-busy="true" />;
+  if (!themes) return null;
   const names = Object.keys(themes) as ThemeName[];
   return (
     <div data-testid="style-sage-grid" className="mt-4 flex flex-col gap-4">
@@ -170,18 +170,17 @@ function SageGrid() {
               ))}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {Object.keys(themes[name].dark).map((token) => (
-                <div key={token} className="flex flex-col items-center gap-1 text-[11px]">
-                  <span
-                    className="block h-8 w-12 rounded-md shadow-tile"
-                    style={{
-                      background: `var(--${token.startsWith("lift-") ? "card" : token})`,
-                      boxShadow: token.startsWith("lift-") ? `var(--${token})` : undefined,
-                    }}
-                  />
-                  {token}
-                </div>
-              ))}
+              {Object.keys(themes[name].dark)
+                .filter((token) => !token.startsWith("lift-"))
+                .map((token) => (
+                  <div key={token} className="flex flex-col items-center gap-1 text-[11px]">
+                    <span
+                      className="block h-8 w-12 rounded-md shadow-tile"
+                      style={{ background: `var(--${token})` }}
+                    />
+                    {token}
+                  </div>
+                ))}
             </div>
           </div>
         )),
