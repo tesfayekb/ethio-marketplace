@@ -808,34 +808,95 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
    * names a section carries its `hash`, and a routed item is current only when
    * the path AND the hash match exactly — so exactly one item is ever current.
    */
-  const isCurrent = (item: NavItem): boolean => {
-    if (item.path === undefined) return false;
-    const anchored = PANELS[activePanel].items.some(
-      (other) => other.path === item.path && other.hash !== undefined,
+  const at = { pathname, hash };
+  const isCurrent = (item: NavItem): boolean =>
+    isCurrentAt(
+      item,
+      at,
+      PANELS[activePanel].items.some(
+        (other) => other.path === item.path && other.hash !== undefined,
+      ),
     );
-    if (anchored) return pathname === item.path && hash === (item.hash ?? "");
-    return pathname === item.path || pathname.startsWith(`${item.path}/`);
+  const holdsCurrent = (item: NavItem): boolean =>
+    isCurrent(item) || (item.children ?? []).some(holdsCurrent);
+  // D240 (R1d-b Part 4, R1d-c) — from 768 px a group opens its items in a side panel on the
+  // sub-menu mechanism (D248, D254), never in place; phones keep today's menu (D255).
+  const panels = variant === "rail";
+  const overlays = useOverlays();
+  const opensPanel = (item: NavItem) => panels && (item.children?.length ?? 0) > 0;
+  /** A group's click opens its own page, or its first permitted item's. */
+  const pageOf = (item: NavItem): NavItem | undefined =>
+    item.path !== undefined
+      ? item
+      : (item.children ?? []).map(pageOf).find((page) => page !== undefined);
+
+  const toNode = (item: NavItem): RailNode => {
+    const alert =
+      item.alert && alerts.has(item.alert)
+        ? {
+            alert: true,
+            accessibleLabel: `${t(item.labelKey)} — ${t(NAV_ALERT_LABELS[item.alert])}`,
+          }
+        : {};
+    if (opensPanel(item)) {
+      const page = pageOf(item);
+      return {
+        key: item.id,
+        testid: item.testid ?? `rail-item-${item.id}`,
+        label: t(item.labelKey),
+        ...alert,
+        icon: item.icon,
+        path: page?.path,
+        hash: page?.hash,
+        active: item.path ? isCurrent(item) : undefined,
+        ancestorActive: !(item.path && isCurrent(item)) && holdsCurrent(item),
+        categoryBranch: true,
+        submenu: item.id,
+        onSelect: page ? onNavigate : undefined,
+      };
+    }
+    return {
+      key: item.id,
+      testid: item.testid ?? `rail-item-${item.id}`,
+      label: t(item.labelKey),
+      ...alert,
+      icon: item.icon,
+      path: item.path,
+      hash: item.hash,
+      active: item.path ? isCurrent(item) : undefined,
+      onSelect: item.path ? onNavigate : undefined,
+      children: item.children?.map(toNode),
+      defaultOpen: item.defaultOpen,
+      group: item.group,
+    };
   };
 
-  const toNode = (item: NavItem): RailNode => ({
-    key: item.id,
-    testid: item.testid ?? `rail-item-${item.id}`,
-    label: t(item.labelKey),
-    ...(item.alert && alerts.has(item.alert)
-      ? {
-          alert: true,
-          accessibleLabel: `${t(item.labelKey)} — ${t(NAV_ALERT_LABELS[item.alert])}`,
-        }
-      : {}),
-    icon: item.icon,
-    path: item.path,
-    hash: item.hash,
-    active: item.path ? isCurrent(item) : undefined,
-    onSelect: item.path ? onNavigate : undefined,
-    children: item.children?.map(toNode),
-    defaultOpen: item.defaultOpen,
-    group: item.group,
-  });
+  // DEC-288 — a panel's rows are the items MenuNav already reads (no copy, K1).
+  const byId = new Map<string, NavItem>();
+  const index = (list: NavItem[]) => {
+    for (const item of list) {
+      byId.set(item.id, item);
+      if (item.children) index(item.children);
+    }
+  };
+  index(items);
+  const itemsOf = (id: string) => {
+    const opened = byId.get(id);
+    if (!opened?.children?.length) return null;
+    return {
+      header: t(opened.labelKey),
+      items: opened.children.map((child) => ({
+        key: child.id,
+        label: t(child.labelKey),
+        testid: child.testid ?? `rail-item-${child.id}`,
+        icon: child.icon,
+        to: pageOf(child)?.path ?? "/",
+        active: isCurrent(child),
+        ancestorActive: !isCurrent(child) && holdsCurrent(child),
+        hasChildren: opensPanel(child),
+      })),
+    };
+  };
 
   const sections: { key: MessageKey | null; items: NavItem[] }[] = [];
   for (const item of items) {
@@ -876,6 +937,14 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
           </ul>
         </div>
       ))}
+      {panels && overlays ? (
+        <overlays.submenu.SubmenuLayer
+          itemsOf={itemsOf}
+          edgeOf={railEdge}
+          showHeader={collapsed}
+          signals={SUBMENU_SIGNALS}
+        />
+      ) : null}
     </nav>
   );
 }
