@@ -43,6 +43,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { ITEM_ACTIVE, ITEM_CORE, ITEM_IDLE } from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
@@ -116,17 +117,8 @@ const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 const COMPACT_ROW = "flex min-h-8 max-h-10 flex-1 flex-col";
 const COMPACT_HEAD = "h-8 min-h-8 max-h-10 flex-1";
 
-const ITEM_CORE =
-  "flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
-  "ps-[var(--rail-pad)]";
 const ITEM_ICONS = "rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0";
 const ITEM_BASE = `${ITEM_CORE} ${ITEM_ICONS}`;
-/** Hover stays on the SIDEBAR token family — bg-muted is a content-surface
- *  token and read as a foreign grey against bg-sidebar (INC-042). */
-const ITEM_IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
-/** Selection is GREEN, never a cream tint — the one emphasis surface. */
-/** C2h.2 — ONE selected look: the bar's pill tint, in every menu. */
-const ITEM_ACTIVE = "bg-nav-active font-semibold text-primary";
 
 /**
  * C5i PART B.3 — THE STORED ICON IS THE GLYPH.
@@ -599,6 +591,10 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         key: category.id,
         label: entityName("category", category, entities),
         testid: `rail-category-${category.slug}`,
+        // D248 — each row shows its category's own glyph, as the rail's rows do.
+        icon: category.icon
+          ? (glyphs.glyphOf(category.icon) ?? undefined)
+          : categoryIcon(category.slug),
         to: "/c/$slug",
         params: { slug: category.slug },
         active: category.slug === selectedCategorySlug,
@@ -981,6 +977,7 @@ export function AppRail() {
               the panel band above stay fixed; RailFoot below stays pinned. */}
           <div
             data-testid="rail-scroll"
+            data-menu-region=""
             className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
           >
             <RailBody onNavigate={() => undefined} />
@@ -1067,6 +1064,7 @@ export function AppRail() {
             <div className="min-h-0 flex-1">
               <div
                 data-testid="rail-scroll"
+                data-menu-region=""
                 className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
               >
                 <RailBody onNavigate={() => setNavOpen(false)} />

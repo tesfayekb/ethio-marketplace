@@ -50,13 +50,10 @@ test.describe("D247 the rail's list", () => {
     const { region, rows } = await railList(page);
     const count = await rows.count();
     const many = await region.locator("nav > ul.menu-fit").getAttribute("data-many");
-    if (count > 16) {
-      expect(many, `${label}: a list of more than 16 is marked data-many`).toBe("");
-      await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
-      expect((await scrollOf(page)).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
-      return count;
-    }
-    expect(many, `${label}: a list of 16 or fewer is not data-many`).toBeNull();
+    // G38 — D248 replaces the ">16 keeps full-size rows" branch from 768 px: there is no
+    // item limit; a list fits while its rows stay at 32 px or more, and only then scrolls.
+    // `data-many` still marks the count (the phone's rule) and changes nothing here.
+    expect(many, `${label}: data-many marks more than 16`).toBe(count > 16 ? "" : null);
     const { client } = await scrollOf(page);
     if (count * 32 <= client) {
       await expect.poll(async () => (await scrollOf(page)).overflow).toBeLessThanOrEqual(0);
@@ -68,7 +65,12 @@ test.describe("D247 the rail's list", () => {
       }
       return count;
     }
-    // INC-1011: 16 or fewer, too tall even at 32 px — the region scrolls, its bar takes width.
+    // INC-1011, D248: too tall even at 32 px (any count) — rows at the floor, the region
+    // scrolls, its bar takes width.
+    for (const height of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    ))
+      expect(height, `${label}: a row keeps the 32 px floor`).toBeGreaterThanOrEqual(31.5);
     await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
     expect((await scrollOf(page)).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
     return count;
@@ -83,7 +85,9 @@ test.describe("D247 the rail's list", () => {
     await gotoReady(page, "/");
     // The main list, judged for the count this backend holds at run time (G27, G28).
     await judge(page, "ROWS-E3 the main list");
-    // The 16-or-fewer branch on the test's own list: its side panel's 12 rows fit, no scroll.
+    // The test's own list: its side panel's 12 rows. G38 — D248 bounds a panel by the rail's
+    // height (was the window's): it fits when 12 rows of at least 32 px fit the rail, and
+    // otherwise its rows hold the 32 px floor and it scrolls with a visible scrollbar.
     const { rail } = await railList(page);
     const opener = rail.getByTestId(`rail-category-${branch.root}`);
     await opener.scrollIntoViewIfNeeded();
@@ -92,14 +96,25 @@ test.describe("D247 the rail's list", () => {
     await expect(panel).toBeVisible();
     const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(SEEDED);
-    await expect
-      .poll(() => panel.evaluate((el) => el.scrollHeight - el.clientHeight))
-      .toBeLessThanOrEqual(1);
-    for (const height of await rows.evaluateAll((els) =>
+    const { client: railRoom } = await scrollOf(page);
+    const heights = await rows.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().height),
-    )) {
+    );
+    for (const height of heights) {
       expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeGreaterThanOrEqual(31.5);
       expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeLessThanOrEqual(48);
+    }
+    const state = await panel.evaluate((el) => ({
+      overflow: el.scrollHeight - el.clientHeight,
+      bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+    }));
+    if (SEEDED * 32 <= railRoom + 1) {
+      expect(state.overflow, "ROWS-E3 the seeded panel fits").toBeLessThanOrEqual(1);
+    } else {
+      for (const height of heights)
+        expect(Math.abs(height - 32), "ROWS-E3 at the floor").toBeLessThanOrEqual(0.5);
+      expect(state.overflow, "ROWS-E3 the seeded panel scrolls").toBeGreaterThan(0);
+      expect(state.bar, "ROWS-E3 its scrollbar takes width").toBeGreaterThan(0);
     }
   });
 });

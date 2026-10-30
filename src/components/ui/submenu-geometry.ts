@@ -9,10 +9,12 @@ export type Point = { x: number; y: number };
 /** The hover intent's timings (D98): open after 150 ms at rest, close 300 ms after leaving. */
 export const SUBMENU_OPEN_MS = 150;
 export const SUBMENU_CLOSE_MS = 300;
-/** The panel's own inset above its first row (its 1 px border, D245): the row, not the panel, is level with the trigger. */
-export const PANEL_INSET = 1;
-/** D245 — the panel sits flush, its 1 px border overlapping the rail's (or parent panel's) edge. */
-export const PANEL_OVERLAP = 1;
+/** D248 — the panel has no border (D245's surface withdrawn): its first row is its top. */
+export const PANEL_INSET = 0;
+/** D248 — the panel sits flush against the rail's (or parent panel's) edge. */
+export const PANEL_OVERLAP = 0;
+/** D247/D248 — a menu row's floor; below it a list scrolls. */
+export const ROW_FLOOR = 32;
 /** D245 — the panel fades in and out over 300 ms; a closing panel stays mounted this long. */
 export const PANEL_FADE_MS = 300;
 const MARGIN = 8;
@@ -67,4 +69,34 @@ export function inTriangle(p: Point, a: Point, b: Point, c: Point): boolean {
 export function inSafeTriangle(p: Point, apex: Point, panel: Box, rtl: boolean): boolean {
   const near = rtl ? panel.right : panel.left;
   return inTriangle(p, apex, { x: near, y: panel.top }, { x: near, y: panel.bottom });
+}
+
+export type Snap = { top: number; rowHeight: number; height: number; scrolls: boolean };
+
+/**
+ * D248 (Foundations turn R1d-a) — the panel snaps to the main menu's row grid. Its rows
+ * take the menu's row height and its first row sits on the opener's row; a panel that
+ * would end below the menu's last row moves up by whole rows until its last row is level
+ * with it; a panel taller than the menu's whole height takes that height, and only then
+ * do its rows shrink, down to ROW_FLOOR, beyond which it scrolls.
+ */
+export function snapToGrid(input: {
+  openerTop: number;
+  rowHeight: number;
+  menuTop: number;
+  menuBottom: number;
+  count: number;
+}): Snap {
+  const { openerTop, rowHeight, menuTop, menuBottom, count } = input;
+  const room = Math.max(0, menuBottom - menuTop);
+  const natural = count * rowHeight;
+  if (natural <= room + 0.5) {
+    const over = openerTop + natural - menuBottom;
+    const steps = over > 0.5 ? Math.ceil(over / rowHeight - 0.01) : 0;
+    const top = Math.max(menuTop, openerTop - steps * rowHeight);
+    return { top, rowHeight, height: natural, scrolls: false };
+  }
+  const share = count > 0 ? room / count : rowHeight;
+  if (share >= ROW_FLOOR) return { top: menuTop, rowHeight: share, height: room, scrolls: false };
+  return { top: menuTop, rowHeight: ROW_FLOOR, height: room, scrolls: true };
 }

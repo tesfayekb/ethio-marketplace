@@ -65,11 +65,12 @@ test.describe("DEC-288 side panel, fine pointer", () => {
 });
 
 /**
- * SMN-E5 (D245; Foundations turn R1c) — the panel takes ethio.com's surface and motion: a
- * 1 px border, square corners, no shadow, flush with the rail (its border over the rail's
- * edge), and a 300 ms opacity fade in and out; under prefers-reduced-motion, none.
+ * SMN-E5 (D245, D248; Foundations turns R1c, R1d-a) — the panel fades 300 ms in and out by
+ * opacity alone; under prefers-reduced-motion, none. G38 — D248 withdraws D245's surface
+ * (a 1 px border, square corners, no shadow, 1 px over the rail): the panel takes the
+ * rail's surface — no border, rounded, the rail's shadow — and sits flush beside it.
  */
-test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and out", async ({
+test("SMN-E5 the panel takes the rail's surface, flush beside it, and fades 300 ms in and out", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
@@ -79,23 +80,26 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
   await opener.hover();
   const panel = page.getByTestId("submenu-panel");
   await expect(panel).toBeVisible();
+  const railLook = await page.getByTestId("app-rail").evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { background: style.backgroundColor, shadow: style.boxShadow };
+  });
   const look = await panel.evaluate((el) => {
     const style = getComputedStyle(el);
     return {
       border: style.borderTopWidth,
-      radius: style.borderTopLeftRadius,
-      // Tailwind's shadow-none computes to transparent zero layers: no shadow is drawn.
-      noShadow:
-        style.boxShadow === "none" ||
-        /^(?:rgba\(0, 0, 0, 0\) 0px 0px 0px 0px(?:, )?)+$/.test(style.boxShadow),
+      rounded: parseFloat(style.borderTopLeftRadius) > 0,
+      background: style.backgroundColor,
+      shadow: style.boxShadow,
       property: style.transitionProperty,
       duration: style.transitionDuration,
     };
   });
   expect(look).toEqual({
-    border: "1px",
-    radius: "0px",
-    noShadow: true,
+    border: "0px",
+    rounded: true,
+    background: railLook.background,
+    shadow: railLook.shadow,
     property: "opacity",
     duration: "0.3s",
   });
@@ -103,10 +107,7 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
     rail: page.getByTestId("app-rail"),
     panel,
   });
-  expect(
-    Math.abs(panelBox.x - (railBox.x + railBox.width - 1)),
-    "flush, 1 px over",
-  ).toBeLessThanOrEqual(1);
+  expect(Math.abs(panelBox.x - (railBox.x + railBox.width)), "flush").toBeLessThanOrEqual(1);
   await page.mouse.move(900, 700);
   // The closing panel stays 300 ms, aria-hidden, then goes.
   await expect(page.getByTestId("submenu-panel-closing")).toHaveAttribute("aria-hidden", "true");
@@ -139,20 +140,46 @@ test.describe("D244 every panel on screen", () => {
     branch = null;
   });
 
+  // G38 — D248 bounds a panel by the rail's height (was the window's): the panel is wholly
+  // on screen and never below the rail's last row; its rows fit when they can at 32 px or
+  // more, and otherwise hold the floor and the panel scrolls (no row clipped off screen).
   async function everyRowOnScreen(page: Page, label: string) {
     const panel = page.getByTestId("submenu-panel");
     await expect(panel).toBeVisible();
     const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(CHILDREN);
+    await expect(panel, `${label}: the panel is wholly on screen`).toBeInViewport({ ratio: 1 });
     await expect
-      .poll(() => panel.evaluate((el) => el.scrollHeight <= el.clientHeight + 1), {
-        message: `${label}: the panel does not scroll inside itself`,
-      })
+      .poll(
+        async () => {
+          const railBottom = await page
+            .getByTestId("app-rail")
+            .getByTestId("rail-scroll")
+            .evaluate((el) => el.getBoundingClientRect().bottom);
+          const bottom = await panel.evaluate((el) => el.getBoundingClientRect().bottom);
+          return bottom <= railBottom + 1;
+        },
+        { message: `${label}: never below the rail's last row` },
+      )
       .toBe(true);
-    for (let index = 0; index < CHILDREN; index += 1) {
-      await expect(rows.nth(index), `${label}: row ${index + 1} of ${CHILDREN}`).toBeInViewport({
-        ratio: 1,
-      });
+    const state = await panel.evaluate((el) => ({
+      overflow: el.scrollHeight - el.clientHeight,
+      rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
+        (row) => row.getBoundingClientRect().height,
+      ),
+    }));
+    if (state.overflow > 1) {
+      for (const height of state.rows)
+        expect(
+          Math.abs(height - 32),
+          `${label}: a scrolled panel's rows hold 32 px`,
+        ).toBeLessThanOrEqual(0.5);
+    } else {
+      for (let index = 0; index < CHILDREN; index += 1) {
+        await expect(rows.nth(index), `${label}: row ${index + 1} of ${CHILDREN}`).toBeInViewport({
+          ratio: 1,
+        });
+      }
     }
   }
 

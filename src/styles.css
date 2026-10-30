@@ -395,8 +395,8 @@
  * pointer; a list of more than 16 items keeps full-size rows and scrolls with a visible
  * scrollbar. `.menu-fit` marks the list; `data-many` (set from the count, MENU_FIT_MAX)
  * marks a list of more than 16. A list that fills its region (the rail, the phone menu)
- * spreads its rows up to 40 px below 768 px and up to 48 px from 768 px; `.menu-natural` (a side panel) keeps each row's own size
- * (44 px with a coarse pointer, 36 px with a fine one) until the height runs short.
+ * spreads its rows up to 40 px below 768 px and up to 48 px from 768 px; `.menu-snap` (a side
+ * panel, D248) takes the main menu's row height. From 768 px `data-many` changes nothing (D248).
  */
 .menu-fit {
   display: flex;
@@ -422,19 +422,37 @@
   min-height: 0;
   max-height: none;
 }
-.menu-natural:not([data-many]) > li:not([aria-hidden]) {
-  flex: 0 1 2.75rem;
-}
-.menu-natural[data-many] > li > * {
-  min-height: 2.75rem;
-}
-@media (pointer: fine) {
-  .menu-natural:not([data-many]) > li:not([aria-hidden]) {
-    flex-basis: 2.25rem;
+/* D248 (R1d-a) — from 768 px there is no item limit: every list fits while its rows stay
+   at or above 32 px and scrolls, with a visible scrollbar, only beyond that. */
+@media (min-width: 768px) {
+  .menu-fit[data-many] > li:not([aria-hidden]) {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    min-height: 2rem;
+    max-height: 3rem;
   }
-  .menu-natural[data-many] > li > * {
-    min-height: 2.25rem;
+  .menu-fit[data-many] > li > * {
+    flex: 1 1 0%;
+    height: auto;
+    min-height: 0;
+    max-height: none;
   }
+}
+/* D248 — a side panel's rows take the main menu's row height at that moment
+   (`--menu-row-h`, set by the panel from its opener's row; snapToGrid). */
+.menu-fit.menu-snap > li:not([aria-hidden]) {
+  display: flex;
+  flex: 0 0 var(--menu-row-h, 2.25rem);
+  flex-direction: column;
+  min-height: var(--menu-row-h, 2.25rem);
+  max-height: var(--menu-row-h, 2.25rem);
+}
+.menu-fit.menu-snap > li > * {
+  flex: 1 1 0%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
 }
 /* The persistent rail's list fills its region (from 768 px, every pointer). */
 @media (min-width: 768px) {

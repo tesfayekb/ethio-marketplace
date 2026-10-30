@@ -27,7 +27,7 @@ test.use({
   },
 });
 
-test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, panel rows 44 px", async ({
+test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, panel rows the rail's", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
@@ -56,8 +56,17 @@ test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, 
     .locator("[data-submenu-row]")
     .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
   expect(panelRows.length, "SMN-E3 the panel has no rows").toBeGreaterThan(0);
-  for (const height of panelRows)
-    expect(height, "SMN-E3 a panel row is at least 44 px").toBeGreaterThanOrEqual(44);
+  // G38 — D248 replaces "a panel row is at least 44 px": a panel row is the rail's row (its
+  // height at that moment), shrinking toward 32 px only when the panel outgrows the menu.
+  const railRow = await rail
+    .getByTestId("rail-category-electronics")
+    .evaluate((el) => (el.closest("li") ?? el).getBoundingClientRect().height);
+  for (const height of panelRows) {
+    expect(height, "SMN-E3 a panel row is at most the rail's (D248)").toBeLessThanOrEqual(
+      railRow + 1,
+    );
+    expect(height, "SMN-E3 a panel row keeps the 32 px floor (D248)").toBeGreaterThanOrEqual(31.5);
+  }
   await page.locator("main").tap({ position: { x: 4, y: 4 } });
   await expect(panel).toHaveCount(0);
 });
@@ -193,10 +202,11 @@ test("SMN-E6 a tap on the folded rail opens the page and the panel headed by its
   await expect(panel.getByTestId("submenu-header")).toContainText(name);
   const surface = await panel.evaluate((el) => {
     const style = getComputedStyle(el);
-    return { radius: style.borderTopLeftRadius, border: style.borderTopWidth };
+    return { rounded: parseFloat(style.borderTopLeftRadius) > 0, border: style.borderTopWidth };
   });
-  expect(surface, "SMN-E6 the folded header's panel takes D245's surface").toEqual({
-    radius: "0px",
-    border: "1px",
+  // G38 — D248 withdraws D245's surface (square, 1 px border): the rail's, rounded, no border.
+  expect(surface, "SMN-E6 the folded header's panel takes the rail's surface (D248)").toEqual({
+    rounded: true,
+    border: "0px",
   });
 });

@@ -305,6 +305,8 @@ export const AREAS: Area[] = [
       "src/components/shell/submenu/**",
       "src/components/ui/submenu-*.ts*",
       "src/components/shell/app-rail.tsx",
+      // D248 — the one menu row look, shared by the rail and the panel.
+      "src/components/shell/menu-row.ts",
       // D247 — the menu rows' fit-before-scroll rule lives in the stylesheet.
       "src/styles.css",
     ],
@@ -313,6 +315,7 @@ export const AREAS: Area[] = [
       "e2e/submenu-touch.spec.ts",
       "e2e/overlay-shift.spec.ts",
       "e2e/menu-rows.spec.ts",
+      "e2e/submenu-look.spec.ts",
     ],
   },
 ];
