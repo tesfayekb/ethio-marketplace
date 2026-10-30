@@ -181,7 +181,7 @@ test.describe("D248 a side panel is the main menu", () => {
     panel = await openPanel(page, seeded.root);
     const state = await panel.evaluate((el) => ({
       overflow: el.scrollHeight - el.clientHeight,
-      bar: el.offsetWidth - el.clientWidth,
+      bar: (el as HTMLElement).offsetWidth - el.clientWidth,
       rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
         (row) => row.parentElement?.getBoundingClientRect().height ?? 0,
       ),
