@@ -196,10 +196,12 @@ function Panel({
 
   useEffect(() => {
     if (!place || !opener.focus) return;
-    const row = rowsOf(own.current)[0];
-    console.info("[smn-dbg]", row ? getComputedStyle(row).visibility : "none", row?.isConnected);
-    row?.focus();
-    console.info("[smn-dbg] after", document.activeElement === row);
+    const frame = window.requestAnimationFrame(() => {
+      const row = rowsOf(own.current)[0];
+      console.info("[smn-dbg]", row ? getComputedStyle(row).visibility : "none", own.current?.style.cssText);
+      row?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [place, opener]);
 
   const rows = () =>
