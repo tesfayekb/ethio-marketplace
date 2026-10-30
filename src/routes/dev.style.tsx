@@ -133,35 +133,6 @@ const CARD_TYPES = [
     rule: "border-tier-premium-rule",
   },
 ] as const;
-const SWATCHES = [
-  "background",
-  "card",
-  "sidebar",
-  "hairline",
-  "field",
-  "track",
-  "photo-empty",
-  "leaf-ink",
-  "primary",
-  "gold",
-  "tier-premium",
-  "tier-premium-frame",
-  "tier-premium-ink",
-  "tier-featured",
-  "tier-featured-frame",
-  "tier-featured-ink",
-] as const;
-const SHADOW_SAMPLES = [
-  "shadow-band",
-  "shadow-control",
-  "shadow-button",
-  "shadow-tile",
-  "shadow-tile-on",
-  "shadow-row-on",
-  "shadow-field",
-  "shadow-track",
-  "shadow-segment",
-] as const;
 /** Fixture card words (a dev page, English only). */
 const FIXTURE_TITLE = "Sample listing";
 const FIXTURE_PRICE = "12,500";
@@ -227,7 +198,7 @@ function SageGrid() {
               ))}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {SWATCHES.map((token) => (
+              {Object.keys(themes[name].dark).map((token) => (
                 <div
                   key={token}
                   data-testid={`style-swatch-${token}-${mode}`}
@@ -235,19 +206,12 @@ function SageGrid() {
                 >
                   <span
                     className="block h-8 w-12 rounded-md shadow-tile"
-                    style={{ background: `var(--${token})` }}
+                    style={{
+                      background: token.startsWith("lift-") ? undefined : `var(--${token})`,
+                      boxShadow: token.startsWith("lift-") ? `var(--${token})` : undefined,
+                    }}
                   />
                   {token}
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex flex-wrap gap-3">
-              {SHADOW_SAMPLES.map((cls) => (
-                <div
-                  key={cls}
-                  className={`flex h-10 items-center rounded-md bg-card px-3 text-[11px] ${cls}`}
-                >
-                  {cls}
                 </div>
               ))}
             </div>
