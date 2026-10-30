@@ -105,7 +105,9 @@ test.describe("D248 a side panel is the main menu", () => {
           "SMN-E7 a row is level with a rail row",
         ).toBeLessThanOrEqual(1);
         expect(row.separator, "SMN-E7 no separator line").toBe("0px");
-        expect(row.classes, "SMN-E7 the shared row classes (Sage §2: 14 px)").toContain("rounded-row");
+        expect(row.classes, "SMN-E7 the shared row classes (Sage §2: 14 px)").toContain(
+          "rounded-row",
+        );
         expect(row.classes, "SMN-E7 the Sage hover (§2; INC-042)").toContain("hover:bg-card/70");
         expect(row.classes, "SMN-E7 never bg-muted").not.toContain("bg-muted");
         expect(row.icon, "SMN-E7 each row shows an icon").toBe(true);
