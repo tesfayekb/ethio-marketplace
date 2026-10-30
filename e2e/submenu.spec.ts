@@ -1,6 +1,10 @@
+import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { scratchSlug } from "./helpers/categories";
 import { catalogueRows } from "./helpers/category-menu";
+import { destroyCategoryBranch } from "./helpers/posting";
 import { gotoReady, openRailScope } from "./helpers/ui";
+import { adminClient } from "./helpers/users";
 
 /**
  * SMN-E1, SMN-E2 (SMN-E3, the touch context, is submenu-touch.spec.ts) (DEC-288, turn R1b) — the marketplace tree on the sub-menu mechanism,
@@ -63,64 +67,92 @@ test.describe("DEC-288 side panel, fine pointer", () => {
 
 /**
  * SMN-E4 (D244, INC-1008; Foundations turn R1c) — every panel is wholly on screen when it
- * opens and after the window is resized. The tallest second level of the real tree is
- * opened at 600 px (cause 2: it was clamped and scrolled inside itself, its last rows
- * clipped) and a panel opened at 900 px is followed down to 600 px (cause 1: it was
- * placed once and never again). Catalogue rows are read only (J3).
+ * opens and after the window is resized. A SCRATCH root, last in the rail, carries 14
+ * subcategories (J3: real rows are read only): at 600 px its panel was clamped and
+ * scrolled inside itself, its last rows clipped (cause 2), and a panel opened at 900 px
+ * was never placed again when the window shrank (cause 1). Removed in finally.
  */
 test.describe("D244 every panel on screen", () => {
-  async function tallestRoot(page: import("@playwright/test").Page) {
-    const rail = await openRailScope(page);
-    const openers = rail.locator("[data-submenu]");
-    const count = await openers.count();
-    let best = { index: -1, rows: 0 };
-    for (let index = 0; index < count; index += 1) {
-      await openers.nth(index).hover();
-      const panel = page.getByTestId("submenu-panel").first();
-      await expect(panel).toBeVisible();
-      const rows = await panel.locator("[data-submenu-row]").count();
-      if (rows > best.rows) best = { index, rows };
-    }
-    await page.mouse.move(1000, 20);
-    await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
-    return { opener: openers.nth(best.index), rows: best.rows };
+  const CHILDREN = 14;
+
+  async function seedTallBranch() {
+    const supabase = adminClient();
+    const base = scratchSlug();
+    const root = `${base}-r`;
+    const kids = Array.from({ length: CHILDREN }, (_, index) => `${base}-k${index + 1}`);
+    const { data: rows, error } = await supabase
+      .from("categories")
+      .insert(
+        [root, ...kids].map((slug) => ({
+          slug,
+          name_en: slug,
+          is_active: true,
+          allow_listings: true,
+        })),
+      )
+      .select("id, slug");
+    if (error || !rows) throw new Error(`[e2e:smn-e4] seeding failed: ${error?.message}`);
+    const id = (slug: string) => {
+      const row = rows.find((candidate) => candidate.slug === slug);
+      if (!row) throw new Error(`[e2e:smn-e4] ${slug} was not inserted`);
+      return row.id as string;
+    };
+    const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+      { parent_id: null, child_id: id(root), display_order: 2_009_400 },
+      ...kids.map((slug, index) => ({
+        parent_id: id(root),
+        child_id: id(slug),
+        display_order: index + 1,
+      })),
+    ]);
+    if (pointerError) throw new Error(`[e2e:smn-e4] linking failed: ${pointerError.message}`);
+    return { root, kids };
   }
 
-  async function everyRowOnScreen(page: import("@playwright/test").Page, label: string) {
+  async function everyRowOnScreen(page: Page, label: string) {
     const panel = page.getByTestId("submenu-panel").first();
     await expect(panel).toBeVisible();
     const rows = panel.locator("[data-submenu-row]");
-    const count = await rows.count();
-    expect(count, `${label}: the panel has rows`).toBeGreaterThan(0);
-    const fit = await panel.evaluate((el) => el.scrollHeight <= el.clientHeight + 1);
-    expect(fit, `${label}: the panel does not scroll inside itself`).toBe(true);
-    for (let index = 0; index < count; index += 1) {
-      await expect(rows.nth(index), `${label}: row ${index + 1} of ${count}`).toBeInViewport({
+    await expect(rows).toHaveCount(CHILDREN);
+    await expect
+      .poll(() => panel.evaluate((el) => el.scrollHeight <= el.clientHeight + 1), {
+        message: `${label}: the panel does not scroll inside itself`,
+      })
+      .toBe(true);
+    for (let index = 0; index < CHILDREN; index += 1) {
+      await expect(rows.nth(index), `${label}: row ${index + 1} of ${CHILDREN}`).toBeInViewport({
         ratio: 1,
       });
     }
   }
 
   for (const width of [1280, 1024]) {
-    test(`SMN-E4 the tallest panel fits at ${width}×600 and follows a resize`, async ({
+    test(`SMN-E4 a 14-row panel fits at ${width}×600 and follows a resize`, async ({
       page,
     }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-      await page.setViewportSize({ width, height: 600 });
-      await gotoReady(page, "/");
-      const tall = await tallestRoot(page);
-      expect(tall.rows, "SMN-E4 the tree has a panel of more than ten rows").toBeGreaterThan(10);
-      await tall.opener.hover();
-      await everyRowOnScreen(page, `SMN-E4 ${width}×600`);
-      await page.mouse.move(1000, 20);
-      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+      const branch = await seedTallBranch();
+      try {
+        await page.setViewportSize({ width, height: 600 });
+        await gotoReady(page, "/");
+        const rail = await openRailScope(page);
+        const opener = rail.getByTestId(`rail-category-${branch.root}`);
+        await opener.scrollIntoViewIfNeeded();
+        await opener.hover();
+        await everyRowOnScreen(page, `SMN-E4 ${width}×600`);
+        await page.mouse.move(width - 20, 20);
+        await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
 
-      await page.setViewportSize({ width, height: 900 });
-      await tall.opener.hover();
-      await expect(page.getByTestId("submenu-panel")).toBeVisible();
-      // The pointer stays on the opener while the window shrinks.
-      await page.setViewportSize({ width, height: 600 });
-      await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
+        await page.setViewportSize({ width, height: 900 });
+        await opener.scrollIntoViewIfNeeded();
+        await opener.hover();
+        await expect(page.getByTestId("submenu-panel")).toBeVisible();
+        // The pointer stays on the opener while the window shrinks.
+        await page.setViewportSize({ width, height: 600 });
+        await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
+      } finally {
+        await destroyCategoryBranch([...branch.kids, branch.root]);
+      }
     });
   }
 });
