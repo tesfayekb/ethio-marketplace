@@ -191,7 +191,7 @@ function SageGrid() {
                   key={card.tier}
                   data-testid={`style-card-${card.tier}-${mode}`}
                   data-tier={card.tier}
-                  className={`overflow-hidden rounded-card ${card.surface}`}
+                  className={`min-w-0 overflow-hidden rounded-card ${card.surface}`}
                 >
                   <div className="aspect-[4/3] bg-photo-empty" />
                   <div className="p-3">
