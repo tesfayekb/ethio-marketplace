@@ -4,6 +4,10 @@ The first substantial frontend build. Every later page inherits from it.
 
 ## Palette — "coffee on cool slate"
 
+> Superseded by the Sage 3D look (DEC-289; turn SAGE-S1, ruling C of SAGE-S0): the values
+> below are the pre-Sage palette, kept for history. The tokens in force are in `src/styles.css`
+> and `src/lib/themes.ts` — see "Themes as data" and "The shell in the Sage look".
+
 Tokens live in `src/styles.css` in the existing `@theme inline` / `:root` /
 `.dark` structure. All values are `oklch`.
 
@@ -123,8 +127,24 @@ value; components use semantic tokens only, never raw colours.
 - CF-LOOK-1 (`scripts/conformance/look-values.test.ts`) refuses arbitrary look values and raw
   colours under `src/`, with recorded exceptions in `look-values-allowlist.txt`.
 - `/dev/style` shows theme × mode × card type (regular, Featured, Premium) with fixture data.
-- Held: the light page tone `--background` stays #F3F5F8, because the stored-photo backdrop
-  (`photo-background.ts`, PBG-1, D132) is tied to it; the Sage #EEF3EF waits for a ruling.
+- Ruling A (turn SAGE-S1): the light page tone `--background` is the Sage #EEF3EF; the
+  removed-photo backdrop stays #F3F5F8 in `photo-background.ts` (D155), no longer tied to the
+  page tone (PBG-1).
+
+## The shell in the Sage look (turn SAGE-S1, spec §1–§3, §10, §11)
+
+- New tokens (light / dark): `--nav-ink` (selected row and bar label text), `--logo-gold`,
+  `--nav-pill` (the bar's current pill), `--lift-pill`, `--lift-disc` (its ring takes `--card`),
+  and `--bar-rise` (layout: the Post disc's rise, 0 from 48rem).
+- One tile: `ITEM_TILE` / `ITEM_TILE_ON` in `menu-row.ts` for every menu icon (rail, strip,
+  phone menu, side panels, Home, back); CF-ROWS-1 refuses a menu without it. The selected row
+  is the card surface with `--lift-row-on` and the nav ink; its tile is filled.
+- One control look in the top bar (`CONTROL_LOOK`): card, hairline, `--lift-control`; 44 px on
+  phones. The search field is the pill on `--field`.
+- The phone bar: 18 px top corners, the current pill, the Post disc raised by `--bar-rise`.
+  Every surface pinned above the bar (the FormSection / FormLayout / PageHeader action bars, the
+  shell's notices) and the page's bottom scroll padding clear the rise; SGS-7 judges.
+- One "chosen" lift: the chosen filter pill takes `shadow-tile-on`.
 
 ## The AppShell slot model
 
