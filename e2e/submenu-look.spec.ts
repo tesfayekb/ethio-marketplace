@@ -185,12 +185,12 @@ test.describe("D248 a side panel is the main menu", () => {
       }));
       for (const row of state.rows)
         expect(
-          Math.abs(row - grid.rowHeight),
+          Math.abs(row - grid.height),
           `SMN-E10 ${height}: a panel row equals a rail row`,
         ).toBeLessThanOrEqual(1);
       if (state.overflow > 1) {
         expect(state.bar, `SMN-E10 ${height}: its scrollbar takes width`).toBeGreaterThan(0);
-        expect(Math.abs(state.top - grid.top), `SMN-E10 ${height}: spans from the menu's top`).toBeLessThanOrEqual(1);
+        expect(Math.abs(state.top - (grid.tops[0] ?? 0)), `SMN-E10 ${height}: spans from the menu's top`).toBeLessThanOrEqual(1);
         expect(Math.abs(state.bottom - grid.bottom), `SMN-E10 ${height}: to its last row`).toBeLessThanOrEqual(1);
       }
       await page.mouse.move(1200, height - 50);
@@ -204,7 +204,8 @@ test.describe("D248 a side panel is the main menu", () => {
     test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     await page.setViewportSize({ width: 1280, height: 1000 });
     await gotoReady(page, "/");
-    const holds = (await railGrid(page)).count;
+    const shown = await railGrid(page);
+    const holds = Math.round((shown.bottom - (shown.tops[0] ?? 0)) / shown.height);
     const seeded = await seedScratchBranch(holds + 1, "smn-e13");
     branch = seeded;
     await gotoReady(page, "/");
@@ -223,13 +224,13 @@ test.describe("D248 a side panel is the main menu", () => {
       ),
     }));
     for (const row of state.rows)
-      expect(Math.abs(row - grid.rowHeight), "SMN-E13 a panel row equals a rail row").toBeLessThanOrEqual(1);
+      expect(Math.abs(row - grid.height), "SMN-E13 a panel row equals a rail row").toBeLessThanOrEqual(1);
     for (const top of state.tops.slice(0, holds))
       expect(
         Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
         "SMN-E13 each shown row is level with a rail row",
       ).toBeLessThanOrEqual(1);
-    expect(Math.abs(state.top - grid.top), "SMN-E13 spans from the menu's first row").toBeLessThanOrEqual(1);
+    expect(Math.abs(state.top - (grid.tops[0] ?? 0)), "SMN-E13 spans from the menu's first row").toBeLessThanOrEqual(1);
     expect(Math.abs(state.bottom - grid.bottom), "SMN-E13 to its last row").toBeLessThanOrEqual(1);
     expect(state.overflow, "SMN-E13 the panel scrolls").toBeGreaterThan(0);
     expect(state.bar, "SMN-E13 with a visible scrollbar").toBeGreaterThan(0);
