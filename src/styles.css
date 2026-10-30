@@ -370,38 +370,6 @@
     margin-right: 0 !important;
   }
 
-  /* DEC-288 item 7 — with a coarse pointer a phone row is at least 44 px (C2). */
-  @media (pointer: coarse) {
-    .rail-row {
-      height: auto;
-      min-height: 2.75rem;
-      max-height: none;
-    }
-  }
-
-  /* DEC-288 item 7 — from 768 px with a fine pointer the marketplace rail's rows spread
-     between 36 and 48 px (the list grows; a separator line keeps its own height). */
-  @media (min-width: 768px) and (pointer: fine) {
-    .rail-spread-nav {
-      display: flex;
-      min-height: 100%;
-      flex-direction: column;
-    }
-    .rail-spread {
-      flex: 1 1 0%;
-    }
-    .rail-spread > li:not([aria-hidden]) {
-      display: flex;
-      flex: 1 1 0%;
-      flex-direction: column;
-      min-height: 2.25rem;
-      max-height: 3rem;
-    }
-    .rail-spread > li > * {
-      flex: 1 1 0%;
-    }
-  }
-
   html {
     /* INC-106d: scroll targets clear the fixed bars — phone 52 + 77 px, desktop 56 + 74 px. */
     scroll-padding-top: 8.5rem;
@@ -417,6 +385,39 @@
   h2,
   h3 {
     font-family: var(--font-display);
+  }
+}
+
+/* DEC-288 item 7 — unlayered, so these row bounds outrank the rows' utility classes. */
+/* DEC-288 item 7 — with a coarse pointer a phone row is at least 44 px (C2). */
+@media (pointer: coarse) {
+  .rail-row {
+    height: auto;
+    min-height: 2.75rem;
+    max-height: none;
+  }
+}
+
+/* DEC-288 item 7 — from 768 px with a fine pointer the marketplace rail's rows spread
+   between 36 and 48 px (the list grows; a separator line keeps its own height). */
+@media (min-width: 768px) and (pointer: fine) {
+  .rail-spread-nav {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+  }
+  .rail-spread {
+    flex: 1 1 0%;
+  }
+  .rail-spread > li:not([aria-hidden]) {
+    display: flex;
+    flex: 1 1 0%;
+    flex-direction: column;
+    min-height: 2.25rem;
+    max-height: 3rem;
+  }
+  .rail-spread > li > * {
+    flex: 1 1 0%;
   }
 }
 
