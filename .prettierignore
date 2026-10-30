@@ -85,3 +85,7 @@ docs/design/d201/v16/*.png
 
 # CF-HEAD-1 keyed three-cell allowances
 scripts/conformance/page-head-allowlist.txt
+
+# Ratified record imported verbatim by records turns (records turn R8, INC-1000 → INC-1006):
+# the supervisor's INC ledger, same class as docs/spec/ and docs/governance/ (INC-007).
+docs/tracking/incidental-findings.md
