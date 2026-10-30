@@ -18,6 +18,8 @@ import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
+import { submenuOpen, submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
+import { useOverlays } from "@/components/ui/overlay-loader";
 
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -106,9 +108,14 @@ export function useFavouriteCategory(): {
  * it folds the persistent menu. Only the stored choice activates rail-icons.
  */
 const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
+/** DEC-288 item 7 — a phone row: 32–40 px with a fine pointer, at least 44 px with a coarse one (C2). */
+const COMPACT_ROW =
+  "flex min-h-8 max-h-10 pointer-coarse:min-h-11 pointer-coarse:max-h-none flex-1 flex-col";
+const COMPACT_HEAD =
+  "h-8 min-h-8 max-h-10 pointer-coarse:h-auto pointer-coarse:min-h-11 pointer-coarse:max-h-none flex-1";
 
 const ITEM_CORE =
-  "flex min-h-11 md:pointer-fine:min-h-8 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
+  "flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
   "ps-[var(--rail-pad)]";
 const ITEM_ICONS = "rail-icons:justify-center rail-icons:ps-0 rail-icons:pe-0";
 const ITEM_BASE = `${ITEM_CORE} ${ITEM_ICONS}`;
@@ -158,9 +165,17 @@ function useItemBase(): string {
  * tooltip always sits OUTSIDE the trigger, never between a trigger and its DOM
  * element. See RailRow's collapsible branch.
  */
-function WithTooltip({ label, children }: { label: string; children: ReactNode }) {
+function WithTooltip({
+  label,
+  children,
+  skip,
+}: {
+  label: string;
+  children: ReactNode;
+  skip?: boolean;
+}) {
   const collapsed = useContext(CollapsedContext);
-  if (!collapsed) return children as React.ReactElement;
+  if (!collapsed || skip) return children as React.ReactElement;
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
@@ -194,6 +209,8 @@ type RailNode = {
   active?: boolean;
   ancestorActive?: boolean;
   categoryBranch?: boolean;
+  /** DEC-288 — the row opens a side panel of its sub-items (submenu-signal.ts). */
+  submenu?: string;
   preload?: "intent";
   onSelect?: () => void;
   children?: RailNode[];
@@ -234,6 +251,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const [open, setOpen] = useState(
     () => hasChildren && (containsActive(node) || Boolean(node.defaultOpen)),
   );
+
+  const submenuKey = useSyncExternalStore(submenuOpen.subscribe, submenuOpen.get, submenuOpen.server);
+  const trigger = node.submenu
+    ? submenuTriggerProps(node.submenu, submenuKey === node.submenu)
+    : undefined;
 
   const Icon = node.icon;
   const inner = (
@@ -276,7 +298,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     return (
       <li
         className={cn(
-          hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col",
+          hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW,
         )}
       >
         <span
@@ -289,7 +311,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
             itemBase,
             node.active || node.ancestorActive ? ITEM_ACTIVE : ITEM_IDLE,
             compactClass,
-            hasChildren && "h-8 min-h-8 max-h-10 flex-1",
+            hasChildren && COMPACT_HEAD,
           )}
         >
           {inner}
@@ -313,13 +335,13 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       itemBase,
       containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
       compactClass,
-      compact && "h-8 min-h-8 max-h-10 flex-1",
+      compact && COMPACT_HEAD,
     );
     return (
       <li
         className={cn(
           compact &&
-            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
+            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
         )}
       >
         {node.path ? (
@@ -361,7 +383,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li
         className={cn(
           compact &&
-            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
+            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
         )}
       >
         <Collapsible
@@ -388,7 +410,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
                   itemBase,
                   containsActive(node) ? ITEM_ACTIVE : ITEM_IDLE,
                   compactClass,
-                  compact && "h-8 min-h-8 max-h-10 flex-1",
+                  compact && COMPACT_HEAD,
                 )}
               >
                 {inner}
@@ -426,16 +448,20 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li
         className={cn(
           compact &&
-            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
+            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
         )}
       >
-        <WithTooltip label={node.label}>
+        <WithTooltip label={node.label} skip={Boolean(node.submenu)}>
           <Link
+            {...trigger}
             to={node.path}
             params={node.params}
             hash={node.hash}
             preload={node.preload}
-            onClick={node.onSelect}
+            onClick={(event) => {
+              trigger?.onClick(event);
+              node.onSelect?.();
+            }}
             data-testid={testid}
             data-alert={node.alert ? "true" : undefined}
             aria-current={node.ancestorActive ? "true" : node.active ? "page" : undefined}
@@ -465,7 +491,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li
         className={cn(
           compact &&
-            (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
+            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
         )}
       >
         <WithTooltip label={node.label}>
@@ -495,7 +521,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   return (
     <li
       className={cn(
-        compact && (hasChildren ? "flex flex-1 flex-col" : "flex min-h-8 max-h-10 flex-1 flex-col"),
+        compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
       )}
     >
       <WithTooltip label={node.label}>
@@ -513,6 +539,12 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     </li>
   );
 }
+
+/** DEC-288 item 7 — from 768 px with a fine pointer the rows spread between 36 and 48 px. */
+const RAIL_SPREAD =
+  "md:pointer-fine:flex-1 md:pointer-fine:[&>li:not([aria-hidden])]:flex md:pointer-fine:[&>li:not([aria-hidden])]:min-h-9 md:pointer-fine:[&>li:not([aria-hidden])]:max-h-12 md:pointer-fine:[&>li:not([aria-hidden])]:flex-1 md:pointer-fine:[&>li:not([aria-hidden])]:flex-col md:pointer-fine:[&>li>*]:flex-1";
+/** The first panel opens beside the rail itself. */
+const railEdge = (opener: HTMLElement): Element => opener.closest("aside") ?? opener;
 
 /** Marketplace rail = the LIVE category tree, read from the database (exported for RFT, rail-first-paint.test.tsx). */
 export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
@@ -550,7 +582,10 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     localLevel.slug === selectedCategorySlug && localLevel.id !== undefined
       ? localLevel.id
       : fromUrl;
-  const level = !iconsOnly && levelId ? tree.byId.get(levelId) : undefined;
+  // DEC-288 — from 768 px the rail keeps the main rows; sub-items open in the side panel.
+  const level = variant === "menu" && levelId ? tree.byId.get(levelId) : undefined;
+  const panels = variant === "rail";
+  const overlays = useOverlays();
   const parentId = level ? tree.parentOf.get(level.id) : undefined;
   const parent = parentId ? tree.byId.get(parentId) : undefined;
   const roots = rootsOf(tree);
@@ -566,27 +601,53 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     active: category.slug === selectedCategorySlug,
     ancestorActive: !level && ancestors.some((ancestor) => ancestor.id === category.id),
     categoryBranch: !iconsOnly && childrenOf(tree, category.id).length > 0,
+    submenu: panels && childrenOf(tree, category.id).length > 0 ? category.id : undefined,
     path: "/c/$slug",
     params: { slug: category.slug },
     preload: "intent",
     onSelect: () => {
       if (childrenOf(tree, category.id).length === 0) onNavigate();
-      else setLocalLevel({ slug: selectedCategorySlug, id: category.id });
+      else if (!panels) setLocalLevel({ slug: selectedCategorySlug, id: category.id });
     },
   });
   const nodes = (level ? [level, ...childrenOf(tree, level.id)] : roots).map(toNode);
+  // DEC-288 — a panel's rows come from the same seeded tree: no request of their own.
+  const itemsOf = (id: string) => {
+    const opened = tree.byId.get(id);
+    if (!opened) return null;
+    return {
+      header: entityName("category", opened, entities),
+      items: childrenOf(tree, id).map((category) => ({
+        key: category.id,
+        label: entityName("category", category, entities),
+        testid: `rail-category-${category.slug}`,
+        to: "/c/$slug",
+        params: { slug: category.slug },
+        active: category.slug === selectedCategorySlug,
+        ancestorActive: ancestors.some((ancestor) => ancestor.id === category.id),
+        hasChildren: childrenOf(tree, category.id).length > 0,
+      })),
+    };
+  };
 
   return (
     <nav
       aria-label={t("shell.categoriesLabel")}
-      className={cn(compact && "flex min-h-full flex-col")}
+      className={cn(
+        compact && "flex min-h-full flex-col",
+        panels && "md:pointer-fine:flex md:pointer-fine:min-h-full md:pointer-fine:flex-col",
+      )}
     >
       <ul
-        className={cn("flex flex-col gap-0.5", compact && "flex-1")}
+        className={cn(
+          "flex flex-col gap-0.5",
+          compact && "flex-1",
+          panels && RAIL_SPREAD,
+        )}
         data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
       >
         {level ? (
-          <li className={cn(compact && "flex min-h-8 max-h-10 flex-1 flex-col")}>
+          <li className={cn(compact && COMPACT_ROW)}>
             <Button
               variant="ghost"
               data-testid="rail-menu-back"
@@ -631,7 +692,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         {isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
               <li
-                className={cn(compact && "flex min-h-8 max-h-10 flex-1 flex-col")}
+                className={cn(compact && COMPACT_ROW)}
                 key={`skeleton-${index}`}
                 data-testid={strip ? "strip-category-skeleton" : "rail-category-skeleton"}
                 aria-hidden="true"
@@ -668,6 +729,13 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           </li>
         ) : null}
       </ul>
+      {panels && overlays ? (
+        <overlays.submenu.SubmenuLayer
+          itemsOf={itemsOf}
+          edgeOf={railEdge}
+          showHeader={collapsed}
+        />
+      ) : null}
       {error ? (
         <p role="alert" className="px-3 text-sm text-destructive">
           {t("common.error")}
