@@ -142,9 +142,10 @@ async function rowPair(menuRow: Locator, stripRow: Locator, what: "y" | "height"
 }
 
 /**
- * U0i FOOTER-CLAMP LAW (md+). The aside's top is pinned under the 3.5rem band,
- * and its bottom follows whichever comes first: the viewport bottom, or the
- * in-view footer's top edge. Its inner rail-scroll stays the scroll region.
+ * RAIL LAW (md+), D252 (Foundations turn R1d-b, G38 — replaces U0i's footer clamp).
+ * The aside's top is pinned under the 3.5rem band and its bottom is the viewport's
+ * bottom; the footer sits beside it in the middle column. Its inner rail-scroll
+ * stays the scroll region.
  * Rects are read with getBoundingClientRect() — boundingBox() would scroll the
  * elements under test into view.
  */
@@ -602,9 +603,14 @@ test.describe("app shell", () => {
     const alignments = await navs.evaluateAll((els) =>
       els.map((el) => getComputedStyle(el).textAlign),
     );
+    // D252 (Foundations turn R1d-b, G38) — replaced: from 768 px the footer is the middle
+    // column's, so its content centres on that column, not on the viewport.
+    const column = await page.getByTestId("shell-footer-wrapper").boundingBox();
+    if (!column) throw new Error("FT-1: missing footer column");
+    const middle = column.x + column.width / 2;
     if (viewport.width >= 768) {
       await expect(brand).toBeVisible();
-      expect(Math.abs(group.x + group.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
+      expect(Math.abs(group.x + group.width / 2 - middle)).toBeLessThanOrEqual(2);
       expect(alignments).toHaveLength(3);
       for (const alignment of alignments) expect(["start", "left"]).toContain(alignment);
       const home = await brand.getByTestId("footer-home").boundingBox();
@@ -634,7 +640,7 @@ test.describe("app shell", () => {
       return box.x + box.width / 2;
     });
     if (viewport.width >= 768) {
-      expect(Math.abs(copyrightCentre - viewport.width / 2)).toBeLessThanOrEqual(2);
+      expect(Math.abs(copyrightCentre - middle)).toBeLessThanOrEqual(2);
     } else {
       const contentCentre = await columns.evaluate((el) => {
         const box = el.getBoundingClientRect();
