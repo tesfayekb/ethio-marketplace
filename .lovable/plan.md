@@ -1,87 +1,165 @@
-# Turn J-1 plan — INC-1002 (unusable name-check answers) and INC-1000 (silent job refusals)
+# Turn R1 plan — the left menu redesign (DEC-288, D240, D241, D243, INC-988), with INC-1005 first
 
-Base dev 5dfe5234. Tier A. Plan only; nothing changed. Request sha256 339cca81…d12 (taken as given; step 0 of the build turn saves and proves it).
+Base: dev f66ca04c. Plan only; nothing changed. Request sha256 1d9e5091…080b (as given).
 
-## 1. Part A — INC-1002
+## CI first
 
-**Hypothesis: proven in part (sandbox parse, no provider call, no alias).** The committed `nameCheckOutput` was run against these answer shapes:
+- The last completed run is **b2940a61, FAILURE** (run 40974739742). The run on f66ca04c had not completed when I read it.
+- Reds on b2940a61:
+  - i18n used-on map and Component tests (ERRT-6): both fixed in the J-1 continue.
+  - One gating E2E failure: PW-30 on mobile-360, "no place was chosen" (post-wizard-place.spec.ts).
+  - Two flakes: PW-30, and PGH-E2 on desktop-1280 (a timeout). PGH-E2 ran before the switchLanguage fix.
+- What the build does first:
+  - If the f66ca04c run, or its repeat lane, shows PGH-E2 red, INC-715's rule ("a test never switches the language back") applies. PGH-E2 is reshaped into one switch per test.
+  - PW-30 is classified first (app defect or test) and fixed at its root, ahead of Part 0.
 
-```text
-{imitates:false, of:null}            -> REFUSED   (null is not string|undefined)
-{imitates:false, of:"", reason:"x"}  -> REFUSED   (.strict(): extra key)
-{imitates:false, of:""}              -> accepted
-{imitates:false}                     -> accepted
-{imitates:true, of:"Coca-Cola"}      -> accepted
-```
+## Part 0 — INC-1005: opening a menu moves the page
 
-The task's instruction asks for `{"imitates": boolean, "of": string}`. That pushes the model to fill `of` on a "false" answer, so `null` is a likely reply, and the task sends no `responseSchema` (tasks.ts :287–:310; gateway.ts :348 forwards `task.responseSchema`, which is undefined here). The gateway marks a non-JSON reply and a schema mismatch with the same `unusableAnswer` code (gateway.ts JSON.parse catch and `safeParse` branch). So the 42 rows alone cannot say which of the two happened. The `null` or extra-key cause is the most likely one and is not proven. The build turn makes it observable: the gateway's existing log line gets a content-free sub-reason `parse | shape` (never the text). The first production row after the fix confirms or refutes it.
+**Read so far (sandbox Chromium, /, 1280 px):**
+- When the language menu opens, `body` changes from `overflow: clip visible` to `hidden`, with no padding or margin added to make up for it. That is Radix's modal scroll lock (dropdown-menu-impl.tsx :9 uses the default modal=true).
+- The sandbox's scrollbar width was 0 there, because the page did not scroll. So the column did not move, and the hypothesis is **not yet proven**.
+- Build step 1: the same measurement on a scrolling page in a browser whose scrollbar takes width (Chromium with classic scrollbars). It records the column's box before, during and after. If the column moves by half the scrollbar's width, the hypothesis holds. If not, STOP and report what the measurement shows.
 
-**Mechanism (G0, extended, not a new one):** the task's `output` (zod) stays the single source. A helper `providerSchemaOf(output)` in `src/server/ai/response-schema.ts` derives the Gemini `responseSchema` (OBJECT/STRING/BOOLEAN/ARRAY, `required` = the non-optional keys, `nullable` never emitted). `defineTask` fills `responseSchema` for every `gemini-text` task whose `output` is a zod object, so the two cannot drift. The hand-written schemas of category_icon and photo_screen are replaced by the derived ones. The derived output must equal today's literal byte for byte, and a unit test asserts that, so their behaviour does not change.
+**Consumers (by definition, every overlay that locks scroll):**
 
-**Consumers:** every `gemini-text` task: name_check, category_icon, writing_helper, photo_screen. writing_helper's output uses `transform/pipe`. The helper reads the input side of the schema, and if any task's output cannot be derived, the build turn STOPs and names that task. It never falls back silently.
+| Overlay | Today |
+| --- | --- |
+| DropdownMenu (language, account, panel header, every menu but row actions) | moves the page |
+| RowActions (modal={false}) | does not |
+| Dialog, Sheet, AlertDialog (Radix modal) | moves the page |
+| Select, Popover (Radix) | moves the page where modal; verified per instance in the build |
+| Tooltip | does not lock |
+| Part 1's side panel | must not lock |
 
-**`of` and null:** yes. `of` becomes `z.string().trim().max(80).nullish().transform(v => v ?? undefined)`, so null is read as absent and the stored value keeps today's shape. The instruction changes to `"of": string, only when imitates is true`. `.strict()` stays: an extra key is still unusable, because the response schema now forbids it.
+**Mechanism (one, at the document):**
+- `html { scrollbar-gutter: stable; }` in src/styles.css. The standard is CSS Overflow Module Level 3, `scrollbar-gutter`.
+- The gutter is always reserved, so hiding the scrollbar never changes the layout width.
+- Each overlay keeps its own scroll behaviour:
+  - modal dialogs, sheets and alert dialogs still lock the page behind them;
+  - dropdown menus keep their lock as well. Only the shift is removed; their modality is not changed in this turn.
+- Where the lock library also adds a compensating margin, that margin would double the gutter. The build checks for this and neutralises it in the overlay facade (overlay-facade.tsx), not per consumer.
 
-**Cap (N = 5):** after 5 consecutive unusable answers for the same text, the name stops being asked and goes to staff:
-- `name_checks.state` gains `'needs_review'`. The CHECK is widened by a migration.
-- The catch-up job's pick (`state = 'unchecked'`) skips it.
-- Admin › Screening's queue lists it beside 'imitates', with its existing Clear action. `admin_name_check_clear` accepts 'needs_review'.
-- An owner's new name resets the row to 'unchecked' through the existing trigger path.
-- The seller line treats needs_review as under_review. That is the same rule as 'imitates' (INC-986): no auto-publish of an unproven name.
-- `name_check_mark` gets a new verdict `'unusable'`. It counts `unusable_streak`, a new column. At 5 it moves the row to 'needs_review'. A clean or imitates verdict resets the count. `'unavailable'` (provider down) does not count: an outage is not an unusable answer.
+**Guard:** CF-SHIFT-1, a census.
+- It fails if styles.css loses the gutter rule.
+- It fails if any overlay code adds its own scrollbar compensation, such as `padding-right` or `margin-right` from a lock.
+- It is proven on a planted copy of the stylesheet without the rule.
 
-The three stuck production aliases have attempts = 14, and those are not unusable streaks recorded under the new rule. They remain 'unchecked' and are asked again with the response schema. If they come back unusable 5 more times, they move to needs_review.
+**E2E:** OVS-1/OVS-2 (ids free), both projects.
+- They measure `main`'s box with the language menu and a dialog open and closed.
+- On mobile, the box must equal its closed value too; phones use overlay scrollbars, so this proves nothing regressed.
 
-**Guard:** `scripts/conformance/ai-response-schema.test.ts` (kit census). It fails when a `gemini-text` task with a JSON object output reaches the gateway without a `responseSchema`, or with one that differs from `providerSchemaOf(output)`. Proven on a planted task in `planted-proofs`. No allowlist lines are expected; wired.test.ts names its caller.
+## Part 1 — one sub-menu mechanism
 
-## 2. Part B — INC-1000
+**What exists:** D98's side-panel code is **not in the tree**. No hover-intent, safe-triangle or flyout code exists in src/. Bundle 21 turn 5 (2026-10-18) replaced it with sub-items in place (panels.md :112).
+- It exists only in git history, before that commit. The build reads it by line range and reuses its timings and logic where they still fit. It is not restored wholesale.
+- The build first confirms the commit holds it; I have not read that commit yet.
 
-**Reason lines (route; the client keeps DEC-285's one constant 401):** `verifyJobSignature` returns a typed result `{ok, ts} | {ok:false, reason: "secret_missing" | "bad_signature" | "stale"}` instead of `null`. `job_run_claim`'s `refused:` error is mapped to `replay`. The route logs exactly one line per refusal, `[job-refused] <job> <reason>`. It never logs a secret, signature, timestamp or header. The 401 body is unchanged. A unit test asserts that the line holds no input bytes.
+**Components (src/components/shell/submenu/):**
+- `SubmenuProvider` holds the open path (level 1, 2, 3), hover intent (150 ms to open, 300 ms to close) and the safe triangle.
+- `SubmenuTrigger` wraps a RailRow. It owns `aria-expanded`, `aria-controls`, the pointer and touch handlers, and the keys.
+- `SubmenuPanel`: a positioned panel beside its trigger at ≥ 768. On phones it is the split's right column.
+- `useSubmenuItems(node)` reads children from the seeded tree, or from the panel definitions, only.
+- API: `<SubmenuTrigger node href>` and `<SubmenuPanel level>`. CategoryNav and MenuNav both render through these, and RailRow stops building child lists.
 
-**Closing stale 'dispatched' rows (SQL, in `job_call`):** before it inserts the new 'dispatched' row, `job_call` closes the same job's older rows that are still 'dispatched', unclaimed and older than the claim window. It sets `outcome = 'lost'`, `reason = 'never_claimed'` and `finished_at = now()`. The outcome CHECK gains `'lost'`. The route cannot do this, because a refused call never reaches the database. Admin › Screening's health line reads it through `admin_job_health` → `job_health_core` (`last.outcome`). use-name-checks.ts :145/:160 add `lost` to the outcome set and the key `admin.screening.job.outcome.lost` (EN+AM from the brief, copied by key). The two 19:15Z/19:30Z rows close on the next run after the apply. The route cannot tell why a call was lost (refused or timed out) and does not record a reason it does not know. The refusal reason lives in the `[job-refused]` log line.
+**Desktop (≥ 768, fine pointer):**
+- Hover opens after 150 ms and closes 300 ms after the pointer leaves the row and panel.
+- The safe triangle runs from the pointer to the panel's near corners. While the pointer stays inside it, the close is delayed, so a diagonal move does not switch rows. It is computed from rects cached when the panel opens, with no reads in pointermove.
+- A click opens the page.
+- Alignment: the panel's first row is level with the trigger's top. The third level opens beside the second, aligned the same way.
+- Edge flip: if the panel would overflow at the inline end, it opens on the other side. If it is taller than the viewport, it is clamped and scrolls inside, with its scrollbar visible. It never clips.
+- RTL: sides are logical (start/end).
+- Keyboard (WAI-ARIA disclosure navigation): Enter or Space opens; Arrow Up/Down move within a level; Arrow Right (inline end) enters the panel, and Arrow Left returns; Escape closes the level and focus returns to its opener. Tab order follows the DOM.
 
-## 3. Migration: yes, one
+**Touch at ≥ 768 (coarse pointer):** a tap navigates and opens the panel; a tap outside closes it. Nothing relies on hover (C2).
 
-- `name_checks`: CHECK widened with `'needs_review'`; `unusable_streak int NOT NULL DEFAULT 0`.
-- `name_check_mark`: re-declared whole from the live definition, with the `'unusable'` verdict and the cap at 5. The catch-up pick and `admin_name_check_clear` are re-declared whole for 'needs_review'. The same goes for the queue reader and the seller line, if their bodies name states.
-- `job_runs` outcome CHECK gains `'lost'`; `job_call` is re-declared whole with the close-stale step.
-- Closers: REVOKE PUBLIC, anon · grants as today · read-back of definitions and ACLs · self-mark.
-- Proofs, scratch rows only, behaviour only:
-  - NCAP-1: 4 unusable → still unchecked; the 5th → needs_review.
-  - NCAP-2: unavailable does not count.
-  - NCAP-3: clean resets the streak.
-  - NCAP-4: the catch-up pick skips needs_review.
-  - NCAP-5: staff Clear works on needs_review.
-  - NCAP-6: a new name resets to unchecked with streak 0.
-  - JLOST-1: an old unclaimed dispatched row becomes 'lost'.
-  - JLOST-2: a fresh dispatched row and a claimed row are untouched.
-  - JLOST-3: another job's row is untouched.
-- Rows typed through server code: the gateway wiring maps `unusableAnswer` to the `'unusable'` verdict in the name-check job.
+**Folded rail (64 px, ≥ 768):** today an icon is a link to its category; I did not find a hover behaviour in the code.
+- Under DEC-288: hovering an icon opens the same side panel, its header being the item's name. A click or tap opens the page and the panel.
+- This is the reading the request expects. The build confirms it against app-rail.tsx's folded branch before any change.
 
-## 4. Tests (ids grep-checked free on 5dfe5234: 0 hits each)
+**Phones (< 768):**
+- The open menu stays 256 px wide. When a parent opens, the main column narrows to 64 px and shows icons only, each with its accessible name. The open icon is highlighted.
+- The sub-items take 192 px, headed by the opened item's name (D241). Names wrap and are never cut.
+- The transition moves only transform and opacity. Under `prefers-reduced-motion` it is instant.
+- A column with more than 16 items scrolls with its scrollbar visible: `scrollbar-none` is removed at :955 and :1023 for those lists only. Rows stay full size, at least 44 px.
+- The peek (D243; :838–:905) is not touched. It opens the main list as today, and a test asserts its timings are unchanged.
 
-- Unit:
-  - AIRS-1…4: helper derivation; equality with today's two literal schemas; name_check gets one; null `of` reads as absent.
-  - JRF-1…5: each refusal reason and its single line; no value leaks; the 401 body is constant.
-  - JRL-1: `lost` renders on the health line.
-- Conformance: the ai-response-schema census, plus its planted proof.
-- Migration proofs: NCAP-1…6, JLOST-1…3 (grep-checked free before writing).
-- E2E: none is added. The queue's needs_review row is covered by the existing admin-screening spec only if the brief adds it to scope. That spec would run through `bun run e2e:local`.
+**Row heights (INC-988):**
+- At ≥ 768 the rail's list is a flex column. Rows use `flex: 1 1 0` with a minimum of 36 px and a maximum of 48 px (ESTIMATE, per DEC-288). They spread to fill the height and, when they cannot fit, the list scrolls with its scrollbar visible.
+- `min-h-8 max-h-10` and the compact squeeze go everywhere they occur: lines :279, :292, :316, :322, :364, :391, :429, :468, :498, :589, :634.
+- On phones rows stay at least 44 px.
 
-## 5. Conflicts
+**First paint (DEC-295):** the rail's rows still draw from the seed. The panels draw only on intent, from the same tree, with no new request.
 
-- `.strict()` and the "null as absent" reading: none. The transform keeps the stored shape.
-- K4/D2: the new key ships EN+AM from the brief's strings. I write no Amharic of my own, so the brief must carry the text.
-- Platform: none. The migration goes through the migration tool, applied only when told.
-- One open choice for the supervisor: N = 5, and 'needs_review' as a new state rather than reusing 'imitates'. Reusing 'imitates' would falsely accuse a seller, so a new state is proposed.
+## Consumers and tests
 
-## 6. K2
+| Consumer | Verdict |
+| --- | --- |
+| Marketplace tree (15 roots, depth 3, ≤ 21 children) | changes: through the mechanism |
+| Admin groups | changes: panel instead of indentation (D240) |
+| Account and seller panels | changes where they have sub-items; otherwise unchanged |
+| Folded 64 px rail | changes: hover/tap panel |
+| Phone strip | unchanged (no sub-items; links only) |
+| Favourite row (D207) | unchanged, stays above the list |
+| ‹ Main menu row | removed where the panel replaces in-place drilling. A STOP for a ruling if any panel still needs it. |
+| Peek (D243) | unchanged |
+| First-paint seed | unchanged, proven by rail-first-paint |
 
-- writing_helper and every future `gemini-text` task are brought under the census, not left as siblings.
-- Other providers (`gemini-image`, `photoroom-segment`, `google-translate`) answer binary or text, not JSON, so they are out of scope and named.
-- Other signed job routes: only `jobs.$job.ts` exists, so there is no other refusal site.
-- `job_health_core` already flags `dispatched_unclaimed`. It stays, and becomes rarer once rows close.
+| Test | Verdict and why |
+| --- | --- |
+| e2e/category-nav.spec.ts | changes: the in-place assertions become panel and split assertions; same rows, same links |
+| e2e/helpers/category-menu.ts | changes: opening a level means hover or tap through the trigger |
+| shell.spec.ts | changes: rail-level and ‹ Main menu tests; others unchanged |
+| admin-shell.spec.ts | changes: groups open in a panel |
+| phone-frame.spec.ts | changes: the 64/192 split widths |
+| rail-first-paint.spec.ts | unchanged; must stay green |
+| overlays.spec.ts | unchanged, plus the OVS cases |
+| helpers/ui.ts | changes only if a rail helper drills in place |
 
-## 7. Sizing
+No assertion is loosened (G38). Each replaced assertion names the rule it now proves.
 
-One turn fits: one migration, about 8 source files, 2 test files, 1 census. ESTIMATE: about 6 h, band M (4–9 h). The risk is writing_helper's derivation. If it cannot be derived, the turn STOPs.
+**New tests (ids grep-checked free at build time; proposed SMN-*, SMN-E*, OVS-*, CF-SUB-1):**
+- Unit: hover intent timings; the safe triangle keeping a row open; keyboard order and Escape focus return; the edge flip and clamp; reduced motion.
+- E2E, both projects:
+  - the side panel's first row level with its trigger (within 1 px);
+  - the third level;
+  - the touch tap opening page and panel;
+  - the phone split, with icons only and their names;
+  - a visible scroll over 16 items;
+  - the peek unchanged;
+  - admin groups through the same mechanism.
+- Guard CF-SUB-1: a census that fails when a panel renders a nested child `<ul>` under a RailRow (an in-place indented list) instead of SubmenuPanel. It is proven on a planted copy of today's RailRow shape.
+
+## First-download cost
+
+- The mechanism adds about 2–3 KiB gzip of code on every page (ESTIMATE, band ±50%), plus the gutter rule (bytes).
+- To stay inside the G60 tolerance:
+  - the safe triangle, the panel and the phone split load on demand through `loadOnce` on first intent;
+  - only the triggers' attributes are on the first paint.
+- The build measures every page against the base and STOPs if any page grows more than 0.5 KiB.
+
+## Conflicts
+
+- **C2 (nothing relies on hover):** met. Click, tap and keys open every level; hover is an extra.
+- **C1 (360 first):** the split is designed at 360 first.
+- **C5 (RTL):** logical sides and flip.
+- **Knowledge (docs/features/panels.md :112, D213):** "in place at every width" is superseded by DEC-288. The doc and changelog are updated in the turn.
+- **AGENTS.md "one ☰ per width":** kept.
+- **The safe triangle's pointermove:** within I3, since it reads rects cached once and never what it mutates.
+- **The platform:** no conflict found.
+
+## K2
+
+- `scrollbar-none` on other lists: styles.css :29–:34 names its users. The ones that are not menus are reported, not changed.
+- Per-instance `modal` choices on Select and Popover.
+- Hard-coded row heights outside app-rail.tsx, which the build lists by grep.
+
+## Sizing (ordered turns)
+
+| Turn | Scope | Estimate |
+| --- | --- | --- |
+| R1a | CI reds, Part 0 (gutter, guard, OVS) | S, 1 turn |
+| R1b | Mechanism, unit tests, CF-SUB-1, row heights, measurement | L, 1–2 turns |
+| R1c | Marketplace tree and folded rail on it; category-nav changes | M, 1 turn |
+| R1d | Admin groups, account and seller panels, phone split and visible scroll; remaining tests | M–L, 1–2 turns |
+
+Total: 4–6 turns (band ±1).
