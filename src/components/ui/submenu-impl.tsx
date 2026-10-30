@@ -196,9 +196,8 @@ function Panel({
 
   useEffect(() => {
     if (!place || !opener.focus) return;
-    const row = rowsOf(own.current)[0];
-    row?.focus();
-    console.info("[smn-dbg]", row?.getClientRects().length, getComputedStyle(own.current as Element).visibility, getComputedStyle(own.current as Element).opacity, document.activeElement === row);
+    // Before placement the panel is transparent, never hidden: a hidden row cannot take focus.
+    rowsOf(own.current)[0]?.focus();
   }, [place, opener]);
 
   const rows = () =>
