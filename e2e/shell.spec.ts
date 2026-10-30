@@ -3741,15 +3741,72 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       await expect(page).toHaveURL(new RegExp(`/c/${l}$`));
       await expect(menu).toBeHidden({ timeout: 2000 });
       await expect(page.getByTestId(`strip-category-${r}`)).toHaveAttribute("aria-current", "true");
+      // D246 (R1c; replaces "reopens at the main list", G38): the menu reopens at the
+      // leaf's level, the leaf marked and in view; back moves up without navigating.
       const reopened = await openRailScope(page);
-      await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
-      await reopened.getByTestId(`rail-category-${r}`).click();
-      await expect(page).toHaveURL(new RegExp(`/c/${r}$`));
+      await expect(reopened.getByTestId("rail-menu-back")).toHaveText(r);
+      const leaf = reopened.getByTestId(`rail-category-${l}`);
+      await expect(leaf).toHaveAttribute("aria-current", "page");
+      await expect(leaf).toBeInViewport();
       const url = page.url();
+      await reopened.getByTestId("rail-menu-back").click();
+      await expect(reopened.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
       await reopened.getByTestId("rail-menu-back").click();
       await expect(reopened.getByTestId("rail-menu-back")).toHaveCount(0);
       await expect(reopened.getByTestId(`rail-category-${r}`)).toBeVisible();
       await expect(page).toHaveURL(url);
+    } finally {
+      await reapBranch({ r, b, l });
+    }
+  });
+
+  test("SC-6 the phone menu opens at the current page's level; the peek shows the same (D246)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "mobile-360");
+    const { r, b, l } = await seedBranch();
+    try {
+      await gotoReady(page, `/c/${l}`);
+      const menu = await openRailScope(page);
+      await expect(menu.getByTestId("rail-menu-back")).toHaveText(r);
+      const leaf = menu.getByTestId(`rail-category-${l}`);
+      await expect(leaf).toHaveAttribute("aria-current", "page");
+      await expect(leaf).toBeInViewport();
+      await expect(menu.getByTestId(`rail-category-${b}`)).toBeVisible();
+      const url = page.url();
+      await menu.getByTestId("rail-menu-back").click();
+      await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+      await expect(page).toHaveURL(url);
+      // The D243 peek on a reload takes the same opening path, so the same level.
+      await page.keyboard.press("Escape");
+      await expect(page.getByTestId("rail-menu")).toBeHidden();
+      await watchPeek(page);
+      await page.reload();
+      await waitForHydration(page);
+      await expect(page.getByTestId("rail-menu").getByTestId("rail-menu-back")).toHaveText(r, {
+        timeout: 3000,
+      });
+    } finally {
+      await reapBranch({ r, b, l });
+    }
+  });
+
+  test("SC-7 on a leaf's page the opened panels mark the leaf and its ancestor (D246)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280");
+    const { r, b, l } = await seedBranch();
+    try {
+      await gotoReady(page, `/c/${l}`);
+      const rail = await openRailScope(page);
+      const opener = rail.getByTestId(`rail-category-${r}`);
+      await expect(opener).toHaveAttribute("aria-current", "true");
+      await opener.scrollIntoViewIfNeeded();
+      await opener.hover();
+      const branch = page.getByTestId("submenu-panel").getByTestId(`rail-category-${b}`);
+      await expect(branch).toHaveAttribute("aria-current", "true");
+      await branch.hover();
+      await expect(page.getByTestId(`rail-category-${l}`)).toHaveAttribute("aria-current", "page");
     } finally {
       await reapBranch({ r, b, l });
     }
