@@ -20,8 +20,20 @@ import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { useShell } from "@/components/shell-context";
 
-const ICON_BUTTON =
-  "inline-flex min-h-11 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+/**
+ * Sage §1 (turn SAGE-S1) — ONE CONTROL LOOK for the top bar's controls (the language and
+ * theme controls, the phone search button, the account trigger): the card surface, a
+ * hairline edge, the control lift, 12 px corners. 44 px for a coarse pointer (C2); 36 px
+ * for a fine one.
+ */
+const CONTROL_LOOK =
+  "min-h-11 pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const ICON_BUTTON = `inline-flex w-9 shrink-0 items-center justify-center ${CONTROL_LOOK}`;
+/** Sage §1 — the search pill: the field fill and its pressed-in lift, no border. */
+const SEARCH_FIELD =
+  "min-h-11 w-full rounded-full bg-field shadow-field ps-10 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const SEARCH_ICON =
+  "pointer-events-none absolute start-3.5 top-1/2 size-4.5 -translate-y-1/2 text-leaf-ink";
 
 /**
  * Search field. On mobile it is NOT squeezed into the bar: the icon opens a
@@ -48,10 +60,7 @@ export function SearchRow({ onClose }: { onClose: () => void }) {
     >
       <label className="relative block">
         <span className="sr-only">{t("shell.searchLabel")}</span>
-        <Search
-          aria-hidden="true"
-          className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-        />
+        <Search aria-hidden="true" strokeWidth={2.25} className={SEARCH_ICON} />
         <input
           ref={inputRef}
           type="search"
@@ -60,7 +69,7 @@ export function SearchRow({ onClose }: { onClose: () => void }) {
           onKeyDown={(event) => {
             if (event.key === "Escape") onClose();
           }}
-          className="min-h-11 w-full rounded-md border border-input bg-background ps-9 pe-10 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={cn(SEARCH_FIELD, "pe-10 text-sm")}
         />
         <button
           type="button"
@@ -163,15 +172,12 @@ export function AppHeader() {
         >
           <label className="relative block">
             <span className="sr-only">{t("shell.searchLabel")}</span>
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-            />
+            <Search aria-hidden="true" strokeWidth={2.25} className={SEARCH_ICON} />
             <input
               type="search"
               data-testid="search-inline-input"
               placeholder={t("shell.searchPlaceholder")}
-              className="min-h-11 w-full rounded-md border border-input bg-background ps-9 pe-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={cn(SEARCH_FIELD, "pe-3 text-[15px]")}
             />
           </label>
         </form>
@@ -200,8 +206,8 @@ export function AppHeader() {
           >
             <Search className="h-4 w-4" aria-hidden="true" />
           </button>
-          <LanguageSwitcher />
-          <ThemeToggle />
+          <LanguageSwitcher className={CONTROL_LOOK} />
+          <ThemeToggle className={ICON_BUTTON} />
           {/*
             INC-667 — WHILE THE SESSION IS READ, NOTHING: never the signed-out
             "Sign in" flashing for a session the tab holds (the bottom bar's rule,
@@ -218,7 +224,7 @@ export function AppHeader() {
                   type="button"
                   aria-label={t("shell.accountMenu")}
                   data-testid="account-menu"
-                  className="inline-flex min-h-11 min-w-0 shrink-0 items-center gap-2 rounded-md px-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className={cn("inline-flex min-w-0 shrink-0 items-center gap-2 px-1.5 text-sm", CONTROL_LOOK)}
                 >
                   <Avatar className="h-7 w-7">
                     <AvatarFallback>
@@ -260,7 +266,7 @@ export function AppHeader() {
           ) : authLoading ? null : (
             <Link
               to="/auth"
-              className="hidden min-h-11 shrink-0 items-center rounded-md bg-primary px-2 md:inline-flex text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
+              className="hidden min-h-11 shrink-0 items-center rounded-md bg-primary px-2 md:inline-flex text-sm font-semibold text-primary-foreground shadow-button hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:px-4"
             >
               {t("auth.signIn")}
             </Link>
