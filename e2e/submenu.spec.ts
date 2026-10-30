@@ -1,10 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { scratchSlug } from "./helpers/categories";
 import { catalogueRows } from "./helpers/category-menu";
-import { destroyCategoryBranch } from "./helpers/posting";
+import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
 import { gotoReady, openRailScope } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
 
 /**
  * SMN-E1, SMN-E2 (SMN-E3, the touch context, is submenu-touch.spec.ts) (DEC-288, turn R1b) — the marketplace tree on the sub-menu mechanism,
@@ -76,42 +74,8 @@ test.describe("DEC-288 side panel, fine pointer", () => {
 test.describe("D244 every panel on screen", () => {
   const CHILDREN = 14;
 
-  async function seedTallBranch() {
-    const supabase = adminClient();
-    const base = scratchSlug();
-    const root = `${base}-r`;
-    const kids = Array.from({ length: CHILDREN }, (_, index) => `${base}-k${index + 1}`);
-    const { data: rows, error } = await supabase
-      .from("categories")
-      .insert(
-        [root, ...kids].map((slug) => ({
-          slug,
-          name_en: slug,
-          is_active: true,
-          allow_listings: true,
-        })),
-      )
-      .select("id, slug");
-    if (error || !rows) throw new Error(`[e2e:smn-e4] seeding failed: ${error?.message}`);
-    const id = (slug: string) => {
-      const row = rows.find((candidate) => candidate.slug === slug);
-      if (!row) throw new Error(`[e2e:smn-e4] ${slug} was not inserted`);
-      return row.id as string;
-    };
-    const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
-      { parent_id: null, child_id: id(root), display_order: 2_009_400 },
-      ...kids.map((slug, index) => ({
-        parent_id: id(root),
-        child_id: id(slug),
-        display_order: index + 1,
-      })),
-    ]);
-    if (pointerError) throw new Error(`[e2e:smn-e4] linking failed: ${pointerError.message}`);
-    return { root, kids };
-  }
-
   async function everyRowOnScreen(page: Page, label: string) {
-    const panel = page.getByTestId("submenu-panel").first();
+    const panel = page.getByTestId("submenu-panel");
     await expect(panel).toBeVisible();
     const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(CHILDREN);
@@ -132,7 +96,7 @@ test.describe("D244 every panel on screen", () => {
       page,
     }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-      const branch = await seedTallBranch();
+      const branch = await seedScratchBranch(CHILDREN, "smn-e4");
       try {
         await page.setViewportSize({ width, height: 600 });
         await gotoReady(page, "/");

@@ -1,6 +1,7 @@
 import { expect, type Page, type Response } from "@playwright/test";
 
 import { inBrowserClient } from "./browser-client";
+import { scratchSlug } from "./categories";
 import { adminClient, leaseUser, type TestUser } from "./users";
 
 /**
@@ -403,6 +404,45 @@ export async function seedCategoryBranch(
   }
 
   return { parent, leaf };
+}
+
+/**
+ * A SCRATCH root, last in the rail, with `children` active subcategories (J1, J3: real
+ * rows are read only). Shared by SMN-E4, ROWS-E1 and ROWS-E3 (D244, D247; Foundations
+ * turn R1c); the caller removes it with `destroyCategoryBranch([...kids, root])`.
+ */
+export async function seedScratchBranch(children: number, tag: string) {
+  const supabase = adminClient();
+  const base = scratchSlug();
+  const root = `${base}-r`;
+  const kids = Array.from({ length: children }, (_, index) => `${base}-k${index + 1}`);
+  const { data: rows, error } = await supabase
+    .from("categories")
+    .insert(
+      [root, ...kids].map((slug) => ({
+        slug,
+        name_en: slug,
+        is_active: true,
+        allow_listings: true,
+      })),
+    )
+    .select("id, slug");
+  if (error || !rows) throw new Error(`[e2e:${tag}] seeding failed: ${error?.message}`);
+  const id = (slug: string) => {
+    const row = rows.find((candidate) => candidate.slug === slug);
+    if (!row) throw new Error(`[e2e:${tag}] ${slug} was not inserted`);
+    return row.id as string;
+  };
+  const { error: pointerError } = await supabase.from("category_tree_pointers").insert([
+    { parent_id: null, child_id: id(root), display_order: 2_009_400 },
+    ...kids.map((slug, index) => ({
+      parent_id: id(root),
+      child_id: id(slug),
+      display_order: index + 1,
+    })),
+  ]);
+  if (pointerError) throw new Error(`[e2e:${tag}] linking failed: ${pointerError.message}`);
+  return { root, kids };
 }
 
 /** Pointers first, then the rows — a branch never leaves an orphan edge (J3). */
