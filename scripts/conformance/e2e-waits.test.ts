@@ -132,8 +132,8 @@ describe("CF-E2E-WAIT-1 and CF-E2E-PLACE-1", () => {
     ]);
     expect(planted.map((f) => `${f.file}:${f.line}`)).toEqual([
       "e2e/planted-menu.spec.ts:2",
-      "e2e/planted-walk.spec.ts:5",
       "e2e/planted-walk.spec.ts:3",
+      "e2e/planted-walk.spec.ts:5",
     ]);
   });
 });
