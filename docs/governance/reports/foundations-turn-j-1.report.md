@@ -76,11 +76,11 @@ CI on this turn's last commit is the judge of both.
 
 ## 8. Unit count
 
-2,263 tests in 379 files at the last full checks run, before the ERRT-6 fix. That run had one failure, ERRT-6, caused by my new census. It now passes through errorText.
+2,263 of 2,263 tests in 379 files.
 
 ## 9. Checks
 
-CHECKS_LINE
+`checks: 34 PASS · 0 FAIL · 21 NOT RUN · 1306s`. The 21 NOT RUN steps are install steps, steps that need a backend or a browser, GitHub-only uploads and the promote steps. An earlier run that showed ERRT-6 red was rerun whole on the fixed tree.
 
 ## 10. K2
 
@@ -90,4 +90,39 @@ CHECKS_LINE
 
 ## 11. Files
 
-FILES_LIST
+`git diff --name-only 9a262ea3`:
+
+- docs/_changelog.md
+- docs/features/ai-gateway.md
+- docs/features/hidden-seller-name.md
+- docs/features/scheduled-jobs.md
+- docs/generated/i18n-usage.json
+- docs/governance/briefs/foundations-turn-j-1-continue.md
+- docs/governance/briefs/foundations-turn-j-1.md
+- docs/governance/reports/foundations-turn-j-1.report.md
+- docs/governance/reports/foundations-turn-j-1.stop-1.md
+- e2e/helpers/seller-name.ts
+- e2e/helpers/ui.ts
+- e2e/legal-history.spec.ts
+- e2e/legal-pages.spec.ts
+- e2e/name-check-queue.spec.ts
+- public/i18n-usage.json
+- roadmap.md
+- scripts/conformance/ai-response-schema.test.ts
+- scripts/route-budgets.mjs
+- src/features/admin-screening/name-checks.tsx
+- src/features/admin-screening/use-name-checks.test.ts
+- src/features/admin-screening/use-name-checks.ts
+- src/i18n/locales/am-admin.ts
+- src/i18n/locales/en-admin.ts
+- src/integrations/supabase/types.ts
+- src/routes/api/public/jobs.test.ts
+- src/server/ai/gateway.ts
+- src/server/ai/response-schema.test.ts
+- src/server/ai/response-schema.ts
+- src/server/ai/tasks.ts
+- src/server/jobs/name-check-catchup.ts
+- src/server/jobs/route.ts
+- src/server/jobs/signature.ts
+- supabase/migrations/20261029233828_4aaa2474-7352-440f-8e24-935179180f55.sql
+- docs/governance/reports/foundations-turn-j-1.report.md
