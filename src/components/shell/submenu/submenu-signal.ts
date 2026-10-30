@@ -68,6 +68,9 @@ function signal(next: SubmenuSignal): void {
   });
 }
 
+/** What the on-demand layer is handed (one stable object). */
+export const SUBMENU_SIGNALS = { take: takeSubmenuSignals, setOpen: setSubmenuOpen };
+
 /** The trigger's attributes and signals; `open` comes from `submenuOpen`. */
 export function submenuTriggerProps(key: string, open: boolean) {
   const at = (type: SubmenuSignal["type"]) => (event: PointerEvent<HTMLElement>) =>

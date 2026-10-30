@@ -10,11 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import {
-  setSubmenuOpen,
-  takeSubmenuSignals,
-  type SubmenuSignal,
-} from "@/components/shell/submenu/submenu-signal";
+import type { SubmenuSignal } from "@/components/shell/submenu/submenu-signal";
 import { cn } from "@/lib/utils";
 
 import {
@@ -338,18 +334,25 @@ export function SubmenuLayer({
   itemsOf,
   edgeOf,
   showHeader,
+  signals,
 }: {
   itemsOf: (key: string) => SubmenuLevel | null;
   edgeOf: (opener: HTMLElement) => Element;
   showHeader: boolean;
+  /** The first-paint half (submenu-signal.ts), handed in so this chunk imports none of it. */
+  signals: {
+    take: (handler: ((signal: SubmenuSignal) => void) | null) => void;
+    setOpen: (key: string | null) => void;
+  };
 }) {
-  const intent = useIntent(setSubmenuOpen);
+  const intent = useIntent(signals.setOpen);
   const coarse = useRef(false);
   const ref = useRef(intent);
   ref.current = intent;
 
   useEffect(() => {
-    takeSubmenuSignals((signal: SubmenuSignal) => {
+    const { take, setOpen } = signals;
+    take((signal: SubmenuSignal) => {
       const it = ref.current;
       const mouse = signal.pointer === "mouse";
       switch (signal.type) {
@@ -377,10 +380,10 @@ export function SubmenuLayer({
       }
     });
     return () => {
-      takeSubmenuSignals(null);
-      setSubmenuOpen(null);
+      take(null);
+      setOpen(null);
     };
-  }, []);
+  }, [signals]);
 
   const opened = intent.opened;
   useEffect(() => {

@@ -18,7 +18,11 @@ import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
-import { submenuOpen, submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
+import {
+  SUBMENU_SIGNALS,
+  submenuOpen,
+  submenuTriggerProps,
+} from "@/components/shell/submenu/submenu-signal";
 import { useOverlays } from "@/components/ui/overlay-facade";
 
 import { Button } from "@/components/ui/button";

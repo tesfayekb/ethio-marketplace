@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
+import { SUBMENU_SIGNALS, submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
 
 import {
   PANEL_INSET,
@@ -68,6 +68,7 @@ function Harness() {
         itemsOf={(key) => LEVELS[key] ?? null}
         edgeOf={(el) => el.closest("aside") ?? el}
         showHeader={false}
+        signals={SUBMENU_SIGNALS}
       />
     </aside>
   );
