@@ -246,7 +246,7 @@ test.describe("D248 a side panel is the main menu", () => {
         Math.abs(row - grid.height),
         "SMN-E13 a panel row equals a rail row",
       ).toBeLessThanOrEqual(1);
-    for (const top of state.tops.slice(0, grid.tops.length))
+    for (const top of state.tops.slice(0, Math.round((grid.last - grid.first) / grid.height)))
       expect(
         Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
         "SMN-E13 each shown row is level with a rail row",
