@@ -45,6 +45,19 @@ describe("THEMES", () => {
     expect(Object.fromEntries(sheet)).toEqual(THEMES.sage[mode]);
   });
 
+  it("TH-4 the retired selected tint is absent and rejected", () => {
+    for (const mode of ["light", "dark"] as const) {
+      expect(Object.hasOwn(THEMES.sage[mode], "nav-active")).toBe(false);
+      expect(block(mode === "light" ? ":root" : ".dark").has("nav-active")).toBe(false);
+    }
+    expect(
+      ThemeSet.safeParse({
+        ...THEMES.sage,
+        light: { ...THEMES.sage.light, "nav-active": "var(--primary)" },
+      }).success,
+    ).toBe(false);
+  });
+
   it("TH-3 the shape refuses raw CSS, an unknown token and a missing one", () => {
     const light = { ...THEMES.sage.light };
     for (const set of Object.values(THEMES)) expect(ThemeSet.safeParse(set).success).toBe(true);

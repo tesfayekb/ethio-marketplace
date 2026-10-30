@@ -41,7 +41,9 @@
 @utility band-drop {
   box-shadow: var(--lift-subband);
 }
-[data-testid="shell-subband"]:has(+ [data-testid="shell-location-band"]):not([data-location-covered]),
+[data-testid="shell-subband"]:has(+ [data-testid="shell-location-band"]):not(
+    [data-location-covered]
+  ),
 [data-testid="shell-location-band"][data-location-covered] {
   box-shadow: none;
 }

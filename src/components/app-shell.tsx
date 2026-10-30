@@ -159,35 +159,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const subbandRef = useRef<HTMLDivElement>(null);
   const locationBandRef = useRef<HTMLDivElement>(null);
-  // D261: one stuck-state reader transfers the drop, never a per-row observer.
-  useEffect(() => {
-    const sticky = subbandRef.current;
-    const location = locationBandRef.current;
-    if (!sticky || !location) return;
-    let observer: IntersectionObserver | undefined;
-    const observe = () => {
-      observer?.disconnect();
-      const edge = parseFloat(getComputedStyle(sticky).top) + sticky.offsetHeight;
-      observer = new IntersectionObserver(
-        ([entry]) => {
-          if (!entry) return;
-          const covered = entry.boundingClientRect.bottom <= edge;
-          sticky.toggleAttribute("data-location-covered", covered);
-          location.toggleAttribute("data-location-covered", covered);
-        },
-        { rootMargin: `-${edge}px 0px 0px 0px`, threshold: 0 },
-      );
-      observer.observe(location);
-    };
-    const resize = new ResizeObserver(observe);
-    resize.observe(sticky);
-    observe();
-    return () => {
-      resize.disconnect();
-      observer?.disconnect();
-      sticky.removeAttribute("data-location-covered");
-    };
-  }, [isFeedRoute, panelChoice, searchOpen]);
   const [noticeNode, setNoticeNode] = useState<LocationNode | null>(null);
   const [keptPlace, setKeptPlace] = useState<string | null>(null);
 
@@ -619,6 +590,35 @@ export function AppShell({ children }: { children: ReactNode }) {
   const feedInputsReady =
     (selectedCategorySlug === null || !categoriesLoading) && !marketsLoading && areaSettled;
   const activePanel: PanelId = routePanel ?? panelChoice;
+  // D261: one stuck-state reader transfers the drop, never a per-row observer.
+  useEffect(() => {
+    const sticky = subbandRef.current;
+    const location = locationBandRef.current;
+    if (!sticky || !location) return;
+    let observer: IntersectionObserver | undefined;
+    const observe = () => {
+      observer?.disconnect();
+      const edge = parseFloat(getComputedStyle(sticky).top) + sticky.offsetHeight;
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (!entry) return;
+          const covered = entry.boundingClientRect.bottom <= edge;
+          sticky.toggleAttribute("data-location-covered", covered);
+          location.toggleAttribute("data-location-covered", covered);
+        },
+        { rootMargin: `-${edge}px 0px 0px 0px`, threshold: 0 },
+      );
+      observer.observe(location);
+    };
+    const resize = new ResizeObserver(observe);
+    resize.observe(sticky);
+    observe();
+    return () => {
+      resize.disconnect();
+      observer?.disconnect();
+      sticky.removeAttribute("data-location-covered");
+    };
+  }, [isFeedRoute, activePanel, searchOpen]);
 
   /** Choosing a panel from a route-owned page returns to the feed shell. */
   const setActivePanel = useCallback(
@@ -1095,7 +1095,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               page such as /settings (INC-058). */}
             {isFeedRoute && activePanel === "marketplace" ? (
               <>
-                <div ref={locationBandRef} data-testid="shell-location-band" className={BAND_LOOK.stack}>
+                <div
+                  ref={locationBandRef}
+                  data-testid="shell-location-band"
+                  className={BAND_LOOK.stack}
+                >
                   <LocationSelector />
                 </div>
                 <PlaceNotice />
