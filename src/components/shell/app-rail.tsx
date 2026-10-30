@@ -18,11 +18,7 @@ import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
-import {
-  SUBMENU_SIGNALS,
-  submenuOpen,
-  submenuTriggerProps,
-} from "@/components/shell/submenu/submenu-signal";
+import { SUBMENU_SIGNALS, submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
 import { useOverlays } from "@/components/ui/overlay-facade";
 
 import { Button } from "@/components/ui/button";
@@ -113,10 +109,8 @@ export function useFavouriteCategory(): {
  */
 const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 /** DEC-288 item 7 — a phone row: 32–40 px with a fine pointer, at least 44 px with a coarse one (C2). */
-const COMPACT_ROW =
-  "flex min-h-8 max-h-10 pointer-coarse:min-h-11 pointer-coarse:max-h-none flex-1 flex-col";
-const COMPACT_HEAD =
-  "h-8 min-h-8 max-h-10 pointer-coarse:h-auto pointer-coarse:min-h-11 pointer-coarse:max-h-none flex-1";
+const COMPACT_ROW = "rail-row flex min-h-8 max-h-10 flex-1 flex-col";
+const COMPACT_HEAD = "rail-row h-8 min-h-8 max-h-10 flex-1";
 
 const ITEM_CORE =
   "flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
@@ -256,10 +250,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     () => hasChildren && (containsActive(node) || Boolean(node.defaultOpen)),
   );
 
-  const submenuKey = useSyncExternalStore(submenuOpen.subscribe, submenuOpen.get, () => null);
-  const trigger = node.submenu
-    ? submenuTriggerProps(node.submenu, submenuKey === node.submenu)
-    : undefined;
+  const trigger = node.submenu ? submenuTriggerProps(node.submenu) : undefined;
 
   const Icon = node.icon;
   const inner = (

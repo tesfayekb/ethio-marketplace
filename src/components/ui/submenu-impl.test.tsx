@@ -65,7 +65,7 @@ const LEVELS: Record<string, SubmenuLevel> = {
 function Harness() {
   return (
     <aside>
-      <button type="button" data-testid="opener" {...submenuTriggerProps("vehicles", false)}>
+      <button type="button" data-testid="opener" {...submenuTriggerProps("vehicles")}>
         Vehicles
       </button>
       <SubmenuLayer

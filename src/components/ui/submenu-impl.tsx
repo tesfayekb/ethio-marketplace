@@ -342,15 +342,14 @@ export function SubmenuLayer({
   /** The first-paint half (submenu-signal.ts), handed in so this chunk imports none of it. */
   signals: {
     take: (handler: ((signal: SubmenuSignal) => void) | null) => void;
-    setOpen: (key: string | null) => void;
   };
 }) {
-  const intent = useIntent(signals.setOpen);
+  const intent = useIntent();
   const ref = useRef(intent);
   ref.current = intent;
 
   useEffect(() => {
-    const { take, setOpen } = signals;
+    const { take } = signals;
     take((signal: SubmenuSignal) => {
       const it = ref.current;
       const mouse = signal.pointer === "mouse";
@@ -375,15 +374,15 @@ export function SubmenuLayer({
         }
       }
     });
-    return () => {
-      take(null);
-      setOpen(null);
-    };
+    return () => take(null);
   }, [signals]);
 
   const opened = intent.opened;
   useEffect(() => {
     if (!opened) return;
+    // The opener is drawn closed (submenu-signal.ts); the open state is written here.
+    opened.el.setAttribute("aria-expanded", "true");
+    opened.el.setAttribute("aria-controls", `submenu-${opened.key}`);
     const outside = (event: PointerEvent) => {
       const target = event.target as Node | null;
       if (!target) return;
@@ -399,6 +398,8 @@ export function SubmenuLayer({
     document.addEventListener("pointerdown", outside, true);
     document.addEventListener("keydown", escape);
     return () => {
+      opened.el.setAttribute("aria-expanded", "false");
+      opened.el.removeAttribute("aria-controls");
       document.removeEventListener("pointerdown", outside, true);
       document.removeEventListener("keydown", escape);
     };

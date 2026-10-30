@@ -370,6 +370,15 @@
     margin-right: 0 !important;
   }
 
+  /* DEC-288 item 7 — with a coarse pointer a phone row is at least 44 px (C2). */
+  @media (pointer: coarse) {
+    .rail-row {
+      height: auto;
+      min-height: 2.75rem;
+      max-height: none;
+    }
+  }
+
   /* DEC-288 item 7 — from 768 px with a fine pointer the marketplace rail's rows spread
      between 36 and 48 px (the list grows; a separator line keeps its own height). */
   @media (min-width: 768px) and (pointer: fine) {

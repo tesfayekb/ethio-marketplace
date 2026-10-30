@@ -27,9 +27,6 @@ type Handler = (signal: SubmenuSignal) => void;
 
 let handler: Handler | null = null;
 let pending: SubmenuSignal | null = null;
-let openKey: string | null = null;
-const listeners = new Set<() => void>();
-
 /** The on-demand layer takes the signals while it is mounted; the pending one first. */
 function take(next: Handler | null): void {
   handler = next;
@@ -40,25 +37,8 @@ function take(next: Handler | null): void {
   }
 }
 
-/** The open trigger's key, written by the layer only; read for aria-expanded. */
-function setOpen(key: string | null): void {
-  if (key === openKey) return;
-  openKey = key;
-  for (const listener of listeners) listener();
-}
-
 /** What the on-demand layer is handed (one stable object). */
-export const SUBMENU_SIGNALS = { take, setOpen };
-
-export const submenuOpen = {
-  get: (): string | null => openKey,
-  subscribe(listener: () => void): () => void {
-    listeners.add(listener);
-    return () => {
-      listeners.delete(listener);
-    };
-  },
-};
+export const SUBMENU_SIGNALS = { take };
 
 function signal(next: SubmenuSignal): void {
   if (handler) return handler(next);
@@ -69,8 +49,11 @@ function signal(next: SubmenuSignal): void {
   });
 }
 
-/** The trigger's attributes and signals; `open` comes from `submenuOpen`. */
-export function submenuTriggerProps(key: string, open: boolean) {
+/**
+ * The trigger's attributes and signals. It is drawn closed; the layer writes
+ * aria-expanded and aria-controls on the opener it opens, and back when it closes.
+ */
+export function submenuTriggerProps(key: string) {
   const at =
     (type: SubmenuSignal["type"]) => (event: PointerEvent<HTMLElement> | MouseEvent<HTMLElement>) =>
       signal({
@@ -82,8 +65,7 @@ export function submenuTriggerProps(key: string, open: boolean) {
         y: event.clientY,
       });
   return {
-    "aria-expanded": open,
-    "aria-controls": open ? `submenu-${key}` : undefined,
+    "aria-expanded": false,
     "data-submenu": key,
     onPointerEnter: at("enter"),
     onPointerLeave: at("leave"),
