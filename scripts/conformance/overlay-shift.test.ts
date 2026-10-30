@@ -79,9 +79,6 @@ describe("CF-SHIFT-1 overlay shift", () => {
         { name: "src/planted.css", text: "body[data-scroll-locked] { margin-right: 0 }" },
         { name: "src/components/planted.tsx", text: 'className="[scrollbar-gutter:stable]"' },
       ]).map((f) => f.what),
-    ).toEqual([
-      "a second overlay-shift mechanism (only src/styles.css, CF-SHIFT-1)",
-      GUTTER_WHAT,
-    ]);
+    ).toEqual(["a second overlay-shift mechanism (only src/styles.css, CF-SHIFT-1)", GUTTER_WHAT]);
   });
 });
