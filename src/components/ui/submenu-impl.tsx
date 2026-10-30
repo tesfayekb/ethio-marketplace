@@ -163,7 +163,7 @@ function useClosing<T extends { key: string }>(opened: T | null): T | null {
 
 /** D247 — the row's height comes from the list (src/styles.css `.menu-fit`), never the row. */
 const ROW =
-  "flex w-full items-center gap-2 rounded-none px-3 py-1.5 text-start text-sm " +
+  "flex w-full items-center gap-2 rounded-none border-b border-border px-3 py-1.5 text-start text-sm " +
   "break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 // D245 — the old site's hover tint (#e9ecef) as a token, with no hover transition.
 const IDLE = "text-popover-foreground hover:bg-muted";
@@ -336,14 +336,14 @@ function Panel({
           </p>
         ) : null}
         <ul
-          className="menu-fit menu-natural min-h-0 flex-1"
+          className="menu-fit menu-natural min-h-0 flex-1 [&>li:last-child>a]:border-b-0"
           data-many={level.items.length > fitMax ? "" : undefined}
         >
           {level.items.map((item) => {
             const Icon = item.icon;
             const open = child.opened?.key === item.key;
             return (
-              <li key={item.key} className="border-b border-border last:border-b-0">
+              <li key={item.key}>
                 <Link
                   to={item.to}
                   params={item.params}

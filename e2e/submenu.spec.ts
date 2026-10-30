@@ -84,7 +84,10 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
     return {
       border: style.borderTopWidth,
       radius: style.borderTopLeftRadius,
-      shadow: style.boxShadow,
+      // Tailwind's shadow-none computes to transparent zero layers: no shadow is drawn.
+      noShadow:
+        style.boxShadow === "none" ||
+        /^(?:rgba\(0, 0, 0, 0\) 0px 0px 0px 0px(?:, )?)+$/.test(style.boxShadow),
       property: style.transitionProperty,
       duration: style.transitionDuration,
     };
@@ -92,7 +95,7 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
   expect(look).toEqual({
     border: "1px",
     radius: "0px",
-    shadow: "none",
+    noShadow: true,
     property: "opacity",
     duration: "0.3s",
   });
