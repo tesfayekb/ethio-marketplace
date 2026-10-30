@@ -24,15 +24,20 @@ function tokenOf(mode: Mode, name: Token): string {
 }
 
 /** The browser's computed form of a token value, set on a probe in the page's own scope. */
-async function resolved(page: Page, property: "backgroundColor" | "boxShadow" | "color" | "borderTopColor" | "borderTopLeftRadius", value: string) {
+async function resolved(
+  page: Page,
+  property: "backgroundColor" | "boxShadow" | "color" | "borderTopColor" | "borderTopLeftRadius",
+  value: string,
+) {
   return page.evaluate(
     ([prop, raw]) => {
       const probe = document.createElement("div");
       if (prop === "borderTopColor") probe.style.border = `1px solid ${raw}`;
-      else probe.style.setProperty(
-        prop.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`),
-        raw,
-      );
+      else
+        probe.style.setProperty(
+          prop.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`),
+          raw,
+        );
       document.body.append(probe);
       const out = getComputedStyle(probe)[prop as "color"];
       probe.remove();
@@ -91,7 +96,11 @@ for (const width of WIDTHS) {
       });
 
       test(`SGS-2 the controls share one look (${width}, ${mode})`, async ({ page }) => {
-        const ids = ["language-switcher", "theme-toggle", ...(width < 768 ? ["search-toggle"] : [])];
+        const ids = [
+          "language-switcher",
+          "theme-toggle",
+          ...(width < 768 ? ["search-toggle"] : []),
+        ];
         for (const id of ids) {
           const control = page.getByTestId(id);
           expect(await style(control, "backgroundColor"), `${id} surface`).toBe(
@@ -139,7 +148,9 @@ for (const width of WIDTHS) {
             await resolved(page, "color", tokenOf(mode, "nav-ink")),
           );
         }
-        const idle = surface.locator("[data-testid^='rail-cat-'], [data-testid^='strip-cat-']");
+        const idle = surface.locator(
+          "[data-testid^='rail-category-'], [data-testid^='strip-category-']",
+        );
         const idleTile = idle.first().locator("span.rounded-full").first();
         if ((await idle.count()) > 0) {
           expect(await style(idleTile, "backgroundColor"), "SGS-3 an idle tile").toBe(
@@ -168,7 +179,9 @@ for (const width of WIDTHS) {
         );
       });
 
-      test(`SGS-5 the bottom bar and the raised Post disc (${width}, ${mode})`, async ({ page }) => {
+      test(`SGS-5 the bottom bar and the raised Post disc (${width}, ${mode})`, async ({
+        page,
+      }) => {
         test.skip(width >= 768, "the bottom bar is a phone's");
         const bar = page.getByTestId("bottom-bar");
         expect(await style(bar, "boxShadow")).toBe(
