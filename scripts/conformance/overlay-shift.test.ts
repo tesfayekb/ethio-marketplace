@@ -17,7 +17,8 @@ type Finding = { file: string; line: number; what: string };
 const STYLES = "src/styles.css";
 const GUTTER = /html\s*\{[^}]*scrollbar-gutter:\s*stable/;
 const NEUTRAL = /html\s+body\[data-scroll-locked\]\s*\{[^}]*margin-right:\s*0\s*!important/;
-const ELSEWHERE = /scrollbar-gutter|data-scroll-locked|removed-body-scroll-bar-size|\bmodal=\{false\}/;
+const ELSEWHERE =
+  /scrollbar-gutter|data-scroll-locked|removed-body-scroll-bar-size|\bmodal=\{false\}/;
 
 export function shiftFindings(files: { name: string; text: string }[]): Finding[] {
   const found: Finding[] = [];
@@ -26,7 +27,11 @@ export function shiftFindings(files: { name: string; text: string }[]): Finding[
   if (!GUTTER.test(css))
     found.push({ file: STYLES, line: 1, what: "the root's `scrollbar-gutter: stable` is missing" });
   if (!NEUTRAL.test(css))
-    found.push({ file: STYLES, line: 1, what: "the scroll lock's margin compensation is not neutralised" });
+    found.push({
+      file: STYLES,
+      line: 1,
+      what: "the scroll lock's margin compensation is not neutralised",
+    });
   for (const file of files) {
     if (file.name === STYLES) continue;
     file.text.split("\n").forEach((text, index) => {
@@ -44,14 +49,15 @@ export function shiftFindings(files: { name: string; text: string }[]): Finding[
 describe("CF-SHIFT-1 overlay shift", () => {
   it("src/styles.css holds the one mechanism and nothing else under src/ adds another", () => {
     const root = process.cwd();
-    const files = walkFiles(join(root, "src"))
-      .filter((file) => /\.(?:css|tsx?)$/.test(file) && !/\.test\.tsx?$/.test(file))
-      .map((file) => ({
-        name: relative(root, file).split(sep).join("/"),
-        text: readFileSync(file, "utf8"),
-      }));
+    const files = walkFiles([join(root, "src")], {
+      ext: ["css", "ts", "tsx"],
+      skipTests: true,
+    }).map((file) => ({
+      name: relative(root, file).split(sep).join("/"),
+      text: readFileSync(file, "utf8"),
+    }));
     const found = shiftFindings(files);
-    expect(found, report(found.map((f) => `${f.file}:${f.line} ${f.what}`))).toEqual([]);
+    expect(found, report(found)).toEqual([]);
   });
 
   it("self-test: a planted overlay compensation and a missing gutter are refused", () => {
