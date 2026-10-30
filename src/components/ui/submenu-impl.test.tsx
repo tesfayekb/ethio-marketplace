@@ -10,7 +10,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { SUBMENU_SIGNALS, submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
 
 import {
+  PANEL_FADE_MS,
   PANEL_INSET,
+  PANEL_OVERLAP,
   SUBMENU_CLOSE_MS,
   SUBMENU_OPEN_MS,
   inSafeTriangle,
@@ -104,14 +106,15 @@ describe("the sub-menu mechanism (DEC-288)", () => {
       minTop: 56,
     };
     const level = placePanel({ ...base, size: { width: 240, height: 300 } });
-    expect(level).toEqual({ left: 224, top: 200 - PANEL_INSET, maxHeight: 736, flipped: false });
+    // D245: flush, the 1 px border overlapping the rail's edge.
+    expect(level).toEqual({ left: 224 - PANEL_OVERLAP, top: 200 - PANEL_INSET, maxHeight: 736, flipped: false });
     const flipped = placePanel({
       ...base,
       edge: { left: 1000, top: 56, right: 1100, bottom: 800 },
       size: { width: 240, height: 300 },
     });
     expect(flipped.flipped).toBe(true);
-    expect(flipped.left).toBe(760);
+    expect(flipped.left).toBe(760 + PANEL_OVERLAP);
     const tall = placePanel({ ...base, size: { width: 240, height: 2000 } });
     expect(tall.top).toBe(56);
     expect(tall.maxHeight).toBe(736);
@@ -121,7 +124,7 @@ describe("the sub-menu mechanism (DEC-288)", () => {
       edge: { left: 1056, top: 56, right: 1280, bottom: 800 },
       size: { width: 240, height: 300 },
     });
-    expect(rtl.left).toBe(816);
+    expect(rtl.left).toBe(816 + PANEL_OVERLAP);
   });
 
   it("SMG-1 a low opener's panel rises just enough that its last row is inside (D244)", () => {
@@ -180,6 +183,38 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect(panels()).toHaveLength(0);
   });
 
+  it("SMN-7 a closed panel fades for 300 ms, aria-hidden and inert, then goes; none under reduced motion (D245)", async () => {
+    const motion = (reduce: boolean) =>
+      vi.spyOn(window, "matchMedia").mockImplementation(
+        (query: string) =>
+          ({ matches: reduce && query.includes("reduce"), media: query }) as MediaQueryList,
+      );
+    const spy = motion(false);
+    const opener = await mount();
+    fireEvent.pointerEnter(opener, { pointerType: "mouse" });
+    act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS));
+    expect(panels()[0]?.className).toContain("duration-300");
+    fireEvent.pointerLeave(opener, { pointerType: "mouse", clientX: 5000, clientY: 5000 });
+    act(() => vi.advanceTimersByTime(SUBMENU_CLOSE_MS));
+    expect(panels()).toHaveLength(0);
+    const fading = screen.getByTestId("submenu-panel-closing");
+    expect(fading.getAttribute("aria-hidden")).toBe("true");
+    expect(fading.hasAttribute("inert")).toBe(true);
+    expect(fading.style.opacity).toBe("0");
+    act(() => vi.advanceTimersByTime(PANEL_FADE_MS - 1));
+    expect(screen.queryByTestId("submenu-panel-closing")).not.toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId("submenu-panel-closing")).toBeNull();
+    spy.mockRestore();
+    const still = motion(true);
+    fireEvent.pointerEnter(opener, { pointerType: "mouse" });
+    act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS));
+    fireEvent.pointerLeave(opener, { pointerType: "mouse", clientX: 5000, clientY: 5000 });
+    act(() => vi.advanceTimersByTime(SUBMENU_CLOSE_MS));
+    expect(screen.queryByTestId("submenu-panel-closing")).toBeNull();
+    still.mockRestore();
+  });
+
   it("SMN-4 entering the panel keeps it open; a second-level row opens the third level beside it", async () => {
     const opener = await mount();
     fireEvent.pointerEnter(opener, { pointerType: "mouse" });
@@ -221,6 +256,6 @@ describe("the sub-menu mechanism (DEC-288)", () => {
       opener.dispatchEvent(tap);
     });
     expect(panels()).toHaveLength(1);
-    expect(panels()[0]?.className).toContain("motion-reduce:animate-none");
+    expect(panels()[0]?.className).toContain("motion-reduce:transition-none");
   });
 });
