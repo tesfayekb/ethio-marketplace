@@ -16,9 +16,13 @@ import {
   inSafeTriangle,
   placePanel,
 } from "./submenu-geometry";
-import type { SubmenuLevel } from "./submenu-impl";
+import { loadOverlays } from "./overlay-loader";
 
-const { SubmenuLayer } = await import("./submenu-impl");
+// Reached as the app reaches it: through the overlay loader (CF-OV-1).
+const { SubmenuLayer } = (await loadOverlays()).submenu;
+type SubmenuLevel = Parameters<typeof SubmenuLayer>[0] extends { itemsOf: (key: string) => infer L }
+  ? NonNullable<L>
+  : never;
 
 /**
  * SMN-1…SMN-6 (DEC-288, turn R1b) — the sub-menu mechanism: placement, the safe

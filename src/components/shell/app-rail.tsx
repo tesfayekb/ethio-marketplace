@@ -256,11 +256,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     () => hasChildren && (containsActive(node) || Boolean(node.defaultOpen)),
   );
 
-  const submenuKey = useSyncExternalStore(
-    submenuOpen.subscribe,
-    submenuOpen.get,
-    () => null,
-  );
+  const submenuKey = useSyncExternalStore(submenuOpen.subscribe, submenuOpen.get, () => null);
   const trigger = node.submenu
     ? submenuTriggerProps(node.submenu, submenuKey === node.submenu)
     : undefined;
@@ -610,10 +606,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   return (
     <nav
       aria-label={t("shell.categoriesLabel")}
-      className={cn(
-        compact && "flex min-h-full flex-col",
-        panels && "rail-spread-nav",
-      )}
+      className={cn(compact && "flex min-h-full flex-col", panels && "rail-spread-nav")}
     >
       <ul
         className={cn("flex flex-col gap-0.5", compact && "flex-1", panels && "rail-spread")}
