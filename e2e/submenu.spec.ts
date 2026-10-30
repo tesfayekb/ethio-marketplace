@@ -65,6 +65,59 @@ test.describe("DEC-288 side panel, fine pointer", () => {
 });
 
 /**
+ * SMN-E5 (D245; Foundations turn R1c) — the panel takes ethio.com's surface and motion: a
+ * 1 px border, square corners, no shadow, flush with the rail (its border over the rail's
+ * edge), and a 300 ms opacity fade in and out; under prefers-reduced-motion, none.
+ */
+test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and out", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+  await gotoReady(page, "/");
+  const rail = await openRailScope(page);
+  const opener = rail.getByTestId("rail-category-electronics");
+  await opener.hover();
+  const panel = page.getByTestId("submenu-panel");
+  await expect(panel).toBeVisible();
+  const look = await panel.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return {
+      border: style.borderTopWidth,
+      radius: style.borderTopLeftRadius,
+      shadow: style.boxShadow,
+      property: style.transitionProperty,
+      duration: style.transitionDuration,
+    };
+  });
+  expect(look).toEqual({
+    border: "1px",
+    radius: "0px",
+    shadow: "none",
+    property: "opacity",
+    duration: "0.3s",
+  });
+  const railBox = await page.getByTestId("app-rail").boundingBox();
+  const panelBox = await panel.boundingBox();
+  if (!railBox || !panelBox) throw new Error("SMN-E5 no rail or panel box");
+  expect(
+    Math.abs(panelBox.x - (railBox.x + railBox.width - 1)),
+    "flush, 1 px over",
+  ).toBeLessThanOrEqual(1);
+  await page.mouse.move(900, 700);
+  // The closing panel stays 300 ms, aria-hidden, then goes.
+  await expect(page.getByTestId("submenu-panel-closing")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.getByTestId("submenu-panel-closing")).toHaveCount(0);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await opener.hover();
+  await expect(panel).toBeVisible();
+  expect(await panel.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
+  await page.mouse.move(900, 700);
+  await expect(panel).toHaveCount(0);
+  await expect(page.getByTestId("submenu-panel-closing")).toHaveCount(0);
+});
+
+/**
  * SMN-E4 (D244, INC-1008; Foundations turn R1c) — every panel is wholly on screen when it
  * opens and after the window is resized. A SCRATCH root, last in the rail, carries 14
  * subcategories (J3: real rows are read only): at 600 px its panel was clamped and

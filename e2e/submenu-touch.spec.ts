@@ -121,3 +121,36 @@ test.describe("D247 a touch phone's lists", () => {
     expect(await judge("ROWS-E1 the seeded list", SEEDED + 2)).toBe(SEEDED + 2);
   });
 });
+
+/**
+ * SMN-E6 (DEC-288 item 5; Foundations turn R1c) — the folded rail (64 px) on a touch screen
+ * at 1024: a tap on a folded icon opens its page and its side panel, headed by its name on
+ * the panel's own surface (D245).
+ */
+test("SMN-E6 a tap on the folded rail opens the page and the panel headed by its name", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
+  await gotoReady(page, "/");
+  const rail = await openRailScope(page);
+  await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
+  const html = page.locator("html");
+  await page.getByTestId("shell-logo-cell").getByTestId("rail-collapse-toggle").tap();
+  await expect(html).toHaveAttribute("data-rail", "collapsed");
+  const electronics = rail.getByTestId("rail-category-electronics");
+  const name = await electronics.getAttribute("aria-label");
+  if (name === null) throw new Error("SMN-E6 the folded Electronics row has no aria-label");
+  await electronics.tap();
+  await expect(page).toHaveURL(/\/c\/electronics$/);
+  const panel = page.getByTestId("submenu-panel");
+  await expect(panel).toBeVisible();
+  await expect(panel.getByTestId("submenu-header")).toContainText(name);
+  const surface = await panel.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { radius: style.borderTopLeftRadius, border: style.borderTopWidth };
+  });
+  expect(surface, "SMN-E6 the folded header's panel takes D245's surface").toEqual({
+    radius: "0px",
+    border: "1px",
+  });
+});

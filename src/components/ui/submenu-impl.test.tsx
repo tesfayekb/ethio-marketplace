@@ -107,7 +107,12 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     };
     const level = placePanel({ ...base, size: { width: 240, height: 300 } });
     // D245: flush, the 1 px border overlapping the rail's edge.
-    expect(level).toEqual({ left: 224 - PANEL_OVERLAP, top: 200 - PANEL_INSET, maxHeight: 736, flipped: false });
+    expect(level).toEqual({
+      left: 224 - PANEL_OVERLAP,
+      top: 200 - PANEL_INSET,
+      maxHeight: 736,
+      flipped: false,
+    });
     const flipped = placePanel({
       ...base,
       edge: { left: 1000, top: 56, right: 1100, bottom: 800 },
