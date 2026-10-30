@@ -138,7 +138,8 @@ describe("CF-ROWS-1 a menu list fits before it scrolls", () => {
  * the footer read MENU_WIDTH / MENU_INSET. A copy anywhere else in src/components or src/routes is refused.
  */
 const WIDTH_HOME = "src/components/shell/menu-width.ts";
-const WIDTH_COPY = /(?:^|[\s"'`])(?:md:(?:w|ms|ps)-56|lg:(?:w|ms|ps)-64|rail-icons:(?:w|ms|ps)-16)(?=[\s"'`]|$)/;
+const WIDTH_COPY =
+  /(?:^|[\s"'`])(?:md:(?:w|ms|ps)-56|lg:(?:w|ms|ps)-64|rail-icons:(?:w|ms|ps)-16)(?=[\s"'`]|$)/;
 
 export function widthFindings(files: File[]): Finding[] {
   const findings: Finding[] = [];

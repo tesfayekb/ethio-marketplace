@@ -100,14 +100,16 @@ test.describe("D247 the rail's list", () => {
     // G38 — replaced by D254 (Foundations turn R1d-b): a panel row equals a rail row; it
     // never compacts. D252: the rail no longer yields height to the footer.
     const railRow = await rail
-      .locator("[data-testid='rail-scroll'] li:not([aria-hidden])")
-      .first()
-      .evaluate((el) => el.getBoundingClientRect().height);
+      .locator("[data-testid='rail-scroll'] nav > ul.menu-fit > li:not([aria-hidden])")
+      .evaluateAll((els) => Math.max(0, ...els.map((el) => el.getBoundingClientRect().height)));
     const heights = await rows.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().height),
     );
     for (const height of heights)
-      expect(Math.abs(height - railRow), "ROWS-E3 a seeded row equals a rail row").toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(height - railRow),
+        "ROWS-E3 a seeded row equals a rail row",
+      ).toBeLessThanOrEqual(1);
     const state = await panel.evaluate((el) => ({
       overflow: el.scrollHeight - el.clientHeight,
       bar: (el as HTMLElement).offsetWidth - el.clientWidth,

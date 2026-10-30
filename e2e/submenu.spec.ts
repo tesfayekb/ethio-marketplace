@@ -172,9 +172,8 @@ test.describe("D244 every panel on screen", () => {
     // rows keep a rail row's height, never the 32 px floor.
     const railRow = await page
       .getByTestId("app-rail")
-      .locator("[data-testid='rail-scroll'] li:not([aria-hidden])")
-      .first()
-      .evaluate((el) => el.getBoundingClientRect().height);
+      .locator("[data-testid='rail-scroll'] nav > ul.menu-fit > li:not([aria-hidden])")
+      .evaluateAll((els) => Math.max(0, ...els.map((el) => el.getBoundingClientRect().height)));
     if (state.overflow > 1) {
       for (const height of state.rows)
         expect(

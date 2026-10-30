@@ -1979,7 +1979,9 @@ test.describe("rail scroll regions (U0f)", () => {
       await expect
         .poll(() =>
           page.evaluate(() => {
-            const rail = document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect();
+            const rail = document
+              .querySelector('[data-testid="app-rail"]')!
+              .getBoundingClientRect();
             const foot = document
               .querySelector('[data-testid="shell-footer-wrapper"]')!
               .getBoundingClientRect();
