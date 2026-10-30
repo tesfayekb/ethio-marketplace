@@ -47,8 +47,22 @@ async function resolved(
   );
 }
 
-const style = (locator: Locator, property: string) =>
-  locator.evaluate((el, prop) => getComputedStyle(el)[prop as "color"], property);
+/**
+ * S1-2 ruling 2: Tailwind's shadow composition puts four transparent zero-size layers
+ * (`rgba(0, 0, 0, 0) 0px 0px 0px 0px` — its ring and inset-ring slots) ahead of the token's
+ * shadow. Exactly those layers are removed; the rest is compared whole.
+ */
+const EMPTY_LAYER = "rgba(0, 0, 0, 0) 0px 0px 0px 0px, ";
+function withoutEmptyLayers(value: string): string {
+  let out = value;
+  while (out.startsWith(EMPTY_LAYER)) out = out.slice(EMPTY_LAYER.length);
+  return out;
+}
+
+const style = async (locator: Locator, property: string) => {
+  const value = await locator.evaluate((el, prop) => getComputedStyle(el)[prop as "color"], property);
+  return property === "boxShadow" ? withoutEmptyLayers(value) : value;
+};
 
 async function open(page: Page, width: number, mode: Mode) {
   await page.setViewportSize({ width, height: 900 });
@@ -156,7 +170,7 @@ for (const width of WIDTHS) {
           .evaluateAll((els) =>
             els.map((el) => {
               const s = getComputedStyle(el);
-              return [s.backgroundColor, s.boxShadow, s.borderTopColor].join(" | ");
+              return [s.backgroundColor, s.boxShadow, s.borderTopColor];
             }),
           );
         const idleWant = [
