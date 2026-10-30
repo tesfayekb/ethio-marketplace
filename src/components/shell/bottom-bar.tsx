@@ -38,7 +38,7 @@ function ItemBody({
         // Sage §11 (R6): a 40 px disc raised above the bar's top edge, its ring the bar's surface.
         <span
           data-testid="bottom-bar-disc"
-          className="inline-flex size-10 -translate-y-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-disc"
+          className="inline-flex size-10 -translate-y-3.75 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-disc"
         >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
