@@ -2799,3 +2799,54 @@ export async function nextToStep(page: Page, step: number): Promise<void> {
     page.off("response", onResponse);
   }
 }
+
+/**
+ * INC-948 — THE PLACE STEP'S ONE CITY PICK (G0). A test that chooses a city in the
+ * posting form's place step waits for what a person sees: the city's own region is
+ * read from its row (never walked region by region), and each option is awaited
+ * before it is chosen (J7). The walks this replaced read the city options with a bare
+ * `count()`, which never waits, so a city drawn a frame late was passed and nothing
+ * was chosen ("no place was chosen", data-count 0).
+ *
+ * `refusal` (optional) is the caller's INC-235 evidence: when an option never arrives
+ * the failure carries what the caller saw (market, regions, served tree, elapsed).
+ * Returns the chosen city's shown name.
+ */
+export async function pickCity(
+  page: Page,
+  city: { id: string; slug: string },
+  refusal?: () => Promise<string>,
+): Promise<string> {
+  const { data, error } = await adminClient()
+    .from("locations")
+    .select("parent_id")
+    .eq("id", city.id)
+    .single();
+  if (error || !data?.parent_id)
+    throw new Error(
+      `[e2e:place] the region of ${city.slug} was not read: ${error?.message ?? "none"}`,
+    );
+  const awaitOption = async (
+    picker: ReturnType<Page["getByTestId"]>,
+    value: string,
+    what: string,
+  ) => {
+    const option = picker.locator(`option[value="${value}"]`);
+    const arrived = await option.waitFor({ state: "attached", timeout: 20_000 }).then(
+      () => true,
+      () => false,
+    );
+    if (!arrived) {
+      const evidence = refusal ? `\n${await refusal()}` : "";
+      throw new Error(`[e2e:place] ${what} never reached the picker${evidence}`);
+    }
+  };
+  const region = page.getByTestId("post-where-region");
+  await awaitOption(region, data.parent_id, `the region of ${city.slug}`);
+  await region.selectOption(data.parent_id);
+  const cityPicker = page.getByTestId("post-where-city");
+  await awaitOption(cityPicker, city.id, `the city ${city.slug}`);
+  await cityPicker.selectOption(city.id);
+  await expect(cityPicker).toHaveValue(city.id);
+  return ((await cityPicker.locator("option:checked").textContent()) ?? "").trim();
+}

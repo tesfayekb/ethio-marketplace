@@ -285,6 +285,19 @@ export const AREAS: Area[] = [
     src: ["src/routes/**"],
     specs: ["e2e/a11y.spec.ts", "e2e/page-head.spec.ts"],
   },
+  {
+    // INC-1005 — an overlay never moves the page: the root's gutter and the lock's
+    // neutralised compensation (src/styles.css), and the overlay primitives.
+    name: "overlay-shift",
+    src: [
+      "src/styles.css",
+      "src/components/ui/overlay-*.ts*",
+      "src/components/ui/overlays-impl.ts",
+      "src/components/ui/*-impl.ts*",
+      "src/components/language-switcher.tsx",
+    ],
+    specs: ["e2e/overlay-shift.spec.ts"],
+  },
 ];
 
 // Files whose change always selects the whole suite.

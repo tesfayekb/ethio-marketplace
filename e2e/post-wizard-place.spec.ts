@@ -18,6 +18,7 @@ import {
   attributesOf,
   bearerOf,
   nextToStep,
+  pickCity,
   pinOf,
   postRoute,
   reasonsOf,
@@ -84,39 +85,6 @@ async function typePhone(page: Page, testId: string, text: string) {
   await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.press("Backspace");
   await page.keyboard.type(text);
-}
-
-/**
- * INC-948 — THE CITY'S OWN REGION, PICKED, NEVER WALKED. The walk this replaces
- * selected each region and read the city picker's options at once with a bare
- * `count()`, which never waits: when the city options for the right region drew a
- * frame after the region's change, the walk passed that region and ended with no
- * city chosen ("PW-30: no place was chosen", data-count 0). The region is read from
- * the city's own row, and each option is awaited before it is chosen (J7).
- */
-async function pickCity(page: Page, city: { id: string; slug: string }): Promise<string> {
-  const { data, error } = await adminClient()
-    .from("locations")
-    .select("parent_id")
-    .eq("id", city.id)
-    .single();
-  if (error || !data?.parent_id)
-    throw new Error(
-      `[e2e:pw] the region of ${city.slug} was not read: ${error?.message ?? "none"}`,
-    );
-  const region = page.getByTestId("post-where-region");
-  await expect(
-    region.locator(`option[value="${data.parent_id}"]`),
-    `the region of ${city.slug} never reached the picker`,
-  ).toHaveCount(1);
-  await region.selectOption(data.parent_id);
-  const cityPicker = page.getByTestId("post-where-city");
-  await expect(
-    cityPicker.locator(`option[value="${city.id}"]`),
-    `the city ${city.slug} never reached the picker`,
-  ).toHaveCount(1);
-  await cityPicker.selectOption(city.id);
-  return ((await cityPicker.locator("option:checked").textContent()) ?? "").trim();
 }
 
 test.describe("POSTING WIZARD", () => {
@@ -1280,8 +1248,18 @@ test.describe("POSTING WIZARD", () => {
     expect(row.precision, "PW-37: the door stored another precision").toBe("exact");
     expect(row.lat, "PW-37: no latitude reached the row").not.toBeNull();
     expect(row.lng, "PW-37: no longitude reached the row").not.toBeNull();
-    expect(row.lat!.toFixed(5), "PW-37: the row disagrees with the screen").toBe(shown.lat);
-    expect(row.lng!.toFixed(5), "PW-37: the row disagrees with the screen").toBe(shown.lng);
+    // The screen shows the pin rounded to five places; the row keeps more. A value on
+    // the fifth place's half-way line rounds either way (38.736935 → "38.73693" on
+    // screen from the browser's float, "38.73694" from the stored figure), so the
+    // two agree when they are within the screen's own half-step.
+    expect(
+      Math.abs(row.lat! - Number(shown.lat)),
+      "PW-37: the row disagrees with the screen",
+    ).toBeLessThanOrEqual(0.000005 + 1e-9);
+    expect(
+      Math.abs(row.lng! - Number(shown.lng)),
+      "PW-37: the row disagrees with the screen",
+    ).toBeLessThanOrEqual(0.000005 + 1e-9);
   });
 
   test("PW-38 a place search moves the pin and fills the street line", async ({ page }) => {

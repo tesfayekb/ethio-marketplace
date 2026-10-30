@@ -358,6 +358,20 @@
     overflow-x: clip;
   }
 
+  /* INC-1005 — opening or closing an overlay never moves the page. The root is the
+     page's scroll container (above), so a menu's scroll lock on body never hides its
+     scrollbar; the lock library still added the scrollbar's width as body's right
+     margin, and the main column narrowed by it (measured 1009 → 994 px). The gutter
+     is reserved on the root once, and the lock's own compensation is neutralised
+     here, never in the overlay facade or per consumer. CF-SHIFT-1 guards both. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
+
   html {
     /* INC-106d: scroll targets clear the fixed bars — phone 52 + 77 px, desktop 56 + 74 px. */
     scroll-padding-top: 8.5rem;
