@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { catalogueRows } from "./helpers/category-menu";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, openRailScope } from "./helpers/ui";
+import { gotoReady, layoutBoxes, openRailScope } from "./helpers/ui";
 
 /**
  * SMN-E1, SMN-E2 (SMN-E3, the touch context, is submenu-touch.spec.ts) (DEC-288, turn R1b) — the marketplace tree on the sub-menu mechanism,
@@ -99,9 +99,10 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
     property: "opacity",
     duration: "0.3s",
   });
-  const railBox = await page.getByTestId("app-rail").boundingBox();
-  const panelBox = await panel.boundingBox();
-  if (!railBox || !panelBox) throw new Error("SMN-E5 no rail or panel box");
+  const { rail: railBox, panel: panelBox } = await layoutBoxes({
+    rail: page.getByTestId("app-rail"),
+    panel,
+  });
   expect(
     Math.abs(panelBox.x - (railBox.x + railBox.width - 1)),
     "flush, 1 px over",
