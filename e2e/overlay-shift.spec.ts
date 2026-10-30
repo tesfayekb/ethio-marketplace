@@ -58,7 +58,10 @@ test.describe("INC-1005 overlay shift", () => {
   }) => {
     await gotoReady(page, "/");
     const [before, during, after] = await openAndClose(page);
-    expect(before.scrollbar, "OVS-1: no scrollbar was drawn; the measurement proves nothing").toBeGreaterThan(0);
+    expect(
+      before.scrollbar,
+      "OVS-1: no scrollbar was drawn; the measurement proves nothing",
+    ).toBeGreaterThan(0);
     expect(during, "OVS-1: the main column moved while the menu was open").toEqual({
       ...before,
     });
@@ -72,7 +75,10 @@ test.describe("INC-1005 overlay shift", () => {
     await page.evaluate(() => window.scrollTo(0, 200));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     const [before, during, after] = await openAndClose(page);
-    expect(before.scrollbar, "OVS-2: no scrollbar was drawn; the measurement proves nothing").toBeGreaterThan(0);
+    expect(
+      before.scrollbar,
+      "OVS-2: no scrollbar was drawn; the measurement proves nothing",
+    ).toBeGreaterThan(0);
     expect(during, "OVS-2: the page moved while the menu was open").toEqual({ ...before });
     expect(after, "OVS-2: the page moved after the menu closed").toEqual({ ...before });
   });
