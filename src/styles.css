@@ -380,9 +380,7 @@
   --lift-featured:
     0 0 0 1.5px oklch(0.585 0.074 164), 0 10px 24px -8px oklch(0.422 0.073 164.4 / 0.26);
   /* Sage shell (turn SAGE-S1, rulings P-S1…P-S4). */
-  --nav-ink: oklch(
-    0.388 0.07 163.8
-  ); /* #17503A — the selected menu row and the bottom bar's current label */
+  --nav-ink: oklch(0.388 0.07 163.8); /* #17503A — selected menu row, bottom bar's current label */
   --logo-gold: oklch(0.784 0.118 80.2); /* #E0B05A — the logo's inner diamond */
   --nav-pill: oklch(0.946 0.017 164.7); /* #E3F1EA — the bottom bar's current-item pill */
   --lift-pill: inset 0 1px 2px oklch(0.337 0.055 163.4 / 0.12);
@@ -506,9 +504,7 @@
   --lift-premium: 0 0 0 1.5px oklch(0.708 0.12 78.6), 0 10px 24px -8px oklch(0 0 0 / 0.45);
   --lift-featured: 0 0 0 1.5px oklch(0.634 0.093 163.1), 0 10px 24px -8px oklch(0 0 0 / 0.45);
   /* Sage shell (turn SAGE-S1, rulings P-S1…P-S4). */
-  --nav-ink: oklch(
-    0.777 0.09 162.9
-  ); /* #7FC9A6 — the selected menu row and the bottom bar's current label */
+  --nav-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — selected menu row, bottom bar's current label */
   --logo-gold: oklch(0.769 0.128 78.3); /* #E0A94A — the logo's inner diamond */
   --nav-pill: oklch(0.273 0.024 164.2); /* #1C2B24 — the bottom bar's current-item pill */
   --lift-pill: inset 0 1px 2px oklch(0 0 0 / 0.35);
