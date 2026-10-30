@@ -2228,7 +2228,9 @@ test.describe("desktop layout laws (U0g)", () => {
     // starts at the rail's inline-end edge, in the middle column.
     const footerAtBottom = await footRect(page);
     expect(Math.abs(footerAtBottom.x - (railBefore.x + railBefore.width))).toBeLessThanOrEqual(1);
-    expect(Math.abs(footerAtBottom.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(footerAtBottom.width - ((viewport?.width ?? 0) - railBefore.x - railBefore.width)),
+    ).toBeLessThanOrEqual(1);
 
     // The clamped rail keeps its scroll region usable: its last item is
     // reachable, not hidden under the footer.
@@ -2242,91 +2244,66 @@ test.describe("desktop layout laws (U0g)", () => {
     await expect(page.getByTestId("tall-fixture-end")).toBeInViewport();
   });
 
-  test("L3: the footer spans the full width beneath the fixed rail", async ({ page, viewport }) => {
+  // L3 and U0i — replaced by D252 (Foundations turn R1d-b, G38): the footer is the middle
+  // column's (it starts at the rail's inline-end edge and centres on that column), and the
+  // rail always ends at the viewport's bottom, in both themes.
+  test("L3: the footer fills the middle column beside the fixed rail", async ({
+    page,
+    viewport,
+  }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
+    if (!viewport) throw new Error("L3: missing viewport");
     await gotoReady(page, TALL);
     await expectScrollRange(page);
-
-    /** U0i-3: scroll, then wait until the hook's applied inset matches geometry. */
-    const settle = async () => {
+    const judge = async (label: string) => {
       await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
       await expect
-        .poll(async () =>
-          page.evaluate(() => {
-            const aside = document.querySelector('[data-testid="app-rail"]') as HTMLElement;
-            const footerEl =
-              document.querySelector('[data-testid="shell-footer-wrapper"]') ??
-              document.querySelector("footer")!;
-            const expected = Math.max(0, window.innerHeight - footerEl.getBoundingClientRect().top);
-            const applied = parseFloat(aside.dataset["railInset"] ?? "NaN");
-            return Math.abs(applied - expected);
-          }),
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const rail = document
+                .querySelector('[data-testid="app-rail"]')!
+                .getBoundingClientRect();
+              const foot = document
+                .querySelector('[data-testid="shell-footer-wrapper"]')!
+                .getBoundingClientRect();
+              const columns = document
+                .querySelector('[data-testid="footer-columns"]')!
+                .getBoundingClientRect();
+              return {
+                starts: Math.abs(foot.left - rail.right) <= 1,
+                fills: Math.abs(foot.right - window.innerWidth) <= 1,
+                centred:
+                  Math.abs(columns.left + columns.width / 2 - (foot.left + foot.width / 2)) <= 2,
+                railToBottom: Math.abs(rail.bottom - window.innerHeight) <= 1,
+              };
+            }),
+          { message: label },
         )
-        .toBeLessThanOrEqual(1);
+        .toEqual({ starts: true, fills: true, centred: true, railToBottom: true });
     };
-    await settle();
-
-    const footer = await footRect(page);
-
-    // The footer BOX starts at x=0 and spans the viewport: its background and
-    // border run underneath the rail's column.
-    expect(Math.abs(footer.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(footer.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
-
-    // D116: the columns are centred across the full viewport, not inset by the rail.
-    const columns = await page.getByTestId("footer-columns").boundingBox();
-    if (!columns || !viewport) throw new Error("L3: missing footer columns or viewport");
-    expect(Math.abs(columns.x + columns.width / 2 - viewport.width / 2)).toBeLessThanOrEqual(2);
-
-    /**
-     * U0i-3 — THE CLAMP LAW IS GEOMETRY, not compositor hit-testing: the
-     * rail's box must end at or above the footer's top edge.
-     */
-    const bottomOf = () =>
-      page.evaluate(
-        () => document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect().bottom,
-      );
-    expect(await bottomOf()).toBeLessThanOrEqual(footer.top + 1);
-
-    // Dark mode must clamp identically — a theme swap must not re-open the overlap.
+    await judge("L3 light");
     const modeBefore = await page.getAttribute("html", "data-mode");
     await page.getByTestId("theme-toggle").click();
     await expect.poll(async () => page.getAttribute("html", "data-mode")).not.toBe(modeBefore);
-    await settle();
-    const darkFooter = await footRect(page);
-    expect(await bottomOf()).toBeLessThanOrEqual(darkFooter.top + 1);
+    await judge("L3 dark");
   });
 
-  /**
-   * U0i — THE RAIL CLAMPS ABOVE THE IN-VIEW FOOTER.
-   *
-   * NAMED REGRESSION: "rail items hidden under the footer". With the rail's
-   * box ending at the footer's top edge, its inner scroll region keeps its
-   * scrollbar and its LAST item can still be scrolled into view at the very
-   * bottom of the page.
-   */
-  test("U0i: the rail ends at the footer top and its last item stays reachable", async ({
+  test("U0i: the rail runs to the viewport's bottom and its last item stays reachable", async ({
     page,
     viewport,
   }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, TALL);
     await expectScrollRange(page);
-
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
-    // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
-    await page.waitForTimeout(300);
-
-    const footer = await footRect(page);
+    await railLaw(page);
     const railAtBottom = await rect(page, "app-rail");
-    expect(railAtBottom.bottom).toBeLessThanOrEqual(footer.top + 1);
-    // Still anchored under the fixed band — clamping changes the bottom only.
     expect(Math.abs(railAtBottom.y - ROW1)).toBeLessThanOrEqual(1);
     await expect(page.getByTestId("app-rail").getByTestId("rail-category-skeleton")).toHaveCount(0);
     await expect(
       page.getByTestId("app-rail").getByTestId("rail-category-electronics"),
     ).toBeVisible();
-
     const scroller = page.getByTestId("app-rail").getByTestId("rail-scroll");
     const overflows = await scroller.evaluate((el) => el.scrollHeight > el.clientHeight);
     if (overflows) {
