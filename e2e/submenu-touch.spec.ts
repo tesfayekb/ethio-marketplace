@@ -38,15 +38,18 @@ test("SMN-E3 a tap opens the page and the panel; every row is at least 44 px", a
   const heights = await catalogueRows(rail, "nav li > ").evaluateAll((els) =>
     els.map((el) => el.getBoundingClientRect().height),
   );
+  expect(heights.length, "SMN-E3 the rail has no rows").toBeGreaterThan(0);
   for (const height of heights)
     expect(height, "SMN-E3 a coarse-pointer row is at least 44 px").toBeGreaterThanOrEqual(44);
   await rail.getByTestId("rail-category-electronics").tap();
   await expect(page).toHaveURL(/\/c\/electronics$/);
   const panel = page.getByTestId("submenu-panel");
   await expect(panel).toBeVisible();
-  for (const height of await panel
+  const panelRows = await panel
     .locator("[data-submenu-row]")
-    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height)))
+    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+  expect(panelRows.length, "SMN-E3 the panel has no rows").toBeGreaterThan(0);
+  for (const height of panelRows)
     expect(height, "SMN-E3 a panel row is at least 44 px").toBeGreaterThanOrEqual(44);
   await page.locator("main").tap({ position: { x: 4, y: 4 } });
   await expect(panel).toHaveCount(0);
