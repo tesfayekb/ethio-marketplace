@@ -187,6 +187,6 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     fireEvent.pointerDown(opener, { pointerType: "touch" });
     fireEvent.click(opener);
     expect(panels()).toHaveLength(1);
-    expect(panels()[0]?.className).toContain("motion-safe:");
+    expect(panels()[0]?.className).toContain("motion-reduce:animate-none");
   });
 });

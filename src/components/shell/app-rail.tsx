@@ -612,7 +612,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       aria-label={t("shell.categoriesLabel")}
       className={cn(
         compact && "flex min-h-full flex-col",
-        panels && "md:pointer-fine:flex md:pointer-fine:min-h-full md:pointer-fine:flex-col",
+        panels && "rail-spread-nav",
       )}
     >
       <ul

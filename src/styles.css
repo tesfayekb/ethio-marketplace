@@ -373,6 +373,11 @@
   /* DEC-288 item 7 — from 768 px with a fine pointer the marketplace rail's rows spread
      between 36 and 48 px (the list grows; a separator line keeps its own height). */
   @media (min-width: 768px) and (pointer: fine) {
+    .rail-spread-nav {
+      display: flex;
+      min-height: 100%;
+      flex-direction: column;
+    }
     .rail-spread {
       flex: 1 1 0%;
     }
