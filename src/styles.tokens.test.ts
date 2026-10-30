@@ -80,6 +80,8 @@ const PAIRS: ReadonlyArray<[string, string]> = [
  * tokens, judged in every theme × mode. THEMES equals the stylesheet (themes.test.ts TH-2).
  */
 const SAGE_PAIRS: ReadonlyArray<[string, string]> = [
+  ["nav-ink", "card"],
+  ["nav-ink", "nav-pill"],
   ["success", "card"],
   ["tier-featured-ink", "card"],
   ["tier-featured-ink", "tier-featured"],

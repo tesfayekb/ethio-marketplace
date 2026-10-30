@@ -130,6 +130,12 @@ const SAGE: ThemeSetValue = {
       "0 0 0 1.5px oklch(0.762 0.121 80.9), 0 10px 24px -8px oklch(0.681 0.13 72.5 / 0.35)",
     "lift-featured":
       "0 0 0 1.5px oklch(0.585 0.074 164), 0 10px 24px -8px oklch(0.422 0.073 164.4 / 0.26)",
+    "nav-ink": "oklch(0.388 0.07 163.8)",
+    "logo-gold": "oklch(0.784 0.118 80.2)",
+    "nav-pill": "oklch(0.946 0.017 164.7)",
+    "lift-pill": "inset 0 1px 2px oklch(0.337 0.055 163.4 / 0.12)",
+    "lift-disc":
+      "0 0 0 4px var(--card), inset 0 1px 0 oklch(1 0 0 / 0.18), inset 0 -2px 0 oklch(0 0 0 / 0.22), 0 2px 5px oklch(0.337 0.055 163.4 / 0.3), 0 4px 10px oklch(0.337 0.055 163.4 / 0.35)",
     radius: "0.75rem",
     "card-radius": "0.75rem",
     "card-radius-md": "0.875rem",
@@ -235,6 +241,12 @@ const SAGE: ThemeSetValue = {
     "lift-bar-up": "0 -1px 0 oklch(0.339 0.02 159.5), 0 -10px 24px -10px oklch(0 0 0 / 0.5)",
     "lift-premium": "0 0 0 1.5px oklch(0.708 0.12 78.6), 0 10px 24px -8px oklch(0 0 0 / 0.45)",
     "lift-featured": "0 0 0 1.5px oklch(0.634 0.093 163.1), 0 10px 24px -8px oklch(0 0 0 / 0.45)",
+    "nav-ink": "oklch(0.777 0.09 162.9)",
+    "logo-gold": "oklch(0.769 0.128 78.3)",
+    "nav-pill": "oklch(0.273 0.024 164.2)",
+    "lift-pill": "inset 0 1px 2px oklch(0 0 0 / 0.35)",
+    "lift-disc":
+      "0 0 0 4px var(--card), inset 0 1px 0 oklch(1 0 0 / 0.18), inset 0 -2px 0 oklch(0 0 0 / 0.22), 0 2px 5px oklch(0 0 0 / 0.45), 0 4px 10px oklch(0 0 0 / 0.5)",
   },
 };
 

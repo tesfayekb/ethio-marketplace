@@ -102,6 +102,11 @@ export const MODED_TOKENS = [
   "lift-bar-up",
   "lift-premium",
   "lift-featured",
+  "nav-ink",
+  "logo-gold",
+  "nav-pill",
+  "lift-pill",
+  "lift-disc",
 ] as const;
 
 /** Tokens a theme sets once, in its light set (the radii, and the wider cards' lift — dark cards keep
@@ -122,7 +127,8 @@ export const MODE_FREE_TOKENS = [
 const NUM = String.raw`-?\d+(?:\.\d+)?`;
 const OKLCH = String.raw`oklch\(${NUM} ${NUM} ${NUM}(?: / ${NUM})?\)`;
 const LENGTH = String.raw`${NUM}(?:px|rem)?`;
-const LAYER = String.raw`(?:inset )?${LENGTH} ${LENGTH}(?: ${LENGTH}){0,2} ${OKLCH}`;
+/** A layer's colour is oklch(), or another token (the disc's ring takes the bar's --card, P-S4). */
+const LAYER = String.raw`(?:inset )?${LENGTH} ${LENGTH}(?: ${LENGTH}){0,2} (?:${OKLCH}|var\(--[a-z][a-z0-9-]*\))`;
 
 const colour = z.string().regex(new RegExp(`^${OKLCH}$`));
 const shadow = z.string().regex(new RegExp(`^${LAYER}(?:, ${LAYER})*$`));
