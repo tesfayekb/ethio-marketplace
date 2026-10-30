@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
@@ -24,8 +24,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconButton, type IconButtonTone } from "@/components/ui/icon-button";
-import { THEMES } from "@/lib/themes";
+import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import type { ThemeName } from "@/lib/theme-resolver";
+import type { THEMES } from "@/lib/themes";
 
 /**
  * BUNDLE 9 A3 — THE HOUSE-STYLE FIXTURE.
@@ -165,13 +167,28 @@ const FIXTURE_TITLE = "Sample listing";
 const FIXTURE_PRICE = "12,500";
 const FIXTURE_PLACE = "Bole, Addis Ababa";
 
-function themeScope(name: ThemeName, mode: "light" | "dark"): Record<string, string> {
-  const set = { ...THEMES[name].light, ...(mode === "dark" ? THEMES[name].dark : {}) };
+/** The theme data arrives on demand: no page's first download carries it (DEC-296). */
+const themesModule = loadOnce(() => import("@/lib/themes").then((module) => module.THEMES));
+
+function themeScope(
+  themes: typeof THEMES,
+  name: ThemeName,
+  mode: "light" | "dark",
+): Record<string, string> {
+  const set = { ...themes[name].light, ...(mode === "dark" ? themes[name].dark : {}) };
   return Object.fromEntries(Object.entries(set).map(([token, value]) => [`--${token}`, value]));
 }
 
 function SageGrid() {
-  const names = Object.keys(THEMES) as ThemeName[];
+  const [themes, setThemes] = useState(themesModule.ready);
+  useEffect(() => {
+    if (themes) return;
+    themesModule.load().then(setThemes, (error: unknown) => {
+      reportOnDemandFailure("the theme data", error);
+    });
+  }, [themes]);
+  if (!themes) return <div data-testid="style-sage-grid" className="mt-4" aria-busy="true" />;
+  const names = Object.keys(themes) as ThemeName[];
   return (
     <div data-testid="style-sage-grid" className="mt-4 flex flex-col gap-4">
       {names.flatMap((name) =>
@@ -182,7 +199,7 @@ function SageGrid() {
             data-theme={name}
             data-mode={mode}
             className={`${mode === "dark" ? "dark " : ""}rounded-card bg-background p-4 text-foreground`}
-            style={themeScope(name, mode)}
+            style={themeScope(themes, name, mode)}
           >
             <p className="text-sm font-semibold">{`${name} · ${mode}`}</p>
             <div className="mt-3 grid grid-cols-3 gap-3">
