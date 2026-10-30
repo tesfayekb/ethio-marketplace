@@ -125,4 +125,3 @@ CI on this turn's last commit is the judge of both.
 - src/server/jobs/route.ts
 - src/server/jobs/signature.ts
 - supabase/migrations/20261029233828_4aaa2474-7352-440f-8e24-935179180f55.sql
-- docs/governance/reports/foundations-turn-j-1.report.md
