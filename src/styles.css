@@ -36,6 +36,16 @@
   }
 }
 
+/* D261: adjacent rows have only their groove; the drop belongs to the last
+   visible row. The location's single observer transfers it when covered. */
+@utility band-drop {
+  box-shadow: var(--lift-subband);
+}
+[data-testid="shell-subband"]:has(+ [data-testid="shell-location-band"]):not([data-location-covered]),
+[data-testid="shell-location-band"][data-location-covered] {
+  box-shadow: none;
+}
+
 /*
  * Design system definition — the ethio.com house style ("coffee on cool slate").
  *
