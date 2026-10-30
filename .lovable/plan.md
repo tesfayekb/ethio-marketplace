@@ -69,7 +69,7 @@ Every list in the split and in the admin, account and seller panels takes `.menu
 - SPL-E5 reduced motion: no transition (computed duration ≤ 0.001 s), the end state at once.
 - SPL-E6 RTL (Amharic stays LTR; an RTL test language through the CF-LANG-1 seam): every direction mirrored.
 - SPL-E7 D246 under the split: a level-3 page opens in level3, its item marked and in view; SPL-E8 the peek unchanged (D243).
-- Existing tests reading the in-place drill (shell.spec.ts B21SC-*, RM-*, FV-1, ROWS-E1, ROWS-E5, the admin rail specs) re-read; each changed assertion named under G38 with why.
+- Existing tests reading the in-place drill (shell.spec.ts B21SC-_, RM-_, FV-1, ROWS-E1, ROWS-E5, the admin rail specs) re-read; each changed assertion named under G38 with why.
 - Each touched spec whole, both projects, retries 0; by-id runs for every test using a changed helper (G37).
 
 ## Growth
