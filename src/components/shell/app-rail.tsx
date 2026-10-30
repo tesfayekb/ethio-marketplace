@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@/components/ui/dialog-primitive";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, LogOut, Star, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, House, LogOut, Star, type LucideIcon } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -17,6 +17,8 @@ import { useShell } from "@/components/shell-context";
 import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
+import { levelFor, setMenuLevel, useMenuLevel } from "@/components/shell/menu-level";
+import { categoryPath, isCurrentAt } from "@/components/shell/menu-current";
 import {
   MENU_FIT_MAX,
   SUBMENU_SIGNALS,
@@ -628,7 +630,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
             ? ""
             : undefined
         }
-        data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
+        data-rail-ready={!isLoading && (level || roots.length > 0) ? "1" : undefined}
       >
         {level && !strip ? (
           <li className={cn(compact && COMPACT_ROW)}>
