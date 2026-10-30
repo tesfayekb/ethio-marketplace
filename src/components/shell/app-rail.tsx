@@ -591,6 +591,10 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         key: category.id,
         label: entityName("category", category, entities),
         testid: `rail-category-${category.slug}`,
+        // D248 — each row shows its category's own glyph, as the rail's rows do.
+        icon: category.icon
+          ? (glyphs.glyphOf(category.icon) ?? undefined)
+          : categoryIcon(category.slug),
         to: "/c/$slug",
         params: { slug: category.slug },
         active: category.slug === selectedCategorySlug,
@@ -973,6 +977,7 @@ export function AppRail() {
               the panel band above stay fixed; RailFoot below stays pinned. */}
           <div
             data-testid="rail-scroll"
+            data-menu-region=""
             className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
           >
             <RailBody onNavigate={() => undefined} />
@@ -1059,6 +1064,7 @@ export function AppRail() {
             <div className="min-h-0 flex-1">
               <div
                 data-testid="rail-scroll"
+                data-menu-region=""
                 className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
               >
                 <RailBody onNavigate={() => setNavOpen(false)} />
