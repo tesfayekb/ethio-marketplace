@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `b2ba8e8e2157b16835415563e5961fb7f5178f9a`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41007752198
+- Commit: `1c43379bfa34a1c7b0cf15b19ec7d7f1e83a9b19`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41011892858
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 899 | 122 | applied 382/382 | 195 | 0 | 0 | 63 | 258 |
-| email | 169 | 116 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 788 | 132 | applied 382/382 | 141 | 0 | 0 | 4 | 145 |
-| 2 | 947 | 110 | applied 382/382 | 133 | 0 | 0 | 3 | 136 |
-| 3 | 888 | 111 | applied 382/382 | 133 | 0 | 0 | 0 | 133 |
-| 4 | 724 | 143 | applied 382/382 | 144 | 0 | 0 | 2 | 146 |
-| 5 | 484 | 89 | applied 382/382 | 125 | 0 | 0 | 7 | 132 |
-| 6 | 793 | 111 | applied 382/382 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 475 | 103 | applied 382/382 | 136 | 0 | 0 | 0 | 136 |
-| 8 | 669 | 126 | applied 382/382 | 108 | 0 | 0 | 32 | 140 |
-| 9 | 778 | 117 | applied 382/382 | 136 | 0 | 0 | 4 | 140 |
-| 10 | 976 | 108 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 999 | 116 | applied 382/382 | 143 | 0 | 0 | 1 | 144 |
-| 12 | 667 | 106 | applied 382/382 | 126 | 0 | 0 | 5 | 131 |
-| 13 | 598 | 102 | applied 382/382 | 127 | 0 | 0 | 5 | 132 |
-| 14 | 605 | 86 | applied 382/382 | 129 | 0 | 0 | 3 | 132 |
-| 15 | 507 | 101 | applied 382/382 | 135 | 0 | 0 | 1 | 136 |
-| 16 | 590 | 118 | applied 382/382 | 102 | 0 | 0 | 33 | 135 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2280 | 0 | 0 | 166 | 2446 |
+| smoke | 995 | 120 | applied 382/382 | 192 | 3 | 0 | 63 | 258 |
+| email | 172 | 116 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 676 | 100 | applied 382/382 | 141 | 0 | 0 | 4 | 145 |
+| 2 | 987 | 112 | applied 382/382 | 133 | 0 | 0 | 3 | 136 |
+| 3 | 875 | 119 | applied 382/382 | 133 | 0 | 0 | 0 | 133 |
+| 4 | 664 | 105 | applied 382/382 | 144 | 0 | 0 | 2 | 146 |
+| 5 | 561 | 108 | applied 382/382 | 125 | 0 | 0 | 7 | 132 |
+| 6 | 774 | 105 | applied 382/382 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 527 | 96 | applied 382/382 | 136 | 0 | 0 | 0 | 136 |
+| 8 | 619 | 97 | applied 382/382 | 105 | 3 | 0 | 34 | 142 |
+| 9 | 823 | 125 | applied 382/382 | 136 | 0 | 0 | 7 | 143 |
+| 10 | 829 | 97 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 1011 | 121 | applied 382/382 | 143 | 0 | 0 | 1 | 144 |
+| 12 | 696 | 114 | applied 382/382 | 126 | 0 | 0 | 5 | 131 |
+| 13 | 680 | 108 | applied 382/382 | 127 | 0 | 0 | 5 | 132 |
+| 14 | 859 | 119 | applied 382/382 | 169 | 0 | 0 | 4 | 173 |
+| 15 | 631 | 106 | applied 382/382 | 173 | 0 | 0 | 33 | 206 |
+| 16 | 361 | 108 | applied 382/382 | 28 | 1 | 0 | 0 | 29 |
+| repeat | 168 | 82 | applied 382/382 | 14 | 2 | 0 | 16 | 32 |
+| TOTAL | — | — | — | 2292 | 9 | 0 | 187 | 2488 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 11 999 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 10, email 11, 1 11, 2 11, 3 13, 4 14, 5 9, 6 13, 7 9, 8 13, 9 13, 10 12, 11 12, 12 12, 13 11, 14 9, 15 11, 16 13, repeat not run
+- Slowest lane: 11 1011 s
+- Repeat lane (DEC-283): Not repeated: e2e/shell.spec.ts (109 tests); Repeat: each 2 on both projects; 117 tests selected, 8 repeated; budget 720 s at 4.7 s a test; directly changed: 3 of 4 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 13, email 11, 1 9, 2 14, 3 13, 4 12, 5 11, 6 13, 7 12, 8 11, 9 13, 10 9, 11 13, 12 12, 13 13, 14 11, 15 11, 16 13, repeat 9
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41007752198-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41007752198-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 41007752198-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 41007752198-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41007752198-local-3
-  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41007752198-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 41007752198-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 41007752198-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41007752198-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41007752198-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41007752198-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 41007752198-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 41007752198-local-11
-  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41007752198-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 41007752198-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 41007752198-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41007752198-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41007752198-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41011892858-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41011892858-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 41011892858-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 41011892858-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41011892858-local-3
+  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41011892858-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 41011892858-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 41011892858-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41011892858-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41011892858-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41011892858-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 41011892858-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 41011892858-local-11
+  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41011892858-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 41011892858-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 41011892858-local-14
+  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41011892858-local-15
+  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41011892858-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41011892858-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -70,5 +70,34 @@ Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECR
 Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:31321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
+
+## Lane smoke
+- Step failure:
+Step smoke: outcome failure
+  
+- shell.spec.ts / mobile chrome / the strip sits under the fixed bar / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+- shell.spec.ts / mobile chrome / the menu opens in place / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+- shell.spec.ts / mobile chrome / primary touch targets are at least 44px / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+## Lane 8
+- Step failure:
+Step smoke: outcome failure
+  
+- shell.spec.ts / mobile chrome / the strip sits under the fixed bar / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+- shell.spec.ts / mobile chrome / the menu opens in place / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+- shell.spec.ts / mobile chrome / primary touch targets are at least 44px / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+## Lane 16
+- Step failure:
+Step smoke: outcome failure
+  
+- menu-rows.spec.ts / ROWS-E3 the rail's list fits at 1280×600 when its rows fit at 32 px; it does not scroll / desktop-1280 — Error: ROWS-E3 the tree's rows fit at 32 px in this region
+
+## Lane repeat
+- Step failure:
+Step smoke: outcome failure
+  repeat-cap: failed
+- menu-rows.spec.ts / ROWS-E3 the rail's list fits at 1280×600 when its rows fit at 32 px; it does not scroll / desktop-1280 — Error: ROWS-E3 the tree's rows fit at 32 px in this region
+- menu-rows.spec.ts / ROWS-E3 the rail's list fits at 1280×600 when its rows fit at 32 px; it does not scroll / desktop-1280 — Error: ROWS-E3 the tree's rows fit at 32 px in this region
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
