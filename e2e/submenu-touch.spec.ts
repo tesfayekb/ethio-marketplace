@@ -110,8 +110,7 @@ test.describe("D247 a touch phone's lists", () => {
         .toBeLessThanOrEqual(0);
       for (const height of await rows.evaluateAll((els) =>
         els.map((el) => el.getBoundingClientRect().height),
-      ))
-      {
+      )) {
         expect(height, `${label}: a phone row is 32–40 px`).toBeGreaterThanOrEqual(31.5);
         expect(height, `${label}: a phone row is 32–40 px (INC-1010)`).toBeLessThanOrEqual(40.5);
       }
