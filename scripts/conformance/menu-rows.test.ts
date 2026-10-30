@@ -135,7 +135,7 @@ describe("CF-ROWS-1 a menu list fits before it scrolls", () => {
  * CF-WIDTH-1 (D252, Foundations turn R1d-b) — ONE HOME FOR THE MENU'S WIDTH. The open
  * and folded widths (md:w-56, lg:w-64, rail-icons:w-16 and their ms- start margins) live
  * only in src/components/shell/menu-width.ts; the rail, the logo cell, the page column and
- * the footer read MENU_WIDTH / MENU_INSET. A copy anywhere else in src/ is refused.
+ * the footer read MENU_WIDTH / MENU_INSET. A copy anywhere else in src/components or src/routes is refused.
  */
 const WIDTH_HOME = "src/components/shell/menu-width.ts";
 const WIDTH_COPY = /(?:^|[\s"'`])(?:md:(?:w|ms|ps)-56|lg:(?:w|ms|ps)-64|rail-icons:(?:w|ms|ps)-16)(?=[\s"'`]|$)/;
@@ -166,7 +166,8 @@ function sourceFiles(dir: string): string[] {
 
 describe("CF-WIDTH-1 the menu's width has one home", () => {
   it("no file but menu-width.ts writes the menu's widths, and its consumers read it", () => {
-    const files = sourceFiles("src").map(read);
+    // A form field is not a menu: the census reads the shell and the pages that frame it.
+    const files = [...sourceFiles("src/components"), ...sourceFiles("src/routes")].map(read);
     const all = widthFindings(files);
     for (const name of ["src/components/shell/app-rail.tsx", "src/components/app-shell.tsx"]) {
       const text = files.find((file) => file.name === name)?.text ?? "";
