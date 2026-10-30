@@ -3771,13 +3771,19 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       await expect(second).toBeVisible();
       await expect(root).toHaveAttribute("aria-expanded", "true");
       const branch = second.getByTestId(`rail-category-${b}`);
-      const railBox = await page.locator("aside").first().boundingBox();
+      const railBox = await rail.boundingBox();
       const rootBox = await root.boundingBox();
       const branchBox = await branch.boundingBox();
       const secondBox = await second.boundingBox();
-      if (!railBox || !rootBox || !branchBox || !secondBox) throw new Error("SC-2 a box is missing");
-      expect(Math.abs(branchBox.y - rootBox.y), "SC-2 the first row is level with its opener").toBeLessThanOrEqual(1);
-      expect(secondBox.x, "SC-2 the panel opens beside the rail").toBeGreaterThanOrEqual(railBox.x + railBox.width - 1);
+      if (!railBox || !rootBox || !branchBox || !secondBox)
+        throw new Error("SC-2 a box is missing");
+      expect(
+        Math.abs(branchBox.y - rootBox.y),
+        "SC-2 the first row is level with its opener",
+      ).toBeLessThanOrEqual(1);
+      expect(secondBox.x, "SC-2 the panel opens beside the rail").toBeGreaterThanOrEqual(
+        railBox.x + railBox.width - 1,
+      );
       await branch.hover();
       const third = page.locator('[data-testid="submenu-panel"][data-level="3"]');
       await expect(third).toBeVisible();
@@ -3786,8 +3792,13 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       const thirdBox = await third.boundingBox();
       const branchNow = await branch.boundingBox();
       if (!leafBox || !thirdBox || !branchNow) throw new Error("SC-2 a third-level box is missing");
-      expect(Math.abs(leafBox.y - branchNow.y), "SC-2 the third level is level with its opener").toBeLessThanOrEqual(1);
-      expect(thirdBox.x, "SC-2 the third level opens beside the second").toBeGreaterThanOrEqual(secondBox.x + secondBox.width - 1);
+      expect(
+        Math.abs(leafBox.y - branchNow.y),
+        "SC-2 the third level is level with its opener",
+      ).toBeLessThanOrEqual(1);
+      expect(thirdBox.x, "SC-2 the third level opens beside the second").toBeGreaterThanOrEqual(
+        secondBox.x + secondBox.width - 1,
+      );
       await leaf.click();
       await expect(page).toHaveURL(new RegExp(`/c/${l}$`));
       await expect(page.getByTestId("submenu-panel")).toHaveCount(0);

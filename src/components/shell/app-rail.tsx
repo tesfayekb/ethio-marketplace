@@ -252,7 +252,11 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
     () => hasChildren && (containsActive(node) || Boolean(node.defaultOpen)),
   );
 
-  const submenuKey = useSyncExternalStore(submenuOpen.subscribe, submenuOpen.get, submenuOpen.server);
+  const submenuKey = useSyncExternalStore(
+    submenuOpen.subscribe,
+    submenuOpen.get,
+    submenuOpen.server,
+  );
   const trigger = node.submenu
     ? submenuTriggerProps(node.submenu, submenuKey === node.submenu)
     : undefined;
@@ -296,11 +300,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // D205 — painted strip rows are not navigation controls; the strip opens the menu.
   if (strip) {
     return (
-      <li
-        className={cn(
-          hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW,
-        )}
-      >
+      <li className={cn(hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW)}>
         <span
           data-testid={testid}
           data-alert={node.alert ? "true" : undefined}
@@ -338,12 +338,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       compact && COMPACT_HEAD,
     );
     return (
-      <li
-        className={cn(
-          compact &&
-            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
-        )}
-      >
+      <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         {node.path ? (
           <Link
             to={node.path}
@@ -380,12 +375,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
   if (hasChildren) {
     return (
-      <li
-        className={cn(
-          compact &&
-            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
-        )}
-      >
+      <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         <Collapsible
           open={open}
           onOpenChange={setOpen}
@@ -445,12 +435,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
   if (node.path) {
     return (
-      <li
-        className={cn(
-          compact &&
-            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
-        )}
-      >
+      <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         <WithTooltip label={node.label} skip={Boolean(node.submenu)}>
           <Link
             {...trigger}
@@ -488,12 +473,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 
   if (node.onSelect) {
     return (
-      <li
-        className={cn(
-          compact &&
-            (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
-        )}
-      >
+      <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         <WithTooltip label={node.label}>
           <button
             type="button"
@@ -519,11 +499,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   // No path yet: the item's page is a later feature. U0f — it still carries its
   // testid, so every rail item is addressable regardless of how it renders.
   return (
-    <li
-      className={cn(
-        compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW),
-      )}
-    >
+    <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
       <WithTooltip label={node.label}>
         <span
           style={pad}
@@ -639,11 +615,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       )}
     >
       <ul
-        className={cn(
-          "flex flex-col gap-0.5",
-          compact && "flex-1",
-          panels && RAIL_SPREAD,
-        )}
+        className={cn("flex flex-col gap-0.5", compact && "flex-1", panels && RAIL_SPREAD)}
         data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
       >
         {level ? (
@@ -730,11 +702,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         ) : null}
       </ul>
       {panels && overlays ? (
-        <overlays.submenu.SubmenuLayer
-          itemsOf={itemsOf}
-          edgeOf={railEdge}
-          showHeader={collapsed}
-        />
+        <overlays.submenu.SubmenuLayer itemsOf={itemsOf} edgeOf={railEdge} showHeader={collapsed} />
       ) : null}
       {error ? (
         <p role="alert" className="px-3 text-sm text-destructive">

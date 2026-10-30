@@ -28,13 +28,33 @@ const LEVELS: Record<string, SubmenuLevel> = {
   vehicles: {
     header: "Vehicles",
     items: [
-      { key: "cars", label: "Cars", testid: "rail-category-cars", to: "/c/$slug", hasChildren: true },
-      { key: "trucks", label: "Trucks", testid: "rail-category-trucks", to: "/c/$slug", hasChildren: false },
+      {
+        key: "cars",
+        label: "Cars",
+        testid: "rail-category-cars",
+        to: "/c/$slug",
+        hasChildren: true,
+      },
+      {
+        key: "trucks",
+        label: "Trucks",
+        testid: "rail-category-trucks",
+        to: "/c/$slug",
+        hasChildren: false,
+      },
     ],
   },
   cars: {
     header: "Cars",
-    items: [{ key: "sedans", label: "Sedans", testid: "rail-category-sedans", to: "/c/$slug", hasChildren: false }],
+    items: [
+      {
+        key: "sedans",
+        label: "Sedans",
+        testid: "rail-category-sedans",
+        to: "/c/$slug",
+        hasChildren: false,
+      },
+    ],
   },
 };
 
@@ -104,7 +124,14 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     const apex = { x: 200, y: 220 };
     expect(inSafeTriangle({ x: 215, y: 260 }, apex, panel, false)).toBe(true);
     expect(inSafeTriangle({ x: 210, y: 400 }, apex, panel, false)).toBe(false);
-    expect(inSafeTriangle({ x: 1065, y: 260 }, { x: 1080, y: 220 }, { ...panel, left: 816, right: 1056 }, true)).toBe(true);
+    expect(
+      inSafeTriangle(
+        { x: 1065, y: 260 },
+        { x: 1080, y: 220 },
+        { ...panel, left: 816, right: 1056 },
+        true,
+      ),
+    ).toBe(true);
   });
 
   it("SMN-3 a hover opens after 150 ms, never before, and closes 300 ms after the pointer leaves", async () => {

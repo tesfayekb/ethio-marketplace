@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -162,9 +169,7 @@ function Panel({
   onClose: (focusOpener: boolean) => void;
 }) {
   const own = useRef<HTMLDivElement | null>(null);
-  const [place, setPlace] = useState<{ left: number; top: number; maxHeight: number } | null>(
-    null,
-  );
+  const [place, setPlace] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
   const child = useIntent();
   const childLevel = child.opened ? itemsOf(child.opened.key) : null;
 

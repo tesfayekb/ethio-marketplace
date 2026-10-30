@@ -8,13 +8,10 @@ import { gotoReady, openRailScope } from "./helpers/ui";
  * (shell.spec.ts), on its scratch branch.
  */
 test.describe("DEC-288 side panel, fine pointer", () => {
-  test.beforeEach(({}, testInfo) => {
-    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-  });
-
   test("SMN-E1 rows spread between 36 and 48 px; a hover opens the panel, a click opens the page", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     await gotoReady(page, "/");
     const rail = await openRailScope(page);
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
@@ -40,7 +37,8 @@ test.describe("DEC-288 side panel, fine pointer", () => {
 
   test("SMN-E2 the keys: the arrow enters the panel, Escape returns to the opener", async ({
     page,
-  }) => {
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     await gotoReady(page, "/");
     const rail = await openRailScope(page);
     const opener = rail.getByTestId("rail-category-electronics");
@@ -48,7 +46,15 @@ test.describe("DEC-288 side panel, fine pointer", () => {
     await page.keyboard.press("ArrowRight");
     const panel = page.getByTestId("submenu-panel");
     await expect(panel).toBeVisible();
-    await expect(panel.locator("[data-submenu-row]").first()).toBeFocused();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.activeElement ===
+            document.querySelector('[data-testid="submenu-panel"] [data-submenu-row]'),
+        ),
+      )
+      .toBe(true);
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
     await expect(opener).toBeFocused();

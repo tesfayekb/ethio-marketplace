@@ -32,9 +32,7 @@ export function placePanel(input: {
   const atEnd = rtl ? edge.left - size.width : edge.right;
   const atStart = rtl ? edge.right : edge.left - size.width;
   const fitsEnd = rtl ? atEnd >= MARGIN : atEnd + size.width <= viewport.width - MARGIN;
-  const fitsStart = rtl
-    ? atStart + size.width <= viewport.width - MARGIN
-    : atStart >= MARGIN;
+  const fitsStart = rtl ? atStart + size.width <= viewport.width - MARGIN : atStart >= MARGIN;
   const flipped = !fitsEnd && fitsStart;
   const raw = flipped ? atStart : atEnd;
   const left = Math.max(MARGIN, Math.min(raw, viewport.width - MARGIN - size.width));
