@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41121234139
-- Commit: `2a9531519456f42735e5157496985752e9f44168`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41122133152
+- Commit: `b1bbeebeb01ac0d4bac45795c8af2a8e27ae484f`
 - Attempt: 1
-- Written (UTC): 2026-10-30T20:31:29.090Z
+- Written (UTC): 2026-10-30T20:53:00.355Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -46,6 +46,9 @@ No warning step ran in this run.
        0.3 KiB  dist/client/assets/qss-JC7fkHHg.js
        0.3 KiB  dist/client/assets/page-head-BLJOTuaL.js
        0.3 KiB  dist/client/assets/ClientOnly-CTnPRrI8.js
+
+First-paint budget exceeded. Either code-split the addition behind a dynamic import,
+or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states why.
        0.3 KiB  dist/client/assets/signed-in-route-CAIBB9ud.js
        0.2 KiB  dist/client/assets/useNavigate-CZzmch58.js
        0.2 KiB  dist/client/assets/useRouterState-C1UxbrdN.js
@@ -59,16 +62,13 @@ No warning step ran in this run.
        0.1 KiB  dist/client/assets/query-keys-DQ_pMCo4.js
        0.1 KiB  dist/client/assets/surface-DVJJgA6P.js
        0.1 KiB  dist/client/assets/root-DLTE-HSj.js
-
-First-paint budget exceeded. Either code-split the addition behind a dynamic import,
-or raise the ceiling in scripts/check-bundle-size.mjs in a commit that states why.
 JS: 208.0 KiB / 208 KiB — OVER BUDGET
 CSS: 21.8 KiB / 40 KiB — ok
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/9f8eabe0-77ed-4bc1-982f-a1f1b79401db' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/d33d2ba3-e675-4b21-beb9-114f8199f7d8' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
