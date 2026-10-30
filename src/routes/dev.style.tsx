@@ -153,8 +153,7 @@ function SageGrid() {
             className={`${mode === "dark" ? "dark " : ""}rounded-card bg-background p-4 text-foreground`}
             style={themeScope(themes, name, mode)}
           >
-            <p className="text-sm font-semibold">{`${name} · ${mode}`}</p>
-            <div className="mt-3 grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {CARD_TYPES.map(([tier, surface, word, ink]) => (
                 <div
                   key={tier}
