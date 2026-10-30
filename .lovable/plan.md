@@ -1,98 +1,111 @@
-# Turn R1d plan (revised in R1d-a) — the rest of the left menu: D240, D241, D243, D246, D247, D248, D249, D251 under DEC-288
+# Turn SAGE-S1 plan — the shell in the Sage look (and S2: the band rows and the location track)
 
-Base: dev after R1d-a. Tier B. No migration, no new dependency. Plan only; no R1d code was written in R1d-a. Where this revision is silent, the R1d plan of cbedb82e governs.
+Base: dev 2a953151. No migration, no dependency, no string. Request sha256 db98ace5…6fd1 (to be saved with the build ruling).
 
-## CI first
+## 0. CI first
 
-Read the last completed run at the raw ci-evidence addresses before any change; any red is classified from its failure body and fixed first.
+The last completed run is 41106419359 on 50eb7468: SUCCESS. The run on 2a953151 is still in progress. If it finishes red, the build turn fixes it first, from the failure body.
 
-## What R1c, R1c-fix and R1d-a already built (reused, not rebuilt)
+## 1. Premises for a ruling (before the parts that depend on them)
 
-- The sub-menu mechanism: `submenu-signal.ts` (first paint, `MENU_FIT_MAX`, `SUBMENU_SIGNALS`), the panel through `overlay-loader.ts`, failures through `reportOnDemandFailure`.
-- D244 placement on resize and under the top bar; D245's 300 ms opacity fade (its surface withdrawn by D248); D246 URL-level opening for categories.
-- D247/D248 rows: `.menu-fit` (32–40 px below 768, 32–48 px from 768; `data-many` only below 768); `.menu-snap` (a panel at the rail's row height); `snapToGrid` (submenu-geometry.ts).
-- One row look: `src/components/shell/menu-row.ts` (ITEM_CORE, ITEM_IDLE, ITEM_ACTIVE), imported by the rail and the panel; CF-ROWS-1 refuses a menu's own row classes.
-- Guards: CF-SUB-1 (`submenu-allowlist.txt`: `app-rail.tsx (3)` — the strip's painted rows, the admin groups, MenuNav's collapsible) and CF-ROWS-1 (`menu-rows-allowlist.txt`: the strip line).
+These spec targets need a value S0 did not define. None will be written as a literal; each waits for a ruling (a new token in styles.css + themes.ts, or reuse of the named one).
 
-## Item 1 — D240 at ≥ 768: admin groups, account and seller sections open side panels
+| # | Target (spec) | Need | Proposed |
+|---|---|---|---|
+| P-S1 | Selected menu row text #17503A (§2) | a nav ink token | new `--nav-ink` (#17503A light, dark from §13); not `--tier-featured-ink`, which is a tier colour of the same value |
+| P-S2 | Logo inner diamond #E0B05A (§1) | light gold is #C98A2B | new `--logo-gold`, or keep `fill-gold` |
+| P-S3 | Bottom-bar current pill #E3F1EA + inset shadow (§11) | fill and shadow | new `--nav-pill` + `--lift-pill` |
+| P-S4 | Post listing disc: extra shadow and a 4 px white ring (§11) | shadow | new `--lift-disc` (ring as part of the shadow) |
+| P-S5 | filter-choices chosen pill inset edge (CF-LOOK-1 line) | the allowlist line says a token "beside --shadow-tile-on" | reuse `shadow-tile-on` (same family) — or a new token |
+| P-S6 | Phone menu end corner (app-rail.tsx:1135, 16 px today) | the allowlist line names `--radius-bar` (18 px) | `rounded-e-bar` (16 → 18 px) |
+| P-S7 | Panel header (the menu's band, D258) | D260 names three rows; the panel header is a fourth band row | the band surface too (`--band` already equals `--sidebar`); §2's 12 px bold uppercase label |
 
-- MenuNav (`app-rail.tsx`) stops drawing groups through `Collapsible`. A group row is a sub-menu opener on the same mechanism: hover 150/300 ms with the safe triangle, a click opens the group's first permitted page, arrow/Escape keys, a coarse tap opens page and panel.
-- The panel's rows come from the data MenuNav reads today (`src/config/panels.ts`, `src/features/admin/rail-items.ts`, `use-admin-sections.ts`), never a copy (K1); section alerts keep `useNavAlerts`.
-- D248 applies unchanged: the rail's surface and rows, icons from the panel config, one-line names, the snap to the rail's grid. The admin menu (26+ items) has no item limit from 768: it fits at ≥ 32 px or scrolls with a visible scrollbar.
+## 2. Census at 2a953151 (today → target → S0 token)
 
-## Item 2 — the phone split (DEC-288, D241, D248, D249)
+**Top band (§1)**
+- `app-shell.tsx:984` shell-band `bg-card shadow-bar` → `shadow-band`.
+- `brand/logo.tsx:25,32,39` diamond `fill-none stroke-primary` → filled `fill-primary`, chevrons `stroke-primary-foreground`; `:45` `fill-gold` (P-S2). Wordmark `:76–78` `text-primary` → `text-foreground` with weight 800 and −0.6 px tracking; the dot stays `text-gold`. `:90` sub-line `text-muted-foreground font-medium` → `text-leaf-ink font-semibold`.
+- Search `app-header.tsx:63` (phone row) and `:174` (inline): `rounded-md border border-input bg-background` → `rounded-full bg-field shadow-field`, no border. Icon `:53,:168` `text-muted-foreground` → `text-leaf-ink`. Text 15 px inline; the phone row stays ≥16 px (INC-747).
+- Controls: `ICON_BUTTON` `app-header.tsx:23` (ghost, `rounded-md`), the account trigger `:221`, the menu toggle `:123`, `theme-toggle.tsx`, the language control → `bg-card border border-hairline shadow-control rounded-[var(--radius)]` (12 px, through the `rounded-lg`/`--radius` scale), `text-foreground`; globe `text-leaf-ink`.
+- Sign in (primary Button): 12 px radius, semibold, `shadow-button`.
 
-- The open phone menu stays 256 px. Opening a category, group or section narrows the main list into a 64 px column (icons only, the open item highlighted with ITEM_ACTIVE) and shows the sub-list in a 192 px column.
-- D248 on phones: both columns use `menu-row.ts`'s rows and the category glyphs; every name is one line, cut with an ellipsis (CutText), full name as aria-label and title. This replaces DEC-288's "names wrap" and the cbedb82e plan's "names wrap (no truncation beyond CutText's rules)".
-- D249, the third level: opening a level-3 list closes the main list; the level-2 list takes the 64 px column (icons only, its open item highlighted); the level-3 list takes the 192 px column.
-- The header: every sub-list has ONE header row, "← <the opened item's name>" (e.g. "← Electronics", "← Phones & Tablets"); a tap moves up one level without navigating; the breadcrumb navigates. This replaces "‹ Main menu / ‹ parent".
-- Rows below 768: D247's band (32–40 px, the 16-item rule with `data-many`) in each column.
-- Replaces the in-place drill (D98 with D213) and the strip's painted rows (`strip-scroll`).
+**Rail and menus (§2, §3)**
+- Rail surface `app-rail.tsx:1078` `bg-sidebar shadow-side` → `shadow-rail` (widths unchanged, MENU_WIDTH).
+- Strip `:1103` and phone menu `:1135` `bg-sidebar shadow-side` / `shadow-lg` → `shadow-rail-phone`; `:1135` corner P-S6.
+- Side panel `ui/submenu-impl.tsx:398` `bg-sidebar shadow-side` → `shadow-rail` (D248: panels match the rail).
+- Rows `menu-row.ts` ITEM_CORE `rounded-md` → `rounded-row` (14 px; `--radius-row` exists); ITEM_IDLE `hover:bg-sidebar-accent/60` → `hover:bg-card/70`; ITEM_ACTIVE `bg-nav-active text-primary` → `bg-card shadow-row-on` + P-S1 ink.
+- Icons `app-rail.tsx:259–282, 556, 743` bare `h-5 w-5` / `h-6 w-6` → a round tile: `bg-card border border-hairline shadow-tile`, 30 px (rail) / 28 px (strip), icon `text-primary` 16 / 15 px; selected tile `bg-primary text-primary-foreground shadow-tile-on`. One shared constant in menu-row.ts (`ITEM_TILE`, `ITEM_TILE_ON`), read by the rail, strip, phone menu, side panels, D259 "Home" and D255 back item. The favourite star stays on the tile's corner.
+- Panel header `panel-header.tsx:33` `bg-sidebar-accent/40` → P-S7.
 
-### The column state machine
+**Footer (§10)** `app-footer.tsx:37` `bg-card shadow-bar-up` → `bg-sidebar shadow-footer`; the copyright divider `border-t` → `shadow-groove-top`; the wordmark as the logo. Place and insets stay D252/D253/D257.
 
-- States: `full` (the main list, 256 px), `level2` (main list 64 px + level-2 list 192 px), `level3` (level-2 list 64 px + level-3 list 192 px). A state carries the opened ids (`{ kind, at: id, parent?: id }`).
-- Events: `open(id)` (deeper: full→level2, level2→level3, level3→level3 one step deeper with the previous level-3 list moving into the narrow column), `back()` (the header row: one level up), `fromUrl(path)` (D246: the state for the page — a level-3 page opens in `level3` with its item marked and in view), `close()`.
-- Lives in one pure module, `src/components/shell/menu-columns.ts` (reducer + `columnsFromUrl`), unit-tested; the phone menu in app-rail.tsx holds it with `useReducer` and replaces `localLevel`. Category tree and panel config both feed it through one `levelOf(id)` reader, so admin/account/seller sections share the machine.
+**Bottom bar (§11)** `bottom-bar.tsx:81` `rounded-t-[1rem] bg-card shadow-bar-up` → `rounded-t-bar` (18 px) `shadow-bar-up` (already Sage); pill `:44` `bg-nav-active` → P-S3; Post disc 36 → 40 px, raised 14 px, P-S4.
 
-### D251, the moves
+**S2 — band rows (§4, D260)**
+- Panel tabs `panel-tabs.tsx:40` `border-b border-neutral-soft bg-card`.
+- Breadcrumb `app-shell.tsx:1055` `border-b border-neutral-soft` (surface from the subband `:1048` `bg-card shadow-bar`).
+- Location row `location-selector.tsx:233` `bg-card shadow-bar`, no edge.
+- **The row that differs today:** the location row (shadow, no edge) against the two subband rows (border line, no own shadow); the panel header differs again (`bg-sidebar-accent/40`).
+- Target: the subband and the location row get `bg-band shadow-subband`; each row's line is `shadow-groove` (the edge from `--band-edge`); labels `text-band-label`.
+- Track: Pickers (`location-selector.tsx:56–97`, `h-8 rounded-md` ghost buttons) sit in one `bg-track shadow-track rounded-track` track with a decorative pin (`text-primary`, aria-hidden). Segments `rounded-segment`; the deepest chosen level is raised `bg-card shadow-segment` + P-S1 ink; unset levels transparent.
 
-- Going deeper: every column slides leftward together — the 192 px column slides into the 64 px place, the 64 px column slides out to the left, the new list slides in from the right into the 192 px place.
-- Going back: the 192 px list slides out to the right, the 64 px list slides right and widens into the 192 px place, the level above slides in from the left into the 64 px place.
-- From the split back to the full main list: the sub-list slides out to the right while the main list widens back.
-- Mirrored in right-to-left languages (the sign of every translate follows `dir`).
-- Transform and opacity only (widths change by a scaleX-free swap: each column is drawn at its target width and moved by translateX; a column changing width cross-fades its icons-only / full row content by opacity). One duration and easing for every move: 250 ms, `cubic-bezier(0.2, 0, 0, 1)`. No animation under prefers-reduced-motion (the state changes at once). D245's fade stays for the side panel from 768 px.
+## 3. What does not move
 
-## Item 3 — D246 under the split, and MenuNav's marking onto the URL level
+The heights, widths and spacing of D247–D258: `menu-row.ts` sizes (ITEM_CORE min/max heights, `--rail-pad`), `.menu-fit`/`.menu-snap`, `band-row.ts` BAND_ROW (40 px), `bar-spacing.ts`, `menu-width.ts`. CF-ROWS-1, CF-WIDTH-1, CF-BAR-1, CF-BAND-1, CF-SUB-1 stay green unchanged; BND-E1…E4 unchanged. Spec numbers that give way: §2's 42 px rows, 11 px gap, 3 px row gap and 14 px 10 px rail padding (D247/D248/D254/D258); §4's 48/46 px location row (D258: 40 px).
 
-- An opening on a page inside a section opens the split at that level (`columnsFromUrl`), the current item marked (`aria-current="page"`) and scrolled into view; the peek (D243) opens the same way and stays as it is.
-- MenuNav's current-item marking moves from its own match to the URL-level helper the category rail uses (K2 of R1c): one function for every menu.
+## 4. The location track inside 40 px (S2)
 
-## Item 4 — D247/D248 everywhere
+Track 34 px (3 px padding), segments 28 px, text 13 px (12 px under 768 px), segment padding 0 10 px (0 5 px phone). Proof: SGB spec at 360 px in English and Amharic, with the deepest chain chosen: the row's height stays 40 px, every segment is on one line (`scrollHeight` equals its height), and nothing overflows the row (the existing CutText truncation holds).
 
-Every list in the split and in the admin, account and seller panels takes `.menu-fit`, its count from `MENU_FIT_MAX`, and `menu-row.ts`'s rows. ROWS-E2: the admin menu from 768 px (more than 16 items) fits at ≥ 32 px or scrolls with a visible scrollbar (D248, no item limit); below 768 its list is `data-many` with full-size rows and a visible scrollbar.
+## 5. CF-LOOK-1 lines retired
 
-## Allowlists to zero
+- `bottom-bar.tsx` (1) → `rounded-t-bar` (`--radius-bar`). S1.
+- `app-rail.tsx` (1) → `rounded-e-bar` (P-S6). S1.
+- `filter-choices.tsx` (1) → P-S5 token. S1.
+- `photo-background.ts` stays; its reason is updated (ruling A).
+- No other shell site was found by the census. `drawer.tsx` stays for S6.
 
-- CF-SUB-1: `app-rail.tsx (3)` → 0; the line removed; the guard refuses any in-place sub-list (planted proof per removed site) and any column state held outside `menu-columns.ts`.
-- CF-ROWS-1: the strip line → 0; the guard refuses a hidden menu scrollbar anywhere (planted).
-- Register rows 79/80 amended; panels.md and changelog updated.
+## 6. Rulings A and C (in S1)
 
-## Tests (ids grep-checked free at build time)
+- A: light `--background` becomes #EEF3EF in `styles.css` and `themes.ts` (TH-2 holds); the contrast run includes it. PBG-1 (`photo-background.test.ts`) changes under G38: old — `PHOTO_BACKDROP` equals the `--background` token; new — it equals #F3F5F8 (D155) and is not read from a token. Allowlist line for `photo-background.ts`: reason "D155: one backdrop for old and new photos, fixed apart from the page tone". This test file and the allowlist reason are in S1's list.
+- C: `docs/features/design-foundation.md`'s "coffee on cool slate" section is headed as superseded by the Sage section.
 
-- Unit: MCL-1 the state machine (full→level2→level3, back each step, open while in level3); MCL-2 `columnsFromUrl` for a level-1, level-2 and level-3 page; MCL-3 RTL signs of each move.
-- ROWS-E2 (the admin menu, both widths), SMN-E11 (admin group panel at 1280: hover, click, keys, D248 look), SMN-E12 (account and seller panels).
-- SPL-E1 the split: 64/192 px columns, header "← <name>", icons only in the narrow column, the open one highlighted, one-line names with an ellipsis.
-- SPL-E2 the third level (D249): the main list gone, level 2 in the 64 px column with its open item highlighted, level 3 in 192 px.
-- SPL-E3 the header row's back moves: level3→level2→full without a URL change; the breadcrumb navigates.
-- SPL-E4 each move's direction, by column boxes sampled during the move (requestAnimationFrame samples): deeper = every column's x decreasing; back = increasing; back to full = the sub-list's x increasing while the main list widens.
-- SPL-E5 reduced motion: no transition (computed duration ≤ 0.001 s), the end state at once.
-- SPL-E6 RTL (Amharic stays LTR; an RTL test language through the CF-LANG-1 seam): every direction mirrored.
-- SPL-E7 D246 under the split: a level-3 page opens in level3, its item marked and in view; SPL-E8 the peek unchanged (D243).
-- Existing tests reading the in-place drill (shell.spec.ts B21SC-_, RM-_, FV-1, ROWS-E1, ROWS-E5, the admin rail specs) re-read; each changed assertion named under G38 with why.
-- Each touched spec whole, both projects, retries 0; by-id runs for every test using a changed helper (G37).
+## 7. Tests
 
-## Growth
+- New `e2e/sage-shell.spec.ts` (ids SGS-1…, grep-checked free) at 390, 834, 1440 px, light and dark: computed box-shadow, background, radius and border of the band, search, controls, Sign in, rail/strip/phone menu, a row and its tile (idle, selected), footer, bottom bar and the Post disc. Values are read from the theme data, never retyped.
+- New `e2e/sage-bands.spec.ts` (ids SGB-1…, free) with S2: the three band rows' surface, edge and shadow are equal, light and dark; the track geometry and the 360 px no-wrap proof (§4).
+- CF-BAND-1 extended (S2): a band row carrying its own surface, edge or shadow class is refused; planted self-test.
+- Unit: menu-row tile constants read by every menu (extends CF-ROWS-1's census, no second guard); contrast pairs for any new token from §1.
+- G38 changes (old → new):
+  - `shell.spec.ts:224` LB-1 bottom-bar corner `16px` → `18px`.
+  - `submenu-look.spec.ts` SMN-E7 row classes `rounded-md` → `rounded-row`; `hover:bg-sidebar-accent/60` → `hover:bg-card/70`.
+  - `photo-background.test.ts` PBG-1 (ruling A).
+  - With S2: any LB-1 location-row line whose value changes (its "box-shadow not none" holds).
+- Runs: the touched specs whole, both projects, retries 0, via `bun run e2e:local`; by-id runs of every test using a changed helper.
 
-Expected per page: the column machine and the split's first-paint markup in the entry (~0.3–0.45 KiB gzip) minus the Collapsible path (~0.1 KiB); the move styles in the shared stylesheet (~0.1 KiB); admin panels ride the already-on-demand panel code. Up to 0.5 KiB per page with its cause under DEC-296; more is a STOP with the per-chunk table.
+## 8. One turn or two (ruling 5)
 
-## Conflicts
+Two turns.
+- **S1** (ESTIMATE about 3–4 hours of platform time): the tokens P-S1…P-S7 as ruled; logo, app-header, theme-toggle, the language control, app-rail, menu-row, submenu-impl, panel-header, app-footer, bottom-bar, filter-choices; rulings A and C; sage-shell.spec.ts; the G38 edits; the CF-LOOK-1 allowlist.
+- **S2** (ESTIMATE about 2–3 hours): band-row.ts (adds the band look constant), panel-tabs, app-shell (subband and breadcrumb), location-selector (track and segments); the CF-BAND-1 extension; sage-bands.spec.ts.
 
-- C2's 44 px touch target vs. 32–40 px phone rows: covered by the recorded C2 exception (D247).
-- D248's one-line names in a 192 px column cut long Amharic names more often than wrapping did; the full name stays as aria-label and title (no hover on phones: the full name is read by screen readers only). Named for the operator's walk.
-- INC-1011: on a short page the rail ends at the footer; with D248 a panel takes at most the rail's height, so a 12-row panel at 1280×600 on a short page scrolls at 32 px (measured in R1d-a). Whether the menu keeps its height there is the operator's ruling.
+Reason: S1 touches every page's shell, including a 1,200-line rail. S2's track change and its Amharic proof are a clean separate unit. If S1 ends early, S2 can follow under the same ruling.
 
-## K2 (seen, not touched)
+## 9. Growth (ESTIMATE, ruling B)
 
-- Tooling `localeCompare` sites and the E2E Segmenter oracle (L-2).
-- The rail stops at the footer on a short page (`--rail-bottom-inset`).
-- PHR-1's 5 s timeout under the full check's load (R1c-fix).
+- JS first download, every page: +0.2 to +0.5 KiB. Cause: longer class strings in the shell (tiles, controls) and the logo's filled paths. S2 adds +0.1 to +0.3 KiB (track markup).
+- Stylesheet: +0.3 to +0.6 KiB, against 40 KiB. Cause: the new utilities and P-S tokens.
+- Entry margin (0.1 KiB at 207.9 of 208): S1 will cross it. The plan is a **raise of the entry ceiling 208 → 209 KiB**, citing the Sage shell classes, plus any NEAR-band page raised by its own named cause. A trim is taken only if the build finds one in the shell's own code.
+- A page whose JS grows by more than 1 KiB, or growth without a named cause, is a STOP.
 
-## Build order (ESTIMATES)
+## 10. Conflicts with Knowledge, AGENTS.md or the brief
 
-1. Part 1 — `menu-columns.ts` (machine + `columnsFromUrl`), MCL-1–3 (ESTIMATE: a quarter of a turn).
-2. Part 2 — the phone split on the machine: 64/192 columns, header row, D249 level 3, D251 moves, reduced motion, RTL; strip rows replaced; CF-SUB-1 1 site, CF-ROWS-1 strip line → 0; SPL-E1–E8 (ESTIMATE: one turn).
-3. Part 3 — MenuNav groups onto the side panel at ≥ 768 and onto the split below; admin/account/seller; URL marking; ROWS-E2, SMN-E11/E12; CF-SUB-1 → 0 (ESTIMATE: two thirds of a turn).
-4. Part 4 — old tests re-read, growth table, records, checks, report (ESTIMATE: a third of a turn).
+- None blocking. Spec numbers that D247–D258 override are listed in §3.
+- Spec §1 asks for a 15 px inline search text. The phone row stays ≥16 px under INC-747 and the phone-field memory rule.
+- The raised Post disc (R6) over the content above the bottom bar is an open spec question. S1 measures it at 390 px: it must not cover a tappable control, or S1 stops.
 
-SPLIT: allowed after Part 2 or Part 3 with the checks green.
+## Technical details
+
+- Files S1: `src/styles.css`, `src/lib/themes.ts` (P-S tokens, ruling A), `src/styles.tokens.test.ts`, `src/components/brand/logo.tsx`, `src/components/shell/{app-header,theme-toggle,app-rail,menu-row,panel-header,app-footer,bottom-bar,filter-choices}.tsx|ts`, the language control's file, `src/components/ui/submenu-impl.tsx`, `src/components/app-shell.tsx` (the shell-band line only), `src/features/posting/photo-background.test.ts`, `scripts/conformance/look-values-allowlist.txt`, `e2e/sage-shell.spec.ts`, `e2e/shell.spec.ts`, `e2e/submenu-look.spec.ts`, `scripts/route-budgets.mjs` / `check-bundle-size.mjs` (entry ceiling, named cause), docs (design-foundation.md, mechanisms register row 81, one changelog line).
+- Files S2: `src/components/shell/{band-row,panel-tabs,location-selector}.ts(x)`, `src/components/app-shell.tsx` (subband and breadcrumb), `scripts/conformance/shell-bands.test.ts`, `e2e/sage-bands.spec.ts`, docs.
+- Must not touch: heights and widths (menu-row sizes, band-row height, bar-spacing, menu-width), routes, strings, i18n files, migrations.
