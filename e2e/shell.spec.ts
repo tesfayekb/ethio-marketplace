@@ -221,7 +221,7 @@ test.describe("app shell", () => {
       await expect(strip).not.toHaveCSS("box-shadow", "none");
       const bottom = page.getByTestId("bottom-bar");
       await expect(bottom).toHaveCSS("border-top-width", "0px");
-      await expect(bottom).toHaveCSS("border-top-left-radius", "16px");
+      await expect(bottom).toHaveCSS("border-top-left-radius", "18px"); // Sage §11 (turn SAGE-S1): 18 px, --radius-bar
       await expect(bottom).not.toHaveCSS("box-shadow", "none");
     }
   });
