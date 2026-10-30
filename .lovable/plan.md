@@ -1,165 +1,151 @@
-# Turn R1 plan — the left menu redesign (DEC-288, D240, D241, D243, INC-988), with INC-1005 first
+# Turn R1c plan — D244–D247 (INC-1008, INC-1009), then the folded rail
 
-Base: dev f66ca04c. Plan only; nothing changed. Request sha256 1d9e5091…080b (as given).
+Base dev a4bfd7c7. Tier B. No migration, no new dependency. Plan only; nothing changed. Request sha256 f1b6d8ac…d7 (as given).
 
 ## CI first
 
-- The last completed run is **b2940a61, FAILURE** (run 40974739742). The run on f66ca04c had not completed when I read it.
-- Reds on b2940a61:
-  - i18n used-on map and Component tests (ERRT-6): both fixed in the J-1 continue.
-  - One gating E2E failure: PW-30 on mobile-360, "no place was chosen" (post-wizard-place.spec.ts).
-  - Two flakes: PW-30, and PGH-E2 on desktop-1280 (a timeout). PGH-E2 ran before the switchLanguage fix.
-- What the build does first:
-  - If the f66ca04c run, or its repeat lane, shows PGH-E2 red, INC-715's rule ("a test never switches the language back") applies. PGH-E2 is reshaped into one switch per test.
-  - PW-30 is classified first (app defect or test) and fixed at its root, ahead of Part 0.
+The last completed run is on `36c4a083`, run 41000289665: **SUCCESS**, E2E passed, 0 flaky (raw ci-evidence, read 05:1xZ). No run on a4bfd7c7 has completed yet, so there is nothing to fix first. The build turn reads CI again before it pushes.
 
-## Part 0 — INC-1005: opening a menu moves the page
+## Evidence gathered for this plan (dev server, Chromium, scrollbars hidden unless noted)
 
-**Read so far (sandbox Chromium, /, 1280 px):**
-- When the language menu opens, `body` changes from `overflow: clip visible` to `hidden`, with no padding or margin added to make up for it. That is Radix's modal scroll lock (dropdown-menu-impl.tsx :9 uses the default modal=true).
-- The sandbox's scrollbar width was 0 there, because the page did not scroll. So the column did not move, and the hypothesis is **not yet proven**.
-- Build step 1: the same measurement on a scrolling page in a browser whose scrollbar takes width (Chromium with classic scrollbars). It records the column's box before, during and after. If the column moves by half the scrollbar's width, the hypothesis holds. If not, STOP and report what the measurement shows.
-
-**Consumers (by definition, every overlay that locks scroll):**
-
-| Overlay | Today |
+| Probe | Result |
 | --- | --- |
-| DropdownMenu (language, account, panel header, every menu but row actions) | moves the page |
-| RowActions (modal={false}) | does not |
-| Dialog, Sheet, AlertDialog (Radix modal) | moves the page |
-| Select, Popover (Radix) | moves the page where modal; verified per instance in the build |
-| Tooltip | does not lock |
-| Part 1's side panel | must not lock |
+| Level 2 from the last root, 1280×600 and 1024×600 | Fits: top 206, height 386, bottom 592 (inside 600) |
+| Level 2 that is tall (the only root with a third level, index 4 of 15), 1280×600 | Panel content is 576 px. It is clamped to 536 px with top 56 (under the top bar's bottom, 56), so it scrolls **inside** itself: its last rows sit below the panel's visible area |
+| Same panel, then the window is made 150 px shorter | Not placed again: it keeps 536 px and its bottom (592) is **below the 450 px screen** |
+| Level 3 | maxHeight 592 = the whole viewport, because `minTop` is 0 for depth ≥ 1, so it is allowed under the top bar |
+| Rail, 1280×600, fine pointer | Its scroll area is 568 / 488: **it scrolls** (15 roots × 36 px + 14 × 2 px gaps) |
+| Phone menu, 360×740, touch, coarse pointer | 688 / 628: **it scrolls** (15 × 44 px + gaps); rows measure 44 px |
+| Phone menu, 360×640, coarse | 688 / 528: it scrolls |
 
-**Mechanism (one, at the document):**
-- `html { scrollbar-gutter: stable; }` in src/styles.css. The standard is CSS Overflow Module Level 3, `scrollbar-gutter`.
-- The gutter is always reserved, so hiding the scrollbar never changes the layout width.
-- Each overlay keeps its own scroll behaviour:
-  - modal dialogs, sheets and alert dialogs still lock the page behind them;
-  - dropdown menus keep their lock as well. Only the shift is removed; their modality is not changed in this turn.
-- Where the lock library also adds a compensating margin, that margin would double the gutter. The build checks for this and neutralises it in the overlay facade (overlay-facade.tsx), not per consumer.
+**INC-1008, cause named but not yet confirmed (G21).** I reproduced two ways a panel's rows end up off screen:
+1. **No placement on resize** (`submenu-impl.tsx:176–191`, `useLayoutEffect` keyed on the opening only). A panel opened in a taller window stays tall after the window shrinks. The preview frame resizes when the editor's panes move.
+2. **A tall panel scrolls inside itself, without a visible scrollbar in a headless browser.** Its bottom rows read as "below the screen".
 
-**Guard:** CF-SHIFT-1, a census.
-- It fails if styles.css loses the gutter rule.
-- It fails if any overlay code adds its own scrollbar compensation, such as `padding-right` or `margin-right` from a lock.
-- It is proven on a planted copy of the stylesheet without the rule.
+I have not reproduced a panel whose own box crosses the bottom edge in a fixed window: the shift at `submenu-geometry.ts:42–44` works. The build's first step reproduces in the preview's own frame, at the operator's window size (to be read from his screenshot or asked), before any fix. If neither cause matches, that is a STOP with the measurement.
 
-**E2E:** OVS-1/OVS-2 (ids free), both projects.
-- They measure `main`'s box with the language menu and a dialog open and closed.
-- On mobile, the box must equal its closed value too; phones use overlay scrollbars, so this proves nothing regressed.
+## Item 1 — D244 / INC-1008: every panel wholly on screen
 
-## Part 1 — one sub-menu mechanism
+- **Mechanism:** `placePanel` (`src/components/ui/submenu-geometry.ts:29–46`) and the `Panel` layout effect (`submenu-impl.tsx:176–191`).
+- **Change:**
+  - `minTop` becomes the top bar's bottom at every depth. It is read once per placement from the shell's header box, handed in like `edgeOf`, never 0.
+  - The panel is placed again on `resize` while open: one listener in the on-demand layer, rAF-throttled, removed on close. A child panel re-places after its parent (I3: nothing is observed; it just reads on the event).
+  - The rule stays: level with the opener when it fits, raised just enough when it doesn't, never under the top bar. A panel still too tall follows item 4.
+- **Consumers:** CategoryNav's rail and folded rail use it (`app-rail.tsx:692`). MenuNav, the admin groups and the phone strip bypass it until R1d (CF-SUB-1 allowlist, count 3).
+- **Guard:** CF-SUB-1 gains a census line: no caller may pass a literal `minTop`, and the layer must register a resize re-placement. Planted proof: `minTop: 0` restored.
+- **Tests** (ids grep-checked free at build time):
+  - Unit SMG-1…4: low opener, third level from a low row, top-bar floor at depth 2, re-placement on resize.
+  - E2E SMN-E4, 1280×600 and 1024×600: open the last root's panel and a third level from its lowest row with sub-items; every row `toBeInViewport()`; resize to 450 px and check again.
+- **Growth:** 0 KiB on the first paint (all in the on-demand chunk). ESTIMATE.
 
-**What exists:** D98's side-panel code is **not in the tree**. No hover-intent, safe-triangle or flyout code exists in src/. Bundle 21 turn 5 (2026-10-18) replaced it with sub-items in place (panels.md :112).
-- It exists only in git history, before that commit. The build reads it by line range and reuses its timings and logic where they still fit. It is not restored wholesale.
-- The build first confirms the commit holds it; I have not read that commit yet.
+## Item 2 — D245: how a panel appears (read from the current ethio.com)
 
-**Components (src/components/shell/submenu/):**
-- `SubmenuProvider` holds the open path (level 1, 2, 3), hover intent (150 ms to open, 300 ms to close) and the safe triangle.
-- `SubmenuTrigger` wraps a RailRow. It owns `aria-expanded`, `aria-controls`, the pointer and touch handlers, and the keys.
-- `SubmenuPanel`: a positioned panel beside its trigger at ≥ 768. On phones it is the split's right column.
-- `useSubmenuItems(node)` reads children from the seeded tree, or from the panel definitions, only.
-- API: `<SubmenuTrigger node href>` and `<SubmenuPanel level>`. CategoryNav and MenuNav both render through these, and RailRow stops building child lists.
+The sandbox reached the site (`https://ethio.com/`, theme `wp-content/themes/ethiopian/`). I read the computed style of `.leftmenu .dropdown-submenu` before and after hover, in Chromium at 1440×900.
 
-**Desktop (≥ 768, fine pointer):**
-- Hover opens after 150 ms and closes 300 ms after the pointer leaves the row and panel.
-- The safe triangle runs from the pointer to the panel's near corners. While the pointer stays inside it, the close is delayed, so a diagonal move does not switch rows. It is computed from rects cached when the panel opens, with no reads in pointermove.
-- A click opens the page.
-- Alignment: the panel's first row is level with the trigger's top. The third level opens beside the second, aligned the same way.
-- Edge flip: if the panel would overflow at the inline end, it opens on the other side. If it is taller than the viewport, it is clamped and scrolls inside, with its scrollbar visible. It never clips.
-- RTL: sides are logical (start/end).
-- Keyboard (WAI-ARIA disclosure navigation): Enter or Space opens; Arrow Up/Down move within a level; Arrow Right (inline end) enters the panel, and Arrow Left returns; Escape closes the level and focus returns to its opener. Tab order follows the DOM.
+| Aspect | The current ethio.com | Source |
+| --- | --- | --- |
+| Surface | `background-color: #fff; border: 1px solid #ccc; border-radius: 0; box-shadow: none; min-width: 200px` | style.css:5030–5046 (`.nav ul ul`) |
+| Placement | `left: 100% !important; top: 0 !important`: flush against the menu, first row level with its item, no gap. Its own 1 px border overlaps the menu's (panel x 351.5 vs menu right 352.5) | custom.css:281–285; style.css:31744–31750 |
+| Motion, open | `transition: top .3s ease, opacity .3s`, from `opacity: 0; transform: scaleX(0); z-index: -1` to `opacity: 1; transform: scaleX(1); z-index: 999` (style.css:5065–5070). The transform is not transitioned, so it snaps; `top` is pinned by `!important`, so nothing slides. **What you see: a 300 ms opacity fade (ease), with no movement** (measured: opacity 0.35 at 60 ms) | style.css:5031, 5065–5070 |
+| Third level | `.nav ul ul ul { transition: left .3s ease, opacity .3s; left: 110% }`, but custom.css's `left: 100% !important` pins it, so it also only fades | style.css:5048–5055; custom.css:282 |
+| Close | On hover-out the same 300 ms opacity fade back to 0 | style.css:5030–5046 |
+| Rows | `padding: 8px 2rem` (sub-rows `5px 2rem`), `border-bottom: 1px solid #ccc` (none on the last row), hover `background: #e9ecef` with `transition: .5s ease-in-out` | custom.css:268–280, 286–288 |
+| No script | `js/custom.js` has no sub-menu code (no `dropdown-submenu`, `leftmenu` or `hasmenu`) | custom.js |
 
-**Touch at ≥ 768 (coarse pointer):** a tap navigates and opens the panel; a tap outside closes it. Nothing relies on hover (C2).
+**Plan to match it in tokens (C3):**
+- Surface: `bg-popover` (white in light mode), `border border-border`, `rounded-none`, no shadow. This replaces `bg-sidebar rounded-md shadow-lg`, so the panel no longer reads as the rail itself.
+- Placement: flush, its border overlapping the rail's edge by 1 px.
+- Motion: opacity 0→1 over 300 ms `ease` on open, and 1→0 over 300 ms on close. The layer keeps a closing panel mounted 300 ms (`data-state="closed"`, non-interactive, `aria-hidden`) after D98's 300 ms close delay.
+- Every level the same. `prefers-reduced-motion`: no animation either way.
+- Row separators 1 px `border-border` and the hover tint `hover:bg-muted`.
+- **For a ruling:** the old rows' 0.5 s hover transition and their 2rem padding. I propose keeping our row padding and no hover transition (snappier on low-end Android). If you want the old site's look for those too, say so.
+- The token colours are the closest design tokens, not the literal #fff/#ccc/#e9ecef. The build reports the token values beside them.
+- **Tests:** unit SMN-7 (closed panel kept mounted 300 ms, then removed; none under reduced motion). E2E SMN-E5 (computed opacity transition 0.3 s, border 1 px, radius 0, no shadow; `emulateMedia({ reducedMotion: "reduce" })` gives no animation).
+- **Growth:** about 0.02–0.05 KiB of CSS on the first paint (new utility classes). The JS is on demand. ESTIMATE.
 
-**Folded rail (64 px, ≥ 768):** today an icon is a link to its category; I did not find a hover behaviour in the code.
-- Under DEC-288: hovering an icon opens the same side panel, its header being the item's name. A click or tap opens the page and the panel.
-- This is the reading the request expects. The build confirms it against app-rail.tsx's folded branch before any change.
+## Item 3 — D246: every menu shows where the person is
 
-**Phones (< 768):**
-- The open menu stays 256 px wide. When a parent opens, the main column narrows to 64 px and shows icons only, each with its accessible name. The open icon is highlighted.
-- The sub-items take 192 px, headed by the opened item's name (D241). Names wrap and are never cut.
-- The transition moves only transform and opacity. Under `prefers-reduced-motion` it is instant.
-- A column with more than 16 items scrolls with its scrollbar visible: `scrollbar-none` is removed at :955 and :1023 for those lists only. Rows stay full size, at least 44 px.
-- The peek (D243; :838–:905) is not touched. It opens the main list as today, and a test asserts its timings are unchanged.
+- **Mechanism:** the level computed from the URL, `fromUrl` (`app-rail.tsx:530–534`). Today the "menu" variant overrides it with `id: null` on every opening (`:535–540`, comment "Each phone opening starts over the strip's main rows").
+- **Change:**
+  - Every phone opening uses `fromUrl`: the open category's children, or a leaf's siblings under its parent. The current row keeps `aria-current="page"` and is scrolled into view (`block: "nearest"`, no smooth scroll) once per opening.
+  - ‹ Main menu / ‹ <parent> still moves up without navigating; the breadcrumb navigates.
+  - The D243 peek uses the same opening path, so it shows the same level; its timing and focus rules are untouched.
+  - `docs/features/panels.md:112`'s clause "The phone menu opens at the main list" is rewritten to D246.
+- **Large screens:** panel rows already carry `active` / `ancestorActive` (`app-rail.tsx:565–566, 590–591`) and draw `ACTIVE` (`submenu-impl.tsx:146`). The plan adds the rail's ancestor highlight to `ancestorActive` panel rows and proves it. No panel opens by itself for the current page.
+- **Under R1d's split:** the same `fromUrl` level heads the sub-panel. Recorded for R1d.
+- **Consumers:** CategoryNav "menu" variant uses it (changed here), "rail" variant uses it, the strip uses it (marks only), MenuNav bypasses it (route menus mark by `isCurrent`, `:752`; unchanged).
+- **Guard:** CF-SUB-1 census: the "menu" variant may not seed its level with a literal `null` / `undefined` on opening. Planted proof: `id: variant === "menu" ? null : …` restored.
+- **Tests:**
+  - **Changed (G38, replaced by D246, not loosened):** B21SC-1 SC-1 (`e2e/shell.spec.ts:3710`). Its reopen block (`:3746–3753`) asserted "no back row, the main list" after a leaf; it now asserts the leaf's level, the leaf marked and in view, and back without a navigation. The census at build time names any other test asserting "opens at the main list" (grep found only this one).
+  - **New:** SC-6 (mobile-360): Clothing & Shoes → a leaf; reopen shows the leaf's level marked and in view; ‹ Main menu returns with the URL unchanged; a reload with `ethio.peek=force` peeks at the same level. SC-7 (desktop-1280 and 768): on the leaf's page, the opened panel marks the leaf (`aria-current="page"`) and its ancestor row.
+- **Growth:** about 0 to +0.05 KiB JS (the override goes, a `scrollIntoView` arrives). ESTIMATE.
 
-**Row heights (INC-988):**
-- At ≥ 768 the rail's list is a flex column. Rows use `flex: 1 1 0` with a minimum of 36 px and a maximum of 48 px (ESTIMATE, per DEC-288). They spread to fill the height and, when they cannot fit, the list scrolls with its scrollbar visible.
-- `min-h-8 max-h-10` and the compact squeeze go everywhere they occur: lines :279, :292, :316, :322, :364, :391, :429, :468, :498, :589, :634.
-- On phones rows stay at least 44 px.
+## Item 4 — D247 / INC-1009: a list fits before it scrolls
 
-**First paint (DEC-295):** the rail's rows still draw from the seed. The panels draw only on intent, from the same tree, with no new request.
+- **Measured:** the phone at 360×740 coarse overflows by 60 px (688 vs 628). The rail at 1280×600 fine overflows by 80 px (568 vs 488). Part of each overflow is 14 × 2 px of row gaps.
+- **Rule** (one CSS mechanism, `src/styles.css`'s row bounds, today `.rail-row` / `.rail-spread`):
+  - **16 items or fewer:** the list is a flex column filling its region with no gaps (spacing inside the rows). Each row is `flex: 1 1 0` with `min-height: 2rem` (32 px floor, ESTIMATE) and `max-height: 3rem` (48 px), on every pointer and width.
+  - **More than 16:** marked by `data-many` from the count. Rows sit at full size (44 px coarse, 36–48 fine) and the region scrolls with its scrollbar visible: `scrollbar-none` is removed from the phone list, and the rail already shows one.
+  - **Too short even at 32 px:** the region scrolls (scrollbar visible). With 15 roots + the favourite (16) × 32 = 512 px of rows, that happens below **about 624 px of viewport** on phones (52 top + 60 bottom bar) and **about 624 px** for the rail (112 px of chrome measured at 600). ESTIMATE; the build measures it.
+  - Consequence: at 1280×600 the rail still scrolls with 16 rows (488 < 512); 15 rows fit (480). The test uses the real tree (15 roots, no favourite). Ruling needed if the favourite case at 600 must also fit (the floor would have to drop to 30 px).
+  - This replaces R1b-2's "≥ 44 px with a coarse pointer at any width" for menu rows (S493). The C2 exception is recorded as below.
+- **Consumers:**
+  - Uses: the rail (`app-rail.tsx:600–603`), the phone menu's list and the strip rows (`COMPACT_ROW` / `COMPACT_HEAD`, `:112–113`).
+  - Panels: the panel's list (`submenu-impl.tsx` `ROW`) has a fixed min-h-11 / min-h-9 today. It moves to the same rule: a panel of ≤ 16 rows shrinks to fit the space between the top bar and the bottom, down to the floor, before it scrolls. This also closes the "tall panel scrolls inside" cause of INC-1008.
+  - Bypasses until R1d: the admin groups, the account and seller menus.
+- **Guard:** a new census, CF-ROWS-1: every menu list's row class comes from the one rule (no `min-h-11` / `pointer-coarse:` / `min-h-9` literal on a menu row outside `src/styles.css`), and `scrollbar-none` is refused on a menu region. Planted proofs: a literal `min-h-11` on a panel row; `scrollbar-none` on the phone list.
+- **Tests:**
+  - ROWS-E1, phone coarse with hasTouch, 360×640: the main list and a 15-item list have scrollHeight equal to clientHeight, every row ≥ 32 px.
+  - ROWS-E2: the admin menu (> 16 items) scrolls and its scrollbar has width > 0. This runs without `--hide-scrollbars`, as OVS does.
+  - ROWS-E3, 1280×600 fine: the rail does not scroll.
+  - C1 (`shell.spec.ts`, 36–48 px) changes to 32–48 px under D247 (G38); SMN-E3's ≥ 44 px row check changes likewise.
+- **Growth:** CSS only, about ±0.1 KiB; JS about 0 (`data-many` is one attribute). ESTIMATE.
 
-## Consumers and tests
+## Item 5 — the folded rail (64 px) on the mechanism
 
-| Consumer | Verdict |
-| --- | --- |
-| Marketplace tree (15 roots, depth 3, ≤ 21 children) | changes: through the mechanism |
-| Admin groups | changes: panel instead of indentation (D240) |
-| Account and seller panels | changes where they have sub-items; otherwise unchanged |
-| Folded 64 px rail | changes: hover/tap panel |
-| Phone strip | unchanged (no sub-items; links only) |
-| Favourite row (D207) | unchanged, stays above the list |
-| ‹ Main menu row | removed where the panel replaces in-place drilling. A STOP for a ruling if any panel still needs it. |
-| Peek (D243) | unchanged |
-| First-paint seed | unchanged, proven by rail-first-paint |
+- **Already done in R1b-2:**
+  - A hover on a folded icon opens its side panel headed by the category's name (`showHeader={collapsed}`, `app-rail.tsx:692`; asserted at `shell.spec.ts:844–846`).
+  - The rail and folded rail no longer drill in place.
+  - A coarse tap opens the page and the panel (the `click` signal's `pointerType`).
+- **Left:**
+  - A tap test on the folded rail at 1024 with hasTouch (SMN-E6).
+  - The folded header picks up item 2's surface.
+  - The "category-nav changes" in `category-nav.spec.ts`: its assertions are re-read against items 3–4, and each changed one is named with why.
+- **Growth:** 0 KiB.
 
-| Test | Verdict and why |
-| --- | --- |
-| e2e/category-nav.spec.ts | changes: the in-place assertions become panel and split assertions; same rows, same links |
-| e2e/helpers/category-menu.ts | changes: opening a level means hover or tap through the trigger |
-| shell.spec.ts | changes: rail-level and ‹ Main menu tests; others unchanged |
-| admin-shell.spec.ts | changes: groups open in a panel |
-| phone-frame.spec.ts | changes: the 64/192 split widths |
-| rail-first-paint.spec.ts | unchanged; must stay green |
-| overlays.spec.ts | unchanged, plus the OVS cases |
-| helpers/ui.ts | changes only if a rail helper drills in place |
+## Files by item
 
-No assertion is loosened (G38). Each replaced assertion names the rule it now proves.
-
-**New tests (ids grep-checked free at build time; proposed SMN-*, SMN-E*, OVS-*, CF-SUB-1):**
-- Unit: hover intent timings; the safe triangle keeping a row open; keyboard order and Escape focus return; the edge flip and clamp; reduced motion.
-- E2E, both projects:
-  - the side panel's first row level with its trigger (within 1 px);
-  - the third level;
-  - the touch tap opening page and panel;
-  - the phone split, with icons only and their names;
-  - a visible scroll over 16 items;
-  - the peek unchanged;
-  - admin groups through the same mechanism.
-- Guard CF-SUB-1: a census that fails when a panel renders a nested child `<ul>` under a RailRow (an in-place indented list) instead of SubmenuPanel. It is proven on a planted copy of today's RailRow shape.
-
-## First-download cost
-
-- The mechanism adds about 2–3 KiB gzip of code on every page (ESTIMATE, band ±50%), plus the gutter rule (bytes).
-- To stay inside the G60 tolerance:
-  - the safe triangle, the panel and the phone split load on demand through `loadOnce` on first intent;
-  - only the triggers' attributes are on the first paint.
-- The build measures every page against the base and STOPs if any page grows more than 0.5 KiB.
+- 1: `src/components/ui/submenu-geometry.ts`, `submenu-impl.tsx`, `app-rail.tsx` (pass the top bar's box), `submenu-impl.test.tsx`, `e2e/submenu.spec.ts`, `scripts/conformance/submenu.test.ts`.
+- 2: `submenu-impl.tsx`, `submenu-impl.test.tsx`, `e2e/submenu.spec.ts`.
+- 3: `app-rail.tsx`, `e2e/shell.spec.ts`, `docs/features/panels.md`, `submenu.test.ts`.
+- 4: `src/styles.css`, `app-rail.tsx`, `submenu-impl.tsx`, `scripts/conformance/menu-rows.test.ts` (new) and its allowlist, `e2e/menu-rows.spec.ts` (new), `e2e/shell.spec.ts`, `e2e/submenu-touch.spec.ts`, `scripts/e2e-select.ts`.
+- 5: `e2e/submenu-touch.spec.ts`, `e2e/category-nav.spec.ts`.
+- Records: `docs/features/panels.md`, `docs/_changelog.md`, `docs/governance/mechanisms.md` (row 79 amended; a row for CF-ROWS-1), `scripts/route-budgets.mjs` only if growth appears, the report.
 
 ## Conflicts
 
-- **C2 (nothing relies on hover):** met. Click, tap and keys open every level; hover is an extra.
-- **C1 (360 first):** the split is designed at 360 first.
-- **C5 (RTL):** logical sides and flip.
-- **Knowledge (docs/features/panels.md :112, D213):** "in place at every width" is superseded by DEC-288. The doc and changelog are updated in the turn.
-- **AGENTS.md "one ☰ per width":** kept.
-- **The safe triangle's pointermove:** within I3, since it reads rects cached once and never what it mutates.
-- **The platform:** no conflict found.
+- **Knowledge C2 (≥ 44 px touch targets) against D247's 32 px floor.** No automated C2 check exists in `scripts/conformance/` (grep), so "where the C2 check lives" is the rule text itself. The exception goes in `docs/conventions.md` (the shared constitution) and in panels.md. Neither is a file the request names: **ruling needed** on where it is written. Knowledge v3.12 itself is the operator's text.
+- **C3 tokens against the old site's literal colours** (item 2): matched by tokens, with the values reported.
+- **DEC-288's "36–48 px fine / ≥ 44 px coarse" text** is superseded by D247 in panels.md and register row 79.
+- **Playwright hides scrollbars:** "scrollbar visible" tests launch without `--hide-scrollbars` (precedent: OVS).
+- **Platform:** none. The preview frame's size is the operator's to report.
 
 ## K2
 
-- `scrollbar-none` on other lists: styles.css :29–:34 names its users. The ones that are not menus are reported, not changed.
-- Per-instance `modal` choices on Select and Popover.
-- Hard-coded row heights outside app-rail.tsx, which the build lists by grep.
+- MenuNav (account, seller), the admin groups and the phone strip still draw sub-items in place (CF-SUB-1, count 3, until 2026-11-30).
+- MenuNav's rows keep their own heights until they move onto D247's rule.
+- The phone list's `scrollbar-none` until item 4.
 
-## Sizing (ordered turns)
+## Build order (ESTIMATES)
 
-| Turn | Scope | Estimate |
+| Part | Work | Estimate |
 | --- | --- | --- |
-| R1a | CI reds, Part 0 (gutter, guard, OVS) | S, 1 turn |
-| R1b | Mechanism, unit tests, CF-SUB-1, row heights, measurement | L, 1–2 turns |
-| R1c | Marketplace tree and folded rail on it; category-nav changes | M, 1 turn |
-| R1d | Admin groups, account and seller panels, phone split and visible scroll; remaining tests | M–L, 1–2 turns |
+| 0 | Step 0, CI read; reproduce INC-1008 in the preview frame and name the cause | S |
+| 1 | D244 placement + resize; SMG-1…4, SMN-E4; guard line | S–M |
+| 2 | D247 rows rule, panel rows, CF-ROWS-1, ROWS-E1…3, C1/SMN-E3 changes | M |
+| 3 | D246 phone level; SC-1 changed, SC-6/SC-7; guard line; panels.md | S–M |
+| 4 | D245 surface + 300 ms fade in/out, reduced motion; SMN-7, SMN-E5 | S |
+| 5 | Folded rail tap SMN-E6; category-nav re-read | S |
+| 6 | Measurement (≤ 0.5 KiB per page, else STOP), docs, checks once, report | S |
 
-Total: 4–6 turns (band ±1).
+Overall about 1–2 turns. The split point is after Part 2 with the checks green.
