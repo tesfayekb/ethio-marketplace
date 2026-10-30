@@ -88,6 +88,44 @@ export function bandFindings(files: File[]): Finding[] {
   return findings;
 }
 
+/** D260 / P-S7: height cases above stay unchanged; the look has the same census. */
+export function bandLookFindings(files: File[]): Finding[] {
+  const findings: Finding[] = [];
+  const ownLook = /(?:^|[\s"'`])(?:[\w-]+:)*(?:bg-|border(?:-|\b)|shadow-)[^\s"'`]*/;
+  for (const file of files) {
+    if (file.name === BAND_HOME) continue;
+    const code = codeOf(file.text);
+    if (/\bconst BAND_LOOK\s*=/.test(code))
+      findings.push({ file: file.name, line: 1, what: "a second source of the band look (D260)" });
+    if (!(file.name in BAND_FILES)) continue;
+    const band = code.match(/const BAND = `([^`]*)`/);
+    const marks = [...code.matchAll(/data-band-row=/g)].map((m) => m.index ?? 0);
+    if (file.name === SHELL) {
+      const stack = code.indexOf('data-testid="shell-subband"');
+      if (stack >= 0) marks.push(stack);
+    }
+    for (const at of marks) {
+      const tag = tagAround(code, at);
+      const stack = tag.includes('data-testid="shell-subband"');
+      const viaBand = /\bBAND\b/.test(tag) ? (band?.[1] ?? "") : "";
+      const classes = tag + " " + viaBand;
+      if (!classes.includes(`BAND_LOOK.${stack ? "stack" : "row"}`))
+        findings.push({
+          file: file.name,
+          line: lineOf(code, at),
+          what: "a band without BAND_LOOK (D260)",
+        });
+      if (ownLook.test(classes))
+        findings.push({
+          file: file.name,
+          line: lineOf(code, at),
+          what: "a band's own surface, edge or shadow (D260)",
+        });
+    }
+  }
+  return findings;
+}
+
 export function barFindings(files: File[]): Finding[] {
   const findings: Finding[] = [];
   for (const file of files) {
@@ -174,5 +212,48 @@ describe("CF-BAR-1 one spacing scale for the top bar", () => {
       `${HEADER}:3 a gap or margin of its own in the top bar, not BAR_GAP (D256)`,
       "src/components/planted.ts:1 a second source of the bar's spacing (D256)",
     ]);
+  });
+});
+
+describe("CF-BAND-1 one look for every band row (D260)", () => {
+  it("every band row and sub-band reads BAND_LOOK, never its own surface, edge or shadow", () => {
+    const findings = bandLookFindings(Object.keys(BAND_FILES).map(read));
+    expect(findings, report(findings)).toEqual([]);
+  });
+
+  it("planted bypasses refuse an own surface, edge, shadow and a second look", () => {
+    for (const own of ["bg-card", "border-b border-neutral-soft", "shadow-bar"]) {
+      const findings = bandLookFindings([
+        {
+          name: "src/components/shell/panel-tabs.tsx",
+          text: `<div data-band-row="" className={cn("flex ${own}", BAND_ROW, BAND_LOOK.row)}>`,
+        },
+      ]);
+      expect(findings.map((f) => f.what)).toEqual(["a band's own surface, edge or shadow (D260)"]);
+    }
+    expect(
+      bandLookFindings([
+        {
+          name: "src/components/shell/panel-header.tsx",
+          text: 'const BAND = `flex bg-card ${BAND_ROW} ${BAND_LOOK.row}`; <div data-band-row="" className={BAND}>',
+        },
+      ]).map((f) => f.what),
+    ).toEqual(["a band's own surface, edge or shadow (D260)"]);
+    expect(
+      bandLookFindings([
+        {
+          name: "src/components/planted.tsx",
+          text: 'const BAND_LOOK = "bg-card";',
+        },
+      ]).map((f) => f.what),
+    ).toEqual(["a second source of the band look (D260)"]);
+    expect(
+      bandLookFindings([
+        {
+          name: "src/components/shell/panel-tabs.tsx",
+          text: '<div data-band-row="" className={BAND_ROW}>',
+        },
+      ]).map((f) => f.what),
+    ).toEqual(["a band without BAND_LOOK (D260)"]);
   });
 });

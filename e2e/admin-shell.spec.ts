@@ -7,6 +7,7 @@ import {
   sectionGroupId,
 } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
+import { ITEM_ACTIVE } from "../src/components/shell/menu-row";
 
 import {
   expectPanelOffered,
@@ -194,7 +195,7 @@ test.describe("Admin shell (U0)", () => {
         rail.getByTestId(
           currentGroup ? `admin-group-${currentGroup}` : `rail-item-ad-${current.id}`,
         ),
-      ).toHaveClass(/bg-nav-active/);
+      ).toHaveClass(new RegExp(ITEM_ACTIVE)); // G38 Sage §2: nav tint → card, nav ink and chosen-row lift.
     }
 
     // A section the admin role does NOT hold is refused, not blank.
@@ -336,7 +337,7 @@ test.describe("Admin shell (U0)", () => {
     const group = scope.getByTestId("admin-group-categories");
     await expect(group, "the group item never rendered").toBeVisible({ timeout: 15000 });
     await expect(group).toContainText(en[ADMIN_GROUPS.categories.titleKey]);
-    await expect(group).toHaveClass(/bg-nav-active/);
+    await expect(group).toHaveClass(new RegExp(ITEM_ACTIVE)); // G38 Sage §2: nav tint → card, nav ink and chosen-row lift.
     if (isMobile(page)) {
       // VERDICT (phones keep today's menu, D255) — a visual cluster, NOT an accordion: no
       // aria-expanded; every permitted sub-item is always present beneath the header.

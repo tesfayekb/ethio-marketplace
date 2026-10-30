@@ -3,6 +3,7 @@ import { THEMES } from "../src/lib/themes";
 import { expect, test } from "./fixtures";
 import { ANY_MENU_ROW } from "./helpers/category-menu";
 import { gotoReady, layoutBoxes } from "./helpers/ui";
+import { withoutEmptyLayers } from "./helpers/shadows";
 
 /**
  * SGS-1…SGS-6 (redesign Part 2, turn SAGE-S1; spec §1, §2, §3, §10, §11) — THE SHELL IN THE
@@ -46,18 +47,6 @@ async function resolved(
     },
     [property, value] as const,
   );
-}
-
-/**
- * S1-2 ruling 2: Tailwind's shadow composition puts four transparent zero-size layers
- * (`rgba(0, 0, 0, 0) 0px 0px 0px 0px` — its ring and inset-ring slots) ahead of the token's
- * shadow. Exactly those layers are removed; the rest is compared whole.
- */
-const EMPTY_LAYER = "rgba(0, 0, 0, 0) 0px 0px 0px 0px, ";
-function withoutEmptyLayers(value: string): string {
-  let out = value;
-  while (out.startsWith(EMPTY_LAYER)) out = out.slice(EMPTY_LAYER.length);
-  return out;
 }
 
 const style = async (locator: Locator, property: string) => {

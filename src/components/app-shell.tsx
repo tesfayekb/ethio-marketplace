@@ -10,7 +10,7 @@ import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { OnDemandNotice } from "@/components/shell/on-demand-notice";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
-import { BAND_ROW } from "@/components/shell/band-row";
+import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
 import { BAR_GAP, BAR_INSET } from "@/components/shell/bar-spacing";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import {
@@ -1045,17 +1045,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <div
               data-testid="shell-subband"
-              className="sticky top-13 z-20 bg-card shadow-bar md:top-14"
+              className={cn("sticky top-13 z-20 md:top-14", BAND_LOOK.stack)}
             >
               {searchOpen ? <SearchRow onClose={() => setSearchOpen(false)} /> : null}
               <PanelTabs />
               <div
                 data-band-row=""
                 data-testid="shell-breadcrumb-row"
-                className={cn(
-                  "flex min-w-0 items-center border-b border-neutral-soft px-2 md:px-4",
-                  BAND_ROW,
-                )}
+                className={cn("flex min-w-0 items-center px-2 md:px-4", BAND_ROW, BAND_LOOK.row)}
               >
                 <Breadcrumbs />
               </div>

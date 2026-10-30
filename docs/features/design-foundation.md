@@ -146,6 +146,27 @@ value; components use semantic tokens only, never raw colours.
   shell's notices) and the page's bottom scroll padding clear the rise; SGS-7 judges.
 - One "chosen" lift: the chosen filter pill takes `shadow-tile-on`.
 
+## One Sage band look and the location track (turn SAGE-S2, D260, spec §4)
+
+- `band-row.ts` owns `BAND_LOOK`: every panel tabs row, panel header, breadcrumb and
+  location row takes `bg-band text-band-label shadow-groove`; the containing sub-band
+  takes `bg-band shadow-subband`. `BAND_ROW` still sets 40 px, unchanged (D258).
+- CF-BAND-1 (`scripts/conformance/shell-bands.test.ts`) retains its height cases and
+  adds the look census: a band's own surface, border or shadow, a missing shared look,
+  and a second look source are refused, including planted bypasses.
+- The panel header's label takes the shared heading style; its switch control is unchanged.
+  Location captions keep their words at 12 px on phones and 13 px otherwise.
+- One pressed-in track (`--track`, `--lift-track`, `--radius-track`) holds the decorative
+  map pin and all picker segments. It is 34 px with 3 px padding; each segment is 28 px,
+  with `--radius-segment`, 5 / 10 px horizontal padding, 12 / 13 px text, weight 500 and
+  a 13 px muted chevron. Only the deepest chosen segment is raised on `--card` with
+  `--lift-segment`, `--nav-ink` and semibold. `CutText` and `useLabelRoom` retain the
+  one-line name priority. Dropdowns, PlaceNotice and read-state captions are unchanged.
+- `ActionMessage` clears the phone bar through `--bar-rise`, not its own offset.
+- SGB-1…3 check the four bands, track geometry and the deepest scratch chain at 360 px
+  in English and Amharic, both modes. The exact Tailwind empty-shadow-layer probe lives
+  in `e2e/helpers/shadows.ts`, shared with SGS. BND-E1…4 remain unchanged.
+
 ## The AppShell slot model
 
 `src/components/app-shell.tsx` is the ONE shell:
