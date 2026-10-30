@@ -30,7 +30,8 @@ const ARBITRARY =
   /(?<![\w-])((?:bg|border(?:-[xytblrse])?|ring(?:-offset)?|fill|stroke|shadow|outline|decoration|divide|from|via|to|accent|caret|font|rounded(?:-(?:t|b|l|r|s|e|tl|tr|bl|br|ss|se|es|ee))?)-\[([^\]\s]+)\]|text-\[#[^\]\s]*\])/g;
 const SIZE = /^-?[\d.]+(?:px|rem|em|%)?$/;
 const NOT_A_VALUE = /^(?:inherit|var\(--[\w-]+\))$/;
-const COLOUR = /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?|oklch)\(/g;
+const COLOUR =
+  /#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})(?![\w-])|\b(?:rgba?|hsla?|oklch)\(/g;
 
 /** Every finding in one file's text. */
 export function lookFindings(file: string, text: string): Finding[] {
