@@ -17,10 +17,10 @@
 No route ceiling raised; "Bundle budget OK." Per-page delta against 60287c03 not measured this turn (NOT RUN); the change adds one 2-constant module and removes the footer-inset hook.
 
 ## Units
-2,286 tests in the first checks run (1 failed: CF-NN-1 — shell.spec.ts's allowance went stale/over; the new tests' non-null marks removed, the line lowered 81 → 80). Final count in the last checks line below.
+2,286 tests in the first checks run (1 failed: CF-NN-1 — shell.spec.ts's allowance went stale/over; the new tests' non-null marks removed, the line lowered 81 → 80). Final: **2,288 / 2,288**.
 
 ## Checks
-See the final line appended below.
+`checks: 34 PASS · 0 FAIL · 21 NOT RUN · 1103s`. Earlier runs this turn failed on CF-NN-1, a stale layout-reads line for the replaced L3 test (removed), and the deletion guard on semgrep.json/semgrep.sarif — scanner output a platform commit had captured; both paths are now in intentional-deletions.txt and .gitignore (root cause).
 
 ## K2
 - src/features/admin-locations/location-form-fields.tsx:160 `md:w-56` — a form width, not the menu; outside CF-WIDTH-1's scope by design.
@@ -28,4 +28,26 @@ See the final line appended below.
 - PHR-1 timeout under load (prior K2) not re-observed.
 
 ## git diff --name-only 60287c03
-See the list appended below.
+```text
+.gitignore
+docs/governance/briefs/foundations-turn-r1d-b.md
+docs/governance/reports/foundations-turn-r1d-b.report.md
+docs/governance/reports/foundations-turn-r1d-b.stop-1.md
+docs/tracking/intentional-deletions.txt
+e2e/menu-rows.spec.ts
+e2e/shell.spec.ts
+e2e/submenu-look.spec.ts
+e2e/submenu.spec.ts
+roadmap.md
+scripts/conformance/layout-reads-allowlist.txt
+scripts/conformance/menu-rows.test.ts
+scripts/conformance/non-null-allowlist.txt
+src/components/app-shell.tsx
+src/components/shell/app-footer.tsx
+src/components/shell/app-rail.tsx
+src/components/shell/menu-width.ts
+src/components/shell/use-footer-inset.ts
+src/components/ui/submenu-geometry.ts
+src/components/ui/submenu-impl.test.tsx
+src/components/ui/submenu-impl.tsx
+```
