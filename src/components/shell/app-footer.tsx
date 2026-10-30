@@ -34,7 +34,7 @@ export function AppFooter() {
     <footer className="w-full bg-card shadow-bar-up">
       <div
         data-testid="footer-columns"
-        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-0 px-4 py-1 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-8"
+        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-0 px-4 py-2 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-2"
       >
         <div
           data-testid="footer-brand"
@@ -85,7 +85,7 @@ export function AppFooter() {
           </nav>
         ))}
       </div>
-      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-1.5 text-center md:px-10 md:py-2">
+      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-2 text-center md:px-10 md:py-2">
         <p data-testid="footer-copyright" className="text-sm text-muted-foreground">
           © {year} {t("app.name")} — {t("footer.rights")}
         </p>

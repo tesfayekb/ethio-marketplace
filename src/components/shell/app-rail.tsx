@@ -17,7 +17,6 @@ import { useShell } from "@/components/shell-context";
 import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
-import { useFooterInset } from "@/components/shell/use-footer-inset";
 import {
   MENU_FIT_MAX,
   SUBMENU_SIGNALS,
@@ -876,7 +875,6 @@ export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth, authLoading, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
-  const footerInset = useFooterInset();
   const pathname = useShownPathname();
   const [peeking, setPeeking] = useState(false);
   /** INC-924 — the peek's menu has been drawn (its code arrived): its 3-second clock starts here. */
@@ -960,14 +958,10 @@ export function AppRail() {
         <aside
           data-testid="app-rail"
           // U0g-2 — FIXED, never sticky: the rail must not move at any scroll
-          // offset. U0i — its BOTTOM is no longer the viewport bottom: it is
-          // `--rail-bottom-inset`, how far the footer has scrolled into view,
-          // so the rail's box always ENDS at the footer's top edge. With the
-          // fixed calc() height dropped (top-14 + bottom inset size it), the
-          // inner rail-scroll region keeps its scrollbar and every item stays
-          // reachable instead of hiding under the footer.
-          style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
-          className="hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-[var(--rail-bottom-inset,0px)] md:z-20 md:flex md:h-auto md:w-56 lg:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
+          // offset. D252 (Foundations turn R1d-b) — it always runs from the top
+          // bar to the screen's bottom; the footer lives in the middle column
+          // beside it, so the two never share space.
+          className="hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:w-56 lg:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
@@ -991,7 +985,6 @@ export function AppRail() {
           data-testid="rail-strip"
           aria-hidden="true"
           onClick={() => changeMenu(true)}
-          style={{ "--rail-bottom-inset": `${footerInset}px` } as React.CSSProperties}
           className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-[38] flex w-12 flex-col bg-sidebar shadow-side md:hidden"
         >
           <div

@@ -77,8 +77,9 @@ export type Snap = { top: number; rowHeight: number; height: number; scrolls: bo
  * D248 (Foundations turn R1d-a) — the panel snaps to the main menu's row grid. Its rows
  * take the menu's row height and its first row sits on the opener's row; a panel that
  * would end below the menu's last row moves up by whole rows until its last row is level
- * with it; a panel taller than the menu's whole height takes that height, and only then
- * do its rows shrink, down to ROW_FLOOR, beyond which it scrolls.
+ * with it. D254 (Foundations turn R1d-b): a panel never compacts — its rows always keep
+ * the menu's measured row height; a panel taller than the menu takes the menu's whole
+ * height (the whole rows that fit, top of its first to bottom of its last) and scrolls.
  */
 export function snapToGrid(input: {
   openerTop: number;
@@ -96,7 +97,6 @@ export function snapToGrid(input: {
     const top = Math.max(menuTop, openerTop - steps * rowHeight);
     return { top, rowHeight, height: natural, scrolls: false };
   }
-  const share = count > 0 ? room / count : rowHeight;
-  if (share >= ROW_FLOOR) return { top: menuTop, rowHeight: share, height: room, scrolls: false };
-  return { top: menuTop, rowHeight: ROW_FLOOR, height: room, scrolls: true };
+  const rows = rowHeight > 0 ? Math.max(1, Math.floor(room / rowHeight + 0.01)) : 0;
+  return { top: menuTop, rowHeight, height: rows * rowHeight, scrolls: true };
 }
