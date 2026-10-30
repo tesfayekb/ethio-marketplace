@@ -114,7 +114,10 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
   await page.emulateMedia({ reducedMotion: "reduce" });
   await opener.hover();
   await expect(panel).toBeVisible();
-  expect(await panel.evaluate((el) => getComputedStyle(el).transitionDuration)).toBe("0s");
+  // The site-wide reduced-motion rule leaves 0.01 ms: no visible fade.
+  expect(
+    parseFloat(await panel.evaluate((el) => getComputedStyle(el).transitionDuration)),
+  ).toBeLessThanOrEqual(0.001);
   await page.mouse.move(900, 700);
   await expect(panel).toHaveCount(0);
   await expect(page.getByTestId("submenu-panel-closing")).toHaveCount(0);
