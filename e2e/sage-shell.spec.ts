@@ -122,7 +122,7 @@ for (const width of WIDTHS) {
         page,
       }) => {
         const phone = width < 768;
-        const surface = page.getByTestId(phone ? "rail-strip" : "rail");
+        const surface = page.getByTestId(phone ? "rail-strip" : "app-rail");
         expect(await style(surface, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, phone ? "lift-rail-phone" : "lift-rail")),
         );
