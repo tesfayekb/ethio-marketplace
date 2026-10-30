@@ -27,7 +27,7 @@ function block(selector: string): Map<string, string> {
 }
 
 /** Layout, not look: the phone bottom bar's height. */
-const NOT_THEME = new Set(["bottom-bar"]);
+const NOT_THEME = new Set(["bottom-bar", "bar-rise"]);
 
 describe("THEMES", () => {
   it("TH-1 the theme names are the resolver's names; the default is sage", () => {
