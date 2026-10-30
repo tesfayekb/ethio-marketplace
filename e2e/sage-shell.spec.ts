@@ -1,7 +1,8 @@
 import type { Locator, Page } from "@playwright/test";
 import { THEMES } from "../src/lib/themes";
 import { expect, test } from "./fixtures";
-import { gotoReady } from "./helpers/ui";
+import { ANY_MENU_ROW } from "./helpers/category-menu";
+import { gotoReady, layoutBoxes } from "./helpers/ui";
 
 /**
  * SGS-1…SGS-6 (redesign Part 2, turn SAGE-S1; spec §1, §2, §3, §10, §11) — THE SHELL IN THE
@@ -104,11 +105,9 @@ for (const width of WIDTHS) {
             await resolved(page, "boxShadow", tokenOf(mode, "lift-field")),
           );
           expect(await style(field, "borderTopWidth")).toBe("0px");
-          const box = await field.boundingBox();
+          const { field: box } = await layoutBoxes({ field });
           const radius = parseFloat(await style(field, "borderTopLeftRadius"));
-          expect(radius, "SGS-1 the search field is a pill").toBeGreaterThanOrEqual(
-            (box?.height ?? 0) / 2,
-          );
+          expect(radius, "SGS-1 the search field is a pill").toBeGreaterThanOrEqual(box.height / 2);
         }
       });
 
@@ -168,7 +167,7 @@ for (const width of WIDTHS) {
         // Every idle tile in the menu (no one row chosen by position, J6).
         const idleTiles = await surface
           .locator(
-            "[data-testid^='rail-category-'] span.rounded-full, [data-testid^='strip-category-'] span.rounded-full",
+            `${ANY_MENU_ROW} span.rounded-full, [data-testid^='strip-category-'] span.rounded-full`,
           )
           .evaluateAll((els) =>
             els.map((el) => {
@@ -215,13 +214,9 @@ for (const width of WIDTHS) {
         expect(await style(disc, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, "lift-disc")),
         );
-        const d = await disc.boundingBox();
-        const b = await bar.boundingBox();
-        expect(Math.round(d?.width ?? 0), "SGS-5 a 40 px disc").toBe(40);
-        expect(
-          Math.round((b?.y ?? 0) - (d?.y ?? 0)),
-          "SGS-5 raised 14 px above the bar's top edge",
-        ).toBe(14);
+        const { disc: d, bar: b } = await layoutBoxes({ disc, bar });
+        expect(Math.round(d.width), "SGS-5 a 40 px disc").toBe(40);
+        expect(Math.round(b.y - d.y), "SGS-5 raised 14 px above the bar's top edge").toBe(14);
       });
 
       test(`SGS-6 Sign in is raised (${width}, ${mode})`, async ({ page }) => {
@@ -254,15 +249,12 @@ for (const mode of MODES) {
         // The section's top in view: its action bar is stuck above the bottom bar.
         await page.getByTestId("prim-form-section").evaluate((el) => el.scrollIntoView());
         const bar = page.getByTestId("prim-form-section").locator("[data-testid$='-actions']");
-        const box = await bar.boundingBox();
-        const top = await page.getByTestId("bottom-bar").boundingBox();
-        if (!box || !top) throw new Error("SGS-7 no action bar or bottom bar box");
+        const { box, top } = await layoutBoxes({ box: bar, top: page.getByTestId("bottom-bar") });
         expect(Math.round(box.y + box.height), "SGS-7 the action bar meets the bottom bar").toBe(
           Math.round(top.y),
         );
       }
-      const disc = await page.getByTestId("bottom-bar-disc").boundingBox();
-      if (!disc) throw new Error("SGS-7 no disc box");
+      const { disc } = await layoutBoxes({ disc: page.getByTestId("bottom-bar-disc") });
       const covered = await page.evaluate((d) => {
         const hits: string[] = [];
         const controls = document.querySelectorAll<HTMLElement>(
