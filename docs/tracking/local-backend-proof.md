@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `4ec6935cee36e79d370d03fc755912bf30ca99ef`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41125880091
+- Commit: `d0b6a4add54ade3a01a771df3b632c8bb5ad27a3`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41138429380
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 948 | 108 | applied 382/382 | 199 | 6 | 0 | 69 | 274 |
-| email | 189 | 122 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 676 | 86 | applied 382/382 | 141 | 0 | 0 | 4 | 145 |
-| 2 | 1028 | 108 | applied 382/382 | 159 | 0 | 0 | 3 | 162 |
-| 3 | 773 | 106 | applied 382/382 | 132 | 1 | 0 | 0 | 133 |
-| 4 | 713 | 103 | applied 382/382 | 138 | 0 | 0 | 2 | 140 |
-| 5 | 553 | 85 | applied 382/382 | 140 | 0 | 0 | 7 | 147 |
-| 6 | 899 | 118 | applied 382/382 | 155 | 0 | 0 | 1 | 156 |
-| 7 | 380 | 105 | applied 382/382 | 89 | 10 | 0 | 33 | 132 |
-| 8 | 581 | 85 | applied 382/382 | 98 | 4 | 0 | 43 | 145 |
-| 9 | 720 | 94 | applied 382/382 | 136 | 0 | 0 | 13 | 149 |
-| 10 | 1111 | 105 | applied 382/382 | 143 | 0 | 0 | 2 | 145 |
-| 11 | 795 | 90 | applied 382/382 | 139 | 2 | 0 | 1 | 142 |
-| 12 | 720 | 107 | applied 382/382 | 140 | 0 | 0 | 5 | 145 |
-| 13 | 745 | 100 | applied 382/382 | 154 | 5 | 0 | 7 | 166 |
-| 14 | 802 | 108 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
-| 15 | 732 | 119 | applied 382/382 | 165 | 22 | 0 | 53 | 240 |
-| 16 | 372 | 117 | applied 382/382 | 41 | 0 | 0 | 0 | 41 |
-| repeat | 754 | 103 | applied 382/382 | 82 | 0 | 0 | 14 | 96 |
-| TOTAL | — | — | — | 2387 | 50 | 0 | 259 | 2696 |
+| smoke | 873 | 87 | applied 382/382 | 205 | 0 | 0 | 69 | 274 |
+| email | 172 | 106 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 856 | 118 | applied 382/382 | 148 | 0 | 0 | 4 | 152 |
+| 2 | 1038 | 105 | applied 382/382 | 152 | 0 | 0 | 3 | 155 |
+| 3 | 778 | 108 | applied 382/382 | 132 | 1 | 0 | 0 | 133 |
+| 4 | 585 | 97 | applied 382/382 | 143 | 0 | 0 | 2 | 145 |
+| 5 | 652 | 90 | applied 382/382 | 159 | 0 | 0 | 7 | 166 |
+| 6 | 655 | 95 | applied 382/382 | 131 | 0 | 0 | 1 | 132 |
+| 7 | 725 | 118 | applied 382/382 | 187 | 0 | 0 | 66 | 253 |
+| 8 | 262 | 86 | applied 382/382 | 20 | 0 | 0 | 17 | 37 |
+| 9 | 780 | 109 | applied 382/382 | 134 | 0 | 0 | 6 | 140 |
+| 10 | 1002 | 102 | applied 382/382 | 143 | 0 | 0 | 2 | 145 |
+| 11 | 967 | 95 | applied 382/382 | 156 | 2 | 0 | 2 | 160 |
+| 12 | 635 | 119 | applied 382/382 | 128 | 0 | 0 | 4 | 132 |
+| 13 | 849 | 121 | applied 382/382 | 154 | 0 | 0 | 7 | 161 |
+| 14 | 725 | 98 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
+| 15 | 626 | 116 | applied 382/382 | 187 | 0 | 0 | 57 | 244 |
+| 16 | 365 | 119 | applied 382/382 | 41 | 0 | 0 | 0 | 41 |
+| repeat | 783 | 119 | applied 382/382 | 82 | 0 | 0 | 14 | 96 |
+| TOTAL | — | — | — | 2438 | 3 | 0 | 263 | 2704 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 10 1111 s
-- Repeat lane (DEC-283): Not repeated: e2e/sage-shell.spec.ts (36 tests); Not repeated: e2e/shell.spec.ts (117 tests); Repeat: each 2 on both projects; 177 tests selected, 24 repeated; budget 720 s at 4.7 s a test; directly changed: 2 of 4 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 11, email 13, 1 9, 2 11, 3 12, 4 13, 5 8, 6 13, 7 13, 8 9, 9 12, 10 13, 11 9, 12 14, 13 9, 14 13, 15 13, 16 13, repeat 11
+- Slowest lane: 2 1038 s
+- Repeat lane (DEC-283): Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/shell.spec.ts (117 tests); Repeat: each 2 on both projects; 181 tests selected, 24 repeated; budget 720 s at 4.7 s a test; directly changed: 2 of 4 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 10, email 11, 1 13, 2 11, 3 13, 4 9, 5 9, 6 8, 7 14, 8 9, 9 13, 10 11, 11 10, 12 13, 13 13, 14 11, 15 12, 16 12, repeat 13
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41125880091-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41125880091-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 41125880091-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 41125880091-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41125880091-local-3
-  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41125880091-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 41125880091-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 41125880091-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 41125880091-local-7
-  - 8: [e2e:teardown] deleted 2 user(s) owned by process 41125880091-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41125880091-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 41125880091-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41125880091-local-11
-  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41125880091-local-12
-  - 13: [e2e:teardown] deleted 20 user(s) owned by process 41125880091-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41125880091-local-14
-  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41125880091-local-15
-  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41125880091-local-16
-  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41125880091-local-repeat
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41138429380-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41138429380-local-1
+  - 2: [e2e:teardown] deleted 4 user(s) owned by process 41138429380-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41138429380-local-3
+  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41138429380-local-4
+  - 5: [e2e:teardown] deleted 20 user(s) owned by process 41138429380-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 41138429380-local-7
+  - 8: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41138429380-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 41138429380-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41138429380-local-11
+  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41138429380-local-12
+  - 13: [e2e:teardown] deleted 20 user(s) owned by process 41138429380-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-14
+  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41138429380-local-15
+  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -71,46 +71,11 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:31321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-## Lane smoke
-- Step failure:
-Step smoke: outcome failure
-  
-- shell.spec.ts / RM-4 the row icons use the approved rail and phone sizes / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / RM-4 the row icons use the approved rail and phone sizes / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / mobile chrome / the menu opens in place / mobile-360 — Error: locator.boundingBox: Error: strict mode violation: getByTestId('rail-menu').locator('[data-testid^="rail-category-"]:not([data-testid^="rail-category-e2e-"])').first().locator('svg:nth-of-type(1)') resolved to 2 elements:
-- shell.spec.ts / mobile chrome / primary touch targets are at least 44px / mobile-360 — Error: language height
-- shell.spec.ts / top band law (bundle 21 turn 2) / TB-1 the corner and the band line up / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / in-place category menu (bundle 21 turn 5) / B21SC-1 SC-1 the phone drills down and a leaf folds into the strip / mobile-360 — Error: locator.boundingBox: Error: strict mode violation: getByTestId('rail-menu').getByTestId('rail-category-e2e-cat-localproof-6-8ii9fo-r').locator('svg:nth-of-type(1)') resolved to 2 elements:
-
 ## Lane 3
 - Step failure:
 Step smoke: outcome failure
   
 - admin-shell.spec.ts / Admin shell (U0) / A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 7
-- Step failure:
-Step smoke: outcome failure
-  
-- sage-shell.spec.ts / Sage shell at 390 px, light / SGS-1 the top band and the search pill (390, light) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, light / SGS-2 the controls share one look (390, light) / mobile-360 — Error: language-switcher lift
-- sage-shell.spec.ts / Sage shell at 390 px, light / SGS-3 the menu: surface, tiles and the selected row (390, light) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, light / SGS-4 the footer (390, light) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, light / SGS-5 the bottom bar and the raised Post disc (390, light) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, dark / SGS-1 the top band and the search pill (390, dark) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, dark / SGS-2 the controls share one look (390, dark) / mobile-360 — Error: language-switcher lift
-- sage-shell.spec.ts / Sage shell at 390 px, dark / SGS-3 the menu: surface, tiles and the selected row (390, dark) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, dark / SGS-4 the footer (390, dark) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 390 px, dark / SGS-5 the bottom bar and the raised Post disc (390, dark) / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-
-## Lane 8
-- Step failure:
-Step smoke: outcome failure
-  
-- shell.spec.ts / RM-4 the row icons use the approved rail and phone sizes / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / mobile chrome / the menu opens in place / mobile-360 — Error: locator.boundingBox: Error: strict mode violation: getByTestId('rail-menu').locator('[data-testid^="rail-category-"]:not([data-testid^="rail-category-e2e-"])').first().locator('svg:nth-of-type(1)') resolved to 2 elements:
-- shell.spec.ts / mobile chrome / primary touch targets are at least 44px / mobile-360 — Error: language height
-- shell.spec.ts / in-place category menu (bundle 21 turn 5) / B21SC-1 SC-1 the phone drills down and a leaf folds into the strip / mobile-360 — Error: locator.boundingBox: Error: strict mode violation: getByTestId('rail-menu').getByTestId('rail-category-e2e-cat-local-8-7-xe84pk-r').locator('svg:nth-of-type(1)') resolved to 2 elements:
 
 ## Lane 11
 - Step failure:
@@ -118,42 +83,5 @@ Step smoke: outcome failure
   
 - admin-shell.spec.ts / Admin shell (U0) / A-6 admin fixture: gated section nav, section page + breadcrumb, deep link / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
 - admin-shell.spec.ts / Admin shell (U0) / A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane 13
-- Step failure:
-Step smoke: outcome failure
-  
-- phone-frame.spec.ts / width walk (C2g.4) / signed out home at every width / desktop-1280 — Error: 320px: controls under 44px
-- phone-frame.spec.ts / width walk (C2g.4) / admin categories at every width / desktop-1280 — Error: 320px: controls under 44px
-- phone-frame.spec.ts / width walk (C2g.4) / account at every width / desktop-1280 — Error: 320px: controls under 44px
-- phone-frame.spec.ts / width walk (C2g.4) / the posting wizard resized through every width without a reload / desktop-1280 — Error: 320px: controls under 44px
-- phone-frame.spec.ts / width walk (C2g.4) / one session resized through every width without a reload / desktop-1280 — Error: 320px: controls under 44px
-
-## Lane 15
-- Step failure:
-Step smoke: outcome failure
-  
-- sage-shell.spec.ts / Sage shell at 834 px, light / SGS-1 the top band and the search pill (834, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, light / SGS-2 the controls share one look (834, light) / desktop-1280 — Error: language-switcher lift
-- sage-shell.spec.ts / Sage shell at 834 px, light / SGS-3 the menu: surface, tiles and the selected row (834, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, light / SGS-4 the footer (834, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, light / SGS-6 Sign in is raised (834, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, dark / SGS-1 the top band and the search pill (834, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, dark / SGS-2 the controls share one look (834, dark) / desktop-1280 — Error: language-switcher lift
-- sage-shell.spec.ts / Sage shell at 834 px, dark / SGS-3 the menu: surface, tiles and the selected row (834, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, dark / SGS-4 the footer (834, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 834 px, dark / SGS-6 Sign in is raised (834, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, light / SGS-1 the top band and the search pill (1440, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, light / SGS-2 the controls share one look (1440, light) / desktop-1280 — Error: language-switcher lift
-- sage-shell.spec.ts / Sage shell at 1440 px, light / SGS-3 the menu: surface, tiles and the selected row (1440, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, light / SGS-4 the footer (1440, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, light / SGS-6 Sign in is raised (1440, light) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, dark / SGS-1 the top band and the search pill (1440, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, dark / SGS-2 the controls share one look (1440, dark) / desktop-1280 — Error: language-switcher lift
-- sage-shell.spec.ts / Sage shell at 1440 px, dark / SGS-3 the menu: surface, tiles and the selected row (1440, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, dark / SGS-4 the footer (1440, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- sage-shell.spec.ts / Sage shell at 1440 px, dark / SGS-6 Sign in is raised (1440, dark) / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- shell.spec.ts / RM-4 the row icons use the approved rail and phone sizes / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThan[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / top band law (bundle 21 turn 2) / TB-1 the corner and the band line up / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
