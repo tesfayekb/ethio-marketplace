@@ -216,6 +216,19 @@ describe("CF-BAR-1 one spacing scale for the top bar", () => {
 });
 
 describe("CF-BAND-1 one look for every band row (D260)", () => {
+  it("D261 has one last-row drop reader and P-S3 one current-pill source", () => {
+    const shell = codeOf(read(SHELL).text);
+    expect(shell.match(/new IntersectionObserver\(/g)).toHaveLength(1);
+    expect(shell).toContain('data-testid="shell-location-band"');
+    const home = codeOf(read(BAND_HOME).text);
+    expect(home).toContain('CURRENT_PILL = "rounded-full bg-nav-pill shadow-pill text-nav-ink"');
+    for (const name of ["panel-tabs.tsx", "bottom-bar.tsx"]) {
+      const code = codeOf(read(`src/components/shell/${name}`).text);
+      expect(code).toContain("CURRENT_PILL");
+      expect(code).not.toMatch(/bg-nav-pill|shadow-pill|bg-nav-active/);
+    }
+  });
+
   it("every band row and sub-band reads BAND_LOOK, never its own surface, edge or shadow", () => {
     const findings = bandLookFindings(Object.keys(BAND_FILES).map(read));
     expect(findings, report(findings)).toEqual([]);
