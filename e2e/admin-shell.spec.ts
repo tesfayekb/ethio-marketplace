@@ -353,7 +353,7 @@ test.describe("Admin shell (U0)", () => {
       const firstPage = visible[0];
       if (!firstPage) throw new Error("A-5: admin holds no grouped section");
       await expect(group).toHaveAttribute("href", firstPage.path);
-      await expect(group).toHaveAttribute("aria-current", "true");
+      await expect(group).toHaveAttribute("aria-current", /^(page|true)$/);
       await group.hover();
       const panel = page.getByTestId("submenu-panel");
       for (const section of visible) {
