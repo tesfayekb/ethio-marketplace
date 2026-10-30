@@ -49,7 +49,7 @@ See §8 (from the checks run).
 
 ## 8. Checks' last line
 
-CHECKS_LINE
+`checks: 34 PASS · 0 FAIL · 21 NOT RUN · 941s` (the first run failed TI-1 — TR-1…5 already used by admin-translations-console.spec.ts, renamed THR-1…5 — CF-NN-1 on two non-null assertions in themes.test.ts, removed, and the NEAR band on 11 pages at +0.2–0.3 KiB, each ceiling +1 KiB with its cause; then run again whole).
 
 ## 9. Limits and rulings owed
 
@@ -63,4 +63,28 @@ CHECKS_LINE
 
 ## 11. git diff --name-only 50eb7468
 
-DIFF_NAMES
+```text
+docs/_changelog.md
+docs/features/design-foundation.md
+docs/generated/i18n-usage.json
+docs/governance/briefs/foundations-turn-sage-s0.md
+docs/governance/mechanisms.md
+docs/governance/reports/foundations-turn-sage-s0.report.md
+e2e/feed-screens.spec.ts
+public/i18n-usage.json
+roadmap.md
+scripts/conformance/look-values-allowlist.txt
+scripts/conformance/look-values.test.ts
+scripts/conformance/wired.test.ts
+scripts/route-budgets.mjs
+src/lib/schemas/theme.ts
+src/lib/theme-resolver.test.ts
+src/lib/theme-resolver.ts
+src/lib/themes.test.ts
+src/lib/themes.ts
+src/providers/theme-provider.test.ts
+src/providers/theme-provider.tsx
+src/routes/dev.style.tsx
+src/styles.css
+src/styles.tokens.test.ts
+```
