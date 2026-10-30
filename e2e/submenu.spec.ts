@@ -3,7 +3,7 @@ import { expect, test } from "./fixtures";
 import { catalogueRows } from "./helpers/category-menu";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
 import { grantRole } from "./helpers/categories";
-import { gotoReady, layoutBoxes, openPanel, openRailScope, signIn } from "./helpers/ui";
+import { gotoReady, layoutBoxes, openRailScope, signIn } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 
 /**
@@ -293,23 +293,27 @@ test.describe("D240 the admin, account and seller menus' side panels", () => {
     test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     const user = await leaseUser();
     await signIn(page, user.email, user.password);
-    await gotoReady(page, "/settings");
-    await openPanel(page, "my-listings");
+    await gotoReady(page, "/my-listings");
     const rail = page.getByTestId("app-rail");
     const manage = rail.getByTestId("rail-item-ml-manage");
     await expect(manage).toBeVisible({ timeout: 15000 });
     await expect(manage).toHaveAttribute("aria-expanded", "false");
+    await expect(manage).not.toHaveAttribute("aria-current", /.*/);
+    await expect(rail.getByTestId("rail-item-ml-listings")).toHaveAttribute("aria-current", "page");
     await expect(rail.getByTestId("rail-item-ml-settings")).toHaveCount(0);
     await manage.hover();
     const panel = page.getByTestId("submenu-panel");
-    await expect(panel.getByTestId("rail-item-ml-settings")).toBeVisible();
-    // URL marking (one rule, menu-current.ts): on /settings the item and its group are marked.
-    await expect(panel.getByTestId("rail-item-ml-settings")).toHaveAttribute("aria-current", "page");
-    await expect(manage).toHaveAttribute("aria-current", "true");
-    await page.mouse.move(900, 700);
-    await expect(panel).toHaveCount(0);
-    await openPanel(page, "account");
-    await expect(rail.getByTestId("rail-item-ac-overview")).toBeVisible({ timeout: 15000 });
+    const settings = panel.getByTestId("rail-item-ml-settings");
+    await expect(settings).toBeVisible();
+    await expect(settings).not.toHaveAttribute("aria-current", /.*/);
+    await settings.click();
+    await expect(page).toHaveURL(/\/settings$/);
+    // /settings belongs to the account menu: no group there, and one rule marks one row
+    // (menu-current.ts) — Settings, never its anchored neighbour "Sign-in and security".
+    await expect(rail.getByTestId("rail-item-ac-settings")).toHaveAttribute("aria-current", "page", {
+      timeout: 15000,
+    });
+    await expect(rail.getByTestId("rail-item-ac-security")).not.toHaveAttribute("aria-current", /.*/);
     await expect(rail.locator("[data-submenu]")).toHaveCount(0);
   });
 });
