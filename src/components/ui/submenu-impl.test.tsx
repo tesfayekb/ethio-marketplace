@@ -11,7 +11,7 @@ import {
   inSafeTriangle,
   placePanel,
 } from "./submenu-geometry";
-import { SubmenuLayer, type SubmenuLevel } from "./submenu-impl";
+import type { SubmenuLevel } from "./submenu-impl";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({
@@ -22,6 +22,8 @@ vi.mock("@tanstack/react-router", () => ({
     ...rest
   }: { children: ReactNode } & Record<string, unknown>) => <a {...rest}>{children}</a>,
 }));
+
+const { SubmenuLayer } = await import("./submenu-impl");
 
 /**
  * SMN-1…SMN-6 (DEC-288, turn R1b) — the sub-menu mechanism: placement, the safe
