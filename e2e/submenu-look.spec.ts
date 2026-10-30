@@ -42,8 +42,14 @@ const railGrid = (page: Page) =>
       .querySelector("[data-testid='app-rail'] [data-testid='rail-scroll']")
       ?.getBoundingClientRect();
     const boxes = els.map((el) => el.getBoundingClientRect());
+    // The whole rows the menu shows (D254): a part-hidden row of a scrolled rail is no row.
+    const lo = region?.top ?? -Infinity;
+    const hi = region?.bottom ?? Infinity;
+    const whole = boxes.filter((box) => box.top >= lo - 1 && box.bottom <= hi + 1);
     return {
       tops: boxes.map((box) => box.top),
+      first: whole[0]?.top ?? 0,
+      last: whole[whole.length - 1]?.bottom ?? 0,
       height: boxes[0]?.height ?? 0,
       bottom: Math.min(region?.bottom ?? Infinity, boxes[boxes.length - 1]?.bottom ?? 0),
     };
@@ -191,11 +197,11 @@ test.describe("D248 a side panel is the main menu", () => {
       if (state.overflow > 1) {
         expect(state.bar, `SMN-E10 ${height}: its scrollbar takes width`).toBeGreaterThan(0);
         expect(
-          Math.abs(state.top - (grid.tops[0] ?? 0)),
+          Math.abs(state.top - grid.first),
           `SMN-E10 ${height}: spans from the menu's top`,
         ).toBeLessThanOrEqual(1);
         expect(
-          Math.abs(state.bottom - grid.bottom),
+          Math.abs(state.bottom - grid.last),
           `SMN-E10 ${height}: to its last row`,
         ).toBeLessThanOrEqual(1);
       }
@@ -211,7 +217,7 @@ test.describe("D248 a side panel is the main menu", () => {
     await page.setViewportSize({ width: 1280, height: 1000 });
     await gotoReady(page, "/");
     const shown = await railGrid(page);
-    const holds = Math.round((shown.bottom - (shown.tops[0] ?? 0)) / shown.height);
+    const holds = Math.round((shown.last - shown.first) / shown.height);
     const seeded = await seedScratchBranch(holds + 1, "smn-e13");
     branch = seeded;
     await gotoReady(page, "/");
@@ -234,17 +240,16 @@ test.describe("D248 a side panel is the main menu", () => {
         Math.abs(row - grid.height),
         "SMN-E13 a panel row equals a rail row",
       ).toBeLessThanOrEqual(1);
-    console.log("SMN-E13-DEBUG", JSON.stringify({ holds, grid, top: state.top, bottom: state.bottom, tops: state.tops }));
     for (const top of state.tops.slice(0, holds))
       expect(
         Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
         "SMN-E13 each shown row is level with a rail row",
       ).toBeLessThanOrEqual(1);
     expect(
-      Math.abs(state.top - (grid.tops[0] ?? 0)),
+      Math.abs(state.top - grid.first),
       "SMN-E13 spans from the menu's first row",
     ).toBeLessThanOrEqual(1);
-    expect(Math.abs(state.bottom - grid.bottom), "SMN-E13 to its last row").toBeLessThanOrEqual(1);
+    expect(Math.abs(state.bottom - grid.last), "SMN-E13 to its last row").toBeLessThanOrEqual(1);
     expect(state.overflow, "SMN-E13 the panel scrolls").toBeGreaterThan(0);
     expect(state.bar, "SMN-E13 with a visible scrollbar").toBeGreaterThan(0);
   });
