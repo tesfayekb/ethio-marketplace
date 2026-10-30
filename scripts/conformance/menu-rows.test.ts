@@ -16,7 +16,8 @@ import { codeOf, readAllowlist, report } from "./kit";
  *  - a hidden scrollbar (`scrollbar-none`) on a menu region, each remaining one an
  *    allowlist line `key | reason | until` in menu-rows-allowlist.txt;
  *  - D248 (R1d-a): the from-768 rule that lifts the item limit missing; the panel (or the
- *    rail) defining its own row classes instead of importing src/components/shell/menu-row.ts.
+ *    rail) defining its own row classes instead of importing src/components/shell/menu-row.ts;
+ *  - turn SAGE-S1 (Sage §2/§3): a menu drawing its icons without ITEM_TILE, or its own tile.
  */
 type Finding = { file: string; line: number; what: string };
 type File = { name: string; text: string };
@@ -25,7 +26,10 @@ const CSS = "src/styles.css";
 const SIGNAL = "src/components/shell/submenu/submenu-signal.ts";
 const IMPL = "src/components/ui/submenu-impl.tsx";
 const MENU_FILES = ["src/components/shell/app-rail.tsx", IMPL];
-const OWN_ROW = /const (?:ROW|IDLE|ACTIVE|ITEM_CORE|ITEM_IDLE|ITEM_ACTIVE)\s*=/;
+const OWN_ROW = /const (?:ROW|IDLE|ACTIVE|TILE|ITEM_CORE|ITEM_IDLE|ITEM_ACTIVE|ITEM_TILE\w*)\s*=/;
+/** Turn SAGE-S1 (Sage §2/§3): a menu draws its icons in menu-row.ts's one tile. */
+const SHARED_TILE = /\bITEM_TILE\b/;
+const OWN_TILE = /rounded-full[^"`]*border-hairline|border-hairline[^"`]*rounded-full/;
 const SHARED_ROW = /from "@\/components\/shell\/menu-row"/;
 
 export function rowFindings(files: File[]): { findings: Finding[]; hidden: string[] } {
@@ -79,6 +83,12 @@ export function rowFindings(files: File[]): { findings: Finding[]; hidden: strin
         line: 1,
         what: "a menu defines its own row classes, not menu-row.ts's (D248)",
       });
+    if (!SHARED_TILE.test(code) || OWN_TILE.test(code))
+      findings.push({
+        file: name,
+        line: 1,
+        what: "a menu draws its icons without menu-row.ts's ITEM_TILE (Sage §2)",
+      });
   }
   return { findings, hidden };
 }
@@ -120,7 +130,9 @@ describe("CF-ROWS-1 a menu list fits before it scrolls", () => {
       "1 menu-fit list(s), 0 marked data-many from MENU_FIT_MAX (D247)",
       "a literal count for data-many (D247)",
       "a menu defines its own row classes, not menu-row.ts's (D248)",
+      "a menu draws its icons without menu-row.ts's ITEM_TILE (Sage §2)",
       "a menu defines its own row classes, not menu-row.ts's (D248)",
+      "a menu draws its icons without menu-row.ts's ITEM_TILE (Sage §2)",
     ]);
     expect(hidden).toEqual(["src/components/shell/app-rail.tsx:2"]);
     // The >16 branch on a planted list of 17 (ROWS-E2 waits for R1d's admin menu).

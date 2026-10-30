@@ -22,27 +22,27 @@ export function WovenMark({ className }: { className?: string }) {
       {/* Outer woven diamond */}
       <path
         d="M16 2 30 16 16 30 2 16Z"
-        className="fill-none stroke-primary"
+        className="fill-primary stroke-primary"
         strokeWidth="2.25"
         strokeLinejoin="round"
       />
       {/* Lattice cross-weave (two chevrons, no intersecting bars) */}
       <path
         d="M8 16 16 8 24 16"
-        className="fill-none stroke-primary"
+        className="fill-none stroke-primary-foreground"
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
       <path
         d="M8 16 16 24 24 16"
-        className="fill-none stroke-primary"
+        className="fill-none stroke-primary-foreground"
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      {/* Inner gold diamond — one of only TWO sanctioned gold placements. */}
-      <path d="M16 11.5 20.5 16 16 20.5 11.5 16Z" className="fill-gold" />
+      {/* Inner gold diamond — one of only TWO sanctioned gold placements (Sage §1: --logo-gold). */}
+      <path d="M16 11.5 20.5 16 16 20.5 11.5 16Z" className="fill-logo-gold" />
     </svg>
   );
 }
@@ -69,13 +69,11 @@ function Wordmark({ size = "lg" }: { size?: "md" | "lg" }) {
     <span
       data-testid="logo-wordmark"
       className={cn(
-        "font-display font-semibold tracking-tight",
+        "font-display font-extrabold tracking-[-0.6px] text-foreground",
         size === "lg" ? "text-xl" : "text-base",
       )}
     >
-      <span className="text-primary">ethio</span>
-      <span className="text-gold">.</span>
-      <span className="text-primary">com</span>
+      ethio<span className="text-gold">.</span>com
     </span>
   );
 }
@@ -87,7 +85,7 @@ function Lockup({ className, size = "lg" }: { className?: string; size?: "md" | 
       <span
         aria-hidden="true"
         data-testid="logo-subline"
-        className="mt-px flex w-full justify-between text-[0.6875rem] font-medium uppercase text-muted-foreground"
+        className="mt-px flex w-full justify-between text-[0.6875rem] font-semibold uppercase text-leaf-ink"
       >
         {SUBLINE.map((letter, index) => (
           <span key={`${letter}-${index}`}>{letter}</span>

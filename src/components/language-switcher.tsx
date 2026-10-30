@@ -1,6 +1,6 @@
 import { compareCodes } from "@/lib/reader-locale";
 import { CutText } from "@/components/ui/cut-text";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Globe } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -61,6 +61,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           {/* TWO labels, one visible at a time. They are marked so a test (or
               anything else reading the control) can assert the RENDERED label
               rather than the button's concatenated text content (INC-033). */}
+          <Globe className="me-1 h-4 w-4 shrink-0 text-leaf-ink" aria-hidden="true" />
           <span lang={language} data-testid="language-switcher-short" className="md:hidden">
             {shortLabel}
           </span>

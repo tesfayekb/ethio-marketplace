@@ -55,7 +55,7 @@ export function FilterChoices({
               className={cn(
                 "inline-flex h-10 min-w-0 cursor-pointer items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 chosen
-                  ? "border-primary bg-primary font-semibold text-primary-foreground shadow-[inset_0_-1px_0_rgb(0_0_0/0.2)]"
+                  ? "border-primary bg-primary font-semibold text-primary-foreground shadow-tile-on"
                   : "border-input bg-card font-medium text-foreground shadow-xs hover:bg-accent",
               )}
             >

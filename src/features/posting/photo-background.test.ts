@@ -16,14 +16,13 @@ afterEach(() => {
 });
 
 describe("the house background (D155)", () => {
-  it("PBG-1 the background is the site's page tone, #F3F5F8 (D132), as the stylesheet names it", () => {
+  it("PBG-1 the background is #F3F5F8 (D155), fixed apart from the page tone, which a theme may change (turn SAGE-S1, ruling A)", () => {
     expect(PHOTO_BACKDROP).toBe("#F3F5F8");
     const css = readFileSync(join(process.cwd(), "src/styles.css"), "utf8");
-    const light = css.indexOf("--background: oklch(0.969 0.005 258.3);");
-    expect(light).toBeGreaterThan(-1);
-    const named = css.lastIndexOf("/* #F3F5F8 cool grey", light);
-    expect(named, "the page tone's comment no longer names #F3F5F8").toBeGreaterThan(-1);
-    expect(light - named).toBeLessThan(120);
+    const root = css.slice(css.indexOf("\n:root {"), css.indexOf("\n}", css.indexOf("\n:root {")));
+    const tone = /--background: (oklch\([^)]*\));\s*\/\* (#[0-9A-F]{6})/.exec(root);
+    expect(tone?.[2], "the page tone is Sage's #EEF3EF (DEC-289)").toBe("#EEF3EF");
+    expect(tone?.[2], "the backdrop is not read from the page tone").not.toBe(PHOTO_BACKDROP);
   });
 
   it("PBG-2 the cut-out is laid on the background: the whole canvas filled first, then the cut-out at its own size", () => {

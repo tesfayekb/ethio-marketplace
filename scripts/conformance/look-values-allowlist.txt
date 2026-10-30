@@ -1,15 +1,12 @@
 # CF-LOOK-1 (turn SAGE-S0, ruling 4; scripts/conformance/look-values.test.ts) — a recorded look value outside the tokens.
 # Key: `<file> (<findings>)` | reason | until — the Sage part that fixes it (under DEC-289), or a review date for a value that never reaches the stylesheet.
-src/components/shell/app-rail.tsx (1) | the phone menu's rounded-e-[1rem] end corner; redesign Part 2 S1 (the shell) moves it to the --radius-bar token defined in S0 | DEC-289
-src/components/shell/bottom-bar.tsx (1) | the bottom bar's rounded-t-[1rem]; spec §11's 18 px becomes the --radius-bar token (defined in S0) in redesign Part 2 S1 | DEC-289
-src/components/shell/filter-choices.tsx (1) | the chosen pill's inset edge shadow (plan P-4); becomes a token beside --shadow-tile-on in redesign Part 2 S1 | DEC-289
 src/components/ui/drawer.tsx (1) | the drawer's rounded-t-[10px]; redesign Part 2 S6 (§14 overlays) gives it the Sage radius token | DEC-289
 src/components/ui/chart.tsx (7) | the chart's drawing colours (recharts' own #ccc / #fff stroke selectors) and its 2 px legend swatch corners: drawing, not the page's look; no Sage part owns the chart | 2027-04-30
 src/components/ui/sidebar.tsx (2) | the shadcn sidebar's outline-variant ring, composed from the --sidebar-border / --sidebar-accent tokens; no screen renders that variant and no Sage part owns it | 2027-04-30
 src/features/admin-categories/category-image-variants.ts (1) | the category picture's white background, burned into the raster file | 2027-04-30
 src/features/posting/colour-swatches.ts (19) | the product colours a seller picks: data about the item, never the site's look | 2027-04-30
 src/features/posting/map/leaflet.ts (1) | the map marker's drawn shadow, inside the map's own drawing | 2027-04-30
-src/features/posting/photo-background.ts (1) | the photo backdrop burned into stored photos (D132; PBG-1 ties it to the page tone, a ruling owed in turn SAGE-S0's report) | 2027-04-30
+src/features/posting/photo-background.ts (1) | the photo backdrop burned into stored photos (D155: one backdrop for old and new photos, fixed apart from the page tone, which changes per theme; PBG-1) | 2027-04-30
 src/features/posting/photo-editor.tsx (1) | the crop mask's 9999 px dimming shadow: a functional mask, not a look (plan P-4) | 2027-04-30
 src/features/posting/step-specifications.tsx (1) | a striped placeholder drawn from the --muted and --border tokens; a pattern, not a value | 2027-04-30
 src/lib/brand-mark.ts (1) | the watermark colour burned into photo pixels (the brand green #1E5A43, repeated in src/server/ai/tasks.ts — K2) | 2027-04-30

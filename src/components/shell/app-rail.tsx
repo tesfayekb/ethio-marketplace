@@ -46,7 +46,15 @@ import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { MENU_WIDTH } from "@/components/shell/menu-width";
 import { cn } from "@/lib/utils";
-import { ITEM_ACTIVE, ITEM_CORE, ITEM_IDLE } from "@/components/shell/menu-row";
+import {
+  ITEM_ACTIVE,
+  ITEM_CORE,
+  ITEM_IDLE,
+  ITEM_TILE,
+  ITEM_TILE_ICON,
+  ITEM_TILE_ICON_SM,
+  ITEM_TILE_SM,
+} from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
 import { useRailCollapsed } from "@/providers/rail-state";
 import { NAV_ALERT_LABELS, useNavAlerts } from "@/features/admin/nav-alerts";
@@ -254,33 +262,29 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   const Icon = node.icon;
   const inner = (
     <>
-      {Icon ? (
-        node.favourite || node.alert ? (
-          <span className={cn("relative shrink-0", compact ? "h-6 w-6" : "h-5 w-5")}>
-            <Icon className="h-full w-full" aria-hidden="true" />
-            {node.favourite ? (
-              <Star
-                className="absolute -end-1 -top-1 h-3 w-3 fill-gold text-gold"
-                aria-hidden="true"
-              />
-            ) : null}
-            {node.alert ? (
-              <span
-                aria-hidden="true"
-                data-testid="rail-alert"
-                className="absolute -end-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive"
-              />
-            ) : null}
-          </span>
-        ) : (
-          <Icon className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")} aria-hidden="true" />
-        )
-      ) : node.glyphPending ? (
+      {Icon || node.glyphPending ? (
         <span
-          data-testid="rail-glyph-box"
-          aria-hidden="true"
-          className={cn("shrink-0", compact ? "h-6 w-6" : "h-5 w-5")}
-        />
+          data-testid={Icon ? undefined : "rail-glyph-box"}
+          aria-hidden={Icon ? undefined : "true"}
+          className={cn(ITEM_TILE, compact && ITEM_TILE_SM)}
+        >
+          {Icon ? (
+            <Icon className={compact ? ITEM_TILE_ICON_SM : ITEM_TILE_ICON} aria-hidden="true" />
+          ) : null}
+          {node.favourite ? (
+            <Star
+              className="absolute -end-1 -top-1 h-3 w-3 fill-gold text-gold"
+              aria-hidden="true"
+            />
+          ) : null}
+          {node.alert ? (
+            <span
+              aria-hidden="true"
+              data-testid="rail-alert"
+              className="absolute -end-0.5 -top-0.5 h-2 w-2 rounded-full bg-destructive"
+            />
+          ) : null}
+        </span>
       ) : null}
       <CutText className={cn(hide, strip && "sr-only")} text={node.label} />
     </>
@@ -553,7 +557,9 @@ function StripBack() {
       className={cn(ITEM_CORE, ITEM_IDLE, "min-h-11 shrink-0 justify-center gap-0 ps-0 pe-0")}
     >
       <ChevronLeft aria-hidden="true" className="h-3 w-3 shrink-0 rtl:rotate-180" />
-      <Icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+      <span className={cn(ITEM_TILE, ITEM_TILE_SM)}>
+        <Icon className={ITEM_TILE_ICON_SM} aria-hidden="true" />
+      </span>
     </button>
   );
 }
@@ -692,11 +698,11 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 compact && "min-h-0 flex-1 gap-3 pe-2",
               )}
             >
-              <span
-                aria-hidden="true"
-                className={cn("flex shrink-0 items-center justify-center", compact ? "w-6" : "w-5")}
-              >
-                <ChevronLeft aria-hidden="true" className="h-4 w-4 shrink-0 rtl:rotate-180" />
+              <span aria-hidden="true" className={cn(ITEM_TILE, compact && ITEM_TILE_SM)}>
+                <ChevronLeft
+                  aria-hidden="true"
+                  className={cn(compact ? ITEM_TILE_ICON_SM : ITEM_TILE_ICON, "rtl:rotate-180")}
+                />
               </span>
               <CutText
                 text={parent ? entityName("category", parent, entities) : t("shell.mainMenu")}
@@ -739,8 +745,8 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 >
                   <span
                     className={cn(
-                      "shrink-0 animate-pulse rounded bg-muted",
-                      compact ? "h-6 w-6" : "h-5 w-5",
+                      "shrink-0 animate-pulse rounded-full bg-muted",
+                      compact ? ITEM_TILE_SM : "size-7.5",
                     )}
                   />
                   <span
@@ -970,7 +976,9 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
           }}
           className={cn(ITEM_BASE, ITEM_IDLE, strip && "h-full min-h-0 justify-center ps-0 pe-0")}
         >
-          <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span aria-hidden="true" className={cn(ITEM_TILE, strip && ITEM_TILE_SM)}>
+            <LogOut className={strip ? ITEM_TILE_ICON_SM : ITEM_TILE_ICON} aria-hidden="true" />
+          </span>
           <CutText
             className={cn(HIDE_WHEN_COLLAPSED, strip && "sr-only")}
             text={t("auth.signOut")}
@@ -1075,7 +1083,7 @@ export function AppRail() {
           // offset. D252 (Foundations turn R1d-b) — it always runs from the top
           // bar to the screen's bottom; the footer lives in the middle column
           // beside it, so the two never share space.
-          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side pb-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden ${MENU_WIDTH}`}
+          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-rail pb-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden ${MENU_WIDTH}`}
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
@@ -1100,7 +1108,7 @@ export function AppRail() {
         <div
           data-testid="rail-strip"
           onClick={() => changeMenu(true)}
-          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-[38] flex w-12 flex-col bg-sidebar shadow-side md:hidden"
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-[38] flex w-12 flex-col bg-sidebar shadow-rail-phone md:hidden"
         >
           {/* D255 — the one control on the strip; its painted rows stay aria-hidden (D205). */}
           <StripBack />
@@ -1132,7 +1140,7 @@ export function AppRail() {
           data-panel={activePanel}
           aria-label={t("shell.menuTitle")}
           aria-describedby={undefined}
-          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-40 flex w-64 flex-col rounded-e-[1rem] bg-sidebar shadow-lg md:hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-left data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=closed]:duration-[250ms] data-[state=closed]:z-[37] motion-reduce:animate-none"
+          className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-40 flex w-64 flex-col rounded-e-bar bg-sidebar shadow-rail-phone md:hidden data-[state=open]:animate-in data-[state=open]:slide-in-from-left data-[state=open]:duration-200 data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=closed]:duration-[250ms] data-[state=closed]:z-[37] motion-reduce:animate-none"
           onPointerDownCapture={() => {
             if (peeking) {
               peekFocus.current = false;
