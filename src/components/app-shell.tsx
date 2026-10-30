@@ -1052,11 +1052,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div
                 data-band-row=""
                 data-testid="shell-breadcrumb-row"
-                className={cn(
-                  "flex min-w-0 items-center px-2 md:px-4",
-                  BAND_ROW,
-                  BAND_LOOK.row,
-                )}
+                className={cn("flex min-w-0 items-center px-2 md:px-4", BAND_ROW, BAND_LOOK.row)}
               >
                 <Breadcrumbs />
               </div>
