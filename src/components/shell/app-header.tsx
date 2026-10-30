@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import { BAR_GAP, BAR_INSET } from "@/components/shell/bar-spacing";
+import { BAR_GAP, BAR_HEADER_INSET } from "@/components/shell/bar-spacing";
 import { Link } from "@tanstack/react-router";
 import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -110,7 +110,7 @@ export function AppHeader() {
       <header className={cn(
           "flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full",
           BAR_GAP,
-          BAR_INSET,
+          BAR_HEADER_INSET,
         )}>
         {/* One ☰: below 768 it opens the phone menu; from 768 the corner folds the rail. */}
         <button
