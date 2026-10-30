@@ -520,7 +520,10 @@ test.describe("FEED SCREENS", () => {
     const card = page.locator(`[data-testid="listing-card"][data-listing="${id}"]`);
     await expect(card).toBeVisible();
     await expect(card).toHaveCSS("border-top-width", "0px");
-    await expect(card).toHaveCSS("border-top-left-radius", "12px");
+    // Turn SAGE-S0 (spec § Radii) — 12 px at 3 a row, 14 px at 4, 20 px at 5 (768 / 1024 px).
+    const width = page.viewportSize()?.width ?? 0;
+    const corner = width >= 1024 ? "20px" : width >= 768 ? "14px" : "12px";
+    await expect(card).toHaveCSS("border-top-left-radius", corner);
     await expect(card).not.toHaveCSS("box-shadow", "none");
     // The framed child owns the invitation's intentional gold outline.
     await expect(inviteOf(page).locator(":scope > div")).toHaveCSS("border-top-width", "2px");
