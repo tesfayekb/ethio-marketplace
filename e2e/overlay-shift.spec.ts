@@ -41,6 +41,18 @@ async function measure(page: Page): Promise<Box> {
   });
 }
 
+/** A scrolling page: the viewport is made shorter than the page, whatever the feed holds. */
+async function scrollingPage(page: Page) {
+  const size = page.viewportSize();
+  await page.setViewportSize({ width: size?.width ?? 1280, height: 400 });
+  await scrollingPage(page);
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight), {
+      message: "OVS: the page does not scroll at a 400 px viewport",
+    })
+    .toBeGreaterThan(200);
+}
+
 async function openAndClose(page: Page): Promise<Box[]> {
   const before = await measure(page);
   await page.getByTestId("language-switcher").click();
@@ -56,7 +68,7 @@ test.describe("INC-1005 overlay shift", () => {
   test("OVS-1 the language menu opens and closes without moving the main column", async ({
     page,
   }) => {
-    await gotoReady(page, "/");
+    await scrollingPage(page);
     const [before, during, after] = await openAndClose(page);
     expect(
       before.scrollbar,
@@ -71,7 +83,7 @@ test.describe("INC-1005 overlay shift", () => {
   test("OVS-2 on a page scrolled down, the menu keeps the column and the scroll position", async ({
     page,
   }) => {
-    await gotoReady(page, "/");
+    await scrollingPage(page);
     await page.evaluate(() => window.scrollTo(0, 200));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     const [before, during, after] = await openAndClose(page);
