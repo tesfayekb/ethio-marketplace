@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Pencil } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
@@ -24,6 +24,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconButton, type IconButtonTone } from "@/components/ui/icon-button";
+import { loadOnce } from "@/lib/load-once";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import type { ThemeName } from "@/lib/theme-resolver";
+import type { THEMES } from "@/lib/themes";
 
 /**
  * BUNDLE 9 A3 — THE HOUSE-STYLE FIXTURE.
@@ -101,6 +105,89 @@ const RADII = [
   { size: "xl", cls: "rounded-xl" },
 ] as const;
 
+/*
+ * Turn SAGE-S0 (ruling 1) — the Sage grid: theme × mode × card type, fixture data only. Each
+ * panel scopes its theme's tokens from THEMES (validated data, D250) on its own container, so
+ * both modes show at once whatever the page's mode; S4 completes the cards (flag, ribbon).
+ */
+const CARD_TYPES = [
+  ["regular", "bg-card shadow-card", "", "text-primary"],
+  ["featured", "bg-tier-featured shadow-featured", "★ FEATURED", "text-tier-featured-ink"],
+  ["premium", "bg-tier-premium shadow-premium", "★★ PREMIUM", "text-tier-premium-ink"],
+] as const;
+/** Fixture card words (a dev page, English only). */
+const FIXTURE_TITLE = "Sample listing";
+const FIXTURE_PLACE = "Bole, Addis Ababa";
+
+/** The theme data arrives on demand: no page's first download carries it (DEC-296). */
+const themesModule = loadOnce(() => import("@/lib/themes").then((module) => module.THEMES));
+
+function themeScope(
+  themes: typeof THEMES,
+  name: ThemeName,
+  mode: "light" | "dark",
+): Record<string, string> {
+  const set = { ...themes[name].light, ...(mode === "dark" ? themes[name].dark : {}) };
+  return Object.fromEntries(Object.entries(set).map(([token, value]) => [`--${token}`, value]));
+}
+
+function SageGrid() {
+  const [themes, setThemes] = useState(themesModule.ready);
+  useEffect(() => {
+    if (themes) return;
+    themesModule.load().then(setThemes, (error: unknown) => {
+      reportOnDemandFailure("the theme data", error);
+    });
+  }, [themes]);
+  if (!themes) return null;
+  const names = Object.keys(themes) as ThemeName[];
+  return (
+    <div data-testid="style-sage-grid" className="mt-4 flex flex-col gap-4">
+      {names.flatMap((name) =>
+        (["light", "dark"] as const).map((mode) => (
+          <div
+            key={`${name}-${mode}`}
+            data-testid={`style-sage-${name}-${mode}`}
+            data-theme={name}
+            data-mode={mode}
+            className={`${mode === "dark" ? "dark " : ""}rounded-card bg-background p-4 text-foreground`}
+            style={themeScope(themes, name, mode)}
+          >
+            <div className="grid grid-cols-3 gap-3">
+              {CARD_TYPES.map(([tier, surface, word, ink]) => (
+                <div
+                  key={tier}
+                  data-testid={`style-card-${tier}-${mode}`}
+                  className={`min-w-0 overflow-hidden rounded-card ${surface}`}
+                >
+                  <div className="aspect-[4/3] bg-photo-empty" />
+                  <p className="truncate p-3 text-sm font-semibold">{FIXTURE_TITLE}</p>
+                  <p className={`px-3 pb-3 text-xs font-extrabold uppercase ${ink}`}>
+                    {word || FIXTURE_PLACE}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {Object.keys(themes[name].dark)
+                .filter((token) => !token.startsWith("lift-"))
+                .map((token) => (
+                  <div key={token} className="flex flex-col items-center gap-1 text-[11px]">
+                    <span
+                      className="block h-8 w-12 rounded-md shadow-tile"
+                      style={{ background: `var(--${token})` }}
+                    />
+                    {token}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )),
+      )}
+    </div>
+  );
+}
+
 const SAMPLE_ROWS = ["Alpha", "Beta", "Gamma"] as const;
 const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "info"];
 const PAGER_TOTAL = 300;
@@ -126,6 +213,10 @@ function StyleFixture() {
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold">{"House style"}</h1>
         <p className="text-sm text-muted-foreground">{"Secondary text on the page."}</p>
+
+        <Section title={"Sage cards and tokens"} testid="style-sage">
+          <SageGrid />
+        </Section>
 
         <Section title={"Meanings"} testid="style-meanings">
           <div className="mt-4 flex flex-col gap-3">

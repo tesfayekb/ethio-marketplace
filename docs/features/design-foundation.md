@@ -106,6 +106,26 @@ an ADR: one self-hosted, subset, non-blocking file and one token change.
 Class-based (`@custom-variant dark (&:is(.dark *))`). Every token has a dark
 value; components use semantic tokens only, never raw colours.
 
+## Themes as data (turn SAGE-S0, DEC-289, D250)
+
+- The Sage 3D light set and the Sage dark set (spec §13) live in `src/styles.css` `:root` and
+  `.dark`: the new surfaces (`--hairline`, `--field`, `--track`, `--photo-empty`, `--leaf-ink`),
+  the tier set (`--tier-premium-*`, `--tier-featured-*`), the D260 band set (`--band`,
+  `--band-edge`, `--band-label`, `--shadow-subband`, `--shadow-groove`), R1's green-tinted
+  `--lift-*` shadows (black in dark), and the radii (controls 12 px; cards 12 / 14 / 20 px at
+  3 / 4 / 5 a row). No component reads the new tokens until its part (S1–S6).
+- `src/lib/themes.ts` holds the same values as data (`THEMES.sage.light` / `.dark`), validated by
+  the strict shape in `src/lib/schemas/theme.ts`; `themes.test.ts` holds them equal both ways.
+- `src/lib/theme-resolver.ts` picks the theme and mode: shop → account → device → system. An
+  unknown, removed or malformed value falls through; a failed account read keeps the device's.
+- The pre-paint script stores `{name, mode}` under `ethio.theme` (a legacy bare `light` /
+  `dark` reads as sage) and writes `data-theme`, `data-mode` and `.dark` before the paint.
+- CF-LOOK-1 (`scripts/conformance/look-values.test.ts`) refuses arbitrary look values and raw
+  colours under `src/`, with recorded exceptions in `look-values-allowlist.txt`.
+- `/dev/style` shows theme × mode × card type (regular, Featured, Premium) with fixture data.
+- Held: the light page tone `--background` stays #F3F5F8, because the stored-photo backdrop
+  (`photo-background.ts`, PBG-1, D132) is tied to it; the Sage #EEF3EF waits for a ruling.
+
 ## The AppShell slot model
 
 `src/components/app-shell.tsx` is the ONE shell:

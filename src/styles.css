@@ -107,7 +107,12 @@
   --radius-2xl: calc(var(--radius) + 6px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
-  --radius-card: 0.75rem;
+  --radius-card: var(--card-radius);
+  /* Sage 3D radii (turn SAGE-S0): rail rows, the phone bottom bar's top, the location track and segment. */
+  --radius-row: 0.875rem;
+  --radius-bar: 1.125rem;
+  --radius-track: var(--track-radius);
+  --radius-segment: var(--segment-radius);
   /*
    * Typography (DEC-262, Foundations turn 33): the device's own fonts — no page
    * downloads a font. Latin and the interface take the platform's UI face (San
@@ -175,9 +180,32 @@
   --color-info-line: var(--info-line);
   --color-neutral: var(--neutral);
   --color-neutral-soft: var(--neutral-soft);
+  /* Sage 3D (turn SAGE-S0): new surfaces, the tier set and the D260 band set. */
+  --color-hairline: var(--hairline);
+  --color-field: var(--field);
+  --color-track: var(--track);
+  --color-photo-empty: var(--photo-empty);
+  --color-leaf-ink: var(--leaf-ink);
+  --color-tier-premium: var(--tier-premium);
+  --color-tier-premium-frame: var(--tier-premium-frame);
+  --color-tier-premium-rule: var(--tier-premium-rule);
+  --color-tier-premium-fold: var(--tier-premium-fold);
+  --color-tier-premium-ink: var(--tier-premium-ink);
+  --color-tier-premium-star: var(--tier-premium-star);
+  --color-tier-featured: var(--tier-featured);
+  --color-tier-featured-frame: var(--tier-featured-frame);
+  --color-tier-featured-rule: var(--tier-featured-rule);
+  --color-tier-featured-fold: var(--tier-featured-fold);
+  --color-tier-featured-ink: var(--tier-featured-ink);
+  --color-tier-featured-star: var(--tier-featured-star);
+  --color-tier-premium-chip: var(--tier-premium-chip);
+  --color-band: var(--band);
+  --color-band-edge: var(--band-edge);
+  --color-band-label: var(--band-label);
   /*
-   * Shadows — the one exception to "oklch only": a shadow is black or the
-   * foreground (#1E2329 = rgb 30 35 41) at an alpha, never a hue.
+   * Shadows — Tailwind's scale below is black or the foreground (#1E2329 = rgb 30 35 41)
+   * at an alpha. The named lifts (`--lift-*` in :root and .dark, oklch) carry R1's
+   * green tint in light and black in dark (Sage 3D, DEC-289).
    */
   --shadow-2xs: 0 1px rgb(30 35 41 / 0.05);
   --shadow-xs: 0 1px 2px rgb(30 35 41 / 0.06);
@@ -192,8 +220,24 @@
    * filled button by a firmer bottom edge; a bottom sheet by an upward drop.
    */
   --shadow-card: var(--lift-card);
-  --shadow-button: inset 0 -2px 0 rgb(0 0 0 / 0.22), 0 2px 4px rgb(30 35 41 / 0.18);
-  --shadow-tile: inset 0 -1px 0 rgb(30 35 41 / 0.06), 0 1px 2px rgb(30 35 41 / 0.08);
+  --shadow-button: var(--lift-button);
+  --shadow-tile: var(--lift-tile);
+  --shadow-band: var(--lift-band);
+  --shadow-rail: var(--lift-rail);
+  --shadow-rail-phone: var(--lift-rail-phone);
+  --shadow-subband: var(--lift-subband);
+  --shadow-groove: var(--lift-groove);
+  --shadow-groove-top: var(--lift-groove-top);
+  --shadow-footer: var(--lift-footer);
+  --shadow-field: var(--lift-field);
+  --shadow-control: var(--lift-control);
+  --shadow-tile-on: var(--lift-tile-on);
+  --shadow-row-on: var(--lift-row-on);
+  --shadow-track: var(--lift-track);
+  --shadow-segment: var(--lift-segment);
+  --shadow-badge: var(--lift-badge);
+  --shadow-premium: var(--lift-premium);
+  --shadow-featured: var(--lift-featured);
   --shadow-sheet: 0 -8px 28px rgb(30 35 41 / 0.22);
   --shadow-bar: var(--lift-bar);
   --shadow-bar-up: var(--lift-bar-up);
@@ -201,12 +245,8 @@
 }
 
 :root {
-  --lift-card:
-    0 1px 2px oklch(0.254 0.014 253.1 / 0.06), 0 3px 10px oklch(0.254 0.014 253.1 / 0.07);
   --lift-bar: 0 1px 6px oklch(0.254 0.014 253.1 / 0.07);
-  --lift-bar-up: 0 -2px 14px oklch(0.254 0.014 253.1 / 0.09);
   --lift-side: 1px 0 8px oklch(0.254 0.014 253.1 / 0.06);
-  --radius: 0.375rem;
   /* C2b — the phone bottom bar's height; every sticky/fixed bottom edge
      below md sits above it through this one variable (0px from 48rem). */
   --bottom-bar: calc(3.75rem + env(safe-area-inset-bottom));
@@ -238,7 +278,7 @@
   --chart-3: oklch(0.539 0.016 254.7);
   --chart-4: oklch(0.777 0.09 162.9);
   --chart-5: oklch(0.769 0.128 78.3);
-  --sidebar: oklch(1 0 89.9); /* #FFFFFF */
+  --sidebar: oklch(0.982 0.004 157.2); /* #F7FAF8 */
   --sidebar-foreground: oklch(0.254 0.014 253.1);
   --sidebar-primary: oklch(0.422 0.073 164.4);
   --sidebar-primary-foreground: oklch(1 0 89.9);
@@ -248,7 +288,7 @@
   --sidebar-accent-foreground: oklch(0.422 0.073 164.4);
   --sidebar-border: oklch(0.88 0.011 256.7); /* #D3D8DF */
   --sidebar-ring: oklch(0.422 0.073 164.4);
-  --rule: oklch(0.929 0.008 253.9); /* #E4E8ED */
+  --rule: oklch(0.929 0.012 153.7); /* #E2EAE4 */
   --destructive-soft: oklch(0.956 0.019 25.6); /* #FDECEA */
   --destructive-line: oklch(0.854 0.058 25); /* #F3C1BC */
   --success: oklch(0.388 0.07 163.8); /* #17503A */
@@ -262,33 +302,113 @@
   --info-line: oklch(0.858 0.047 252.4); /* #BBD3EF */
   --neutral: oklch(0.376 0.017 251.8); /* #3B424A */
   --neutral-soft: oklch(0.957 0.005 247.9); /* #EEF1F4 */
+
+  /* Sage 3D (DEC-289, turn SAGE-S0) — new colours; tier tokens (spec §7, §12, §13) and
+     the D260 band set are defined here, read by no component until their part. */
+  --hairline: oklch(0.915 0.014 155.6); /* #DCE6DF — 1 px edges: bands, rail, controls */
+  --field: oklch(0.975 0.006 153.8); /* #F4F8F5 — search field fill */
+  --track: oklch(0.941 0.012 153.7); /* #E6EEE8 — location box track */
+  --photo-empty: oklch(0.926 0.007 160.1); /* #E3E8E5 — picture box before a photo loads */
+  --leaf-ink: oklch(0.532 0.074 165.6); /* #3E7A62 — search, globe, pin icons */
+  --tier-premium: oklch(0.962 0.033 83.7); /* #FDF1DA — Premium card and title-box fill */
+  --tier-premium-frame: oklch(0.762 0.121 80.9); /* #D9A94F — Premium frame and flag border */
+  --tier-premium-rule: oklch(0.904 0.057 84.5); /* #F1DDB5 — Premium place-line divider */
+  --tier-premium-fold: oklch(0.651 0.116 79.1); /* #B5862F — Premium flag fold */
+  --tier-premium-ink: oklch(0.462 0.099 72.2); /* #7A4E00 — Premium word, price and links */
+  --tier-premium-star: oklch(0.762 0.121 80.9); /* #D9A94F — Premium stars beside the word */
+  --tier-premium-chip: oklch(0.921 0.055 85.1); /* #F6E3BC — Premium chips and initials disc */
+  --tier-featured: oklch(0.946 0.017 159.1); /* #E4F1E9 — Featured card and title-box fill */
+  --tier-featured-frame: oklch(0.585 0.074 164); /* #4F8A70 — Featured frame and flag border */
+  --tier-featured-rule: oklch(0.898 0.027 159.5); /* #CFE3D7 — Featured place-line divider */
+  --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
+  --tier-featured-ink: oklch(0.388 0.07 163.8); /* #17503A — Featured word */
+  --tier-featured-star: oklch(0.585 0.074 164); /* #4F8A70 — Featured stars beside the word */
+  --band: var(--sidebar); /* D260 band surface (tabs bar, breadcrumb, location row) */
+  --band-edge: var(--hairline); /* D260 band edge */
+  --band-label: var(--muted-foreground); /* D260 band label */
+  /* R1 — the 3D shadows: light tinted with the page green #17402F at an alpha; dark black. */
+  --lift-band: 0 1px 0 oklch(0.901 0.017 156.9), 0 10px 20px -12px oklch(0.337 0.055 163.4 / 0.35);
+  --lift-rail: 1px 0 0 oklch(0.915 0.014 155.6), 8px 0 18px -12px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-rail-phone:
+    1px 0 0 oklch(0.915 0.014 155.6), 6px 0 14px -10px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-subband: 0 1px 0 oklch(0.915 0.014 155.6), 0 8px 16px -12px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-groove: inset 0 -1px 0 oklch(0.929 0.012 153.7), 0 1px 0 oklch(1 0 0);
+  --lift-groove-top: inset 0 1px 0 oklch(0.915 0.014 155.6), inset 0 2px 0 oklch(1 0 0);
+  --lift-footer:
+    0 -1px 0 oklch(0.915 0.014 155.6), inset 0 1px 0 oklch(1 0 0),
+    0 -10px 20px -14px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-field:
+    inset 0 2px 4px oklch(0.337 0.055 163.4 / 0.1), inset 0 0 0 1px oklch(0.891 0.023 160.2),
+    0 1px 0 oklch(1 0 0);
+  --lift-control:
+    0 1px 2px oklch(0.337 0.055 163.4 / 0.12), inset 0 -2px 0 oklch(0.337 0.055 163.4 / 0.07);
+  --lift-button:
+    inset 0 1px 0 oklch(1 0 0 / 0.18), inset 0 -2px 0 oklch(0 0 0 / 0.22),
+    0 2px 5px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-tile:
+    0 1px 2px oklch(0.337 0.055 163.4 / 0.14), inset 0 -2px 0 oklch(0.337 0.055 163.4 / 0.06);
+  --lift-tile-on:
+    inset 0 1px 0 oklch(1 0 0 / 0.28), inset 0 -2px 0 oklch(0 0 0 / 0.22),
+    0 2px 5px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-row-on:
+    0 1px 2px oklch(0.337 0.055 163.4 / 0.08), 0 6px 14px -4px oklch(0.337 0.055 163.4 / 0.14);
+  --lift-track: inset 0 2px 3px oklch(0.337 0.055 163.4 / 0.12), inset 0 -1px 0 oklch(1 0 0);
+  --lift-segment:
+    0 1px 2px oklch(0.337 0.055 163.4 / 0.2), 0 3px 8px oklch(0.337 0.055 163.4 / 0.1),
+    inset 0 -1px 0 oklch(0.337 0.055 163.4 / 0.06);
+  --lift-card:
+    0 1px 1px oklch(0.337 0.055 163.4 / 0.04), 0 3px 8px oklch(0.337 0.055 163.4 / 0.07),
+    0 10px 18px -8px oklch(0.337 0.055 163.4 / 0.14);
+  --lift-card-md:
+    0 1px 1px oklch(0.337 0.055 163.4 / 0.04), 0 4px 10px oklch(0.337 0.055 163.4 / 0.06),
+    0 12px 24px -8px oklch(0.337 0.055 163.4 / 0.12);
+  --lift-card-lg:
+    0 1px 1px oklch(0.337 0.055 163.4 / 0.04), 0 4px 10px oklch(0.337 0.055 163.4 / 0.06),
+    0 14px 28px -8px oklch(0.337 0.055 163.4 / 0.12);
+  --lift-badge:
+    inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
+    0 3px 8px oklch(0.681 0.13 72.5 / 0.35);
+  --lift-bar-up:
+    0 -1px 0 oklch(0.915 0.014 155.6), 0 -10px 24px -10px oklch(0.337 0.055 163.4 / 0.3);
+  --lift-premium:
+    0 0 0 1.5px oklch(0.762 0.121 80.9), 0 10px 24px -8px oklch(0.681 0.13 72.5 / 0.35);
+  --lift-featured:
+    0 0 0 1.5px oklch(0.585 0.074 164), 0 10px 24px -8px oklch(0.422 0.073 164.4 / 0.26);
+  /* Radii (spec § Radii): controls 12 px; cards 12 / 14 / 20 px at 3 / 4 / 5 a row;
+     the location track and segment 11 / 8 px on phones, 12 / 9 px from 768 px. */
+  --radius: 0.75rem;
+  --card-radius: 0.75rem;
+  --card-radius-md: 0.875rem;
+  --card-radius-lg: 1.25rem;
+  --track-radius: 0.6875rem;
+  --track-radius-md: 0.75rem;
+  --segment-radius: 0.5rem;
+  --segment-radius-md: 0.5625rem;
 }
 
 .dark {
-  --lift-card: 0 0 0 1px oklch(0.349 0.017 251.8 / 0.7), 0 2px 8px oklch(0 0 0 / 0.35);
   --lift-bar: 0 1px 0 oklch(0.349 0.017 251.8 / 0.7), 0 2px 8px oklch(0 0 0 / 0.3);
-  --lift-bar-up: 0 -1px 0 oklch(0.349 0.017 251.8 / 0.7), 0 -2px 12px oklch(0 0 0 / 0.35);
   --lift-side: 1px 0 0 oklch(0.349 0.017 251.8 / 0.7);
-  --background: oklch(0.207 0.01 248.3); /* #14181C */
-  --foreground: oklch(0.93 0.005 258.3); /* #E6E8EB */
-  --card: oklch(0.236 0.012 248.3); /* #1A1F24 */
-  --card-foreground: oklch(0.93 0.005 258.3);
-  --popover: oklch(0.236 0.012 248.3);
-  --popover-foreground: oklch(0.93 0.005 258.3);
+  --background: oklch(0.202 0.011 163.6); /* #121815 */
+  --foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
+  --card: oklch(0.243 0.014 163.6); /* #1A221E */
+  --card-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
+  --popover: oklch(0.258 0.016 160.7); /* #1D2621 */
+  --popover-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --primary: oklch(0.777 0.09 162.9); /* #7FC9A6 */
   --primary-foreground: oklch(0.202 0.025 162.8); /* #0B1A13 */
   --secondary: oklch(0.277 0.016 248.4); /* #222930 */
-  --secondary-foreground: oklch(0.93 0.005 258.3);
+  --secondary-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --muted: oklch(0.277 0.016 248.4);
-  --muted-foreground: oklch(0.737 0.015 248); /* #A3ABB3 */
+  --muted-foreground: oklch(0.745 0.018 159); /* #A3B0A8 */
   /* PURGED: was honey-gold. Uniform cool-slate neutral, identical to --muted. */
   --accent: oklch(0.277 0.016 248.4); /* #222930 */
-  --accent-foreground: oklch(0.93 0.005 258.3); /* #E6E8EB */
+  --accent-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --gold: oklch(0.769 0.128 78.3); /* #E0A94A — logo dot, Featured, invite card */
   --gold-foreground: oklch(0.214 0.037 79.9); /* #221704 */
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.178 0.037 27.4); /* #1F0A08 */
-  --border: oklch(0.349 0.017 251.8); /* #343B43 */
+  --border: oklch(0.339 0.02 159.5); /* #2F3B34 */
   --input: oklch(0.394 0.019 251.4); /* #3F4750 */
   --ring: oklch(0.777 0.09 162.9);
   --chart-1: oklch(0.777 0.09 162.9);
@@ -296,16 +416,16 @@
   --chart-3: oklch(0.656 0.014 244.4);
   --chart-4: oklch(0.422 0.073 164.4);
   --chart-5: oklch(0.681 0.13 72.5);
-  --sidebar: oklch(0.236 0.012 248.3); /* #1A1F24 */
-  --sidebar-foreground: oklch(0.93 0.005 258.3);
+  --sidebar: oklch(0.226 0.013 160.1); /* #171E1A */
+  --sidebar-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --sidebar-primary: oklch(0.777 0.09 162.9);
   --sidebar-primary-foreground: oklch(0.202 0.025 162.8);
-  --sidebar-accent: oklch(0.294 0.022 166.7); /* #22302A rail active bg */
+  --sidebar-accent: oklch(0.273 0.024 164.2); /* #1C2B24 */
   --nav-active: color-mix(in oklab, var(--primary) 22%, transparent);
   --sidebar-accent-foreground: oklch(0.777 0.09 162.9);
-  --sidebar-border: oklch(0.349 0.017 251.8); /* #343B43 */
+  --sidebar-border: oklch(0.339 0.02 159.5); /* #2F3B34 */
   --sidebar-ring: oklch(0.777 0.09 162.9);
-  --rule: oklch(0.29 0.014 248.3); /* #262C32 */
+  --rule: oklch(0.305 0.018 161.2); /* #27322C */
   --destructive-soft: oklch(0.268 0.048 24.7); /* #3A1C1A */
   --destructive-line: oklch(0.358 0.075 26.1); /* #5E2B27 */
   --success: oklch(0.777 0.09 162.9); /* #7FC9A6 */
@@ -319,8 +439,79 @@
   --info-line: oklch(0.38 0.068 257); /* #2A4366 */
   --neutral: oklch(0.839 0.011 248); /* #C5CBD1 */
   --neutral-soft: oklch(0.29 0.014 248.3); /* #262C32 */
+
+  /* Sage 3D (DEC-289, turn SAGE-S0) — new colours; tier tokens (spec §7, §12, §13) and
+     the D260 band set are defined here, read by no component until their part. */
+  --hairline: oklch(0.339 0.02 159.5); /* #2F3B34 — 1 px edges: bands, rail, controls */
+  --field: oklch(0.188 0.011 163.5); /* #0F1512 — search field fill */
+  --track: oklch(0.188 0.011 163.5); /* #0F1512 — location box track */
+  --photo-empty: oklch(0.298 0.016 163.6); /* #26302B — picture box before a photo loads */
+  --leaf-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — search, globe, pin icons */
+  --tier-premium: oklch(0.261 0.028 82.6); /* #2B2314 — Premium card and title-box fill */
+  --tier-premium-frame: oklch(0.708 0.12 78.6); /* #C9973F — Premium frame and flag border */
+  --tier-premium-rule: oklch(0.379 0.052 84.8); /* #4F4020 — Premium place-line divider */
+  --tier-premium-fold: oklch(0.651 0.116 79.1); /* #B5862F — Premium flag fold */
+  --tier-premium-ink: oklch(0.801 0.127 82.7); /* #E6B655 — Premium word, price and links */
+  --tier-premium-star: oklch(0.708 0.12 78.6); /* #C9973F — Premium stars beside the word */
+  --tier-premium-chip: oklch(0.308 0.043 84.2); /* #3A2E15 — Premium chips and initials disc */
+  --tier-featured: oklch(0.274 0.029 161.9); /* #1A2C23 — Featured card and title-box fill */
+  --tier-featured-frame: oklch(0.634 0.093 163.1); /* #4F9C7A — Featured frame and flag border */
+  --tier-featured-rule: oklch(0.382 0.042 161.8); /* #2E4A3C — Featured place-line divider */
+  --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
+  --tier-featured-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — Featured word */
+  --tier-featured-star: oklch(0.634 0.093 163.1); /* #4F9C7A — Featured stars beside the word */
+  --band: var(--sidebar); /* D260 band surface (tabs bar, breadcrumb, location row) */
+  --band-edge: var(--hairline); /* D260 band edge */
+  --band-label: var(--muted-foreground); /* D260 band label */
+  /* R1 — the 3D shadows: light tinted with the page green #17402F at an alpha; dark black. */
+  --lift-band: 0 1px 0 oklch(0.339 0.02 159.5), 0 10px 20px -12px oklch(0 0 0 / 0.55);
+  --lift-rail: 1px 0 0 oklch(0.339 0.02 159.5), 8px 0 18px -12px oklch(0 0 0 / 0.5);
+  --lift-rail-phone: 1px 0 0 oklch(0.339 0.02 159.5), 6px 0 14px -10px oklch(0 0 0 / 0.5);
+  --lift-subband: 0 1px 0 oklch(0.339 0.02 159.5), 0 8px 16px -12px oklch(0 0 0 / 0.5);
+  --lift-groove: inset 0 -1px 0 oklch(0.305 0.018 161.2), 0 1px 0 oklch(0 0 0 / 0.3);
+  --lift-groove-top: inset 0 1px 0 oklch(0.339 0.02 159.5), inset 0 2px 0 oklch(0 0 0 / 0.3);
+  --lift-footer: 0 -1px 0 oklch(0.339 0.02 159.5), 0 -10px 20px -14px oklch(0 0 0 / 0.5);
+  --lift-field: inset 0 2px 4px oklch(0 0 0 / 0.45), inset 0 0 0 1px oklch(0.339 0.02 159.5);
+  --lift-control: 0 1px 2px oklch(0 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.2);
+  --lift-button:
+    inset 0 1px 0 oklch(1 0 0 / 0.18), inset 0 -2px 0 oklch(0 0 0 / 0.22),
+    0 2px 5px oklch(0 0 0 / 0.45);
+  --lift-tile: 0 1px 2px oklch(0 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.2);
+  --lift-tile-on:
+    inset 0 1px 0 oklch(1 0 0 / 0.28), inset 0 -2px 0 oklch(0 0 0 / 0.22),
+    0 2px 5px oklch(0 0 0 / 0.45);
+  --lift-row-on: 0 1px 2px oklch(0 0 0 / 0.3), 0 6px 14px -4px oklch(0 0 0 / 0.4);
+  --lift-track: inset 0 2px 4px oklch(0 0 0 / 0.45);
+  --lift-segment: 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3);
+  --lift-card: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
+  --lift-badge:
+    inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
+    0 3px 8px oklch(0 0 0 / 0.45);
+  --lift-bar-up: 0 -1px 0 oklch(0.339 0.02 159.5), 0 -10px 24px -10px oklch(0 0 0 / 0.5);
+  --lift-premium: 0 0 0 1.5px oklch(0.708 0.12 78.6), 0 10px 24px -8px oklch(0 0 0 / 0.45);
+  --lift-featured: 0 0 0 1.5px oklch(0.634 0.093 163.1), 0 10px 24px -8px oklch(0 0 0 / 0.45);
 }
 
+/* Sage 3D (turn SAGE-S0) — the sizes that step with the cards a row (3 below 768 px, 4 to
+   1023 px, 5 from 1024 px). Dark cards keep one lift at every width (spec §13). */
+@media (min-width: 48rem) {
+  :root {
+    --card-radius: var(--card-radius-md);
+    --track-radius: var(--track-radius-md);
+    --segment-radius: var(--segment-radius-md);
+  }
+  :root:not(.dark) {
+    --lift-card: var(--lift-card-md);
+  }
+}
+@media (min-width: 64rem) {
+  :root {
+    --card-radius: var(--card-radius-lg);
+  }
+  :root:not(.dark) {
+    --lift-card: var(--lift-card-lg);
+  }
+}
 @layer base {
   .cut-floor::before {
     content: attr(data-floor);
