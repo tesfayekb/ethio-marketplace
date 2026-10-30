@@ -1,2 +1,1 @@
 # CF-ROWS-1 (scripts/conformance/menu-rows.test.ts): "<file> (<hidden scrollbars>)" | reason | until — the count only falls.
-src/components/shell/app-rail.tsx (1) | the phone strip (strip-scroll), a 48 px aria-hidden icon column that the phone split (R1d) replaces; a visible scrollbar would take a third of its width | 2026-11-30
