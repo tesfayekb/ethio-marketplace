@@ -34,6 +34,7 @@ import { chooseCarry } from "@/components/shell/place-carry";
 import { readAccountPlace, saveAccountPlace } from "@/components/shell/place-carry-service";
 import { PanelTabs } from "@/components/shell/panel-tabs";
 import { Menu } from "lucide-react";
+import { MENU_INSET, MENU_WIDTH } from "@/components/shell/menu-width";
 import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
@@ -982,7 +983,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <div
               data-testid="shell-logo-cell"
-              className="hidden min-w-0 bg-card ps-2 md:flex md:h-14 md:w-56 lg:w-64 md:shrink-0 md:items-center rail-icons:w-16 rail-icons:justify-center rail-icons:px-0"
+              className={cn(
+                "hidden min-w-0 bg-card ps-2 md:flex md:h-14 md:shrink-0 md:items-center rail-icons:justify-center rail-icons:px-0",
+                MENU_WIDTH,
+              )}
             >
               <button
                 type="button"
@@ -1031,7 +1035,8 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div
             data-testid="shell-stack"
             className={cn(
-              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 ms-12 md:ms-56 lg:ms-64 md:pt-14 rail-icons:ms-16",
+              "col-start-1 row-start-2 flex min-w-0 flex-col pt-13 ms-12 md:pt-14",
+              MENU_INSET,
             )}
           >
             <div
@@ -1077,7 +1082,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div
           data-testid="shell-footer-wrapper"
           className={cn(
-            "relative z-0 bg-card md:ms-56 lg:ms-64 rail-icons:ms-16",
+            "relative z-0 bg-card",
+            MENU_INSET,
             "max-md:[&>footer>*]:ps-12",
           )}
         >
