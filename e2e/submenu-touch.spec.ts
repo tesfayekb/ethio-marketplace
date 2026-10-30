@@ -56,8 +56,15 @@ test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, 
     .locator("[data-submenu-row]")
     .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
   expect(panelRows.length, "SMN-E3 the panel has no rows").toBeGreaterThan(0);
-  for (const height of panelRows)
-    expect(height, "SMN-E3 a panel row is at least 44 px").toBeGreaterThanOrEqual(44);
+  // G38 — D248 replaces "a panel row is at least 44 px": a panel row is the rail's row (its
+  // height at that moment), shrinking toward 32 px only when the panel outgrows the menu.
+  const railRow = await rail
+    .getByTestId("rail-category-electronics")
+    .evaluate((el) => (el.closest("li") ?? el).getBoundingClientRect().height);
+  for (const height of panelRows) {
+    expect(height, "SMN-E3 a panel row is at most the rail's (D248)").toBeLessThanOrEqual(railRow + 1);
+    expect(height, "SMN-E3 a panel row keeps the 32 px floor (D248)").toBeGreaterThanOrEqual(31.5);
+  }
   await page.locator("main").tap({ position: { x: 4, y: 4 } });
   await expect(panel).toHaveCount(0);
 });

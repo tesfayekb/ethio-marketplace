@@ -65,11 +65,12 @@ test.describe("DEC-288 side panel, fine pointer", () => {
 });
 
 /**
- * SMN-E5 (D245; Foundations turn R1c) — the panel takes ethio.com's surface and motion: a
- * 1 px border, square corners, no shadow, flush with the rail (its border over the rail's
- * edge), and a 300 ms opacity fade in and out; under prefers-reduced-motion, none.
+ * SMN-E5 (D245, D248; Foundations turns R1c, R1d-a) — the panel fades 300 ms in and out by
+ * opacity alone; under prefers-reduced-motion, none. G38 — D248 withdraws D245's surface
+ * (a 1 px border, square corners, no shadow, 1 px over the rail): the panel takes the
+ * rail's surface — no border, rounded, the rail's shadow — and sits flush beside it.
  */
-test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and out", async ({
+test("SMN-E5 the panel takes the rail's surface, flush beside it, and fades 300 ms in and out", async ({
   page,
 }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
@@ -79,23 +80,28 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
   await opener.hover();
   const panel = page.getByTestId("submenu-panel");
   await expect(panel).toBeVisible();
+  const railLook = await page
+    .getByTestId("app-rail")
+    .evaluate((el) => {
+      const style = getComputedStyle(el);
+      return { background: style.backgroundColor, shadow: style.boxShadow };
+    });
   const look = await panel.evaluate((el) => {
     const style = getComputedStyle(el);
     return {
       border: style.borderTopWidth,
-      radius: style.borderTopLeftRadius,
-      // Tailwind's shadow-none computes to transparent zero layers: no shadow is drawn.
-      noShadow:
-        style.boxShadow === "none" ||
-        /^(?:rgba\(0, 0, 0, 0\) 0px 0px 0px 0px(?:, )?)+$/.test(style.boxShadow),
+      rounded: parseFloat(style.borderTopLeftRadius) > 0,
+      background: style.backgroundColor,
+      shadow: style.boxShadow,
       property: style.transitionProperty,
       duration: style.transitionDuration,
     };
   });
   expect(look).toEqual({
-    border: "1px",
-    radius: "0px",
-    noShadow: true,
+    border: "0px",
+    rounded: true,
+    background: railLook.background,
+    shadow: railLook.shadow,
     property: "opacity",
     duration: "0.3s",
   });
@@ -103,10 +109,7 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
     rail: page.getByTestId("app-rail"),
     panel,
   });
-  expect(
-    Math.abs(panelBox.x - (railBox.x + railBox.width - 1)),
-    "flush, 1 px over",
-  ).toBeLessThanOrEqual(1);
+  expect(Math.abs(panelBox.x - (railBox.x + railBox.width)), "flush").toBeLessThanOrEqual(1);
   await page.mouse.move(900, 700);
   // The closing panel stays 300 ms, aria-hidden, then goes.
   await expect(page.getByTestId("submenu-panel-closing")).toHaveAttribute("aria-hidden", "true");

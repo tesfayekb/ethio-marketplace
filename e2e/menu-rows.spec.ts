@@ -50,13 +50,10 @@ test.describe("D247 the rail's list", () => {
     const { region, rows } = await railList(page);
     const count = await rows.count();
     const many = await region.locator("nav > ul.menu-fit").getAttribute("data-many");
-    if (count > 16) {
-      expect(many, `${label}: a list of more than 16 is marked data-many`).toBe("");
-      await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
-      expect((await scrollOf(page)).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
-      return count;
-    }
-    expect(many, `${label}: a list of 16 or fewer is not data-many`).toBeNull();
+    // G38 — D248 replaces the ">16 keeps full-size rows" branch from 768 px: there is no
+    // item limit; a list fits while its rows stay at 32 px or more, and only then scrolls.
+    // `data-many` still marks the count (the phone's rule) and changes nothing here.
+    expect(many, `${label}: data-many marks more than 16`).toBe(count > 16 ? "" : null);
     const { client } = await scrollOf(page);
     if (count * 32 <= client) {
       await expect.poll(async () => (await scrollOf(page)).overflow).toBeLessThanOrEqual(0);
