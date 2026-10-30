@@ -195,8 +195,11 @@ function Panel({
   }, [opener, depth, edgeOf]);
 
   useEffect(() => {
-    console.info("[smn-dbg]", Boolean(place), opener.focus, rowsOf(own.current).length);
-    if (place && opener.focus) rowsOf(own.current)[0]?.focus();
+    if (!place || !opener.focus) return;
+    const row = rowsOf(own.current)[0];
+    console.info("[smn-dbg]", row ? getComputedStyle(row).visibility : "none", row?.isConnected);
+    row?.focus();
+    console.info("[smn-dbg] after", document.activeElement === row);
   }, [place, opener]);
 
   const rows = () =>
