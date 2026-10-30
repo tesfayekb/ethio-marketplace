@@ -76,7 +76,8 @@
 - Tests run: submenu.spec.ts + menu-rows.spec.ts + admin-shell.spec.ts whole, both projects, retries 0: 22 passed, 10 skipped, 0 failed; shell.spec.ts whole: 165 passed, 69 skipped, 0 failed; category-nav.spec.ts whole: 10 passed, 0 failed.
 
 ## Unit count and checks
-- See the closing lines below (filled from the final run).
+- Unit suite: 386 files, 2,297 / 2,297 tests passed.
+- `bun run checks` on the final tree, run whole: `checks: 34 PASS · 0 FAIL · 21 NOT RUN · 1479s`.
 
 ## K2
 - The strip's back item is named by the menu's "‹" row's own words (parent name or "Main Menu"); no new string (Ruling 4).
