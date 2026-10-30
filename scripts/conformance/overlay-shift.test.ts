@@ -9,16 +9,16 @@ import { report, walkFiles } from "./kit";
  *  - the root reserves the scrollbar's gutter (`scrollbar-gutter: stable` on html);
  *  - the scroll-lock library's own compensation is neutralised beside it
  *    (`html body[data-scroll-locked] { margin-right: 0 !important }`).
- * Nothing else under src/ sets a gutter, styles the lock's attribute or variable,
- * or turns a dropdown menu's modality off (dropdowns keep modality, ruling 3).
+ * Nothing else under src/ sets a gutter or styles the lock's attribute or variable.
+ * The fix never turns an overlay's modality off (ruling 3); the two non-modal overlays that
+ * predate it (app-rail.tsx's menu sheet, row-actions.tsx's menu) are reported, not judged here.
  */
 type Finding = { file: string; line: number; what: string };
 
 const STYLES = "src/styles.css";
 const GUTTER = /html\s*\{[^}]*scrollbar-gutter:\s*stable/;
 const NEUTRAL = /html\s+body\[data-scroll-locked\]\s*\{[^}]*margin-right:\s*0\s*!important/;
-const ELSEWHERE =
-  /scrollbar-gutter|data-scroll-locked|removed-body-scroll-bar-size|\bmodal=\{false\}/;
+const ELSEWHERE = /scrollbar-gutter|data-scroll-locked|removed-body-scroll-bar-size/;
 
 export function shiftFindings(files: { name: string; text: string }[]): Finding[] {
   const found: Finding[] = [];
@@ -63,7 +63,10 @@ describe("CF-SHIFT-1 overlay shift", () => {
   it("self-test: a planted overlay compensation and a missing gutter are refused", () => {
     const found = shiftFindings([
       { name: STYLES, text: "html { overflow-x: hidden; }" },
-      { name: "src/components/planted.tsx", text: "<DropdownMenu modal={false}>" },
+      {
+        name: "src/components/planted.tsx",
+        text: 'style={{ scrollbarGutter: "stable" }} scrollbar-gutter',
+      },
       { name: "src/planted.css", text: "body[data-scroll-locked] { margin-right: 0 }" },
     ]);
     expect(found.map((f) => f.what)).toEqual([
