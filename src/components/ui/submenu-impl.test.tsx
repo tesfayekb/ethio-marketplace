@@ -1,6 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+} from "@tanstack/react-router";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
 
@@ -13,18 +18,7 @@ import {
 } from "./submenu-geometry";
 import type { SubmenuLevel } from "./submenu-impl";
 
-vi.mock("@tanstack/react-router", () => ({
-  Link: ({
-    children,
-    to: _to,
-    params: _params,
-    preload: _preload,
-    ...rest
-  }: { children: ReactNode } & Record<string, unknown>) => <a {...rest}>{children}</a>,
-}));
-
 const { SubmenuLayer } = await import("./submenu-impl");
-console.log("LINKX", String((await import("@tanstack/react-router")).Link).slice(0, 60));
 
 /**
  * SMN-1…SMN-6 (DEC-288, turn R1b) — the sub-menu mechanism: placement, the safe
@@ -59,10 +53,21 @@ function Harness() {
   );
 }
 
+async function mount() {
+  const rootRoute = createRootRoute({ component: Harness });
+  const router = createRouter({
+    routeTree: rootRoute,
+    history: createMemoryHistory({ initialEntries: ["/"] }),
+  });
+  render(<RouterProvider router={router} />);
+  const opener = await screen.findByTestId("opener");
+  vi.useFakeTimers();
+  return opener;
+}
+
 const panels = () => screen.queryAllByTestId("submenu-panel");
 
 describe("the sub-menu mechanism (DEC-288)", () => {
-  beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
   it("SMN-1 the panel's first row is level with its trigger, flips at the edge and is clamped when tall", () => {
@@ -102,9 +107,8 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect(inSafeTriangle({ x: 1065, y: 260 }, { x: 1080, y: 220 }, { ...panel, left: 816, right: 1056 }, true)).toBe(true);
   });
 
-  it("SMN-3 a hover opens after 150 ms, never before, and closes 300 ms after the pointer leaves", () => {
-    render(<Harness />);
-    const opener = screen.getByTestId("opener");
+  it("SMN-3 a hover opens after 150 ms, never before, and closes 300 ms after the pointer leaves", async () => {
+    const opener = await mount();
     fireEvent.pointerEnter(opener, { pointerType: "mouse" });
     act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS - 1));
     expect(panels()).toHaveLength(0);
@@ -118,9 +122,8 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect(panels()).toHaveLength(0);
   });
 
-  it("SMN-4 entering the panel keeps it open; a second-level row opens the third level beside it", () => {
-    render(<Harness />);
-    const opener = screen.getByTestId("opener");
+  it("SMN-4 entering the panel keeps it open; a second-level row opens the third level beside it", async () => {
+    const opener = await mount();
     fireEvent.pointerEnter(opener, { pointerType: "mouse" });
     act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS));
     fireEvent.pointerLeave(opener, { pointerType: "mouse", clientX: 5000, clientY: 5000 });
@@ -135,9 +138,8 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect(screen.getByTestId("rail-category-sedans")).toBeTruthy();
   });
 
-  it("SMN-5 the arrow key enters the panel's first row; Escape closes it and focus returns to the opener", () => {
-    render(<Harness />);
-    const opener = screen.getByTestId("opener");
+  it("SMN-5 the arrow key enters the panel's first row; Escape closes it and focus returns to the opener", async () => {
+    const opener = await mount();
     opener.focus();
     fireEvent.keyDown(opener, { key: "ArrowRight" });
     act(() => vi.advanceTimersByTime(20));
@@ -149,9 +151,8 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect(document.activeElement).toBe(opener);
   });
 
-  it("SMN-6 a tap opens the panel at once; a mouse hover alone never opens on touch", () => {
-    render(<Harness />);
-    const opener = screen.getByTestId("opener");
+  it("SMN-6 a tap opens the panel at once; a mouse hover alone never opens on touch", async () => {
+    const opener = await mount();
     fireEvent.pointerEnter(opener, { pointerType: "touch" });
     act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS * 2));
     expect(panels()).toHaveLength(0);
