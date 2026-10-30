@@ -1054,7 +1054,10 @@ test.describe("mobile chrome", () => {
     for (const id of ["strip-category-all", "strip-post-entry", "strip-sign-out"]) {
       await expect(page.getByTestId(id)).toHaveCount(0);
     }
-    await expect(strip).toHaveAttribute("aria-hidden", "true");
+    // G38 (D255, R1d-c; was the whole strip aria-hidden): the painted rows stay aria-hidden
+    // (D205); the strip's one control, the back item, sits outside them at a sub-level only.
+    await expect(page.getByTestId("strip-scroll")).toHaveAttribute("aria-hidden", "true");
+    await expect(page.getByTestId("strip-back")).toHaveCount(0);
     await expect(strip.getByRole("link", { includeHidden: true })).toHaveCount(0);
     await expect(strip.getByTestId("strip-category-skeleton")).toHaveCount(0);
     await expect(strip.getByTestId("strip-category-electronics")).toBeVisible();
@@ -1256,7 +1259,10 @@ test.describe("mobile chrome", () => {
       .toBe("level");
     await page.mouse.click(tap.x, tap.y);
     await expect(page).toHaveURL(new RegExp(`/c/${category.slug}$`));
-    await expect(row).toHaveAttribute("aria-current", "true");
+    // G38 (D255, R1d-c; was the strip's Electronics row marked): the strip follows the menu
+    // to Electronics' level, its back item at the top.
+    await expect(page.getByTestId("strip-back")).toBeVisible();
+    await expect(page.getByTestId("strip-category-audio-sound")).toBeVisible();
     await expect(menu).toBeVisible();
     await expect(menu.getByTestId("rail-category-electronics")).toHaveAttribute(
       "aria-current",
@@ -1414,10 +1420,13 @@ test.describe("mobile chrome", () => {
     await menu.getByTestId("rail-category-audio-sound").click();
     await expect(page).toHaveURL(/\/c\/audio-sound$/);
     await expect(menu).toBeHidden();
-    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
+    // G38 (D255, R1d-c; was the strip's Electronics row marked): the strip shows the leaf's
+    // level, the leaf marked, the back item at the top.
+    await expect(page.getByTestId("strip-category-audio-sound")).toHaveAttribute(
       "aria-current",
-      "true",
+      "page",
     );
+    await expect(page.getByTestId("strip-back")).toBeVisible();
     // D246 (R1c; G38, replaces "reopens at the main list"): the leaf's level, the leaf marked.
     menu = await openRailScope(page);
     await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
@@ -3784,7 +3793,9 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       await menu.getByTestId(`rail-category-${l}`).click();
       await expect(page).toHaveURL(new RegExp(`/c/${l}$`));
       await expect(menu).toBeHidden({ timeout: 2000 });
-      await expect(page.getByTestId(`strip-category-${r}`)).toHaveAttribute("aria-current", "true");
+      // G38 (D255, R1d-c; was the strip's root marked): the strip shows the leaf's level.
+      await expect(page.getByTestId(`strip-category-${l}`)).toHaveAttribute("aria-current", "page");
+      await expect(page.getByTestId("strip-back")).toBeVisible();
       // D246 (R1c; replaces "reopens at the main list", G38): the menu reopens at the
       // leaf's level, the leaf marked and in view; back moves up without navigating.
       const reopened = await openRailScope(page);
