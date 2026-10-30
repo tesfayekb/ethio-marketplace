@@ -140,20 +140,46 @@ test.describe("D244 every panel on screen", () => {
     branch = null;
   });
 
+  // G38 — D248 bounds a panel by the rail's height (was the window's): the panel is wholly
+  // on screen and never below the rail's last row; its rows fit when they can at 32 px or
+  // more, and otherwise hold the floor and the panel scrolls (no row clipped off screen).
   async function everyRowOnScreen(page: Page, label: string) {
     const panel = page.getByTestId("submenu-panel");
     await expect(panel).toBeVisible();
     const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(CHILDREN);
+    await expect(panel, `${label}: the panel is wholly on screen`).toBeInViewport({ ratio: 1 });
     await expect
-      .poll(() => panel.evaluate((el) => el.scrollHeight <= el.clientHeight + 1), {
-        message: `${label}: the panel does not scroll inside itself`,
-      })
+      .poll(
+        async () => {
+          const railBottom = await page
+            .getByTestId("app-rail")
+            .getByTestId("rail-scroll")
+            .evaluate((el) => el.getBoundingClientRect().bottom);
+          const bottom = await panel.evaluate((el) => el.getBoundingClientRect().bottom);
+          return bottom <= railBottom + 1;
+        },
+        { message: `${label}: never below the rail's last row` },
+      )
       .toBe(true);
-    for (let index = 0; index < CHILDREN; index += 1) {
-      await expect(rows.nth(index), `${label}: row ${index + 1} of ${CHILDREN}`).toBeInViewport({
-        ratio: 1,
-      });
+    const state = await panel.evaluate((el) => ({
+      overflow: el.scrollHeight - el.clientHeight,
+      rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
+        (row) => row.getBoundingClientRect().height,
+      ),
+    }));
+    if (state.overflow > 1) {
+      for (const height of state.rows)
+        expect(
+          Math.abs(height - 32),
+          `${label}: a scrolled panel's rows hold 32 px`,
+        ).toBeLessThanOrEqual(0.5);
+    } else {
+      for (let index = 0; index < CHILDREN; index += 1) {
+        await expect(rows.nth(index), `${label}: row ${index + 1} of ${CHILDREN}`).toBeInViewport({
+          ratio: 1,
+        });
+      }
     }
   }
 

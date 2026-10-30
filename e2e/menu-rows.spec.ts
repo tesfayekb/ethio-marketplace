@@ -85,7 +85,9 @@ test.describe("D247 the rail's list", () => {
     await gotoReady(page, "/");
     // The main list, judged for the count this backend holds at run time (G27, G28).
     await judge(page, "ROWS-E3 the main list");
-    // The 16-or-fewer branch on the test's own list: its side panel's 12 rows fit, no scroll.
+    // The test's own list: its side panel's 12 rows. G38 — D248 bounds a panel by the rail's
+    // height (was the window's): it fits when 12 rows of at least 32 px fit the rail, and
+    // otherwise its rows hold the 32 px floor and it scrolls with a visible scrollbar.
     const { rail } = await railList(page);
     const opener = rail.getByTestId(`rail-category-${branch.root}`);
     await opener.scrollIntoViewIfNeeded();
@@ -94,14 +96,25 @@ test.describe("D247 the rail's list", () => {
     await expect(panel).toBeVisible();
     const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(SEEDED);
-    await expect
-      .poll(() => panel.evaluate((el) => el.scrollHeight - el.clientHeight))
-      .toBeLessThanOrEqual(1);
-    for (const height of await rows.evaluateAll((els) =>
+    const { client: railRoom } = await scrollOf(page);
+    const heights = await rows.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().height),
-    )) {
+    );
+    for (const height of heights) {
       expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeGreaterThanOrEqual(31.5);
       expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeLessThanOrEqual(48);
+    }
+    const state = await panel.evaluate((el) => ({
+      overflow: el.scrollHeight - el.clientHeight,
+      bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+    }));
+    if (SEEDED * 32 <= railRoom + 1) {
+      expect(state.overflow, "ROWS-E3 the seeded panel fits").toBeLessThanOrEqual(1);
+    } else {
+      for (const height of heights)
+        expect(Math.abs(height - 32), "ROWS-E3 at the floor").toBeLessThanOrEqual(0.5);
+      expect(state.overflow, "ROWS-E3 the seeded panel scrolls").toBeGreaterThan(0);
+      expect(state.bar, "ROWS-E3 its scrollbar takes width").toBeGreaterThan(0);
     }
   });
 });
