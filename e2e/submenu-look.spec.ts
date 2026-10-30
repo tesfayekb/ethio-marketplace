@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { adminClient } from "./global-setup";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, openRailScope } from "./helpers/ui";
+import { gotoReady, layoutBoxes, openRailScope } from "./helpers/ui";
 
 /**
  * SMN-E7 … SMN-E10 (D248; Foundations turn R1d-a) — a side panel is the main menu: the

@@ -24,16 +24,14 @@ async function setFolded(page: Page, folded: boolean) {
 }
 
 const bandHeights = (page: Page) =>
-  page
-    .locator("[data-band-row]")
-    .evaluateAll((els) =>
-      els
-        .filter((el) => (el as HTMLElement).offsetParent !== null)
-        .map((el) => ({
-          id: el.getAttribute("data-testid") ?? "",
-          h: el.getBoundingClientRect().height,
-        })),
-    );
+  page.locator("[data-band-row]").evaluateAll((els) =>
+    els
+      .filter((el) => (el as HTMLElement).offsetParent !== null)
+      .map((el) => ({
+        id: el.getAttribute("data-testid") ?? "",
+        h: el.getBoundingClientRect().height,
+      })),
+  );
 
 for (const pointer of ["fine", "coarse"] as const) {
   test.describe(`D258 band rows, ${pointer} pointer`, () => {
