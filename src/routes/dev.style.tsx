@@ -111,31 +111,12 @@ const RADII = [
  * both modes show at once whatever the page's mode; S4 completes the cards (flag, ribbon).
  */
 const CARD_TYPES = [
-  {
-    tier: "regular",
-    surface: "bg-card shadow-card",
-    word: "",
-    ink: "text-primary",
-    rule: "border-rule",
-  },
-  {
-    tier: "featured",
-    surface: "bg-tier-featured shadow-featured",
-    word: "★ FEATURED",
-    ink: "text-tier-featured-ink",
-    rule: "border-tier-featured-rule",
-  },
-  {
-    tier: "premium",
-    surface: "bg-tier-premium shadow-premium",
-    word: "★★ PREMIUM",
-    ink: "text-tier-premium-ink",
-    rule: "border-tier-premium-rule",
-  },
+  ["regular", "bg-card shadow-card", "", "text-primary"],
+  ["featured", "bg-tier-featured shadow-featured", "★ FEATURED", "text-tier-featured-ink"],
+  ["premium", "bg-tier-premium shadow-premium", "★★ PREMIUM", "text-tier-premium-ink"],
 ] as const;
 /** Fixture card words (a dev page, English only). */
 const FIXTURE_TITLE = "Sample listing";
-const FIXTURE_PRICE = "12,500";
 const FIXTURE_PLACE = "Bole, Addis Ababa";
 
 /** The theme data arrives on demand: no page's first download carries it (DEC-296). */
@@ -174,26 +155,17 @@ function SageGrid() {
           >
             <p className="text-sm font-semibold">{`${name} · ${mode}`}</p>
             <div className="mt-3 grid grid-cols-3 gap-3">
-              {CARD_TYPES.map((card) => (
+              {CARD_TYPES.map(([tier, surface, word, ink]) => (
                 <div
-                  key={card.tier}
-                  data-testid={`style-card-${card.tier}-${mode}`}
-                  data-tier={card.tier}
-                  className={`min-w-0 overflow-hidden rounded-card ${card.surface}`}
+                  key={tier}
+                  data-testid={`style-card-${tier}-${mode}`}
+                  className={`min-w-0 overflow-hidden rounded-card ${surface}`}
                 >
                   <div className="aspect-[4/3] bg-photo-empty" />
-                  <div className="p-3">
-                    <p className="truncate text-sm font-semibold">{FIXTURE_TITLE}</p>
-                    <p className={`text-base font-bold ${card.ink}`}>{FIXTURE_PRICE}</p>
-                    <p className={`mt-2 border-t pt-2 text-xs text-muted-foreground ${card.rule}`}>
-                      {FIXTURE_PLACE}
-                      {card.word ? (
-                        <span className={`ms-2 font-extrabold uppercase ${card.ink}`}>
-                          {card.word}
-                        </span>
-                      ) : null}
-                    </p>
-                  </div>
+                  <p className="truncate p-3 text-sm font-semibold">{FIXTURE_TITLE}</p>
+                  <p className={`px-3 pb-3 text-xs font-extrabold uppercase ${ink}`}>
+                    {word || FIXTURE_PLACE}
+                  </p>
                 </div>
               ))}
             </div>
