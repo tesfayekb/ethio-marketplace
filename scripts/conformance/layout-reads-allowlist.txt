@@ -33,7 +33,6 @@ e2e/shell.spec.ts#BK-1 | reads its boxes one by one; it moves onto layoutBoxes w
 e2e/shell.spec.ts#FT-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#FV-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#FV-2 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
-e2e/shell.spec.ts#L3: the footer spans the full width beneath the fixed rail | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#PN-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#RM-1 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#RM-2 | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
