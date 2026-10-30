@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `ffb3ee6fecf357ad55666610c3acc42510618e19`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41035524031
+- Commit: `fa5c333f76c6fe6d20882180c0a364bd854812b5`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41051458551
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 999 | 113 | applied 382/382 | 190 | 6 | 1 | 65 | 262 |
-| email | 175 | 107 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 804 | 103 | applied 382/382 | 141 | 0 | 0 | 4 | 145 |
-| 2 | 1008 | 105 | applied 382/382 | 133 | 0 | 0 | 3 | 136 |
-| 3 | 897 | 117 | applied 382/382 | 148 | 0 | 0 | 0 | 148 |
-| 4 | 681 | 118 | applied 382/382 | 129 | 0 | 0 | 2 | 131 |
-| 5 | 783 | 113 | applied 382/382 | 160 | 0 | 0 | 7 | 167 |
-| 6 | 608 | 90 | applied 382/382 | 137 | 0 | 0 | 1 | 138 |
-| 7 | 463 | 110 | applied 382/382 | 105 | 0 | 0 | 0 | 105 |
-| 8 | 586 | 104 | applied 382/382 | 100 | 1 | 0 | 39 | 140 |
-| 9 | 754 | 121 | applied 382/382 | 134 | 0 | 0 | 11 | 145 |
-| 10 | 851 | 102 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
-| 11 | 1050 | 120 | applied 382/382 | 143 | 0 | 0 | 1 | 144 |
-| 12 | 544 | 100 | applied 382/382 | 126 | 0 | 0 | 5 | 131 |
-| 13 | 834 | 109 | applied 382/382 | 162 | 0 | 0 | 5 | 167 |
-| 14 | 671 | 100 | applied 382/382 | 134 | 0 | 0 | 4 | 138 |
-| 15 | 800 | 116 | applied 382/382 | 169 | 5 | 0 | 34 | 208 |
-| 16 | 284 | 85 | applied 382/382 | 36 | 1 | 0 | 0 | 37 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 111 | 111 |
-| TOTAL | — | — | — | 2283 | 13 | 1 | 294 | 2591 |
+| smoke | 976 | 102 | applied 382/382 | 203 | 0 | 0 | 67 | 270 |
+| email | 179 | 120 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 664 | 93 | applied 382/382 | 141 | 0 | 0 | 4 | 145 |
+| 2 | 992 | 117 | applied 382/382 | 133 | 0 | 0 | 3 | 136 |
+| 3 | 859 | 104 | applied 382/382 | 148 | 0 | 0 | 0 | 148 |
+| 4 | 693 | 117 | applied 382/382 | 129 | 0 | 0 | 2 | 131 |
+| 5 | 775 | 117 | applied 382/382 | 160 | 0 | 0 | 7 | 167 |
+| 6 | 775 | 118 | applied 382/382 | 137 | 0 | 0 | 1 | 138 |
+| 7 | 688 | 98 | applied 382/382 | 188 | 0 | 0 | 33 | 221 |
+| 8 | 309 | 103 | applied 382/382 | 20 | 0 | 0 | 8 | 28 |
+| 9 | 666 | 103 | applied 382/382 | 134 | 0 | 0 | 12 | 146 |
+| 10 | 811 | 102 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
+| 11 | 978 | 116 | applied 382/382 | 143 | 0 | 0 | 1 | 144 |
+| 12 | 724 | 105 | applied 382/382 | 143 | 0 | 0 | 5 | 148 |
+| 13 | 784 | 115 | applied 382/382 | 145 | 0 | 0 | 5 | 150 |
+| 14 | 677 | 100 | applied 382/382 | 134 | 0 | 0 | 4 | 138 |
+| 15 | 604 | 97 | applied 382/382 | 178 | 0 | 0 | 34 | 212 |
+| 16 | 327 | 97 | applied 382/382 | 37 | 1 | 0 | 0 | 38 |
+| repeat | 217 | 111 | applied 382/382 | 24 | 2 | 0 | 26 | 52 |
+| TOTAL | — | — | — | 2333 | 3 | 0 | 214 | 2550 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 11 1050 s
-- Repeat lane (DEC-283): Not repeated: e2e/shell.spec.ts (111 tests); Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 11, email 13, 1 13, 2 13, 3 13, 4 13, 5 12, 6 9, 7 13, 8 9, 9 11, 10 10, 11 13, 12 9, 13 13, 14 10, 15 14, 16 9, repeat not run
+- Slowest lane: 2 992 s
+- Repeat lane (DEC-283): Not repeated: e2e/shell.spec.ts (115 tests); Repeat: each 2 on both projects; 128 tests selected, 13 repeated; budget 720 s at 4.7 s a test; directly changed: 3 of 4 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 13, email 11, 1 9, 2 13, 3 12, 4 13, 5 13, 6 13, 7 11, 8 12, 9 11, 10 9, 11 13, 12 13, 13 13, 14 10, 15 9, 16 13, repeat 11
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41035524031-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41035524031-local-email
-  - 1: [e2e:teardown] deleted 6 user(s) owned by process 41035524031-local-1
-  - 2: [e2e:teardown] deleted 7 user(s) owned by process 41035524031-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41035524031-local-3
-  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41035524031-local-4
-  - 5: [e2e:teardown] deleted 19 user(s) owned by process 41035524031-local-5
-  - 6: [e2e:teardown] deleted 3 user(s) owned by process 41035524031-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41035524031-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41035524031-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41035524031-local-9
-  - 10: [e2e:teardown] deleted 6 user(s) owned by process 41035524031-local-10
-  - 11: [e2e:teardown] deleted 14 user(s) owned by process 41035524031-local-11
-  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41035524031-local-12
-  - 13: [e2e:teardown] deleted 19 user(s) owned by process 41035524031-local-13
-  - 14: [e2e:teardown] deleted 3 user(s) owned by process 41035524031-local-14
-  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41035524031-local-15
-  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41035524031-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41051458551-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41051458551-local-email
+  - 1: [e2e:teardown] deleted 6 user(s) owned by process 41051458551-local-1
+  - 2: [e2e:teardown] deleted 7 user(s) owned by process 41051458551-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41051458551-local-3
+  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41051458551-local-4
+  - 5: [e2e:teardown] deleted 19 user(s) owned by process 41051458551-local-5
+  - 6: [e2e:teardown] deleted 3 user(s) owned by process 41051458551-local-6
+  - 7: [e2e:teardown] deleted 3 user(s) owned by process 41051458551-local-7
+  - 8: [e2e:teardown] deleted 2 user(s) owned by process 41051458551-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41051458551-local-9
+  - 10: [e2e:teardown] deleted 6 user(s) owned by process 41051458551-local-10
+  - 11: [e2e:teardown] deleted 14 user(s) owned by process 41051458551-local-11
+  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41051458551-local-12
+  - 13: [e2e:teardown] deleted 19 user(s) owned by process 41051458551-local-13
+  - 14: [e2e:teardown] deleted 3 user(s) owned by process 41051458551-local-14
+  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41051458551-local-15
+  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41051458551-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41051458551-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -71,38 +71,17 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:31321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-## Lane smoke
-- Step failure:
-Step smoke: outcome failure
-  
-- shell.spec.ts / app shell / FT-1 the footer brand and three link columns fit every width / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / app shell / FT-1 the footer brand and three link columns fit every width / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / mobile chrome / the bar and the band stay while the page scrolls / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
-- shell.spec.ts / rail scroll regions (U0f) / footer never covers the rail's Sign out / desktop-1280 — Error: rail must clear the footer and Sign out must be hit-testable
-- shell.spec.ts / desktop layout laws (U0g) / L1/L2: the top band and the rail stay put while content scrolls / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / desktop layout laws (U0g) / L3: the footer spans the full width beneath the fixed rail / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / desktop layout laws (U0g) / U0i: the rail ends at the footer top and its last item stays reachable / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-
-## Lane 8
-- Step failure:
-Step smoke: outcome failure
-  
-- shell.spec.ts / app shell / FT-1 the footer brand and three link columns fit every width / mobile-360 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-
-## Lane 15
-- Step failure:
-Step smoke: outcome failure
-  
-- shell.spec.ts / app shell / FT-1 the footer brand and three link columns fit every width / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / rail scroll regions (U0f) / footer never covers the rail's Sign out / desktop-1280 — Error: rail must clear the footer and Sign out must be hit-testable
-- shell.spec.ts / desktop layout laws (U0g) / L1/L2: the top band and the rail stay put while content scrolls / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / desktop layout laws (U0g) / L3: the footer spans the full width beneath the fixed rail / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-- shell.spec.ts / desktop layout laws (U0g) / U0i: the rail ends at the footer top and its last item stays reachable / desktop-1280 — Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
-
 ## Lane 16
 - Step failure:
 Step smoke: outcome failure
   
-- submenu-look.spec.ts / D248 a side panel is the main menu / SMN-E10 a 20-row panel fits at 1280×1000; at 1280×600 its rows reach 32 px, then it scrolls / desktop-1280 — Error: SMN-E10 no scroll at 1000 px
+- submenu-look.spec.ts / D248 a side panel is the main menu / SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254) / desktop-1280 — Error: SMN-E13 the panel scrolls
+
+## Lane repeat
+- Step failure:
+Step smoke: outcome failure
+  repeat-cap: failed
+- submenu-look.spec.ts / D248 a side panel is the main menu / SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254) / desktop-1280 — Error: SMN-E13 the panel scrolls
+- submenu-look.spec.ts / D248 a side panel is the main menu / SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254) / desktop-1280 — Error: SMN-E13 the panel scrolls
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
