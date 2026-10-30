@@ -793,6 +793,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
   const alerts = useNavAlerts(activePanel === "admin", auth.permissions);
+  const collapsed = useContext(CollapsedContext);
   const items = visibleItems(PANELS[activePanel].items, auth).filter(
     (item) => !compact || item.id !== "post-entry",
   );
