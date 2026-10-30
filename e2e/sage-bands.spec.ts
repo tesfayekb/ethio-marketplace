@@ -56,7 +56,9 @@ for (const width of WIDTHS) {
   for (const mode of MODES) {
     test.describe(`Sage bands at ${width}, ${mode}`, () => {
       const feed = adPageFixtures();
-      test.afterEach(async () => { await feed.cleanup(); });
+      test.afterEach(async () => {
+        await feed.cleanup();
+      });
       test.beforeEach(async ({ page }, testInfo) => {
         test.skip(
           width < 768 !== (testInfo.project.name === "mobile-360"),
