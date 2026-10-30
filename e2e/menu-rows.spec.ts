@@ -66,7 +66,11 @@ test.describe("D247 the rail's list", () => {
         expect(height, `${label}: a row is 32–48 px`).toBeGreaterThanOrEqual(31.5);
         expect(height, `${label}: a row is 32–48 px`).toBeLessThanOrEqual(48);
       }
+      return count;
     }
+    // INC-1011: 16 or fewer, too tall even at 32 px — the region scrolls, its bar takes width.
+    await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
+    expect((await scrollOf(page)).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
     return count;
   };
 
