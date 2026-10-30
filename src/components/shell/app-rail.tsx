@@ -537,8 +537,7 @@ function StripBack() {
   if (!level) return null;
   const parentId = tree.parentOf.get(level.id) ?? null;
   const parent = parentId ? tree.byId.get(parentId) : undefined;
-  const Icon =
-    (level.icon ? glyphs.glyphOf(level.icon) : categoryIcon(level.slug)) ?? ChevronLeft;
+  const Icon = (level.icon ? glyphs.glyphOf(level.icon) : categoryIcon(level.slug)) ?? ChevronLeft;
   // The menu's "‹" row's own words: where the tap goes (the parent, or the main menu).
   const name = parent ? entityName("category", parent, entities) : t("shell.mainMenu");
   return (
@@ -757,11 +756,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           : nodes
               .filter((node) => node !== home)
               .map((node, index) => (
-                <RailRow
-                  key={node.key}
-                  node={node}
-                  depth={level && !strip && index > 0 ? 1 : 0}
-                />
+                <RailRow key={node.key} node={node} depth={level && !strip && index > 0 ? 1 : 0} />
               ))}
         {!compact && !isLoading && roots.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", hide)}>

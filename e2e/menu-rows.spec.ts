@@ -196,7 +196,10 @@ test("ROWS-E2 the admin menu from 768 px fits at 32 px or more, or scrolls with 
       for (const row of await panel
         .locator("[data-submenu-row]")
         .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height)))
-        expect(Math.abs(row - railRow), "ROWS-E2 a panel row equals a rail row").toBeLessThanOrEqual(1);
+        expect(
+          Math.abs(row - railRow),
+          "ROWS-E2 a panel row equals a rail row",
+        ).toBeLessThanOrEqual(1);
       await page.mouse.move(900, height - 20);
       await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
     }

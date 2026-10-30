@@ -260,7 +260,10 @@ test.describe("D240 the admin, account and seller menus' side panels", () => {
     for (const height of await rows.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().height),
     ))
-      expect(Math.abs(height - railRow), "SMN-E11 a panel row equals a rail row").toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(height - railRow),
+        "SMN-E11 a panel row equals a rail row",
+      ).toBeLessThanOrEqual(1);
     await page.mouse.move(900, 700);
     await expect(panel).toHaveCount(0);
     // Keys: the arrow enters, Escape returns to the opener.
@@ -312,10 +315,17 @@ test.describe("D240 the admin, account and seller menus' side panels", () => {
     await expect(page).toHaveURL(/\/settings$/);
     // /settings belongs to the account menu: no group there, and one rule marks one row
     // (menu-current.ts) — Settings, never its anchored neighbour "Sign-in and security".
-    await expect(rail.getByTestId("rail-item-ac-settings")).toHaveAttribute("aria-current", "page", {
-      timeout: 15000,
-    });
-    await expect(rail.getByTestId("rail-item-ac-security")).not.toHaveAttribute("aria-current", /.*/);
+    await expect(rail.getByTestId("rail-item-ac-settings")).toHaveAttribute(
+      "aria-current",
+      "page",
+      {
+        timeout: 15000,
+      },
+    );
+    await expect(rail.getByTestId("rail-item-ac-security")).not.toHaveAttribute(
+      "aria-current",
+      /.*/,
+    );
     await expect(rail.locator("[data-submenu]")).toHaveCount(0);
   });
 });

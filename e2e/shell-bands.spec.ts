@@ -33,7 +33,10 @@ const bandHeights = (page: Page) =>
     .evaluateAll((els) =>
       els
         .filter((el) => (el as HTMLElement).offsetParent !== null)
-        .map((el) => ({ id: el.getAttribute("data-testid") ?? "", h: el.getBoundingClientRect().height })),
+        .map((el) => ({
+          id: el.getAttribute("data-testid") ?? "",
+          h: el.getBoundingClientRect().height,
+        })),
     );
 
 for (const pointer of ["fine", "coarse"] as const) {
@@ -68,7 +71,10 @@ for (const pointer of ["fine", "coarse"] as const) {
               expect(Math.abs(row.h - 40), `${label}: ${row.id} is 40 px`).toBeLessThanOrEqual(1);
             const bar = await box(page, "shell-band");
             const band = await box(page, "panel-header");
-            expect(Math.abs(band.y - (bar.y + bar.height)), `${label}: band flush`).toBeLessThanOrEqual(1);
+            expect(
+              Math.abs(band.y - (bar.y + bar.height)),
+              `${label}: band flush`,
+            ).toBeLessThanOrEqual(1);
             expect(Math.abs(band.height - 40), `${label}: band 40 px`).toBeLessThanOrEqual(1);
             // The sub-band row beside the band: the tabs signed in, the breadcrumb signed out.
             const beside = await box(page, signedIn ? "panel-tabs" : "shell-breadcrumb-row");
@@ -116,7 +122,10 @@ test("BND-E3 on the feed, signed out, Services' panel starts at the location row
   // A panel that spans the menu (taller than it, D254) starts on the band boundary.
   const railRow = await opener.evaluate((el) => el.getBoundingClientRect().height);
   if (rows * railRow > 800 - location.y)
-    expect(Math.abs(panelBox.y - location.y), "BND-E3 the panel starts at the location row").toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(panelBox.y - location.y),
+      "BND-E3 the panel starts at the location row",
+    ).toBeLessThanOrEqual(1);
   else expect(panelBox.y).toBeGreaterThanOrEqual(location.y - 1);
 });
 
@@ -171,14 +180,18 @@ test("FTE-E1 the footer's five gaps (edge, three between, edge) are equal", asyn
         const blocks = [...row.children].map((el) => el.getBoundingClientRect());
         const edges = [outer.left, ...blocks.flatMap((b) => [b.left, b.right]), outer.right];
         const out: number[] = [];
-        for (let i = 0; i + 1 < edges.length; i += 2) out.push((edges[i + 1] ?? 0) - (edges[i] ?? 0));
+        for (let i = 0; i + 1 < edges.length; i += 2)
+          out.push((edges[i + 1] ?? 0) - (edges[i] ?? 0));
         return out;
       });
       const label = `${width} ${folded ? "folded" : "open"}`;
       expect(gaps.length, `${label}: four blocks, five gaps`).toBe(5);
       const min = Math.min(...gaps);
       const max = Math.max(...gaps);
-      expect(max - min, `${label}: gaps ${gaps.map((g) => g.toFixed(1)).join(", ")}`).toBeLessThanOrEqual(2);
+      expect(
+        max - min,
+        `${label}: gaps ${gaps.map((g) => g.toFixed(1)).join(", ")}`,
+      ).toBeLessThanOrEqual(2);
     }
     await setFolded(page, false);
   }

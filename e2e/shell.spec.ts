@@ -3544,7 +3544,11 @@ test.describe("top band law (bundle 21 turn 2)", () => {
           // gap after the toggle, never touching its hover (BAR_GAP, 8 px).
           const link = cell.getByRole("link", { name: en["app.name"], exact: true });
           expect(
-            Math.abs((await bounds(link)).x - ((await bounds(toggle)).x + (await bounds(toggle)).width) - 8),
+            Math.abs(
+              (await bounds(link)).x -
+                ((await bounds(toggle)).x + (await bounds(toggle)).width) -
+                8,
+            ),
           ).toBeLessThanOrEqual(1);
         }
         if (width === 1280) {
@@ -4232,7 +4236,8 @@ test("HM-2 from a sub-category page, ‹ Main Menu then Home lands on / with the
     await gotoReady(page, "/c/phones-tablets");
     // RTL: no right-to-left language is in the catalogue; the document's direction is set
     // directly, which every logical property in the menu follows.
-    if (dir === "rtl") await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    if (dir === "rtl")
+      await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
     const menu = await openRailScope(page);
     const back = menu.getByTestId("rail-menu-back");
     await expect(back).toHaveText(en["shell.mainMenu"]);
@@ -4260,7 +4265,8 @@ test("HM-3 the strip mirrors the menu's level; its back item returns it one leve
   test.skip(testInfo.project.name !== "mobile-360", "the phone strip is below 768 px");
   for (const dir of ["ltr", "rtl"] as const) {
     await gotoReady(page, "/c/phones-tablets");
-    if (dir === "rtl") await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    if (dir === "rtl")
+      await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
     const strip = page.getByTestId("rail-strip");
     const back = page.getByTestId("strip-back");
     // The leaf's level: Electronics' sub-items, the leaf marked, the back item on top.

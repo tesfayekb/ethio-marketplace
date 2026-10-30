@@ -191,7 +191,9 @@ test.describe("Admin shell (U0)", () => {
       const current = sectionForPath(new URL(page.url()).pathname)!;
       const currentGroup = sectionGroupId(current);
       await expect(
-        rail.getByTestId(currentGroup ? `admin-group-${currentGroup}` : `rail-item-ad-${current.id}`),
+        rail.getByTestId(
+          currentGroup ? `admin-group-${currentGroup}` : `rail-item-ad-${current.id}`,
+        ),
       ).toHaveClass(/bg-nav-active/);
     }
 

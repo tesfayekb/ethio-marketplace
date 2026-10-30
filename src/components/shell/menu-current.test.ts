@@ -17,7 +17,9 @@ describe("MCU-1 one current-item rule for every menu (R1d-c)", () => {
     expect(isCurrentAt({}, at("/admin/users"))).toBe(false);
   });
   it("an anchored item needs the path and the hash exactly", () => {
-    expect(isCurrentAt({ path: "/settings", hash: "security" }, at("/settings", "security"), true)).toBe(true);
+    expect(
+      isCurrentAt({ path: "/settings", hash: "security" }, at("/settings", "security"), true),
+    ).toBe(true);
     expect(isCurrentAt({ path: "/settings" }, at("/settings", "security"), true)).toBe(false);
     expect(isCurrentAt({ path: "/settings" }, at("/settings"), true)).toBe(true);
   });

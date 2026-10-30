@@ -107,11 +107,13 @@ export function AppHeader() {
 
   return (
     <div className="w-full min-w-0 md:h-full">
-      <header className={cn(
+      <header
+        className={cn(
           "flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full",
           BAR_GAP,
           BAR_HEADER_INSET,
-        )}>
+        )}
+      >
         {/* One ☰: below 768 it opens the phone menu; from 768 the corner folds the rail. */}
         <button
           type="button"
