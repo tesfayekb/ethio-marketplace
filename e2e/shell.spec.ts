@@ -1979,12 +1979,13 @@ test.describe("rail scroll regions (U0f)", () => {
       await expect
         .poll(() =>
           page.evaluate(() => {
-            const rail = document
-              .querySelector('[data-testid="app-rail"]')!
-              .getBoundingClientRect();
-            const foot = document
-              .querySelector('[data-testid="shell-footer-wrapper"]')!
-              .getBoundingClientRect();
+            const rail = (
+              document.querySelector('[data-testid="app-rail"]') ?? document.createElement("i")
+            ).getBoundingClientRect();
+            const foot = (
+              document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+              document.createElement("i")
+            ).getBoundingClientRect();
             return {
               railEndsAtBottom: Math.abs(rail.bottom - window.innerHeight) <= 1,
               footerBeside: foot.left >= rail.right - 1,
@@ -2003,9 +2004,13 @@ test.describe("rail scroll regions (U0f)", () => {
       await page.setViewportSize({ width, height: 800 });
       await gotoReady(page, "/");
       const gaps = await page.evaluate(() => {
-        const footer = document.querySelector("footer")!.getBoundingClientRect();
-        const columns = document.querySelector('[data-testid="footer-columns"]')!;
-        const copyright = document.querySelector('[data-testid="footer-copyright"]')!;
+        const footer = (
+          document.querySelector("footer") ?? document.createElement("i")
+        ).getBoundingClientRect();
+        const columns =
+          document.querySelector('[data-testid="footer-columns"]') ?? document.createElement("i");
+        const copyright =
+          document.querySelector('[data-testid="footer-copyright"]') ?? document.createElement("i");
         const visible = Array.from(columns.querySelectorAll("*"))
           .map((el) => el.getBoundingClientRect())
           .filter((box) => box.height > 0 && box.width > 0);
@@ -2261,15 +2266,17 @@ test.describe("desktop layout laws (U0g)", () => {
         .poll(
           () =>
             page.evaluate(() => {
-              const rail = document
-                .querySelector('[data-testid="app-rail"]')!
-                .getBoundingClientRect();
-              const foot = document
-                .querySelector('[data-testid="shell-footer-wrapper"]')!
-                .getBoundingClientRect();
-              const columns = document
-                .querySelector('[data-testid="footer-columns"]')!
-                .getBoundingClientRect();
+              const rail = (
+                document.querySelector('[data-testid="app-rail"]') ?? document.createElement("i")
+              ).getBoundingClientRect();
+              const foot = (
+                document.querySelector('[data-testid="shell-footer-wrapper"]') ??
+                document.createElement("i")
+              ).getBoundingClientRect();
+              const columns = (
+                document.querySelector('[data-testid="footer-columns"]') ??
+                document.createElement("i")
+              ).getBoundingClientRect();
               return {
                 starts: Math.abs(foot.left - rail.right) <= 1,
                 fills: Math.abs(foot.right - window.innerWidth) <= 1,
