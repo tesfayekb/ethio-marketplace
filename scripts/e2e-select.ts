@@ -286,8 +286,8 @@ export const AREAS: Area[] = [
     specs: ["e2e/a11y.spec.ts", "e2e/page-head.spec.ts"],
   },
   {
-    // INC-1005 — an overlay never moves the page: the root's gutter and the lock's
-    // neutralised compensation (src/styles.css), and the overlay primitives.
+    // INC-1005, INC-1007 — an overlay never moves the page: the lock's neutralised
+    // compensation (src/styles.css, no gutter), and the overlay primitives.
     name: "overlay-shift",
     src: [
       "src/styles.css",
@@ -297,6 +297,16 @@ export const AREAS: Area[] = [
       "src/components/language-switcher.tsx",
     ],
     specs: ["e2e/overlay-shift.spec.ts"],
+  },
+  {
+    // DEC-288 — the sub-menu mechanism: the side panel beside the rail (turn R1b).
+    name: "submenu",
+    src: [
+      "src/components/shell/submenu/**",
+      "src/components/ui/submenu-*.ts*",
+      "src/components/shell/app-rail.tsx",
+    ],
+    specs: ["e2e/submenu.spec.ts", "e2e/submenu-touch.spec.ts", "e2e/overlay-shift.spec.ts"],
   },
 ];
 
