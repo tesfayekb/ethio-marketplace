@@ -196,12 +196,7 @@ function Panel({
 
   useEffect(() => {
     if (!place || !opener.focus) return;
-    const frame = window.requestAnimationFrame(() => {
-      const row = rowsOf(own.current)[0];
-      console.info("[smn-dbg]", row ? getComputedStyle(row).visibility : "none", own.current?.style.cssText);
-      row?.focus();
-    });
-    return () => window.cancelAnimationFrame(frame);
+    rowsOf(own.current)[0]?.focus();
   }, [place, opener]);
 
   const rows = () =>
@@ -253,7 +248,7 @@ function Panel({
         style={
           place
             ? { left: place.left, top: place.top, maxHeight: place.maxHeight }
-            : { left: 0, top: 0, visibility: "hidden" }
+            : { left: 0, top: 0, opacity: 0 }
         }
         className="fixed z-30 w-60 overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg motion-safe:animate-in motion-safe:fade-in-0 motion-safe:duration-150"
       >
