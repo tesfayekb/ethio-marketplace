@@ -64,7 +64,7 @@ export function OnDemandNotice() {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-16 z-50 flex justify-center px-4 md:bottom-6"
+      className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 flex justify-center px-4 md:bottom-6"
     >
       {notice !== null && outlet !== null ? createPortal(notice, outlet) : notice}
     </div>

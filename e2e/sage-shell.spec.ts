@@ -1,7 +1,8 @@
 import type { Locator, Page } from "@playwright/test";
 import { THEMES } from "../src/lib/themes";
 import { expect, test } from "./fixtures";
-import { gotoReady } from "./helpers/ui";
+import { ANY_MENU_ROW } from "./helpers/category-menu";
+import { gotoReady, layoutBoxes } from "./helpers/ui";
 
 /**
  * SGS-1…SGS-6 (redesign Part 2, turn SAGE-S1; spec §1, §2, §3, §10, §11) — THE SHELL IN THE
@@ -47,8 +48,25 @@ async function resolved(
   );
 }
 
-const style = (locator: Locator, property: string) =>
-  locator.evaluate((el, prop) => getComputedStyle(el)[prop as "color"], property);
+/**
+ * S1-2 ruling 2: Tailwind's shadow composition puts four transparent zero-size layers
+ * (`rgba(0, 0, 0, 0) 0px 0px 0px 0px` — its ring and inset-ring slots) ahead of the token's
+ * shadow. Exactly those layers are removed; the rest is compared whole.
+ */
+const EMPTY_LAYER = "rgba(0, 0, 0, 0) 0px 0px 0px 0px, ";
+function withoutEmptyLayers(value: string): string {
+  let out = value;
+  while (out.startsWith(EMPTY_LAYER)) out = out.slice(EMPTY_LAYER.length);
+  return out;
+}
+
+const style = async (locator: Locator, property: string) => {
+  const value = await locator.evaluate(
+    (el, prop) => getComputedStyle(el)[prop as "color"],
+    property,
+  );
+  return property === "boxShadow" ? withoutEmptyLayers(value) : value;
+};
 
 async function open(page: Page, width: number, mode: Mode) {
   await page.setViewportSize({ width, height: 900 });
@@ -87,11 +105,9 @@ for (const width of WIDTHS) {
             await resolved(page, "boxShadow", tokenOf(mode, "lift-field")),
           );
           expect(await style(field, "borderTopWidth")).toBe("0px");
-          const box = await field.boundingBox();
+          const { field: box } = await layoutBoxes({ field });
           const radius = parseFloat(await style(field, "borderTopLeftRadius"));
-          expect(radius, "SGS-1 the search field is a pill").toBeGreaterThanOrEqual(
-            (box?.height ?? 0) / 2,
-          );
+          expect(radius, "SGS-1 the search field is a pill").toBeGreaterThanOrEqual(box.height / 2);
         }
       });
 
@@ -151,12 +167,12 @@ for (const width of WIDTHS) {
         // Every idle tile in the menu (no one row chosen by position, J6).
         const idleTiles = await surface
           .locator(
-            "[data-testid^='rail-category-'] span.rounded-full, [data-testid^='strip-category-'] span.rounded-full",
+            `${ANY_MENU_ROW} span.rounded-full, [data-testid^='strip-category-'] span.rounded-full`,
           )
           .evaluateAll((els) =>
             els.map((el) => {
               const s = getComputedStyle(el);
-              return [s.backgroundColor, s.boxShadow, s.borderTopColor].join(" | ");
+              return [s.backgroundColor, s.boxShadow, s.borderTopColor];
             }),
           );
         const idleWant = [
@@ -164,7 +180,10 @@ for (const width of WIDTHS) {
           await resolved(page, "boxShadow", tokenOf(mode, "lift-tile")),
           await resolved(page, "borderTopColor", tokenOf(mode, "hairline")),
         ].join(" | ");
-        for (const got of idleTiles) expect(got, "SGS-3 an idle tile").toBe(idleWant);
+        for (const [bg, lift, edge] of idleTiles)
+          expect([bg, withoutEmptyLayers(lift), edge].join(" | "), "SGS-3 an idle tile").toBe(
+            idleWant,
+          );
       });
 
       test(`SGS-4 the footer (${width}, ${mode})`, async ({ page }) => {
@@ -189,20 +208,15 @@ for (const width of WIDTHS) {
         expect(await style(bar, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, "lift-bar-up")),
         );
-        expect(await style(bar, "borderTopLeftRadius")).toBe(
-          await resolved(page, "borderTopLeftRadius", "var(--radius-bar)"),
-        );
+        // P-S6: the phone's sliding surfaces share the 18 px bar radius.
+        expect(await style(bar, "borderTopLeftRadius")).toBe("18px");
         const disc = page.getByTestId("bottom-bar-disc");
         expect(await style(disc, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, "lift-disc")),
         );
-        const d = await disc.boundingBox();
-        const b = await bar.boundingBox();
-        expect(Math.round(d?.width ?? 0), "SGS-5 a 40 px disc").toBe(40);
-        expect(
-          Math.round((b?.y ?? 0) - (d?.y ?? 0)),
-          "SGS-5 raised 14 px above the bar's top edge",
-        ).toBe(14);
+        const { disc: d, bar: b } = await layoutBoxes({ disc, bar });
+        expect(Math.round(d.width), "SGS-5 a 40 px disc").toBe(40);
+        expect(Math.round(b.y - d.y), "SGS-5 raised 14 px above the bar's top edge").toBe(14);
       });
 
       test(`SGS-6 Sign in is raised (${width}, ${mode})`, async ({ page }) => {
@@ -213,6 +227,56 @@ for (const width of WIDTHS) {
         );
         expect(await style(signIn, "fontWeight")).toBe("600");
       });
+    });
+  }
+}
+
+/**
+ * SGS-7 (S1-2 ruling 1; R6) — at 390 px no control that stays on screen sits under the Post
+ * disc: every interactive element inside a fixed or sticky surface (the bottom bar itself
+ * excepted) keeps its box clear of the disc's box, on the feed and on a page whose phone
+ * action bar is pinned above the bottom bar (FormSection, /dev/primitives).
+ */
+for (const mode of MODES) {
+  for (const path of ["/", "/dev/primitives"]) {
+    test(`SGS-7 the Post disc covers no pinned control (${path}, ${mode})`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile-360", "the disc is drawn on phones only");
+      await open(page, 390, mode);
+      if (path !== "/") {
+        await gotoReady(page, path);
+        // The section's top in view: its action bar is stuck above the bottom bar.
+        await page.getByTestId("prim-form-section").evaluate((el) => el.scrollIntoView());
+        const bar = page.getByTestId("prim-form-section").locator("[data-testid$='-actions']");
+        const { box, top } = await layoutBoxes({ box: bar, top: page.getByTestId("bottom-bar") });
+        expect(Math.round(box.y + box.height), "SGS-7 the action bar meets the bottom bar").toBe(
+          Math.round(top.y),
+        );
+      }
+      const { disc } = await layoutBoxes({ disc: page.getByTestId("bottom-bar-disc") });
+      const covered = await page.evaluate((d) => {
+        const hits: string[] = [];
+        const controls = document.querySelectorAll<HTMLElement>(
+          "a[href], button, input, select, textarea, [role='button'], [tabindex]:not([tabindex='-1'])",
+        );
+        for (const el of controls) {
+          if (el.closest("[data-testid='bottom-bar']")) continue;
+          let pinned = false;
+          for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+            const pos = getComputedStyle(n).position;
+            if (pos === "fixed" || pos === "sticky") pinned = true;
+          }
+          if (!pinned) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) continue;
+          const apart =
+            r.right <= d.x || r.left >= d.x + d.width || r.bottom <= d.y || r.top >= d.y + d.height;
+          if (!apart) hits.push(el.outerHTML.slice(0, 120));
+        }
+        return hits;
+      }, disc);
+      expect(covered, "SGS-7 pinned controls under the disc").toEqual([]);
     });
   }
 }

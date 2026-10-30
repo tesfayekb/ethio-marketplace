@@ -3,8 +3,9 @@
  * not be changed and its our theme so every picture has the same"): THE ONE
  * BACKGROUND A REMOVED PHOTO GETS.
  *
- * It is the site's own page tone (#F3F5F8, the cool grey agreed in D132 — the
- * `--background` token of src/styles.css), fixed in code: the seller cannot
+ * It is #F3F5F8, the cool grey agreed in D132 (once the site's page tone, which
+ * turn SAGE-S1's ruling A moved to the Sage #EEF3EF; this backdrop stays, so every
+ * removed photo, old and new, keeps one ground — D155), fixed in code: the seller cannot
  * change it, and the provider never chooses it. The provider returns the item
  * cut out on a transparent ground (src/server/media/background.ts); the
  * seller's device lays it on this colour, so the server does no image work

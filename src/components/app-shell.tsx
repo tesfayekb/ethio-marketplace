@@ -915,7 +915,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-idle-warning"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
         >
           <p className="text-sm text-foreground">
             {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
@@ -936,7 +936,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-notice"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg"
+          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg"
         >
           <p className="text-sm text-foreground">{t(sessionNotice)}</p>
           <button
@@ -958,7 +958,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           box: every engine honours clip on an ordinary element, whatever its
           root rule. clip, never hidden — this is no scroll container, so the
           sticky sub-band keeps working; the fixed bars are not clipped by it. */}
-      <div className="flex min-h-screen flex-col overflow-x-clip bg-background pb-[var(--bottom-bar)]">
+      <div className="flex min-h-screen flex-col overflow-x-clip bg-background pb-[calc(var(--bottom-bar)+var(--bar-rise))]">
         {/* Mobile keeps the one-column grid. From md up the layout is FIXED
             geometry (U0g-2): the band and the rail are position:fixed and the
             content column offsets itself with padding/margin. */}

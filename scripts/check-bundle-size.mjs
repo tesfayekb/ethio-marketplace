@@ -42,7 +42,8 @@ const BUDGET_KIB = {
   // DEC-260 (Foundations turn 32, 2026-10-26): the dialog's and the alert dialog's code left it (260.0 → 254.1 measured); the ceiling follows to 257.
   // DEC-261 (Foundations turn 34, 2026-10-26): the Supabase client left it (254.0 → 203.6 measured); the ceiling follows to 207.
   // DEC-288 (Foundations turn R1b, 2026-10-30): the sub-menu mechanism's first-paint half joined it (206.6865 → 207.1758 measured, +0.4893); DEC-296's rule, floor(size + 0.1 + 0.3) + 1, takes the ceiling to 208.
-  js: 208,
+  // INC-1021 (turn SAGE-S1): CI measured 208.0 KiB on 2a953151 (SAGE-S0); S1's Sage shell classes (the one tile, the control look, the bar's pill and disc) add +0.3 KiB (207.9 → 208.2 local); DEC-296's form from CI's size, floor(208.0 + 0.3 + 0.3) + 1, takes the ceiling to 209.
+  js: 209,
   css: 40,
 };
 
