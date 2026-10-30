@@ -184,8 +184,7 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     fireEvent.pointerEnter(opener, { pointerType: "touch" });
     act(() => vi.advanceTimersByTime(SUBMENU_OPEN_MS * 2));
     expect(panels()).toHaveLength(0);
-    fireEvent.pointerDown(opener, { pointerType: "touch" });
-    fireEvent.click(opener);
+    opener.dispatchEvent(new PointerEvent("click", { bubbles: true, pointerType: "touch" }));
     expect(panels()).toHaveLength(1);
     expect(panels()[0]?.className).toContain("motion-reduce:animate-none");
   });

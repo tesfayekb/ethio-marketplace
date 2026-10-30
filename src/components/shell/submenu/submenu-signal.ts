@@ -1,4 +1,4 @@
-import type { KeyboardEvent, PointerEvent } from "react";
+import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 
 import { askOverlays } from "@/components/ui/overlay-facade";
 
@@ -13,9 +13,10 @@ import { askOverlays } from "@/components/ui/overlay-facade";
  * fails to arrive reaches the shell's one notice (INC-911). CF-SUB-1 judges.
  */
 export type SubmenuSignal = {
-  type: "enter" | "leave" | "down" | "click" | "key";
+  type: "enter" | "leave" | "click" | "key";
   key: string;
   el: HTMLElement;
+  /** The pointer's kind: a click's own (a touch press opens the panel at once). */
   pointer?: string;
   x?: number;
   y?: number;
@@ -30,7 +31,7 @@ let openKey: string | null = null;
 const listeners = new Set<() => void>();
 
 /** The on-demand layer takes the signals while it is mounted; the pending one first. */
-export function takeSubmenuSignals(next: Handler | null): void {
+function take(next: Handler | null): void {
   handler = next;
   if (next && pending) {
     const first = pending;
@@ -40,14 +41,17 @@ export function takeSubmenuSignals(next: Handler | null): void {
 }
 
 /** The open trigger's key, written by the layer only; read for aria-expanded. */
-export function setSubmenuOpen(key: string | null): void {
+function setOpen(key: string | null): void {
   if (key === openKey) return;
   openKey = key;
   for (const listener of listeners) listener();
 }
+
+/** What the on-demand layer is handed (one stable object). */
+export const SUBMENU_SIGNALS = { take, setOpen };
+
 export const submenuOpen = {
   get: (): string | null => openKey,
-  server: (): string | null => null,
   subscribe(listener: () => void): () => void {
     listeners.add(listener);
     return () => {
@@ -58,39 +62,32 @@ export const submenuOpen = {
 
 function signal(next: SubmenuSignal): void {
   if (handler) return handler(next);
-  if (next.type === "leave") {
-    pending = null;
-    return;
-  }
-  pending = next;
+  pending = next.type === "leave" ? null : next;
+  if (next.type === "leave") return;
   askOverlays(next.type !== "enter", () => {
     if (pending === next) pending = null;
   });
 }
 
-/** What the on-demand layer is handed (one stable object). */
-export const SUBMENU_SIGNALS = { take: takeSubmenuSignals, setOpen: setSubmenuOpen };
-
 /** The trigger's attributes and signals; `open` comes from `submenuOpen`. */
 export function submenuTriggerProps(key: string, open: boolean) {
-  const at = (type: SubmenuSignal["type"]) => (event: PointerEvent<HTMLElement>) =>
-    signal({
-      type,
-      key,
-      el: event.currentTarget,
-      pointer: event.pointerType,
-      x: event.clientX,
-      y: event.clientY,
-    });
+  const at =
+    (type: SubmenuSignal["type"]) => (event: PointerEvent<HTMLElement> | MouseEvent<HTMLElement>) =>
+      signal({
+        type,
+        key,
+        el: event.currentTarget,
+        pointer: (event.nativeEvent as globalThis.PointerEvent).pointerType,
+        x: event.clientX,
+        y: event.clientY,
+      });
   return {
     "aria-expanded": open,
     "aria-controls": open ? `submenu-${key}` : undefined,
     "data-submenu": key,
     onPointerEnter: at("enter"),
     onPointerLeave: at("leave"),
-    onPointerDown: at("down"),
-    onClick: (event: { currentTarget: HTMLElement }) =>
-      signal({ type: "click", key, el: event.currentTarget }),
+    onClick: at("click"),
     onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
       if (event.key === "ArrowRight" || event.key === "ArrowLeft")
         signal({ type: "key", key, el: event.currentTarget, keyName: event.key });

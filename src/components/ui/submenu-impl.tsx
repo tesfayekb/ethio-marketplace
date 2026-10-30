@@ -346,7 +346,6 @@ export function SubmenuLayer({
   };
 }) {
   const intent = useIntent(signals.setOpen);
-  const coarse = useRef(false);
   const ref = useRef(intent);
   ref.current = intent;
 
@@ -362,14 +361,11 @@ export function SubmenuLayer({
         case "leave":
           if (mouse) it.leave({ x: signal.x ?? 0, y: signal.y ?? 0 });
           break;
-        case "down":
-          coarse.current = signal.pointer === "touch" || signal.pointer === "pen";
-          break;
         case "click":
           // A tap opens the page and the panel (DEC-288); a mouse click opens the page.
-          if (coarse.current) it.now({ key: signal.key, el: signal.el });
+          if (signal.pointer === "touch" || signal.pointer === "pen")
+            it.now({ key: signal.key, el: signal.el });
           else it.now(null);
-          coarse.current = false;
           break;
         case "key": {
           const into = isRtl(signal.el) ? "ArrowLeft" : "ArrowRight";
