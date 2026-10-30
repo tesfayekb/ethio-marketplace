@@ -255,6 +255,9 @@
   /* C2b — the phone bottom bar's height; every sticky/fixed bottom edge
      below md sits above it through this one variable (0px from 48rem). */
   --bottom-bar: calc(3.75rem + env(safe-area-inset-bottom));
+  /* Sage §11 (R6, S1-2 ruling 1) — the Post disc's rise above the bar's top edge;
+     every pinned control and the page's bottom scroll padding clear it (0px from 48rem). */
+  --bar-rise: 0.875rem;
   --background: oklch(0.959 0.007 151.9); /* #EEF3EF Sage page tone (DEC-289, S0 ruling A) */
   --foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
   --card: oklch(1 0 89.9); /* #FFFFFF */
@@ -584,6 +587,8 @@
   html {
     /* INC-106d: scroll targets clear the fixed bars — phone 52 + 77 px, desktop 56 + 74 px. */
     scroll-padding-top: 8.5rem;
+    /* WCAG 2.2 SC 2.4.11 — a focused control clears the phone bar and the disc's rise. */
+    scroll-padding-bottom: calc(var(--bottom-bar) + var(--bar-rise));
   }
 
   body {
@@ -685,6 +690,7 @@
 @media (min-width: 48rem) {
   :root {
     --bottom-bar: 0px;
+    --bar-rise: 0px;
   }
 }
 

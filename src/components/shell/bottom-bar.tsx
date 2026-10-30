@@ -35,10 +35,10 @@ function ItemBody({
   return (
     <>
       {emphasised ? (
-        // Sage §11 (R6): a 40 px disc raised above the bar's top edge, its ring the bar's surface.
+        // Sage §11 (R6): a 40 px disc raised `--bar-rise` above the bar's top edge (+1 px, its resting inset), its ring the bar's surface.
         <span
           data-testid="bottom-bar-disc"
-          className="inline-flex size-10 -translate-y-3.75 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-disc"
+          className="inline-flex size-10 -translate-y-[calc(var(--bar-rise)+1px)] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-disc"
         >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
