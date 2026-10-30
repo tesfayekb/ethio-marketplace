@@ -171,7 +171,7 @@ test("ROWS-E2 the admin menu from 768 px fits at 32 px or more, or scrolls with 
     await gotoReady(page, "/admin");
     const region = page.getByTestId("app-rail").getByTestId("rail-scroll");
     const rows = region.locator("nav ul > li");
-    await expect(rows.first()).toBeVisible({ timeout: 15000 });
+    await expect.poll(() => rows.count(), { timeout: 15000 }).toBeGreaterThan(0);
     for (const box of await rows.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().height),
     ))
@@ -180,14 +180,15 @@ test("ROWS-E2 the admin menu from 768 px fits at 32 px or more, or scrolls with 
     if (state.overflow > 0)
       expect(state.bar, `ROWS-E2 at ${height}: the scrollbar takes width`).toBeGreaterThan(0);
     // The groups: each opens a side panel whose rows equal a rail row.
-    const openers = region.locator("[data-submenu]");
-    const groups = await openers.count();
-    expect(groups, "ROWS-E2 the admin menu has groups").toBeGreaterThan(0);
+    const keys = await region
+      .locator("[data-submenu]")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("data-submenu") ?? ""));
+    expect(keys.length, "ROWS-E2 the admin menu has groups").toBeGreaterThan(0);
     const railRow = await region
       .locator("nav ul > li > a:not([data-submenu])")
       .evaluateAll((els) => Math.max(0, ...els.map((el) => el.getBoundingClientRect().height)));
-    for (let index = 0; index < groups; index++) {
-      const opener = openers.nth(index);
+    for (const key of keys) {
+      const opener = region.locator(`[data-submenu="${key}"]`);
       await opener.scrollIntoViewIfNeeded();
       await opener.hover();
       const panel = page.getByTestId("submenu-panel");
