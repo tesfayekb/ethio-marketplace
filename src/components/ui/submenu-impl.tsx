@@ -156,6 +156,7 @@ function Panel({
   panelRef,
   floor,
   tick,
+  fitMax,
   onEnter,
   onLeave,
   onClose,
@@ -171,6 +172,8 @@ function Panel({
   floor: number;
   /** D244 — bumped on a window resize: the panel is placed again. */
   tick: number;
+  /** D247 — more items than this and the list keeps full-size rows and scrolls. */
+  fitMax: number;
   onEnter: () => void;
   onLeave: (at: Point) => void;
   onClose: (focusOpener: boolean) => void;
@@ -342,6 +345,7 @@ function Panel({
           depth={depth + 1}
           floor={ownFloor}
           tick={childTick}
+          fitMax={fitMax}
           showHeader={false}
           itemsOf={itemsOf}
           edgeOf={() => own.current ?? document.body}
@@ -458,6 +462,7 @@ export function SubmenuLayer({
       depth={0}
       floor={0}
       tick={0}
+      fitMax={signals.fitMax}
       showHeader={showHeader}
       itemsOf={itemsOf}
       edgeOf={edgeOf}
