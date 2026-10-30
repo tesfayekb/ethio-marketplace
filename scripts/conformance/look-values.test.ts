@@ -89,7 +89,7 @@ describe("CF-LOOK-1 one look: colours, shadows, radii and fonts come from tokens
       'const i = "hsl(10 20% 30%)";',
     ].join("\n");
     expect(lookFindings("planted.tsx", planted).map((f) => f.line)).toEqual([
-      1, 2, 3, 4, 5, 6, 6, 7, 8, 9,
+      1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 9,
     ]);
     const clean = [
       'const a = "ring-[3px] border-[1.5px] rounded-[inherit] bg-[var(--sidebar)]";',
