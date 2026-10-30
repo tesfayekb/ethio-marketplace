@@ -49,7 +49,7 @@ function appliedTheme(): ThemeName {
 }
 
 /** Attribute flip + CSS-var cascade. No re-render of the app tree. */
-export function applyMode(mode: ThemeMode) {
+function applyMode(mode: ThemeMode) {
   const root = document.documentElement;
   root.setAttribute("data-theme", appliedTheme());
   root.setAttribute("data-mode", mode);
