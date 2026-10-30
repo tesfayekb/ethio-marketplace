@@ -49,7 +49,11 @@ export type SubmenuItem = {
 };
 export type SubmenuLevel = { header: string; items: SubmenuItem[] };
 
-type Opened = { key: string; el: HTMLElement };
+/** `focus`: opened by the keys, so the panel takes focus on its first row once placed. */
+type Opened = { key: string; el: HTMLElement; focus?: boolean };
+
+const rowsOf = (el: Element | null) =>
+  Array.from(el?.querySelectorAll<HTMLElement>("[data-submenu-row]") ?? []);
 
 function boxOf(el: Element): Box {
   const r = el.getBoundingClientRect();
@@ -190,6 +194,10 @@ function Panel({
     setPlace({ left: placed.left, top: placed.top, maxHeight: placed.maxHeight });
   }, [opener, depth, edgeOf]);
 
+  useEffect(() => {
+    if (place && opener.focus) rowsOf(own.current)[0]?.focus();
+  }, [place, opener]);
+
   const rows = () =>
     Array.from(own.current?.querySelectorAll<HTMLElement>("[data-submenu-row]") ?? []);
   const keyDown = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -211,7 +219,7 @@ function Panel({
       const item = level.items[at];
       if (item?.hasChildren) {
         event.preventDefault();
-        child.now({ key: item.key, el: list[at] as HTMLElement });
+        child.now({ key: item.key, el: list[at] as HTMLElement, focus: true });
       }
     }
   };
@@ -361,13 +369,7 @@ export function SubmenuLayer({
         case "key": {
           const into = isRtl(signal.el) ? "ArrowLeft" : "ArrowRight";
           if (signal.keyName !== into) break;
-          it.now({ key: signal.key, el: signal.el });
-          window.requestAnimationFrame(() => {
-            document
-              .getElementById(`submenu-${signal.key}`)
-              ?.querySelector<HTMLElement>("[data-submenu-row]")
-              ?.focus();
-          });
+          it.now({ key: signal.key, el: signal.el, focus: true });
           break;
         }
       }

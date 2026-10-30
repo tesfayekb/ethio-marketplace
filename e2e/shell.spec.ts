@@ -841,8 +841,9 @@ test.describe("corner-block grid", () => {
     await expect(electronics.locator("svg").nth(0)).toBeVisible();
     const electronicsLabel = await electronics.getAttribute("aria-label");
     if (electronicsLabel === null) throw new Error("the Electronics row has no aria-label");
+    // DEC-288 — a folded row with sub-items opens its side panel, headed by its name.
     await electronics.hover();
-    const tip = page.getByTestId("rail-tooltip");
+    const tip = page.getByTestId("submenu-header");
     await expect(tip).toBeVisible();
     await expect(tip).toContainText(electronicsLabel);
     await page.reload();
@@ -2093,7 +2094,10 @@ test.describe("desktop layout laws (U0g)", () => {
     await expect(page.getByTestId("breadcrumbs")).toBeInViewport();
   });
 
-  test("C1: a rail row is 32px high with a mouse from md", async ({ page, viewport }) => {
+  test("C1: a rail row is 36–48 px high with a mouse from md (DEC-288 item 7)", async ({
+    page,
+    viewport,
+  }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
@@ -2106,7 +2110,8 @@ test.describe("desktop layout laws (U0g)", () => {
     const first = heights[0];
     expect(first).toBeDefined();
     if (first === undefined) throw new Error("the rail has no link");
-    expect(Math.abs(first - 32)).toBeLessThanOrEqual(1);
+    expect(first).toBeGreaterThanOrEqual(36);
+    expect(first).toBeLessThanOrEqual(48);
   });
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
