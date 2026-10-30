@@ -42,8 +42,14 @@ const railGrid = (page: Page) =>
       .querySelector("[data-testid='app-rail'] [data-testid='rail-scroll']")
       ?.getBoundingClientRect();
     const boxes = els.map((el) => el.getBoundingClientRect());
+    // The whole rows the menu shows (D254): a part-hidden row of a scrolled rail is no row.
+    const lo = region?.top ?? -Infinity;
+    const hi = region?.bottom ?? Infinity;
+    const whole = boxes.filter((box) => box.top >= lo - 1 && box.bottom <= hi + 1);
     return {
       tops: boxes.map((box) => box.top),
+      first: whole[0]?.top ?? 0,
+      last: whole[whole.length - 1]?.bottom ?? 0,
       height: boxes[0]?.height ?? 0,
       bottom: Math.min(region?.bottom ?? Infinity, boxes[boxes.length - 1]?.bottom ?? 0),
     };
@@ -160,35 +166,91 @@ test.describe("D248 a side panel is the main menu", () => {
     ).toBeLessThanOrEqual(1);
   });
 
-  test("SMN-E10 a 20-row panel fits at 1280×1000; at 1280×600 its rows reach 32 px, then it scrolls", async ({
+  // SMN-E10 — replaced by D254 (Foundations turn R1d-b, G38; not loosened): a panel never
+  // compacts. Its rows keep a rail row's measured height; beyond the menu it scrolls.
+  test("SMN-E10 a 20-row panel keeps the rail's row height at 1280×1000 and 1280×600, and scrolls when the menu cannot hold it", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     const seeded = await seedScratchBranch(20, "smn-e10");
     branch = seeded;
+    for (const height of [1000, 600]) {
+      await page.setViewportSize({ width: 1280, height });
+      await gotoReady(page, "/");
+      const panel = await openPanel(page, seeded.root);
+      await expect(panel.locator("[data-submenu-row]")).toHaveCount(20);
+      const grid = await railGrid(page);
+      const state = await panel.evaluate((el) => ({
+        top: el.getBoundingClientRect().top,
+        bottom: el.getBoundingClientRect().bottom,
+        overflow: el.scrollHeight - el.clientHeight,
+        bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+        rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
+          (row) => row.parentElement?.getBoundingClientRect().height ?? 0,
+        ),
+      }));
+      for (const row of state.rows)
+        expect(
+          Math.abs(row - grid.height),
+          `SMN-E10 ${height}: a panel row equals a rail row`,
+        ).toBeLessThanOrEqual(1);
+      if (state.overflow > 1) {
+        expect(state.bar, `SMN-E10 ${height}: its scrollbar takes width`).toBeGreaterThan(0);
+        expect(
+          Math.abs(state.top - grid.first),
+          `SMN-E10 ${height}: spans from the menu's top`,
+        ).toBeLessThanOrEqual(1);
+        expect(
+          Math.abs(state.bottom - grid.last),
+          `SMN-E10 ${height}: to its last row`,
+        ).toBeLessThanOrEqual(1);
+      }
+      await page.mouse.move(1200, height - 50);
+      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+    }
+  });
+
+  test("SMN-E13 a panel with one row more than the menu holds keeps the rail's row height, spans the menu and scrolls (D254)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
     await page.setViewportSize({ width: 1280, height: 1000 });
     await gotoReady(page, "/");
-    let panel = await openPanel(page, seeded.root);
-    await expect(panel.locator("[data-submenu-row]")).toHaveCount(20);
-    expect(
-      await panel.evaluate((el) => el.scrollHeight - el.clientHeight),
-      "SMN-E10 no scroll at 1000 px",
-    ).toBeLessThanOrEqual(1);
-    await page.mouse.move(1200, 900);
-    await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
-
-    await page.setViewportSize({ width: 1280, height: 600 });
-    panel = await openPanel(page, seeded.root);
+    const shown = await railGrid(page);
+    const holds = Math.round((shown.last - shown.first) / shown.height);
+    const seeded = await seedScratchBranch(holds + 1, "smn-e13");
+    branch = seeded;
+    await gotoReady(page, "/");
+    const panel = await openPanel(page, seeded.root);
+    const grid = await railGrid(page);
     const state = await panel.evaluate((el) => ({
+      top: el.getBoundingClientRect().top,
+      bottom: el.getBoundingClientRect().bottom,
       overflow: el.scrollHeight - el.clientHeight,
       bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+      tops: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
+        (row) => row.parentElement?.getBoundingClientRect().top ?? 0,
+      ),
       rows: Array.from(el.querySelectorAll("[data-submenu-row]")).map(
         (row) => row.parentElement?.getBoundingClientRect().height ?? 0,
       ),
     }));
-    for (const height of state.rows)
-      expect(Math.abs(height - 32), "SMN-E10 a row at the 32 px floor").toBeLessThanOrEqual(0.5);
-    expect(state.overflow, "SMN-E10 the panel scrolls").toBeGreaterThan(0);
-    expect(state.bar, "SMN-E10 its scrollbar takes width").toBeGreaterThan(0);
+    for (const row of state.rows)
+      expect(
+        Math.abs(row - grid.height),
+        "SMN-E13 a panel row equals a rail row",
+      ).toBeLessThanOrEqual(1);
+    for (const top of state.tops.slice(0, holds))
+      expect(
+        Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
+        "SMN-E13 each shown row is level with a rail row",
+      ).toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(state.top - grid.first),
+      "SMN-E13 spans from the menu's first row",
+    ).toBeLessThanOrEqual(1);
+    expect(Math.abs(state.bottom - grid.last), "SMN-E13 to its last row").toBeLessThanOrEqual(1);
+    expect(state.overflow, "SMN-E13 the panel scrolls").toBeGreaterThan(0);
+    expect(state.bar, "SMN-E13 with a visible scrollbar").toBeGreaterThan(0);
   });
 });

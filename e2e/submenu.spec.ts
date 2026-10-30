@@ -168,12 +168,18 @@ test.describe("D244 every panel on screen", () => {
         (row) => row.getBoundingClientRect().height,
       ),
     }));
+    // G38 — replaced by D254 (Foundations turn R1d-b; not loosened): a scrolled panel's
+    // rows keep a rail row's height, never the 32 px floor.
+    const railRow = await page
+      .getByTestId("app-rail")
+      .locator("[data-testid='rail-scroll'] nav > ul.menu-fit > li:not([aria-hidden])")
+      .evaluateAll((els) => Math.max(0, ...els.map((el) => el.getBoundingClientRect().height)));
     if (state.overflow > 1) {
       for (const height of state.rows)
         expect(
-          Math.abs(height - 32),
-          `${label}: a scrolled panel's rows hold 32 px`,
-        ).toBeLessThanOrEqual(0.5);
+          Math.abs(height - railRow),
+          `${label}: a scrolled panel's rows equal a rail row`,
+        ).toBeLessThanOrEqual(1);
     } else {
       for (let index = 0; index < CHILDREN; index += 1) {
         await expect(rows.nth(index), `${label}: row ${index + 1} of ${CHILDREN}`).toBeInViewport({

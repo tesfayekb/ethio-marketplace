@@ -41,6 +41,7 @@ import { isE2E } from "@/lib/env-flags";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
+import { MENU_WIDTH } from "@/components/shell/menu-width";
 import { cn } from "@/lib/utils";
 import { ITEM_ACTIVE, ITEM_CORE, ITEM_IDLE } from "@/components/shell/menu-row";
 import { ownValue } from "@/lib/own-key";
@@ -961,7 +962,7 @@ export function AppRail() {
           // offset. D252 (Foundations turn R1d-b) — it always runs from the top
           // bar to the screen's bottom; the footer lives in the middle column
           // beside it, so the two never share space.
-          className="hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:w-56 lg:w-64 md:overflow-hidden rail-icons:w-16 rail-icons:px-1"
+          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden rail-icons:px-1 ${MENU_WIDTH}`}
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the

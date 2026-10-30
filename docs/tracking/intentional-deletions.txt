@@ -69,3 +69,5 @@ src/lib/country-name.ts
 # Foundations L-2d candidate withdrawn at B5 weight STOP
 scripts/conformance/page-head.ts
 src/components/shell/use-footer-inset.ts
+semgrep.json
+semgrep.sarif

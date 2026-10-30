@@ -52,3 +52,7 @@ pw.*.local.ts
 .claude/settings.local.json
 # the kit archive while it is unpacked (executor-kit install)
 /executor-kit-*.tar.gz
+
+# Scanner output written by `bun run checks` (counts only reach CI evidence)
+semgrep.json
+semgrep.sarif

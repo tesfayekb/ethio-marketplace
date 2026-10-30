@@ -251,11 +251,22 @@ function Panel({
     const own0 = boxOf(row);
     const first = listed[0] ? boxOf(listed[0]) : own0;
     const last = listed[listed.length - 1] ? boxOf(listed[listed.length - 1] as Element) : own0;
+    // D254 — the menu's row grid, measured from a rail row's box: when the main menu itself
+    // scrolls, its shown rows are the whole rows inside its region, never a part-hidden one.
+    const rowHeight = own0.bottom - own0.top;
+    const lo = Math.max(top, region.top, first.top);
+    const hi = Math.min(window.innerHeight, region.bottom, last.bottom);
+    const gridTop =
+      rowHeight > 0 ? first.top + Math.ceil((lo - first.top) / rowHeight - 0.01) * rowHeight : lo;
+    const gridBottom =
+      rowHeight > 0
+        ? gridTop + Math.max(0, Math.floor((hi - gridTop) / rowHeight + 0.01)) * rowHeight
+        : hi;
     const snap = snapToGrid({
       openerTop: own0.top,
-      rowHeight: own0.bottom - own0.top,
-      menuTop: Math.max(top, region.top, first.top),
-      menuBottom: Math.min(window.innerHeight, region.bottom, last.bottom),
+      rowHeight,
+      menuTop: gridTop,
+      menuBottom: gridBottom,
       count,
     });
     const placed = placePanel({

@@ -55,7 +55,7 @@ e2e/posting-routes-catalog.spec.ts (24) | non-null assertions written before the
 e2e/posting-routes-identity.spec.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/posting-routes.spec.ts (3) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/shell-table-law.spec.ts (2) | non-null assertions written before the platform rule was enforced | INC-932
-e2e/shell.spec.ts (81) | non-null assertions written before the platform rule was enforced | INC-932
+e2e/shell.spec.ts (80) | non-null assertions written before the platform rule was enforced | INC-932
 e2e/viewing-place.spec.ts (4) | non-null assertions written before the platform rule was enforced | INC-932
 scripts/admin-tables.test.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
 scripts/conformance/auth-answers.test.ts (1) | non-null assertions written before the platform rule was enforced | INC-932
