@@ -97,22 +97,24 @@ test.describe("D247 the rail's list", () => {
     const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(SEEDED);
     const { client: railRoom } = await scrollOf(page);
+    // G38 — replaced by D254 (Foundations turn R1d-b): a panel row equals a rail row; it
+    // never compacts. D252: the rail no longer yields height to the footer.
+    const railRow = await rail
+      .locator("[data-testid='rail-scroll'] li:not([aria-hidden])")
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().height);
     const heights = await rows.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().height),
     );
-    for (const height of heights) {
-      expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeGreaterThanOrEqual(31.5);
-      expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeLessThanOrEqual(48);
-    }
+    for (const height of heights)
+      expect(Math.abs(height - railRow), "ROWS-E3 a seeded row equals a rail row").toBeLessThanOrEqual(1);
     const state = await panel.evaluate((el) => ({
       overflow: el.scrollHeight - el.clientHeight,
       bar: (el as HTMLElement).offsetWidth - el.clientWidth,
     }));
-    if (SEEDED * 32 <= railRoom + 1) {
+    if (SEEDED * railRow <= railRoom + 1) {
       expect(state.overflow, "ROWS-E3 the seeded panel fits").toBeLessThanOrEqual(1);
     } else {
-      for (const height of heights)
-        expect(Math.abs(height - 32), "ROWS-E3 at the floor").toBeLessThanOrEqual(0.5);
       expect(state.overflow, "ROWS-E3 the seeded panel scrolls").toBeGreaterThan(0);
       expect(state.bar, "ROWS-E3 its scrollbar takes width").toBeGreaterThan(0);
     }
