@@ -1,7 +1,6 @@
 import type { KeyboardEvent, PointerEvent } from "react";
 
-import { loadOverlays } from "@/components/ui/overlay-loader";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { askOverlays } from "@/components/ui/overlay-facade";
 
 /**
  * DEC-288 (turn R1b) — THE SUB-MENU MECHANISM'S FIRST-PAINT HALF. A rail row that
@@ -64,10 +63,8 @@ function signal(next: SubmenuSignal): void {
     return;
   }
   pending = next;
-  const asked = next.type !== "enter";
-  loadOverlays().catch((error: unknown) => {
+  askOverlays(next.type !== "enter", () => {
     if (pending === next) pending = null;
-    if (asked) reportOnDemandFailure("a menu's code", error);
   });
 }
 
