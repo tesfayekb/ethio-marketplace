@@ -1541,7 +1541,7 @@ test.describe("mobile chrome", () => {
     await expectTapTarget(page, page.getByTestId("bottom-bar-home"), "bar home");
     await expectTapTarget(page, page.getByTestId("bottom-bar-sign-in"), "bar sign in");
 
-    // The phone strip uses the authorized fitted 32–40px section rows.
+    // The phone strip uses the fitted 32–48 px section rows (D247).
     await expect(page.getByTestId("rail-strip").getByTestId("strip-category-skeleton")).toHaveCount(
       0,
     );
