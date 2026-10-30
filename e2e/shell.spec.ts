@@ -1262,12 +1262,13 @@ test.describe("mobile chrome", () => {
     await menu.getByTestId("rail-category-audio-sound").click();
     await expect(page).toHaveURL(/\/c\/audio-sound$/);
     await expect(menu).toBeHidden();
+    // D246 (R1c; G38, replaces "reopens at the main list"): the leaf's level, the leaf marked.
     const reopened = await openRailScope(page);
     await expect(reopened.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    await expect(reopened.getByTestId("rail-category-electronics")).toBeVisible();
-    await expect(reopened.getByTestId("rail-category-electronics")).toHaveAttribute(
+    await expect(reopened.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    await expect(reopened.getByTestId("rail-category-audio-sound")).toHaveAttribute(
       "aria-current",
-      "true",
+      "page",
     );
     await page.keyboard.press("Escape");
   });
@@ -1414,11 +1415,12 @@ test.describe("mobile chrome", () => {
       "aria-current",
       "true",
     );
+    // D246 (R1c; G38, replaces "reopens at the main list"): the leaf's level, the leaf marked.
     menu = await openRailScope(page);
-    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
-    await expect(menu.getByTestId("rail-category-electronics")).toHaveAttribute(
+    await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    await expect(menu.getByTestId("rail-category-audio-sound")).toHaveAttribute(
       "aria-current",
-      "true",
+      "page",
     );
   });
 
@@ -4013,7 +4015,8 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
     const scope = await openRailScope(page);
     await settled(page);
     const back = scope.getByTestId("rail-menu-back");
-    if (!mobile && (await back.count())) await back.click();
+    // D246 (R1c; G38): the phone menu also opens at the page's level.
+    if (await back.count()) await back.click();
     const row = scope.getByTestId("rail-favourite");
     await expect(row).toHaveAttribute("href", `/c/${slug}`);
     await expect(row).toHaveAccessibleName(new RegExp(escapeRe(en["shell.favouriteBadge"])));
@@ -4086,7 +4089,8 @@ test("FV-1 one device favourite leads every main list and survives reload", asyn
   await expect(page.getByTestId("strip-favourite")).toHaveCount(0);
   const scope = await openRailScope(page);
   const back = scope.getByTestId("rail-menu-back");
-  if (!mobile && (await back.count())) await back.click();
+  // D246 (R1c; G38): the phone menu also opens at the page's level.
+  if (await back.count()) await back.click();
   await expect(scope.getByTestId("rail-favourite")).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("ethio.fav"))).toBeNull();
 });
