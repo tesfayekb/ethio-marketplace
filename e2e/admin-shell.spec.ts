@@ -350,7 +350,9 @@ test.describe("Admin shell (U0)", () => {
       // G38 (D240, R1d-c; was the cluster from 768 px too): the group opens a side panel —
       // a closed opener whose click opens its first permitted page, marked on a sub-route.
       await expect(group).toHaveAttribute("aria-expanded", "false");
-      await expect(group).toHaveAttribute("href", visible[0]!.path);
+      const firstPage = visible[0];
+      if (!firstPage) throw new Error("A-5: admin holds no grouped section");
+      await expect(group).toHaveAttribute("href", firstPage.path);
       await expect(group).toHaveAttribute("aria-current", "true");
       await group.hover();
       const panel = page.getByTestId("submenu-panel");
@@ -359,7 +361,7 @@ test.describe("Admin shell (U0)", () => {
           timeout: 15000,
         });
       }
-      await expect(panel.getByTestId(`rail-item-ad-${visible[0]!.id}`)).toHaveAttribute(
+      await expect(panel.getByTestId(`rail-item-ad-${firstPage.id}`)).toHaveAttribute(
         "aria-current",
         "page",
       );
