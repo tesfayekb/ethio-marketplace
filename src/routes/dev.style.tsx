@@ -24,6 +24,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconButton, type IconButtonTone } from "@/components/ui/icon-button";
+import { THEMES } from "@/lib/themes";
+import type { ThemeName } from "@/lib/theme-resolver";
 
 /**
  * BUNDLE 9 A3 — THE HOUSE-STYLE FIXTURE.
@@ -101,6 +103,144 @@ const RADII = [
   { size: "xl", cls: "rounded-xl" },
 ] as const;
 
+/*
+ * Turn SAGE-S0 (ruling 1) — the Sage grid: theme × mode × card type, fixture data only. Each
+ * panel scopes its theme's tokens from THEMES (validated data, D250) on its own container, so
+ * both modes show at once whatever the page's mode; S4 completes the cards (flag, ribbon).
+ */
+const CARD_TYPES = [
+  {
+    tier: "regular",
+    surface: "bg-card shadow-card",
+    word: "",
+    ink: "text-primary",
+    rule: "border-rule",
+  },
+  {
+    tier: "featured",
+    surface: "bg-tier-featured shadow-featured",
+    word: "★ FEATURED",
+    ink: "text-tier-featured-ink",
+    rule: "border-tier-featured-rule",
+  },
+  {
+    tier: "premium",
+    surface: "bg-tier-premium shadow-premium",
+    word: "★★ PREMIUM",
+    ink: "text-tier-premium-ink",
+    rule: "border-tier-premium-rule",
+  },
+] as const;
+const SWATCHES = [
+  "background",
+  "card",
+  "sidebar",
+  "hairline",
+  "field",
+  "track",
+  "photo-empty",
+  "leaf-ink",
+  "primary",
+  "gold",
+  "tier-premium",
+  "tier-premium-frame",
+  "tier-premium-ink",
+  "tier-featured",
+  "tier-featured-frame",
+  "tier-featured-ink",
+] as const;
+const SHADOW_SAMPLES = [
+  "shadow-band",
+  "shadow-control",
+  "shadow-button",
+  "shadow-tile",
+  "shadow-tile-on",
+  "shadow-row-on",
+  "shadow-field",
+  "shadow-track",
+  "shadow-segment",
+] as const;
+/** Fixture card words (a dev page, English only). */
+const FIXTURE_TITLE = "Sample listing";
+const FIXTURE_PRICE = "12,500";
+const FIXTURE_PLACE = "Bole, Addis Ababa";
+
+function themeScope(name: ThemeName, mode: "light" | "dark"): Record<string, string> {
+  const set = { ...THEMES[name].light, ...(mode === "dark" ? THEMES[name].dark : {}) };
+  return Object.fromEntries(Object.entries(set).map(([token, value]) => [`--${token}`, value]));
+}
+
+function SageGrid() {
+  const names = Object.keys(THEMES) as ThemeName[];
+  return (
+    <div data-testid="style-sage-grid" className="mt-4 flex flex-col gap-4">
+      {names.flatMap((name) =>
+        (["light", "dark"] as const).map((mode) => (
+          <div
+            key={`${name}-${mode}`}
+            data-testid={`style-sage-${name}-${mode}`}
+            data-theme={name}
+            data-mode={mode}
+            className={`${mode === "dark" ? "dark " : ""}rounded-card bg-background p-4 text-foreground`}
+            style={themeScope(name, mode)}
+          >
+            <p className="text-sm font-semibold">{`${name} · ${mode}`}</p>
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {CARD_TYPES.map((card) => (
+                <div
+                  key={card.tier}
+                  data-testid={`style-card-${card.tier}-${mode}`}
+                  data-tier={card.tier}
+                  className={`overflow-hidden rounded-card ${card.surface}`}
+                >
+                  <div className="aspect-[4/3] bg-photo-empty" />
+                  <div className="p-3">
+                    <p className="truncate text-sm font-semibold">{FIXTURE_TITLE}</p>
+                    <p className={`text-base font-bold ${card.ink}`}>{FIXTURE_PRICE}</p>
+                    <p className={`mt-2 border-t pt-2 text-xs text-muted-foreground ${card.rule}`}>
+                      {FIXTURE_PLACE}
+                      {card.word ? (
+                        <span className={`ms-2 font-extrabold uppercase ${card.ink}`}>
+                          {card.word}
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {SWATCHES.map((token) => (
+                <div
+                  key={token}
+                  data-testid={`style-swatch-${token}-${mode}`}
+                  className="flex flex-col items-center gap-1 text-[11px]"
+                >
+                  <span
+                    className="block h-8 w-12 rounded-md shadow-tile"
+                    style={{ background: `var(--${token})` }}
+                  />
+                  {token}
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              {SHADOW_SAMPLES.map((cls) => (
+                <div
+                  key={cls}
+                  className={`flex h-10 items-center rounded-md bg-card px-3 text-[11px] ${cls}`}
+                >
+                  {cls}
+                </div>
+              ))}
+            </div>
+          </div>
+        )),
+      )}
+    </div>
+  );
+}
+
 const SAMPLE_ROWS = ["Alpha", "Beta", "Gamma"] as const;
 const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "info"];
 const PAGER_TOTAL = 300;
@@ -126,6 +266,10 @@ function StyleFixture() {
       <div className="flex flex-col gap-6">
         <h1 className="text-2xl font-semibold">{"House style"}</h1>
         <p className="text-sm text-muted-foreground">{"Secondary text on the page."}</p>
+
+        <Section title={"Sage cards and tokens"} testid="style-sage">
+          <SageGrid />
+        </Section>
 
         <Section title={"Meanings"} testid="style-meanings">
           <div className="mt-4 flex flex-col gap-3">
