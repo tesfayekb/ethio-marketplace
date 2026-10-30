@@ -841,8 +841,9 @@ test.describe("corner-block grid", () => {
     await expect(electronics.locator("svg").nth(0)).toBeVisible();
     const electronicsLabel = await electronics.getAttribute("aria-label");
     if (electronicsLabel === null) throw new Error("the Electronics row has no aria-label");
+    // DEC-288 — a folded row with sub-items opens its side panel, headed by its name.
     await electronics.hover();
-    const tip = page.getByTestId("rail-tooltip");
+    const tip = page.getByTestId("submenu-header");
     await expect(tip).toBeVisible();
     await expect(tip).toContainText(electronicsLabel);
     await page.reload();
@@ -2093,7 +2094,10 @@ test.describe("desktop layout laws (U0g)", () => {
     await expect(page.getByTestId("breadcrumbs")).toBeInViewport();
   });
 
-  test("C1: a rail row is 32px high with a mouse from md", async ({ page, viewport }) => {
+  test("C1: a rail row is 36–48 px high with a mouse from md (DEC-288 item 7)", async ({
+    page,
+    viewport,
+  }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");
@@ -2106,7 +2110,8 @@ test.describe("desktop layout laws (U0g)", () => {
     const first = heights[0];
     expect(first).toBeDefined();
     if (first === undefined) throw new Error("the rail has no link");
-    expect(Math.abs(first - 32)).toBeLessThanOrEqual(1);
+    expect(first).toBeGreaterThanOrEqual(36);
+    expect(first).toBeLessThanOrEqual(48);
   });
 
   test("L1/L2: the top band and the rail stay put while content scrolls", async ({
@@ -3752,7 +3757,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     }
   });
 
-  test("B21SC-2 SC-2 the persistent rail follows the URL and folds to main categories", async ({
+  test("B21SC-2 SC-2 the persistent rail keeps the main rows; sub-items open beside it (DEC-288)", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280");
@@ -3761,30 +3766,54 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       await gotoReady(page, `/c/${r}`);
       const rail = await openRailScope(page);
       await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
-      await expect(rail.getByTestId(`rail-category-${r}`)).toBeVisible();
-      await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
       const root = rail.getByTestId(`rail-category-${r}`);
-      const branch = rail.getByTestId(`rail-category-${b}`);
       await expect(root).toHaveAttribute("aria-current", "page");
-      await expect(branch).toBeVisible();
-      const rootIcon = await root.locator("svg:nth-of-type(1)").boundingBox();
-      const childIcon = await branch.locator("svg:nth-of-type(1)").boundingBox();
-      if (!rootIcon || !childIcon) throw new Error("SC-2 missing category glyphs");
-      expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
-      await gotoReady(page, `/c/${l}`);
-      await expect(rail.getByTestId("rail-menu-back")).toHaveText(r);
-      await expect(rail.getByTestId(`rail-category-${l}`)).toHaveAttribute("aria-current", "page");
-      const url = page.url();
-      await rail.getByTestId("rail-menu-back").click();
-      await expect(rail.getByTestId(`rail-category-${r}`)).toBeVisible();
-      await expect(rail.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
-      await expect(page).toHaveURL(url);
+      // DEC-288 — no in-place drilling and no ‹ Main Menu row on the persistent rail.
+      await expect(rail.getByTestId("rail-menu-back")).toHaveCount(0);
+      await expect(rail.getByTestId(`rail-category-${b}`)).toHaveCount(0);
+      await root.hover();
+      const second = page.locator('[data-testid="submenu-panel"][data-level="2"]');
+      await expect(second).toBeVisible();
+      await expect(root).toHaveAttribute("aria-expanded", "true");
+      const branch = second.getByTestId(`rail-category-${b}`);
+      const railBox = await rail.boundingBox();
+      const rootBox = await root.boundingBox();
+      const branchBox = await branch.boundingBox();
+      const secondBox = await second.boundingBox();
+      if (!railBox || !rootBox || !branchBox || !secondBox)
+        throw new Error("SC-2 a box is missing");
+      expect(
+        Math.abs(branchBox.y - rootBox.y),
+        "SC-2 the first row is level with its opener",
+      ).toBeLessThanOrEqual(1);
+      expect(secondBox.x, "SC-2 the panel opens beside the rail").toBeGreaterThanOrEqual(
+        railBox.x + railBox.width - 1,
+      );
+      await branch.hover();
+      const third = page.locator('[data-testid="submenu-panel"][data-level="3"]');
+      await expect(third).toBeVisible();
+      const leaf = third.getByTestId(`rail-category-${l}`);
+      const leafBox = await leaf.boundingBox();
+      const thirdBox = await third.boundingBox();
+      const branchNow = await branch.boundingBox();
+      if (!leafBox || !thirdBox || !branchNow) throw new Error("SC-2 a third-level box is missing");
+      expect(
+        Math.abs(leafBox.y - branchNow.y),
+        "SC-2 the third level is level with its opener",
+      ).toBeLessThanOrEqual(1);
+      expect(thirdBox.x, "SC-2 the third level opens beside the second").toBeGreaterThanOrEqual(
+        secondBox.x + secondBox.width - 1,
+      );
+      await leaf.click();
+      await expect(page).toHaveURL(new RegExp(`/c/${l}$`));
+      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+      await expect(root).toHaveAttribute("aria-current", "true");
       await page.getByTestId("rail-collapse-toggle").click();
       await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
-      await expect(rail.getByTestId("rail-menu-back")).toHaveCount(0);
-      await expect(rail.getByTestId(`rail-category-${l}`)).toHaveCount(0);
-      await expect(rail.getByTestId(`rail-category-${b}`)).toHaveCount(0);
-      await expect(rail.getByTestId(`rail-category-${r}`)).toHaveAttribute("aria-current", "true");
+      await root.hover();
+      await expect(page.getByTestId("submenu-header")).toHaveText(r);
+      await page.mouse.move(900, 700);
+      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
       await page.getByTestId("rail-collapse-toggle").click();
       await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
     } finally {
@@ -4117,6 +4146,9 @@ test("BK-1 ‹ Main Menu starts where the rows start, both words capitalised", a
 }, testInfo) => {
   expect(en["shell.mainMenu"]).toBe("Main Menu");
   const mobile = testInfo.project.name === "mobile-360";
+  // DEC-288 — from 768 px sub-items open in the side panel, so the row lives on phones alone
+  // (its absence on the rail is SC-2's).
+  test.skip(!mobile, "DEC-288: no ‹ Main Menu row from 768 px");
   let scope: Awaited<ReturnType<typeof openRailScope>>;
   if (mobile) {
     await gotoReady(page, "/");

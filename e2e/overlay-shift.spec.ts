@@ -14,8 +14,8 @@ import { gotoReady } from "./helpers/ui";
  * page's scroll container, so a dropdown menu's scroll lock on body never hides the
  * scrollbar — but the lock library still adds the scrollbar's width as body's
  * right margin, and the main column narrows by it. The mechanism is src/styles.css
- * (`scrollbar-gutter: stable` on the root; the lock's compensation neutralised),
- * guarded by CF-SHIFT-1.
+ * (the lock's compensation neutralised; no gutter, INC-1007), guarded by CF-SHIFT-1.
+ * OVS-3 (DEC-288): the side panel locks nothing, so it opens without moving the page.
  */
 test.use({
   launchOptions: {
@@ -93,5 +93,24 @@ test.describe("INC-1005 overlay shift", () => {
     ).toBeGreaterThan(0);
     expect(during, "OVS-2: the page moved while the menu was open").toEqual({ ...before });
     expect(after, "OVS-2: the page moved after the menu closed").toEqual({ ...before });
+  });
+
+  test("OVS-3 the side panel opens and closes without moving the main column (DEC-288)", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
+    await scrollingPage(page);
+    const before = await measure(page);
+    expect(before.scrollbar, "OVS-3: no scrollbar was drawn").toBeGreaterThan(0);
+    await page.getByTestId("rail-category-electronics").hover();
+    await expect(page.getByTestId("submenu-panel")).toBeVisible();
+    expect(await measure(page), "OVS-3: the main column moved with the panel open").toEqual({
+      ...before,
+    });
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+    expect(await measure(page), "OVS-3: the main column moved after the panel closed").toEqual({
+      ...before,
+    });
   });
 });
