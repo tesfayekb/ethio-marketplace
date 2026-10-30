@@ -111,9 +111,9 @@ describe("CF-ROWS-1 a menu list fits before it scrolls", () => {
     expect(findings.map((f) => f.what)).toEqual([
       "the menu rows' 32–48 px share is missing (D247)",
       "the >16 branch (data-many) is missing (D247)",
+      "from 768 px the item limit still holds (D248)",
       "MENU_FIT_MAX is not the one number, 16 (D247)",
       "1 menu-fit list(s), 0 marked data-many from MENU_FIT_MAX (D247)",
-      "from 768 px the item limit still holds (D248)",
       "a literal count for data-many (D247)",
       "a menu defines its own row classes, not menu-row.ts's (D248)",
       "a menu defines its own row classes, not menu-row.ts's (D248)",
