@@ -13,7 +13,8 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *    side and variant forms). Widths and sizes (`ring-[3px]`, `border-[1.5px]`) are not looks;
  *    `rounded-[inherit]` and a bare token (`bg-[var(--x)]`) are not values;
  *  - a raw hex, rgb()/rgba(), hsl()/hsla() or oklch() literal. src/styles.css is the one home
- *    of these (not a .ts file, so outside the domain).
+ *    of these (not a .ts file, so outside the domain); src/lib/themes.ts is the same values as
+ *    data (D250), held equal to it by themes.test.ts TH-2, so it is outside the domain too.
  * The existing guards cover other ground and are not repeated here: styles.tokens.test.ts
  * refuses hex and rgb() inside the stylesheet's :root and .dark; look-law.test.ts (LL-1)
  * refuses a plain card border. A recorded exception is a line in look-values-allowlist.txt
@@ -21,6 +22,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  * date for a value that never reaches the stylesheet.
  */
 type Finding = { file: string; line: number; what: string };
+
+/** The token data itself (D250): the stylesheet's values as data, held equal by themes.test.ts TH-2. */
+const THEME_DATA = "src/lib/themes.ts";
 
 const ARBITRARY =
   /(?<![\w-])((?:bg|border(?:-[xytblrse])?|ring(?:-offset)?|fill|stroke|shadow|outline|decoration|divide|from|via|to|accent|caret|font|rounded(?:-(?:t|b|l|r|s|e|tl|tr|bl|br|ss|se|es|ee))?)-\[([^\]\s]+)\]|text-\[#[^\]\s]*\])/g;
@@ -60,6 +64,7 @@ describe("CF-LOOK-1 one look: colours, shadows, radii and fonts come from tokens
       const byFile = new Map<string, Finding[]>();
       for (const path of walkFiles(["src"], { ext: ["ts", "tsx"], skipTests: true })) {
         const file = relative(process.cwd(), path).split("\\").join("/");
+        if (file === THEME_DATA) continue;
         const findings = lookFindings(file, readFileSync(path, "utf8"));
         if (findings.length) byFile.set(file, findings);
       }
