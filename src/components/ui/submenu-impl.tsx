@@ -139,9 +139,12 @@ function useIntent(onChange?: (key: string | null) => void) {
   return { opened, enter, leave, stay, now, panel };
 }
 
+/** D247 — the row's height comes from the list (src/styles.css `.menu-fit`), never the row. */
 const ROW =
-  "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md px-3 py-1.5 text-start text-sm " +
+  "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-start text-sm " +
   "break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+/** D247 — a list of this many items or fewer shares the height before it scrolls. */
+export const MENU_FIT_MAX = 16;
 const IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
 const ACTIVE = "bg-nav-active font-semibold text-primary";
 
@@ -247,17 +250,20 @@ function Panel({
             ? { left: place.left, top: place.top, maxHeight: place.maxHeight }
             : { left: 0, top: 0, opacity: 0 }
         }
-        className="fixed z-30 w-64 overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 motion-reduce:animate-none"
+        className="fixed z-30 flex w-64 flex-col overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 motion-reduce:animate-none"
       >
         {showHeader ? (
           <p
             data-testid="submenu-header"
-            className="flex min-h-11 md:pointer-fine:min-h-9 items-center px-3 text-sm font-semibold"
+            className="flex min-h-9 shrink-0 items-center px-3 text-sm font-semibold"
           >
             {level.header}
           </p>
         ) : null}
-        <ul className="flex flex-col gap-0.5">
+        <ul
+          className="menu-fit menu-natural min-h-0 flex-1"
+          data-many={level.items.length > MENU_FIT_MAX ? "" : undefined}
+        >
           {level.items.map((item) => {
             const Icon = item.icon;
             const open = child.opened?.key === item.key;
