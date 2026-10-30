@@ -124,6 +124,32 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect(rtl.left).toBe(816);
   });
 
+  it("SMG-1 a low opener's panel rises just enough that its last row is inside (D244)", () => {
+    const placed = placePanel({
+      anchor: { left: 0, top: 540, right: 224, bottom: 580 },
+      edge: { left: 0, top: 56, right: 224, bottom: 600 },
+      viewport: { width: 1280, height: 600 },
+      rtl: false,
+      minTop: 56,
+      size: { width: 256, height: 300 },
+    });
+    expect(placed.top + 300).toBe(600 - 8);
+    expect(placed.top).toBeGreaterThanOrEqual(56);
+  });
+
+  it("SMG-2 a deeper panel never rises under the top bar (D244)", () => {
+    const placed = placePanel({
+      anchor: { left: 256, top: 70, right: 512, bottom: 106 },
+      edge: { left: 256, top: 56, right: 512, bottom: 592 },
+      viewport: { width: 1280, height: 600 },
+      rtl: false,
+      minTop: 56,
+      size: { width: 256, height: 900 },
+    });
+    expect(placed.top).toBe(56);
+    expect(placed.maxHeight).toBe(600 - 8 - 56);
+  });
+
   it("SMN-2 the safe triangle holds a diagonal move to the panel and nothing outside it", () => {
     const panel = { left: 224, top: 100, right: 464, bottom: 500 };
     const apex = { x: 200, y: 220 };

@@ -18,7 +18,11 @@ import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { useFooterInset } from "@/components/shell/use-footer-inset";
-import { SUBMENU_SIGNALS, submenuTriggerProps } from "@/components/shell/submenu/submenu-signal";
+import {
+  MENU_FIT_MAX,
+  SUBMENU_SIGNALS,
+  submenuTriggerProps,
+} from "@/components/shell/submenu/submenu-signal";
 import { useOverlays } from "@/components/ui/overlay-facade";
 
 import { Button } from "@/components/ui/button";
@@ -109,8 +113,8 @@ export function useFavouriteCategory(): {
  */
 const HIDE_WHEN_COLLAPSED = "rail-icons:hidden";
 /** DEC-288 item 7 — a phone row: 32–40 px with a fine pointer, at least 44 px with a coarse one (C2). */
-const COMPACT_ROW = "rail-row flex min-h-8 max-h-10 flex-1 flex-col";
-const COMPACT_HEAD = "rail-row h-8 min-h-8 max-h-10 flex-1";
+const COMPACT_ROW = "flex min-h-8 max-h-10 flex-1 flex-col";
+const COMPACT_HEAD = "h-8 min-h-8 max-h-10 flex-1";
 
 const ITEM_CORE =
   "flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-md pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
@@ -600,7 +604,13 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       className={cn(compact && "flex min-h-full flex-col", panels && "rail-spread-nav")}
     >
       <ul
-        className={cn("flex flex-col gap-0.5", compact && "flex-1", panels && "rail-spread")}
+        // D247 — the list fits its region before it scrolls (src/styles.css `.menu-fit`).
+        className={cn("menu-fit flex flex-col", compact && "flex-1", panels && "rail-spread")}
+        data-many={
+          nodes.length + (level ? 1 : 0) + (!level && favouriteCategory ? 1 : 0) > MENU_FIT_MAX
+            ? ""
+            : undefined
+        }
         data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
       >
         {level ? (
@@ -1046,7 +1056,7 @@ export function AppRail() {
             <div className="min-h-0 flex-1">
               <div
                 data-testid="rail-scroll"
-                className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
+                className="h-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain"
               >
                 <RailBody onNavigate={() => setNavOpen(false)} />
               </div>

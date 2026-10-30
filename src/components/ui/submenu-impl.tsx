@@ -139,8 +139,9 @@ function useIntent(onChange?: (key: string | null) => void) {
   return { opened, enter, leave, stay, now, panel };
 }
 
+/** D247 — the row's height comes from the list (src/styles.css `.menu-fit`), never the row. */
 const ROW =
-  "flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md px-3 py-1.5 text-start text-sm " +
+  "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-start text-sm " +
   "break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
 const ACTIVE = "bg-nav-active font-semibold text-primary";
@@ -153,6 +154,9 @@ function Panel({
   itemsOf,
   edgeOf,
   panelRef,
+  floor,
+  tick,
+  fitMax,
   onEnter,
   onLeave,
   onClose,
@@ -164,31 +168,64 @@ function Panel({
   itemsOf: (key: string) => SubmenuLevel | null;
   edgeOf: (opener: HTMLElement) => Element;
   panelRef: React.MutableRefObject<HTMLElement | null>;
+  /** D244 — never above this (the top bar's bottom), at every level. */
+  floor: number;
+  /** D244 — bumped on a window resize: the panel is placed again. */
+  tick: number;
+  /** D247 — more items than this and the list keeps full-size rows and scrolls. */
+  fitMax: number;
   onEnter: () => void;
   onLeave: (at: Point) => void;
   onClose: (focusOpener: boolean) => void;
 }) {
   const own = useRef<HTMLDivElement | null>(null);
+  /** The top bar's bottom: the first panel reads it from the rail; deeper ones inherit it. */
+  const [ownFloor, setFloor] = useState(0);
   const [place, setPlace] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
   const child = useIntent();
   const childLevel = child.opened ? itemsOf(child.opened.key) : null;
 
-  // Placed once per opening, from the rects of this moment (I3: nothing observed).
+  // The first panel listens; its children follow through `tick`.
+  const [ownTick, setOwnTick] = useState(0);
+  useEffect(() => {
+    if (depth !== 0) return;
+    let frame = 0;
+    const resized = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => setOwnTick((value) => value + 1));
+    };
+    window.addEventListener("resize", resized);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", resized);
+    };
+  }, [depth]);
+  const childTick = depth === 0 ? ownTick : tick;
+
+  // D244 (INC-1008) — placed when it opens, and again on every window resize (`tick`, from
+  // the first panel's one listener, so a child follows its parent's new place). Rects are
+  // read on these events only (I3: nothing observed). The natural height is read with the
+  // panel's own bound lifted, so a panel that shrank can grow back.
   useLayoutEffect(() => {
     const el = own.current;
     if (!el) return;
-    const edgeEl = edgeOf(opener.el);
-    const edge = boxOf(edgeEl);
+    const bound = el.style.maxHeight;
+    el.style.maxHeight = "none";
+    const natural = el.scrollHeight;
+    el.style.maxHeight = bound;
+    const edge = boxOf(edgeOf(opener.el));
+    const top = depth === 0 ? Math.max(0, edge.top) : floor;
     const placed = placePanel({
       anchor: boxOf(opener.el),
       edge,
-      size: { width: el.offsetWidth, height: el.scrollHeight },
+      size: { width: el.offsetWidth, height: natural },
       viewport: { width: window.innerWidth, height: window.innerHeight },
       rtl: isRtl(opener.el),
-      minTop: Math.max(0, depth === 0 ? edge.top : 0),
+      minTop: top,
     });
+    setFloor(top);
     setPlace({ left: placed.left, top: placed.top, maxHeight: placed.maxHeight });
-  }, [opener, depth, edgeOf]);
+  }, [opener, depth, edgeOf, floor, childTick]);
 
   useEffect(() => {
     if (!place || !opener.focus) return;
@@ -247,17 +284,20 @@ function Panel({
             ? { left: place.left, top: place.top, maxHeight: place.maxHeight }
             : { left: 0, top: 0, opacity: 0 }
         }
-        className="fixed z-30 w-64 overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 motion-reduce:animate-none"
+        className="fixed z-30 flex w-64 flex-col overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 motion-reduce:animate-none"
       >
         {showHeader ? (
           <p
             data-testid="submenu-header"
-            className="flex min-h-11 md:pointer-fine:min-h-9 items-center px-3 text-sm font-semibold"
+            className="flex min-h-9 shrink-0 items-center px-3 text-sm font-semibold"
           >
             {level.header}
           </p>
         ) : null}
-        <ul className="flex flex-col gap-0.5">
+        <ul
+          className="menu-fit menu-natural min-h-0 flex-1"
+          data-many={level.items.length > fitMax ? "" : undefined}
+        >
           {level.items.map((item) => {
             const Icon = item.icon;
             const open = child.opened?.key === item.key;
@@ -301,6 +341,9 @@ function Panel({
           opener={child.opened}
           level={childLevel}
           depth={depth + 1}
+          floor={ownFloor}
+          tick={childTick}
+          fitMax={fitMax}
           showHeader={false}
           itemsOf={itemsOf}
           edgeOf={() => own.current ?? document.body}
@@ -342,6 +385,8 @@ export function SubmenuLayer({
   /** The first-paint half (submenu-signal.ts), handed in so this chunk imports none of it. */
   signals: {
     take: (handler: ((signal: SubmenuSignal) => void) | null) => void;
+    /** D247 — MENU_FIT_MAX (submenu-signal.ts). */
+    fitMax: number;
   };
 }) {
   const intent = useIntent();
@@ -413,6 +458,9 @@ export function SubmenuLayer({
       opener={opened}
       level={level}
       depth={0}
+      floor={0}
+      tick={0}
+      fitMax={signals.fitMax}
       showHeader={showHeader}
       itemsOf={itemsOf}
       edgeOf={edgeOf}
