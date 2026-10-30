@@ -596,8 +596,11 @@ test.describe("app shell", () => {
     const widths = await navs.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().width),
     );
-    expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
     const viewport = page.viewportSize();
+    // G38 (D257, R1d-c; was equal tracks at every width): phones keep three equal tracks; from
+    // 768 px the blocks are content-sized and evenly spaced (FT-6).
+    if ((viewport?.width ?? 0) < 768)
+      expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
     const group = await columns.boundingBox();
     if (!viewport || !group) throw new Error("FT-1: missing viewport or column group");
     const alignments = await navs.evaluateAll((els) =>
@@ -1957,10 +1960,18 @@ test.describe("rail scroll regions (U0f)", () => {
     const title = rail.getByTestId("panel-header-title");
     const before = (await title.boundingBox())!;
     const last = scroll.locator("li").last();
-    await expect(last).not.toBeInViewport();
+    // G38 (D240, R1d-c; was "not in the viewport"): the groups' items open in side panels, so
+    // the overflow is shorter than the pinned foot; the last row is read against the region.
+    const lastShown = () =>
+      last.evaluate((el) => {
+        const region = (el.closest('[data-testid="rail-scroll"]') ?? el).getBoundingClientRect();
+        const row = el.getBoundingClientRect();
+        return row.bottom <= region.bottom + 1;
+      });
+    expect(await lastShown()).toBe(false);
 
     await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-    await expect(last).toBeInViewport();
+    await expect.poll(lastShown).toBe(true);
 
     const after = (await title.boundingBox())!;
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
@@ -2733,7 +2744,7 @@ test.describe("L4b location picker", () => {
     await everywhere();
   });
 
-  test("long location names share one 32px line", async ({ page, viewport }) => {
+  test("long location names share one band row line", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) !== 360, "phone geometry");
     const chain = await seedChain();
     for (const node of [chain.region, chain.city]) {
@@ -2756,7 +2767,8 @@ test.describe("L4b location picker", () => {
     const row = page.getByTestId("location-row");
     const box = await row.boundingBox();
     if (!box) throw new Error("Missing location row");
-    expect(Math.abs(box.height - 32)).toBeLessThanOrEqual(1);
+    // G38 (D258, R1d-c; was 32 px): the location row is one band row, 40 px.
+    expect(Math.abs(box.height - 40)).toBeLessThanOrEqual(1);
     const tops = await row
       .locator("[data-testid^='location-level-']")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
@@ -3527,10 +3539,12 @@ test.describe("top band law (bundle 21 turn 2)", () => {
           ),
         ).toBeLessThanOrEqual(2);
         if (!folded) {
-          const mark = cell.getByRole("link", { name: en["app.name"], exact: true }).locator("svg");
+          // G38 (D256, R1d-c; was the mark level with the row's name): the logo sits one bar
+          // gap after the toggle, never touching its hover (BAR_GAP, 8 px).
+          const link = cell.getByRole("link", { name: en["app.name"], exact: true });
           expect(
-            Math.abs((await bounds(mark)).x - (await bounds(row.locator("[data-cut-text]"))).x),
-          ).toBeLessThanOrEqual(2);
+            Math.abs((await bounds(link)).x - ((await bounds(toggle)).x + (await bounds(toggle)).width) - 8),
+          ).toBeLessThanOrEqual(1);
         }
         if (width === 1280) {
           const word = page.getByTestId("topbar-wordmark");

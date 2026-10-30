@@ -47,7 +47,7 @@ e2e/shell.spec.ts#fn:bottomOf | a helper of its file that reads a box by itself;
 e2e/shell.spec.ts#fn:expectTapTarget | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
 e2e/shell.spec.ts#fn:rowPair | a helper of its file that reads a box by itself; it moves with its file's tests | INC-946
 e2e/shell.spec.ts#logo cell sits exactly above the rail and beside the top bar | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
-e2e/shell.spec.ts#long location names share one 32px line | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
+e2e/shell.spec.ts#long location names share one band row line | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#md+ rail: items scroll, header fixed | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#menu: items scroll, menu fixed, identity pinned | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
 e2e/shell.spec.ts#nothing hides under the bar | reads its boxes one by one; it moves onto layoutBoxes with its file | INC-946
