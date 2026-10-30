@@ -1,3 +1,4 @@
+import { MENU_LINK_ACTIVE } from "@/components/shell/menu-current";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import {
@@ -377,6 +378,7 @@ function Panel({
               <li key={item.key}>
                 <Link
                   to={item.to}
+                  activeOptions={MENU_LINK_ACTIVE}
                   params={item.params}
                   preload="intent"
                   data-submenu-row=""

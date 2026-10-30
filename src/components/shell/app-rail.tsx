@@ -1,7 +1,7 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@/components/ui/dialog-primitive";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, LogOut, Star, type LucideIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight, House, LogOut, Star, type LucideIcon } from "lucide-react";
 import {
   createContext,
   useContext,
@@ -17,6 +17,8 @@ import { useShell } from "@/components/shell-context";
 import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
+import { levelFor, setMenuLevel, useMenuLevel } from "@/components/shell/menu-level";
+import { MENU_LINK_ACTIVE, categoryPath, isCurrentAt } from "@/components/shell/menu-current";
 import {
   MENU_FIT_MAX,
   SUBMENU_SIGNALS,
@@ -36,6 +38,7 @@ import {
   rootsOf,
   useCategoryTree,
   type CategoryNode,
+  type CategoryTree,
 } from "@/features/categories/category-tree";
 import { isE2E } from "@/lib/env-flags";
 import { useI18n } from "@/i18n";
@@ -329,6 +332,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
         {node.path ? (
           <Link
             to={node.path}
+            activeOptions={MENU_LINK_ACTIVE}
             onClick={node.onSelect}
             data-testid={testid}
             data-alert={node.alert ? "true" : undefined}
@@ -427,6 +431,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
           <Link
             {...trigger}
             to={node.path}
+            activeOptions={MENU_LINK_ACTIVE}
             params={node.params}
             hash={node.hash}
             preload={node.preload}
@@ -506,6 +511,53 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
 /** The first panel opens beside the rail itself. */
 const railEdge = (opener: HTMLElement): Element => opener.closest("aside") ?? opener;
 
+/** D246 — the URL's level: the open category's children, or a leaf's siblings (its parent). */
+function urlLevelOf(tree: CategoryTree, selected: CategoryNode | undefined): string | null {
+  if (!selected) return null;
+  return childrenOf(tree, selected.id).length > 0
+    ? selected.id
+    : (tree.parentOf.get(selected.id) ?? null);
+}
+
+/**
+ * D255 (R1d-c) — the phone strip's back item, at a sub-level only: the open category's icon;
+ * a tap does what the menu's "‹" row does (one level up, no navigation) without opening the
+ * menu. It reads the one level state the menu reads (menu-level.ts).
+ */
+function StripBack() {
+  const { t, entities } = useI18n();
+  const { activePanel, selectedCategorySlug } = useShell();
+  const { tree } = useCategoryTree();
+  const glyphs = useCategoryGlyphs();
+  const stored = useMenuLevel();
+  if (activePanel !== "marketplace") return null;
+  const selected = tree.nodes.find((category) => category.slug === selectedCategorySlug);
+  const levelId = levelFor(stored, selectedCategorySlug, urlLevelOf(tree, selected));
+  const level = levelId ? tree.byId.get(levelId) : undefined;
+  if (!level) return null;
+  const parentId = tree.parentOf.get(level.id) ?? null;
+  const parent = parentId ? tree.byId.get(parentId) : undefined;
+  const Icon = (level.icon ? glyphs.glyphOf(level.icon) : categoryIcon(level.slug)) ?? ChevronLeft;
+  // The menu's "‹" row's own words: where the tap goes (the parent, or the main menu).
+  const name = parent ? entityName("category", parent, entities) : t("shell.mainMenu");
+  return (
+    <button
+      type="button"
+      data-testid="strip-back"
+      aria-label={name}
+      title={name}
+      onClick={(event) => {
+        event.stopPropagation();
+        setMenuLevel({ slug: selectedCategorySlug, id: parentId });
+      }}
+      className={cn(ITEM_CORE, ITEM_IDLE, "min-h-11 shrink-0 justify-center gap-0 ps-0 pe-0")}
+    >
+      <ChevronLeft aria-hidden="true" className="h-3 w-3 shrink-0 rtl:rotate-180" />
+      <Icon className="h-6 w-6 shrink-0" aria-hidden="true" />
+    </button>
+  );
+}
+
 /** Marketplace rail = the LIVE category tree, read from the database (exported for RFT, rail-first-paint.test.tsx). */
 export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const variant = useContext(RailVariantContext);
@@ -523,17 +575,14 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   const favouriteCategory = tree.nodes.find((category) => category.slug === favourite.slug);
   const collapsed = useContext(CollapsedContext);
   const selected = tree.nodes.find((category) => category.slug === selectedCategorySlug);
-  const fromUrl = selected
-    ? childrenOf(tree, selected.id).length > 0
-      ? selected.id
-      : (tree.parentOf.get(selected.id) ?? null)
-    : null;
-  // D246 — every phone opening starts at the URL's level (the open category's children, or a
+  const fromUrl = urlLevelOf(tree, selected);
+  // D246 — the phone menu opens at the URL's level (the open category's children, or a
   // leaf's siblings); back rows move up without navigating, and a navigation follows the URL.
-  const [localLevel, setLocalLevel] = useState<{
-    slug: string | null;
-    id: string | null | undefined;
-  }>(() => ({ slug: selectedCategorySlug, id: undefined }));
+  // D255 (R1d-c) — the menu and the strip read ONE level state (menu-level.ts).
+  const storedLevel = useMenuLevel();
+  const pathname = useShownPathname();
+  // Categories are never anchored: the path alone marks the current row.
+  const at = { pathname, hash: "" };
   // D246 — the current row is in view once per opening (no smooth scroll).
   const navRef = useRef<HTMLElement>(null);
   const currentInView = useRef(false);
@@ -544,16 +593,11 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     currentInView.current = true;
     current.scrollIntoView({ block: "nearest" });
   });
-  if (localLevel.slug !== selectedCategorySlug) {
-    setLocalLevel({ slug: selectedCategorySlug, id: undefined });
-  }
   const iconsOnly = strip || (variant === "rail" && collapsed);
-  const levelId =
-    localLevel.slug === selectedCategorySlug && localLevel.id !== undefined
-      ? localLevel.id
-      : fromUrl;
+  const levelId = levelFor(storedLevel, selectedCategorySlug, fromUrl);
   // DEC-288 — from 768 px the rail keeps the main rows; sub-items open in the side panel.
-  const level = variant === "menu" && levelId ? tree.byId.get(levelId) : undefined;
+  // D255 — below 768 the menu and the strip show the same level.
+  const level = variant !== "rail" && levelId ? tree.byId.get(levelId) : undefined;
   const panels = variant === "rail";
   const overlays = useOverlays();
   const parentId = level ? tree.parentOf.get(level.id) : undefined;
@@ -568,7 +612,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       ? (glyphs.glyphOf(category.icon) ?? undefined)
       : categoryIcon(category.slug),
     glyphPending: category.icon !== null && !glyphs.settled,
-    active: category.slug === selectedCategorySlug,
+    active: isCurrentAt({ path: categoryPath(category.slug) }, at),
     ancestorActive: !level && ancestors.some((ancestor) => ancestor.id === category.id),
     categoryBranch: !iconsOnly && childrenOf(tree, category.id).length > 0,
     submenu: panels && childrenOf(tree, category.id).length > 0 ? category.id : undefined,
@@ -577,10 +621,23 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
     preload: "intent",
     onSelect: () => {
       if (childrenOf(tree, category.id).length === 0) onNavigate();
-      else if (!panels) setLocalLevel({ slug: selectedCategorySlug, id: category.id });
+      else if (!panels) setMenuLevel({ slug: category.slug, id: category.id });
     },
   });
-  const nodes = (level ? [level, ...childrenOf(tree, level.id)] : roots).map(toNode);
+  // D259 (R1d-c) — the main level's first row is Home: every category's listings ("/").
+  const home: RailNode = {
+    key: "home",
+    testid: "rail-home",
+    label: t("nav.home"),
+    icon: House,
+    path: "/",
+    active: isCurrentAt({ path: "/" }, at),
+    onSelect: onNavigate,
+  };
+  // D255 — the strip's sub-level shows the sub-items; its back item sits above (StripBack).
+  const nodes = level
+    ? (strip ? childrenOf(tree, level.id) : [level, ...childrenOf(tree, level.id)]).map(toNode)
+    : [home, ...roots.map(toNode)];
   // DEC-288 — a panel's rows come from the same seeded tree: no request of their own.
   const itemsOf = (id: string) => {
     const opened = tree.byId.get(id);
@@ -597,7 +654,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
           : categoryIcon(category.slug),
         to: "/c/$slug",
         params: { slug: category.slug },
-        active: category.slug === selectedCategorySlug,
+        active: isCurrentAt({ path: categoryPath(category.slug) }, at),
         ancestorActive: ancestors.some((ancestor) => ancestor.id === category.id),
         hasChildren: childrenOf(tree, category.id).length > 0,
       })),
@@ -614,18 +671,19 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
         // D247 — the list fits its region before it scrolls (src/styles.css `.menu-fit`).
         className={cn("menu-fit flex flex-col", compact && "flex-1", panels && "rail-spread")}
         data-many={
-          nodes.length + (level ? 1 : 0) + (!level && favouriteCategory ? 1 : 0) > MENU_FIT_MAX
+          nodes.length + (level && !strip ? 1 : 0) + (!level && favouriteCategory ? 1 : 0) >
+          MENU_FIT_MAX
             ? ""
             : undefined
         }
-        data-rail-ready={!isLoading && nodes.length > 0 ? "1" : undefined}
+        data-rail-ready={!isLoading && (level || roots.length > 0) ? "1" : undefined}
       >
-        {level ? (
+        {level && !strip ? (
           <li className={cn(compact && COMPACT_ROW)}>
             <Button
               variant="ghost"
               data-testid="rail-menu-back"
-              onClick={() => setLocalLevel({ slug: selectedCategorySlug, id: parent?.id ?? null })}
+              onClick={() => setMenuLevel({ slug: selectedCategorySlug, id: parent?.id ?? null })}
               style={{ "--rail-pad": "0.75rem" } as React.CSSProperties}
               className={cn(
                 ITEM_CORE,
@@ -646,6 +704,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
             </Button>
           </li>
         ) : null}
+        {!level && !isLoading ? <RailRow node={home} /> : null}
         {!level && favouriteCategory ? (
           <>
             <RailRow
@@ -694,9 +753,11 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
                 </div>
               </li>
             ))
-          : nodes.map((node, index) => (
-              <RailRow key={node.key} node={node} depth={level && index > 0 ? 1 : 0} />
-            ))}
+          : nodes
+              .filter((node) => node !== home)
+              .map((node, index) => (
+                <RailRow key={node.key} node={node} depth={level && !strip && index > 0 ? 1 : 0} />
+              ))}
         {!compact && !isLoading && roots.length === 0 ? (
           <li className={cn("px-3 text-sm text-muted-foreground", hide)}>
             {t("shell.categoriesEmpty")}
@@ -729,6 +790,7 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   const { t } = useI18n();
   const { auth, activePanel } = useShell();
   const alerts = useNavAlerts(activePanel === "admin", auth.permissions);
+  const collapsed = useContext(CollapsedContext);
   const items = visibleItems(PANELS[activePanel].items, auth).filter(
     (item) => !compact || item.id !== "post-entry",
   );
@@ -744,34 +806,95 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
    * names a section carries its `hash`, and a routed item is current only when
    * the path AND the hash match exactly — so exactly one item is ever current.
    */
-  const isCurrent = (item: NavItem): boolean => {
-    if (item.path === undefined) return false;
-    const anchored = PANELS[activePanel].items.some(
-      (other) => other.path === item.path && other.hash !== undefined,
+  const at = { pathname, hash };
+  const isCurrent = (item: NavItem): boolean =>
+    isCurrentAt(
+      item,
+      at,
+      PANELS[activePanel].items.some(
+        (other) => other.path === item.path && other.hash !== undefined,
+      ),
     );
-    if (anchored) return pathname === item.path && hash === (item.hash ?? "");
-    return pathname === item.path || pathname.startsWith(`${item.path}/`);
+  const holdsCurrent = (item: NavItem): boolean =>
+    isCurrent(item) || (item.children ?? []).some(holdsCurrent);
+  // D240 (R1d-b Part 4, R1d-c) — from 768 px a group opens its items in a side panel on the
+  // sub-menu mechanism (D248, D254), never in place; phones keep today's menu (D255).
+  const panels = variant === "rail";
+  const overlays = useOverlays();
+  const opensPanel = (item: NavItem) => panels && (item.children?.length ?? 0) > 0;
+  /** A group's click opens its own page, or its first permitted item's. */
+  const pageOf = (item: NavItem): NavItem | undefined =>
+    item.path !== undefined
+      ? item
+      : (item.children ?? []).map(pageOf).find((page) => page !== undefined);
+
+  const toNode = (item: NavItem): RailNode => {
+    const alert =
+      item.alert && alerts.has(item.alert)
+        ? {
+            alert: true,
+            accessibleLabel: `${t(item.labelKey)} — ${t(NAV_ALERT_LABELS[item.alert])}`,
+          }
+        : {};
+    if (opensPanel(item)) {
+      const page = pageOf(item);
+      return {
+        key: item.id,
+        testid: item.testid ?? `rail-item-${item.id}`,
+        label: t(item.labelKey),
+        ...alert,
+        icon: item.icon,
+        path: page?.path,
+        hash: page?.hash,
+        active: item.path ? isCurrent(item) : undefined,
+        ancestorActive: !(item.path && isCurrent(item)) && holdsCurrent(item),
+        categoryBranch: true,
+        submenu: item.id,
+        onSelect: page ? onNavigate : undefined,
+      };
+    }
+    return {
+      key: item.id,
+      testid: item.testid ?? `rail-item-${item.id}`,
+      label: t(item.labelKey),
+      ...alert,
+      icon: item.icon,
+      path: item.path,
+      hash: item.hash,
+      active: item.path ? isCurrent(item) : undefined,
+      onSelect: item.path ? onNavigate : undefined,
+      children: item.children?.map(toNode),
+      defaultOpen: item.defaultOpen,
+      group: item.group,
+    };
   };
 
-  const toNode = (item: NavItem): RailNode => ({
-    key: item.id,
-    testid: item.testid ?? `rail-item-${item.id}`,
-    label: t(item.labelKey),
-    ...(item.alert && alerts.has(item.alert)
-      ? {
-          alert: true,
-          accessibleLabel: `${t(item.labelKey)} — ${t(NAV_ALERT_LABELS[item.alert])}`,
-        }
-      : {}),
-    icon: item.icon,
-    path: item.path,
-    hash: item.hash,
-    active: item.path ? isCurrent(item) : undefined,
-    onSelect: item.path ? onNavigate : undefined,
-    children: item.children?.map(toNode),
-    defaultOpen: item.defaultOpen,
-    group: item.group,
-  });
+  // DEC-288 — a panel's rows are the items MenuNav already reads (no copy, K1).
+  const byId = new Map<string, NavItem>();
+  const index = (list: NavItem[]) => {
+    for (const item of list) {
+      byId.set(item.id, item);
+      if (item.children) index(item.children);
+    }
+  };
+  index(items);
+  const itemsOf = (id: string) => {
+    const opened = byId.get(id);
+    if (!opened?.children?.length) return null;
+    return {
+      header: t(opened.labelKey),
+      items: opened.children.map((child) => ({
+        key: child.id,
+        label: t(child.labelKey),
+        testid: child.testid ?? `rail-item-${child.id}`,
+        icon: child.icon,
+        to: pageOf(child)?.path ?? "/",
+        active: isCurrent(child),
+        ancestorActive: !isCurrent(child) && holdsCurrent(child),
+        hasChildren: opensPanel(child),
+      })),
+    };
+  };
 
   const sections: { key: MessageKey | null; items: NavItem[] }[] = [];
   for (const item of items) {
@@ -812,6 +935,14 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
           </ul>
         </div>
       ))}
+      {panels && overlays ? (
+        <overlays.submenu.SubmenuLayer
+          itemsOf={itemsOf}
+          edgeOf={railEdge}
+          showHeader={collapsed}
+          signals={SUBMENU_SIGNALS}
+        />
+      ) : null}
     </nav>
   );
 }
@@ -844,7 +975,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
   if (!auth.isAuthenticated) return null;
 
   return (
-    <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-2">
+    <div className="mt-auto flex flex-col gap-0.5 border-t border-border px-2 pt-2 rail-icons:px-1">
       <WithTooltip label={t("auth.signOut")}>
         <button
           type="button"
@@ -962,18 +1093,20 @@ export function AppRail() {
           // offset. D252 (Foundations turn R1d-b) — it always runs from the top
           // bar to the screen's bottom; the footer lives in the middle column
           // beside it, so the two never share space.
-          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden rail-icons:px-1 ${MENU_WIDTH}`}
+          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side pb-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden ${MENU_WIDTH}`}
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
               collapsed rail, where there is no room for a name. */}
-          <PanelHeader className={cn("mb-2", HIDE_WHEN_COLLAPSED)} />
+          {/* D258 (R1d-c) — the band is one band row, flush under the top bar; folded, it
+              keeps its height empty, so the rows never move when the menu folds. */}
+          <PanelHeader className="rail-icons:*:invisible" />
           {/* U0f: ONLY the item region scrolls. The logo cell (grid row 1) and
               the panel band above stay fixed; RailFoot below stays pinned. */}
           <div
             data-testid="rail-scroll"
             data-menu-region=""
-            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch]"
+            className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-2 rail-icons:px-1 [-webkit-overflow-scrolling:touch]"
           >
             <RailBody onNavigate={() => undefined} />
           </div>
@@ -984,13 +1117,17 @@ export function AppRail() {
       <RailVariantContext.Provider value="strip">
         <div
           data-testid="rail-strip"
-          aria-hidden="true"
           onClick={() => changeMenu(true)}
           className="fixed start-0 top-13 bottom-[var(--bottom-bar)] z-[38] flex w-12 flex-col bg-sidebar shadow-side md:hidden"
         >
+          {/* D255 — the one control on the strip; its painted rows stay aria-hidden (D205). */}
+          <StripBack />
+          {/* D255 — a sub-level can hold more rows than the strip's height: it scrolls, its
+              scrollbar shown (D247). */}
           <div
             data-testid="strip-scroll"
-            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain scrollbar-none"
+            aria-hidden="true"
+            className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain"
           >
             <RailBody onNavigate={() => undefined} />
           </div>

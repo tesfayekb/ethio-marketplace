@@ -2,7 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { adminClient } from "./global-setup";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, openRailScope } from "./helpers/ui";
+import { gotoReady, layoutBoxes, openRailScope } from "./helpers/ui";
 
 /**
  * SMN-E7 … SMN-E10 (D248; Foundations turn R1d-a) — a side panel is the main menu: the
@@ -218,7 +218,14 @@ test.describe("D248 a side panel is the main menu", () => {
     await gotoReady(page, "/");
     const shown = await railGrid(page);
     const holds = Math.round((shown.last - shown.first) / shown.height);
-    const seeded = await seedScratchBranch(holds + 1, "smn-e13");
+    // CI run 41051458551 (fa5c333f, shard 16 and repeat): the seeded root is itself a row of
+    // the menu. When the menu had room for one more row, it then held holds + 1 rows and a
+    // panel of holds + 1 fitted (overflow 0). The seed counts that row (G21: cause, not retry).
+    const { region } = await layoutBoxes({
+      region: page.getByTestId("app-rail").getByTestId("rail-scroll"),
+    });
+    const roomForTheRoot = region.y + region.height - shown.last >= shown.height - 1;
+    const seeded = await seedScratchBranch(holds + (roomForTheRoot ? 2 : 1), "smn-e13");
     branch = seeded;
     await gotoReady(page, "/");
     const panel = await openPanel(page, seeded.root);
@@ -240,7 +247,7 @@ test.describe("D248 a side panel is the main menu", () => {
         Math.abs(row - grid.height),
         "SMN-E13 a panel row equals a rail row",
       ).toBeLessThanOrEqual(1);
-    for (const top of state.tops.slice(0, holds))
+    for (const top of state.tops.slice(0, Math.round((grid.last - grid.first) / grid.height)))
       expect(
         Math.min(...grid.tops.map((railTop) => Math.abs(railTop - top))),
         "SMN-E13 each shown row is level with a rail row",

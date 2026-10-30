@@ -1,4 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
+import { BAND_ROW } from "@/components/shell/band-row";
 import { ChevronDown, Check } from "lucide-react";
 
 import { useShell } from "@/components/shell-context";
@@ -28,7 +29,8 @@ import { cn } from "@/lib/utils";
  * A user with a single visible panel (logged out) gets the heading with no
  * trigger — a one-option chooser is chrome with no choice in it.
  */
-const BAND = "rounded-md bg-sidebar-accent/40 px-2 py-1";
+// D258 (R1d-c) — one band row tall (BAND_ROW), flush under the top bar, its label centred.
+const BAND = `flex items-center bg-sidebar-accent/40 px-2 ${BAND_ROW}`;
 
 export function PanelHeader({ className }: { className?: string }) {
   const { t } = useI18n();
@@ -42,7 +44,7 @@ export function PanelHeader({ className }: { className?: string }) {
 
   if (panels.length < 2) {
     return (
-      <div data-testid="panel-header" className={cn(BAND, className)}>
+      <div data-testid="panel-header" data-band-row="" className={cn(BAND, className)}>
         <h2 data-testid="panel-header-title" className="text-base font-semibold">
           <CutText text={label} />
         </h2>
@@ -51,14 +53,14 @@ export function PanelHeader({ className }: { className?: string }) {
   }
 
   return (
-    <div data-testid="panel-header" className={cn(BAND, className)}>
+    <div data-testid="panel-header" data-band-row="" className={cn(BAND, className)}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
             data-testid="panel-header-switcher"
             aria-label={t("shell.switchPanel")}
-            className="flex min-h-11 md:pointer-fine:min-h-9 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex h-8 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span data-testid="panel-header-title">
               <CutText text={label} />

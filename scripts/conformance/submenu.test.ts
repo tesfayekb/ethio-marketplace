@@ -16,7 +16,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *  - D244 (INC-1008; R1c): a panel that is never placed again on a resize, or a deeper
  *    level whose floor is 0 (under the top bar) instead of its parent's;
  *  - D246 (R1c): the phone menu seeding its opening level with a literal null or
- *    undefined for the "menu" variant instead of the URL's level.
+ *    undefined for the "menu" variant instead of the URL's level;
+ *  - D255 (R1d-c): a second level state beside menu-level.ts (the phone menu and the
+ *    phone strip read one).
  */
 type Finding = { file: string; line: number; what: string };
 
@@ -28,7 +30,11 @@ const MECHANISM = new Set([
 ]);
 const OWN_INTENT = /SUBMENU_(?:OPEN|CLOSE)_MS|inSafeTriangle|placePanel/;
 const RAIL = "src/components/shell/app-rail.tsx";
-const LEVEL_GATE = /const level = variant === "menu" && levelId/;
+// D255 (R1d-c) — the phone menu and the phone strip share the level; the persistent rail never drills.
+const LEVEL_GATE = /const level = variant !== "rail" && levelId/;
+const LEVEL_HOME = "src/components/shell/menu-level.ts";
+// D255 — one level state for the category list: no component holds a second copy.
+const SECOND_LEVEL = /^(?=.*\b(?:useState|useReducer)\b)(?=.*(?:slug|[lL]evel)).*/;
 const IMPL = "src/components/ui/submenu-impl.tsx";
 const MENU_STARTS_OVER = /variant === "menu" \?\s*(?:null|undefined)\b/;
 const RESIZE = /addEventListener\("resize"/;
@@ -44,6 +50,16 @@ export function submenuFindings(files: { name: string; text: string }[]): {
     const code = file.name.endsWith(".css") ? file.text : codeOf(file.text);
     code.split("\n").forEach((text, index) => {
       if (NESTED.test(text)) counts.set(file.name, (counts.get(file.name) ?? 0) + 1);
+      if (
+        file.name.startsWith("src/components/shell/") &&
+        file.name !== LEVEL_HOME &&
+        SECOND_LEVEL.test(text)
+      )
+        findings.push({
+          file: file.name,
+          line: index + 1,
+          what: "a second level state for the category list (D255; menu-level.ts is its one home)",
+        });
       if (!MECHANISM.has(file.name) && OWN_INTENT.test(text))
         findings.push({
           file: file.name,
@@ -141,11 +157,22 @@ describe("CF-SUB-1 sub-items open in a side panel", () => {
     const { findings } = submenuFindings([
       {
         name: RAIL,
-        text: 'const level = variant === "menu" && levelId;\nuseState(() => ({ slug, id: variant === "menu" ? null : undefined }));',
+        text: 'const level = variant !== "rail" && levelId;\nconst start = variant === "menu" ? null : undefined;',
       },
     ]);
     expect(findings.map((f) => f.what)).toEqual([
       "the phone menu opens at a fixed level, not the URL's (D246)",
+    ]);
+  });
+
+  it("self-test (D255): a second level state for the category list is refused", () => {
+    const planted = "const [stripLevel, setStripLevel] = useState<string | null>(null);";
+    const { findings } = submenuFindings([
+      { name: RAIL, text: `const level = variant !== "rail" && levelId;\n${planted}` },
+      { name: LEVEL_HOME, text: planted },
+    ]);
+    expect(findings.map((f) => `${f.file}:${f.line} ${f.what}`)).toEqual([
+      `${RAIL}:2 a second level state for the category list (D255; menu-level.ts is its one home)`,
     ]);
   });
 });

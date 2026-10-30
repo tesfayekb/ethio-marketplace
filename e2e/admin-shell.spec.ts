@@ -84,6 +84,26 @@ function isMobile(page: import("@playwright/test").Page): boolean {
   return (page.viewportSize()?.width ?? 0) < 768;
 }
 
+/**
+ * D240 (R1d-b Part 4, R1d-c) — from 768 px a grouped section's row is in its group's side
+ * panel, not in the rail: the group's row is hovered, and the row is read in the panel.
+ */
+async function railOffers(page: import("@playwright/test").Page, id: string) {
+  const rail = page.getByTestId("app-rail");
+  const section = ADMIN_SECTIONS.find((s) => s.id === id);
+  const groupId = section ? sectionGroupId(section) : null;
+  if (!groupId) {
+    await expect(rail.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
+    return;
+  }
+  await expect(rail.getByTestId(`rail-item-ad-${id}`)).toHaveCount(0);
+  await rail.getByTestId(`admin-group-${groupId}`).hover();
+  const panel = page.getByTestId("submenu-panel");
+  await expect(panel.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
+  await page.mouse.move(900, 700);
+  await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+}
+
 function expectedSectionIds(permissions: string[]): string[] {
   return ADMIN_SECTIONS.filter((s) => permissions.includes(s.permission)).map((s) => s.id);
 }
@@ -165,12 +185,16 @@ test.describe("Admin shell (U0)", () => {
       await expect(page.getByTestId(`admin-section-${target.id}`)).toBeVisible();
     } else {
       const rail = page.getByTestId("app-rail");
-      for (const id of expected) {
-        await expect(rail.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
-      }
-      // The current section is the highlighted one.
+      // G38 (D240, R1d-c): a grouped section is offered in its group's side panel.
+      for (const id of expected) await railOffers(page, id);
+      // The current section is the highlighted one (its group's row, when grouped).
       const current = sectionForPath(new URL(page.url()).pathname)!;
-      await expect(rail.getByTestId(`rail-item-ad-${current.id}`)).toHaveClass(/bg-nav-active/);
+      const currentGroup = sectionGroupId(current);
+      await expect(
+        rail.getByTestId(
+          currentGroup ? `admin-group-${currentGroup}` : `rail-item-ad-${current.id}`,
+        ),
+      ).toHaveClass(/bg-nav-active/);
     }
 
     // A section the admin role does NOT hold is refused, not blank.
@@ -221,7 +245,9 @@ test.describe("Admin shell (U0)", () => {
     const scope = isMobile(page) ? await openRailScope(page) : page.getByTestId("app-rail");
     if (isMobile(page)) await expect(scope).toHaveAttribute("data-panel", "admin");
     for (const id of mine) {
-      await expect(scope.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
+      if (isMobile(page))
+        await expect(scope.getByTestId(`rail-item-ad-${id}`)).toBeVisible({ timeout: 15000 });
+      else await railOffers(page, id); // G38 (D240, R1d-c): grouped rows are in the panel.
     }
     for (const section of ADMIN_SECTIONS.filter((s) => !mine.includes(s.id))) {
       await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
@@ -310,16 +336,40 @@ test.describe("Admin shell (U0)", () => {
     const group = scope.getByTestId("admin-group-categories");
     await expect(group, "the group item never rendered").toBeVisible({ timeout: 15000 });
     await expect(group).toContainText(en[ADMIN_GROUPS.categories.titleKey]);
-    // VERDICT — a visual cluster, NOT an accordion: no aria-expanded; the
-    // header carries the ACTIVE mark on a sub-route and every permitted
-    // sub-item is always present beneath it.
-    await expect(group).not.toHaveAttribute("aria-expanded", /.*/);
-    await expect(group).not.toHaveAttribute("href");
     await expect(group).toHaveClass(/bg-nav-active/);
-    for (const section of visible) {
-      await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({ timeout: 15000 });
+    if (isMobile(page)) {
+      // VERDICT (phones keep today's menu, D255) — a visual cluster, NOT an accordion: no
+      // aria-expanded; every permitted sub-item is always present beneath the header.
+      await expect(group).not.toHaveAttribute("aria-expanded", /.*/);
+      await expect(group).not.toHaveAttribute("href");
+      for (const section of visible) {
+        await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({
+          timeout: 15000,
+        });
+      }
+      await page.keyboard.press("Escape");
+    } else {
+      // G38 (D240, R1d-c; was the cluster from 768 px too): the group opens a side panel —
+      // a closed opener whose click opens its first permitted page, marked on a sub-route.
+      await expect(group).toHaveAttribute("aria-expanded", "false");
+      const firstPage = visible[0];
+      if (!firstPage) throw new Error("A-5: admin holds no grouped section");
+      await expect(group).toHaveAttribute("href", firstPage.path);
+      await expect(group).toHaveAttribute("aria-current", /^(page|true)$/);
+      await group.hover();
+      const panel = page.getByTestId("submenu-panel");
+      for (const section of visible) {
+        await expect(panel.getByTestId(`rail-item-ad-${section.id}`)).toBeVisible({
+          timeout: 15000,
+        });
+      }
+      await expect(panel.getByTestId(`rail-item-ad-${firstPage.id}`)).toHaveAttribute(
+        "aria-current",
+        "page",
+      );
+      await page.mouse.move(900, 700);
+      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
     }
-    if (isMobile(page)) await page.keyboard.press("Escape");
 
     // C3-UX-2b PART E — the SHELL LAW holds for every grouped sub-item: its
     // page carries data-testid `admin-section-<id>`; the group carrier is
@@ -405,9 +455,9 @@ test.describe("Admin shell (U0)", () => {
     await page.setViewportSize({ width: mobile ? 360 : 1280, height: 780 });
     const scope = await openRailScope(page);
     const group = await iconBox(scope, "admin-group-categories");
-    const child = await iconBox(scope, `rail-item-ad-${section.id}`);
-    expect(child.x).toBeGreaterThanOrEqual(group.x + 14);
     if (mobile) {
+      const child = await iconBox(scope, `rail-item-ad-${section.id}`);
+      expect(child.x).toBeGreaterThanOrEqual(group.x + 14);
       await page.keyboard.press("Escape");
       const strip = page.getByTestId("rail-strip");
       const foldedGroup = await iconBox(strip, "strip-admin-group-categories");
@@ -416,14 +466,24 @@ test.describe("Admin shell (U0)", () => {
         Math.abs(foldedChild.x + foldedChild.width / 2 - foldedGroup.x - foldedGroup.width / 2),
       ).toBeLessThanOrEqual(1);
     } else {
+      // G38 (D240, R1d-c; was "sub-items indent" from 768 px too): the group's items open in
+      // its side panel beside the menu, open and folded, never indented in place.
       await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
-      await page.getByTestId("rail-collapse-toggle").click();
-      await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
-      const foldedGroup = await iconBox(scope, "admin-group-categories");
-      const foldedChild = await iconBox(scope, `rail-item-ad-${section.id}`);
-      expect(
-        Math.abs(foldedChild.x + foldedChild.width / 2 - foldedGroup.x - foldedGroup.width / 2),
-      ).toBeLessThanOrEqual(1);
+      for (const folded of [false, true]) {
+        if (folded) {
+          await page.getByTestId("rail-collapse-toggle").click();
+          await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
+        }
+        await expect(scope.getByTestId(`rail-item-ad-${section.id}`)).toHaveCount(0);
+        await scope.getByTestId("admin-group-categories").hover();
+        const panel = page.getByTestId("submenu-panel");
+        const child = await iconBox(panel, `rail-item-ad-${section.id}`);
+        const rail = await page.getByTestId("app-rail").boundingBox();
+        if (!rail) throw new Error("IN-1: missing rail box");
+        expect(child.x).toBeGreaterThanOrEqual(rail.x + rail.width);
+        await page.mouse.move(900, 700);
+        await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+      }
       await page.getByTestId("rail-collapse-toggle").click();
       await expect(page.locator("html")).toHaveAttribute("data-rail", "expanded");
     }

@@ -1,4 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
+import { BAR_GAP, BAR_HEADER_INSET } from "@/components/shell/bar-spacing";
 import { Link } from "@tanstack/react-router";
 import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -106,7 +107,13 @@ export function AppHeader() {
 
   return (
     <div className="w-full min-w-0 md:h-full">
-      <header className="flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full md:gap-2 md:px-4">
+      <header
+        className={cn(
+          "flex h-13 w-full min-w-0 items-center gap-1 bg-card pe-2 md:h-full",
+          BAR_GAP,
+          BAR_HEADER_INSET,
+        )}
+      >
         {/* One ☰: below 768 it opens the phone menu; from 768 the corner folds the rail. */}
         <button
           type="button"
@@ -141,7 +148,7 @@ export function AppHeader() {
         <div
           aria-hidden="true"
           data-testid="search-spacer"
-          className="hidden min-w-0 md:ms-2 md:block md:flex-1 rail-icons:ms-0"
+          className="hidden min-w-0 md:block md:flex-1"
         />
 
         {/* Bundle 21 turn 9 (the operator, 2026-10-18): the field takes three
@@ -177,7 +184,10 @@ export function AppHeader() {
         {/* Equal spacers centre search between the logo and flush-right controls. */}
         <div
           data-testid="topbar-controls"
-          className="flex min-w-0 flex-1 items-center justify-end gap-0.5 md:flex-none md:shrink-0 md:gap-2"
+          className={cn(
+            "flex min-w-0 flex-1 items-center justify-end gap-0.5 md:flex-none md:shrink-0",
+            BAR_GAP,
+          )}
         >
           {/* Phones only: the icon that opens the full-width row below. */}
           <button

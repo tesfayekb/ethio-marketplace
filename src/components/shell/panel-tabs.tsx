@@ -1,4 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
+import { BAND_ROW } from "@/components/shell/band-row";
 import { useShell } from "@/components/shell-context";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
@@ -35,7 +36,11 @@ export function PanelTabs() {
       // put a scrollbar under the tabs at phone widths. Tabs now SHARE the row:
       // each is `min-w-0 flex-none shrink` and its label truncates, so the set always fits
       // and no axis ever overflows.
-      className="hidden w-full min-w-0 items-stretch md:flex gap-1 border-b border-neutral-soft bg-card px-2 md:px-4"
+      data-band-row=""
+      className={cn(
+        "hidden w-full min-w-0 items-center md:flex gap-1 border-b border-neutral-soft bg-card px-2 md:px-4",
+        BAND_ROW,
+      )}
     >
       {panels.map((panel) => {
         const Icon = panel.icon;
@@ -49,7 +54,7 @@ export function PanelTabs() {
             data-testid={`panel-tab-${panel.id}`}
             onClick={() => switchPanel(panel.id)}
             className={cn(
-              "inline-flex min-h-11 md:pointer-fine:min-h-10 min-w-0 flex-none shrink items-center justify-center gap-2 px-2 text-sm transition-colors md:px-3",
+              "inline-flex h-full min-w-0 flex-none shrink items-center justify-center gap-2 px-2 text-sm transition-colors md:px-3",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
                 ? "rounded-full bg-nav-active font-medium text-primary"

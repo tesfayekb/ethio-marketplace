@@ -10,6 +10,7 @@ import {
   expectSignedIn,
   expectCutFloor,
   gotoReady,
+  layoutBoxes,
   describeSwitcher,
   expectActivePanel,
   openPanel,
@@ -596,8 +597,11 @@ test.describe("app shell", () => {
     const widths = await navs.evaluateAll((els) =>
       els.map((el) => el.getBoundingClientRect().width),
     );
-    expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
     const viewport = page.viewportSize();
+    // G38 (D257, R1d-c; was equal tracks at every width): phones keep three equal tracks; from
+    // 768 px the blocks are content-sized and evenly spaced (FT-6).
+    if ((viewport?.width ?? 0) < 768)
+      expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
     const group = await columns.boundingBox();
     if (!viewport || !group) throw new Error("FT-1: missing viewport or column group");
     const alignments = await navs.evaluateAll((els) =>
@@ -1054,7 +1058,10 @@ test.describe("mobile chrome", () => {
     for (const id of ["strip-category-all", "strip-post-entry", "strip-sign-out"]) {
       await expect(page.getByTestId(id)).toHaveCount(0);
     }
-    await expect(strip).toHaveAttribute("aria-hidden", "true");
+    // G38 (D255, R1d-c; was the whole strip aria-hidden): the painted rows stay aria-hidden
+    // (D205); the strip's one control, the back item, sits outside them at a sub-level only.
+    await expect(page.getByTestId("strip-scroll")).toHaveAttribute("aria-hidden", "true");
+    await expect(page.getByTestId("strip-back")).toHaveCount(0);
     await expect(strip.getByRole("link", { includeHidden: true })).toHaveCount(0);
     await expect(strip.getByTestId("strip-category-skeleton")).toHaveCount(0);
     await expect(strip.getByTestId("strip-category-electronics")).toBeVisible();
@@ -1256,7 +1263,10 @@ test.describe("mobile chrome", () => {
       .toBe("level");
     await page.mouse.click(tap.x, tap.y);
     await expect(page).toHaveURL(new RegExp(`/c/${category.slug}$`));
-    await expect(row).toHaveAttribute("aria-current", "true");
+    // G38 (D255, R1d-c; was the strip's Electronics row marked): the strip follows the menu
+    // to Electronics' level, its back item at the top.
+    await expect(page.getByTestId("strip-back")).toBeVisible();
+    await expect(page.getByTestId("strip-category-audio-sound")).toBeVisible();
     await expect(menu).toBeVisible();
     await expect(menu.getByTestId("rail-category-electronics")).toHaveAttribute(
       "aria-current",
@@ -1414,10 +1424,13 @@ test.describe("mobile chrome", () => {
     await menu.getByTestId("rail-category-audio-sound").click();
     await expect(page).toHaveURL(/\/c\/audio-sound$/);
     await expect(menu).toBeHidden();
-    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
+    // G38 (D255, R1d-c; was the strip's Electronics row marked): the strip shows the leaf's
+    // level, the leaf marked, the back item at the top.
+    await expect(page.getByTestId("strip-category-audio-sound")).toHaveAttribute(
       "aria-current",
-      "true",
+      "page",
     );
+    await expect(page.getByTestId("strip-back")).toBeVisible();
     // D246 (R1c; G38, replaces "reopens at the main list"): the leaf's level, the leaf marked.
     menu = await openRailScope(page);
     await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
@@ -1948,10 +1961,18 @@ test.describe("rail scroll regions (U0f)", () => {
     const title = rail.getByTestId("panel-header-title");
     const before = (await title.boundingBox())!;
     const last = scroll.locator("li").last();
-    await expect(last).not.toBeInViewport();
+    // G38 (D240, R1d-c; was "not in the viewport"): the groups' items open in side panels, so
+    // the overflow is shorter than the pinned foot; the last row is read against the region.
+    const lastShown = () =>
+      last.evaluate((el) => {
+        const region = (el.closest('[data-testid="rail-scroll"]') ?? el).getBoundingClientRect();
+        const row = el.getBoundingClientRect();
+        return row.bottom <= region.bottom + 1;
+      });
+    expect(await lastShown()).toBe(false);
 
     await scroll.evaluate((el) => el.scrollTo(0, el.scrollHeight));
-    await expect(last).toBeInViewport();
+    await expect.poll(lastShown).toBe(true);
 
     const after = (await title.boundingBox())!;
     expect(Math.abs(after.y - before.y)).toBeLessThanOrEqual(1);
@@ -2724,7 +2745,7 @@ test.describe("L4b location picker", () => {
     await everywhere();
   });
 
-  test("long location names share one 32px line", async ({ page, viewport }) => {
+  test("long location names share one band row line", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) !== 360, "phone geometry");
     const chain = await seedChain();
     for (const node of [chain.region, chain.city]) {
@@ -2747,7 +2768,8 @@ test.describe("L4b location picker", () => {
     const row = page.getByTestId("location-row");
     const box = await row.boundingBox();
     if (!box) throw new Error("Missing location row");
-    expect(Math.abs(box.height - 32)).toBeLessThanOrEqual(1);
+    // G38 (D258, R1d-c; was 32 px): the location row is one band row, 40 px.
+    expect(Math.abs(box.height - 40)).toBeLessThanOrEqual(1);
     const tops = await row
       .locator("[data-testid^='location-level-']")
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
@@ -2802,7 +2824,8 @@ test.describe("L4b location picker", () => {
     await assertRowFits();
     const smallBox = await row.boundingBox();
     if (!smallBox) throw new Error("Missing 320px location row");
-    expect(Math.abs(smallBox.height - 32)).toBeLessThanOrEqual(1);
+    // G38 (D258, R1d-c; was 32 px): the location row is one band row, 40 px.
+    expect(Math.abs(smallBox.height - 40)).toBeLessThanOrEqual(1);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -3518,10 +3541,16 @@ test.describe("top band law (bundle 21 turn 2)", () => {
           ),
         ).toBeLessThanOrEqual(2);
         if (!folded) {
-          const mark = cell.getByRole("link", { name: en["app.name"], exact: true }).locator("svg");
+          // G38 (D256, R1d-c; was the mark level with the row's name): the logo sits one bar
+          // gap after the toggle, never touching its hover (BAR_GAP, 8 px).
+          const link = cell.getByRole("link", { name: en["app.name"], exact: true });
           expect(
-            Math.abs((await bounds(mark)).x - (await bounds(row.locator("[data-cut-text]"))).x),
-          ).toBeLessThanOrEqual(2);
+            Math.abs(
+              (await bounds(link)).x -
+                ((await bounds(toggle)).x + (await bounds(toggle)).width) -
+                8,
+            ),
+          ).toBeLessThanOrEqual(1);
         }
         if (width === 1280) {
           const word = page.getByTestId("topbar-wordmark");
@@ -3532,7 +3561,10 @@ test.describe("top band law (bundle 21 turn 2)", () => {
                 (el) =>
                   el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingLeft),
               );
-          const right = (await bounds(page.getByTestId("topbar-controls"))).x;
+          // G38 (D256, R1d-c): the band's one gap (BAR_GAP, 8 px) sits between every pair of
+          // neighbours; open, the search's free space ends one gap before the controls (the
+          // bar's inset opens it on the left), folded both sides hold the same gaps.
+          const right = (await bounds(page.getByTestId("topbar-controls"))).x - (folded ? 0 : 8);
           expect(
             Math.abs(centre(await bounds(page.getByTestId("search-inline"))) - (left + right) / 2),
           ).toBeLessThanOrEqual(2);
@@ -3784,7 +3816,9 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       await menu.getByTestId(`rail-category-${l}`).click();
       await expect(page).toHaveURL(new RegExp(`/c/${l}$`));
       await expect(menu).toBeHidden({ timeout: 2000 });
-      await expect(page.getByTestId(`strip-category-${r}`)).toHaveAttribute("aria-current", "true");
+      // G38 (D255, R1d-c; was the strip's root marked): the strip shows the leaf's level.
+      await expect(page.getByTestId(`strip-category-${l}`)).toHaveAttribute("aria-current", "page");
+      await expect(page.getByTestId("strip-back")).toBeVisible();
       // D246 (R1c; replaces "reopens at the main list", G38): the menu reopens at the
       // leaf's level, the leaf marked and in view; back moves up without navigating.
       const reopened = await openRailScope(page);
@@ -4144,32 +4178,130 @@ async function linkIds(scope: ReturnType<Page["getByTestId"]>): Promise<string[]
     .evaluateAll((links) => links.map((link) => link.getAttribute("data-testid") ?? ""));
 }
 
-test("HR-1 Home is not a menu row; the breadcrumb and the bottom bar carry it", async ({
+/**
+ * HM-1, HM-2 (D259, Foundations turn R1d-c; G38 — replaces HR-1 "Home is not a menu row",
+ * which D259 reverses): the category list's main level starts with "Home" (the breadcrumb's
+ * key, nav.home), linking to "/" and marked current there only. HM-3/HM-4 (D255): the phone
+ * strip follows the menu's level, with a back item at a sub-level.
+ */
+test("HM-1 Home is the main level's first row, marked current on / only", async ({
   page,
 }, testInfo) => {
   const mobile = testInfo.project.name === "mobile-360";
   await gotoReady(page, "/");
-  await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
   await expect(page.getByTestId("breadcrumb-home")).toBeVisible();
   if (mobile) {
-    await expect(page.getByTestId("bottom-bar-home")).toBeVisible();
+    const strip = page.getByTestId("strip-scroll");
+    await expect(strip.getByTestId("strip-category-skeleton")).toHaveCount(0);
+    const painted = await strip
+      .locator("li > span")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid") ?? ""));
+    expect(painted[0], "HM-1 the strip's first row is Home").toBe("strip-home");
     const scope = await openRailScope(page);
     await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
-    await expect(scope.getByTestId("rail-category-all")).toHaveCount(0);
+    const ids = await linkIds(scope);
+    expect(ids[0], "HM-1 the menu's first row is Home").toBe("rail-home");
+    const home = scope.getByTestId("rail-home");
+    await expect(home).toHaveText(en["nav.home"]);
+    await expect(home).toHaveAttribute("aria-current", "page");
+    await expect(home.locator("svg")).toHaveCount(1);
     return;
   }
   const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
   await expect(scroll.getByTestId("rail-category-skeleton")).toHaveCount(0);
-  await expect(scroll.getByTestId("rail-category-electronics")).toBeVisible();
   const ids = await linkIds(scroll);
-  expect(
-    (ids[0] ?? "").startsWith("rail-category-"),
-    `HR-1 the menu's first link is not a category (${ids[0] ?? "none"})`,
-  ).toBe(true);
+  expect(ids[0], "HM-1 the rail's first row is Home").toBe("rail-home");
+  const home = scroll.getByTestId("rail-home");
+  await expect(home).toHaveAttribute("href", "/");
+  await expect(home).toHaveAttribute("aria-current", "page");
+  await gotoReady(page, "/c/electronics");
+  await expect(scroll.getByTestId("rail-home")).not.toHaveAttribute("aria-current", /.*/);
+  await expect(scroll.getByTestId("rail-category-electronics")).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  // Folded: the icon, its name as the tooltip.
   await page.getByTestId("shell-logo-cell").getByTestId("rail-collapse-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
-  await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
+  const folded = scroll.getByTestId("rail-home");
+  await expect(folded.locator("svg")).toBeVisible();
+  await folded.hover();
+  await expect(page.getByRole("tooltip")).toHaveText(en["nav.home"]);
+});
+
+test("HM-2 from a sub-category page, ‹ Main Menu then Home lands on / with the menu closed and the strip at the main level", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "the phone menu and strip are below 768 px");
+  for (const dir of ["ltr", "rtl"] as const) {
+    await gotoReady(page, "/c/phones-tablets");
+    // RTL: no right-to-left language is in the catalogue; the document's direction is set
+    // directly, which every logical property in the menu follows.
+    if (dir === "rtl")
+      await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    const menu = await openRailScope(page);
+    const back = menu.getByTestId("rail-menu-back");
+    await expect(back).toHaveText(en["shell.mainMenu"]);
+    const url = page.url();
+    await back.click();
+    await expect(page).toHaveURL(url);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+    const home = menu.getByTestId("rail-home");
+    await expect(home).toBeVisible();
+    const { menu: menuBox } = await layoutBoxes({ home, menu });
+    if (dir === "rtl") expect(menuBox.x + menuBox.width).toBeGreaterThan(300);
+    else expect(menuBox.x).toBeLessThanOrEqual(1);
+    await home.click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByTestId("rail-menu")).toBeHidden();
+    await expect(page.getByTestId("strip-back")).toHaveCount(0);
+    await expect(page.getByTestId("strip-home")).toHaveAttribute("aria-current", "page");
+  }
+});
+
+test("HM-3 the strip mirrors the menu's level; its back item returns it one level up", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "the phone strip is below 768 px");
+  for (const dir of ["ltr", "rtl"] as const) {
+    await gotoReady(page, "/c/phones-tablets");
+    if (dir === "rtl")
+      await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    const strip = page.getByTestId("rail-strip");
+    const back = page.getByTestId("strip-back");
+    // The leaf's level: Electronics' sub-items, the leaf marked, the back item on top.
+    await expect(back).toBeVisible();
+    await expect(back).toHaveAccessibleName(en["shell.mainMenu"]);
+    await expect(page.getByTestId("strip-category-phones-tablets")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(page.getByTestId("strip-home")).toHaveCount(0);
+    const { back: backBox, strip: stripBox } = await layoutBoxes({ back, strip });
+    expect(backBox.y - stripBox.y).toBeLessThanOrEqual(1);
+    if (dir === "rtl") expect(stripBox.x).toBeGreaterThan(300);
+    else expect(stripBox.x).toBeLessThanOrEqual(1);
+    // The menu shows the same level.
+    let menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    // The back item: one level up, no navigation, the menu stays closed.
+    const url = page.url();
+    await back.click();
+    await expect(page).toHaveURL(url);
+    await expect(page.getByTestId("rail-menu")).toBeHidden();
+    await expect(back).toHaveCount(0);
+    await expect(page.getByTestId("strip-home")).toBeVisible();
+    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-home")).toBeVisible();
+    await page.keyboard.press("Escape");
+  }
 });
 
 test("FV-3 one favourite: the last one chosen wins", async ({ page }, testInfo) => {
@@ -4189,13 +4321,21 @@ test("FV-3 one favourite: the last one chosen wins", async ({ page }, testInfo) 
     const scope = await openRailScope(page);
     await expect(scope.getByTestId("rail-favourite")).toHaveAttribute("href", "/c/phones-tablets");
     const ids = await linkIds(scope);
-    expect(ids[0], "FV-3 the favourite is not the menu's first row").toBe("rail-favourite");
+    // G38 (D259, R1d-c; was the first row): the favourite sits right under Home.
+    expect(ids.slice(0, 2), "FV-3 the favourite is not the row under Home").toEqual([
+      "rail-home",
+      "rail-favourite",
+    ]);
   } else {
     const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
     const favourite = scroll.getByTestId("rail-favourite");
     await expect(favourite).toHaveAttribute("href", "/c/phones-tablets");
     const ids = await linkIds(scroll);
-    expect(ids[0], "FV-3 the favourite is not the menu's first row").toBe("rail-favourite");
+    // G38 (D259, R1d-c; was the first row): the favourite sits right under Home.
+    expect(ids.slice(0, 2), "FV-3 the favourite is not the row under Home").toEqual([
+      "rail-home",
+      "rail-favourite",
+    ]);
     const line = favourite.locator("xpath=ancestor::li[1]/following-sibling::li[1]");
     await expect(line).toHaveAttribute("aria-hidden", "true");
   }

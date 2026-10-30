@@ -40,7 +40,14 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children, ...rest }: { children: ReactNode } & Record<string, unknown>) => (
     <a data-testid={rest["data-testid"] as string}>{children}</a>
   ),
-  useRouterState: () => ({}),
+  // R1d-c — the menus mark their current row from the URL (menu-current.ts): the page's path.
+  useRouterState: ({ select }: { select?: (state: unknown) => unknown } = {}) =>
+    select
+      ? select({
+          matches: [],
+          location: { pathname: state.slug ? `/c/${state.slug}` : "/", hash: "" },
+        })
+      : {},
 }));
 // The server module's shaping is tested here; its in-process routes are never called.
 vi.mock("@/routes/api/categories.tree", () => ({ categoryTreeGet: vi.fn() }));

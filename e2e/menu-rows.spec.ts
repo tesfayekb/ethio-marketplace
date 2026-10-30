@@ -1,7 +1,9 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { destroyCategoryBranch, seedScratchBranch } from "./helpers/posting";
-import { gotoReady, openRailScope } from "./helpers/ui";
+import { grantRole } from "./helpers/categories";
+import { gotoReady, openRailScope, signIn } from "./helpers/ui";
+import { leaseUser } from "./helpers/users";
 
 /**
  * ROWS-E3, ROWS-E4 (D247, INC-1009; Foundations turn R1c) — a menu list fits before it
@@ -149,4 +151,57 @@ test("ROWS-E4 with the favourite the rail is too short even at 32 px: it scrolls
     els.map((el) => el.getBoundingClientRect().height),
   ))
     expect(height, "ROWS-E4 a row keeps the 32 px floor").toBeGreaterThanOrEqual(31.5);
+});
+
+/**
+ * ROWS-E2 (D247, D248, D240; Foundations turn R1d-c) — the admin menu from 768 px has no
+ * item limit: its rows hold 32 px or more and fit, or the region scrolls with a visible
+ * scrollbar. Its groups open side panels on the same mechanism, whose rows equal a rail row.
+ * Judged at 1280×600 and 1280×400 for the menu this backend's admin role draws (G27, G28).
+ */
+test("ROWS-E2 the admin menu from 768 px fits at 32 px or more, or scrolls with a visible scrollbar", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
+  const staff = await leaseUser();
+  await grantRole(staff.id, "admin");
+  await signIn(page, staff.email, staff.password);
+  for (const height of [600, 400]) {
+    await page.setViewportSize({ width: 1280, height });
+    await gotoReady(page, "/admin");
+    const region = page.getByTestId("app-rail").getByTestId("rail-scroll");
+    const rows = region.locator("nav ul > li");
+    await expect.poll(() => rows.count(), { timeout: 15000 }).toBeGreaterThan(0);
+    for (const box of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    ))
+      expect(box, `ROWS-E2 at ${height}: a row keeps the 32 px floor`).toBeGreaterThanOrEqual(31.5);
+    const state = await scrollOf(page);
+    if (state.overflow > 0)
+      expect(state.bar, `ROWS-E2 at ${height}: the scrollbar takes width`).toBeGreaterThan(0);
+    // The groups: each opens a side panel whose rows equal a rail row.
+    const keys = await region
+      .locator("[data-submenu]")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("data-submenu") ?? ""));
+    expect(keys.length, "ROWS-E2 the admin menu has groups").toBeGreaterThan(0);
+    const railRow = await region
+      .locator("nav ul > li > a:not([data-submenu])")
+      .evaluateAll((els) => Math.max(0, ...els.map((el) => el.getBoundingClientRect().height)));
+    for (const key of keys) {
+      const opener = region.locator(`[data-submenu="${key}"]`);
+      await opener.scrollIntoViewIfNeeded();
+      await opener.hover();
+      const panel = page.getByTestId("submenu-panel");
+      await expect(panel).toBeVisible();
+      for (const row of await panel
+        .locator("[data-submenu-row]")
+        .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height)))
+        expect(
+          Math.abs(row - railRow),
+          "ROWS-E2 a panel row equals a rail row",
+        ).toBeLessThanOrEqual(1);
+      await page.mouse.move(900, height - 20);
+      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+    }
+  }
 });
