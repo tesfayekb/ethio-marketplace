@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
+import { ROUTER_SETTLED_EVENT } from "./lib/router-settled";
 
 export const getRouter = () => {
   const queryClient = new QueryClient();
@@ -27,6 +28,3 @@ export const getRouter = () => {
 
   return router;
 };
-
-/** INC-1013 — fired once, after the router's first render and its scroll restoration. */
-export const ROUTER_SETTLED_EVENT = "ethio:router-settled";

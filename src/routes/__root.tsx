@@ -1,5 +1,5 @@
 import { pageHead } from "@/lib/page-head";
-import { ROUTER_SETTLED_EVENT } from "../router";
+import { ROUTER_SETTLED_EVENT } from "@/lib/router-settled";
 import { installInputModality } from "@/lib/input-modality";
 import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
