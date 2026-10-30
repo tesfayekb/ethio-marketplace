@@ -520,9 +520,6 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
   );
 }
 
-/** DEC-288 item 7 — from 768 px with a fine pointer the rows spread between 36 and 48 px. */
-const RAIL_SPREAD =
-  "md:pointer-fine:flex-1 md:pointer-fine:[&>li:not([aria-hidden])]:flex md:pointer-fine:[&>li:not([aria-hidden])]:min-h-9 md:pointer-fine:[&>li:not([aria-hidden])]:max-h-12 md:pointer-fine:[&>li:not([aria-hidden])]:flex-1 md:pointer-fine:[&>li:not([aria-hidden])]:flex-col md:pointer-fine:[&>li>*]:flex-1";
 /** The first panel opens beside the rail itself. */
 const railEdge = (opener: HTMLElement): Element => opener.closest("aside") ?? opener;
 
