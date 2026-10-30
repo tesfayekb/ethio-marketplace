@@ -129,10 +129,15 @@ test("SMN-E5 the panel's surface is flush and square, and it fades 300 ms in and
  * opens and after the window is resized. A SCRATCH root, last in the rail, carries 14
  * subcategories (J3: real rows are read only): at 600 px its panel was clamped and
  * scrolled inside itself, its last rows clipped (cause 2), and a panel opened at 900 px
- * was never placed again when the window shrank (cause 1). Removed in finally.
+ * was never placed again when the window shrank (cause 1). Removed in afterEach (J3).
  */
 test.describe("D244 every panel on screen", () => {
   const CHILDREN = 14;
+  let branch: { root: string; kids: string[] } | null = null;
+  test.afterEach(async () => {
+    if (branch) await destroyCategoryBranch([...branch.kids, branch.root]);
+    branch = null;
+  });
 
   async function everyRowOnScreen(page: Page, label: string) {
     const panel = page.getByTestId("submenu-panel");
@@ -156,28 +161,25 @@ test.describe("D244 every panel on screen", () => {
       page,
     }, testInfo) => {
       test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
-      const branch = await seedScratchBranch(CHILDREN, "smn-e4");
-      try {
-        await page.setViewportSize({ width, height: 600 });
-        await gotoReady(page, "/");
-        const rail = await openRailScope(page);
-        const opener = rail.getByTestId(`rail-category-${branch.root}`);
-        await opener.scrollIntoViewIfNeeded();
-        await opener.hover();
-        await everyRowOnScreen(page, `SMN-E4 ${width}×600`);
-        await page.mouse.move(width - 20, 20);
-        await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
+      const seeded = await seedScratchBranch(CHILDREN, "smn-e4");
+      branch = seeded;
+      await page.setViewportSize({ width, height: 600 });
+      await gotoReady(page, "/");
+      const rail = await openRailScope(page);
+      const opener = rail.getByTestId(`rail-category-${seeded.root}`);
+      await opener.scrollIntoViewIfNeeded();
+      await opener.hover();
+      await everyRowOnScreen(page, `SMN-E4 ${width}×600`);
+      await page.mouse.move(width - 20, 20);
+      await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
 
-        await page.setViewportSize({ width, height: 900 });
-        // Opened by the keys, so no pointer leaves its row while the rows move with the window.
-        await opener.focus();
-        await page.keyboard.press("ArrowRight");
-        await expect(page.getByTestId("submenu-panel")).toBeVisible();
-        await page.setViewportSize({ width, height: 600 });
-        await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
-      } finally {
-        await destroyCategoryBranch([...branch.kids, branch.root]);
-      }
+      await page.setViewportSize({ width, height: 900 });
+      // Opened by the keys, so no pointer leaves its row while the rows move with the window.
+      await opener.focus();
+      await page.keyboard.press("ArrowRight");
+      await expect(page.getByTestId("submenu-panel")).toBeVisible();
+      await page.setViewportSize({ width, height: 600 });
+      await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
     });
   }
 });
