@@ -130,7 +130,7 @@ for (const width of WIDTHS) {
           await resolved(page, "backgroundColor", tokenOf(mode, "sidebar")),
         );
         const home = page.getByTestId(phone ? "strip-home" : "rail-home");
-        const tile = home.locator("span.rounded-full").first();
+        const tile = home.locator("span.rounded-full");
         expect(await style(tile, "backgroundColor"), "SGS-3 the selected tile is filled").toBe(
           await resolved(page, "backgroundColor", tokenOf(mode, "primary")),
         );
@@ -148,25 +148,27 @@ for (const width of WIDTHS) {
             await resolved(page, "color", tokenOf(mode, "nav-ink")),
           );
         }
-        const idle = surface.locator(
-          "[data-testid^='rail-category-'], [data-testid^='strip-category-']",
-        );
-        const idleTile = idle.first().locator("span.rounded-full").first();
-        if ((await idle.count()) > 0) {
-          expect(await style(idleTile, "backgroundColor"), "SGS-3 an idle tile").toBe(
-            await resolved(page, "backgroundColor", tokenOf(mode, "card")),
+        // Every idle tile in the menu (no one row chosen by position, J6).
+        const idleTiles = await surface
+          .locator(
+            "[data-testid^='rail-category-'] span.rounded-full, [data-testid^='strip-category-'] span.rounded-full",
+          )
+          .evaluateAll((els) =>
+            els.map((el) => {
+              const s = getComputedStyle(el);
+              return [s.backgroundColor, s.boxShadow, s.borderTopColor].join(" | ");
+            }),
           );
-          expect(await style(idleTile, "boxShadow")).toBe(
-            await resolved(page, "boxShadow", tokenOf(mode, "lift-tile")),
-          );
-          expect(await style(idleTile, "borderTopColor")).toBe(
-            await resolved(page, "borderTopColor", tokenOf(mode, "hairline")),
-          );
-        }
+        const idleWant = [
+          await resolved(page, "backgroundColor", tokenOf(mode, "card")),
+          await resolved(page, "boxShadow", tokenOf(mode, "lift-tile")),
+          await resolved(page, "borderTopColor", tokenOf(mode, "hairline")),
+        ].join(" | ");
+        for (const got of idleTiles) expect(got, "SGS-3 an idle tile").toBe(idleWant);
       });
 
       test(`SGS-4 the footer (${width}, ${mode})`, async ({ page }) => {
-        const footer = page.locator("footer").first();
+        const footer = page.locator("footer");
         expect(await style(footer, "backgroundColor")).toBe(
           await resolved(page, "backgroundColor", tokenOf(mode, "sidebar")),
         );

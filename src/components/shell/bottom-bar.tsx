@@ -54,10 +54,7 @@ function ItemBody({
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       )}
-      <CutText
-        className={cn(current && "font-bold text-nav-ink")}
-        text={label}
-      />
+      <CutText className={cn(current && "font-bold text-nav-ink")} text={label} />
     </>
   );
 }
