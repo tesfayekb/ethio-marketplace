@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { codeOf, readAllowlist, report } from "./kit";
 
@@ -128,5 +128,60 @@ describe("CF-ROWS-1 a menu list fits before it scrolls", () => {
     const MENU_FIT_MAX = 16;
     expect(items.length > MENU_FIT_MAX).toBe(true);
     expect(items.slice(0, 16).length > MENU_FIT_MAX).toBe(false);
+  });
+});
+
+/**
+ * CF-WIDTH-1 (D252, Foundations turn R1d-b) — ONE HOME FOR THE MENU'S WIDTH. The open
+ * and folded widths (md:w-56, lg:w-64, rail-icons:w-16 and their ms- start margins) live
+ * only in src/components/shell/menu-width.ts; the rail, the logo cell, the page column and
+ * the footer read MENU_WIDTH / MENU_INSET. A copy anywhere else in src/ is refused.
+ */
+const WIDTH_HOME = "src/components/shell/menu-width.ts";
+const WIDTH_COPY = /(?:^|[\s"'`])(?:md:(?:w|ms|ps)-56|lg:(?:w|ms|ps)-64|rail-icons:(?:w|ms|ps)-16)(?=[\s"'`]|$)/;
+
+export function widthFindings(files: File[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const { name, text } of files) {
+    if (name === WIDTH_HOME) continue;
+    codeOf(text)
+      .split("\n")
+      .forEach((line, index) => {
+        if (WIDTH_COPY.test(line))
+          findings.push({ file: name, line: index + 1, what: "a copy of the menu's width (D252)" });
+      });
+  }
+  return findings;
+}
+
+function sourceFiles(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) out.push(...sourceFiles(path));
+    else if (/\.(tsx?|css)$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) out.push(path);
+  }
+  return out;
+}
+
+describe("CF-WIDTH-1 the menu's width has one home", () => {
+  it("no file but menu-width.ts writes the menu's widths, and its consumers read it", () => {
+    const files = sourceFiles("src").map(read);
+    const all = widthFindings(files);
+    for (const name of ["src/components/shell/app-rail.tsx", "src/components/app-shell.tsx"]) {
+      const text = files.find((file) => file.name === name)?.text ?? "";
+      if (!/from "@\/components\/shell\/menu-width"/.test(text))
+        all.push({ file: name, line: 1, what: "does not read menu-width.ts (D252)" });
+    }
+    expect(all, report(all)).toEqual([]);
+  });
+
+  it("self-test: a planted fourth copy is refused; the home itself is not", () => {
+    expect(
+      widthFindings([
+        { name: WIDTH_HOME, text: 'export const MENU_WIDTH = "md:w-56 lg:w-64 rail-icons:w-16";' },
+        { name: "src/components/planted.tsx", text: '<div className="md:ms-56 lg:ms-64" />' },
+      ]).map((f) => `${f.file}:${f.line}`),
+    ).toEqual(["src/components/planted.tsx:1"]);
   });
 });
