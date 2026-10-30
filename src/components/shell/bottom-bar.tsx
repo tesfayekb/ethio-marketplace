@@ -35,13 +35,17 @@ function ItemBody({
   return (
     <>
       {emphasised ? (
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+        // Sage §11 (R6): a 40 px disc raised above the bar's top edge, its ring the bar's surface.
+        <span
+          data-testid="bottom-bar-disc"
+          className="inline-flex size-10 -translate-y-3.5 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-disc"
+        >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       ) : current ? (
         <span
           data-testid="bottom-bar-pill"
-          className="inline-flex h-8 w-14 items-center justify-center rounded-full bg-nav-active"
+          className="inline-flex h-8 w-14 items-center justify-center rounded-full bg-nav-pill shadow-pill"
         >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
@@ -50,7 +54,10 @@ function ItemBody({
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       )}
-      <CutText className={cn(current && "font-semibold")} text={label} />
+      <CutText
+        className={cn(current && "font-bold text-nav-ink", emphasised && "-mt-3.5")}
+        text={label}
+      />
     </>
   );
 }
@@ -78,7 +85,7 @@ export function BottomBar() {
     <nav
       data-testid="bottom-bar"
       aria-label={t("shell.panelLabel")}
-      className="fixed inset-x-0 bottom-0 z-30 flex rounded-t-[1rem] bg-card pb-[env(safe-area-inset-bottom)] shadow-bar-up md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex rounded-t-bar bg-card pb-[env(safe-area-inset-bottom)] shadow-bar-up md:hidden"
     >
       <Link
         to="/"

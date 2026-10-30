@@ -981,7 +981,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               From md up the logo cell and top bar share the 3.5rem band. */}
           <div
             data-testid="shell-band"
-            className="fixed inset-x-0 top-0 z-30 bg-card shadow-bar md:flex md:h-14"
+            className="fixed inset-x-0 top-0 z-30 bg-card shadow-band md:flex md:h-14"
           >
             <div
               data-testid="shell-logo-cell"

@@ -34,7 +34,7 @@ export function AppFooter() {
   const year = new Date().getUTCFullYear();
 
   return (
-    <footer className="w-full bg-card shadow-bar-up">
+    <footer className="w-full bg-sidebar shadow-footer">
       <div
         data-testid="footer-columns"
         className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-0 px-4 py-1 md:flex md:max-w-none md:justify-evenly md:gap-x-0 md:px-0 md:py-2"
@@ -89,7 +89,7 @@ export function AppFooter() {
           </nav>
         ))}
       </div>
-      <div className="mx-auto w-full max-w-5xl border-t border-neutral-soft px-4 py-1 text-center md:px-10 md:py-2">
+      <div className="mx-auto w-full max-w-5xl shadow-groove-top px-4 py-1 text-center md:px-10 md:py-2">
         <p data-testid="footer-copyright" className="text-sm text-muted-foreground">
           © {year} {t("app.name")} — {t("footer.rights")}
         </p>
