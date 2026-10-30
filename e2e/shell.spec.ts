@@ -2823,7 +2823,8 @@ test.describe("L4b location picker", () => {
     await assertRowFits();
     const smallBox = await row.boundingBox();
     if (!smallBox) throw new Error("Missing 320px location row");
-    expect(Math.abs(smallBox.height - 32)).toBeLessThanOrEqual(1);
+    // G38 (D258, R1d-c; was 32 px): the location row is one band row, 40 px.
+    expect(Math.abs(smallBox.height - 40)).toBeLessThanOrEqual(1);
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -3555,7 +3556,10 @@ test.describe("top band law (bundle 21 turn 2)", () => {
                 (el) =>
                   el.getBoundingClientRect().left + parseFloat(getComputedStyle(el).paddingLeft),
               );
-          const right = (await bounds(page.getByTestId("topbar-controls"))).x;
+          // G38 (D256, R1d-c): the band's one gap (BAR_GAP, 8 px) sits between every pair of
+          // neighbours; open, the search's free space ends one gap before the controls (the
+          // bar's inset opens it on the left), folded both sides hold the same gaps.
+          const right = (await bounds(page.getByTestId("topbar-controls"))).x - (folded ? 0 : 8);
           expect(
             Math.abs(centre(await bounds(page.getByTestId("search-inline"))) - (left + right) / 2),
           ).toBeLessThanOrEqual(2);
@@ -4217,7 +4221,7 @@ test("HM-1 Home is the main level's first row, marked current on / only", async 
   const folded = scroll.getByTestId("rail-home");
   await expect(folded.locator("svg")).toBeVisible();
   await folded.hover();
-  await expect(page.getByTestId("rail-tooltip")).toHaveText(en["nav.home"]);
+  await expect(page.getByRole("tooltip")).toHaveText(en["nav.home"]);
 });
 
 test("HM-2 from a sub-category page, ‹ Main Menu then Home lands on / with the menu closed and the strip at the main level", async ({
