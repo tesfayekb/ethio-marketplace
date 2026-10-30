@@ -3,11 +3,12 @@
  * token values, keyed by the custom property's name without its `--`. src/styles.css carries
  * the same values in :root (light) and .dark (dark); themes.test.ts proves every value here
  * equals the stylesheet's, so there is one source per value and no build step. A theme is
- * validated token data (src/lib/schemas/theme.ts), never raw CSS. This module is data for
+ * validated token data (src/lib/schemas/theme.ts; themes.test.ts TH-3 parses every set, so the
+ * shape costs the browser nothing), never raw CSS. This module is data for
  * tests, /dev/style and later theme sources; the first paint never downloads it (it reads only
  * the names in theme-resolver.ts).
  */
-import { ThemeSet, type ThemeSetValue } from "./schemas/theme";
+import type { ThemeSetValue } from "./schemas/theme";
 import { DEFAULT_THEME, type ThemeName } from "./theme-resolver";
 
 export { DEFAULT_THEME };
@@ -238,5 +239,5 @@ const SAGE: ThemeSetValue = {
 };
 
 export const THEMES: Readonly<Record<ThemeName, ThemeSetValue>> = {
-  sage: ThemeSet.parse(SAGE),
+  sage: SAGE,
 };

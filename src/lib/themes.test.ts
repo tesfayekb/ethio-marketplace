@@ -46,7 +46,7 @@ describe("THEMES", () => {
 
   it("TH-3 the shape refuses raw CSS, an unknown token and a missing one", () => {
     const light = { ...THEMES.sage.light };
-    expect(ThemeSet.safeParse(THEMES.sage).success).toBe(true);
+    for (const set of Object.values(THEMES)) expect(ThemeSet.safeParse(set).success).toBe(true);
     expect(
       ThemeSet.safeParse({ ...THEMES.sage, light: { ...light, card: "red; } body { x: y" } })
         .success,
