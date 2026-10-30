@@ -63,7 +63,11 @@ export type NavLevelRules = {
   opensPanel: (item: NavItem) => boolean;
   pageOf: (item: NavItem) => NavItem | undefined;
 };
-export function navLevelOf(items: NavItem[], id: string, rules: NavLevelRules): SubmenuLevel | null {
+export function navLevelOf(
+  items: NavItem[],
+  id: string,
+  rules: NavLevelRules,
+): SubmenuLevel | null {
   const find = (list: NavItem[]): NavItem | undefined => {
     for (const item of list) {
       if (item.id === id) return item;
