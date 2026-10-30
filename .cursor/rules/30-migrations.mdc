@@ -1,0 +1,80 @@
+---
+description: Database migration laws for ethio.com — append-only, born closed, whole redeclarations, self-marking, scratch-only proofs, and the MIGRATION stop. You write migration files; you never apply them anywhere.
+globs: supabase/migrations/**,scripts/check-migrations.sh,scripts/public-surface-allowlist.txt,e2e/helpers/pool-reset-map.ts
+alwaysApply: false
+---
+
+# 30 — Migrations: write the file, stop; never apply
+
+Schema truth is `supabase/migrations/` (append-only). You WRITE migration files and end the part
+with a MIGRATION stop. You never apply a migration — not on ethio-staging, not on ethio-prod, not
+through an MCP server, the `supabase` CLI, `psql`, a SQL editor or any other path. The supervisor
+reviews the file and applies it on ethio-staging (where its proofs run on a real schema) and reads
+back its mark; production is applied behind the operator's own approval. Then the supervisor sends
+`continue`.
+
+## Order inside a turn
+
+A migration comes as early as its part allows — the code that depends on the schema follows it. A
+turn that lands a door and its screens writes the door migration first, STOPs, and builds the screens
+after `continue`. Never an empty or placeholder migration.
+
+## Content laws
+
+- File name: the Supabase stamp form `YYYYMMDDHHMMSS_<uuid>.sql` (UTC now, a fresh uuid). One
+  concern per file; a very large migration (about 25 KB or more) is split by concern into ordered
+  parts, each with its own mark, proofs and stop.
+- APPEND-ONLY: corrections are new migrations; a landed file is never edited; destructive changes
+  only when the brief says so in words.
+- BORN CLOSED: `CREATE TABLE` → `REVOKE ALL ON <table> FROM PUBLIC, anon, authenticated;` →
+  `GRANT ALL ON <table> TO service_role;` → `ALTER TABLE … ENABLE ROW LEVEL SECURITY;` →
+  per-operation policies (a service-only table: four deny policies — SELECT `USING (false)`, INSERT
+  `WITH CHECK (false)`, UPDATE, DELETE). A grant to anon, authenticated or PUBLIC needs its line in
+  `scripts/public-surface-allowlist.txt` (`object | reason`). Every new sequence and function is born
+  closed; every new function restates `REVOKE ALL ON FUNCTION … FROM PUBLIC, anon;` and its GRANTs
+  (`GRANT EXECUTE … TO authenticated` where the app calls it; `GRANT ALL … TO service_role`).
+  `SECURITY DEFINER` functions carry `SET search_path = public`. Client reads only via gated
+  SECURITY DEFINER RPCs; `rpc()` argument and column names are copied from the SQL declaration.
+- PERSONAL DATA: a column naming a person references `public.profiles(user_id)`, never `auth.users`
+  (only `profiles` and `user_roles` may); personal tables carry `home_country_code`; every table has
+  `created_at` / `updated_at timestamptz NOT NULL DEFAULT now()` with the
+  `public.update_updated_at_column()` trigger; money is never a float; a table with a person column
+  gets its RESET or EXEMPT line in `e2e/helpers/pool-reset-map.ts`.
+- FUNCTIONS: never patch a body by text anchor. Redeclare WHOLE from the LIVE definition the brief
+  hands you (`pg_get_functiondef` with `provolatile`, `prosecdef`, `proconfig` as read on ethio-prod):
+  the new body is byte for byte the old one apart from the named change; `CREATE OR REPLACE`, no DROP
+  unless the argument list or return shape changes (then DROP + CREATE, restating the dropped
+  function's REVOKE and GRANTs); a body over about 10 KB is redeclared by computed insertion, guarded
+  by md5. A nullable argument becomes optional in the generated types only when it is trailing with
+  `DEFAULT NULL` — design signatures so. No app-reachable function issues a DELETE or UPDATE without
+  a WHERE clause.
+- STATE: listing status changes only inside its state machine; writer order in every mutating RPC is
+  gates (permission → step-up → scope) → capture (old → new) → mutate; a refused attempt leaves no
+  trace. Totality gates define the empty set explicitly.
+- MARK: every migration inserts its own mark —
+  `INSERT INTO public.migration_marks (version) VALUES ('<MARK>') ON CONFLICT DO NOTHING;` — where
+  `<MARK>` is a 14-digit UTC stamp later than the file's own stamp and above every mark in the
+  ledger (the brief gives the floor). A wrong mark is healed by a later migration's UPDATE, never by
+  editing a landed file. A `-- e2e-areas:` header line names the spec areas the change selects (no
+  line → all).
+- PROOFS: one `DO $$ … $$` block that creates its own scratch rows (`e2e_mig_` tables, `e2e-` rows)
+  and removes them, runs as a scratch user or with no caller, never reads a real account or place,
+  checks privileges with `has_table_privilege` / `has_function_privilege`, and `RAISE EXCEPTION`s on
+  any failure — a clean apply is the pass; a proof that skips with a NOTICE is a weakened proof. A
+  statement that spans a whole table is proven through a service-only core that takes an id scope
+  (`<name>_core(p_only uuid[])`) called with the proof's own scratch ids; the live wrapper is never
+  called by the proof. A call and the check of its effect are separate statements. List RPCs ship
+  their index and an EXPLAIN in the proof. A function a route calls is also proven by a route test.
+- CLOSERS in-file, last: the REVOKE / GRANT lines, then the mark.
+- Run `bash scripts/check-migrations.sh` and paste its guard lines ("Self-marking guard OK" among
+  them) before you commit.
+
+## The MIGRATION stop report (then push and end the turn)
+
+For each file: its name; `sha256sum`; the declared mark; the objects it creates or redeclares; the
+proofs it carries; the guard lines; and the apply pairing line, exactly:
+`apply <uuid-fragment of the file name> → expect mark <MARK>`. Write it as
+`docs/governance/reports/<brief-stem>.stop-<n>.md` — first line `MIGRATION — <stem> part X:
+<subject>`, then DONE / LEFT / CI / FILES, the per-file lines and the pairing line — commit it on its
+own, push the branch, update the draft pull request, end the turn. The pull request's CI reports
+"STAGING BEHIND" in its preflight until the staging apply — expected; name it in the report.

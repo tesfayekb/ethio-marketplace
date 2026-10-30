@@ -1,0 +1,104 @@
+---
+description: Test laws for ethio.com — J1–J9, proof laws, the harness helpers to use, and how to run unit and browser tests. Read before writing or changing any test or anything under e2e/.
+globs: e2e/**,src/**/*.test.ts,src/**/*.test.tsx,src/test/**,scripts/**/*.test.ts,playwright.config.ts,vitest.config.ts
+alwaysApply: false
+---
+
+# 20 — Tests: authoring, proving, running
+
+The binding text of J1–J9 is `docs/features/e2e-harness.md` §Authoring laws — read it before touching
+anything under `e2e/**` (specs OR helpers). This rule restates the laws and adds the ones a unit test
+must obey too.
+
+## The nine laws (J1–J9)
+
+- J1 Every mutable fixture is namespaced run × job (`E2E_SHARD`) × worker × project × test tag;
+  every scratch slug/key starts with `e2e-` (a letters-only prefix where a door forbids digits).
+- J2 Global-sweep tests run in a fence language per project; real catalogue keys are read-only.
+- J3 Never edit a real reference row in ANY project (a seeded plan, category, location, language,
+  user); per-axes scratch entities, deleted in a hook that survives a timeout (`afterEach`, not only
+  a body `finally`) by a destroy that throws on failure; the shard-1 setup alone reaps residue.
+- J4 Bulk/count assertions read per-key DB truth via the service client; summaries are asserted for
+  visibility only; mismatches throw with the page/query-cache/audit dump.
+- J5 Locators via the viewport-aware twin helpers, never a bare prefix + `.first()`; fixtures via
+  service-client TABLE operations; bulk tests carry a budget and named phases; anchor on structure,
+  never English text.
+- J6 Tests mutating a global list run in ONE project; invariants and public-surface anchors exclude
+  other tests' rows; never locate a real row by its position on a shared roster (search or DB truth).
+- J7 Seed before navigate; assert seeded rows render before acting; polls shorter than the budget
+  so failures assert with values; Playwright's built-in waiting only — never `waitForTimeout`.
+- J8 `@global-state` tests run serial-only in the nightly; flaky passes are ledgered, and three in
+  seven days is an incident.
+- J9 Identity: the pool (`leaseUser()`) for consumers — at most TWO pooled accounts per test; tests
+  that mutate their own auth state carry `@private-identity` and take the real door.
+
+## Proof laws
+
+- Real rows are never fixtures — in tests AND in migration proofs.
+- No weakened proof: an assertion is never loosened to pass; a timeout is never raised without a
+  named cause; a rate dial is never raised for a test (it gets a `rate_overrides` row for its own
+  user); an allowlist or census entry always names the test that provokes it.
+- A refusal test proves the refused side effect did NOT happen: no parse, no dial spent, no RPC, no
+  provider call, no row written, no storage object, no audit row.
+- Red-first: a test that reproduces a defect is shown failing against the previous code (a local run
+  against the old commit or constant; nothing reverted is ever committed), then green. A test for new
+  behaviour needs no red run. A test that cannot be shown red carries a positive control.
+- A test's premise is measured AFTER its own fixture is in place: a fixture that changes the layout
+  or roster it measures (a scratch root joining the menu, a seeded row joining a list) is seeded
+  first, then the page is read (INC-1015).
+- Tests see what a person sees: typed by keyboard, boxes measured, nothing read while an animation
+  runs (`settled(page)` after an overlay opens); every box a test compares is read together in one
+  frame through `layoutBoxes({ name: locator, … })` (`e2e/helpers/ui.ts`), never `boundingBox()` one
+  by one.
+- Fixtures are captured from real tool output, never authored. A fixture or text that moves between
+  files is copied by script with a sha256 before and after.
+- Tests set their own environment: every test that reaches a provider path sets the key or stand-in
+  flag it needs with `vi.stubEnv` and restores it; none relies on the process environment.
+- Spec files are edited by hand, never by search-and-replace; a spec change the brief did not
+  enumerate is a STOP naming the test and line. `test.only` never lands.
+- New test ids: before you assign one, grep the `it(` / `test(` titles in `src/`, `e2e/` and
+  `scripts/`; a collision is renamed. No spec file carries more than ~25 tests — split by area,
+  titles and bodies intact, hooks travelling with their tests.
+- Behaviour-preserving moves keep assertions byte for byte; a test whose mock must change shape is
+  listed in the report with its id and reason.
+- Evidence survives a timeout: a full-walk test attaches its per-step ladder from `afterEach` via
+  `test.info().attach`; every click inside a retry loop is a bounded attempt.
+
+## Harness helpers you must use (never re-implement)
+
+`gotoReady` / `findRow` (the render invariant: no `[object Object]`, `undefined`, `NaN`);
+`layoutBoxes` and `settled` (`e2e/helpers/ui.ts`); `awaitDraftSaved(page)` before polling DB truth or
+navigating after a wizard change; `stopPageBeforePurge(page)` before a hook purges drafts;
+`inOneWindow(windowSeconds, needMs, tag)` before counted dial calls; `withinPreviewBudget` for import
+previews (only IG-3 drives the limit, never raised); `staleStepUpOnClient` / `afterTotpStep`;
+`awaitConsole(page)` for the countries console; `finderStub`; `releaseStaleScratchAlias` for
+fixed-slot fixtures; `chunkByLength(values, 4000)` on every unbounded `.in(...)`; `retryingFetch` on
+every service-role client; the category menu's one reader (`e2e/helpers/category-menu.ts`);
+`stripScratchRows` for whole-export comparisons; `anchorRealRow` / category search instead of page
+position; `pickCity` (`e2e/helpers/posting.ts`) for the place step; `switchLanguage`
+(`e2e/helpers/ui.ts`); a route handler that fetches the real answer goes through `whilePageLives`
+(`e2e/helpers/route-guard.ts`). A table with a person column has its RESET or EXEMPT line in
+`e2e/helpers/pool-reset-map.ts`.
+
+## Running tests
+
+- Unit: `bun run test:unit` (vitest, the whole suite) at THE CHECKS; while iterating, a touched
+  file's tests alone (`bunx vitest run <file>`).
+- Browser tests start ONLY with `bun run e2e:local -- <spec files>` or `bun run e2e:changed` (when
+  `scripts/e2e-select.ts` prints five files or fewer) — never plain `playwright test` or
+  `bun run test:e2e` (the committed `.env` points at production and the setup refuses it). Target:
+  ethio-staging, through `E2E_SUPABASE_URL`, `E2E_SUPABASE_PUBLISHABLE_KEY` and
+  `E2E_SUPABASE_SERVICE_ROLE_KEY` in the environment — never `supabase/config.toml`, never
+  production. Both projects (`mobile-360`, `desktop-1280`), 2 workers, fake mode, 0 retries; each
+  touched spec file whole and alone; named ids by `--grep`. Paste every count line and the server
+  log's `[ssr-error]` count by path.
+- A spec file not fully green is not committed.
+- Repeats: a changed spec's repeatability is proven by CI's repeat lane (DEC-283), never by local
+  `--repeat-each` runs; the operator-dispatched Flake check is for investigations only.
+- "STAGING BEHIND: apply <file>" from the preflight is the supervisor's staging step, never a code
+  fix: STOP and report the apply line.
+- `bun run e2e:local` also needs a Chromium (`bunx playwright install chromium` once per
+  environment, or `E2E_CHROMIUM_PATH`), port 4173 free and fresh i18n maps. When any is missing, say
+  so; never improvise a target.
+- A partial or killed run is reported as partial and never re-run in the background; CI on the
+  pull request and on dev runs every test in its lanes.
