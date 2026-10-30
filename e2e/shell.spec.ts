@@ -4169,32 +4169,130 @@ async function linkIds(scope: ReturnType<Page["getByTestId"]>): Promise<string[]
     .evaluateAll((links) => links.map((link) => link.getAttribute("data-testid") ?? ""));
 }
 
-test("HR-1 Home is not a menu row; the breadcrumb and the bottom bar carry it", async ({
+/**
+ * HM-1, HM-2 (D259, Foundations turn R1d-c; G38 — replaces HR-1 "Home is not a menu row",
+ * which D259 reverses): the category list's main level starts with "Home" (the breadcrumb's
+ * key, nav.home), linking to "/" and marked current there only. HM-3/HM-4 (D255): the phone
+ * strip follows the menu's level, with a back item at a sub-level.
+ */
+test("HM-1 Home is the main level's first row, marked current on / only", async ({
   page,
 }, testInfo) => {
   const mobile = testInfo.project.name === "mobile-360";
   await gotoReady(page, "/");
-  await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
   await expect(page.getByTestId("breadcrumb-home")).toBeVisible();
   if (mobile) {
-    await expect(page.getByTestId("bottom-bar-home")).toBeVisible();
+    const strip = page.getByTestId("strip-scroll");
+    await expect(strip.getByTestId("strip-category-skeleton")).toHaveCount(0);
+    const painted = await strip
+      .locator("li > span")
+      .evaluateAll((els) => els.map((el) => el.getAttribute("data-testid") ?? ""));
+    expect(painted[0], "HM-1 the strip's first row is Home").toBe("strip-home");
     const scope = await openRailScope(page);
     await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
-    await expect(scope.getByTestId("rail-category-all")).toHaveCount(0);
+    const ids = await linkIds(scope);
+    expect(ids[0], "HM-1 the menu's first row is Home").toBe("rail-home");
+    const home = scope.getByTestId("rail-home");
+    await expect(home).toHaveText(en["nav.home"]);
+    await expect(home).toHaveAttribute("aria-current", "page");
+    await expect(home.locator("svg")).toHaveCount(1);
     return;
   }
   const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
   await expect(scroll.getByTestId("rail-category-skeleton")).toHaveCount(0);
-  await expect(scroll.getByTestId("rail-category-electronics")).toBeVisible();
   const ids = await linkIds(scroll);
-  expect(
-    (ids[0] ?? "").startsWith("rail-category-"),
-    `HR-1 the menu's first link is not a category (${ids[0] ?? "none"})`,
-  ).toBe(true);
+  expect(ids[0], "HM-1 the rail's first row is Home").toBe("rail-home");
+  const home = scroll.getByTestId("rail-home");
+  await expect(home).toHaveAttribute("href", "/");
+  await expect(home).toHaveAttribute("aria-current", "page");
+  await gotoReady(page, "/c/electronics");
+  await expect(scroll.getByTestId("rail-home")).not.toHaveAttribute("aria-current", /.*/);
+  await expect(scroll.getByTestId("rail-category-electronics")).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
+  // Folded: the icon, its name as the tooltip.
   await page.getByTestId("shell-logo-cell").getByTestId("rail-collapse-toggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-rail", "collapsed");
-  await expect(page.getByTestId("rail-category-all")).toHaveCount(0);
+  const folded = scroll.getByTestId("rail-home");
+  await expect(folded.locator("svg")).toBeVisible();
+  await folded.hover();
+  await expect(page.getByTestId("rail-tooltip")).toHaveText(en["nav.home"]);
+});
+
+test("HM-2 from a sub-category page, ‹ Main Menu then Home lands on / with the menu closed and the strip at the main level", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "the phone menu and strip are below 768 px");
+  for (const dir of ["ltr", "rtl"] as const) {
+    await gotoReady(page, "/c/phones-tablets");
+    // RTL: no right-to-left language is in the catalogue; the document's direction is set
+    // directly, which every logical property in the menu follows.
+    if (dir === "rtl") await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    const menu = await openRailScope(page);
+    const back = menu.getByTestId("rail-menu-back");
+    await expect(back).toHaveText(en["shell.mainMenu"]);
+    const url = page.url();
+    await back.click();
+    await expect(page).toHaveURL(url);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+    const home = menu.getByTestId("rail-home");
+    await expect(home).toBeVisible();
+    const [homeBox, menuBox] = [await home.boundingBox(), await menu.boundingBox()];
+    if (!homeBox || !menuBox) throw new Error("HM-2 missing Home or menu box");
+    if (dir === "rtl") expect(menuBox.x + menuBox.width).toBeGreaterThan(300);
+    else expect(menuBox.x).toBeLessThanOrEqual(1);
+    await home.click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByTestId("rail-menu")).toBeHidden();
+    await expect(page.getByTestId("strip-back")).toHaveCount(0);
+    await expect(page.getByTestId("strip-home")).toHaveAttribute("aria-current", "page");
+  }
+});
+
+test("HM-3 the strip mirrors the menu's level; its back item returns it one level up", async ({
+  page,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile-360", "the phone strip is below 768 px");
+  for (const dir of ["ltr", "rtl"] as const) {
+    await gotoReady(page, "/c/phones-tablets");
+    if (dir === "rtl") await page.evaluate(() => document.documentElement.setAttribute("dir", "rtl"));
+    const strip = page.getByTestId("rail-strip");
+    const back = page.getByTestId("strip-back");
+    // The leaf's level: Electronics' sub-items, the leaf marked, the back item on top.
+    await expect(back).toBeVisible();
+    await expect(back).toHaveAccessibleName(en["shell.mainMenu"]);
+    await expect(page.getByTestId("strip-category-phones-tablets")).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    await expect(page.getByTestId("strip-home")).toHaveCount(0);
+    const [backBox, stripBox] = [await back.boundingBox(), await strip.boundingBox()];
+    if (!backBox || !stripBox) throw new Error("HM-3 missing back or strip box");
+    expect(backBox.y - stripBox.y).toBeLessThanOrEqual(1);
+    if (dir === "rtl") expect(stripBox.x).toBeGreaterThan(300);
+    else expect(stripBox.x).toBeLessThanOrEqual(1);
+    // The menu shows the same level.
+    let menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveText(en["shell.mainMenu"]);
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    // The back item: one level up, no navigation, the menu stays closed.
+    const url = page.url();
+    await back.click();
+    await expect(page).toHaveURL(url);
+    await expect(page.getByTestId("rail-menu")).toBeHidden();
+    await expect(back).toHaveCount(0);
+    await expect(page.getByTestId("strip-home")).toBeVisible();
+    await expect(page.getByTestId("strip-category-electronics")).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
+    await expect(menu.getByTestId("rail-home")).toBeVisible();
+    await page.keyboard.press("Escape");
+  }
 });
 
 test("FV-3 one favourite: the last one chosen wins", async ({ page }, testInfo) => {
@@ -4214,13 +4312,21 @@ test("FV-3 one favourite: the last one chosen wins", async ({ page }, testInfo) 
     const scope = await openRailScope(page);
     await expect(scope.getByTestId("rail-favourite")).toHaveAttribute("href", "/c/phones-tablets");
     const ids = await linkIds(scope);
-    expect(ids[0], "FV-3 the favourite is not the menu's first row").toBe("rail-favourite");
+    // G38 (D259, R1d-c; was the first row): the favourite sits right under Home.
+    expect(ids.slice(0, 2), "FV-3 the favourite is not the row under Home").toEqual([
+      "rail-home",
+      "rail-favourite",
+    ]);
   } else {
     const scroll = page.getByTestId("app-rail").getByTestId("rail-scroll");
     const favourite = scroll.getByTestId("rail-favourite");
     await expect(favourite).toHaveAttribute("href", "/c/phones-tablets");
     const ids = await linkIds(scroll);
-    expect(ids[0], "FV-3 the favourite is not the menu's first row").toBe("rail-favourite");
+    // G38 (D259, R1d-c; was the first row): the favourite sits right under Home.
+    expect(ids.slice(0, 2), "FV-3 the favourite is not the row under Home").toEqual([
+      "rail-home",
+      "rail-favourite",
+    ]);
     const line = favourite.locator("xpath=ancestor::li[1]/following-sibling::li[1]");
     await expect(line).toHaveAttribute("aria-hidden", "true");
   }
