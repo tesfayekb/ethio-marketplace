@@ -1179,3 +1179,4 @@
 - Foundations L-2d-2: INC-990 base-first keyed route heads with on-demand applied-catalogue re-title, exact EN/AM keys, head census and PGH proofs.
 - Foundations J-1: INC-1003 CI ceilings + NEAR band; INC-1002 derived provider response schemas (ARS census), name_check null-of, needs_review after 5 unusable answers (still public); INC-1000 typed [job-refused] lines and lost dispatched runs.
 - Foundations J-1 continue: INC-1004 switchLanguage waits for a closed menu before and after a pick (two hand copies moved); the catch-up marks an unusable answer 'unusable'; NCQ-E2E-4 needs_review row.
+- Foundations R1a: INC-948 one shared place-step city pick (e2e/helpers/posting.ts pickCity, three walks replaced); PW-37 compares within the screen's half-step; INC-1005 scrollbar-gutter stable on the root and the scroll lock's margin neutralised in src/styles.css (CF-SHIFT-1, OVS-1/OVS-2).
