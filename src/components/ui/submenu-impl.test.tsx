@@ -184,11 +184,16 @@ describe("the sub-menu mechanism (DEC-288)", () => {
   });
 
   it("SMN-7 a closed panel fades for 300 ms, aria-hidden and inert, then goes; none under reduced motion (D245)", async () => {
-    const motion = (reduce: boolean) =>
-      vi.spyOn(window, "matchMedia").mockImplementation(
-        (query: string) =>
+    // jsdom has no matchMedia: the test lends one and takes it back.
+    const motion = (reduce: boolean) => {
+      Object.defineProperty(window, "matchMedia", {
+        configurable: true,
+        writable: true,
+        value: (query: string) =>
           ({ matches: reduce && query.includes("reduce"), media: query }) as MediaQueryList,
-      );
+      });
+      return { mockRestore: () => Reflect.deleteProperty(window, "matchMedia") };
+    };
     const spy = motion(false);
     const opener = await mount();
     fireEvent.pointerEnter(opener, { pointerType: "mouse" });
