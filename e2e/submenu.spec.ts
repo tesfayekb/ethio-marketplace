@@ -144,10 +144,10 @@ test.describe("D244 every panel on screen", () => {
         await expect(page.getByTestId("submenu-panel")).toHaveCount(0);
 
         await page.setViewportSize({ width, height: 900 });
-        await opener.scrollIntoViewIfNeeded();
-        await opener.hover();
+        // Opened by the keys, so no pointer leaves its row while the rows move with the window.
+        await opener.focus();
+        await page.keyboard.press("ArrowRight");
         await expect(page.getByTestId("submenu-panel")).toBeVisible();
-        // The pointer stays on the opener while the window shrinks.
         await page.setViewportSize({ width, height: 600 });
         await everyRowOnScreen(page, `SMN-E4 ${width} resized 900→600`);
       } finally {
