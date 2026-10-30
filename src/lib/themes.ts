@@ -9,9 +9,11 @@
  * the names in theme-resolver.ts).
  */
 import type { ThemeSetValue } from "./schemas/theme";
-import { DEFAULT_THEME, type ThemeName } from "./theme-resolver";
+import type { ThemeName } from "./theme-resolver";
 
-export { DEFAULT_THEME };
+/** The default theme (D250). Equal to theme-resolver.ts's, which the first paint reads (TH-1);
+ * written here too so this on-demand module imports nothing at run time. */
+export const DEFAULT_THEME: ThemeName = "sage";
 
 const SAGE: ThemeSetValue = {
   light: {

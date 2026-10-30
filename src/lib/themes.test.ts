@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { ThemeSet } from "./schemas/theme";
-import { THEME_NAMES } from "./theme-resolver";
+import { DEFAULT_THEME as RESOLVER_DEFAULT, THEME_NAMES } from "./theme-resolver";
 import { DEFAULT_THEME, THEMES } from "./themes";
 
 /**
@@ -33,6 +33,7 @@ describe("THEMES", () => {
   it("TH-1 the theme names are the resolver's names; the default is sage", () => {
     expect(Object.keys(THEMES)).toEqual([...THEME_NAMES]);
     expect(DEFAULT_THEME).toBe("sage");
+    expect(RESOLVER_DEFAULT).toBe(DEFAULT_THEME);
   });
 
   it.each([
