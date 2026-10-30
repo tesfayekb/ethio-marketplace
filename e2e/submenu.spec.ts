@@ -12,7 +12,7 @@ import { adminClient } from "./helpers/users";
  * (shell.spec.ts), on its scratch branch.
  */
 test.describe("DEC-288 side panel, fine pointer", () => {
-  test("SMN-E1 rows spread between 36 and 48 px; a hover opens the panel, a click opens the page", async ({
+  test("SMN-E1 rows spread between 32 and 48 px; a hover opens the panel, a click opens the page", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280", "the side panel opens from 768 px");
@@ -24,8 +24,9 @@ test.describe("DEC-288 side panel, fine pointer", () => {
     );
     expect(heights.length).toBeGreaterThan(0);
     for (const height of heights) {
-      expect(height, "SMN-E1 a fine-pointer row is 36–48 px").toBeGreaterThanOrEqual(36);
-      expect(height, "SMN-E1 a fine-pointer row is 36–48 px").toBeLessThanOrEqual(48);
+      // G38 — D247: rows share the height between 32 and 48 px (was 36–48, R1b-2).
+      expect(height, "SMN-E1 a row is 32–48 px (D247)").toBeGreaterThanOrEqual(32);
+      expect(height, "SMN-E1 a row is 32–48 px (D247)").toBeLessThanOrEqual(48);
     }
     const opener = rail.getByTestId("rail-category-electronics");
     await opener.hover();
