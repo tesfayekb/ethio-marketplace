@@ -17,6 +17,7 @@ import {
   SUBMENU_OPEN_MS,
   inSafeTriangle,
   placePanel,
+  snapToGrid,
 } from "./submenu-geometry";
 import { loadOverlays } from "./overlay-loader";
 
@@ -156,6 +157,48 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     });
     expect(placed.top).toBe(56);
     expect(placed.maxHeight).toBe(600 - 8 - 56);
+  });
+
+  it("SNP-1 the panel's first row sits on the opener's row, at the menu's row height (D248)", () => {
+    const snap = snapToGrid({
+      openerTop: 136,
+      rowHeight: 36,
+      menuTop: 64,
+      menuBottom: 568,
+      count: 5,
+    });
+    expect(snap).toEqual({ top: 136, rowHeight: 36, height: 180, scrolls: false });
+  });
+
+  it("SNP-2 a panel that would end below the menu's last row moves up by whole rows (D248)", () => {
+    // The opener is the 12th of 14 rows (64 + 11 × 36 = 460); 6 rows would end at 676 > 568.
+    const snap = snapToGrid({
+      openerTop: 460,
+      rowHeight: 36,
+      menuTop: 64,
+      menuBottom: 568,
+      count: 6,
+    });
+    expect(snap.top).toBe(460 - 3 * 36);
+    expect(snap.top + snap.height).toBe(568);
+    expect((460 - snap.top) % 36).toBe(0);
+  });
+
+  it("SNP-3 a panel taller than the menu takes its height, then shrinks its rows to 32 px, then scrolls (D248)", () => {
+    const menu = { openerTop: 100, rowHeight: 36, menuTop: 64, menuBottom: 568 };
+    // 504 px of menu: 15 rows of 36 (540) do not fit; they share it at 33.6 px.
+    const shared = snapToGrid({ ...menu, count: 15 });
+    expect(shared.top).toBe(64);
+    expect(shared.height).toBe(504);
+    expect(shared.rowHeight).toBeCloseTo(33.6, 5);
+    expect(shared.scrolls).toBe(false);
+    // 20 rows at 32 px (640) cannot fit: the floor holds and the panel scrolls.
+    expect(snapToGrid({ ...menu, count: 20 })).toEqual({
+      top: 64,
+      rowHeight: 32,
+      height: 504,
+      scrolls: true,
+    });
   });
 
   it("SMN-2 the safe triangle holds a diagonal move to the panel and nothing outside it", () => {

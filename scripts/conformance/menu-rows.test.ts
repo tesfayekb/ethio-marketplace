@@ -39,7 +39,11 @@ export function rowFindings(files: File[]): { findings: Finding[]; hidden: strin
     findings.push({ file: CSS, line: 1, what: "the menu rows' 32–48 px share is missing (D247)" });
   if (!/\.menu-fit:not\(\[data-many\]\)/.test(css))
     findings.push({ file: CSS, line: 1, what: "the >16 branch (data-many) is missing (D247)" });
-  if (!/@media \(min-width: 768px\) \{\s*\.menu-fit\[data-many\] > li:not\(\[aria-hidden\]\)/.test(css))
+  if (
+    !/@media \(min-width: 768px\) \{\s*\.menu-fit\[data-many\] > li:not\(\[aria-hidden\]\)/.test(
+      css,
+    )
+  )
     findings.push({ file: CSS, line: 1, what: "from 768 px the item limit still holds (D248)" });
   if (!/export const MENU_FIT_MAX = 16;/.test(codeOf(byName.get(SIGNAL) ?? "")))
     findings.push({ file: SIGNAL, line: 1, what: "MENU_FIT_MAX is not the one number, 16 (D247)" });
