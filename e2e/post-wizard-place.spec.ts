@@ -5,7 +5,6 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession, switchLanguage } from "./helpers/ui";
 import {
   destroyLocation,
-  readServedTree,
   seedScratchChain,
   waitForServedTree,
   waitForTreeSlug,
