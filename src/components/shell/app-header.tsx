@@ -27,7 +27,7 @@ import { useShell } from "@/components/shell-context";
  * for a fine one.
  */
 const CONTROL_LOOK =
-  "min-h-11 pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "min-h-11 md:pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const ICON_BUTTON = `inline-flex w-9 shrink-0 items-center justify-center ${CONTROL_LOOK}`;
 /** Sage §1 — the search pill: the field fill and its pressed-in lift, no border. */
 const SEARCH_FIELD =

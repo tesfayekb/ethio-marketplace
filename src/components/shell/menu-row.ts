@@ -17,11 +17,13 @@ export const ITEM_ACTIVE = "menu-on bg-card font-semibold text-nav-ink shadow-ro
  * Sage §2/§3 (turn SAGE-S1) — ONE TILE for every menu icon: the rail, the strip, the phone
  * menu, the side panels, D259's Home row and D255's back item read it (CF-ROWS-1). 30 px on
  * the rail and in panels; ITEM_TILE_SM (28 px) on the phone's compact rows. The icon inside
- * takes ITEM_TILE_ICON (16 px) or ITEM_TILE_ICON_SM (15 px).
+ * takes ITEM_TILE_ICON (16 px) or ITEM_TILE_ICON_SM (15 px). The 30 px tile starts 5 px
+ * before the row's padding so its centre stays on the menu's icon column (TB-1: the collapse
+ * toggle and the row icons line up); the phone's 28 px tile sits in its own centred column.
  */
 export const ITEM_TILE_ON =
   "in-[.menu-on]:border-primary in-[.menu-on]:bg-primary in-[.menu-on]:text-primary-foreground in-[.menu-on]:shadow-tile-on";
-export const ITEM_TILE = `relative inline-flex size-7.5 shrink-0 items-center justify-center rounded-full border border-hairline bg-card text-primary shadow-tile ${ITEM_TILE_ON}`;
-export const ITEM_TILE_SM = "size-7";
+export const ITEM_TILE = `relative -ms-1.25 inline-flex size-7.5 shrink-0 items-center justify-center rounded-full border border-hairline bg-card text-primary shadow-tile ${ITEM_TILE_ON}`;
+export const ITEM_TILE_SM = "ms-0 size-7";
 export const ITEM_TILE_ICON = "size-4 shrink-0";
 export const ITEM_TILE_ICON_SM = "size-3.75 shrink-0";

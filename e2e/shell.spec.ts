@@ -1357,7 +1357,7 @@ test.describe("mobile chrome", () => {
       .toBe("level");
     expect(rowBox.height).toBeGreaterThanOrEqual(31);
     expect(rowBox.height).toBeLessThanOrEqual(41); // INC-1010: phones stay 32–40 px (DEC-288)
-    const iconBox = await row.locator("svg:nth-of-type(1)").boundingBox();
+    const iconBox = await row.locator(":scope > span:first-child > svg").boundingBox();
     const nameBox = await row.locator("[data-cut]").boundingBox();
     if (!iconBox || !nameBox) throw new Error("Missing menu row icon or name");
     expect(
@@ -3641,7 +3641,9 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
     // (turn 5) ends the row and is judged at its own 16 px.
     const sizes = await sizesOf(
       scope,
-      "li > a > svg:first-child, li > span > svg:first-child, li > button > svg:first-child",
+      // G38 (turn SAGE-S1, spec §2/§3): the icon sits in the row's first child, its tile
+      // (was the row's first child itself, at 20 px rail / 24 px phone; now 16 / 15 px).
+      "li > a > span:first-child > svg, li > span > span:first-child > svg, li > button > span:first-child > svg",
     );
     expect(sizes.length).toBeGreaterThan(0);
     for (const size of sizes) {
@@ -3659,17 +3661,17 @@ test("RM-4 the row icons use the approved rail and phone sizes", async ({ page }
     await expect(
       page.getByTestId("rail-strip").getByTestId("strip-category-electronics"),
     ).toBeVisible();
-    await check(page.getByTestId("rail-strip"), 24);
+    await check(page.getByTestId("rail-strip"), 15);
     const menu = await openRailScope(page);
     await settled(page);
     await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
     await expect(menu.getByTestId("rail-category-electronics")).toBeVisible();
-    await check(menu, 24);
+    await check(menu, 15);
   } else {
     const rail = page.getByTestId("app-rail");
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
     await expect(rail.getByTestId("rail-category-electronics")).toBeVisible();
-    await check(rail, 20);
+    await check(rail, 16);
   }
 });
 
@@ -3806,8 +3808,8 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
       const branch = menu.getByTestId(`rail-category-${b}`);
       await expect(root).toHaveAttribute("aria-current", "page");
       await expect(branch).toBeVisible();
-      const rootIcon = await root.locator("svg:nth-of-type(1)").boundingBox();
-      const childIcon = await branch.locator("svg:nth-of-type(1)").boundingBox();
+      const rootIcon = await root.locator(":scope > span:first-child > svg").boundingBox();
+      const childIcon = await branch.locator(":scope > span:first-child > svg").boundingBox();
       if (!rootIcon || !childIcon) throw new Error("SC-1 missing category glyphs");
       expect(childIcon.x - rootIcon.x).toBeGreaterThanOrEqual(14);
       await branch.click();
