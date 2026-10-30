@@ -6,6 +6,7 @@ import { z } from "zod";
 import { codeOf, report, walkFiles } from "./kit";
 import { providerSchemaOf } from "../../src/server/ai/response-schema";
 import { AI_TASKS } from "../../src/server/ai/tasks";
+import { errorText } from "../../src/lib/error-text";
 
 /**
  * INC-1002 (turn J-1) — EVERY JSON TEXT TASK ASKS THE PROVIDER FOR ITS OWN OUTPUT'S SHAPE.
@@ -36,7 +37,7 @@ export function taskFindings(tasks: readonly TaskLike[]): Finding[] {
       findings.push({
         file: "src/server/ai/tasks.ts",
         line: 0,
-        what: `${task.id}: no response schema (${(error as Error).message})`,
+        what: `${task.id}: no response schema (${errorText(error)})`,
       });
     }
   }
