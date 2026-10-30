@@ -1074,7 +1074,7 @@ test.describe("mobile chrome", () => {
     expect(rows.length).toBeGreaterThan(0);
     for (const height of rows) {
       expect(height).toBeGreaterThanOrEqual(31);
-      expect(height).toBeLessThanOrEqual(41);
+      expect(height).toBeLessThanOrEqual(48); // G38 — D247 (R1c): 32–48 px (was 32–40)
     }
   });
 
@@ -1343,7 +1343,7 @@ test.describe("mobile chrome", () => {
       })
       .toBe("level");
     expect(rowBox.height).toBeGreaterThanOrEqual(31);
-    expect(rowBox.height).toBeLessThanOrEqual(41);
+    expect(rowBox.height).toBeLessThanOrEqual(48); // G38 — D247 (R1c): 32–48 px (was 32–40)
     const iconBox = await row.locator("svg:nth-of-type(1)").boundingBox();
     const nameBox = await row.locator("[data-cut]").boundingBox();
     if (!iconBox || !nameBox) throw new Error("Missing menu row icon or name");
@@ -1552,7 +1552,7 @@ test.describe("mobile chrome", () => {
     const stripRowBox = await firstStripRow.boundingBox();
     if (!stripRowBox) throw new Error("Missing strip category");
     expect(stripRowBox.height).toBeGreaterThanOrEqual(31);
-    expect(stripRowBox.height).toBeLessThanOrEqual(41);
+    expect(stripRowBox.height).toBeLessThanOrEqual(48); // G38 — D247 (R1c): 32–48 px (was 32–40)
 
     // Category rows inside the opened menu share the strip's fitted height.
     const menu = await openRailScope(page);
@@ -1563,7 +1563,7 @@ test.describe("mobile chrome", () => {
     const firstMenuRow = await catalogueRows(menu).first().boundingBox();
     if (!firstMenuRow) throw new Error("Missing menu category");
     expect(firstMenuRow.height).toBeGreaterThanOrEqual(31);
-    expect(firstMenuRow.height).toBeLessThanOrEqual(41);
+    expect(firstMenuRow.height).toBeLessThanOrEqual(48); // G38 — D247 (R1c): 32–48 px (was 32–40)
     await expectTapTarget(
       page,
       page.getByTestId("shell-topbar").getByRole("button", { name: en["shell.closeMenu"] }),
