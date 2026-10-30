@@ -65,5 +65,6 @@ export async function readNameCheck(profileId: string) {
 /** afterEach: a hold made by the test never outlives it, whatever the name became (J3). */
 export async function releaseHold(profileId: string) {
   const row = await readNameCheck(profileId);
-  if (row?.state === "imitates" || row?.state === "needs_review") await markName(profileId, row.checked_text, "clean");
+  if (row?.state === "imitates" || row?.state === "needs_review")
+    await markName(profileId, row.checked_text, "clean");
 }

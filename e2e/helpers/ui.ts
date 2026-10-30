@@ -1232,7 +1232,10 @@ export async function switchLanguage(page: Page, code: "en" | "am") {
   await page.getByTestId("language-switcher").click();
   await page.getByTestId(`language-option-${code}`).click();
   await expect(page.locator("html")).toHaveAttribute("lang", code, { timeout: 15000 });
-  await expect(page.getByRole("menu"), "the language menu stayed open after a pick (INC-1004)").toHaveCount(0);
+  await expect(
+    page.getByRole("menu"),
+    "the language menu stayed open after a pick (INC-1004)",
+  ).toHaveCount(0);
   /**
    * INC-173b — `html[lang]` flips from React state, and the durable record the
    * NEXT page load reads (`localStorage["ethio.lang"]`) is written just after.
