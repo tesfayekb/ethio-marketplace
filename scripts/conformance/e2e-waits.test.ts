@@ -91,10 +91,8 @@ describe("CF-E2E-WAIT-1 and CF-E2E-PLACE-1", () => {
       .filter((name) => !name.startsWith("e2e/helpers/"))
       .map((name) => ({ name, text: readFileSync(join(root, name), "utf8") }));
     const all = waitFindings(files);
-    const allowed = readAllowlist(
-      ALLOWLIST,
-      all.map((f) => `${f.file}:${f.line}`),
-    );
+    const keys = all.map((f) => `${f.file}:${f.line}`);
+    const allowed = readAllowlist(ALLOWLIST, keys);
     const found = all.filter((f) => !allowed.has(`${f.file}:${f.line}`));
     expect(found, report(found)).toEqual([]);
   });
