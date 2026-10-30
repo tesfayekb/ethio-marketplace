@@ -224,7 +224,10 @@ export function AppHeader() {
                   type="button"
                   aria-label={t("shell.accountMenu")}
                   data-testid="account-menu"
-                  className={cn("inline-flex min-w-0 shrink-0 items-center gap-2 px-1.5 text-sm", CONTROL_LOOK)}
+                  className={cn(
+                    "inline-flex min-w-0 shrink-0 items-center gap-2 px-1.5 text-sm",
+                    CONTROL_LOOK,
+                  )}
                 >
                   <Avatar className="h-7 w-7">
                     <AvatarFallback>

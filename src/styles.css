@@ -255,8 +255,9 @@
   /* C2b — the phone bottom bar's height; every sticky/fixed bottom edge
      below md sits above it through this one variable (0px from 48rem). */
   --bottom-bar: calc(3.75rem + env(safe-area-inset-bottom));
-  /* #F3F5F8 cool grey (bundle 11 V2, D132 — the agreed page tone) */
-  --background: oklch(0.969 0.005 258.3);
+  --background: oklch(
+    0.959 0.007 151.9
+  ); /* #EEF3EF Sage page tone (DEC-289; S0 ruling A — the photo backdrop stays #F3F5F8, D155) */
   --foreground: oklch(0.254 0.014 253.1); /* #1E2329 */
   --card: oklch(1 0 89.9); /* #FFFFFF */
   --card-foreground: oklch(0.254 0.014 253.1);
