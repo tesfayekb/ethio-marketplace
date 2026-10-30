@@ -68,7 +68,9 @@ export function waitFindings(files: { name: string; text: string }[]): Finding[]
       for (const region of regions) {
         const select = new RegExp(String.raw`\b${region}\.selectOption\(\s*([A-Za-z_]\w*)\s*\)`);
         if (!select.test(line)) continue;
-        const loop = lines.slice(Math.max(0, index - NEAR), index).some((l) => /\bfor\s*\(/.test(l));
+        const loop = lines
+          .slice(Math.max(0, index - NEAR), index)
+          .some((l) => /\bfor\s*\(/.test(l));
         if (loop)
           found.push({
             file: name,
@@ -114,7 +116,7 @@ describe("CF-E2E-WAIT-1 and CF-E2E-PLACE-1", () => {
           "for (const value of values) {",
           "  await region.selectOption(value);",
           '  const cityPicker = page.getByTestId("post-where-city");',
-          "  if ((await cityPicker.locator(`option[value=\"${city.id}\"]`).count()) === 1) {",
+          '  if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {',
           "  }",
           "}",
         ].join("\n"),
