@@ -43,12 +43,21 @@ test("ROWS-E3 the rail's list fits at 1280×600 when its rows fit at 32 px; it d
   test.skip(testInfo.project.name !== "desktop-1280", "the persistent rail is from 768 px");
   await page.setViewportSize({ width: 1280, height: 600 });
   await gotoReady(page, "/");
-  const { rows } = await railList(page);
+  const { region, rows } = await railList(page);
   const count = await rows.count();
   const { client } = await scrollOf(page);
-  expect(count, "ROWS-E3 the rail holds 16 items or fewer").toBeLessThanOrEqual(16);
-  // The real tree (15 roots, no favourite) fits; a tree whose 32 px rows exceed the region
-  // belongs to ROWS-E4's branch, and this run says so instead of passing on it.
+  const many = await region.locator("nav > ul.menu-fit").getAttribute("data-many");
+  if (count > 16) {
+    // A backend whose tree holds more than 16 roots (the local one's scratch rows): the
+    // rule's other branch, full-size rows and a visible scroll, is what this tree shows.
+    expect(many, "ROWS-E3 a list of more than 16 is marked data-many").toBe("");
+    await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
+    expect((await scrollOf(page)).bar, "ROWS-E3 the scrollbar takes width").toBeGreaterThan(0);
+    test.info().annotations.push({ type: "D247", description: `${count} roots: the >16 branch` });
+    return;
+  }
+  expect(many, "ROWS-E3 a list of 16 or fewer is not data-many").toBeNull();
+  // The real tree (15 roots, no favourite) fits at 600 px.
   expect(count * 32, "ROWS-E3 the tree's rows fit at 32 px in this region").toBeLessThanOrEqual(
     client,
   );
