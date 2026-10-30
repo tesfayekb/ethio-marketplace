@@ -87,6 +87,39 @@ async function typePhone(page: Page, testId: string, text: string) {
   await page.keyboard.type(text);
 }
 
+/**
+ * INC-948 — THE CITY'S OWN REGION, PICKED, NEVER WALKED. The walk this replaces
+ * selected each region and read the city picker's options at once with a bare
+ * `count()`, which never waits: when the city options for the right region drew a
+ * frame after the region's change, the walk passed that region and ended with no
+ * city chosen ("PW-30: no place was chosen", data-count 0). The region is read from
+ * the city's own row, and each option is awaited before it is chosen (J7).
+ */
+async function pickCity(page: Page, city: { id: string; slug: string }): Promise<string> {
+  const { data, error } = await adminClient()
+    .from("locations")
+    .select("parent_id")
+    .eq("id", city.id)
+    .single();
+  if (error || !data?.parent_id)
+    throw new Error(
+      `[e2e:pw] the region of ${city.slug} was not read: ${error?.message ?? "none"}`,
+    );
+  const region = page.getByTestId("post-where-region");
+  await expect(
+    region.locator(`option[value="${data.parent_id}"]`),
+    `the region of ${city.slug} never reached the picker`,
+  ).toHaveCount(1);
+  await region.selectOption(data.parent_id);
+  const cityPicker = page.getByTestId("post-where-city");
+  await expect(
+    cityPicker.locator(`option[value="${city.id}"]`),
+    `the city ${city.slug} never reached the picker`,
+  ).toHaveCount(1);
+  await cityPicker.selectOption(city.id);
+  return ((await cityPicker.locator("option:checked").textContent()) ?? "").trim();
+}
+
 test.describe("POSTING WIZARD", () => {
   const categories: string[] = [];
   const branches: string[] = [];
@@ -383,47 +416,7 @@ test.describe("POSTING WIZARD", () => {
     await waitForTreeSlug(page, "ET", city.slug);
     const region = page.getByTestId("post-where-region");
     await expect(region, "reachStep7: the region level never rendered").toBeVisible();
-    // The city's own region is whichever one carries it: the cascade is walked,
-    // not guessed, by selecting each region until the city appears.
-    const values = await region
-      .locator("option")
-      .evaluateAll((nodes) =>
-        nodes.map((node) => (node as HTMLOptionElement).value).filter((value) => value !== ""),
-      );
-    let picked = false;
-    let cityName = "";
-    for (const value of values) {
-      await region.selectOption(value);
-      const cityPicker = page.getByTestId("post-where-city");
-      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
-        await cityPicker.selectOption(city.id);
-        picked = true;
-        cityName = ((await cityPicker.locator("option:checked").textContent()) ?? "").trim();
-        break;
-      }
-    }
-    if (!picked) {
-      // INC-235 — THE REFUSAL SAYS WHAT IT SAW: the market on screen, every region
-      // the cascade offered, what the route served then and now, and how long the
-      // walk had taken. A bare "no region carried the city" is not evidence.
-      const market = await page.getByTestId("post-where-market").inputValue();
-      const slugs = await region
-        .locator("option")
-        .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ""));
-      const now = await readServedTree("ET");
-      expect(
-        picked,
-        [
-          `reachStep7: no region carried the city ${city.slug}.`,
-          `the market select's value: ${market || "(empty)"}`,
-          `regions offered (${values.length}): ${slugs.join(" | ") || "(none)"}`,
-          `the tree route when the step opened: status ${served.status}, ${served.slugs.length} slugs`,
-          `the tree route now: status ${now.status}, ${now.slugs.length} slugs, markets ${now.codes.join(",") || "(none)"}`,
-          `the city ${city.slug} in that read: ${now.slugs.includes(city.slug) ? "yes" : "NO"}`,
-          `elapsed since the tree wait: ${Date.now() - startedAt} ms`,
-        ].join("\n"),
-      ).toBe(true);
-    }
+    const cityName = await pickCity(page, city);
     // The chosen place shows itself into the list (U6-C1-R2) — no tap needed.
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
       timeout: 20_000,
@@ -762,20 +755,7 @@ test.describe("POSTING WIZARD", () => {
     await waitForServedTree("ET", city.slug);
     await waitForTreeSlug(page, "ET", city.slug);
     mark("tree served");
-    const region = page.getByTestId("post-where-region");
-    const regions = await region
-      .locator("option")
-      .evaluateAll((nodes) =>
-        nodes.map((node) => (node as HTMLOptionElement).value).filter(Boolean),
-      );
-    for (const value of regions) {
-      await region.selectOption(value);
-      const cityPicker = page.getByTestId("post-where-city");
-      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
-        await cityPicker.selectOption(city.id);
-        break;
-      }
-    }
+    await pickCity(page, city);
     await expect(
       page.getByTestId("post-where-chosen"),
       why("PW-30: no place was chosen"),
@@ -960,22 +940,7 @@ test.describe("POSTING WIZARD", () => {
 
     const region = page.getByTestId("post-where-region");
     await expect(region, "PW-20: the region level never rendered").toBeVisible();
-    const values = await region
-      .locator("option")
-      .evaluateAll((nodes) =>
-        nodes.map((node) => (node as HTMLOptionElement).value).filter((value) => value !== ""),
-      );
-    let picked = false;
-    for (const value of values) {
-      await region.selectOption(value);
-      const cityPicker = page.getByTestId("post-where-city");
-      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
-        await cityPicker.selectOption(city.id);
-        picked = true;
-        break;
-      }
-    }
-    expect(picked, `PW-20: no region carried the city ${city.slug}`).toBe(true);
+    await pickCity(page, city);
     const subCity = page.getByTestId("post-where-subcity");
     if ((await subCity.count()) === 1) await subCity.selectOption("");
 
