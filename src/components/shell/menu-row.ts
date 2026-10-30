@@ -19,11 +19,12 @@ export const ITEM_ACTIVE = "menu-on bg-card font-semibold text-nav-ink shadow-ro
  * the rail and in panels; ITEM_TILE_SM (28 px) on the phone's compact rows. The icon inside
  * takes ITEM_TILE_ICON (16 px) or ITEM_TILE_ICON_SM (15 px). The 30 px tile starts 5 px
  * before the row's padding so its centre stays on the menu's icon column (TB-1: the collapse
- * toggle and the row icons line up); the phone's 28 px tile sits in its own centred column.
+ * toggle and the row icons line up), and in the folded rail's icon column it sits on the row's padding, centred under
+ * the toggle; the phone's 28 px tile sits in its own centred column.
  */
 export const ITEM_TILE_ON =
   "in-[.menu-on]:border-primary in-[.menu-on]:bg-primary in-[.menu-on]:text-primary-foreground in-[.menu-on]:shadow-tile-on";
-export const ITEM_TILE = `relative -ms-1.25 inline-flex size-7.5 shrink-0 items-center justify-center rounded-full border border-hairline bg-card text-primary shadow-tile ${ITEM_TILE_ON}`;
+export const ITEM_TILE = `relative -ms-1.25 rail-icons:in-[[data-testid=app-rail]]:ms-0 inline-flex size-7.5 shrink-0 items-center justify-center rounded-full border border-hairline bg-card text-primary shadow-tile ${ITEM_TILE_ON}`;
 export const ITEM_TILE_SM = "ms-0 size-7";
 export const ITEM_TILE_ICON = "size-4 shrink-0";
 export const ITEM_TILE_ICON_SM = "size-3.75 shrink-0";

@@ -209,9 +209,8 @@ for (const width of WIDTHS) {
         expect(await style(bar, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, "lift-bar-up")),
         );
-        expect(await style(bar, "borderTopLeftRadius")).toBe(
-          await resolved(page, "borderTopLeftRadius", "var(--radius-bar)"),
-        );
+        // P-S6: the phone's sliding surfaces share the 18 px bar radius.
+        expect(await style(bar, "borderTopLeftRadius")).toBe("18px");
         const disc = page.getByTestId("bottom-bar-disc");
         expect(await style(disc, "boxShadow")).toBe(
           await resolved(page, "boxShadow", tokenOf(mode, "lift-disc")),
