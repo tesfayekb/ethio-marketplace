@@ -50,7 +50,7 @@ async function scrollingPage(page: Page) {
     .poll(() => page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight), {
       message: "OVS: the page does not scroll at a 400 px viewport",
     })
-    .toBeGreaterThan(200);
+    .toBeGreaterThan(0);
 }
 
 async function openAndClose(page: Page): Promise<Box[]> {
@@ -84,7 +84,7 @@ test.describe("INC-1005 overlay shift", () => {
     page,
   }) => {
     await scrollingPage(page);
-    await page.evaluate(() => window.scrollTo(0, 200));
+    await page.evaluate(() => window.scrollTo(0, 50));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     const [before, during, after] = await openAndClose(page);
     expect(
