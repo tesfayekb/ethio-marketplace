@@ -114,9 +114,10 @@ test.describe("D247 a touch phone's lists", () => {
       return count;
     };
     await judge("ROWS-E1 the main list");
-    // The 16-or-fewer branch on a list this test seeded itself.
+    // The 16-or-fewer branch on a list this test seeded itself: the opened root's row heads
+    // its 12 subcategories, 13 rows.
     await menu.getByTestId(`rail-category-${branch.root}`).tap();
     await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
-    expect(await judge("ROWS-E1 the seeded list", SEEDED)).toBe(SEEDED);
+    expect(await judge("ROWS-E1 the seeded list", SEEDED + 1)).toBe(SEEDED + 1);
   });
 });

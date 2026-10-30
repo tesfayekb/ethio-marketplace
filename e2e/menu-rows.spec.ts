@@ -79,13 +79,24 @@ test.describe("D247 the rail's list", () => {
     await gotoReady(page, "/");
     // The main list, judged for the count this backend holds at run time (G27, G28).
     await judge(page, "ROWS-E3 the main list");
-    // The 16-or-fewer branch on the test's own list: its page shows its subcategories.
-    await gotoReady(page, `/c/${branch.root}`);
-    const { rows } = await railList(page);
+    // The 16-or-fewer branch on the test's own list: its side panel's 12 rows fit, no scroll.
+    const { rail } = await railList(page);
+    const opener = rail.getByTestId(`rail-category-${branch.root}`);
+    await opener.scrollIntoViewIfNeeded();
+    await opener.hover();
+    const panel = page.getByTestId("submenu-panel");
+    await expect(panel).toBeVisible();
+    const rows = panel.locator("[data-submenu-row]");
     await expect(rows).toHaveCount(SEEDED);
-    const { client } = await scrollOf(page);
-    expect(SEEDED * 32, "ROWS-E3 12 rows fit at 32 px").toBeLessThanOrEqual(client);
-    expect(await judge(page, "ROWS-E3 the seeded list")).toBe(SEEDED);
+    await expect
+      .poll(() => panel.evaluate((el) => el.scrollHeight - el.clientHeight))
+      .toBeLessThanOrEqual(1);
+    for (const height of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    )) {
+      expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeGreaterThanOrEqual(31.5);
+      expect(height, "ROWS-E3 a seeded row is 32–48 px").toBeLessThanOrEqual(48);
+    }
   });
 });
 
