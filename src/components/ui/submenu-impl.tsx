@@ -156,6 +156,8 @@ function Panel({
   itemsOf,
   edgeOf,
   panelRef,
+  floor,
+  tick,
   onEnter,
   onLeave,
   onClose,
@@ -338,6 +340,8 @@ function Panel({
           opener={child.opened}
           level={childLevel}
           depth={depth + 1}
+          floor={ownFloor}
+          tick={childTick}
           showHeader={false}
           itemsOf={itemsOf}
           edgeOf={() => own.current ?? document.body}
@@ -450,6 +454,8 @@ export function SubmenuLayer({
       opener={opened}
       level={level}
       depth={0}
+      floor={0}
+      tick={0}
       showHeader={showHeader}
       itemsOf={itemsOf}
       edgeOf={edgeOf}
