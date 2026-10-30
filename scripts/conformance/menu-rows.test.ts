@@ -14,7 +14,9 @@ import { codeOf, readAllowlist, report } from "./kit";
  *  - a `.menu-fit` list that is not marked `data-many` from MENU_FIT_MAX (no literal 16);
  *  - a panel row that sets its own height (min-h-*), which would outrank the list's share;
  *  - a hidden scrollbar (`scrollbar-none`) on a menu region, each remaining one an
- *    allowlist line `key | reason | until` in menu-rows-allowlist.txt.
+ *    allowlist line `key | reason | until` in menu-rows-allowlist.txt;
+ *  - D248 (R1d-a): the from-768 rule that lifts the item limit missing; the panel (or the
+ *    rail) defining its own row classes instead of importing src/components/shell/menu-row.ts.
  */
 type Finding = { file: string; line: number; what: string };
 type File = { name: string; text: string };
@@ -23,6 +25,8 @@ const CSS = "src/styles.css";
 const SIGNAL = "src/components/shell/submenu/submenu-signal.ts";
 const IMPL = "src/components/ui/submenu-impl.tsx";
 const MENU_FILES = ["src/components/shell/app-rail.tsx", IMPL];
+const OWN_ROW = /const (?:ROW|IDLE|ACTIVE|ITEM_CORE|ITEM_IDLE|ITEM_ACTIVE)\s*=/;
+const SHARED_ROW = /from "@\/components\/shell\/menu-row"/;
 
 export function rowFindings(files: File[]): { findings: Finding[]; hidden: string[] } {
   const findings: Finding[] = [];
@@ -33,8 +37,10 @@ export function rowFindings(files: File[]): { findings: Finding[]; hidden: strin
     /\.menu-fit:not\(\[data-many\]\) > li:not\(\[aria-hidden\]\) \{[^}]*min-height: 2rem;[^}]*max-height: 3rem;/;
   if (!fit.test(css))
     findings.push({ file: CSS, line: 1, what: "the menu rows' 32–48 px share is missing (D247)" });
-  if (!/\.menu-natural\[data-many\] > li > \*/.test(css))
+  if (!/\.menu-fit:not\(\[data-many\]\)/.test(css))
     findings.push({ file: CSS, line: 1, what: "the >16 branch (data-many) is missing (D247)" });
+  if (!/@media \(min-width: 768px\) \{\s*\.menu-fit\[data-many\] > li:not\(\[aria-hidden\]\)/.test(css))
+    findings.push({ file: CSS, line: 1, what: "from 768 px the item limit still holds (D248)" });
   if (!/export const MENU_FIT_MAX = 16;/.test(codeOf(byName.get(SIGNAL) ?? "")))
     findings.push({ file: SIGNAL, line: 1, what: "MENU_FIT_MAX is not the one number, 16 (D247)" });
   for (const name of MENU_FILES) {
@@ -59,9 +65,17 @@ export function rowFindings(files: File[]): { findings: Finding[]; hidden: strin
       if (/scrollbar-none/.test(line)) hidden.push(`${name}:${index + 1}`);
     });
   }
-  const row = /const ROW =\s*\n?\s*"([^"]*)"/.exec(codeOf(byName.get(IMPL) ?? ""));
-  if (row && /\bmin-h-/.test(row[1] ?? ""))
-    findings.push({ file: IMPL, line: 1, what: "a panel row sets its own height (D247)" });
+  for (const name of MENU_FILES) {
+    const text = byName.get(name);
+    if (text === undefined) continue;
+    const code = codeOf(text);
+    if (OWN_ROW.test(code) || !SHARED_ROW.test(code))
+      findings.push({
+        file: name,
+        line: 1,
+        what: "a menu defines its own row classes, not menu-row.ts's (D248)",
+      });
+  }
   return { findings, hidden };
 }
 
@@ -93,13 +107,16 @@ describe("CF-ROWS-1 a menu list fits before it scrolls", () => {
       },
       { name: IMPL, text: 'const ROW =\n  "flex min-h-11 w-full";' },
     ]);
+    // A planted copy of the panel with its own row classes (D248).
     expect(findings.map((f) => f.what)).toEqual([
       "the menu rows' 32–48 px share is missing (D247)",
       "the >16 branch (data-many) is missing (D247)",
       "MENU_FIT_MAX is not the one number, 16 (D247)",
       "1 menu-fit list(s), 0 marked data-many from MENU_FIT_MAX (D247)",
+      "from 768 px the item limit still holds (D248)",
       "a literal count for data-many (D247)",
-      "a panel row sets its own height (D247)",
+      "a menu defines its own row classes, not menu-row.ts's (D248)",
+      "a menu defines its own row classes, not menu-row.ts's (D248)",
     ]);
     expect(hidden).toEqual(["src/components/shell/app-rail.tsx:2"]);
     // The >16 branch on a planted list of 17 (ROWS-E2 waits for R1d's admin menu).
