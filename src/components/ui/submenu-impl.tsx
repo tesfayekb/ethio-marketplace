@@ -196,7 +196,9 @@ function Panel({
 
   useEffect(() => {
     if (!place || !opener.focus) return;
-    rowsOf(own.current)[0]?.focus();
+    const row = rowsOf(own.current)[0];
+    row?.focus();
+    console.info("[smn-dbg]", row?.getClientRects().length, getComputedStyle(own.current as Element).visibility, getComputedStyle(own.current as Element).opacity, document.activeElement === row);
   }, [place, opener]);
 
   const rows = () =>
