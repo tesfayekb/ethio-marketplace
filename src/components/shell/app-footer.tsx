@@ -12,7 +12,10 @@ const ROUTED: Partial<Record<MessageKey, { to: "/terms" | "/privacy"; testid: st
 };
 
 /**
- * D116 / D135: full-width footer with a brand block and three equal link columns.
+ * D116 / D135: full-width footer with a brand block and three link columns. D257 (R1d-c):
+ * from 768 px the four blocks are sized to their content and spread evenly across the
+ * middle column (justify-evenly): the same space before the first, between each pair and
+ * after the last. Phones keep three equal centred tracks.
  * Bundle 22 turn 3: Terms and Privacy have routes (/terms, /privacy) and are links;
  * About, Contact and Safety have no routes yet and remain non-navigating text with a
  * 44px target.
@@ -34,11 +37,11 @@ export function AppFooter() {
     <footer className="w-full bg-card shadow-bar-up">
       <div
         data-testid="footer-columns"
-        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-0 px-4 py-1 md:grid-cols-[1.3fr_1fr_1fr_1fr] md:gap-x-8 md:px-10 md:py-2"
+        className="mx-auto grid w-full max-w-5xl grid-cols-3 gap-x-4 gap-y-0 px-4 py-1 md:flex md:max-w-none md:justify-evenly md:gap-x-0 md:px-0 md:py-2"
       >
         <div
           data-testid="footer-brand"
-          className="hidden col-span-3 min-w-0 text-center md:block md:col-span-1 md:text-start"
+          className="hidden col-span-3 min-w-0 text-center md:block md:text-start"
         >
           <div className="inline-flex flex-col">
             <Link
@@ -61,6 +64,7 @@ export function AppFooter() {
           <nav
             key={column.headingKey}
             aria-label={t(column.headingKey)}
+            data-testid="footer-column"
             className="min-w-0 text-center md:text-start"
           >
             <h2 className="flex h-7 items-center justify-center text-sm font-semibold text-foreground md:justify-start">

@@ -978,7 +978,7 @@ function RailFoot({ onNavigate }: { onNavigate: () => void }) {
   if (!auth.isAuthenticated) return null;
 
   return (
-    <div className="mt-auto flex flex-col gap-0.5 border-t border-border pt-2">
+    <div className="mt-auto flex flex-col gap-0.5 border-t border-border px-2 pt-2 rail-icons:px-1">
       <WithTooltip label={t("auth.signOut")}>
         <button
           type="button"
