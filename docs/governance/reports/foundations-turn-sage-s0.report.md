@@ -45,7 +45,7 @@ Browser runs (`bun run e2e:local`, both projects, retries 0): house-style + feed
 
 ## 7. Unit count
 
-See §8 (from the checks run).
+2,344 / 2,344 passed (component tests, in the checks run).
 
 ## 8. Checks' last line
 
