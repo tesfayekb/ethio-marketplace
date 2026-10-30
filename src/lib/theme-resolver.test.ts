@@ -7,7 +7,7 @@ describe("resolveTheme", () => {
   const dark = { name: "sage", mode: "dark" } as const;
   const light = { name: "sage", mode: "light" } as const;
 
-  it("TR-1 the order is shop, then account, then device, then system", () => {
+  it("THR-1 the order is shop, then account, then device, then system", () => {
     const all = {
       shop: dark,
       account: { failed: false as const, value: light },
@@ -28,7 +28,7 @@ describe("resolveTheme", () => {
     });
   });
 
-  it("TR-2 an unknown name falls through to the next source", () => {
+  it("THR-2 an unknown name falls through to the next source", () => {
     expect(
       resolveTheme({
         shop: { name: "neon", mode: "dark" },
@@ -38,19 +38,19 @@ describe("resolveTheme", () => {
     ).toEqual({ choice: light, source: "device" });
   });
 
-  it("TR-3 a removed name stored on the device falls through to the system", () => {
+  it("THR-3 a removed name stored on the device falls through to the system", () => {
     expect(
       resolveTheme({ device: JSON.stringify({ name: "coffee", mode: "dark" }), system: "light" }),
     ).toEqual({ choice: { name: DEFAULT_THEME, mode: "light" }, source: "system" });
   });
 
-  it("TR-4 a failed account read is unknown: the device's value stands, never the system", () => {
+  it("THR-4 a failed account read is unknown: the device's value stands, never the system", () => {
     expect(
       resolveTheme({ account: { failed: true }, device: storedThemeText(dark), system: "light" }),
     ).toEqual({ choice: dark, source: "device" });
   });
 
-  it("TR-5 the device text: legacy bare modes read as sage; malformed text is ignored", () => {
+  it("THR-5 the device text: legacy bare modes read as sage; malformed text is ignored", () => {
     expect(parseStoredTheme("dark")).toEqual(dark);
     expect(parseStoredTheme("light")).toEqual(light);
     expect(parseStoredTheme("{not json")).toBeNull();

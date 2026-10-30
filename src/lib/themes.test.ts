@@ -21,8 +21,8 @@ function block(selector: string): Map<string, string> {
   const start = css.indexOf(`${selector} {`);
   const body = css.slice(start, css.indexOf("\n}", start));
   const out = new Map<string, string>();
-  for (const m of body.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g))
-    out.set(m[1]!, m[2]!.replace(/\s+/g, " ").trim());
+  for (const [, name, value] of body.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g))
+    if (name && value) out.set(name, value.replace(/\s+/g, " ").trim());
   return out;
 }
 
