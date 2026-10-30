@@ -62,7 +62,9 @@ test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, 
     .getByTestId("rail-category-electronics")
     .evaluate((el) => (el.closest("li") ?? el).getBoundingClientRect().height);
   for (const height of panelRows) {
-    expect(height, "SMN-E3 a panel row is at most the rail's (D248)").toBeLessThanOrEqual(railRow + 1);
+    expect(height, "SMN-E3 a panel row is at most the rail's (D248)").toBeLessThanOrEqual(
+      railRow + 1,
+    );
     expect(height, "SMN-E3 a panel row keeps the 32 px floor (D248)").toBeGreaterThanOrEqual(31.5);
   }
   await page.locator("main").tap({ position: { x: 4, y: 4 } });

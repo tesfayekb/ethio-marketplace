@@ -80,12 +80,10 @@ test("SMN-E5 the panel takes the rail's surface, flush beside it, and fades 300 
   await opener.hover();
   const panel = page.getByTestId("submenu-panel");
   await expect(panel).toBeVisible();
-  const railLook = await page
-    .getByTestId("app-rail")
-    .evaluate((el) => {
-      const style = getComputedStyle(el);
-      return { background: style.backgroundColor, shadow: style.boxShadow };
-    });
+  const railLook = await page.getByTestId("app-rail").evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { background: style.backgroundColor, shadow: style.boxShadow };
+  });
   const look = await panel.evaluate((el) => {
     const style = getComputedStyle(el);
     return {

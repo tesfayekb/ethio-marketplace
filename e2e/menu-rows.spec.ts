@@ -65,7 +65,12 @@ test.describe("D247 the rail's list", () => {
       }
       return count;
     }
-    // INC-1011: 16 or fewer, too tall even at 32 px — the region scrolls, its bar takes width.
+    // INC-1011, D248: too tall even at 32 px (any count) — rows at the floor, the region
+    // scrolls, its bar takes width.
+    for (const height of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    ))
+      expect(height, `${label}: a row keeps the 32 px floor`).toBeGreaterThanOrEqual(31.5);
     await expect.poll(async () => (await scrollOf(page)).overflow).toBeGreaterThan(0);
     expect((await scrollOf(page)).bar, `${label}: the scrollbar takes width`).toBeGreaterThan(0);
     return count;

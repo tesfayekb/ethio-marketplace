@@ -90,7 +90,10 @@ test.describe("D248 a side panel is the main menu", () => {
       expect(look.radius, "SMN-E7 the panel's corners are rounded").toBeGreaterThan(0);
       expect(look.rows).toHaveLength(4);
       for (const row of look.rows) {
-        expect(Math.abs(row.height - grid.height), "SMN-E7 a row is the rail's height").toBeLessThanOrEqual(1);
+        expect(
+          Math.abs(row.height - grid.height),
+          "SMN-E7 a row is the rail's height",
+        ).toBeLessThanOrEqual(1);
         expect(
           Math.min(...grid.tops.map((top) => Math.abs(top - row.top))),
           "SMN-E7 a row is level with a rail row",
@@ -132,7 +135,9 @@ test.describe("D248 a side panel is the main menu", () => {
         over: text ? text.scrollWidth > text.clientWidth : false,
         ellipsis: style?.textOverflow,
         wrap: style?.whiteSpace,
-        lines: text ? Math.round(text.getBoundingClientRect().height / parseFloat(style?.lineHeight || "20")) : 0,
+        lines: text
+          ? Math.round(text.getBoundingClientRect().height / parseFloat(style?.lineHeight || "20"))
+          : 0,
       };
     });
     expect(cut).toEqual({ over: true, ellipsis: "ellipsis", wrap: "nowrap", lines: 1 });
@@ -149,7 +154,10 @@ test.describe("D248 a side panel is the main menu", () => {
     const panel = await openPanel(page, seeded.root);
     const grid = await railGrid(page);
     const box = await panel.evaluate((el) => el.getBoundingClientRect().bottom);
-    expect(Math.abs(box - grid.bottom), "SMN-E9 the panel ends at the rail's last row").toBeLessThanOrEqual(1);
+    expect(
+      Math.abs(box - grid.bottom),
+      "SMN-E9 the panel ends at the rail's last row",
+    ).toBeLessThanOrEqual(1);
   });
 
   test("SMN-E10 a 20-row panel fits at 1280×1000; at 1280×600 its rows reach 32 px, then it scrolls", async ({
