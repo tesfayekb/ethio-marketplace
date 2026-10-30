@@ -110,15 +110,18 @@ for (const width of WIDTHS) {
           await tokenStyle(page, mode, "lift-track", "box-shadow"),
         );
         expect(await style(track, "border-top-left-radius")).toBe(
-          await tokenStyle(page, mode, width < 768 ? "track-radius" : "track-radius-md", "border-top-left-radius"),
+          await tokenStyle(
+            page,
+            mode,
+            width < 768 ? "track-radius" : "track-radius-md",
+            "border-top-left-radius",
+          ),
         );
         const pin = track.locator(":scope > svg[aria-hidden='true']");
         const { pin: p } = await layoutBoxes({ pin });
         expect(p.width).toBe(16);
         expect(p.height).toBe(16);
-        expect(await style(pin, "color")).toBe(
-          await tokenStyle(page, mode, "primary", "color"),
-        );
+        expect(await style(pin, "color")).toBe(await tokenStyle(page, mode, "primary", "color"));
         for (const segment of await track.locator("button[data-location-raised]").all()) {
           const { segment: s } = await layoutBoxes({ segment });
           expect(s.height).toBe(28);
@@ -126,7 +129,12 @@ for (const width of WIDTHS) {
           expect(await style(segment, "padding-right")).toBe(width < 768 ? "5px" : "10px");
           expect(await style(segment, "font-size")).toBe(width < 768 ? "12px" : "13px");
           expect(await style(segment, "border-top-left-radius")).toBe(
-            await tokenStyle(page, mode, width < 768 ? "segment-radius" : "segment-radius-md", "border-top-left-radius"),
+            await tokenStyle(
+              page,
+              mode,
+              width < 768 ? "segment-radius" : "segment-radius-md",
+              "border-top-left-radius",
+            ),
           );
           const raised = (await segment.getAttribute("data-location-raised")) === "true";
           expect(await style(segment, "font-weight")).toBe(raised ? "600" : "500");
