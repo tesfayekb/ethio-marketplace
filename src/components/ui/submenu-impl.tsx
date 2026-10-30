@@ -143,8 +143,6 @@ function useIntent(onChange?: (key: string | null) => void) {
 const ROW =
   "flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-start text-sm " +
   "break-words focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-/** D247 — a list of this many items or fewer shares the height before it scrolls. */
-export const MENU_FIT_MAX = 16;
 const IDLE = "text-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground";
 const ACTIVE = "bg-nav-active font-semibold text-primary";
 
@@ -297,7 +295,7 @@ function Panel({
         ) : null}
         <ul
           className="menu-fit menu-natural min-h-0 flex-1"
-          data-many={level.items.length > MENU_FIT_MAX ? "" : undefined}
+          data-many={level.items.length > fitMax ? "" : undefined}
         >
           {level.items.map((item) => {
             const Icon = item.icon;
@@ -385,6 +383,8 @@ export function SubmenuLayer({
   /** The first-paint half (submenu-signal.ts), handed in so this chunk imports none of it. */
   signals: {
     take: (handler: ((signal: SubmenuSignal) => void) | null) => void;
+    /** D247 — MENU_FIT_MAX (submenu-signal.ts). */
+    fitMax: number;
   };
 }) {
   const intent = useIntent();

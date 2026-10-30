@@ -37,8 +37,15 @@ function take(next: Handler | null): void {
   }
 }
 
+/**
+ * D247 (INC-1009) — a menu list of this many items or fewer shares the height before it
+ * scrolls; a longer one is marked `data-many` and keeps full-size rows (src/styles.css
+ * `.menu-fit`). The one number: the rail reads it here, the panel through SUBMENU_SIGNALS.
+ */
+export const MENU_FIT_MAX = 16;
+
 /** What the on-demand layer is handed (one stable object). */
-export const SUBMENU_SIGNALS = { take };
+export const SUBMENU_SIGNALS = { take, fitMax: MENU_FIT_MAX };
 
 function signal(next: SubmenuSignal): void {
   if (handler) return handler(next);
