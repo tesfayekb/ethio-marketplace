@@ -244,8 +244,7 @@ test.describe("D240 the admin, account and seller menus' side panels", () => {
     const panel = page.getByTestId("submenu-panel");
     await expect(panel).toBeVisible();
     await expect(opener).toHaveAttribute("aria-expanded", "true");
-    const [railBox, panelBox] = [await rail.boundingBox(), await panel.boundingBox()];
-    if (!railBox || !panelBox) throw new Error("SMN-E11 missing rail or panel box");
+    const { rail: railBox, panel: panelBox } = await layoutBoxes({ rail, panel });
     expect(Math.abs(panelBox.x - (railBox.x + railBox.width))).toBeLessThanOrEqual(1);
     const look = await panel.evaluate((el) => {
       const style = getComputedStyle(el);

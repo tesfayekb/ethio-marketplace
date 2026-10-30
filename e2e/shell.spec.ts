@@ -4247,8 +4247,7 @@ test("HM-2 from a sub-category page, ‹ Main Menu then Home lands on / with the
     await expect(menu.getByTestId("rail-menu-back")).toHaveCount(0);
     const home = menu.getByTestId("rail-home");
     await expect(home).toBeVisible();
-    const [homeBox, menuBox] = [await home.boundingBox(), await menu.boundingBox()];
-    if (!homeBox || !menuBox) throw new Error("HM-2 missing Home or menu box");
+    const { menu: menuBox } = await layoutBoxes({ home, menu });
     if (dir === "rtl") expect(menuBox.x + menuBox.width).toBeGreaterThan(300);
     else expect(menuBox.x).toBeLessThanOrEqual(1);
     await home.click();
@@ -4277,8 +4276,7 @@ test("HM-3 the strip mirrors the menu's level; its back item returns it one leve
       "page",
     );
     await expect(page.getByTestId("strip-home")).toHaveCount(0);
-    const [backBox, stripBox] = [await back.boundingBox(), await strip.boundingBox()];
-    if (!backBox || !stripBox) throw new Error("HM-3 missing back or strip box");
+    const { back: backBox, strip: stripBox } = await layoutBoxes({ back, strip });
     expect(backBox.y - stripBox.y).toBeLessThanOrEqual(1);
     if (dir === "rtl") expect(stripBox.x).toBeGreaterThan(300);
     else expect(stripBox.x).toBeLessThanOrEqual(1);

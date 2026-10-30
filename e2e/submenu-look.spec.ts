@@ -221,8 +221,9 @@ test.describe("D248 a side panel is the main menu", () => {
     // CI run 41051458551 (fa5c333f, shard 16 and repeat): the seeded root is itself a row of
     // the menu. When the menu had room for one more row, it then held holds + 1 rows and a
     // panel of holds + 1 fitted (overflow 0). The seed counts that row (G21: cause, not retry).
-    const region = await page.getByTestId("app-rail").getByTestId("rail-scroll").boundingBox();
-    if (!region) throw new Error("SMN-E13 missing the menu's region");
+    const { region } = await layoutBoxes({
+      region: page.getByTestId("app-rail").getByTestId("rail-scroll"),
+    });
     const roomForTheRoot = region.y + region.height - shown.last >= shown.height - 1;
     const seeded = await seedScratchBranch(holds + (roomForTheRoot ? 2 : 1), "smn-e13");
     branch = seeded;

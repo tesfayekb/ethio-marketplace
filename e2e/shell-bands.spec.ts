@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { gotoReady, signIn } from "./helpers/ui";
+import { gotoReady, layoutBoxes, signIn } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 
 /**
@@ -12,12 +12,8 @@ import { leaseUser } from "./helpers/users";
  * blocks share the middle column evenly.
  */
 
-type Box = { x: number; y: number; width: number; height: number };
-const box = async (page: Page, id: string): Promise<Box> => {
-  const found = await page.getByTestId(id).boundingBox();
-  if (!found) throw new Error(`missing box for ${id}`);
-  return found;
-};
+const box = async (page: Page, id: string) =>
+  (await layoutBoxes({ found: page.getByTestId(id) })).found;
 
 async function setFolded(page: Page, folded: boolean) {
   const state = folded ? "collapsed" : "expanded";
@@ -117,8 +113,7 @@ test("BND-E3 on the feed, signed out, Services' panel starts at the location row
   const panel = page.getByTestId("submenu-panel");
   await expect(panel).toBeVisible();
   const rows = await panel.locator("[data-submenu-row]").count();
-  const panelBox = await panel.boundingBox();
-  if (!panelBox) throw new Error("BND-E3 missing panel box");
+  const { panel: panelBox } = await layoutBoxes({ panel });
   // A panel that spans the menu (taller than it, D254) starts on the band boundary.
   const railRow = await opener.evaluate((el) => el.getBoundingClientRect().height);
   if (rows * railRow > 800 - location.y)
