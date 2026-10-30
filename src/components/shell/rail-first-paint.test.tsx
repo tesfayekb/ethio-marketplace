@@ -140,8 +140,10 @@ describe("the rail's first paint (INC-974)", () => {
     view.rerender(<Rail seed={seedFor(null)} variant="rail" />);
     const glyphs = screen.getAllByTestId("rail-glyph");
     expect(screen.queryAllByTestId("rail-glyph-box")).toHaveLength(0);
-    expect(glyphs.map((glyph) => glyph.getAttribute("class"))).toEqual(before);
-    expect(before.every((cls) => cls?.includes("h-5") && cls.includes("w-5"))).toBe(true);
+    // G38 (turn SAGE-S1, spec §2): the pending box is the icon's tile, and the settled glyph
+    // is drawn inside the same tile (was: the box itself the glyph's size, h-5 w-5).
+    expect(glyphs.map((glyph) => glyph.parentElement?.getAttribute("class"))).toEqual(before);
+    expect(before.every((cls) => cls?.includes("size-7.5"))).toBe(true);
     expect(screen.getAllByText(/^Name /).map((el) => el.textContent)).toEqual(rowsBefore);
   });
 
