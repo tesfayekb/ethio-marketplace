@@ -1937,9 +1937,7 @@ test.describe("rail scroll regions (U0f)", () => {
     // INC-098c: geometry assertions wait for data-settled state — skeletons gone —
     // not merely hydration. The non-blocking provider surfaced the assumption.
     await expect(rail.getByTestId("rail-category-skeleton")).toHaveCount(0);
-    // U0i footer-clamp law: top pinned at 56, bottom = min(viewport, footerTop).
-    // At 1280x360 the short admin page may already show the footer — the law
-    // covers that case (the rail ends at the footer's top edge).
+    // D252 rail law: top pinned at 56, bottom = the viewport's bottom, footer or not.
     await railLaw(page);
     // Strict, measured against the CLAMPED region: if a future change makes the
     // items fit, this must fail loudly rather than pass vacuously.
@@ -1961,11 +1959,65 @@ test.describe("rail scroll regions (U0f)", () => {
   });
 
   /**
-   * U0j-3 — POINTER-HIT LAW. The clamp is not just geometry: the rail's Sign
-   * out must remain the topmost element at its own centre. Switching to
+   * U0j-3 — POINTER-HIT LAW, re-read under D252 (G38): the footer sits beside
+   * the rail, never under or over it, and the rail's Sign out must remain the
+   * topmost element at its own centre. Switching to
    * Amharic shortens the page WITHOUT a scroll, which is exactly the case the
    * footer-only ResizeObserver used to miss.
    */
+  for (const folded of [false, true]) {
+    test(`FT-4 at 1280×600 on a short page the ${folded ? "folded" : "open"} menu ends at the viewport's bottom and the footer starts at its edge (D252)`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(testInfo.project.name !== "desktop-1280", "the persistent menu shows from 768 px");
+      await page.setViewportSize({ width: 1280, height: 600 });
+      await gotoReady(page, "/legal/terms");
+      if (folded) {
+        await page.evaluate(() => document.documentElement.setAttribute("data-rail", "collapsed"));
+      }
+      await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
+      await expect
+        .poll(() =>
+          page.evaluate(() => {
+            const rail = document.querySelector('[data-testid="app-rail"]')!.getBoundingClientRect();
+            const foot = document
+              .querySelector('[data-testid="shell-footer-wrapper"]')!
+              .getBoundingClientRect();
+            return {
+              railEndsAtBottom: Math.abs(rail.bottom - window.innerHeight) <= 1,
+              footerBeside: foot.left >= rail.right - 1,
+              footerInView: foot.top < window.innerHeight,
+            };
+          }),
+        )
+        .toEqual({ railEndsAtBottom: true, footerBeside: true, footerInView: true });
+    });
+  }
+
+  for (const width of [1280, 360]) {
+    test(`FT-5 at ${width} the footer's content sits within an equal 8 px inset above and below (D253)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await gotoReady(page, "/");
+      const gaps = await page.evaluate(() => {
+        const footer = document.querySelector("footer")!.getBoundingClientRect();
+        const columns = document.querySelector('[data-testid="footer-columns"]')!;
+        const copyright = document.querySelector('[data-testid="footer-copyright"]')!;
+        const visible = Array.from(columns.querySelectorAll("*"))
+          .map((el) => el.getBoundingClientRect())
+          .filter((box) => box.height > 0 && box.width > 0);
+        const top = Math.min(...visible.map((box) => box.top));
+        return {
+          above: top - footer.top,
+          below: footer.bottom - copyright.getBoundingClientRect().bottom,
+        };
+      });
+      expect(gaps.above, "FT-5 above").toBeLessThanOrEqual(9);
+      expect(gaps.below, "FT-5 below").toBeLessThanOrEqual(9);
+    });
+  }
+
   test("footer never covers the rail's Sign out", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     const user = await leaseUser();
@@ -1998,7 +2050,7 @@ test.describe("rail scroll regions (U0f)", () => {
               Math.round(rect.top + rect.height / 2),
             );
             return {
-              clearsFooter: aside.bottom <= footer.top - 1,
+              clearsFooter: footer.left >= aside.right - 1,
               hits: Boolean(hit && button.contains(hit)),
             };
           }),
@@ -2160,7 +2212,7 @@ test.describe("desktop layout laws (U0g)", () => {
 
     // NAMED REGRESSION (U0g-2): the old sticky rail crept upward at the very
     // bottom of the page. Fixed positioning must hold there too.
-    // U0i footer-clamp law: the rail's bottom follows the in-view footer; height is NOT invariant at page bottom by design.
+    // D252: the rail's bottom stays the viewport's bottom at the page's end too.
     await page.evaluate(() => window.scrollTo(0, document.scrollingElement!.scrollHeight));
     // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: deliberate wall-clock wait (rate-limit / session-expiry semantics), grandfathered pending a truth poll
     await page.waitForTimeout(200);
@@ -2170,9 +2222,10 @@ test.describe("desktop layout laws (U0g)", () => {
     const logoBottomOfPage = await rect(page, "shell-logo-cell");
     expect(logoBottomOfPage.y).toBeLessThanOrEqual(1);
 
-    // The footer owns the full viewport width beneath the clamped rail.
+    // D252 (G38, replaces "the footer owns the full viewport width"): the footer
+    // starts at the rail's inline-end edge, in the middle column.
     const footerAtBottom = await footRect(page);
-    expect(Math.abs(footerAtBottom.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(footerAtBottom.x - (railBefore.x + railBefore.width))).toBeLessThanOrEqual(1);
     expect(Math.abs(footerAtBottom.width - (viewport?.width ?? 0))).toBeLessThanOrEqual(1);
 
     // The clamped rail keeps its scroll region usable: its last item is
