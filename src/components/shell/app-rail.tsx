@@ -38,6 +38,7 @@ import {
   rootsOf,
   useCategoryTree,
   type CategoryNode,
+  type CategoryTree,
 } from "@/features/categories/category-tree";
 import { isE2E } from "@/lib/env-flags";
 import { useI18n } from "@/i18n";
