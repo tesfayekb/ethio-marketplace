@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `d0b6a4add54ade3a01a771df3b632c8bb5ad27a3`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41138429380
+- Commit: `536dc66dc461f7698a0745d11359357f4e46ca54`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41142103894
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 873 | 87 | applied 382/382 | 205 | 0 | 0 | 69 | 274 |
-| email | 172 | 106 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 856 | 118 | applied 382/382 | 148 | 0 | 0 | 4 | 152 |
-| 2 | 1038 | 105 | applied 382/382 | 152 | 0 | 0 | 3 | 155 |
-| 3 | 778 | 108 | applied 382/382 | 132 | 1 | 0 | 0 | 133 |
-| 4 | 585 | 97 | applied 382/382 | 143 | 0 | 0 | 2 | 145 |
-| 5 | 652 | 90 | applied 382/382 | 159 | 0 | 0 | 7 | 166 |
-| 6 | 655 | 95 | applied 382/382 | 131 | 0 | 0 | 1 | 132 |
-| 7 | 725 | 118 | applied 382/382 | 187 | 0 | 0 | 66 | 253 |
-| 8 | 262 | 86 | applied 382/382 | 20 | 0 | 0 | 17 | 37 |
-| 9 | 780 | 109 | applied 382/382 | 134 | 0 | 0 | 6 | 140 |
-| 10 | 1002 | 102 | applied 382/382 | 143 | 0 | 0 | 2 | 145 |
-| 11 | 967 | 95 | applied 382/382 | 156 | 2 | 0 | 2 | 160 |
-| 12 | 635 | 119 | applied 382/382 | 128 | 0 | 0 | 4 | 132 |
-| 13 | 849 | 121 | applied 382/382 | 154 | 0 | 0 | 7 | 161 |
-| 14 | 725 | 98 | applied 382/382 | 130 | 0 | 0 | 2 | 132 |
-| 15 | 626 | 116 | applied 382/382 | 187 | 0 | 0 | 57 | 244 |
-| 16 | 365 | 119 | applied 382/382 | 41 | 0 | 0 | 0 | 41 |
-| repeat | 783 | 119 | applied 382/382 | 82 | 0 | 0 | 14 | 96 |
-| TOTAL | — | — | — | 2438 | 3 | 0 | 263 | 2704 |
+| smoke | 875 | 98 | applied 382/382 | 204 | 1 | 0 | 69 | 274 |
+| email | 179 | 107 | applied 382/382 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 855 | 112 | applied 382/382 | 148 | 0 | 0 | 4 | 152 |
+| 2 | 1001 | 112 | applied 382/382 | 152 | 0 | 0 | 3 | 155 |
+| 3 | 912 | 118 | applied 382/382 | 151 | 0 | 0 | 0 | 151 |
+| 4 | 586 | 98 | applied 382/382 | 139 | 0 | 0 | 2 | 141 |
+| 5 | 611 | 101 | applied 382/382 | 145 | 0 | 0 | 7 | 152 |
+| 6 | 825 | 111 | applied 382/382 | 140 | 0 | 0 | 1 | 141 |
+| 7 | 291 | 92 | applied 382/382 | 105 | 0 | 0 | 41 | 146 |
+| 8 | 616 | 105 | applied 382/382 | 102 | 1 | 0 | 43 | 146 |
+| 9 | 768 | 103 | applied 382/382 | 136 | 0 | 0 | 13 | 149 |
+| 10 | 1124 | 99 | applied 382/382 | 169 | 0 | 0 | 2 | 171 |
+| 11 | 849 | 100 | applied 382/382 | 132 | 0 | 0 | 2 | 134 |
+| 12 | 511 | 86 | applied 382/382 | 137 | 0 | 0 | 4 | 141 |
+| 13 | 632 | 89 | applied 382/382 | 145 | 0 | 0 | 7 | 152 |
+| 14 | 851 | 117 | applied 382/382 | 139 | 0 | 0 | 2 | 141 |
+| 15 | 653 | 113 | applied 382/382 | 186 | 0 | 0 | 69 | 255 |
+| 16 | 361 | 107 | applied 382/382 | 41 | 0 | 0 | 0 | 41 |
+| repeat | 847 | 110 | applied 382/382 | 106 | 0 | 0 | 14 | 120 |
+| TOTAL | — | — | — | 2483 | 2 | 0 | 283 | 2768 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 2 1038 s
-- Repeat lane (DEC-283): Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/shell.spec.ts (117 tests); Repeat: each 2 on both projects; 181 tests selected, 24 repeated; budget 720 s at 4.7 s a test; directly changed: 2 of 4 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 10, email 11, 1 13, 2 11, 3 13, 4 9, 5 9, 6 8, 7 14, 8 9, 9 13, 10 11, 11 10, 12 13, 13 13, 14 11, 15 12, 16 12, repeat 13
+- Slowest lane: 10 1124 s
+- Repeat lane (DEC-283): Not repeated: e2e/sage-bands.spec.ts (20 tests); Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/shell.spec.ts (117 tests); Repeat: each 2 on both projects; 207 tests selected, 30 repeated; budget 720 s at 4.7 s a test; directly changed: 3 of 6 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 9, email 13, 1 13, 2 11, 3 13, 4 10, 5 10, 6 12, 7 9, 8 10, 9 13, 10 10, 11 12, 12 9, 13 9, 14 13, 15 13, 16 14, repeat 10
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41138429380-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41138429380-local-1
-  - 2: [e2e:teardown] deleted 4 user(s) owned by process 41138429380-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41138429380-local-3
-  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41138429380-local-4
-  - 5: [e2e:teardown] deleted 20 user(s) owned by process 41138429380-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-6
-  - 7: [e2e:teardown] deleted 3 user(s) owned by process 41138429380-local-7
-  - 8: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-8
-  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41138429380-local-9
-  - 10: [e2e:teardown] deleted 7 user(s) owned by process 41138429380-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41138429380-local-11
-  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41138429380-local-12
-  - 13: [e2e:teardown] deleted 20 user(s) owned by process 41138429380-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-14
-  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41138429380-local-15
-  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-16
-  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41138429380-local-repeat
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41142103894-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41142103894-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41142103894-local-1
+  - 2: [e2e:teardown] deleted 4 user(s) owned by process 41142103894-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41142103894-local-3
+  - 4: [e2e:teardown] deleted 32 user(s) owned by process 41142103894-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 41142103894-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41142103894-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41142103894-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41142103894-local-8
+  - 9: [e2e:teardown] deleted 6 user(s) owned by process 41142103894-local-9
+  - 10: [e2e:teardown] deleted 7 user(s) owned by process 41142103894-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41142103894-local-11
+  - 12: [e2e:teardown] deleted 32 user(s) owned by process 41142103894-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 41142103894-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41142103894-local-14
+  - 15: [e2e:teardown] deleted 3 user(s) owned by process 41142103894-local-15
+  - 16: [e2e:teardown] deleted 2 user(s) owned by process 41142103894-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41142103894-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -71,17 +71,16 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:31321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 
-## Lane 3
+## Lane smoke
 - Step failure:
 Step smoke: outcome failure
   
-- admin-shell.spec.ts / Admin shell (U0) / A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
+- shell.spec.ts / L4b location picker / long location names share one band row line / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
 
-## Lane 11
+## Lane 8
 - Step failure:
 Step smoke: outcome failure
   
-- admin-shell.spec.ts / Admin shell (U0) / A-6 admin fixture: gated section nav, section page + breadcrumb, deep link / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
-- admin-shell.spec.ts / Admin shell (U0) / A-5 the Categories group carries its sub-items, expands on a sub-route and gates each one / desktop-1280 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
+- shell.spec.ts / L4b location picker / long location names share one band row line / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveClass[2m([22m[32mexpected[39m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
