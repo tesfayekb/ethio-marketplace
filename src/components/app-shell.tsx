@@ -1081,7 +1081,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <OnDemandNotice />
         <div
           data-testid="shell-footer-wrapper"
-          className={cn("relative z-0 w-full bg-card md:z-40", "max-md:[&>footer>*]:ps-12")}
+          className={cn(
+            "relative z-0 bg-card ms-12 md:ms-56 lg:ms-64 rail-icons:ms-16",
+            "max-md:ms-0 max-md:[&>footer>*]:ps-12",
+          )}
         >
           <AppFooter />
         </div>
