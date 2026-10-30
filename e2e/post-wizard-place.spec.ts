@@ -1248,8 +1248,18 @@ test.describe("POSTING WIZARD", () => {
     expect(row.precision, "PW-37: the door stored another precision").toBe("exact");
     expect(row.lat, "PW-37: no latitude reached the row").not.toBeNull();
     expect(row.lng, "PW-37: no longitude reached the row").not.toBeNull();
-    expect(row.lat!.toFixed(5), "PW-37: the row disagrees with the screen").toBe(shown.lat);
-    expect(row.lng!.toFixed(5), "PW-37: the row disagrees with the screen").toBe(shown.lng);
+    // The screen shows the pin rounded to five places; the row keeps more. A value on
+    // the fifth place's half-way line rounds either way (38.736935 → "38.73693" on
+    // screen from the browser's float, "38.73694" from the stored figure), so the
+    // two agree when they are within the screen's own half-step.
+    expect(
+      Math.abs(row.lat! - Number(shown.lat)),
+      "PW-37: the row disagrees with the screen",
+    ).toBeLessThanOrEqual(0.000005 + 1e-9);
+    expect(
+      Math.abs(row.lng! - Number(shown.lng)),
+      "PW-37: the row disagrees with the screen",
+    ).toBeLessThanOrEqual(0.000005 + 1e-9);
   });
 
   test("PW-38 a place search moves the pin and fills the street line", async ({ page }) => {
