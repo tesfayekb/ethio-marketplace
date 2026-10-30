@@ -766,16 +766,7 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
       </ul>
       {panels && overlays ? (
         <overlays.submenu.SubmenuLayer
-          // DEC-302 (R1d-c b) — the rows are built in the on-demand layer (navLevelOf).
-          itemsOf={(id: string) =>
-            overlays.submenu.navLevelOf(items, id, {
-              label: (item) => t(item.labelKey),
-              isCurrent,
-              holdsCurrent,
-              opensPanel,
-              pageOf,
-            })
-          }
+          itemsOf={itemsOf}
           edgeOf={railEdge}
           showHeader={collapsed}
           signals={SUBMENU_SIGNALS}
@@ -919,7 +910,16 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
       ))}
       {panels && overlays ? (
         <overlays.submenu.SubmenuLayer
-          itemsOf={itemsOf}
+          // DEC-302 (R1d-c b) — the rows are built in the on-demand layer (navLevelOf).
+          itemsOf={(id: string) =>
+            overlays.submenu.navLevelOf(items, id, {
+              label: (item) => t(item.labelKey),
+              isCurrent,
+              holdsCurrent,
+              opensPanel,
+              pageOf,
+            })
+          }
           edgeOf={railEdge}
           showHeader={collapsed}
           signals={SUBMENU_SIGNALS}
