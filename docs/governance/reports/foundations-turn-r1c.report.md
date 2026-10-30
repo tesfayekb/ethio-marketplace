@@ -64,11 +64,11 @@ All 50 pages grew between +0.0986 and +0.1211 KiB; none above 0.5 KiB, none over
 
 ## 8. Units
 
-2,282 tests in the last whole run (one failure, BX-1: SMN-E5's two `boundingBox()` reads, now one `layoutBoxes` read; BX-1 passes). Final count: see the checks line.
+2,282 tests in the last whole run (one failure, BX-1: SMN-E5's two `boundingBox()` reads, now one `layoutBoxes` read; BX-1 passes). Final whole run: 2,282 / 2,282 passed.
 
 ## 9. The checks
 
-CHECKS_LINE
+`checks: 34 PASS · 0 FAIL · 21 NOT RUN · 1290s` (run once, whole, on the final tree; the 21 NOT RUN are the backend/browser lanes and the local installs, as named in the run).
 
 ## 10. K2 (same concern, bypassing the mechanism; not touched)
 
