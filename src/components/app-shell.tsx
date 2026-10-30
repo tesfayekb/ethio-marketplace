@@ -10,6 +10,8 @@ import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { OnDemandNotice } from "@/components/shell/on-demand-notice";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
+import { BAND_ROW } from "@/components/shell/band-row";
+import { BAR_GAP, BAR_INSET } from "@/components/shell/bar-spacing";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import {
   anchorOf,
@@ -984,7 +986,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div
               data-testid="shell-logo-cell"
               className={cn(
-                "hidden min-w-0 bg-card ps-2 md:flex md:h-14 md:shrink-0 md:items-center rail-icons:justify-center rail-icons:px-0",
+                "hidden min-w-0 bg-card md:flex md:h-14 md:shrink-0 md:items-center rail-icons:justify-center rail-icons:px-0",
+                BAR_GAP,
+                BAR_INSET,
                 MENU_WIDTH,
               )}
             >
@@ -1001,7 +1005,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link
                 to="/"
                 aria-label={t("app.name")}
-                className="-ms-1 inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:hidden"
+                className="inline-flex items-center rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rail-icons:hidden"
               >
                 <Logo variant="full" />
               </Link>
@@ -1045,7 +1049,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               {searchOpen ? <SearchRow onClose={() => setSearchOpen(false)} /> : null}
               <PanelTabs />
-              <div className="flex min-h-8 min-w-0 items-center border-b border-neutral-soft px-2 md:px-4">
+              <div
+                data-band-row=""
+                data-testid="shell-breadcrumb-row"
+                className={cn(
+                  "flex min-w-0 items-center border-b border-neutral-soft px-2 md:px-4",
+                  BAND_ROW,
+                )}
+              >
                 <Breadcrumbs />
               </div>
             </div>

@@ -1096,12 +1096,14 @@ export function AppRail() {
           // offset. D252 (Foundations turn R1d-b) — it always runs from the top
           // bar to the screen's bottom; the footer lives in the middle column
           // beside it, so the two never share space.
-          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side p-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden rail-icons:px-1 ${MENU_WIDTH}`}
+          className={`hidden min-h-0 min-w-0 flex-col bg-sidebar shadow-side px-2 pb-2 md:fixed md:start-0 md:top-14 md:bottom-0 md:z-20 md:flex md:h-auto md:overflow-hidden rail-icons:px-1 ${MENU_WIDTH}`}
         >
           {/* U0d: the panel identity band sits directly BELOW the logo cell
               (grid row 2 starts here), identical to the drawer. Hidden on the
               collapsed rail, where there is no room for a name. */}
-          <PanelHeader className={cn("mb-2", HIDE_WHEN_COLLAPSED)} />
+          {/* D258 (R1d-c) — the band is one band row, flush under the top bar; folded, it
+              keeps its height empty, so the rows never move when the menu folds. */}
+          <PanelHeader className="-mx-2 rail-icons:-mx-1 rail-icons:*:invisible" />
           {/* U0f: ONLY the item region scrolls. The logo cell (grid row 1) and
               the panel band above stay fixed; RailFoot below stays pinned. */}
           <div

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { BAND_ROW } from "@/components/shell/band-row";
 import { useRef } from "react";
 import { useLabelRoom } from "@/components/ui/use-label-room";
 import { CutText } from "@/components/ui/cut-text";
@@ -228,7 +229,11 @@ export function LocationSelector() {
       data-account-place={accountPlace}
       role="group"
       aria-labelledby="location-row-label location-row-label-short"
-      className="flex h-8 w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden bg-card shadow-bar px-2 md:px-4"
+      data-band-row=""
+      className={cn(
+        "flex w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden bg-card shadow-bar px-2 md:px-4",
+        BAND_ROW,
+      )}
     >
       <span
         ref={longLabelRef}
