@@ -11,7 +11,13 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { ITEM_ACTIVE, ITEM_CORE, ITEM_IDLE } from "@/components/shell/menu-row";
+import {
+  ITEM_ACTIVE,
+  ITEM_CORE,
+  ITEM_IDLE,
+  ITEM_TILE,
+  ITEM_TILE_ICON,
+} from "@/components/shell/menu-row";
 import type { NavItem } from "@/config/panels.types";
 import type { SubmenuSignal } from "@/components/shell/submenu/submenu-signal";
 import { CutText } from "@/components/ui/cut-text";
@@ -395,7 +401,7 @@ function Panel({
         // D248 — the rail's surface (bg-sidebar, its shadow, rounded, no border); D245's
         // 300 ms opacity fade, in and out, at every level.
         className={cn(
-          "fixed z-30 flex w-64 flex-col overflow-y-auto overflow-x-hidden overscroll-contain rounded-lg bg-sidebar px-2 text-foreground shadow-side",
+          "fixed z-30 flex w-64 flex-col overflow-y-auto overflow-x-hidden overscroll-contain rounded-lg bg-sidebar px-2 text-foreground shadow-rail",
           "transition-opacity duration-300 ease-[ease] motion-reduce:transition-none",
           closing && "pointer-events-none",
         )}
@@ -446,7 +452,11 @@ function Panel({
                     item.active || item.ancestorActive ? ITEM_ACTIVE : ITEM_IDLE,
                   )}
                 >
-                  {Icon ? <Icon className="h-5 w-5 shrink-0" aria-hidden="true" /> : null}
+                  {Icon ? (
+                    <span aria-hidden="true" className={ITEM_TILE}>
+                      <Icon className={ITEM_TILE_ICON} aria-hidden="true" />
+                    </span>
+                  ) : null}
                   <CutText text={item.label} />
                   {item.hasChildren ? (
                     <ChevronRight
