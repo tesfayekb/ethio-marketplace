@@ -80,7 +80,7 @@ function Picker({
           title={selectedName ?? undefined}
           data-location-raised={raised ? "true" : "false"}
           className={cn(
-            "inline-flex h-7 min-w-0 shrink items-center gap-0.5 md:gap-1 rounded-segment px-1.25 md:px-2.5 text-xs md:text-[13px] whitespace-nowrap",
+            "inline-flex h-7 min-w-min shrink items-center gap-0.5 md:gap-1 rounded-segment px-1.25 md:px-2.5 text-xs md:text-[13px] whitespace-nowrap",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             raised
               ? "bg-card shadow-segment font-semibold text-nav-ink"
@@ -272,7 +272,7 @@ export function LocationSelector() {
       ) : (
         <div
           data-testid="location-track"
-          className="flex h-8.5 min-w-0 shrink items-center rounded-track bg-track p-0.75 shadow-track"
+          className="flex h-8.5 min-w-min shrink items-center rounded-track bg-track p-0.75 shadow-track"
         >
           <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <Picker

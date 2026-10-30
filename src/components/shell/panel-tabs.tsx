@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
+import { BAND_LOOK, BAND_ROW, CURRENT_PILL } from "@/components/shell/band-row";
 import { useShell } from "@/components/shell-context";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
@@ -58,7 +58,7 @@ export function PanelTabs() {
               "inline-flex h-full min-w-0 flex-none shrink items-center justify-center gap-2 px-2 text-sm transition-colors md:px-3",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               active
-                ? "rounded-full bg-nav-active font-medium text-primary"
+                ? cn(CURRENT_PILL, "font-medium")
                 : "rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
             )}
           >
