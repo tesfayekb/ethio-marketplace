@@ -51,11 +51,12 @@ describe("THEMES", () => {
       ThemeSet.safeParse({ ...THEMES.sage, light: { ...light, card: "red; } body { x: y" } })
         .success,
     ).toBe(false);
-    expect(ThemeSet.safeParse({ ...THEMES.sage, light: { ...light, card: "#FFFFFF" } }).success).toBe(
-      false,
-    );
     expect(
-      ThemeSet.safeParse({ ...THEMES.sage, light: { ...light, "made-up": "oklch(1 0 0)" } }).success,
+      ThemeSet.safeParse({ ...THEMES.sage, light: { ...light, card: "#FFFFFF" } }).success,
+    ).toBe(false);
+    expect(
+      ThemeSet.safeParse({ ...THEMES.sage, light: { ...light, "made-up": "oklch(1 0 0)" } })
+        .success,
     ).toBe(false);
     const { card: _card, ...missing } = light;
     expect(ThemeSet.safeParse({ ...THEMES.sage, light: missing }).success).toBe(false);

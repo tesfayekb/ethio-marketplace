@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  DEFAULT_THEME,
-  parseStoredTheme,
-  resolveTheme,
-  storedThemeText,
-} from "./theme-resolver";
+import { DEFAULT_THEME, parseStoredTheme, resolveTheme, storedThemeText } from "./theme-resolver";
 
 /** D250 (turn SAGE-S0) — the order shop → account → device → system, and its fall-through. */
 describe("resolveTheme", () => {
@@ -20,9 +15,9 @@ describe("resolveTheme", () => {
       system: "light" as const,
     };
     expect(resolveTheme(all)).toEqual({ choice: dark, source: "shop" });
-    expect(resolveTheme({ ...all, shop: undefined, account: { failed: false, value: dark } })).toEqual(
-      { choice: dark, source: "account" },
-    );
+    expect(
+      resolveTheme({ ...all, shop: undefined, account: { failed: false, value: dark } }),
+    ).toEqual({ choice: dark, source: "account" });
     expect(resolveTheme({ device: storedThemeText(dark), system: "light" })).toEqual({
       choice: dark,
       source: "device",

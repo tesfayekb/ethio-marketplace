@@ -27,7 +27,11 @@ function runScript(stored: string | null, prefersDark: boolean, storageThrows = 
     matchMedia: () => ({ matches: prefersDark }),
   };
   new Function("window", "document", THEME_INIT_SCRIPT)(window, { documentElement });
-  return { theme: attrs.get("data-theme"), mode: attrs.get("data-mode"), dark: classes.has("dark") };
+  return {
+    theme: attrs.get("data-theme"),
+    mode: attrs.get("data-mode"),
+    dark: classes.has("dark"),
+  };
 }
 
 const CASES: Array<[string, string | null, boolean]> = [

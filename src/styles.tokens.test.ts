@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { THEMES } from "./lib/themes";
+
 /**
  * BUNDLE 9 A4 — the house-style tokens judged from src/styles.css itself:
  * WCAG contrast of every pair of the brief's CONTRAST table in both modes,
@@ -73,22 +75,71 @@ const PAIRS: ReadonlyArray<[string, string]> = [
   ["neutral", "neutral-soft"],
 ];
 
-describe.each([
-  ["light", root],
-  ["dark", dark],
-] as const)("house-style contrast, %s mode", (mode, tokens) => {
-  it.each(PAIRS)("%s on %s is at least 4.5:1", (fg, bg) => {
+/**
+ * Turn SAGE-S0 — the Sage 3D spec's acceptance pairs (its last section, and §12–§13), as
+ * tokens, judged in every theme × mode. THEMES equals the stylesheet (themes.test.ts TH-2).
+ */
+const SAGE_PAIRS: ReadonlyArray<[string, string]> = [
+  ["success", "card"],
+  ["tier-featured-ink", "card"],
+  ["tier-featured-ink", "tier-featured"],
+  ["tier-premium-ink", "card"],
+  ["tier-premium-ink", "tier-premium"],
+  ["gold-foreground", "gold"],
+  ["muted-foreground", "sidebar"],
+  ["foreground", "background"],
+  ["foreground", "track"],
+  ["foreground", "field"],
+  ["primary-foreground", "primary"],
+];
+
+/** The spec's pairs written as hex with no token of their own (light). */
+const LITERAL_PAIRS: ReadonlyArray<[string, string]> = [
+  ["#7A4E00", "#F3EFE6"],
+  ["#4A515A", "#EEF3EF"],
+  ["#4A515A", "#F7FAF8"],
+];
+
+const MODES = Object.entries(THEMES).flatMap(([name, set]) => [
+  [name, "light", new Map(Object.entries(set.light))] as const,
+  [name, "dark", new Map(Object.entries(set.dark))] as const,
+]);
+
+describe.each(MODES)("contrast, theme %s, %s mode", (name, mode, tokens) => {
+  it.each([...PAIRS, ...SAGE_PAIRS])("%s on %s is at least 4.5:1", (fg, bg) => {
     const f = tokens.get(fg);
     const b = tokens.get(bg);
-    expect(f, `${mode} declares --${fg}`).toBeDefined();
-    expect(b, `${mode} declares --${bg}`).toBeDefined();
+    expect(f, `${name} ${mode} declares --${fg}`).toBeDefined();
+    expect(b, `${name} ${mode} declares --${bg}`).toBeDefined();
     const ratio = contrast(f!, b!);
-    console.log(`[tokens] ${mode} ${fg} on ${bg} ${ratio.toFixed(2)}:1`);
+    console.log(`[tokens] ${name} ${mode} ${fg} on ${bg} ${ratio.toFixed(2)}:1`);
     expect(
       ratio,
-      `${mode} ${fg} ${f} on ${bg} ${b} = ${ratio.toFixed(2)}:1`,
+      `${name} ${mode} ${fg} ${f} on ${bg} ${b} = ${ratio.toFixed(2)}:1`,
     ).toBeGreaterThanOrEqual(4.5);
   });
+});
+
+function hexLuminance(hex: string): number {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  }) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+describe("contrast, the spec's literal pairs", () => {
+  it.each(LITERAL_PAIRS)("%s on %s is at least 4.5:1", (fg, bg) => {
+    const a = hexLuminance(fg);
+    const b = hexLuminance(bg);
+    const ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    expect(ratio, `${fg} on ${bg} = ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
+it("the stylesheet's :root and .dark are the default theme's sets (themes.test.ts TH-2)", () => {
+  expect(root.get("card")).toBe(THEMES.sage.light.card);
+  expect(dark.get("card")).toBe(THEMES.sage.dark.card);
 });
 
 describe("house-style registration", () => {

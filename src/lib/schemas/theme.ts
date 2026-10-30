@@ -128,7 +128,9 @@ const shadow = z.string().regex(new RegExp(`^${LAYER}(?:, ${LAYER})*$`));
 const length = z.string().regex(/^\d+(?:\.\d+)?rem$/);
 const reference = z
   .string()
-  .regex(/^(?:var\(--[a-z][a-z0-9-]*\)|color-mix\(in oklab, var\(--[a-z][a-z0-9-]*\) \d+%, transparent\))$/);
+  .regex(
+    /^(?:var\(--[a-z][a-z0-9-]*\)|color-mix\(in oklab, var\(--[a-z][a-z0-9-]*\) \d+%, transparent\))$/,
+  );
 
 function grammarOf(name: string): z.ZodString {
   if (name.startsWith("lift-")) return shadow;
