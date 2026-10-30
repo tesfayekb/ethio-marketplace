@@ -12,5 +12,21 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 0,
   });
 
+  // INC-1013 — the router restores (or resets) the window's scroll when its first render settles,
+  // which can land after React's hydration effects. The E2E hydration contract (data-app-ready,
+  // __root.tsx) waits for this mark so a scroll made after "ready" is never reset to the top.
+  if (typeof window !== "undefined") {
+    const off = router.subscribe("onRendered", () => {
+      off();
+      window.setTimeout(() => {
+        document.documentElement.dataset["routerSettled"] = "1";
+        window.dispatchEvent(new Event(ROUTER_SETTLED_EVENT));
+      }, 0);
+    });
+  }
+
   return router;
 };
+
+/** INC-1013 — fired once, after the router's first render and its scroll restoration. */
+export const ROUTER_SETTLED_EVENT = "ethio:router-settled";
