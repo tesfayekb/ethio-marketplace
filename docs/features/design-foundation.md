@@ -150,7 +150,7 @@ value; components use semantic tokens only, never raw colours.
 
 - `band-row.ts` owns `BAND_LOOK`: every panel tabs row, panel header, breadcrumb and
   location row takes `bg-band text-band-label shadow-groove`; the containing sub-band
-  takes `bg-band shadow-subband`. `BAND_ROW` still sets 40 px, unchanged (D258).
+  takes `bg-band band-drop` (the theme’s `--lift-subband`). `BAND_ROW` still sets 40 px, unchanged (D258).
 - CF-BAND-1 (`scripts/conformance/shell-bands.test.ts`) retains its height cases and
   adds the look census: a band's own surface, border or shadow, a missing shared look,
   and a second look source are refused, including planted bypasses.
@@ -163,7 +163,14 @@ value; components use semantic tokens only, never raw colours.
   `--lift-segment`, `--nav-ink` and semibold. `CutText` and `useLabelRoom` retain the
   one-line name priority. Dropdowns, PlaceNotice and read-state captions are unchanged.
 - `ActionMessage` clears the phone bar through `--bar-rise`, not its own offset.
-- SGB-1…3 check the four bands, track geometry and the deepest scratch chain at 360 px
+- D261: adjacent rows meet at zero gap, with only their groove at each boundary. One
+  location visibility observer transfers the last-row drop from location to the sticky
+  sub-band after location scrolls beneath it; row positions and sticky behavior stay.
+- Panel tabs and the phone bar read `CURRENT_PILL` from `band-row.ts`: `--nav-pill`,
+  `--lift-pill`, `--nav-ink`. The obsolete `--nav-active` token is retired.
+- INC-1023: the track and its pickers retain their intrinsic minimum name width so
+  `useLabelRoom` detects pressure and hides the caption before sacrificing name heads.
+- SGB-1…5 check the four bands, track geometry and the deepest scratch chain at 360 px
   in English and Amharic, both modes. The exact Tailwind empty-shadow-layer probe lives
   in `e2e/helpers/shadows.ts`, shared with SGS. BND-E1…4 remain unchanged.
 
