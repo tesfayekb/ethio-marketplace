@@ -163,6 +163,47 @@ test.describe("SCREENING — the seller names held for review (N1b-3, INC-977)",
     });
   });
 
+  test("NCQ-E2E-4 a name the AI could not check five times: listed as such, still shown to buyers; staff allow it (J-1, INC-1002)", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const alias = `eunusable_${token()}`;
+    await saveOwnAlias(seller, alias);
+    const ad = await seed(seller);
+    const canonical = listingPath(ad.title, await publicIdOf(ad.id));
+    held.push(seller.id);
+    for (let i = 0; i < 5; i += 1) await markName(seller.id, alias, "unusable");
+    expect((await readNameCheck(seller.id))?.state).toBe("needs_review");
+
+    const staff = await signInAsSuperAdmin(page);
+    await gotoReady(page, "/admin/screening");
+    const row = rowIn(page, seller.id);
+    await expect(row).toBeVisible({ timeout: 15000 });
+    await expect(row.getByTestId("admin-name-check-name")).toHaveText(alias);
+    await expect(row.getByTestId("admin-name-check-unusable")).toHaveText(
+      en["admin.screening.names.unusable"],
+    );
+    await expect(row.getByTestId("admin-name-check-of")).toHaveCount(0);
+
+    await chooseInRow(page, seller.id, "allow");
+    const dialog = page.getByTestId("admin-name-check-allow");
+    await expect(dialog).toBeVisible();
+    await dialog.getByTestId("admin-name-check-allow-reason").fill("e2e staff review");
+    await dialog.getByTestId("admin-name-check-allow-go").click();
+    await stepUpIfPrompted(page, staff.secret);
+    await expect(page.getByText(en["admin.screening.names.clear.doneVisible"])).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(rowIn(page, seller.id)).toHaveCount(0);
+    expect((await readNameCheck(seller.id))?.state).toBe("clean");
+
+    await page.context().clearCookies();
+    await page.goto(canonical);
+    await expect(page.getByTestId("listing-detail-seller-name")).toHaveText(alias, {
+      timeout: 15000,
+    });
+  });
+
   test("NCQ-E2E-3 Resume: a paused re-check names its reason; staff resume it under step-up; the pause is gone and audited", async ({
     page,
   }, testInfo) => {

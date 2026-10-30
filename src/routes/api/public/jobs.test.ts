@@ -253,6 +253,30 @@ describe("NCJ — the scheduled jobs route (INC-977)", () => {
     expect(finish()?.["p_clean"]).toBe(0);
   });
 
+  it("NCJ-20 an unusable answer is marked 'unusable'; it still counts under unavailable on the run (J-1)", async () => {
+    state.answers = [{ ok: false, reason: "unusableAnswer" }];
+    state.rows = [{ profile_id: "p-1", subject: "alias", checked_text: "qzname" }];
+    await post(signed());
+    expect(marks()).toEqual(["unusable"]);
+    expect(finish()?.["p_unavailable"]).toBe(1);
+  });
+
+  it("NCJ-21 a timeout, a provider error and an outage stay 'unavailable' (J-1)", async () => {
+    state.answers = [
+      { ok: false, reason: "timeout" },
+      { ok: false, reason: "providerError", status: 500 },
+      { ok: false, reason: "unavailable" },
+    ];
+    state.rows = ["p-1", "p-2", "p-3"].map((id) => ({
+      profile_id: id,
+      subject: "alias",
+      checked_text: `qz${id}`,
+    }));
+    await post(signed());
+    expect(marks()).toEqual(["unavailable", "unavailable", "unavailable"]);
+    expect(finish()?.["p_outcome"]).toBe("ok");
+  });
+
   it("NCJ-8 the switch off or the budget spent ends the run with its reason and marks nothing", async () => {
     state.answers = [{ ok: false, reason: "featureOff", gate: true }];
     expect((await (await post(signed())).json()).outcome).toBe("switch_off");

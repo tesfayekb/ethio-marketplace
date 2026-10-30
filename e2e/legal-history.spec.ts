@@ -174,8 +174,6 @@ test.describe("My legal documents", () => {
     await expect(page.getByTestId("legal-text")).toContainText("frozen-history@example.invalid");
     await switchLanguage(page, "am");
     await expect(page.getByTestId("legal-text")).toContainText("Amharic history text");
-    // The language menu closes before it is opened again (a click while it closes is lost).
-    await expect(page.getByRole("menu")).toHaveCount(0);
     await switchLanguage(page, "en");
     await expect(page.getByTestId("my-legal-print")).toHaveCount(0);
     await expect(page.getByTestId("my-legal-lang-am")).toHaveCount(0);

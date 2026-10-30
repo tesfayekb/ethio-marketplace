@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 622,
+  "scanned": 623,
   "dynamicCallSites": 404,
   "keys": {
     "account.deactivatedBanner": [
@@ -3811,6 +3811,9 @@
       "/admin/screening"
     ],
     "admin.screening.names.title": [
+      "/admin/screening"
+    ],
+    "admin.screening.names.unusable": [
       "/admin/screening"
     ],
     "admin.screening.open": [

@@ -108,7 +108,7 @@ export async function runNameCheckCatchup(
         break;
       }
       counts.asked += 1;
-      let state: "clean" | "imitates" | "unavailable";
+      let state: "clean" | "imitates" | "unavailable" | "unusable";
       // N1b-3 (R3): what the model says the name imitates, kept on the hold only
       // (name_checks' CHECK refuses it on any other state; the door bounds it to 80).
       let of: string | undefined;
@@ -117,7 +117,9 @@ export async function runNameCheckCatchup(
         const said = answer.value.of?.trim();
         if (state === "imitates" && said) of = said;
       } else {
-        state = "unavailable";
+        // J-1 (INC-1002): an answer out of shape counts toward staff review (N = 5, in SQL);
+        // every other failure is ours or the provider's and never moves the name.
+        state = answer.reason === "unusableAnswer" ? "unusable" : "unavailable";
         const status = answer.reason === "providerError" ? answer.status : undefined;
         if (status === 402) pauseWith = "credits";
         else if (status === 403) pauseWith = "policy";
@@ -131,7 +133,8 @@ export async function runNameCheckCatchup(
         ...(of === undefined ? {} : { p_of: of }),
       });
       if (mark.error) logRouteError(PATH, `name_check_mark: ${mark.error.message}`);
-      else if (mark.data === true) counts[state] += 1;
+      else if (mark.data === true) counts[state === "unusable" ? "unavailable" : state] += 1;
+      // J-1: the run keeps four figures; an unusable answer counts under unavailable (follow-up: its own count).
       // false: the name changed since it was read; the door already reset its row.
       if (pauseWith !== null) {
         const set = await admin.rpc("job_pause_set", { p_job: JOB, p_reason: pauseWith });
