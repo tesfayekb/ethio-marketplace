@@ -19,7 +19,7 @@ const SAGE: ThemeSetValue = {
   light: {
     "lift-bar": "0 1px 6px oklch(0.254 0.014 253.1 / 0.07)",
     "lift-side": "1px 0 8px oklch(0.254 0.014 253.1 / 0.06)",
-    background: "oklch(0.969 0.005 258.3)",
+    background: "oklch(0.959 0.007 151.9)",
     foreground: "oklch(0.254 0.014 253.1)",
     card: "oklch(1 0 89.9)",
     "card-foreground": "oklch(0.254 0.014 253.1)",
