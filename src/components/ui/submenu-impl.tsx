@@ -247,7 +247,7 @@ function Panel({
             ? { left: place.left, top: place.top, maxHeight: place.maxHeight }
             : { left: 0, top: 0, opacity: 0 }
         }
-        className="fixed z-30 w-60 overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 duration-150 motion-reduce:animate-none"
+        className="fixed z-30 w-64 overflow-y-auto overscroll-contain rounded-md bg-sidebar p-1 shadow-lg animate-in fade-in-0 motion-reduce:animate-none"
       >
         {showHeader ? (
           <p
