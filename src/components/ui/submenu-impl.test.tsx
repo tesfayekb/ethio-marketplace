@@ -184,21 +184,24 @@ describe("the sub-menu mechanism (DEC-288)", () => {
     expect((460 - snap.top) % 36).toBe(0);
   });
 
-  it("SNP-3 a panel taller than the menu takes its height, then shrinks its rows to 32 px, then scrolls (D248)", () => {
+  it("SNP-3 a panel taller than the menu takes the menu's whole rows at its row height and scrolls (D254, replaces D248's shrink)", () => {
     const menu = { openerTop: 100, rowHeight: 36, menuTop: 64, menuBottom: 568 };
-    // 504 px of menu: 15 rows of 36 (540) do not fit; they share it at 33.6 px.
-    const shared = snapToGrid({ ...menu, count: 15 });
-    expect(shared.top).toBe(64);
-    expect(shared.height).toBe(504);
-    expect(shared.rowHeight).toBeCloseTo(33.6, 5);
-    expect(shared.scrolls).toBe(false);
-    // 20 rows at 32 px (640) cannot fit: the floor holds and the panel scrolls.
-    expect(snapToGrid({ ...menu, count: 20 })).toEqual({
+    // 504 px of menu holds exactly 14 rows of 36; 15 rows never shrink to share it.
+    expect(snapToGrid({ ...menu, count: 15 })).toEqual({
       top: 64,
-      rowHeight: 32,
+      rowHeight: 36,
       height: 504,
       scrolls: true,
     });
+    expect(snapToGrid({ ...menu, count: 21 }).rowHeight).toBe(36);
+  });
+
+  it("SNP-4 a panel with one row more than the menu holds keeps the row height and scrolls (D254)", () => {
+    const menu = { openerTop: 64, rowHeight: 48, menuTop: 64, menuBottom: 64 + 15 * 48 };
+    const fits = snapToGrid({ ...menu, count: 15 });
+    expect(fits.scrolls).toBe(false);
+    const over = snapToGrid({ ...menu, count: 16 });
+    expect(over).toEqual({ top: 64, rowHeight: 48, height: 15 * 48, scrolls: true });
   });
 
   it("SMN-2 the safe triangle holds a diagonal move to the panel and nothing outside it", () => {
