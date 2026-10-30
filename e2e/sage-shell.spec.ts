@@ -60,7 +60,10 @@ function withoutEmptyLayers(value: string): string {
 }
 
 const style = async (locator: Locator, property: string) => {
-  const value = await locator.evaluate((el, prop) => getComputedStyle(el)[prop as "color"], property);
+  const value = await locator.evaluate(
+    (el, prop) => getComputedStyle(el)[prop as "color"],
+    property,
+  );
   return property === "boxShadow" ? withoutEmptyLayers(value) : value;
 };
 
@@ -178,7 +181,10 @@ for (const width of WIDTHS) {
           await resolved(page, "boxShadow", tokenOf(mode, "lift-tile")),
           await resolved(page, "borderTopColor", tokenOf(mode, "hairline")),
         ].join(" | ");
-        for (const got of idleTiles) expect(got, "SGS-3 an idle tile").toBe(idleWant);
+        for (const [bg, lift, edge] of idleTiles)
+          expect([bg, withoutEmptyLayers(lift), edge].join(" | "), "SGS-3 an idle tile").toBe(
+            idleWant,
+          );
       });
 
       test(`SGS-4 the footer (${width}, ${mode})`, async ({ page }) => {
@@ -227,6 +233,59 @@ for (const width of WIDTHS) {
         );
         expect(await style(signIn, "fontWeight")).toBe("600");
       });
+    });
+  }
+}
+
+/**
+ * SGS-7 (S1-2 ruling 1; R6) — at 390 px no control that stays on screen sits under the Post
+ * disc: every interactive element inside a fixed or sticky surface (the bottom bar itself
+ * excepted) keeps its box clear of the disc's box, on the feed and on a page whose phone
+ * action bar is pinned above the bottom bar (FormSection, /dev/primitives).
+ */
+for (const mode of MODES) {
+  for (const path of ["/", "/dev/primitives"]) {
+    test(`SGS-7 the Post disc covers no pinned control (${path}, ${mode})`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile-360", "the disc is drawn on phones only");
+      await open(page, 390, mode);
+      if (path !== "/") {
+        await gotoReady(page, path);
+        // The section's top in view: its action bar is stuck above the bottom bar.
+        await page.getByTestId("prim-form-section").evaluate((el) => el.scrollIntoView());
+        const bar = page.getByTestId("prim-form-section").locator("[data-testid$='-actions']");
+        const box = await bar.boundingBox();
+        const top = await page.getByTestId("bottom-bar").boundingBox();
+        if (!box || !top) throw new Error("SGS-7 no action bar or bottom bar box");
+        expect(Math.round(box.y + box.height), "SGS-7 the action bar meets the bottom bar").toBe(
+          Math.round(top.y),
+        );
+      }
+      const disc = await page.getByTestId("bottom-bar-disc").boundingBox();
+      if (!disc) throw new Error("SGS-7 no disc box");
+      const covered = await page.evaluate((d) => {
+        const hits: string[] = [];
+        const controls = document.querySelectorAll<HTMLElement>(
+          "a[href], button, input, select, textarea, [role='button'], [tabindex]:not([tabindex='-1'])",
+        );
+        for (const el of controls) {
+          if (el.closest("[data-testid='bottom-bar']")) continue;
+          let pinned = false;
+          for (let n: HTMLElement | null = el; n; n = n.parentElement) {
+            const pos = getComputedStyle(n).position;
+            if (pos === "fixed" || pos === "sticky") pinned = true;
+          }
+          if (!pinned) continue;
+          const r = el.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) continue;
+          const apart =
+            r.right <= d.x || r.left >= d.x + d.width || r.bottom <= d.y || r.top >= d.y + d.height;
+          if (!apart) hits.push(el.outerHTML.slice(0, 120));
+        }
+        return hits;
+      }, disc);
+      expect(covered, "SGS-7 pinned controls under the disc").toEqual([]);
     });
   }
 }
