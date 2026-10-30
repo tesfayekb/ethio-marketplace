@@ -18,6 +18,7 @@ import {
   attributesOf,
   bearerOf,
   nextToStep,
+  pickCity,
   pinOf,
   postRoute,
   reasonsOf,
@@ -84,39 +85,6 @@ async function typePhone(page: Page, testId: string, text: string) {
   await page.keyboard.press("ControlOrMeta+A");
   await page.keyboard.press("Backspace");
   await page.keyboard.type(text);
-}
-
-/**
- * INC-948 — THE CITY'S OWN REGION, PICKED, NEVER WALKED. The walk this replaces
- * selected each region and read the city picker's options at once with a bare
- * `count()`, which never waits: when the city options for the right region drew a
- * frame after the region's change, the walk passed that region and ended with no
- * city chosen ("PW-30: no place was chosen", data-count 0). The region is read from
- * the city's own row, and each option is awaited before it is chosen (J7).
- */
-async function pickCity(page: Page, city: { id: string; slug: string }): Promise<string> {
-  const { data, error } = await adminClient()
-    .from("locations")
-    .select("parent_id")
-    .eq("id", city.id)
-    .single();
-  if (error || !data?.parent_id)
-    throw new Error(
-      `[e2e:pw] the region of ${city.slug} was not read: ${error?.message ?? "none"}`,
-    );
-  const region = page.getByTestId("post-where-region");
-  await expect(
-    region.locator(`option[value="${data.parent_id}"]`),
-    `the region of ${city.slug} never reached the picker`,
-  ).toHaveCount(1);
-  await region.selectOption(data.parent_id);
-  const cityPicker = page.getByTestId("post-where-city");
-  await expect(
-    cityPicker.locator(`option[value="${city.id}"]`),
-    `the city ${city.slug} never reached the picker`,
-  ).toHaveCount(1);
-  await cityPicker.selectOption(city.id);
-  return ((await cityPicker.locator("option:checked").textContent()) ?? "").trim();
 }
 
 test.describe("POSTING WIZARD", () => {

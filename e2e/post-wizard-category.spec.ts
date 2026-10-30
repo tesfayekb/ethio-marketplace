@@ -966,45 +966,26 @@ test.describe("POSTING WIZARD", () => {
     await waitForTreeSlug(page, "ET", city.slug);
     const region = page.getByTestId("post-where-region");
     await expect(region, "reachStep7: the region level never rendered").toBeVisible();
-    // The city's own region is whichever one carries it: the cascade is walked,
-    // not guessed, by selecting each region until the city appears.
-    const values = await region
-      .locator("option")
-      .evaluateAll((nodes) =>
-        nodes.map((node) => (node as HTMLOptionElement).value).filter((value) => value !== ""),
-      );
-    let picked = false;
-    for (const value of values) {
-      await region.selectOption(value);
-      const cityPicker = page.getByTestId("post-where-city");
-      if ((await cityPicker.locator(`option[value="${city.id}"]`).count()) === 1) {
-        await cityPicker.selectOption(city.id);
-        picked = true;
-        break;
-      }
-    }
-    if (!picked) {
-      // INC-235 — THE REFUSAL SAYS WHAT IT SAW: the market on screen, every region
-      // the cascade offered, what the route served then and now, and how long the
-      // walk had taken. A bare "no region carried the city" is not evidence.
+    // INC-948 — the shared pick (helpers/posting.ts): the city's own region from
+    // its row, each option awaited. INC-235 — THE REFUSAL SAYS WHAT IT SAW: the
+    // market on screen, every region the cascade offered, what the route served
+    // then and now, and how long the pick had taken.
+    await pickCity(page, city, async () => {
       const market = await page.getByTestId("post-where-market").inputValue();
       const slugs = await region
         .locator("option")
         .evaluateAll((nodes) => nodes.map((node) => node.textContent ?? ""));
       const now = await readServedTree("ET");
-      expect(
-        picked,
-        [
-          `reachStep7: no region carried the city ${city.slug}.`,
-          `the market select's value: ${market || "(empty)"}`,
-          `regions offered (${values.length}): ${slugs.join(" | ") || "(none)"}`,
-          `the tree route when the step opened: status ${served.status}, ${served.slugs.length} slugs`,
-          `the tree route now: status ${now.status}, ${now.slugs.length} slugs, markets ${now.codes.join(",") || "(none)"}`,
-          `the city ${city.slug} in that read: ${now.slugs.includes(city.slug) ? "yes" : "NO"}`,
-          `elapsed since the tree wait: ${Date.now() - startedAt} ms`,
-        ].join("\n"),
-      ).toBe(true);
-    }
+      return [
+        `reachStep7: the city ${city.slug} was not offered.`,
+        `the market select's value: ${market || "(empty)"}`,
+        `regions offered (${slugs.length}): ${slugs.join(" | ") || "(none)"}`,
+        `the tree route when the step opened: status ${served.status}, ${served.slugs.length} slugs`,
+        `the tree route now: status ${now.status}, ${now.slugs.length} slugs, markets ${now.codes.join(",") || "(none)"}`,
+        `the city ${city.slug} in that read: ${now.slugs.includes(city.slug) ? "yes" : "NO"}`,
+        `elapsed since the tree wait: ${Date.now() - startedAt} ms`,
+      ].join("\n");
+    });
     // The chosen place shows itself into the list (U6-C1-R2) — no tap needed.
     await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
       timeout: 20_000,
