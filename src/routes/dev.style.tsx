@@ -207,7 +207,7 @@ function SageGrid() {
                   <span
                     className="block h-8 w-12 rounded-md shadow-tile"
                     style={{
-                      background: token.startsWith("lift-") ? undefined : `var(--${token})`,
+                      background: `var(--${token.startsWith("lift-") ? "card" : token})`,
                       boxShadow: token.startsWith("lift-") ? `var(--${token})` : undefined,
                     }}
                   />
