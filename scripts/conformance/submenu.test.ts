@@ -12,7 +12,9 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *    only falls (the admin groups and the phone split move in R1c/R1d);
  *  - the marketplace tree drilling in place on the persistent rail (CategoryNav's level
  *    is the phone menu's alone);
- *  - a hover intent or side panel built outside the mechanism (its timings by name).
+ *  - a hover intent or side panel built outside the mechanism (its timings by name);
+ *  - D244 (INC-1008; R1c): a panel that is never placed again on a resize, or a deeper
+ *    level whose floor is 0 (under the top bar) instead of its parent's.
  */
 type Finding = { file: string; line: number; what: string };
 
@@ -25,6 +27,9 @@ const MECHANISM = new Set([
 const OWN_INTENT = /SUBMENU_(?:OPEN|CLOSE)_MS|inSafeTriangle|placePanel/;
 const RAIL = "src/components/shell/app-rail.tsx";
 const LEVEL_GATE = /const level = variant === "menu" && levelId/;
+const IMPL = "src/components/ui/submenu-impl.tsx";
+const RESIZE = /addEventListener\("resize"/;
+const FLOOR_ZERO = /depth === 0 \?[^:\n]+:\s*0\b/;
 
 export function submenuFindings(files: { name: string; text: string }[]): {
   counts: Map<string, number>;
@@ -43,6 +48,18 @@ export function submenuFindings(files: { name: string; text: string }[]): {
           what: "a hover intent or side panel outside the sub-menu mechanism (CF-SUB-1)",
         });
     });
+    if (file.name === IMPL && !RESIZE.test(code))
+      findings.push({
+        file: IMPL,
+        line: 1,
+        what: "a panel is never placed again when the window is resized (D244)",
+      });
+    if (file.name === IMPL && FLOOR_ZERO.test(code))
+      findings.push({
+        file: IMPL,
+        line: 1,
+        what: "a deeper panel's floor is 0, under the top bar (D244)",
+      });
     if (file.name === RAIL && !LEVEL_GATE.test(code))
       findings.push({
         file: RAIL,
@@ -86,12 +103,28 @@ describe("CF-SUB-1 sub-items open in a side panel", () => {
         text: "const level = levelId ? tree.byId.get(levelId) : undefined;\n<RailRow key={c.key} node={c} depth={depth + 1} />",
       },
       { name: "src/components/planted.tsx", text: "setTimeout(open, SUBMENU_OPEN_MS);" },
-      { name: "src/components/ui/submenu-impl.tsx", text: "setTimeout(open, SUBMENU_OPEN_MS);" },
+      {
+        name: "src/components/ui/submenu-impl.tsx",
+        text: 'setTimeout(open, SUBMENU_OPEN_MS); window.addEventListener("resize", f);',
+      },
     ]);
     expect([...counts]).toEqual([[RAIL, 1]]);
     expect(findings.map((f) => f.what)).toEqual([
       "the marketplace tree drills in place on the persistent rail (DEC-288)",
       "a hover intent or side panel outside the sub-menu mechanism (CF-SUB-1)",
+    ]);
+  });
+
+  it("self-test (D244): a panel placed once, and a deeper floor of 0, are refused", () => {
+    const { findings } = submenuFindings([
+      {
+        name: "src/components/ui/submenu-impl.tsx",
+        text: "const placed = placePanel({ minTop: Math.max(0, depth === 0 ? edge.top : 0) });",
+      },
+    ]);
+    expect(findings.map((f) => f.what)).toEqual([
+      "a panel is never placed again when the window is resized (D244)",
+      "a deeper panel's floor is 0, under the top bar (D244)",
     ]);
   });
 });
