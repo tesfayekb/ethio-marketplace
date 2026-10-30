@@ -411,8 +411,7 @@ test.describe("POSTING WIZARD", () => {
      * proves the ROUTE is ready without priming the browser's own read, and the
      * browser wait below still proves the APP received it.
      */
-    const startedAt = Date.now();
-    const served = await waitForServedTree("ET", city.slug);
+    await waitForServedTree("ET", city.slug);
     await waitForTreeSlug(page, "ET", city.slug);
     const region = page.getByTestId("post-where-region");
     await expect(region, "reachStep7: the region level never rendered").toBeVisible();
