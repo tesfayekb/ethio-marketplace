@@ -10,6 +10,7 @@ import {
   expectSignedIn,
   expectCutFloor,
   gotoReady,
+  layoutBoxes,
   describeSwitcher,
   expectActivePanel,
   openPanel,
