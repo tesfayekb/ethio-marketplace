@@ -45,7 +45,7 @@ async function measure(page: Page): Promise<Box> {
 async function scrollingPage(page: Page) {
   const size = page.viewportSize();
   await page.setViewportSize({ width: size?.width ?? 1280, height: 400 });
-  await scrollingPage(page);
+  await gotoReady(page, "/");
   await expect
     .poll(() => page.evaluate(() => document.documentElement.scrollHeight - window.innerHeight), {
       message: "OVS: the page does not scroll at a 400 px viewport",
