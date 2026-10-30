@@ -1,0 +1,1 @@
+# CF-E2E-WAIT-1 / CF-E2E-PLACE-1 exceptions: file:line | reason | until
