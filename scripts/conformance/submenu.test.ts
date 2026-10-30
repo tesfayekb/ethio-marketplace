@@ -34,7 +34,7 @@ const RAIL = "src/components/shell/app-rail.tsx";
 const LEVEL_GATE = /const level = variant !== "rail" && levelId/;
 const LEVEL_HOME = "src/components/shell/menu-level.ts";
 // D255 — one level state for the category list: no component holds a second copy.
-const SECOND_LEVEL = /\b(?:useState|useReducer)\b[^\n]*\b(?:slug|[lL]evel)\b/;
+const SECOND_LEVEL = /\b(?:useState|useReducer)\b[^\n]*(?:slug|[lL]evel)/;
 const IMPL = "src/components/ui/submenu-impl.tsx";
 const MENU_STARTS_OVER = /variant === "menu" \?\s*(?:null|undefined)\b/;
 const RESIZE = /addEventListener\("resize"/;
