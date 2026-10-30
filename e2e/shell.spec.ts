@@ -3760,7 +3760,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     }
   });
 
-  test("SC-6 the phone menu opens at the current page's level; the peek shows the same (D246)", async ({
+  test("B21SC-6 SC-6 the phone menu opens at the current page's level; the peek shows the same (D246)", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile-360");
@@ -3791,7 +3791,7 @@ test.describe("in-place category menu (bundle 21 turn 5)", () => {
     }
   });
 
-  test("SC-7 on a leaf's page the opened panels mark the leaf and its ancestor (D246)", async ({
+  test("B21SC-7 SC-7 on a leaf's page the opened panels mark the leaf and its ancestor (D246)", async ({
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop-1280");
