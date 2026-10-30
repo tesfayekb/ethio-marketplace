@@ -227,8 +227,6 @@ function Panel({
     setPlace({ left: placed.left, top: placed.top, maxHeight: placed.maxHeight });
   }, [opener, depth, edgeOf, floor, childTick]);
 
-
-
   useEffect(() => {
     if (!place || !opener.focus) return;
     // Before placement the panel is transparent, never hidden: a hidden row cannot take focus.

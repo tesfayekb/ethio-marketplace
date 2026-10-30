@@ -305,8 +305,15 @@ export const AREAS: Area[] = [
       "src/components/shell/submenu/**",
       "src/components/ui/submenu-*.ts*",
       "src/components/shell/app-rail.tsx",
+      // D247 — the menu rows' fit-before-scroll rule lives in the stylesheet.
+      "src/styles.css",
     ],
-    specs: ["e2e/submenu.spec.ts", "e2e/submenu-touch.spec.ts", "e2e/overlay-shift.spec.ts"],
+    specs: [
+      "e2e/submenu.spec.ts",
+      "e2e/submenu-touch.spec.ts",
+      "e2e/overlay-shift.spec.ts",
+      "e2e/menu-rows.spec.ts",
+    ],
   },
 ];
 

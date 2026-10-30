@@ -2095,10 +2095,7 @@ test.describe("desktop layout laws (U0g)", () => {
   });
 
   // G38 — D247 (R1c) replaces DEC-288 item 7's 36–48 px: rows share the height, 32–48 px.
-  test("C1: a rail row is 32–48 px high from md (D247)", async ({
-    page,
-    viewport,
-  }) => {
+  test("C1: a rail row is 32–48 px high from md (D247)", async ({ page, viewport }) => {
     test.skip((viewport?.width ?? 0) < 768, "md and up only");
     await gotoReady(page, "/");
     const rail = page.getByTestId("app-rail");

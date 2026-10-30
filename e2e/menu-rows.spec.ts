@@ -28,11 +28,14 @@ async function railList(page: Page) {
 }
 
 const scrollOf = (page: Page) =>
-  page.getByTestId("app-rail").getByTestId("rail-scroll").evaluate((el) => ({
-    overflow: el.scrollHeight - el.clientHeight,
-    bar: (el as HTMLElement).offsetWidth - el.clientWidth,
-    client: el.clientHeight,
-  }));
+  page
+    .getByTestId("app-rail")
+    .getByTestId("rail-scroll")
+    .evaluate((el) => ({
+      overflow: el.scrollHeight - el.clientHeight,
+      bar: (el as HTMLElement).offsetWidth - el.clientWidth,
+      client: el.clientHeight,
+    }));
 
 test("ROWS-E3 the rail's list fits at 1280×600 when its rows fit at 32 px; it does not scroll", async ({
   page,
