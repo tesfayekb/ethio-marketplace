@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 412 312" width="412" height="312" role="img" aria-label="Sold">
+  <!-- ethio.com Sage 3D — satin status ribbon, regular ad, dark mode over a 400×300 picture (desktop card: letters 20 units = 5cqw, band 31.2 units).
+       Same place as today: −30°, centre (297.4, 240.8) = 25.72cqw / 14.85cqw from the lower-right corner. Grey rect = the photo, for reference only.
+       For other card sizes recompute the band from: centre line n·(p − corner) = −102.6, n = (0.5, 0.866), thickness = letters + 2 × 1.4cqw. -->
+  <defs>
+    <linearGradient id="satin" gradientUnits="userSpaceOnUse" x1="194.8" y1="300" x2="400" y2="181.5"><stop offset="0" stop-color="#5E6863"/><stop offset="0.07" stop-color="#F2F5F3"/><stop offset="0.22" stop-color="#DEE4E0"/><stop offset="0.58" stop-color="#C5CDC8"/><stop offset="0.92" stop-color="#A3ADA7"/><stop offset="1" stop-color="#57615C"/></linearGradient>
+    <linearGradient id="rollX" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4F5954"/><stop offset="0.5" stop-color="#E6EBE8"/><stop offset="1" stop-color="#4F5954"/></linearGradient>
+    <linearGradient id="rollY" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4F5954"/><stop offset="0.5" stop-color="#E6EBE8"/><stop offset="1" stop-color="#4F5954"/></linearGradient>
+    <filter id="drop" x="-10%" y="-40%" width="120%" height="200%"><feDropShadow dx="0" dy="2.5" stdDeviation="2.5" flood-color="#000000" flood-opacity="0.55"/></filter>
+  </defs>
+  <rect x="0" y="0" width="400" height="300" rx="12" fill="#26302B"/>
+  <g filter="url(#drop)">
+    <path d="M400 163.5 L400 199.5 Q407 201.5 407 195.5 L407 166.5 Q407 161.5 400 163.5 Z" fill="url(#rollY)"/>
+    <path d="M163.6 300 L226.0 300 Q228.0 307 222.0 307 L166.6 307 Q161.6 307 163.6 300 Z" fill="url(#rollX)"/>
+    <polygon points="400,163.5 400,199.5 226.0,300 163.6,300" fill="url(#satin)"/>
+    <polygon points="400,163.5 400,167.8 171.1,300 163.6,300" fill="#FFFFFF" opacity="0.38"/>
+    <polygon points="400,194.5 400,199.5 226.0,300 217.3,300" fill="#000000" opacity="0.12"/>
+  </g>
+  <text transform="translate(297.4 242.0) rotate(-30)" text-anchor="middle" dominant-baseline="central" font-family="Inter, sans-serif" font-weight="700" font-size="20" letter-spacing="1.2" fill="#FFFFFF" opacity="0.45">SOLD</text>
+  <text transform="translate(297.4 240.8) rotate(-30)" text-anchor="middle" dominant-baseline="central" font-family="Inter, sans-serif" font-weight="700" font-size="20" letter-spacing="1.2" fill="#1A221E">SOLD</text>
+</svg>

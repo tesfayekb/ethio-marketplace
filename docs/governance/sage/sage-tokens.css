@@ -1,0 +1,111 @@
+/*
+ * ethio.com — Sage 3D design tokens (light mode)
+ * Source of truth: "ethio.com — Sage 3D style change spec" (sections 2, 7, 8, 12, 13 and 14).
+ * Values are the approved hex / rgba. Before merging into src/styles.css:
+ *   - convert colours to oklch (the file's rule),
+ *   - register each in @theme inline,
+ *   - add the contrast pairs to styles.tokens.test.ts.
+ * Rulings R1–R9 in the spec must be granted first (tinted shadows, gold placements, gradients on the tab).
+ */
+
+:root {
+  /* Surfaces */
+  --background: #EEF3EF;          /* sage page (was #F3F5F8) */
+  --sidebar: #F7FAF8;             /* rail, breadcrumb + location band, footer (was #FFFFFF) */
+  --card: #FFFFFF;                /* unchanged */
+  --rule: #E2EAE4;                /* was #E4E8ED */
+  --hairline: #DCE6DF;            /* new: 1px edges, control borders, rail tile border */
+  --field: #F4F8F5;               /* new: search field fill */
+  --track: #E6EEE8;               /* new: location box track */
+  --photo-empty: #E3E8E5;         /* new: picture box before a photo loads */
+  --leaf-ink: #3E7A62;            /* new: search, globe and pin icons, MARKETPLACE sub-line */
+
+  /* Paid cards (section 7) */
+  --premium-fill: #FDF1DA;
+  --premium-edge: #D9A94F;
+  --premium-rule: #F1DDB5;
+  --premium-ink: #7A4E00;
+  --featured-fill: #E4F1E9;
+  --featured-edge: #4F8A70;
+  --featured-rule: #CFE3D7;
+  --featured-ink: #17503A;
+  /* Mini flag (white body, coloured border) */
+  --premium-fold: #B5862F;
+  --featured-fold: #2F5E49;
+  /* Satin status ribbon (section 8): six stops along the band at 0/7/22/58/92/100 %,
+     rolled-end caps dark → light → dark; the palette follows the card's tier. */
+  --ribbon-pearl: #8E9893, #FFFFFF, #F7F9F8, #E4E9E6, #C6CEC9, #87918C;   /* regular ads */
+  --ribbon-pearl-roll: #7A847F, #F4F6F5;  --ribbon-pearl-ink: #26302B;  --ribbon-pearl-emboss: rgba(255,255,255,.70);
+  --ribbon-pearl-shadow: drop-shadow(0 2.5px 2.5px rgba(15,26,20,.30));
+  --ribbon-gold: #9A6A1C, #FBEBB8, #EFCB72, #D9A443, #B98428, #8A5A12;    /* Premium */
+  --ribbon-gold-roll: #7A4E0E, #E7C26A;   --ribbon-gold-ink: #3D2A08;   --ribbon-gold-emboss: rgba(255,255,255,.50);
+  --ribbon-gold-shadow: drop-shadow(0 2.5px 2.5px rgba(42,26,3,.30));
+  --ribbon-sage: #1E5A43, #D3EEDF, #93D0B1, #5BA584, #3A7F62, #18412F;    /* Featured */
+  --ribbon-sage-roll: #143A2B, #86C9A7;   --ribbon-sage-ink: #0B2419;   --ribbon-sage-emboss: rgba(255,255,255,.45);
+  --ribbon-sage-shadow: drop-shadow(0 2.5px 2.5px rgba(10,32,22,.32));
+
+  /* Ad page, Premium accents inside the ad body (section 12) */
+  --premium-button: #C98A2B;  --premium-button-ink: #3D2A08;   /* Show contact, 4.67:1 */
+  --premium-soft: #F6E3BC;    /* Negotiable chip, seller initials disc */
+  --premium-chip-ring: #EBD3A6;
+  --premium-outline: #E2C48A; /* Enlarge map outline */
+  /* Premium price, links, Save/Share, Read more use --premium-ink (#7A4E00) */
+
+  /* Menus and dialogs (section 14) */
+  --shadow-menu: 0 0 0 1px #DCE6DF, 0 2px 6px rgba(23,64,47,.10), 0 14px 30px -8px rgba(23,64,47,.30);
+  --shadow-dialog: 0 0 0 1px #DCE6DF, 0 4px 12px rgba(23,64,47,.12), 0 28px 60px -12px rgba(23,64,47,.45);
+  --overlay: rgba(16,40,30,.55);
+
+  /* Shadows — the 3D effect (green-tinted, ruling R1) */
+  --shadow-band: 0 1px 0 #D6E2DA, 0 10px 20px -12px rgba(23,64,47,.35);
+  --shadow-rail: 1px 0 0 #DCE6DF, 8px 0 18px -12px rgba(23,64,47,.30);
+  --shadow-rail-phone: 1px 0 0 #DCE6DF, 6px 0 14px -10px rgba(23,64,47,.30);
+  --shadow-subband: 0 1px 0 #DCE6DF, 0 8px 16px -12px rgba(23,64,47,.30);
+  --shadow-footer: 0 -1px 0 #DCE6DF, inset 0 1px 0 #FFFFFF, 0 -10px 20px -14px rgba(23,64,47,.30);
+  --shadow-field: inset 0 2px 4px rgba(23,64,47,.10), inset 0 0 0 1px #CFE0D6, 0 1px 0 #FFFFFF;
+  --shadow-control: 0 1px 2px rgba(23,64,47,.12), inset 0 -2px 0 rgba(23,64,47,.07);
+  --shadow-button: inset 0 1px 0 rgba(255,255,255,.18), inset 0 -2px 0 rgba(0,0,0,.22), 0 2px 5px rgba(23,64,47,.30);
+  --shadow-tile: 0 1px 2px rgba(23,64,47,.14), inset 0 -2px 0 rgba(23,64,47,.06);
+  --shadow-tile-on: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.22), 0 2px 5px rgba(23,64,47,.30);
+  --shadow-row-on: 0 1px 2px rgba(23,64,47,.08), 0 6px 14px -4px rgba(23,64,47,.14);
+  --shadow-track: inset 0 2px 3px rgba(23,64,47,.12), inset 0 -1px 0 #FFFFFF;
+  --shadow-segment: 0 1px 2px rgba(23,64,47,.20), 0 3px 8px rgba(23,64,47,.10), inset 0 -1px 0 rgba(23,64,47,.06);
+  --shadow-card: 0 1px 1px rgba(23,64,47,.04), 0 4px 10px rgba(23,64,47,.06), 0 14px 28px -8px rgba(23,64,47,.12);
+  --shadow-card-md: 0 1px 1px rgba(23,64,47,.04), 0 4px 10px rgba(23,64,47,.06), 0 12px 24px -8px rgba(23,64,47,.12);
+  --shadow-card-sm: 0 1px 1px rgba(23,64,47,.04), 0 3px 8px rgba(23,64,47,.07), 0 10px 18px -8px rgba(23,64,47,.14);
+  --shadow-premium: 0 0 0 1.5px #D9A94F, 0 10px 24px -8px rgba(201,138,43,.35);
+  --shadow-featured: 0 0 0 1.5px #4F8A70, 0 10px 24px -8px rgba(30,90,67,.26);
+  --shadow-badge: inset 0 1px 0 rgba(255,255,255,.35), inset 0 -2px 0 rgba(0,0,0,.18), 0 3px 8px rgba(201,138,43,.35);
+  --shadow-bar-up: 0 -1px 0 #DCE6DF, 0 -10px 24px -10px rgba(23,64,47,.30);
+  --shadow-tab: drop-shadow(0 2px 2px rgba(30,35,41,.22));
+
+  /* Radii */
+  --radius: 0.75rem;              /* buttons, controls: 12px (was 6px) */
+  --radius-card: 1.25rem;         /* 20px at 5 a row; 14px at 4 a row; 12px at 3 a row */
+}
+
+/* Paid card treatment — apply on the card article by data-tier (sizes and slots unchanged). */
+[data-tier="premium"]  { background: var(--premium-fill);  box-shadow: var(--shadow-premium); }
+[data-tier="featured"] { background: var(--featured-fill); box-shadow: var(--shadow-featured); }
+
+/* Sage dark set (section 13) */
+.dark {
+  --background: #121815;  --card: #1A221E;  --sidebar: #171E1A;  --popover: #1D2621;
+  --foreground: #E6EAE7;  --muted-foreground: #A3B0A8;
+  --primary: #7FC9A6;     --primary-foreground: #0B1A13;
+  --hairline: #2F3B34;    --rule: #27322C;  --field: #0F1512;  --track: #0F1512;
+  --photo-empty: #26302B; --leaf-ink: #7FC9A6;  --row-on: #1C2B24;
+  --premium-fill: #2B2314; --premium-edge: #C9973F; --premium-rule: #4F4020; --premium-ink: #E6B655;
+  --premium-button: #E0A94A; --premium-button-ink: #221704; --premium-soft: #3A2E15; --premium-chip-ring: #5A4824; --premium-outline: #5A4824;
+  --featured-fill: #1A2C23; --featured-edge: #4F9C7A; --featured-rule: #2E4A3C; --featured-ink: #7FC9A6;
+  /* regular-ad ribbon: softer pearl so it does not glare */
+  --ribbon-pearl: #5E6863, #F2F5F3, #DEE4E0, #C5CDC8, #A3ADA7, #57615C;
+  --ribbon-pearl-roll: #4F5954, #E6EBE8;  --ribbon-pearl-ink: #1A221E;  --ribbon-pearl-emboss: rgba(255,255,255,.45);
+  --ribbon-pearl-shadow: drop-shadow(0 2.5px 2.5px rgba(0,0,0,.55));
+  --shadow-card: 0 0 0 1px #26302B, 0 2px 2px rgba(0,0,0,.09), 0 8px 20px rgba(0,0,0,.13), 0 14px 28px -8px rgba(0,0,0,.26);
+  --shadow-premium: 0 0 0 1.5px #C9973F, 0 10px 24px -8px rgba(0,0,0,.55);
+  --shadow-featured: 0 0 0 1.5px #4F9C7A, 0 10px 24px -8px rgba(0,0,0,.55);
+  --shadow-menu: 0 0 0 1px #2F3B34, 0 2px 6px rgba(0,0,0,.35), 0 14px 30px -8px rgba(0,0,0,.65);
+  --shadow-dialog: 0 0 0 1px #2F3B34, 0 4px 12px rgba(0,0,0,.40), 0 28px 60px -12px rgba(0,0,0,.75);
+  --overlay: rgba(0,0,0,.62);
+}

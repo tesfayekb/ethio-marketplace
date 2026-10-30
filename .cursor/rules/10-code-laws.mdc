@@ -1,0 +1,179 @@
+---
+description: The code laws of ethio.com, by concern — one mechanism per concern, the route and browser boundaries, no phantom success, authority, strings, locale, UI, reuse, speed, stability, vendors, docs. Binds every code change.
+alwaysApply: true
+---
+
+# 10 — Code laws (the constitution, by concern)
+
+Every law names its mechanism (file) and, where one exists, the guard in `scripts/conformance/`
+(or `scripts/`) that fails when it is broken. Before building or fixing anything: name the concern,
+find its mechanism in `docs/governance/mechanisms.md` (a mechanism not in the register does not
+exist), use or extend it. A second local version of a mechanism is a defect, not a shortcut.
+`AGENTS.md`'s project lines name further mechanisms (overlays, fonts, the Supabase door, speed,
+on-demand failures, QR, legal texts, string layers); each binds exactly as written there.
+
+## K — One mechanism per concern (G0)
+
+- K1 Name the concern; find its shared mechanism (component, hook, utility, door, SQL function,
+  constants module); extend it by a parameter, a row or a key — never fork it.
+- K2 Your report lists every other place with the same concern that bypasses the mechanism
+  (file:line), in scope or not; you fix only what the brief covers.
+- K3 A new mechanism lands in the SAME pull request as its conformance guard: a
+  `scripts/conformance` census through `kit.ts` (allowlist grammar `key | reason | until`; stale or
+  expired lines fail), proven on a planted bypass, with its caller named in
+  `scripts/conformance/wired.test.ts`.
+- K4 No literal language, country, currency or role code (`'am'`, `'ET'`, `'en-US'`, `"ETB"`) in app
+  code or SQL outside the one constants module/function; a recorded exception is named inline.
+  Market-neutral wording: a market-dependent statement names no single country — `{country}`.
+- K5 Every call to an outside model or translation provider is `aiCall`
+  (`src/server/ai/gateway.ts`) with a task in `src/server/ai/tasks.ts`: feature switch + budget,
+  the person's words only as quoted material under the one untrusted-text rule
+  (`src/lib/untrusted-text.ts`), the answer parsed against a schema (enum / bounded string /
+  allowlisted bytes), never rendered as HTML or a URL, a deadline, an audit row written before a
+  verdict about a person is acted on. Provider hosts, keys and stand-in flags live only under
+  `src/server/ai/`; stand-ins only via `standInMode` (`src/server/stand-in.ts`); a missing key
+  answers a refusal, never a stand-in.
+- K6 Every server route parses input through the shared schema helper; every form through the
+  shared field/validation primitive.
+
+## Routes — `src/server/route.ts`
+
+Every server endpoint is `defineRoute` with a `.strict()` zod shape from `src/lib/schemas/` (the
+UUID regex only in `src/lib/schemas/primitives.ts`); server functions are
+`createServerFn().validator(<that shape>)`. The order is the law: body size ceiling → caller (anon /
+optional / user / staff via `has_permission`) → content type → bounded read → strict UTF-8 → schema
+→ handler. Doors via `doorCall`; ownership via `ownListing` (a caller-scoped READ is never an
+ownership check); answers only via `src/server/answer.ts` (`ok`, `clientError`, `serverError`,
+`stepUpRequired`, `download`, `bytes`, `clientAborted` 499); caches via `versionCache`; cursors via
+`cursor.ts`; outside calls via `upstream()` with a deadline; read failures via `readFailure`; dials
+only from `src/lib/dials.ts`, declared in the spec or spent via `spend` (`src/server/dials.ts`);
+staff checks via `callerHasPermission`; staff imports via `defineImportRoute`; downloads via
+`download` + `imports/csv.ts`. No `request.json/formData/arrayBuffer/text`, `new Response`,
+`createClient` or `fetch` anywhere else. A client sees ONE envelope and never a raw Postgres or
+provider message. A route's authority answers before ANY side effect: nothing is deleted, written
+or sent upstream with the service role, and no dial is spent, until the caller-scoped door has
+answered or ownership was asserted on a row read as the caller.
+Guards: `scripts/conformance/routes.test.ts`, the ESLint route-boundary block, `dials.test.ts`,
+`import-doors.test.ts`, `scripts/check-import-gate.sh`.
+
+## Browser → route — `src/lib/route-client.ts`
+
+Browser code calls our routes only through `callRoute` / `downloadRoute` / `uploadRoute`. No
+bearer builder, `access_token` read or bare `fetch` of a route elsewhere; a 2xx payload is narrowed
+by a shape guard, never a cast. Signed-in screens gate by `requireSignedIn`
+(`src/lib/signed-in-route.ts`) and are listed in `SIGNED_IN_PAGES`, never their own `getSession`.
+Guards: `route-client.test.ts`, `signed-in-routes.test.ts`.
+
+## No phantom success
+
+A reader's door error is a typed `ReaderError` (`src/lib/reader-failure.ts`), never
+`if (error) return null`. A caught error's text is read through `errorText` / `errorWithStack`
+(`src/lib/error-text.ts`), never `instanceof Error`. Failures surface as translated messages and are
+logged `[ssr-error] <path> <message>` (`[slow-rpc]` over 5 s). An errored permission check renders
+as an error, never "no permission". A guarded action reports its result even after a step-up
+round-trip. A failed gate fetch is logged and retried once, never silently defaulted. Missing data
+is a typed absence: no sentinel defaults on identity, geography or screening paths (`user ?? guest`,
+`country ?? 'ET'`, `score ?? 0`). No catch-and-continue, no success-shaped answer for a failed or
+degraded state.
+
+## Authority
+
+The server (RLS / `has_permission(uuid,text,text)`) is the ONLY authority; UI hiding is
+convenience. No client-asserted role, identity, geography or screening verdict. Every mutating RPC:
+gates (permission → step-up → scope) → capture (old → new) → mutate; a refused attempt leaves no
+trace. Step-up freshness comes from the token (aal2 + totp amr), never a client hint. Listing status
+is mutated only inside its state machine (`submit_listing` / `transition_listing`), never by
+scattered `if`s. Guards: `scripts/check-listing-writes.sh`, `scripts/check-acceptance-doors.ts`,
+`scripts/check-caller-gates.ts`.
+
+## Strings
+
+No user-visible literal string: every string is a key from `src/i18n/locales/`, screen-reader text
+included. Keys only admin or member screens use live in their layer's files (`en-admin.ts` /
+`am-admin.ts`, `en-member.ts` / `am-member.ts`), the rest in `en-base.ts` / `am-base.ts`. Every new
+key ships EN + AM in the SAME change; a migration registering a permission action ships its
+`admin.roles.perm.*` keys. The database is runtime truth (`ui_translations`, `entity_translations`).
+A renamed string is a NEW key; editing a compiled value never reaches production. A brief's string
+text is copied by key, character for character; you write no Amharic of your own; no unassigned or
+foreign-script code point in `am*.ts` values (`am-script.test.ts`). After touching any `t(` key, run
+`bun run i18n:usage` and commit both maps. Guards: `scripts/check-hardcoded-strings.sh`, the i18n
+usage-map job, `strings-layers.test.ts`.
+
+## Locale, data, shell
+
+Dates and numbers via `formatLocale` (`src/lib/format-locale.ts`) and the intents in
+`src/lib/format.ts`; names via `catalogText`, `entityName`, `optionLabel`; a map indexed by an
+outside key is read through `ownValue` (`src/lib/own-key.ts`), never `map[key]`. Data-API lists use
+`readAllPages` (keyset, never positional). Page-wide data (the category tree) is one subscribed
+store. Data tables render ONLY through `DataTable` (`src/components/shell/data-table.tsx`):
+priority tiers, `cardUntil='lg'` when dense, `minWidth` only with a same-line `// C7-dense:` note,
+never `[object Object]`, `undefined` or `NaN`. One console shape: toolbar find/transfer groups as
+direct children, no labels above controls, import/export in the toolbar scoped by its filter, no
+Tabs, one edit icon per row, verbs in the editor's verb bar. Cards take `CARD_SURFACE`; one ☰ per
+width; `CutText` for cut names; `useLabelRoom` per crowded row; action labels two or three words in
+every language, explanations in help text; a destructive control is red; a console save
+round-trips every stored field it does not show. Menu rows share `src/components/shell/menu-row.ts`
+(one look for the rail and every panel). Guards: `scripts/admin-tables.ts`,
+`list-action-labels.test.ts`, `look-law.test.ts`, `menu-rows.test.ts`, `submenu.test.ts`.
+
+## Mobile-first UI
+
+Design at 360 px first; verify 360 / 768 / 1024 / 1280. Touch targets ≥ 44 px — except menu rows,
+which share the menu's height down to a 32 px floor (D247). Primary actions near the bottom; nothing
+relies on hover. Design-system tokens only — no hex, rgb or arbitrary colour, shadow, radius or font
+value outside `src/styles.css` (`styles.tokens.test.ts`, `fonts.test.ts`). Every screen has
+translated loading / empty / error states (an empty state is a caption beside the controls, never a
+replacement). RTL-safe: logical properties only (`ms-` / `me-` / `ps-` / `pe-` / `text-start`).
+Accessibility basics; the `@a11y` roster fails on serious or critical axe violations. Rendered-output
+acceptance belongs to the operator's walk; you verify by typecheck, tests and structure.
+
+## Reuse and layout
+
+Search before creating any component, hook, utility, key or table, and say what you searched. One
+utility per concern in `src/lib`; primitives in `src/components`; feature pieces in
+`src/features/<name>/` (components/, hooks/, `<name>-service.ts`, types.ts); extend via props, never
+copy; one component per file; kebab-case files, PascalCase components, `use-*` hooks; split a file
+over ~300 lines.
+
+## Speed and SEO
+
+Public pages SSR with correct title/meta/og (absolute URLs), declared language and hreflang;
+public-path database work is version-cached; images lazy with dimensions. Each page's first-download
+ceiling lives in `scripts/route-budgets.mjs` and is never raised without its named cause.
+On-demand modules via `loadOnce` (`src/lib/load-once.ts`), on-demand components via
+`resilientLazy` (`src/lib/resilient-lazy.ts`), never a bare `React.lazy`; a failed on-demand
+download reports through `reportOnDemandFailure`. Nothing heavy on the first-paint path (charting,
+mapping, 3D, admin services, the RBAC seam, the QR encoder). No page downloads a font. No new
+dependency unless the brief names it, pinned; a package or framework change is its own turn.
+Guards: `marketplace-weight`, `bundle-budget`, `browse-path-guard`, `dependency-audit`.
+
+## Runtime stability
+
+Fixtures are captured from real tool output, never authored. Ref contract: a Slot/asChild child
+holds the ref; no inline state-writing refs on mapped children; ref-fed state uses stable callbacks
+and equality-guarded writes. Hooks never return a fresh `[]` / `{}` into dependency arrays; mirrored
+writers are equality-guarded; measuring hooks never observe what they mutate. Auth-state callbacks
+never call Supabase (hop a macrotask); core auth code changes only by DEC. Gate-list reads: a plain
+keyed anon fetch, `cache: "no-store"`, never cache-busted by query params. Root providers render
+immediately and reconcile async; step-up dialogs render on the top layer.
+
+## TypeScript
+
+No `any`, no non-null `!` (a file's count in `scripts/conformance/non-null-allowlist.txt` only
+falls), no `as unknown as`, no `@ts-expect-error` / `@ts-ignore`. Narrow with shape guards.
+
+## Vendors
+
+New code reaches Supabase only through `src/integrations/supabase/**` (platform-generated; never
+hand-edited), `src/server/supabase/**`, `src/server/media/storage.ts`, `src/lib/supabase-door.ts`
+and `src/lib/route-client.ts`; no file names a Lovable package, identifier or host; providers are
+the project's own adapters over `upstream()` — no vendor SDK. Guard: `vendor-seams.test.ts`.
+
+## Documentation
+
+A structural change updates `docs/features/<name>.md` and appends one `docs/_changelog.md` line in
+the same change (never renumber or delete); the register row in `docs/governance/mechanisms.md` and
+the roadmap line are updated in the turn's docs part. No known-error debt: every violation a check
+surfaces, even pre-existing, is reported and fixed as its own tracked item, never deferred as
+"pre-existing". Records (DEC / INC / handoffs) enter the repository only as word-for-word imports the
+supervisor hands you, checked by sha256.
