@@ -65,7 +65,8 @@ test("SMN-E3 a tap opens the page and the panel; rows fit between 32 and 48 px, 
 /**
  * ROWS-E1 (D247, INC-1009; Foundations turn R1c) — a touch phone at 360×640: the menu's
  * main list and a subcategory list of the real tree fit with no scroll (16 items or
- * fewer), every row at least 32 px. Measured before the rule: 688 px of rows in 528.
+ * fewer), every row 32–40 px (INC-1010: phones stay compact). Measured before the rule:
+ * 688 px of rows in 528.
  */
 test.describe("D247 a touch phone's lists", () => {
   const SEEDED = 12;
@@ -109,8 +110,10 @@ test.describe("D247 a touch phone's lists", () => {
         .toBeLessThanOrEqual(0);
       for (const height of await rows.evaluateAll((els) =>
         els.map((el) => el.getBoundingClientRect().height),
-      ))
-        expect(height, `${label}: a row is at least 32 px`).toBeGreaterThanOrEqual(31.5);
+      )) {
+        expect(height, `${label}: a phone row is 32–40 px`).toBeGreaterThanOrEqual(31.5);
+        expect(height, `${label}: a phone row is 32–40 px (INC-1010)`).toBeLessThanOrEqual(40.5);
+      }
       return count;
     };
     await judge("ROWS-E1 the main list");
@@ -119,6 +122,49 @@ test.describe("D247 a touch phone's lists", () => {
     await menu.getByTestId(`rail-category-${branch.root}`).tap();
     await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
     expect(await judge("ROWS-E1 the seeded list", SEEDED + 2)).toBe(SEEDED + 2);
+  });
+});
+
+/**
+ * ROWS-E5 (INC-1010; Foundations turn R1c-fix) — at 360×740 a seeded list of 15 rows (the
+ * back row, the opened root and 13 subcategories) fills the menu's height with rows of at
+ * most 40 px: the share of the height, capped at 40 (DEC-288). Removed in afterEach (J3).
+ */
+test.describe("INC-1010 phone rows stay compact", () => {
+  let branch: { root: string; kids: string[] } | null = null;
+  test.afterEach(async () => {
+    if (branch) await destroyCategoryBranch([...branch.kids, branch.root]);
+    branch = null;
+  });
+
+  test("ROWS-E5 a seeded 15-row list at 360×740 fills the height with rows of at most 40 px", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "desktop-1280", "one run of the touch context");
+    const seeded = await seedScratchBranch(13, "rows-e5");
+    branch = seeded;
+    await page.setViewportSize({ width: 360, height: 740 });
+    await gotoReady(page, "/");
+    const menu = await openRailScope(page);
+    await expect(menu.getByTestId("rail-category-skeleton")).toHaveCount(0);
+    await menu.getByTestId(`rail-category-${seeded.root}`).tap();
+    await expect(menu.getByTestId("rail-menu-back")).toBeVisible();
+    const region = menu.getByTestId("rail-scroll");
+    const rows = region.locator("nav > ul.menu-fit > li:not([aria-hidden])");
+    await expect(rows).toHaveCount(15);
+    const client = await region.evaluate((el) => el.clientHeight);
+    const share = Math.min(40, client / 15);
+    await expect
+      .poll(() => region.evaluate((el) => el.scrollHeight - el.clientHeight))
+      .toBeLessThanOrEqual(0);
+    for (const height of await rows.evaluateAll((els) =>
+      els.map((el) => el.getBoundingClientRect().height),
+    )) {
+      expect(height, "ROWS-E5 a row is at most 40 px").toBeLessThanOrEqual(40.5);
+      expect(height, "ROWS-E5 a row takes its share of the height").toBeGreaterThanOrEqual(
+        share - 1,
+      );
+    }
   });
 });
 

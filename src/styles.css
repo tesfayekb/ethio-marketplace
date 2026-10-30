@@ -395,7 +395,7 @@
  * pointer; a list of more than 16 items keeps full-size rows and scrolls with a visible
  * scrollbar. `.menu-fit` marks the list; `data-many` (set from the count, MENU_FIT_MAX)
  * marks a list of more than 16. A list that fills its region (the rail, the phone menu)
- * spreads its rows up to 48 px; `.menu-natural` (a side panel) keeps each row's own size
+ * spreads its rows up to 40 px below 768 px and up to 48 px from 768 px; `.menu-natural` (a side panel) keeps each row's own size
  * (44 px with a coarse pointer, 36 px with a fine one) until the height runs short.
  */
 .menu-fit {
@@ -409,6 +409,12 @@
   flex-direction: column;
   min-height: 2rem;
   max-height: 3rem;
+}
+/* INC-1010 (DEC-288: phones stay compact): below 768 px a fitted row is 32–40 px. */
+@media (max-width: 767.98px) {
+  .menu-fit:not([data-many]) > li:not([aria-hidden]) {
+    max-height: 2.5rem;
+  }
 }
 .menu-fit:not([data-many]) > li > * {
   flex: 1 1 0%;
