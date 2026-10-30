@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import { BAND_ROW } from "@/components/shell/band-row";
+import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
 import { ChevronDown, Check } from "lucide-react";
 
 import { useShell } from "@/components/shell-context";
@@ -22,15 +22,13 @@ import { cn } from "@/lib/utils";
  * drawer stays open and the new panel's items appear in place. It supersedes
  * the drawer-only PanelSwitcher (deleted).
  *
- * Surface token: bg-sidebar-accent/40 — the SIDEBAR token family, never
- * bg-muted (a content-surface token that reads as foreign grey against
- * bg-sidebar, INC-042). Subtle enough to be a band, not a selection.
+ * D260 / P-S7: the same Sage band look as the tabs, breadcrumb and location rows.
  *
  * A user with a single visible panel (logged out) gets the heading with no
  * trigger — a one-option chooser is chrome with no choice in it.
  */
 // D258 (R1d-c) — one band row tall (BAND_ROW), flush under the top bar, its label centred.
-const BAND = `flex items-center bg-sidebar-accent/40 px-2 ${BAND_ROW}`;
+const BAND = `flex items-center px-2 ${BAND_ROW} ${BAND_LOOK.row}`;
 
 export function PanelHeader({ className }: { className?: string }) {
   const { t } = useI18n();
@@ -45,7 +43,7 @@ export function PanelHeader({ className }: { className?: string }) {
   if (panels.length < 2) {
     return (
       <div data-testid="panel-header" data-band-row="" className={cn(BAND, className)}>
-        <h2 data-testid="panel-header-title" className="text-base font-semibold">
+        <h2 data-testid="panel-header-title" className={BAND_LOOK.heading}>
           <CutText text={label} />
         </h2>
       </div>
@@ -62,7 +60,7 @@ export function PanelHeader({ className }: { className?: string }) {
             aria-label={t("shell.switchPanel")}
             className="flex h-8 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span data-testid="panel-header-title">
+            <span data-testid="panel-header-title" className={BAND_LOOK.heading}>
               <CutText text={label} />
             </span>
             <ChevronDown className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" />

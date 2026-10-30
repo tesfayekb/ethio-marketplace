@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { BAND_ROW } from "@/components/shell/band-row";
+import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
 import { useRef } from "react";
 import { useLabelRoom } from "@/components/ui/use-label-room";
 import { CutText } from "@/components/ui/cut-text";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MapPin } from "lucide-react";
 import { sortPlacesByName } from "@/lib/place-order";
 
 import { useShell, type LocationNode } from "@/components/shell-context";
@@ -58,12 +58,14 @@ function Picker({
   options,
   selectedId,
   selectedName,
+  raised,
   onSelect,
 }: {
   labelKey: MessageKey;
   options: Option[];
   selectedId: string | null;
   selectedName: string | null;
+  raised: boolean;
   onSelect: (option: Option | null) => void;
 }) {
   const { t } = useI18n();
@@ -76,12 +78,13 @@ function Picker({
           data-testid={`location-level-${labelKey.split(".")[1]}`}
           aria-label={selectedName ? `${t(labelKey)}: ${selectedName}` : t(labelKey)}
           title={selectedName ?? undefined}
+          data-location-raised={raised ? "true" : "false"}
           className={cn(
-            "inline-flex h-8 shrink items-center gap-0.5 md:gap-1 rounded-md px-0.5 md:px-2 text-sm",
+            "inline-flex h-7 min-w-0 shrink items-center gap-0.5 md:gap-1 rounded-segment px-1.25 md:px-2.5 text-xs md:text-[13px] whitespace-nowrap",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            selectedId !== null
-              ? "font-medium text-foreground"
-              : "text-muted-foreground hover:text-foreground",
+            raised
+              ? "bg-card shadow-segment font-semibold text-nav-ink"
+              : "bg-transparent font-medium text-foreground",
           )}
         >
           {/* The picker shows its OWN selection — never a second copy of an
@@ -89,7 +92,7 @@ function Picker({
           <CutText text={selectedName ?? t(labelKey)} />
           <ChevronDown
             data-row-arrow=""
-            className="h-3 w-3 md:h-4 md:w-4 shrink-0"
+            className="h-3.25 w-3.25 shrink-0 text-muted-foreground"
             aria-hidden="true"
           />
         </button>
@@ -231,21 +234,22 @@ export function LocationSelector() {
       aria-labelledby="location-row-label location-row-label-short"
       data-band-row=""
       className={cn(
-        "flex w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden bg-card shadow-bar px-2 md:px-4",
+        "flex w-full flex-nowrap items-center gap-x-0.5 md:gap-x-1 overflow-hidden px-2 md:px-4",
         BAND_ROW,
+        BAND_LOOK.row,
       )}
     >
       <span
         ref={longLabelRef}
         id="location-row-label"
-        className="hidden shrink-0 text-sm text-muted-foreground md:inline"
+        className="hidden shrink-0 text-[13px] md:inline"
       >
         {t("location.rowLabel")}
       </span>
       <span
         ref={shortLabelRef}
         id="location-row-label-short"
-        className="shrink-0 text-sm text-muted-foreground md:hidden"
+        className="shrink-0 text-xs md:hidden"
       >
         {t("location.rowLabelShort")}
       </span>
@@ -266,12 +270,17 @@ export function LocationSelector() {
           {t("location.empty")}
         </span>
       ) : (
-        <>
+        <div
+          data-testid="location-track"
+          className="flex h-8.5 min-w-0 shrink items-center rounded-track bg-track p-0.75 shadow-track"
+        >
+          <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <Picker
             labelKey="location.country"
             options={marketOptions}
             selectedId={selectedMarket?.code ?? null}
             selectedName={selectedMarket === null ? null : marketLabel(selectedMarket)}
+            raised={selectedMarket !== null && !deeper.some((level) => level.selectedId !== null)}
             onSelect={(option) => selectLocationCountry(option?.id ?? null)}
           />
           {deeper.map((level) => (
@@ -281,6 +290,10 @@ export function LocationSelector() {
               options={level.options}
               selectedId={level.selectedId}
               selectedName={level.selectedName}
+              raised={
+                level.selectedId !== null &&
+                !deeper.some((next) => next.depth > level.depth && next.selectedId !== null)
+              }
               onSelect={(option) =>
                 // Choosing at depth N replaces that level and drops everything
                 // below it — the cascade can never hold an orphaned child.
@@ -292,7 +305,7 @@ export function LocationSelector() {
               }
             />
           ))}
-        </>
+        </div>
       )}
     </div>
   );

@@ -1,5 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
-import { BAND_ROW } from "@/components/shell/band-row";
+import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
 import { useShell } from "@/components/shell-context";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
@@ -38,8 +38,9 @@ export function PanelTabs() {
       // and no axis ever overflows.
       data-band-row=""
       className={cn(
-        "hidden w-full min-w-0 items-center md:flex gap-1 border-b border-neutral-soft bg-card px-2 md:px-4",
+        "hidden w-full min-w-0 items-center md:flex gap-1 px-2 md:px-4",
         BAND_ROW,
+        BAND_LOOK.row,
       )}
     >
       {panels.map((panel) => {

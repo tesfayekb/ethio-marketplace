@@ -57,7 +57,7 @@ export function ActionMessage({
       data-testid={testid}
       data-tone={tone}
       className={cn(
-        "scroll-mt-20 scroll-mb-[calc(var(--bottom-bar)+1rem)] text-sm",
+        "scroll-mt-20 scroll-mb-[calc(var(--bottom-bar)+var(--bar-rise))] text-sm",
         tone === "error" ? "text-destructive" : "text-muted-foreground",
         className,
       )}
