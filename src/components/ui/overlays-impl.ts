@@ -11,3 +11,4 @@ export * as alertDialog from "./alert-dialog-impl";
 export * as dialog from "./dialog-impl";
 export * as menu from "./dropdown-menu-impl";
 export * as tooltip from "./tooltip-impl";
+export * as submenu from "./submenu-impl";
