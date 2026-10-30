@@ -869,33 +869,6 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
     };
   };
 
-  // DEC-288 — a panel's rows are the items MenuNav already reads (no copy, K1).
-  const byId = new Map<string, NavItem>();
-  const index = (list: NavItem[]) => {
-    for (const item of list) {
-      byId.set(item.id, item);
-      if (item.children) index(item.children);
-    }
-  };
-  index(items);
-  const itemsOf = (id: string) => {
-    const opened = byId.get(id);
-    if (!opened?.children?.length) return null;
-    return {
-      header: t(opened.labelKey),
-      items: opened.children.map((child) => ({
-        key: child.id,
-        label: t(child.labelKey),
-        testid: child.testid ?? `rail-item-${child.id}`,
-        icon: child.icon,
-        to: pageOf(child)?.path ?? "/",
-        active: isCurrent(child),
-        ancestorActive: !isCurrent(child) && holdsCurrent(child),
-        hasChildren: opensPanel(child),
-      })),
-    };
-  };
-
   const sections: { key: MessageKey | null; items: NavItem[] }[] = [];
   for (const item of items) {
     const key = item.section ?? null;
@@ -937,7 +910,16 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
       ))}
       {panels && overlays ? (
         <overlays.submenu.SubmenuLayer
-          itemsOf={itemsOf}
+          // DEC-302 (R1d-c b) — the rows are built in the on-demand layer (navLevelOf).
+          itemsOf={(id: string) =>
+            overlays.submenu.navLevelOf(items, id, {
+              label: (item) => t(item.labelKey),
+              isCurrent,
+              holdsCurrent,
+              opensPanel,
+              pageOf,
+            })
+          }
           edgeOf={railEdge}
           showHeader={collapsed}
           signals={SUBMENU_SIGNALS}

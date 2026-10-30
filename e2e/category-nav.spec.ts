@@ -94,7 +94,9 @@ test.describe("category selection navigates", () => {
       const scope = await openRailScope(page);
       await expect(scope.getByTestId("rail-category-skeleton")).toHaveCount(0);
       await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
-      await expect(scope.locator("a[aria-current]")).toHaveCount(0);
+      // D259 (G38, R1d-c) — on "/" the one current row is Home; no category is marked.
+      await expect(scope.locator("a[aria-current]")).toHaveCount(1);
+      await expect(scope.getByTestId("rail-home")).toHaveAttribute("aria-current", "page");
       await expect(scope.getByTestId("rail-category-electronics")).toBeVisible();
     }
   });

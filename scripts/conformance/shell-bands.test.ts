@@ -79,7 +79,11 @@ export function bandFindings(files: File[]): Finding[] {
     if (file.name === BAND_HOME) continue;
     const code = codeOf(file.text);
     if (/\bconst BAND_ROW\s*=/.test(code) || /h-10 min-h-10 max-h-10/.test(code))
-      findings.push({ file: file.name, line: 1, what: "a second source of the band row's height (D258)" });
+      findings.push({
+        file: file.name,
+        line: 1,
+        what: "a second source of the band row's height (D258)",
+      });
   }
   return findings;
 }
@@ -89,7 +93,11 @@ export function barFindings(files: File[]): Finding[] {
   for (const file of files) {
     const code = codeOf(file.text);
     if (file.name !== BAR_HOME && /\bconst BAR_(?:GAP|INSET)\s*=/.test(code))
-      findings.push({ file: file.name, line: 1, what: "a second source of the bar's spacing (D256)" });
+      findings.push({
+        file: file.name,
+        line: 1,
+        what: "a second source of the bar's spacing (D256)",
+      });
     let region: { text: string; offset: number } | null = null;
     if (file.name === HEADER) region = { text: code, offset: 0 };
     if (file.name === SHELL) {
@@ -102,7 +110,11 @@ export function barFindings(files: File[]): Finding[] {
     const base = lineOf(code, region.offset);
     region.text.split("\n").forEach((text, index) => {
       if (NEGATIVE_MARGIN.test(text))
-        findings.push({ file: file.name, line: base + index, what: "a negative margin in the top bar (D256)" });
+        findings.push({
+          file: file.name,
+          line: base + index,
+          what: "a negative margin in the top bar (D256)",
+        });
       if (OWN_BAR_SPACE.test(text))
         findings.push({
           file: file.name,
@@ -130,7 +142,10 @@ describe("CF-BAND-1 one height for every band row", () => {
         text: '<div data-band-row="" className={cn("flex h-11", BAND_ROW)}>',
       },
       { name: "src/components/shell/location-selector.tsx", text: '<div className="h-8" />' },
-      { name: "src/components/planted.tsx", text: 'export const BAND_ROW = "h-10 min-h-10 max-h-10";' },
+      {
+        name: "src/components/planted.tsx",
+        text: 'export const BAND_ROW = "h-10 min-h-10 max-h-10";',
+      },
     ]);
     expect(findings.map((f) => `${f.file} ${f.what}`)).toEqual([
       "src/components/shell/panel-tabs.tsx a literal height on a band row (D258)",

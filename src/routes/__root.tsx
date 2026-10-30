@@ -1,5 +1,4 @@
 import { pageHead } from "@/lib/page-head";
-import { ROUTER_SETTLED_EVENT } from "@/lib/router-settled";
 import { installInputModality } from "@/lib/input-modality";
 import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -439,20 +438,11 @@ function RootComponent() {
   const firstTree = Route.useLoaderData({ select: (data) => data.firstTree });
 
   useEffect(() => {
-    // INC-085f — the E2E hydration contract: set only after React has
-    // successfully hydrated; a client crash before this leaves it unset.
-    // INC-1013 — and only once the router's first render (and its scroll restoration) settled.
-    const root = document.documentElement;
-    const markReady = () => {
-      root.dataset["appReady"] = "1";
-    };
-    if (root.dataset["routerSettled"] === "1") markReady();
-    else window.addEventListener(ROUTER_SETTLED_EVENT, markReady, { once: true });
+    // INC-085f / INC-1013 — data-app-ready is set by src/router.tsx (one home).
     const uninstallModality = installInputModality();
     // INC-640 — a tab opened before a Publish reloads once when a chunk it asks for is gone.
     const uninstallStaleChunk = reloadOnStaleChunk(window);
     return () => {
-      window.removeEventListener(ROUTER_SETTLED_EVENT, markReady);
       uninstallModality();
       uninstallStaleChunk();
     };
