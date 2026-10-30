@@ -1065,16 +1065,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {/* U0h — the footer PAINTS OVER the fixed rail. Its BOX spans the whole
-            viewport and, because the wrapper is a stacking context above the
-            rail (z-40 > the rail's z-20), the rail visually ENDS at the
-            footer's top edge instead of running beside or under its text. The
-            surface is opaque in both themes: the <footer> itself carries
-            bg-card (census), and the wrapper repeats it so no rail pixel can
-            show through the wrapper box. INNER blocks keep the U0g-2 start
-            inset equal to the rail width at md+, so the links and copyright
-            stay in the readable content column. Mobile: unchanged (no fixed
-            rail exists there). */}
+        {/* D252 (Foundations turn R1d-b) — from 768 px the footer is part of the
+            middle column: it starts at the menu's inline-end edge (the same
+            start margins as the page column, open or folded), is centred
+            within that column and never runs behind the menu. Phones: the
+            menu is a sheet, and the footer stays the page's own. */}
         {/* C2b — the phone bottom bar, on every page (C2e: no wizard exception). */}
         <BottomBar />
         {/* INC-911 — the one notice for a piece whose code did not download. */}
@@ -1082,8 +1077,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div
           data-testid="shell-footer-wrapper"
           className={cn(
-            "relative z-0 bg-card ms-12 md:ms-56 lg:ms-64 rail-icons:ms-16",
-            "max-md:ms-0 max-md:[&>footer>*]:ps-12",
+            "relative z-0 bg-card md:ms-56 lg:ms-64 rail-icons:ms-16",
+            "max-md:[&>footer>*]:ps-12",
           )}
         >
           <AppFooter />
