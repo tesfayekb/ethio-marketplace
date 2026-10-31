@@ -1,3 +1,24 @@
 # CF-LIST-1 (D264, turn F) exceptions: key = file#part | reason | until
+src/components/ui/native-select.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-ai/ai-spend-days.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/attribute-dialogs.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/category-attributes-dialog.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/components/attribute-allowed-values.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/components/attribute-link-cells.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/components/attribute-option-row.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/components/attribute-option-rows.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-attributes/components/attribute-v2-fields.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-categories/category-dialogs.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-categories/category-form-fields.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-countries/country-dialogs.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-locations/location-dialogs.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin-locations/location-verb-dialogs.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin/legal/legal-page.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin/legal/legal-version-view.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/admin/users/user-detail.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/posting/step-pricing.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/posting/step-specifications.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/posting/step-where.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
+src/features/posting/step-who.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
 src/components/shell/location-selector.tsx#DropdownMenuContent | permanent: a height is not a row or panel class; the location list caps its height and scrolls | permanent
 src/components/shell/toolbar-panel.tsx#PopoverContent | the filter panel is not a list: its body and foot draw their own padding inside the shared surface | SAGE-S6 overlays turn
