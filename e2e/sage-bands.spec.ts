@@ -11,6 +11,7 @@ import {
 } from "./helpers/locations";
 import { withoutEmptyLayers } from "./helpers/shadows";
 import { adPageFixtures } from "./helpers/ad-page";
+import { seedCategoryBranch, destroyCategoryBranch } from "./helpers/posting";
 
 type Mode = "light" | "dark";
 type Token = keyof typeof THEMES.sage.light;
@@ -67,7 +68,9 @@ for (const width of WIDTHS) {
         await open(page, width, mode);
       });
 
-      test(`SGB-1 four band rows share the Sage look (${width}, ${mode})`, async ({ page }) => {
+      test(`SGB-1 content bands share Sage; panel header belongs to rail (${width}, ${mode})`, async ({
+        page,
+      }) => {
         const user = await leaseUser();
         await signIn(page, user.email, user.password);
         await gotoReady(page, "/");
@@ -79,7 +82,7 @@ for (const width of WIDTHS) {
           groove: await tokenStyle(page, mode, "lift-groove", "box-shadow"),
         };
         // Hidden phone counterparts still read the same band tokens; geometry is checked only when drawn.
-        for (const id of ["panel-tabs", "panel-header", "shell-breadcrumb-row", "location-row"]) {
+        for (const id of ["panel-tabs", "shell-breadcrumb-row", "location-row"]) {
           const rows = page.getByTestId(id);
           expect(await rows.count(), `${id} exists`).toBeGreaterThan(0);
           for (const row of await rows.all()) {
@@ -88,6 +91,24 @@ for (const width of WIDTHS) {
             expect(await style(row, "border-bottom-width"), `${id} no own border`).toBe("0px");
             expect(await style(row, "box-shadow"), `${id} groove`).toBe(want.groove);
           }
+        }
+        // G38 D266: panel header's band fill becomes the rail surface; height/groove stay.
+        for (const header of await page.getByTestId("panel-header").all()) {
+          expect(await style(header, "background-color")).toBe(
+            await tokenStyle(page, mode, "sidebar", "background-color"),
+          );
+          expect(await style(header, "box-shadow")).toBe(want.groove);
+          expect(await style(header, "height")).toBe("40px");
+          expect(await style(header, "border-bottom-width")).toBe("0px");
+        }
+        if (width >= 768) {
+          const rail = page.getByTestId("app-rail");
+          const header = rail.getByTestId("panel-header");
+          expect(await style(header, "background-color")).toBe(
+            await style(rail, "background-color"),
+          );
+          const { header: h } = await layoutBoxes({ header });
+          expect(h.height).toBe(40);
         }
         expect(await style(page.getByTestId("shell-location-band"), "box-shadow")).toBe(
           await tokenStyle(page, mode, "lift-subband", "box-shadow"),
@@ -154,7 +175,7 @@ for (const width of WIDTHS) {
         }
       });
 
-      test(`SGB-5 current panel tab reads the shared current pill (${width}, ${mode})`, async ({
+      test(`SGB-5 current tab and crumb share the location raised segment (${width}, ${mode})`, async ({
         page,
       }) => {
         const user = await leaseUser();
@@ -162,14 +183,57 @@ for (const width of WIDTHS) {
         await gotoReady(page, "/");
         await expect(page.getByTestId("panel-tabs")).toBeAttached();
         const tab = page.locator('[role="tab"][aria-selected="true"]');
-        // G38: the former nav-active tint/text-primary becomes the P-S3 fill/lift/nav-ink.
+        // G38 D265: nav-pill/lift-pill becomes card/lift-segment/nav-ink.
         expect(await style(tab, "background-color")).toBe(
-          await tokenStyle(page, mode, "nav-pill", "background-color"),
+          await tokenStyle(page, mode, "card", "background-color"),
         );
         expect(await style(tab, "box-shadow")).toBe(
-          await tokenStyle(page, mode, "lift-pill", "box-shadow"),
+          await tokenStyle(page, mode, "lift-segment", "box-shadow"),
         );
         expect(await style(tab, "color")).toBe(await tokenStyle(page, mode, "nav-ink", "color"));
+        // Establish a real chosen location: a fresh device need not have a country yet.
+        const codes = await openMarketCodes({ realOnly: true });
+        const code = codes[0];
+        if (!code) throw new Error("SGB-5 no open market");
+        const answer = await page.request.get("/api/locations");
+        expect(answer.status()).toBe(200);
+        const markets = (await answer.json()) as { countries: { code: string; name_en: string }[] };
+        const market = markets.countries.find((row) => row.code === code);
+        if (!market) throw new Error("SGB-5 selected market absent");
+        await page.getByTestId("location-level-country").click();
+        await page.getByRole("menuitem", { name: market.name_en, exact: true }).click();
+        await expect(page.getByTestId("location-level-country")).toHaveAttribute(
+          "data-location-raised",
+          "true",
+        );
+        const chosen = page.locator("[data-location-raised='true']");
+        const currentCrumb = page.getByTestId("breadcrumbs").locator("[aria-current='page']");
+        await expect(currentCrumb).toHaveCount(1);
+        for (const segment of [tab, currentCrumb]) {
+          for (const property of [
+            "background-color",
+            "box-shadow",
+            "color",
+            "border-top-left-radius",
+            "height",
+            "font-weight",
+          ])
+            expect(await style(segment, property), property).toBe(await style(chosen, property));
+        }
+        const track = page.getByTestId("location-track");
+        for (const id of ["panel-track", "breadcrumb-track"]) {
+          for (const property of [
+            "background-color",
+            "box-shadow",
+            "padding-top",
+            "padding-bottom",
+            "border-top-left-radius",
+            "height",
+          ])
+            expect(await style(page.getByTestId(id), property), `${id} ${property}`).toBe(
+              await style(track, property),
+            );
+        }
       });
 
       test(`SGB-2 track and segments keep their geometry (${width}, ${mode})`, async ({ page }) => {
@@ -324,5 +388,58 @@ test.describe("Sage deepest chain at 360", () => {
         console.log(`SGB-3 ${language} ${mode}: ${JSON.stringify(measurements)}`);
       });
     }
+  }
+});
+
+test.describe("Sage crumb chain at 360", () => {
+  const branches: string[][] = [];
+  test.afterEach(async () => {
+    for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
+  });
+  for (const language of ["en", "am"] as const) {
+    test(`SGB-6 deep crumb trail stays on one line (360, ${language})`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile-360", "360 px proof");
+      const { parent, leaf } = await seedCategoryBranch();
+      branches.push([parent.slug as string, leaf.slug as string]);
+      await open(page, 360, "light");
+      await gotoReady(page, `/c/${leaf.slug}`);
+      await switchLanguage(page, language);
+      await expect(page.getByTestId("breadcrumb-category")).toBeVisible();
+      const trail = page.getByTestId("breadcrumbs");
+      const measures = await trail.evaluate((nav) => {
+        const row = nav.closest<HTMLElement>("[data-band-row]");
+        if (!row) throw new Error("SGB-6 crumb row absent");
+        const box = row.getBoundingClientRect();
+        return {
+          height: box.height,
+          overflow: nav.scrollWidth - nav.clientWidth,
+          slots: [...nav.querySelectorAll<HTMLElement>("[data-cut-text]")].map((text) => {
+            const b = text.getBoundingClientRect();
+            const c = getComputedStyle(text);
+            return {
+              height: b.height,
+              lineHeight: parseFloat(c.lineHeight),
+              nowrap: c.whiteSpace,
+              inside:
+                b.left >= box.left &&
+                b.right <= box.right &&
+                b.top >= box.top &&
+                b.bottom <= box.bottom,
+            };
+          }),
+        };
+      });
+      expect(measures.height).toBe(40);
+      expect(measures.overflow, JSON.stringify(measures)).toBeLessThanOrEqual(1);
+      expect(measures.slots).toHaveLength(3);
+      for (const slot of measures.slots) {
+        expect(slot.inside, JSON.stringify(measures)).toBe(true);
+        expect(slot.nowrap).toBe("nowrap");
+        expect(slot.height).toBe(slot.lineHeight);
+      }
+      await trail.screenshot({ path: testInfo.outputPath(`SGB-6-${language}.png`) });
+    });
   }
 });

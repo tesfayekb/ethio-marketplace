@@ -1,3 +1,5 @@
+import { BAND_CRUMB, BAND_CRUMB_CURRENT } from "@/components/shell/band-row";
+import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 import { Fragment } from "react";
 import {
@@ -21,13 +23,13 @@ export function AdCrumbs({ title, categoryId }: { title: string; categoryId: str
         <Fragment key={node.id}>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link
                 to="/c/$slug"
                 params={{ slug: node.slug }}
                 data-testid="breadcrumb-category-parent"
               >
-                {entityName("category", node, entities)}
+                <CutText text={entityName("category", node, entities)} />
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -35,12 +37,8 @@ export function AdCrumbs({ title, categoryId }: { title: string; categoryId: str
       ))}
       <BreadcrumbSeparator />
       <BreadcrumbItem>
-        <BreadcrumbPage
-          data-testid="breadcrumb-ad"
-          className="min-w-0 truncate font-semibold text-foreground underline underline-offset-4"
-          title={title}
-        >
-          {title}
+        <BreadcrumbPage data-testid="breadcrumb-ad" className={BAND_CRUMB_CURRENT} title={title}>
+          <CutText text={title} />
         </BreadcrumbPage>
       </BreadcrumbItem>
     </>

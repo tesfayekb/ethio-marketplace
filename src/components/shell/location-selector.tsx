@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
+import {
+  BAND_LOOK,
+  BAND_ROW,
+  BAND_TRACK,
+  BAND_SEGMENT,
+  BAND_SEGMENT_CURRENT,
+  BAND_SEGMENT_IDLE,
+} from "@/components/shell/band-row";
 import { useRef } from "react";
 import { useLabelRoom } from "@/components/ui/use-label-room";
 import { CutText } from "@/components/ui/cut-text";
@@ -80,11 +87,10 @@ function Picker({
           title={selectedName ?? undefined}
           data-location-raised={raised ? "true" : "false"}
           className={cn(
-            "inline-flex h-7 min-w-min shrink items-center gap-0.5 md:gap-1 rounded-segment px-1.25 md:px-2.5 text-xs md:text-[13px] whitespace-nowrap",
+            BAND_SEGMENT,
+            "min-w-min gap-0.5 md:gap-1",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            raised
-              ? "bg-card shadow-segment font-semibold text-nav-ink"
-              : "bg-transparent font-medium text-foreground",
+            raised ? BAND_SEGMENT_CURRENT : BAND_SEGMENT_IDLE,
           )}
         >
           {/* The picker shows its OWN selection — never a second copy of an
@@ -270,10 +276,7 @@ export function LocationSelector() {
           {t("location.empty")}
         </span>
       ) : (
-        <div
-          data-testid="location-track"
-          className="flex h-8.5 min-w-min shrink items-center rounded-track bg-track p-0.75 shadow-track"
-        >
+        <div data-testid="location-track" className={cn(BAND_TRACK, "min-w-min shrink")}>
           <MapPin className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
           <Picker
             labelKey="location.country"

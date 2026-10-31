@@ -1,5 +1,12 @@
 import { CutText } from "@/components/ui/cut-text";
-import { BAND_LOOK, BAND_ROW, CURRENT_PILL } from "@/components/shell/band-row";
+import {
+  BAND_LOOK,
+  BAND_ROW,
+  BAND_TRACK,
+  BAND_SEGMENT,
+  BAND_SEGMENT_CURRENT,
+  BAND_SEGMENT_IDLE,
+} from "@/components/shell/band-row";
 import { useShell } from "@/components/shell-context";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
@@ -38,35 +45,36 @@ export function PanelTabs() {
       // and no axis ever overflows.
       data-band-row=""
       className={cn(
-        "hidden w-full min-w-0 items-center md:flex gap-1 px-2 md:px-4",
+        "hidden w-full min-w-0 items-center md:flex px-2 md:px-4",
         BAND_ROW,
         BAND_LOOK.row,
       )}
     >
-      {panels.map((panel) => {
-        const Icon = panel.icon;
-        const active = panel.id === activePanel;
-        return (
-          <button
-            key={panel.id}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            data-testid={`panel-tab-${panel.id}`}
-            onClick={() => switchPanel(panel.id)}
-            className={cn(
-              "inline-flex h-full min-w-0 flex-none shrink items-center justify-center gap-2 px-2 text-sm transition-colors md:px-3",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              active
-                ? cn(CURRENT_PILL, "font-medium")
-                : "rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
-            )}
-          >
-            <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <CutText text={t(panel.labelKey)} />
-          </button>
-        );
-      })}
+      <div data-testid="panel-track" className={cn(BAND_TRACK, "min-w-0 shrink")}>
+        {panels.map((panel) => {
+          const Icon = panel.icon;
+          const active = panel.id === activePanel;
+          return (
+            <button
+              key={panel.id}
+              type="button"
+              role="tab"
+              aria-selected={active}
+              data-testid={`panel-tab-${panel.id}`}
+              onClick={() => switchPanel(panel.id)}
+              className={cn(
+                BAND_SEGMENT,
+                "min-w-min flex-none justify-center gap-2 transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                active ? BAND_SEGMENT_CURRENT : cn(BAND_SEGMENT_IDLE, "hover:bg-muted"),
+              )}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <CutText text={t(panel.labelKey)} />
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

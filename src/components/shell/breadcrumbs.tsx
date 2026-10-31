@@ -1,3 +1,5 @@
+import { BAND_CRUMB, BAND_CRUMB_CURRENT, BAND_CRUMB_TRACK } from "@/components/shell/band-row";
+import { CutText } from "@/components/ui/cut-text";
 import { useRouterState } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Suspense } from "react";
@@ -35,8 +37,8 @@ import { resilientLazy } from "@/lib/resilient-lazy";
  * first parent. The last segment is the current page (`breadcrumb-category`);
  * every earlier one links to its /c/<slug> (`breadcrumb-category-parent`).
  */
-/** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
-const CURRENT = "min-w-0 truncate font-semibold text-foreground underline underline-offset-4";
+/** D265 — current crumbs share the location row's raised segment. */
+const CURRENT = BAND_CRUMB_CURRENT;
 
 /**
  * INC-554 — the admin detail crumbs load only on their pages (never in the first
@@ -89,7 +91,7 @@ function AdTitleCrumb({ title }: { title: string; categoryId: string | null }) {
       <BreadcrumbSeparator />
       <BreadcrumbItem>
         <BreadcrumbPage data-testid="breadcrumb-ad" className={CURRENT} title={title}>
-          {title}
+          <CutText text={title} />
         </BreadcrumbPage>
       </BreadcrumbItem>
     </>
@@ -134,12 +136,16 @@ export function Breadcrumbs() {
    */
   if (pathname.startsWith("/l/")) {
     return (
-      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
-        <BreadcrumbList>
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        className="min-w-0 max-w-full"
+        aria-label={t("shell.breadcrumbLabel")}
+      >
+        <BreadcrumbList data-testid="breadcrumb-track" className={BAND_CRUMB_TRACK}>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link to="/" data-testid="breadcrumb-home">
-                {t("nav.home")}
+                <CutText text={t("nav.home")} />
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
@@ -157,19 +163,25 @@ export function Breadcrumbs() {
 
   if (pathname.startsWith("/auth")) {
     return (
-      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
-        <BreadcrumbList>
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        className="min-w-0 max-w-full"
+        aria-label={t("shell.breadcrumbLabel")}
+      >
+        <BreadcrumbList data-testid="breadcrumb-track" className={BAND_CRUMB_TRACK}>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link to="/" data-testid="breadcrumb-home">
-                {t("nav.home")}
+                <CutText text={t("nav.home")} />
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage data-testid="breadcrumb-auth" className={CURRENT}>
-              {searchView === "sign-up" ? t("auth.createAccount") : t("auth.signIn")}
+              <CutText
+                text={searchView === "sign-up" ? t("auth.createAccount") : t("auth.signIn")}
+              />
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -179,19 +191,23 @@ export function Breadcrumbs() {
 
   if (pathname === "/account") {
     return (
-      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
-        <BreadcrumbList>
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        className="min-w-0 max-w-full"
+        aria-label={t("shell.breadcrumbLabel")}
+      >
+        <BreadcrumbList data-testid="breadcrumb-track" className={BAND_CRUMB_TRACK}>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link to="/" data-testid="breadcrumb-home">
-                {t("nav.home")}
+                <CutText text={t("nav.home")} />
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage data-testid="breadcrumb-account" className={CURRENT}>
-              {t("panel.account")}
+              <CutText text={t("panel.account")} />
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
@@ -235,26 +251,30 @@ export function Breadcrumbs() {
      */
     const deeper = section !== null && pathname.replace(/\/$/, "") !== section.path;
     return (
-      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
-        <BreadcrumbList>
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        className="min-w-0 max-w-full"
+        aria-label={t("shell.breadcrumbLabel")}
+      >
+        <BreadcrumbList data-testid="breadcrumb-track" className={BAND_CRUMB_TRACK}>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link to="/" data-testid="breadcrumb-home">
-                {t("nav.home")}
+                <CutText text={t("nav.home")} />
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             {section || group ? (
-              <BreadcrumbLink asChild>
+              <BreadcrumbLink asChild className={BAND_CRUMB}>
                 <Link to="/admin" data-testid="breadcrumb-admin">
-                  {t("panel.admin")}
+                  <CutText text={t("panel.admin")} />
                 </Link>
               </BreadcrumbLink>
             ) : (
               <BreadcrumbPage data-testid="breadcrumb-admin" className={CURRENT}>
-                {t("panel.admin")}
+                <CutText text={t("panel.admin")} />
               </BreadcrumbPage>
             )}
           </BreadcrumbItem>
@@ -270,17 +290,19 @@ export function Breadcrumbs() {
                     (bold, underlined, aria-current) beside the real current
                     page. */}
                 {"path" in group && group.path !== pathname ? (
-                  <BreadcrumbLink asChild>
+                  <BreadcrumbLink asChild className={BAND_CRUMB}>
                     <Link to={group.path} data-testid="breadcrumb-admin-group">
-                      {t(group.titleKey)}
+                      <CutText text={t(group.titleKey)} />
                     </Link>
                   </BreadcrumbLink>
                 ) : "path" in group ? (
                   <BreadcrumbPage data-testid="breadcrumb-admin-group" className={CURRENT}>
-                    {t(group.titleKey)}
+                    <CutText text={t(group.titleKey)} />
                   </BreadcrumbPage>
                 ) : (
-                  <span data-testid="breadcrumb-admin-group">{t(group.titleKey)}</span>
+                  <span data-testid="breadcrumb-admin-group" className={BAND_CRUMB}>
+                    <CutText text={t(group.titleKey)} />
+                  </span>
                 )}
               </BreadcrumbItem>
             </>
@@ -290,14 +312,14 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {deeper ? (
-                  <BreadcrumbLink asChild>
+                  <BreadcrumbLink asChild className={BAND_CRUMB}>
                     <Link to={section.path} data-testid="breadcrumb-admin-section">
-                      {t(section.titleKey)}
+                      <CutText text={t(section.titleKey)} />
                     </Link>
                   </BreadcrumbLink>
                 ) : (
                   <BreadcrumbPage data-testid="breadcrumb-admin-section" className={CURRENT}>
-                    {t(section.titleKey)}
+                    <CutText text={t(section.titleKey)} />
                   </BreadcrumbPage>
                 )}
               </BreadcrumbItem>
@@ -332,7 +354,7 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbPage data-testid="breadcrumb-edit" className={CURRENT}>
-                  {t("myListings.edit")}
+                  <CutText text={t("myListings.edit")} />
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </>
@@ -369,38 +391,44 @@ export function Breadcrumbs() {
     const adId = adMatch?.[1] ?? null;
     const adEditing = adMatch?.[2] !== undefined;
     return (
-      <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
-        <BreadcrumbList>
+      <Breadcrumb
+        data-testid="breadcrumbs"
+        className="min-w-0 max-w-full"
+        aria-label={t("shell.breadcrumbLabel")}
+      >
+        <BreadcrumbList data-testid="breadcrumb-track" className={BAND_CRUMB_TRACK}>
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link to="/" data-testid="breadcrumb-home">
-                {t("nav.home")}
+                <CutText text={t("nav.home")} />
               </Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             {home !== null && pathname.replace(/\/$/, "") !== home ? (
-              <BreadcrumbLink asChild>
+              <BreadcrumbLink asChild className={BAND_CRUMB}>
                 <Link to={home} data-testid="breadcrumb-panel">
-                  {panelLabel}
+                  <CutText text={panelLabel} />
                 </Link>
               </BreadcrumbLink>
             ) : (
-              <span data-testid="breadcrumb-panel">{panelLabel}</span>
+              <span data-testid="breadcrumb-panel" className={BAND_CRUMB}>
+                <CutText text={panelLabel} />
+              </span>
             )}
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             {adId ? (
-              <BreadcrumbLink asChild>
+              <BreadcrumbLink asChild className={BAND_CRUMB}>
                 <Link to={ownPage.path} data-testid="breadcrumb-page">
-                  {t(ownPage.key)}
+                  <CutText text={t(ownPage.key)} />
                 </Link>
               </BreadcrumbLink>
             ) : (
               <BreadcrumbPage data-testid="breadcrumb-page" className={CURRENT}>
-                {t(ownPage.key)}
+                <CutText text={t(ownPage.key)} />
               </BreadcrumbPage>
             )}
           </BreadcrumbItem>
@@ -419,7 +447,7 @@ export function Breadcrumbs() {
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 <BreadcrumbPage data-testid="breadcrumb-edit" className={CURRENT}>
-                  {t("myListings.edit")}
+                  <CutText text={t("myListings.edit")} />
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </>
@@ -430,17 +458,23 @@ export function Breadcrumbs() {
   }
 
   return (
-    <Breadcrumb data-testid="breadcrumbs" aria-label={t("shell.breadcrumbLabel")}>
-      <BreadcrumbList>
+    <Breadcrumb
+      data-testid="breadcrumbs"
+      className="min-w-0 max-w-full"
+      aria-label={t("shell.breadcrumbLabel")}
+    >
+      <BreadcrumbList data-testid="breadcrumb-track" className={BAND_CRUMB_TRACK}>
         <BreadcrumbItem>
           {showPanelSegment || path.length > 0 ? (
-            <BreadcrumbLink asChild>
+            <BreadcrumbLink asChild className={BAND_CRUMB}>
               <Link to="/" data-testid="breadcrumb-home">
-                {t("nav.home")}
+                <CutText text={t("nav.home")} />
               </Link>
             </BreadcrumbLink>
           ) : (
-            <BreadcrumbPage data-testid="breadcrumb-home">{t("nav.home")}</BreadcrumbPage>
+            <BreadcrumbPage data-testid="breadcrumb-home" className={CURRENT}>
+              <CutText text={t("nav.home")} />
+            </BreadcrumbPage>
           )}
         </BreadcrumbItem>
         {showPanelSegment ? (
@@ -448,13 +482,15 @@ export function Breadcrumbs() {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               {path.length > 0 ? (
-                <BreadcrumbLink asChild>
+                <BreadcrumbLink asChild className={BAND_CRUMB}>
                   <Link to="/" data-testid="breadcrumb-panel">
-                    {panelLabel}
+                    <CutText text={panelLabel} />
                   </Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage data-testid="breadcrumb-panel">{panelLabel}</BreadcrumbPage>
+                <BreadcrumbPage data-testid="breadcrumb-panel" className={CURRENT}>
+                  <CutText text={panelLabel} />
+                </BreadcrumbPage>
               )}
             </BreadcrumbItem>
           </>
@@ -470,19 +506,19 @@ export function Breadcrumbs() {
                 {isLast ? (
                   <BreadcrumbPage
                     data-testid="breadcrumb-category"
-                    className="min-w-0 truncate"
+                    className={CURRENT}
                     title={label}
                   >
-                    {label}
+                    <CutText text={label} />
                   </BreadcrumbPage>
                 ) : (
-                  <BreadcrumbLink asChild>
+                  <BreadcrumbLink asChild className={BAND_CRUMB}>
                     <Link
                       to="/c/$slug"
                       params={{ slug: node.slug }}
                       data-testid="breadcrumb-category-parent"
                     >
-                      {label}
+                      <CutText text={label} />
                     </Link>
                   </BreadcrumbLink>
                 )}
