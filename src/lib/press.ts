@@ -122,8 +122,18 @@ export function installPress(doc: Document = document): () => void {
     }
     pressed = null;
   };
+  // A new press ends every earlier release's fade at once: what the new press changes (a
+  // chosen option making its opener current) is never drawn mid-fade.
+  const settle = () => {
+    for (const [el, timer] of timers) {
+      clearTimeout(timer);
+      el.removeAttribute("data-released");
+    }
+    timers.clear();
+  };
   const mark = (el: Element | null) => {
     clear();
+    settle();
     if (el === null) return;
     el.setAttribute("data-pressed", "");
     pressed = el;
@@ -186,11 +196,7 @@ export function installPress(doc: Document = document): () => void {
   win?.addEventListener("blur", clear);
   return () => {
     clear();
-    for (const [el, timer] of timers) {
-      clearTimeout(timer);
-      el.removeAttribute("data-released");
-    }
-    timers.clear();
+    settle();
     for (const [name, fn] of listeners) doc.removeEventListener(name, fn, { capture: true });
     win?.removeEventListener("blur", clear);
   };

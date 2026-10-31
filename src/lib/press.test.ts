@@ -87,7 +87,13 @@ describe("press.ts (D263/D270, turn C1)", () => {
       expect($("btn").hasAttribute("data-released")).toBe(false);
       fire($("btn"), "pointerup");
       expect($("btn").hasAttribute("data-released")).toBe(true);
+      // A new press elsewhere ends the earlier fade at once.
+      fire($("link"), "pointerdown", { button: 0, clientX: 0, clientY: 0 });
+      expect($("btn").hasAttribute("data-released")).toBe(false);
+      fire($("link"), "pointerup");
+      expect($("link").hasAttribute("data-released")).toBe(true);
       vi.advanceTimersByTime(RELEASE_MS + 1);
+      expect($("link").hasAttribute("data-released")).toBe(false);
       expect($("btn").hasAttribute("data-released")).toBe(false);
     } finally {
       vi.useRealTimers();
