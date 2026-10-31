@@ -6,7 +6,8 @@ import type { EntityBundleMap } from "./entity";
 /**
  * The DB bundle reader (U4b, D3 runtime flip).
  *
- * `get_ui_bundle(lang)` returns the APPROVED rows only, and is anon-callable
+ * `get_ui_bundle_parts(lang)` (INC-1023, turn D2) returns the APPROVED rows only, split into
+ * `{ written, copied }` by the one authorship predicate (ui_text_written), and is anon-callable
  * because the marketplace is public. A language that is neither public nor the
  * base returns `{}` — which is exactly the fallback case: the caller keeps the
  * compiled catalog. A missing bundle can never blank the UI (D3 fallback law).
@@ -20,8 +21,38 @@ import type { EntityBundleMap } from "./entity";
  */
 
 export type BundleResult =
-  | { bundle: Record<string, string>; reason: null }
+  | { bundle: BundleParts; reason: null }
   | { bundle: null; reason: string };
+
+/** The bundle's two parts (INC-1023): text someone wrote, and text a sync copied. */
+export interface BundleParts {
+  written: Record<string, string>;
+  copied: Record<string, string>;
+}
+
+/**
+ * INC-1023 — THE ONE MERGE of the database bundle over the compiled catalog.
+ * - a written row always wins;
+ * - a copied row applies only where the build ships no text for that key
+ *   (`shipped` is the build's own text for the active language), so a stale
+ *   copy never hides a new build's text;
+ * - a language the build does not ship (empty `shipped`) shows its copied rows.
+ * CF-I18N-OVERLAY (scripts/conformance/i18n-overlay.test.ts) refuses any other
+ * spread of the bundle.
+ */
+export function overlayBundle<T extends Record<string, string>>(
+  base: T,
+  parts: BundleParts,
+  shipped: Readonly<Record<string, string | undefined>>,
+): T {
+  const out: Record<string, string> = { ...base };
+  for (const [key, value] of Object.entries(parts.copied)) {
+    const own = Object.prototype.hasOwnProperty.call(shipped, key) ? shipped[key] : undefined;
+    if (typeof own !== "string" || own === "") out[key] = value;
+  }
+  for (const [key, value] of Object.entries(parts.written)) out[key] = value;
+  return out as T;
+}
 
 export type EntityBundleResult =
   | { bundle: EntityBundleMap; reason: null }
@@ -38,6 +69,16 @@ export type EntityBundleResult =
  */
 export function bundleEtag(lang: string, version: string): string {
   return `"${lang}.${version === "" ? "unknown" : version}"`;
+}
+
+/**
+ * INC-1023 — the UI bundle's validator carries the answer's SHAPE (`parts1.`), so a
+ * cached flat answer from before the parts build never revalidates as the new shape.
+ * The location route keeps `bundleEtag` itself; only this answer changed shape.
+ */
+export const BUNDLE_SHAPE = "parts1";
+export function uiBundleEtag(lang: string, version: string): string {
+  return bundleEtag(`${BUNDLE_SHAPE}.${lang}`, version);
 }
 
 /** The cacheable endpoint the provider reads (U4i ④). */
@@ -74,15 +115,33 @@ export async function fetchEntityBundle(lang: string): Promise<EntityBundleResul
   return { bundle: map, reason: null };
 }
 
-function shapeBundle(data: unknown): BundleResult {
+function stringsOf(value: unknown): Record<string, string> | null {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).filter(
+      (entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "",
+    ),
+  );
+}
+
+/**
+ * A flat (pre-parts) or malformed answer is refused with its reason, so the
+ * compiled text stays (D3, F4); empty/blank entries are dropped (INC-095).
+ */
+export function shapeBundle(data: unknown): BundleResult {
   if (data === null || typeof data !== "object" || Array.isArray(data)) {
     return { bundle: null, reason: "bundle is not an object" };
   }
-  const entries = Object.entries(data as Record<string, unknown>).filter(
-    (entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "",
-  );
-  if (entries.length === 0) return { bundle: null, reason: "bundle is empty" };
-  return { bundle: Object.fromEntries(entries), reason: null };
+  const record = data as Record<string, unknown>;
+  const written = stringsOf(record["written"]);
+  const copied = stringsOf(record["copied"]);
+  if (written === null || copied === null) {
+    return { bundle: null, reason: "bundle is not the written/copied shape" };
+  }
+  if (Object.keys(written).length + Object.keys(copied).length === 0) {
+    return { bundle: null, reason: "bundle is empty" };
+  }
+  return { bundle: { written, copied }, reason: null };
 }
 
 /**
@@ -112,7 +171,7 @@ export async function fetchUiBundle(lang: string): Promise<BundleResult> {
     );
   }
 
-  const { data, error } = await rpc("get_ui_bundle", { p_lang: lang });
+  const { data, error } = await rpc("get_ui_bundle_parts", { p_lang: lang });
   if (error) return { bundle: null, reason: error.message };
   return shapeBundle(data);
 }

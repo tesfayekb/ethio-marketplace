@@ -20,7 +20,7 @@ import { errorText } from "@/lib/error-text";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { onAuthChange, projectEnv } from "@/lib/supabase-door";
 
-import { fetchEntityBundle, fetchUiBundle } from "./bundle";
+import { fetchEntityBundle, fetchUiBundle, overlayBundle } from "./bundle";
 import { EMPTY_ENTITY_BUNDLE, type EntityBundle } from "./entity";
 import { enBase } from "./locales/en-base";
 import {
@@ -627,12 +627,13 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
       const merge = (pick: (part: (typeof parts)[number]) => Partial<Messages> | null) =>
         parts.reduce<Partial<Messages>>((all, part) => ({ ...all, ...(pick(part) ?? {}) }), {});
-      const base = {
-        ...enFirstPaint,
-        ...merge((part) => part.en),
-        ...compiled,
-        ...merge((part) => part.lang),
-      } as Messages;
+      const englishText = { ...enFirstPaint, ...merge((part) => part.en) };
+      // INC-1023: the build's own text for the active language — a copied row yields to it.
+      const shipped: Partial<Messages> =
+        language === BASE_LANGUAGE
+          ? englishText
+          : { ...compiled, ...merge((part) => part.lang) };
+      const base = { ...englishText, ...shipped } as Messages;
       setMessages(base);
       setAppliedLanguage(language);
       // Same settle rule as the gate/entity reads (INC-101b): the compiled
@@ -644,7 +645,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
           console.warn(`[i18n] bundle fallback for ${language}: ${reason}`);
           return;
         }
-        setMessages({ ...base, ...bundle } as Messages);
+        setMessages(overlayBundle(base, bundle, shipped));
       });
     };
 

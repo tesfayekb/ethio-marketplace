@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { bundleEtag } from "@/i18n/bundle";
+import { uiBundleEtag } from "@/i18n/bundle";
 import { readFailed } from "@/lib/reader-failure";
 import { langCodeLoose } from "@/lib/schemas/primitives";
 import { clientError, conditional, notModified, readFailure } from "@/server/answer";
@@ -11,7 +11,10 @@ import { versionCache } from "@/server/version-cache";
 /**
  * U4i ④ — THE CACHEABLE UI BUNDLE.
  *
- *   GET /api/i18n/:lang → { lang, bundle: { key: value, … } }
+ *   GET /api/i18n/:lang → { lang, bundle: { written: { key: value, … }, copied: { … } } }
+ *
+ * INC-1023 (turn D2): the bundle is `get_ui_bundle_parts`; the ETag carries the
+ * shape (`parts1.`), so a cached flat answer is never read as the new shape.
  *
  * WHY A ROUTE AND NOT THE RPC: a PostgREST `rpc()` POST can never be cached by
  * a browser or an edge; this GET carries a strong validator.
@@ -50,16 +53,16 @@ async function handler(ctx: RouteContext<unknown, z.infer<typeof params>>): Prom
       },
       async (version) => {
         // A cold conditional hit: the bundle is not read and nothing is held.
-        if (ctx.request.headers.get("If-None-Match") === bundleEtag(code, version)) return null;
-        const { data, error, status } = await supabase.rpc("get_ui_bundle", { p_lang: code });
+        if (ctx.request.headers.get("If-None-Match") === uiBundleEtag(code, version)) return null;
+        const { data, error, status } = await supabase.rpc("get_ui_bundle_parts", { p_lang: code });
         if (error) throw readFailed(error, status);
-        return { body: { lang: code, bundle: data ?? {} } };
+        return { body: { lang: code, bundle: data ?? { written: {}, copied: {} } } };
       },
     );
     // build answers null only for the cold conditional hit (ruled, turn 6).
-    if (held === null) return notModified(bundleEtag(code, seen ?? ""), CACHE);
+    if (held === null) return notModified(uiBundleEtag(code, seen ?? ""), CACHE);
     return conditional(ctx.request, {
-      etag: bundleEtag(code, held.version),
+      etag: uiBundleEtag(code, held.version),
       body: held.value.body,
       cache: CACHE,
     });
