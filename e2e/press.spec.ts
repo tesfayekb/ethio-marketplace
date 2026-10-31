@@ -8,8 +8,8 @@ import { adPageFixtures } from "./helpers/ad-page";
  * PS-1: at 360 (coarse) and 1440 (fine), light and dark, within one frame of pointerdown a
  *   menu row, a band segment, a list row, a button, a plain link and a card each show their
  *   raised state (shadow layers or fill change), the box does not move, and the pressed
- *   text keeps 4.5 : 1 on its own fill. The press is released off the element (past the
- *   slop), so nothing is chosen.
+ *   text keeps 4.5 : 1 on its own fill. The press is released with its click swallowed, so
+ *   nothing is chosen.
  * PS-4: under reduced motion the press comes and goes with no transition.
  */
 type Mode = "light" | "dark";
@@ -82,7 +82,18 @@ async function press(page: Page, target: Locator, surface: Locator = target) {
   await page.mouse.down();
   const during = await lookOf(surface);
   const marked = await target.evaluate((el) => el.closest("[data-pressed]") !== null);
-  await page.mouse.move(x + 200, y + 200, { steps: 2 });
+  // Released in place with its click swallowed once: the press ends, nothing is chosen
+  // (a slide off a link would start a drag instead).
+  await target.evaluate((el) =>
+    el.addEventListener(
+      "click",
+      (event) => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      },
+      { capture: true, once: true },
+    ),
+  );
   await page.mouse.up();
   const after = await lookOf(surface);
   return { before, during, after, marked };
