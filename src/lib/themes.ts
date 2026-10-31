@@ -165,7 +165,7 @@ const SAGE: ThemeSetValue = {
     "accent-foreground": "oklch(0.933 0.006 153.8)",
     gold: "oklch(0.769 0.128 78.3)",
     "gold-foreground": "oklch(0.214 0.037 79.9)",
-    destructive: "oklch(0.704 0.191 22.216)",
+    destructive: "oklch(0.715 0.191 22.216)",
     "destructive-foreground": "oklch(0.178 0.037 27.4)",
     border: "oklch(0.339 0.02 159.5)",
     input: "oklch(0.394 0.019 251.4)",

@@ -181,12 +181,16 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-rule: var(--rule);
-  --color-card-rule: var(--rule); /* §6 (turn B2): the card's place-line divider and well separator */
+  --color-card-rule: var(
+    --rule
+  ); /* §6 (turn B2): the card's place-line divider and well separator */
   --color-destructive-soft: var(--destructive-soft);
   --color-destructive-line: var(--destructive-line);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
-  --color-success-ink: var(--success); /* §6 (turn B2): the Negotiable pill's ink, #17503A / #7FC9A6 */
+  --color-success-ink: var(
+    --success
+  ); /* §6 (turn B2): the Negotiable pill's ink, #17503A / #7FC9A6 */
   --color-success-line: var(--success-line);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
@@ -426,7 +430,8 @@
   --lift-side: 1px 0 0 oklch(0.349 0.017 251.8 / 0.7);
   --background: oklch(0.202 0.011 163.6); /* #121815 */
   --foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
-  --card: oklch(0.312 0.019 163.4); /* #28342E — D262 candidate C, the operator's pick (DEC-314, turn B2) */
+  /* #28342E — D262 candidate C, the operator's pick (DEC-314, turn B2) */
+  --card: oklch(0.312 0.019 163.4);
   --card-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --popover: oklch(0.258 0.016 160.7); /* #1D2621 */
   --popover-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
@@ -441,7 +446,8 @@
   --accent-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --gold: oklch(0.769 0.128 78.3); /* #E0A94A — logo dot, Featured, invite card */
   --gold-foreground: oklch(0.214 0.037 79.9); /* #221704 */
-  --destructive: oklch(0.704 0.191 22.216);
+  /* turn C1: 4.58 : 1 on dark card C (was 0.704, 4.48 — CI 57c72d3c) */
+  --destructive: oklch(0.715 0.191 22.216);
   --destructive-foreground: oklch(0.178 0.037 27.4); /* #1F0A08 */
   --border: oklch(0.339 0.02 159.5);
   --input: oklch(0.394 0.019 251.4); /* #3F4750 */
@@ -784,5 +790,43 @@
     inset-block-start: 0;
     inset-inline-start: 0;
     width: 100%;
+  }
+}
+
+/* D263/D270 (turn C1, DEC-317) — a plain link with no surface of its own takes the raised
+ * pill behind its text while pressed (the nav pill and the nav ink; src/lib/press.ts marks it).
+ * In the base layer, so every primitive's own PRESSED look (menu-row.ts) wins over it. */
+@layer base {
+  a[data-pressed] {
+    background-color: var(--color-nav-pill);
+    color: var(--color-nav-ink);
+    border-radius: var(--radius-row);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    a[href] {
+      transition-property: background-color, color, box-shadow;
+      transition-duration: 120ms;
+    }
+    a[data-pressed] {
+      transition-duration: 0ms;
+    }
+  }
+}
+
+/* D263 (turn C1): under reduced motion a press comes and goes with no transition, whatever
+ * transition a pressable carries for its hover. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    :where(
+      a[href],
+      button,
+      summary,
+      [data-pressable],
+      [role="tab"],
+      [role="menuitem"],
+      [role="option"]
+    ) {
+      transition-duration: 0s !important;
+    }
   }
 }

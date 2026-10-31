@@ -42,7 +42,12 @@ export function oneLineFindings(files: Array<{ name: string; text: string }>): F
         .split("\n")
         .forEach((line, index) => {
           const hit = BREAKS.exec(line);
-          if (hit) findings.push({ file: name, line: index + 1, what: `the slot line breaks ("${hit[1]}")` });
+          if (hit)
+            findings.push({
+              file: name,
+              line: index + 1,
+              what: `the slot line breaks ("${hit[1]}")`,
+            });
         });
       continue;
     }
@@ -55,7 +60,11 @@ export function oneLineFindings(files: Array<{ name: string; text: string }>): F
             const hit = BREAKS.exec(classText(up.openingElement.attributes, source));
             if (hit) {
               const line = source.getLineAndCharacterOfPosition(up.getStart(source)).line + 1;
-              findings.push({ file: name, line, what: `an element around OneLineSlot breaks the line ("${hit[1]}")` });
+              findings.push({
+                file: name,
+                line,
+                what: `an element around OneLineSlot breaks the line ("${hit[1]}")`,
+              });
             }
           }
         }
@@ -66,7 +75,11 @@ export function oneLineFindings(files: Array<{ name: string; text: string }>): F
         !node.getText(source).includes("<OneLineSlot")
       ) {
         const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
-        findings.push({ file: name, line, what: "the feed heading draws its place without OneLineSlot" });
+        findings.push({
+          file: name,
+          line,
+          what: "the feed heading draws its place without OneLineSlot",
+        });
       }
       ts.forEachChild(node, visit);
     };

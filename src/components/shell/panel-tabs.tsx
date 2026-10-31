@@ -64,7 +64,7 @@ export function PanelTabs() {
               onClick={() => switchPanel(panel.id)}
               className={cn(
                 BAND_SEGMENT,
-                "min-w-min flex-none justify-center gap-2 transition-colors",
+                "min-w-min flex-none justify-center gap-2",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 active ? BAND_SEGMENT_CURRENT : cn(BAND_SEGMENT_IDLE, "hover:bg-muted"),
               )}

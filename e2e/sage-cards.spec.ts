@@ -1,7 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { THEMES } from "../src/lib/themes";
 import { expect, test } from "./fixtures";
-import { gotoReady, signIn, switchLanguage } from "./helpers/ui";
+import { gotoReady, signIn } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { openMarketCodes } from "./helpers/locations";
 import { withoutEmptyLayers } from "./helpers/shadows";
@@ -9,14 +9,14 @@ import { adPageFixtures } from "./helpers/ad-page";
 
 /**
  * Turn B2 (Sage S3, DEC-314; D262 candidate C; D269) — the feed heading and the listing card.
- * SC-1: at 390, 834 and 1440, light and dark, computed styles of the heading (§5), the card's
+ * SCS-1: at 390, 834 and 1440, light and dark, computed styles of the heading (§5), the card's
  *   body padding, price, Negotiable pill, place-line divider and ink, the empty picture well
  *   and its separator, and the card's surface and ring (§6), each against its token.
- * SC-2: the place line's ink measured in the page against the card and both tier fills
+ * SCS-2: the place line's ink measured in the page against the card and both tier fills
  *   (≥ 4.5 : 1; the Featured fill takes its own ink, D269), in both themes.
- * OL-1: at 360, in English and Amharic, every open market's name fits the heading whole.
- * OL-2: a 60-character planted name cuts; the fixed words stay whole, on one line.
- * Measurement for OL-1/OL-2: the live heading is cloned beside itself (the same fonts, width
+ * OLH-1: at 360, in every public language, every open market's name fits the heading whole.
+ * OLH-2: a 60-character planted name cuts; the fixed words stay whole, on one line.
+ * Measurement for OLH-1/OLH-2: the live heading is cloned beside itself (the same fonts, width
  * and classes) with only its slot's text replaced; the page is never edited otherwise.
  */
 type Mode = "light" | "dark";
@@ -95,7 +95,7 @@ for (const width of WIDTHS) {
         await page.setViewportSize({ width, height: 900 });
       });
 
-      test(`SC-1 heading and card read their tokens (${width}, ${mode})`, async ({ page }) => {
+      test(`SCS-1 heading and card read their tokens (${width}, ${mode})`, async ({ page }) => {
         const seller = await feed.scratchSeller();
         const plain = await feed.seed(seller);
         const negotiable = await feed.seed(seller);
@@ -103,7 +103,8 @@ for (const width of WIDTHS) {
           .from("listings")
           .update({ price_negotiable: true })
           .eq("id", negotiable.id as string);
-        if (marked.error) throw new Error(`[e2e:sc] marking negotiable failed: ${marked.error.message}`);
+        if (marked.error)
+          throw new Error(`[e2e:sc] marking negotiable failed: ${marked.error.message}`);
         await page.goto("/");
         await setMode(page, mode);
         await signIn(page, seller.email, seller.password);
@@ -192,10 +193,13 @@ for (const width of WIDTHS) {
         expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(0.5);
       });
 
-      test(`SC-2 the place line's ink meets 4.5 : 1 on every card fill (${width}, ${mode})`, async ({
+      test(`SCS-2 the place line's ink meets 4.5 : 1 on every card fill (${width}, ${mode})`, async ({
         page,
       }) => {
-        test.skip(width !== 1440 && width !== 390, "a colour pair, not a width: two widths suffice");
+        test.skip(
+          width !== 1440 && width !== 390,
+          "a colour pair, not a width: two widths suffice",
+        );
         await page.goto("/");
         await setMode(page, mode);
         await gotoReady(page, "/");
@@ -261,32 +265,52 @@ test.describe("One line with one slot at 360 (§5)", () => {
     await page.setViewportSize({ width: 360, height: 800 });
   });
 
-  for (const language of ["en", "am"] as const) {
-    test(`OL-1 every open market's name shows whole (${language})`, async ({ page, baseURL }) => {
-      const codes = await openMarketCodes({ realOnly: true });
-      const { data, error } = await adminClient()
-        .from("locations")
-        .select("name_en, name_am")
-        .eq("level", "country")
-        .in("country_code", codes);
-      if (error) throw new Error(`[e2e:ol] reading market names failed: ${error.message}`);
-      const names = (data ?? []).map((row) =>
-        language === "am" && typeof row.name_am === "string" && row.name_am !== ""
-          ? row.name_am
-          : (row.name_en as string),
+  // G0.6 (turn C1) — the languages are the app's public ones, read from its switcher, so a
+  // language added later is checked too.
+  test("OLH-1 every open market's name shows whole in every public language", async ({
+    page,
+    baseURL,
+  }) => {
+    const codes = await openMarketCodes({ realOnly: true });
+    const { data, error } = await adminClient()
+      .from("locations")
+      .select("*")
+      .eq("level", "country")
+      .in("country_code", codes);
+    if (error) throw new Error(`[e2e:ol] reading market names failed: ${error.message}`);
+    const rows = (data ?? []) as Array<Record<string, unknown>>;
+    expect(rows.length).toBeGreaterThan(0);
+    await openWithMarket(page, baseURL ?? "");
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await page.getByTestId("language-switcher").click();
+    const languages = await page
+      .locator('[data-testid^="language-option-"]')
+      .evaluateAll((els) =>
+        els.map((el) => (el.getAttribute("data-testid") ?? "").replace("language-option-", "")),
       );
-      expect(names.length).toBeGreaterThan(0);
-      await openWithMarket(page, baseURL ?? "");
-      if (language === "am") await switchLanguage(page, "am");
+    await page.keyboard.press("Escape");
+    expect(languages, "the switcher lists the public languages").toContain("en");
+    for (const language of languages) {
+      await expect(page.getByRole("menu")).toHaveCount(0);
+      await page.getByTestId("language-switcher").click();
+      await page.getByTestId(`language-option-${language}`).click();
+      await expect(page.locator("html")).toHaveAttribute("lang", language, { timeout: 15000 });
+      await expect(page.getByRole("menu")).toHaveCount(0);
       await expect(page.getByTestId("feed-heading").locator("[data-one-line-slot]")).toBeVisible();
-      for (const name of names) {
+      for (const row of rows) {
+        const own = row[`name_${language}`];
+        const name = typeof own === "string" && own !== "" ? own : String(row["name_en"]);
         const m = await measureHeading(page, name);
-        expect(m, `${language}: "${name}"`).toEqual({ cut: false, fixedWhole: true, oneLine: true });
+        expect(m, `${language}: "${name}"`).toEqual({
+          cut: false,
+          fixedWhole: true,
+          oneLine: true,
+        });
       }
-    });
-  }
+    }
+  });
 
-  test("OL-2 a 60-character name cuts; the fixed words stay whole on one line", async ({
+  test("OLH-2 a 60-character name cuts; the fixed words stay whole on one line", async ({
     page,
     baseURL,
   }) => {

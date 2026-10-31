@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { PRESSED } from "@/components/shell/menu-row";
 
 /**
  * D258 (Foundations turn R1d-c) — ONE HEIGHT FOR EVERY BAND ROW. The panel tabs row, the
@@ -20,8 +21,7 @@ export const CURRENT_PILL = "rounded-full bg-nav-pill shadow-pill text-nav-ink";
 
 /** D265 — the three content rows share the location track and segment geometry. */
 export const BAND_TRACK = "flex h-8.5 items-center rounded-track bg-track p-0.75 shadow-track";
-export const BAND_SEGMENT =
-  "inline-flex h-7 shrink items-center rounded-segment px-1.25 md:px-2.5 text-xs md:text-[13px] whitespace-nowrap";
+export const BAND_SEGMENT = `${PRESSED.segment} inline-flex h-7 shrink items-center rounded-segment px-1.25 md:px-2.5 text-xs md:text-[13px] whitespace-nowrap`;
 export const BAND_SEGMENT_IDLE = "bg-transparent font-medium text-foreground";
 export const BAND_SEGMENT_CURRENT = "bg-card shadow-segment font-semibold text-nav-ink";
 /** Trail-specific flex allocation preserves five graphemes without wrapping separators. */

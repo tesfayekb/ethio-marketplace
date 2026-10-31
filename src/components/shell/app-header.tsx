@@ -1,4 +1,5 @@
 import { CutText } from "@/components/ui/cut-text";
+import { PRESSED } from "@/components/shell/menu-row";
 import { BAR_GAP, BAR_HEADER_INSET } from "@/components/shell/bar-spacing";
 import { Link } from "@tanstack/react-router";
 import { LogOut, Menu, Search, Settings as SettingsIcon, User, X } from "lucide-react";
@@ -28,8 +29,7 @@ import { useShell } from "@/components/shell-context";
  * hairline edge, the control lift, 12 px corners. 44 px for a coarse pointer (C2); 36 px
  * for a fine one.
  */
-const CONTROL_LOOK =
-  "min-h-11 md:pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+const CONTROL_LOOK = `${PRESSED.button} min-h-11 md:pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`;
 const ICON_BUTTON = `inline-flex w-9 shrink-0 items-center justify-center ${CONTROL_LOOK}`;
 /** Sage §1 — the search pill: the field fill and its pressed-in lift, no border. */
 const SEARCH_FIELD =
