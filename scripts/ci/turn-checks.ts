@@ -142,6 +142,26 @@ export function fastFirst(steps: Step[]): { fast: Step[]; slow: Step[] } {
   return { fast, slow };
 }
 
+/**
+ * INC-1030 (turn B1) — THE LAWS FIRST. The scripts/ tests (the conformance censuses and the id laws,
+ * about a minute) run before any other step, inside the fast line, so a time limit never cuts them
+ * off. It is a local step of its own job, so its failure never skips CI's component-test step: no
+ * step is dropped, and that step still runs the whole suite (the scripts/ tests again), so the final
+ * verdict is unchanged. Guard: turn-checks.test.ts TC-E3.
+ */
+export const LAWS_STEP: Step = {
+  job: "laws-first",
+  name: "scripts/ tests first (INC-1030)",
+  key: "laws-first › scripts/ tests first (INC-1030)",
+  run: `bunx vitest run scripts ${"--maxWorkers=2"}`,
+  env: {},
+  timeoutS: 300,
+  conditional: false,
+};
+export function lawsFirst(fast: Step[]): Step[] {
+  return [LAWS_STEP, ...fast];
+}
+
 /** The fast line: never the verdict, so it never begins `checks:`. */
 export function fastLine(lines: Line[], seconds: number, jobs: string[]): string {
   const n = (v: Verdict) => lines.filter((l) => l.verdict === v).length;
@@ -393,7 +413,9 @@ function main(): number {
   const failedJobs = new Map<string, string>();
   let buildResult: Line | null = null;
   let mapsBefore = "";
-  const { fast, slow } = fastFirst(steps);
+  const split = fastFirst(steps);
+  const fast = lawsFirst(split.fast);
+  const slow = split.slow;
   const fastJobs = [...new Set(fast.map((s) => s.job))];
   let fastPrinted = false;
   const printFast = () => {
