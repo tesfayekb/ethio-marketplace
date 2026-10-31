@@ -217,15 +217,16 @@ async function expectInSight(page: Page, panel: Locator, rows: Locator) {
   expect(box.y + box.height, "the list's bottom over the bottom chrome").toBeLessThanOrEqual(
     edges.bottom + 0.5,
   );
-  for (const row of [rows.first(), rows.last()]) {
-    await row.evaluate((el) => el.scrollIntoView({ block: "nearest", behavior: "instant" }));
-    const hit = await row.evaluate((el) => {
+  const reached = await rows.evaluateAll((all) =>
+    [all[0], all[all.length - 1]].map((el) => {
+      if (el === undefined) return false;
+      el.scrollIntoView({ block: "nearest", behavior: "instant" });
       const r = el.getBoundingClientRect();
       const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
       return at !== null && (at === el || el.contains(at));
-    });
-    expect(hit, "a list end row is reachable").toBe(true);
-  }
+    }),
+  );
+  expect(reached, "the list's first and last rows are reachable").toEqual([true, true]);
   const after = await chromeEdges(page);
   const { box: still } = await layoutBoxes({ box: panel });
   expect(still.y).toBeGreaterThanOrEqual(after.top - 0.5);
