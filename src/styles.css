@@ -786,3 +786,23 @@
     width: 100%;
   }
 }
+
+/* D263/D270 (turn C1, DEC-317) — a plain link with no surface of its own takes the raised
+ * pill behind its text while pressed (the nav pill and the nav ink; src/lib/press.ts marks it).
+ * In the base layer, so every primitive's own PRESSED look (menu-row.ts) wins over it. */
+@layer base {
+  a[data-pressed] {
+    background-color: var(--color-nav-pill);
+    color: var(--color-nav-ink);
+    border-radius: var(--radius-row);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    a[href] {
+      transition-property: background-color, color, box-shadow;
+      transition-duration: 120ms;
+    }
+    a[data-pressed] {
+      transition-duration: 0ms;
+    }
+  }
+}
