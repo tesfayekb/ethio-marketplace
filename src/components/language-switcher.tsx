@@ -12,7 +12,7 @@ import {
 import { useI18n } from "@/i18n";
 import type { Language } from "@/i18n/types";
 import { cn } from "@/lib/utils";
-import { LIST_ROW_CURRENT, OPEN_CONTROL } from "@/components/shell/menu-row";
+import { OPEN_CONTROL } from "@/components/shell/menu-row";
 
 const LABEL_KEYS = {
   en: "language.english",
@@ -93,9 +93,8 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                   value={row.code}
                   lang={row.code}
                   data-testid={`language-option-${row.code}`}
-                  // D264 (turn F) — the menu's own row (LIST_ROW, 44 px to tap);
-                  // the current language takes the shell's selected look.
-                  className={cn(row.code === language && LIST_ROW_CURRENT)}
+                  // D264 (turn F) — the menu's own row (LIST_ROW, 44 px to tap); the
+                  // current language's look comes from its checked state (INC-1027).
                 >
                   <CutText className="flex-1" text={key ? t(key) : row.name_native} />
                 </DropdownMenuRadioItem>
