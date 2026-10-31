@@ -203,7 +203,7 @@ describe("CF-WIDTH-1 the menu's width has one home", () => {
 /** D266 — rail header uses the rail surface, not a fourth content band look. */
 export function railHeaderFindings(text: string): Finding[] {
   const code = codeOf(text);
-  return /from "@\/components\/shell\/band-row"/.test(code) &&
+  return /from "@\/components\/shell\/band-row"/.test(text) &&
     /\bRAIL_HEADER\b/.test(code) &&
     !/BAND_LOOK\.row|bg-sidebar|shadow-groove/.test(code)
     ? []
