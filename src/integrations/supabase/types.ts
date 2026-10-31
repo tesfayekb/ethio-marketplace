@@ -5314,6 +5314,7 @@ export type Database = {
       get_posting_schema: { Args: { p_category_id: string }; Returns: Json }
       get_role_hierarchy: { Args: { p_role_id: string }; Returns: string[] }
       get_ui_bundle: { Args: { p_lang: string }; Returns: Json }
+      get_ui_bundle_parts: { Args: { p_lang: string }; Returns: Json }
       get_ui_bundle_version: { Args: { p_lang: string }; Returns: string }
       has_password: { Args: never; Returns: boolean }
       has_permission: {
@@ -5813,6 +5814,10 @@ export type Database = {
       translation_placeholders: { Args: { p_text: string }; Returns: string[] }
       translation_scope_ok: { Args: { p_lang: string }; Returns: boolean }
       ui_sync_mark_orphans: { Args: { p_en: Json }; Returns: Json }
+      ui_text_written: {
+        Args: { p_key: string; p_lang: string }
+        Returns: boolean
+      }
       ui_translation_reviewable: {
         Args: { p_flagged: boolean; p_orphaned: boolean; p_status: string }
         Returns: boolean
