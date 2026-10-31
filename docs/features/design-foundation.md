@@ -525,3 +525,11 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - A press is the raised look, never a darkening: src/lib/press.ts marks `data-pressed` at pointerdown or Enter/Space and clears it on release, cancel, keyup, scroll, a 10 px move, or focus leaving the pressed element. Disabled elements are never marked.
 - PRESSED (menu-row.ts): row → card + lift-row-on + nav ink; list → nav pill + nav ink; segment/tab → card + lift-segment + nav ink; button and top-bar control → lift-row-on; card → lift-row-on on the card; a plain link → the nav pill behind its text (styles.css base layer).
 - On at once, off within 120 ms; no transition under reduced motion; only shadow, fill and ink change.
+- Turn C2: only the release fades — press.ts leaves `data-released` on the released element for 160 ms and PRESS_MOTION is keyed on it, so a current mark that moves for any other reason changes at once; a new press ends every earlier fade. The bottom bar takes PRESSED.bar / PRESSED.barIcon (the icon's current pill); the top bar's ☰ and search-close buttons take PRESSED.button.
+
+## The chosen item and the tap tick (turn C2, D263/D271/D272, DEC-317)
+
+- A menu item's current mark and `aria-current` read `useMenuAt()` (menu-current.ts): the router's location while a navigation is pending, else the shown page. The frame (panel, bands, breadcrumbs) stays on useShownPathname (INC-581). A superseded choice brings the old mark back by itself.
+- The bottom bar marks its items by isCurrentAt on that place, signed in or out (BAR_PATHS): Home on "/" and every /c/ page, Sign in on /auth, My listings, Account (/account, /settings) and Admin on theirs.
+- The tap tick: press.ts, on a click that followed a touch, on TICKABLE (buttons and the tappable roles, or a primitive's `data-tick`: menu rows, breadcrumb segments, bottom-bar items); plain links and cards never; `navigator.vibrate(10)`. The device's choice is /settings → "This device" → "Vibrate on tap" (on by default, browser storage). The iPhone path (a hidden switch checkbox) is not built: it could not be proven here (C2 report).
+- CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`) and 4 (vibrate and a switch checkbox only in press.ts).
