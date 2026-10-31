@@ -30,9 +30,10 @@ function scratchLang(): string {
 /** The route's in-process version TTL is 15s; this poll outlives it. */
 const VERSION_POLL_MS = 60_000;
 
+/** INC-1023 (turn D2): the route serves the parts; a seeded row (no revision) is copied. */
 interface BundlePayload {
   lang: string;
-  bundle: Record<string, string>;
+  bundle: { written: Record<string, string>; copied: Record<string, string> };
 }
 
 async function ensureLanguage(code: string, published: boolean) {
@@ -87,7 +88,7 @@ test.describe("STAB-I18N · cached translation bundle", () => {
       expect(firstEtag?.startsWith("W/")).toBe(false);
       const firstBody = (await first.json()) as BundlePayload;
       expect(firstBody.lang).toBe(code);
-      expect(firstBody.bundle[key]).toBe("seeded value");
+      expect(firstBody.bundle.copied[key]).toBe("seeded value");
 
       const second = await request.get(`/api/i18n/${code}`);
       expect(second.status(), "second GET").toBe(200);
@@ -115,7 +116,7 @@ test.describe("STAB-I18N · cached translation bundle", () => {
       expect(unpublished.status()).toBe(200);
       const beforeEtag = unpublished.headers()["etag"];
       const beforeBody = (await unpublished.json()) as BundlePayload;
-      expect(beforeBody.bundle[key], "an unpublished language serves no rows").toBeUndefined();
+      expect(beforeBody.bundle.copied[key], "an unpublished language serves no rows").toBeUndefined();
 
       await ensureLanguage(code, true);
       const { data: published, error } = await adminClient()
@@ -134,11 +135,11 @@ test.describe("STAB-I18N · cached translation bundle", () => {
         expect(response.status()).toBe(200);
         lastEtag = response.headers()["etag"];
         lastBody = (await response.json()) as BundlePayload;
-        if (lastBody.bundle[key] === "published value") break;
+        if (lastBody.bundle.copied[key] === "published value") break;
         await new Promise((resolve) => setTimeout(resolve, 2_000));
       }
       expect(
-        lastBody?.bundle[key],
+        lastBody?.bundle.copied[key],
         `bundle after publish (etag before=${beforeEtag} after=${lastEtag}, ` +
           `payload=${JSON.stringify(lastBody)})`,
       ).toBe("published value");
