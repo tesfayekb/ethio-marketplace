@@ -18,7 +18,8 @@ const UNIT = /\.test\.tsx?$/;
 export function changedTestFolders(files: string[], testsIn: (dir: string) => string[]): string[] {
   const dirs = new Set<string>();
   for (const file of files) {
-    if (!/^(?:src|scripts)\//.test(file)) continue;
+    // scripts/ is the laws step's first part already; src/ folders are judged here.
+    if (!file.startsWith("src/")) continue;
     const dir = dirname(file);
     if (testsIn(dir).some((name) => UNIT.test(name))) dirs.add(dir);
   }
@@ -59,16 +60,24 @@ function run(cmd: string, args: string[]): number {
 export function check(mode: string): number {
   const files = changedFiles();
   if (mode === "units") {
-    const dirs = changedTestFolders(files, (dir) =>
+    const testsIn = (dir: string) =>
       existsSync(dir)
         ? walkFiles([dir], { ext: ["ts", "tsx"] })
             .filter((f) => dirname(f) === dir)
             .map((f) => basename(f))
-        : [],
+        : [];
+    const dirs = changedTestFolders(files, testsIn);
+    // Each folder's own test files by path: a folder filter would also take its subfolders.
+    const tests = dirs.flatMap((d) =>
+      testsIn(d)
+        .filter((n) => UNIT.test(n))
+        .map((n) => `${d}/${n}`),
     );
-    console.log(`[laws] changed folders with unit tests: ${dirs.length}`);
-    if (dirs.length === 0) return 0;
-    return run("bunx", ["vitest", "run", ...dirs.map((d) => `${d}/`), "--maxWorkers=2"]);
+    console.log(
+      `[laws] changed folders with unit tests: ${dirs.length}; test files: ${tests.length}`,
+    );
+    if (tests.length === 0) return 0;
+    return run("bunx", ["vitest", "run", ...tests, "--maxWorkers=2"]);
   }
   if (mode === "semgrep") {
     const targets = semgrepTargets(files);
