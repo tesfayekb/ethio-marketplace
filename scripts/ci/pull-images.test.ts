@@ -33,7 +33,12 @@ exit 0
   writeFileSync(list, "public.ecr.aws/supabase/postgres:17\n");
   const result = spawnSync("bash", [SCRIPT, list], {
     encoding: "utf8",
-    env: { ...process.env, PULL_IMAGES_DOCKER: docker, PULL_IMAGES_SLEEP: "0", WITH_DEADLINE_PAUSE: "0" },
+    env: {
+      ...process.env,
+      PULL_IMAGES_DOCKER: docker,
+      PULL_IMAGES_SLEEP: "0",
+      WITH_DEADLINE_PAUSE: "0",
+    },
     timeout: 30_000,
   });
   return {
