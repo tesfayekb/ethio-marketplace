@@ -11,12 +11,6 @@ import {
   OPEN_CONTROL,
 } from "@/components/shell/menu-row";
 import { PickerOption, pickerPopClass } from "@/components/searchable-picker";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./dropdown-menu-impl";
 
 /** D264 (Foundations turn F): the open list's one look, read from menu-row.ts. */
 describe("CL-U — every open list reads menu-row.ts's constants", () => {
@@ -40,18 +34,11 @@ describe("CL-U — every open list reads menu-row.ts's constants", () => {
     const impl = readFileSync("src/components/ui/dropdown-menu-impl.tsx", "utf8");
     expect(impl).toContain('sideOffset = 0, align = "start"');
     expect(impl).toContain("min-w-[var(--radix-dropdown-menu-trigger-width)]");
-    render(
-      <DropdownMenu open>
-        <DropdownMenuTrigger>open</DropdownMenuTrigger>
-        <DropdownMenuContent data-testid="panel">
-          <DropdownMenuItem data-testid="row">one</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>,
-    );
-    const panel = screen.getByTestId("panel").className;
-    for (const cls of LIST_PANEL.split(" ")) expect(panel).toContain(cls);
-    for (const cls of LIST_ROW.split(" "))
-      expect(screen.getByTestId("row").className).toContain(cls);
+    // DEC-259: only overlays-impl may reach the impl by value, so its classes are read
+    // from its source: the content and every row part start from the constants.
+    expect(impl.match(/\bLIST_PANEL,/g)?.length).toBe(2);
+    expect(impl.match(/\bLIST_ROW,/g)?.length).toBe(4);
+    expect(impl).not.toMatch(/zoom-|rounded-sm|py-1\.5|\bborder\b/);
   });
   it("CL-U5: the picker's rows and panel come from the constants, against the box's edge", () => {
     render(
