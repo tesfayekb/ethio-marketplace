@@ -209,10 +209,16 @@ async function placeControl(page: Page, control: Locator, spot: Spot) {
 
 /** D267 — the open list lies wholly inside the visible area, and its first and last rows are
  *  reached (scrolled to inside the list, each the element drawn at its own centre). */
-async function expectInSight(page: Page, panel: Locator, rows: Locator) {
+async function expectInSight(page: Page, panel: Locator, rows: Locator, inChrome?: Locator) {
   await expect(panel).toBeVisible();
   const { box } = await layoutBoxes({ box: panel });
   const edges = await chromeEdges(page);
+  // A control drawn in the top chrome itself (the header) opens over the bands below it:
+  // its list's top bound is the control's own bottom edge.
+  if (inChrome !== undefined) {
+    const { control } = await layoutBoxes({ control: inChrome });
+    edges.top = Math.min(edges.top, control.y + control.height);
+  }
   expect(box.y, "the list's top under the top chrome").toBeGreaterThanOrEqual(edges.top - 0.5);
   expect(box.y + box.height, "the list's bottom over the bottom chrome").toBeLessThanOrEqual(
     edges.bottom + 0.5,
@@ -228,6 +234,7 @@ async function expectInSight(page: Page, panel: Locator, rows: Locator) {
   );
   expect(reached, "the list's first and last rows are reachable").toEqual([true, true]);
   const after = await chromeEdges(page);
+  after.top = Math.min(after.top, edges.top);
   const { box: still } = await layoutBoxes({ box: panel });
   expect(still.y).toBeGreaterThanOrEqual(after.top - 0.5);
   expect(still.y + still.height).toBeLessThanOrEqual(after.bottom + 0.5);
@@ -439,8 +446,9 @@ for (const width of WIDTHS) {
         test.skip(width !== 360, "D267 is judged at 360 coarse");
         const panel = page.getByRole("menu");
         // The header's menus: the header is fixed, so they open from the top.
-        await page.getByTestId("language-switcher").click();
-        await expectInSight(page, panel, page.getByRole("menuitemradio"));
+        const language = page.getByTestId("language-switcher");
+        await language.click();
+        await expectInSight(page, panel, page.getByRole("menuitemradio"), language);
         await closeMenu(page, panel);
         for (const spot of ["near the top", "near the bottom"] as const) {
           await test.step(`location, ${spot}`, async () => {
@@ -465,8 +473,9 @@ for (const width of WIDTHS) {
         const user = await leaseUser();
         await signIn(page, user.email, user.password);
         await gotoReady(page, "/");
-        await page.getByTestId("account-menu").click();
-        await expectInSight(page, panel, page.getByRole("menuitem"));
+        const account = page.getByTestId("account-menu");
+        await account.click();
+        await expectInSight(page, panel, page.getByRole("menuitem"), account);
         await closeMenu(page, panel);
       });
     });
