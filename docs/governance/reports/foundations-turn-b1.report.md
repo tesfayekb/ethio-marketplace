@@ -44,7 +44,10 @@ See §10 (from `bun run checks` if it finishes).
 - Dark `--lift-card-md`/`-lg` are light-only by design (`:root:not(.dark)`); the dark ring is one value at every width.
 
 ## 10. Checks
-(appended below after `bun run checks`)
+TI-1 clash fixed: e2e/dark-cards.spec.ts DC-1/DC-2 → DCC-1/DCC-2 (every reference); `bunx vitest run scripts/` (TI-1 and the laws step): 77 files, 371 passed, 1 skipped.
+CI on 060d4d60 (09:50:50Z): FAILURE, Component tests only (TI-1, CF-ADOPT-1, both fixed this turn). b2bbc9f3's run was not yet on the evidence branch when read.
+`bun run checks`, once, whole, on the final tree: 13 PASS · 0 FAIL · 2 NOT RUN (both Install dependencies) through "Root route names"; the 590 s limit ended it at component tests. No fast line or last line was printed; unit count not measured.
+slow steps: not finished — CI judges.
 
 ## 11. Files (git diff --name-only 060d4d60)
 docs/_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/foundations-turn-b1.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-b1.report.md, docs/governance/reports/foundations-turn-ci-4.report.md, e2e/dark-cards.spec.ts, roadmap.md, scripts/ci/classify-start-failure.test.ts, scripts/ci/turn-checks.test.ts, scripts/ci/turn-checks.ts, scripts/conformance/migration-proof-keys.test.ts, scripts/e2e-select.ts, src/lib/themes.ts, src/routes/dev.style.tsx, src/styles.css.
