@@ -1205,3 +1205,5 @@
 - 2026-10-31 — Foundations turn F2 (INC-1027): the location list and the panel switch are radio groups (menuitemradio, aria-checked, the tick); LIST_ROW draws the current look from the checked state; CF-LIST-1 refuses LIST_ROW_CURRENT outside its owners (CL-6); CL-E4…6 judge the row-actions menu and the two posting pickers.
 
 2026-10-31 — Foundations turn F3 (INC-1029): searchable picker owns horizontal width/side and open state, row-actions trigger reads OPEN_CONTROL, CL-E6 mobile hold removed; CF-LIST-1 CL-7 refuses picker width/side overrides; local bundle ceiling and NEAR band judge the measured size plus 0.1 KiB; NB-6…8 prove local/CI boundaries. No migration, dependency or string.
+
+- 2026-10-31 — Foundations turn CI-4 (INC-1028, DEC-313): the CI backend starts on an empty schema, applies migrations in one session with pg*cron's jobs and autovacuum held, restores and proves them; CF-CI-START-1 classifies a failed apply; CF-PROOF-KEY-1 censuses migration proofs keyed on the current second or a fixed key; /admin/listings*/$listingId\_/edit ceiling 405 → 406

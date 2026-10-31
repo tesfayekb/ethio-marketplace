@@ -542,42 +542,26 @@ jobs:
         timeout-minutes: 15
         run: |
           begin=$(date +%s)
+          # DEC-313 (INC-1028) — the CLI starts every service on a working copy with no migrations; the
+          # migrations then apply in one session with pg_cron's jobs and autovacuum held, so nothing else
+          # writes or locks while they run. The start runs once and the apply is never retried.
+          held="$RUNNER_TEMP/held-migrations"
+          rm -rf "$held"
+          mv .ci-local/supabase/migrations "$held"
+          mkdir -p .ci-local/supabase/migrations
           set +e
-          # INC-944 — while the start applies the migrations, the database's busy sessions are
-          # sampled every 5 seconds (time, pid, application, state, wait, the first 120 characters
-          # of the query), because the CLI stops its containers when the start fails: a deadlock
-          # then names the other session from the last sample. Read-only; never retries the start.
-          samples="$RUNNER_TEMP/db-sessions"
-          mkdir -p "$samples"
-          (
-            n=0
-            while sleep 5; do
-              db=$(docker ps --filter name=supabase_db_ --format '{{.Names}}' 2>/dev/null | head -1)
-              [ -n "$db" ] || continue
-              if docker exec -e PGPASSWORD=postgres "$db" psql -h 127.0.0.1 -U postgres -d postgres -AtF ' | ' -c "select now()::time(0), pid, coalesce(application_name, ''), state, coalesce(wait_event_type, '') || ':' || coalesce(wait_event, ''), left(regexp_replace(coalesce(query, ''), '\s+', ' ', 'g'), 120) from pg_stat_activity where pid <> pg_backend_pid() and state is distinct from 'idle'" > "$samples/now" 2> "$samples/err"; then
-                mv "$samples/now" "$samples/last"
-                n=$((n + 1))
-                echo "$n" > "$samples/count"
-              fi
-            done
-          ) > /dev/null 2>&1 &
-          sampler=$!
           supabase start --workdir .ci-local -x "$BACKEND_EXCLUDES" > local-backend-start.log 2>&1
           result=$?
-          kill "$sampler" 2>/dev/null
           set -e
-          echo "START_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
+          rmdir .ci-local/supabase/migrations
+          mv "$held" .ci-local/supabase/migrations
           echo "START_EXIT=$result" >> "$GITHUB_ENV"
-          echo "START_SAMPLES=$(cat "$samples/count" 2>/dev/null || echo 0)" >> "$GITHUB_ENV"
           : > local-backend-failure.txt
           if [ "$result" -ne 0 ]; then
+            echo "START_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
             # INC-935: who holds the backend's ports, for the evidence (addresses and process names only).
             { echo "Port holders (31320-31329, DEC-284; 54320-54329, the retired block):"; sudo ss -Htanp | grep -E ':(3132|5432)[0-9]\b' || echo "none"; } >> local-backend-start.log 2>&1
-            # INC-944: the database's busy sessions at the last sample before the start failed.
-            {
-              echo "Database sessions at the last sample (INC-944; time | pid | application | state | wait | query):"
-              if [ -s "$samples/last" ]; then cat "$samples/last"; else echo "none sampled ($(head -c 200 "$samples/err" 2>/dev/null || echo 'the database never answered'))"; fi
-            } >> local-backend-start.log 2>&1
+            echo "start failed before any migration ran (DEC-313: the start has no migrations)" >> local-backend-failure.txt
             # Raw log is never printed: the evidence step redacts credentials.
             exit "$result"
           fi
@@ -655,6 +639,70 @@ jobs:
           export DATABASE_CONTAINER="${database_containers[0]}"
           echo "DATABASE_CONTAINER=$DATABASE_CONTAINER" >> "$GITHUB_ENV"
           echo "Database container: $DATABASE_CONTAINER" >> local-backend-status.txt
+          # DEC-313 — hold, apply, restore, prove. The database's own superuser changes two reloadable
+          # settings for this temporary backend only; production and staging are never touched.
+          admin_sql() { docker exec "$DATABASE_CONTAINER" psql -U supabase_admin -d postgres -v ON_ERROR_STOP=1 -Atc "$1"; }
+          cron_setting=$(admin_sql "select count(*) from pg_settings where name = 'cron.launch_active_jobs'")
+          cron_version=$(admin_sql "select coalesce((select default_version from pg_available_extensions where name = 'pg_cron'), 'absent')")
+          echo "pg_cron: available $cron_version; cron.launch_active_jobs settings: $cron_setting" >> local-backend-status.txt
+          if [ "$cron_setting" != "1" ]; then
+            echo "STOP (DEC-313): this pg_cron ($cron_version) has no cron.launch_active_jobs; the jobs cannot be held" >> local-backend-failure.txt
+            exit 1
+          fi
+          admin_sql "alter system set cron.launch_active_jobs = off" > /dev/null
+          admin_sql "alter system set autovacuum = off" > /dev/null
+          admin_sql "select pg_reload_conf()" > /dev/null
+          # INC-944 — while the migrations apply, the database's busy sessions are sampled every 5 seconds
+          # (time, pid, application, backend, state, wait, the first 120 characters of the query): a failed
+          # apply then names the other session from the last sample, and CF-CI-START-1 classifies it.
+          samples="$RUNNER_TEMP/db-sessions"
+          mkdir -p "$samples"
+          (
+            n=0
+            while sleep 5; do
+              if docker exec -e PGPASSWORD=postgres "$DATABASE_CONTAINER" psql -h 127.0.0.1 -U postgres -d postgres -AtF ' | ' -c "select now()::time(0), pid, coalesce(application_name, ''), coalesce(backend_type, ''), state, coalesce(wait_event_type, '') || ':' || coalesce(wait_event, ''), left(regexp_replace(coalesce(query, ''), '\s+', ' ', 'g'), 120) from pg_stat_activity where pid <> pg_backend_pid() and state is distinct from 'idle'" > "$samples/now" 2> "$samples/err"; then
+                mv "$samples/now" "$samples/last"
+                n=$((n + 1))
+                echo "$n" > "$samples/count"
+              fi
+            done
+          ) > /dev/null 2>&1 &
+          sampler=$!
+          set +e
+          supabase migration up --local --workdir .ci-local >> local-backend-start.log 2>&1
+          result=$?
+          set -e
+          kill "$sampler" 2>/dev/null || true
+          echo "START_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
+          echo "START_SAMPLES=$(cat "$samples/count" 2>/dev/null || echo 0)" >> "$GITHUB_ENV"
+          if [ "$result" -ne 0 ]; then
+            {
+              echo "Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):"
+              if [ -s "$samples/last" ]; then cat "$samples/last"; else echo "none sampled ($(head -c 200 "$samples/err" 2>/dev/null || echo 'the database never answered'))"; fi
+            } >> local-backend-start.log 2>&1
+            # CF-CI-START-1: one line naming who else was active when the apply failed.
+            bun scripts/ci/classify-start-failure.ts local-backend-start.log "$samples/last" | tee -a local-backend-start.log >> local-backend-failure.txt || true
+            exit "$result"
+          fi
+          admin_sql "alter system reset cron.launch_active_jobs" > /dev/null
+          admin_sql "alter system reset autovacuum" > /dev/null
+          admin_sql "select pg_reload_conf()" > /dev/null
+          restored=""
+          for _ in $(seq 1 15); do
+            restored=$(admin_sql "select current_setting('cron.launch_active_jobs') || ' ' || current_setting('autovacuum') || ' ' || (select count(*) from pg_stat_activity where backend_type = 'pg_cron launcher' or application_name = 'pg_cron scheduler')")
+            [ "$restored" = "on on 1" ] && break
+            sleep 1
+          done
+          echo "Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): $restored" >> local-backend-status.txt
+          if [ "$restored" != "on on 1" ]; then
+            echo "restore (DEC-313): expected 'on on 1', read '$restored'" >> local-backend-failure.txt
+            exit 1
+          fi
+          unnamed=$(admin_sql "select count(*) from supabase_migrations.schema_migrations where name is null or name = '' or statements is null")
+          if [ "$unnamed" != "0" ]; then
+            echo "history (DEC-313): $unnamed ledger rows without a name or statements" >> local-backend-failure.txt
+            exit 1
+          fi
           # Verify every repository migration version against the local ledger.
           python3 - <<'PY'
           import subprocess
@@ -677,6 +725,56 @@ jobs:
               fail('repository migration versions missing from local ledger: ' + ', '.join(missing))
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write('MIGRATIONS_OK=1\n')
+          PY
+          # DEC-313 — what `supabase start` gave before, proven here and not later in a test:
+          # PostgREST serves the final schema, and the before_user_created hook answers a sign-up.
+          admin_sql "notify pgrst, 'reload schema'" > /dev/null
+          python3 - <<'PY'
+          import json, os, ssl, time, urllib.error, urllib.request, uuid
+          ctx = ssl.create_default_context(cafile=os.path.join(os.environ['RUNNER_TEMP'], 'ethio-ci-local-ca', 'ca.pem'))
+          # This step wrote the keys to GITHUB_ENV; they reach os.environ only in later steps.
+          written = dict(line.split('=', 1) for line in open(os.environ['GITHUB_ENV']).read().splitlines() if line.startswith('E2E_SUPABASE_') and '=' in line)
+          base = written['E2E_SUPABASE_URL']
+          service = written['E2E_SUPABASE_SERVICE_ROLE_KEY']
+          anon = written['E2E_SUPABASE_PUBLISHABLE_KEY']
+          def fail(message):
+              with open('local-backend-failure.txt', 'a') as out:
+                  out.write('start proof (DEC-313): ' + message + '\n')
+              raise SystemExit(message)
+          def call(method, path, key, body=None):
+              request = urllib.request.Request(base + path, method=method, data=None if body is None else json.dumps(body).encode(),
+                                               headers={'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
+              try:
+                  with urllib.request.urlopen(request, context=ctx, timeout=10) as response:
+                      return response.status, response.read().decode(errors='replace')
+              except urllib.error.HTTPError as error:
+                  return error.code, error.read().decode(errors='replace')
+              except OSError as error:
+                  return 0, type(error).__name__
+          # job_runs is born in 20261029072455, one of the last migrations, and is open to service_role.
+          status = 0
+          for _ in range(30):
+              status, _body = call('GET', '/rest/v1/job_runs?select=id&limit=1', service)
+              if status == 200:
+                  break
+              time.sleep(1)
+          if status != 200:
+              fail('PostgREST did not serve job_runs (last status ' + str(status) + ')')
+          email = 'ci-start-' + uuid.uuid4().hex[:12] + '@example.invalid'
+          status, body = call('POST', '/auth/v1/signup', anon, {'email': email, 'password': uuid.uuid4().hex + 'Aa1!'})
+          if status == 0 or status >= 500 or 'hook' in body.lower():
+              fail('the before_user_created hook did not answer a sign-up (status ' + str(status) + ')')
+          try:
+              data = json.loads(body)
+          except ValueError:
+              data = {}
+          user = data.get('id') or (data.get('user') or {}).get('id')
+          if user:
+              deleted, _body = call('DELETE', '/auth/v1/admin/users/' + user, service)
+              if deleted != 200:
+                  fail('the start proof could not delete its scratch account (status ' + str(deleted) + ')')
+          with open('local-backend-status.txt', 'a') as out:
+              out.write('Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered ' + str(status) + '\n')
           PY
           # Local twins of the hosted default-grant and RLS census.
           set +e

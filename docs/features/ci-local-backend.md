@@ -687,3 +687,19 @@ The lane job's run steps use `scripts/ci/step-shell.sh` (GitHub's own bash flags
 ## Foundations turn CI-3a — the backend images once per run (DEC-309)
 
 The image registry the CLI pulls from (ECR Public, `public.ecr.aws`) refused anonymous pulls four times in 26 hours. The `backend-images` job now runs once per run, before every lane. It learns the image set from the CLI itself: one start on an empty working copy, with no migration and the lanes' excludes, then `docker ps`. It saves the images as one gzip tarball with images.txt beside it, to the Actions cache only. The cache key is the CLI version plus a hash of the excludes and `scripts/ci/local-backend-config.toml`, which is now the one CI-local config that the lanes copy. Each lane restores the exact key, `docker load`s the tarball and `docker image inspect`s every name before its one `supabase start`. A failed restore or load falls back to `scripts/ci/pull-images.sh`: 4 tries with jittered backoff of 5, 15 and 45 s. If that gives up, the lane fails before the start, classified "registry refusal — infrastructure". The lane's evidence line `Backend images (DEC-309)` names the source (cache or pull) and the images. On a cache miss, the job's summary prints ghcr=yes/no per image for the fallback. Guard: CF-CI-IMG-1 (scripts/conformance/ci-images.test.ts).
+
+## Foundations turn CI-4 — the migrations apply with nothing else running (INC-1028, DEC-313)
+
+The lane's start now has four phases in one step (`Start backend and apply all migrations`, id `backend`):
+
+1. `supabase start` on `.ci-local` with its migrations folder moved aside, so every service starts on an empty schema. The start runs once, outside any loop (CF-CI-IMG-1 unchanged). A failure here is reported as "start failed before any migration ran".
+2. Hold: after a check that pg_cron has `cron.launch_active_jobs` (otherwise the lane fails with "STOP (DEC-313)"), `cron.launch_active_jobs = off` and `autovacuum = off` are set with `ALTER SYSTEM` and `pg_reload_conf()` by the container's `supabase_admin`. This affects the temporary backend only.
+3. Apply: `supabase migration up --local` applies every migration in one session. It is never retried. The INC-944 session sampler (now with a backend column) runs around this phase only. A failure appends the last sample and the CF-CI-START-1 line (`scripts/ci/classify-start-failure.ts`).
+4. Restore and prove, all before any test:
+   - both settings reset, with `on on 1` read back (both settings on, one scheduler session);
+   - no ledger row without a name or statements;
+   - the existing applied N/N ledger check;
+   - PostgREST serving `job_runs` (a late migration's table) after `NOTIFY pgrst, 'reload schema'`;
+   - one sign-up through the before_user_created hook. Its scratch account is deleted, and a 5xx or a hook error fails the step as infrastructure.
+
+Why autovacuum is held too: the deadlock run's last sample (d2e9bb36 lane 2) names process 306 as `autovacuum: VACUUM ANALYZE public.categories`, the session that blocked the migration.
