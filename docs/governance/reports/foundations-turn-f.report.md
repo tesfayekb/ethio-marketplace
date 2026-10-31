@@ -147,9 +147,13 @@ From the checks below.
   - a coarse pointer at 1440 (Playwright's projects are fine-pointer; the 360 width is judged by the below-md rule);
   - the row-actions menu and the two posting pickers in the browser (F2, ruling 6).
 
+## 10a. Departure
+
+- `scripts/e2e-select.ts` (not named in SCOPE): the checks' e2e selector self-test failed with "spec not reachable from any area: e2e/choice-lists.spec.ts". Fixed at its root: the spec joins the shell area's list, as sage-bands.spec.ts does.
+
 ## 11. git diff --name-only b3681f69
 
-docs/\_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/foundations-turn-f-finish.md, docs/governance/briefs/foundations-turn-f.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-f.report.md, e2e/choice-lists.spec.ts, roadmap.md, scripts/conformance/choice-lists-allowlist.txt, scripts/conformance/choice-lists.test.ts, scripts/route-budgets.mjs, src/components/language-switcher-compact.test.tsx, src/components/language-switcher.tsx, src/components/searchable-picker.tsx, src/components/shell/app-header.tsx, src/components/shell/location-selector.tsx, src/components/shell/menu-row.ts, src/components/shell/panel-header.tsx, src/components/shell/row-actions.tsx, src/components/ui/choice-list-look.test.tsx, src/components/ui/dropdown-menu-impl.tsx, src/components/ui/popover.tsx, src/features/posting/phone-number-field.tsx, src/features/posting/step-pricing.tsx, src/lib/schemas/theme.ts, src/lib/themes.ts, src/styles.css (27 files; AGENTS.md untouched)
+docs/\_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/foundations-turn-f-finish.md, docs/governance/briefs/foundations-turn-f.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-f.report.md, e2e/choice-lists.spec.ts, roadmap.md, scripts/conformance/choice-lists-allowlist.txt, scripts/conformance/choice-lists.test.ts, scripts/route-budgets.mjs, src/components/language-switcher-compact.test.tsx, src/components/language-switcher.tsx, src/components/searchable-picker.tsx, src/components/shell/app-header.tsx, src/components/shell/location-selector.tsx, src/components/shell/menu-row.ts, src/components/shell/panel-header.tsx, src/components/shell/row-actions.tsx, src/components/ui/choice-list-look.test.tsx, src/components/ui/dropdown-menu-impl.tsx, src/components/ui/popover.tsx, src/features/posting/phone-number-field.tsx, src/features/posting/step-pricing.tsx, src/lib/schemas/theme.ts, src/lib/themes.ts, src/styles.css, scripts/e2e-select.ts (28 files; AGENTS.md untouched)
 
 ## 12. Checks
 

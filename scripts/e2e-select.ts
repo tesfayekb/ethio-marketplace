@@ -183,6 +183,7 @@ export const AREAS: Area[] = [
       "e2e/shell.spec.ts",
       "e2e/sage-shell.spec.ts",
       "e2e/sage-bands.spec.ts",
+      "e2e/choice-lists.spec.ts",
       "e2e/shell-bands.spec.ts",
       "e2e/breadcrumbs.spec.ts",
       "e2e/phone-frame.spec.ts",
