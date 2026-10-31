@@ -13,7 +13,8 @@ import {
 import type { ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
-import { isCurrentAt, useMenuAt } from "@/components/shell/menu-current";
+import { isCurrentAt } from "@/components/shell/menu-current";
+import { useMenuAt } from "@/components/shell/use-shown-pathname";
 import { PRESSED } from "@/components/shell/menu-row";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { useI18n } from "@/i18n";

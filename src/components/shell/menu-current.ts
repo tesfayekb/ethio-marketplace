@@ -1,6 +1,3 @@
-import { useRouterState } from "@tanstack/react-router";
-import { useMemo } from "react";
-
 /**
  * R1d-c (R1d Item 3) — ONE RULE FOR "THE CURRENT ITEM" IN EVERY MENU: the category list,
  * the admin, account and seller menus, their side panels and the phone strip. An item is
@@ -57,10 +54,4 @@ export function menuAtOf(state: MenuAtState): string {
 export function parseMenuAt(key: string): MenuAt {
   const cut = key.indexOf("#");
   return { pathname: key.slice(0, cut), hash: key.slice(cut + 1) };
-}
-
-/** The place every menu's current mark reads (isCurrentAt's `at`). */
-export function useMenuAt(): MenuAt {
-  const key = useRouterState({ select: menuAtOf });
-  return useMemo(() => parseMenuAt(key), [key]);
 }

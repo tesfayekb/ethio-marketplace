@@ -16,14 +16,9 @@ import {
 import { useShell } from "@/components/shell-context";
 import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
-import { useShownPathname } from "@/components/shell/use-shown-pathname";
+import { useMenuAt, useShownPathname } from "@/components/shell/use-shown-pathname";
 import { levelFor, setMenuLevel, useMenuLevel } from "@/components/shell/menu-level";
-import {
-  MENU_LINK_ACTIVE,
-  categoryPath,
-  isCurrentAt,
-  useMenuAt,
-} from "@/components/shell/menu-current";
+import { MENU_LINK_ACTIVE, categoryPath, isCurrentAt } from "@/components/shell/menu-current";
 import {
   MENU_FIT_MAX,
   SUBMENU_SIGNALS,

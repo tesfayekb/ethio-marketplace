@@ -529,7 +529,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 
 ## The chosen item and the tap tick (turn C2, D263/D271/D272, DEC-317)
 
-- A menu item's current mark and `aria-current` read `useMenuAt()` (menu-current.ts): the router's location while a navigation is pending, else the shown page. The frame (panel, bands, breadcrumbs) stays on useShownPathname (INC-581). A superseded choice brings the old mark back by itself.
+- A menu item's current mark and `aria-current` read `useMenuAt()` (use-shown-pathname.ts, over menuAtOf in menu-current.ts): the router's location while a navigation is pending, else the shown page. The frame (panel, bands, breadcrumbs) stays on useShownPathname (INC-581). A superseded choice brings the old mark back by itself.
 - The bottom bar marks its items by isCurrentAt on that place, signed in or out (BAR_PATHS): Home on "/" and every /c/ page, Sign in on /auth, My listings, Account (/account, /settings) and Admin on theirs.
 - The tap tick: press.ts, on a click that followed a touch, on TICKABLE (buttons and the tappable roles, or a primitive's `data-tick`: menu rows, breadcrumb segments, bottom-bar items); plain links and cards never; `navigator.vibrate(10)`. The device's choice is /settings → "This device" → "Vibrate on tap" (on by default, browser storage). The iPhone path (a hidden switch checkbox) is not built: it could not be proven here (C2 report).
 - CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`) and 4 (vibrate and a switch checkbox only in press.ts).
