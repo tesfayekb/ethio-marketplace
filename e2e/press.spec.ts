@@ -137,9 +137,7 @@ for (const mode of MODES) {
           },
           {
             name: "plain link",
-            target: page
-              .getByTestId("footer-column")
-              .getByRole("link", { name: en["footer.about"] }),
+            target: page.getByTestId("footer-terms"),
             inkCheck: true,
           },
           {
@@ -215,9 +213,7 @@ for (const mode of MODES) {
       await page.goto("/");
       await setMode(page, mode);
       await gotoReady(page, "/");
-      const link = page
-        .getByTestId("footer-column")
-        .getByRole("link", { name: en["footer.about"] });
+      const link = page.getByTestId("footer-terms");
       const { before, during, after, marked } = await press(page, link);
       expect(marked).toBe(true);
       expect(during.fill).not.toBe(before.fill);
