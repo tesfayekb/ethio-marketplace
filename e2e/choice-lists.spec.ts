@@ -98,11 +98,19 @@ type Judged = {
   close?: () => Promise<void>;
 };
 
+/** F4b (LY-6's root) — a picker's list is measured only once it marks itself settled: the
+ *  scroll has ended and the side is drawn. Facade menus carry no mark (Radix places them). */
+async function expectSettled(panel: Locator) {
+  if ((await panel.getAttribute("data-placement")) !== null)
+    await expect(panel).toHaveAttribute("data-settled", "true");
+}
+
 async function judge(page: Page, width: number, list: Judged) {
   const { control, panel, rows } = list;
   await sampleOpening(page);
   await (list.open ? list.open() : control.click());
   await expect(panel).toBeVisible();
+  await expectSettled(panel);
   expect((await scales(page, panel)).filter(hasScale)).toEqual([]);
   // A nested TooltipTrigger also writes data-state. aria-expanded belongs to
   // the list trigger itself, and OPEN_CONTROL deliberately supports it.
@@ -211,6 +219,7 @@ async function placeControl(page: Page, control: Locator, spot: Spot) {
  *  reached (scrolled to inside the list, each the element drawn at its own centre). */
 async function expectInSight(page: Page, panel: Locator, rows: Locator, inChrome?: Locator) {
   await expect(panel).toBeVisible();
+  await expectSettled(panel);
   const { box } = await layoutBoxes({ box: panel });
   const edges = await chromeEdges(page);
   // A control drawn in the top chrome itself (the header) opens over the bands below it:
@@ -238,6 +247,43 @@ async function expectInSight(page: Page, panel: Locator, rows: Locator, inChrome
   const { box: still } = await layoutBoxes({ box: panel });
   expect(still.y).toBeGreaterThanOrEqual(after.top - 0.5);
   expect(still.y + still.height).toBeLessThanOrEqual(after.bottom + 0.5);
+}
+
+/** D268 (F4b) — a list's parts as drawn: row gap, icon box and ink, separator, label. */
+async function partsOf(panel: Locator) {
+  return panel.evaluate((root) => {
+    const css = (el: Element | null) => (el === null ? null : getComputedStyle(el));
+    const row = root.querySelector('[role^="menuitem"]');
+    const icon = row?.querySelector("svg") ?? null;
+    const sep = root.querySelector('[role="separator"]');
+    const label = root.querySelector('[data-testid="account-menu-identity"]');
+    const r = css(row);
+    const i = css(icon);
+    const s = css(sep);
+    const l = css(label);
+    return {
+      gap: r?.columnGap ?? null,
+      icon:
+        icon === null || i === null || r === null
+          ? null
+          : {
+              w: icon.getBoundingClientRect().width,
+              h: icon.getBoundingClientRect().height,
+              inkIsRow: i.color === r.color,
+              margin: `${i.marginInlineStart} ${i.marginInlineEnd}`,
+            },
+      separator: s === null ? null : { h: s.height, bg: s.backgroundColor },
+      label:
+        l === null || r === null
+          ? null
+          : {
+              size: l.fontSize,
+              weight: l.fontWeight,
+              pad: l.paddingInlineStart,
+              rowPad: r.paddingInlineStart,
+            },
+    };
+  });
 }
 
 for (const width of WIDTHS) {
@@ -338,6 +384,54 @@ for (const width of WIDTHS) {
           await expectCurrentHeard(page);
           await closeMenu(page, panel);
         }
+      });
+
+      test(`CL-E10 the account menu's parts equal the other lists' (${width}, ${mode})`, async ({
+        page,
+      }) => {
+        // Row actions first, signed out: its separator is the comparison every width has.
+        await gotoReady(page, "/dev/style");
+        const rowMenu = page.getByTestId("style-row-1-menu");
+        await page.getByTestId("style-row-1-more").click();
+        await expect(rowMenu).toBeVisible();
+        const rowParts = await partsOf(rowMenu);
+        await closeMenu(page, rowMenu);
+
+        const user = await leaseUser();
+        await signIn(page, user.email, user.password);
+        await gotoReady(page, "/");
+        const panel = page.getByRole("menu");
+        const account = page.getByTestId("account-menu");
+        await account.click();
+        await expect(panel).toBeVisible();
+        const mine = await partsOf(panel);
+        expect(mine.gap).toBe(rowParts.gap);
+        expect(mine.separator).toEqual(rowParts.separator);
+        expect(mine.icon).toEqual({ w: 16, h: 16, inkIsRow: true, margin: "0px 0px" });
+        expect(mine.label).not.toBeNull();
+        expect(mine.label?.pad).toBe(mine.label?.rowPad);
+        expect(mine.label?.size).toBe("14px");
+        expect(mine.label?.weight).toBe("600");
+        await closeMenu(page, panel);
+
+        if (!isMobile(page)) {
+          await page.getByTestId("panel-header-switcher").click();
+          await expect(panel).toBeVisible();
+          const switcher = await partsOf(panel);
+          expect(switcher.gap).toBe(mine.gap);
+          expect(switcher.icon).toEqual(mine.icon);
+          await closeMenu(page, panel);
+        }
+
+        await account.click();
+        await expect(panel).toBeVisible();
+        await page.getByTestId("account-menu-profile").click();
+        await expect(page).toHaveURL(/\/account(?:[?#]|$)/);
+        await expect(panel).toHaveCount(0);
+        await account.click();
+        await expect(panel).toBeVisible();
+        await page.getByTestId("account-menu-settings").click();
+        await expect(page).toHaveURL(/\/settings(?:[?#]|$)/);
       });
 
       test(`CL-E4 the row-actions menu (${width}, ${mode})`, async ({ page }) => {

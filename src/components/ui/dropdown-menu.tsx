@@ -65,6 +65,7 @@ const DropdownMenuRadioItem = inside("DropdownMenuRadioItem");
 const DropdownMenuLabel = inside("DropdownMenuLabel");
 const DropdownMenuSeparator = inside("DropdownMenuSeparator");
 const DropdownMenuShortcut = inside("DropdownMenuShortcut");
+const DropdownMenuIcon = inside("DropdownMenuIcon");
 const DropdownMenuGroup = inside("DropdownMenuGroup");
 const DropdownMenuPortal = inside("DropdownMenuPortal");
 const DropdownMenuSub = inside("DropdownMenuSub");
@@ -82,6 +83,7 @@ export {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
+  DropdownMenuIcon,
   DropdownMenuGroup,
   DropdownMenuPortal,
   DropdownMenuSub,

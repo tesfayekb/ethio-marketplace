@@ -987,18 +987,17 @@ test.describe("POSTING WIZARD", () => {
       "post-price-currency-option",
     );
 
-    // Scenario 2 — the input at the bottom edge: the list must flip upward.
+    // Scenario 2 — the input at the bottom edge. D267 (F4a): the picker scrolls the field up
+    // and opens down when the page can scroll, and opens up only when it cannot; either way
+    // the list is read once the picker marks it settled (F4b, LY-6's root), never mid-scroll.
     await input.press("Escape");
     await input.blur();
     await expect(list).toHaveCount(0);
     await input.evaluate((node) => node.scrollIntoView({ block: "end" }));
     await input.focus();
-    await expect(list, "LY-6: at the bottom edge the list did not open upward").toHaveAttribute(
-      "data-placement",
-      "up",
-    );
+    await expect(list, "LY-6: the list never settled").toHaveAttribute("data-settled", "true");
     const edge = await probe("bottom edge");
-    expect(edge.placement).toBe("up");
+    expect(["up", "down"]).toContain(edge.placement);
     expect(edge.inViewport, "LY-6: the flipped ETB option is outside the viewport").toBe(true);
     expect(edge.hit, "LY-6: the flipped currency list is covered").toBe(
       "post-price-currency-option",

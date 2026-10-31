@@ -4,7 +4,17 @@ import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { Check, ChevronRight } from "lucide-react";
 
-import { LIST_PANEL, LIST_ROW, LIST_TICK } from "@/components/shell/menu-row";
+import { Slot } from "@radix-ui/react-slot";
+
+import {
+  LIST_ICON,
+  LIST_LABEL,
+  LIST_PANEL,
+  LIST_ROW,
+  LIST_SEPARATOR,
+  LIST_TICK,
+} from "@/components/shell/menu-row";
+import { CutText } from "@/components/ui/cut-text";
 import { cn } from "@/lib/utils";
 import { collisionPaddingNow } from "@/lib/visible-area";
 
@@ -129,12 +139,14 @@ const DropdownMenuLabel = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
     inset?: boolean;
   }
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, children, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={cn("px-3 py-2 text-sm font-semibold", inset && "ps-8", className)}
+    className={cn(LIST_LABEL, inset && "ps-8", className)}
     {...props}
-  />
+  >
+    {typeof children === "string" ? <CutText text={children} /> : children}
+  </DropdownMenuPrimitive.Label>
 ));
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
 
@@ -142,11 +154,7 @@ const DropdownMenuSeparator = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
 >(({ className, ...props }, ref) => (
-  <DropdownMenuPrimitive.Separator
-    ref={ref}
-    className={cn("-mx-1.5 my-1 h-px bg-muted", className)}
-    {...props}
-  />
+  <DropdownMenuPrimitive.Separator ref={ref} className={cn(LIST_SEPARATOR, className)} {...props} />
 ));
 DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName;
 
@@ -156,6 +164,15 @@ const DropdownMenuShortcut = ({ className, ...props }: React.HTMLAttributes<HTML
   );
 };
 DropdownMenuShortcut.displayName = "DropdownMenuShortcut";
+
+/** D268 (F4b) — a row's icon: the consumer's own glyph, LIST_ICON applied, hidden from
+ *  readers; no consumer writes icon classes (CF-LIST-1 rule 9). */
+const DropdownMenuIcon = ({ children }: { children: React.ReactNode }) => (
+  <Slot aria-hidden="true" className={LIST_ICON}>
+    {children}
+  </Slot>
+);
+DropdownMenuIcon.displayName = "DropdownMenuIcon";
 
 export {
   DropdownMenu,
@@ -167,6 +184,7 @@ export {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
+  DropdownMenuIcon,
   DropdownMenuGroup,
   DropdownMenuPortal,
   DropdownMenuSub,

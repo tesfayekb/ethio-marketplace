@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuIcon,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -75,11 +76,7 @@ export function RowActions({ testid, name, edit, remove, more }: RowActionsProps
       className={cn(m.tone === "danger" && "text-destructive focus:text-destructive")}
       onSelect={() => m.onSelect()}
     >
-      {m.icon ? (
-        <span aria-hidden="true" className="inline-flex [&_svg]:size-4">
-          {m.icon}
-        </span>
-      ) : null}
+      {m.icon ? <DropdownMenuIcon>{m.icon}</DropdownMenuIcon> : null}
       <span>{m.label}</span>
     </DropdownMenuItem>
   );

@@ -4,7 +4,8 @@
  *  - `units`: the unit tests in the same folders as the files the turn changed;
  *  - `semgrep`: Semgrep at ERROR on the changed files, with CI's pinned version and rules
  *    (read from .github/workflows/ci.yml, never restated here).
- * The turn's base is TURN_BASE when set, else HEAD~1; the diff includes the working tree.
+ * The turn's base is TURN_BASE when set, else the `Base: dev <sha>` of the brief roadmap line 3
+ * names (F4b, TC-E5); with neither the step fails and says so. The diff includes the working tree.
  */
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -42,8 +43,29 @@ export function semgrepTargets(files: string[]): string[] {
   );
 }
 
+/** The turn's base: TURN_BASE, else the brief's `Base: dev <sha>` (roadmap line 3's first
+ *  brief); null when neither names one — the caller fails loudly, never the last commit alone. */
+export function turnBase(
+  env: string | undefined,
+  roadmap: string,
+  readBrief: (path: string) => string | null,
+): string | null {
+  if (env !== undefined && env.trim() !== "") return env.trim();
+  const line = roadmap.split("\n")[2] ?? "";
+  const brief = /docs\/governance\/briefs\/[\w.-]+\.md/.exec(line)?.[0];
+  if (brief === undefined) return null;
+  const text = readBrief(brief);
+  return text === null ? null : (/Base: dev ([0-9a-f]{7,40})\b/.exec(text)?.[1] ?? null);
+}
+
 function changedFiles(): string[] {
-  const base = process.env["TURN_BASE"] ?? "HEAD~1";
+  const base = turnBase(process.env["TURN_BASE"], readFileSync("roadmap.md", "utf8"), (p) =>
+    existsSync(p) ? readFileSync(p, "utf8") : null,
+  );
+  if (base === null)
+    throw new Error(
+      "[laws] no turn base: set TURN_BASE or name a brief with `Base: dev <sha>` on roadmap line 3",
+    );
   const out = execFileSync("git", ["diff", "--name-only", base], { encoding: "utf8" });
   const untracked = execFileSync("git", ["ls-files", "--others", "--exclude-standard"], {
     encoding: "utf8",
