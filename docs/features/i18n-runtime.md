@@ -122,3 +122,9 @@ and locale-independent CutText grapheme counting have the added reviewed excepti
 ## INC-990 — base-first page heads (L-2d-2)
 
 `pageHead` resolves first-byte English keys from en-base; member/admin fallbacks remain in their own route chunks, never imported into the base. The provider loads `page-head-client` through `loadOnce` only when the applied catalogue is non-base (or it was already loaded); its one observer re-titles committed head changes without invalidating loaders. Failed download reports through the shell notice. Data attributes carry keys and loader-owned names, never a request; user ad descriptions stay unchanged. The server, hydration and body remain base-first (INC-872); applied catalogue messages alone update title, description and their Open Graph counterparts.
+
+## The build's own text beats a copy (INC-1023, turns D1 and D2)
+
+The database bundle arrives in two parts, `get_ui_bundle_parts(lang)` → `{ written, copied }`: a row is written when a person or machine translation wrote it (a 'save' or 'machine' revision, `ui_text_written`), otherwise copied (a sync or an approval alone). The provider merges them through `overlayBundle(base, parts, shipped)` (src/i18n/bundle.ts) only: a written row always wins; a copied row applies only where the build ships no text for that key; a language the build does not ship shows its copied rows. A flat or malformed answer keeps the compiled text (D3). The route `/api/i18n/:lang` serves the parts; its ETag carries the shape (`"parts1.<lang>.<version>"`), so a cached flat answer from before is never read as the new shape. The console's read joins the two parts (written over copied).
+
+The console's **Sync keys** is still needed to create keys for translators and for the approval count; it is no longer needed for the live site to show a new build's text.

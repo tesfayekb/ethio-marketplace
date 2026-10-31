@@ -18,7 +18,18 @@ vi.mock("@/lib/route-client", () => ({
   },
 }));
 
+const db = vi.hoisted(() => ({ calls: [] as string[], data: null as unknown }));
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    rpc: async (name: string) => {
+      db.calls.push(name);
+      return { data: db.data, error: null };
+    },
+  },
+}));
+
 import {
+  fetchUiBundle,
   aiTranslate,
   aiTranslateEntities,
   listProviderLanguages,
@@ -145,5 +156,14 @@ describe("the machine-translation client (Foundations turn 19)", () => {
     );
     route.answer = answered(200, { done: 2, flagged: 0, failed: [] });
     expect((await aiTranslate({ lang: "am", items: [{ key: "k", source: "s" }] })).flagged).toBe(0);
+  });
+});
+
+describe("the console's bundle read (INC-1023, turn D2)", () => {
+  it("TRS-B1 reads get_ui_bundle_parts and joins the parts, written over copied", async () => {
+    db.calls = [];
+    db.data = { written: { a: "W", s: "W2" }, copied: { a: "C", b: "C2", e: "" } };
+    expect(await fetchUiBundle("am")).toEqual({ a: "W", b: "C2", s: "W2" });
+    expect(db.calls).toEqual(["get_ui_bundle_parts"]);
   });
 });

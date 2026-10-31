@@ -21,7 +21,11 @@ vi.mock("@/server/supabase/user-client", () => {
         state.calls.push({ name, args });
         return name === "get_ui_bundle_version"
           ? { data: "h1", error: null, status: 200 }
-          : { data: { "app.title": "T" }, error: null, status: 200 };
+          : {
+              data: { written: { "app.title": "T" }, copied: { "app.x": "C" } },
+              error: null,
+              status: 200,
+            };
       },
     }),
     userClientFromRequest: async () => ({ supabase: null, userId: null, reason: null }),
@@ -62,14 +66,17 @@ describe("language bundle route", () => {
     const get = await loadGet();
     const response = await call(get, " AM ");
     expect(response.status).toBe(200);
-    expect(response.headers.get("ETag")).toBe('"am.h1"');
+    expect(response.headers.get("ETag")).toBe('"parts1.am.h1"');
     expect(response.headers.get("Content-Type")).toBe("application/json; charset=utf-8");
     expect(response.headers.get("Cache-Control")).toBe(
       "public, max-age=300, stale-while-revalidate=3600",
     );
     expect(response.headers.get("Vary")).toBe("Accept-Encoding");
     expect(await response.text()).toBe(
-      JSON.stringify({ lang: "am", bundle: { "app.title": "T" } }),
+      JSON.stringify({
+        lang: "am",
+        bundle: { written: { "app.title": "T" }, copied: { "app.x": "C" } },
+      }),
     );
     expect(state.calls[0]).toEqual({ name: "get_ui_bundle_version", args: { p_lang: "am" } });
   });
@@ -85,15 +92,24 @@ describe("language bundle route", () => {
 
   it("I18B-3 the same ETag answers 304, warm and cold", async () => {
     const get = await loadGet();
-    const cold = await call(get, "am", { "If-None-Match": '"am.h1"' });
+    const cold = await call(get, "am", { "If-None-Match": '"parts1.am.h1"' });
     expect(cold.status).toBe(304);
-    expect(cold.headers.get("ETag")).toBe('"am.h1"');
+    expect(cold.headers.get("ETag")).toBe('"parts1.am.h1"');
     expect(cold.headers.get("Vary")).toBe("Accept-Encoding");
-    expect(state.calls.filter((c) => c.name === "get_ui_bundle")).toEqual([]);
+    expect(state.calls.filter((c) => c.name === "get_ui_bundle_parts")).toEqual([]);
     await call(get, "am");
-    const warm = await call(get, "am", { "If-None-Match": '"am.h1"' });
+    const warm = await call(get, "am", { "If-None-Match": '"parts1.am.h1"' });
     expect(warm.status).toBe(304);
     expect(await warm.text()).toBe("");
+  });
+
+  it("I18B-5 a cached flat answer's validator is never revalidated as the parts shape", async () => {
+    const get = await loadGet();
+    const response = await call(get, "am", { "If-None-Match": '"am.h1"' });
+    expect(response.status).toBe(200);
+    expect(response.headers.get("ETag")).toBe('"parts1.am.h1"');
+    expect(state.calls.some((c) => c.name === "get_ui_bundle")).toBe(false);
+    expect(state.calls.some((c) => c.name === "get_ui_bundle_parts")).toBe(true);
   });
 
   it("I18B-4 within 15 s two requests read the version once", async () => {

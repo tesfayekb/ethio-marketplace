@@ -357,17 +357,23 @@ export async function myTranslatorLanguages(): Promise<string[]> {
 }
 
 /**
- * PART C (D3) — the shipped bundle for a language: approved rows only.
+ * PART C (D3) — the shipped bundle for a language: approved rows only (get_ui_bundle_parts).
  * Anon-callable; a language that is neither public nor base returns `{}`, and
  * the caller then keeps the compiled catalog (never a blank UI).
  */
 export async function fetchUiBundle(lang: string): Promise<Record<string, string>> {
-  const { data, error } = await supabase.rpc("get_ui_bundle", { p_lang: lang });
+  const { data, error } = await supabase.rpc("get_ui_bundle_parts", { p_lang: lang });
   if (error) throw error;
   if (data === null || typeof data !== "object" || Array.isArray(data)) return {};
+  // INC-1023: the console shows every approved row, so its two parts are joined
+  // (written over copied); the live site's precedence is overlayBundle's, not this.
+  const record = data as Record<string, unknown>;
   const out: Record<string, string> = {};
-  for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-    if (typeof value === "string" && value.length > 0) out[key] = value;
+  for (const part of [record["copied"], record["written"]]) {
+    if (part === null || typeof part !== "object" || Array.isArray(part)) continue;
+    for (const [key, value] of Object.entries(part as Record<string, unknown>)) {
+      if (typeof value === "string" && value.length > 0) out[key] = value;
+    }
   }
   return out;
 }
