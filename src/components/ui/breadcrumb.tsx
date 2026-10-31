@@ -53,6 +53,8 @@ const BreadcrumbLink = React.forwardRef<
   return (
     <Comp
       ref={ref}
+      // D272 (turn C2) — a segment ticks on a tap (src/lib/press.ts).
+      data-tick=""
       className={cn("transition-colors hover:text-foreground", className)}
       {...props}
     />

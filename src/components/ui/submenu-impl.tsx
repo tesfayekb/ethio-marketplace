@@ -426,6 +426,7 @@ function Panel({
             return (
               <li key={item.key}>
                 <Link
+                  data-tick=""
                   to={item.to}
                   activeOptions={MENU_LINK_ACTIVE}
                   params={item.params}

@@ -340,6 +340,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         {node.path ? (
           <Link
+            data-tick=""
             to={node.path}
             activeOptions={MENU_LINK_ACTIVE}
             onClick={node.onSelect}
@@ -438,6 +439,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         <WithTooltip label={node.label} skip={Boolean(node.submenu)}>
           <Link
+            data-tick=""
             {...trigger}
             to={node.path}
             activeOptions={MENU_LINK_ACTIVE}
