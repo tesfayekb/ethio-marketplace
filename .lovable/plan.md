@@ -1,85 +1,61 @@
-# Turn CI-4: the CI backend starts the same way every time (INC-1028, DEC-313)
-
-Base dev 0e6f8a96. Tier B. One turn.
+# Turn B (Sage S3) — plan: feed heading, listing card, dark-card choice (D262)
 
 ## CI first
-When I read ci-status.md it still showed the last completed run as d7a47425, SUCCESS (2,507 passed, 0 failed). The run on 0e6f8a96 had not finished. The turn's Part A reads it again. If it is red, that fix comes first, at its root, before anything below.
+- Last completed run read at the raw ci-evidence addresses: **4a4ee518, FAILURE** (run 41185234744), one job: first-paint budget, `/admin/listings_/$listingId_/edit` 404.8 / 405 in the NEAR band. That red is already fixed on d04eb489 (ceiling 406, verified in the request). E2E passed on that run (19/19 logs, 0 off allowlist).
+- The run on **d04eb489** (first run of DEC-313's start) had not completed at plan time. The build reads it again at Part A; any red is fixed first, at its root, before step 1.
 
-## Cause of fact 1 (CL-1 "refused:replay"): what the reads show
-The claim matches no row only if the row from :211 is missing, already claimed, or not seen. Each candidate, ruled in or out by reading:
+## 1. Dark card values (CONCERN 1) — the choice, not a guess
+Page `--background` #121815. Ratios measured (WCAG relative luminance) this turn; all ESTIMATE until the operator judges.
 
-- **A cron job touching job_runs: ruled out for this file.** Nothing writes job_runs while 20261029073342 applies:
-  - the only scheduled writers are `name-check-catchup` (20261029073837) and `job-runs-prune` (20261029074251), and both are created later in the migration order;
-  - other sessions cannot see the proof's uncommitted row anyway.
-- **Role or row security: ruled out.** The migration role owns job_runs, so row security is bypassed for it. The table has no FORCE. The only policies name anon and authenticated. A role problem would also fail on every run, not on four.
-- **Time: ruled out.** A clock gap or a second boundary would raise `refused:window`, not `refused:replay`. `ts` is the same bigint `v_now`, worked out once when the block starts and passed to the claim.
-- **Two sessions applying migrations: still open, and the only live candidate.** Fact 2 has the same shape. Process 306 waits on 230's *transaction* (ShareLock) while it holds a lock on categories. That is a session writing rows the migration wrote, which is either a second applier or a writing cron job. It is not PostgREST's schema-cache read.
+| Candidate | `--card` | vs page | text #E6EAE7 | muted #A3B0A8 | edge ring | edge vs page |
+|---|---|---|---|---|---|---|
+| today | #1A221E | 1.11 | 13.39 | 7.23 | #26302B | 1.32 |
+| A (quiet) | #232E28 | 1.28 | 11.58 | 6.25 | #3A4740 | 1.85 |
+| B (middle) | #25302A | 1.32 | 11.26 | 6.08 | #3E4B44 | 1.97 |
+| C (strong) | #28342E | 1.39 | 10.67 | 5.76 | #42504A | 2.12 |
 
-**Honest status:** the reads do not yet name the mechanism behind "replay". The diagnosis stays unconfirmed until step 1 below.
+Tier fills, same three steps (today: Premium #2B2314 = 1.16, Featured #1A2C23 = 1.22):
 
-## Cause of fact 2 (the deadlock at 20261007033719 statement 48)
-Five migrations schedule jobs before that point: 20261002013936, 20261003005802 (catalog-find-sweep, every 5 minutes), 20261004011235 and 20261004144146 (two jobs). The turn reads each job's command and names the one that both reads categories (it holds a lock there) and writes rows the migration changes (it waits on 230's transaction). If no job fits, the samples from d2e9bb36 lane 2 decide between a second applier and another session. The plan names what it finds and does not guess.
+| Candidate | Premium fill | vs page | ink #E6B655 | Featured fill | vs page | word #7FC9A6 |
+|---|---|---|---|---|---|---|
+| A | #33291A | 1.26 | 7.60 | #1F3329 | 1.34 | 6.91 |
+| B | #382D1C | 1.34 | 7.17 | #22362C | 1.40 | 6.62 |
+| C | #3A2F1D | 1.37 | 6.97 | #243A2F | 1.47 | 6.28 |
 
-## Mechanism (extended: the start step in local-backend-proof.yml, DEC-309's job)
-The concern is that the start applies migrations the same way every time, with nothing else writing or locking while they run.
+Knock-on found: dark `--photo-empty` #26302B equals the new card (1.00–1.05). The empty well takes #303C35 (1.12–1.22 against A–C) so it still reads as a well; measured per candidate in the build.
 
-**Chosen: hold pg_cron for the start, then restore it and prove it.**
-1. `supabase start` runs on a workdir with **no** migrations. Every service comes up on an empty schema.
-2. `ALTER SYSTEM SET cron.launch_active_jobs = off; SELECT pg_reload_conf();` The scheduler keeps running but launches no job.
-3. `supabase migration up --local` applies every migration in one session, as the start would, and records the same history.
-4. Restore: `ALTER SYSTEM RESET cron.launch_active_jobs; SELECT pg_reload_conf();` Then prove it:
-   - `SHOW cron.launch_active_jobs` is on;
-   - the scheduler session is in pg_stat_activity;
-   - "applied N/N" still matches.
-   If the proof fails, the lane fails as infrastructure.
+Shadow: dark `--lift-card` keeps its black drop (it shows on photos and tiers, not the page) and its 1 px ring moves to the candidate edge value. `-md` / `-lg` dark lifts get the same ring.
 
-**What it costs:** one extra command and about 2–5 s. Production changes in no way: no migration, no app code, and staging is untouched. The step first checks that the installed pg_cron accepts the setting (`SELECT version FROM pg_extension`, 1.5 or later). If it does not, the turn STOPs with that output.
+**/dev/style**: a dark card grid with three columns A / B / C (plain, Premium, Featured, no-photo card each), scoped by a `data-card-candidate` attribute that sets the candidate tokens locally; the live `.dark` block takes **B** as the provisional value until the operator picks. His pick lands as a one-line token change in the next turn (or this one if he rules before the push).
 
-**Weighed and not chosen:**
-- Pausing each job (`cron.alter_job(active := false)`) cannot work: the migrations themselves create the jobs during the apply.
-- A database-only first start (`-x` every other service) only stops PostgREST, which the evidence does not implicate. It is the fallback.
-- Retrying a failed start would hide the cause, which the rules forbid.
+Census of CARD_SURFACE / `bg-card` readers (all take the new dark values through the token, no per-file change): listing-card, feed, invite card, page-card, section, data-table (card mode), on-demand-notice, safety-box, listing-detail, locations-overview, admin-nav, app-shell. my-listings and the ad page boxes reach it through page-card / listing-card / section. K2: any reader painting `bg-card` with its own border instead of the shadow is reported, not edited.
 
-## Step 1 inside the turn: reproduce before the fix lands
-- Read the INC-944 samples and start logs of the four fact-1 runs and of d2e9bb36. Count the sessions running `DO $proof$` or migration statements at once, and the pg_cron sessions.
-- Repro lane (manual dispatch, non-gating, in flake-check.yml): the start in a loop, 10 times on one runner, both before and after the change, recording each failure's statement.
-- The report states which candidate the samples confirm. If a second applier is confirmed, the fix also serialises the apply (one session, step 3 above), which the chosen design already does.
+## 2. Spec parts and their tokens
+§5 feed heading (`feed.tsx` :286): `text-[21px] md:text-[25px] lg:text-[30px] font-extrabold tracking-[-0.9px]` via a `--feed-heading-*` size step set in styles.css; place name in `text-primary`. Grid gap `lg:gap-5`; main `lg:py-7`.
+§6 card (`listing-card.tsx`, `listing-picture.tsx`, `surface.ts`):
+- body padding 13/14/14 px (`--card-pad-*`), compact 8–9 tablet, 6–7 phone;
+- price 16 px bold, compact 13 / 12 px bold; price slot min heights kept;
+- Negotiable: filled pill `bg-success-soft text-tier-featured-ink` 11 px semibold, no border (dark reads `--success-soft` #1C2B24 / `--leaf-ink`, ratio checked);
+- place line: divider `--card-rule` (light #EEF3EF, dark from the candidate set) as an inset top shadow, 9 px / 6 px compact top padding, pin `text-leaf-ink`;
+- empty picture well: `bg-photo-empty` + bottom separator token `--lift-photo-empty`.
 
-## The guard: CF-CI-START-1
-`scripts/ci/classify-start-failure.ts` reads the samples and the start log of a failed start. It prints one line: `start failed in <migration> stmt <n>; cron sessions: <k>; other sessions: <m>; appliers: <a>`. That line goes to local-backend-last-failure.md (counts and application names only, no query text from tables).
-- Planted cases SF-1…5: cron active, two appliers, an outside session, clean (nothing active), and missing samples (reported as "unknown", never "none").
-- A census in `wired.test.ts` names its caller in the workflow.
+## 3. The one-line heading (INC-957's class)
+Mechanism named: **ONE_LINE_SLOT** — a fixed fit rule, not a shrinking loop. The slot is `whitespace-nowrap min-w-0`; the fixed words ("Listings in") never cut; the place name is the only part that may cut, through the existing CutText (cut-names rule). `wrap-anywhere` leaves the h1.
+- Lives beside CUT names in src/components/layout (one constant + CutText), registered in mechanisms.md; E (every one-line slot) reuses it unchanged.
+- Guard: CF-ONE-LINE-1 census (a slot marked `data-one-line` must use ONE_LINE_SLOT); planted case: a slot with `wrap-anywhere` fails.
+- Test: `e2e/sage-cards.spec.ts` OL-1 at 360 for every public language in the catalog (en, am, om, ti), both e2e projects' device fonts: the h1's height equals one line box and `scrollWidth <= clientWidth` for its fixed words. OL-2 planted: a route mock supplies a 60-character place name; the fixed words stay on one line and the name cuts. A unit OL-3 plants a heading class without the rule and the census fails.
 
-## DEC-313 (frozen decision rule)
-Over the next 20 completed CI runs on dev after the landing:
-- **0 starts fail inside a migration → keep.**
-- **1 or more → fallback:**
-  - first start the database only (`-x` all other services);
-  - apply the migrations with cron held;
-  - then start the rest.
-  The classifier line of the failure goes into the follow-up brief.
+## 4. Laws kept, G38
+LL-1, one card shape and `auto-rows-fr` stay true; LL-1 re-run in both themes. Tests that read old card values, named old → new in the build after reading each: `src/look-law.test.ts`, `scripts/conformance/look-values.test.ts`, `src/lib/themes.test.ts` (dark `--card`, `--lift-card`, `--photo-empty`, tier fills), `src/components/shell/data-table.test.tsx` (card surface), and any spec asserting `text-xl font-semibold` on the h1 or 14 px price (sage-shell / sage-bands census in the build).
 
-Registry refusals that stop the start before any migration runs do not count. The classifier tells the two kinds apart.
+## 5. sage-cards.spec.ts
+Per redesign-part-2 §6: computed styles at 390, 834, 1440, light and dark — heading size/weight/tracking/colour of place, body padding, price size/weight, Negotiable fill/ink/no border, divider shadow and padding, empty-well fill, card background and box-shadow ring, contrast ratios computed in-page against the targets (≥1.25, ≥1.8, ≥4.5). Run via `bun run e2e:local -- e2e/sage-cards.spec.ts`, both projects, retries 0; added to scripts/e2e-select.ts.
 
-## Proofs census (J1, G27): to confirm in the turn by a whole-tree search
-These candidates turned up in the files I read. The turn names every hit, and **no landed proof is edited (G39)**:
-- 20261029073342 CL-1/CL-3: keys `(name-check-catchup, v_now)` on the current second in the shared job_runs.
-- 20261029072455 JC-3: a fixed key `ts = 1` and a fixed id `…e2e1` in the shared job_runs.
-- 20261029074251 prune proof: inserts and reads job_runs and job_runs_prune_runs rows by age.
-- 20261029110745 and 20261029233828: insert job_runs rows with explicit ids and timestamps.
-- Every other proof that reads `clock_timestamp()` or `now()` as a key, or reads a shared table without its own scratch key.
+## 6. Growth
+ESTIMATE +0.15 KiB on public pages (classes + the /dev/style grid off the public path). Any page entering its NEAR band gets `ceilingFor(size)` in DEC-296's form, listed in the report.
 
-The census turns into an allowlist (`file | reason | until`), so later migration proofs get the same check. A function found unsafe is fixed by a new migration; none was found by these reads.
+## 7. Turns
+One turn. If it cannot fit, B1 = dark candidates + /dev/style grid + token tests; B2 = §5/§6 parts, ONE_LINE_SLOT, sage-cards.spec.
 
-## Files (scope)
-- .github/workflows/local-backend-proof.yml (the start step)
-- .github/workflows/flake-check.yml (repro dispatch)
-- scripts/ci/classify-start-failure.ts and its test
-- scripts/conformance census for proofs, plus its allowlist
-- docs/features/e2e-harness.md, docs/governance/mechanisms.md, docs/_changelog.md
-- roadmap.md and the report
-
-The workflows are linted with actionlint; `bun run checks` runs before landing.
-
-## Out of scope
-Any landed migration, app code and staging.
+## Build order
+Part A (CI) → step 0 brief → tokens + candidates → /dev/style grid → §6 card → §5 heading + ONE_LINE_SLOT + guard → G38 test updates → sage-cards.spec → report → `bun run checks` → CI re-read → push.
