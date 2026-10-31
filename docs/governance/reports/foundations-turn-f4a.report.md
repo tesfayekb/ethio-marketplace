@@ -84,7 +84,16 @@ See §12 (from `bun run checks`, if it finishes).
 
 ## 12. Checks
 
-(appended after `bun run checks`)
+- **First whole run:** FAIL at laws-first, on two findings in this turn's new code, both fixed at the root:
+  - CF-ADOPT-1: laws-changed.ts listed folders with its own readdirSync; it now goes through kit.ts's walkFiles.
+  - CF-NN-1: a `!` in TC-E4; it now reads LAWS_SEMGREP.
+- **Second run:** FAIL at the changed-folders step, past its 300 s deadline. A folder filter also took subfolders, and scripts/ ran twice. Both fixed at the root: the step takes only src/ folders (scripts/ is the laws step's first part) and passes each folder's own test files by path. It then judged 127 files: 767 passed in 176 s.
+- **Final whole run** (TURN_BASE=e1dc86f4): 15 PASS · 0 FAIL · 2 NOT RUN (both Install dependencies) through "Root route names":
+  - laws-first, scripts/ tests: PASS;
+  - laws-first, changed folders' unit tests: PASS (150 s);
+  - laws-first, Semgrep at ERROR on the changed files: PASS (9 s).
+- The 590 s limit ended the run at the component tests. No fast line or last line was printed; the unit count was not measured.
+- slow steps: not finished — CI judges.
 
 ## 13. Files (git diff --name-only 3caa699b)
 
