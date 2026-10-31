@@ -122,7 +122,7 @@ for (const mode of MODES) {
       await gotoReady(page, `/c/${seller.leafSlug}`);
       await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
 
-      const cardLink = page.getByTestId("listing-card-link").first();
+      const cardLink = page.getByTestId("listing-card-link");
       const cases: Array<{ name: string; target: Locator; surface?: Locator; inkCheck: boolean }> =
         [
           {
@@ -137,13 +137,13 @@ for (const mode of MODES) {
           },
           {
             name: "plain link",
-            target: page.getByTestId("footer-column").locator("a[href]").first(),
+            target: page.getByTestId("footer-home"),
             inkCheck: true,
           },
           {
             name: "card",
             target: cardLink,
-            surface: page.getByTestId("listing-card").first(),
+            surface: page.getByTestId("listing-card"),
             inkCheck: false,
           },
         ];
@@ -166,7 +166,7 @@ for (const mode of MODES) {
 
       // A list row: the language list's first option.
       await page.getByTestId("language-switcher").click();
-      const option = page.locator('[data-testid^="language-option-"]').first();
+      const option = page.getByTestId("language-option-en");
       await expect(option).toBeVisible();
       const row = await press(page, option);
       expect(row.marked, "list row: marked").toBe(true);
@@ -191,7 +191,7 @@ for (const mode of MODES) {
       // A menu row: the rail's on a wide screen, the phone menu's at 360.
       if (test.info().project.name === "mobile-360")
         await page.getByRole("button", { name: "Open menu" }).click();
-      const menuRow = page.locator(':is(a,button)[class*="ps-[var(--rail-pad)]"]:visible').first();
+      const menuRow = page.locator('[data-testid="rail-home"]:visible');
       await expect(menuRow, "menu row").toBeVisible();
       const m = await press(page, menuRow);
       expect(m.marked, "menu row: marked").toBe(true);
@@ -213,7 +213,7 @@ for (const mode of MODES) {
       await page.goto("/");
       await setMode(page, mode);
       await gotoReady(page, "/");
-      const link = page.getByTestId("footer-column").locator("a[href]").first();
+      const link = page.getByTestId("footer-home");
       const { before, during, after, marked } = await press(page, link);
       expect(marked).toBe(true);
       expect(during.fill).not.toBe(before.fill);
