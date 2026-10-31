@@ -1,3 +1,5 @@
+import { BAND_CRUMB, BAND_CRUMB_CURRENT } from "@/components/shell/band-row";
+import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 
@@ -16,8 +18,8 @@ import { authKey } from "@/lib/query-keys";
  * ad's page it is the current segment.
  */
 
-/** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
-const CURRENT = "font-semibold text-foreground underline underline-offset-4";
+/** D265 — current crumbs share the location row's raised segment. */
+const CURRENT = BAND_CRUMB_CURRENT;
 
 export function MyListingCrumb({ listingId, link }: { listingId: string; link: boolean }) {
   const { data } = useQuery({
@@ -27,15 +29,15 @@ export function MyListingCrumb({ listingId, link }: { listingId: string; link: b
   const title = data !== undefined && data !== "notYours" ? data.listing.title : null;
   if (link) {
     return (
-      <BreadcrumbLink asChild>
+      <BreadcrumbLink asChild className={BAND_CRUMB}>
         <Link
           to="/my-listings/$listingId"
           params={{ listingId }}
           data-testid="breadcrumb-my-listing"
-          className="block max-w-[16rem] truncate"
+          className={BAND_CRUMB}
           title={title ?? undefined}
         >
-          {title ?? "—"}
+          <CutText text={title ?? "—"} />
         </Link>
       </BreadcrumbLink>
     );
@@ -43,10 +45,10 @@ export function MyListingCrumb({ listingId, link }: { listingId: string; link: b
   return (
     <BreadcrumbPage
       data-testid="breadcrumb-my-listing"
-      className={`${CURRENT} block max-w-[16rem] truncate`}
+      className={CURRENT}
       title={title ?? undefined}
     >
-      {title ?? "—"}
+      <CutText text={title ?? "—"} />
     </BreadcrumbPage>
   );
 }

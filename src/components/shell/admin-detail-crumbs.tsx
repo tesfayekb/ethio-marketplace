@@ -1,3 +1,5 @@
+import { BAND_CRUMB, BAND_CRUMB_CURRENT } from "@/components/shell/band-row";
+import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 
 import { BreadcrumbLink, BreadcrumbPage } from "@/components/ui/breadcrumb";
@@ -14,8 +16,8 @@ import { useAdminUser } from "@/features/admin/users/use-admin-users";
  * keys the page fills), so no second request is made.
  */
 
-/** Operator directive (U0c): the CURRENT segment is underlined and heavier. */
-const CURRENT = "font-semibold text-foreground underline underline-offset-4";
+/** D265 — current crumbs share the location row's raised segment. */
+const CURRENT = BAND_CRUMB_CURRENT;
 
 /**
  * A listing's page: its title, from the page's cached read. Bundle 18 turn 1
@@ -26,15 +28,15 @@ export function AdminListingCrumb({ listingId, link }: { listingId: string; link
   const { data } = useAdminListing(listingId);
   if (link) {
     return (
-      <BreadcrumbLink asChild>
+      <BreadcrumbLink asChild className={BAND_CRUMB}>
         <Link
           to="/admin/listings/$listingId"
           params={{ listingId }}
           data-testid="breadcrumb-admin-listing"
-          className="block max-w-[16rem] truncate"
+          className={BAND_CRUMB}
           title={data?.listing.title}
         >
-          {data?.listing.title ?? "—"}
+          <CutText text={data?.listing.title ?? "—"} />
         </Link>
       </BreadcrumbLink>
     );
@@ -42,10 +44,10 @@ export function AdminListingCrumb({ listingId, link }: { listingId: string; link
   return (
     <BreadcrumbPage
       data-testid="breadcrumb-admin-listing"
-      className={`${CURRENT} block max-w-[16rem] truncate`}
+      className={CURRENT}
       title={data?.listing.title}
     >
-      {data?.listing.title ?? "—"}
+      <CutText text={data?.listing.title ?? "—"} />
     </BreadcrumbPage>
   );
 }
@@ -56,7 +58,7 @@ export function AdminLanguageCrumb({ code }: { code: string }) {
   const row = (data ?? []).find((entry) => entry.code === code);
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-language" className={CURRENT}>
-      {row?.nameNative ?? code}
+      <CutText text={row?.nameNative ?? code} />
     </BreadcrumbPage>
   );
 }
@@ -66,14 +68,14 @@ export function AdminLanguageCrumb({ code }: { code: string }) {
  * the admin user and role reads (and the step-up service behind them) leave every
  * page's first download. The cut style is the shell's own current segment.
  */
-const CURRENT_CUT = "min-w-0 truncate font-semibold text-foreground underline underline-offset-4";
+const CURRENT_CUT = BAND_CRUMB_CURRENT;
 
 /** U1d — the 4th admin crumb; reads the detail page's cached row. */
 export function AdminUserCrumb({ userId }: { userId: string }) {
   const { data } = useAdminUser(userId);
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-user" className={CURRENT_CUT}>
-      {data?.displayName ?? "—"}
+      <CutText text={data?.displayName ?? "—"} />
     </BreadcrumbPage>
   );
 }
@@ -83,7 +85,7 @@ export function AdminRoleCrumb({ roleId }: { roleId: string }) {
   const { data } = useAdminRole(roleId);
   return (
     <BreadcrumbPage data-testid="breadcrumb-admin-role" className={CURRENT_CUT}>
-      {data?.displayName ?? data?.name ?? "—"}
+      <CutText text={data?.displayName ?? data?.name ?? "—"} />
     </BreadcrumbPage>
   );
 }
