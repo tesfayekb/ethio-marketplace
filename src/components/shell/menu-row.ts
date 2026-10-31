@@ -4,8 +4,32 @@
  * row classes from here, never their own (CF-ROWS-1 judges). Heights come from the list
  * (src/styles.css `.menu-fit`, `.menu-snap`), never the row.
  */
+/**
+ * D263/D270 (turn C1, DEC-317) — ONE PRESSED LOOK. A press is the raised look, at once:
+ * src/lib/press.ts marks the pressed element `data-pressed` at pointerdown (or Enter/Space)
+ * and each primitive reads its own raised state from here, never its own (CF-PRESS-1).
+ * Only a shadow, a fill and the ink change — never the size or the place. It comes on with
+ * no transition and leaves within 120 ms; under reduced motion it neither fades nor moves.
+ */
+export const PRESS_MOTION =
+  "transition-[background-color,box-shadow,color] duration-120 ease-out data-[pressed]:duration-0 motion-reduce:transition-none";
+export const PRESSED = {
+  /** A menu row: the raised current row (ITEM_ACTIVE's card, lift-row-on, nav ink). */
+  row: `data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
+  /** A list row: the current list row (LIST_ROW_CURRENT's nav pill and ink). */
+  list: `data-[pressed]:bg-nav-pill data-[pressed]:text-nav-ink ${PRESS_MOTION}`,
+  /** A tab or a band segment: the current segment (BAND_SEGMENT_CURRENT's card and lift-segment). */
+  segment: `data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-segment ${PRESS_MOTION}`,
+  /** A button: one step higher, to lift-row-on; its fill and ink stay. */
+  button: `data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
+  /** A card (on the card's surface): its link pressed lifts the card to lift-row-on. */
+  card: "transition-shadow duration-120 ease-out has-[[data-pressed]]:duration-0 has-[[data-pressed]]:shadow-row-on motion-reduce:transition-none",
+  /** The card's own link has no surface: the card lifts, the link takes no pill. */
+  cardLink: "data-[pressed]:bg-transparent",
+} as const;
+
 export const ITEM_CORE =
-  "flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-row pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring " +
+  `${PRESSED.row} flex min-h-11 md:pointer-fine:min-h-9 md:pointer-fine:max-h-12 w-full items-center gap-2 rounded-row pe-3 text-start text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ` +
   "ps-[var(--rail-pad)]";
 /** Sage §2 (turn SAGE-S1): hover is the card surface at 70 % over the sidebar, never a
  *  content grey (INC-042). */
@@ -37,7 +61,7 @@ export const ITEM_TILE_ICON_SM = "size-3.75 shrink-0";
  * 10 px radius from md on a fine pointer; one line, cut by D105's rule.
  */
 export const LIST_ROW =
-  "relative flex min-h-11 md:pointer-fine:min-h-10 md:pointer-fine:h-10 w-full min-w-0 cursor-default select-none items-center gap-2 rounded-list-row px-3 text-start text-sm text-popover-foreground outline-none whitespace-nowrap [&>span]:truncate " +
+  `${PRESSED.list} relative flex min-h-11 md:pointer-fine:min-h-10 md:pointer-fine:h-10 w-full min-w-0 cursor-default select-none items-center gap-2 rounded-list-row px-3 text-start text-sm text-popover-foreground outline-none whitespace-nowrap [&>span]:truncate ` +
   "focus:bg-nav-pill focus:text-nav-ink data-[highlighted]:bg-nav-pill data-[highlighted]:text-nav-ink focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset " +
   "data-[state=checked]:bg-nav-pill data-[state=checked]:font-semibold data-[state=checked]:text-nav-ink " +
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0";

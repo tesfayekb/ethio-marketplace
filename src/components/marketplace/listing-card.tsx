@@ -1,4 +1,5 @@
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { PRESSED } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { canonicalSegment } from "@/features/ad-page/address";
@@ -200,6 +201,7 @@ export function ListingCard({
       data-tier={listing.tier}
       className={cn(
         CARD_SURFACE,
+        PRESSED.card,
         "group/card @container flex h-full flex-col overflow-hidden wrap-anywhere",
       )}
     >
@@ -208,7 +210,8 @@ export function ListingCard({
           to="/l/$slug"
           params={{ slug: canonicalSegment(listing.title, listing.publicId) }}
           data-testid="listing-card-link"
-          className="flex h-full flex-col"
+          data-pressable=""
+          className={cn(PRESSED.cardLink, "flex h-full flex-col")}
         >
           {content}
         </Link>
