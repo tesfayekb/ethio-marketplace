@@ -1,92 +1,70 @@
-# Turn CI-3 — the CI harness: image pulls, one public surface, the finish rule
+# Turn F — every list of choices that opens from a control (D264, Sage §14)
 
-Base dev bc2e2ba5 (checked out here). Tier B. No migration, no new dependency, no new string, no app code.
+Base dev d48a3cb3 (confirmed as HEAD). CI first: the build turn reads the run on d48a3cb3 and fixes any red that is not infrastructure before anything else.
 
-## CI first
+## Premises the census corrects
+1. **The posting lists are not drawn by hand row by row.** step-pricing.tsx and phone-number-field.tsx both use `src/components/searchable-picker.tsx`. Its `PickerOption` (:126, `role="option"`, `min-h-11 px-3 text-sm`, `bg-accent` when highlighted, a tick at the end) is a **second row mechanism**, not two bypasses. The fix is to put it on the same row constants, not to rewrite the two steps. Because of that, one turn is enough.
+2. **No menu surface tokens exist.** `--popover` holds the right colours (white, dark #1D2621 at styles.css :421), but there is no menu radius or menu shadow token. Turn F adds `--radius-menu` (14 px) and `--shadow-menu` to src/styles.css, in both themes.
+3. **The popover is a sibling surface.** `ui/popover.tsx` :19 (`rounded-md border p-4 shadow-md`, zoom-in-95, `sideOffset 4`) is used only by toolbar-panel.tsx :108. That panel holds filter controls, not a list of choices. It takes the attached surface but not the row sizing.
+4. **Native `<select>` is outside this concern.** The phone's own picker draws the open list. The closed control already sits under the field primitive. Recorded as LEFT, with the reason.
 
-- The ci-evidence branch still shows **3d94bd6b**, not bc2e2ba5. Run 41163450560 failed in the smoke lane and lanes 8 and 15. S2b-2 dealt with those failures (the nine page-size limits and TB-1).
-- The run on bc2e2ba5 has not published yet. The build turn reads it first. Any red that is not infrastructure is fixed before A, B or C.
+## Census (by definition: the facade's content parts, `role="listbox"|"menu"|"option"` in src)
+| Consumer | Today | Decision |
+|---|---|---|
+| language-switcher.tsx :74 | facade; `w-40 p-1` overrides | MOVE: drop the width and padding overrides; the panel gets at least the trigger's width |
+| app-header.tsx :242 (account) | facade, no overrides | uses the mechanism |
+| panel-header.tsx :69 | facade; `w-56` | MOVE: `w-56` becomes a minimum, not a fixed width |
+| location-selector.tsx :106 | facade; `max-h-72 overflow-y-auto` | keeps its own height cap (allowed: a height, not row or panel classes) |
+| row-actions.tsx :124 | facade | uses the mechanism (rows get the new sizing) |
+| dev.style.tsx :272 | facade | uses the mechanism |
+| searchable-picker.tsx :126 (PickerOption) + its listbox | own row classes | MOVE onto the shared row and panel constants |
+| step-pricing.tsx :484/:525, phone-number-field.tsx :211/:281/:300 | through SearchablePicker | follow the picker; the search field stays |
+| toolbar-panel.tsx :108 (Popover) | own panel | MOVE onto the attached surface only (not a list) |
+| step-where.tsx :1796 | map pin dialog | out: not a list |
+| native-select.tsx | phone's own picker | LEFT (premise 4) |
 
-## Premises the census found wrong or open
+## Mechanism
+- **`src/components/shell/menu-row.ts`** gains three things beside ITEM_CORE:
+  - `LIST_ROW`: `min-h-11` below md and on coarse pointers; `md:pointer-fine:min-h-10` (40 px); `rounded-[10px]` through a token; `px-3 text-sm`; D105 truncation.
+  - `LIST_ROW_CURRENT`: the selected look, with a tick slot at the end.
+  - `LIST_PANEL`: `bg-popover rounded-menu p-1.5 shadow-menu`, with no border ring and no zoom; a 120 ms fade plus a 2 px slide from the trigger's side.
+  - It also gains `OPEN_CONTROL`: one class keyed to `data-[state=open]` / `aria-expanded=true`, which shows the open control's look.
+- **dropdown-menu-impl.tsx** :49/:67/:85/:101/:124 reads these constants. Its defaults become `sideOffset = 0`, `align = "start"` and `min-w-(--radix-dropdown-menu-trigger-width)`. The facade and loader do not change (DEC-259). The trigger's open state applies through `OPEN_CONTROL` on each consumer's asChild trigger.
+- **searchable-picker.tsx** reads LIST_ROW, LIST_ROW_CURRENT and LIST_PANEL. Its listbox is attached to the field's bottom edge with no gap.
+- **popover.tsx** takes LIST_PANEL's surface classes and `sideOffset = 0`. Its padding stays because it is not a list.
 
-1. **Which registry.** The evidence never names it. local-backend-proof.md prints the CLI version and the status variables, but not the image references. CLI 2.x is believed to pull from AWS ECR Public (`public.ecr.aws/supabase/*`), whose anonymous throttle says "toomanyrequests: Rate exceeded". That is a belief, not a finding. The build's first step proves it: one lane runs `supabase start --debug` with `docker images --format '{{.Repository}}:{{.Tag}}'` written to the evidence (names only). A's design is set from that answer. If the registry is not ECR Public, the build STOPs and reports.
-2. **B names objects; DEC-132 rule 2 says counts only.** scripts/security-lints.ts:13 says "no object name ever reaches the log". Failing "naming it" breaks that rule.
-   - Proposed ruling: a name may be printed only when it is on the list (already public in the repo) or stale.
-   - An unlisted anon-executable function fails with its count and a hash of its name, never its name. This also respects the public-repository law: an unlisted function may be an open hole.
-   - The full name goes only to the job's step summary, under a masked artifact the operator can read. This needs DEC-132's rule 2 amended in DEC-B.
-3. **The 20 functions.** I read them on ethio-prod (read-only). There are 51 anon-executable functions. 31 belong to the pg_trgm extension, which the lint excludes. The other 20 match the baseline exactly (table below).
+## Guard — CF-LIST-1 (scripts/conformance/choice-lists.test.ts, wired in wired.test.ts)
+- **What it enumerates:** every `DropdownMenuContent`, `PopoverContent`, `role="listbox"|"menu"|"option"` in src.
+- **What fails:**
+  - a content part or option that carries its own row classes (`py-`, `min-h-`, `h-`, `rounded-` on items) or its own panel classes (`border`, `shadow-`, `rounded-`, `p-`, `bg-`, `zoom-`);
+  - a `sideOffset` greater than 0;
+  - a listbox or option that does not read LIST_ROW or LIST_PANEL.
+- **Allowlist:** `file | reason | until`; stale or expired lines fail. Expected lines: native-select (phone picker), location-selector's height cap.
+- **Planted cases:** CL-1 (a planted option with `py-1.5` fails); CL-2 (a planted panel with `border shadow-lg` fails); CL-3 (`sideOffset={4}` fails); CL-4 (a clean consumer passes); CL-5 (a stale allowlist line fails).
 
-## A. Image pulls survive the registry's limit (DEC-A)
+## Tests
+- **Unit:** the PickerOption classes come from LIST_ROW; dropdown-menu-impl's defaults.
+- **e2e `e2e/choice-lists.spec.ts` (CL-E1…):** checked per consumer (language, account, panel switch, location, row actions, currency picker, phone code picker). Each runs at 360 coarse and 1440 fine, light and dark.
+  - Row height: at least 44 px on coarse; exactly 40 px on fine.
+  - Panel top edge equals the control's bottom edge, within 1 px (or the side it opens from).
+  - Panel width is at least the control's width.
+  - Computed transform has no scale during opening.
+  - The control is in its open state while the list is open.
+  - The panel's background, radius (14 px), padding (6 px) and shadow match the tokens.
+- **G38, with old → new values** (exact names come from the build's grep for `py-1.5`, `rounded-md border`, `sideOffset`, `w-40` in e2e/ and src/**/*.test.*):
+  - searchable-picker.test.tsx (row class `min-h-11 px-3` → LIST_ROW);
+  - any language-switcher or account-menu spec that reads the panel width or offset;
+  - SGB cases that open the location menu.
+- **Runs:** touched specs run whole, both projects, retries 0, via `bun run e2e:local`.
 
-- **Concern:** a lane's backend start fails on the registry's anonymous pull limit, then a retried start replays migrations ("refused:replay", deadlock).
-- **Mechanism today:** .github/workflows/local-backend-proof.yml:475. That is one `supabase start` per lane, 18 lanes at once, with no pull step and no retry. setup-cli v3.0.1, CLI 2.120.0 at :186–191.
-- **Change:**
-  1. A new job, `backend-images`, runs once per run. It resolves the image list (premise 1), pulls each with retry, and saves them to one `docker save` tarball. The tarball is uploaded as a run artifact keyed by CLI version and image digests (actions/cache, keyed the same way).
-  2. Each lane downloads the tarball and runs `docker load` before `supabase start`. The start then finds every image locally and pulls nothing.
-  3. If the load fails, the lane runs a pull-only step, `scripts/ci/pull-images.sh`. It tries 4 times with jittered backoff (5, 15, 45 s ± 30%) under `with-deadline.sh`, then starts.
-  4. **No start retry, ever.** The start stays single-shot, as INC-944 already states. A failed pull stops the lane before `supabase start`, so no migration has run. That makes "refused:replay" impossible by construction.
-  5. Fallback (only if the rule below trips): authenticated pulls through an ECR Public login with an AWS role. The operator would add one secret, `ECR_PUBLIC_ROLE_ARN`. It is not needed now.
-- **Not chosen:**
-  - Staggered starts: they add minutes to every run and only lower the chance of a refusal.
-  - A third-party mirror: it would be a new outside dependency.
-- **Guard:** CF-CI-IMG-1 in scripts/conformance/ (a workflow census). Every job that runs `supabase start` must depend on `backend-images` and run the load step before the start. No step may run `supabase start` inside a retry loop or twice.
-  - Planted cases: a lane without the load step fails; a `supabase start` inside `until`/`for` fails.
-- **DEC-A frozen rule:** over the next 10 completed runs on dev after landing, count lanes whose start or pull fails on a registry refusal (the evidence's start log matching `toomanyrequests|rate exceeded|pull access denied`).
-  - 0 → keep.
-  - 1 or more → the authenticated-pull fallback, with its own turn.
-  - Any "refused:replay" from a start → a defect in this DEC, fixed at once.
-- **Tests:** a unit test for pull-images.sh's backoff schedule and give-up path (stubbed docker). The CF-CI-IMG-1 planted cases. `actionlint -shellcheck= -pyflakes=` on the workflow.
-
-## B. One public surface (DEC-B)
-
-- **Concern:** one list of what browser roles may execute. Today there are two:
-  - scripts/public-surface-allowlist.txt, read by scripts/check-migrations.sh for grants after M1;
-  - the count in scripts/security-lints-baseline.json:4, read by scripts/security-lints.ts:147 through `compareLints`.
-- **Change:**
-  1. Complete the list with the 20 functions anon executes today, each with a reason. Names already on it are restated, not duplicated. The reasons are checked against each function's body when built:
-
-     | function | reason |
-     | --- | --- |
-     | feed_page, seller_feed_page, public_listing | public feed and ad reads; approved rows only |
-     | get_browse_tree, get_category_tree_version, get_category_attributes, catalog_find_version | public category tree and attributes, version-cached |
-     | get_location_tree, get_location_tree_version, get_open_countries | public places and open markets |
-     | get_ui_bundle, get_ui_bundle_version, get_ui_bundle_parts | public UI strings (INC-095, INC-1023); get_ui_bundle retires per roadmap |
-     | get_entity_bundle | public entity names |
-     | legal_in_force, legal_scheduled | public legal texts |
-     | price_unit_labels, price_shape_for_basis | price unit words and shape |
-     | sold_cutoff, sold_visible_days | sold-ad 30-day window (D175) |
-
-  2. A new reader, `security_lint_anon_functions()`. The smoke lane reads it on the temporary backend through the existing DB_URL `--tsv` path (DEC-240), so no migration is needed. It returns the names that `function_executable_by_anon` counts, using the same filter (public schema, not extension-owned).
-  3. `compareSurface(names, list)`, a pure function in scripts/security-lints.ts:
-     - an anon function not on the list → FAIL, printing its count and hash (premise 2);
-     - a function-shaped list line with no live function → FAIL as stale, printing its name.
-     Table and column lines (e.g. `listings`) are typed by a `kind` field, so they are never judged as functions.
-  4. `function_executable_by_anon` leaves security-lints-baseline.json. Its count becomes informational, derived from the list. docs/features/security-scanning.md records the retirement.
-- **Guard:** the comparison is the guard. Planted cases SLB-1 (unlisted → fail), SLB-2 (stale → fail), SLB-3 (exact match → pass), SLB-4 (no name in output for an unlisted one). They are wired in wired.test.ts.
-- **DEC-B frozen rule:** the list is the one surface. Any future anon or authenticated grant needs exactly one list line, read by both guards.
-  - Kept if, over the next 10 runs, the smoke lint and the migration guard never disagree on a function.
-  - Any disagreement → a defect fixed in place, no second list.
-
-## C. The finish rule in the instruments (DEC-C)
-
-- **Concern:** `bun run checks` (scripts/ci/turn-checks.sh → turn-checks.ts) prints its verdict only at the end, after about 16–23 minutes.
-- **Fit:** it fits without weakening anything. The steps and their order do not change; the slow ones (build + page budgets, guards that build) run after the fast ones already.
-- **Change:** add a `--early` milestone line, on by default. When format, lint, typecheck verdict, unit, i18n maps and the non-build guards finish, it prints `checks (fast): N PASS · N FAIL · Ns` and then continues. The final line keeps its form, `checks: N PASS · N FAIL · N NOT RUN · Ns`, and stays the only one that counts as the checks' verdict.
-- The reporting rule becomes: a report may paste the fast line with "slow steps: not finished — CI judges". It never presents the fast line as the final verdict.
-- **Guard:** a unit test (TC-E1) shows the fast line is printed before any build step starts and that a fast FAIL still makes the run exit 1 at the end. TC-E2 shows that a run stopped after the fast line exits non-zero, not PASS.
-- **DEC-C frozen rule:** kept while the fast line's set of steps is a subset of the final line's and no step is skipped. Any step moved out of the final verdict reverses it.
+## First-download effect
+The facade's Radix code still loads on intent, so it adds nothing to first paint. The new constants (a few hundred bytes) move into the entry with menu-row.ts. They are expected inside the NEAR band for the entry and for the posting pages (searchable-picker). Any ceiling they cross is raised in DEC-296's form, with its cause, from CI's size.
 
 ## Turns
+One turn, F. The posting lists come along because they share one picker. If the e2e matrix does not fit S500, F2 carries only the CL-E specs for the two posting pickers, after the mechanism and its guard have landed.
 
-Two turns, to respect S500:
-
-- **CI-3a:** premise-1 probe, A, and C (workflow and scripts only; C is small).
-- **CI-3b:** B, after the operator rules on premise 2.
-
-Each turn writes its report before the full checks.
-
-## Technical files
-
-- CI-3a: .github/workflows/local-backend-proof.yml, scripts/ci/pull-images.sh (new), scripts/ci/turn-checks.ts and its test, scripts/conformance/ci-images.test.ts (new), wired.test.ts.
-- CI-3b: scripts/public-surface-allowlist.txt, scripts/security-lints.ts and its test, scripts/security-lints-baseline.json, the smoke-lane step in the workflow, docs/features/security-scanning.md.
-- Both: the register row in docs/governance/mechanisms.md, one docs/_changelog.md line each, and the DECs in the decision log.
+## Build rules
+- **Report:** written before `bun run checks`. If time runs out, push with "checks: not finished — CI judges".
+- **AGENTS.md:** untouched.
+- **Register:** one row in docs/governance/mechanisms.md, plus one _changelog.md line.
+- **Limits:** no migration, no new dependency, no new string.
