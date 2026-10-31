@@ -57,7 +57,16 @@ async function sampleOpening(page: Page) {
 }
 
 async function scales(page: Page): Promise<string[]> {
-  await page.waitForTimeout(450);
+  // Poll on truth (J7): every opening animation on the panel has finished.
+  await expect
+    .poll(() =>
+      page.evaluate(() =>
+        Array.from(document.querySelectorAll("[data-radix-popper-content-wrapper] > *")).every(
+          (el) => el.getAnimations().every((a) => a.playState === "finished"),
+        ),
+      ),
+    )
+    .toBe(true);
   return page.evaluate(() => (window as unknown as { __clScales: string[] }).__clScales);
 }
 
@@ -130,7 +139,7 @@ for (const width of WIDTHS) {
       });
 
       test(`CL-E1 the language list (${width}, ${mode})`, async ({ page }) => {
-        const control = page.locator('[data-testid="language-switcher"]:visible').first();
+        const control = page.getByTestId("language-switcher");
         await judge(page, control, page.getByRole("menu"), page.getByRole("menuitemradio"), width);
       });
 
@@ -143,17 +152,13 @@ for (const width of WIDTHS) {
         const user = await leaseUser();
         await signIn(page, user.email, user.password);
         await gotoReady(page, "/");
-        const account = page.locator('[data-testid="account-menu"]:visible');
-        if ((await account.count()) > 0)
-          await judge(
-            page,
-            account.first(),
-            page.getByRole("menu"),
-            page.getByRole("menuitem"),
-            width,
-          );
-        if (width >= 768) {
-          const switcher = page.locator('[data-testid="panel-header-switcher"]:visible').first();
+        // The header holds the one account menu at every width (app-header.tsx).
+        const account = page.getByTestId("account-menu");
+        await expect(account).toBeVisible();
+        await judge(page, account, page.getByRole("menu"), page.getByRole("menuitem"), width);
+        if (!isMobile(page)) {
+          // From md the panel switch heads the rail; below md the bottom bar replaces it.
+          const switcher = page.getByTestId("panel-header-switcher");
           await judge(page, switcher, page.getByRole("menu"), page.getByRole("menuitem"), width);
         }
       });
