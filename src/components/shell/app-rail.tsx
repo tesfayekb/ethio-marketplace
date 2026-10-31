@@ -1,6 +1,6 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@/components/ui/dialog-primitive";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, House, LogOut, Star, type LucideIcon } from "lucide-react";
 import {
   createContext,
@@ -16,7 +16,7 @@ import {
 import { useShell } from "@/components/shell-context";
 import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
-import { useShownPathname } from "@/components/shell/use-shown-pathname";
+import { useMenuAt, useShownPathname } from "@/components/shell/use-shown-pathname";
 import { levelFor, setMenuLevel, useMenuLevel } from "@/components/shell/menu-level";
 import { MENU_LINK_ACTIVE, categoryPath, isCurrentAt } from "@/components/shell/menu-current";
 import {
@@ -335,6 +335,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         {node.path ? (
           <Link
+            data-tick=""
             to={node.path}
             activeOptions={MENU_LINK_ACTIVE}
             onClick={node.onSelect}
@@ -433,6 +434,7 @@ function RailRow({ node, depth = 0 }: { node: RailNode; depth?: number }) {
       <li className={cn(compact && (hasChildren ? "flex flex-1 flex-col" : COMPACT_ROW))}>
         <WithTooltip label={node.label} skip={Boolean(node.submenu)}>
           <Link
+            data-tick=""
             {...trigger}
             to={node.path}
             activeOptions={MENU_LINK_ACTIVE}
@@ -586,9 +588,9 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   // leaf's siblings); back rows move up without navigating, and a navigation follows the URL.
   // D255 (R1d-c) — the menu and the strip read ONE level state (menu-level.ts).
   const storedLevel = useMenuLevel();
-  const pathname = useShownPathname();
+  // D263 (turn C2) — the chosen row is marked at once (useMenuAt); the frame keeps the shown page.
   // Categories are never anchored: the path alone marks the current row.
-  const at = { pathname, hash: "" };
+  const at = { pathname: useMenuAt().pathname, hash: "" };
   // D246 — the current row is in view once per opening (no smooth scroll).
   const navRef = useRef<HTMLElement>(null);
   const currentInView = useRef(false);
@@ -802,9 +804,9 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   );
   // Active state for routed items — the current section is highlighted the
   // same way for every panel (U0b).
-  // INC-581 — the rail marks the page the body shows.
-  const pathname = useShownPathname();
-  const hash = useRouterState({ select: (s) => s.location.hash }).replace(/^#/, "");
+  // D263 (turn C2) — the chosen item is marked at once; INC-581's frame (the panel) still
+  // follows the page the body shows.
+  const at = useMenuAt();
 
   /**
    * U6-C1-R3a — ONE HIGHLIGHT. "Sign-in and security" and "Settings" both live
@@ -812,7 +814,6 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
    * names a section carries its `hash`, and a routed item is current only when
    * the path AND the hash match exactly — so exactly one item is ever current.
    */
-  const at = { pathname, hash };
   const isCurrent = (item: NavItem): boolean =>
     isCurrentAt(
       item,
@@ -997,7 +998,7 @@ export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth, authLoading, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
-  const pathname = useShownPathname();
+  const pathname = useShownPathname(); // frame: INC-581 — the menu closes when the page lands
   const [peeking, setPeeking] = useState(false);
   /** INC-924 — the peek's menu has been drawn (its code arrived): its 3-second clock starts here. */
   const [peekDrawn, setPeekDrawn] = useState(false);

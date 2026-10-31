@@ -111,4 +111,4 @@ INC-990 page heads: `src/lib/page-head.ts` resolves base keys and one name, keep
 
 
 | ONE_LINE_SLOT | a sentence with one slot stays on one line; only the slot cuts | src/components/ui/one-line-slot.tsx | CF-ONE-LINE-1 (scripts/conformance/one-line.test.ts) |
-| PRESSED + press.ts | a press shows the raised look at once (D263/D270) | src/components/shell/menu-row.ts (PRESSED, PRESS_MOTION), src/lib/press.ts (installPress, mounted once in __root.tsx) | CF-PRESS-1 (scripts/conformance/press.test.ts) |
+| PRESSED + press.ts | a press shows the raised look at once (D263/D270) | src/components/shell/menu-row.ts (PRESSED, PRESS_MOTION), src/lib/press.ts (installPress, mounted once in __root.tsx; the tap tick and its device choice, turn C2); the chosen mark: useMenuAt (src/components/shell/use-shown-pathname.ts over menu-current.ts menuAtOf, turn C2) | CF-PRESS-1 rules 1–4 (scripts/conformance/press.test.ts) |

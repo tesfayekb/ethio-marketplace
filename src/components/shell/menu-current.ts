@@ -25,3 +25,33 @@ export const categoryPath = (slug: string) => `/c/${encodeURIComponent(slug)}`;
  * takes these options, so the router's own mark is only ever a subset of this rule's.
  */
 export const MENU_LINK_ACTIVE = { exact: true, includeHash: true, includeSearch: false } as const;
+
+/** The part of the router's state the chosen mark reads (a structural subset). */
+export type MenuAtState = {
+  status: string;
+  location: { pathname: string; hash: string };
+  matches: ReadonlyArray<{ routeId: string; pathname: string }>;
+};
+
+/**
+ * D263/D271 (turn C2, DEC-317 item 1) — THE CHOSEN MARK MOVES AT ONCE. While a navigation is
+ * in flight the router's location is already the chosen page; the frame still reads the shown
+ * page (useShownPathname, INC-581), but a menu item's mark reads the chosen one. Once the
+ * navigation settles — or a later one supersedes it — the location and the shown page agree
+ * again, so a cancelled choice brings the old mark back by itself. Returned as one string,
+ * `pathname#hash`, so the selector's result compares by value.
+ */
+export function menuAtOf(state: MenuAtState): string {
+  const hash = state.location.hash.replace(/^#/, "");
+  if (state.status === "pending") return `${state.location.pathname}#${hash}`;
+  const leaf = state.matches[state.matches.length - 1];
+  const shown =
+    leaf !== undefined && leaf.routeId !== "__root__" ? leaf.pathname : state.location.pathname;
+  return `${shown}#${hash}`;
+}
+
+/** Splits menuAtOf's string back into the rule's place. */
+export function parseMenuAt(key: string): MenuAt {
+  const cut = key.indexOf("#");
+  return { pathname: key.slice(0, cut), hash: key.slice(cut + 1) };
+}

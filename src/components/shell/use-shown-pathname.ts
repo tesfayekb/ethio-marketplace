@@ -1,4 +1,7 @@
 import { useRouterState } from "@tanstack/react-router";
+import { useMemo } from "react";
+
+import { menuAtOf, parseMenuAt, type MenuAt } from "@/components/shell/menu-current";
 
 /**
  * INC-581 — THE PAGE THE BODY IS SHOWING. The router sets its location the
@@ -22,4 +25,14 @@ export function useShownPathname(): string {
         : state.location.pathname;
     },
   });
+}
+
+/**
+ * D263/D271 (turn C2, DEC-317 item 1) — the place every menu's current mark reads (isCurrentAt's
+ * `at`): the chosen page while a navigation is pending, else the shown page (menuAtOf). Beside
+ * useShownPathname, its frame twin; only a menu item's look and aria-current read it.
+ */
+export function useMenuAt(): MenuAt {
+  const key = useRouterState({ select: menuAtOf });
+  return useMemo(() => parseMenuAt(key), [key]);
 }

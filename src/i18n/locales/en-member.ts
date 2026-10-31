@@ -32,6 +32,9 @@ export const enMember = {
   "settings.lastMethodGuard":
     "This is your only sign-in method. Add another one before removing it.",
   "settings.security": "Security",
+  "settings.thisDevice.title": "This device",
+  "settings.tapTick.label": "Vibrate on tap",
+  "settings.tapTick.help": "On phones that support it, you feel a light tick when you tap.",
   "settings.changePassword": "Change password",
   "settings.currentPassword": "Current password",
   "settings.passwordChanged": "Your password has been changed.",

@@ -77,7 +77,7 @@ export function SearchRow({ onClose }: { onClose: () => void }) {
           type="button"
           aria-label={t("shell.searchClose")}
           onClick={onClose}
-          className="absolute end-1 top-1/2 inline-flex h-10 w-9 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:text-foreground"
+          className={`${PRESSED.button} absolute end-1 top-1/2 inline-flex h-10 w-9 -translate-y-1/2 items-center justify-center rounded text-muted-foreground hover:text-foreground`}
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
@@ -131,7 +131,7 @@ export function AppHeader() {
           aria-label={t(navOpen ? "shell.closeMenu" : "shell.openMenu")}
           aria-expanded={navOpen}
           aria-controls="rail-menu"
-          className="inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden"
+          className={`${PRESSED.button} inline-flex h-11 w-12 shrink-0 items-center justify-center text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:hidden`}
           onClick={() => setNavOpen(!navOpen)}
         >
           <Menu className="h-6 w-6" aria-hidden="true" />
