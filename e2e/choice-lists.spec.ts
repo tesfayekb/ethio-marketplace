@@ -102,23 +102,19 @@ type Judged = {
   control: Locator;
   panel: Locator;
   rows: Locator;
-  /** The facade's triggers show the open state (OPEN_CONTROL); the pickers' boxes do not yet (K2). */
-  openState?: boolean;
   open?: () => Promise<void>;
   close?: () => Promise<void>;
 };
 
 async function judge(page: Page, width: number, list: Judged) {
-  const { control, panel, rows, openState = true } = list;
+  const { control, panel, rows } = list;
   await sampleOpening(page);
   await (list.open ? list.open() : control.click());
   await expect(panel).toBeVisible();
   expect((await scales(page)).filter(hasScale)).toEqual([]);
-  if (openState) {
-    await expect(control).toHaveAttribute("data-state", "open");
-    const want = await tokenValue(page, "--nav-pill", "background-color");
-    expect(await control.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(want);
-  }
+  await expect(control).toHaveAttribute("data-state", "open");
+  const want = await tokenValue(page, "--nav-pill", "background-color");
+  expect(await control.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(want);
 
   const count = await rows.count();
   expect(count).toBeGreaterThan(0);
@@ -282,7 +278,6 @@ for (const width of WIDTHS) {
           control: page.getByTestId("style-row-1-more"),
           panel,
           rows: panel.getByRole("menuitem"),
-          openState: false,
         });
         await closeMenu(page, panel);
       });
@@ -294,7 +289,6 @@ for (const width of WIDTHS) {
           control,
           panel: page.getByTestId("post-price-currency-list"),
           rows: page.getByTestId("post-price-currency-option"),
-          openState: false,
         });
         await expect(
           page
@@ -305,11 +299,6 @@ for (const width of WIDTHS) {
 
       test(`CL-E6 the phone-code picker (${width}, ${mode})`, async ({ page }) => {
         test.slow();
-        // STOP (turn F2, stop 1): at 360 the phone-code panel (w-72 from the row's start)
-        // ends at x=357, past the 16 px gutter (344). The fix is in
-        // src/features/posting/phone-number-field.tsx, outside this turn's scope; this case
-        // stays out at 360 until the supervisor rules it (named in the stop report).
-        test.fixme(width < 768, "turn F2 stop 1: the phone-code panel crosses the gutter at 360");
         await toPricing(page);
         await page.getByTestId("post-price-mode-free").click();
         await nextToStep(page, 5);
@@ -331,7 +320,6 @@ for (const width of WIDTHS) {
           control: page.getByTestId(`${id}-country`),
           panel: list.locator(".."),
           rows: page.getByTestId(`${id}-country-option`),
-          openState: false,
         });
       });
     });

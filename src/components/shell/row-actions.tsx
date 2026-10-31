@@ -12,6 +12,7 @@ import { IconButton, IconButtonBare } from "@/components/ui/icon-button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { OPEN_CONTROL } from "./menu-row";
 
 /**
  * BUNDLE 9 B2 — the one way a row or a card offers its actions: Edit, Delete,
@@ -114,6 +115,7 @@ export function RowActions({ testid, name, edit, remove, more }: RowActionsProps
                 <DropdownMenuTrigger asChild>
                   <IconButtonBare
                     data-testid={`${testid}-more`}
+                    className={OPEN_CONTROL}
                     label={`${moreLabel} — ${name}`}
                     icon={<EllipsisVertical />}
                   />
