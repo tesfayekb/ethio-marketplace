@@ -4,7 +4,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { chosenFirst } from "@/lib/chosen-first";
 
 import { useRef } from "react";
-import { PickerOption, pickerGeometry, usePickerKeys, usePickerPlacement } from "./searchable-picker";
+import {
+  PickerOption,
+  pickerGeometry,
+  usePickerKeys,
+  usePickerPlacement,
+} from "./searchable-picker";
 
 function Box({
   count,
@@ -105,7 +110,12 @@ describe("F3 shared picker horizontal placement", () => {
     function OwnedPicker({ open }: { open: boolean }) {
       const ref = useRef<HTMLDivElement>(null);
       const placement = usePickerPlacement(ref, open, 2);
-      return <div ref={ref}><button aria-haspopup="listbox" data-testid="owned-control" />{open && <div data-placement={placement} />}</div>;
+      return (
+        <div ref={ref}>
+          <button aria-haspopup="listbox" data-testid="owned-control" />
+          {open && <div data-placement={placement} />}
+        </div>
+      );
     }
     const { rerender } = render(<OwnedPicker open />);
     expect(screen.getByTestId("owned-control")).toHaveAttribute("data-state", "open");

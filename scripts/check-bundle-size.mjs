@@ -216,7 +216,9 @@ const { rows, failures } = judgeRouteBudgets({
 });
 console.log("\nPer-page first download (entry + the page's chunks, gzipped):");
 for (const { id, kib, ceiling } of rows) {
-  console.log(`  ${(kib - judgedSize(0)).toFixed(1).padStart(7)} / ${String(ceiling).padStart(3)} KiB  ${id}`);
+  console.log(
+    `  ${(kib - judgedSize(0)).toFixed(1).padStart(7)} / ${String(ceiling).padStart(3)} KiB  ${id}`,
+  );
 }
 if (failures.length > 0) {
   console.error("\nPer-page budget failed (D234):");
