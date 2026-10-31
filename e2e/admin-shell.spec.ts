@@ -7,6 +7,7 @@ import {
   sectionGroupId,
 } from "../src/features/admin/sections";
 import { en } from "../src/i18n/locales/en";
+import { BAND_SEGMENT_CURRENT } from "../src/components/shell/band-row";
 import { ITEM_ACTIVE } from "../src/components/shell/menu-row";
 
 import {
@@ -153,7 +154,9 @@ test.describe("Admin shell (U0)", () => {
     const current = crumb.getByTestId("breadcrumb-admin-section");
     await expect(current).toHaveText(en[section.titleKey]);
     await expect(current).toHaveAttribute("aria-current", "page");
-    await expect(current).toHaveClass(/underline/);
+    // G38 D265: underlined current crumb becomes the shared raised segment.
+    for (const part of BAND_SEGMENT_CURRENT.split(" "))
+      await expect(current).toHaveClass(new RegExp(`(?:^|\\s)${part}(?:\\s|$)`));
 
     // The Admin segment is a real link back to the landing.
     await crumb.getByTestId("breadcrumb-admin").click();

@@ -199,3 +199,28 @@ describe("CF-WIDTH-1 the menu's width has one home", () => {
     ).toEqual(["src/components/planted.tsx:1"]);
   });
 });
+
+/** D266 — rail header uses the rail surface, not a fourth content band look. */
+export function railHeaderFindings(text: string): Finding[] {
+  const code = codeOf(text);
+  return /from "@\/components\/shell\/band-row"/.test(code) &&
+    /\bRAIL_HEADER\b/.test(code) &&
+    !/BAND_LOOK\.row|bg-sidebar|shadow-groove/.test(code)
+    ? []
+    : [
+        {
+          file: "src/components/shell/panel-header.tsx",
+          line: 1,
+          what: "rail header bypasses RAIL_HEADER (D266)",
+        },
+      ];
+}
+describe("CF-ROWS-1 rail header look", () => {
+  it("the header reads the shared rail-header constant", () => {
+    expect(railHeaderFindings(read("src/components/shell/panel-header.tsx").text)).toEqual([]);
+  });
+  it("a planted band surface is refused", () => {
+    const text = read("src/components/shell/panel-header.tsx").text;
+    expect(railHeaderFindings(text.replace(/RAIL_HEADER/g, "BAND_LOOK.row"))).toHaveLength(1);
+  });
+});

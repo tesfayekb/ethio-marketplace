@@ -109,11 +109,15 @@ export function bandLookFindings(files: File[]): Finding[] {
       const stack = tag.includes('data-testid="shell-subband"');
       const viaBand = /\bBAND\b/.test(tag) ? (band?.[1] ?? "") : "";
       const classes = tag + " " + viaBand;
-      if (!classes.includes(`BAND_LOOK.${stack ? "stack" : "row"}`))
+      const railHeader = file.name === "src/components/shell/panel-header.tsx";
+      const look = railHeader ? "RAIL_HEADER" : `BAND_LOOK.${stack ? "stack" : "row"}`;
+      if (!classes.includes(look))
         findings.push({
           file: file.name,
           line: lineOf(code, at),
-          what: "a band without BAND_LOOK (D260)",
+          what: railHeader
+            ? "a rail header without RAIL_HEADER (D266)"
+            : "a band without BAND_LOOK (D260)",
         });
       if (ownLook.test(classes))
         findings.push({
@@ -222,7 +226,7 @@ describe("CF-BAND-1 one look for every band row (D260)", () => {
     expect(shell).toContain('data-testid="shell-location-band"');
     const home = codeOf(read(BAND_HOME).text);
     expect(home).toContain('CURRENT_PILL = "rounded-full bg-nav-pill shadow-pill text-nav-ink"');
-    for (const name of ["panel-tabs.tsx", "bottom-bar.tsx"]) {
+    for (const name of ["bottom-bar.tsx"]) {
       const code = codeOf(read(`src/components/shell/${name}`).text);
       expect(code).toContain("CURRENT_PILL");
       expect(code).not.toMatch(/bg-nav-pill|shadow-pill|bg-nav-active/);
@@ -248,7 +252,7 @@ describe("CF-BAND-1 one look for every band row (D260)", () => {
       bandLookFindings([
         {
           name: "src/components/shell/panel-header.tsx",
-          text: 'const BAND = `flex bg-card ${BAND_ROW} ${BAND_LOOK.row}`; <div data-band-row="" className={BAND}>',
+          text: 'const BAND = `flex bg-card ${BAND_ROW} ${RAIL_HEADER}`; <div data-band-row="" className={BAND}>',
         },
       ]).map((f) => f.what),
     ).toEqual(["a band's own surface, edge or shadow (D260)"]);
@@ -268,5 +272,63 @@ describe("CF-BAND-1 one look for every band row (D260)", () => {
         },
       ]).map((f) => f.what),
     ).toEqual(["a band without BAND_LOOK (D260)"]);
+  });
+});
+
+/** D265: every shell trail, tab and location segment reads the shared location look. */
+const CRUMB_FILES = ["breadcrumbs", "ad-crumbs", "seller-crumbs", "admin-detail-crumbs"].map(
+  (name) => `src/components/shell/${name}.tsx`,
+);
+export function segmentFindings(files: File[]): Finding[] {
+  const findings: Finding[] = [];
+  for (const file of files) {
+    const code = codeOf(file.text);
+    if (file.name === BAND_HOME) continue;
+    const crumb = CRUMB_FILES.includes(file.name);
+    const row = /\/(?:panel-tabs|location-selector)\.tsx$/.test(file.name);
+    if (!crumb && !row) continue;
+    const required = crumb
+      ? ["BAND_CRUMB", "BAND_CRUMB_CURRENT", "CutText"]
+      : ["BAND_TRACK", "BAND_SEGMENT", "BAND_SEGMENT_CURRENT"];
+    if (file.name.endsWith("/breadcrumbs.tsx")) required.push("BAND_CRUMB_TRACK");
+    for (const name of required)
+      if (!new RegExp(`\\b${name}\\b`).test(code))
+        findings.push({ file: file.name, line: 1, what: `missing ${name} (D265)` });
+    if (
+      /bg-track|shadow-track|rounded-track|rounded-segment|shadow-segment|bg-nav-pill|shadow-pill|underline-offset-4|CURRENT_PILL/.test(
+        code,
+      )
+    )
+      findings.push({ file: file.name, line: 1, what: "a private track or segment look (D265)" });
+  }
+  return findings;
+}
+describe("CF-BAND-1 shared segments and rail header", () => {
+  it("every content-row consumer reads the shared track and segments", () => {
+    const findings = segmentFindings(
+      [
+        ...CRUMB_FILES,
+        "src/components/shell/panel-tabs.tsx",
+        "src/components/shell/location-selector.tsx",
+      ].map(read),
+    );
+    expect(findings, report(findings)).toEqual([]);
+  });
+  it("planted private segment and old band header are refused", () => {
+    const file = read("src/components/shell/panel-tabs.tsx");
+    expect(
+      segmentFindings([
+        { ...file, text: file.text.replace(/BAND_SEGMENT_CURRENT/g, '"bg-card shadow-segment"') },
+      ]).map((f) => f.what),
+    ).toEqual(["missing BAND_SEGMENT_CURRENT (D265)", "a private track or segment look (D265)"]);
+    const header = read("src/components/shell/panel-header.tsx");
+    expect(
+      bandLookFindings([
+        { ...header, text: header.text.replace(/RAIL_HEADER/g, "BAND_LOOK.row") },
+      ]).map((f) => f.what),
+    ).toEqual([
+      "a rail header without RAIL_HEADER (D266)",
+      "a rail header without RAIL_HEADER (D266)",
+    ]);
   });
 });
