@@ -3,13 +3,15 @@ import { CutText } from "@/components/ui/cut-text";
 import { PasswordInput } from "@/components/ui/password-input";
 import { passwordPairProblem } from "@/features/auth/password-pair";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 
 import { ContentGrid } from "@/components/layout/content-grid";
 import { ActionMessage } from "@/components/ui/action-message";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
+import { Switch } from "@/components/ui/switch";
+import { setTapTick, subscribeTapTick, tapTickSnapshot } from "@/lib/press";
 import {
   changeEmail,
   changePassword,
@@ -903,7 +905,42 @@ function SettingsScreen() {
             {messageAt("devices")}
           </div>
         </Section>
+
+        <ThisDeviceSection />
       </ContentGrid>
     </PageShell>
+  );
+}
+
+/**
+ * D272 (turn C2, ruling 1) — "This device": the tap tick's switch. The choice is this device's
+ * (browser storage, src/lib/press.ts); the server draws the default (on).
+ */
+function ThisDeviceSection() {
+  const { t } = useI18n();
+  const on = useSyncExternalStore(subscribeTapTick, tapTickSnapshot, () => true);
+  return (
+    <Section aria-labelledby="settings-this-device" testid="settings-this-device">
+      <h2 id="settings-this-device" className="text-base font-semibold text-foreground">
+        {t("settings.thisDevice.title")}
+      </h2>
+      <div className="mt-3 flex min-h-11 items-center justify-between gap-3">
+        <div className="min-w-0">
+          <label htmlFor="settings-tap-tick" className="text-sm font-medium text-foreground">
+            {t("settings.tapTick.label")}
+          </label>
+          <p id="settings-tap-tick-help" className="text-sm text-muted-foreground">
+            {t("settings.tapTick.help")}
+          </p>
+        </div>
+        <Switch
+          id="settings-tap-tick"
+          data-testid="settings-tap-tick"
+          aria-describedby="settings-tap-tick-help"
+          checked={on}
+          onCheckedChange={setTapTick}
+        />
+      </div>
+    </Section>
   );
 }
