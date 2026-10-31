@@ -67,7 +67,7 @@ export function PanelHeader({ className }: { className?: string }) {
             <ChevronDown className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-56">
+        <DropdownMenuContent align="start">
           {panels.map((panel) => {
             const Icon = panel.icon;
             const active = panel.id === activePanel;
