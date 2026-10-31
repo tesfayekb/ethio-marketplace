@@ -497,8 +497,8 @@ its #26302B ring 1.32 : 1). Three candidate sets sit on /dev/style ("Dark cards:
 `.dark [data-card-candidate]` block in styles.css setting `--card`, the two tier fills, the
 `--lift-card` edge ring (and `--shadow-card`, re-resolved inside the box). `.dark` carries **B**
 until the operator picks; the pick lands as a one-line token change (B2). The no-photo well is
-#303C35 in every candidate. e2e/dark-cards.spec.ts measures each in the page (DC-1: surface
-≥ 1.25, plain-card edge ≥ 1.8, text ≥ 4.5) and proves the live dark card equals B (DC-2).
+#303C35 in every candidate. e2e/dark-cards.spec.ts measures each in the page (DCC-1: surface
+≥ 1.25, plain-card edge ≥ 1.8, text ≥ 4.5) and proves the live dark card equals B (DCC-2).
 
 | Set | Card    | Edge    | Premium | Featured | surface / edge / text (in-page) |
 | --- | ------- | ------- | ------- | -------- | ------------------------------- |
