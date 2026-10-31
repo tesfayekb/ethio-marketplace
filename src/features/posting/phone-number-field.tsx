@@ -271,10 +271,7 @@ export function PhoneNumberField({
           }}
         />
         {open && (
-          <div
-            data-placement={placement}
-            className={pickerPopClass(placement)}
-          >
+          <div data-placement={placement} className={pickerPopClass(placement)}>
             <input
               ref={searchRef}
               data-testid={`${testId}-country-search`}

@@ -54,8 +54,14 @@ export function usePickerPlacement(
         panel.dataset.align = geometry.align;
         panel.style.setProperty("--picker-min-width", `${geometry.minWidth}px`);
         panel.style.setProperty("--picker-max-width", `${geometry.maxWidth}px`);
-        panel.style.setProperty("--picker-start", `${rtl ? rect.right - controlRect.right : controlRect.left - rect.left}px`);
-        panel.style.setProperty("--picker-end", `${rtl ? controlRect.left - rect.left : rect.right - controlRect.right}px`);
+        panel.style.setProperty(
+          "--picker-start",
+          `${rtl ? rect.right - controlRect.right : controlRect.left - rect.left}px`,
+        );
+        panel.style.setProperty(
+          "--picker-end",
+          `${rtl ? controlRect.left - rect.left : rect.right - controlRect.right}px`,
+        );
       }
       const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
       const barTop =

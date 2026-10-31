@@ -78,19 +78,25 @@ describe("bundle 7 B2 — the current choice is first and marked", () => {
 describe("F3 shared picker horizontal placement", () => {
   it("uses the control's start when its content fits the 16px gutter", () => {
     expect(pickerGeometry({ left: 32, right: 232, width: 200 }, 240, 360)).toEqual({
-      align: "start", minWidth: 200, maxWidth: 312,
+      align: "start",
+      minWidth: 200,
+      maxWidth: 312,
     });
   });
 
   it("opens from the phone-code control's end when start would cross the gutter", () => {
     expect(pickerGeometry({ left: 70, right: 166, width: 96 }, 288, 360)).toEqual({
-      align: "end", minWidth: 96, maxWidth: 150,
+      align: "end",
+      minWidth: 96,
+      maxWidth: 150,
     });
   });
 
   it("uses logical edges in RTL and caps width to the viewport less 32px", () => {
     expect(pickerGeometry({ left: 194, right: 290, width: 96 }, 400, 360, true)).toEqual({
-      align: "end", minWidth: 96, maxWidth: 150,
+      align: "end",
+      minWidth: 96,
+      maxWidth: 150,
     });
   });
 });

@@ -35,11 +35,14 @@ describe("the budget's NEAR band (DEC-296, turn A)", () => {
   });
 
   it("NB-4 the entry and the stylesheet are judged like the pages", () => {
-    const found = nearFindings([
-      { label: "entry JS", kib: 208.9, ceiling: 209 },
-      { label: "stylesheet", kib: 39.8, ceiling: 40 },
-      { label: "/", kib: 221.0, ceiling: 223 },
-    ], true);
+    const found = nearFindings(
+      [
+        { label: "entry JS", kib: 208.9, ceiling: 209 },
+        { label: "stylesheet", kib: 39.8, ceiling: 40 },
+        { label: "/", kib: 221.0, ceiling: 223 },
+      ],
+      true,
+    );
     expect(found.map((line) => line.split(":")[0])).toEqual(["entry JS", "stylesheet"]);
   });
 

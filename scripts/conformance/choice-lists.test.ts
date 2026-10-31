@@ -260,12 +260,20 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
   it("CL-7: a picker list's own width or side fails; shared geometry passes", () => {
     for (const own of ["w-72", "w-full", "max-w-[calc(100vw-2rem)]", "start-0", "end-0"]) {
       const { findings } = listFindings([
-        { name: "src/x.tsx", text: `const a = <div className={\`\${pickerPopClass(placement)} ${own}\`} />;` },
+        {
+          name: "src/x.tsx",
+          text: `const a = <div className={\`\${pickerPopClass(placement)} ${own}\`} />;`,
+        },
       ]);
       expect(report(findings)).toContain(`own picker width or side class "${own}"`);
     }
-    expect(listFindings([
-      { name: "src/x.tsx", text: `const a = <ul role="listbox" className={\`\${pickerPopClass(placement)} max-h-64 overflow-y-auto\`} />;` },
-    ]).findings).toEqual([]);
+    expect(
+      listFindings([
+        {
+          name: "src/x.tsx",
+          text: `const a = <ul role="listbox" className={\`\${pickerPopClass(placement)} max-h-64 overflow-y-auto\`} />;`,
+        },
+      ]).findings,
+    ).toEqual([]);
   });
 });
