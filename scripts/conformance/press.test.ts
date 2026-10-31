@@ -24,6 +24,7 @@ export const PRIMITIVES: ReadonlyArray<{ file: string; needs: readonly string[] 
     needs: ["PRESSED.card", "PRESSED.cardLink", 'data-pressable=""'],
   },
   { file: "src/components/ui/sidebar.tsx", needs: ["PRESSED.list"] },
+  { file: "src/components/shell/app-header.tsx", needs: ["${PRESSED.button}"] },
 ];
 
 const OWNERS = new Set(["src/components/shell/menu-row.ts", "src/lib/press.ts", "src/styles.css"]);

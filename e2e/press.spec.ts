@@ -127,18 +127,13 @@ for (const mode of MODES) {
       const cases: Array<{ name: string; target: Locator; surface?: Locator; inkCheck: boolean }> =
         [
           {
-            name: "menu row",
-            target: page.locator(':is(a,button)[class*="ps-[var(--rail-pad)]"]:visible').first(),
-            inkCheck: true,
-          },
-          {
             name: "band segment",
             target: page.getByTestId("breadcrumb-home"),
             inkCheck: true,
           },
           {
             name: "button",
-            target: page.locator("header button[data-pressable]:visible").first(),
+            target: page.getByTestId("search-toggle"),
             inkCheck: false,
           },
           {
@@ -191,6 +186,25 @@ for (const mode of MODES) {
         "list row: pressed ink",
       ).toBeGreaterThanOrEqual(4.5);
       expect(row.during.box).toBe(row.before.box);
+      await page.keyboard.press("Escape");
+      await expect(page.getByRole("menu")).toHaveCount(0);
+
+      // A menu row: the rail's on a wide screen, the phone menu's at 360.
+      if (test.info().project.name === "mobile-360")
+        await page.getByRole("button", { name: "Open menu" }).click();
+      const menuRow = page.locator(':is(a,button)[class*="ps-[var(--rail-pad)]"]:visible').first();
+      await expect(menuRow, "menu row").toBeVisible();
+      const m = await press(page, menuRow);
+      expect(m.marked, "menu row: marked").toBe(true);
+      expect(
+        m.during.shadow !== m.before.shadow || m.during.fill !== m.before.fill,
+        "menu row: raised",
+      ).toBe(true);
+      expect(m.during.box, "menu row: the box did not move").toBe(m.before.box);
+      expect(
+        await contrast(page, m.during.ink, m.during.fill),
+        "menu row: pressed ink",
+      ).toBeGreaterThanOrEqual(4.5);
     });
 
     test(`PS-4 under reduced motion the press comes and goes with no transition (${mode})`, async ({
