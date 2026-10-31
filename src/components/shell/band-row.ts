@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 /**
  * D258 (Foundations turn R1d-c) — ONE HEIGHT FOR EVERY BAND ROW. The panel tabs row, the
  * breadcrumb row, the location row and the menu's band are each one band row: 40 px, the
@@ -23,8 +25,8 @@ export const BAND_SEGMENT =
 export const BAND_SEGMENT_IDLE = "bg-transparent font-medium text-foreground";
 export const BAND_SEGMENT_CURRENT = "bg-card shadow-segment font-semibold text-nav-ink";
 /** Trail-specific flex allocation preserves five graphemes without wrapping separators. */
-export const BAND_CRUMB_TRACK = `${BAND_TRACK} min-w-0 gap-0 sm:gap-0 [&>li]:min-w-min [&>li]:shrink [&>li[aria-hidden]]:shrink-0`;
-export const BAND_CRUMB = `${BAND_SEGMENT} min-w-min max-w-full`;
-export const BAND_CRUMB_CURRENT = `${BAND_CRUMB} ${BAND_SEGMENT_CURRENT}`;
+export const BAND_CRUMB_TRACK = `${BAND_TRACK} min-w-0 gap-0 sm:gap-0 [&_li]:min-w-min [&_li]:shrink [&_li[aria-hidden]]:shrink-0`;
+export const BAND_CRUMB = `${BAND_SEGMENT} min-w-min max-w-full font-medium text-foreground`;
+export const BAND_CRUMB_CURRENT = cn(BAND_CRUMB, BAND_SEGMENT_CURRENT);
 /** D266 — the menu's header is rail surface, one bottom groove, still BAND_ROW tall. */
 export const RAIL_HEADER = "bg-sidebar text-band-label shadow-groove";

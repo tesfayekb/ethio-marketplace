@@ -179,7 +179,7 @@ export function Breadcrumbs() {
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage data-testid="breadcrumb-auth" className={CURRENT}>
-              {searchView === "sign-up" ? t("auth.createAccount") : t("auth.signIn")}
+              <CutText text={searchView === "sign-up" ? t("auth.createAccount") : t("auth.signIn")} />
             </BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
