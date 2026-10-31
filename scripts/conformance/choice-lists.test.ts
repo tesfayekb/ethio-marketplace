@@ -36,6 +36,7 @@ const PANEL_PARTS = new Set([...FACADE_PANELS, "PopoverContent"]);
 const OWN_ROW = /(?:^|\s)(?:py-|px-|min-h-|h-\d|rounded-)\S*/;
 const OWN_PANEL = /(?:^|\s)(?:border(?=\s|$)|(?:border-|shadow-|rounded-|p-\d|bg-|zoom-)\S*)/;
 const OWN_HEIGHT = /(?:^|\s)max-h-\S*/;
+const OWN_PICKER_HEIGHT = /(?:^|\s)(?:(?:min-|max-)?h-|overflow-y-)\S*/;
 const OWN_PICKER_GEOMETRY = /(?:^|\s)(?:(?:min-|max-)?w-|start-|end-|left-|right-)\S*/;
 export const OWNERS: Record<string, RegExp> = {
   "src/components/ui/dropdown-menu-impl.tsx":
@@ -72,6 +73,12 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
         const cls = (attr(node, "className", source) ?? "").replace(/[`"'{}]/g, " ");
         const role = (attr(node, "role", source) ?? "").replace(/["'{}]/g, "");
         const offset = attr(node, "sideOffset", source);
+        // CL-10 (D267, F4a-2): a picker's panel and its scroller take their height from the
+        // mechanism (the panel's --picker-max-height column, LIST_SCROLLER), never their own.
+        if (/\b(?:pickerPopClass|LIST_SCROLLER)\b/.test(cls)) {
+          const own = cls.match(OWN_PICKER_HEIGHT);
+          if (own) push(node, "picker", `own picker height class "${own[0].trim()}"`);
+        }
         if (/\bpickerPopClass\b/.test(cls)) {
           const own = cls.match(OWN_PICKER_GEOMETRY);
           if (own) push(node, "picker", `own picker width or side class "${own[0].trim()}"`);
@@ -271,8 +278,23 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
       listFindings([
         {
           name: "src/x.tsx",
-          text: `const a = <ul role="listbox" className={\`\${pickerPopClass(placement)} max-h-64 overflow-y-auto\`} />;`,
+          text: `const a = <ul role="listbox" className={\`\${pickerPopClass(placement)} \${LIST_SCROLLER}\`} />;`,
         },
+      ]).findings,
+    ).toEqual([]);
+  });
+
+  it("CL-10: a picker panel's or scroller's own height fails; the mechanism's passes", () => {
+    for (const text of [
+      `const a = <ul role="listbox" className={\`\${pickerPopClass(placement)} max-h-64 overflow-y-auto\`} />;`,
+      `const a = <ul role="listbox" className={\`\${LIST_SCROLLER} max-h-64\`} />;`,
+    ]) {
+      const { findings } = listFindings([{ name: "src/x.tsx", text }]);
+      expect(report(findings)).toContain('own picker height class "max-h-64"');
+    }
+    expect(
+      listFindings([
+        { name: "src/x.tsx", text: `const a = <ul role="listbox" className={LIST_SCROLLER} />;` },
       ]).findings,
     ).toEqual([]);
   });

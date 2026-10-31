@@ -107,7 +107,6 @@ export function ToolbarPanel({
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align={align}
-        collisionPadding={16}
         data-testid={`${testid}-panel`}
         className="flex max-h-(--radix-popover-content-available-height) w-80 max-w-[calc(100vw-2rem)] flex-col p-0"
       >

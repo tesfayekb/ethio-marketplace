@@ -8,6 +8,7 @@ import {
   LIST_ROW,
   LIST_ROW_CURRENT,
   LIST_ROW_HIGHLIGHT,
+  LIST_SCROLLER,
   LIST_SURFACE,
   LIST_TICK,
   OPEN_CONTROL,
@@ -45,16 +46,6 @@ export function placeList(
     return { side: "down", maxHeight: Math.max(0, Math.min(wanted, after)), scrollBy };
   }
   return { side: "up", maxHeight: Math.max(0, Math.min(wanted, above)), scrollBy };
-}
-
-/** The element inside an open list that scrolls its rows (itself when it does). */
-function listScroller(panel: HTMLElement): HTMLElement {
-  const own = (element: HTMLElement) =>
-    /auto|scroll/.test(window.getComputedStyle(element).overflowY);
-  if (own(panel)) return panel;
-  return (
-    Array.from(panel.querySelectorAll<HTMLElement>("*")).find((element) => own(element)) ?? panel
-  );
 }
 
 /** D267 ruling 3 — scroll, then run `done` once the position has settled (scrollend or two
@@ -119,8 +110,7 @@ export function usePickerPlacement(
       }
       // D267 — measure the list's natural height (its own class caps), then place it
       // inside the visible area; a scroll first ends before it is measured again.
-      const scroller = listScroller(panel);
-      scroller.style.maxHeight = "";
+      panel.style.removeProperty("--picker-max-height");
       const wanted = panel.getBoundingClientRect().height || Math.min(256, 44 * rowCount + 2);
       const page = document.scrollingElement ?? document.documentElement;
       const scrollRoom = settled
@@ -137,11 +127,6 @@ export function usePickerPlacement(
           place();
         });
         return;
-      }
-      const cut = wanted - plan.maxHeight;
-      if (cut > 0) {
-        const own = scroller.getBoundingClientRect().height;
-        scroller.style.maxHeight = `${Math.max(44, own - cut)}px`;
       }
       panel.style.setProperty("--picker-max-height", `${plan.maxHeight}px`);
       panel.style.opacity = "";
@@ -203,10 +188,14 @@ export function usePickerKeys({
   return { highlight, setHighlight, onKeyDown };
 }
 
+/** D267 (F4a-2) — the part of a picker's panel that scrolls its rows: the mechanism's,
+ *  never a consumer's own height. */
+export { LIST_SCROLLER };
+
 /** The class a picker's list box opens with, for its placement: against the box's edge
  *  (no gap, D264), on the open list's one surface. */
 export function pickerPopClass(placement: PickerPlacement): string {
-  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE} w-max min-w-[var(--picker-min-width,100%)] max-w-[var(--picker-max-width,calc(100vw-2rem))] data-[align=start]:start-0 data-[align=end]:end-0`;
+  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE} flex flex-col max-h-[var(--picker-max-height,16rem)] w-max min-w-[var(--picker-min-width,100%)] max-w-[var(--picker-max-width,calc(100vw-2rem))] data-[align=start]:start-0 data-[align=end]:end-0`;
 }
 
 /** F3 — one horizontal rule, logical start first, end when start crosses the gutter. */

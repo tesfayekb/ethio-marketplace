@@ -158,8 +158,28 @@ export const LAWS_STEP: Step = {
   timeoutS: 300,
   conditional: false,
 };
+/** INC-1030 widened (F4a-2): the changed folders' unit tests and Semgrep on the changed files. */
+export const LAWS_CHANGED_UNITS: Step = {
+  job: "laws-first",
+  name: "changed folders' unit tests (INC-1030)",
+  key: "laws-first › changed folders' unit tests (INC-1030)",
+  run: "bun scripts/ci/laws-changed.ts units",
+  env: {},
+  timeoutS: 300,
+  conditional: false,
+};
+export const LAWS_SEMGREP: Step = {
+  job: "laws-first",
+  name: "Semgrep ERROR on changed files, CI's pins (INC-1030)",
+  key: "laws-first › Semgrep ERROR on changed files, CI's pins (INC-1030)",
+  run: "bun scripts/ci/laws-changed.ts semgrep",
+  env: {},
+  timeoutS: 300,
+  conditional: false,
+};
+export const LAWS_STEPS: Step[] = [LAWS_STEP, LAWS_CHANGED_UNITS, LAWS_SEMGREP];
 export function lawsFirst(fast: Step[]): Step[] {
-  return [LAWS_STEP, ...fast];
+  return [...LAWS_STEPS, ...fast];
 }
 
 /** The fast line: never the verdict, so it never begins `checks:`. */

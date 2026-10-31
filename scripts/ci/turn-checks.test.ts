@@ -1,3 +1,4 @@
+import { changedTestFolders, semgrepPins, semgrepTargets } from "./laws-changed";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -12,6 +13,8 @@ import {
   fastFirst,
   lawsFirst,
   LAWS_STEP,
+  LAWS_SEMGREP,
+  LAWS_STEPS,
   fastLine,
   fetchFailure,
   lineText,
@@ -204,6 +207,41 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
       [{ verdict: "FAIL", key: LAWS_STEP.key, seconds: 60, reason: "exit 1" }],
       60,
       [LAWS_STEP.job],
+    );
+    expect(line).toContain("0 PASS · 1 FAIL");
+  });
+  it("TC-E4 the laws step also runs the changed folders' unit tests and Semgrep on the changed files with CI's pins, in the fast line (INC-1030)", () => {
+    const ci = readFileSync(CI_FILE, "utf8");
+    const fast = lawsFirst(fastFirst(planFrom(ci)).fast);
+    expect(fast.slice(0, 3)).toEqual(LAWS_STEPS);
+    expect(fast[1]?.run).toBe("bun scripts/ci/laws-changed.ts units");
+    expect(fast[2]?.run).toBe("bun scripts/ci/laws-changed.ts semgrep");
+    expect(semgrepPins(ci)).toEqual({
+      version: "1.179.0",
+      rules: "a84ff9cc2453ca91d581380de4b8b3f272f6f4be",
+    });
+    const tests: Record<string, string[]> = {
+      "src/lib": ["themes.test.ts", "themes.ts"],
+      e2e: ["x.spec.ts"],
+      "src/a": ["a.tsx"],
+    };
+    expect(
+      changedTestFolders(
+        ["src/styles.css", "src/lib/themes.ts", "src/a/a.tsx", "e2e/x.spec.ts"],
+        (d) => tests[d] ?? [],
+      ),
+    ).toEqual(["src/lib"]);
+    expect(
+      semgrepTargets([
+        "e2e/dark-cards.spec.ts",
+        "src/styles.css",
+        "scripts/fixtures/semgrep/bad.js",
+      ]),
+    ).toEqual(["e2e/dark-cards.spec.ts"]);
+    const line = fastLine(
+      [{ verdict: "FAIL", key: LAWS_SEMGREP.key, seconds: 9, reason: "exit 1" }],
+      9,
+      ["laws-first"],
     );
     expect(line).toContain("0 PASS · 1 FAIL");
   });

@@ -94,16 +94,19 @@ test.describe("dark-card choice", () => {
       const root = document.documentElement;
       const wasDark = root.classList.contains("dark");
       root.classList.add("dark");
-      const probe = (attrs: string) => {
+      const probe = (candidate: string | null) => {
         const host = document.createElement("div");
-        host.innerHTML = `<div ${attrs} class="bg-card shadow-card"></div>`;
+        if (candidate !== null) host.setAttribute("data-card-candidate", candidate);
+        const card = document.createElement("div");
+        card.setAttribute("class", "bg-card shadow-card");
+        host.append(card);
         document.body.append(host);
-        const style = getComputedStyle(host.firstElementChild as Element);
+        const style = getComputedStyle(card);
         const out = `${style.backgroundColor} | ${style.boxShadow}`;
         host.remove();
         return out;
       };
-      const out = { live: probe(""), b: probe('data-card-candidate="b"') };
+      const out = { live: probe(null), b: probe("b") };
       if (!wasDark) root.classList.remove("dark");
       return out;
     });

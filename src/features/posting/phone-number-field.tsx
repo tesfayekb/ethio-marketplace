@@ -6,6 +6,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { chosenFirst } from "@/lib/chosen-first";
 import {
   PickerOption,
+  LIST_SCROLLER,
   pickerPopClass,
   usePickerKeys,
   usePickerPlacement,
@@ -297,7 +298,7 @@ export function PhoneNumberField({
               role="listbox"
               data-testid={`${testId}-country-list`}
               aria-label={t("post.who.phoneCountryLabel")}
-              className="max-h-64 overflow-y-auto"
+              className={LIST_SCROLLER}
             >
               {matches.length === 0 && (
                 <li className="px-3 py-2 text-sm text-muted-foreground">

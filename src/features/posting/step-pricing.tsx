@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { chosenFirst } from "@/lib/chosen-first";
 import {
   PickerOption,
+  LIST_SCROLLER,
   pickerPopClass,
   usePickerKeys,
   usePickerPlacement,
@@ -524,7 +525,7 @@ export function StepPricing({
                   data-testid="post-price-currency-list"
                   role="listbox"
                   data-placement={placement}
-                  className={`${pickerPopClass(placement)} max-h-64 overflow-y-auto`}
+                  className={`${pickerPopClass(placement)} ${LIST_SCROLLER}`}
                 >
                   {shownRows.map((row, index) => (
                     <li key={row.code}>
