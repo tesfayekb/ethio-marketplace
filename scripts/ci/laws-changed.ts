@@ -7,8 +7,10 @@
  * The turn's base is TURN_BASE when set, else HEAD~1; the diff includes the working tree.
  */
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
+
+import { walkFiles } from "../conformance/kit";
 
 const UNIT = /\.test\.tsx?$/;
 
@@ -57,7 +59,13 @@ function run(cmd: string, args: string[]): number {
 export function check(mode: string): number {
   const files = changedFiles();
   if (mode === "units") {
-    const dirs = changedTestFolders(files, (dir) => (existsSync(dir) ? readdirSync(dir) : []));
+    const dirs = changedTestFolders(files, (dir) =>
+      existsSync(dir)
+        ? walkFiles([dir], { ext: ["ts", "tsx"] })
+            .filter((f) => dirname(f) === dir)
+            .map((f) => basename(f))
+        : [],
+    );
     console.log(`[laws] changed folders with unit tests: ${dirs.length}`);
     if (dirs.length === 0) return 0;
     return run("bunx", ["vitest", "run", ...dirs.map((d) => `${d}/`), "--maxWorkers=2"]);

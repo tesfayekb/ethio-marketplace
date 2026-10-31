@@ -13,6 +13,7 @@ import {
   fastFirst,
   lawsFirst,
   LAWS_STEP,
+  LAWS_SEMGREP,
   LAWS_STEPS,
   fastLine,
   fetchFailure,
@@ -238,7 +239,7 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
       ]),
     ).toEqual(["e2e/dark-cards.spec.ts"]);
     const line = fastLine(
-      [{ verdict: "FAIL", key: LAWS_STEPS[2]!.key, seconds: 9, reason: "exit 1" }],
+      [{ verdict: "FAIL", key: LAWS_SEMGREP.key, seconds: 9, reason: "exit 1" }],
       9,
       ["laws-first"],
     );
