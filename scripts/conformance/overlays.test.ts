@@ -147,7 +147,7 @@ describe("the overlay primitives on demand (DEC-259)", () => {
       exportedNames("src/components/ui/dropdown-menu-impl.tsx"),
     );
     expect(exportedNames("src/components/ui/tooltip.tsx")).toHaveLength(4);
-    expect(exportedNames("src/components/ui/dropdown-menu.tsx")).toHaveLength(15);
+    expect(exportedNames("src/components/ui/dropdown-menu.tsx")).toHaveLength(16); // F4b (D268): DropdownMenuIcon joins the parts
     expect(exportedNames("src/components/ui/dialog-primitive.tsx")).toEqual([
       "Close",
       "Content",
