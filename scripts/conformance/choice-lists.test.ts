@@ -39,8 +39,10 @@ const OWN_ROW = /(?:^|\s)(?:py-|px-|min-h-|h-\d|rounded-)\S*/;
 const OWN_PANEL = /(?:^|\s)(?:border(?=\s|$)|(?:border-|shadow-|rounded-|p-\d|bg-|zoom-)\S*)/;
 const OWN_HEIGHT = /(?:^|\s)max-h-\S*/;
 export const OWNERS: Record<string, RegExp> = {
-  "src/components/ui/dropdown-menu-impl.tsx": /\bLIST_PANEL\b[\s\S]*\bLIST_ROW\b|\bLIST_ROW\b[\s\S]*\bLIST_PANEL\b/,
-  "src/components/searchable-picker.tsx": /\bLIST_ROW\b[\s\S]*\bLIST_SURFACE\b|\bLIST_SURFACE\b[\s\S]*\bLIST_ROW\b/,
+  "src/components/ui/dropdown-menu-impl.tsx":
+    /\bLIST_PANEL\b[\s\S]*\bLIST_ROW\b|\bLIST_ROW\b[\s\S]*\bLIST_PANEL\b/,
+  "src/components/searchable-picker.tsx":
+    /\bLIST_ROW\b[\s\S]*\bLIST_SURFACE\b|\bLIST_SURFACE\b[\s\S]*\bLIST_ROW\b/,
   "src/components/ui/popover.tsx": /\bLIST_SURFACE\b/,
 };
 
@@ -76,7 +78,8 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
         if (tag === "select") push(node, "select", "a native list the device draws");
         if (ROW_PARTS.has(tag) || role === "option") {
           const own = cls.match(OWN_ROW);
-          if (own) push(node, role === "option" ? "option" : tag, `own row class "${own[0].trim()}"`);
+          if (own)
+            push(node, role === "option" ? "option" : tag, `own row class "${own[0].trim()}"`);
           if (role === "option" && !/\bLIST_ROW\b/.test(cls))
             push(node, "option", "an option not reading LIST_ROW");
         }
@@ -93,7 +96,11 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
     if (OWNERS[name] !== undefined) {
       if (!OWNERS[name].test(text)) {
         keys.push(`${name}#owner`);
-        findings.push({ file: name, line: 1, what: "owner: does not read menu-row.ts's list constants" });
+        findings.push({
+          file: name,
+          line: 1,
+          what: "owner: does not read menu-row.ts's list constants",
+        });
       }
       // The owners define the look; their own literals are the mechanism.
       continue;
@@ -104,7 +111,11 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
 }
 
 export type ListAllowance = { key: string; reason: string; until: string };
-export function readListAllowlist(text: string, found: Iterable<string>, today: string): Map<string, ListAllowance> {
+export function readListAllowlist(
+  text: string,
+  found: Iterable<string>,
+  today: string,
+): Map<string, ListAllowance> {
   const keys = new Set(found);
   const out = new Map<string, ListAllowance>();
   text.split(/\r?\n/).forEach((raw, index) => {
@@ -151,14 +162,20 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
 
   it("CL-1: a planted option with its own row padding fails", () => {
     const { findings } = listFindings([
-      { name: "src/x.tsx", text: `const a = <button role="option" className={\`\${LIST_ROW} py-1.5\`} />;` },
+      {
+        name: "src/x.tsx",
+        text: `const a = <button role="option" className={\`\${LIST_ROW} py-1.5\`} />;`,
+      },
     ]);
     expect(report(findings)).toContain('own row class "py-1.5"');
   });
 
   it("CL-2: a planted panel with its own border and shadow fails", () => {
     const { findings } = listFindings([
-      { name: "src/x.tsx", text: `const a = <DropdownMenuContent className="border shadow-lg">x</DropdownMenuContent>;` },
+      {
+        name: "src/x.tsx",
+        text: `const a = <DropdownMenuContent className="border shadow-lg">x</DropdownMenuContent>;`,
+      },
     ]);
     expect(report(findings)).toContain('own panel class "border"');
   });
@@ -183,19 +200,31 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
   });
 
   it("CL-5: a stale allowlist line fails, and so does an expired one", () => {
-    expect(() => readListAllowlist("src/gone.tsx#select | a reason | SAGE-S6", [], "2026-10-31")).toThrow(/stale/);
     expect(() =>
-      readListAllowlist("src/a.tsx#select | a reason | 2026-01-01", ["src/a.tsx#select"], "2026-10-31"),
+      readListAllowlist("src/gone.tsx#select | a reason | SAGE-S6", [], "2026-10-31"),
+    ).toThrow(/stale/);
+    expect(() =>
+      readListAllowlist(
+        "src/a.tsx#select | a reason | 2026-01-01",
+        ["src/a.tsx#select"],
+        "2026-10-31",
+      ),
     ).toThrow(/expired/);
     expect(() =>
-      readListAllowlist("src/a.tsx#select | no reason given | permanent", ["src/a.tsx#select"], "2026-10-31"),
+      readListAllowlist(
+        "src/a.tsx#select | no reason given | permanent",
+        ["src/a.tsx#select"],
+        "2026-10-31",
+      ),
     ).toThrow(/permanent/);
   });
 
   it("an owner that stops reading the constants fails", () => {
     const dir = mkdtempSync(join(tmpdir(), "cl-"));
     writeFileSync(join(dir, "p.tsx"), "");
-    const { findings } = listFindings([{ name: "src/components/ui/popover.tsx", text: "const x = 1;" }]);
+    const { findings } = listFindings([
+      { name: "src/components/ui/popover.tsx", text: "const x = 1;" },
+    ]);
     expect(report(findings)).toContain("owner");
   });
 });
