@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41156059838
-- Commit: `b3e8dba2adf1fd297fe72072dccef2e39fb503c3`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41160992985
+- Commit: `0a16eed0d2b15972b114913c0652793bb82d7a1e`
 - Attempt: 1
-- Written (UTC): 2026-10-31T02:05:56.772Z
+- Written (UTC): 2026-10-31T02:58:10.539Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -26,6 +26,8 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1m  exit "$reporter"[0m
+[36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
@@ -34,12 +36,10 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41156059838
-  E2E_HEAD_COMMIT_MESSAGE: Update plan
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41160992985
+  E2E_HEAD_COMMIT_MESSAGE: Implemented turn D2 strings
 
-Plan file updated during planning mode
-
-X-Lovable-Edit-ID: edt-b40f8111-1673-4ca0-97ca-3186e4558134
+X-Lovable-Edit-ID: edt-61071ba6-a29b-4429-91af-984da92f2c1a
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -56,7 +56,7 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (16/18 source(s) with usable results, 0 context file(s) found).
+Wrote docs/tracking/e2e-last-failure.md (18/19 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -73,7 +73,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/f408519f-0179-4879-89f5-2d28118eaba3' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/23d84d03-67a3-40fc-86d3-ced1251be6ac' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
