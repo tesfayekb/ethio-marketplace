@@ -36,8 +36,10 @@ describe("CL-U — every open list reads menu-row.ts's constants", () => {
     expect(impl).toContain("min-w-[var(--radix-dropdown-menu-trigger-width)]");
     // DEC-259: only overlays-impl may reach the impl by value, so its classes are read
     // from its source: the content and every row part start from the constants.
-    expect(impl.match(/\bLIST_PANEL,/g)?.length).toBe(2);
-    expect(impl.match(/\bLIST_ROW,/g)?.length).toBe(4);
+    // The import line, then the content and the sub-content.
+    expect(impl.match(/\bLIST_PANEL,/g)?.length).toBe(3);
+    // The import line, then the sub-trigger, item, checkbox and radio rows.
+    expect(impl.match(/\bLIST_ROW,/g)?.length).toBe(5);
     expect(impl).not.toMatch(/zoom-|rounded-sm|py-1\.5|\bborder\b/);
   });
   it("CL-U5: the picker's rows and panel come from the constants, against the box's edge", () => {
