@@ -1003,7 +1003,7 @@ export function AppRail() {
   const { t } = useI18n();
   const { navOpen, setNavOpen, user, auth, authLoading, activePanel } = useShell();
   const { collapsed } = useRailCollapsed();
-  const pathname = useShownPathname();
+  const pathname = useShownPathname(); // frame: INC-581 — the menu closes when the page lands
   const [peeking, setPeeking] = useState(false);
   /** INC-924 — the peek's menu has been drawn (its code arrived): its 3-second clock starts here. */
   const [peekDrawn, setPeekDrawn] = useState(false);

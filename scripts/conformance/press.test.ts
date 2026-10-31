@@ -12,7 +12,8 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     plain-link rule in src/styles.css.
  *  3. (turn C2, D271) A menu's current mark reads the one rule on the chosen page: a file that
  *     calls isCurrentAt is a named menu file (MENU_FILES) and reads useMenuAt; no menu file
- *     reads useShownPathname or useRouterState for its mark, and no `aria-current` or
+ *     reads useShownPathname or useRouterState (a line that is the frame's own read says
+ *     `// frame: INC-581`), and no `aria-current` or
  *     `current` mark reads `activePanel`.
  *  4. (turn C2, D272) The tick is press.ts's alone: no `vibrate(` call and no switch checkbox
  *     (`<input … switch>`, `setAttribute("switch")`) anywhere else.
@@ -57,9 +58,13 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
       else if (!/\buseMenuAt\(/.test(code))
         findings.push({ file: name, line: 1, what: "the mark does not read useMenuAt" });
     }
+    const raw = text.split("\n");
     lines.forEach((line, index) => {
       const at = { file: name, line: index + 1 };
-      if (menu && /\b(useShownPathname|useRouterState)\(/.test(line))
+      // The FRAME's own read (INC-581: which panel, the phone menu's close) is not a mark; it
+      // says so on its line, and only that exact word passes.
+      const frame = /\/\/ frame: INC-581\b/.test(raw[index] ?? "");
+      if (menu && !frame && /\b(useShownPathname|useRouterState)\(/.test(line))
         findings.push({ ...at, what: "a menu's mark reads the shown page (read useMenuAt)" });
       if (menu && /\b(aria-current|current)=\{[^}]*\bactivePanel\b/.test(line))
         findings.push({ ...at, what: "a current mark read from activePanel" });
@@ -209,6 +214,10 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
           text: `const at = useMenuAt(); isCurrentAt({ path: "/" }, at);`,
         },
         { name: "src/lib/press.ts", text: `nav.vibrate(TICK_MS);` },
+        {
+          name: "src/components/shell/app-rail.tsx",
+          text: `const at = useMenuAt();\nconst p = useShownPathname(); // frame: INC-581 — closes the menu`,
+        },
       ]),
     ).toEqual([]);
   });
