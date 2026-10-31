@@ -1,5 +1,4 @@
-import { changedTestFolders, semgrepPins, semgrepTargets,
-  turnBase } from "./laws-changed";
+import { changedTestFolders, semgrepPins, semgrepTargets, turnBase } from "./laws-changed";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -248,9 +247,12 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
   });
 
   it("TC-E5 the laws step's base is TURN_BASE, else the roadmap brief's Base line, else a loud failure — never HEAD~1 (F4b)", () => {
-    const roadmap = "# Roadmap\n\nThe brief in force: docs/governance/briefs/foundations-turn-x.md (x)\n";
+    const roadmap =
+      "# Roadmap\n\nThe brief in force: docs/governance/briefs/foundations-turn-x.md (x)\n";
     const brief = (p: string) =>
-      p === "docs/governance/briefs/foundations-turn-x.md" ? "RULING — Base: dev e1e736df. Tier B." : null;
+      p === "docs/governance/briefs/foundations-turn-x.md"
+        ? "RULING — Base: dev e1e736df. Tier B."
+        : null;
     expect(turnBase("abc1234", roadmap, brief)).toBe("abc1234");
     expect(turnBase(undefined, roadmap, brief)).toBe("e1e736df");
     expect(turnBase("", roadmap, brief)).toBe("e1e736df");

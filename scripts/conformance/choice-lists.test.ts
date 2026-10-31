@@ -37,6 +37,8 @@ const OWN_ROW = /(?:^|\s)(?:py-|px-|min-h-|h-\d|rounded-)\S*/;
 const OWN_PANEL = /(?:^|\s)(?:border(?=\s|$)|(?:border-|shadow-|rounded-|p-\d|bg-|zoom-)\S*)/;
 const OWN_HEIGHT = /(?:^|\s)max-h-\S*/;
 const OWN_PICKER_HEIGHT = /(?:^|\s)(?:(?:min-|max-)?h-|overflow-y-)\S*/;
+const LIST_PARTS = new Set(["DropdownMenuLabel", "DropdownMenuSeparator"]);
+const OWN_ICON = /(?:^|\s)(?:\[&_?>?svg\]:\S*|(?:size-|h-\d|w-\d|-?m[sexy]?-|text-)\S*)/;
 const OWN_PICKER_GEOMETRY = /(?:^|\s)(?:(?:min-|max-)?w-|start-|end-|left-|right-)\S*/;
 export const OWNERS: Record<string, RegExp> = {
   "src/components/ui/dropdown-menu-impl.tsx":
@@ -67,7 +69,20 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
       keys.push(`${name}#${part}`);
       findings.push({ file: name, line, what: `${part}: ${what}` });
     };
+    // CL-9 (D268, F4b): an icon in a row takes LIST_ICON through DropdownMenuIcon, never its
+    // own size, margin or colour; `inRow` is true under a facade row part.
+    let inRow = false;
     const walk = (node: ts.Node) => {
+      if (
+        ts.isJsxElement(node) &&
+        ROW_PARTS.has(node.openingElement.tagName.getText(source).replace(/^.*\./, ""))
+      ) {
+        const was = inRow;
+        inRow = true;
+        ts.forEachChild(node, walk);
+        inRow = was;
+        return;
+      }
       if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
         const tag = node.tagName.getText(source).replace(/^.*\./, "");
         const cls = (attr(node, "className", source) ?? "").replace(/[`"'{}]/g, " ");
@@ -85,6 +100,14 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
         }
         if (offset !== null && /\d/.test(offset) && !/^\{?\s*0\s*\}?$/.test(offset))
           push(node, tag, `sideOffset ${offset} leaves a gap (D264)`);
+        // CL-8 (D268, F4b): a list's label and separator are the facade's, never restyled.
+        if (LIST_PARTS.has(tag) && attr(node, "className", source) !== null)
+          push(node, tag, "own label or separator class (LIST_LABEL, LIST_SEPARATOR)");
+        if (inRow && !ROW_PARTS.has(tag) && tag !== "CutText") {
+          const own = cls.match(OWN_ICON);
+          if (own && (/^[A-Z]/.test(tag) || /svg\]/.test(own[0])))
+            push(node, "icon", `own row icon class "${own[0].trim()}" (DropdownMenuIcon)`);
+        }
         if (tag === "select") push(node, "select", "a native list the device draws");
         if (ROW_PARTS.has(tag) || role === "option") {
           const own = cls.match(OWN_ROW);
@@ -295,6 +318,54 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
     expect(
       listFindings([
         { name: "src/x.tsx", text: `const a = <ul role="listbox" className={LIST_SCROLLER} />;` },
+      ]).findings,
+    ).toEqual([]);
+  });
+
+  it("CL-8: a planted label or separator with its own class fails; the bare part passes", () => {
+    for (const text of [
+      `const a = <DropdownMenuLabel className="px-2 text-xs">x</DropdownMenuLabel>;`,
+      `const a = <DropdownMenuSeparator className="bg-muted" />;`,
+    ]) {
+      expect(report(listFindings([{ name: "src/x.tsx", text }]).findings)).toContain(
+        "own label or separator class",
+      );
+    }
+    expect(
+      listFindings([
+        {
+          name: "src/x.tsx",
+          text: `const a = <><DropdownMenuLabel>x</DropdownMenuLabel><DropdownMenuSeparator /></>;`,
+        },
+      ]).findings,
+    ).toEqual([]);
+  });
+
+  it("CL-9: a planted row icon with its own size, margin or colour fails; DropdownMenuIcon passes", () => {
+    for (const [text, cls] of [
+      [
+        `const a = <DropdownMenuItem><User className="me-2 h-4 w-4" />x</DropdownMenuItem>;`,
+        "me-2",
+      ],
+      [
+        `const a = <DropdownMenuItem><span className="inline-flex [&_svg]:size-4">{i}</span></DropdownMenuItem>;`,
+        "[&_svg]:size-4",
+      ],
+      [
+        `const a = <DropdownMenuRadioItem value="a"><Icon className="text-primary" /></DropdownMenuRadioItem>;`,
+        "text-primary",
+      ],
+    ] as const) {
+      expect(report(listFindings([{ name: "src/x.tsx", text }]).findings)).toContain(
+        `own row icon class "${cls}"`,
+      );
+    }
+    expect(
+      listFindings([
+        {
+          name: "src/x.tsx",
+          text: `const a = <DropdownMenuItem><DropdownMenuIcon><User /></DropdownMenuIcon><CutText className="flex-1" text="x" /></DropdownMenuItem>;`,
+        },
       ]).findings,
     ).toEqual([]);
   });

@@ -66,6 +66,7 @@ export const OPEN_CONTROL =
  *  LIST_LABEL: a non-interactive header row on the row's padding, muted, semibold, cut by
  *  CutText. LIST_SEPARATOR: the one rule, in the hairline. LIST_ICON: a row's icon, spaced by
  *  LIST_ROW's gap only, in the row's own ink. */
-export const LIST_LABEL = "flex min-h-9 min-w-0 items-center px-3 text-sm font-semibold text-muted-foreground";
+export const LIST_LABEL =
+  "flex min-h-9 min-w-0 items-center px-3 text-sm font-semibold text-muted-foreground";
 export const LIST_SEPARATOR = "-mx-1.5 my-1 h-px bg-hairline";
 export const LIST_ICON = "size-4 shrink-0 text-current";
