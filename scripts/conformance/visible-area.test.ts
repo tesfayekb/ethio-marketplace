@@ -86,12 +86,21 @@ describe("CF-AREA-1 — an open list's room comes from one reader (D267)", () =>
 
   it("VA-3: a planted first-paint import fails; the two readers and a clean file pass", () => {
     const planted = areaFindings([
-      { name: "src/components/shell/app-header.tsx", text: `import { visibleArea } from "@/lib/visible-area";` },
+      {
+        name: "src/components/shell/app-header.tsx",
+        text: `import { visibleArea } from "@/lib/visible-area";`,
+      },
     ]);
     expect(report(planted.findings)).toContain("outside its on-demand readers");
     const clean = areaFindings([
-      { name: "src/components/searchable-picker.tsx", text: `import { visibleArea } from "@/lib/visible-area";` },
-      { name: "src/y.tsx", text: `const a = <DropdownMenuContent align="end">x</DropdownMenuContent>;` },
+      {
+        name: "src/components/searchable-picker.tsx",
+        text: `import { visibleArea } from "@/lib/visible-area";`,
+      },
+      {
+        name: "src/y.tsx",
+        text: `const a = <DropdownMenuContent align="end">x</DropdownMenuContent>;`,
+      },
     ]);
     expect(clean.findings).toEqual([]);
   });
