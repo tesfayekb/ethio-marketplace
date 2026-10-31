@@ -3,6 +3,7 @@ import { useEffect, useState, type KeyboardEvent, type ReactNode, type RefObject
 import { Check } from "lucide-react";
 
 import { Z_POPOVER } from "@/components/layout/layers";
+import { visibleArea, type VisibleArea } from "@/lib/visible-area";
 import {
   LIST_ROW,
   LIST_ROW_CURRENT,
@@ -22,6 +23,63 @@ import {
  */
 
 export type PickerPlacement = "up" | "down";
+
+/**
+ * D267 (F4a) — where an open list goes, inside the visible area. Down when it fits;
+ * when the room below is short and the page can scroll, scroll the control up to the
+ * area's top and open down; only when the page cannot scroll far enough, the larger
+ * side. The height is bounded by the room on the chosen side.
+ */
+export function placeList(
+  rect: Pick<DOMRect, "top" | "bottom">,
+  wanted: number,
+  area: VisibleArea,
+  scrollRoom: number,
+): { side: PickerPlacement; maxHeight: number; scrollBy: number } {
+  const below = area.bottom - rect.bottom;
+  if (below >= wanted) return { side: "down", maxHeight: wanted, scrollBy: 0 };
+  const scrollBy = Math.max(0, Math.min(rect.top - area.top, scrollRoom, wanted - below));
+  const after = below + scrollBy;
+  const above = rect.top - scrollBy - area.top;
+  if (after >= wanted || after >= above) {
+    return { side: "down", maxHeight: Math.max(0, Math.min(wanted, after)), scrollBy };
+  }
+  return { side: "up", maxHeight: Math.max(0, Math.min(wanted, above)), scrollBy };
+}
+
+/** The element inside an open list that scrolls its rows (itself when it does). */
+function listScroller(panel: HTMLElement): HTMLElement {
+  const own = (element: HTMLElement) => /auto|scroll/.test(window.getComputedStyle(element).overflowY);
+  if (own(panel)) return panel;
+  return (
+    Array.from(panel.querySelectorAll<HTMLElement>("*")).find((element) => own(element)) ?? panel
+  );
+}
+
+/** D267 ruling 3 — scroll, then run `done` once the position has settled (scrollend or two
+ *  still frames); instant under reduced motion. */
+function scrollThenPlace(distance: number, done: () => void) {
+  const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+  window.scrollBy({ top: distance, behavior: reduced ? "instant" : "smooth" });
+  let last = window.scrollY;
+  let still = 0;
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    window.removeEventListener("scrollend", finish);
+    done();
+  };
+  window.addEventListener("scrollend", finish, { once: true });
+  const tick = () => {
+    if (finished) return;
+    still = window.scrollY === last ? still + 1 : 0;
+    last = window.scrollY;
+    if (still >= 2) finish();
+    else requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
 
 /** INC-280 — where the list opens, re-judged on resize while open. */
 export function usePickerPlacement(
@@ -54,23 +112,36 @@ export function usePickerPlacement(
         panel.style.setProperty("--picker-min-width", `${geometry.anchorWidth}px`);
         panel.style.setProperty("--picker-max-width", `${geometry.availableWidth}px`);
       }
-      const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
-      const barTop =
-        bar !== null && window.getComputedStyle(bar).position === "sticky"
-          ? bar.getBoundingClientRect().top
-          : window.innerHeight;
-      // C2e — the phone bottom bar, when displayed, is a floor too.
-      const bottomBar = document.querySelector<HTMLElement>('[data-testid="bottom-bar"]');
-      const bottomBarTop =
-        bottomBar !== null && window.getComputedStyle(bottomBar).display !== "none"
-          ? bottomBar.getBoundingClientRect().top
-          : window.innerHeight;
-      const roomBelow = Math.min(barTop, bottomBarTop, window.innerHeight) - rect.bottom - 4;
-      const roomAbove = rect.top - 4;
-      const listHeight = Math.min(256, 44 * rowCount + 2);
-      const next = roomBelow >= listHeight ? "down" : roomAbove > roomBelow ? "up" : "down";
-      setPlacement((prev) => (prev === next ? prev : next));
+      if (panel === null || panel === undefined) {
+        setPlacement("down");
+        return;
+      }
+      // D267 — measure the list's natural height (its own class caps), then place it
+      // inside the visible area; a scroll first ends before it is measured again.
+      const scroller = listScroller(panel);
+      scroller.style.maxHeight = "";
+      const wanted = panel.getBoundingClientRect().height || Math.min(256, 44 * rowCount + 2);
+      const page = document.scrollingElement ?? document.documentElement;
+      const scrollRoom = settled ? 0 : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
+      const plan = placeList(rect, wanted, visibleArea(), scrollRoom);
+      if (plan.scrollBy > 0) {
+        panel.style.visibility = "hidden";
+        scrollThenPlace(plan.scrollBy, () => {
+          settled = true;
+          place();
+        });
+        return;
+      }
+      const cut = wanted - plan.maxHeight;
+      if (cut > 0) {
+        const own = scroller.getBoundingClientRect().height;
+        scroller.style.maxHeight = `${Math.max(44, own - cut)}px`;
+      }
+      panel.style.setProperty("--picker-max-height", `${plan.maxHeight}px`);
+      panel.style.visibility = "";
+      setPlacement((prev) => (prev === plan.side ? prev : plan.side));
     };
+    let settled = false;
     place();
     window.addEventListener("resize", place);
     return () => {
