@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
@@ -78,6 +78,48 @@ export function overlayReaches(files: string[], root: string): Finding[] {
   return found;
 }
 
+/** Turn S6-1 (ruling 7): the overlay packages whose primitives were retired. The packages stay
+ *  in package.json until a package turn; no file reaches them, by value or by type. */
+export const RETIRED =
+  /^(?:@radix-ui\/react-(?:select|hover-card|context-menu|menubar|navigation-menu)|vaul|cmdk)$/;
+
+/** The retired primitive files, which stay retired. */
+export const RETIRED_FILES = [
+  "command",
+  "context-menu",
+  "drawer",
+  "hover-card",
+  "menubar",
+  "navigation-menu",
+  "select",
+  "sidebar",
+].map((name) => `src/components/ui/${name}.tsx`);
+
+/** Every reach of a retired package, type-only included. */
+export function retiredReaches(files: string[], root: string): Finding[] {
+  const found: Finding[] = [];
+  for (const file of files) {
+    const name = relative(root, file).split(sep).join("/");
+    visitTs(file, (node, source) => {
+      let specifier: ts.Expression | undefined;
+      if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+        specifier = node.moduleSpecifier;
+      else if (ts.isCallExpression(node) && node.expression.kind === ts.SyntaxKind.ImportKeyword)
+        specifier = node.arguments[0];
+      else if (ts.isImportTypeNode(node) && ts.isLiteralTypeNode(node.argument))
+        specifier = node.argument.literal;
+      if (specifier === undefined || !ts.isStringLiteral(specifier)) return;
+      if (!RETIRED.test(specifier.text)) return;
+      found.push({
+        file: name,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        what: `reaches ${specifier.text}, a retired overlay package (turn S6-1, ruling 7)`,
+      });
+    });
+  }
+  return found;
+}
+
 /** The names a module exports through `export { … }` lists. */
 export function exportedNames(file: string): string[] {
   const names: string[] = [];
@@ -132,6 +174,45 @@ describe("the overlay primitives on demand (DEC-259)", () => {
           "src/features/bad.tsx:1 reaches @radix-ui/react-tooltip by value; only src/components/ui/tooltip-impl.tsx may (DEC-259)",
           "src/features/bad.tsx:2 reaches @/components/ui/dropdown-menu-impl by value; only src/components/ui/overlays-impl.ts may (DEC-259)",
           "src/features/bad.tsx:3 reaches ../components/ui/overlays-impl by value; only src/components/ui/overlay-loader.ts may (DEC-259)",
+        ].join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it(
+    "CF-OV-4 no file reaches a retired overlay package, and the retired primitive files stay gone",
+    () => {
+      const files = walkFiles(["src", "e2e", "scripts"], { ext: ["ts", "tsx", "mts", "mjs"] }).map(
+        (file) => join(ROOT, file),
+      );
+      expect(files.length).toBeGreaterThanOrEqual(500);
+      expect(report(retiredReaches(files, ROOT))).toBe("");
+      expect(RETIRED_FILES.filter((file) => existsSync(join(ROOT, file)))).toEqual([]);
+    },
+    TREE_SCAN_MS,
+  );
+
+  it("CF-OV-5 planted: a value, a type-only and a dynamic reach of a retired package fail", () => {
+    const dir = join(ROOT, "node_modules/.cache/overlays-retired");
+    mkdirSync(join(dir, "src/features"), { recursive: true });
+    try {
+      writeFileSync(
+        join(dir, "src/features/bad.tsx"),
+        'import { Drawer } from "vaul";\nimport type * as S from "@radix-ui/react-select";\nconst c = import("cmdk");\nexport * from "@radix-ui/react-hover-card";\n',
+      );
+      writeFileSync(
+        join(dir, "src/features/good.tsx"),
+        'import * as D from "@/components/ui/dialog-primitive";\nimport { Popover } from "@radix-ui/react-popover";\n',
+      );
+      const files = walkFiles([join(dir, "src")], { ext: ["ts", "tsx"] });
+      expect(report(retiredReaches(files, dir))).toBe(
+        [
+          "src/features/bad.tsx:1 reaches vaul, a retired overlay package (turn S6-1, ruling 7)",
+          "src/features/bad.tsx:2 reaches @radix-ui/react-select, a retired overlay package (turn S6-1, ruling 7)",
+          "src/features/bad.tsx:3 reaches cmdk, a retired overlay package (turn S6-1, ruling 7)",
+          "src/features/bad.tsx:4 reaches @radix-ui/react-hover-card, a retired overlay package (turn S6-1, ruling 7)",
         ].join("\n"),
       );
     } finally {
