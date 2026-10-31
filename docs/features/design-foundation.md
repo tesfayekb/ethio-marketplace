@@ -513,3 +513,9 @@ until the operator picks; the pick lands as a one-line token change (B2). The no
 ## A list's parts (D268, turn F4b)
 
 Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL` (a non-interactive header row on the row's padding, muted ink, semibold `text-sm`, cut by CutText), `LIST_SEPARATOR` (the one hairline rule) and `LIST_ICON` (`size-4 shrink-0` in the row's own ink, spaced by the row's gap only). The facade's `DropdownMenuLabel` and `DropdownMenuSeparator` read them, and `DropdownMenuIcon` (a slot) applies `LIST_ICON` to the consumer's glyph. CF-LIST-1 rules 8 and 9 refuse a label's or separator's own class and a row icon's own size, margin or colour. The S6 dialog parts reuse these constants.
+
+## Sage S3 (turn B2)
+
+- Dark card C live (#28342E card, #42504A edge, #3A2F1D / #243A2F tier fills).
+- Feed heading 21/25/30 px, 800, -0.9 px, place in primary, one line via ONE_LINE_SLOT.
+- Card body 13/14/14 px (compact 8/9 tablet, 6/7 phone); price 16/13/12 bold; Negotiable pill success-soft + success ink, 11 px semibold; place line divider (rule) with 9/6 px top, leaf ink (Featured: its own ink, D269); empty well photo-empty with a bottom rule.
