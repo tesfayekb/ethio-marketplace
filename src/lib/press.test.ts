@@ -1,6 +1,14 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { installPress, PRESS_SLOP, setTapTick, TAP_TICK_KEY, tapTickOn, TICK_MS } from "./press";
+import {
+  installPress,
+  PRESS_SLOP,
+  RELEASE_MS,
+  setTapTick,
+  TAP_TICK_KEY,
+  tapTickOn,
+  TICK_MS,
+} from "./press";
 
 function fire(target: EventTarget, type: string, props: Record<string, unknown> = {}) {
   const event = Object.assign(new Event(type, { bubbles: true, cancelable: true }), props);
