@@ -32,9 +32,9 @@ export function usePickerPlacement(
   const [placement, setPlacement] = useState<PickerPlacement>("down");
   useEffect(() => {
     if (!open) return;
+    const anchor = anchorRef.current;
+    if (anchor === null) return;
     const place = () => {
-      const anchor = anchorRef.current;
-      if (anchor === null) return;
       const rect = anchor.getBoundingClientRect();
       // The existing anchor is the currency input or the whole phone field. The
       // picker owns both its list geometry and the control's open state (F3).
@@ -75,10 +75,9 @@ export function usePickerPlacement(
     window.addEventListener("resize", place);
     return () => {
       window.removeEventListener("resize", place);
-      const anchor = anchorRef.current;
-      const control = anchor?.matches("input")
+      const control = anchor.matches("input")
         ? anchor
-        : anchor?.querySelector<HTMLElement>('[aria-haspopup="listbox"]');
+        : anchor.querySelector<HTMLElement>('[aria-haspopup="listbox"]');
       if (control !== null && control !== undefined) control.dataset.state = "closed";
     };
   }, [anchorRef, open, rowCount]);
