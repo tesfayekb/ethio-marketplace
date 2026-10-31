@@ -22,6 +22,7 @@ export function FormLayout({
         <div
           className={`sticky [inset-block-end:var(--bottom-bar)] ${Z_ACTION_BAR} -mx-4 mt-4 border-t border-border bg-background px-4 py-2 pb-[calc(0.5rem+var(--bar-rise))] md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:pb-0`}
           data-testid="form-layout-actions"
+          data-chrome="bottom"
         >
           {footer}
         </div>

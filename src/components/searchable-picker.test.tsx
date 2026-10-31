@@ -7,6 +7,7 @@ import { useRef } from "react";
 import {
   PickerOption,
   pickerGeometry,
+  placeList,
   usePickerKeys,
   usePickerPlacement,
 } from "./searchable-picker";
@@ -121,5 +122,39 @@ describe("F3 shared picker horizontal placement", () => {
     expect(screen.getByTestId("owned-control")).toHaveAttribute("data-state", "open");
     rerender(<OwnedPicker open={false} />);
     expect(screen.getByTestId("owned-control")).toHaveAttribute("data-state", "closed");
+  });
+});
+
+describe("D267 — placeList: an open list stays inside the visible area", () => {
+  const area = { top: 140, bottom: 700 };
+  it("PL-U1: room below opens down at once, no scroll", () => {
+    expect(placeList({ top: 200, bottom: 244 }, 256, area, 1000)).toEqual({
+      side: "down",
+      maxHeight: 256,
+      scrollBy: 0,
+    });
+  });
+  it("PL-U2: short below with room to scroll scrolls first, then opens down whole", () => {
+    const plan = placeList({ top: 400, bottom: 444 }, 300, area, 1000);
+    expect(plan.side).toBe("down");
+    expect(plan.scrollBy).toBe(44);
+    expect(plan.maxHeight).toBe(300);
+  });
+  it("PL-U3: a page that cannot scroll opens on the larger side, bounded", () => {
+    const plan = placeList({ top: 600, bottom: 644 }, 600, area, 0);
+    expect(plan).toEqual({ side: "up", maxHeight: 460, scrollBy: 0 });
+  });
+  it("PL-U4: a tiny area bounds the height both ways", () => {
+    const tiny = { top: 140, bottom: 300 };
+    const down = placeList({ top: 150, bottom: 194 }, 256, tiny, 0);
+    expect(down).toEqual({ side: "down", maxHeight: 106, scrollBy: 0 });
+    const up = placeList({ top: 250, bottom: 294 }, 256, tiny, 0);
+    expect(up).toEqual({ side: "up", maxHeight: 110, scrollBy: 0 });
+  });
+  it("PL-U5: the scroll never lifts the control above the area's top", () => {
+    const plan = placeList({ top: 160, bottom: 204 }, 900, area, 1000);
+    expect(plan.scrollBy).toBe(20);
+    expect(plan.side).toBe("down");
+    expect(plan.maxHeight).toBe(700 - 204 + 20);
   });
 });

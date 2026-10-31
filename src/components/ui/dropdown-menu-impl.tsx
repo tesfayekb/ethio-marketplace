@@ -6,6 +6,7 @@ import { Check, ChevronRight } from "lucide-react";
 
 import { LIST_PANEL, LIST_ROW, LIST_TICK } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
+import { collisionPaddingNow } from "@/lib/visible-area";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 
@@ -51,23 +52,27 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 0, align = "start", collisionPadding = 16, ...props }, ref) => (
-  <DropdownMenuPrimitive.Portal>
-    <DropdownMenuPrimitive.Content
-      ref={ref}
-      sideOffset={sideOffset}
-      align={align}
-      collisionPadding={collisionPadding}
-      className={cn(
-        LIST_PANEL,
-        // D264 ruling 3 — at least the control's width; the content decides inside that.
-        "max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto",
-        className,
-      )}
-      {...props}
-    />
-  </DropdownMenuPrimitive.Portal>
-));
+>(({ className, sideOffset = 0, align = "start", collisionPadding, ...props }, ref) => {
+  // D267 — the content mounts on open, so this reads the visible area at that moment.
+  const [area] = React.useState(() => collisionPaddingNow());
+  return (
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        align={align}
+        collisionPadding={collisionPadding ?? area}
+        className={cn(
+          LIST_PANEL,
+          // D264 ruling 3 — at least the control's width; the content decides inside that.
+          "max-h-[var(--radix-dropdown-menu-content-available-height)] min-w-[var(--radix-dropdown-menu-trigger-width)] overflow-y-auto",
+          className,
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
+  );
+});
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName;
 
 const DropdownMenuItem = React.forwardRef<
