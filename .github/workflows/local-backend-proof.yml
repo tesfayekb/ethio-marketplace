@@ -107,10 +107,12 @@ jobs:
           if [ "$bytes" -gt 4294967296 ]; then
             echo "::error::backend-images: the tarball is over 4 GiB ($bytes bytes); not cached (the repository's cache is shared)"
             rm -f "$RUNNER_TEMP/backend-images/images.tar.gz"
+          else
+            echo "tarball=yes" >> "$GITHUB_OUTPUT"
           fi
       - name: Save the images
         id: save-images
-        if: steps.build-images.outcome == 'success' && hashFiles(format('{0}/backend-images/images.tar.gz', runner.temp)) != ''
+        if: steps.build-images.outputs.tarball == 'yes'
         timeout-minutes: 15
         uses: actions/cache/save@v5
         with:
