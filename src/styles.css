@@ -125,6 +125,9 @@
   --radius-bar: 1.125rem;
   --radius-track: var(--track-radius);
   --radius-segment: var(--segment-radius);
+  /* D264 (turn F): an open list's panel (14 px) and its rows (10 px), Sage §14. */
+  --radius-menu: 0.875rem;
+  --radius-list-row: 0.625rem;
   /*
    * Typography (DEC-262, Foundations turn 33): the device's own fonts — no page
    * downloads a font. Latin and the interface take the platform's UI face (San
@@ -249,6 +252,7 @@
   --shadow-row-on: var(--lift-row-on);
   --shadow-track: var(--lift-track);
   --shadow-segment: var(--lift-segment);
+  --shadow-menu: var(--lift-menu);
   --shadow-badge: var(--lift-badge);
   --shadow-premium: var(--lift-premium);
   --shadow-featured: var(--lift-featured);
@@ -370,6 +374,10 @@
   --lift-row-on:
     0 1px 2px oklch(0.337 0.055 163.4 / 0.08), 0 6px 14px -4px oklch(0.337 0.055 163.4 / 0.14);
   --lift-track: inset 0 2px 3px oklch(0.337 0.055 163.4 / 0.12), inset 0 -1px 0 oklch(1 0 0);
+  /* D264 (turn F): the open list's ring is the shadow's first layer (#DCE6DF), never a border. */
+  --lift-menu:
+    0 0 0 1px #dce6df, 0 4px 12px oklch(0.337 0.055 163.4 / 0.12),
+    0 16px 32px -12px oklch(0.337 0.055 163.4 / 0.2);
   --lift-segment:
     0 1px 2px oklch(0.337 0.055 163.4 / 0.2), 0 3px 8px oklch(0.337 0.055 163.4 / 0.1),
     inset 0 -1px 0 oklch(0.337 0.055 163.4 / 0.06);
@@ -507,6 +515,7 @@
   --lift-row-on: 0 1px 2px oklch(0 0 0 / 0.3), 0 6px 14px -4px oklch(0 0 0 / 0.4);
   --lift-track: inset 0 2px 4px oklch(0 0 0 / 0.45);
   --lift-segment: 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3);
+  --lift-menu: 0 0 0 1px #2f3b34, 0 4px 12px oklch(0 0 0 / 0.4), 0 16px 32px -12px oklch(0 0 0 / 0.55);
   --lift-card: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
   --lift-badge:
     inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
