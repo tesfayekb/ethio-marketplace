@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { categoryPath, isCurrentAt, menuAtOf, parseMenuAt } from "./menu-current";
+import { categoryPath, isCurrentAt, menuAtOf, panelOf, parseMenuAt } from "./menu-current";
 
 const at = (pathname: string, hash = "") => ({ pathname, hash });
 
@@ -73,5 +73,19 @@ describe("useMenuAt's place (turn C2, D263/D271)", () => {
         }),
       ).pathname,
     ).toBe("/nope");
+  });
+});
+
+describe("panelOf — the one section rule (turn C fix 1, INC-359)", () => {
+  it("PO-U1: the posting pages and /my-listings belong to My Listings", () => {
+    for (const p of ["/post", "/post/abc", "/my-listings", "/my-listings/x"])
+      expect(panelOf(p), p).toBe("my-listings");
+    expect(panelOf("/poster")).toBeNull();
+  });
+  it("PO-U2: account, settings and admin; the feed and sign-in own no section", () => {
+    expect(panelOf("/account")).toBe("account");
+    expect(panelOf("/settings/x")).toBe("account");
+    expect(panelOf("/admin/users")).toBe("admin");
+    for (const p of ["/", "/c/cars", "/auth"]) expect(panelOf(p), p).toBeNull();
   });
 });
