@@ -3513,8 +3513,9 @@ test.describe("top band law (bundle 21 turn 2)", () => {
       const logo = page
         .getByTestId("shell-topbar")
         .getByRole("link", { name: en["app.name"], exact: true });
+      // G38 D265: align the shared track's outer edge; its Home segment is inset by 3 px.
       expect(
-        Math.abs((await bounds(logo)).x - (await bounds(page.getByTestId("breadcrumb-home"))).x),
+        Math.abs((await bounds(logo)).x - (await bounds(page.getByTestId("breadcrumb-track"))).x),
       ).toBeLessThanOrEqual(2);
       return;
     }
@@ -3569,9 +3570,10 @@ test.describe("top band law (bundle 21 turn 2)", () => {
             Math.abs(centre(await bounds(page.getByTestId("search-inline"))) - (left + right) / 2),
           ).toBeLessThanOrEqual(2);
           if (folded)
+            // G38 D265: the track keeps the band's start edge; its segment has track padding.
             expect(
               Math.abs(
-                (await bounds(word)).x - (await bounds(page.getByTestId("breadcrumb-home"))).x,
+                (await bounds(word)).x - (await bounds(page.getByTestId("breadcrumb-track"))).x,
               ),
             ).toBeLessThanOrEqual(2);
         }
