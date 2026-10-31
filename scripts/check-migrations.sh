@@ -623,51 +623,15 @@ echo "Self-marking guard OK (floor $MARK_GUARD_FLOOR)."
 PUBLIC_SURFACE_FLOOR="${PUBLIC_SURFACE_FLOOR:-20261003215043}"
 PUBLIC_SURFACE_ALLOWLIST="${PUBLIC_SURFACE_ALLOWLIST:-$SCRIPT_DIR/public-surface-allowlist.txt}"
 
+# DEC-310: both readers call the one strict roles parser. Validate once before
+# command substitutions: a malformed list must not be mistaken for no offenders.
+if ! bun "$SCRIPT_DIR/public-surface.ts" --parse "$PUBLIC_SURFACE_ALLOWLIST" > /dev/null; then
+  echo "Public-surface guard FAILED: malformed allowlist."
+  exit 1
+fi
+
 public_surface_offenders() {
-  # $1 = file. Prints one "<file>: <object>" per unlisted browser grant.
-  tr '\n' ' ' < "$1" | tr ';' '\n' | awk -v file="$1" -v allow="$PUBLIC_SURFACE_ALLOWLIST" '
-    BEGIN {
-      while ((getline line < allow) > 0) {
-        if (line ~ /^[[:space:]]*(#|$)/) continue
-        split(line, part, "|"); n = part[1]; r = part[2]
-        gsub(/^[[:space:]]+|[[:space:]]+$/, "", n); gsub(/^[[:space:]]+|[[:space:]]+$/, "", r)
-        if (n != "" && r != "") ok[n] = 1
-      }
-    }
-    {
-      st = tolower($0)
-      if (st !~ /(^|[^a-z_])grant[[:space:]]/) next
-      if (st !~ /[[:space:]]to[[:space:]].*(anon|authenticated|public)/) next
-      if (st !~ /grant[[:space:]]+(select|execute|all)/) next
-      if (match(st, /public\.[a-z0-9_]+/) == 0) next
-      obj = substr(st, RSTART + 7, RLENGTH - 7)
-      if (!(obj in ok)) print file ": " obj
-    }'
-  # INC-443 — a grant built in a loop: FOREACH … IN ARRAY ARRAY[…] LOOP whose
-  # body runs EXECUTE format('GRANT select|execute|all … TO anon|authenticated|
-  # PUBLIC', f) flags every 'public.<name>(…)' literal of the ARRAY list that
-  # the allowlist does not name (the unqualified name before the parenthesis).
-  ALLOW="$PUBLIC_SURFACE_ALLOWLIST" perl -0777 -ne '
-    my %ok;
-    if (open(my $a, "<", $ENV{ALLOW})) {
-      local $/ = "\n";
-      while (my $l = <$a>) {
-        next if $l =~ /^\s*(#|$)/;
-        my ($n, $r) = split /\|/, $l, 2;
-        next unless defined $r;
-        $n =~ s/^\s+|\s+$//g; $r =~ s/^\s+|\s+$//g;
-        $ok{$n} = 1 if $n ne "" && $r ne "";
-      }
-    }
-    while (/FOREACH\s+\w+\s+IN\s+ARRAY\s+ARRAY\[(.*?)\]\s*LOOP(.*?)END\s+LOOP/sgi) {
-      my ($list, $body) = ($1, $2);
-      next unless $body =~ /EXECUTE\s+format\s*\(\s*\x27\s*GRANT\s+(SELECT|EXECUTE|ALL)\b[^\x27]*\bTO\s+[^\x27]*\b(anon|authenticated|public)\b/i;
-      while ($list =~ /\x27public\.([a-z0-9_]+)\s*\(/gi) {
-        my $n = lc $1;
-        print "$ARGV: $n\n" unless $ok{$n};
-      }
-    }
-  ' "$1"
+  bun "$SCRIPT_DIR/public-surface.ts" --migration "$PUBLIC_SURFACE_ALLOWLIST" "$1"
 }
 
 if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-example.sql")" ]; then
