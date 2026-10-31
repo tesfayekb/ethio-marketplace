@@ -103,3 +103,6 @@ scripts/conformance/migration-proof-keys.test.ts
 scripts/route-budgets.mjs
 ```
 AGENTS.md is untouched.
+
+## Checks (appended)
+`bun run checks` ran once, whole, on the final tree: 12 PASS · 0 FAIL, plus 2 NOT RUN (both "Install dependencies": the sandbox's dependencies are already installed). The 580 s limit stopped it during the component tests, so there is no fast line and no last line, and the unit count was not measured. slow steps: not finished — CI judges.
