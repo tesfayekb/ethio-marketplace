@@ -2,14 +2,22 @@
 
 ## 1. Step 0
 
-- The ruling is saved as `docs/governance/briefs/foundations-turn-f.md`, in one fenced block.
-- sha256 of the text between BEGIN and END, with its final newline: `59a77273933be5b685a688aba42be5e7d48fd129a0c09b32a51840889e7e040f`. It equals the value after END.
-- Roadmap line 3 names the brief. `bunx prettier --check roadmap.md` passed.
+- Turn F: `docs/governance/briefs/foundations-turn-f.md`, sha256 `59a77273933be5b685a688aba42be5e7d48fd129a0c09b32a51840889e7e040f`, equal to the value after END.
+- Turn F, finish: `docs/governance/briefs/foundations-turn-f-finish.md`, sha256 `a8f75576f965c6073b4b82bc561828c196db7e0f39cb015762a6ea667ddc70b4`, equal to the value after END (computed on the fenced text as saved).
+- Roadmap line 3 names both briefs; `bunx prettier --check roadmap.md` passed.
 
 ## 2. CI
 
-- d48a3cb3: SUCCESS (run 41172524158), as the ruling reads it. There were no reds to classify.
-- DEC-309: run 2 of 10, with 0 registry refusals.
+- d48a3cb3: SUCCESS (run 41172524158).
+- The last completed run on the evidence branch is b3681f69: SUCCESS (run 41173416396, 06:08:23Z). The run on 603e3d18 had not completed when read, so its lint red (the four e2e/choice-lists.spec.ts errors, a code red, not infrastructure) is classified from the ruling and the local lint; it is fixed below (F-1). No other red was seen.
+
+## 2a. The finish (ruling of 06:22 UTC)
+
+- F-1a: `:60 waitForTimeout(450)` → `expect.poll` until every animation on the panel reads `playState === "finished"`, then the sampled transforms are read (J7).
+- F-1b: `:133`, `:150`, `:156` `:visible` + `.first()` → `getByTestId` on the one control the header or rail draws (the language switcher and the account menu are single elements at every width; the panel switch is the rail's).
+- F-1c: CL-E3 no longer passes on an absent control. The account menu sits in the header at every width (app-header.tsx, `data-testid="account-menu"`); it is asserted visible and judged at 360 and 1440. The panel switch is judged from md (`isMobile`, the shared viewport helper); below md the bottom bar replaces it.
+- F-2: the radio item draws `<Check className={LIST_TICK} />` in place of the `Circle` dot; `Circle` left the import. CL-U6 proves both indicator parts draw the tick and no `Circle` remains.
+- Lint on the two files: 0 errors. CL-E1…3, both projects, retries 0: **12 passed, 12 skipped** (each width runs in its own project). Unit: choice-list-look and CF-LIST-1, 13 passed.
 
 ## 3. Census as built
 
@@ -101,17 +109,37 @@
   - current row: `bg-accent` → `bg-nav-pill`.
 - The grep for `py-1.5`, `rounded-md border`, `sideOffset`, `w-40` and `w-56` in e2e/ and the unit tests found no other assertion. data-table.test's `min-w-40` is a column width, not a list.
 
-## 8. Growth
+## 8. Growth (local build of the final tree, gzip)
 
-- The facade's code still loads on intent.
-- The constants (about 1 KiB of class text) ride with menu-row.ts, which the shell already loads, and with the picker on the posting pages.
-- Per-page sizes come from the budget step of the checks below. Any page they place inside the NEAR band is raised in DEC-296's form, with cause "turn F (D264 list constants)".
+- Entry JS 209.3604 / 210 KiB; stylesheet 22.6846 / 40 KiB: both outside the NEAR band.
+- Cause, on every page: the list constants in menu-row.ts (already in the shell), `OPEN_CONTROL` on the header and rail triggers, and the new utilities (`rounded-menu`, `rounded-list-row`, `shadow-menu`, the nav-pill states) in the stylesheet. The facade's code still loads on intent; nothing new downloads on first paint.
+- The base was not rebuilt locally, so the per-page delta is not measured; the sizes below are this tree's own.
+- Ceilings raised in DEC-296's form (`ceilingForLocal(size)`), each line in scripts/route-budgets.mjs naming turn F and its cause:
+
+| Page | Local KiB | Ceiling |
+|---|---|---|
+| /account_/legal | 211.9619 | 212 → 213 |
+| /admin/ai | 337.7002 | 338 → 339 |
+| /admin/audit | 310.7998 | 311 → 312 |
+| /admin/images | 210.9580 | 211 → 212 |
+| /admin/legal_/$versionId | 279.8516 | 280 → 281 |
+| /admin/locations | 271.9395 | 272 → 273 |
+| /admin/translations | 414.8350 | 415 → 416 |
+| /admin/users_/$userId | 287.8457 | 288 → 289 |
+| /auth | 222.0078 (over) | 222 → 223 |
+| /legal/accept | 220.9307 | 221 → 222 |
+| /legal/publishing | 214.7793 | 215 → 216 |
+| /my-listings_/$listingId | 319.8408 | 320 → 321 |
+
+- `node scripts/check-bundle-size.mjs` after the raise: exit 0. check-bundle-size.mjs itself is unchanged.
 
 ## 9. Unit count
 
 From the checks below.
 
 ## 10. K2
+
+- F2 (roadmap line 8): the location list and the panel switch mark their current row by look only; their rows become radio items (menuitemradio, aria-checked) after F2's census of e2e/ for role "menuitem" on those two lists (S392).
 
 - 21 files draw a raw `<select>` instead of `src/components/ui/native-select.tsx`. They are LEFT under the allowlist, until SAGE-S6.
 - The checkbox and radio rows of other dropdowns now share `LIST_ROW`. No other bypass was found.
@@ -121,7 +149,7 @@ From the checks below.
 
 ## 11. git diff --name-only b3681f69
 
-docs/\_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/foundations-turn-f.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-f.report.md, e2e/choice-lists.spec.ts, roadmap.md, scripts/conformance/choice-lists-allowlist.txt, scripts/conformance/choice-lists.test.ts, src/components/language-switcher-compact.test.tsx, src/components/language-switcher.tsx, src/components/searchable-picker.tsx, src/components/shell/app-header.tsx, src/components/shell/location-selector.tsx, src/components/shell/menu-row.ts, src/components/shell/panel-header.tsx, src/components/shell/row-actions.tsx, src/components/ui/choice-list-look.test.tsx, src/components/ui/dropdown-menu-impl.tsx, src/components/ui/popover.tsx, src/features/posting/phone-number-field.tsx, src/features/posting/step-pricing.tsx, src/lib/schemas/theme.ts, src/lib/themes.ts, src/styles.css
+docs/\_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/foundations-turn-f-finish.md, docs/governance/briefs/foundations-turn-f.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-f.report.md, e2e/choice-lists.spec.ts, roadmap.md, scripts/conformance/choice-lists-allowlist.txt, scripts/conformance/choice-lists.test.ts, scripts/route-budgets.mjs, src/components/language-switcher-compact.test.tsx, src/components/language-switcher.tsx, src/components/searchable-picker.tsx, src/components/shell/app-header.tsx, src/components/shell/location-selector.tsx, src/components/shell/menu-row.ts, src/components/shell/panel-header.tsx, src/components/shell/row-actions.tsx, src/components/ui/choice-list-look.test.tsx, src/components/ui/dropdown-menu-impl.tsx, src/components/ui/popover.tsx, src/features/posting/phone-number-field.tsx, src/features/posting/step-pricing.tsx, src/lib/schemas/theme.ts, src/lib/themes.ts, src/styles.css (27 files; AGENTS.md untouched)
 
 ## 12. Checks
 
