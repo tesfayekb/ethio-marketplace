@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41151685462
-- Commit: `d2e9bb36513981269f1b82736746b26b874901e7`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41151913976
+- Commit: `e195034e836da0d7cf1ecd57c7f45d171a4cb280`
 - Attempt: 1
-- Written (UTC): 2026-10-31T01:03:40.350Z
+- Written (UTC): 2026-10-31T01:24:13.036Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -26,8 +26,6 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
-[36;1m  exit "$reporter"[0m
-[36;1mfi[0m
 [36;1mexit 0[0m
 shell: /usr/bin/bash -e {0}
 env:
@@ -36,10 +34,12 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41151685462
-  E2E_HEAD_COMMIT_MESSAGE: CI passed, S2 report saved
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41151913976
+  E2E_HEAD_COMMIT_MESSAGE: Update plan
 
-X-Lovable-Edit-ID: edt-2432a07a-0874-4478-a49e-6e27ba4d0a9e
+Plan file updated during planning mode
+
+X-Lovable-Edit-ID: edt-a0835059-046d-441c-9ef8-baf2fac81fc3
 Co-authored-by: tesfayekb <tesfayekb@me.com>
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -73,7 +73,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/721de3ee-44bf-4ca5-b026-1b3370ce05a1' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/9fb084ad-8727-44fa-8561-30a8042fcdb4' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
