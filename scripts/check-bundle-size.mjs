@@ -29,6 +29,7 @@ import {
   routePreloads,
   staticClosure,
 } from "./bundle-closure.mjs";
+import { nearFindings } from "./budget-band.mjs";
 import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB } from "./route-budgets.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
@@ -41,9 +42,10 @@ const BUDGET_KIB = {
   // DEC-259 (Foundations turn 31, 2026-10-25): the tooltip's and the dropdown menu's code left it (280.2 → 260.0 measured); the ceiling follows to 263.
   // DEC-260 (Foundations turn 32, 2026-10-26): the dialog's and the alert dialog's code left it (260.0 → 254.1 measured); the ceiling follows to 257.
   // DEC-261 (Foundations turn 34, 2026-10-26): the Supabase client left it (254.0 → 203.6 measured); the ceiling follows to 207.
-  // DEC-288 (Foundations turn R1b, 2026-10-30): the sub-menu mechanism's first-paint half joined it (206.6865 → 207.1758 measured, +0.4893); DEC-296's rule, floor(size + 0.1 + 0.3) + 1, takes the ceiling to 208.
-  // INC-1021 (turn SAGE-S1): CI measured 208.0 KiB on 2a953151 (SAGE-S0); S1's Sage shell classes (the one tile, the control look, the bar's pill and disc) add +0.3 KiB (207.9 → 208.2 local); DEC-296's form from CI's size, floor(208.0 + 0.3 + 0.3) + 1, takes the ceiling to 209.
-  js: 209,
+  // DEC-288 (Foundations turn R1b, 2026-10-30): the sub-menu mechanism's first-paint half joined it (206.6865 → 207.1758 measured, +0.4893); DEC-296's form from a local size (local 207.1758 + 0.1, then floor(size + 0.3) + 1) takes the ceiling to 208.
+  // INC-1021 (turn SAGE-S1): CI measured 208.0 KiB on 2a953151 (SAGE-S0); S1's Sage shell classes (the one tile, the control look, the bar's pill and disc) add +0.3 KiB (207.9 → 208.2 local); DEC-296's form from CI's size plus the measured growth (208.0 + 0.3 = 208.3, then floor(size + 0.3) + 1) takes the ceiling to 209.
+  // DEC-296 (turn A): local 208.706 + 0.1 = 208.8 KiB sat inside the NEAR band (CI's evidence prints no entry size for a green run); 209 → 210 = floor(208.8 + 0.3) + 1.
+  js: 210,
   css: 40,
 };
 
@@ -223,6 +225,24 @@ if (failures.length > 0) {
     "\nCode-split the addition behind a dynamic import, or change the page's line in\n" +
       "scripts/route-budgets.mjs in a commit that states why (a saving lowers it).",
   );
+  process.exit(1);
+}
+/**
+ * DEC-296 (turn A) — THE NEAR BAND: a ceiling standing less than NEAR_KIB above
+ * the size it measures fails, for the entry, the stylesheet and every page alike
+ * (scripts/budget-band.mjs; INC-1003, INC-1021 and the 398a5859 red).
+ */
+const near = nearFindings([
+  ...["js", "css"].map((kind) => ({
+    label: kind === "js" ? "entry JS" : "stylesheet",
+    kib: totals[kind] / 1024,
+    ceiling: BUDGET_KIB[kind],
+  })),
+  ...rows.map(({ id, kib, ceiling }) => ({ label: id, kib, ceiling })),
+]);
+if (near.length > 0) {
+  console.error("\nNEAR band failed (DEC-296):");
+  for (const line of near) console.error(`  ${line}`);
   process.exit(1);
 }
 console.log("Bundle budget OK.");
