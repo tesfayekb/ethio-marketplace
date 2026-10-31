@@ -7,8 +7,136 @@ on:
 permissions:
   contents: read
 
+env:
+  # DEC-309: the services every start leaves out; part of the backend images' cache key.
+  BACKEND_EXCLUDES: realtime,studio,imgproxy,vector,logflare,edge-runtime,postgres-meta,supavisor
+  SUPABASE_CLI_VERSION: 2.120.0
+
 jobs:
+  # DEC-309 (turn CI-3a) — THE BACKEND IMAGES ONCE PER RUN. Four lanes in 26 hours lost their backend to the
+  # image registry's anonymous limit ("toomanyrequests: Rate exceeded", ECR Public). This job learns the image set
+  # from the CLI itself (one start on an empty working copy: no migration), saves it to the Actions cache as one
+  # compressed tarball with images.txt beside it, and every lane loads it before its one start. A cache hit pulls
+  # nothing. Guard: scripts/conformance/ci-images.test.ts (CF-CI-IMG-1).
+  backend-images:
+    name: Backend images (DEC-309)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+      images: ${{ steps.list.outputs.images }}
+    steps:
+      - name: Reserve the temporary backend's ports (INC-935)
+        id: reserve-the-temporary-backend-s-ports
+        timeout-minutes: 1
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
+      - uses: actions/checkout@v5
+        id: checkout
+        timeout-minutes: 5
+        with:
+          persist-credentials: false
+      - name: The images' cache key
+        id: key
+        run: |
+          # The CLI version, the services left out, the config and this workflow's image steps decide the set.
+          digest=$(cat scripts/ci/local-backend-config.toml <(printf '%s\n' "$BACKEND_EXCLUDES" "$SUPABASE_CLI_VERSION") | sha256sum | cut -c1-16)
+          echo "key=backend-images-$SUPABASE_CLI_VERSION-$digest" >> "$GITHUB_OUTPUT"
+      - name: Look up the images
+        id: lookup
+        timeout-minutes: 5
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/backend-images
+          key: ${{ steps.key.outputs.key }}
+          lookup-only: true
+      - name: Read the image list (cache hit)
+        id: list-hit
+        if: steps.lookup.outputs.cache-hit == 'true'
+        timeout-minutes: 5
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/backend-images-list
+          key: ${{ steps.key.outputs.key }}-list
+      - uses: supabase/setup-cli@v3.0.1
+        id: setup-cli
+        if: steps.lookup.outputs.cache-hit != 'true' || steps.list-hit.outputs.cache-hit != 'true'
+        timeout-minutes: 5
+        with:
+          version: 2.120.0
+      - name: Learn, pull and save the images (cache miss)
+        id: build-images
+        if: steps.lookup.outputs.cache-hit != 'true' || steps.list-hit.outputs.cache-hit != 'true'
+        timeout-minutes: 20
+        run: |
+          # An empty working copy (no migration, so a failed start here replays nothing); TLS and the
+          # auth hook are off because neither changes the image set and both need files this copy lacks.
+          wc="$RUNNER_TEMP/images-wc"
+          mkdir -p "$wc/supabase/migrations" "$RUNNER_TEMP/backend-images" "$RUNNER_TEMP/backend-images-list"
+          python3 - "$wc/supabase/config.toml" <<'PY'
+          import re, sys
+          text = open('scripts/ci/local-backend-config.toml').read()
+          text = re.sub(r'(\[api\.tls\]\s*enabled = )true', r'\1false', text)
+          text = re.sub(r'(\[auth\.hook\.before_user_created\]\s*enabled = )true', r'\1false', text)
+          open(sys.argv[1], 'w').write(text)
+          PY
+          # The CLI pulls what it needs; its own pulls are not retried, so the start is tried at most three
+          # times with a jittered pause. This start has no migration to replay.
+          ok=0
+          for try in 1 2 3; do
+            if supabase start --workdir "$wc" --ignore-health-check -x "$BACKEND_EXCLUDES" > "$RUNNER_TEMP/images-start.log" 2>&1; then ok=1; break; fi
+            supabase stop --workdir "$wc" --no-backup > /dev/null 2>&1 || true
+            pause=$(( 10 * try * try + RANDOM % 10 ))
+            echo "::warning::backend-images: the learning start failed (try $try of 3; $(grep -m1 -oiE 'toomanyrequests|rate exceeded|pull access denied' "$RUNNER_TEMP/images-start.log" || echo 'no registry refusal')); next in ${pause}s"
+            sleep "$pause"
+          done
+          if [ "$ok" -ne 1 ]; then echo "registry refusal — infrastructure (the images job could not learn the image set)"; exit 1; fi
+          docker ps -a --filter name=supabase_ --format '{{.Image}}' | sort -u > "$RUNNER_TEMP/backend-images-list/images.txt"
+          supabase stop --workdir "$wc" --no-backup > /dev/null 2>&1 || true
+          bash scripts/ci/pull-images.sh "$RUNNER_TEMP/backend-images-list/images.txt"
+          cp "$RUNNER_TEMP/backend-images-list/images.txt" "$RUNNER_TEMP/backend-images/images.txt"
+          # The fallback's facts (DEC-309 rule): is each image also on ghcr.io? yes or no per image.
+          while read -r image; do
+            ghcr="ghcr.io/supabase/${image##*/}"
+            if timeout 60 docker manifest inspect "$ghcr" > /dev/null 2>&1; then echo "$image ghcr=yes"; else echo "$image ghcr=no"; fi
+          done < "$RUNNER_TEMP/backend-images-list/images.txt" > "$RUNNER_TEMP/backend-images-list/ghcr.txt"
+          # shellcheck disable=SC2046
+          docker save $(cat "$RUNNER_TEMP/backend-images-list/images.txt") | gzip -1 > "$RUNNER_TEMP/backend-images/images.tar.gz"
+          bytes=$(stat -c %s "$RUNNER_TEMP/backend-images/images.tar.gz")
+          echo "$bytes" > "$RUNNER_TEMP/backend-images-list/size.txt"
+          echo "backend-images: $(wc -l < "$RUNNER_TEMP/backend-images-list/images.txt") images, $bytes bytes compressed"
+          if [ "$bytes" -gt 4294967296 ]; then
+            echo "::error::backend-images: the tarball is over 4 GiB ($bytes bytes); not cached (the repository's cache is shared)"
+            rm -f "$RUNNER_TEMP/backend-images/images.tar.gz"
+          else
+            echo "tarball=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Save the images
+        id: save-images
+        if: steps.build-images.outputs.tarball == 'yes'
+        timeout-minutes: 15
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ runner.temp }}/backend-images
+          key: ${{ steps.key.outputs.key }}
+      - name: Save the image list
+        id: save-list
+        if: steps.build-images.outcome == 'success'
+        timeout-minutes: 5
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ runner.temp }}/backend-images-list
+          key: ${{ steps.key.outputs.key }}-list
+      - name: The image list
+        id: list
+        run: |
+          list="$RUNNER_TEMP/backend-images-list"
+          test -s "$list/images.txt" || { echo "::error::backend-images: no image list"; exit 1; }
+          echo "images=$(tr '\n' ' ' < "$list/images.txt")" >> "$GITHUB_OUTPUT"
+          echo "source=$([ '${{ steps.lookup.outputs.cache-hit }}' = 'true' ] && echo 'cache hit' || echo 'cache miss')" >> "$GITHUB_OUTPUT"
+          { echo "### Backend images (DEC-309)"; echo "- $(cat "$list/size.txt" 2>/dev/null || echo '?') bytes compressed"; sed 's/^/- /' "$list/ghcr.txt" 2>/dev/null || sed 's/^/- /' "$list/images.txt"; } >> "$GITHUB_STEP_SUMMARY"
+
   proof:
+    needs: backend-images
     name: Lane ${{ matrix.lane }} on temporary Supabase
     runs-on: ubuntu-24.04
     # A slow runner's lane is recorded whole instead of cancelled (proof #10's lane 1:
@@ -329,78 +457,8 @@ jobs:
             FROM public.locations c WHERE c.level = 'city' AND c.slug = 'addis-ababa';
           SQL
           fixture 20260929201600 "the sub-city Bole under Addis Ababa"
-          cat > .ci-local/supabase/config.toml <<'TOML'
-          # D228 phase 1 — the temporary backend's config (CI only; the repository's supabase/config.toml is the platform's).
-          project_id = "ethio-ci-local"
-
-          [api]
-          enabled = true
-          port = 31321
-          schemas = ["public", "graphql_public"]
-          extra_search_path = ["public", "extensions"]
-          max_rows = 1000
-
-          [api.tls]
-          enabled = true
-          cert_path = "certs/api.pem"
-          key_path = "certs/api.key"
-
-          [db]
-          port = 31322
-          shadow_port = 31320
-          major_version = 17
-
-          [db.seed]
-          enabled = false
-
-          [realtime]
-          enabled = false
-
-          [studio]
-          enabled = false
-
-          [inbucket]
-          enabled = true
-          port = 31324
-
-          [storage]
-          enabled = true
-          file_size_limit = "50MiB"
-
-          [auth]
-          enabled = true
-          site_url = "http://127.0.0.1:4173"
-          additional_redirect_urls = ["http://127.0.0.1:4173/**", "http://localhost:4173/**"]
-          jwt_expiry = 3600
-          enable_refresh_token_rotation = true
-          enable_signup = true
-          minimum_password_length = 8
-
-          [auth.email]
-          enable_signup = true
-          double_confirm_changes = true
-          enable_confirmations = true
-
-          [auth.rate_limit]
-          email_sent = 30
-
-          [auth.mfa]
-          max_enrolled_factors = 10
-
-          [auth.mfa.totp]
-          enroll_enabled = true
-          verify_enabled = true
-
-          [auth.hook.before_user_created]
-          enabled = true
-          uri = "pg-functions://postgres/public/hook_before_user_created"
-
-          [edge_runtime]
-          enabled = false
-
-          [analytics]
-          enabled = false
-          TOML
+          # DEC-309: the config is one file, read here and by the backend-images job (its hash is in the images' cache key).
+          cp scripts/ci/local-backend-config.toml .ci-local/supabase/config.toml
           echo "PREPARE_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
       - name: Make the temporary backend's certificate
         id: make-the-temporary-backend-s-certificate
@@ -446,6 +504,38 @@ jobs:
           certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n ethio-ci-local -i "$ca_dir/ca.pem"
           echo "NODE_EXTRA_CA_CERTS=$ca_dir/ca.pem" >> "$GITHUB_ENV"
           echo "CERT_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
+      # DEC-309: every image is local before the one start, or the lane fails here, before any migration runs.
+      - name: Restore the backend images (DEC-309)
+        id: restore-backend-images
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
+        continue-on-error: true
+        timeout-minutes: 10
+        uses: actions/cache/restore@v5
+        with:
+          path: ${{ runner.temp }}/backend-images
+          key: ${{ needs.backend-images.outputs.key }}
+      - name: Load the backend images (DEC-309)
+        id: load-backend-images
+        if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
+        timeout-minutes: 20
+        env:
+          BACKEND_IMAGES: ${{ needs.backend-images.outputs.images }}
+        run: |
+          dir="$RUNNER_TEMP/backend-images"
+          mkdir -p "$dir"
+          printf '%s\n' $BACKEND_IMAGES > "$dir/wanted.txt"
+          test -s "$dir/wanted.txt" || { echo "registry refusal — infrastructure (no image list from backend-images)" | tee -a local-backend-failure.txt; exit 1; }
+          source=cache
+          if [ ! -f "$dir/images.tar.gz" ] || ! gunzip -c "$dir/images.tar.gz" | docker load > /dev/null; then source=pull; fi
+          if [ "$source" = cache ]; then
+            while read -r image; do docker image inspect "$image" > /dev/null 2>&1 || { source=pull; break; }; done < "$dir/wanted.txt"
+          fi
+          if [ "$source" = pull ] && ! bash scripts/ci/pull-images.sh "$dir/wanted.txt"; then
+            echo "registry refusal — infrastructure (pull-images.sh gave up before the start; no migration ran)" | tee -a local-backend-failure.txt
+            exit 1
+          fi
+          echo "IMAGES_SOURCE=$source" >> "$GITHUB_ENV"
+          echo "IMAGES_LIST=$(tr '\n' ' ' < "$dir/wanted.txt")" >> "$GITHUB_ENV"
       - name: Start backend and apply all migrations
         if: matrix.lane != 'repeat' || env.REPEAT_SPECS != ''
         id: backend
@@ -472,7 +562,7 @@ jobs:
             done
           ) > /dev/null 2>&1 &
           sampler=$!
-          supabase start --workdir .ci-local -x realtime,studio,imgproxy,vector,logflare,edge-runtime,postgres-meta,supavisor > local-backend-start.log 2>&1
+          supabase start --workdir .ci-local -x "$BACKEND_EXCLUDES" > local-backend-start.log 2>&1
           result=$?
           kill "$sampler" 2>/dev/null
           set -e
@@ -805,6 +895,7 @@ jobs:
           for label, key in [('checkout', 'CHECKOUT_SECONDS'), ('install', 'INSTALL_SECONDS'), ('CLI install', 'CLI_SECONDS'), ('working copy', 'PREPARE_SECONDS'), ('certificate', 'CERT_SECONDS'), ('start (migrations included)', 'START_SECONDS'), ('build', 'BUILD_SECONDS'), ('browser install', 'BROWSER_SECONDS'), ('tests', 'TEST_SECONDS')]:
               lines.append('- Seconds — ' + label + ': ' + env.get(key, 'not run'))
           lines.append('- Database session samples during the start (INC-944): ' + env.get('START_SAMPLES', 'not run'))
+          lines.append('- Backend images (DEC-309): ' + env.get('IMAGES_SOURCE', 'not loaded') + ' — ' + (env.get('IMAGES_LIST', '').strip() or 'none'))
           ok = env.get('MIGRATIONS_OK') == '1'
           migrations = Path('local-backend-migrations.txt')
           lines.append('- Migrations: ' + (migrations.read_text() if migrations.exists() else 'not confirmed; backend ' + env.get('BACKEND_OUTCOME', 'not run')))

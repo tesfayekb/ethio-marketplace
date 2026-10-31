@@ -1197,3 +1197,5 @@
 - Turn D2 (INC-1023): the app reads get_ui_bundle_parts; one merge `overlayBundle` (a written row wins, a copied row yields to the build's own text, a language the build does not ship shows its copied rows), guarded by CF-I18N-OVERLAY; the bundle's validator carries its shape (`parts1.`); the console joins the parts.
 
 - Turn SAGE-S2b: INC-1025 anon-function security baseline 19 → 20 for D1’s get_ui_bundle_parts (INC-1023); D265 shared pressed-in tracks and raised current segments for location, tabs and every shell breadcrumb; D266 panel header restored to the rail surface with one bottom groove, unchanged 40 px and heading; CF-BAND-1/CF-ROWS-1 planted bypass proofs.
+
+- Turn CI-3a (DEC-309, DEC-311): the backend images once per run (backend-images job, cache, load-and-inspect before the one start, pull-images.sh with jittered backoff; CF-CI-IMG-1); the CI-local config is one file; `bun run checks` prints a fast line before the slow steps, the final line stays the verdict.

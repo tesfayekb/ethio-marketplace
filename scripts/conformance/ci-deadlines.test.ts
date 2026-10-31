@@ -24,59 +24,10 @@ import { report, walkFiles } from "./kit";
  * repeated blindly), it carries its step deadline.
  */
 
-export type Step = { line: number; text: string; timeout: boolean };
-export type Job = {
-  file: string;
-  id: string;
-  line: number;
-  callsWorkflow: boolean;
-  timeout: boolean;
-  steps: Step[];
-};
+import { readWorkflow, type Step } from "./workflow-reader";
 
-/** A workflow's jobs and their steps, read by indentation (two spaces a level, as every workflow here is written). */
-export function readWorkflow(file: string, text: string): Job[] {
-  const lines = text.split("\n");
-  const jobs: Job[] = [];
-  const start = lines.indexOf("jobs:");
-  if (start < 0) return jobs;
-  let job: Job | null = null;
-  let step: Step | null = null;
-  for (let index = start + 1; index < lines.length; index += 1) {
-    const text = lines[index] ?? "";
-    if (/^\S/.test(text)) break;
-    const head = /^ {2}([A-Za-z0-9_-]+):\s*$/.exec(text);
-    if (head) {
-      job = {
-        file,
-        id: head[1] ?? "",
-        line: index + 1,
-        callsWorkflow: false,
-        timeout: false,
-        steps: [],
-      };
-      jobs.push(job);
-      step = null;
-      continue;
-    }
-    if (job === null) continue;
-    if (/^ {4}timeout-minutes:\s*\d+\s*$/.test(text)) job.timeout = true;
-    if (/^ {4}uses:\s*\S/.test(text)) job.callsWorkflow = true;
-    if (/^ {6}- /.test(text)) {
-      step = { line: index + 1, text: `${text}\n`, timeout: false };
-      job.steps.push(step);
-      continue;
-    }
-    if (/^ {0,5}\S/.test(text)) {
-      step = null;
-      continue;
-    }
-    if (step === null) continue;
-    step.text += `${text}\n`;
-    if (/^ {8}timeout-minutes:\s*\d+\s*$/.test(text)) step.timeout = true;
-  }
-  return jobs;
-}
+export { readWorkflow };
+export type { Job, Step } from "./workflow-reader";
 
 /** A command line that reaches outside the runner. */
 const OUTSIDE =
@@ -290,7 +241,9 @@ export function portBlockFindings(file: string, text: string): string[] {
 }
 
 describe("the temporary backend's ports sit below the ephemeral range (DEC-284)", () => {
-  const PROOF = ".github/workflows/local-backend-proof.yml";
+  // DEC-309 (turn CI-3a): the CI-local config left the workflow's heredoc for one file, which the
+  // lanes copy and the backend-images job hashes. G38: the same four-port assertion, on that file.
+  const PROOF = "scripts/ci/local-backend-config.toml";
   it("CF-CID-3 every port the CI-local config declares is in 31320-31329, and there are four", () => {
     const text = readFileSync(PROOF, "utf8");
     expect(portBlockFindings(PROOF, text)).toEqual([]);

@@ -122,6 +122,32 @@ export function planFrom(yamlText: string): Step[] {
   return steps;
 }
 
+/**
+ * DEC-311 (turn CI-3a) — THE FAST LINE. A step is slow when it builds the app or belongs to a job
+ * that only judges a build or runs a scanner; inside a job, every step from its first slow step on
+ * stays slow, so a job's own order never changes. The fast steps run first (in ci.yml's order), then
+ * `checks (fast): …` names them, then the slow steps run. No step is dropped or skipped; the final
+ * line stays the only verdict. Guard: turn-checks.test.ts TC-E1, TC-E2.
+ */
+export const SLOW_JOBS = new Set(["bundle-budget", "semgrep"]);
+export const SLOW_RUN = /\bbun run build\b/;
+export function fastFirst(steps: Step[]): { fast: Step[]; slow: Step[] } {
+  const slowFrom = new Set<string>();
+  const fast: Step[] = [];
+  const slow: Step[] = [];
+  for (const step of steps) {
+    if (SLOW_JOBS.has(step.job) || SLOW_RUN.test(step.run)) slowFrom.add(step.job);
+    (slowFrom.has(step.job) ? slow : fast).push(step);
+  }
+  return { fast, slow };
+}
+
+/** The fast line: never the verdict, so it never begins `checks:`. */
+export function fastLine(lines: Line[], seconds: number, jobs: string[]): string {
+  const n = (v: Verdict) => lines.filter((l) => l.verdict === v).length;
+  return `checks (fast): ${n("PASS")} PASS · ${n("FAIL")} FAIL · ${seconds}s — ${jobs.join(", ")}; slow steps follow (build, budget, semgrep)`;
+}
+
 /** The step keys and job wildcards an allowlist line may name. */
 export function allowKeys(steps: Step[]): string[] {
   return [...steps.map((s) => s.key), ...new Set(steps.map((s) => `${s.job} › *`))];
@@ -367,8 +393,17 @@ function main(): number {
   const failedJobs = new Map<string, string>();
   let buildResult: Line | null = null;
   let mapsBefore = "";
+  const { fast, slow } = fastFirst(steps);
+  const fastJobs = [...new Set(fast.map((s) => s.job))];
+  let fastPrinted = false;
+  const printFast = () => {
+    if (fastPrinted) return;
+    fastPrinted = true;
+    console.log(fastLine(lines, Math.round((Date.now() - started) / 1000), fastJobs));
+  };
 
-  for (const step of steps) {
+  for (const step of [...fast, ...slow]) {
+    if (!fastPrinted && slow.includes(step)) printFast();
     const t0 = Date.now();
     const secs = () => Math.round((Date.now() - t0) / 1000);
     const excuse = allowanceFor(step, allow);
@@ -485,6 +520,7 @@ function main(): number {
       });
     }
   }
+  printFast();
   for (const f of ["semgrep.json", "semgrep.sarif"]) rmSync(f, { force: true });
   const last = summary(lines, Math.round((Date.now() - started) / 1000));
   console.log(last);
