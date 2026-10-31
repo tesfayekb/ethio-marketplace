@@ -24,6 +24,10 @@ export const PRESSED = {
   button: `data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
   /** A card (on the card's surface): its link pressed lifts the card to lift-row-on. */
   card: "transition-shadow duration-120 ease-out has-[[data-pressed]]:duration-0 has-[[data-pressed]]:shadow-row-on motion-reduce:transition-none",
+  /** A bottom-bar item (turn C2, D270): its ink turns to the nav ink at once… */
+  bar: `group/bar data-[pressed]:text-nav-ink ${PRESS_MOTION}`,
+  /** …and its icon takes the current pill (CURRENT_PILL's fill and lift), on its own box. */
+  barIcon: `group-data-[pressed]/bar:bg-nav-pill group-data-[pressed]/bar:shadow-pill group-data-[pressed]/bar:text-nav-ink ${PRESS_MOTION}`,
   /** The card's own link has no surface: the card lifts, the link takes no pill. */
   cardLink: "data-[pressed]:bg-transparent",
 } as const;

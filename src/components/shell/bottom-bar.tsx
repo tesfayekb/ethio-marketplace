@@ -13,13 +13,28 @@ import {
 import type { ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
+import { isCurrentAt, useMenuAt } from "@/components/shell/menu-current";
+import { PRESSED } from "@/components/shell/menu-row";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 const ITEM =
-  "flex min-h-15 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring";
+  `${PRESSED.bar} flex min-h-15 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`;
+
+/**
+ * D271 (turn C2, DEC-317 item 4) — each item is current by the one rule (isCurrentAt) on the
+ * chosen page (useMenuAt), signed in or out: Home on the feed ("/" and every category), Sign in
+ * on its page, My listings, Account and Admin on theirs. The panel (the frame) is not read.
+ */
+export const BAR_PATHS = {
+  home: ["/", "/c"],
+  myListings: ["/my-listings"],
+  account: ["/account", "/settings"],
+  signIn: ["/auth"],
+  admin: ["/admin"],
+} as const;
 
 function ItemBody({
   icon: Icon,
@@ -51,7 +66,12 @@ function ItemBody({
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       ) : (
-        <span className="inline-flex h-8 items-center justify-center">
+        <span
+          className={cn(
+            "inline-flex h-8 w-14 items-center justify-center rounded-full",
+            PRESSED.barIcon,
+          )}
+        >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>
       )}
@@ -68,13 +88,20 @@ function ItemBody({
  */
 export function BottomBar() {
   const { t } = useI18n();
-  const { auth, authLoading, activePanel, signingOut } = useShell();
+  const { auth, authLoading, signingOut } = useShell();
   const switchPanel = useSwitchPanel();
+  const at = useMenuAt();
 
   // While the session is read, nothing — never the signed-out set flashing.
   if (authLoading) return null;
 
   const signedIn = auth.isAuthenticated && !signingOut;
+  const on = (paths: readonly string[]) => paths.some((path) => isCurrentAt({ path }, at));
+  const home = on(BAR_PATHS.home);
+  const myListings = on(BAR_PATHS.myListings);
+  const account = on(BAR_PATHS.account);
+  const signInPage = on(BAR_PATHS.signIn);
+  const admin = on(BAR_PATHS.admin);
   const tone = (current: boolean) =>
     current ? "text-primary" : "text-muted-foreground hover:text-foreground";
   const label = (key: MessageKey) => t(key);
@@ -89,17 +116,18 @@ export function BottomBar() {
       <Link
         to="/"
         data-testid="bottom-bar-home"
+        data-tick=""
         // Home is the Marketplace panel: on "/" itself the route owns no
         // panel, so the choice is set too (the tab's own call).
         onClick={() => switchPanel("marketplace")}
         aria-label={label("nav.home")}
-        aria-current={signedIn && activePanel === "marketplace" ? "page" : undefined}
-        className={cn(ITEM, tone(signedIn && activePanel === "marketplace"))}
+        aria-current={home ? "page" : undefined}
+        className={cn(ITEM, tone(home))}
       >
         <ItemBody
           icon={House}
           label={label("nav.home")}
-          current={signedIn && activePanel === "marketplace"}
+          current={home}
         />
       </Link>
       {signedIn ? (
@@ -108,21 +136,23 @@ export function BottomBar() {
         <button
           type="button"
           data-testid="bottom-bar-my-listings"
+          data-tick=""
           aria-label={label("panel.myListings")}
-          aria-current={activePanel === "my-listings" ? "page" : undefined}
+          aria-current={myListings ? "page" : undefined}
           onClick={() => switchPanel("my-listings")}
-          className={cn(ITEM, tone(activePanel === "my-listings"))}
+          className={cn(ITEM, tone(myListings))}
         >
           <ItemBody
             icon={ClipboardList}
             label={label("panel.myListings")}
-            current={activePanel === "my-listings"}
+            current={myListings}
           />
         </button>
       ) : null}
       <Link
         to="/post"
         data-testid="bottom-bar-post"
+        data-tick=""
         aria-label={label("nav.postShort")}
         className={cn(ITEM, tone(false))}
       >
@@ -132,35 +162,39 @@ export function BottomBar() {
         <Link
           to="/account"
           data-testid="bottom-bar-account"
+          data-tick=""
           aria-label={label("panel.account")}
-          aria-current={activePanel === "account" ? "page" : undefined}
-          className={cn(ITEM, tone(activePanel === "account"))}
+          aria-current={account ? "page" : undefined}
+          className={cn(ITEM, tone(account))}
         >
           <ItemBody
             icon={CircleUser}
             label={label("panel.account")}
-            current={activePanel === "account"}
+            current={account}
           />
         </Link>
       ) : (
         <Link
           to="/auth"
           data-testid="bottom-bar-sign-in"
+          data-tick=""
           aria-label={label("auth.signIn")}
-          className={cn(ITEM, tone(false))}
+          aria-current={signInPage ? "page" : undefined}
+          className={cn(ITEM, tone(signInPage))}
         >
-          <ItemBody icon={LogIn} label={label("auth.signIn")} />
+          <ItemBody icon={LogIn} label={label("auth.signIn")} current={signInPage} />
         </Link>
       )}
       {signedIn && auth.isAdmin ? (
         <Link
           to="/admin"
           data-testid="bottom-bar-admin"
+          data-tick=""
           aria-label={label("panel.admin")}
-          aria-current={activePanel === "admin" ? "page" : undefined}
-          className={cn(ITEM, tone(activePanel === "admin"))}
+          aria-current={admin ? "page" : undefined}
+          className={cn(ITEM, tone(admin))}
         >
-          <ItemBody icon={Shield} label={label("panel.admin")} current={activePanel === "admin"} />
+          <ItemBody icon={Shield} label={label("panel.admin")} current={admin} />
         </Link>
       ) : null}
     </nav>
