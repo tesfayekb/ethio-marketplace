@@ -50,7 +50,8 @@ describe("CL-U — every open list reads menu-row.ts's constants", () => {
     );
     const panel = screen.getByTestId("panel").className;
     for (const cls of LIST_PANEL.split(" ")) expect(panel).toContain(cls);
-    for (const cls of LIST_ROW.split(" ")) expect(screen.getByTestId("row").className).toContain(cls);
+    for (const cls of LIST_ROW.split(" "))
+      expect(screen.getByTestId("row").className).toContain(cls);
   });
   it("CL-U5: the picker's rows and panel come from the constants, against the box's edge", () => {
     render(
