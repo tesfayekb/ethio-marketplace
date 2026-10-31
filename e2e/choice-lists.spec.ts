@@ -98,11 +98,19 @@ type Judged = {
   close?: () => Promise<void>;
 };
 
+/** F4b (LY-6's root) — a picker's list is measured only once it marks itself settled: the
+ *  scroll has ended and the side is drawn. Facade menus carry no mark (Radix places them). */
+async function expectSettled(panel: Locator) {
+  if ((await panel.getAttribute("data-placement")) !== null)
+    await expect(panel).toHaveAttribute("data-settled", "true");
+}
+
 async function judge(page: Page, width: number, list: Judged) {
   const { control, panel, rows } = list;
   await sampleOpening(page);
   await (list.open ? list.open() : control.click());
   await expect(panel).toBeVisible();
+  await expectSettled(panel);
   expect((await scales(page, panel)).filter(hasScale)).toEqual([]);
   // A nested TooltipTrigger also writes data-state. aria-expanded belongs to
   // the list trigger itself, and OPEN_CONTROL deliberately supports it.
@@ -415,9 +423,12 @@ for (const width of WIDTHS) {
         }
 
         await account.click();
+        await expect(panel).toBeVisible();
         await page.getByTestId("account-menu-profile").click();
         await expect(page).toHaveURL(/\/account(?:[?#]|$)/);
+        await expect(panel).toHaveCount(0);
         await account.click();
+        await expect(panel).toBeVisible();
         await page.getByTestId("account-menu-settings").click();
         await expect(page).toHaveURL(/\/settings(?:[?#]|$)/);
       });
