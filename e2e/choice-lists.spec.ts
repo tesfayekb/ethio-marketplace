@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, signIn } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
+import { withoutEmptyLayers } from "./helpers/shadows";
 
 /**
  * CL-E (D264, Foundations turn F, Sage §14) — every list of choices that opens from a control
@@ -100,7 +101,10 @@ async function judge(page: Page, control: Locator, panel: Locator, rows: Locator
   expect(look.radius).toBe("14px");
   expect(look.padding).toBe("6px");
   expect(look.border).toBe("0px");
-  expect(look.shadow).toBe(await tokenValue(page, "--shadow-menu", "box-shadow"));
+  // The ring is the shadow's first layer (ruling 2): equal to the theme's --lift-menu.
+  expect(withoutEmptyLayers(look.shadow)).toBe(
+    withoutEmptyLayers(await tokenValue(page, "--lift-menu", "box-shadow")),
+  );
   expect(look.bg).toBe(await tokenValue(page, "--popover", "background-color"));
 
   const count = await rows.count();
