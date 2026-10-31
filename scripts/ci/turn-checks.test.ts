@@ -9,6 +9,8 @@ import {
   LOCAL,
   LOCAL_UNIT_BOUND,
   allowed,
+  fastFirst,
+  fastLine,
   fetchFailure,
   lineText,
   localSecretsScan,
@@ -157,5 +159,31 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(LOCAL[key]).toBe(
       "the sandbox's shared CPU: the full suite at default workers times out (INC-1001)",
     );
+  });
+
+  it("TC-E1 the fast steps run first, no step is dropped, each job keeps its order, and no build is fast (DEC-311)", () => {
+    const steps = planFrom(readFileSync(CI_FILE, "utf8"));
+    const { fast, slow } = fastFirst(steps);
+    expect(new Set([...fast, ...slow])).toEqual(new Set(steps));
+    expect(fast.length + slow.length).toBe(steps.length);
+    expect(fast.some((s) => /\bbun run build\b/.test(s.run))).toBe(false);
+    expect(fast.map((s) => s.key)).toContain(
+      "component-tests › Component tests (vitest + RTL + jsdom)",
+    );
+    expect(slow.map((s) => s.key)).toContain("bundle-budget › Check the first-paint budget");
+    const order = [...fast, ...slow];
+    for (const job of new Set(steps.map((s) => s.job)))
+      expect(order.filter((s) => s.job === job)).toEqual(steps.filter((s) => s.job === job));
+  });
+
+  it("TC-E2 the fast line is never the verdict: it never begins 'checks:', and a fast FAIL stays in the final count", () => {
+    const lines: Line[] = [
+      { verdict: "PASS", key: "a › b", seconds: 1 },
+      { verdict: "FAIL", key: "a › c", seconds: 2, reason: "exit 1" },
+    ];
+    const line = fastLine(lines, 5, ["a"]);
+    expect(line.startsWith("checks (fast): 1 PASS · 1 FAIL · 5s — a")).toBe(true);
+    expect(/^checks: /.test(line)).toBe(false);
+    expect(summary(lines, 9)).toBe("checks: 1 PASS · 1 FAIL · 0 NOT RUN · 9s");
   });
 });
