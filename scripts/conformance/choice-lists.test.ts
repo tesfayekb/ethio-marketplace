@@ -220,8 +220,6 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
   });
 
   it("an owner that stops reading the constants fails", () => {
-    const dir = mkdtempSync(join(tmpdir(), "cl-"));
-    writeFileSync(join(dir, "p.tsx"), "");
     const { findings } = listFindings([
       { name: "src/components/ui/popover.tsx", text: "const x = 1;" },
     ]);
