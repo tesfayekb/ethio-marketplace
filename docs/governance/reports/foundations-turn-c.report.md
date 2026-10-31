@@ -47,7 +47,7 @@ The brief is saved in docs/governance/briefs/foundations-turn-c.md. The fenced b
   - PR-U5: a move past the slop clears.
   - PR-U6: disabled and aria-disabled elements are never marked.
 - **Laws step (`vitest run scripts`).** The first run had 2 failed and 390 passed: TI-1, the clashes above, and BX-1, where press.spec read its own box. Both were fixed (renames; `layoutBoxes`). The re-run of those files passed (13 tests). The colour tests passed (70).
-- **Browser:** `bun run e2e:local -- e2e/press.spec.ts e2e/sage-cards.spec.ts`, both projects, retries 0: **20 passed, 0 failed, 16 skipped**.
+- **Browser:** `bun run e2e:local -- e2e/press.spec.ts e2e/sage-cards.spec.ts`, both projects, retries 0: **20 passed, 0 failed, 16 skipped** (final tree).
   - PSP-1 (renamed from PS-1, a TI-1 clash with post-wizard-bundle2) ran at 360 coarse and 1440 fine, light and dark. A menu row, a band segment (the breadcrumb), a button (the theme control), a plain link (the footer), a card and a list row (a language option) are each marked at pointerdown and raised in the first frame. No box moves, and the pressed ink is at least 4.5 : 1 on its fill.
   - PS-4 (reduced motion): transition 0s, gone in the next frame.
   - OLH-1 now reads the public languages from the switcher (G0.6).
@@ -57,13 +57,19 @@ The brief is saved in docs/governance/briefs/foundations-turn-c.md. The fenced b
 No e2e spec reads `:active` or `data-pressed`. Specs that read transitions: submenu.spec.ts :97/:123 reads the panel's duration under reduced motion, and the new 0s rule can only make it shorter. post-wizard-specs :781 sets the motion mode. Neither spec was changed or re-run; CI judges them. INC-581's frame specs are untouched. aria-current timing is C2's.
 
 ## 7. Growth
-Not measured locally: the checks did not finish (§9). The ESTIMATE is press.ts (about 0.6 KiB raw) plus the PRESSED classes on every page. `/` and `/c/$slug` were raised to 225 for B2's measured 223.9. CI's budget lane gives the measured figures.
+- Entry (every page): 210.2 KiB measured locally, which crossed its 210 KiB ceiling (scripts/check-bundle-size.mjs). The cause is press.ts plus the PRESSED classes in the root. The ceiling moves 210 → 211 = floor(210.2 + 0.3) + 1 (DEC-296).
+- Page budgets: no page is over or inside the NEAR band ("0 NEAR, none grew"). `/` and `/c/$slug` sit at 225, raised for B2's CI 223.9.
+- The local check printed no per-page delta against 57c72d3c, so per-page growth is not stated. CI's budget lane gives the figures.
 
 ## 8. Unit count
-Not measured this turn; the full component-test run did not finish (§9).
+Component tests: 2,464 passed (2,464).
 
 ## 9. Checks
-`bun run checks` was not run on the final tree: the turn's time ran out first. **Slow steps: not finished — CI judges.**
+`bun run checks`, run whole once on the final tree:
+- Fast line: `checks (fast): 28 PASS · 0 FAIL · 1650s`.
+- Last line: `checks: 36 PASS · 1 FAIL · 21 NOT RUN · 2101s`. The one FAIL was the first-paint entry budget (210.2 / 210 KiB). It was fixed at its root (§7), and `node scripts/check-bundle-size.mjs` then read `JS: 210.2 KiB / 211 KiB — ok`.
+- The whole run was not repeated after that fix.
+- The 21 NOT RUN steps are the sandbox's usual ones: installs, the dependency audit, the staging preflight, the e2e merge, promote, and the SARIF upload.
 
 ## 10. K2
 - theme-toggle.tsx carries its own idle classes, and app-header passes ICON_BUTTON to it, so it is raised through CONTROL_LOOK.
@@ -71,7 +77,7 @@ Not measured this turn; the full component-test run did not finish (§9).
 - The bottom bar's items and the hand-built header buttons outside CONTROL_LOOK get only the plain-link pill or no look. They come in C2 (the D271 census).
 
 ## 11. Files (git diff --name-only 57c72d3c, plus this report)
-docs/_changelog.md, docs/features/design-foundation.md, docs/generated/i18n-usage.json, docs/governance/briefs/foundations-turn-c.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-c.report.md, e2e/press.spec.ts, e2e/sage-cards.spec.ts, public/i18n-usage.json, roadmap.md, scripts/conformance/press.test.ts, scripts/e2e-select.ts, scripts/route-budgets.mjs, src/components/marketplace/listing-card.tsx, src/components/shell/app-header.tsx, src/components/shell/band-row.ts, src/components/shell/menu-row.ts, src/components/shell/panel-tabs.tsx, src/components/ui/button.tsx, src/components/ui/sidebar.tsx, src/components/ui/tabs.tsx, src/lib/press.test.ts, src/lib/press.ts, src/lib/themes.ts, src/routes/__root.tsx, src/styles.css.
+docs/_changelog.md, docs/features/design-foundation.md, docs/generated/i18n-usage.json, docs/governance/briefs/foundations-turn-c.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-c.report.md, e2e/press.spec.ts, scripts/check-bundle-size.mjs, e2e/sage-cards.spec.ts, public/i18n-usage.json, roadmap.md, scripts/conformance/press.test.ts, scripts/e2e-select.ts, scripts/route-budgets.mjs, src/components/marketplace/listing-card.tsx, src/components/shell/app-header.tsx, src/components/shell/band-row.ts, src/components/shell/menu-row.ts, src/components/shell/panel-tabs.tsx, src/components/ui/button.tsx, src/components/ui/sidebar.tsx, src/components/ui/tabs.tsx, src/lib/press.test.ts, src/lib/press.ts, src/lib/themes.ts, src/routes/__root.tsx, src/styles.css.
 
 ## Limits
 - The test-ID renames (PRP-*, PSP-1, SCS-*, OLH-*) depart from the ruling's names, forced by TI-1.

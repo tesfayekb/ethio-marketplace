@@ -45,7 +45,7 @@ const BUDGET_KIB = {
   // DEC-288 (Foundations turn R1b, 2026-10-30): the sub-menu mechanism's first-paint half joined it (206.6865 → 207.1758 measured, +0.4893); DEC-296's form from a local size (local 207.1758 + 0.1, then floor(size + 0.3) + 1) takes the ceiling to 208.
   // INC-1021 (turn SAGE-S1): CI measured 208.0 KiB on 2a953151 (SAGE-S0); S1's Sage shell classes (the one tile, the control look, the bar's pill and disc) add +0.3 KiB (207.9 → 208.2 local); DEC-296's form from CI's size plus the measured growth (208.0 + 0.3 = 208.3, then floor(size + 0.3) + 1) takes the ceiling to 209.
   // DEC-296 (turn A): local 208.706 + 0.1 = 208.8 KiB sat inside the NEAR band (CI's evidence prints no entry size for a green run); 209 → 210 = floor(208.8 + 0.3) + 1.
-  // DEC-296 (turn C1): local 210.2 KiB, over 210 — press.ts (the one press listener, D263/D270) and the PRESSED classes in the root, on every page; 210 → 211 = floor(210.2 + 0.1 + 0.3) + 1 − 1 → 211 (the NEAR band clears at 211).
+  // DEC-296 (turn C1): local 210.2 KiB, over 210 — press.ts (the one press listener, D263/D270) and the PRESSED classes in the root, on every page; 210 → 211 = floor(210.2 + 0.3) + 1.
   js: 211,
   css: 40,
 };
