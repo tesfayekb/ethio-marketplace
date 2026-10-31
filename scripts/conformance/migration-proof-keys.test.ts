@@ -19,7 +19,10 @@ import { describe, expect, it } from "vitest";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const MIGRATIONS = join(ROOT, "supabase", "migrations");
-const ALLOWLIST = join(dirname(fileURLToPath(import.meta.url)), "migration-proof-keys-allowlist.txt");
+const ALLOWLIST = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "migration-proof-keys-allowlist.txt",
+);
 const UNTIL = "landed; G39";
 
 export function proofKeyFindings(file: string, text: string): string[] {
@@ -62,7 +65,9 @@ export function readProofAllowlist(text: string, found: Set<string>): string[] {
 
 function census(dir: string): Set<string> {
   const found = new Set<string>();
-  for (const name of readdirSync(dir).filter((n) => n.endsWith(".sql")).sort())
+  for (const name of readdirSync(dir)
+    .filter((n) => n.endsWith(".sql"))
+    .sort())
     proofKeyFindings(name, readFileSync(join(dir, name), "utf8")).forEach((k) => found.add(k));
   return found;
 }
