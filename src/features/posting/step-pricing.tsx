@@ -525,8 +525,7 @@ export function StepPricing({
                   role="listbox"
                   data-placement={placement}
                   className={
-                    `${pickerPopClass(placement)} max-h-64 w-full overflow-y-auto rounded-md border ` +
-                    "border-border bg-background shadow-md"
+`${pickerPopClass(placement)} max-h-64 w-full overflow-y-auto`
                   }
                 >
                   {shownRows.map((row, index) => (

@@ -273,7 +273,7 @@ export function PhoneNumberField({
         {open && (
           <div
             data-placement={placement}
-            className={`${pickerPopClass(placement)} start-0 w-72 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-background shadow-md`}
+            className={`${pickerPopClass(placement)} start-0 w-72 max-w-[calc(100vw-2rem)]`}
           >
             <input
               ref={searchRef}
@@ -287,7 +287,7 @@ export function PhoneNumberField({
               }
               autoComplete="off"
               placeholder={t("post.who.phoneCountrySearch")}
-              className="min-h-11 w-full rounded-t-md border-b border-border bg-background px-3 text-base text-foreground focus-visible:outline-none"
+              className="mb-1 min-h-11 w-full rounded-list-row border-b border-border bg-popover px-3 text-base text-foreground focus-visible:outline-none"
               value={query}
               onChange={(event) => {
                 setQuery(event.target.value);
