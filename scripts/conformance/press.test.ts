@@ -79,7 +79,8 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
 
 const OWNERS = new Set(["src/components/shell/menu-row.ts", "src/lib/press.ts", "src/styles.css"]);
 const ACTIVE = /(?<![\w-])active:[\w[]/;
-const PRESSED_LOOK = /data-\[pressed\]|\[data-pressed\]|["']data-pressed["']/;
+const PRESSED_LOOK =
+  /data-\[(?:pressed|released)\]|\[data-(?:pressed|released)\]|["']data-(?:pressed|released)["']/;
 
 export function pressFindings(files: Array<{ name: string; text: string }>): Finding[] {
   const findings: Finding[] = [];
@@ -157,6 +158,13 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
       { name: "src/routes/x.tsx", text: `const a = <a className="data-[pressed]:bg-card">x</a>;` },
     ]);
     expect(report(found)).toContain("own pressed look");
+    const fade = pressFindings([
+      {
+        name: "src/routes/x.tsx",
+        text: `const a = <a className="data-[released]:duration-500">x</a>;`,
+      },
+    ]);
+    expect(report(fade)).toContain("own pressed look");
   });
 
   it("a screen reading the primitives passes", () => {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { installPress, PRESS_SLOP, setTapTick, TAP_TICK_KEY, tapTickOn, TICK_MS } from "./press";
 
 function fire(target: EventTarget, type: string, props: Record<string, unknown> = {}) {
@@ -70,6 +70,20 @@ describe("press.ts (D263/D270, turn C1)", () => {
     expect($("link").hasAttribute("data-pressed")).toBe(true);
     fire($("link"), "pointermove", { clientX: 0, clientY: PRESS_SLOP + 5 });
     expect($("link").hasAttribute("data-pressed")).toBe(false);
+  });
+
+  it("PR-U8: only the release fades — data-released for RELEASE_MS, never before the press ends", () => {
+    vi.useFakeTimers();
+    try {
+      fire($("btn"), "pointerdown", { button: 0, clientX: 0, clientY: 0 });
+      expect($("btn").hasAttribute("data-released")).toBe(false);
+      fire($("btn"), "pointerup");
+      expect($("btn").hasAttribute("data-released")).toBe(true);
+      vi.advanceTimersByTime(RELEASE_MS + 1);
+      expect($("btn").hasAttribute("data-released")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("PR-U6: a disabled button and an aria-disabled link are never marked", () => {
