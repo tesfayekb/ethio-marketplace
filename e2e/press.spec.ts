@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, layoutBoxes, signIn } from "./helpers/ui";
 import { adPageFixtures } from "./helpers/ad-page";
+import { en } from "../src/i18n/locales/en";
 
 /**
  * Turn C1 (D263/D270, DEC-317) — a press shows the raised look at once.
@@ -137,7 +138,9 @@ for (const mode of MODES) {
           },
           {
             name: "plain link",
-            target: page.getByTestId("footer-home"),
+            target: page
+              .getByTestId("footer-column")
+              .getByRole("link", { name: en["footer.about"] }),
             inkCheck: true,
           },
           {
@@ -213,7 +216,9 @@ for (const mode of MODES) {
       await page.goto("/");
       await setMode(page, mode);
       await gotoReady(page, "/");
-      const link = page.getByTestId("footer-home");
+      const link = page
+        .getByTestId("footer-column")
+        .getByRole("link", { name: en["footer.about"] });
       const { before, during, after, marked } = await press(page, link);
       expect(marked).toBe(true);
       expect(during.fill).not.toBe(before.fill);
