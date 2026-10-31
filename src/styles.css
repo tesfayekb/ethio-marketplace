@@ -447,7 +447,7 @@
   --accent-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --gold: oklch(0.769 0.128 78.3); /* #E0A94A — logo dot, Featured, invite card */
   --gold-foreground: oklch(0.214 0.037 79.9); /* #221704 */
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: oklch(0.715 0.191 22.216); /* turn C1: 4.58 : 1 on dark card C (was 0.704, 4.48 — CI 57c72d3c) */
   --destructive-foreground: oklch(0.178 0.037 27.4); /* #1F0A08 */
   --border: oklch(0.339 0.02 159.5);
   --input: oklch(0.394 0.019 251.4); /* #3F4750 */
