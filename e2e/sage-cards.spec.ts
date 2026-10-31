@@ -127,9 +127,17 @@ for (const width of WIDTHS) {
         expect(await style(card, "background-color")).toBe(
           await tokenStyle(page, mode, "card", "background-color"),
         );
-        expect(await style(card, "box-shadow")).toBe(
-          withoutEmptyLayers(await tokenStyle(page, mode, "lift-card", "box-shadow")),
-        );
+        // The ring and shadow: the live --lift-card (its layers step up at md and lg).
+        const lift = await page.evaluate(() => {
+          const probe = document.createElement("div");
+          probe.style.boxShadow = "var(--lift-card)";
+          document.body.append(probe);
+          const value = getComputedStyle(probe).boxShadow;
+          probe.remove();
+          return value;
+        });
+        expect(await style(card, "box-shadow")).toBe(withoutEmptyLayers(lift));
+        if (mode === "dark") expect(lift).toContain("oklch(0.417 0.02 167.6)"); // C's edge, #42504A
         const cardWidth = await card.evaluate((el) => el.getBoundingClientRect().width);
         const compact = cardWidth < 176;
         const body = card.locator("h3").locator("..");
@@ -211,6 +219,19 @@ for (const width of WIDTHS) {
   }
 }
 
+/** The home feed with Ethiopia chosen (the area cookie), so the heading names a place. */
+async function openWithMarket(page: Page, base: string) {
+  const { data, error } = await adminClient()
+    .from("locations")
+    .select("id")
+    .eq("level", "country")
+    .eq("country_code", "ET")
+    .single();
+  if (error || !data) throw new Error(`[e2e:ol] reading ET's root failed: ${error?.message}`);
+  await page.context().addCookies([{ name: "ethio_area", value: `ET:${data.id}`, url: base }]);
+  await gotoReady(page, "/");
+}
+
 /** The live heading cloned beside itself with its slot's text replaced; the line's measures. */
 async function measureHeading(page: Page, name: string) {
   return page.getByTestId("feed-heading").evaluate((h1, name) => {
@@ -241,7 +262,7 @@ test.describe("One line with one slot at 360 (§5)", () => {
   });
 
   for (const language of ["en", "am"] as const) {
-    test(`OL-1 every open market's name shows whole (${language})`, async ({ page }) => {
+    test(`OL-1 every open market's name shows whole (${language})`, async ({ page, baseURL }) => {
       const codes = await openMarketCodes({ realOnly: true });
       const { data, error } = await adminClient()
         .from("locations")
@@ -255,7 +276,7 @@ test.describe("One line with one slot at 360 (§5)", () => {
           : (row.name_en as string),
       );
       expect(names.length).toBeGreaterThan(0);
-      await gotoReady(page, "/");
+      await openWithMarket(page, baseURL ?? "");
       if (language === "am") await switchLanguage(page, "am");
       await expect(page.getByTestId("feed-heading").locator("[data-one-line-slot]")).toBeVisible();
       for (const name of names) {
@@ -265,8 +286,11 @@ test.describe("One line with one slot at 360 (§5)", () => {
     });
   }
 
-  test("OL-2 a 60-character name cuts; the fixed words stay whole on one line", async ({ page }) => {
-    await gotoReady(page, "/");
+  test("OL-2 a 60-character name cuts; the fixed words stay whole on one line", async ({
+    page,
+    baseURL,
+  }) => {
+    await openWithMarket(page, baseURL ?? "");
     await expect(page.getByTestId("feed-heading").locator("[data-one-line-slot]")).toBeVisible();
     const m = await measureHeading(page, "Q".repeat(30) + " " + "W".repeat(29));
     expect(m).toEqual({ cut: true, fixedWhole: true, oneLine: true });
