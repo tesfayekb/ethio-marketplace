@@ -630,9 +630,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       const englishText = { ...enFirstPaint, ...merge((part) => part.en) };
       // INC-1023: the build's own text for the active language — a copied row yields to it.
       const shipped: Partial<Messages> =
-        language === BASE_LANGUAGE
-          ? englishText
-          : { ...compiled, ...merge((part) => part.lang) };
+        language === BASE_LANGUAGE ? englishText : { ...compiled, ...merge((part) => part.lang) };
       const base = { ...englishText, ...shipped } as Messages;
       setMessages(base);
       setAppliedLanguage(language);

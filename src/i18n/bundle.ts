@@ -20,9 +20,7 @@ import type { EntityBundleMap } from "./entity";
  * the provider logs one line naming the language.
  */
 
-export type BundleResult =
-  | { bundle: BundleParts; reason: null }
-  | { bundle: null; reason: string };
+export type BundleResult = { bundle: BundleParts; reason: null } | { bundle: null; reason: string };
 
 /** The bundle's two parts (INC-1023): text someone wrote, and text a sync copied. */
 export interface BundleParts {

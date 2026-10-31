@@ -21,7 +21,11 @@ vi.mock("@/server/supabase/user-client", () => {
         state.calls.push({ name, args });
         return name === "get_ui_bundle_version"
           ? { data: "h1", error: null, status: 200 }
-          : { data: { written: { "app.title": "T" }, copied: { "app.x": "C" } }, error: null, status: 200 };
+          : {
+              data: { written: { "app.title": "T" }, copied: { "app.x": "C" } },
+              error: null,
+              status: 200,
+            };
       },
     }),
     userClientFromRequest: async () => ({ supabase: null, userId: null, reason: null }),

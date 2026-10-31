@@ -116,7 +116,10 @@ test.describe("STAB-I18N · cached translation bundle", () => {
       expect(unpublished.status()).toBe(200);
       const beforeEtag = unpublished.headers()["etag"];
       const beforeBody = (await unpublished.json()) as BundlePayload;
-      expect(beforeBody.bundle.copied[key], "an unpublished language serves no rows").toBeUndefined();
+      expect(
+        beforeBody.bundle.copied[key],
+        "an unpublished language serves no rows",
+      ).toBeUndefined();
 
       await ensureLanguage(code, true);
       const { data: published, error } = await adminClient()
