@@ -17,7 +17,8 @@ import { useShell, type LocationNode } from "@/components/shell-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -30,7 +31,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { LIST_ROW_CURRENT, OPEN_CONTROL } from "@/components/shell/menu-row";
+import { OPEN_CONTROL } from "@/components/shell/menu-row";
 
 /**
  * LOCATION SELECTOR — band 3 of the shell's vertical stack.
@@ -106,21 +107,22 @@ function Picker({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
-        <DropdownMenuItem
-          className={cn(selectedId === null && LIST_ROW_CURRENT)}
-          onSelect={() => onSelect(null)}
-        >
-          {t("location.anyArea")}
-        </DropdownMenuItem>
-        {options.map((option) => (
-          <DropdownMenuItem
-            key={option.id}
-            className={cn(option.id === selectedId && LIST_ROW_CURRENT)}
-            onSelect={() => onSelect(option)}
-          >
-            {option.name}
-          </DropdownMenuItem>
-        ))}
+        {/* INC-1027 — a radio group: the current area is heard (aria-checked) and seen
+            (LIST_ROW's checked state and the tick), never a look by class. */}
+        <DropdownMenuRadioGroup value={selectedId ?? ""}>
+          <DropdownMenuRadioItem value="" onSelect={() => onSelect(null)}>
+            {t("location.anyArea")}
+          </DropdownMenuRadioItem>
+          {options.map((option) => (
+            <DropdownMenuRadioItem
+              key={option.id}
+              value={option.id}
+              onSelect={() => onSelect(option)}
+            >
+              {option.name}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );

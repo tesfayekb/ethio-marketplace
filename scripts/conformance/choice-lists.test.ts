@@ -1,6 +1,4 @@
-import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import { report, walkFiles, TREE_SCAN_MS } from "./kit";
@@ -105,6 +103,19 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
       // The owners define the look; their own literals are the mechanism.
       continue;
     }
+    // INC-1027 (turn F2): a current row comes from the checked state (a radio item's
+    // data-[state=checked], read by LIST_ROW), so it is heard as well as seen; the look by
+    // class lives only in menu-row.ts and the owners above.
+    const current = /\bLIST_ROW_CURRENT\b/.exec(text);
+    if (current !== null) {
+      const line = text.slice(0, current.index).split("\n").length;
+      keys.push(`${name}#current`);
+      findings.push({
+        file: name,
+        line,
+        what: "current: LIST_ROW_CURRENT by class — use a radio item's checked state (INC-1027)",
+      });
+    }
     walk(source);
   }
   return { findings, keys };
@@ -192,8 +203,8 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
       {
         name: "src/x.tsx",
         text:
-          `const a = <DropdownMenuContent align="end"><DropdownMenuItem className={cn(on && LIST_ROW_CURRENT)}>x</DropdownMenuItem></DropdownMenuContent>;\n` +
-          `const b = <button role="option" className={\`\${LIST_ROW} \${LIST_ROW_CURRENT}\`} />;`,
+          `const a = <DropdownMenuContent align="end"><DropdownMenuRadioItem value="a">x</DropdownMenuRadioItem></DropdownMenuContent>;\n` +
+          `const b = <button role="option" className={\`\${LIST_ROW}\`} />;`,
       },
     ]);
     expect(findings).toEqual([]);
@@ -219,9 +230,22 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
     ).toThrow(/permanent/);
   });
 
+  it("CL-6: a planted current row set by class fails; the picker (an owner) keeps it", () => {
+    const { findings } = listFindings([
+      {
+        name: "src/x.tsx",
+        text: `const a = <DropdownMenuItem className={cn(on && LIST_ROW_CURRENT)}>x</DropdownMenuItem>;`,
+      },
+      {
+        name: "src/components/searchable-picker.tsx",
+        text: "LIST_ROW LIST_SURFACE LIST_ROW_CURRENT",
+      },
+    ]);
+    expect(report(findings)).toContain("current: LIST_ROW_CURRENT by class");
+    expect(findings.map((f) => f.file)).toEqual(["src/x.tsx"]);
+  });
+
   it("an owner that stops reading the constants fails", () => {
-    const dir = mkdtempSync(join(tmpdir(), "cl-"));
-    writeFileSync(join(dir, "p.tsx"), "");
     const { findings } = listFindings([
       { name: "src/components/ui/popover.tsx", text: "const x = 1;" },
     ]);

@@ -1,19 +1,20 @@
 import { CutText } from "@/components/ui/cut-text";
 import { BAND_LOOK, BAND_ROW, RAIL_HEADER } from "@/components/shell/band-row";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { useShell } from "@/components/shell-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { LIST_ROW_CURRENT, LIST_TICK, OPEN_CONTROL } from "@/components/shell/menu-row";
+import { OPEN_CONTROL } from "@/components/shell/menu-row";
 
 /**
  * The PANEL IDENTITY BAND (U0d, INC-070 class rule 3).
@@ -68,22 +69,24 @@ export function PanelHeader({ className }: { className?: string }) {
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {panels.map((panel) => {
-            const Icon = panel.icon;
-            const active = panel.id === activePanel;
-            return (
-              <DropdownMenuItem
-                key={panel.id}
-                data-testid={`panel-header-option-${panel.id}`}
-                onSelect={() => switchPanel(panel.id)}
-                className={cn(active && LIST_ROW_CURRENT)}
-              >
-                <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <CutText text={t(panel.labelKey)} />
-                {active ? <Check className={LIST_TICK} aria-hidden="true" /> : null}
-              </DropdownMenuItem>
-            );
-          })}
+          {/* INC-1027 — a radio group: the current panel is heard (aria-checked) and
+              seen (LIST_ROW's checked state and the impl's tick). */}
+          <DropdownMenuRadioGroup value={activePanel}>
+            {panels.map((panel) => {
+              const Icon = panel.icon;
+              return (
+                <DropdownMenuRadioItem
+                  key={panel.id}
+                  value={panel.id}
+                  data-testid={`panel-header-option-${panel.id}`}
+                  onSelect={() => switchPanel(panel.id)}
+                >
+                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <CutText text={t(panel.labelKey)} />
+                </DropdownMenuRadioItem>
+              );
+            })}
+          </DropdownMenuRadioGroup>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

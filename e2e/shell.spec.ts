@@ -374,10 +374,10 @@ test.describe("app shell", () => {
 
     const pick = async (testId: string, name: string) => {
       await page.getByTestId(testId).click();
-      const options = page.getByRole("menuitem");
+      const options = page.getByRole("menuitemradio");
       // eslint-disable-next-line no-restricted-syntax -- DEC-027 census: locator is already scoped to a single viewport twin (or a non-twin surface); grandfathered pending the twin-helper sweep
       await expect(options.first()).toHaveText(en["location.anyArea"]);
-      await page.getByRole("menuitem", { name, exact: true }).click();
+      await page.getByRole("menuitemradio", { name, exact: true }).click();
       await expect(page.getByTestId(testId)).toHaveText(new RegExp(escapeRe(name)));
       return name;
     };
@@ -2656,7 +2656,7 @@ test.describe("L4b location picker", () => {
 
   async function pick(page: Page, level: string, name: string) {
     await page.getByTestId(`location-level-${level}`).click();
-    await page.getByRole("menuitem", { name, exact: true }).click();
+    await page.getByRole("menuitemradio", { name, exact: true }).click();
     await expect(page.getByTestId(`location-level-${level}`)).toHaveText(
       new RegExp(escapeRe(name)),
     );
@@ -2702,7 +2702,7 @@ test.describe("L4b location picker", () => {
       await expect(page.getByTestId("location-row")).toHaveAttribute("data-area-source", "chosen");
 
       await page.getByTestId("location-level-country").click();
-      await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
+      await page.getByRole("menuitemradio", { name: en["location.anyArea"], exact: true }).click();
       const everywhere = async () => {
         await expect
           .poll(() => page.evaluate(() => document.cookie), { timeout: 5000 })
@@ -2730,7 +2730,7 @@ test.describe("L4b location picker", () => {
     await gotoReady(page, "/");
     await expect(page.getByTestId("location-level-country")).toHaveText(guessed);
     await page.getByTestId("location-level-country").click();
-    await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
+    await page.getByRole("menuitemradio", { name: en["location.anyArea"], exact: true }).click();
     const everywhere = async () => {
       await expect(page.getByTestId("location-level-country")).toHaveText(en["location.country"]);
       await expect(page.getByTestId("location-level-region")).toHaveCount(0);
@@ -3275,7 +3275,7 @@ test.describe("L4b location picker", () => {
       // OPEN is therefore retried until the wanted item is on screen; the pick
       // itself is still one real click on that item (no assertion relaxed).
       const pickCountry = async (name: string) => {
-        const item = uiPage.getByRole("menuitem", { name, exact: true });
+        const item = uiPage.getByRole("menuitemradio", { name, exact: true });
         const trigger = uiPage.getByTestId("location-level-country");
         // The whole open-and-pick is bounded: six attempts of at most 3 s each,
         // and the refusal names the option wanted and the options on screen.
@@ -3316,7 +3316,7 @@ test.describe("L4b location picker", () => {
          *   rendered from a DIFFERENT, older answer (a cache seam);
          *   the item is in the DOM but never visible → the sheet clips it.
          */
-        const offered = await uiPage.getByRole("menuitem").allInnerTexts();
+        const offered = await uiPage.getByRole("menuitemradio").allInnerTexts();
         const inDom = await item.count();
         const read = await uiPage.evaluate<{
           status: number;
@@ -3429,7 +3429,7 @@ test.describe("L4b location picker", () => {
         ["city", market.city.name_en!],
       ] as const) {
         await page.getByTestId(`location-level-${level}`).click();
-        await expect(page.getByRole("menuitem", { name, exact: true })).toBeVisible();
+        await expect(page.getByRole("menuitemradio", { name, exact: true })).toBeVisible();
         await page.keyboard.press("Escape");
       }
     } finally {
@@ -3457,7 +3457,7 @@ test.describe("L4b location picker", () => {
       );
       await page.getByTestId("location-level-city").click();
       for (const name of [market.city.name_en!, secondCity.name_en!]) {
-        await expect(page.getByRole("menuitem", { name, exact: true })).toBeVisible();
+        await expect(page.getByRole("menuitemradio", { name, exact: true })).toBeVisible();
       }
     } finally {
       await destroyCountry(market.code);

@@ -27,6 +27,11 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
   DropdownMenuItem: ({ children }: { children: ReactNode; onSelect?: () => void }) => (
     <div data-testid="menu-item">{children}</div>
   ),
+  // INC-1027 (turn F2): the list is a radio group now.
+  DropdownMenuRadioGroup: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  DropdownMenuRadioItem: ({ children }: { children: ReactNode; onSelect?: () => void }) => (
+    <div data-testid="menu-item">{children}</div>
+  ),
 }));
 
 const node = (id: string, parentId: string | null, level: string, nameEn: string) => ({

@@ -39,6 +39,7 @@ export const ITEM_TILE_ICON_SM = "size-3.75 shrink-0";
 export const LIST_ROW =
   "relative flex min-h-11 md:pointer-fine:min-h-10 md:pointer-fine:h-10 w-full min-w-0 cursor-default select-none items-center gap-2 rounded-list-row px-3 text-start text-sm text-popover-foreground outline-none whitespace-nowrap [&>span]:truncate " +
   "focus:bg-nav-pill focus:text-nav-ink data-[highlighted]:bg-nav-pill data-[highlighted]:text-nav-ink focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset " +
+  "data-[state=checked]:bg-nav-pill data-[state=checked]:font-semibold data-[state=checked]:text-nav-ink " +
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0";
 /** The shell's one selected look (ruling 1): the nav pill and the nav ink. */
 export const LIST_ROW_CURRENT = "bg-nav-pill font-semibold text-nav-ink";
