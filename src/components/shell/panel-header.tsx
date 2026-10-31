@@ -1,12 +1,13 @@
 import { CutText } from "@/components/ui/cut-text";
 import { BAND_LOOK, BAND_ROW, RAIL_HEADER } from "@/components/shell/band-row";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { useShell } from "@/components/shell-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
