@@ -69,7 +69,7 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
     const walk = (node: ts.Node) => {
       if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
         const tag = node.tagName.getText(source).replace(/^.*\./, "");
-        const cls = (attr(node, "className", source) ?? "").replace(/[`"'{}()]/g, " ");
+        const cls = (attr(node, "className", source) ?? "").replace(/[`"'{}]/g, " ");
         const role = (attr(node, "role", source) ?? "").replace(/["'{}]/g, "");
         const offset = attr(node, "sideOffset", source);
         if (/\bpickerPopClass\b/.test(cls)) {
