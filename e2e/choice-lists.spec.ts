@@ -74,17 +74,11 @@ async function sampleOpening(page: Page) {
   }, PANELS);
 }
 
-async function scales(page: Page): Promise<string[]> {
+async function scales(page: Page, panel: Locator): Promise<string[]> {
   // Poll on truth (J7): every opening animation on the panel has finished.
   await expect
     .poll(() =>
-      page.evaluate(
-        (panels) =>
-          Array.from(document.querySelectorAll(panels)).every((el) =>
-            el.getAnimations().every((a) => a.playState === "finished"),
-          ),
-        PANELS,
-      ),
+      panel.evaluate((el) => el.getAnimations().every((a) => a.playState === "finished")),
     )
     .toBe(true);
   return page.evaluate(() => (window as unknown as { __clScales: string[] }).__clScales);
@@ -111,8 +105,10 @@ async function judge(page: Page, width: number, list: Judged) {
   await sampleOpening(page);
   await (list.open ? list.open() : control.click());
   await expect(panel).toBeVisible();
-  expect((await scales(page)).filter(hasScale)).toEqual([]);
-  await expect(control).toHaveAttribute("data-state", "open");
+  expect((await scales(page, panel)).filter(hasScale)).toEqual([]);
+  // A nested TooltipTrigger also writes data-state. aria-expanded belongs to
+  // the list trigger itself, and OPEN_CONTROL deliberately supports it.
+  await expect(control).toHaveAttribute("aria-expanded", "true");
   const want = await tokenValue(page, "--nav-pill", "background-color");
   expect(await control.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(want);
 
