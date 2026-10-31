@@ -197,7 +197,7 @@ export function ListingCard({
     <article
       data-testid="listing-card"
       data-listing={listing.id}
-      data-tier={listing.tier ?? undefined}
+      data-tier={listing.tier}
       className={cn(
         CARD_SURFACE,
         "group/card @container flex h-full flex-col overflow-hidden wrap-anywhere",
