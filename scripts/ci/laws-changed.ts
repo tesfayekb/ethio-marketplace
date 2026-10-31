@@ -69,18 +69,23 @@ export function check(mode: string): number {
     const { version, rules } = semgrepPins(readFileSync(".github/workflows/ci.yml", "utf8"));
     const dir = join("/tmp", `semgrep-rules-${rules}`);
     if (!existsSync(join(dir, "javascript"))) {
-      if (run("git", ["init", "--quiet", dir]) !== 0) return 1;
-      run("git", [
-        "-C",
-        dir,
-        "remote",
-        "add",
-        "origin",
-        "https://github.com/semgrep/semgrep-rules",
-      ]);
-      if (run("git", ["-C", dir, "fetch", "--quiet", "--depth", "1", "origin", rules]) !== 0)
-        return 1;
-      if (run("git", ["-C", dir, "checkout", "--quiet", rules]) !== 0) return 1;
+      // The same commit CI checks out, as its archive (no git state touched).
+      if (run("mkdir", ["-p", dir]) !== 0) return 1;
+      const url = `https://codeload.github.com/semgrep/semgrep-rules/tar.gz/${rules}`;
+      const got = spawnSync(
+        "bash",
+        ["-c", `curl -fsSL --max-time 120 "${url}" | tar -xz --strip-components=1 -C "${dir}"`],
+        { stdio: "inherit" },
+      );
+      if (got.status !== 0) return 1;
+      // CI's removals (ci.yml): rules it drops before the scan.
+      for (const drop of [
+        "typescript/react/portability/i18next/i18next-key-format.yaml",
+        "javascript/lang/correctness/no-stringify-keys.yaml",
+        "javascript/lang/correctness/no-replaceall.yaml",
+        "typescript/react/best-practice/react-props-in-state.yaml",
+      ])
+        run("rm", ["-f", join(dir, drop)]);
     }
     // CI's pinned version, in its own venv (pip, as CI installs it).
     const venv = join("/tmp", `semgrep-${version}`);
