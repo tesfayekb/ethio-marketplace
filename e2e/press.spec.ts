@@ -133,7 +133,7 @@ for (const mode of MODES) {
           },
           {
             name: "button",
-            target: page.getByTestId("search-toggle"),
+            target: page.getByTestId("theme-toggle"),
             inkCheck: false,
           },
           {
