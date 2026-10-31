@@ -267,6 +267,17 @@ export const AREAS: Area[] = [
     ],
   },
   {
+    name: "press",
+    src: [
+      "src/lib/press.ts",
+      "src/components/shell/menu-row.ts",
+      "src/components/shell/band-row.ts",
+      "src/components/ui/button.tsx",
+      "src/components/ui/tabs.tsx",
+    ],
+    specs: ["e2e/press.spec.ts"],
+  },
+  {
     name: "ad-page",
     src: [
       "src/routes/l.*",
