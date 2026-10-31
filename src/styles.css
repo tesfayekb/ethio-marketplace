@@ -479,14 +479,18 @@
   --track: oklch(0.188 0.011 163.5); /* #0F1512 — location box track */
   --photo-empty: oklch(0.343 0.02 159.6); /* #303C35 — picture box before a photo loads (DEC-314) */
   --leaf-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — search, globe, pin icons */
-  --tier-premium: oklch(0.305 0.032 78); /* #382D1C, D262 candidate B — Premium card and title-box fill */
+  --tier-premium: oklch(
+    0.305 0.032 78
+  ); /* #382D1C, D262 candidate B — Premium card and title-box fill */
   --tier-premium-frame: oklch(0.708 0.12 78.6); /* #C9973F — Premium frame and flag border */
   --tier-premium-rule: oklch(0.379 0.052 84.8); /* #4F4020 — Premium place-line divider */
   --tier-premium-fold: oklch(0.651 0.116 79.1); /* #B5862F — Premium flag fold */
   --tier-premium-ink: oklch(0.801 0.127 82.7); /* #E6B655 — Premium word, price and links */
   --tier-premium-star: oklch(0.708 0.12 78.6); /* #C9973F — Premium stars beside the word */
   --tier-premium-chip: oklch(0.308 0.043 84.2); /* #3A2E15 — Premium chips and initials disc */
-  --tier-featured: oklch(0.312 0.032 162.1); /* #22362C, D262 candidate B — Featured card and title-box fill */
+  --tier-featured: oklch(
+    0.312 0.032 162.1
+  ); /* #22362C, D262 candidate B — Featured card and title-box fill */
   --tier-featured-frame: oklch(0.634 0.093 163.1); /* #4F9C7A — Featured frame and flag border */
   --tier-featured-rule: oklch(0.382 0.042 161.8); /* #2E4A3C — Featured place-line divider */
   --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
@@ -518,7 +522,8 @@
   --lift-menu:
     0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4),
     0 16px 32px -12px oklch(0 0 0 / 0.55);
-  --lift-card: 0 0 0 1px oklch(0.399 0.02 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* edge #3E4B44, candidate B */
+  --lift-card:
+    0 0 0 1px oklch(0.399 0.02 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* edge #3E4B44, candidate B */
   --lift-badge:
     inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
     0 3px 8px oklch(0 0 0 / 0.45);
