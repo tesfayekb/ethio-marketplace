@@ -190,7 +190,11 @@ for (const mode of MODES) {
 
       // A menu row: the rail on a wide screen, the phone menu at 360 (openRailScope).
       // On a category page the menu opens at its level: its back row is an idle ITEM_CORE row.
-      const menuRow = (await openRailScope(page)).getByTestId("rail-menu-back");
+      // (the phone's menu shows the back row; the wide rail keeps Home, idle here).
+      const phoneMenu = test.info().project.name === "mobile-360";
+      const menuRow = (await openRailScope(page)).getByTestId(
+        phoneMenu ? "rail-menu-back" : "rail-home",
+      );
       await expect(menuRow, "menu row").toBeVisible();
       const m = await press(page, menuRow);
       expect(m.marked, "menu row: marked").toBe(true);
