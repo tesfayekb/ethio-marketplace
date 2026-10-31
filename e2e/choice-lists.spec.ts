@@ -145,7 +145,7 @@ for (const width of WIDTHS) {
 
       test(`CL-E2 the location list (${width}, ${mode})`, async ({ page }) => {
         const control = page.getByTestId("location-level-country");
-        await judge(page, control, page.getByRole("menu"), page.getByRole("menuitem"), width);
+        await judge(page, control, page.getByRole("menu"), page.getByRole("menuitemradio"), width);
       });
 
       test(`CL-E3 the account list and the panel switch (${width}, ${mode})`, async ({ page }) => {
@@ -159,7 +159,7 @@ for (const width of WIDTHS) {
         if (!isMobile(page)) {
           // From md the panel switch heads the rail; below md the bottom bar replaces it.
           const switcher = page.getByTestId("panel-header-switcher");
-          await judge(page, switcher, page.getByRole("menu"), page.getByRole("menuitem"), width);
+          await judge(page, switcher, page.getByRole("menu"), page.getByRole("menuitemradio"), width);
         }
       });
     });

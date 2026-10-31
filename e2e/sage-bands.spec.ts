@@ -201,7 +201,7 @@ for (const width of WIDTHS) {
         const market = markets.countries.find((row) => row.code === code);
         if (!market) throw new Error("SGB-5 selected market absent");
         await page.getByTestId("location-level-country").click();
-        await page.getByRole("menuitem", { name: market.name_en, exact: true }).click();
+        await page.getByRole("menuitemradio", { name: market.name_en, exact: true }).click();
         await expect(page.getByTestId("location-level-country")).toHaveAttribute(
           "data-location-raised",
           "true",
@@ -339,7 +339,7 @@ test.describe("Sage deepest chain at 360", () => {
           const picker = page.getByTestId(`location-level-${level}`);
           await expect(picker).toBeVisible();
           await picker.click();
-          await page.getByRole("menuitem", { name, exact: true }).click();
+          await page.getByRole("menuitemradio", { name, exact: true }).click();
           await expect(picker).toHaveAttribute("title", name);
         }
         await switchLanguage(page, language);

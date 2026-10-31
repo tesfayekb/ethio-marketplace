@@ -252,7 +252,7 @@ test.describe("VIEWING PLACE — the shell carries it (D106 part 2)", () => {
 
   async function pick(page: Page, level: string, name: string) {
     await page.getByTestId(`location-level-${level}`).click();
-    await page.getByRole("menuitem", { name, exact: true }).click();
+    await page.getByRole("menuitemradio", { name, exact: true }).click();
     await expect(page.getByTestId(`location-level-${level}`)).toHaveText(
       new RegExp(escapeRe(name)),
     );
@@ -320,7 +320,7 @@ test.describe("VIEWING PLACE — the shell carries it (D106 part 2)", () => {
       .toBe(`ET:${c.city.id}:${saved.at}`);
 
     await page.getByTestId("location-level-country").click();
-    await page.getByRole("menuitem", { name: en["location.anyArea"], exact: true }).click();
+    await page.getByRole("menuitemradio", { name: en["location.anyArea"], exact: true }).click();
     await expect.poll(async () => (await accountOf(user.id)).id, { timeout: 15_000 }).toBeNull();
     expect(await areaCookie(page)).toMatch(/^everywhere:\d+$/);
   });
