@@ -1,50 +1,75 @@
-# Next five — plan (A budget, B S3 cards/D262, C press D263, D INC-1023, E one-line fit)
+# Turn D — INC-1023: shipped strings reach the live site (plan)
 
 ## CI first
-The latest completed run in ci-evidence is still 398a5859 (FAILURE, budget only, run 41148548211; S2-3 answered it). The run on d2e9bb36 has not been published yet. Turn A starts by reading it again; any red is fixed first, from its failure body.
+The run on e195034e failed only in lane 3, where the image registry rate-limited the temporary backend. That is outside this turn, as ruled. The build turn reads the run on 1c7e2155 first and fixes any red that is not infrastructure.
 
-## Premises the census finds different (report first)
-1. menu-current.ts consumers in app-rail.tsx are at :21 (import), :339 and :438 (`MENU_LINK_ACTIVE`), plus submenu-impl.tsx :430 — not :621/:640/:663/:816. Turn C opens with a full census (isCurrentAt, MENU_LINK_ACTIVE, CURRENT_PILL, ITEM_ACTIVE).
-2. Dark `--border` in src/styles.css :436 is #2F3B34, not #26302B. Turn B first identifies which token draws the card's edge today (border, a card-edge class or a ring) and measures the real pair before setting targets.
-3. The check-bundle-size.mjs comments state DEC-296 as floor(size + 0.1 + 0.3) + 1 at :44 and floor(size + 0.3 + 0.3) + 1 at :45. Turn A fixes the NEAR band at one value in one constant before the guard reads it; the plan proposes 0.3 KiB (DEC-296), to be confirmed in the ruling.
+## 1. Where the precedence lives: shape (b), in the app
+Only the app knows which keys the build ships, so SQL cannot decide "the build's text wins" alone. Shape (a) in SQL would drop every unwritten row. That breaks IB-1, IB-2 and the admin-translations specs, whose scratch rows are seeded without revisions on keys the build does not ship.
 
-## Order
-A → D → B → C → E. A first (every later piece grows pages). D next: it touches no page weight, and it is Tier A (a migration that waits for apply), so moving it ahead lets the apply run while B and C build. B before C: C's pressed style applies to the card links that B restyles. E last: its census measures the final labels.
+The bundle therefore carries authorship, and the merge decides.
 
-## A. The budget instrument (1 turn)
-- Concern: a ceiling never sits inside the NEAR band of the size it judges.
-- Mechanism: scripts/check-bundle-size.mjs (the entry) and scripts/route-budgets.mjs (pages). Add `NEAR_KIB` (DEC-296) and `ceilingFor(size)` = floor(size + NEAR) + 1 in one place, read by both.
-- Guard: the check refuses any ceiling where ceiling − measured < NEAR, naming DEC-296 and the page. Planted case: a fixture ceiling 0.1 KiB over size must fail; unit test in scripts/conformance.
-- One-time census: every page and the entry reset to ceilingFor(CI 398a5859 size, or d2e9bb36 if published), each with a cause line. Known near: /admin/roles, /admin/users, /admin/screening, /c/$slug, /auth_/callback, /auth_/reset, entry.
-- G38: none (no browser test).
-- Growth: 0 JS, 0 CSS.
+- New answer shape of `get_ui_bundle(lang)`: `{ "written": { key: text }, "copied": { key: text } }`. These are the same approved rows as today, split by the one authorship predicate.
+- Merge rule, one pure function `overlayBundle(base, bundle, shipped)` in src/i18n/bundle.ts:
+  - written rows always win;
+  - a copied row applies only where the build has no text for that key.
+- An old client holding the old code reads the new shape as two non-string entries. It drops them and keeps the compiled text, so it degrades safely; no blank UI.
+- Consumers, all updated:
+  - src/i18n/bundle.ts :74 `shapeBundle`, which parses both maps, and :99/:115, the route read and the database fallback;
+  - src/i18n/provider.tsx :647, where `{ ...base, ...bundle }` becomes `overlayBundle(base, bundle, compiledKeys)`, the compiled keys taken from the layers the provider has already merged;
+  - src/routes/api/i18n.$lang.ts :54, which passes the body through unchanged (no edit beyond its comment);
+  - src/features/admin/translations/translations-service.ts :365 `fetchUiBundle`, the console's "shipped" view, which reads `written` plus `copied` as one map, so the console's meaning stays "approved rows";
+  - the provider test mocks (provider.test.tsx :33, provider-layers.test.tsx :36, provider-d239.test.tsx :32), unchanged because they answer `bundle: null`.
+- `get_ui_bundle_version` is unchanged in meaning. A save or machine revision updates its row, so the version and ETag move. It is still redeclared, because it shares the predicate's file and its read-back.
 
-## D. INC-1023, shipped strings win over copies (1 turn + apply)
-- Concern: a ui_translations row that only copies the code never overrides the build's text.
-- Mechanism: get_ui_bundle (latest migration redeclaring it) + src/i18n/bundle.ts :115 overlay; admin_sync_ui_keys writes origin 'sync'.
-- Change: migration redeclares get_ui_bundle whole (G39, from the live definition): returns a row only if origin ≠ 'sync' or a 'save'/'machine' revision exists. get_ui_bundle_version follows the same filter. Closers, read-back, self-mark.
-- Proofs on scratch rows: stale sync row excluded; person-saved row included; machine row included.
-- Test: unit test on the overlay: a bundle lacking the sync row leaves the compiled text; a person row wins.
-- Stop after the migration report for staging apply; production on `apply <fragment> on ethio-prod`.
-- Growth: 0.
+## 2. Migration (one file, Tier A)
+- **The one predicate:** `public.ui_text_written(p_key text, p_lang text) returns boolean`, SQL, STABLE, SECURITY DEFINER, `search_path = public`. It answers whether a revision exists with action in ('save', 'machine') for that key and language, which rides the (key, lang_code, changed_at DESC) index.
+  - Closers: REVOKE ALL FROM PUBLIC and anon; GRANT EXECUTE to authenticated and service_role.
+  - No browser grant is needed, because it is called only inside SECURITY DEFINER functions. So no public-surface-allowlist line is needed.
+- **Redeclared whole from the live definitions, read first on ethio-prod (G39):**
+  - `get_ui_bundle`: the new two-map shape, with the same filter (approved, value not null, not orphaned, a public or base language);
+  - `get_ui_bundle_version`: same body;
+  - `admin_sync_ui_keys`: INC-603's inline revision test is replaced by `ui_text_written(...)`, one predicate and never two copies.
+  - The existing grants of each function are restated in the file.
+- **Proof:** one DO block, run as no caller, on scratch keys `e2e.scratch.inc1023.*` with a scratch revision batch. It inserts:
+  - a copied row with no revision, which must land in `copied`;
+  - a row with a 'save' revision, which must land in `written`;
+  - a row with a 'machine' revision, which must land in `written`;
+  - an 'approve'-only revision, which must land in `copied`;
+  - the sync function's own path, proven to keep a written row and to follow the code for a copied row.
 
-## B. S3, feed and card surface + D262 (2 turns)
-- B1: tokens. New dark `--card` and its edge to measured targets (card ≥ 1.25:1, edge ≥ 1.8:1 vs page); every text pair ≥ 4.5:1; Featured/Premium dark fills, popover and photo well re-checked against the new card. Contrast test extended; /dev/style shows old and new swatches for the operator. G38: any contrast/value assertion naming #1A221E.
-- B2: spec §5/§6 card and feed look per redesign-part-2.md §6 S3 row, through the existing card mechanism (CARD_SURFACE); CF-LOOK-1 lines retired; new SGC spec at 390/834/1440 light/dark.
-- Growth ESTIMATE: +0.1–0.3 KiB JS feed pages, CSS +0.3 KiB.
+  Each failed expectation RAISEs EXCEPTION. The block deletes its own rows by `WHERE key LIKE 'e2e.scratch.inc1023.%'` and restates the self-mark. The mark value is chosen at apply time (G39).
+- **Premise to verify at build:** which revision action the staff import writes. The live actions are only approve, machine, save and undo-import. If an import writes no 'save', imported text would read as copied. That would be a STOP for a ruling, not a guess.
 
-## C. D263, a press shows at once (1 turn)
-- Mechanism: menu-current.ts reads `useRouterState` pending location (`location` of the pending match) so isCurrentAt raises the target at navigation start; CURRENT_PILL/ITEM_ACTIVE unchanged. A failed or cancelled navigation clears pending, so the resolved location returns the selection.
-- One pressed style `PRESSED` (active: scale/tint, motion-reduce: tint only) in one module, read by menu rows, Button, CONTROL_LOOK, card links; CF-PRESS census with planted bypass.
-- Proof: e2e on phone and desktop projects: paint changes within one rAF of pointerdown; a delayed route keeps the pill on the chosen item; an aborted navigation restores it.
-- Growth ESTIMATE: +0.2 KiB JS entry, CSS +0.1 KiB.
+## 3. Tests
+- **Unit**, a new src/i18n/bundle-overlay.test.ts:
+  - a stale copied row loses to the build's text;
+  - a saved row wins over the build;
+  - a copied row for an unshipped key shows;
+  - a DB-only language, with no compiled layer, shows its copied rows;
+  - an old-shape or malformed answer keeps the compiled text.
+- **Route:** src/routes/api/i18n.lang.test.ts gains a case that the two-map body passes through with the ETag unchanged in form.
+- **Console:** a unit case that `fetchUiBundle` joins both maps.
+- **Browser:**
+  - IB-1 and IB-2 in i18n-bundle.spec.ts are expected green unchanged: scratch keys on a scratch language are unshipped, so their copied rows still show.
+  - The admin-translations specs are expected unchanged, run whole on both projects with retries 0. Any change is named under G38.
+- **Conformance:** a census inside an existing guard file shows that only `overlayBundle` merges the UI bundle (provider.tsx carries no spread of `bundle`). A planted spread must fail.
 
-## E. One-line fit in every language and font (1 turn)
-- Mechanism NONE YET: a `data-one-line` marker (one constant) on headings, buttons, tabs, bottom-bar labels, chips, band labels; census lists the slots (36 files carry nowrap/truncate today; each is classified).
-- Guard: e2e census at 360 px over every shipped language, measuring scrollWidth ≤ clientWidth × 0.90 (10% headroom for Kefa vs Noto); planted overflowing label must fail. Unit census: a nowrap slot without the marker is refused or allowlisted.
-- G38: none expected; any slot that fails is listed and fixed by its own string, never a new string.
-- Growth: marker attributes only, ~0.
+## 4. Growth (estimate)
+About +0.1 KiB of JavaScript on every page (the merge function and the shape parse), all pages inside the NEAR band rule from turn A. The stylesheet does not change. The bundle payload is the same rows plus two wrapper keys.
+
+## 5. Operator's steps
+1. The build turn saves the migration through the database tool. The operator allows the "Modify Supabase database" dialog, the file applies on ethio-prod, and the stop report follows with the read-back: the definitions, the grants and the mark.
+2. The supervisor applies the same file on ethio-staging from dev, before the browser specs that read the new shape run on staging.
+3. "Sync keys" is no longer needed for the live site to show a new build's text. It is still needed to create rows so translators see new keys and so the approval-coverage gate (D3/D5) counts them.
+
+## 6. Turns
+Two parts, one turn each (S500):
+- **D1:** the census, the migration and its proof, saved and applied on prod. Then STOP with the read-back, as ruled.
+- **D2:** after staging is applied, the app merge, the tests, the browser runs, `bun run checks` and the report.
+
+The split keeps D1's apply and stop report clear of the full checks.
 
 ## Technical details
-- Each turn: CI read, step 0, change, touched specs whole (both projects, retries 0), one `bun run checks`, report. Sizes kept small so checks and report fit one turn.
-- No new dependency; no new strings; D is the only migration.
+- Files D1: supabase/migrations/<new>.sql; docs/governance/briefs/foundations-turn-d-strings.md; roadmap.md; stop report.
+- Files D2: src/i18n/bundle.ts, src/i18n/provider.tsx, src/i18n/bundle-overlay.test.ts, src/routes/api/i18n.$lang.ts (the comment only), src/routes/api/i18n.lang.test.ts, src/features/admin/translations/translations-service.ts with its test, the census case, src/integrations/supabase/types.ts (regenerated, never by hand), docs/features/i18n doc, the mechanisms.md row, one changelog line, the report.
+- No new dependency, no new string, no new route.
