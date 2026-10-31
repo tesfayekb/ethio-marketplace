@@ -50,7 +50,27 @@ test.describe("dark-card choice", () => {
           if (page === null) throw new Error("no dark page");
           const pageBg = getComputedStyle(page).backgroundColor;
           const style = getComputedStyle(element);
-          const ring = style.boxShadow.match(/(?:oklch|rgba?|color)\([^)]*\)/)?.[0] ?? "";
+          // Tailwind lists its empty ring layers first; the edge is the layer with a spread.
+          const layers: string[] = [];
+          let depth = 0;
+          let current = "";
+          for (const char of style.boxShadow) {
+            if (char === "(") depth += 1;
+            if (char === ")") depth -= 1;
+            if (char === "," && depth === 0) {
+              layers.push(current.trim());
+              current = "";
+            } else current += char;
+          }
+          layers.push(current.trim());
+          const edgeLayer = layers.find((layer) => {
+            const lengths = layer
+              .replace(/[a-z]+\([^)]*\)/gi, "")
+              .trim()
+              .split(/\s+/);
+            return lengths.length >= 4 && parseFloat(lengths[3] ?? "0") > 0;
+          });
+          const ring = edgeLayer?.match(/[a-z]+\([^)]*\)/i)?.[0] ?? "";
           return {
             surface: ratio(style.backgroundColor, pageBg),
             edge: ring === "" ? 0 : ratio(ring, pageBg),
