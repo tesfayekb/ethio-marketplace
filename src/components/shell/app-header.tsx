@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { OPEN_CONTROL } from "@/components/shell/menu-row";
 import { useShell } from "@/components/shell-context";
 
 /**
@@ -227,6 +228,7 @@ export function AppHeader() {
                   className={cn(
                     "inline-flex min-w-0 shrink-0 items-center gap-2 px-1.5 text-sm",
                     CONTROL_LOOK,
+                    OPEN_CONTROL,
                   )}
                 >
                   <Avatar className="h-7 w-7">

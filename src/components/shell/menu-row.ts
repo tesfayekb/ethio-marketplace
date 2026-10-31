@@ -28,3 +28,32 @@ export const ITEM_TILE = `relative -ms-1.25 rail-icons:in-[[data-testid=app-rail
 export const ITEM_TILE_SM = "ms-0 size-7";
 export const ITEM_TILE_ICON = "size-4 shrink-0";
 export const ITEM_TILE_ICON_SM = "size-3.75 shrink-0";
+
+/**
+ * D264 (Foundations turn F, Sage §14) — ONE OPEN LIST. Every list of choices that opens
+ * from a control (the dropdown facade's panels and rows, the searchable picker, the
+ * popover's surface) reads these, never its own (CF-LIST-1 judges).
+ * LIST_ROW: 44 px to tap below md and on any coarse pointer; Sage §14's 40 px row with a
+ * 10 px radius from md on a fine pointer; one line, cut by D105's rule.
+ */
+export const LIST_ROW =
+  "relative flex min-h-11 md:pointer-fine:min-h-10 md:pointer-fine:h-10 w-full min-w-0 cursor-default select-none items-center gap-2 rounded-list-row px-3 text-start text-sm text-popover-foreground outline-none whitespace-nowrap [&>span]:truncate " +
+  "focus:bg-nav-pill focus:text-nav-ink data-[highlighted]:bg-nav-pill data-[highlighted]:text-nav-ink focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset " +
+  "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0";
+/** The shell's one selected look (ruling 1): the nav pill and the nav ink. */
+export const LIST_ROW_CURRENT = "bg-nav-pill font-semibold text-nav-ink";
+/** The row a keyboard is on in a hand-driven list: the same surface as focus. */
+export const LIST_ROW_HIGHLIGHT = "bg-nav-pill text-nav-ink";
+/** The tick at the end of the current row, in the nav ink. */
+export const LIST_TICK = "ms-auto size-4 shrink-0 text-nav-ink";
+/** The panel's surface: white (dark #1D2621), 14 px, 6 px padding, the menu shadow whose
+ *  first layer is the ring — no border, no zoom (ruling 2). */
+export const LIST_SURFACE = "bg-popover text-popover-foreground rounded-menu p-1.5 shadow-menu";
+/** The opening: a short fade with a 2 px slide from the control's side, never a scale. */
+export const LIST_MOTION =
+  "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[side=bottom]:slide-in-from-top-0.5 data-[side=top]:slide-in-from-bottom-0.5 data-[side=left]:slide-in-from-right-0.5 data-[side=right]:slide-in-from-left-0.5";
+/** Width (ruling 3): at least the control, at most the viewport less a 16 px gutter each side. */
+export const LIST_PANEL = `z-50 ${LIST_SURFACE} max-w-[calc(100vw-2rem)] overflow-x-hidden ${LIST_MOTION}`;
+/** The control while its list is open: one style, from here (ruling 1). */
+export const OPEN_CONTROL =
+  "data-[state=open]:bg-nav-pill data-[state=open]:text-nav-ink aria-expanded:bg-nav-pill aria-expanded:text-nav-ink";

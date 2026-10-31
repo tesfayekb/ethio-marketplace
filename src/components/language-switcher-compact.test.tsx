@@ -42,17 +42,19 @@ describe("LanguageSwitcher density", () => {
       // One flex row: the label and its indicator are siblings, never stacked.
       expect(item.className).toContain("items-center");
       expect(item.className).not.toContain("flex-col");
-      // U4i-8: compact rows use a 2px vertical inset and no line-height slack.
-      expect(item.className).toContain("py-0.5");
-      expect(item.className).toContain("leading-none");
-      expect(item.className).not.toContain("py-px");
+      // D264 (turn F, G38: was U4i-8's `py-0.5 leading-none`): the menu's own row —
+      // 44 px to tap (min-h-11), 40 px on a fine pointer from md, one line.
+      expect(item.className).toContain("min-h-11");
+      expect(item.className).toContain("md:pointer-fine:h-10");
+      expect(item.className).toContain("whitespace-nowrap");
+      expect(item.className).not.toContain("py-0.5");
       expect(item.className).not.toContain("py-1.5");
       expect(item.querySelector('[data-lucide="check"]')).toBeNull();
     }
 
-    expect(screen.getByTestId("language-option-en").className.split(" ")).toContain("bg-accent");
+    expect(screen.getByTestId("language-option-en").className.split(" ")).toContain("bg-nav-pill");
     expect(screen.getByTestId("language-option-am").className.split(" ")).not.toContain(
-      "bg-accent",
+      "bg-nav-pill",
     );
   });
 });

@@ -3,6 +3,13 @@ import { useEffect, useState, type KeyboardEvent, type ReactNode, type RefObject
 import { Check } from "lucide-react";
 
 import { Z_POPOVER } from "@/components/layout/layers";
+import {
+  LIST_ROW,
+  LIST_ROW_CURRENT,
+  LIST_ROW_HIGHLIGHT,
+  LIST_SURFACE,
+  LIST_TICK,
+} from "@/components/shell/menu-row";
 
 /**
  * Bundle 4 step 11 — ONE PICKER. The currency box and the phone-country box
@@ -91,9 +98,10 @@ export function usePickerKeys({
   return { highlight, setHighlight, onKeyDown };
 }
 
-/** The class a picker's list box opens with, for its placement. */
+/** The class a picker's list box opens with, for its placement: against the box's edge
+ *  (no gap, D264), on the open list's one surface. */
 export function pickerPopClass(placement: PickerPlacement): string {
-  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full mb-1" : "top-full mt-1"}`;
+  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE}`;
 }
 
 /** One option row: 44px tall, highlighted by the keyboard, never stealing focus. */
@@ -127,19 +135,13 @@ export function PickerOption({
       aria-selected={selected}
       data-testid={testId}
       {...dataAttrs}
-      className={`flex min-h-11 w-full items-center px-3 text-start text-sm text-foreground ${
-        highlighted ? "bg-accent" : ""
-      } ${className}`}
+      className={`${LIST_ROW} ${selected ? LIST_ROW_CURRENT : highlighted ? LIST_ROW_HIGHLIGHT : ""} ${className}`}
       onMouseDown={(event) => event.preventDefault()}
       onClick={onPick}
     >
       {children}
       {selected && (
-        <Check
-          aria-hidden="true"
-          data-testid={`${testId}-check`}
-          className="ms-auto h-4 w-4 shrink-0 text-primary"
-        />
+        <Check aria-hidden="true" data-testid={`${testId}-check`} className={LIST_TICK} />
       )}
     </button>
   );

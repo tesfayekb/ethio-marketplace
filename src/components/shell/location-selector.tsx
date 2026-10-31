@@ -30,6 +30,7 @@ import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { LIST_ROW_CURRENT, OPEN_CONTROL } from "@/components/shell/menu-row";
 
 /**
  * LOCATION SELECTOR — band 3 of the shell's vertical stack.
@@ -91,6 +92,7 @@ function Picker({
             "min-w-min gap-0.5 md:gap-1",
             "hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             raised ? BAND_SEGMENT_CURRENT : BAND_SEGMENT_IDLE,
+            OPEN_CONTROL,
           )}
         >
           {/* The picker shows its OWN selection — never a second copy of an
@@ -104,9 +106,18 @@ function Picker({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="max-h-72 overflow-y-auto">
-        <DropdownMenuItem onSelect={() => onSelect(null)}>{t("location.anyArea")}</DropdownMenuItem>
+        <DropdownMenuItem
+          className={cn(selectedId === null && LIST_ROW_CURRENT)}
+          onSelect={() => onSelect(null)}
+        >
+          {t("location.anyArea")}
+        </DropdownMenuItem>
         {options.map((option) => (
-          <DropdownMenuItem key={option.id} onSelect={() => onSelect(option)}>
+          <DropdownMenuItem
+            key={option.id}
+            className={cn(option.id === selectedId && LIST_ROW_CURRENT)}
+            onSelect={() => onSelect(option)}
+          >
             {option.name}
           </DropdownMenuItem>
         ))}

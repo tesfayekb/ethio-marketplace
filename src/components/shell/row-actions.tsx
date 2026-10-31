@@ -71,7 +71,7 @@ export function RowActions({ testid, name, edit, remove, more }: RowActionsProps
       key={m.key}
       data-testid={`${testid}-more-${m.key}`}
       disabled={m.disabled}
-      className={cn("min-h-11", m.tone === "danger" && "text-destructive focus:text-destructive")}
+      className={cn(m.tone === "danger" && "text-destructive focus:text-destructive")}
       onSelect={() => m.onSelect()}
     >
       {m.icon ? (
