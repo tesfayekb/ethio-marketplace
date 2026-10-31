@@ -732,9 +732,11 @@ jobs:
           python3 - <<'PY'
           import json, os, ssl, time, urllib.error, urllib.request, uuid
           ctx = ssl.create_default_context(cafile=os.path.join(os.environ['RUNNER_TEMP'], 'ethio-ci-local-ca', 'ca.pem'))
-          base = os.environ['E2E_SUPABASE_URL']
-          service = os.environ['E2E_SUPABASE_SERVICE_ROLE_KEY']
-          anon = os.environ['E2E_SUPABASE_PUBLISHABLE_KEY']
+          # This step wrote the keys to GITHUB_ENV; they reach os.environ only in later steps.
+          written = dict(line.split('=', 1) for line in open(os.environ['GITHUB_ENV']).read().splitlines() if line.startswith('E2E_SUPABASE_') and '=' in line)
+          base = written['E2E_SUPABASE_URL']
+          service = written['E2E_SUPABASE_SERVICE_ROLE_KEY']
+          anon = written['E2E_SUPABASE_PUBLISHABLE_KEY']
           def fail(message):
               with open('local-backend-failure.txt', 'a') as out:
                   out.write('start proof (DEC-313): ' + message + '\n')
