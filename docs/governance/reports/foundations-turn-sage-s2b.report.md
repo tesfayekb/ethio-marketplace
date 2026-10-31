@@ -53,7 +53,7 @@ TB-1 failed in CI because S2b added the shared track inset but missed this geome
 
 Prior S2b browser result: 50 passed, 1 skipped, both projects, retries 0 (prior turn record; operator fresh-clone confirmation says 50 of 50). Artifacts are not available in this sandbox, so this is explicitly prior evidence, not a newly claimed run.
 
-S2b-2 TB-1 regression: pending. The initial allowed e2e:local command stopped at browser guard before tests because the Node Playwright revision's browser path was absent; a retry uses the already-installed Python Playwright Chromium via E2E_CHROMIUM_PATH, no install/dependency change. Full changed shell.spec.ts is owed; any unrun portion is named below rather than called green. CI repeat lane did not repeat sage-bands.spec.ts on 3d94bd6b; it did repeat admin-shell.spec.ts. Repeat proof is CI-only, no local repeats.
+S2b-2 TB-1 regression: **2 passed**, both mobile-360 and desktop-1280, retries 0, 18.3 seconds; the previous CI reproduction now passes with the track anchor. The initial allowed e2e:local command stopped at browser guard before tests because the Node Playwright revision's browser path was absent; a retry uses the already-installed Python Playwright Chromium via E2E_CHROMIUM_PATH, no install/dependency change. Full changed shell.spec.ts is owed; any unrun portion is named below rather than called green. CI repeat lane did not repeat sage-bands.spec.ts on 3d94bd6b; it did repeat admin-shell.spec.ts. Repeat proof is CI-only, no local repeats.
 
 ## 8. Growth table and named ceilings
 
