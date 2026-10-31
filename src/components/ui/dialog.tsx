@@ -40,6 +40,7 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
+    data-dialog-scrim=""
     className={cn(DIALOG_SCRIM, DIALOG_LAYER.modal, className)}
     {...props}
   />
@@ -96,7 +97,11 @@ const DialogContent = React.forwardRef<
           {...props}
         >
           {phone === "sheet" ? (
-            <div aria-hidden="true" className={cn(DIALOG_GRABBER, "md:hidden")} />
+            <div
+              aria-hidden="true"
+              data-dialog-grabber=""
+              className={cn(DIALOG_GRABBER, "md:hidden")}
+            />
           ) : null}
           {children}
           {/* INC-955 — the shell's notices are drawn here while this dialog is open. */}

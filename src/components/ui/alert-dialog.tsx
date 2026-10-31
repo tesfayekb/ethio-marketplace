@@ -28,6 +28,7 @@ const AlertDialogOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
+    data-dialog-scrim=""
     className={cn(DIALOG_SCRIM, DIALOG_LAYER.modal, className)}
     {...props}
     ref={ref}

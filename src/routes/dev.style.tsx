@@ -317,7 +317,7 @@ function DialogSpecimens() {
             ))}
           </RadioGroup>
           <Textarea data-testid="style-dialog-field" aria-label={t("adPage.report.note")} />
-          <DialogFooter>
+          <DialogFooter data-testid="style-dialog-footer">
             <DialogClose asChild>
               <Button variant="outline" size="touch">
                 {t("common.cancel")}
@@ -338,9 +338,9 @@ function DialogSpecimens() {
             <AlertDialogTitle>{t("myListings.confirm.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{t("myListings.confirm.deleteBody")}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter data-testid="style-alert-footer">
             <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction tone="destructive">
+            <AlertDialogAction data-testid="style-alert-action" tone="destructive">
               {t("myListings.action.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>

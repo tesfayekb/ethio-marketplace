@@ -34,6 +34,7 @@ const SheetOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
+    data-dialog-scrim=""
     className={cn(DIALOG_SCRIM, DIALOG_LAYER.modal, className)}
     {...props}
     ref={ref}
@@ -63,7 +64,9 @@ const SheetContent = React.forwardRef<
         className={cn(SHEET_PANEL, DIALOG_LAYER.modal, SHEET_SIDE[side], className)}
         {...props}
       >
-        {side === "bottom" ? <div aria-hidden="true" className={DIALOG_GRABBER} /> : null}
+        {side === "bottom" ? (
+          <div aria-hidden="true" data-dialog-grabber="" className={DIALOG_GRABBER} />
+        ) : null}
         {children}
         {/* INC-955 — the shell's notices are drawn here while this sheet is open. */}
         <NoticeOutlet />
