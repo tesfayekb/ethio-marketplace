@@ -1213,3 +1213,4 @@
 - 2026-10-31 turn B2 (Sage S3): dark card C live; §5 heading with ONE_LINE_SLOT (CF-ONE-LINE-1); §6 card parts; place line in leaf ink (D269); INC-1028 CL-3 working-copy patch (DEC-316).
 - 2026-10-31 turn C1 (D263/D270, DEC-317): a press shows the raised look at once — PRESSED (menu-row.ts) on every pressable primitive, src/lib/press.ts the one listener in the root; CF-PRESS-1 rules 1–2; OL-1 reads the public languages.
 - 2026-10-31 turn C2 (D263/D271/D272, DEC-317): a menu's chosen item is marked at once through useMenuAt (the frame stays on the shown page, INC-581); the bottom bar marks the page by the one rule, signed in or out; the tap tick (10 ms, touch only) in press.ts with its /settings "This device" switch; only the release fades (`data-released`); CF-PRESS-1 rules 3–4.
+- 2026-10-31 turn C fix 1: one section rule panelOf (INC-359) read by the frame and the bottom bar; CF-PRESS-1 rule 3 refuses a second path list.

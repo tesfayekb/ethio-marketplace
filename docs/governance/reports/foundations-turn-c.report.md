@@ -219,3 +219,13 @@ docs/_changelog.md, docs/features/design-foundation.md, docs/generated/i18n-usag
 ## C2 Limits
 - No iPhone path; no on-device haptic proof of any kind (the vibrate call is proven by a spy, not by a phone's motor).
 - shell.spec.ts ran by grep, not whole; CI's full suite is the proof.
+
+## C2 fix 1 (CI run 41224092916 on 554f0475)
+
+- **Cause.** PW-15 (mobile-360): on /post the bottom bar's My Listings item had no aria-current. C2's ruling 4 ("Post on the posting pages") contradicted INC-359 (posting pages belong to My Listings); the record governs. The Post disc is an action, never current.
+- **Mechanism (G0).** "Which section a path belongs to" had two versions: app-shell.tsx's routePanel and bottom-bar.tsx's BAR_PATHS. Now one pure `panelOf(pathname)` in src/components/shell/menu-current.ts, beside isCurrentAt. app-shell.tsx reads it for the frame; bottom-bar.tsx reads it for My Listings, Account and Admin, adding only Home (feedRouteOf) and Sign in (/auth). BAR_PATHS is removed. /post and /post/* mark My Listings.
+- **CF-PRESS-1 rule 3** grows: bottom-bar.tsx must call panelOf; a menu file declaring a path list (`["/a", …]`) or `startsWith("/…")` fails. Planted: PRP-8 (3 findings). Free under TI-1.
+- **Unit tests.** PO-U1, PO-U2 (panelOf), free under TI-1. press.test + menu-current.test: 20 passed. Laws step (scripts): 398 passed, 1 skipped.
+- **Browser** (both projects, retries 0): post-wizard-category + press, run 1: 59 passed, 2 failed (PW-2 and PSP-1 light, mobile-360, the run's first tests: save-state and waitForURL timeouts on a cold dev server; PW-15 passed on both). Run 2 whole, same files: 61 passed, 0 failed, 3 skipped. shell.spec --grep "bottom bar": 4 passed, 4 skipped. PS-5 unchanged (it names no /post).
+- **Files (git diff --name-only 554f0475):** src/components/app-shell.tsx, src/components/shell/bottom-bar.tsx, src/components/shell/menu-current.ts, src/components/shell/menu-current.test.ts, scripts/conformance/press.test.ts, docs/governance/reports/foundations-turn-c.report.md, docs/_changelog.md.
+- **K2.** None new: no other file decides a path's section (rg routePanel/startsWith("/post") in src).
