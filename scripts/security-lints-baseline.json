@@ -1,7 +1,6 @@
 {
   "rls_disabled_in_public": 0,
   "security_definer_view": 0,
-  "function_executable_by_anon": 20,
   "function_search_path_mutable": 0,
   "table_writable_by_client": 0
 }

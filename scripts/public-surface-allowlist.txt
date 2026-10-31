@@ -1,154 +1,164 @@
 # Bundle 3 step 8 (INC-397) — the public surface. A migration stamped after M1
 # that grants SELECT or EXECUTE to anon, authenticated or PUBLIC fails the
 # migration guard unless the object is named here with a one-line reason.
-# Format: <object name, unqualified> | <reason>
-publish_listing | the seller's publish door; gates on auth.uid() ownership inside (M1b)
-my_listing_private | owner-only read; raises "not your listing" for any other caller (M1b)
-my_last_listing_private | owner-only read keyed by auth.uid() (M1b)
-check_seller_alias | seller-only check of a wanted name; keyed by auth.uid(), writes nothing to the profile, rate-gated alias_check (M2)
-suggest_seller_aliases | seller-only; returns three free names, rate-gated alias_check (M2)
-my_seller_line | owner-only read keyed by auth.uid() (M2)
-change_home_country | seller-only confirmed-country change; keyed by auth.uid(), 30-day stamp, audited, rate-gated identity (M4)
-listings | M5 column grants: price_unit, price_unit_text and photos_soon are the public card's unit and ribbon fields; attested_at gets none (bundle 4 steps 10, 15, 19); bundle 16 turn 3c: sold_at, which the public reads of a sold ad's row, photos and places need for its 30 days (D175 1)
-price_unit_labels | unit words only ({token: {en, am}} for basis options); the catalogue stays closed (M5, INC-397)
-set_listing_photos_soon | owner-only door on auth.uid(); rate-gated draft; writes one revision (M5)
-save_seller_place | restated grant (not a new surface); caller-only own-listing place, position-ordered fallback, draft rate gate (M10)
-clear_seller_place | caller-only; deletes the caller's own row (M5)
-my_seller_place | caller-only read keyed by auth.uid() (M5)
-submit_listing | restated grant (not a new surface); seller draft door, ownership and rate gate inside (M10)
-edit_listing | restated grant (not a new surface); seller live-ad edit door, ownership inside, judged at step 8 (M10)
-get_posting_schema | the posting form's schema read, restated by M5; rate-gated schema_read
-get_attribute_options | restated grant (not a new surface); posting option read, rate-gated options_read (M10)
-transition_listing | the status door, restated by M5; owner, reviewer and enforcer checks inside
-renew_listing | the seller's renew door, restated by M5; ownership inside
-set_listing_pin | the seller's pin door, restated by M5 with its comments; ownership inside
-attr_visible_when_ok | pure shape check of a row condition (the links CHECK constraint calls it); reads no table; EXECUTE restated as live by M6
-attr_visible_when_met | pure check of a row condition against the answers; reads no table; EXECUTE restated as live by M6
-attr_cell_check | definition-cell check (help-text token reads only categories' slug/active/allow_listings); returns a refusal key; EXECUTE restated as live by M6
-attr_option_shape | pure option-record shape check; reads no table; EXECUTE restated as live by M6
-attr_link_cells_refusal | link-cell check; returns a refusal key, writes nothing; EXECUTE restated as live by M6
-attr_export_payload | invoker export builder; RLS on attributes/links applies to the caller; EXECUTE restated as live by M6
-validate_listing_attributes | restated grant (not a new surface); draft/publish answer check, normalised answers or refusals, writes nothing (M10)
-admin_commit_category_import | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
-admin_undo_category_import | admin import undo door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
-admin_commit_attribute_import | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8c)
-admin_undo_attribute_import | admin import undo door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8c)
-admin_upsert_attribute | admin editor door, re-created with unit_am (same surface); gates on has_permission categories.update + step-up inside (M8c)
-admin_list_attributes | admin list read, re-created with unit_am (same surface); gates on has_permission categories.view inside (M8c)
-mark_sold | seller door (owner check in body); EXECUTE to authenticated restated by M9b (bundle 6, INC-444) — the browser calls it on the seller's own listing
-relist_listing | seller door (owner check in body); EXECUTE to authenticated restated by M9b (bundle 6, INC-444) — the browser calls it on the seller's own listing
-save_posting_identity | the seller's identity save; gates on auth.uid() + rate_gate('identity') inside (M2, granted in its format() loop; INC-443)
-admin_update_profile | the console's profile edit; gates on has_permission(profiles.update) inside (M2, granted in its format() loop; INC-443)
-my_recent_categories | caller-only read keyed by auth.uid(); ids and counts of the caller's own published ads (M10)
-admin_attribute_holders | console read behind categories:view; a count only (M11)
-admin_merge_attributes | restated grant (not a new surface) (M11)
-admin_preview_attribute_import | restated grant (not a new surface) (M11)
-admin_delete_category | restated grant (not a new surface) (M11)
-admin_list_category_pointers | restated grant (not a new surface) (M11)
-feed_page | the public feed's read door (bundle 10 E2b): card fields of live listings and of sold ones for 30 days (bundle 16 turn 3c, D175 1), no seller; reads feed_index as its owner
-user_set_viewing_location | D106: the browsing place on the caller's own account; keyed by auth.uid(), rate-gated viewing_place, refuses a place outside an open market's visible tree
-my_viewing_location | D106: owner-only read keyed by auth.uid(); the place, its market, when it was picked, whether it is still visible
-admin_screening_facts | bundle 11 A1 (D120): listings:review only; an ad waiting for review — its country, which contact methods are shown (true/false, never a value) and the seller's public name
-admin_reveal_listing_contact | bundle 11 A1 (D120, D128): "Show number" — listings:review with a fresh second factor, rate-gated review_reveal, phone, phone2 or whatsapp shown by the seller; one audit_log row per reveal (the channel, never the number)
-seller_notices | Listings console L1 (D136): the seller reads only their own notices (RLS seller_id = auth.uid()); no browser role writes
-transition_listing | restated grant (not a new surface); L1 adds removed -> screening for enforcement with a fresh second factor (D137)
-admin_list_listings | Listings console L1 (D134): listings:view only; drafts never; the seller's public name, the e-mail only for profiles:view holders
-admin_edit_listing | Listings console L1 (D136): listings:enforce with a fresh second factor; the seller's content rules; never a draft, a removed or the admin's own listing; a revision, an audit row and a seller notice
-admin_move_listing | Listings console L1 (D137): Remove, Restore, Send back to review; listings:enforce with a fresh second factor; a severe removal restored by a super admin only; through transition_listing; an audit row and a seller notice
-admin_listing_detail | Listings console L3 (D139): listings:view only; drafts never; the e-mail only for profiles:view holders, a staff member's name only for audit_logs:view holders; history values for content, price, status and dates only (a pin, an address and contact settings named, never shown)
-admin_undo_listing_edit | Listings console L4d (D141): listings:enforce with a fresh second factor; only the listing's newest revision, an edit by staff that is not an undo and removed no photo, while every value it wrote is still the listing's; writes only through admin_edit_listing (reason undo): the same rules, a revision, an audit row and a seller notice
-admin_export_translations | Translations export, bundle 11 turn C6 (INC-568): translations:view only, the same right as the list it replaces for the export; read only; one language's rows after a key, ordered by key, at most 1,000 a page
-coverage_plans | narrowed grant (not a new surface), bundle 12 turn T14: the plans table's SELECT moves from the table to its columns; browser roles read every column except updated_by, which no screen shows; the plan limits stay public
-set_cover_photo | restated grant (not a new surface), bundle 12 turn T15: Make cover moves the photo to the front (D154, INC-597); owner-only on auth.uid(), the photo must be on the caller's listing
-move_listing_photo | seller-only door, bundle 12 turn T16 (D154): puts a photo at a place in its listing's order (0 = first, the cover; past the end = last) and closes the others up; owner-only on auth.uid(), the photo must be on the caller's listing, the place a whole number from 0
-admin_ai_features | admin door, bundle 13 turn 1 (D158): services:view checked inside; reads every AI feature's switch, budget, price and this month's spend; read only
-admin_set_ai_feature | admin door, bundle 13 turn 1 (D158): services:manage and a fresh second factor checked inside; switches an AI feature on or off and sets its budget and price; refuses photo screening off; writes an audit row
-admin_sync_ui_keys | restated grant (not a new surface), bundle 13 turn 2 (INC-603, INC-607): Sync keys; translations:manage and a fresh second factor checked inside; an Amharic text no person wrote follows the code's changed text; its answer names the keys it added
-listing_photo_warnings | SELECT to authenticated only, bundle 13 turn 10 (D154 B3): a photo's screen warnings; row security lets the seller read his own photos' rows and listings:view read every row; no write grant; anon has none
-listing_photo_changes | SELECT to authenticated only, bundle 13 turn 10 (D154 B5): the photo changes sellers make on live ads; row security lets listings:review read them; no write grant; anon has none
-remove_listing_photo | restated grant (not a new surface), bundle 13 turn 10 (D154 B5): the seller's Remove; owner-only on auth.uid(), the photo must be on the caller's listing; on a live ad it lists the removal for staff
-admin_review_photo_change | admin door, bundle 13 turn 10 (D154 B5): listings:review checked inside; marks one photo change reviewed and writes an audit row
-listing_photo_reviews | SELECT to authenticated only, bundle 16 turn 4a (D178): why a stored photo is hidden for a person; row security lets the seller read his own photos' rows and listings:review read every row; no write grant; anon has none
-admin_allow_listing_photo | admin door, bundle 16 turn 4a (D178): listings:review with the second factor checked inside; never the caller's own ad; shows one photo whose review is open and writes an audit row
-admin_ai_spend_days | admin door, bundle 13 turn 14: services:view checked inside; reads each AI feature's calls and cost per UTC day for the last 1 to 92 days, scratch e2e- features left out; read only
-listing_policy | Bundle 16 turn 1 (D174 3, D175 2): signed-in users read renew_allowed and renew_days only (column grant; RLS read policy); no browser role writes
-set_listing_reserved | Bundle 16 turn 1 (D173 1): owner-only door on auth.uid(); a live ad only; rate-gated revise; one revision
-set_listing_price | Bundle 16 turn 1 (D174 1, D177): owner-only door on auth.uid(); live or closed ad; judged as staff's edit is (step 5, the end date and places not sent); rate-gated revise; one revision
-listing_history | Bundle 16 turn 1, restated in turn 3 (a Reserved change carries its new value): owner-only read; one answer for not yours and not there; no staff identity in the answer
-admin_set_listing_policy | Bundle 16 turn 1 (D174 3): listings:enforce with a fresh second factor; days 1 to 365; audited listing.policy_set
-my_listings | Bundle 16 turn 2 (D138): owner-only read on auth.uid() (both reads keyed by it, proof P1b); six groups with their counts; at most 100 rows a page; read only. Turn R1 (D181): the seller's search (at most 100 characters) and filters (a category with its descendants, Reserved, Price reduced) narrow both reads, still keyed by auth.uid(); the answer adds the admin's renew setting (as my_listing gives it)
-edit_my_listing | Bundle 16 turn R2 (D172, D177): owner-only door on auth.uid(); live, closed or refused ads only; title, description, video link, answers and price only (never the category, places, contact or end date); judged by validate_listing_draft; free text to review; rate-gated revise; one revision
-copy_my_listing | Bundle 16 turn R2 (D182 4): owner-only door on auth.uid(); a new draft of the caller's own from one of the caller's ads (not a draft, a removed or a refused one), without photos; residency from user_directory (DEC-068); rate-gated draft
-my_listing | Bundle 16 turn 3 (D138): owner-only read of one ad on auth.uid() (proof P1b); the same row as my_listings (proof P5); one answer for not yours and not there; read only
-has_permission | restated grant (not a new surface): the permission check every policy and staff door asks, granted to authenticated since 20260911223744; bundle 16 turn S3 redeclares it so a deactivated account holds no permission (D189)
-public_listing | Bundle 19 turn 4 (D201 §3, M1): the ad page's one public read by public_id — the public RLS predicate restated inside (live, or sold within 30 days), rate_gate('listing_read') for a signed-in caller (the route counts an anonymous caller by hashed address), builds only the public document (no contact value, no seller user id, no exact coordinate for an approximate pin — proof P5); null for anything not public
-listing_counts | Bundle 19 turn 4 (D201 §9, M1): the owner's own counters (views, shares by channel, contacts) on auth.uid(); "not your listing" for any other caller (listing_reveal_count's rule)
+# Format: <object name, unqualified> | <roles: anon,authenticated,public> | <reason>
+publish_listing | authenticated | the seller's publish door; gates on auth.uid() ownership inside (M1b)
+my_listing_private | authenticated | owner-only read; raises "not your listing" for any other caller (M1b)
+my_last_listing_private | authenticated | owner-only read keyed by auth.uid() (M1b)
+check_seller_alias | authenticated | seller-only check of a wanted name; keyed by auth.uid(), writes nothing to the profile, rate-gated alias_check (M2)
+suggest_seller_aliases | authenticated | seller-only; returns three free names, rate-gated alias_check (M2)
+my_seller_line | authenticated | owner-only read keyed by auth.uid() (M2)
+change_home_country | authenticated | seller-only confirmed-country change; keyed by auth.uid(), 30-day stamp, audited, rate-gated identity (M4)
+listings | anon,authenticated | M5 column grants: price_unit, price_unit_text and photos_soon are the public card's unit and ribbon fields; attested_at gets none (bundle 4 steps 10, 15, 19); bundle 16 turn 3c: sold_at, which the public reads of a sold ad's row, photos and places need for its 30 days (D175 1)
+price_unit_labels | anon,authenticated | unit words only ({token: {en, am}} for basis options); the catalogue stays closed (M5, INC-397)
+set_listing_photos_soon | authenticated | owner-only door on auth.uid(); rate-gated draft; writes one revision (M5)
+save_seller_place | authenticated | restated grant (not a new surface); caller-only own-listing place, position-ordered fallback, draft rate gate (M10)
+clear_seller_place | authenticated | caller-only; deletes the caller's own row (M5)
+my_seller_place | authenticated | caller-only read keyed by auth.uid() (M5)
+submit_listing | authenticated | restated grant (not a new surface); seller draft door, ownership and rate gate inside (M10)
+edit_listing | authenticated | restated grant (not a new surface); seller live-ad edit door, ownership inside, judged at step 8 (M10)
+get_posting_schema | authenticated | the posting form's schema read, restated by M5; rate-gated schema_read
+get_attribute_options | authenticated | restated grant (not a new surface); posting option read, rate-gated options_read (M10)
+transition_listing | authenticated | the status door, restated by M5; owner, reviewer and enforcer checks inside
+renew_listing | authenticated | the seller's renew door, restated by M5; ownership inside
+set_listing_pin | authenticated | the seller's pin door, restated by M5 with its comments; ownership inside
+attr_visible_when_ok | authenticated | pure shape check of a row condition (the links CHECK constraint calls it); reads no table; EXECUTE restated as live by M6
+attr_visible_when_met | authenticated | pure check of a row condition against the answers; reads no table; EXECUTE restated as live by M6
+attr_cell_check | authenticated | definition-cell check (help-text token reads only categories' slug/active/allow_listings); returns a refusal key; EXECUTE restated as live by M6
+attr_option_shape | authenticated | pure option-record shape check; reads no table; EXECUTE restated as live by M6
+attr_link_cells_refusal | authenticated | link-cell check; returns a refusal key, writes nothing; EXECUTE restated as live by M6
+attr_export_payload | authenticated | invoker export builder; RLS on attributes/links applies to the caller; EXECUTE restated as live by M6
+validate_listing_attributes | authenticated | restated grant (not a new surface); draft/publish answer check, normalised answers or refusals, writes nothing (M10)
+admin_commit_category_import | authenticated | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
+admin_undo_category_import | authenticated | admin import undo door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8a)
+admin_commit_attribute_import | authenticated | admin import door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8c)
+admin_undo_attribute_import | authenticated | admin import undo door, restated grant (not a new surface); gates on has_permission categories.import + step-up inside (M8c)
+admin_upsert_attribute | authenticated | admin editor door, re-created with unit_am (same surface); gates on has_permission categories.update + step-up inside (M8c)
+admin_list_attributes | authenticated | admin list read, re-created with unit_am (same surface); gates on has_permission categories.view inside (M8c)
+mark_sold | authenticated | seller door (owner check in body); EXECUTE to authenticated restated by M9b (bundle 6, INC-444) — the browser calls it on the seller's own listing
+relist_listing | authenticated | seller door (owner check in body); EXECUTE to authenticated restated by M9b (bundle 6, INC-444) — the browser calls it on the seller's own listing
+save_posting_identity | authenticated | the seller's identity save; gates on auth.uid() + rate_gate('identity') inside (M2, granted in its format() loop; INC-443)
+admin_update_profile | authenticated | the console's profile edit; gates on has_permission(profiles.update) inside (M2, granted in its format() loop; INC-443)
+my_recent_categories | authenticated | caller-only read keyed by auth.uid(); ids and counts of the caller's own published ads (M10)
+admin_attribute_holders | authenticated | console read behind categories:view; a count only (M11)
+admin_merge_attributes | authenticated | restated grant (not a new surface) (M11)
+admin_preview_attribute_import | authenticated | restated grant (not a new surface) (M11)
+admin_delete_category | authenticated | restated grant (not a new surface) (M11)
+admin_list_category_pointers | authenticated | restated grant (not a new surface) (M11)
+feed_page | anon,authenticated | the public feed's read door (bundle 10 E2b): card fields of live listings and of sold ones for 30 days (bundle 16 turn 3c, D175 1), no seller; reads feed_index as its owner
+user_set_viewing_location | authenticated | D106: the browsing place on the caller's own account; keyed by auth.uid(), rate-gated viewing_place, refuses a place outside an open market's visible tree
+my_viewing_location | authenticated | D106: owner-only read keyed by auth.uid(); the place, its market, when it was picked, whether it is still visible
+admin_screening_facts | authenticated | bundle 11 A1 (D120): listings:review only; an ad waiting for review — its country, which contact methods are shown (true/false, never a value) and the seller's public name
+admin_reveal_listing_contact | authenticated | bundle 11 A1 (D120, D128): "Show number" — listings:review with a fresh second factor, rate-gated review_reveal, phone, phone2 or whatsapp shown by the seller; one audit_log row per reveal (the channel, never the number)
+seller_notices | authenticated | Listings console L1 (D136): the seller reads only their own notices (RLS seller_id = auth.uid()); no browser role writes
+transition_listing | authenticated | restated grant (not a new surface); L1 adds removed -> screening for enforcement with a fresh second factor (D137)
+admin_list_listings | authenticated | Listings console L1 (D134): listings:view only; drafts never; the seller's public name, the e-mail only for profiles:view holders
+admin_edit_listing | authenticated | Listings console L1 (D136): listings:enforce with a fresh second factor; the seller's content rules; never a draft, a removed or the admin's own listing; a revision, an audit row and a seller notice
+admin_move_listing | authenticated | Listings console L1 (D137): Remove, Restore, Send back to review; listings:enforce with a fresh second factor; a severe removal restored by a super admin only; through transition_listing; an audit row and a seller notice
+admin_listing_detail | authenticated | Listings console L3 (D139): listings:view only; drafts never; the e-mail only for profiles:view holders, a staff member's name only for audit_logs:view holders; history values for content, price, status and dates only (a pin, an address and contact settings named, never shown)
+admin_undo_listing_edit | authenticated | Listings console L4d (D141): listings:enforce with a fresh second factor; only the listing's newest revision, an edit by staff that is not an undo and removed no photo, while every value it wrote is still the listing's; writes only through admin_edit_listing (reason undo): the same rules, a revision, an audit row and a seller notice
+admin_export_translations | authenticated | Translations export, bundle 11 turn C6 (INC-568): translations:view only, the same right as the list it replaces for the export; read only; one language's rows after a key, ordered by key, at most 1,000 a page
+coverage_plans | anon,authenticated | narrowed grant (not a new surface), bundle 12 turn T14: the plans table's SELECT moves from the table to its columns; browser roles read every column except updated_by, which no screen shows; the plan limits stay public
+set_cover_photo | authenticated | restated grant (not a new surface), bundle 12 turn T15: Make cover moves the photo to the front (D154, INC-597); owner-only on auth.uid(), the photo must be on the caller's listing
+move_listing_photo | authenticated | seller-only door, bundle 12 turn T16 (D154): puts a photo at a place in its listing's order (0 = first, the cover; past the end = last) and closes the others up; owner-only on auth.uid(), the photo must be on the caller's listing, the place a whole number from 0
+admin_ai_features | authenticated | admin door, bundle 13 turn 1 (D158): services:view checked inside; reads every AI feature's switch, budget, price and this month's spend; read only
+admin_set_ai_feature | authenticated | admin door, bundle 13 turn 1 (D158): services:manage and a fresh second factor checked inside; switches an AI feature on or off and sets its budget and price; refuses photo screening off; writes an audit row
+admin_sync_ui_keys | authenticated | restated grant (not a new surface), bundle 13 turn 2 (INC-603, INC-607): Sync keys; translations:manage and a fresh second factor checked inside; an Amharic text no person wrote follows the code's changed text; its answer names the keys it added
+listing_photo_warnings | authenticated | SELECT to authenticated only, bundle 13 turn 10 (D154 B3): a photo's screen warnings; row security lets the seller read his own photos' rows and listings:view read every row; no write grant; anon has none
+listing_photo_changes | authenticated | SELECT to authenticated only, bundle 13 turn 10 (D154 B5): the photo changes sellers make on live ads; row security lets listings:review read them; no write grant; anon has none
+remove_listing_photo | authenticated | restated grant (not a new surface), bundle 13 turn 10 (D154 B5): the seller's Remove; owner-only on auth.uid(), the photo must be on the caller's listing; on a live ad it lists the removal for staff
+admin_review_photo_change | authenticated | admin door, bundle 13 turn 10 (D154 B5): listings:review checked inside; marks one photo change reviewed and writes an audit row
+listing_photo_reviews | authenticated | SELECT to authenticated only, bundle 16 turn 4a (D178): why a stored photo is hidden for a person; row security lets the seller read his own photos' rows and listings:review read every row; no write grant; anon has none
+admin_allow_listing_photo | authenticated | admin door, bundle 16 turn 4a (D178): listings:review with the second factor checked inside; never the caller's own ad; shows one photo whose review is open and writes an audit row
+admin_ai_spend_days | authenticated | admin door, bundle 13 turn 14: services:view checked inside; reads each AI feature's calls and cost per UTC day for the last 1 to 92 days, scratch e2e- features left out; read only
+listing_policy | authenticated | Bundle 16 turn 1 (D174 3, D175 2): signed-in users read renew_allowed and renew_days only (column grant; RLS read policy); no browser role writes
+set_listing_reserved | authenticated | Bundle 16 turn 1 (D173 1): owner-only door on auth.uid(); a live ad only; rate-gated revise; one revision
+set_listing_price | authenticated | Bundle 16 turn 1 (D174 1, D177): owner-only door on auth.uid(); live or closed ad; judged as staff's edit is (step 5, the end date and places not sent); rate-gated revise; one revision
+listing_history | authenticated | Bundle 16 turn 1, restated in turn 3 (a Reserved change carries its new value): owner-only read; one answer for not yours and not there; no staff identity in the answer
+admin_set_listing_policy | authenticated | Bundle 16 turn 1 (D174 3): listings:enforce with a fresh second factor; days 1 to 365; audited listing.policy_set
+my_listings | authenticated | Bundle 16 turn 2 (D138): owner-only read on auth.uid() (both reads keyed by it, proof P1b); six groups with their counts; at most 100 rows a page; read only. Turn R1 (D181): the seller's search (at most 100 characters) and filters (a category with its descendants, Reserved, Price reduced) narrow both reads, still keyed by auth.uid(); the answer adds the admin's renew setting (as my_listing gives it)
+edit_my_listing | authenticated | Bundle 16 turn R2 (D172, D177): owner-only door on auth.uid(); live, closed or refused ads only; title, description, video link, answers and price only (never the category, places, contact or end date); judged by validate_listing_draft; free text to review; rate-gated revise; one revision
+copy_my_listing | authenticated | Bundle 16 turn R2 (D182 4): owner-only door on auth.uid(); a new draft of the caller's own from one of the caller's ads (not a draft, a removed or a refused one), without photos; residency from user_directory (DEC-068); rate-gated draft
+my_listing | authenticated | Bundle 16 turn 3 (D138): owner-only read of one ad on auth.uid() (proof P1b); the same row as my_listings (proof P5); one answer for not yours and not there; read only
+has_permission | authenticated | restated grant (not a new surface): the permission check every policy and staff door asks, granted to authenticated since 20260911223744; bundle 16 turn S3 redeclares it so a deactivated account holds no permission (D189)
+public_listing | anon,authenticated | Bundle 19 turn 4 (D201 §3, M1): the ad page's one public read by public_id — the public RLS predicate restated inside (live, or sold within 30 days), rate_gate('listing_read') for a signed-in caller (the route counts an anonymous caller by hashed address), builds only the public document (no contact value, no seller user id, no exact coordinate for an approximate pin — proof P5); null for anything not public
+listing_counts | authenticated | Bundle 19 turn 4 (D201 §9, M1): the owner's own counters (views, shares by channel, contacts) on auth.uid(); "not your listing" for any other caller (listing_reveal_count's rule)
 
-admin_list_category_attribute_links | admin link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
-admin_list_effective_category_links | admin effective-link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
-admin_set_fact_attributes | the link manager's key-fact ranks (D201 §4); gates on has_permission categories.update and the step-up inside; at most four (B19 M2)
-reveal_listing_contact | the buyer's contact reveal by public id (D201 §6): signed in, active ads only, the day row, the sellers cap, the new-account five, the 30-a-day gate (B19 M5)
-reveal_flags | staff read (listings.view by policy) of the sellers-cap flags; no client write (B19 M5)
-save_listing | the buyer's Save by public id (D201 §8): signed in, a publicly readable ad, never the owner's own, idempotent, rate-gated save 200 a day (B19 M3)
-unsave_listing | the caller's own saved row removed by public id, any ad (B19 M3)
-listing_saved | the heart's own state for the signed-in caller (B19 M3)
-my_saved_listings | the caller's saved ads as feed cards, newest first, paged; an ad no longer public as ids only (B19 M3)
-listing_reports | a reporter reads his own reports and staff (listings:review) read all, by policy; no client write (B19 M4)
-report_listing | a buyer's report of an ad by public id (D201 §11): signed in, a publicly readable ad, never the caller's own, a reason of the list, one open report per reporter and ad, rate-gated report 10 a day (B19 M4)
-admin_listing_reports | the listing's reports for listings:review (B19 M4)
-admin_open_report_counts | open-report counts per listing for the console's rows, listings:review, at most 100 ids (B19 M4)
-seller_feed_page | the seller's live ads by his public key (the alias lower-cased, never an id) for the seller's ads page (D201 §12): anonymous and signed in, feed_page's card shape and order (B19 M8)
-legal_in_force | the in-force legal texts are public (anon read); never the change log (B22 Stage 1 turn 1) — except publishing-class kinds, which refuse an anonymous caller (D236, M24)
-legal_scheduled | the next legal version not yet in force is public ahead of its date (anon read); never the change log (B22 Stage 1 turn 3) — except publishing-class kinds, which refuse an anonymous caller (D236, M24)
-my_legal_status | the caller's own legal standing (acceptance screen, turn 2); signed in, own rows only
-accept_legal | the caller accepts versions for himself; signed in, own rows only, language required, the 18+ statement required until it is confirmed once (DEC-206)
-my_legal_history | the caller's own acceptances and legal e-mails; signed in, own rows only
-my_legal_version | the whole text of a version the caller accepted, was sent or that is in force; signed in
-admin_legal_documents | staff list of documents and versions; checks legal:view inside
-admin_legal_version | one version for staff, change log included; checks legal:view inside
-admin_export_legal_acceptances | staff export of who accepted a published legal version (account id, time, language, home country); checks legal:export and the step-up inside
-admin_save_legal_draft | the draft door; checks legal:edit and the step-up inside
-admin_discard_legal_draft | discards the one draft; checks legal:edit and the step-up inside
-admin_publish_legal_version | publishes a draft with the notice-period rule; checks legal:publish and the step-up inside
-admin_legal_settings | the legal-facts row for staff; checks legal:view inside
-admin_set_legal_settings | sets the legal facts; checks legal:edit and the step-up inside
-admin_mark_legal_reviewed | records "Reviewed — no change" for a legal document (bundle 22 turn 20, DEC-219); checks legal:edit and the step-up inside
-admin_add_legal_translation | adds a translation to a published legal version, once per language (bundle 22 turn 23, DEC-228); checks legal:publish and the step-up inside
-legal_review_overdue | whether a legal document's review is due, for the admin menu (bundle 22 turn 20, DEC-219); false for a caller without legal:view; no personal data
-admin_user_legal_history | a person's legal history for staff; checks profiles:view inside
-my_listing_certification | the seller's own ad: the publishing statements that apply and whether an acceptance is owed; signed in, owner only (B22 Stage 1 turn 4)
-admin_listing_certifications | an ad's certification record for staff; checks listings:view inside (B22 Stage 1 turn 4)
-sold_visible_days | the sold ad's shown days (bundle 22 turn 8, M8a): a number from legal_settings, read by the seller's ad page and quoted by the Terms; no personal data
-sold_cutoff | now() minus the sold ad's shown days (bundle 22 turn 8, M8a): called by the three public row-level policies for every reader; no personal data
-entity_source_value | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the English source of a category, place, attribute or answer-option name for the translations console; catalogue words already public
-admin_list_entity_translations | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's roster, answer options added; translations:view checked inside
-admin_entity_translation_stats | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's counts, answer options added; translations:view checked inside
-admin_save_entity_translation | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): saves one content translation, answer options added; translations:update and the step-up checked inside
-admin_machine_entity_translation | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): writes one machine translation, answer options added; translations:machine and the step-up checked inside
-user_set_preferred_language | restated grant (not a new surface); the caller's own preferred language, audited (M20)
-end_impersonation | restated grant (not a new surface); ends the caller's own impersonation session, audited (M20)
-remove_own_password | restated grant (not a new surface); the caller's own password, after a fresh password proof, rate-gated password_remove, audited (M20, DEC-242)
-get_location_tree | restated grant (not a new surface); the public place tree, now read through shown_locations (D1 M3, M3b)
-import_gate_audit | historical authenticated grants in files before D1 M4b; M4b revoked them, the door is service_role only now
-begin_impersonation | restated grant (not a new surface); staff door, permission and step-up inside, rate-gated impersonation (D1 M4)
-admin_save_translation | restated grant (not a new surface); staff door, checks then the staff_translation gate, then its _core (D1 M5a)
-admin_machine_translation | restated grant (not a new surface); staff door, checks then the staff_machine_translation gate, then its _core (D1 M5a)
-admin_import_translations | restated grant (not a new surface); staff bulk door, its own checks, calls the _core (D1 M5b)
-admin_commit_location_import | restated grant (not a new surface); staff bulk door, its own checks, calls the _core (D1 M5b)
-admin_add_category_pointer | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
-admin_create_category | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
-admin_set_country_exclusions | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
-admin_link_attribute | admin door; categories:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_set_country_active | admin door; countries:activate and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_set_country_root_order | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_set_coverage_plan | admin door; coverage:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_upsert_country | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_upsert_location | admin door; locations:create/update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_upsert_language | admin door; translations:manage and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
-admin_list_ai_calls | Foundations turn A2: services:view checked before validation/read; 90-day keyset page, no hashes or actor IDs; profiles:view controls names; core has no API-role execute grant
-admin_name_check_summary | Foundations turn N1a (INC-977): staff count of unchecked seller names and the oldest 'since'; listings:view checked inside before the read; returns no name or person
-admin_name_check_list | Foundations turn N1b-3 M2 (INC-977): the staff queue of held seller names; listings:view checked inside before any read; names, checked text and the model's reason only with profiles:view as well
-admin_name_check_clear | Foundations turn N1b-3 M2 (INC-977): staff clear a held seller name; profiles:update then step-up inside before the capture; stale text writes nothing; audits name_check.cleared
-admin_job_health | Foundations turn N1b-3 M3 (INC-977): a scheduled job's last run, unanswered dispatch and pause for staff; services:view checked inside before any read; counts and codes only, no name
-admin_job_resume | Foundations turn N1b-3 M3 (INC-977): staff resume a paused job; services:manage then step-up inside before the capture; no pause writes nothing; audits job.resumed
-get_ui_bundle_parts | turn D1 (INC-1023): the marketplace is public; returns only approved rows of a public or base language, split into written and copied, as get_ui_bundle does
+admin_list_category_attribute_links | authenticated | admin link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
+admin_list_effective_category_links | authenticated | admin effective-link list, re-created with fact_rank (same surface); gates on has_permission categories.view inside (B19 M2)
+admin_set_fact_attributes | authenticated | the link manager's key-fact ranks (D201 §4); gates on has_permission categories.update and the step-up inside; at most four (B19 M2)
+reveal_listing_contact | authenticated | the buyer's contact reveal by public id (D201 §6): signed in, active ads only, the day row, the sellers cap, the new-account five, the 30-a-day gate (B19 M5)
+reveal_flags | authenticated | staff read (listings.view by policy) of the sellers-cap flags; no client write (B19 M5)
+save_listing | authenticated | the buyer's Save by public id (D201 §8): signed in, a publicly readable ad, never the owner's own, idempotent, rate-gated save 200 a day (B19 M3)
+unsave_listing | authenticated | the caller's own saved row removed by public id, any ad (B19 M3)
+listing_saved | authenticated | the heart's own state for the signed-in caller (B19 M3)
+my_saved_listings | authenticated | the caller's saved ads as feed cards, newest first, paged; an ad no longer public as ids only (B19 M3)
+listing_reports | authenticated | a reporter reads his own reports and staff (listings:review) read all, by policy; no client write (B19 M4)
+report_listing | authenticated | a buyer's report of an ad by public id (D201 §11): signed in, a publicly readable ad, never the caller's own, a reason of the list, one open report per reporter and ad, rate-gated report 10 a day (B19 M4)
+admin_listing_reports | authenticated | the listing's reports for listings:review (B19 M4)
+admin_open_report_counts | authenticated | open-report counts per listing for the console's rows, listings:review, at most 100 ids (B19 M4)
+seller_feed_page | anon,authenticated | the seller's live ads by his public key (the alias lower-cased, never an id) for the seller's ads page (D201 §12): anonymous and signed in, feed_page's card shape and order (B19 M8)
+legal_in_force | anon,authenticated | the in-force legal texts are public (anon read); never the change log (B22 Stage 1 turn 1) — except publishing-class kinds, which refuse an anonymous caller (D236, M24)
+legal_scheduled | anon,authenticated | the next legal version not yet in force is public ahead of its date (anon read); never the change log (B22 Stage 1 turn 3) — except publishing-class kinds, which refuse an anonymous caller (D236, M24)
+my_legal_status | authenticated | the caller's own legal standing (acceptance screen, turn 2); signed in, own rows only
+accept_legal | authenticated | the caller accepts versions for himself; signed in, own rows only, language required, the 18+ statement required until it is confirmed once (DEC-206)
+my_legal_history | authenticated | the caller's own acceptances and legal e-mails; signed in, own rows only
+my_legal_version | authenticated | the whole text of a version the caller accepted, was sent or that is in force; signed in
+admin_legal_documents | authenticated | staff list of documents and versions; checks legal:view inside
+admin_legal_version | authenticated | one version for staff, change log included; checks legal:view inside
+admin_export_legal_acceptances | authenticated | staff export of who accepted a published legal version (account id, time, language, home country); checks legal:export and the step-up inside
+admin_save_legal_draft | authenticated | the draft door; checks legal:edit and the step-up inside
+admin_discard_legal_draft | authenticated | discards the one draft; checks legal:edit and the step-up inside
+admin_publish_legal_version | authenticated | publishes a draft with the notice-period rule; checks legal:publish and the step-up inside
+admin_legal_settings | authenticated | the legal-facts row for staff; checks legal:view inside
+admin_set_legal_settings | authenticated | sets the legal facts; checks legal:edit and the step-up inside
+admin_mark_legal_reviewed | authenticated | records "Reviewed — no change" for a legal document (bundle 22 turn 20, DEC-219); checks legal:edit and the step-up inside
+admin_add_legal_translation | authenticated | adds a translation to a published legal version, once per language (bundle 22 turn 23, DEC-228); checks legal:publish and the step-up inside
+legal_review_overdue | authenticated | whether a legal document's review is due, for the admin menu (bundle 22 turn 20, DEC-219); false for a caller without legal:view; no personal data
+admin_user_legal_history | authenticated | a person's legal history for staff; checks profiles:view inside
+my_listing_certification | authenticated | the seller's own ad: the publishing statements that apply and whether an acceptance is owed; signed in, owner only (B22 Stage 1 turn 4)
+admin_listing_certifications | authenticated | an ad's certification record for staff; checks listings:view inside (B22 Stage 1 turn 4)
+sold_visible_days | anon,authenticated | the sold ad's shown days (bundle 22 turn 8, M8a): a number from legal_settings, read by the seller's ad page and quoted by the Terms; no personal data
+sold_cutoff | anon,authenticated | now() minus the sold ad's shown days (bundle 22 turn 8, M8a): called by the three public row-level policies for every reader; no personal data
+entity_source_value | authenticated | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the English source of a category, place, attribute or answer-option name for the translations console; catalogue words already public
+admin_list_entity_translations | authenticated | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's roster, answer options added; translations:view checked inside
+admin_entity_translation_stats | authenticated | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): the Data scope's counts, answer options added; translations:view checked inside
+admin_save_entity_translation | authenticated | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): saves one content translation, answer options added; translations:update and the step-up checked inside
+admin_machine_entity_translation | authenticated | restated grant (not a new surface), bundle 22 turn 25 (DEC-233): writes one machine translation, answer options added; translations:machine and the step-up checked inside
+user_set_preferred_language | authenticated | restated grant (not a new surface); the caller's own preferred language, audited (M20)
+end_impersonation | authenticated | restated grant (not a new surface); ends the caller's own impersonation session, audited (M20)
+remove_own_password | authenticated | restated grant (not a new surface); the caller's own password, after a fresh password proof, rate-gated password_remove, audited (M20, DEC-242)
+get_location_tree | anon,authenticated | restated grant (not a new surface); the public place tree, now read through shown_locations (D1 M3, M3b)
+import_gate_audit | authenticated | historical authenticated grants in files before D1 M4b; M4b revoked them, the door is service_role only now
+begin_impersonation | authenticated | restated grant (not a new surface); staff door, permission and step-up inside, rate-gated impersonation (D1 M4)
+admin_save_translation | authenticated | restated grant (not a new surface); staff door, checks then the staff_translation gate, then its _core (D1 M5a)
+admin_machine_translation | authenticated | restated grant (not a new surface); staff door, checks then the staff_machine_translation gate, then its _core (D1 M5a)
+admin_import_translations | authenticated | restated grant (not a new surface); staff bulk door, its own checks, calls the _core (D1 M5b)
+admin_commit_location_import | authenticated | restated grant (not a new surface); staff bulk door, its own checks, calls the _core (D1 M5b)
+admin_add_category_pointer | authenticated | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
+admin_create_category | authenticated | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
+admin_set_country_exclusions | authenticated | restated grant (not a new surface); staff door, checks then the staff_config gate, then its _core (D1 M6a)
+admin_link_attribute | authenticated | admin door; categories:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_set_country_active | authenticated | admin door; countries:activate and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_set_country_root_order | authenticated | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_set_coverage_plan | authenticated | admin door; coverage:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_upsert_country | authenticated | admin door; countries:update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_upsert_location | authenticated | admin door; locations:create/update and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_upsert_language | authenticated | admin door; translations:manage and a fresh second factor checked inside; restated grant (same surface), D1 M6b-catalogue
+admin_list_ai_calls | authenticated | Foundations turn A2: services:view checked before validation/read; 90-day keyset page, no hashes or actor IDs; profiles:view controls names; core has no API-role execute grant
+admin_name_check_summary | authenticated | Foundations turn N1a (INC-977): staff count of unchecked seller names and the oldest 'since'; listings:view checked inside before the read; returns no name or person
+admin_name_check_list | authenticated | Foundations turn N1b-3 M2 (INC-977): the staff queue of held seller names; listings:view checked inside before any read; names, checked text and the model's reason only with profiles:view as well
+admin_name_check_clear | authenticated | Foundations turn N1b-3 M2 (INC-977): staff clear a held seller name; profiles:update then step-up inside before the capture; stale text writes nothing; audits name_check.cleared
+admin_job_health | authenticated | Foundations turn N1b-3 M3 (INC-977): a scheduled job's last run, unanswered dispatch and pause for staff; services:view checked inside before any read; counts and codes only, no name
+admin_job_resume | authenticated | Foundations turn N1b-3 M3 (INC-977): staff resume a paused job; services:manage then step-up inside before the capture; no pause writes nothing; audits job.resumed
+get_ui_bundle_parts | anon,authenticated | turn D1 (INC-1023): the marketplace is public; returns only approved rows of a public or base language, split into written and copied, as get_ui_bundle does
+get_browse_tree | anon,authenticated | Read-only active/time-visible country-filtered category tree; catchall only with an active listing. (DEC-310 legacy surface)
+get_category_tree_version | anon,authenticated | Read-only hash of category timestamps/counts and pointer ordering; no catalogue rows returned. (DEC-310 legacy surface)
+get_category_attributes | anon,authenticated | Legacy SECURITY DEFINER read of category_attributes with inherited parent traversal (depth <10). No caller or permission check in body; public approval is not inferred. (DEC-310 legacy surface)
+catalog_find_version | anon,authenticated | Read-only hash of category version, attribute/link counts and timestamps, approved translation count and enabled languages; exposes a change token, not rows. (DEC-310 legacy surface)
+get_location_tree_version | anon,authenticated | Read-only location change/version hash scoped by country. (DEC-310 legacy surface)
+get_open_countries | anon,authenticated | Read-only open-market country information; inspect full body for exact predicate and returned fields. (DEC-310 legacy surface)
+get_ui_bundle | anon,authenticated | Approved public/base-language UI translations, no orphaned/non-null excluded rows; empty fallback for unavailable language. (DEC-310 legacy surface)
+get_ui_bundle_version | anon,authenticated | Read-only UI translation version/change token; inspect full body for language/status filters. (DEC-310 legacy surface)
+get_entity_bundle | anon,authenticated | Approved non-null entity translations only, for enabled-public or base language; otherwise empty object. (DEC-310 legacy surface)
+price_shape_for_basis | anon,authenticated | Pure immutable strict mapping from basis token to mode/period; no table access. (DEC-310 legacy surface)

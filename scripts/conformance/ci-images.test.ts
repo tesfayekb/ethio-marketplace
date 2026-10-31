@@ -10,8 +10,7 @@ import { report, walkFiles } from "./kit";
  * migration) must
  *   1. need `backend-images`;
  *   2. load and inspect the images (`docker load` and `docker image inspect`) in a step before the start;
- *   3. run `supabase start` once, outside any `for`/`until`/`while` loop — a start is never retried
- *      into migrations that already ran ("refused:replay").
+ *   3. run `supabase start` once, outside any `for`/`until`/`while` loop — a start is never retried.
  * The workflow reader is CF-CID-1's (scripts/conformance/ci-deadlines.test.ts), K1.
  */
 

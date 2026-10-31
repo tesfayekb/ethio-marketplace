@@ -11,13 +11,16 @@
  *   - a WARN-class count above its baseline prints one warning, does not fail;
  *   - a count below its baseline prints "baseline can be lowered", does not fail;
  *   - a name missing from either side is an error — never read as zero.
- * Counts only: no object name ever reaches the log (DEC-132 rule 2).
+ * DEC-310: anon execute is compared by name to the one public-surface list,
+ * not a count baseline. Unlisted findings print counts and a read-only query
+ * only; stale names already on the public list may be printed (DEC-132).
  */
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { errorText } from "../src/lib/error-text";
+import { coversRole, parseSurface, type SurfaceEntry } from "./public-surface";
 
 export type LintLevel = "ERROR" | "WARN";
 
@@ -34,6 +37,68 @@ export interface Verdict {
   failed: boolean;
 }
 
+/** Live catalogue distinguishes functions from tables and columns; extensions excluded. */
+export const SURFACE_QUERY = `select p.proname as name, 'function' as kind,
+has_function_privilege('anon', p.oid, 'EXECUTE')::text as anon
+from pg_proc p where p.pronamespace = 'public'::regnamespace
+and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')
+union all select c.relname, 'relation', 'false' from pg_class c where c.relnamespace = 'public'::regnamespace
+union all select c.relname || '.' || a.attname, 'column', 'false' from pg_attribute a join pg_class c on c.oid = a.attrelid
+where c.relnamespace = 'public'::regnamespace and a.attnum > 0 and not a.attisdropped order by 1, 2;`;
+
+export interface SurfaceObject {
+  name: string;
+  kind: "function" | "relation" | "column";
+  anon: boolean;
+}
+
+export function parseSurfaceTsv(text: string): SurfaceObject[] {
+  if (!text.trim()) throw new Error("public surface: empty catalogue answer");
+  return text
+    .trimEnd()
+    .split(/\r?\n/)
+    .map((line) => {
+      const [name, kind, anon, extra] = line.split("\t");
+      if (
+        !name ||
+        (kind !== "function" && kind !== "relation" && kind !== "column") ||
+        (anon !== "true" && anon !== "false" && anon !== "t" && anon !== "f") ||
+        extra !== undefined
+      )
+        throw new Error("public surface: malformed catalogue row");
+      return { name, kind, anon: anon === "true" || anon === "t" };
+    });
+}
+
+/** No unlisted name, hash or artifact is emitted. PUBLIC covers anon by inheritance. */
+export function compareSurface(current: SurfaceObject[], entries: SurfaceEntry[]): Verdict {
+  const unlisted = new Set(
+    current
+      .filter(
+        (row) =>
+          row.kind === "function" &&
+          row.anon &&
+          !entries.some((entry) => entry.name === row.name && coversRole(entry, "anon")),
+      )
+      .map((row) => row.name),
+  );
+  const live = new Set(current.map((row) => row.name));
+  const stale = [
+    ...new Set(entries.filter((entry) => !live.has(entry.name)).map((entry) => entry.name)),
+  ];
+  const lines = [
+    `public surface: ${unlisted.size} unlisted anon functions; ${stale.length} stale lines`,
+  ];
+  if (unlisted.size > 0) {
+    lines.push(`::error::public surface: ${unlisted.size} unlisted anon functions`);
+    lines.push(
+      `Read-only catalogue query (compare anon=true function rows with the allowlist): ${SURFACE_QUERY}`,
+    );
+  }
+  for (const name of stale) lines.push(`::error::public surface: stale line ${name}`);
+  return { lines, failed: unlisted.size > 0 || stale.length > 0 };
+}
+
 const PROD_REF = "zwmvxvzzvjvtdcfcwiuf";
 
 /** The pure comparison (unit-tested). */
@@ -43,6 +108,8 @@ export function compareLints(current: LintCount[], baseline: Baseline): Verdict 
   const seen = new Set<string>();
 
   for (const lint of current) {
+    // The database still returns this count; DEC-310 replaces its baseline only.
+    if (lint.name === "function_executable_by_anon") continue;
     seen.add(lint.name);
     lines.push(`${lint.name} ${lint.level} ${lint.count}`);
     const base = baseline[lint.name];
@@ -115,10 +182,14 @@ export function parseLintTsv(text: string): LintCount[] {
 
 async function main(): Promise<number> {
   let current: LintCount[];
+  let surface: SurfaceObject[] | undefined;
   if (process.argv[2] === "--tsv") {
     const path = process.argv[3];
-    if (!path || process.argv.length !== 4) throw new Error("--tsv requires one path");
+    const surfacePath = process.argv[4];
+    if (!path || !surfacePath || process.argv.length !== 5)
+      throw new Error("--tsv requires lint and catalogue paths");
     current = parseLintTsv(readFileSync(path, "utf8"));
+    surface = parseSurfaceTsv(readFileSync(surfacePath, "utf8"));
   } else {
     const url = process.env["E2E_SUPABASE_URL"] ?? "";
     const key = process.env["E2E_SUPABASE_SERVICE_ROLE_KEY"] ?? "";
@@ -147,12 +218,30 @@ async function main(): Promise<number> {
     readFileSync(join(here, "security-lints-baseline.json"), "utf8"),
   ) as Baseline;
   const verdict = compareLints(current, baseline);
+  if (surface) {
+    const surfaceVerdict = compareSurface(
+      surface,
+      parseSurface(readFileSync(join(here, "public-surface-allowlist.txt"), "utf8")),
+    );
+    verdict.lines.push(...surfaceVerdict.lines);
+    verdict.failed ||= surfaceVerdict.failed;
+  } else {
+    verdict.lines.push(
+      "public surface: NOT RUN — nightly REST has no live catalogue; smoke --tsv is the DEC-310 caller",
+    );
+  }
   for (const line of verdict.lines) console.log(line);
   return verdict.failed ? 1 : 0;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  main()
+  (process.argv[2] === "--surface-query"
+    ? Promise.resolve().then(() => {
+        console.log(SURFACE_QUERY);
+        return 0;
+      })
+    : main()
+  )
     .then((code) => process.exit(code))
     .catch((err: unknown) => {
       console.error(`::error::${errorText(err)}`);

@@ -30,6 +30,8 @@ Measured by the first run; it is printed in the `backend-images` job's summary a
 
 ### The replay's cause (item 4)
 
+Correction (CI-3b ruling, 2026-10-31): `refused:replay` is job_run_claim's refusal at CL-1's first claim (20261029073342 :49/:212), not a second migration run; pulls and migrations overlap. DEC-309 counts registry refusals at pull/start, but a migration failure with every image local is its own finding, not counted against that rule.
+
 **Not determinable from the evidence I can read.**
 - ci-evidence keeps only the latest local-backend-proof.md and local-backend-last-failure.md. The start logs of aed7904b lane 5, d2e9bb36 lane 2, e195034e lane 3 and b3e8dba2 lane 3 are no longer on the evidence branch.
 - The rules forbid a git fetch of it, and the Actions job logs need a credential I do not hold.

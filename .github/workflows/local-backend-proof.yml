@@ -717,14 +717,10 @@ jobs:
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select lint->>'name' as name, lint->>'level' as level, lint->>'count' as count from jsonb_array_elements(public.security_lints()) as lint order by 1;" > "$RUNNER_TEMP/security-lints.tsv"
-          if ! bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv"; then
-            # INC-846 (turn 32): name the difference. DEC-132 keeps the log to counts, so the names and
-            # ACLs of every anon-executable function go to the lane's kept evidence.
-            docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text, coalesce(p.proacl::text, '(default)') from pg_proc p where p.pronamespace = 'public'::regnamespace and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('anon', p.oid, 'EXECUTE') order by 1;" > "local-backend-anon-functions-${{ matrix.lane }}.tsv"
-            echo "anon-executable functions outside the allowlist: $(grep -c . "local-backend-anon-functions-${{ matrix.lane }}.tsv") (names in the local-proof-${{ matrix.lane }} artifact)"
-            echo "::error::Database security lints differ from the baseline on the temporary backend (DEC-240)"
-            exit 1
-          fi
+          # DEC-310: live names stay in RUNNER_TEMP, never in artifacts or logs.
+          surface_query=$(bun scripts/security-lints.ts --surface-query)
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$surface_query" > "$RUNNER_TEMP/public-surface.tsv"
+          bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv" "$RUNNER_TEMP/public-surface.tsv"
       - name: Caller-gates guard (DEC-241)
         id: caller-gates-guard
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
