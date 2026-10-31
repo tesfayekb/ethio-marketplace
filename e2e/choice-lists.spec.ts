@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { gotoReady, signIn } from "./helpers/ui";
+import { gotoReady, isMobile, signIn } from "./helpers/ui";
 import { leaseUser } from "./helpers/users";
 import { withoutEmptyLayers } from "./helpers/shadows";
 
