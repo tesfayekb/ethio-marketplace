@@ -38,7 +38,7 @@ Follow Project Knowledge and /docs/conventions.md. Task-named files only; no ext
 - A changed spec's repeatability is proven by CI's repeat lane (DEC-283); the manual Flake check (DEC-184) is for investigations; never local browsers for repeats.
 - Import previews in tests use `withinPreviewBudget`; only IG-3 drives the limit, never raised.
 - QR: the encoder lives only in `src/server/qr.ts`, off first paint (a guard); public QR routes check the id's shape, no DB read.
-- Shell: cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:`.
+- Shell content bands share BAND_TRACK/BAND_SEGMENT in band-row.ts; the panel header reads RAIL_HEADER with BAND_ROW, so their look and height have one guarded source. Cards take `CARD_SURFACE` (no 1-px border; state borders on top); one ☰ per width, top-left; md tables use `tbl-md:`.
 - Legal: texts only via `LegalText`/`legalTextFor`, never HTML; facts are {{setting}} tokens frozen per version; other languages are legal_version_texts rows; every agreement tick is `AgreeToDocument` with `[text](role)` link tokens; page data via `legalPageData` (legal-page-data.ts), never on the first paint.
 - AI: every model call is `aiCall` (src/server/ai/gateway.ts) with a task in tasks.ts; provider hosts, keys and stand-in flags live only under src/server/ai/ (GWC); stand-ins only via `standInMode` (src/server/stand-in.ts); vendors (Supabase, Lovable) only through their seams (vendor-seams.test.ts).
 - Admin menu alerts: a section's `alert` (sections.ts) is read by `useNavAlerts`.

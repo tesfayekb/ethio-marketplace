@@ -448,3 +448,9 @@ From 768 to 1023 px the admin rail is icons only; » / « opens the in-place men
 A section in `src/features/admin/sections.ts` may name an `alert`. `useNavAlerts` (`src/features/admin/nav-alerts.ts`) reads each alert as one server boolean — today `legalReview`, from `legal_review_overdue()`, for users with legal:view — and the rail draws a dot on that section's icon, with the alert's words in the entry's accessible name and `data-alert="true"` on the row. Never a count; the server decides.
 
 Each alert's read lives in nav-alerts.ts itself (a query on the server boolean, under the admin legal query key), so the first paint carries no admin feature code.
+
+## Sage S2b — shared content tracks and rail header (D265/D266)
+
+The panel tabs, breadcrumb trail and location row read `BAND_TRACK`, `BAND_SEGMENT` and `BAND_SEGMENT_CURRENT` from shell/band-row.ts. Active tabs and current crumbs have exactly the chosen location's card surface, segment lift, nav ink and semibold text. The breadcrumb variants (public ad, seller listing and admin details) share the same track and use CutText for the five-grapheme name floor; separators remain and the trail never wraps. CURRENT_PILL now belongs only to the phone bottom bar.
+
+D266 reverses P-S7: the panel header reads RAIL_HEADER (sidebar surface, band label, one bottom groove), alongside BAND_ROW for its unchanged 40 px height. Its compact form, heading and switch are unchanged. CF-BAND-1 defines this as the rail header, without an allowance; CF-ROWS-1 also refuses a header that bypasses the constant. SGB-1/5 change their old look assertions, SGB-6 covers 360 px EN/AM crumb trails, and A-6 changes underline to the raised segment.
