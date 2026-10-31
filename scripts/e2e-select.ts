@@ -263,6 +263,7 @@ export const AREAS: Area[] = [
       "e2e/overlays.spec.ts",
       "e2e/fonts.spec.ts",
       "e2e/dark-cards.spec.ts",
+      "e2e/sage-cards.spec.ts",
     ],
   },
   {

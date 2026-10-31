@@ -141,7 +141,7 @@ export function ListingPicture({
   const [ratio, setRatio] = useState(4 / 3);
   return (
     <div
-      className={`@container relative flex aspect-4/3 w-full items-center justify-center overflow-hidden bg-muted ${rounded} ${fill ? "" : "mx-auto max-w-80"}`}
+      className={`@container relative flex aspect-4/3 w-full items-center justify-center overflow-hidden bg-photo-empty ${rounded} ${fill ? "" : "mx-auto max-w-80"}`}
       data-testid={boxTestId}
       data-picture={photoUrl !== null ? "photo" : categoryUrl !== null ? "category" : "none"}
       role={photoUrl === null ? "img" : undefined}

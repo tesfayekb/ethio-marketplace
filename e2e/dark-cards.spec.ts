@@ -5,7 +5,7 @@ import { gotoReady } from "./helpers/ui";
  * D262 (turn B1, DEC-314) — THE DARK-CARD CHOICE on /dev/style, both projects.
  * DCC-1: each candidate (A, B, C), measured in the page: every card surface against the dark page
  * at least 1.25 : 1, its edge ring at least 1.8 : 1, its text at least 4.5 : 1 on the card.
- * DCC-2: the live dark card (candidate B, provisional) is what a dark page draws outside the grid.
+ * DCC-2: the live dark card (candidate C, the operator's pick, turn B2; was B) is what a dark page draws outside the grid.
  * No account, no seeded row. Colours are read through a canvas, so any CSS colour form compares.
  */
 
@@ -88,7 +88,7 @@ test.describe("dark-card choice", () => {
     }
   });
 
-  test("DCC-2 the dark page's own card is candidate B", async ({ page }) => {
+  test("DCC-2 the dark page's own card is candidate C", async ({ page }) => {
     await gotoReady(page, "/dev/style");
     const same = await page.evaluate(() => {
       const root = document.documentElement;
@@ -106,10 +106,10 @@ test.describe("dark-card choice", () => {
         host.remove();
         return out;
       };
-      const out = { live: probe(null), b: probe("b") };
+      const out = { live: probe(null), c: probe("c") };
       if (!wasDark) root.classList.remove("dark");
       return out;
     });
-    expect(same.live).toBe(same.b);
+    expect(same.live).toBe(same.c);
   });
 });

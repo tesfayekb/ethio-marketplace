@@ -1,3 +1,4 @@
+import { OneLineSlot } from "@/components/ui/one-line-slot";
 import { CARD_SURFACE } from "@/components/layout/surface";
 import { cn } from "@/lib/utils";
 import { Suspense, useEffect, useId, useRef, type ReactNode } from "react";
@@ -283,9 +284,22 @@ export function Feed() {
       className="mx-auto w-full max-w-6xl"
     >
       <div className="flex min-w-0 flex-wrap items-center gap-x-2">
-        <h1 className="min-w-0 text-xl font-semibold text-foreground wrap-anywhere">
+        {/* §5 (turn B2): 21/25/30 px, weight 800, −0.9 px; one line, only the place name cuts. */}
+        <h1
+          data-testid="feed-heading"
+          className="min-w-0 max-w-full text-[21px] leading-tight font-extrabold tracking-[-0.9px] text-foreground md:text-[25px] lg:text-[30px]"
+        >
           {/* D127 — no place chosen: the everywhere feed is "All listings", not "near you". */}
-          {shownPlace ? inHeading(shownPlace) : t("nav.allListings")}
+          {shownPlace ? (
+            <OneLineSlot
+              sentence={t("feed.headingIn")}
+              slot="{location}"
+              text={nameOf(shownPlace)}
+              slotClassName="text-primary"
+            />
+          ) : (
+            t("nav.allListings")
+          )}
         </h1>
         {categoryNode ? (
           <div className="flex min-w-0 items-center">

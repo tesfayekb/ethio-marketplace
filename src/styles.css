@@ -181,10 +181,12 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-rule: var(--rule);
+  --color-card-rule: var(--rule); /* §6 (turn B2): the card's place-line divider and well separator */
   --color-destructive-soft: var(--destructive-soft);
   --color-destructive-line: var(--destructive-line);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-success-ink: var(--success); /* §6 (turn B2): the Negotiable pill's ink, #17503A / #7FC9A6 */
   --color-success-line: var(--success-line);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
@@ -424,7 +426,7 @@
   --lift-side: 1px 0 0 oklch(0.349 0.017 251.8 / 0.7);
   --background: oklch(0.202 0.011 163.6); /* #121815 */
   --foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
-  --card: oklch(0.297 0.019 161.2); /* #25302A — D262 candidate B, provisional (DEC-314) */
+  --card: oklch(0.312 0.019 163.4); /* #28342E — D262 candidate C, the operator's pick (DEC-314, turn B2) */
   --card-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --popover: oklch(0.258 0.016 160.7); /* #1D2621 */
   --popover-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
@@ -479,18 +481,14 @@
   --track: oklch(0.188 0.011 163.5); /* #0F1512 — location box track */
   --photo-empty: oklch(0.343 0.02 159.6); /* #303C35 — picture box before a photo loads (DEC-314) */
   --leaf-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — search, globe, pin icons */
-  --tier-premium: oklch(
-    0.305 0.032 78
-  ); /* #382D1C, D262 candidate B — Premium card and title-box fill */
+  --tier-premium: oklch(0.312 0.034 79.4); /* #3A2F1D, D262 C — Premium card fill */
   --tier-premium-frame: oklch(0.708 0.12 78.6); /* #C9973F — Premium frame and flag border */
   --tier-premium-rule: oklch(0.379 0.052 84.8); /* #4F4020 — Premium place-line divider */
   --tier-premium-fold: oklch(0.651 0.116 79.1); /* #B5862F — Premium flag fold */
   --tier-premium-ink: oklch(0.801 0.127 82.7); /* #E6B655 — Premium word, price and links */
   --tier-premium-star: oklch(0.708 0.12 78.6); /* #C9973F — Premium stars beside the word */
   --tier-premium-chip: oklch(0.308 0.043 84.2); /* #3A2E15 — Premium chips and initials disc */
-  --tier-featured: oklch(
-    0.312 0.032 162.1
-  ); /* #22362C, D262 candidate B — Featured card and title-box fill */
+  --tier-featured: oklch(0.326 0.034 162); /* #243A2F, D262 C — Featured card fill */
   --tier-featured-frame: oklch(0.634 0.093 163.1); /* #4F9C7A — Featured frame and flag border */
   --tier-featured-rule: oklch(0.382 0.042 161.8); /* #2E4A3C — Featured place-line divider */
   --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
@@ -523,7 +521,7 @@
     0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4),
     0 16px 32px -12px oklch(0 0 0 / 0.55);
   --lift-card:
-    0 0 0 1px oklch(0.399 0.02 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* edge #3E4B44, candidate B */
+    0 0 0 1px oklch(0.417 0.02 167.6), 0 2px 8px oklch(0 0 0 / 0.35); /* edge #42504A, candidate C */
   --lift-badge:
     inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
     0 3px 8px oklch(0 0 0 / 0.45);
@@ -561,8 +559,8 @@
   }
 }
 /* D262 (turn B1, DEC-314) — THE DARK-CARD CHOICE. Three candidate card sets, scoped to a
-   [data-card-candidate] box on /dev/style only (never a public page); .dark carries B until the
-   operator picks. Each sets the card surface, its edge ring, the two tier fills and the well. */
+   [data-card-candidate] box on /dev/style only (never a public page); .dark carries C, the
+   operator's pick (turn B2); the three stay for later judgement. Each sets the card surface, its edge ring, the two tier fills and the well. */
 .dark [data-card-candidate="a"] {
   --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
   --card: oklch(0.289 0.019 161.1); /* #232E28 */

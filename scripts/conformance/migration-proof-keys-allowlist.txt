@@ -2,4 +2,4 @@
 # key "<migration file>:<table>:<second|fixed>" | reason | until
 20260903025501_f90d7b5a-e159-4084-9982-cb5e4f42a96b.sql:category_country_exclusions:fixed | the proof inserts a fixed-uuid exclusion row; the block rolls back | landed; G39
 20261029072455_be0270dc-e88a-4a72-abee-14468885579d.sql:job_runs:fixed | JC-3 keys (name-check-catchup, ts 1) with a fixed id in the shared job_runs | landed; G39
-20261029073342_cba46fd4-8476-4450-8253-ec69daedcf2b.sql:job_runs:second | CL-1/CL-3 key (name-check-catchup, v_now) on the current second in the shared job_runs (INC-1028) | landed; G39
+20261029073342_cba46fd4-8476-4450-8253-ec69daedcf2b.sql:job_runs:second | CL-1/CL-3 key (name-check-catchup, v_now) on the current second in the shared job_runs; INC-1028's failure was CL-3's ahead check judging v_now + 61 against job_run_claim's own later clock (DEC-316), patched in CI's working copy | landed; G39
