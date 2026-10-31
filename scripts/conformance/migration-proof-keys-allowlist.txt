@@ -1,5 +1,5 @@
 # DEC-313 (scripts/conformance/migration-proof-keys.test.ts, CF-PROOF-KEY-1): a landed migration proof that keys a row in a shared table on the current second or on a fixed key. Landed files are never edited (G39); a new migration fixes a function, never a landed proof.
 # key "<migration file>:<table>:<second|fixed>" | reason | until
-20260903025501_d3e8a1b4-6f2c-4e9a-8b5d-7c1f0e2a3b9d.sql:category_country_exclusions:fixed | the proof inserts a fixed-uuid exclusion row; the block rolls back | landed; G39
+20260903025501_f90d7b5a-e159-4084-9982-cb5e4f42a96b.sql:category_country_exclusions:fixed | the proof inserts a fixed-uuid exclusion row; the block rolls back | landed; G39
 20261029072455_be0270dc-e88a-4a72-abee-14468885579d.sql:job_runs:fixed | JC-3 keys (name-check-catchup, ts 1) with a fixed id in the shared job_runs | landed; G39
 20261029073342_cba46fd4-8476-4450-8253-ec69daedcf2b.sql:job_runs:second | CL-1/CL-3 key (name-check-catchup, v_now) on the current second in the shared job_runs (INC-1028) | landed; G39
