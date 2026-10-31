@@ -47,7 +47,8 @@ must obey too.
   or roster it measures (a scratch root joining the menu, a seeded row joining a list) is seeded
   first, then the page is read (INC-1015).
 - Tests see what a person sees: typed by keyboard, boxes measured, nothing read while an animation
-  runs (`settled(page)` after an overlay opens); every box a test compares is read together in one
+  runs (`settled(page)` after an overlay opens, and after any press or click before a computed style
+  is read: the press fades out over 120 ms, and SGB-5 read a colour mid-fade in turn C1); every box a test compares is read together in one
   frame through `layoutBoxes({ name: locator, … })` (`e2e/helpers/ui.ts`), never `boundingBox()` one
   by one.
 - Fixtures are captured from real tool output, never authored. A fixture or text that moves between
@@ -57,7 +58,8 @@ must obey too.
 - Spec files are edited by hand, never by search-and-replace; a spec change the brief did not
   enumerate is a STOP naming the test and line. `test.only` never lands.
 - New test ids: before you assign one, grep the `it(` / `test(` titles in `src/`, `e2e/` and
-  `scripts/`; a collision is renamed. No spec file carries more than ~25 tests — split by area,
+  `scripts/`; a collision is renamed (TI-1, `scripts/test-ids.test.ts`, fails on any id used twice:
+  B2 and C1 both lost a CI run to it). No spec file carries more than ~25 tests — split by area,
   titles and bodies intact, hooks travelling with their tests.
 - Behaviour-preserving moves keep assertions byte for byte; a test whose mock must change shape is
   listed in the report with its id and reason.
@@ -83,13 +85,16 @@ position; `pickCity` (`e2e/helpers/posting.ts`) for the place step; `switchLangu
 ## Running tests
 
 - Unit: `bun run test:unit` (vitest, the whole suite) at THE CHECKS; while iterating, a touched
-  file's tests alone (`bunx vitest run <file>`).
+  file's tests alone (`bunx vitest run <file>`), and the laws (`bunx vitest run scripts
+  --maxWorkers=2`: the test ids, the censuses, the allowlists) after any change to a test, a guard,
+  an allowlist or a shared mechanism.
 - Browser tests start ONLY with `bun run e2e:local -- <spec files>` or `bun run e2e:changed` (when
   `scripts/e2e-select.ts` prints five files or fewer) — never plain `playwright test` or
   `bun run test:e2e` (the committed `.env` points at production and the setup refuses it). Target:
   ethio-staging, through `E2E_SUPABASE_URL`, `E2E_SUPABASE_PUBLISHABLE_KEY` and
-  `E2E_SUPABASE_SERVICE_ROLE_KEY` in the environment — never `supabase/config.toml`, never
-  production. Both projects (`mobile-360`, `desktop-1280`), 2 workers, fake mode, 0 retries; each
+  `E2E_SUPABASE_SERVICE_ROLE_KEY` in the environment (on this computer the operator may keep them in
+  `~/.ethio-e2e.env`, loaded by the shell; you check only that the three names are set, never their
+  values) — never `supabase/config.toml`, never production. Both projects (`mobile-360`, `desktop-1280`), 2 workers, fake mode, 0 retries; each
   touched spec file whole and alone; named ids by `--grep`. Paste every count line and the server
   log's `[ssr-error]` count by path.
 - A spec file not fully green is not committed.

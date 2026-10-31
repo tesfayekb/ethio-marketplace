@@ -63,18 +63,26 @@ after `continue`. Never an empty or placeholder migration.
   any failure — a clean apply is the pass; a proof that skips with a NOTICE is a weakened proof. A
   statement that spans a whole table is proven through a service-only core that takes an id scope
   (`<name>_core(p_only uuid[])`) called with the proof's own scratch ids; the live wrapper is never
-  called by the proof. A call and the check of its effect are separate statements. List RPCs ship
+  called by the proof. A call and the check of its effect are separate statements.
+- A proof keys its scratch rows on its own scratch key (`gen_random_uuid()`, an `e2e-` value),
+  never on the current second (`epoch FROM now()` / `clock_timestamp()`) or a fixed
+  `00000000-` uuid (CF-PROOF-KEY-1, `scripts/conformance/migration-proof-keys.test.ts`).
+- A proof that judges a value at a window edge reads the clock just before the call, as the code
+  under test does, and keeps a margin of one tick: a clock read once at the top of the block and
+  compared with a function that reads its own failed one start in a hundred (INC-1028, DEC-316). List RPCs ship
   their index and an EXPLAIN in the proof. A function a route calls is also proven by a route test.
 - CLOSERS in-file, last: the REVOKE / GRANT lines, then the mark.
 - Run `bash scripts/check-migrations.sh` and paste its guard lines ("Self-marking guard OK" among
   them) before you commit.
 
-## The MIGRATION stop report (then push and end the turn)
+## The MIGRATION stop report (then push and stop)
 
 For each file: its name; `sha256sum`; the declared mark; the objects it creates or redeclares; the
 proofs it carries; the guard lines; and the apply pairing line, exactly:
 `apply <uuid-fragment of the file name> → expect mark <MARK>`. Write it as
 `docs/governance/reports/<brief-stem>.stop-<n>.md` — first line `MIGRATION — <stem> part X:
 <subject>`, then DONE / LEFT / CI / FILES, the per-file lines and the pairing line — commit it on its
-own, push the branch, update the draft pull request, end the turn. The pull request's CI reports
-"STAGING BEHIND" in its preflight until the staging apply — expected; name it in the report.
+own, push the branch, open or update the draft pull request, say so in the chat and stop. The pull
+request's CI builds its temporary backends from every migration in the repository, so your file's
+proofs run there; its preflight job reports "STAGING BEHIND" until ethio-staging holds the mark —
+expected, and named in the report.
