@@ -219,6 +219,7 @@ async function placeControl(page: Page, control: Locator, spot: Spot) {
  *  reached (scrolled to inside the list, each the element drawn at its own centre). */
 async function expectInSight(page: Page, panel: Locator, rows: Locator, inChrome?: Locator) {
   await expect(panel).toBeVisible();
+  await expectSettled(panel);
   const { box } = await layoutBoxes({ box: panel });
   const edges = await chromeEdges(page);
   // A control drawn in the top chrome itself (the header) opens over the bands below it:
