@@ -165,6 +165,73 @@ async function closeMenu(page: Page, panel: Locator) {
   await expect(panel).toBeHidden();
 }
 
+/** D267 — the chrome's inner edges, read in the page from the `data-chrome` markers. */
+async function chromeEdges(page: Page) {
+  return page.evaluate(() => {
+    const shown = (edge: string) =>
+      Array.from(document.querySelectorAll<HTMLElement>(`[data-chrome="${edge}"]`))
+        .filter((el) => {
+          const style = getComputedStyle(el);
+          const placed =
+            edge === "top" || style.position === "fixed" || style.position === "sticky";
+          return placed && style.display !== "none" && el.getBoundingClientRect().height > 0;
+        })
+        .map((el) => el.getBoundingClientRect());
+    const tops = shown("top");
+    const bottoms = shown("bottom");
+    return {
+      top: tops.length > 0 ? Math.max(...tops.map((r) => r.bottom)) : 0,
+      bottom: Math.min(window.innerHeight, ...bottoms.map((r) => r.top)),
+    };
+  });
+}
+
+type Spot = "centred" | "near the top" | "near the bottom";
+const SPOTS: Spot[] = ["centred", "near the top", "near the bottom"];
+
+/** D267 — scroll the page so the control sits where the walk leaves it. */
+async function placeControl(page: Page, control: Locator, spot: Spot) {
+  const edges = await chromeEdges(page);
+  await control.evaluate(
+    (el, { spot, edges }) => {
+      const rect = el.getBoundingClientRect();
+      const target =
+        spot === "centred"
+          ? window.innerHeight / 2 - rect.height / 2
+          : spot === "near the top"
+            ? edges.top + 16
+            : edges.bottom - rect.height - 16;
+      window.scrollBy({ top: rect.top - target, behavior: "instant" });
+    },
+    { spot, edges },
+  );
+}
+
+/** D267 — the open list lies wholly inside the visible area, and its first and last rows are
+ *  reached (scrolled to inside the list, each the element drawn at its own centre). */
+async function expectInSight(page: Page, panel: Locator, rows: Locator) {
+  await expect(panel).toBeVisible();
+  const { box } = await layoutBoxes({ box: panel });
+  const edges = await chromeEdges(page);
+  expect(box.y, "the list's top under the top chrome").toBeGreaterThanOrEqual(edges.top - 0.5);
+  expect(box.y + box.height, "the list's bottom over the bottom chrome").toBeLessThanOrEqual(
+    edges.bottom + 0.5,
+  );
+  for (const row of [rows.first(), rows.last()]) {
+    await row.evaluate((el) => el.scrollIntoView({ block: "nearest", behavior: "instant" }));
+    const hit = await row.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      return at !== null && (at === el || el.contains(at));
+    });
+    expect(hit, "a list end row is reachable").toBe(true);
+  }
+  const after = await chromeEdges(page);
+  const { box: still } = await layoutBoxes({ box: panel });
+  expect(still.y).toBeGreaterThanOrEqual(after.top - 0.5);
+  expect(still.y + still.height).toBeLessThanOrEqual(after.bottom + 0.5);
+}
+
 for (const width of WIDTHS) {
   for (const mode of MODES) {
     test.describe(`choice lists at ${width}, ${mode}`, () => {
@@ -315,6 +382,91 @@ for (const width of WIDTHS) {
           panel: list.locator(".."),
           rows: page.getByTestId(`${id}-country-option`),
         });
+      });
+      for (const spot of SPOTS) {
+        test(`CL-E7 the currency list stays in sight, ${spot} (${width}, ${mode})`, async ({
+          page,
+        }) => {
+          test.skip(width !== 360, "D267 is judged at 360 coarse");
+          await toPricing(page);
+          const control = page.getByTestId("post-price-currency-search");
+          await placeControl(page, control, spot);
+          await control.click();
+          await expect(control).toHaveAttribute("data-state", "open");
+          await expectInSight(
+            page,
+            page.getByTestId("post-price-currency-list"),
+            page.getByTestId("post-price-currency-option"),
+          );
+        });
+      }
+
+      test(`CL-E8 the phone-code list stays in sight (${width}, ${mode})`, async ({ page }) => {
+        test.skip(width !== 360, "D267 is judged at 360 coarse");
+        test.slow();
+        await toPricing(page);
+        await page.getByTestId("post-price-mode-free").click();
+        await nextToStep(page, 5);
+        await page.getByTestId("post-title").fill("e2e listing title");
+        await page.getByTestId("post-description").fill("e2e listing description");
+        await nextToStep(page, 6);
+        const city = await activeCityOf("ET");
+        await waitForServedTree("ET", city.slug);
+        await waitForTreeSlug(page, "ET", city.slug);
+        await expect(page.getByTestId("post-where-region")).toBeVisible();
+        await pickCity(page, city);
+        await expect(page.getByTestId("post-where-chosen")).toHaveAttribute("data-count", "1", {
+          timeout: 20_000,
+        });
+        await nextToStep(page, 7);
+        const id = "post-who-value-phone";
+        const control = page.getByTestId(`${id}-country`);
+        const list = page.getByTestId(`${id}-country-list`);
+        for (const spot of SPOTS) {
+          await test.step(spot, async () => {
+            await placeControl(page, control, spot);
+            await control.click();
+            await expect(control).toHaveAttribute("data-state", "open");
+            await expectInSight(page, list.locator(".."), page.getByTestId(`${id}-country-option`));
+            await page.keyboard.press("Escape");
+            await expect(list).toBeHidden();
+          });
+        }
+      });
+
+      test(`CL-E9 the facade menus stay in sight (${width}, ${mode})`, async ({ page }) => {
+        test.skip(width !== 360, "D267 is judged at 360 coarse");
+        const panel = page.getByRole("menu");
+        // The header's menus: the header is fixed, so they open from the top.
+        await page.getByTestId("language-switcher").click();
+        await expectInSight(page, panel, page.getByRole("menuitemradio"));
+        await closeMenu(page, panel);
+        for (const spot of ["near the top", "near the bottom"] as const) {
+          await test.step(`location, ${spot}`, async () => {
+            const control = page.getByTestId("location-level-country");
+            await placeControl(page, control, spot);
+            await control.click();
+            await expectInSight(page, panel, page.getByRole("menuitemradio"));
+            await closeMenu(page, panel);
+          });
+        }
+        await gotoReady(page, "/dev/style");
+        for (const spot of ["near the top", "near the bottom"] as const) {
+          await test.step(`row actions, ${spot}`, async () => {
+            const control = page.getByTestId("style-row-1-more");
+            const menu = page.getByTestId("style-row-1-menu");
+            await placeControl(page, control, spot);
+            await control.click();
+            await expectInSight(page, menu, menu.getByRole("menuitem"));
+            await closeMenu(page, menu);
+          });
+        }
+        const user = await leaseUser();
+        await signIn(page, user.email, user.password);
+        await gotoReady(page, "/");
+        await page.getByTestId("account-menu").click();
+        await expectInSight(page, panel, page.getByRole("menuitem"));
+        await closeMenu(page, panel);
       });
     });
   }
