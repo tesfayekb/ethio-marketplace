@@ -181,10 +181,12 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-rule: var(--rule);
+  --color-card-rule: var(--rule); /* §6 (turn B2): the card's place-line divider and well separator */
   --color-destructive-soft: var(--destructive-soft);
   --color-destructive-line: var(--destructive-line);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
+  --color-success-ink: var(--success); /* §6 (turn B2): the Negotiable pill's ink, #17503A / #7FC9A6 */
   --color-success-line: var(--success-line);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);

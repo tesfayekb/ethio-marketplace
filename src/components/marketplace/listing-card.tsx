@@ -24,7 +24,7 @@ export function NegotiableBadge() {
   return (
     <span
       data-testid="price-negotiable-badge"
-      className="inline-flex shrink-0 items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-muted-foreground"
+      className="inline-flex shrink-0 items-center rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-semibold leading-4 text-success-ink"
     >
       {t("price.negotiable")}
     </span>
@@ -138,7 +138,7 @@ export function ListingCard({
         an hour); otherwise the category's picture from the public tree (bundle
         4 step 14), never a broken image.
       */}
-      <div className="relative">
+      <div className="relative border-b border-card-rule">
         <ListingPicture
           photoUrl={photoUrl}
           categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
@@ -154,12 +154,12 @@ export function ListingCard({
       </div>
 
       {/* D123 — below 11rem (three or four a row) the card is compact. */}
-      <div className="flex flex-1 flex-col gap-1 p-2 @min-[11rem]:gap-2 @min-[11rem]:p-3">
+      <div className="flex flex-1 flex-col gap-1 px-[7px] py-[6px] md:px-[9px] md:py-[8px] @min-[11rem]:gap-2 @min-[11rem]:px-[14px] @min-[11rem]:pt-[13px] @min-[11rem]:pb-[14px]">
         <h3 className="min-w-0 text-xs font-semibold leading-4 text-foreground @min-[11rem]:text-sm @min-[11rem]:leading-5">
           <CutText text={listing.title} />
         </h3>
 
-        <p className="flex min-h-[3.625rem] flex-wrap content-start items-center gap-x-1 gap-y-0.5 text-xs font-semibold leading-4 text-foreground @min-[11rem]:min-h-[2.75rem] @min-[11rem]:gap-x-2 @min-[11rem]:text-sm @min-[11rem]:leading-5">
+        <p className="flex min-h-[3.625rem] flex-wrap content-start items-center gap-x-1 gap-y-0.5 text-xs font-bold leading-4 text-foreground md:text-[13px] @min-[11rem]:min-h-[2.75rem] @min-[11rem]:gap-x-2 @min-[11rem]:text-base @min-[11rem]:leading-5">
           {wasPrice !== null ? (
             <span
               data-testid="listing-card-price-was"
@@ -177,7 +177,7 @@ export function ListingCard({
 
         <p
           data-testid="listing-card-place"
-          className="mt-auto flex min-h-[1lh] min-w-0 items-center gap-1 text-xs leading-4 text-muted-foreground"
+          className="mt-auto box-content flex min-h-[1lh] min-w-0 items-center gap-1 border-t border-card-rule pt-[6px] text-xs leading-4 text-leaf-ink group-data-[tier=featured]/card:text-tier-featured-ink @min-[11rem]:pt-[9px]"
         >
           {locationName ? (
             <>
@@ -197,7 +197,11 @@ export function ListingCard({
     <article
       data-testid="listing-card"
       data-listing={listing.id}
-      className={cn(CARD_SURFACE, "@container flex h-full flex-col overflow-hidden wrap-anywhere")}
+      data-tier={listing.tier ?? undefined}
+      className={cn(
+        CARD_SURFACE,
+        "group/card @container flex h-full flex-col overflow-hidden wrap-anywhere",
+      )}
     >
       {typeof listing.publicId === "string" ? (
         <Link
