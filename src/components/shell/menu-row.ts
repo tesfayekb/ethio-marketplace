@@ -55,6 +55,9 @@ export const LIST_MOTION =
   "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0 data-[side=bottom]:slide-in-from-top-0.5 data-[side=top]:slide-in-from-bottom-0.5 data-[side=left]:slide-in-from-right-0.5 data-[side=right]:slide-in-from-left-0.5";
 /** Width (ruling 3): at least the control, at most the viewport less a 16 px gutter each side. */
 export const LIST_PANEL = `z-50 ${LIST_SURFACE} max-w-[calc(100vw-2rem)] overflow-x-hidden ${LIST_MOTION}`;
+/** D267 (F4a-2) — a picker's row scroller: fills the panel's bounded column under any search
+ *  box, so the rows scroll inside the room the visible area leaves. */
+export const LIST_SCROLLER = "min-h-0 flex-1 overflow-y-auto";
 /** The control while its list is open: one style, from here (ruling 1). */
 export const OPEN_CONTROL =
   "data-[state=open]:bg-nav-pill data-[state=open]:text-nav-ink aria-expanded:bg-nav-pill aria-expanded:text-nav-ink";
