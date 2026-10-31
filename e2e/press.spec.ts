@@ -189,7 +189,8 @@ for (const mode of MODES) {
       await expect(page.getByRole("menu")).toHaveCount(0);
 
       // A menu row: the rail on a wide screen, the phone menu at 360 (openRailScope).
-      const menuRow = (await openRailScope(page)).getByTestId("rail-home");
+      // On a category page the menu opens at its level: its back row is an idle ITEM_CORE row.
+      const menuRow = (await openRailScope(page)).getByTestId("rail-menu-back");
       await expect(menuRow, "menu row").toBeVisible();
       const m = await press(page, menuRow);
       expect(m.marked, "menu row: marked").toBe(true);
