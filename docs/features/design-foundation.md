@@ -505,3 +505,11 @@ until the operator picks; the pick lands as a one-line token change (B2). The no
 | A   | #232E28 | #3A4740 | #33291A | #1F3329  | 1.28 / 1.85 / 11.58             |
 | B   | #25302A | #3E4B44 | #382D1C | #22362C  | 1.32 / 1.97 / 11.26             |
 | C   | #28342E | #42504A | #3A2F1D | #243A2F  | 1.39 / 2.12 / 10.67             |
+
+## An open list stays in sight (D267, turns F4a and F4a-2)
+
+`src/lib/visible-area.ts` is the one reader of the visible area: the bottom edge of the `data-chrome="top"` markers (the bands) and the top edge of the `data-chrome="bottom"` markers (the phone bottom bar, the form's action bar), else `scroll-padding-top`; 8 px margin. The searchable picker places its list with `placeList`: down when it fits; when the room below is short and the page can scroll, it scrolls the control up first and opens down after the scroll ends (instant under reduced motion); the larger side only when the page cannot scroll. Its height is bounded by `--picker-max-height`; the rows scroll in `LIST_SCROLLER`, never a consumer's own height (CL-10). Once placed, the panel carries `data-settled="true"` (F4b): a test measures an open picker list only after that mark. The facade's menus and the popover read `collisionPaddingNow()` on open. CF-AREA-1 judges.
+
+## A list's parts (D268, turn F4b)
+
+Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL` (a non-interactive header row on the row's padding, muted ink, semibold `text-sm`, cut by CutText), `LIST_SEPARATOR` (the one hairline rule) and `LIST_ICON` (`size-4 shrink-0` in the row's own ink, spaced by the row's gap only). The facade's `DropdownMenuLabel` and `DropdownMenuSeparator` read them, and `DropdownMenuIcon` (a slot) applies `LIST_ICON` to the consumer's glyph. CF-LIST-1 rules 8 and 9 refuse a label's or separator's own class and a row icon's own size, margin or colour. The S6 dialog parts reuse these constants.
