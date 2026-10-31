@@ -71,9 +71,11 @@ test.describe("dark-card choice", () => {
   test("DC-2 the dark page's own card is candidate B", async ({ page }) => {
     await gotoReady(page, "/dev/style");
     const same = await page.evaluate(() => {
+      const root = document.documentElement;
+      const wasDark = root.classList.contains("dark");
+      root.classList.add("dark");
       const probe = (attrs: string) => {
         const host = document.createElement("div");
-        host.className = "dark";
         host.innerHTML = `<div ${attrs} class="bg-card shadow-card"></div>`;
         document.body.append(host);
         const style = getComputedStyle(host.firstElementChild as Element);
@@ -81,7 +83,9 @@ test.describe("dark-card choice", () => {
         host.remove();
         return out;
       };
-      return { live: probe(""), b: probe('data-card-candidate="b"') };
+      const out = { live: probe(""), b: probe('data-card-candidate="b"') };
+      if (!wasDark) root.classList.remove("dark");
+      return out;
     });
     expect(same.live).toBe(same.b);
   });

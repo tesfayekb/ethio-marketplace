@@ -564,18 +564,21 @@
    [data-card-candidate] box on /dev/style only (never a public page); .dark carries B until the
    operator picks. Each sets the card surface, its edge ring, the two tier fills and the well. */
 .dark [data-card-candidate="a"] {
+  --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
   --card: oklch(0.289 0.019 161.1); /* #232E28 */
   --tier-premium: oklch(0.288 0.029 77.3); /* #33291A */
   --tier-featured: oklch(0.3 0.032 162); /* #1F3329 */
   --lift-card: 0 0 0 1px oklch(0.384 0.021 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* #3A4740 */
 }
 .dark [data-card-candidate="b"] {
+  --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
   --card: oklch(0.297 0.019 161.2); /* #25302A */
   --tier-premium: oklch(0.305 0.032 78); /* #382D1C */
   --tier-featured: oklch(0.312 0.032 162.1); /* #22362C */
   --lift-card: 0 0 0 1px oklch(0.399 0.02 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* #3E4B44 */
 }
 .dark [data-card-candidate="c"] {
+  --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
   --card: oklch(0.312 0.019 163.4); /* #28342E */
   --tier-premium: oklch(0.312 0.034 79.4); /* #3A2F1D */
   --tier-featured: oklch(0.326 0.034 162); /* #243A2F */
