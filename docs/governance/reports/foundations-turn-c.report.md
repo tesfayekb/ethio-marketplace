@@ -189,14 +189,29 @@ Base dev 3033041c. No migration, no new dependency. Three new strings (ruling 1)
 | `/settings` | 277.3 | 275 → 278 |
 | `/terms` | 215.7 | 215 → 217 |
 
+The final tree's NEAR band (from `bun run checks` and the re-measure after it) raised eight more:
+
+| Page | Local KiB | Ceiling |
+| --- | --- | --- |
+| `/` | 225.7 | 226 → 227 (NEAR) |
+| `/account_/legal` | 213.7 | 214 → 215 (NEAR) |
+| `/admin/coverage` | 335.7 | 336 → 337 (NEAR) |
+| `/admin/images` | 212.7 | 213 → 214 (NEAR) |
+| `/admin/locations` | 273.7 | 274 → 275 (NEAR) |
+| `/c/$slug` | 225.7 | 226 → 227 (NEAR) |
+| `/admin/legal_/$versionId` | 281.6 | 282 → 283 (NEAR) |
+| `/dev/style` | 247.6 | 248 → 249 (NEAR) |
+
 ## C2.8 K2
 - panel-tabs.tsx :56 and panel-header.tsx :75 mark the current panel from `activePanel` (the frame). Under ruling 4 they stay; D270's "a chosen tab stays raised" therefore shows on the tab only once the page lands (its press look shows at once). A ruling is owed if the tab should move early too.
 - The Radix Switch on /settings is 20 × 36 px; its label row is 44 px tall and the label toggles it, but the switch alone is under C2's 44 px.
 - The iPhone tick (ruling 3) is not built.
 
 ## C2.9 Checks
-- CI re-read before the push: (filled below).
-- `bun run checks` (one run, final tree): (filled below).
+- CI re-read before the push: the latest completed run is still 3033041c (FAILURE: the per-page budget and SGB-5 — both fixed at their roots above). No newer run.
+- `bun run checks`, one run, whole: fast line `checks (fast): 28 PASS · 0 FAIL · 1315s`; last line `checks: 35 PASS · 2 FAIL · 21 NOT RUN · 1644s`. The 2 FAILs were the budget's NEAR band (six pages, +0.1 KiB after useMenuAt moved beside useShownPathname). Fixed (table above), then `node scripts/check-bundle-size.mjs` re-run alone until clean (two more NEAR pages, then exit 0: entry 211.1 / 212 KiB). The whole run was **not** repeated (27 min; the ruling names one run); CI judges.
+- NOT RUN (21): the install steps (dependencies already installed), the dependency audit (advisory service unreachable), the staging preflight (no staging credentials in the script), the E2E merge and verdict (GitHub artefacts), promote (CI only), the SARIF upload and its warning (GitHub only).
+- Unit count: component tests 2,474 passed (406 files); scripts/ 397 passed, 1 skipped.
 
 ## C2.10 Files (git diff --name-only 3033041c, plus this report)
 docs/_changelog.md, docs/features/design-foundation.md, docs/generated/i18n-usage.json, docs/governance/mechanisms.md, e2e/press.spec.ts, public/i18n-usage.json, roadmap.md, scripts/check-bundle-size.mjs, scripts/conformance/press.test.ts, scripts/route-budgets.mjs, src/components/shell/app-header.tsx, src/components/shell/app-rail.tsx, src/components/shell/bottom-bar.tsx, src/components/shell/menu-current.test.ts, src/components/shell/menu-current.ts, src/components/shell/menu-row.ts, src/components/shell/use-shown-pathname.ts, src/components/ui/breadcrumb.tsx, src/components/ui/submenu-impl.tsx, src/i18n/locales/am-member.ts, src/i18n/locales/en-member.ts, src/lib/press.test.ts, src/lib/press.ts, src/routes/settings.tsx, src/styles.css, docs/governance/reports/foundations-turn-c.report.md.
