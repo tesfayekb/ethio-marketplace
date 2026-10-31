@@ -519,3 +519,9 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - Dark card C live (#28342E card, #42504A edge, #3A2F1D / #243A2F tier fills).
 - Feed heading 21/25/30 px, 800, -0.9 px, place in primary, one line via ONE_LINE_SLOT.
 - Card body 13/14/14 px (compact 8/9 tablet, 6/7 phone); price 16/13/12 bold; Negotiable pill success-soft + success ink, 11 px semibold; place line divider (rule) with 9/6 px top, leaf ink (Featured: its own ink, D269); empty well photo-empty with a bottom rule.
+
+## The press (turn C1, D263/D270, DEC-317)
+
+- A press is the raised look, never a darkening: src/lib/press.ts marks `data-pressed` at pointerdown or Enter/Space and clears it on release, cancel, keyup, scroll, a 10 px move, or focus leaving the pressed element. Disabled elements are never marked.
+- PRESSED (menu-row.ts): row → card + lift-row-on + nav ink; list → nav pill + nav ink; segment/tab → card + lift-segment + nav ink; button and top-bar control → lift-row-on; card → lift-row-on on the card; a plain link → the nav pill behind its text (styles.css base layer).
+- On at once, off within 120 ms; no transition under reduced motion; only shadow, fill and ink change.
