@@ -424,7 +424,7 @@
   --lift-side: 1px 0 0 oklch(0.349 0.017 251.8 / 0.7);
   --background: oklch(0.202 0.011 163.6); /* #121815 */
   --foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
-  --card: oklch(0.243 0.014 163.6); /* #1A221E */
+  --card: oklch(0.297 0.019 161.2); /* #25302A — D262 candidate B, provisional (DEC-314) */
   --card-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
   --popover: oklch(0.258 0.016 160.7); /* #1D2621 */
   --popover-foreground: oklch(0.933 0.006 153.8); /* #E6EAE7 */
@@ -477,16 +477,20 @@
   --hairline: oklch(0.339 0.02 159.5); /* #2F3B34 — 1 px edges: bands, rail, controls */
   --field: oklch(0.188 0.011 163.5); /* #0F1512 — search field fill */
   --track: oklch(0.188 0.011 163.5); /* #0F1512 — location box track */
-  --photo-empty: oklch(0.298 0.016 163.6); /* #26302B — picture box before a photo loads */
+  --photo-empty: oklch(0.343 0.02 159.6); /* #303C35 — picture box before a photo loads (DEC-314) */
   --leaf-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — search, globe, pin icons */
-  --tier-premium: oklch(0.261 0.028 82.6); /* #2B2314 — Premium card and title-box fill */
+  --tier-premium: oklch(
+    0.305 0.032 78
+  ); /* #382D1C, D262 candidate B — Premium card and title-box fill */
   --tier-premium-frame: oklch(0.708 0.12 78.6); /* #C9973F — Premium frame and flag border */
   --tier-premium-rule: oklch(0.379 0.052 84.8); /* #4F4020 — Premium place-line divider */
   --tier-premium-fold: oklch(0.651 0.116 79.1); /* #B5862F — Premium flag fold */
   --tier-premium-ink: oklch(0.801 0.127 82.7); /* #E6B655 — Premium word, price and links */
   --tier-premium-star: oklch(0.708 0.12 78.6); /* #C9973F — Premium stars beside the word */
   --tier-premium-chip: oklch(0.308 0.043 84.2); /* #3A2E15 — Premium chips and initials disc */
-  --tier-featured: oklch(0.274 0.029 161.9); /* #1A2C23 — Featured card and title-box fill */
+  --tier-featured: oklch(
+    0.312 0.032 162.1
+  ); /* #22362C, D262 candidate B — Featured card and title-box fill */
   --tier-featured-frame: oklch(0.634 0.093 163.1); /* #4F9C7A — Featured frame and flag border */
   --tier-featured-rule: oklch(0.382 0.042 161.8); /* #2E4A3C — Featured place-line divider */
   --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
@@ -518,7 +522,8 @@
   --lift-menu:
     0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4),
     0 16px 32px -12px oklch(0 0 0 / 0.55);
-  --lift-card: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
+  --lift-card:
+    0 0 0 1px oklch(0.399 0.02 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* edge #3E4B44, candidate B */
   --lift-badge:
     inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),
     0 3px 8px oklch(0 0 0 / 0.45);
@@ -554,6 +559,30 @@
   :root:not(.dark) {
     --lift-card: var(--lift-card-lg);
   }
+}
+/* D262 (turn B1, DEC-314) — THE DARK-CARD CHOICE. Three candidate card sets, scoped to a
+   [data-card-candidate] box on /dev/style only (never a public page); .dark carries B until the
+   operator picks. Each sets the card surface, its edge ring, the two tier fills and the well. */
+.dark [data-card-candidate="a"] {
+  --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
+  --card: oklch(0.289 0.019 161.1); /* #232E28 */
+  --tier-premium: oklch(0.288 0.029 77.3); /* #33291A */
+  --tier-featured: oklch(0.3 0.032 162); /* #1F3329 */
+  --lift-card: 0 0 0 1px oklch(0.384 0.021 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* #3A4740 */
+}
+.dark [data-card-candidate="b"] {
+  --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
+  --card: oklch(0.297 0.019 161.2); /* #25302A */
+  --tier-premium: oklch(0.305 0.032 78); /* #382D1C */
+  --tier-featured: oklch(0.312 0.032 162.1); /* #22362C */
+  --lift-card: 0 0 0 1px oklch(0.399 0.02 161.8), 0 2px 8px oklch(0 0 0 / 0.35); /* #3E4B44 */
+}
+.dark [data-card-candidate="c"] {
+  --shadow-card: var(--lift-card); /* re-resolved here: the theme maps it at :root */
+  --card: oklch(0.312 0.019 163.4); /* #28342E */
+  --tier-premium: oklch(0.312 0.034 79.4); /* #3A2F1D */
+  --tier-featured: oklch(0.326 0.034 162); /* #243A2F */
+  --lift-card: 0 0 0 1px oklch(0.417 0.02 167.6), 0 2px 8px oklch(0 0 0 / 0.35); /* #42504A */
 }
 @layer base {
   .cut-floor::before {

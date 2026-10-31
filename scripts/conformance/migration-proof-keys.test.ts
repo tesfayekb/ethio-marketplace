@@ -1,8 +1,9 @@
-import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { walkFiles } from "./kit";
 
 /**
  * DEC-313 (Foundations turn CI-4, INC-1028; J1, G27) — CF-PROOF-KEY-1: A MIGRATION PROOF KEYS ITS
@@ -65,10 +66,8 @@ export function readProofAllowlist(text: string, found: Set<string>): string[] {
 
 function census(dir: string): Set<string> {
   const found = new Set<string>();
-  for (const name of readdirSync(dir)
-    .filter((n) => n.endsWith(".sql"))
-    .sort())
-    proofKeyFindings(name, readFileSync(join(dir, name), "utf8")).forEach((k) => found.add(k));
+  for (const file of walkFiles([dir], { ext: ["sql"] }))
+    proofKeyFindings(basename(file), readFileSync(file, "utf8")).forEach((k) => found.add(k));
   return found;
 }
 
@@ -85,7 +84,7 @@ describe("CF-PROOF-KEY-1 migration proofs key on their own scratch key (DEC-313)
     expect(readProofAllowlist(readFileSync(ALLOWLIST, "utf8"), found)).toEqual([]);
   });
 
-  it("PK-1 planted: a new proof keyed on the current second, or on a fixed uuid, fails", () => {
+  it("MPK-1 planted: a new proof keyed on the current second, or on a fixed uuid, fails", () => {
     const dir = mkdtempSync(join(tmpdir(), "proof-keys-"));
     try {
       writeFileSync(join(dir, "29990101000000_new.sql"), CLOCK);

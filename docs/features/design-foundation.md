@@ -489,3 +489,19 @@ The top band and place row lift by shadow; the breadcrumb and panel-tab rows par
 Every list of choices that opens from a control (the language, account, location and panel menus, the row actions, the currency and phone-code pickers) takes its rows and panel from `menu-row.ts`: rows are 44 px to tap on a phone or any coarse pointer and 40 px with a 10 px radius from md on a fine pointer, one line each; the current radio row takes the nav pill from its checked state (`data-[state=checked]`), heard through `aria-checked`, with its tick in the nav ink; picker options keep `aria-selected`; the panel opens against its control's edge, at least as wide, with a fade and a 2 px slide and never a zoom, on the popover surface (14 px radius, 6 px padding, the menu shadow whose first layer is its ring). The control shows its open state with `OPEN_CONTROL`. Native selects keep the device's own list (CF-LIST-1 allowlist, until Sage S6).
 
 Turn F3: the searchable picker owns horizontal placement and width: logical start first, logical end when start crosses the 16 px viewport gutter, at least the anchor width and at most the available viewport room. Its placement hook applies `OPEN_CONTROL` to its control; row actions read the same constant. No consumer sets a picker panel’s width or side (CF-LIST-1, CL-7).
+
+## Dark cards: the D262 choice (turn B1, DEC-314)
+
+The operator's note (D262): a dark card barely differed from the page (#1A221E on #121815, 1.11 : 1;
+its #26302B ring 1.32 : 1). Three candidate sets sit on /dev/style ("Dark cards: pick one"), each a
+`.dark [data-card-candidate]` block in styles.css setting `--card`, the two tier fills, the
+`--lift-card` edge ring (and `--shadow-card`, re-resolved inside the box). `.dark` carries **B**
+until the operator picks; the pick lands as a one-line token change (B2). The no-photo well is
+#303C35 in every candidate. e2e/dark-cards.spec.ts measures each in the page (DC-1: surface
+≥ 1.25, plain-card edge ≥ 1.8, text ≥ 4.5) and proves the live dark card equals B (DC-2).
+
+| Set | Card    | Edge    | Premium | Featured | surface / edge / text (in-page) |
+| --- | ------- | ------- | ------- | -------- | ------------------------------- |
+| A   | #232E28 | #3A4740 | #33291A | #1F3329  | 1.28 / 1.85 / 11.58             |
+| B   | #25302A | #3E4B44 | #382D1C | #22362C  | 1.32 / 1.97 / 11.26             |
+| C   | #28342E | #42504A | #3A2F1D | #243A2F  | 1.39 / 2.12 / 10.67             |

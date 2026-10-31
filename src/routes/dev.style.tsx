@@ -188,6 +188,65 @@ function SageGrid() {
   );
 }
 
+/**
+ * D262 (turn B1, DEC-314) — THE DARK-CARD CHOICE. Three candidate card sets (styles.css,
+ * `.dark [data-card-candidate]`) on a dark page, each with a plain card (a photo stand-in), a
+ * Premium, a Featured and a no-photo card. The operator picks one; e2e/dark-cards.spec.ts measures
+ * each against its targets. Fixture data, English only; never on a public page.
+ */
+const CANDIDATES = ["a", "b", "c"] as const;
+const CHOICE_CARDS = [
+  ["plain", "bg-card shadow-card", "bg-secondary", "text-primary", ""],
+  [
+    "premium",
+    "bg-tier-premium shadow-premium",
+    "bg-photo-empty",
+    "text-tier-premium-ink",
+    "★★ PREMIUM",
+  ],
+  [
+    "featured",
+    "bg-tier-featured shadow-featured",
+    "bg-photo-empty",
+    "text-tier-featured-ink",
+    "★ FEATURED",
+  ],
+  ["no-photo", "bg-card shadow-card", "bg-photo-empty", "text-primary", ""],
+] as const;
+
+function DarkCardChoice() {
+  return (
+    <div
+      data-testid="style-dark-cards"
+      className="dark mt-4 flex flex-col gap-4 rounded-card bg-background p-4 text-foreground"
+    >
+      {CANDIDATES.map((candidate) => (
+        <div
+          key={candidate}
+          data-card-candidate={candidate}
+          data-testid={`style-candidate-${candidate}`}
+        >
+          <p className="mb-2 text-sm font-semibold">{`Candidate ${candidate.toUpperCase()}`}</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {CHOICE_CARDS.map(([kind, surface, well, ink, word]) => (
+              <div
+                key={kind}
+                data-testid={`style-candidate-${candidate}-${kind}`}
+                className={`min-w-0 overflow-hidden rounded-card text-card-foreground ${surface}`}
+              >
+                <div className={`aspect-[4/3] ${well}`} />
+                <p className="truncate px-3 pt-3 text-sm font-semibold">{FIXTURE_TITLE}</p>
+                <p className={`px-3 text-sm font-bold ${ink}`}>{word || "ETB 12,500"}</p>
+                <p className="truncate px-3 pb-3 text-xs text-muted-foreground">{FIXTURE_PLACE}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 const SAMPLE_ROWS = ["Alpha", "Beta", "Gamma"] as const;
 const TONES: IconButtonTone[] = ["neutral", "danger", "success", "warning", "info"];
 const PAGER_TOTAL = 300;
@@ -216,6 +275,10 @@ function StyleFixture() {
 
         <Section title={"Sage cards and tokens"} testid="style-sage">
           <SageGrid />
+        </Section>
+
+        <Section title={"Dark cards: pick one"} testid="style-dark-choice">
+          <DarkCardChoice />
         </Section>
 
         <Section title={"Meanings"} testid="style-meanings">

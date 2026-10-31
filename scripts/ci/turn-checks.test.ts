@@ -10,6 +10,8 @@ import {
   LOCAL_UNIT_BOUND,
   allowed,
   fastFirst,
+  lawsFirst,
+  LAWS_STEP,
   fastLine,
   fetchFailure,
   lineText,
@@ -185,5 +187,24 @@ describe("bun run checks mirrors ci.yml (CI-2)", () => {
     expect(line.startsWith("checks (fast): 1 PASS · 1 FAIL · 5s — a")).toBe(true);
     expect(/^checks: /.test(line)).toBe(false);
     expect(summary(lines, 9)).toBe("checks: 1 PASS · 1 FAIL · 0 NOT RUN · 9s");
+  });
+
+  it("TC-E3 the scripts/ tests run before any other unit test, and their failure shows in the fast line (INC-1030)", () => {
+    const steps = planFrom(readFileSync(CI_FILE, "utf8"));
+    const fast = lawsFirst(fastFirst(steps).fast);
+    expect(fast[0]).toBe(LAWS_STEP);
+    expect(LAWS_STEP.run).toMatch(/^bunx vitest run scripts\b/);
+    const unit = fast.findIndex(
+      (s) => s.key === "component-tests › Component tests (vitest + RTL + jsdom)",
+    );
+    expect(unit).toBeGreaterThan(0);
+    expect(fast.filter((s) => /\bvitest\b/.test(s.run)).indexOf(LAWS_STEP)).toBe(0);
+    expect(LAWS_STEP.job).not.toBe(fast[unit].job);
+    const line = fastLine(
+      [{ verdict: "FAIL", key: LAWS_STEP.key, seconds: 60, reason: "exit 1" }],
+      60,
+      [LAWS_STEP.job],
+    );
+    expect(line).toContain("0 PASS · 1 FAIL");
   });
 });
