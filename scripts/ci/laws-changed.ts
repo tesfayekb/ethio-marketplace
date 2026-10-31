@@ -44,7 +44,7 @@ export function semgrepTargets(files: string[]): string[] {
 }
 
 /** The turn's base: TURN_BASE, else the brief's `Base: dev <sha>` (roadmap line 3's first
- *  brief); null when neither names one — the caller fails loudly, never HEAD~1. */
+ *  brief); null when neither names one — the caller fails loudly, never the last commit alone. */
 export function turnBase(
   env: string | undefined,
   roadmap: string,
