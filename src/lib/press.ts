@@ -30,8 +30,69 @@ export function pressTarget(target: EventTarget | null): Element | null {
   return el;
 }
 
+/**
+ * D272 (turn C2, DEC-317 item 5) — THE TAP TICK. What ticks: menu items, tabs, segments, the
+ * bottom bar, list rows and buttons — by role, or by a primitive's `data-tick` (the menu rows,
+ * breadcrumb segments and bottom-bar items, which are links). Plain text links and cards do
+ * not tick. A primitive that must stay silent carries `data-tick="off"`.
+ */
+export const TICKABLE =
+  '[data-tick]:not([data-tick="off"]),button:not([data-tick="off"]),[role=button],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox],[role=option],[role=tab],[role=switch],[role=radio]';
+
+/** The tick's length (ms): one light tick. */
+export const TICK_MS = 10;
+
+/** The device's choice (the Settings switch, "This device"); on unless turned off. */
+export const TAP_TICK_KEY = "ethio.tapTick";
+
+const tickListeners = new Set<() => void>();
+
+/** Whether this device ticks on a tap. Storage that cannot be read keeps the default (on). */
+export function tapTickOn(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(TAP_TICK_KEY) !== "off";
+  } catch {
+    // A blocked storage has no stored choice: the default stands (nothing to report).
+    return true;
+  }
+}
+
+/** Keeps this device's choice; a storage that refuses the write keeps it for this page only. */
+let tickHeld: boolean | null = null;
+export function setTapTick(on: boolean): void {
+  tickHeld = on;
+  try {
+    if (on) globalThis.localStorage?.removeItem(TAP_TICK_KEY);
+    else globalThis.localStorage?.setItem(TAP_TICK_KEY, "off");
+  } catch (error) {
+    console.warn("[tap-tick] the choice is kept for this page only", error);
+  }
+  for (const fn of tickListeners) fn();
+}
+
+/** The switch's store (useSyncExternalStore). */
+export function subscribeTapTick(fn: () => void): () => void {
+  tickListeners.add(fn);
+  return () => tickListeners.delete(fn);
+}
+export function tapTickSnapshot(): boolean {
+  return tickHeld ?? tapTickOn();
+}
+
+/** The element an activation at `target` ticks for, or null. */
+export function tickTarget(target: EventTarget | null): Element | null {
+  if (!(target instanceof Element)) return null;
+  const el = target.closest(TICKABLE);
+  if (el === null || isDisabled(el)) return null;
+  // A plain link or a card inside a tickable region is still a link: it does not tick.
+  const press = target.closest(PRESSABLE);
+  if (press !== null && press !== el && el.contains(press)) return null;
+  return el;
+}
+
 export function installPress(doc: Document = document): () => void {
   let pressed: Element | null = null;
+  let lastPointer = "";
   let startX = 0;
   let startY = 0;
 
@@ -49,6 +110,7 @@ export function installPress(doc: Document = document): () => void {
   const onDown = (event: Event) => {
     const e = event as PointerEvent;
     if (typeof e.button === "number" && e.button > 0) return;
+    lastPointer = e.pointerType ?? "";
     startX = e.clientX ?? 0;
     startY = e.clientY ?? 0;
     mark(pressTarget(e.target));
@@ -72,7 +134,20 @@ export function installPress(doc: Document = document): () => void {
     if (from instanceof Node && (from === pressed || pressed.contains(from))) clear();
   };
 
+  // D272 — one tick per activation, only after a touch (the coarse pointer), only when the
+  // device's switch is on and the browser can vibrate.
+  const onClick = (event: Event) => {
+    const touched = lastPointer === "touch";
+    lastPointer = "";
+    if (!touched || !tapTickSnapshot()) return;
+    if (tickTarget(event.target) === null) return;
+    const nav = doc.defaultView?.navigator;
+    if (nav === undefined || typeof nav.vibrate !== "function") return;
+    nav.vibrate(TICK_MS);
+  };
+
   const listeners: Array<[string, (event: Event) => void]> = [
+    ["click", onClick],
     ["pointerdown", onDown],
     ["pointermove", onMove],
     ["pointerup", clear],
