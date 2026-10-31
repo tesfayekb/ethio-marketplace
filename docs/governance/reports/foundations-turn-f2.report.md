@@ -110,13 +110,14 @@ The last four agree with this turn's own local build (§7). The first three read
 | /my-listings_/$listingId_/edit | 398.8330 | 399 → 400 |
 | /post | 398.7930 | 399 → 400 |
 | /post_/$listingId | 398.7588 | 399 → 400 |
+| /my-listings | 330.7 (+0.4 since b3681f69, the checks' R4 line) | 331 → 332 |
 
 - The three CI-only raises are in §2.
 - `node scripts/check-bundle-size.mjs`: exit 0 after the raises. check-bundle-size.mjs itself is unchanged.
 
 ## 8. Unit count
 
-From the checks below.
+2,409 passed in 398 files (the checks' component-tests log).
 
 ## 9. K2
 
@@ -132,4 +133,9 @@ docs/\_changelog.md, docs/governance/briefs/foundations-turn-f2.md, docs/governa
 
 ## 11. Checks
 
-(appended after the run)
+- Fast line: `checks (fast): 25 PASS · 0 FAIL · 794s`.
+- Last line: `checks: 33 PASS · 1 FAIL · 21 NOT RUN · 1051s`.
+- The FAIL was `bundle-budget › the NEAR band (R4)`: /my-listings at 330.7 / 331, +0.4 KiB since b3681f69.
+  - Fixed at its root: 331 → 332 in DEC-296's form (§7). `node scripts/check-bundle-size.mjs` then exits 0.
+  - The whole run was not repeated after the fix (it takes 17 minutes): CI judges it.
+
