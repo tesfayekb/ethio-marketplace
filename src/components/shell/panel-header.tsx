@@ -13,6 +13,7 @@ import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { LIST_ROW_CURRENT, LIST_TICK, OPEN_CONTROL } from "@/components/shell/menu-row";
 
 /**
  * The PANEL IDENTITY BAND (U0d, INC-070 class rule 3).
@@ -58,7 +59,7 @@ export function PanelHeader({ className }: { className?: string }) {
             type="button"
             data-testid="panel-header-switcher"
             aria-label={t("shell.switchPanel")}
-            className="flex h-8 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={`flex h-8 w-full items-center gap-2 rounded-md px-1 text-start text-base font-semibold text-foreground hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${OPEN_CONTROL}`}
           >
             <span data-testid="panel-header-title" className={BAND_LOOK.heading}>
               <CutText text={label} />
@@ -66,7 +67,7 @@ export function PanelHeader({ className }: { className?: string }) {
             <ChevronDown className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" />
           </button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuContent align="start" className="min-w-56">
           {panels.map((panel) => {
             const Icon = panel.icon;
             const active = panel.id === activePanel;
@@ -75,11 +76,11 @@ export function PanelHeader({ className }: { className?: string }) {
                 key={panel.id}
                 data-testid={`panel-header-option-${panel.id}`}
                 onSelect={() => switchPanel(panel.id)}
-                className="min-h-11 gap-2"
+                className={cn(active && LIST_ROW_CURRENT)}
               >
                 <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <CutText text={t(panel.labelKey)} />
-                {active ? <Check className="ms-auto h-4 w-4 shrink-0" aria-hidden="true" /> : null}
+                {active ? <Check className={LIST_TICK} aria-hidden="true" /> : null}
               </DropdownMenuItem>
             );
           })}

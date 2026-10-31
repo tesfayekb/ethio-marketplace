@@ -12,6 +12,7 @@ import {
 import { useI18n } from "@/i18n";
 import type { Language } from "@/i18n/types";
 import { cn } from "@/lib/utils";
+import { LIST_ROW_CURRENT, OPEN_CONTROL } from "@/components/shell/menu-row";
 
 const LABEL_KEYS = {
   en: "language.english",
@@ -55,6 +56,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
             "inline-flex min-h-11 shrink-0 items-center gap-0.5 rounded-md px-1.5 text-sm font-medium",
             "text-muted-foreground hover:bg-muted hover:text-foreground",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            OPEN_CONTROL,
             className,
           )}
         >
@@ -71,7 +73,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           <ChevronDown className="h-4 w-4 shrink-0" aria-hidden="true" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-40 p-1">
+      <DropdownMenuContent align="end">
         {/* D237 — one choice per device: the pick stars (localStorage + cookie,
             read by every tab and by SSR) and saves the account preference; no
             separate star control. (sort, code) is the SAME ordering law the
@@ -91,12 +93,9 @@ export function LanguageSwitcher({ className }: { className?: string }) {
                   value={row.code}
                   lang={row.code}
                   data-testid={`language-option-${row.code}`}
-                  // U4i-7 — DENSITY IS A CONTROL, FINAL (INC-125): rows at
-                  // `py-0.5`, leading tight, the 12rem menu width unchanged.
-                  className={cn(
-                    "flex min-w-0 items-center gap-1 py-0.5 pe-1 ps-2 leading-none",
-                    row.code === language && "bg-accent text-accent-foreground",
-                  )}
+                  // D264 (turn F) — the menu's own row (LIST_ROW, 44 px to tap);
+                  // the current language takes the shell's selected look.
+                  className={cn(row.code === language && LIST_ROW_CURRENT)}
                 >
                   <CutText className="flex-1" text={key ? t(key) : row.name_native} />
                 </DropdownMenuRadioItem>
