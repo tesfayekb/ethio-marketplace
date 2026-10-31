@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuIcon,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -247,15 +248,19 @@ export function AppHeader() {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <User className="me-2 h-4 w-4" aria-hidden="true" />
-                    {t("nav.profile")}
+                  <Link to="/account" data-testid="account-menu-profile">
+                    <DropdownMenuIcon>
+                      <User />
+                    </DropdownMenuIcon>
+                    <span>{t("nav.profile")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/settings">
-                    <SettingsIcon className="me-2 h-4 w-4" aria-hidden="true" />
-                    {t("settings.navLabel")}
+                  <Link to="/settings" data-testid="account-menu-settings">
+                    <DropdownMenuIcon>
+                      <SettingsIcon />
+                    </DropdownMenuIcon>
+                    <span>{t("settings.navLabel")}</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -263,8 +268,10 @@ export function AppHeader() {
                   data-testid="account-menu-sign-out"
                   onSelect={() => requestSignOut()}
                 >
-                  <LogOut className="me-2 h-4 w-4" aria-hidden="true" />
-                  {t("auth.signOut")}
+                  <DropdownMenuIcon>
+                    <LogOut />
+                  </DropdownMenuIcon>
+                  <span>{t("auth.signOut")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

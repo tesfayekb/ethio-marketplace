@@ -6,6 +6,7 @@ import { useShell } from "@/components/shell-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuIcon,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
@@ -81,7 +82,9 @@ export function PanelHeader({ className }: { className?: string }) {
                   data-testid={`panel-header-option-${panel.id}`}
                   onSelect={() => switchPanel(panel.id)}
                 >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <DropdownMenuIcon>
+                    <Icon />
+                  </DropdownMenuIcon>
                   <CutText text={t(panel.labelKey)} />
                 </DropdownMenuRadioItem>
               );
