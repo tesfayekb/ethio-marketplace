@@ -1,0 +1,70 @@
+# D228 phase 1 — the temporary backend's config (CI only; the repository's supabase/config.toml is the platform's).
+project_id = "ethio-ci-local"
+
+[api]
+enabled = true
+port = 31321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[api.tls]
+enabled = true
+cert_path = "certs/api.pem"
+key_path = "certs/api.key"
+
+[db]
+port = 31322
+shadow_port = 31320
+major_version = 17
+
+[db.seed]
+enabled = false
+
+[realtime]
+enabled = false
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = true
+port = 31324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:4173"
+additional_redirect_urls = ["http://127.0.0.1:4173/**", "http://localhost:4173/**"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+minimum_password_length = 8
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[auth.rate_limit]
+email_sent = 30
+
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/public/hook_before_user_created"
+
+[edge_runtime]
+enabled = false
+
+[analytics]
+enabled = false
