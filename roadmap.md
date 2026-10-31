@@ -5,7 +5,7 @@ The brief in force: docs/governance/briefs/foundations-turn-f.md (turn F — D26
 - [x] Turn CI-3b — DEC-310 one public surface (the roles column, one list parser, count-only failure)
 - [ ] DEC-310 follow-up: the same live public-surface comparison for authenticated (CI-3b ruling 7)
 - [x] Turn F — D264 lists of choices: one row and panel mechanism, CF-LIST-1, CL-E1…3
-- [ ] Turn F2 — CL-E for the currency and phone-code pickers and the row-actions menu (ruling 6)
+- [ ] Turn F2 — CL-E for the currency and phone-code pickers and the row-actions menu (ruling 6); then the location list and the panel switch rows become radio items (menuitemradio, aria-checked), after a census of e2e/ for role "menuitem" on those two lists (S392)
 - [ ] Retire get_ui_bundle (and get_ui_bundle_version, if nothing else reads it) by a later migration, once the published site reads only get_ui_bundle_parts — turn D2, INC-1023
 - [x] ROWS-E2 (D247: a menu of more than 16 items scrolls with a visible scrollbar) — R1d, once the admin menu is on the mechanism — the admin, account and seller groups on the mechanism in turn R1d-c; ROWS-E2 green in runs 41073847634 and 41087865312 (records turn R9)
 - [ ] job health: a separate 'unusable' count on the run and the health line (INC-1002 follow-up; needs a migration)
