@@ -77,9 +77,7 @@ async function sampleOpening(page: Page) {
 async function scales(page: Page, panel: Locator): Promise<string[]> {
   // Poll on truth (J7): every opening animation on the panel has finished.
   await expect
-    .poll(() =>
-      panel.evaluate((el) => el.getAnimations().every((a) => a.playState === "finished")),
-    )
+    .poll(() => panel.evaluate((el) => el.getAnimations().every((a) => a.playState === "finished")))
     .toBe(true);
   return page.evaluate(() => (window as unknown as { __clScales: string[] }).__clScales);
 }
