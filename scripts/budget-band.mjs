@@ -28,13 +28,24 @@ export function ceilingForLocal(sizeKib) {
  * The NEAR findings: each { label, kib, ceiling } whose size sits under its
  * ceiling by less than NEAR_KIB (an over-ceiling size is the ceiling check's).
  */
-export function nearFindings(rows) {
+/** INC-1029 — a local measurement is judged with CI's observed noise added. */
+export function judgedSize(sizeKib, ci = Boolean(process.env.CI)) {
+  return sizeKib + (ci ? 0 : LOCAL_ALLOWANCE_KIB);
+}
+
+/** The same size rule for the ceiling and the NEAR band. */
+export function exceedsCeiling(sizeKib, ceiling, ci = Boolean(process.env.CI)) {
+  return judgedSize(sizeKib, ci) > ceiling;
+}
+
+export function nearFindings(rows, ci = Boolean(process.env.CI)) {
   const findings = [];
   for (const { label, kib, ceiling } of rows) {
-    if (kib > ceiling) continue;
-    if (ceiling - kib < NEAR_KIB - 1e-9)
+    const used = judgedSize(kib, ci);
+    if (used > ceiling) continue;
+    if (ceiling - used < NEAR_KIB - 1e-9)
       findings.push(
-        `${label}: ${kib.toFixed(1)} KiB sits within the NEAR band (${NEAR_KIB} KiB) of its ceiling of ${ceiling} KiB — DEC-296: set it to ceilingFor(size) = ${ceilingFor(kib)}`,
+        `${label}: ${kib.toFixed(1)} KiB${ci ? "" : ` + ${LOCAL_ALLOWANCE_KIB} KiB local allowance`} sits within the NEAR band (${NEAR_KIB} KiB) of its ceiling of ${ceiling} KiB — DEC-296: set it to ${ci ? "ceilingFor" : "ceilingForLocal"}(size) = ${ci ? ceilingFor(kib) : ceilingForLocal(kib)}`,
       );
   }
   return findings;

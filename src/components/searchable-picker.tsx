@@ -49,10 +49,13 @@ export function usePickerPlacement(
       }
       if (panel !== null && panel !== undefined) {
         const rtl = window.getComputedStyle(anchor).direction === "rtl";
-        const geometry = pickerGeometry(rect, panel.scrollWidth, window.innerWidth, rtl);
+        const controlRect = control?.getBoundingClientRect() ?? rect;
+        const geometry = pickerGeometry(controlRect, panel.scrollWidth, window.innerWidth, rtl);
         panel.dataset.align = geometry.align;
         panel.style.setProperty("--picker-min-width", `${geometry.minWidth}px`);
         panel.style.setProperty("--picker-max-width", `${geometry.maxWidth}px`);
+        panel.style.setProperty("--picker-start", `${rtl ? rect.right - controlRect.right : controlRect.left - rect.left}px`);
+        panel.style.setProperty("--picker-end", `${rtl ? controlRect.left - rect.left : rect.right - controlRect.right}px`);
       }
       const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
       const barTop =
@@ -127,7 +130,7 @@ export function usePickerKeys({
 /** The class a picker's list box opens with, for its placement: against the box's edge
  *  (no gap, D264), on the open list's one surface. */
 export function pickerPopClass(placement: PickerPlacement): string {
-  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE} w-max min-w-[var(--picker-min-width,100%)] max-w-[var(--picker-max-width,calc(100vw-2rem))] data-[align=start]:start-0 data-[align=end]:end-0`;
+  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE} w-max min-w-[var(--picker-min-width,100%)] max-w-[var(--picker-max-width,calc(100vw-2rem))] data-[align=start]:start-[var(--picker-start,0px)] data-[align=end]:end-[var(--picker-end,0px)]`;
 }
 
 /** F3 — one horizontal rule, logical start first, end when start crosses the gutter. */
