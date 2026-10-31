@@ -1,11 +1,11 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { gotoReady, signIn } from "./helpers/ui";
+import { gotoReady, layoutBoxes, signIn } from "./helpers/ui";
 import { adPageFixtures } from "./helpers/ad-page";
 
 /**
  * Turn C1 (D263/D270, DEC-317) — a press shows the raised look at once.
- * PS-1: at 360 (coarse) and 1440 (fine), light and dark, within one frame of pointerdown a
+ * PSP-1: at 360 (coarse) and 1440 (fine), light and dark, within one frame of pointerdown a
  *   menu row, a band segment, a list row, a button, a plain link and a card each show their
  *   raised state (shadow layers or fill change), the box does not move, and the pressed
  *   text keeps 4.5 : 1 on its own fill. The press is released with its click swallowed, so
@@ -73,8 +73,7 @@ async function contrast(page: Page, ink: string, fill: string) {
  *  slides off past the slop and releases there, so nothing is chosen. */
 async function press(page: Page, target: Locator, surface: Locator = target) {
   await target.scrollIntoViewIfNeeded();
-  const box = await target.boundingBox();
-  if (box === null) throw new Error("[e2e:ps] the element has no box");
+  const { box } = await layoutBoxes({ box: target });
   const x = box.x + box.width / 2;
   const y = box.y + box.height / 2;
   await page.mouse.move(x, y);
@@ -112,7 +111,7 @@ for (const mode of MODES) {
       );
     });
 
-    test(`PS-1 a press raises each primitive at once and nothing moves (${mode})`, async ({
+    test(`PSP-1 a press raises each primitive at once and nothing moves (${mode})`, async ({
       page,
     }) => {
       const seller = await feed.scratchSeller();

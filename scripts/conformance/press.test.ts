@@ -79,7 +79,7 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
     TREE_SCAN_MS,
   );
 
-  it("PR-1: a Button without its PRESSED look fails", () => {
+  it("PRP-1: a Button without its PRESSED look fails", () => {
     const found = pressFindings([
       {
         name: "src/components/ui/button.tsx",
@@ -89,14 +89,14 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
     expect(report(found)).toContain("lacks ${PRESSED.button}");
   });
 
-  it("PR-2: a screen's own active: class fails", () => {
+  it("PRP-2: a screen's own active: class fails", () => {
     const found = pressFindings([
       { name: "src/routes/x.tsx", text: `const a = <a className="active:bg-muted">x</a>;` },
     ]);
     expect(report(found)).toContain("own `active:` press look");
   });
 
-  it("PR-3: a screen's own data-[pressed] look fails", () => {
+  it("PRP-3: a screen's own data-[pressed] look fails", () => {
     const found = pressFindings([
       { name: "src/routes/x.tsx", text: `const a = <a className="data-[pressed]:bg-card">x</a>;` },
     ]);

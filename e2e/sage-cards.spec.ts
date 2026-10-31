@@ -9,14 +9,14 @@ import { adPageFixtures } from "./helpers/ad-page";
 
 /**
  * Turn B2 (Sage S3, DEC-314; D262 candidate C; D269) — the feed heading and the listing card.
- * SC-1: at 390, 834 and 1440, light and dark, computed styles of the heading (§5), the card's
+ * SCS-1: at 390, 834 and 1440, light and dark, computed styles of the heading (§5), the card's
  *   body padding, price, Negotiable pill, place-line divider and ink, the empty picture well
  *   and its separator, and the card's surface and ring (§6), each against its token.
- * SC-2: the place line's ink measured in the page against the card and both tier fills
+ * SCS-2: the place line's ink measured in the page against the card and both tier fills
  *   (≥ 4.5 : 1; the Featured fill takes its own ink, D269), in both themes.
- * OL-1: at 360, in English and Amharic, every open market's name fits the heading whole.
- * OL-2: a 60-character planted name cuts; the fixed words stay whole, on one line.
- * Measurement for OL-1/OL-2: the live heading is cloned beside itself (the same fonts, width
+ * OLH-1: at 360, in every public language, every open market's name fits the heading whole.
+ * OLH-2: a 60-character planted name cuts; the fixed words stay whole, on one line.
+ * Measurement for OLH-1/OLH-2: the live heading is cloned beside itself (the same fonts, width
  * and classes) with only its slot's text replaced; the page is never edited otherwise.
  */
 type Mode = "light" | "dark";
@@ -95,7 +95,7 @@ for (const width of WIDTHS) {
         await page.setViewportSize({ width, height: 900 });
       });
 
-      test(`SC-1 heading and card read their tokens (${width}, ${mode})`, async ({ page }) => {
+      test(`SCS-1 heading and card read their tokens (${width}, ${mode})`, async ({ page }) => {
         const seller = await feed.scratchSeller();
         const plain = await feed.seed(seller);
         const negotiable = await feed.seed(seller);
@@ -193,7 +193,7 @@ for (const width of WIDTHS) {
         expect(Math.abs(heights[0] - heights[1])).toBeLessThanOrEqual(0.5);
       });
 
-      test(`SC-2 the place line's ink meets 4.5 : 1 on every card fill (${width}, ${mode})`, async ({
+      test(`SCS-2 the place line's ink meets 4.5 : 1 on every card fill (${width}, ${mode})`, async ({
         page,
       }) => {
         test.skip(
@@ -267,7 +267,7 @@ test.describe("One line with one slot at 360 (§5)", () => {
 
   // G0.6 (turn C1) — the languages are the app's public ones, read from its switcher, so a
   // language added later is checked too.
-  test("OL-1 every open market's name shows whole in every public language", async ({
+  test("OLH-1 every open market's name shows whole in every public language", async ({
     page,
     baseURL,
   }) => {
@@ -310,7 +310,7 @@ test.describe("One line with one slot at 360 (§5)", () => {
     }
   });
 
-  test("OL-2 a 60-character name cuts; the fixed words stay whole on one line", async ({
+  test("OLH-2 a 60-character name cuts; the fixed words stay whole on one line", async ({
     page,
     baseURL,
   }) => {
