@@ -2,7 +2,6 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, layoutBoxes, signIn } from "./helpers/ui";
 import { adPageFixtures } from "./helpers/ad-page";
-import { en } from "../src/i18n/locales/en";
 
 /**
  * Turn C1 (D263/D270, DEC-317) — a press shows the raised look at once.
