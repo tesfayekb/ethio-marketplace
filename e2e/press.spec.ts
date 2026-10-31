@@ -2,6 +2,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { gotoReady, layoutBoxes, openRailScope, signIn } from "./helpers/ui";
 import { adPageFixtures } from "./helpers/ad-page";
+import { whilePageLives } from "./helpers/route-guard";
 
 /**
  * Turn C1 (D263/D270, DEC-317) — a press shows the raised look at once.
@@ -226,3 +227,210 @@ for (const mode of MODES) {
     });
   });
 }
+
+/**
+ * Turn C2 (D263/D271/D272, DEC-317) — the chosen mark and the tap tick.
+ * PS-2: a chosen rail item (wide) or bottom-bar item (360) is current while the chosen page's
+ *   code is still held — the body (and so the frame, INC-581) still shows the old page.
+ * PS-3: a choice superseded before it lands (the old item tapped again) brings the old mark
+ *   back, and the chosen page never shows.
+ * PS-5 (D271, 360): the bottom bar marks the page from any door — Sign in on its page signed
+ *   out; Home after the breadcrumb's Home; Account on /settings.
+ * PS-6 (D272): /settings' "This device" switch — role switch, on by default, kept per device
+ *   across a reload; a touch on a button ticks once (10 ms) while on, never while off.
+ */
+const ANY_CODE = /\/assets\/[^/]*\.js(?:\?|$)/;
+
+/** Holds every code download from now until `release` (the chosen page cannot land). */
+async function holdCode(page: Page) {
+  let release = () => undefined as void;
+  const held = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(
+    ANY_CODE,
+    whilePageLives(async (route) => {
+      await held;
+      await route.continue();
+    }),
+  );
+  return async () => {
+    release();
+    await page.unroute(ANY_CODE);
+  };
+}
+
+test.describe("The chosen mark moves at once", () => {
+  const feed = adPageFixtures();
+  test.afterEach(async () => {
+    await feed.cleanup();
+  });
+
+  test("PS-2 the chosen item is current before its page lands; the frame waits", async ({
+    page,
+  }) => {
+    const seller = await feed.scratchSeller();
+    const phone = test.info().project.name === "mobile-360";
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    if (phone) {
+      await gotoReady(page, "/");
+      const home = page.getByTestId("bottom-bar-home");
+      const account = page.getByTestId("bottom-bar-account");
+      await expect(home).toHaveAttribute("aria-current", "page");
+      const release = await holdCode(page);
+      await account.click();
+      await expect(account).toHaveAttribute("aria-current", "page");
+      await expect(home).not.toHaveAttribute("aria-current", /.*/);
+      await expect(page.getByTestId("account-page-shell")).toHaveCount(0);
+      await release();
+      await expect(page.getByTestId("account-page-shell")).toBeVisible({ timeout: 15000 });
+      await expect(account).toHaveAttribute("aria-current", "page");
+    } else {
+      await gotoReady(page, "/account");
+      const rail = page.getByTestId("app-rail");
+      const overview = rail.getByTestId("rail-item-ac-overview");
+      const settings = rail.getByTestId("rail-item-ac-settings");
+      await expect(overview).toHaveAttribute("aria-current", "page", { timeout: 15000 });
+      const release = await holdCode(page);
+      await settings.click();
+      await expect(settings).toHaveAttribute("aria-current", "page");
+      await expect(overview).not.toHaveAttribute("aria-current", /.*/);
+      // INC-581: the body — and the frame around it — still shows the old page.
+      await expect(page.getByTestId("account-page-shell")).toBeVisible();
+      await expect(page.getByTestId("settings-page-shell")).toHaveCount(0);
+      await release();
+      await expect(page.getByTestId("settings-page-shell")).toBeVisible({ timeout: 15000 });
+      await expect(settings).toHaveAttribute("aria-current", "page");
+    }
+  });
+
+  test("PS-3 a superseded choice brings the old mark back", async ({ page }) => {
+    const seller = await feed.scratchSeller();
+    const phone = test.info().project.name === "mobile-360";
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    if (phone) {
+      await gotoReady(page, "/");
+      const home = page.getByTestId("bottom-bar-home");
+      const account = page.getByTestId("bottom-bar-account");
+      const release = await holdCode(page);
+      await account.click();
+      await expect(account).toHaveAttribute("aria-current", "page");
+      await home.click();
+      await expect(home).toHaveAttribute("aria-current", "page");
+      await expect(account).not.toHaveAttribute("aria-current", /.*/);
+      await release();
+      await expect(page).toHaveURL(/\/$/);
+      await expect(page.getByTestId("account-page-shell")).toHaveCount(0);
+      await expect(home).toHaveAttribute("aria-current", "page");
+    } else {
+      await gotoReady(page, "/account");
+      const rail = page.getByTestId("app-rail");
+      const overview = rail.getByTestId("rail-item-ac-overview");
+      const settings = rail.getByTestId("rail-item-ac-settings");
+      await expect(overview).toHaveAttribute("aria-current", "page", { timeout: 15000 });
+      const release = await holdCode(page);
+      await settings.click();
+      await expect(settings).toHaveAttribute("aria-current", "page");
+      await overview.click();
+      await expect(overview).toHaveAttribute("aria-current", "page");
+      await expect(settings).not.toHaveAttribute("aria-current", /.*/);
+      await release();
+      await expect(page).toHaveURL(/\/account$/);
+      await expect(page.getByTestId("settings-page-shell")).toHaveCount(0);
+      await expect(overview).toHaveAttribute("aria-current", "page");
+    }
+  });
+
+  test("PS-5 the bottom bar marks the page from any door (D271)", async ({ page }) => {
+    test.skip(
+      test.info().project.name !== "mobile-360",
+      "the bottom bar is the phone's (below md)",
+    );
+    await gotoReady(page, "/auth");
+    const signInItem = page.getByTestId("bottom-bar-sign-in");
+    await expect(signInItem).toHaveAttribute("aria-current", "page");
+    await expect(signInItem.getByTestId("bottom-bar-pill")).toBeVisible();
+    await expect(page.getByTestId("bottom-bar-home")).not.toHaveAttribute("aria-current", /.*/);
+
+    const seller = await feed.scratchSeller();
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, `/c/${seller.leafSlug}`);
+    const home = page.getByTestId("bottom-bar-home");
+    await expect(home).toHaveAttribute("aria-current", "page");
+    await gotoReady(page, "/settings");
+    await expect(page.getByTestId("bottom-bar-account")).toHaveAttribute("aria-current", "page");
+    await expect(home).not.toHaveAttribute("aria-current", /.*/);
+    await page.getByTestId("breadcrumb-home").click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(home).toHaveAttribute("aria-current", "page");
+    await expect(page.getByTestId("bottom-bar-account")).not.toHaveAttribute("aria-current", /.*/);
+  });
+});
+
+test.describe("The tap tick (D272)", () => {
+  test.use({ hasTouch: true });
+  const feed = adPageFixtures();
+  test.afterEach(async () => {
+    await feed.cleanup();
+  });
+
+  /** Counts the page's vibrate calls (the app's own call goes through). */
+  async function spyTicks(page: Page) {
+    await page.evaluate(() => {
+      const w = window as unknown as { __ticks: unknown[] };
+      w.__ticks = [];
+      Object.defineProperty(navigator, "vibrate", {
+        configurable: true,
+        value: (pattern: unknown) => {
+          w.__ticks.push(pattern);
+          return true;
+        },
+      });
+    });
+  }
+  const ticks = (page: Page) =>
+    page.evaluate(() => (window as unknown as { __ticks: unknown[] }).__ticks);
+
+  test("PS-6 the Settings switch: on by default, kept per device, and it governs the tick", async ({
+    page,
+  }) => {
+    const seller = await feed.scratchSeller();
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, "/settings");
+    const toggle = page.getByRole("switch", { name: "Vibrate on tap" });
+    await expect(page.getByTestId("settings-this-device")).toContainText("This device");
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
+    const theme = page.getByTestId("theme-toggle");
+    await spyTicks(page);
+    await theme.tap();
+    expect(await ticks(page)).toEqual([10]);
+    await theme.click(); // a mouse never ticks
+    expect(await ticks(page)).toEqual([10]);
+    await toggle.tap(); // ticks once, as the choice is still on when it is pressed
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
+    expect(await ticks(page)).toEqual([10, 10]);
+    await theme.tap();
+    expect(await ticks(page)).toEqual([10, 10]);
+
+    await page.reload();
+    await expect(toggle).toHaveAttribute("aria-checked", "false");
+    await spyTicks(page);
+    await theme.tap();
+    expect(await ticks(page)).toEqual([]);
+    await toggle.tap();
+    await expect(toggle).toHaveAttribute("aria-checked", "true");
+    await theme.tap();
+    expect(await ticks(page)).toEqual([10]);
+    // A plain text link never ticks.
+    await page
+      .getByTestId("footer-terms")
+      .evaluate((el) =>
+        el.addEventListener("click", (event) => event.preventDefault(), { once: true }),
+      );
+    await page.getByTestId("footer-terms").tap();
+    expect(await ticks(page)).toEqual([10]);
+  });
+});
