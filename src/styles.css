@@ -812,3 +812,21 @@
     }
   }
 }
+
+/* D263 (turn C1): under reduced motion a press comes and goes with no transition, whatever
+ * transition a pressable carries for its hover. */
+@layer base {
+  @media (prefers-reduced-motion: reduce) {
+    :where(
+      a[href],
+      button,
+      summary,
+      [data-pressable],
+      [role="tab"],
+      [role="menuitem"],
+      [role="option"]
+    ) {
+      transition-duration: 0s !important;
+    }
+  }
+}

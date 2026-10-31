@@ -117,12 +117,15 @@ for (const mode of MODES) {
         [
           {
             name: "menu row",
-            target: page.getByTestId("app-rail").locator("a[href]:visible").first(),
+            target: page
+              .getByTestId("app-rail")
+              .locator(':is(a,button)[class*="ps-[var(--rail-pad)]"]:visible')
+              .first(),
             inkCheck: true,
           },
           {
             name: "band segment",
-            target: page.getByTestId("location-track").locator("button:visible").first(),
+            target: page.getByTestId("breadcrumb-home"),
             inkCheck: true,
           },
           {
