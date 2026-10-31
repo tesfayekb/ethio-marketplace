@@ -355,6 +355,8 @@ jobs:
           patch_copy 20260830091455_14223614-1c76-4cad-97f2-f455e485cbc3.sql "s/format('public.%I', c.relname)/c.oid/g" "the service_role census checks each table by oid"
           # (3) PROOF 5 measured the real catalogue's answer size on hosted (at most 8 rows and 2,048 bytes); the migrations' own catalogue answers 2,111 bytes.
           patch_copy 20260924084437_231d2821-bdd1-4447-996a-60cfc3009497.sql "s/RAISE EXCEPTION 'PROOF 5 failed'/RAISE WARNING 'PROOF 5 (the real catalogue size, proven on hosted): % bytes', v_bytes/" "PROOF 5 reports the size instead of refusing"
+          # (3b) INC-1028, DEC-316: CL-3's ahead check judged v_now + 61 against job_run_claim's own later clock; a second's tick left it 60 s ahead, inside the window ('refused:replay'). It reads the clock just before the call.
+          patch_copy 20261029073342_cba46fd4-8476-4450-8253-ec69daedcf2b.sql "s/job_run_claim('name-check-catchup', v_now + 61)/job_run_claim('name-check-catchup', floor(extract(epoch FROM clock_timestamp()))::bigint + 62)/" "CL-3's ahead check reads the clock just before the call (INC-1028, DEC-316)"
           fixture() {
             echo "- fixture $1: $2" >> local-backend-working-copy.txt
           }
