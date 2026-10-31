@@ -1,4 +1,5 @@
 import { pageHead } from "@/lib/page-head";
+import { installPress } from "@/lib/press";
 import { installInputModality } from "@/lib/input-modality";
 import { reloadOnStaleChunk } from "@/lib/stale-chunk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -442,7 +443,10 @@ function RootComponent() {
     const uninstallModality = installInputModality();
     // INC-640 — a tab opened before a Publish reloads once when a chunk it asks for is gone.
     const uninstallStaleChunk = reloadOnStaleChunk(window);
+    // D263/D270 (DEC-317) — the one press listener: a press shows the raised look at once.
+    const uninstallPress = installPress(document);
     return () => {
+      uninstallPress();
       uninstallModality();
       uninstallStaleChunk();
     };
