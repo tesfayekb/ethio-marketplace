@@ -52,9 +52,13 @@ describe("LanguageSwitcher density", () => {
       expect(item.querySelector('[data-lucide="check"]')).toBeNull();
     }
 
-    expect(screen.getByTestId("language-option-en").className.split(" ")).toContain("bg-nav-pill");
-    expect(screen.getByTestId("language-option-am").className.split(" ")).not.toContain(
-      "bg-nav-pill",
+    // INC-1027 (turn F2, G38: was the `bg-nav-pill` class on the current row): the current
+    // language is the checked radio item; LIST_ROW draws its look from that state.
+    expect(screen.getByTestId("language-option-en")).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByTestId("language-option-en")).toHaveAttribute("data-state", "checked");
+    expect(screen.getByTestId("language-option-am")).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByTestId("language-option-en").className).toContain(
+      "data-[state=checked]:bg-nav-pill",
     );
   });
 });
