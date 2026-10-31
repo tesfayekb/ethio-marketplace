@@ -51,13 +51,27 @@ describe("useMenuAt's place (turn C2, D263/D271)", () => {
   });
   it("MA-U3: a cancelled choice brings the old place back — the next state names it again", () => {
     const shown = [{ routeId: "__root__", pathname: "/" }, match("/account")];
-    const chosen = menuAtOf({ status: "pending", location: { pathname: "/settings", hash: "" }, matches: shown });
-    const back = menuAtOf({ status: "idle", location: { pathname: "/account", hash: "" }, matches: shown });
+    const chosen = menuAtOf({
+      status: "pending",
+      location: { pathname: "/settings", hash: "" },
+      matches: shown,
+    });
+    const back = menuAtOf({
+      status: "idle",
+      location: { pathname: "/account", hash: "" },
+      matches: shown,
+    });
     expect(parseMenuAt(chosen).pathname).toBe("/settings");
     expect(parseMenuAt(back).pathname).toBe("/account");
     // A page no route matched commits the root alone: the location names it.
     expect(
-      parseMenuAt(menuAtOf({ status: "idle", location: { pathname: "/nope", hash: "" }, matches: [{ routeId: "__root__", pathname: "/" }] })).pathname,
+      parseMenuAt(
+        menuAtOf({
+          status: "idle",
+          location: { pathname: "/nope", hash: "" },
+          matches: [{ routeId: "__root__", pathname: "/" }],
+        }),
+      ).pathname,
     ).toBe("/nope");
   });
 });

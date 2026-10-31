@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { installPress, PRESS_SLOP } from "./press";
+import { installPress, PRESS_SLOP, setTapTick, TAP_TICK_KEY, tapTickOn, TICK_MS } from "./press";
 
 function fire(target: EventTarget, type: string, props: Record<string, unknown> = {}) {
   const event = Object.assign(new Event(type, { bubbles: true, cancelable: true }), props);
@@ -77,5 +77,63 @@ describe("press.ts (D263/D270, turn C1)", () => {
     fire($("aoff"), "pointerdown", { button: 0, clientX: 0, clientY: 0 });
     fire($("off"), "keydown", { key: "Enter" });
     expect(document.querySelectorAll("[data-pressed]").length).toBe(0);
+  });
+});
+
+describe("the tap tick (D272, turn C2)", () => {
+  let uninstall: () => void;
+  let ticks: unknown[];
+  beforeEach(() => {
+    window.localStorage.clear();
+    setTapTick(true);
+    ticks = [];
+    Object.defineProperty(window.navigator, "vibrate", {
+      configurable: true,
+      value: (pattern: unknown) => {
+        ticks.push(pattern);
+        return true;
+      },
+    });
+    document.body.innerHTML = `
+      <button id="btn">Save</button>
+      <a href="/x" id="link">Terms</a>
+      <a href="/r" id="row" data-tick="">Cars</a>
+      <div role="tab" id="tab">One</div>
+      <button id="quiet" data-tick="off">Quiet</button>`;
+    uninstall = installPress(document);
+  });
+  afterEach(() => {
+    uninstall();
+    window.localStorage.clear();
+    setTapTick(true);
+  });
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const tap = (el: HTMLElement, pointerType = "touch") => {
+    fire(el, "pointerdown", { button: 0, clientX: 0, clientY: 0, pointerType });
+    fire(el, "pointerup");
+    fire(el, "click");
+  };
+
+  it("PR-U7: a touch on a button, a menu row or a tab ticks once (10 ms); plain links, a mouse, keys and the switch turned off never", () => {
+    tap($("btn"));
+    tap($("row"));
+    tap($("tab"));
+    expect(ticks).toEqual([TICK_MS, TICK_MS, TICK_MS]);
+    expect(TICK_MS).toBe(10);
+    tap($("link"));
+    tap($("quiet"));
+    tap($("btn"), "mouse");
+    fire($("btn"), "keydown", { key: "Enter" });
+    fire($("btn"), "click");
+    expect(ticks).toHaveLength(3);
+    setTapTick(false);
+    expect(window.localStorage.getItem(TAP_TICK_KEY)).toBe("off");
+    expect(tapTickOn()).toBe(false);
+    tap($("btn"));
+    expect(ticks).toHaveLength(3);
+    setTapTick(true);
+    expect(tapTickOn()).toBe(true);
+    tap($("btn"));
+    expect(ticks).toHaveLength(4);
   });
 });

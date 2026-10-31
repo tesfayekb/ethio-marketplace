@@ -191,9 +191,7 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
   });
 
   it("PRP-6: a vibrate call outside press.ts fails", () => {
-    const found = currentFindings([
-      { name: "src/routes/x.tsx", text: `navigator.vibrate(10);` },
-    ]);
+    const found = currentFindings([{ name: "src/routes/x.tsx", text: `navigator.vibrate(10);` }]);
     expect(report(found)).toContain("vibrate call outside press.ts");
   });
 

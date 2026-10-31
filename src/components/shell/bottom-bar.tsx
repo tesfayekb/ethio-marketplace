@@ -20,8 +20,7 @@ import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-const ITEM =
-  `${PRESSED.bar} flex min-h-15 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`;
+const ITEM = `${PRESSED.bar} flex min-h-15 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`;
 
 /**
  * D271 (turn C2, DEC-317 item 4) — each item is current by the one rule (isCurrentAt) on the
@@ -124,11 +123,7 @@ export function BottomBar() {
         aria-current={home ? "page" : undefined}
         className={cn(ITEM, tone(home))}
       >
-        <ItemBody
-          icon={House}
-          label={label("nav.home")}
-          current={home}
-        />
+        <ItemBody icon={House} label={label("nav.home")} current={home} />
       </Link>
       {signedIn ? (
         // Bundle 16 turn R1 (D182 1) — the item opens the seller's panel, so it carries the panel's name
@@ -142,11 +137,7 @@ export function BottomBar() {
           onClick={() => switchPanel("my-listings")}
           className={cn(ITEM, tone(myListings))}
         >
-          <ItemBody
-            icon={ClipboardList}
-            label={label("panel.myListings")}
-            current={myListings}
-          />
+          <ItemBody icon={ClipboardList} label={label("panel.myListings")} current={myListings} />
         </button>
       ) : null}
       <Link
@@ -167,11 +158,7 @@ export function BottomBar() {
           aria-current={account ? "page" : undefined}
           className={cn(ITEM, tone(account))}
         >
-          <ItemBody
-            icon={CircleUser}
-            label={label("panel.account")}
-            current={account}
-          />
+          <ItemBody icon={CircleUser} label={label("panel.account")} current={account} />
         </Link>
       ) : (
         <Link
