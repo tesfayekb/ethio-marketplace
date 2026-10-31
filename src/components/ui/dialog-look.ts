@@ -6,8 +6,9 @@ import { CONTROL_LOOK } from "@/components/shell/menu-row";
  * sheet draws its scrim, panel, title, text, close button, footer and fields from here
  * (ui/dialog.tsx, ui/alert-dialog.tsx, ui/sheet.tsx; CF-DIALOG-1 judges). A consumer passes a
  * variant (size, fit, phone, layer, side), never its own look. It holds dialog parts only; the
- * top bar's looks live in menu-row.ts. It rides every page's first download for one reason
- * alone: the step-up gate in the root draws a dialog (S6-3 takes that dialog on demand).
+ * top bar's looks live in menu-row.ts, so it stays off the entry and reaches a page's first
+ * download only when the page draws a dialog, a sheet, a field or the step-up gate (S6-3 takes
+ * the step-up gate's dialog on demand).
  * Logical properties only (right-to-left), no scale on open (D264 ruling 2).
  */
 
