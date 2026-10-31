@@ -51,8 +51,8 @@ export function usePickerPlacement(
         const rtl = window.getComputedStyle(anchor).direction === "rtl";
         const geometry = pickerGeometry(rect, panel.scrollWidth, window.innerWidth, rtl);
         panel.dataset.align = geometry.align;
-        panel.style.setProperty("--picker-min-width", `${geometry.minWidth}px`);
-        panel.style.setProperty("--picker-max-width", `${geometry.maxWidth}px`);
+        panel.style.setProperty("--picker-min-width", `${geometry.anchorWidth}px`);
+        panel.style.setProperty("--picker-max-width", `${geometry.availableWidth}px`);
       }
       const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
       const barTop =
@@ -135,7 +135,7 @@ export function pickerGeometry(
   contentWidth: number,
   viewportWidth: number,
   rtl = false,
-): { align: "start" | "end"; minWidth: number; maxWidth: number } {
+): { align: "start" | "end"; anchorWidth: number; availableWidth: number } {
   const gutter = 16;
   const startRoom = rtl ? rect.right - gutter : viewportWidth - gutter - rect.left;
   const endRoom = rtl ? viewportWidth - gutter - rect.left : rect.right - gutter;
@@ -143,8 +143,8 @@ export function pickerGeometry(
   const align = width <= startRoom ? "start" : "end";
   return {
     align,
-    minWidth: rect.width,
-    maxWidth: Math.min(viewportWidth - gutter * 2, align === "start" ? startRoom : endRoom),
+    anchorWidth: rect.width,
+    availableWidth: Math.min(viewportWidth - gutter * 2, align === "start" ? startRoom : endRoom),
   };
 }
 
