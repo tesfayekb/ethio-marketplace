@@ -1,1 +1,3 @@
 # CF-LIST-1 (D264, turn F) exceptions: key = file#part | reason | until
+src/components/shell/location-selector.tsx#DropdownMenuContent | permanent: a height is not a row or panel class; the location list caps its height and scrolls | permanent
+src/components/shell/toolbar-panel.tsx#PopoverContent | the filter panel is not a list: its body and foot draw their own padding inside the shared surface | SAGE-S6 overlays turn
