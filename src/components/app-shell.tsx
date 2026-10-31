@@ -39,6 +39,7 @@ import { Menu } from "lucide-react";
 import { MENU_INSET, MENU_WIDTH } from "@/components/shell/menu-width";
 import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
+import { panelOf } from "@/components/shell/menu-current";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
 import { useAuth } from "@/features/auth/use-auth";
@@ -539,20 +540,9 @@ export function AppShell({ children }: { children: ReactNode }) {
    * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
    * route that belongs to a panel owns the panel while it is open.
    */
-  const routePanel: PanelId | null =
-    pathname.startsWith("/settings") || pathname.startsWith("/account")
-      ? "account"
-      : pathname.startsWith("/admin")
-        ? "admin"
-        : // INC-359 (restored from 6fea44fd) — posting pages belong to My
-          // Listings: the panel and its menu stay visible while posting.
-          // Bundle 16 turn 2 — and the panel's own page, /my-listings.
-          pathname === "/post" ||
-            pathname.startsWith("/post/") ||
-            pathname === "/my-listings" ||
-            pathname.startsWith("/my-listings/")
-          ? "my-listings"
-          : null;
+  // INC-359 / turn C fix 1 — the one section rule (panelOf), read by the bottom bar too:
+  // the posting pages and /my-listings belong to My Listings.
+  const routePanel: PanelId | null = panelOf(pathname);
   /** The marketplace feed is "/" and every category route /c/<slug>. */
   // D234 S5 — the address read once, as the server's first page reads it (feedRouteOf).
   const feedRoute = feedRouteOf(pathname);

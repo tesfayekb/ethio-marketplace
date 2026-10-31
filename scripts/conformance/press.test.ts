@@ -15,6 +15,9 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     reads useShownPathname or useRouterState (a line that is the frame's own read says
  *     `// frame: INC-581`), and no `aria-current` or
  *     `current` mark reads `activePanel`.
+ *     (turn C fix 1) The section a path belongs to is panelOf's alone: a menu file declares
+ *     no list of paths (`["/a", …]`) and no `startsWith("/…")` test, and the bottom bar
+ *     reads panelOf.
  *  4. (turn C2, D272) The tick is press.ts's alone: no `vibrate(` call and no switch checkbox
  *     (`<input … switch>`, `setAttribute("switch")`) anywhere else.
  * The allowlist starts empty: there is none.
@@ -42,6 +45,8 @@ export const MENU_FILES = [
   "src/components/shell/bottom-bar.tsx",
 ];
 const RULE = "src/components/shell/menu-current.ts";
+const SECTION_READERS = ["src/components/shell/bottom-bar.tsx"];
+const PATH_LIST = /\[\s*["']\/[^"']*["']\s*,|startsWith\(\s*["'`]\//;
 const TICK_OWNER = "src/lib/press.ts";
 const VIBRATE = /\bvibrate\s*\(/;
 const SWITCH_BOX = /<input\b[^>]*\bswitch\b|setAttribute\(\s*["']switch["']|\.switch\s*=/;
@@ -58,6 +63,8 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
       else if (!/\buseMenuAt\(/.test(code))
         findings.push({ file: name, line: 1, what: "the mark does not read useMenuAt" });
     }
+    if (SECTION_READERS.includes(name) && !/\bpanelOf\(/.test(code))
+      findings.push({ file: name, line: 1, what: "the bar does not read panelOf" });
     const raw = text.split("\n");
     lines.forEach((line, index) => {
       const at = { file: name, line: index + 1 };
@@ -66,6 +73,8 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
       const frame = /\/\/ frame: INC-581\b/.test(raw[index] ?? "");
       if (menu && !frame && /\b(useShownPathname|useRouterState)\(/.test(line))
         findings.push({ ...at, what: "a menu's mark reads the shown page (read useMenuAt)" });
+      if (menu && PATH_LIST.test(line))
+        findings.push({ ...at, what: "a second path list in a menu file (read panelOf)" });
       if (menu && /\b(aria-current|current)=\{[^}]*\bactivePanel\b/.test(line))
         findings.push({ ...at, what: "a current mark read from activePanel" });
       if (name !== TICK_OWNER && VIBRATE.test(line))
@@ -212,12 +221,24 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
     expect(report(found)).toContain("switch checkbox outside press.ts");
   });
 
+  it("PRP-8: a second path list in a menu file fails, and a bar without panelOf", () => {
+    const found = currentFindings([
+      {
+        name: "src/components/shell/bottom-bar.tsx",
+        text: `const at = useMenuAt();\nconst P = { mine: ["/my-listings", "/post"] };\nconst a = p.startsWith("/admin");`,
+      },
+    ]);
+    expect(report(found)).toContain("a second path list in a menu file");
+    expect(report(found)).toContain("the bar does not read panelOf");
+    expect(found).toHaveLength(3);
+  });
+
   it("the menus reading useMenuAt, and press.ts's own tick, pass", () => {
     expect(
       currentFindings([
         {
           name: "src/components/shell/bottom-bar.tsx",
-          text: `const at = useMenuAt(); isCurrentAt({ path: "/" }, at);`,
+          text: `const at = useMenuAt(); panelOf(at.pathname); isCurrentAt({ path: "/" }, at);`,
         },
         { name: "src/lib/press.ts", text: `nav.vibrate(TICK_MS);` },
         {

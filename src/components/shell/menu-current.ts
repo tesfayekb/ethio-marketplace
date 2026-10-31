@@ -55,3 +55,20 @@ export function parseMenuAt(key: string): MenuAt {
   const cut = key.indexOf("#");
   return { pathname: key.slice(0, cut), hash: key.slice(cut + 1) };
 }
+
+/** The sections a path can belong to (a subset of PanelId). */
+export type PathPanel = "account" | "admin" | "my-listings";
+
+/**
+ * Turn C fix 1 (INC-1032) — ONE RULE FOR "WHICH SECTION A PATH BELONGS TO". The frame
+ * (app-shell.tsx, INC-058) and the bottom bar's marks (D271) both read it. INC-359 (the
+ * operator's walk, 2026-09-18): the posting pages belong to My Listings — /post is never
+ * its own current item (the Post disc is an action).
+ */
+export function panelOf(pathname: string): PathPanel | null {
+  const under = (path: string) => isCurrentAt({ path }, { pathname, hash: "" });
+  if (under("/settings") || under("/account")) return "account";
+  if (under("/admin")) return "admin";
+  if (under("/post") || under("/my-listings")) return "my-listings";
+  return null;
+}
