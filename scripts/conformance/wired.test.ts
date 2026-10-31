@@ -77,9 +77,15 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(domain.length).toBeGreaterThanOrEqual(20);
     expect(missing).toEqual([]);
     // DEC-310: smoke runs the lint with the catalogue; migration guard calls the same parser.
-    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain("bun scripts/security-lints.ts --tsv");
-    expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain('public-surface.ts" --migration');
-    expect(readFileSync(join(ROOT, "scripts/security-lints.ts"), "utf8")).toContain('from "./public-surface"');
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "bun scripts/security-lints.ts --tsv",
+    );
+    expect(readFileSync(join(ROOT, "scripts/check-migrations.sh"), "utf8")).toContain(
+      'public-surface.ts" --migration',
+    );
+    expect(readFileSync(join(ROOT, "scripts/security-lints.ts"), "utf8")).toContain(
+      'from "./public-surface"',
+    );
     // route-client.test.ts RCG-1…3 is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "vitest.config.ts"), "utf8")).toContain("scripts/**/*.test.ts");
     expect(readFileSync(join(ROOT, "scripts/conformance/route-client.test.ts"), "utf8")).toContain(

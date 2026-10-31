@@ -54,25 +54,46 @@ export interface SurfaceObject {
 
 export function parseSurfaceTsv(text: string): SurfaceObject[] {
   if (!text.trim()) throw new Error("public surface: empty catalogue answer");
-  return text.trimEnd().split(/\r?\n/).map((line) => {
-    const [name, kind, anon, extra] = line.split("\t");
-    if (!name || (kind !== "function" && kind !== "relation" && kind !== "column") ||
-        (anon !== "true" && anon !== "false" && anon !== "t" && anon !== "f") || extra !== undefined)
-      throw new Error("public surface: malformed catalogue row");
-    return { name, kind, anon: anon === "true" || anon === "t" };
-  });
+  return text
+    .trimEnd()
+    .split(/\r?\n/)
+    .map((line) => {
+      const [name, kind, anon, extra] = line.split("\t");
+      if (
+        !name ||
+        (kind !== "function" && kind !== "relation" && kind !== "column") ||
+        (anon !== "true" && anon !== "false" && anon !== "t" && anon !== "f") ||
+        extra !== undefined
+      )
+        throw new Error("public surface: malformed catalogue row");
+      return { name, kind, anon: anon === "true" || anon === "t" };
+    });
 }
 
 /** No unlisted name, hash or artifact is emitted. PUBLIC covers anon by inheritance. */
 export function compareSurface(current: SurfaceObject[], entries: SurfaceEntry[]): Verdict {
-  const unlisted = new Set(current.filter((row) => row.kind === "function" && row.anon &&
-    !entries.some((entry) => entry.name === row.name && coversRole(entry, "anon"))).map((row) => row.name));
+  const unlisted = new Set(
+    current
+      .filter(
+        (row) =>
+          row.kind === "function" &&
+          row.anon &&
+          !entries.some((entry) => entry.name === row.name && coversRole(entry, "anon")),
+      )
+      .map((row) => row.name),
+  );
   const live = new Set(current.map((row) => row.name));
-  const stale = [...new Set(entries.filter((entry) => !live.has(entry.name)).map((entry) => entry.name))];
-  const lines = [`public surface: ${unlisted.size} unlisted anon functions; ${stale.length} stale lines`];
+  const stale = [
+    ...new Set(entries.filter((entry) => !live.has(entry.name)).map((entry) => entry.name)),
+  ];
+  const lines = [
+    `public surface: ${unlisted.size} unlisted anon functions; ${stale.length} stale lines`,
+  ];
   if (unlisted.size > 0) {
     lines.push(`::error::public surface: ${unlisted.size} unlisted anon functions`);
-    lines.push(`Read-only catalogue query (compare anon=true function rows with the allowlist): ${SURFACE_QUERY}`);
+    lines.push(
+      `Read-only catalogue query (compare anon=true function rows with the allowlist): ${SURFACE_QUERY}`,
+    );
   }
   for (const name of stale) lines.push(`::error::public surface: stale line ${name}`);
   return { lines, failed: unlisted.size > 0 || stale.length > 0 };
@@ -165,7 +186,8 @@ async function main(): Promise<number> {
   if (process.argv[2] === "--tsv") {
     const path = process.argv[3];
     const surfacePath = process.argv[4];
-    if (!path || !surfacePath || process.argv.length !== 5) throw new Error("--tsv requires lint and catalogue paths");
+    if (!path || !surfacePath || process.argv.length !== 5)
+      throw new Error("--tsv requires lint and catalogue paths");
     current = parseLintTsv(readFileSync(path, "utf8"));
     surface = parseSurfaceTsv(readFileSync(surfacePath, "utf8"));
   } else {
@@ -197,18 +219,29 @@ async function main(): Promise<number> {
   ) as Baseline;
   const verdict = compareLints(current, baseline);
   if (surface) {
-    const surfaceVerdict = compareSurface(surface, parseSurface(readFileSync(join(here, "public-surface-allowlist.txt"), "utf8")));
+    const surfaceVerdict = compareSurface(
+      surface,
+      parseSurface(readFileSync(join(here, "public-surface-allowlist.txt"), "utf8")),
+    );
     verdict.lines.push(...surfaceVerdict.lines);
     verdict.failed ||= surfaceVerdict.failed;
   } else {
-    verdict.lines.push("public surface: NOT RUN — nightly REST has no live catalogue; smoke --tsv is the DEC-310 caller");
+    verdict.lines.push(
+      "public surface: NOT RUN — nightly REST has no live catalogue; smoke --tsv is the DEC-310 caller",
+    );
   }
   for (const line of verdict.lines) console.log(line);
   return verdict.failed ? 1 : 0;
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-  (process.argv[2] === "--surface-query" ? Promise.resolve().then(() => { console.log(SURFACE_QUERY); return 0; }) : main())
+  (process.argv[2] === "--surface-query"
+    ? Promise.resolve().then(() => {
+        console.log(SURFACE_QUERY);
+        return 0;
+      })
+    : main()
+  )
     .then((code) => process.exit(code))
     .catch((err: unknown) => {
       console.error(`::error::${errorText(err)}`);

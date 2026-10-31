@@ -14,13 +14,20 @@ export function parseSurface(text: string): SurfaceEntry[] {
     if (/^\s*(?:#|$)/.test(line)) return [];
     const fields = line.split("|").map((field) => field.trim());
     const [name, roleText, reason] = fields;
-    if (fields.length !== 3 || !name || !/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)?$/.test(name) || !roleText || !reason)
+    if (
+      fields.length !== 3 ||
+      !name ||
+      !/^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)?$/.test(name) ||
+      !roleText ||
+      !reason
+    )
       throw new Error(`public surface: malformed line ${index + 1}`);
     const roles: BrowserRole[] = [];
     for (const role of roleText.split(",").map((value) => value.trim())) {
       if (role !== "anon" && role !== "authenticated" && role !== "public")
         throw new Error(`public surface: invalid role on line ${index + 1}`);
-      if (roles.includes(role)) throw new Error(`public surface: repeated role on line ${index + 1}`);
+      if (roles.includes(role))
+        throw new Error(`public surface: repeated role on line ${index + 1}`);
       roles.push(role);
     }
     return [{ name, roles, reason }];
@@ -43,11 +50,19 @@ export function migrationSurfaceOffenders(sql: string, entries: SurfaceEntry[]):
     }
   };
   for (const statement of sql.replace(/--[^\n]*/g, "").split(";")) {
-    const grant = /\bgrant\s+(?:select|execute|all)\b[\s\S]*?\bon\s+(?:function\s+|table\s+|sequence\s+)?public\.([a-z0-9_]+)[\s\S]*?\bto\s+([^;]+)/i.exec(statement);
+    const grant =
+      /\bgrant\s+(?:select|execute|all)\b[\s\S]*?\bon\s+(?:function\s+|table\s+|sequence\s+)?public\.([a-z0-9_]+)[\s\S]*?\bto\s+([^;]+)/i.exec(
+        statement,
+      );
     if (grant?.[1] && grant[2]) check(grant[1].toLowerCase(), grant[2]);
   }
-  for (const loop of sql.matchAll(/FOREACH\s+\w+\s+IN\s+ARRAY\s+ARRAY\[([\s\S]*?)\]\s*LOOP([\s\S]*?)END\s+LOOP/gi)) {
-    const grant = /EXECUTE\s+format\s*\(\s*'\s*GRANT\s+(?:SELECT|EXECUTE|ALL)\b[^']*\bTO\s+([^']+)/i.exec(loop[2] ?? "");
+  for (const loop of sql.matchAll(
+    /FOREACH\s+\w+\s+IN\s+ARRAY\s+ARRAY\[([\s\S]*?)\]\s*LOOP([\s\S]*?)END\s+LOOP/gi,
+  )) {
+    const grant =
+      /EXECUTE\s+format\s*\(\s*'\s*GRANT\s+(?:SELECT|EXECUTE|ALL)\b[^']*\bTO\s+([^']+)/i.exec(
+        loop[2] ?? "",
+      );
     if (!grant?.[1]) continue;
     for (const object of (loop[1] ?? "").matchAll(/'public\.([a-z0-9_]+)\s*\(/gi))
       if (object[1]) check(object[1].toLowerCase(), grant[1]);
