@@ -8787,6 +8787,15 @@
     "settings.signOutOthersConfirmYes": [
       "/settings"
     ],
+    "settings.tapTick.help": [
+      "/settings"
+    ],
+    "settings.tapTick.label": [
+      "/settings"
+    ],
+    "settings.thisDevice.title": [
+      "/settings"
+    ],
     "settings.title": [
       "/settings"
     ],
