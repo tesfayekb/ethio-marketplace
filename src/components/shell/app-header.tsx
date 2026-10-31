@@ -9,7 +9,6 @@ import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CONTROL_LOOK, SEARCH_FIELD } from "@/components/ui/dialog-look";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,10 +20,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
-import { OPEN_CONTROL } from "@/components/shell/menu-row";
+import { CONTROL_LOOK, OPEN_CONTROL, SEARCH_FIELD } from "@/components/shell/menu-row";
 import { useShell } from "@/components/shell-context";
 
-/** Sage §1 (turn SAGE-S1) — the top bar's controls take the one control look (dialog-look.ts,
+/** Sage §1 (turn SAGE-S1) — the top bar's controls take the one control look (menu-row.ts,
  *  shared with the dialog's close button since turn S6-1). */
 const ICON_BUTTON = `inline-flex w-9 shrink-0 items-center justify-center ${CONTROL_LOOK}`;
 const SEARCH_ICON =

@@ -1,25 +1,15 @@
 import { Z_SHEET, Z_TOP, Z_VIEWER } from "@/components/layout/layers";
-import { PRESSED } from "@/components/shell/menu-row";
+import { CONTROL_LOOK } from "@/components/shell/menu-row";
 
 /**
  * Turn S6-1 (Sage §14, the operator's D268) — ONE DIALOG LOOK. Every dialog, alert dialog and
  * sheet draws its scrim, panel, title, text, close button, footer and fields from here
  * (ui/dialog.tsx, ui/alert-dialog.tsx, ui/sheet.tsx; CF-DIALOG-1 judges). A consumer passes a
- * variant (size, fit, phone, layer, side), never its own look. Its own module, not menu-row.ts:
- * the dialog's strings stay off pages that draw no dialog, beyond the two the top bar reads.
+ * variant (size, fit, phone, layer, side), never its own look. It holds dialog parts only; the
+ * top bar's looks live in menu-row.ts. It rides every page's first download for one reason
+ * alone: the step-up gate in the root draws a dialog (S6-3 takes that dialog on demand).
  * Logical properties only (right-to-left), no scale on open (D264 ruling 2).
  */
-
-/**
- * Sage §1 (turn SAGE-S1) — ONE CONTROL LOOK for the top bar's controls (the language and
- * theme controls, the phone search button, the account trigger) and the dialog's close button:
- * the card surface, a hairline edge, the control lift, 12 px corners. 44 px for a coarse
- * pointer (C2); 36 px for a fine one.
- */
-export const CONTROL_LOOK = `${PRESSED.button} min-h-11 md:pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`;
-/** Sage §1 — the search pill: the field fill and its pressed-in lift, no border. */
-export const SEARCH_FIELD =
-  "min-h-11 w-full rounded-full bg-field shadow-field ps-10 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /** The layer a dialog paints on (INC-124): every modal on one, a viewer above it, the step-up on top. */
 export const DIALOG_LAYER = { modal: Z_SHEET, viewer: Z_VIEWER, top: Z_TOP } as const;
