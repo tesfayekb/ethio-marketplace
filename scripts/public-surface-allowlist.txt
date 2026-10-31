@@ -153,7 +153,7 @@ admin_job_health | authenticated | Foundations turn N1b-3 M3 (INC-977): a schedu
 admin_job_resume | authenticated | Foundations turn N1b-3 M3 (INC-977): staff resume a paused job; services:manage then step-up inside before the capture; no pause writes nothing; audits job.resumed
 get_ui_bundle_parts | anon,authenticated | turn D1 (INC-1023): the marketplace is public; returns only approved rows of a public or base language, split into written and copied, as get_ui_bundle does
 get_browse_tree | anon,authenticated | Read-only active/time-visible country-filtered category tree; catchall only with an active listing. (DEC-310 legacy surface)
-get_category_tree_version | authenticated | Read-only hash of category timestamps/counts and pointer ordering; no catalogue rows returned. (DEC-310 legacy surface)
+get_category_tree_version | anon,authenticated | Read-only hash of category timestamps/counts and pointer ordering; no catalogue rows returned. (DEC-310 legacy surface)
 get_category_attributes | anon,authenticated | Legacy SECURITY DEFINER read of category_attributes with inherited parent traversal (depth <10). No caller or permission check in body; public approval is not inferred. (DEC-310 legacy surface)
 catalog_find_version | anon,authenticated | Read-only hash of category version, attribute/link counts and timestamps, approved translation count and enabled languages; exposes a change token, not rows. (DEC-310 legacy surface)
 get_location_tree_version | anon,authenticated | Read-only location change/version hash scoped by country. (DEC-310 legacy surface)

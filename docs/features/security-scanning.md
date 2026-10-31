@@ -71,3 +71,11 @@ At launch: Cloudflare in front of the site (Bot Fight Mode, the free managed WAF
 ## Turn SAGE-S2b — INC-1025 baseline correction
 
 `function_executable_by_anon` rises from 19 to 20 (DEC-240): turn D1 deliberately granted `get_ui_bundle_parts` to anonymous callers for the public marketplace, returning only approved rows of a public or base language (INC-1023). The smoke lane on b3e8dba2 started its backend and refused this new count against the old baseline. The one-list public-surface class fix belongs to the following CI turn.
+
+## Turn CI-3b — DEC-310 one public surface
+
+INC-1025 retires `function_executable_by_anon` from the count baseline: the 19 → 20 correction above is historical, not a second authority. `scripts/public-surface-allowlist.txt` now uses `name | roles | reason` (roles: anon, authenticated, public). Both the migration guard and the smoke lint call `scripts/public-surface.ts` for that grammar. Legacy grants are included, with migration evidence in the CI-3b report; historical allowances remain for append-only migrations and do not assert current execute privileges.
+
+The smoke lane reads the public catalogue through psql TSV using `SURFACE_QUERY` in `scripts/security-lints.ts`, excludes extension-owned functions, and distinguishes functions from live relations/columns. An unlisted anon-executable function fails with a count and the read-only query only: no name, hash or artifact. A stale public-list name fails naming that already-public entry. An authenticated-only allowance does not cover anon. PUBLIC is inherited by both browser roles. SLB-1…6 plant missing, stale, exact, private-output, role-mismatch and shared-parser cases.
+
+The other four counts retain DEC-148/240. The nightly REST reader explicitly reports the name comparison NOT RUN because REST has no live catalogue; smoke is its gating caller. The authenticated comparison is a roadmap follow-up, not implemented here.
