@@ -88,6 +88,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/look-values.test.ts"), "utf8")).toContain(
       "CF-LOOK-2",
     );
+    // budget-band.test.ts BB-1…5 (turn A, DEC-296) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/budget-band.test.ts"), "utf8")).toContain(
+      "BB-5",
+    );
     // vendor-seams.test.ts VS-1…3 is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",
