@@ -75,7 +75,8 @@ export function installPress(doc: Document = document): () => void {
     ["focusout", clear],
     ["dragstart", clear],
   ];
-  for (const [name, fn] of listeners) doc.addEventListener(name, fn, { capture: true, passive: true });
+  for (const [name, fn] of listeners)
+    doc.addEventListener(name, fn, { capture: true, passive: true });
   const win = doc.defaultView;
   win?.addEventListener("blur", clear);
   return () => {

@@ -37,16 +37,22 @@ export function pressFindings(files: Array<{ name: string; text: string }>): Fin
     const text = byName.get(file);
     if (text === undefined) continue;
     for (const need of needs)
-      if (!text.includes(need)) findings.push({ file, line: 1, what: `the primitive lacks ${need}` });
+      if (!text.includes(need))
+        findings.push({ file, line: 1, what: `the primitive lacks ${need}` });
   }
   for (const { name, text } of files) {
     if (OWNERS.has(name)) continue;
     codeOf(text)
       .split("\n")
       .forEach((line, index) => {
-        if (ACTIVE.test(line)) findings.push({ file: name, line: index + 1, what: "an own `active:` press look" });
+        if (ACTIVE.test(line))
+          findings.push({ file: name, line: index + 1, what: "an own `active:` press look" });
         if (PRESSED_LOOK.test(line))
-          findings.push({ file: name, line: index + 1, what: "an own pressed look or mark (read PRESSED)" });
+          findings.push({
+            file: name,
+            line: index + 1,
+            what: "an own pressed look or mark (read PRESSED)",
+          });
       });
   }
   return findings;
@@ -56,11 +62,17 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
   it(
     "the tree",
     () => {
-      const files = walkFiles(["src"], { ext: ["ts", "tsx", "css"], skipTests: true }).map((name) => ({
-        name: name.split("\\").join("/"),
-        text: readFileSync(name, "utf8"),
-      }));
-      for (const { file } of PRIMITIVES) expect(files.some((f) => f.name === file), file).toBe(true);
+      const files = walkFiles(["src"], { ext: ["ts", "tsx", "css"], skipTests: true }).map(
+        (name) => ({
+          name: name.split("\\").join("/"),
+          text: readFileSync(name, "utf8"),
+        }),
+      );
+      for (const { file } of PRIMITIVES)
+        expect(
+          files.some((f) => f.name === file),
+          file,
+        ).toBe(true);
       expect(report(pressFindings(files))).toBe("");
     },
     TREE_SCAN_MS,
@@ -68,7 +80,10 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
 
   it("PR-1: a Button without its PRESSED look fails", () => {
     const found = pressFindings([
-      { name: "src/components/ui/button.tsx", text: `const b = cva("inline-flex"); <Comp data-pressable="" />` },
+      {
+        name: "src/components/ui/button.tsx",
+        text: `const b = cva("inline-flex"); <Comp data-pressable="" />`,
+      },
     ]);
     expect(report(found)).toContain("lacks ${PRESSED.button}");
   });
@@ -89,7 +104,9 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
 
   it("a screen reading the primitives passes", () => {
     expect(
-      pressFindings([{ name: "src/routes/x.tsx", text: `const a = <Button variant="ghost">x</Button>;` }]),
+      pressFindings([
+        { name: "src/routes/x.tsx", text: `const a = <Button variant="ghost">x</Button>;` },
+      ]),
     ).toEqual([]);
   });
 });

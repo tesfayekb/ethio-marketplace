@@ -103,7 +103,8 @@ for (const width of WIDTHS) {
           .from("listings")
           .update({ price_negotiable: true })
           .eq("id", negotiable.id as string);
-        if (marked.error) throw new Error(`[e2e:sc] marking negotiable failed: ${marked.error.message}`);
+        if (marked.error)
+          throw new Error(`[e2e:sc] marking negotiable failed: ${marked.error.message}`);
         await page.goto("/");
         await setMode(page, mode);
         await signIn(page, seller.email, seller.password);
@@ -195,7 +196,10 @@ for (const width of WIDTHS) {
       test(`SC-2 the place line's ink meets 4.5 : 1 on every card fill (${width}, ${mode})`, async ({
         page,
       }) => {
-        test.skip(width !== 1440 && width !== 390, "a colour pair, not a width: two widths suffice");
+        test.skip(
+          width !== 1440 && width !== 390,
+          "a colour pair, not a width: two widths suffice",
+        );
         await page.goto("/");
         await setMode(page, mode);
         await gotoReady(page, "/");
@@ -297,7 +301,11 @@ test.describe("One line with one slot at 360 (§5)", () => {
         const own = row[`name_${language}`];
         const name = typeof own === "string" && own !== "" ? own : String(row["name_en"]);
         const m = await measureHeading(page, name);
-        expect(m, `${language}: "${name}"`).toEqual({ cut: false, fixedWhole: true, oneLine: true });
+        expect(m, `${language}: "${name}"`).toEqual({
+          cut: false,
+          fixedWhole: true,
+          oneLine: true,
+        });
       }
     }
   });

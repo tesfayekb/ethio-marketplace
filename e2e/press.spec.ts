@@ -96,7 +96,9 @@ for (const mode of MODES) {
     });
     test.beforeEach(async ({ page }, testInfo) => {
       const phone = testInfo.project.name === "mobile-360";
-      await page.setViewportSize(phone ? { width: 360, height: 800 } : { width: 1440, height: 900 });
+      await page.setViewportSize(
+        phone ? { width: 360, height: 800 } : { width: 1440, height: 900 },
+      );
     });
 
     test(`PS-1 a press raises each primitive at once and nothing moves (${mode})`, async ({
@@ -111,30 +113,35 @@ for (const mode of MODES) {
       await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
 
       const cardLink = page.getByTestId("listing-card-link").first();
-      const cases: Array<{ name: string; target: Locator; surface?: Locator; inkCheck: boolean }> = [
-        {
-          name: "menu row",
-          target: page.getByTestId("app-rail").locator("a[href]:visible").first(),
-          inkCheck: true,
-        },
-        {
-          name: "band segment",
-          target: page.getByTestId("location-track").locator("button:visible").first(),
-          inkCheck: true,
-        },
-        { name: "button", target: page.locator("header button[data-pressable]:visible").first(), inkCheck: false },
-        {
-          name: "plain link",
-          target: page.getByTestId("footer-column").locator("a[href]").first(),
-          inkCheck: true,
-        },
-        {
-          name: "card",
-          target: cardLink,
-          surface: page.getByTestId("listing-card").first(),
-          inkCheck: false,
-        },
-      ];
+      const cases: Array<{ name: string; target: Locator; surface?: Locator; inkCheck: boolean }> =
+        [
+          {
+            name: "menu row",
+            target: page.getByTestId("app-rail").locator("a[href]:visible").first(),
+            inkCheck: true,
+          },
+          {
+            name: "band segment",
+            target: page.getByTestId("location-track").locator("button:visible").first(),
+            inkCheck: true,
+          },
+          {
+            name: "button",
+            target: page.locator("header button[data-pressable]:visible").first(),
+            inkCheck: false,
+          },
+          {
+            name: "plain link",
+            target: page.getByTestId("footer-column").locator("a[href]").first(),
+            inkCheck: true,
+          },
+          {
+            name: "card",
+            target: cardLink,
+            surface: page.getByTestId("listing-card").first(),
+            inkCheck: false,
+          },
+        ];
       for (const { name, target, surface, inkCheck } of cases) {
         await expect(target, name).toBeVisible();
         const { before, during, after, marked } = await press(page, target, surface);
@@ -146,7 +153,10 @@ for (const mode of MODES) {
         expect(during.box, `${name}: the box did not move`).toBe(before.box);
         expect(after.box, `${name}: the box after`).toBe(before.box);
         if (inkCheck)
-          expect(await contrast(page, during.ink, during.fill), `${name}: pressed ink`).toBeGreaterThanOrEqual(4.5);
+          expect(
+            await contrast(page, during.ink, during.fill),
+            `${name}: pressed ink`,
+          ).toBeGreaterThanOrEqual(4.5);
       }
 
       // A list row: the language list's first option.
@@ -155,8 +165,20 @@ for (const mode of MODES) {
       await expect(option).toBeVisible();
       const row = await press(page, option);
       expect(row.marked, "list row: marked").toBe(true);
-      expect(row.during.fill, "list row: the current pill").not.toBe(row.before.fill === row.during.fill ? "" : row.before.fill);
-      expect(await contrast(page, row.during.ink, row.during.fill), "list row: pressed ink").toBeGreaterThanOrEqual(4.5);
+      // The list's pointer highlight already wears the current pill; the press keeps it.
+      const pill = await page.evaluate(() => {
+        const probe = document.createElement("div");
+        probe.style.backgroundColor = "var(--color-nav-pill)";
+        document.body.append(probe);
+        const value = getComputedStyle(probe).backgroundColor;
+        probe.remove();
+        return value;
+      });
+      expect(row.during.fill, "list row: the current pill").toBe(pill);
+      expect(
+        await contrast(page, row.during.ink, row.during.fill),
+        "list row: pressed ink",
+      ).toBeGreaterThanOrEqual(4.5);
       expect(row.during.box).toBe(row.before.box);
     });
 
