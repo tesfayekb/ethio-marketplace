@@ -18,7 +18,12 @@ import { useCategoryGlyphs } from "@/components/shell/use-category-glyphs";
 import { PanelHeader } from "@/components/shell/panel-header";
 import { useShownPathname } from "@/components/shell/use-shown-pathname";
 import { levelFor, setMenuLevel, useMenuLevel } from "@/components/shell/menu-level";
-import { MENU_LINK_ACTIVE, categoryPath, isCurrentAt } from "@/components/shell/menu-current";
+import {
+  MENU_LINK_ACTIVE,
+  categoryPath,
+  isCurrentAt,
+  useMenuAt,
+} from "@/components/shell/menu-current";
 import {
   MENU_FIT_MAX,
   SUBMENU_SIGNALS,
@@ -586,9 +591,9 @@ export function CategoryNav({ onNavigate }: { onNavigate: () => void }) {
   // leaf's siblings); back rows move up without navigating, and a navigation follows the URL.
   // D255 (R1d-c) — the menu and the strip read ONE level state (menu-level.ts).
   const storedLevel = useMenuLevel();
-  const pathname = useShownPathname();
+  // D263 (turn C2) — the chosen row is marked at once (useMenuAt); the frame keeps the shown page.
   // Categories are never anchored: the path alone marks the current row.
-  const at = { pathname, hash: "" };
+  const at = { pathname: useMenuAt().pathname, hash: "" };
   // D246 — the current row is in view once per opening (no smooth scroll).
   const navRef = useRef<HTMLElement>(null);
   const currentInView = useRef(false);
@@ -802,9 +807,9 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
   );
   // Active state for routed items — the current section is highlighted the
   // same way for every panel (U0b).
-  // INC-581 — the rail marks the page the body shows.
-  const pathname = useShownPathname();
-  const hash = useRouterState({ select: (s) => s.location.hash }).replace(/^#/, "");
+  // D263 (turn C2) — the chosen item is marked at once; INC-581's frame (the panel) still
+  // follows the page the body shows.
+  const at = useMenuAt();
 
   /**
    * U6-C1-R3a — ONE HIGHLIGHT. "Sign-in and security" and "Settings" both live
@@ -812,7 +817,6 @@ function MenuNav({ onNavigate }: { onNavigate: () => void }) {
    * names a section carries its `hash`, and a routed item is current only when
    * the path AND the hash match exactly — so exactly one item is ever current.
    */
-  const at = { pathname, hash };
   const isCurrent = (item: NavItem): boolean =>
     isCurrentAt(
       item,
