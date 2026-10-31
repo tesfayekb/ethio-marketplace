@@ -153,7 +153,7 @@ export const LAWS_STEP: Step = {
   job: "laws-first",
   name: "scripts/ tests first (INC-1030)",
   key: "laws-first › scripts/ tests first (INC-1030)",
-  run: `bunx vitest run scripts ${"--maxWorkers=2"}`,
+  run: "bunx vitest run scripts --maxWorkers=2",
   env: {},
   timeoutS: 300,
   conditional: false,
