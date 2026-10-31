@@ -803,12 +803,10 @@
     border-radius: var(--radius-row);
   }
   @media (prefers-reduced-motion: no-preference) {
-    a[href] {
+    /* Turn C2: only the release fades (press.ts marks it `data-released`). */
+    a[data-released] {
       transition-property: background-color, color, box-shadow;
       transition-duration: 120ms;
-    }
-    a[data-pressed] {
-      transition-duration: 0ms;
     }
   }
 }

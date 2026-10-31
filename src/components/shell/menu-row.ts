@@ -11,8 +11,11 @@
  * Only a shadow, a fill and the ink change — never the size or the place. It comes on with
  * no transition and leaves within 120 ms; under reduced motion it neither fades nor moves.
  */
+// Turn C2 (INC-1031's SGB-5 red): the fade belongs to the RELEASE alone — press.ts marks the
+// released element `data-released` for RELEASE_MS — so a current mark that moves for another
+// reason (a chosen location, a selected tab) changes at once, never mid-fade.
 export const PRESS_MOTION =
-  "transition-[background-color,box-shadow,color] duration-120 ease-out data-[pressed]:duration-0 motion-reduce:transition-none";
+  "data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none";
 export const PRESSED = {
   /** A menu row: the raised current row (ITEM_ACTIVE's card, lift-row-on, nav ink). */
   row: `data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
@@ -23,7 +26,7 @@ export const PRESSED = {
   /** A button: one step higher, to lift-row-on; its fill and ink stay. */
   button: `data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
   /** A card (on the card's surface): its link pressed lifts the card to lift-row-on. */
-  card: "transition-shadow duration-120 ease-out has-[[data-pressed]]:duration-0 has-[[data-pressed]]:shadow-row-on motion-reduce:transition-none",
+  card: "has-[[data-released]]:transition-shadow has-[[data-released]]:duration-120 has-[[data-released]]:ease-out has-[[data-pressed]]:shadow-row-on motion-reduce:transition-none",
   /** A bottom-bar item (turn C2, D270): its ink turns to the nav ink at once… */
   bar: `group/bar data-[pressed]:text-nav-ink ${PRESS_MOTION}`,
   /** …and its icon takes the current pill (CURRENT_PILL's fill and lift), on its own box. */

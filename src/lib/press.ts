@@ -5,6 +5,9 @@
  * reads that mark through PRESSED (src/components/shell/menu-row.ts). `:active` is not used:
  * on a phone it arrives late or never under a scrolling parent.
  *
+ * Turn C2: a cleared mark leaves `data-released` on the element for RELEASE_MS, and only
+ * that mark carries the fade (PRESS_MOTION), so no other change of look ever fades.
+ *
  * The mark clears on pointerup, pointercancel, keyup, blur, a scroll, and a touch that moves
  * past PRESS_SLOP (a scroll never flashes a press). A disabled element (`disabled`, or
  * `aria-disabled="true"` on it or above it) is never marked.
@@ -90,14 +93,33 @@ export function tickTarget(target: EventTarget | null): Element | null {
   return el;
 }
 
+/** How long a released element keeps `data-released` (its 120 ms fade, with a frame to spare). */
+export const RELEASE_MS = 160;
+
 export function installPress(doc: Document = document): () => void {
+  const timers = new Map<Element, ReturnType<typeof setTimeout>>();
+  const released = (el: Element) => {
+    const prior = timers.get(el);
+    if (prior !== undefined) clearTimeout(prior);
+    el.setAttribute("data-released", "");
+    timers.set(
+      el,
+      setTimeout(() => {
+        el.removeAttribute("data-released");
+        timers.delete(el);
+      }, RELEASE_MS),
+    );
+  };
   let pressed: Element | null = null;
   let lastPointer = "";
   let startX = 0;
   let startY = 0;
 
   const clear = () => {
-    if (pressed !== null) pressed.removeAttribute("data-pressed");
+    if (pressed !== null) {
+      pressed.removeAttribute("data-pressed");
+      released(pressed);
+    }
     pressed = null;
   };
   const mark = (el: Element | null) => {
@@ -164,6 +186,11 @@ export function installPress(doc: Document = document): () => void {
   win?.addEventListener("blur", clear);
   return () => {
     clear();
+    for (const [el, timer] of timers) {
+      clearTimeout(timer);
+      el.removeAttribute("data-released");
+    }
+    timers.clear();
     for (const [name, fn] of listeners) doc.removeEventListener(name, fn, { capture: true });
     win?.removeEventListener("blur", clear);
   };
