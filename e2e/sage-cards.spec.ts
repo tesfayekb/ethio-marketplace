@@ -261,30 +261,46 @@ test.describe("One line with one slot at 360 (§5)", () => {
     await page.setViewportSize({ width: 360, height: 800 });
   });
 
-  for (const language of ["en", "am"] as const) {
-    test(`OL-1 every open market's name shows whole (${language})`, async ({ page, baseURL }) => {
-      const codes = await openMarketCodes({ realOnly: true });
-      const { data, error } = await adminClient()
-        .from("locations")
-        .select("name_en, name_am")
-        .eq("level", "country")
-        .in("country_code", codes);
-      if (error) throw new Error(`[e2e:ol] reading market names failed: ${error.message}`);
-      const names = (data ?? []).map((row) =>
-        language === "am" && typeof row.name_am === "string" && row.name_am !== ""
-          ? row.name_am
-          : (row.name_en as string),
+  // G0.6 (turn C1) — the languages are the app's public ones, read from its switcher, so a
+  // language added later is checked too.
+  test("OL-1 every open market's name shows whole in every public language", async ({
+    page,
+    baseURL,
+  }) => {
+    const codes = await openMarketCodes({ realOnly: true });
+    const { data, error } = await adminClient()
+      .from("locations")
+      .select("*")
+      .eq("level", "country")
+      .in("country_code", codes);
+    if (error) throw new Error(`[e2e:ol] reading market names failed: ${error.message}`);
+    const rows = (data ?? []) as Array<Record<string, unknown>>;
+    expect(rows.length).toBeGreaterThan(0);
+    await openWithMarket(page, baseURL ?? "");
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await page.getByTestId("language-switcher").click();
+    const languages = await page
+      .locator('[data-testid^="language-option-"]')
+      .evaluateAll((els) =>
+        els.map((el) => (el.getAttribute("data-testid") ?? "").replace("language-option-", "")),
       );
-      expect(names.length).toBeGreaterThan(0);
-      await openWithMarket(page, baseURL ?? "");
-      if (language === "am") await switchLanguage(page, "am");
+    await page.keyboard.press("Escape");
+    expect(languages, "the switcher lists the public languages").toContain("en");
+    for (const language of languages) {
+      await expect(page.getByRole("menu")).toHaveCount(0);
+      await page.getByTestId("language-switcher").click();
+      await page.getByTestId(`language-option-${language}`).click();
+      await expect(page.locator("html")).toHaveAttribute("lang", language, { timeout: 15000 });
+      await expect(page.getByRole("menu")).toHaveCount(0);
       await expect(page.getByTestId("feed-heading").locator("[data-one-line-slot]")).toBeVisible();
-      for (const name of names) {
+      for (const row of rows) {
+        const own = row[`name_${language}`];
+        const name = typeof own === "string" && own !== "" ? own : String(row["name_en"]);
         const m = await measureHeading(page, name);
         expect(m, `${language}: "${name}"`).toEqual({ cut: false, fixedWhole: true, oneLine: true });
       }
-    });
-  }
+    }
+  });
 
   test("OL-2 a 60-character name cuts; the fixed words stay whole on one line", async ({
     page,
