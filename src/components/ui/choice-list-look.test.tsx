@@ -3,9 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import {
+  LIST_ICON,
+  LIST_LABEL,
   LIST_PANEL,
   LIST_ROW,
   LIST_ROW_CURRENT,
+  LIST_SEPARATOR,
   LIST_SURFACE,
   LIST_TICK,
   OPEN_CONTROL,
@@ -60,5 +63,23 @@ describe("CL-U — every open list reads menu-row.ts's constants", () => {
     expect(pickerPopClass("down")).not.toMatch(/\bmt-1\b/);
     expect(pickerPopClass("up")).not.toMatch(/\bmb-1\b/);
     expect(pickerPopClass("down")).toContain(LIST_SURFACE);
+  });
+
+  it("CL-U7: the facade's label, separator and icon read LIST_LABEL, LIST_SEPARATOR and LIST_ICON (D268)", () => {
+    expect(LIST_LABEL).toMatch(/\bpx-3\b/);
+    expect(LIST_LABEL).toMatch(/\btext-sm\b/);
+    expect(LIST_LABEL).toMatch(/\bfont-semibold\b/);
+    expect(LIST_LABEL).toMatch(/\btext-muted-foreground\b/);
+    expect(LIST_SEPARATOR).toMatch(/\bh-px\b/);
+    expect(LIST_SEPARATOR).toMatch(/\bbg-hairline\b/);
+    expect(LIST_ICON).toBe("size-4 shrink-0 text-current");
+    expect(LIST_ICON).not.toMatch(/\bm[se]?-/);
+    const impl = readFileSync("src/components/ui/dropdown-menu-impl.tsx", "utf8");
+    expect(impl).toMatch(/className=\{cn\(LIST_LABEL,/);
+    expect(impl).toMatch(/className=\{cn\(LIST_SEPARATOR, className\)\}/);
+    expect(impl).toMatch(/<Slot aria-hidden="true" className=\{LIST_ICON\}>/);
+    expect(impl).toMatch(/<CutText text=\{children\} \/>/);
+    const facade = readFileSync("src/components/ui/dropdown-menu.tsx", "utf8");
+    expect(facade).toMatch(/DropdownMenuIcon = inside\("DropdownMenuIcon"\)/);
   });
 });
