@@ -1,61 +1,132 @@
-# Turn B (Sage S3) — plan: feed heading, listing card, dark-card choice (D262)
+# Turn F4 plan — the open list stays in sight (D267), one list primitive (D268)
 
-## CI first
-- Last completed run read at the raw ci-evidence addresses: **4a4ee518, FAILURE** (run 41185234744), one job: first-paint budget, `/admin/listings_/$listingId_/edit` 404.8 / 405 in the NEAR band. That red is already fixed on d04eb489 (ceiling 406, verified in the request). E2E passed on that run (19/19 logs, 0 off allowlist).
-- The run on **d04eb489** (first run of DEC-313's start) had not completed at plan time. The build reads it again at Part A; any red is fixed first, at its root, before step 1.
+Base dev f25f6e9e. Plan only; nothing changed.
 
-## 1. Dark card values (CONCERN 1) — the choice, not a guess
-Page `--background` #121815. Ratios measured (WCAG relative luminance) this turn; all ESTIMATE until the operator judges.
+## 0. CI first
+- The evidence page still shows 060d4d60, completed 09:50:50Z, FAILURE. Only the component tests failed (TI-1, CF-ADOPT-1). Both are fixed in B1, and the DCC rename landed at f25f6e9e.
+- No completed run on f25f6e9e yet (read at 10:1xZ). The build re-reads it first. If it is red, the fix comes first, at its root, and F4 follows.
+- B2 (separate turn) carries the operator's pick: candidate C becomes the live `.dark` card in one token change. F4 does not touch the card tokens.
 
-| Candidate | `--card` | vs page | text #E6EAE7 | muted #A3B0A8 | edge ring | edge vs page |
-|---|---|---|---|---|---|---|
-| today | #1A221E | 1.11 | 13.39 | 7.23 | #26302B | 1.32 |
-| A (quiet) | #232E28 | 1.28 | 11.58 | 6.25 | #3A4740 | 1.85 |
-| B (middle) | #25302A | 1.32 | 11.26 | 6.08 | #3E4B44 | 1.97 |
-| C (strong) | #28342E | 1.39 | 10.67 | 5.76 | #42504A | 2.12 |
+## 1. Census by definition (every list that opens from a control)
+| Consumer | file:line | Placement today |
+| --- | --- | --- |
+| Currency picker | src/features/posting/step-pricing.tsx (SearchablePicker) | usePickerPlacement |
+| Phone-code picker | src/features/posting/phone-number-field.tsx (SearchablePicker) | usePickerPlacement |
+| Picker placement | src/components/searchable-picker.tsx :58-71 | top floor `rect.top - 4`; floors: form action bar, bottom bar, viewport; height fixed `min(256, 44*rows+2)` |
+| Facade menus | src/components/ui/dropdown-menu-impl.tsx :54-60 | `collisionPadding = 16` on every side, no chrome |
+| Location | src/components/shell/location-selector.tsx | facade |
+| Language | src/components/language-switcher.tsx | facade |
+| Account | src/components/shell/app-header.tsx :244-268 | facade + own label, 2 separators, `me-2 h-4 w-4` icons |
+| Row actions | src/components/shell/row-actions.tsx :134 | facade + own separator |
+| Panel switch | src/components/shell/panel-header.tsx :84 | facade; icons `h-4 w-4 shrink-0` |
+| Dev grid | src/routes/dev.style.tsx | facade (showcase) |
 
-Tier fills, same three steps (today: Premium #2B2314 = 1.16, Featured #1A2C23 = 1.22):
+Chrome today: `html { scroll-padding-top: 8.5rem }` (styles.css :638) and `scroll-padding-bottom: calc(var(--bottom-bar) + var(--bar-rise))` (:640). These are the same top and bottom chrome that the list placement ignores.
 
-| Candidate | Premium fill | vs page | ink #E6B655 | Featured fill | vs page | word #7FC9A6 |
-|---|---|---|---|---|---|---|
-| A | #33291A | 1.26 | 7.60 | #1F3329 | 1.34 | 6.91 |
-| B | #382D1C | 1.34 | 7.17 | #22362C | 1.40 | 6.62 |
-| C | #3A2F1D | 1.37 | 6.97 | #243A2F | 1.47 | 6.28 |
+## 2. Concern A (D267): one reader of the visible area
+**Mechanism:** `visibleArea()` in a new `src/lib/visible-area.ts`. It is pure apart from the DOM read.
+- **Top:** the larger of 0 and the bottom edge of every displayed element marked `data-chrome="top"` (the header and the bands; markers added in their own files).
+- **Bottom:** the smaller of `innerHeight` and the top edge of every displayed `data-chrome="bottom"` element (the bottom bar, including `--bar-rise`, and the form action bar while it is sticky).
+- **Fallback:** when no marker is drawn, it falls back to the scroll-padding values read from `html`'s computed style. The chrome is never assumed to be zero.
+- **Shape:** it returns `{ top, bottom }` with an 8 px margin inside each edge.
 
-Knock-on found: dark `--photo-empty` #26302B equals the new card (1.00–1.05). The empty well takes #303C35 (1.12–1.22 against A–C) so it still reads as a well; measured per candidate in the build.
+**Picker (searchable-picker.tsx):** the `place()` logic becomes `placeList(rect, wanted, area, canScroll)`, exported and pure:
+1. Room below is enough → open down. The height is `min(wanted, room)`.
+2. Short below and the page can scroll → scroll the control so its top sits at `area.top + 8`, then open down. The height is bounded by the new room. This uses `scrollBy`, instant under reduced motion and smooth otherwise.
+3. The page cannot scroll further → open on the side with more room. The height is bounded by that room, so the box never crosses `area.top` or `area.bottom`.
+- `max-height` is set from the result through `--picker-max-height`, so the first and last rows can always be reached by scrolling inside the list.
+- The hand floors (`form-layout-actions`, `bottom-bar` queries) move into the reader. No second copy remains.
 
-Shadow: dark `--lift-card` keeps its black drop (it shows on photos and tiers, not the page) and its 1 px ring moves to the candidate edge value. `-md` / `-lg` dark lifts get the same ring.
+**Facade menus (dropdown-menu-impl.tsx):** `collisionPadding` becomes per side: `{ top: area.top, bottom: innerHeight - area.bottom, left: 16, right: 16 }`, read on open. Radix then flips or shifts inside the visible area, and `--radix-dropdown-menu-content-available-height` bounds the panel's `max-height`.
 
-**/dev/style**: a dark card grid with three columns A / B / C (plain, Premium, Featured, no-photo card each), scoped by a `data-card-candidate` attribute that sets the candidate tokens locally; the live `.dark` block takes **B** as the provisional value until the operator picks. His pick lands as a one-line token change in the next turn (or this one if he rules before the push).
+**Guard CF-AREA-1** (scripts/conformance, kit census): no file outside visible-area.ts reads `bottom-bar`, `form-layout-actions` or `data-chrome` for placement, and no `collisionPadding={number}` literal appears outside the facade. Allowlist: empty. Planted cases VA-1…3.
 
-Census of CARD_SURFACE / `bg-card` readers (all take the new dark values through the token, no per-file change): listing-card, feed, invite card, page-card, section, data-table (card mode), on-demand-notice, safety-box, listing-detail, locations-overview, admin-nav, app-shell. my-listings and the ad page boxes reach it through page-card / listing-card / section. K2: any reader painting `bg-card` with its own border instead of the shadow is reported, not edited.
+## 3. Concern B (D268): every list part from the one primitive
+**menu-row.ts** gains:
+- `LIST_LABEL`: a non-interactive header row on the row's padding, in the muted ink, semibold `text-sm`, not truncated past CutText.
+- `LIST_SEPARATOR`: one rule token, `-mx-1.5 my-1 h-px bg-hairline`. A new `--hairline` reader takes no new colour.
+- `LIST_ICON`: `size-4 shrink-0` plus the list's icon ink. Spacing comes from LIST_ROW's gap only.
 
-## 2. Spec parts and their tokens
-§5 feed heading (`feed.tsx` :286): `text-[21px] md:text-[25px] lg:text-[30px] font-extrabold tracking-[-0.9px]` via a `--feed-heading-*` size step set in styles.css; place name in `text-primary`. Grid gap `lg:gap-5`; main `lg:py-7`.
-§6 card (`listing-card.tsx`, `listing-picture.tsx`, `surface.ts`):
-- body padding 13/14/14 px (`--card-pad-*`), compact 8–9 tablet, 6–7 phone;
-- price 16 px bold, compact 13 / 12 px bold; price slot min heights kept;
-- Negotiable: filled pill `bg-success-soft text-tier-featured-ink` 11 px semibold, no border (dark reads `--success-soft` #1C2B24 / `--leaf-ink`, ratio checked);
-- place line: divider `--card-rule` (light #EEF3EF, dark from the candidate set) as an inset top shadow, 9 px / 6 px compact top padding, pin `text-leaf-ink`;
-- empty picture well: `bg-photo-empty` + bottom separator token `--lift-photo-empty`.
+These constants are exported for S6 dialog parts to reuse together with LIST_SURFACE.
 
-## 3. The one-line heading (INC-957's class)
-Mechanism named: **ONE_LINE_SLOT** — a fixed fit rule, not a shrinking loop. The slot is `whitespace-nowrap min-w-0`; the fixed words ("Listings in") never cut; the place name is the only part that may cut, through the existing CutText (cut-names rule). `wrap-anywhere` leaves the h1.
-- Lives beside CUT names in src/components/layout (one constant + CutText), registered in mechanisms.md; E (every one-line slot) reuses it unchanged.
-- Guard: CF-ONE-LINE-1 census (a slot marked `data-one-line` must use ONE_LINE_SLOT); planted case: a slot with `wrap-anywhere` fails.
-- Test: `e2e/sage-cards.spec.ts` OL-1 at 360 for every public language in the catalog (en, am, om, ti), both e2e projects' device fonts: the h1's height equals one line box and `scrollWidth <= clientWidth` for its fixed words. OL-2 planted: a route mock supplies a 60-character place name; the fixed words stay on one line and the name cuts. A unit OL-3 plants a heading class without the rule and the census fails.
+**Facade:** DropdownMenuLabel and DropdownMenuSeparator take LIST_LABEL and LIST_SEPARATOR. A new `DropdownMenuIcon` wrapper (`asChild` slot over the lucide icon) applies LIST_ICON, so no consumer writes icon classes.
 
-## 4. Laws kept, G38
-LL-1, one card shape and `auto-rows-fr` stay true; LL-1 re-run in both themes. Tests that read old card values, named old → new in the build after reading each: `src/look-law.test.ts`, `scripts/conformance/look-values.test.ts`, `src/lib/themes.test.ts` (dark `--card`, `--lift-card`, `--photo-empty`, tier fills), `src/components/shell/data-table.test.tsx` (card surface), and any spec asserting `text-xl font-semibold` on the h1 or 14 px price (sage-shell / sage-bands census in the build).
+**Consumers:**
+- app-header.tsx: the account menu uses the facade parts only. "Profile" opens `/account` (G17, same as bottom-bar.tsx :132), and "Settings" opens `/settings`.
+- panel-header.tsx :84, location-selector.tsx, language-switcher.tsx and row-actions.tsx: their row icons move onto `DropdownMenuIcon`.
 
-## 5. sage-cards.spec.ts
-Per redesign-part-2 §6: computed styles at 390, 834, 1440, light and dark — heading size/weight/tracking/colour of place, body padding, price size/weight, Negotiable fill/ink/no border, divider shadow and padding, empty-well fill, card background and box-shadow ring, contrast ratios computed in-page against the targets (≥1.25, ≥1.8, ≥4.5). Run via `bun run e2e:local -- e2e/sage-cards.spec.ts`, both projects, retries 0; added to scripts/e2e-select.ts.
+**CF-LIST-1 rules added:**
+- (8) a className on DropdownMenuLabel or DropdownMenuSeparator outside the facade;
+- (9) a size, margin or colour class on an icon inside a DropdownMenuItem or RadioItem outside the facade.
+
+Planted cases CL-8, CL-9.
+
+## 4. Tests
+**Unit:**
+- VA-U1…4 `visibleArea` (markers, hidden marker ignored, scroll-padding fallback, margin).
+- PL-U1…5 `placeList`: room below; short below with scroll → scroll then down; cannot scroll → up and bounded; tiny viewport → bounded both ways; RTL unaffected.
+- CL-U7 facade label, separator and icon classes.
+
+**Browser** (e2e/choice-lists.spec.ts, by spec ID via `bun run e2e:local`, both projects, retries 0):
+- CL-E7 currency and CL-E8 phone-code, at 360 coarse, each from three starting positions:
+  - the field centred, as the refusal scroll leaves it;
+  - near the top;
+  - near the bottom.
+- Each case is run light and dark. After open, it asserts:
+  - the list box lies within `[chromeTop, chromeBottom]` (read from the chrome markers);
+  - the first and last rows scroll into the list and are hit-testable (`elementFromPoint`);
+  - the trigger shows `data-state="open"`.
+- CL-E9 facade menus (location, language, account, row actions, panel switch), opened near the top and bottom at 360: the panel stays within the visible area.
+- CL-E10 account menu:
+  - its label, separator and icon boxes equal the panel switch's (computed size, gap, colour);
+  - "Profile" lands on /account and "Settings" on /settings.
+
+## 5. G38 list (existing specs whose expectations change)
+- e2e/shell.spec.ts :1312-1320: the account menu shape. The identity label testid is kept, and the hrefs change if any assertion reads them. To be confirmed by grep at build.
+- Any spec asserting "Profile" → /settings: grep for `nav.profile` and `/settings` near `account-menu` at build. The census is pasted in the report.
+- No picker spec asserts "up" placement today; this is confirmed by grep at build.
 
 ## 6. Growth
-ESTIMATE +0.15 KiB on public pages (classes + the /dev/style grid off the public path). Any page entering its NEAR band gets `ceilingFor(size)` in DEC-296's form, listed in the report.
+- New lib module (~0.25 KiB gz) sits on every page through the facade and header.
+- Facade and picker change by about ±0.1 KiB.
+- Header shrinks slightly (fewer class strings).
+- Estimate +0.3 KiB on the pages drawing the header. Any ceiling raised goes in DEC-296 form, with the measured number.
 
 ## 7. Turns
-One turn. If it cannot fit, B1 = dark candidates + /dev/style grid + token tests; B2 = §5/§6 parts, ONE_LINE_SLOT, sage-cards.spec.
+One turn, F4. If the browser lane runs long, split it in two:
+- F4a: Concern A with CL-E7…9.
+- F4b: Concern B with CL-E10.
 
-## Build order
-Part A (CI) → step 0 brief → tokens + candidates → /dev/style grid → §6 card → §5 heading + ONE_LINE_SLOT + guard → G38 test updates → sage-cards.spec → report → `bun run checks` → CI re-read → push.
+B2 (candidate C + §5/§6) stays its own turn after F4. S6 dialogs reuse LIST_SURFACE, LIST_SEPARATOR and LIST_LABEL.
+
+## Technical details / order at build
+1. Laws step first.
+2. CI read.
+3. visible-area.ts with its unit tests.
+4. Chrome markers.
+5. Picker.
+6. Facade padding.
+7. CF-AREA-1.
+8. List parts.
+9. Consumers.
+10. CF-LIST-1 rules (8) and (9).
+11. Browser tests.
+12. Docs: design-foundation.md, mechanisms.md (two rows), _changelog.md.
+13. Report.
+14. `bun run checks` whole.
+15. CI read again before the push.
+
+AGENTS.md is untouched unless the brief names it.
+
+**Scope:**
+- src/lib/visible-area.ts (new);
+- src/components/searchable-picker.tsx, src/components/ui/dropdown-menu-impl.tsx and dropdown-menu.tsx (facade export);
+- src/components/shell/menu-row.ts, app-header.tsx, panel-header.tsx, location-selector.tsx, row-actions.tsx, bottom-bar.tsx and form-section.tsx (markers);
+- src/components/language-switcher.tsx;
+- the band/header files that carry `data-chrome="top"`;
+- scripts/conformance/;
+- e2e/choice-lists.spec.ts and the G38 specs;
+- scripts/route-budgets.mjs;
+- docs.
+
+**Open:** the operator is asked to confirm G17 ("Profile" opens /account).
