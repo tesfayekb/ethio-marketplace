@@ -14,7 +14,7 @@ const SCHEDULER =
 const BACKGROUND = "00:45:19 | 208 |  | checkpointer |  | Activity:CheckpointerMain | ";
 
 describe("CF-CI-START-1 classify a failed apply (DEC-313)", () => {
-  it("SF-1 a running cron job is counted, the scheduler named apart", () => {
+  it("CSF-1 a running cron job is counted, the scheduler named apart", () => {
     const job =
       "00:45:19 | 401 | pg_cron | pg_cron | active | Lock:relation | SELECT public.feed_reindex_drain()";
     const f = classifyStartFailure(LOG, [APPLIER, SCHEDULER, job, BACKGROUND].join("\n"));
@@ -23,12 +23,12 @@ describe("CF-CI-START-1 classify a failed apply (DEC-313)", () => {
     );
   });
 
-  it("SF-2 two appliers are two", () => {
+  it("CSF-2 two appliers are two", () => {
     const second = APPLIER.replace("| 230 |", "| 231 |");
     expect(classifyStartFailure(LOG, [APPLIER, second].join("\n")).appliers).toBe(2);
   });
 
-  it("SF-3 an outside session is other, autovacuum is its own kind", () => {
+  it("CSF-3 an outside session is other, autovacuum is its own kind", () => {
     const outside =
       "00:45:19 | 500 | postgrest | client backend | active | Lock:relation | SELECT 1";
     const vacuum =
@@ -37,7 +37,7 @@ describe("CF-CI-START-1 classify a failed apply (DEC-313)", () => {
     expect([f.other, f.autovacuum, f.appliers]).toEqual([1, 1, 1]);
   });
 
-  it("SF-4 a clean sample counts nothing but the applier", () => {
+  it("CSF-4 a clean sample counts nothing but the applier", () => {
     const f = classifyStartFailure(LOG, [APPLIER, SCHEDULER, BACKGROUND].join("\n"));
     expect([f.cronJobs, f.appliers, f.autovacuum, f.other, f.scheduler]).toEqual([
       0,
@@ -48,7 +48,7 @@ describe("CF-CI-START-1 classify a failed apply (DEC-313)", () => {
     ]);
   });
 
-  it("SF-5 a missing sample is unknown, never none", () => {
+  it("CSF-5 a missing sample is unknown, never none", () => {
     expect(startFailureLine(classifyStartFailure(LOG, undefined))).toBe(
       "start failed in 20261007033719_9f7deb8a-e850-4fc3-bfc0-9693f6994666 stmt 48; sessions: unknown (no sample)",
     );

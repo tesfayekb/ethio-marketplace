@@ -49,7 +49,7 @@ The step reads `pg_available_extensions.default_version` for pg_cron and whether
 ## 7. CF-CI-START-1
 `scripts/ci/classify-start-failure.ts` prints: `start failed in <migration> stmt <n>; cron jobs: k (scheduler present|absent); appliers: a; autovacuum: v; other sessions: m`. With no sample it prints `sessions: unknown (no sample)`.
 
-The planted cases are SF-1 cron job, SF-2 two appliers, SF-3 outside session and autovacuum, SF-4 clean, SF-5 missing sample: 5 passed. Its caller is the workflow; CF-WIRED-1 reports 32 scripts, missing 0.
+The planted cases are CSF-1 cron job, CSF-2 two appliers, CSF-3 outside session and autovacuum, CSF-4 clean, CSF-5 missing sample: 5 passed. Its caller is the workflow; CF-WIRED-1 reports 32 scripts, missing 0.
 
 ## 8. The proofs census, CF-PROOF-KEY-1
 `scripts/conformance/migration-proof-keys.test.ts` checks every migration. A finding is a `DO` block insert into public.<table> whose values carry one of:
@@ -63,7 +63,7 @@ Landed hits, all three listed:
 - 20261029072455 job_runs: fixed (JC-3)
 - 20261029073342 job_runs: second (CL-1/CL-3)
 
-PK-1 planted:
+MPK-1 planted:
 - a clock-keyed proof and a fixed-key proof each fail;
 - a scratch-keyed proof passes;
 - a bad `until` and a stale line fail.
