@@ -9,6 +9,7 @@ import { Logo } from "@/components/brand/logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { CONTROL_LOOK, SEARCH_FIELD } from "@/components/ui/dialog-look";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,17 +24,9 @@ import { cn } from "@/lib/utils";
 import { OPEN_CONTROL } from "@/components/shell/menu-row";
 import { useShell } from "@/components/shell-context";
 
-/**
- * Sage §1 (turn SAGE-S1) — ONE CONTROL LOOK for the top bar's controls (the language and
- * theme controls, the phone search button, the account trigger): the card surface, a
- * hairline edge, the control lift, 12 px corners. 44 px for a coarse pointer (C2); 36 px
- * for a fine one.
- */
-const CONTROL_LOOK = `${PRESSED.button} min-h-11 md:pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`;
+/** Sage §1 (turn SAGE-S1) — the top bar's controls take the one control look (dialog-look.ts,
+ *  shared with the dialog's close button since turn S6-1). */
 const ICON_BUTTON = `inline-flex w-9 shrink-0 items-center justify-center ${CONTROL_LOOK}`;
-/** Sage §1 — the search pill: the field fill and its pressed-in lift, no border. */
-const SEARCH_FIELD =
-  "min-h-11 w-full rounded-full bg-field shadow-field ps-10 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const SEARCH_ICON =
   "pointer-events-none absolute start-3.5 top-1/2 size-4.5 -translate-y-1/2 text-leaf-ink";
 

@@ -72,6 +72,15 @@ export const LIST_ROW =
   "focus:bg-nav-pill focus:text-nav-ink data-[highlighted]:bg-nav-pill data-[highlighted]:text-nav-ink focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset " +
   "data-[state=checked]:bg-nav-pill data-[state=checked]:font-semibold data-[state=checked]:text-nav-ink " +
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0";
+/** Turn S6-1 (ruling 6) — LIST_ROW's one option: the label wraps onto more lines and the row
+ *  grows, never cut (a report reason in Amharic). Read after LIST_ROW through cn(), which drops
+ *  the one-line classes it replaces. */
+export const LIST_ROW_WRAP =
+  "md:pointer-fine:h-auto py-2 whitespace-normal [&>span]:overflow-visible [&>span]:text-clip [&>span]:whitespace-normal";
+/** Turn S6-1 (Sage §14) — a choice row (a label holding a radio or a checkbox) while its control is
+ *  chosen: the nav pill, the nav ink and the 1.5 px ring in the primary green. */
+export const LIST_CHOICE_ON =
+  "has-checked:bg-nav-pill has-checked:font-semibold has-checked:text-nav-ink has-checked:shadow-choice-on has-[[data-state=checked]]:bg-nav-pill has-[[data-state=checked]]:font-semibold has-[[data-state=checked]]:text-nav-ink has-[[data-state=checked]]:shadow-choice-on";
 /** The shell's one selected look (ruling 1): the nav pill and the nav ink. */
 export const LIST_ROW_CURRENT = "bg-nav-pill font-semibold text-nav-ink";
 /** The row a keyboard is on in a hand-driven list: the same surface as focus. */

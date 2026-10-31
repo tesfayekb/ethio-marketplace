@@ -234,7 +234,7 @@ export function PhotoEditor({
         if (!open && phase !== "saving") onCancel();
       }}
     >
-      <DialogContent data-testid="post-photo-editor" className="max-h-[95vh] overflow-y-auto">
+      <DialogContent data-testid="post-photo-editor">
         <DialogHeader>
           <DialogTitle>{t("post.photos.edit")}</DialogTitle>
           <DialogDescription>{t("post.photos.editor.hint")}</DialogDescription>
@@ -347,7 +347,7 @@ export function PhotoEditor({
           </div>
         )}
 
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <button
             type="button"
             data-testid="post-photo-editor-cancel"

@@ -10,7 +10,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -129,13 +128,11 @@ export function DeleteLanguageDialog({
         ) : null}
 
         <AlertDialogFooter>
-          <AlertDialogCancel className="min-h-11">
-            {t("admin.translations.delete.cancel")}
-          </AlertDialogCancel>
+          <AlertDialogCancel>{t("admin.translations.delete.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             // Bundle 11 A3 (G29, the Reject-red class) — the button that
             // confirms a destruction is drawn destructive.
-            className={`${buttonVariants({ variant: "destructive" })} min-h-11`}
+            tone="destructive"
             data-testid={`lang-delete-submit-${row.code}`}
             disabled={!armed || remove.isPending}
             onClick={(event) => {

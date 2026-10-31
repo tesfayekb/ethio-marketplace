@@ -72,3 +72,14 @@ src/components/shell/use-footer-inset.ts
 semgrep.json
 semgrep.sarif
 src/lib/router-settled.ts
+
+# Turn S6-1 (sage-s6-1-dialog-look, ruling 7): unused shadcn primitives retired; their packages
+# stay for a later package turn, and CF-OV-4 refuses any file that reaches them.
+src/components/ui/command.tsx
+src/components/ui/hover-card.tsx
+src/components/ui/context-menu.tsx
+src/components/ui/menubar.tsx
+src/components/ui/navigation-menu.tsx
+src/components/ui/sidebar.tsx
+src/components/ui/drawer.tsx
+src/components/ui/select.tsx

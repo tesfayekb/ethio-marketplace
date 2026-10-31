@@ -155,10 +155,7 @@ export function BackgroundDialog({
         if (!open && phase !== "saving") onCancel();
       }}
     >
-      <DialogContent
-        data-testid="post-photo-background-dialog"
-        className="max-h-[95vh] overflow-y-auto"
-      >
+      <DialogContent data-testid="post-photo-background-dialog">
         <DialogHeader>
           <DialogTitle>{t("post.photos.background")}</DialogTitle>
           <DialogDescription>{t("post.photos.background.hint")}</DialogDescription>
@@ -200,7 +197,7 @@ export function BackgroundDialog({
           </div>
         )}
 
-        <DialogFooter className="gap-2">
+        <DialogFooter>
           <button
             type="button"
             data-testid="post-photo-background-cancel"

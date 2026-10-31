@@ -7,6 +7,24 @@ import { X } from "lucide-react";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { NoticeOutlet } from "./notice-outlet";
+import {
+  DIALOG_CLOSE,
+  DIALOG_FIT,
+  DIALOG_FOOTER,
+  DIALOG_GRABBER,
+  DIALOG_HEADER,
+  DIALOG_LAYER,
+  DIALOG_PANEL,
+  DIALOG_PHONE,
+  DIALOG_SCRIM,
+  DIALOG_SIZE,
+  DIALOG_TEXT,
+  DIALOG_TITLE,
+  type DialogFit,
+  type DialogLayer,
+  type DialogPhone,
+  type DialogSize,
+} from "./dialog-look";
 
 const Dialog = DialogPrimitive.Root;
 
@@ -22,63 +40,86 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className,
-    )}
+    className={cn(DIALOG_SCRIM, DIALOG_LAYER.modal, className)}
     {...props}
   />
 ));
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-/**
- * U4i-6 (a) — STACKING LAW (INC-124). Every dialog in this app paints at
- * `z-50`, so the layer that wins is whichever portal mounted LAST — an
- * accident, not a rule. Sensitive-action step-up must ALWAYS own the top
- * layer, so the primitive exposes `overlayClassName` and honours `className`
- * on the content: the step-up gate passes the dedicated top layer
- * (`z-[100]`/`z-[101]`) and nothing else may use it.
- */
+type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  /** narrow 24rem, default 32rem, wide 56rem — never wider than the screen less 16 px a side. */
+  size?: DialogSize;
+  /** bounded: as tall as the content, scrolling inside; fill: a tall panel for a map. */
+  fit?: DialogFit;
+  /** Below md: float (the centred card) or sheet (docked to the bottom, with the grabber). */
+  phone?: DialogPhone;
+  /** U4i-6 (a), INC-124 — the STACKING LAW: every dialog paints on `modal`; the sensitive-action
+   *  step-up alone takes `top`, so it always owns the top layer whatever mounted last. */
+  layer?: DialogLayer;
+  /** The close button's test id, for a surface whose tests press it. */
+  closeTestId?: string;
+};
+
+/** Turn S6-1 — the one dialog panel (dialog-look.ts); the consumer chooses variants, never a look. */
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { overlayClassName?: string }
->(({ className, overlayClassName, children, ...props }, ref) => {
-  const { t } = useI18n();
-  return (
-    <DialogPortal>
-      <DialogOverlay className={overlayClassName} />
-      <DialogPrimitive.Content
-        ref={ref}
-        className={cn(
-          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 sm:rounded-lg",
-          className,
-        )}
-        {...props}
-      >
-        {children}
-        {/* INC-955 — the shell's notices are drawn here while this dialog is open. */}
-        <NoticeOutlet />
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background cursor-pointer transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-          <X className="h-4 w-4" />
-          {/* D1 — screen-reader text is user-visible text. */}
-          <span className="sr-only">{t("common.close")}</span>
-        </DialogPrimitive.Close>
-      </DialogPrimitive.Content>
-    </DialogPortal>
-  );
-});
+  DialogContentProps
+>(
+  (
+    {
+      className,
+      size = "default",
+      fit = "bounded",
+      phone = "float",
+      layer = "modal",
+      closeTestId,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
+    const { t } = useI18n();
+    return (
+      <DialogPortal>
+        <DialogOverlay className={DIALOG_LAYER[layer]} />
+        <DialogPrimitive.Content
+          ref={ref}
+          data-dialog-panel=""
+          className={cn(
+            DIALOG_PANEL,
+            DIALOG_LAYER[layer],
+            DIALOG_SIZE[size],
+            DIALOG_FIT[fit],
+            DIALOG_PHONE[phone],
+            className,
+          )}
+          {...props}
+        >
+          {phone === "sheet" ? (
+            <div aria-hidden="true" className={cn(DIALOG_GRABBER, "md:hidden")} />
+          ) : null}
+          {children}
+          {/* INC-955 — the shell's notices are drawn here while this dialog is open. */}
+          <NoticeOutlet />
+          <DialogPrimitive.Close data-testid={closeTestId} className={DIALOG_CLOSE}>
+            <X aria-hidden="true" />
+            {/* D1 — screen-reader text is user-visible text. */}
+            <span className="sr-only">{t("common.close")}</span>
+          </DialogPrimitive.Close>
+        </DialogPrimitive.Content>
+      </DialogPortal>
+    );
+  },
+);
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 text-center sm:text-left", className)} {...props} />
+  <div className={cn(DIALOG_HEADER, className)} {...props} />
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)}
-    {...props}
-  />
+  <div className={cn(DIALOG_FOOTER, className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 
@@ -86,11 +127,7 @@ const DialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
-    {...props}
-  />
+  <DialogPrimitive.Title ref={ref} className={cn(DIALOG_TITLE, className)} {...props} />
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
@@ -98,11 +135,7 @@ const DialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
-    {...props}
-  />
+  <DialogPrimitive.Description ref={ref} className={cn(DIALOG_TEXT, className)} {...props} />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 
