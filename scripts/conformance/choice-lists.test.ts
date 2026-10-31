@@ -36,6 +36,7 @@ const PANEL_PARTS = new Set([...FACADE_PANELS, "PopoverContent"]);
 const OWN_ROW = /(?:^|\s)(?:py-|px-|min-h-|h-\d|rounded-)\S*/;
 const OWN_PANEL = /(?:^|\s)(?:border(?=\s|$)|(?:border-|shadow-|rounded-|p-\d|bg-|zoom-)\S*)/;
 const OWN_HEIGHT = /(?:^|\s)max-h-\S*/;
+const OWN_PICKER_GEOMETRY = /(?:^|\s)(?:(?:min-|max-)?w-|start-|end-|left-|right-)\S*/;
 export const OWNERS: Record<string, RegExp> = {
   "src/components/ui/dropdown-menu-impl.tsx":
     /\bLIST_PANEL\b[\s\S]*\bLIST_ROW\b|\bLIST_ROW\b[\s\S]*\bLIST_PANEL\b/,
@@ -68,9 +69,13 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
     const walk = (node: ts.Node) => {
       if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
         const tag = node.tagName.getText(source).replace(/^.*\./, "");
-        const cls = (attr(node, "className", source) ?? "").replace(/[`"'{}()]/g, " ");
+        const cls = (attr(node, "className", source) ?? "").replace(/[`"'{}]/g, " ");
         const role = (attr(node, "role", source) ?? "").replace(/["'{}]/g, "");
         const offset = attr(node, "sideOffset", source);
+        if (/\bpickerPopClass\b/.test(cls)) {
+          const own = cls.match(OWN_PICKER_GEOMETRY);
+          if (own) push(node, "picker", `own picker width or side class "${own[0].trim()}"`);
+        }
         if (offset !== null && /\d/.test(offset) && !/^\{?\s*0\s*\}?$/.test(offset))
           push(node, tag, `sideOffset ${offset} leaves a gap (D264)`);
         if (tag === "select") push(node, "select", "a native list the device draws");
@@ -250,5 +255,25 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
       { name: "src/components/ui/popover.tsx", text: "const x = 1;" },
     ]);
     expect(report(findings)).toContain("owner");
+  });
+
+  it("CL-7: a picker list's own width or side fails; shared geometry passes", () => {
+    for (const own of ["w-72", "w-full", "max-w-[calc(100vw-2rem)]", "start-0", "end-0"]) {
+      const { findings } = listFindings([
+        {
+          name: "src/x.tsx",
+          text: `const a = <div className={\`\${pickerPopClass(placement)} ${own}\`} />;`,
+        },
+      ]);
+      expect(report(findings)).toContain(`own picker width or side class "${own}"`);
+    }
+    expect(
+      listFindings([
+        {
+          name: "src/x.tsx",
+          text: `const a = <ul role="listbox" className={\`\${pickerPopClass(placement)} max-h-64 overflow-y-auto\`} />;`,
+        },
+      ]).findings,
+    ).toEqual([]);
   });
 });

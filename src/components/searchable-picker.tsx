@@ -9,6 +9,7 @@ import {
   LIST_ROW_HIGHLIGHT,
   LIST_SURFACE,
   LIST_TICK,
+  OPEN_CONTROL,
 } from "@/components/shell/menu-row";
 
 /**
@@ -31,10 +32,28 @@ export function usePickerPlacement(
   const [placement, setPlacement] = useState<PickerPlacement>("down");
   useEffect(() => {
     if (!open) return;
+    const anchor = anchorRef.current;
+    if (anchor === null) return;
     const place = () => {
-      const anchor = anchorRef.current;
-      if (anchor === null) return;
       const rect = anchor.getBoundingClientRect();
+      // The existing anchor is the currency input or the whole phone field. The
+      // picker owns both its list geometry and the control's open state (F3).
+      const scope = anchor.matches("input") ? anchor.parentElement : anchor;
+      const panel = scope?.querySelector<HTMLElement>("[data-placement]");
+      const control = anchor.matches("input")
+        ? anchor
+        : anchor.querySelector<HTMLElement>('[aria-haspopup="listbox"]');
+      if (control !== null) {
+        control.classList.add(...OPEN_CONTROL.split(" "));
+        control.dataset.state = "open";
+      }
+      if (panel !== null && panel !== undefined) {
+        const rtl = window.getComputedStyle(anchor).direction === "rtl";
+        const geometry = pickerGeometry(rect, panel.scrollWidth, window.innerWidth, rtl);
+        panel.dataset.align = geometry.align;
+        panel.style.setProperty("--picker-min-width", `${geometry.anchorWidth}px`);
+        panel.style.setProperty("--picker-max-width", `${geometry.availableWidth}px`);
+      }
       const bar = document.querySelector<HTMLElement>('[data-testid="form-layout-actions"]');
       const barTop =
         bar !== null && window.getComputedStyle(bar).position === "sticky"
@@ -54,7 +73,13 @@ export function usePickerPlacement(
     };
     place();
     window.addEventListener("resize", place);
-    return () => window.removeEventListener("resize", place);
+    return () => {
+      window.removeEventListener("resize", place);
+      const control = anchor.matches("input")
+        ? anchor
+        : anchor.querySelector<HTMLElement>('[aria-haspopup="listbox"]');
+      if (control !== null && control !== undefined) control.dataset.state = "closed";
+    };
   }, [anchorRef, open, rowCount]);
   return placement;
 }
@@ -101,7 +126,26 @@ export function usePickerKeys({
 /** The class a picker's list box opens with, for its placement: against the box's edge
  *  (no gap, D264), on the open list's one surface. */
 export function pickerPopClass(placement: PickerPlacement): string {
-  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE}`;
+  return `absolute ${Z_POPOVER} ${placement === "up" ? "bottom-full" : "top-full"} ${LIST_SURFACE} w-max min-w-[var(--picker-min-width,100%)] max-w-[var(--picker-max-width,calc(100vw-2rem))] data-[align=start]:start-0 data-[align=end]:end-0`;
+}
+
+/** F3 — one horizontal rule, logical start first, end when start crosses the gutter. */
+export function pickerGeometry(
+  rect: Pick<DOMRect, "left" | "right" | "width">,
+  contentWidth: number,
+  viewportWidth: number,
+  rtl = false,
+): { align: "start" | "end"; anchorWidth: number; availableWidth: number } {
+  const gutter = 16;
+  const startRoom = rtl ? rect.right - gutter : viewportWidth - gutter - rect.left;
+  const endRoom = rtl ? viewportWidth - gutter - rect.left : rect.right - gutter;
+  const width = Math.min(Math.max(rect.width, contentWidth), viewportWidth - gutter * 2);
+  const align = width <= startRoom ? "start" : "end";
+  return {
+    align,
+    anchorWidth: rect.width,
+    availableWidth: Math.min(viewportWidth - gutter * 2, align === "start" ? startRoom : endRoom),
+  };
 }
 
 /** One option row: 44px tall, highlighted by the keyboard, never stealing focus. */

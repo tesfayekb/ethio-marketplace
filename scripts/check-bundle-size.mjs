@@ -29,7 +29,7 @@ import {
   routePreloads,
   staticClosure,
 } from "./bundle-closure.mjs";
-import { nearFindings } from "./budget-band.mjs";
+import { judgedSize, exceedsCeiling, nearFindings } from "./budget-band.mjs";
 import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB } from "./route-budgets.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
@@ -175,9 +175,9 @@ let failed = false;
 for (const kind of ["js", "css"]) {
   const used = totals[kind] / 1024;
   const budget = BUDGET_KIB[kind];
-  const verdict = used > budget ? "OVER BUDGET" : "ok";
+  const verdict = exceedsCeiling(used, budget) ? "OVER BUDGET" : "ok";
   console.log(`${kind.toUpperCase()}: ${used.toFixed(1)} KiB / ${budget} KiB — ${verdict}`);
-  if (used > budget) failed = true;
+  if (exceedsCeiling(used, budget)) failed = true;
 }
 
 if (failed) {
@@ -211,12 +211,14 @@ const { rows, failures } = judgeRouteBudgets({
     carriedViolation(closure, (name) => readFileSync(join(assetsDir, name), "utf8")),
   measure: (id) => {
     const closure = staticClosure(assetsDir, routePreloads(routes, id));
-    return { kib: closure.reduce((sum, name) => sum + gz(name), 0) / 1024, closure };
+    return { kib: judgedSize(closure.reduce((sum, name) => sum + gz(name), 0) / 1024), closure };
   },
 });
 console.log("\nPer-page first download (entry + the page's chunks, gzipped):");
 for (const { id, kib, ceiling } of rows) {
-  console.log(`  ${kib.toFixed(1).padStart(7)} / ${String(ceiling).padStart(3)} KiB  ${id}`);
+  console.log(
+    `  ${(kib - judgedSize(0)).toFixed(1).padStart(7)} / ${String(ceiling).padStart(3)} KiB  ${id}`,
+  );
 }
 if (failures.length > 0) {
   console.error("\nPer-page budget failed (D234):");
@@ -238,7 +240,7 @@ const near = nearFindings([
     kib: totals[kind] / 1024,
     ceiling: BUDGET_KIB[kind],
   })),
-  ...rows.map(({ id, kib, ceiling }) => ({ label: id, kib, ceiling })),
+  ...rows.map(({ id, kib, ceiling }) => ({ label: id, kib: kib - judgedSize(0), ceiling })),
 ]);
 if (near.length > 0) {
   console.error("\nNEAR band failed (DEC-296):");

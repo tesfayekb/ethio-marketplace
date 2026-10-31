@@ -3,7 +3,13 @@ import { fireEvent, render, screen } from "@testing-library/react";
 
 import { chosenFirst } from "@/lib/chosen-first";
 
-import { PickerOption, usePickerKeys } from "./searchable-picker";
+import { useRef } from "react";
+import {
+  PickerOption,
+  pickerGeometry,
+  usePickerKeys,
+  usePickerPlacement,
+} from "./searchable-picker";
 
 function Box({
   count,
@@ -72,5 +78,48 @@ describe("bundle 7 B2 — the current choice is first and marked", () => {
     expect(chosenFirst(["x", "y"], "z", same)).toEqual(["z", "x", "y"]);
     expect(chosenFirst(["x", "z", "y"], "z", same)).toEqual(["z", "x", "y"]);
     expect(chosenFirst(["x"], null, same)).toEqual(["x"]);
+  });
+});
+
+describe("F3 shared picker horizontal placement", () => {
+  it("uses the control's start when its content fits the 16px gutter", () => {
+    expect(pickerGeometry({ left: 32, right: 232, width: 200 }, 240, 360)).toEqual({
+      align: "start",
+      anchorWidth: 200,
+      availableWidth: 312,
+    });
+  });
+
+  it("opens from the phone-code control's end when start would cross the gutter", () => {
+    expect(pickerGeometry({ left: 70, right: 166, width: 96 }, 288, 360)).toEqual({
+      align: "end",
+      anchorWidth: 96,
+      availableWidth: 150,
+    });
+  });
+
+  it("uses logical edges in RTL and caps width to the viewport less 32px", () => {
+    expect(pickerGeometry({ left: 194, right: 290, width: 96 }, 400, 360, true)).toEqual({
+      align: "end",
+      anchorWidth: 96,
+      availableWidth: 150,
+    });
+  });
+
+  it("the placement mechanism exposes open and closed state on its owned control", () => {
+    function OwnedPicker({ open }: { open: boolean }) {
+      const ref = useRef<HTMLDivElement>(null);
+      const placement = usePickerPlacement(ref, open, 2);
+      return (
+        <div ref={ref}>
+          <button aria-haspopup="listbox" data-testid="owned-control" />
+          {open && <div data-placement={placement} />}
+        </div>
+      );
+    }
+    const { rerender } = render(<OwnedPicker open />);
+    expect(screen.getByTestId("owned-control")).toHaveAttribute("data-state", "open");
+    rerender(<OwnedPicker open={false} />);
+    expect(screen.getByTestId("owned-control")).toHaveAttribute("data-state", "closed");
   });
 });
