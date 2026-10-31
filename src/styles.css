@@ -128,6 +128,8 @@
   /* D264 (turn F): an open list's panel (14 px) and its rows (10 px), Sage §14. */
   --radius-menu: 0.875rem;
   --radius-list-row: 0.625rem;
+  /* Turn S6-1: a dialog's and a sheet's panel (20 px), Sage §14. */
+  --radius-dialog: 1.25rem;
   /*
    * Typography (DEC-262, Foundations turn 33): the device's own fonts — no page
    * downloads a font. Latin and the interface take the platform's UI face (San
@@ -203,6 +205,7 @@
   /* Sage 3D (turn SAGE-S0): new surfaces, the tier set and the D260 band set. */
   --color-hairline: var(--hairline);
   --color-field: var(--field);
+  --color-scrim: var(--scrim);
   --color-track: var(--track);
   --color-photo-empty: var(--photo-empty);
   --color-leaf-ink: var(--leaf-ink);
@@ -259,6 +262,9 @@
   --shadow-track: var(--lift-track);
   --shadow-segment: var(--lift-segment);
   --shadow-menu: var(--lift-menu);
+  --shadow-dialog: var(--lift-dialog);
+  --shadow-rule-top: var(--lift-rule-top);
+  --shadow-choice-on: var(--lift-choice-on);
   --shadow-badge: var(--lift-badge);
   --shadow-premium: var(--lift-premium);
   --shadow-featured: var(--lift-featured);
@@ -384,6 +390,14 @@
   --lift-menu:
     0 0 0 1px oklch(0.915 0.014 155.6), 0 4px 12px oklch(0.337 0.055 163.4 / 0.12),
     0 16px 32px -12px oklch(0.337 0.055 163.4 / 0.2);
+  /* Turn S6-1 (Sage §14): the dialog's ring is its shadow's first layer, like the open list's;
+     the footer's divider; a chosen choice row's ring in --primary. */
+  --lift-dialog:
+    0 0 0 1px oklch(0.915 0.014 155.6), 0 4px 12px oklch(0.337 0.055 163.4 / 0.12),
+    0 28px 60px -12px oklch(0.337 0.055 163.4 / 0.45);
+  --lift-rule-top: inset 0 1px 0 oklch(0.929 0.012 153.7);
+  --lift-choice-on: inset 0 0 0 1.5px oklch(0.422 0.073 164.4);
+  --scrim: oklch(0.254 0.036 164.6 / 0.55); /* rgba(16 40 30 / 0.55) — behind a dialog or sheet */
   --lift-segment:
     0 1px 2px oklch(0.337 0.055 163.4 / 0.2), 0 3px 8px oklch(0.337 0.055 163.4 / 0.1),
     inset 0 -1px 0 oklch(0.337 0.055 163.4 / 0.06);
@@ -526,6 +540,12 @@
   --lift-menu:
     0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4),
     0 16px 32px -12px oklch(0 0 0 / 0.55);
+  --lift-dialog:
+    0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4),
+    0 28px 60px -12px oklch(0 0 0 / 0.75);
+  --lift-rule-top: inset 0 1px 0 oklch(0.305 0.018 161.2);
+  --lift-choice-on: inset 0 0 0 1.5px oklch(0.777 0.09 162.9);
+  --scrim: oklch(0 0 0 / 0.62);
   --lift-card:
     0 0 0 1px oklch(0.417 0.02 167.6), 0 2px 8px oklch(0 0 0 / 0.35); /* edge #42504A, candidate C */
   --lift-badge:
