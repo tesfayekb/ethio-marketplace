@@ -191,6 +191,17 @@ for (const width of WIDTHS) {
           await tokenStyle(page, mode, "lift-segment", "box-shadow"),
         );
         expect(await style(tab, "color")).toBe(await tokenStyle(page, mode, "nav-ink", "color"));
+        // Establish a real chosen location: a fresh device need not have a country yet.
+        const codes = await openMarketCodes({ realOnly: true });
+        const code = codes[0];
+        if (!code) throw new Error("SGB-5 no open market");
+        const answer = await page.request.get("/api/locations");
+        expect(answer.status()).toBe(200);
+        const markets = (await answer.json()) as { countries: { code: string; name_en: string }[] };
+        const market = markets.countries.find((row) => row.code === code);
+        if (!market) throw new Error("SGB-5 selected market absent");
+        await page.getByTestId("location-level-country").click();
+        await page.getByRole("menuitem", { name: market.name_en, exact: true }).click();
         await expect(page.getByTestId("location-level-country")).toHaveAttribute(
           "data-location-raised",
           "true",
