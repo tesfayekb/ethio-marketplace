@@ -57,7 +57,9 @@
 
 ## 10. Checks
 
-See the appended lines below.
+- `bun run checks` once on the final tree, run whole, with no TURN_BASE set. The laws step read its base from the brief's `Base: dev e1e736df` (TC-E5's path, live).
+- **15 PASS · 0 FAIL · 2 NOT RUN** (both Install dependencies: the sandbox's dependencies are already installed). It ran through all three laws steps, then build-and-check through "Root route names". The 590 s limit ended the run at component tests, so it printed no fast line and no last line.
+- slow steps: not finished — CI judges.
 
 ## 11. git diff --name-only e1e736df
 
