@@ -1,6 +1,6 @@
 import { CutText } from "@/components/ui/cut-text";
 import * as DialogPrimitive from "@/components/ui/dialog-primitive";
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight, House, LogOut, Star, type LucideIcon } from "lucide-react";
 import {
   createContext,
