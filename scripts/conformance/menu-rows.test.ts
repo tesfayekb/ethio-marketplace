@@ -205,7 +205,7 @@ export function railHeaderFindings(text: string): Finding[] {
   const code = codeOf(text);
   return /from "@\/components\/shell\/band-row"/.test(text) &&
     /\bRAIL_HEADER\b/.test(code) &&
-    !/BAND_LOOK\.row|bg-sidebar|shadow-groove/.test(code)
+    !/BAND_LOOK\.row|bg-sidebar(?:[\s"`])|shadow-groove/.test(code)
     ? []
     : [
         {
