@@ -27,7 +27,8 @@ export function changedTestFolders(files: string[], testsIn: (dir: string) => st
 export function semgrepPins(ciYaml: string): { version: string; rules: string } {
   const version = /SEMGREP_VERSION:\s*"?([\d.]+)"?/.exec(ciYaml)?.[1];
   const rules = /SEMGREP_RULES_SHA:\s*([0-9a-f]{40})/.exec(ciYaml)?.[1];
-  if (version === undefined || rules === undefined) throw new Error("ci.yml: Semgrep pins not found");
+  if (version === undefined || rules === undefined)
+    throw new Error("ci.yml: Semgrep pins not found");
   return { version, rules };
 }
 
@@ -69,12 +70,27 @@ export function check(mode: string): number {
     const dir = join("/tmp", `semgrep-rules-${rules}`);
     if (!existsSync(join(dir, "javascript"))) {
       if (run("git", ["init", "--quiet", dir]) !== 0) return 1;
-      run("git", ["-C", dir, "remote", "add", "origin", "https://github.com/semgrep/semgrep-rules"]);
-      if (run("git", ["-C", dir, "fetch", "--quiet", "--depth", "1", "origin", rules]) !== 0) return 1;
+      run("git", [
+        "-C",
+        dir,
+        "remote",
+        "add",
+        "origin",
+        "https://github.com/semgrep/semgrep-rules",
+      ]);
+      if (run("git", ["-C", dir, "fetch", "--quiet", "--depth", "1", "origin", rules]) !== 0)
+        return 1;
       if (run("git", ["-C", dir, "checkout", "--quiet", rules]) !== 0) return 1;
     }
-    return run("uvx", [
-      `semgrep==${version}`,
+    // CI's pinned version, in its own venv (pip, as CI installs it).
+    const venv = join("/tmp", `semgrep-${version}`);
+    const bin = join(venv, "bin", "semgrep");
+    if (!existsSync(bin)) {
+      if (run("python3", ["-m", "venv", venv]) !== 0) return 1;
+      if (run(join(venv, "bin", "pip"), ["install", "--quiet", `semgrep==${version}`]) !== 0)
+        return 1;
+    }
+    return run(bin, [
       "scan",
       "--metrics=off",
       "--disable-version-check",
