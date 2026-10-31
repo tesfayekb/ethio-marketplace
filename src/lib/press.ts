@@ -64,6 +64,14 @@ export function installPress(doc: Document = document): () => void {
     mark(pressTarget(e.target));
   };
 
+  // Focus leaving the pressed element ends its press; a press that moves focus away from
+  // another element (the one focused before) keeps its own mark.
+  const onFocusOut = (event: Event) => {
+    if (pressed === null) return;
+    const from = event.target;
+    if (from instanceof Node && (from === pressed || pressed.contains(from))) clear();
+  };
+
   const listeners: Array<[string, (event: Event) => void]> = [
     ["pointerdown", onDown],
     ["pointermove", onMove],
@@ -72,7 +80,7 @@ export function installPress(doc: Document = document): () => void {
     ["keydown", onKeyDown],
     ["keyup", clear],
     ["scroll", clear],
-    ["focusout", clear],
+    ["focusout", onFocusOut],
     ["dragstart", clear],
   ];
   for (const [name, fn] of listeners)

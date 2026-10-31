@@ -128,10 +128,7 @@ for (const mode of MODES) {
         [
           {
             name: "menu row",
-            target: page
-              .getByTestId("app-rail")
-              .locator(':is(a,button)[class*="ps-[var(--rail-pad)]"]:visible')
-              .first(),
+            target: page.locator(':is(a,button)[class*="ps-[var(--rail-pad)]"]:visible').first(),
             inkCheck: true,
           },
           {

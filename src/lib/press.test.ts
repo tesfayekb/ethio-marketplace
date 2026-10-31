@@ -49,6 +49,12 @@ describe("press.ts (D263/D270, turn C1)", () => {
     }
   });
 
+  it("PR-U3b: focus leaving another element (the one focused before) keeps the new press", () => {
+    fire($("link"), "pointerdown", { button: 0, clientX: 0, clientY: 0 });
+    fire($("btn"), "focusout");
+    expect($("link").hasAttribute("data-pressed")).toBe(true);
+  });
+
   it("PR-U4: one mark at a time; a press on plain text marks nothing", () => {
     fire($("btn"), "pointerdown", { button: 0, clientX: 0, clientY: 0 });
     fire($("link"), "pointerdown", { button: 0, clientX: 0, clientY: 0 });
