@@ -127,13 +127,7 @@ for (const width of WIDTHS) {
 
       test(`CL-E1 the language list (${width}, ${mode})`, async ({ page }) => {
         const control = page.locator('[data-testid="language-switcher"]:visible').first();
-        await judge(
-          page,
-          control,
-          page.getByRole("menu"),
-          page.getByRole("menuitemradio"),
-          width,
-        );
+        await judge(page, control, page.getByRole("menu"), page.getByRole("menuitemradio"), width);
       });
 
       test(`CL-E2 the location list (${width}, ${mode})`, async ({ page }) => {
@@ -147,7 +141,13 @@ for (const width of WIDTHS) {
         await gotoReady(page, "/");
         const account = page.locator('[data-testid="account-menu"]:visible');
         if ((await account.count()) > 0)
-          await judge(page, account.first(), page.getByRole("menu"), page.getByRole("menuitem"), width);
+          await judge(
+            page,
+            account.first(),
+            page.getByRole("menu"),
+            page.getByRole("menuitem"),
+            width,
+          );
         if (width >= 768) {
           const switcher = page.locator('[data-testid="panel-header-switcher"]:visible').first();
           await judge(page, switcher, page.getByRole("menu"), page.getByRole("menuitem"), width);
