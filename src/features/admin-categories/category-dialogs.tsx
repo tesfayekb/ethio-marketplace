@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { FormField } from "@/components/shell/form-section";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,6 +18,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { doorKeyText } from "@/lib/refusal-tail";
 import { useSettling } from "@/lib/use-settling";
+import { cn } from "@/lib/utils";
 
 import { suggestCategoryIcon } from "./category-images-service";
 import {
@@ -614,7 +616,7 @@ export function CategoryExclusionsDialog({
         {countries.map((country) => (
           <label
             key={country.code}
-            className="flex min-h-11 items-center gap-2 text-sm text-foreground"
+            className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
           >
             <Checkbox
               data-testid={`category-exclusion-${country.code}`}

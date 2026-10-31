@@ -6,6 +6,7 @@ import { TableActionButton } from "@/components/shell/table-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -193,7 +194,7 @@ export function ListingSettings({
                 {problem}
               </p>
             ) : null}
-            <div className="flex flex-wrap justify-end gap-2">
+            <DialogFooter>
               <Button
                 type="button"
                 variant="outline"
@@ -213,7 +214,7 @@ export function ListingSettings({
               >
                 {t("admin.listings.settings.save")}
               </Button>
-            </div>
+            </DialogFooter>
           </div>
         </CategoryModal>
       ) : null}

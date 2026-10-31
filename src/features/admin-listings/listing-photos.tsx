@@ -5,6 +5,7 @@ import { useState } from "react";
 import { refreshAfterWrite } from "@/lib/refresh-after-write";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import {
   allowListingPhoto,
@@ -351,7 +352,7 @@ function RemoveDialog({
             {problem !== null ? t(problem) : refusal}
           </p>
         ) : null}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -379,7 +380,7 @@ function RemoveDialog({
           >
             {t("admin.listings.photos.confirm")}
           </Button>
-        </div>
+        </DialogFooter>
       </div>
     </CategoryModal>
   );

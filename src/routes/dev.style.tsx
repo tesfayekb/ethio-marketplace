@@ -7,13 +7,28 @@ import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
 import { FilterChoices } from "@/components/shell/filter-choices";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { RowActions } from "@/components/shell/row-actions";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
@@ -24,10 +39,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { IconButton, type IconButtonTone } from "@/components/ui/icon-button";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
+import { useI18n } from "@/i18n";
 import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import type { ThemeName } from "@/lib/theme-resolver";
 import type { THEMES } from "@/lib/themes";
+import { cn } from "@/lib/utils";
+
+const SPECIMEN_REASONS = ["spam", "scam", "copyright"] as const;
 
 /**
  * BUNDLE 9 A3 — THE HOUSE-STYLE FIXTURE.
@@ -257,6 +287,89 @@ const COLOUR_LABEL = "Colour";
 const SIZE_LABEL = "Size";
 const ANY = "Any";
 
+/** Turn S6-1 (ruling 13) — a dialog, an alert dialog and two sheets in the one look, drawn
+ *  from existing keys; e2e/dialogs.spec.ts measures them. */
+function DialogSpecimens() {
+  const { t } = useI18n();
+  return (
+    <>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline" data-testid="style-dialog-open">
+            {t("adPage.report.open")}
+          </Button>
+        </DialogTrigger>
+        <DialogContent data-testid="style-dialog" closeTestId="style-dialog-close">
+          <DialogHeader>
+            <DialogTitle>{t("adPage.report.open")}</DialogTitle>
+            <DialogDescription>{t("adPage.report.question")}</DialogDescription>
+          </DialogHeader>
+          <RadioGroup defaultValue="spam" className="gap-1">
+            {SPECIMEN_REASONS.map((reason) => (
+              <label
+                key={reason}
+                data-testid={`style-dialog-choice-${reason}`}
+                className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
+              >
+                <RadioGroupItem value={reason} />
+                <span>{t(`adPage.report.reason.${reason}`)}</span>
+              </label>
+            ))}
+          </RadioGroup>
+          <Textarea data-testid="style-dialog-field" aria-label={t("adPage.report.note")} />
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" size="touch">
+                {t("common.cancel")}
+              </Button>
+            </DialogClose>
+            <Button size="touch">{t("adPage.report.send")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button variant="destructive" data-testid="style-alert-open">
+            {t("myListings.action.delete")}
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent data-testid="style-alert">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("myListings.confirm.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("myListings.confirm.deleteBody")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction tone="destructive">
+              {t("myListings.action.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      {(["end", "bottom"] as const).map((side) => (
+        <Sheet key={side}>
+          <SheetTrigger asChild>
+            <Button variant="outline" data-testid={`style-sheet-${side}-open`}>
+              {t(side === "end" ? "adPage.share.open" : "adPage.share.qr")}
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side={side}
+            data-testid={`style-sheet-${side}`}
+            closeTestId={`style-sheet-${side}-close`}
+          >
+            <SheetHeader>
+              <SheetTitle>{t("adPage.share.title")}</SheetTitle>
+              <SheetDescription>{t("adPage.share.qrHint")}</SheetDescription>
+            </SheetHeader>
+            <Input data-testid={`style-sheet-${side}-field`} aria-label={t("adPage.share.title")} />
+          </SheetContent>
+        </Sheet>
+      ))}
+    </>
+  );
+}
+
 function StyleFixture() {
   const [last, setLast] = useState("");
   const [offset, setOffset] = useState(0);
@@ -337,15 +450,7 @@ function StyleFixture() {
                 <DropdownMenuItem>{"Second item"}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline">{"Dialog"}</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogTitle>{"Dialog"}</DialogTitle>
-                <DialogDescription>{"A dialog carries the large shadow."}</DialogDescription>
-              </DialogContent>
-            </Dialog>
+            <DialogSpecimens />
           </div>
         </Section>
 

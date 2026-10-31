@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   AlertDialog,
   AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
   AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogCancel,
@@ -347,10 +349,15 @@ export function LegalEditorForm({
           ) : null}
           <AlertDialog open={discarding} onOpenChange={setDiscarding}>
             <AlertDialogContent>
-              <AlertDialogTitle>{t("admin.legal.discardTitle")}</AlertDialogTitle>
-              <AlertDialogDescription>{t("admin.legal.discardBody")}</AlertDialogDescription>
-              <div className="flex flex-wrap gap-2">
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("admin.legal.discardTitle")}</AlertDialogTitle>
+                <AlertDialogDescription>{t("admin.legal.discardBody")}</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                 <Button
+                  variant="destructive"
+                  size="touch"
                   data-testid="legal-discard-confirm"
                   disabled={writes.discard.isPending}
                   onClick={() => {
@@ -365,8 +372,7 @@ export function LegalEditorForm({
                 >
                   {t("admin.legal.action.discardDraft")}
                 </Button>
-                <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
-              </div>
+              </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           {publishing && savedId ? (

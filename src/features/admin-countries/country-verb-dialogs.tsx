@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -226,7 +227,7 @@ export function CountryRailOrderDialog({
       </ol>
 
       <CountryErrorLine refusal={refusal} testid="country-verb-error" />
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <DialogFooter>
         <Button
           type="button"
           variant="outline"
@@ -246,7 +247,7 @@ export function CountryRailOrderDialog({
         >
           {t("admin.countries.rail.submit")}
         </Button>
-      </div>
+      </DialogFooter>
     </CategoryModal>
   );
 }
