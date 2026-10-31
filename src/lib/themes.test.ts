@@ -17,12 +17,21 @@ const css = readFileSync(resolve(__dirname, "..", "styles.css"), "utf8").replace
   "",
 );
 
+/** One CSS value whatever its wrapping: whitespace collapsed, none just inside parentheses. */
+export function cssValue(raw: string): string {
+  return raw
+    .replace(/\s+/g, " ")
+    .replace(/\(\s+/g, "(")
+    .replace(/\s+\)/g, ")")
+    .trim();
+}
+
 function block(selector: string): Map<string, string> {
   const start = css.indexOf(`${selector} {`);
   const body = css.slice(start, css.indexOf("\n}", start));
   const out = new Map<string, string>();
   for (const [, name, value] of body.matchAll(/--([\w-]+)\s*:\s*([^;]+);/g))
-    if (name && value) out.set(name, value.replace(/\s+/g, " ").trim());
+    if (name && value) out.set(name, cssValue(value));
   return out;
 }
 
@@ -43,6 +52,10 @@ describe("THEMES", () => {
     const sheet = block(selector);
     for (const name of NOT_THEME) sheet.delete(name);
     expect(Object.fromEntries(sheet)).toEqual(THEMES.sage[mode]);
+  });
+
+  it("TH-2b a value Prettier wraps onto three lines reads as the same CSS value", () => {
+    expect(cssValue("oklch(\n    0.305 0.032 78\n  )")).toBe("oklch(0.305 0.032 78)");
   });
 
   it("TH-4 the retired selected tint is absent and rejected", () => {
