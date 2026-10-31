@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { FormField } from "@/components/shell/form-section";
-import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
@@ -79,18 +84,11 @@ export function CategoryModal({
         if (!next) onClose();
       }}
     >
-      <DialogContent
-        data-testid={testid}
-        data-opened-by={openedBy}
-        className="block w-[min(32rem,calc(100vw-1.5rem))] max-w-lg border-0 bg-transparent p-0 shadow-none"
-      >
-        <DialogTitle asChild>
-          <h2 className="sr-only">{title}</h2>
-        </DialogTitle>
-        <PageCard className="max-h-[80vh] w-full space-y-3 overflow-y-auto">
-          <p className="text-base font-semibold text-foreground">{title}</p>
-          {children}
-        </PageCard>
+      <DialogContent data-testid={testid} data-opened-by={openedBy}>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        <div className="min-w-0 space-y-3">{children}</div>
       </DialogContent>
     </Dialog>
   );
@@ -449,7 +447,7 @@ function DialogActions({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <DialogFooter>
       <Button
         type="button"
         variant="outline"
@@ -469,7 +467,7 @@ function DialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </div>
+    </DialogFooter>
   );
 }
 

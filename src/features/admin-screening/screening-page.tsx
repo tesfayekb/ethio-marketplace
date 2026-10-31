@@ -671,9 +671,7 @@ export function AdminScreeningPage({
                       : t("admin.screening.confirmApprove")}
                 </AlertDialogTitle>
                 <AlertDialogFooter>
-                  <AlertDialogCancel disabled={busy} className="min-h-11">
-                    {t("common.cancel")}
-                  </AlertDialogCancel>
+                  <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
                   <Button
                     type="button"
                     variant={decision?.next === "rejected" ? "destructive" : "default"}

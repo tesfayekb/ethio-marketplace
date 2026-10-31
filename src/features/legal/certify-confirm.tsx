@@ -73,7 +73,7 @@ export function CertifyConfirm({
               <CertifyBlock listingId={listingId} onChange={setCertify} tried={tried} />
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel className="min-h-11" data-testid="certify-confirm-cancel">
+              <AlertDialogCancel data-testid="certify-confirm-cancel">
                 {t("common.cancel")}
               </AlertDialogCancel>
               <Button

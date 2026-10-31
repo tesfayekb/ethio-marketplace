@@ -43,14 +43,10 @@ export function CategoryMoveDialog({
           <AlertDialogDescription>{t("post.catalog.moveKeeps")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="min-h-11" data-testid="post-category-move-cancel">
+          <AlertDialogCancel data-testid="post-category-move-cancel">
             {t("common.cancel")}
           </AlertDialogCancel>
-          <AlertDialogAction
-            className="min-h-11"
-            data-testid="post-category-move-yes"
-            onClick={onConfirm}
-          >
+          <AlertDialogAction data-testid="post-category-move-yes" onClick={onConfirm}>
             {t("post.catalog.moveYes")}
           </AlertDialogAction>
         </AlertDialogFooter>

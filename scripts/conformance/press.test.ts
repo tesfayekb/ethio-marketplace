@@ -33,7 +33,6 @@ export const PRIMITIVES: ReadonlyArray<{ file: string; needs: readonly string[] 
     file: "src/components/marketplace/listing-card.tsx",
     needs: ["PRESSED.card", "PRESSED.cardLink", 'data-pressable=""'],
   },
-  { file: "src/components/ui/sidebar.tsx", needs: ["PRESSED.list"] },
   { file: "src/components/shell/app-header.tsx", needs: ["${PRESSED.button}"] },
   // Turn C2 (ruling 2): the bottom bar's items and the top bar's hand-built buttons.
   { file: "src/components/shell/bottom-bar.tsx", needs: ["${PRESSED.bar}", "PRESSED.barIcon"] },

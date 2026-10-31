@@ -10,7 +10,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useI18n } from "@/i18n";
 import { fill } from "@/features/posting/refusal-text";
 import { countShare, type ShareChannel } from "./count-view";
@@ -31,7 +31,8 @@ export function sharePriceText(
   return priceLine(price, t, t("price.contact"), language);
 }
 
-/** D201 §10 — the dialog's responsive frame is a bottom sheet below sm. */
+/** D201 §10 — the dialog's responsive frame is a bottom sheet on a phone (turn S6-1: the
+ *  primitive's `phone="sheet"`, below md, with the grabber). */
 export function ShareAd({
   publicId,
   canonicalPath,
@@ -116,11 +117,10 @@ export function ShareAd({
         </Button>
       )}
       <Dialog open={shown} onOpenChange={changeOpen}>
-        <DialogContent
-          aria-describedby={undefined}
-          className="inset-x-0 bottom-0 top-auto grid max-h-[85dvh] w-full max-w-none translate-x-0 translate-y-0 overflow-y-auto rounded-t-md sm:inset-x-auto sm:bottom-auto sm:start-1/2 sm:top-1/2 sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-md"
-        >
-          <DialogTitle>{t("adPage.share.title")}</DialogTitle>
+        <DialogContent aria-describedby={undefined} phone="sheet">
+          <DialogHeader>
+            <DialogTitle>{t("adPage.share.title")}</DialogTitle>
+          </DialogHeader>
           <div className="flex min-w-0 flex-col gap-1">
             <Button asChild variant="ghost" className={row}>
               <a

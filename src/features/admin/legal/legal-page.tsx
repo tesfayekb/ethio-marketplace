@@ -3,7 +3,14 @@ import { Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
@@ -395,17 +402,16 @@ export function LegalPage() {
               if (!open && !writes.review.isPending) setReviewing(null);
             }}
           >
-            <DialogContent
-              data-testid="legal-review-dialog"
-              className="max-h-[85dvh] overflow-y-auto"
-            >
-              <DialogTitle>{t("admin.legal.review.title")}</DialogTitle>
-              <DialogDescription>
-                {t("admin.legal.review.help").replace(
-                  "{months}",
-                  String(settings.data?.review_months ?? ""),
-                )}
-              </DialogDescription>
+            <DialogContent data-testid="legal-review-dialog">
+              <DialogHeader>
+                <DialogTitle>{t("admin.legal.review.title")}</DialogTitle>
+                <DialogDescription>
+                  {t("admin.legal.review.help").replace(
+                    "{months}",
+                    String(settings.data?.review_months ?? ""),
+                  )}
+                </DialogDescription>
+              </DialogHeader>
               <label className="block text-sm font-medium" htmlFor="legal-review-note">
                 {t("admin.legal.review.noteLabel")}
               </label>
@@ -421,8 +427,17 @@ export function LegalPage() {
                   {t(reviewError)}
                 </p>
               ) : null}
-              <div className="flex flex-wrap gap-2">
+              <DialogFooter>
                 <Button
+                  variant="outline"
+                  size="touch"
+                  data-testid="legal-review-cancel"
+                  onClick={() => setReviewing(null)}
+                >
+                  {t("common.cancel")}
+                </Button>
+                <Button
+                  size="touch"
                   data-testid="legal-review-save"
                   disabled={writes.review.isPending}
                   onClick={() => {
@@ -444,14 +459,7 @@ export function LegalPage() {
                 >
                   {t("admin.legal.action.saveReview")}
                 </Button>
-                <Button
-                  variant="outline"
-                  data-testid="legal-review-cancel"
-                  onClick={() => setReviewing(null)}
-                >
-                  {t("common.cancel")}
-                </Button>
-              </div>
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>

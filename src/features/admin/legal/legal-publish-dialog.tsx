@@ -1,12 +1,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { legalErrorKey, legalErrorName } from "./legal-service";
 import { earliestLegalDate, legalPublishDate } from "./publish-date";
 import { useLegalWrites } from "./use-legal";
+
+/** A choice row holds a radio and a two-line label: aligned to the first line. */
+const CHOICE = "cursor-pointer items-start gap-3";
 
 export function LegalPublishDialog({
   id,
@@ -43,19 +55,21 @@ export function LegalPublishDialog({
         if (!open && !publish.isPending) onClose();
       }}
     >
-      <DialogContent data-testid="legal-publish-dialog" className="max-h-[85dvh] overflow-y-auto">
-        <DialogTitle>
-          {t("admin.legal.publish.title")
-            .replace("{document}", document)
-            .replace("{n}", String(version))}
-        </DialogTitle>
-        <DialogDescription>{t("admin.legal.publish.final")}</DialogDescription>
+      <DialogContent data-testid="legal-publish-dialog">
+        <DialogHeader>
+          <DialogTitle>
+            {t("admin.legal.publish.title")
+              .replace("{document}", document)
+              .replace("{n}", String(version))}
+          </DialogTitle>
+          <DialogDescription>{t("admin.legal.publish.final")}</DialogDescription>
+        </DialogHeader>
         {first ? (
           <p data-testid="legal-publish-first-note">{t("admin.legal.publish.first")}</p>
         ) : (
           <fieldset className="space-y-3">
             <legend className="mb-2 font-medium">{t("admin.legal.publish.question")}</legend>
-            <label className="flex min-h-11 items-start gap-3">
+            <label className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, CHOICE)}>
               <input
                 type="radio"
                 name="legal-change"
@@ -71,7 +85,7 @@ export function LegalPublishDialog({
                 </span>
               </span>
             </label>
-            <label className="flex min-h-11 items-start gap-3">
+            <label className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, CHOICE)}>
               <input
                 type="radio"
                 name="legal-change"
@@ -110,8 +124,12 @@ export function LegalPublishDialog({
             {t(error).replace("{date}", earliest).replace("{name}", errorName)}
           </p>
         ) : null}
-        <div className="flex flex-wrap gap-2">
+        <DialogFooter>
+          <Button variant="outline" size="touch" disabled={publish.isPending} onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
           <Button
+            size="touch"
             data-testid="legal-publish-confirm"
             disabled={!request || publish.isPending}
             onClick={() => {
@@ -127,10 +145,7 @@ export function LegalPublishDialog({
           >
             {t("admin.legal.action.publish")}
           </Button>
-          <Button variant="outline" disabled={publish.isPending} onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

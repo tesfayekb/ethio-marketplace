@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -123,7 +124,7 @@ function DialogActions({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <DialogFooter>
       <Button
         type="button"
         variant="outline"
@@ -143,7 +144,7 @@ function DialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </div>
+    </DialogFooter>
   );
 }
 

@@ -1,16 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { useId, useState } from "react";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { useI18n, type MessageKey } from "@/i18n";
+import { cn } from "@/lib/utils";
 import { REPORT_REASONS, reportListing, type ReportReason } from "./report";
 
 export function ReportAd({
@@ -75,12 +79,11 @@ export function ReportAd({
           {t("adPage.report.open")}
         </Button>
       </DialogTrigger>
-      <DialogContent
-        aria-describedby={`${id}-question`}
-        className="max-h-[90dvh] max-w-[calc(100%-2rem)] overflow-y-auto sm:max-w-lg"
-      >
-        <DialogTitle>{t("adPage.report.open")}</DialogTitle>
-        <DialogDescription id={`${id}-question`}>{t("adPage.report.question")}</DialogDescription>
+      <DialogContent aria-describedby={`${id}-question`}>
+        <DialogHeader>
+          <DialogTitle>{t("adPage.report.open")}</DialogTitle>
+          <DialogDescription id={`${id}-question`}>{t("adPage.report.question")}</DialogDescription>
+        </DialogHeader>
         {state !== null && (
           <p
             role="status"
@@ -100,9 +103,11 @@ export function ReportAd({
           </p>
         )}
         {terminal ? (
-          <Button size="touch" onClick={() => setOpen(false)}>
-            {t("common.close")}
-          </Button>
+          <DialogFooter>
+            <Button size="touch" onClick={() => setOpen(false)}>
+              {t("common.close")}
+            </Button>
+          </DialogFooter>
         ) : (
           <>
             <RadioGroup
@@ -114,13 +119,13 @@ export function ReportAd({
                 const chosen = REPORT_REASONS.find((entry) => entry === value);
                 if (chosen) setReason(chosen);
               }}
-              className="gap-0"
+              className="gap-1"
             >
               {REPORT_REASONS.map((entry) => (
                 <label
                   key={entry}
                   htmlFor={`${id}-${entry}`}
-                  className="flex min-h-11 cursor-pointer items-center gap-3 text-sm"
+                  className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
                 >
                   <RadioGroupItem
                     id={`${id}-${entry}`}
@@ -144,7 +149,7 @@ export function ReportAd({
               disabled={busy}
               onChange={(event) => setNote(event.target.value)}
             />
-            <div className="flex flex-wrap justify-end gap-2">
+            <DialogFooter>
               <Button size="touch" variant="outline" onClick={() => setOpen(false)} disabled={busy}>
                 {t("common.cancel")}
               </Button>
@@ -156,7 +161,7 @@ export function ReportAd({
               >
                 {t("adPage.report.send")}
               </Button>
-            </div>
+            </DialogFooter>
           </>
         )}
       </DialogContent>
