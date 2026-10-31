@@ -1,7 +1,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { THEMES } from "../src/lib/themes";
 import { expect, test } from "./fixtures";
-import { gotoReady, signIn, switchLanguage } from "./helpers/ui";
+import { gotoReady, signIn } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 import { openMarketCodes } from "./helpers/locations";
 import { withoutEmptyLayers } from "./helpers/shadows";
