@@ -92,6 +92,7 @@ export function FormSection({
       {actions ? (
         <div
           data-testid={`${testid}-actions`}
+          data-chrome="bottom"
           className="sticky bottom-[var(--bottom-bar)] -mx-6 flex min-h-11 min-w-0 flex-wrap items-center gap-3 border-t border-border bg-card px-6 py-3 pb-[calc(0.75rem+var(--bar-rise))] md:static md:mx-0 md:border-0 md:bg-transparent md:px-0 md:py-0"
         >
           {actions}

@@ -1012,6 +1012,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               From md up the logo cell and top bar share the 3.5rem band. */}
           <div
             data-testid="shell-band"
+            data-chrome="top"
             className="fixed inset-x-0 top-0 z-30 bg-card shadow-band md:flex md:h-14"
           >
             <div
@@ -1077,6 +1078,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div
               ref={subbandRef}
               data-testid="shell-subband"
+              data-chrome="top"
               className={cn("sticky top-13 z-20 md:top-14", BAND_LOOK.stack)}
             >
               {searchOpen ? <SearchRow onClose={() => setSearchOpen(false)} /> : null}
