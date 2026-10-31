@@ -135,9 +135,12 @@ export function usePickerPlacement(
       setPlacement((prev) => (prev === plan.side ? prev : plan.side));
       // F4b (LY-6) — the list is placed and the scroll has ended: a test measures after this.
       // Set after React draws the side, so the mark never precedes the final placement.
-      requestAnimationFrame(() => {
-        if (alive && panel.dataset.placement === plan.side) panel.dataset.settled = "true";
-      });
+      const mark = (tries: number) => {
+        if (!alive) return;
+        if (panel.dataset.placement === plan.side) panel.dataset.settled = "true";
+        else if (tries > 0) requestAnimationFrame(() => mark(tries - 1));
+      };
+      requestAnimationFrame(() => mark(10));
     };
     let settled = false;
     let alive = true;
