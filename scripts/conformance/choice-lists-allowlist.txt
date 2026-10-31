@@ -1,0 +1,1 @@
+# CF-LIST-1 (D264, turn F) exceptions: key = file#part | reason | until
