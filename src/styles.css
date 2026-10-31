@@ -515,7 +515,8 @@
   --lift-row-on: 0 1px 2px oklch(0 0 0 / 0.3), 0 6px 14px -4px oklch(0 0 0 / 0.4);
   --lift-track: inset 0 2px 4px oklch(0 0 0 / 0.45);
   --lift-segment: 0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3);
-  --lift-menu: 0 0 0 1px #2f3b34, 0 4px 12px oklch(0 0 0 / 0.4), 0 16px 32px -12px oklch(0 0 0 / 0.55);
+  --lift-menu:
+    0 0 0 1px #2f3b34, 0 4px 12px oklch(0 0 0 / 0.4), 0 16px 32px -12px oklch(0 0 0 / 0.55);
   --lift-card: 0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35);
   --lift-badge:
     inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18),

@@ -524,9 +524,7 @@ export function StepPricing({
                   data-testid="post-price-currency-list"
                   role="listbox"
                   data-placement={placement}
-                  className={
-`${pickerPopClass(placement)} max-h-64 w-full overflow-y-auto`
-                  }
+                  className={`${pickerPopClass(placement)} max-h-64 w-full overflow-y-auto`}
                 >
                   {shownRows.map((row, index) => (
                     <li key={row.code}>

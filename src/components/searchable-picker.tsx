@@ -141,11 +141,7 @@ export function PickerOption({
     >
       {children}
       {selected && (
-        <Check
-          aria-hidden="true"
-          data-testid={`${testId}-check`}
-          className={LIST_TICK}
-        />
+        <Check aria-hidden="true" data-testid={`${testId}-check`} className={LIST_TICK} />
       )}
     </button>
   );

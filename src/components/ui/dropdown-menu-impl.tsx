@@ -27,12 +27,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
 >(({ className, inset, children, ...props }, ref) => (
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
-    className={cn(
-      LIST_ROW,
-      "data-[state=open]:bg-nav-pill",
-      inset && "pl-8",
-      className,
-    )}
+    className={cn(LIST_ROW, "data-[state=open]:bg-nav-pill", inset && "pl-8", className)}
     {...props}
   >
     {children}
@@ -47,11 +42,7 @@ const DropdownMenuSubContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.SubContent
     ref={ref}
-    className={cn(
-      LIST_PANEL,
-      "min-w-[8rem]",
-      className,
-    )}
+    className={cn(LIST_PANEL, "min-w-[8rem]", className)}
     {...props}
   />
 ));
@@ -87,11 +78,7 @@ const DropdownMenuItem = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
-    className={cn(
-      LIST_ROW,
-      inset && "ps-8",
-      className,
-    )}
+    className={cn(LIST_ROW, inset && "ps-8", className)}
     {...props}
   />
 ));
@@ -103,11 +90,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
 >(({ className, children, checked, ...props }, ref) => (
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
-    className={cn(
-      LIST_ROW,
-      "pe-9",
-      className,
-    )}
+    className={cn(LIST_ROW, "pe-9", className)}
     checked={checked}
     {...props}
   >
@@ -125,15 +108,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.RadioItem>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.RadioItem>
 >(({ className, children, ...props }, ref) => (
-  <DropdownMenuPrimitive.RadioItem
-    ref={ref}
-    className={cn(
-      LIST_ROW,
-      "pe-9",
-      className,
-    )}
-    {...props}
-  >
+  <DropdownMenuPrimitive.RadioItem ref={ref} className={cn(LIST_ROW, "pe-9", className)} {...props}>
     <span className="absolute end-3 flex size-4 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
         <Circle className="size-2 fill-current text-nav-ink" />

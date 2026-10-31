@@ -36,7 +36,7 @@ const ROW_PARTS = new Set([
 const FACADE_PANELS = new Set(["DropdownMenuContent", "DropdownMenuSubContent"]);
 const PANEL_PARTS = new Set([...FACADE_PANELS, "PopoverContent"]);
 const OWN_ROW = /(?:^|\s)(?:py-|px-|min-h-|h-\d|rounded-)\S*/;
-const OWN_PANEL = /(?:^|\s)(?:border(?:\s|$|-)|shadow-|rounded-|p-\d|bg-|zoom-)\S*/;
+const OWN_PANEL = /(?:^|\s)(?:border(?=\s|$)|(?:border-|shadow-|rounded-|p-\d|bg-|zoom-)\S*)/;
 const OWN_HEIGHT = /(?:^|\s)max-h-\S*/;
 export const OWNERS: Record<string, RegExp> = {
   "src/components/ui/dropdown-menu-impl.tsx": /\bLIST_PANEL\b[\s\S]*\bLIST_ROW\b|\bLIST_ROW\b[\s\S]*\bLIST_PANEL\b/,
