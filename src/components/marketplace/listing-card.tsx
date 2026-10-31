@@ -154,12 +154,12 @@ export function ListingCard({
       </div>
 
       {/* D123 — below 11rem (three or four a row) the card is compact. */}
-      <div className="flex flex-1 flex-col gap-1 px-[7px] py-[6px] md:px-[9px] md:py-[8px] @min-[11rem]:gap-2 @min-[11rem]:px-[14px] @min-[11rem]:pt-[13px] @min-[11rem]:pb-[14px]">
+      <div className="flex flex-1 flex-col gap-1 px-[7px] py-[6px] md:@max-[11rem]:px-[9px] md:@max-[11rem]:py-[8px] @min-[11rem]:gap-2 @min-[11rem]:px-[14px] @min-[11rem]:pt-[13px] @min-[11rem]:pb-[14px]">
         <h3 className="min-w-0 text-xs font-semibold leading-4 text-foreground @min-[11rem]:text-sm @min-[11rem]:leading-5">
           <CutText text={listing.title} />
         </h3>
 
-        <p className="flex min-h-[3.625rem] flex-wrap content-start items-center gap-x-1 gap-y-0.5 text-xs font-bold leading-4 text-foreground md:text-[13px] @min-[11rem]:min-h-[2.75rem] @min-[11rem]:gap-x-2 @min-[11rem]:text-base @min-[11rem]:leading-5">
+        <p className="flex min-h-[3.625rem] flex-wrap content-start items-center gap-x-1 gap-y-0.5 text-xs font-bold leading-4 text-foreground md:@max-[11rem]:text-[13px] @min-[11rem]:min-h-[2.75rem] @min-[11rem]:gap-x-2 @min-[11rem]:text-base @min-[11rem]:leading-5">
           {wasPrice !== null ? (
             <span
               data-testid="listing-card-price-was"
