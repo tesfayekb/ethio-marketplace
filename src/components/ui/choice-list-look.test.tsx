@@ -42,6 +42,11 @@ describe("CL-U — every open list reads menu-row.ts's constants", () => {
     expect(impl.match(/\bLIST_ROW,/g)?.length).toBe(5);
     expect(impl).not.toMatch(/zoom-|rounded-sm|py-1\.5|\bborder\b/);
   });
+  it("CL-U6: one current marker — the radio and checkbox rows both draw the tick in LIST_TICK", () => {
+    const impl = readFileSync("src/components/ui/dropdown-menu-impl.tsx", "utf8");
+    expect(impl.match(/<Check className=\{LIST_TICK\} \/>/g)?.length).toBe(2);
+    expect(impl).not.toMatch(/\bCircle\b/);
+  });
   it("CL-U5: the picker's rows and panel come from the constants, against the box's edge", () => {
     render(
       <PickerOption selected highlighted={false} testId="opt" data={{}} onPick={() => {}}>

@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { Check, ChevronRight, Circle } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 
 import { LIST_PANEL, LIST_ROW, LIST_TICK } from "@/components/shell/menu-row";
 import { cn } from "@/lib/utils";
@@ -111,7 +111,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem ref={ref} className={cn(LIST_ROW, "pe-9", className)} {...props}>
     <span className="absolute end-3 flex size-4 items-center justify-center">
       <DropdownMenuPrimitive.ItemIndicator>
-        <Circle className="size-2 fill-current text-nav-ink" />
+        <Check className={LIST_TICK} />
       </DropdownMenuPrimitive.ItemIndicator>
     </span>
     {children}
