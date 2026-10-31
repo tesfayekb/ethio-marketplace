@@ -157,4 +157,7 @@ docs/\_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/
 
 ## 12. Checks
 
-(appended below after the run)
+- First run: FAIL at "e2e selector self-test" (choice-lists.spec.ts in no area); fixed at its root (10a).
+- Second run, whole, on the final tree: 11 PASS · 0 FAIL up to and including "Root route names"; then the sandbox's 600 s command limit ended it during component tests. No fast or last line was printed.
+- Run separately: the build plus check-bundle-size exit 0; lint on the touched files 0 errors; CL-E 12 passed and 12 skipped; choice-list unit tests 13 passed. A whole `vitest run` also hit the time limit, so the unit count is not measured.
+- slow steps: not finished — CI judges.
