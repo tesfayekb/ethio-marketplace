@@ -20,7 +20,7 @@ Census by definition (allowlist readers and browser-grant counts/lists in script
 | .github/workflows/local-backend-proof.yml:715–726 (at base) | smoke TSV count comparison, names/ACL failure artifact | query exported by lint, catalogue TSV under RUNNER_TEMP, same compareSurface; no failure names artifact |
 | .github/workflows/nightly-e2e.yml:250 | REST count consumer | same script, four counts; explicitly NOT RUN for live catalogue comparison (not available via REST) |
 | scripts/conformance/wired.test.ts | generic caller census | additionally names smoke lint, migration parser caller and lint parser import |
-| supabase/migrations/20261005152120* (security_lints definition; precise source below) | service-only count reader | unchanged, still returns anon count, script deliberately ignores that retired baseline item |
+| supabase/migrations/20261010055801_866d39cd-554b-492d-99de-362601f15f0d.sql:19 (latest security_lints definition) | service-only count reader | unchanged, still returns anon count, script deliberately ignores that retired baseline item |
 
 Security-lint SQL definition sites (immutable, no migration this turn):
 
@@ -283,6 +283,44 @@ docs/governance/reports/foundations-turn-ci-3b.report.md
 
 ## Unit count and full checks
 
-Report written **before** bun run checks. Targeted count above; full unit count pending the full run.
+Report written **before** bun run checks. Full unit suite: **2,395/2,395 passed**, 396 test files passed.
 
-slow steps: not finished — CI judges
+Fast milestone (not the final verdict):
+
+```text
+checks (fast): 25 PASS · 0 FAIL · 532s — build-and-check, component-tests, secrets-scan, migration-lint, i18n-usage-map, string-scan, import-gate, listing-write-seam, browse-path-guard, marketplace-weight, dependency-audit, e2e-preflight, e2e, promote; slow steps follow (build, budget, semgrep)
+```
+
+Final whole-run verdict:
+
+```text
+checks: 34 PASS · 0 FAIL · 21 NOT RUN · 655s
+```
+
+No check failed; no post-check code correction required. Workflow lint passed through the pinned check. First-paint budget passed: 0 NEAR, none grew. Latest platform diagnostic: build OK.
+
+Every NOT RUN (with the instrument’s reason):
+
+```text
+NOT RUN  build-and-check › Install dependencies  (0s) — the sandbox's dependencies are already installed; a package change is its own turn
+NOT RUN  component-tests › Install dependencies  (0s) — the sandbox's dependencies are already installed; a package change is its own turn
+NOT RUN  dependency-audit › Install dependencies  (0s) — the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge
+NOT RUN  dependency-audit › Audit  (0s) — the advisory service it asks is not reachable from the sandbox; CI's verdict is the judge
+NOT RUN  e2e-preflight › Cache bun install  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+NOT RUN  e2e-preflight › Bun cache hit?  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+NOT RUN  e2e-preflight › Install dependencies  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+NOT RUN  e2e-preflight › Migration parity preflight (staging)  (0s) — compares migrations with ethio-staging through the staging credentials, which the script never holds
+NOT RUN  e2e › Download shard results  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+NOT RUN  e2e › Download job log tails  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+NOT RUN  e2e › Download error contexts  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+NOT RUN  e2e › Verify the downloaded artifacts belong to this attempt  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+NOT RUN  e2e › Publish merged E2E report  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+NOT RUN  e2e › Verdict  (0s) — merges the browser lanes' artifacts from GitHub; the lanes need the temporary backend and browsers
+NOT RUN  promote › Promote token present (DEC-210)  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+NOT RUN  promote › Configure the actions bot  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+NOT RUN  promote › Fast-forward guard (ff-only law — never merge/rebase here)  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+NOT RUN  promote › Promote dev to main  (0s) — pushes main with the promote token; only CI promotes (DEC-020)
+NOT RUN  bundle-budget › Install dependencies  (0s) — the sandbox's dependencies are already installed; a package change is its own turn
+NOT RUN  semgrep › Upload SARIF  (0s) — GitHub's code-scanning upload, only GitHub can receive it
+NOT RUN  semgrep › Warn: the SARIF upload failed  (0s) — answers the GitHub-only upload above
+```
