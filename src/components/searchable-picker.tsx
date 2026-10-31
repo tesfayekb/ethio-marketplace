@@ -117,6 +117,7 @@ export function usePickerPlacement(
         ? 0
         : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
       const plan = placeList(rect, wanted, visibleArea(), scrollRoom);
+      delete panel.dataset.settled;
       if (plan.scrollBy > 0) {
         // Opacity, not visibility: a hidden list would drop its search box's focus and close.
         panel.style.opacity = "0";
@@ -132,6 +133,11 @@ export function usePickerPlacement(
       panel.style.opacity = "";
       panel.style.pointerEvents = "";
       setPlacement((prev) => (prev === plan.side ? prev : plan.side));
+      // F4b (LY-6) — the list is placed and the scroll has ended: a test measures after this.
+      // Set after React draws the side, so the mark never precedes the final placement.
+      requestAnimationFrame(() => {
+        if (alive && panel.dataset.placement === plan.side) panel.dataset.settled = "true";
+      });
     };
     let settled = false;
     let alive = true;
