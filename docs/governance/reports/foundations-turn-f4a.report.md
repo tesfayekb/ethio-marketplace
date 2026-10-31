@@ -10,7 +10,7 @@
 - f25f6e9e: cancelled at 10:13Z, so no verdict (per ruling).
 - b2bbc9f3 (run 41190843148): FAILURE. Two failures: TH-2 and Semgrep ERROR ×2 (e2e/dark-cards.spec.ts :99). Both are fixed in §5.
 - 3caa699b (run 41191861394, 10:40:39Z): FAILURE. The failures are the same: Component tests (TH-2, the only FAIL in its failure body) and Semgrep. Both are fixed in this turn. F4a did not re-read this run before its push (S502); this report records it.
-- e1dc86f4: the evidence branch showed no completed run when I read it before this push.
+- e1dc86f4 (run 41193131306, 11:01:23Z): FAILURE. Semgrep and TH-2 are the same two reds, fixed here. The new red is the first-paint budget: /post, /post_/$listingId and /my-listings_/$listingId_/edit measured 400.2 KiB against a 400 KiB ceiling, from the picker's visible-area import. Raised 400 → 401 = floor(400.2 + 0.3) + 1 (DEC-296) in scripts/route-budgets.mjs. E2E passed (1 flaky, non-gating).
 
 ## 3. The mechanism as built
 
@@ -71,7 +71,7 @@ TC-E4 is planted: the order, the pins equal to ci.yml's, the folder choice, the 
 
 ## 9. Growth
 
-Public pages gain the `data-chrome` attributes and the popover's area read. visible-area.ts is about 0.4 KiB raw, and it reaches the first paint only where popover.tsx already does. Page ceilings are judged by `bun run checks` / CI below; no ceiling was raised in this turn.
+Public pages gain the `data-chrome` attributes and the popover's area read. visible-area.ts is about 0.4 KiB raw, and it reaches the first paint only where popover.tsx already does. Page ceilings are judged by `bun run checks` / CI below; three posting pages were raised 400 → 401 (§2). This tree's own sizes (with the popover read and LIST_SCROLLER) were not measured locally; CI judges.
 
 ## 10. Unit count
 
@@ -104,4 +104,4 @@ docs/generated/i18n-usage.json, docs/governance/briefs/foundations-turn-f4a-2.md
 - **Not done:** the docs updates the scope names (design-foundation.md, mechanisms.md, _changelog.md). They are owed to F4b.
 - **Departure:** the laws step's Semgrep fetches the rules commit as an archive, not with git checkout.
 - **Departure:** its units step defaults to HEAD~1 when TURN_BASE is unset.
-- **Not read:** the e1dc86f4 run was not on the evidence branch when read.
+- **Not measured locally:** this tree's page sizes.
