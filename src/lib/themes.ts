@@ -113,6 +113,8 @@ const SAGE: ThemeSetValue = {
     "lift-row-on":
       "0 1px 2px oklch(0.337 0.055 163.4 / 0.08), 0 6px 14px -4px oklch(0.337 0.055 163.4 / 0.14)",
     "lift-track": "inset 0 2px 3px oklch(0.337 0.055 163.4 / 0.12), inset 0 -1px 0 oklch(1 0 0)",
+    "lift-menu":
+      "0 0 0 1px oklch(0.915 0.014 155.6), 0 4px 12px oklch(0.337 0.055 163.4 / 0.12), 0 16px 32px -12px oklch(0.337 0.055 163.4 / 0.2)",
     "lift-segment":
       "0 1px 2px oklch(0.337 0.055 163.4 / 0.2), 0 3px 8px oklch(0.337 0.055 163.4 / 0.1), inset 0 -1px 0 oklch(0.337 0.055 163.4 / 0.06)",
     "lift-card":
@@ -233,6 +235,8 @@ const SAGE: ThemeSetValue = {
     "lift-row-on": "0 1px 2px oklch(0 0 0 / 0.3), 0 6px 14px -4px oklch(0 0 0 / 0.4)",
     "lift-track": "inset 0 2px 4px oklch(0 0 0 / 0.45)",
     "lift-segment": "0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3)",
+    "lift-menu":
+      "0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4), 0 16px 32px -12px oklch(0 0 0 / 0.55)",
     "lift-card": "0 0 0 1px oklch(0.298 0.016 163.6), 0 2px 8px oklch(0 0 0 / 0.35)",
     "lift-badge":
       "inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18), 0 3px 8px oklch(0 0 0 / 0.45)",

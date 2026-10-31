@@ -96,6 +96,7 @@ export const MODED_TOKENS = [
   "lift-row-on",
   "lift-track",
   "lift-segment",
+  "lift-menu",
   "lift-card",
   "lift-badge",
   "lift-bar-up",
