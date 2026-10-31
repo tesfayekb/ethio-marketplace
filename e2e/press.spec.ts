@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { gotoReady, layoutBoxes, signIn } from "./helpers/ui";
+import { gotoReady, layoutBoxes, openRailScope, signIn } from "./helpers/ui";
 import { adPageFixtures } from "./helpers/ad-page";
 
 /**
@@ -188,10 +188,8 @@ for (const mode of MODES) {
       await page.keyboard.press("Escape");
       await expect(page.getByRole("menu")).toHaveCount(0);
 
-      // A menu row: the rail's on a wide screen, the phone menu's at 360.
-      if (test.info().project.name === "mobile-360")
-        await page.getByRole("button", { name: "Open menu" }).click();
-      const menuRow = page.locator('[data-testid="rail-home"]:visible');
+      // A menu row: the rail on a wide screen, the phone menu at 360 (openRailScope).
+      const menuRow = (await openRailScope(page)).getByTestId("rail-home");
       await expect(menuRow, "menu row").toBeVisible();
       const m = await press(page, menuRow);
       expect(m.marked, "menu row: marked").toBe(true);
