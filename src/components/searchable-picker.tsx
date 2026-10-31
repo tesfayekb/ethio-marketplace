@@ -128,7 +128,9 @@ export function usePickerPlacement(
         : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
       const plan = placeList(rect, wanted, visibleArea(), scrollRoom);
       if (plan.scrollBy > 0) {
-        panel.style.visibility = "hidden";
+        // Opacity, not visibility: a hidden list would drop its search box's focus and close.
+        panel.style.opacity = "0";
+        panel.style.pointerEvents = "none";
         scrollThenPlace(plan.scrollBy, () => {
           if (!alive) return;
           settled = true;
@@ -142,7 +144,8 @@ export function usePickerPlacement(
         scroller.style.maxHeight = `${Math.max(44, own - cut)}px`;
       }
       panel.style.setProperty("--picker-max-height", `${plan.maxHeight}px`);
-      panel.style.visibility = "";
+      panel.style.opacity = "";
+      panel.style.pointerEvents = "";
       setPlacement((prev) => (prev === plan.side ? prev : plan.side));
     };
     let settled = false;
