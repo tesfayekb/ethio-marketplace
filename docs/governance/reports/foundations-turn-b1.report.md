@@ -16,7 +16,7 @@ scripts/ci/turn-checks.ts: `LAWS_STEP` (`bunx vitest run scripts --maxWorkers=2`
 ## 4. The dark-card choice (D262, DEC-314)
 Candidates in src/styles.css as `.dark [data-card-candidate="a|b|c"]` (each re-resolves `--shadow-card`, which the theme maps at :root); `.dark` and THEMES' dark set take B; dark `--photo-empty` → #303C35. /dev/style "Dark cards: pick one": A, B, C × plain (photo stand-in `bg-secondary`), Premium, Featured, no-photo. Off every public path (dev route only).
 
-Measured in-page by e2e/dark-cards.spec.ts DC-1 (both projects, identical):
+Measured in-page by e2e/dark-cards.spec.ts DCC-1 (both projects, identical):
 
 | Set | `--card` | edge | Premium | Featured | plain surface / edge / text | Premium surface / text | Featured surface / text |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -24,7 +24,7 @@ Measured in-page by e2e/dark-cards.spec.ts DC-1 (both projects, identical):
 | B | #25302A oklch(0.297 0.019 161.2) | #3E4B44 | #382D1C | #22362C | 1.32 / 1.97 / 11.26 | 1.34 / 11.08 | 1.40 / 10.59 |
 | C | #28342E oklch(0.312 0.019 163.4) | #42504A | #3A2F1D | #243A2F | 1.39 / 2.12 / 10.67 | 1.37 / 10.78 | 1.47 / 10.04 |
 
-The edge target is judged on the plain and no-photo cards; tier cards keep their own frames (shadow-premium / shadow-featured). DC-2: a dark page's own card computes equal to candidate B.
+The edge target is judged on the plain and no-photo cards; tier cards keep their own frames (shadow-premium / shadow-featured). DCC-2: a dark page's own card computes equal to candidate B.
 
 ## 5. G38
 No test read an old dark card literal (search for each old value across src, e2e, scripts: only src/lib/themes.ts). themes.test.ts (styles.css ⇔ THEMES) passes with new values: `card` #1A221E → #25302A, `photo-empty` #26302B → #303C35, `tier-premium` #2B2314 → #382D1C, `tier-featured` #1A2C23 → #22362C, `lift-card` ring #26302B → #3E4B44. styles.tokens.test.ts, look-law.test.ts, look-values.test.ts, schemas — pass.
@@ -44,7 +44,10 @@ See §10 (from `bun run checks` if it finishes).
 - Dark `--lift-card-md`/`-lg` are light-only by design (`:root:not(.dark)`); the dark ring is one value at every width.
 
 ## 10. Checks
-(appended below after `bun run checks`)
+TI-1 clash fixed: e2e/dark-cards.spec.ts DC-1/DC-2 → DCC-1/DCC-2 (every reference); `bunx vitest run scripts/` (TI-1 and the laws step): 77 files, 371 passed, 1 skipped.
+CI on 060d4d60 (09:50:50Z): FAILURE, Component tests only (TI-1, CF-ADOPT-1, both fixed this turn). b2bbc9f3's run was not yet on the evidence branch when read.
+`bun run checks`, once, whole, on the final tree: 13 PASS · 0 FAIL · 2 NOT RUN (both Install dependencies) through "Root route names"; the 590 s limit ended it at component tests. No fast line or last line was printed; unit count not measured.
+slow steps: not finished — CI judges.
 
 ## 11. Files (git diff --name-only 060d4d60)
 docs/_changelog.md, docs/features/design-foundation.md, docs/governance/briefs/foundations-turn-b1.md, docs/governance/mechanisms.md, docs/governance/reports/foundations-turn-b1.report.md, docs/governance/reports/foundations-turn-ci-4.report.md, e2e/dark-cards.spec.ts, roadmap.md, scripts/ci/classify-start-failure.test.ts, scripts/ci/turn-checks.test.ts, scripts/ci/turn-checks.ts, scripts/conformance/migration-proof-keys.test.ts, scripts/e2e-select.ts, src/lib/themes.ts, src/routes/dev.style.tsx, src/styles.css.

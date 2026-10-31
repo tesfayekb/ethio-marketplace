@@ -3,9 +3,9 @@ import { gotoReady } from "./helpers/ui";
 
 /**
  * D262 (turn B1, DEC-314) — THE DARK-CARD CHOICE on /dev/style, both projects.
- * DC-1: each candidate (A, B, C), measured in the page: every card surface against the dark page
+ * DCC-1: each candidate (A, B, C), measured in the page: every card surface against the dark page
  * at least 1.25 : 1, its edge ring at least 1.8 : 1, its text at least 4.5 : 1 on the card.
- * DC-2: the live dark card (candidate B, provisional) is what a dark page draws outside the grid.
+ * DCC-2: the live dark card (candidate B, provisional) is what a dark page draws outside the grid.
  * No account, no seeded row. Colours are read through a canvas, so any CSS colour form compares.
  */
 
@@ -15,7 +15,7 @@ const CARDS = ["plain", "premium", "featured", "no-photo"] as const;
 type Measured = { surface: number; edge: number; text: number };
 
 test.describe("dark-card choice", () => {
-  test("DC-1 every candidate card meets the surface, edge and text targets", async ({ page }) => {
+  test("DCC-1 every candidate card meets the surface, edge and text targets", async ({ page }) => {
     await gotoReady(page, "/dev/style");
     const grid = page.getByTestId("style-dark-cards");
     await expect(grid).toBeVisible();
@@ -88,7 +88,7 @@ test.describe("dark-card choice", () => {
     }
   });
 
-  test("DC-2 the dark page's own card is candidate B", async ({ page }) => {
+  test("DCC-2 the dark page's own card is candidate B", async ({ page }) => {
     await gotoReady(page, "/dev/style");
     const same = await page.evaluate(() => {
       const root = document.documentElement;
