@@ -18,23 +18,23 @@ const PopoverContent = React.forwardRef<
   // D267 (F4a-2) — mounts on open, so this reads the visible area at that moment.
   const [area] = React.useState(() => collisionPaddingNow());
   return (
-  <PopoverPrimitive.Portal>
-    <PopoverPrimitive.Content
-      ref={ref}
-      align={align}
-      sideOffset={sideOffset}
-      collisionPadding={collisionPadding ?? area}
-      className={cn(
-        // D264 (turn F): the open list's surface and motion; a popover keeps its own padding.
-        "z-50 w-72 outline-none",
-        LIST_SURFACE,
-        LIST_MOTION,
-        "p-4",
-        className,
-      )}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
+    <PopoverPrimitive.Portal>
+      <PopoverPrimitive.Content
+        ref={ref}
+        align={align}
+        sideOffset={sideOffset}
+        collisionPadding={collisionPadding ?? area}
+        className={cn(
+          // D264 (turn F): the open list's surface and motion; a popover keeps its own padding.
+          "z-50 w-72 outline-none",
+          LIST_SURFACE,
+          LIST_MOTION,
+          "p-4",
+          className,
+        )}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
   );
 });
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;

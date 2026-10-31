@@ -40,7 +40,10 @@ export function areaFindings(files: Src[]): { findings: Finding[]; keys: string[
     };
     for (const m of code.matchAll(CHROME_READ))
       push(m.index ?? 0, "chrome", "reads the chrome itself; use visibleArea() (D267)");
-    if (name !== "src/components/ui/dropdown-menu-impl.tsx" && name !== "src/components/ui/popover.tsx")
+    if (
+      name !== "src/components/ui/dropdown-menu-impl.tsx" &&
+      name !== "src/components/ui/popover.tsx"
+    )
       for (const m of code.matchAll(OWN_PADDING))
         push(m.index ?? 0, "padding", "a menu with its own collisionPadding (D267)");
     if (!AREA_READERS.has(name))
@@ -85,7 +88,10 @@ describe("CF-AREA-1 — an open list's room comes from one reader (D267)", () =>
     ]);
     expect(report(findings)).toContain("own collisionPadding");
     const popover = areaFindings([
-      { name: "src/x.tsx", text: `const a = <PopoverContent collisionPadding={16}>x</PopoverContent>;` },
+      {
+        name: "src/x.tsx",
+        text: `const a = <PopoverContent collisionPadding={16}>x</PopoverContent>;`,
+      },
     ]);
     expect(report(popover.findings)).toContain("own collisionPadding");
   });

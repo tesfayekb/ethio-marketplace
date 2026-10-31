@@ -19,11 +19,7 @@ const css = readFileSync(resolve(__dirname, "..", "styles.css"), "utf8").replace
 
 /** One CSS value whatever its wrapping: whitespace collapsed, none just inside parentheses. */
 export function cssValue(raw: string): string {
-  return raw
-    .replace(/\s+/g, " ")
-    .replace(/\(\s+/g, "(")
-    .replace(/\s+\)/g, ")")
-    .trim();
+  return raw.replace(/\s+/g, " ").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim();
 }
 
 function block(selector: string): Map<string, string> {
