@@ -51,13 +51,13 @@ DropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayNam
 const DropdownMenuContent = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Content>
->(({ className, sideOffset = 0, align = "start", collisionPadding = 16, ...props }, ref) => (
+>(({ className, sideOffset = 0, align = "start", collisionPadding, ...props }, ref) => (
   <DropdownMenuPrimitive.Portal>
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
       align={align}
-      collisionPadding={collisionPadding}
+      collisionPadding={collisionPadding ?? <AreaPadding />}
       className={cn(
         LIST_PANEL,
         // D264 ruling 3 — at least the control's width; the content decides inside that.

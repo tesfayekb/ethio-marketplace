@@ -127,6 +127,7 @@ export function usePickerPlacement(
       if (plan.scrollBy > 0) {
         panel.style.visibility = "hidden";
         scrollThenPlace(plan.scrollBy, () => {
+          if (!alive) return;
           settled = true;
           place();
         });
@@ -142,9 +143,11 @@ export function usePickerPlacement(
       setPlacement((prev) => (prev === plan.side ? prev : plan.side));
     };
     let settled = false;
+    let alive = true;
     place();
     window.addEventListener("resize", place);
     return () => {
+      alive = false;
       window.removeEventListener("resize", place);
       const control = anchor.matches("input")
         ? anchor
