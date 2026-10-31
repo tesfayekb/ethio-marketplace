@@ -228,4 +228,4 @@ docs/_changelog.md, docs/features/design-foundation.md, docs/generated/i18n-usag
 - **Unit tests.** PO-U1, PO-U2 (panelOf), free under TI-1. press.test + menu-current.test: 20 passed. Laws step (scripts): 398 passed, 1 skipped.
 - **Browser** (both projects, retries 0): post-wizard-category + press, run 1: 59 passed, 2 failed (PW-2 and PSP-1 light, mobile-360, the run's first tests: save-state and waitForURL timeouts on a cold dev server; PW-15 passed on both). Run 2 whole, same files: 61 passed, 0 failed, 3 skipped. shell.spec --grep "bottom bar": 4 passed, 4 skipped. PS-5 unchanged (it names no /post).
 - **Files (git diff --name-only 554f0475):** src/components/app-shell.tsx, src/components/shell/bottom-bar.tsx, src/components/shell/menu-current.ts, src/components/shell/menu-current.test.ts, scripts/conformance/press.test.ts, docs/governance/reports/foundations-turn-c.report.md, docs/_changelog.md.
-- **K2.** None new: no other file decides a path's section (rg routePanel/startsWith("/post") in src).
+- **K2.** src/components/shell/breadcrumbs.tsx:383 tests `/post` itself (a second section-shaped read, outside scope; not touched).
