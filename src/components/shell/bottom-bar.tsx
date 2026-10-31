@@ -1,3 +1,4 @@
+import { CURRENT_PILL } from "@/components/shell/band-row";
 import { CutText } from "@/components/ui/cut-text";
 import { Link } from "@tanstack/react-router";
 import {
@@ -29,7 +30,7 @@ function ItemBody({
   icon: LucideIcon;
   label: string;
   emphasised?: boolean;
-  /** C2h.1 — the current item: its icon sits in the `--nav-active` pill. */
+  /** C2h.1 — the current item: its icon sits in the shared P-S3 current-item pill. */
   current?: boolean;
 }): ReactNode {
   return (
@@ -45,7 +46,7 @@ function ItemBody({
       ) : current ? (
         <span
           data-testid="bottom-bar-pill"
-          className="inline-flex h-8 w-14 items-center justify-center rounded-full bg-nav-pill shadow-pill"
+          className={cn("inline-flex h-8 w-14 items-center justify-center", CURRENT_PILL)}
         >
           <Icon className="h-6 w-6" aria-hidden="true" />
         </span>

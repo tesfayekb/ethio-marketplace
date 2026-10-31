@@ -10,6 +10,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { withoutEmptyLayers } from "./helpers/shadows";
+import { adPageFixtures } from "./helpers/ad-page";
 
 type Mode = "light" | "dark";
 type Token = keyof typeof THEMES.sage.light;
@@ -54,6 +55,10 @@ async function open(page: Page, width: number, mode: Mode) {
 for (const width of WIDTHS) {
   for (const mode of MODES) {
     test.describe(`Sage bands at ${width}, ${mode}`, () => {
+      const feed = adPageFixtures();
+      test.afterEach(async () => {
+        await feed.cleanup();
+      });
       test.beforeEach(async ({ page }, testInfo) => {
         test.skip(
           width < 768 !== (testInfo.project.name === "mobile-360"),
@@ -84,7 +89,7 @@ for (const width of WIDTHS) {
             expect(await style(row, "box-shadow"), `${id} groove`).toBe(want.groove);
           }
         }
-        expect(await style(page.getByTestId("shell-subband"), "box-shadow")).toBe(
+        expect(await style(page.getByTestId("shell-location-band"), "box-shadow")).toBe(
           await tokenStyle(page, mode, "lift-subband", "box-shadow"),
         );
         for (const title of await page.getByTestId("panel-header-title").all()) {
@@ -94,6 +99,77 @@ for (const width of WIDTHS) {
           expect(await style(title, "letter-spacing")).toBe("1.2px");
           expect(await style(title, "color")).toBe(want.label);
         }
+      });
+
+      test(`SGB-4 adjacent bands meet with one groove and one last-row drop (${width}, ${mode})`, async ({
+        page,
+      }, testInfo) => {
+        // J3: a scratch category feed supplies real scroll height at every width.
+        const seller = await feed.scratchSeller();
+        const ids = [];
+        for (let i = 0; i < 15; i++) ids.push(await feed.seed(seller));
+        await signIn(page, seller.email, seller.password);
+        await gotoReady(page, `/c/${seller.leafSlug}`);
+        await expect(page.getByTestId("listing-card")).toHaveCount(ids.length);
+        await expect(page.getByTestId("panel-tabs")).toBeAttached();
+        const sticky = page.getByTestId("shell-subband");
+        const locationBand = page.getByTestId("shell-location-band");
+        const groove = await tokenStyle(page, mode, "lift-groove", "box-shadow");
+        const drop = await tokenStyle(page, mode, "lift-subband", "box-shadow");
+        for (const scrolled of [false, true]) {
+          await page.evaluate((scrolled) => window.scrollTo(0, scrolled ? 180 : 0), scrolled);
+          await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(scrolled ? 180 : 0);
+          if (scrolled) await expect(sticky).toHaveAttribute("data-location-covered", "");
+          else await expect(sticky).not.toHaveAttribute("data-location-covered");
+          const rows = page.locator(
+            '[data-testid="panel-tabs"]:visible, [data-testid="shell-breadcrumb-row"]:visible, [data-testid="location-row"]:visible',
+          );
+          const boxes = [];
+          for (const row of await rows.all()) {
+            const { row: box } = await layoutBoxes({ row });
+            const { sticky: top } = await layoutBoxes({ sticky });
+            if (
+              (await row.getAttribute("data-testid")) === "location-row" &&
+              box.y + box.height <= top.y + top.height
+            )
+              continue;
+            boxes.push(box);
+            expect(await style(row, "box-shadow")).toBe(groove);
+            expect(await style(row, "border-bottom-width")).toBe("0px");
+          }
+          for (let i = 1; i < boxes.length; i++) {
+            const upper = boxes[i - 1];
+            const lower = boxes[i];
+            if (!upper || !lower) throw new Error("SGB-4 adjacent box absent");
+            expect(upper.y + upper.height).toBe(lower.y);
+          }
+          expect(await style(sticky, "box-shadow")).toBe(scrolled ? drop : "none");
+          expect(await style(locationBand, "box-shadow")).toBe(scrolled ? "none" : drop);
+          console.log(
+            `SGB-4 ${width} ${mode} ${scrolled ? "scrolled" : "top"}: ${JSON.stringify(boxes)}`,
+          );
+          await page.screenshot({
+            path: testInfo.outputPath(`SGB-4-${width}-${mode}-${scrolled}.png`),
+          });
+        }
+      });
+
+      test(`SGB-5 current panel tab reads the shared current pill (${width}, ${mode})`, async ({
+        page,
+      }) => {
+        const user = await leaseUser();
+        await signIn(page, user.email, user.password);
+        await gotoReady(page, "/");
+        await expect(page.getByTestId("panel-tabs")).toBeAttached();
+        const tab = page.locator('[role="tab"][aria-selected="true"]');
+        // G38: the former nav-active tint/text-primary becomes the P-S3 fill/lift/nav-ink.
+        expect(await style(tab, "background-color")).toBe(
+          await tokenStyle(page, mode, "nav-pill", "background-color"),
+        );
+        expect(await style(tab, "box-shadow")).toBe(
+          await tokenStyle(page, mode, "lift-pill", "box-shadow"),
+        );
+        expect(await style(tab, "color")).toBe(await tokenStyle(page, mode, "nav-ink", "color"));
       });
 
       test(`SGB-2 track and segments keep their geometry (${width}, ${mode})`, async ({ page }) => {

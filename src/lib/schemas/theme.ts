@@ -43,7 +43,6 @@ export const MODED_TOKENS = [
   "sidebar-primary",
   "sidebar-primary-foreground",
   "sidebar-accent",
-  "nav-active",
   "sidebar-accent-foreground",
   "sidebar-border",
   "sidebar-ring",
@@ -141,7 +140,7 @@ const reference = z
 
 function grammarOf(name: string): z.ZodString {
   if (name.startsWith("lift-")) return shadow;
-  if (name === "nav-active" || name.startsWith("band")) return reference;
+  if (name.startsWith("band")) return reference;
   return colour;
 }
 
