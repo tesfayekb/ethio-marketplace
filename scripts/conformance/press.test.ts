@@ -238,7 +238,7 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
       currentFindings([
         {
           name: "src/components/shell/bottom-bar.tsx",
-          text: `const at = useMenuAt(); isCurrentAt({ path: "/" }, at);`,
+          text: `const at = useMenuAt(); panelOf(at.pathname); isCurrentAt({ path: "/" }, at);`,
         },
         { name: "src/lib/press.ts", text: `nav.vibrate(TICK_MS);` },
         {
