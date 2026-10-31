@@ -49,7 +49,8 @@ export function placeList(
 
 /** The element inside an open list that scrolls its rows (itself when it does). */
 function listScroller(panel: HTMLElement): HTMLElement {
-  const own = (element: HTMLElement) => /auto|scroll/.test(window.getComputedStyle(element).overflowY);
+  const own = (element: HTMLElement) =>
+    /auto|scroll/.test(window.getComputedStyle(element).overflowY);
   if (own(panel)) return panel;
   return (
     Array.from(panel.querySelectorAll<HTMLElement>("*")).find((element) => own(element)) ?? panel
@@ -122,7 +123,9 @@ export function usePickerPlacement(
       scroller.style.maxHeight = "";
       const wanted = panel.getBoundingClientRect().height || Math.min(256, 44 * rowCount + 2);
       const page = document.scrollingElement ?? document.documentElement;
-      const scrollRoom = settled ? 0 : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
+      const scrollRoom = settled
+        ? 0
+        : Math.max(0, page.scrollHeight - window.innerHeight - window.scrollY);
       const plan = placeList(rect, wanted, visibleArea(), scrollRoom);
       if (plan.scrollBy > 0) {
         panel.style.visibility = "hidden";
