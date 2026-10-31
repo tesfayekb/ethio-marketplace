@@ -13,7 +13,8 @@ import {
 import type { ReactNode } from "react";
 
 import { useShell } from "@/components/shell-context";
-import { isCurrentAt } from "@/components/shell/menu-current";
+import { isCurrentAt, panelOf } from "@/components/shell/menu-current";
+import { feedRouteOf } from "@/features/categories/category-tree";
 import { useMenuAt } from "@/components/shell/use-shown-pathname";
 import { PRESSED } from "@/components/shell/menu-row";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
@@ -24,17 +25,11 @@ import { cn } from "@/lib/utils";
 const ITEM = `${PRESSED.bar} flex min-h-15 min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring`;
 
 /**
- * D271 (turn C2, DEC-317 item 4) — each item is current by the one rule (isCurrentAt) on the
- * chosen page (useMenuAt), signed in or out: Home on the feed ("/" and every category), Sign in
- * on its page, My listings, Account and Admin on theirs. The panel (the frame) is not read.
+ * D271 (turn C2) / turn C fix 1 — each item is current on the chosen page (useMenuAt), signed in
+ * or out. The section is the one rule's (panelOf, the frame's own): My listings on /my-listings
+ * and the posting pages (INC-359), Account on /account and /settings, Admin on /admin. The bar
+ * adds only its own two: Home on the feed (feedRouteOf) and Sign in on its page.
  */
-export const BAR_PATHS = {
-  home: ["/", "/c"],
-  myListings: ["/my-listings"],
-  account: ["/account", "/settings"],
-  signIn: ["/auth"],
-  admin: ["/admin"],
-} as const;
 
 function ItemBody({
   icon: Icon,
@@ -96,12 +91,12 @@ export function BottomBar() {
   if (authLoading) return null;
 
   const signedIn = auth.isAuthenticated && !signingOut;
-  const on = (paths: readonly string[]) => paths.some((path) => isCurrentAt({ path }, at));
-  const home = on(BAR_PATHS.home);
-  const myListings = on(BAR_PATHS.myListings);
-  const account = on(BAR_PATHS.account);
-  const signInPage = on(BAR_PATHS.signIn);
-  const admin = on(BAR_PATHS.admin);
+  const panel = panelOf(at.pathname);
+  const home = feedRouteOf(at.pathname) !== null;
+  const myListings = panel === "my-listings";
+  const account = panel === "account";
+  const signInPage = isCurrentAt({ path: "/auth" }, at);
+  const admin = panel === "admin";
   const tone = (current: boolean) =>
     current ? "text-primary" : "text-muted-foreground hover:text-foreground";
   const label = (key: MessageKey) => t(key);
