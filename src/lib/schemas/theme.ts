@@ -143,6 +143,8 @@ export const MODE_FREE_TOKENS = [
   "card-radius-lg",
   "box-radius",
   "box-radius-md",
+  "bar-radius",
+  "bar-radius-md",
   "track-radius",
   "track-radius-md",
   "segment-radius",

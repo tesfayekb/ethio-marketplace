@@ -18,6 +18,8 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  * frame and fold), outside its mechanism; inside tier-flag.tsx every stop colour is a token
  * reference. A recorded exception is a line in card-tiers-allowlist.txt keyed
  * `<file> (<findings>)` | reason | until. CF-TIER-2 proves each rule on planted files.
+ * Turn S5 extends it to the ad page: the tier's accent tokens (chip, ring, edge, the Premium
+ * contact's lift) are look classes too, and the photo's flag and the tier tag are tier marks.
  * CF-TIER-3 proves the build judge (route-budgets.mjs tierFlagViolations, run by
  * check-bundle-size.mjs on every page's first download): the flag rides card pages only.
  */
@@ -32,8 +34,10 @@ const RIBBON = [
 const RULE = "(S4: one mechanism per tier look, flag and ribbon)";
 const ALLOWLIST = "scripts/conformance/card-tiers-allowlist.txt";
 
+/** S5 widens it to the ad page's tier accents: every tier token a fill, ink, edge or ring reads. */
 const TIER_CLASS =
-  /(?<![\w-])(?:bg-tier-(?:premium|featured)|shadow-(?:premium|featured)|border-tier-(?:premium|featured)-rule|text-tier-(?:premium|featured)-(?:ink|star))(?![\w-])/;
+  /(?<![\w-])(?:(?:bg|text|border|ring)-tier-(?:premium|featured)(?:-[a-z]+)?|shadow-(?:premium|featured|contact-premium))(?![\w-])/;
+const TIER_MARK = /listing-(?:card|detail)-tier\b/;
 const FLAG_REF = /--flag-|--tier-(?:premium|featured)-(?:frame|fold)\b/;
 const TIER_COMPARE =
   /\btier\s*[!=]==?\s*["'](?:premium|featured)["']|["'](?:premium|featured)["']\s*[!=]==?\s*[\w.?]*tier\b|\bcase\s+["'](?:premium|featured)["']/i;
@@ -54,7 +58,7 @@ export function tierFindings(files: string[], root: string): Finding[] {
       const hit = (what: string) => found.push({ file: name, line, what: `${what} ${RULE}` });
       if (name !== LOOK && TIER_CLASS.test(text))
         hit(`draws a tier's look outside ${LOOK}; read cardLookOf`);
-      if (name !== FLAG && /listing-card-tier\b/.test(text))
+      if (name !== FLAG && TIER_MARK.test(text))
         hit(`draws a tier mark outside ${FLAG}; render TierFlag`);
       if (name !== FLAG && name !== LOOK && FLAG_REF.test(text))
         hit(`paints with the flag's tokens outside ${FLAG}`);
@@ -108,6 +112,16 @@ describe("a card's tier and its ribbon have one mechanism each (S4)", () => {
           'export const e = { "--rb-ink": "var(--ribbon-gold-ink)" };',
           'export const f = <svg><linearGradient id="g" /></svg>;',
           "// a comment naming bg-tier-premium or --rb-ink paints nothing",
+          'export const g = "ring-tier-premium-ring bg-tier-premium-chip shadow-contact-premium";',
+        ].join("\n"),
+      );
+      mkdirSync(join(dir, "src/features/posting/preview"), { recursive: true });
+      writeFileSync(
+        join(dir, "src/features/posting/preview/bad-page.tsx"),
+        [
+          'export const h = <span data-testid="listing-detail-tier-tag" />;',
+          'export const i = "border-tier-premium-edge text-primary";',
+          'export const j = (look: { tier: string }) => look.tier === "premium";',
         ].join("\n"),
       );
       writeFileSync(
@@ -129,12 +143,16 @@ describe("a card's tier and its ribbon have one mechanism each (S4)", () => {
         [
           `src/components/marketplace/tier-flag.tsx:2 sets a stop colour that is not a token reference ${RULE}`,
           `src/components/marketplace/tier-flag.tsx:3 sets a stop colour that is not a token reference ${RULE}`,
+          `src/features/posting/preview/bad-page.tsx:1 draws a tier mark outside ${FLAG}; render TierFlag ${RULE}`,
+          `src/features/posting/preview/bad-page.tsx:2 draws a tier's look outside ${LOOK}; read cardLookOf ${RULE}`,
+          `src/features/posting/preview/bad-page.tsx:3 decides a paid tier's look by its name outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/x/bad.tsx:1 draws a tier's look outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/x/bad.tsx:2 draws a tier mark outside ${FLAG}; render TierFlag ${RULE}`,
           `src/features/x/bad.tsx:3 paints with the flag's tokens outside ${FLAG} ${RULE}`,
           `src/features/x/bad.tsx:4 decides a paid tier's look by its name outside ${LOOK}; read cardLookOf ${RULE}`,
           `src/features/x/bad.tsx:5 reaches the ribbon's internals outside ${where}; render ListingRibbon ${RULE}`,
           `src/features/x/bad.tsx:6 paints an SVG gradient or drop shadow outside ${FLAG} ${RULE}`,
+          `src/features/x/bad.tsx:8 draws a tier's look outside ${LOOK}; read cardLookOf ${RULE}`,
         ].join("\n"),
       );
     } finally {

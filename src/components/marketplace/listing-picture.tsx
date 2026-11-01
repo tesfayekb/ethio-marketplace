@@ -1,5 +1,5 @@
 import { ImageOff } from "lucide-react";
-import { useState, type CSSProperties } from "react";
+import { useState, type CSSProperties, type ReactNode } from "react";
 
 import { useI18n } from "@/i18n";
 
@@ -95,6 +95,32 @@ export function ListingRibbon({
   );
 }
 
+/**
+ * Sage S5 (spec §12) — the ribbon on a picture that is not ListingPicture's (the ad page's main
+ * photo): the band clipped to the frame's corners (`rounded`), its rolled caps uncut beyond them.
+ * The frame is the caller's (`className` places it); its own clip must not wrap this.
+ */
+export function PhotoRibbon({
+  text,
+  palette,
+  className,
+  rounded,
+}: {
+  text: string;
+  palette: RibbonPalette;
+  className: string;
+  rounded: string;
+}) {
+  return (
+    <div aria-hidden="true" className={`@container pointer-events-none absolute ${className}`}>
+      <div className={`absolute inset-0 overflow-hidden ${rounded}`}>
+        <ListingRibbon text={text} palette={palette} />
+      </div>
+      <RibbonEnds palette={palette} />
+    </div>
+  );
+}
+
 /** The two rolled caps, beyond the right and bottom edges of the frame they sit on. */
 function RibbonEnds({ palette }: { palette: RibbonPalette }) {
   return (
@@ -124,6 +150,7 @@ export function ListingPicture({
   ribbon = null,
   palette = "pearl",
   priority = false,
+  corner = null,
 }: {
   photoUrl: string | null;
   categoryUrl: string | null;
@@ -149,6 +176,8 @@ export function ListingPicture({
   palette?: RibbonPalette;
   /** DEC-195 — the grid's first cards load at once with high fetch priority; the rest lazily. */
   priority?: boolean;
+  /** Sage S5 — a mark on the box's top-start corner, over the picture (the ad page's tier flag). */
+  corner?: ReactNode;
 }) {
   const { t } = useI18n();
   const source = photoUrl ?? categoryUrl;
@@ -218,6 +247,7 @@ export function ListingPicture({
           </div>
         </div>
       )}
+      {corner}
       {showRibbon && <span className="sr-only">{t("listing.photosSoon")}</span>}
       {ribbon !== null && <span className="sr-only">{ribbon}</span>}
     </div>

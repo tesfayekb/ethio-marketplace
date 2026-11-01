@@ -130,8 +130,8 @@
   --radius-list-row: 0.625rem;
   /* Turn S6-1: a dialog's and a sheet's panel (20 px), Sage §14. */
   --radius-dialog: 1.25rem;
-  /* Turn SAGE-S5 (spec §12): the ad page's boxes (16 px, 20 px from 768 px) and its thumbnails (6 px). */
-  --radius-box: var(--box-radius);
+  /* Turn SAGE-S5 (spec §12): the ad page's thumbnails (6 px). Its boxes re-scope --card-radius
+     to --box-radius (16 px, 20 px from 768 px) and its section bar to --bar-radius (12 / 14 px). */
   --radius-thumb: 0.375rem;
   /*
    * Typography (DEC-262, Foundations turn 33): the device's own fonts — no page
@@ -502,6 +502,8 @@
   --card-radius-lg: 1.25rem;
   --box-radius: 1rem;
   --box-radius-md: 1.25rem;
+  --bar-radius: 0.75rem;
+  --bar-radius-md: 0.875rem;
   --track-radius: 0.6875rem;
   --track-radius-md: 0.75rem;
   --segment-radius: 0.5rem;
@@ -660,6 +662,7 @@
   :root {
     --card-radius: var(--card-radius-md);
     --box-radius: var(--box-radius-md);
+    --bar-radius: var(--bar-radius-md);
     --track-radius: var(--track-radius-md);
     --segment-radius: var(--segment-radius-md);
   }

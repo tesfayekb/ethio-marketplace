@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ListingPicture } from "./listing-picture";
+import { ListingPicture, PhotoRibbon } from "./listing-picture";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({
@@ -71,4 +71,33 @@ it("LP-11 crop fills the card with a tall seller photo; default and category pic
   expect(frame.style.aspectRatio).toBe("");
   expect(frame.style.width).toBe("100%");
   expect(frame.style.height).toBe("100%");
+});
+
+it("LP-12 a corner mark sits on the box itself, outside the picture's clip layer (S5)", () => {
+  render(
+    <ListingPicture
+      photoUrl={null}
+      categoryUrl={null}
+      boxTestId="lp-12-box"
+      corner={<span data-testid="lp-12-corner" />}
+    />,
+  );
+  const corner = screen.getByTestId("lp-12-corner");
+  expect(corner.parentElement).toBe(screen.getByTestId("lp-12-box"));
+});
+
+it("LP-13 PhotoRibbon clips the band to the frame's corners and keeps its rolled caps outside the clip (S5)", () => {
+  render(<PhotoRibbon text="SOLD" palette="gold" className="inset-0" rounded="rounded-row" />);
+  const band = screen.getByTestId("listing-ribbon");
+  expect(band).toHaveAttribute("data-ribbon", "gold");
+  const clip = band.parentElement;
+  expect(clip).toHaveClass("overflow-hidden", "rounded-row");
+  const ends = screen.getByTestId("listing-ribbon-ends");
+  expect(ends).toHaveAttribute("data-ribbon", "gold");
+  expect(clip?.contains(ends)).toBe(false);
+  const frame = clip?.parentElement;
+  expect(frame).toBe(ends.parentElement);
+  expect(frame).toHaveClass("@container", "absolute", "inset-0");
+  expect(frame).not.toHaveClass("overflow-hidden");
+  expect(frame).toHaveAttribute("aria-hidden", "true");
 });

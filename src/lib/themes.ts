@@ -198,6 +198,8 @@ const SAGE: ThemeSetValue = {
     "card-radius-lg": "1.25rem",
     "box-radius": "1rem",
     "box-radius-md": "1.25rem",
+    "bar-radius": "0.75rem",
+    "bar-radius-md": "0.875rem",
     "track-radius": "0.6875rem",
     "track-radius-md": "0.75rem",
     "segment-radius": "0.5rem",

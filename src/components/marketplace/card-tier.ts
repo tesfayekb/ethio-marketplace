@@ -19,6 +19,8 @@ export interface PaidLook {
   stars: number;
   /** The flag: its length in picture units, its frame, fold and star stops (token references). */
   flag: { length: number; frame: string; fold: string; stops: readonly [string, string, string] };
+  /** Spec §12 — the ad page's tier tag: its ring. */
+  ring: string;
 }
 
 export interface CardLook {
@@ -47,6 +49,7 @@ const PREMIUM: PaidLook = {
     fold: "var(--tier-premium-fold)",
     stops: ["var(--flag-premium-1)", "var(--flag-premium-2)", "var(--flag-premium-3)"],
   },
+  ring: "ring-tier-premium-ring",
 };
 
 const FEATURED: PaidLook = {
@@ -59,6 +62,7 @@ const FEATURED: PaidLook = {
     fold: "var(--tier-featured-fold)",
     stops: ["var(--flag-featured-1)", "var(--flag-featured-2)", "var(--flag-featured-3)"],
   },
+  ring: "ring-tier-featured-ring",
 };
 
 /** The look a card of this tier takes. */
@@ -80,6 +84,82 @@ export function cardLookOf(tier: ListingTier): CardLook {
       };
     case "regular":
       return REGULAR;
+  }
+}
+
+/**
+ * Sage S5 (spec §12, §13; ruling 1) — THE AD PAGE'S TIER LOOK, by the same rule as the card's:
+ * on a paid ad only the title box is tinted, every other box of the ad body is white with the
+ * tier frame, and the accents inside the body take the tier colour (Premium gold; Featured keeps
+ * the site green). Each key is a class set merged over the page's own (cn), so the free entry is
+ * empty where the page's own look is the free one. The safety box never reads it.
+ */
+export interface AdPageLook {
+  /** The title box, over CARD_SURFACE: the tier's fill and frame. */
+  titleBox: string;
+  /** The ad body's other boxes and the section bar, over CARD_SURFACE: the tier frame. */
+  box: string;
+  /** The section bar's current tab, over BAND_TAB_CURRENT. */
+  tab: string;
+  /** The price, the links, Save, Share, Read more: the accent ink. */
+  ink: string;
+  /** Show contact, over the default button. */
+  contact: string;
+  /** The Negotiable chip, over its own look. */
+  negotiable: string;
+  /** A key-fact chip's edge. */
+  chip: string;
+  /** The dividers inside the boxes. */
+  rule: string;
+  /** The chosen thumbnail's edge. */
+  thumbOn: string;
+  /** Enlarge map's outline. */
+  edge: string;
+  palette: RibbonPalette;
+}
+
+const FREE_PAGE: AdPageLook = {
+  titleBox: "",
+  box: "",
+  tab: "",
+  ink: "text-primary",
+  contact: "",
+  negotiable: "",
+  chip: "border-border",
+  rule: "border-border",
+  thumbOn: "border-primary",
+  edge: "border-hairline",
+  palette: "pearl",
+};
+
+/** The look the ad page of a listing of this tier takes; null (not known) is the free look. */
+export function adPageLookOf(tier: ListingTier | null): AdPageLook {
+  switch (tier) {
+    case "premium":
+      return {
+        titleBox: "bg-tier-premium shadow-premium",
+        box: "shadow-premium",
+        tab: "bg-tier-premium text-tier-premium-ink ring-1 ring-inset ring-tier-premium-ring",
+        ink: "text-tier-premium-ink",
+        contact: "bg-gold text-gold-foreground shadow-contact-premium hover:bg-gold/90",
+        negotiable: "bg-tier-premium-chip text-tier-premium-ink",
+        chip: "border-tier-premium-ring",
+        rule: "border-tier-premium-rule",
+        thumbOn: "border-gold",
+        edge: "border-tier-premium-edge",
+        palette: "gold",
+      };
+    case "featured":
+      return {
+        ...FREE_PAGE,
+        titleBox: "bg-tier-featured shadow-featured",
+        box: "shadow-featured",
+        rule: "border-tier-featured-rule",
+        palette: "sage",
+      };
+    case "regular":
+    case null:
+      return FREE_PAGE;
   }
 }
 

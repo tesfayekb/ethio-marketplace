@@ -30,26 +30,40 @@ const FLAG_STYLE: CSSProperties = {
 };
 const FLAG_CLASS =
   "pointer-events-none absolute [--flag-scale:1.6] rtl:-scale-x-100 md:@max-[11rem]:[--flag-scale:1.25] @min-[11rem]:[--flag-scale:1]";
+/** Sage S5 (spec §12) — on the ad page's main photo: ×1.15 on a phone's photo, ×0.72 from 32rem. */
+const PHOTO_FLAG_CLASS =
+  "pointer-events-none absolute z-10 [--flag-scale:1.15] rtl:-scale-x-100 @min-[32rem]:[--flag-scale:0.72]";
 
 function useTierName(tier: PaidTier): string {
   const { t } = useI18n();
   return tier === "premium" ? t("tier.premium") : t("tier.featured");
 }
 
-/** The flag, absolutely placed: its parent is the picture's own box, inside the card's container. */
-export function TierFlag({ tier, look }: { tier: PaidTier; look: PaidLook }) {
+/**
+ * The flag, absolutely placed: its parent is the picture's own box, inside the card's container
+ * (`on="card"`), or the ad page's main photo box, its own container (`on="photo"`).
+ */
+export function TierFlag({
+  tier,
+  look,
+  on = "card",
+}: {
+  tier: PaidTier;
+  look: PaidLook;
+  on?: "card" | "photo";
+}) {
   const name = useTierName(tier);
   const fill = `tier-stars-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const { length, frame, fold, stops } = look.flag;
   return (
     <svg
-      data-testid="listing-card-tier"
+      data-testid={on === "photo" ? "listing-detail-tier" : "listing-card-tier"}
       data-tier={tier}
       role="img"
       aria-label={name}
       viewBox={`${VIEW.x} ${VIEW.y} ${VIEW.width} ${VIEW.height}`}
       overflow="visible"
-      className={FLAG_CLASS}
+      className={on === "photo" ? PHOTO_FLAG_CLASS : FLAG_CLASS}
       style={FLAG_STYLE}
     >
       <defs>
@@ -99,14 +113,43 @@ export function TierWord({
         className,
       )}
     >
-      <span className={cn("inline-flex", look.star)}>
-        {STAR_X.slice(0, look.stars).map((x) => (
-          <svg key={x} viewBox="0 0 22 21" className="size-[1em]">
-            <path d={TIER_STAR_PATH} fill="currentColor" />
-          </svg>
-        ))}
-      </span>
+      <TierStars look={look} />
       {name}
+    </span>
+  );
+}
+
+/**
+ * Sage S5 (spec §12) — the ad page's tier tag above the title: the tier word and its stars in a
+ * white pill ringed in the tier colour; the photo's flag speaks for it.
+ */
+export function TierTag({ tier, look }: { tier: PaidTier; look: PaidLook }) {
+  const name = useTierName(tier);
+  return (
+    <span
+      data-testid="listing-detail-tier-tag"
+      data-tier={tier}
+      aria-hidden="true"
+      className={cn(
+        "inline-flex items-center gap-1 self-start rounded-full bg-card px-2.5 py-0.5 text-xs leading-5 font-extrabold tracking-[0.6px] uppercase ring-1 ring-inset",
+        look.word,
+        look.ring,
+      )}
+    >
+      <TierStars look={look} />
+      {name}
+    </span>
+  );
+}
+
+function TierStars({ look }: { look: PaidLook }) {
+  return (
+    <span className={cn("inline-flex", look.star)}>
+      {STAR_X.slice(0, look.stars).map((x) => (
+        <svg key={x} viewBox="0 0 22 21" className="size-[1em]">
+          <path d={TIER_STAR_PATH} fill="currentColor" />
+        </svg>
+      ))}
     </span>
   );
 }
