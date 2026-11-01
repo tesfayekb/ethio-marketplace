@@ -1,12 +1,15 @@
-import * as DialogPrimitive from "@/components/ui/dialog-primitive";
-import { X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { IconButtonBare } from "@/components/ui/icon-button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { NoticeOutlet } from "@/components/ui/notice-outlet";
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useI18n } from "@/i18n";
 
 /**
  * Bundle 11 V2 (D132, INC-543) — THE PANEL OF A TOOLBAR BUTTON (Filters,
@@ -28,10 +31,19 @@ import { useI18n } from "@/i18n";
  * Bundle 16 turn R3 (INC-633) — from md the popover is never taller than the
  * room the window leaves it: its height is bounded by Radix's available height
  * (16 px kept from the window's edge) and its content scrolls inside it, the
- * footer staying in view, as the phone's sheet already does (max-h 85dvh). A
- * long panel — every top category in My listings' Filters — ran past the
- * window's bottom, where nothing could reach it (MLP-6, desktop-1280).
+ * footer staying in view, as the phone's sheet already does. A long panel —
+ * every top category in My listings' Filters — ran past the window's bottom,
+ * where nothing could reach it (MLP-6, desktop-1280).
+ *
+ * Turn S6-3 (row 48) — the panel draws no look of its own: on a phone it is
+ * the sheet's bottom side (the scrim, the grabber, the title, the close and
+ * the notices come with it), from md the popover's panel variant (fetched on
+ * the first press); both lay the footer's link and its primary in the shared
+ * footer part, in one row.
  */
+const BODY = "-mx-6 -my-1 min-h-0 flex-1 overflow-y-auto px-6 py-1";
+const FOOT = "flex-row items-center";
+
 export function ToolbarPanel({
   testid,
   title,
@@ -49,7 +61,6 @@ export function ToolbarPanel({
   state: string;
   align?: "start" | "end";
 }) {
-  const { t } = useI18n();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [openedWith, setOpenedWith] = useState(state);
@@ -59,63 +70,35 @@ export function ToolbarPanel({
   };
   const close = () => setOpen(false);
   const foot = footer?.(close, state !== openedWith) ?? null;
+  const body = <div className={BODY}>{children}</div>;
+  const footPart = foot !== null ? <SheetFooter className={FOOT}>{foot}</SheetFooter> : null;
 
   if (isMobile) {
     return (
-      <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
-        <DialogPrimitive.Trigger asChild>{trigger}</DialogPrimitive.Trigger>
-        <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-foreground/45" />
-          <DialogPrimitive.Content
-            data-testid={`${testid}-panel`}
-            aria-describedby={undefined}
-            className="fixed inset-x-0 bottom-0 z-50 flex max-h-[85dvh] flex-col rounded-t-2xl bg-card text-card-foreground shadow-sheet focus:outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom"
-          >
-            <span
-              aria-hidden="true"
-              className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-input"
-            />
-            <div className="flex min-w-0 items-center gap-2 border-b border-border/70 py-1.5 pe-1 ps-4">
-              <DialogPrimitive.Title className="min-w-0 flex-1 truncate text-lg font-bold text-foreground">
-                {title}
-              </DialogPrimitive.Title>
-              <DialogPrimitive.Close asChild>
-                <IconButtonBare
-                  data-testid={`${testid}-close`}
-                  label={t("common.close")}
-                  size="touch"
-                  icon={<X />}
-                />
-              </DialogPrimitive.Close>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
-            {foot !== null ? (
-              <div className="flex min-w-0 items-center gap-3 border-t border-border/70 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-3">
-                {foot}
-              </div>
-            ) : null}
-            {/* INC-955 — the shell's notices are drawn here while this panel is open. */}
-            <NoticeOutlet />
-          </DialogPrimitive.Content>
-        </DialogPrimitive.Portal>
-      </DialogPrimitive.Root>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetTrigger asChild>{trigger}</SheetTrigger>
+        <SheetContent
+          side="bottom"
+          data-testid={`${testid}-panel`}
+          closeTestId={`${testid}-close`}
+          aria-describedby={undefined}
+        >
+          <SheetHeader>
+            <SheetTitle>{title}</SheetTitle>
+          </SheetHeader>
+          {body}
+          {footPart}
+        </SheetContent>
+      </Sheet>
     );
   }
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
-      <PopoverContent
-        align={align}
-        data-testid={`${testid}-panel`}
-        className="flex max-h-(--radix-popover-content-available-height) w-80 max-w-[calc(100vw-2rem)] flex-col p-0"
-      >
-        <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
-        {foot !== null ? (
-          <div className="flex min-w-0 shrink-0 items-center gap-3 border-t border-border/70 px-4 py-3">
-            {foot}
-          </div>
-        ) : null}
+      <PopoverContent variant="panel" align={align} data-testid={`${testid}-panel`}>
+        {body}
+        {footPart}
       </PopoverContent>
     </Popover>
   );

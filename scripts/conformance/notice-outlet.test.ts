@@ -105,7 +105,8 @@ describe("a notice is shown where the person is looking (INC-955)", () => {
     () => {
       const { contents, findings } = outletFindings(files);
       console.log(`[notice-outlet] modal contents: ${contents}`);
-      expect(contents).toBeGreaterThanOrEqual(4);
+      // Turn S6-3: 3 — dialog.tsx, sheet.tsx, alert-dialog.tsx; the toolbar panel's content now comes from Sheet.
+      expect(contents).toBeGreaterThanOrEqual(3);
       expect(report(findings)).toBe("");
     },
     TREE_SCAN_MS,
