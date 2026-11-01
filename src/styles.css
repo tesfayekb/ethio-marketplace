@@ -898,11 +898,16 @@
 /* Sage S4 (spec §8; ruling 1) — THE SATIN RIBBON. listing-picture.tsx draws the band and its two
  * rolled caps and sets --rb-* to one palette's tokens (pearl, gold or sage) and --satin-x /
  * --satin-len from ribbon-geometry.ts (ruling 2: the picture shows the 7 % to 92 % stops). Gloss
- * on the band's top 12 %, shade on its bottom 14 %; the ink embossed one picture unit below. */
+ * on the band's top strip, shade on its bottom one (--satin-gloss / --satin-shade: 12 % and 14 % of
+ * the band at its own size, inside the text's padding at every size); the ink embossed below. */
 @layer components {
   .ribbon-band {
     background:
-      linear-gradient(var(--ribbon-gloss) 12%, transparent 0 86%, var(--ribbon-gloss-dark) 0),
+      linear-gradient(
+        var(--ribbon-gloss) var(--satin-gloss),
+        transparent 0 calc(100% - var(--satin-shade)),
+        var(--ribbon-gloss-dark) 0
+      ),
       linear-gradient(
           90deg,
           var(--rb-1),

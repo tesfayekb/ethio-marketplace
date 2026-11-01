@@ -22,10 +22,20 @@ const TAN = Math.tan(RAD);
 export const TAPE_INSET_X = `${(TAPE_REACH * COS).toFixed(2)}cqw`;
 export const TAPE_INSET_Y = `${(TAPE_REACH * SIN).toFixed(2)}cqw`;
 /** INC-670 — one band size: the letters, the room above and below, the band's length. */
-export const RIBBON_LETTERS = "clamp(9px, 5cqw, 20px)";
+const LETTERS_CQW = 5;
+export const RIBBON_LETTERS = `clamp(9px, ${LETTERS_CQW}cqw, 20px)`;
 export const RIBBON_PAD_CQW = 1.4;
 export const RIBBON_LENGTH_CQW = 84;
 const THICK = `(${RIBBON_LETTERS} + ${2 * RIBBON_PAD_CQW}cqw)`;
+
+/**
+ * Spec §8 — the gloss on the band's top 12 % and the shade on its bottom 14 %, of the band at its
+ * own size (5cqw letters), held in picture units: at the 9 px floor a share of the band reached
+ * under the letters, where the ink must read at 4.5 : 1 (ruling 1, answer 2); in picture units
+ * both stay inside the text's padding at every size.
+ */
+const OWN_THICK_CQW = LETTERS_CQW + 2 * RIBBON_PAD_CQW;
+export const SATIN_STRIPS = { gloss: 0.12 * OWN_THICK_CQW, shade: 0.14 * OWN_THICK_CQW } as const;
 
 /** A length `cqw` picture units plus `t` band thicknesses. */
 export type Span = { cqw: number; t: number };
@@ -70,6 +80,8 @@ export const RIBBON_BAND_STYLE = {
   transform: `translate(-50%, -50%) rotate(${WATERMARK_ANGLE}deg)`,
   "--satin-x": spanCss(SATIN_START),
   "--satin-len": spanCss(SATIN_LENGTH),
+  "--satin-gloss": `${SATIN_STRIPS.gloss.toFixed(3)}cqw`,
+  "--satin-shade": `${SATIN_STRIPS.shade.toFixed(3)}cqw`,
 } as const;
 
 export const RIBBON_TEXT_STYLE = {

@@ -16,6 +16,7 @@ import {
   SATIN_LENGTH,
   SATIN_SHOWN,
   SATIN_START,
+  SATIN_STRIPS,
   TAPE_INSET_X,
   TAPE_INSET_Y,
   TAPE_REACH,
@@ -124,6 +125,31 @@ describe("the ribbon's geometry (spec §8)", () => {
     expect(RIBBON_BAND_STYLE["--satin-x"]).toBe(spanCss(SATIN_START));
     expect(RIBBON_BAND_STYLE["--satin-len"]).toBe(spanCss(SATIN_LENGTH));
     expect(spanPx({ cqw: 7.5, t: -0.25 }, 2, 20)).toBe(10);
+  });
+
+  it.each(WIDTHS)(
+    "RBN-7 at %i px the gloss and the shade stay inside the text's padding, never under a letter",
+    (width) => {
+      const { unit, thick } = picture(width);
+      const pad = 1.4 * unit;
+      expect(SATIN_STRIPS.gloss * unit).toBeLessThan(pad);
+      expect(SATIN_STRIPS.shade * unit).toBeLessThan(pad);
+      expect(RIBBON_BAND_STYLE["--satin-gloss"]).toBe(`${SATIN_STRIPS.gloss.toFixed(3)}cqw`);
+      expect(RIBBON_BAND_STYLE["--satin-shade"]).toBe(`${SATIN_STRIPS.shade.toFixed(3)}cqw`);
+      // Where the letters are 5cqw (the band at its own size), the strips are 12 % and 14 % of it.
+      if (0.05 * width >= 9 && 0.05 * width <= 20) {
+        expect((SATIN_STRIPS.gloss * unit) / thick).toBeCloseTo(0.12, 6);
+        expect((SATIN_STRIPS.shade * unit) / thick).toBeCloseTo(0.14, 6);
+      }
+    },
+  );
+
+  it("RBN-8 the stylesheet draws the strips from the geometry's two lengths", () => {
+    const css = readFileSync(resolve(__dirname, "../../styles.css"), "utf8");
+    const band = css.slice(css.indexOf(".ribbon-band {"), css.indexOf(".ribbon-ends {"));
+    expect(band).toMatch(/var\(--ribbon-gloss\)\s+var\(--satin-gloss\)/);
+    expect(band).toMatch(/calc\(100%\s*-\s*var\(--satin-shade\)\)/);
+    expect(band).not.toMatch(/\b(?:12|86)%/);
   });
 
   it("RBN-5 every palette names a theme token for each part the stylesheet's ribbon rules read", () => {
