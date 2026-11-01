@@ -894,6 +894,39 @@
   }
 }
 
+/* Sage S4 (spec §8; ruling 1) — THE SATIN RIBBON. listing-picture.tsx draws the band and its two
+ * rolled caps and sets --rb-* to one palette's tokens (pearl, gold or sage) and --satin-x /
+ * --satin-len from ribbon-geometry.ts (ruling 2: the picture shows the 7 % to 92 % stops). Gloss
+ * on the band's top 12 %, shade on its bottom 14 %; the ink embossed one picture unit below. */
+@layer components {
+  .ribbon-band {
+    background:
+      linear-gradient(var(--ribbon-gloss) 12%, transparent 0 86%, var(--ribbon-gloss-dark) 0),
+      linear-gradient(
+          90deg,
+          var(--rb-1),
+          var(--rb-2) 7%,
+          var(--rb-3) 22%,
+          var(--rb-4) 58%,
+          var(--rb-5) 92%,
+          var(--rb-6)
+        )
+        var(--satin-x) 0 / var(--satin-len) 100% no-repeat;
+    color: var(--rb-ink);
+    text-shadow: 0 0.25cqw 0 var(--rb-emboss);
+    filter: drop-shadow(0 0.625cqw 0.625cqw var(--rb-shade));
+  }
+  .ribbon-ends {
+    filter: drop-shadow(0 0.625cqw 0.625cqw var(--rb-shade));
+  }
+  .ribbon-cap-end {
+    background: linear-gradient(var(--rb-end), var(--rb-mid), var(--rb-end));
+  }
+  .ribbon-cap-foot {
+    background: linear-gradient(90deg, var(--rb-end), var(--rb-mid), var(--rb-end));
+  }
+}
+
 /* D263 (turn C1): under reduced motion a press comes and goes with no transition, whatever
  * transition a pressable carries for its hover. */
 @layer base {

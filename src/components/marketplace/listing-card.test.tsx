@@ -183,11 +183,51 @@ describe("ListingCard and InviteCard — one card shape", () => {
 });
 
 describe("ListingPicture — ribbon colour", () => {
-  it("D197 the photos-soon band is drawn in the gold like the status ribbons", () => {
-    render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} />);
+  it("D197 the photos-soon band takes the picture's palette like the status ribbons (S4: pearl unless the card names gold or sage)", () => {
+    const pearl = render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} />);
     const ribbon = screen.getByTestId("listing-photos-soon-ribbon");
-    const band = ribbon.firstElementChild as HTMLElement;
-    expect(band.className).toContain("bg-gold");
+    expect(ribbon).toHaveAttribute("data-ribbon", "pearl");
+    expect((ribbon.firstElementChild as HTMLElement).className).toBe(RIBBON_BAND_CLASS);
+    expect(ribbon.getAttribute("style")).toContain("--rb-ink: var(--ribbon-pearl-ink)");
+    pearl.unmount();
+
+    render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} palette="sage" />);
+    expect(screen.getByTestId("listing-photos-soon-ribbon")).toHaveAttribute("data-ribbon", "sage");
+    expect(screen.getByTestId("listing-ribbon-ends")).toHaveAttribute("data-ribbon", "sage");
+  });
+
+  it("RBN-6 the photo and band stay inside the box's corners; the caps sit outside the clip, on a copy of the drawn frame", () => {
+    const { unmount } = render(
+      <ListingPicture
+        photoUrl={null}
+        categoryUrl="/c.webp"
+        ribbon="Sold"
+        palette="gold"
+        boxTestId="box"
+        imgTestId="img"
+        rounded="rounded-t-card"
+      />,
+    );
+    const box = screen.getByTestId("box");
+    expect(box.className).not.toContain("overflow-hidden");
+    expect(box.className).toContain("rounded-t-card");
+    const frame = screen.getByTestId("img-frame");
+    const clip = frame.parentElement as HTMLElement;
+    expect(clip.className).toContain("overflow-hidden");
+    expect(clip.className).toContain("rounded-[inherit]");
+    // The band's own clip box is the frame (PW-141 reads it as the ribbon's parent).
+    expect(screen.getByTestId("listing-ribbon").parentElement).toBe(frame);
+    const ends = screen.getByTestId("listing-ribbon-ends");
+    expect(clip.contains(ends)).toBe(false);
+    expect(box.contains(ends)).toBe(true);
+    expect((ends.parentElement as HTMLElement).getAttribute("style")).toBe(
+      frame.getAttribute("style"),
+    );
+    expect(ends.querySelectorAll(".ribbon-cap-end, .ribbon-cap-foot")).toHaveLength(2);
+    unmount();
+
+    render(<ListingPicture photoUrl={null} categoryUrl={null} />);
+    expect(screen.queryByTestId("listing-ribbon-ends")).toBeNull();
   });
 
   /**
