@@ -13,6 +13,11 @@ import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *    the primitives with `overlayClassName`, or a className holding a look class: background,
  *    border, shadow, radius, padding, text size or weight, height, width, z-index, position or
  *    translate, animation. `sr-only` passes.
+ *  - DG-2 (turn S6-4): a modal surface the primitive did not draw — `role="dialog"` or
+ *    `"alertdialog"` (an attribute, a prop object, `setAttribute`), `aria-modal`, or a class list
+ *    holding both `fixed` and `inset-0` (a string, a template, a whole className) — in any .ts or
+ *    .tsx file outside the primitive's own (MODAL_OWNERS). Its allowlist starts empty; the phone
+ *    menu is non-modal content with none of these and passes by definition (the plan's ruling 9).
  *  - DG-3: a primitive that stops reading the constants, or a field (input, textarea,
  *    native-select) that stops reading DIALOG_FIELD.
  *  - DG-4: the dialog's own actions — two or more buttons laid in a row directly under its
@@ -39,11 +44,87 @@ const PRIMITIVES = new Set([
   "src/components/ui/sheet.tsx",
 ]);
 
+/** The files that draw the modal layer itself (DG-2): the primitives, their look and their Radix seam. */
+const MODAL_OWNERS = new Set([
+  ...PRIMITIVES,
+  "src/components/ui/dialog-look.ts",
+  "src/components/ui/dialog-primitive.tsx",
+  "src/components/ui/alert-dialog-primitive.tsx",
+  "src/components/ui/dialog-impl.ts",
+  "src/components/ui/alert-dialog-impl.ts",
+  "src/components/ui/overlays-impl.ts",
+  "src/components/ui/overlay-facade.tsx",
+]);
+const MODAL_ROLES = new Set(["dialog", "alertdialog"]);
+
+/** A string's text, or null: a literal, a template without parts, or a template's literal parts. */
+function literalText(node: ts.Node): string | null {
+  if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) return node.text;
+  if (ts.isTemplateExpression(node))
+    return [node.head.text, ...node.templateSpans.map((span) => span.literal.text)].join(" ${} ");
+  return null;
+}
+
+/** A class list holding both `fixed` and `inset-0`, read after their variants. */
+function fullScreenLayer(text: string): boolean {
+  const all = utilities(text);
+  return all.includes("fixed") && all.includes("inset-0");
+}
+
+/** DG-2's findings in one file: each line once. */
+function modalSurfaces(source: ts.SourceFile): { line: number; what: string }[] {
+  const out = new Map<number, string>();
+  const at = (node: ts.Node, what: string) => {
+    const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+    if (!out.has(line)) out.set(line, what);
+  };
+  const roleOf = (node: ts.Node | undefined): string | null => {
+    if (node === undefined) return null;
+    if (ts.isJsxExpression(node)) return roleOf(node.expression);
+    return literalText(node);
+  };
+  const walk = (node: ts.Node) => {
+    if (ts.isJsxAttribute(node)) {
+      const name = node.name.getText(source);
+      if (name === "aria-modal") at(node, "aria-modal");
+      const role = name === "role" ? roleOf(node.initializer) : null;
+      if (role !== null && MODAL_ROLES.has(role)) at(node, `role="${role}"`);
+      if (
+        name === "className" &&
+        node.initializer &&
+        fullScreenLayer(node.initializer.getText(source))
+      )
+        at(node, "a fixed inset-0 layer");
+    } else if (ts.isPropertyAssignment(node)) {
+      const key = ts.isIdentifier(node.name) || ts.isStringLiteral(node.name) ? node.name.text : "";
+      if (key === "aria-modal") at(node, "aria-modal");
+      const role = key === "role" ? literalText(node.initializer) : null;
+      if (role !== null && MODAL_ROLES.has(role)) at(node, `role="${role}"`);
+    } else if (
+      ts.isCallExpression(node) &&
+      ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.name.text === "setAttribute"
+    ) {
+      const [first, second] = node.arguments.map((arg) => literalText(arg));
+      if (first === "aria-modal") at(node, "aria-modal");
+      if (first === "role" && second !== undefined && second !== null && MODAL_ROLES.has(second))
+        at(node, `role="${second}"`);
+    } else {
+      const text = literalText(node);
+      if (text !== null && fullScreenLayer(text)) at(node, "a fixed inset-0 layer");
+    }
+    ts.forEachChild(node, walk);
+  };
+  walk(source);
+  return [...out].map(([line, what]) => ({ line, what }));
+}
+
 /** What each owner must read (DG-3). */
 export const OWNERS: Record<string, readonly string[]> = {
   "src/components/ui/dialog.tsx": [
     "DIALOG_SCRIM",
     "DIALOG_PANEL",
+    "SCREEN_PANEL",
     "DIALOG_CLOSE",
     "DIALOG_HEADER",
     "DIALOG_TITLE",
@@ -250,6 +331,19 @@ export function dialogFindings(files: Src[]): { findings: Finding[]; keys: strin
         });
       }
     }
+    const script = name.endsWith(".tsx") || name.endsWith(".ts");
+    if (script && !MODAL_OWNERS.has(name)) {
+      const kind = name.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+      const read = ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true, kind);
+      for (const { line, what } of modalSurfaces(read)) {
+        keys.push(`${name}#DG-2`);
+        findings.push({
+          file: name,
+          line,
+          what: `DG-2 a modal surface of its own: ${what} (use Dialog's variants, dialog.tsx)`,
+        });
+      }
+    }
     if (!name.endsWith(".tsx") || PRIMITIVES.has(name)) continue;
     const source = ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
     const push = (node: ts.Node, rule: string, what: string) => {
@@ -391,11 +485,53 @@ describe("CF-DIALOG-1 — every dialog, alert dialog and sheet reads one look (D
         text: `const a = <PopoverContent className="w-72 p-4">y</PopoverContent>;\n`,
       },
     ]);
-    expect(report(findings)).toBe(
+    // Line 2's `fixed inset-0` is DG-2's as well (its own planted case).
+    expect(report(findings.filter((finding) => finding.what.startsWith("DG-1")))).toBe(
       [
         'src/x.tsx:2 DG-1 DP.Content: own look class "fixed inset-0 bg-card"',
         'src/x.tsx:6 DG-1 PopoverContent: own look class "w-80 p-0"',
         "src/x.tsx:9 DG-1 DP.Overlay: overlayClassName (use layer, dialog-look.ts)",
+      ].join("\n"),
+    );
+  });
+
+  it("DG-2 planted: a modal surface of its own fails in every spelling; non-modal layers and the primitive's own files pass (turn S6-4)", () => {
+    const { findings } = dialogFindings([
+      {
+        name: "src/x.tsx",
+        text:
+          `const a = <div role="dialog">x</div>;\n` +
+          `const b = <div role={"alertdialog"} />;\n` +
+          `const c = <div aria-modal="true" />;\n` +
+          "const d = <div className={`fixed inset-0 ${Z_SHEET} bg-background`} />;\n" +
+          `const e = <div className={cn("fixed", "md:inset-0", x)} />;\n` +
+          `const f = { role: "dialog", "aria-modal": true };\n` +
+          `el.setAttribute("aria-modal", "true");\n` +
+          `el.setAttribute("role", "alertdialog");\n` +
+          `const g = <div role="menu" aria-haspopup="dialog" className="fixed inset-x-0 top-13" />;\n` +
+          `const h = <div className="absolute inset-0" />;\n` +
+          `{/* role="dialog" aria-modal */}\n`,
+      },
+      { name: "src/layer.ts", text: `export const LAYER = "fixed inset-0 z-50";\n` },
+      {
+        name: "src/components/ui/dialog-look.ts",
+        text: "export const DIALOG_SCRIM = `fixed inset-0 bg-scrim`;\n",
+      },
+      { name: "src/components/ui/sheet.tsx", text: `const a = <div aria-modal="true" />;\n` },
+    ]);
+    const text = report(findings.filter((finding) => finding.what.startsWith("DG-2")));
+    const use = "(use Dialog's variants, dialog.tsx)";
+    expect(text).toBe(
+      [
+        `src/layer.ts:1 DG-2 a modal surface of its own: a fixed inset-0 layer ${use}`,
+        `src/x.tsx:1 DG-2 a modal surface of its own: role="dialog" ${use}`,
+        `src/x.tsx:2 DG-2 a modal surface of its own: role="alertdialog" ${use}`,
+        `src/x.tsx:3 DG-2 a modal surface of its own: aria-modal ${use}`,
+        `src/x.tsx:4 DG-2 a modal surface of its own: a fixed inset-0 layer ${use}`,
+        `src/x.tsx:5 DG-2 a modal surface of its own: a fixed inset-0 layer ${use}`,
+        `src/x.tsx:6 DG-2 a modal surface of its own: role="dialog" ${use}`,
+        `src/x.tsx:7 DG-2 a modal surface of its own: aria-modal ${use}`,
+        `src/x.tsx:8 DG-2 a modal surface of its own: role="alertdialog" ${use}`,
       ].join("\n"),
     );
   });

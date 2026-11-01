@@ -193,7 +193,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const map = page.getByTestId("post-pin-map");
     await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
     await map.click({ position: { x, y } });
-    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
   }
@@ -414,7 +414,7 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     const map = page.getByTestId("post-pin-map");
     await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
     await map.click({ position: { x: 120, y: 90 } });
-    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
     await page.getByTestId("post-pin-save").click();
     await expect(
       page.getByTestId("post-pin-save"),

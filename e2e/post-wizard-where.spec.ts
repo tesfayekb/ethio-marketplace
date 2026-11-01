@@ -630,7 +630,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     await expect(page.getByTestId("post-pin-fallback"), "PW-92: no backup-map note").toBeVisible();
     await expect(map).toHaveAttribute("data-provider", "osm");
     await map.click({ position: { x: 120, y: 90 } });
-    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
     // INC-353 — the pin and the place shape paint a real colour, never an
     // unresolved hsl(var(--…)) that the browser drops as invisible.
     const paint = await map.evaluate((el) => {
@@ -882,7 +882,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       "PW-100: no Show-on-my-ad label",
     ).toBeVisible();
     await map.click({ position: { x: 120, y: 90 } });
-    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
     await page.getByTestId("post-pin-save").click();
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
     await expect(
@@ -908,7 +908,7 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
     const map = page.getByTestId("post-pin-map");
     await expect(map).toHaveAttribute("data-ready", "1", { timeout: 20_000 });
     await map.click({ position: { x: 120, y: 90 } });
-    await expect(page.getByTestId("post-pin-position")).not.toHaveAttribute("data-lat", "");
+    await expect(page.getByTestId("post-pin-sheet-position")).not.toHaveAttribute("data-lat", "");
     const before = Number(await map.getAttribute("data-zoom"));
     await map.locator(".leaflet-control-zoom-out").click();
     await expect(map).toHaveAttribute("data-zoom", String(before - 1));

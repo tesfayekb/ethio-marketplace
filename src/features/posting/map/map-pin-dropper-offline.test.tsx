@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { DIALOG_LAYER } from "@/components/ui/dialog-look";
+
 /**
  * INC-911 (Foundations turn 34b-3) — the pin map whose code cannot download says so in its own
  * place and offers to refresh the page (the browser keeps a failed download for the page's life,
@@ -26,7 +28,7 @@ vi.mock("@/lib/on-demand-failure", async (original) => ({
 const { MapPinDropper } = await import("./map-pin-dropper");
 
 describe("the pin map offline (INC-911)", () => {
-  it("PMD-1 a map whose code cannot download says so in place and offers a refresh", async () => {
+  it("PMD-1 the pin sheet is the one dialog; a map whose code cannot download says so in its place inside it, once the panel is drawn, and offers a refresh (turn S6-4)", async () => {
     const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
     render(
       <MapPinDropper
@@ -39,6 +41,11 @@ describe("the pin map offline (INC-911)", () => {
       />,
     );
     const failed = await screen.findByTestId("post-pin-load-failed");
+    const sheet = screen.getByTestId("post-pin-sheet");
+    expect(sheet).toHaveAttribute("role", "dialog");
+    expect(sheet).toHaveAttribute("data-dialog-panel");
+    expect(sheet).toHaveClass(DIALOG_LAYER.modal);
+    expect(sheet.contains(failed)).toBe(true);
     expect(failed.getAttribute("role")).toBe("alert");
     expect(failed.textContent).toContain("common.loadFailed");
     expect(screen.queryByText("post.pin.geocodeUnavailable")).toBeNull();

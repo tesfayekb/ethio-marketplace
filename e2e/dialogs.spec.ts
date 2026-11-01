@@ -2,8 +2,19 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { fillOf, isRedFill } from "./helpers/colors";
+import { destroyLocation, seedScratchChain } from "./helpers/locations";
+import {
+  bearerOf,
+  completeDraft,
+  destroyListingsOf,
+  destroyPostableCategory,
+  leaseSeller,
+  postRoute,
+  seedPostableCategory,
+  stopPageBeforePurge,
+} from "./helpers/posting";
 import { withoutEmptyLayers } from "./helpers/shadows";
-import { gotoReady, layoutBoxes, settled } from "./helpers/ui";
+import { gotoReady, layoutBoxes, settled, signInViaSession, stillPage } from "./helpers/ui";
 import { listingPath } from "../src/features/ad-page/address";
 
 /**
@@ -354,6 +365,178 @@ test.describe("one dialog look on a real surface (turn S6-1)", () => {
       }
       await page.keyboard.press("Escape");
       await expect(panel).toBeHidden();
+    }
+  });
+});
+
+/** A screen-sized surface opened from its opener: the one primitive, the focus inside it, the
+ *  whole screen (or the 32rem card from md), no running animation under reduced motion, and the
+ *  page where it was. */
+async function opens(
+  page: Page,
+  opener: Locator,
+  testId: string,
+  where: string,
+  shape: "screen" | "card",
+  reduced: boolean,
+  scrims = 1,
+) {
+  // The page first stops growing, then the opener is brought wholly into view and the page waits
+  // again: an opener left at the viewport's edge is scrolled by the click itself, not the dialog.
+  await stillPage(opener, { what: where });
+  await opener.evaluate((el) => el.scrollIntoView({ block: "center" }));
+  await stillPage(opener, { what: where });
+  const before = await page.evaluate(() => window.scrollY);
+  const { at } = await layoutBoxes({ at: opener });
+  await opener.click();
+  const panel = page.getByTestId(testId);
+  await expect(panel, `${where}: it opened`).toBeVisible({ timeout: 20_000 });
+  await settled(page);
+  await expect(panel).toHaveAttribute("role", "dialog");
+  await expect(panel).toHaveAttribute("data-dialog-panel", "");
+  await expect(page.locator("[data-dialog-scrim][data-state='open']")).toHaveCount(scrims);
+  expect(
+    await panel.evaluate((el) => el.contains(document.activeElement)),
+    `${where}: the focus is inside`,
+  ).toBe(true);
+  const { box } = await layoutBoxes({ box: panel });
+  const view = await clientSize(page);
+  if (shape === "screen")
+    expect(
+      [box.x, box.y, Math.round(box.width), Math.round(box.height)],
+      `${where}: the whole screen`,
+    ).toEqual([0, 0, view.width, view.height]);
+  else expect(Math.round(box.width), `${where}: the 32rem card`).toBe(512);
+  if (reduced) {
+    const durations = await panel.evaluate((el) =>
+      getComputedStyle(el)
+        .animationDuration.split(",")
+        .map((d) => parseFloat(d)),
+    );
+    expect(
+      durations.every((d) => d <= 0.001),
+      `${where}: a running animation ${durations.join(", ")}`,
+    ).toBe(true);
+  }
+  expect(await page.evaluate(() => window.scrollY), `${where}: the page scrolled`).toBe(before);
+  return { panel, at };
+}
+
+/** Escape closes the top layer; the focus is back on the opener, which has not moved. */
+async function closesBack(
+  page: Page,
+  opener: Locator,
+  opened: { panel: Locator; at: { x: number; y: number } },
+  where: string,
+) {
+  await page.keyboard.press("Escape");
+  await expect(opened.panel, `${where}: Escape did not close it`).toHaveCount(0);
+  await expect(opener, `${where}: the focus is not back on its opener`).toBeFocused();
+  const { after } = await layoutBoxes({ after: opener });
+  expect([after.x, after.y], `${where}: the opener moved`).toEqual([opened.at.x, opened.at.y]);
+}
+
+test.describe("the full-screen surfaces on the one primitive (turn S6-4)", () => {
+  const { scratchSeller, seed, publicIdOf, seedPhotos, cleanup } = adPageFixtures();
+  const sellers: string[] = [];
+  const categories: string[] = [];
+  const places: string[] = [];
+  test.afterEach(async ({ page }) => {
+    await stopPageBeforePurge(page);
+    for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
+    await cleanup();
+    for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
+    for (const slug of places.splice(0)) await destroyLocation(slug);
+  });
+
+  test("DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected", async ({
+    page,
+  }) => {
+    // Two modes × three surfaces, each opened and closed from a page that first stops growing,
+    // after seeding two ads with photos, a category, a place chain and a draft through the route.
+    test.setTimeout(300_000);
+    const width = test.info().project.name === "mobile-360" ? 390 : 1440;
+    await page.setViewportSize({ width, height: 900 });
+
+    // Another seller's ad with photos (the viewer on the ad page).
+    const other = await scratchSeller();
+    const ad = await seed(other);
+    await seedPhotos(ad.id);
+    const canonical = listingPath(ad.title, await publicIdOf(ad.id));
+
+    // The signed-in seller's own draft at review, with photos (the preview, the viewer over it,
+    // and the pin map on the place step).
+    const user = await leaseSeller();
+    sellers.push(user.id);
+    await signInViaSession(page, user.email, user.password);
+    const category = await seedPostableCategory();
+    categories.push(category.slug);
+    const chain = await seedScratchChain("ET");
+    places.push(chain.region.slug as string);
+    const saved = await postRoute(
+      page,
+      "/api/listings/draft",
+      completeDraft({
+        categoryId: category.id,
+        cityId: chain.city.id as string,
+        title: "e2e dialogs screens",
+        step: 7,
+      }),
+      { token: await bearerOf(page), country: "ET" },
+    );
+    expect(saved.payload["ok"], JSON.stringify(saved.payload)).toBe(true);
+    const listingId = String(saved.payload["listing_id"]);
+    await seedPhotos(listingId);
+
+    for (const mode of MODES) {
+      const reduced = mode === "dark";
+      await page.emulateMedia({ reducedMotion: reduced ? "reduce" : "no-preference" });
+      await page.evaluate(
+        (mode) =>
+          window.localStorage.setItem("ethio.theme", JSON.stringify({ name: "sage", mode })),
+        mode,
+      );
+
+      // The viewer on the ad page.
+      await gotoReady(page, canonical);
+      await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
+      let where = `the viewer @ ${width} ${mode}`;
+      const main = page.getByTestId("listing-detail-gallery").getByTestId("gallery-main");
+      await closesBack(
+        page,
+        main,
+        await opens(page, main, "gallery-viewer", where, "screen", reduced),
+        where,
+      );
+
+      // The preview, and the viewer over it: one Escape closes the viewer only.
+      await gotoReady(page, `/post/${listingId}`);
+      await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
+      where = `the preview @ ${width} ${mode}`;
+      const open = page.getByTestId("post-preview-open");
+      const sheet = await opens(page, open, "post-preview-sheet", where, "screen", reduced);
+      const inner = sheet.panel.getByTestId("gallery-main");
+      const over = `the viewer over the preview @ ${width} ${mode}`;
+      await closesBack(
+        page,
+        inner,
+        await opens(page, inner, "gallery-viewer", over, "screen", reduced, 2),
+        over,
+      );
+      await expect(sheet.panel, `${over}: Escape closed the preview too`).toBeVisible();
+      await closesBack(page, open, sheet, where);
+
+      // The pin map on the place step: the whole screen below md, the 32rem card from md.
+      await page.locator('[data-testid="post-review-edit"][data-step="6"]').click();
+      await expect(page.getByTestId("post-step-6")).toBeVisible({ timeout: 20_000 });
+      where = `the pin map @ ${width} ${mode}`;
+      const pin = page.getByTestId("post-where-pin-open");
+      const shape = width < 768 ? "screen" : "card";
+      const map = await opens(page, pin, "post-pin-sheet", where, shape, reduced);
+      await expect(map.panel.getByTestId("post-pin-map")).toHaveAttribute("data-ready", "1", {
+        timeout: 20_000,
+      });
+      await closesBack(page, pin, map, where);
     }
   });
 });

@@ -1,5 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DIALOG_LAYER, SCREEN_PANEL } from "@/components/ui/dialog-look";
 
 import type { ListingDetailView } from "./listing-detail";
 
@@ -21,35 +24,49 @@ import { PreviewSheet } from "./preview-sheet";
 
 const VIEW = {} as ListingDetailView;
 
-/** A page with a field outside the sheet, as a dialog opened over the sheet has. */
-function Page({ onClose }: { onClose: () => void }) {
+/** The sheet, and the step-up's dialog over it when `over` (INC-618's page). */
+function Page({ onClose, over = false }: { onClose: () => void; over?: boolean }) {
   return (
     <>
-      <input data-testid="outside-code" />
       <PreviewSheet view={VIEW} onClose={onClose} />
+      {over ? (
+        <Dialog open>
+          <DialogContent layer="top" aria-describedby={undefined}>
+            <DialogTitle>t</DialogTitle>
+            <input data-testid="step-up-code" />
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </>
   );
 }
 
 /** INC-618 — the step-up's code typed inside Screening's preview lost its focus after one character. */
-describe("PreviewSheet (INC-618)", () => {
-  it("PSH-1 the sheet moves the focus to Close once, when it opens — a new onClose on a later render leaves the focus where it is", () => {
+describe("PreviewSheet (INC-618, turn S6-4)", () => {
+  it("PSH-1 the sheet is the one dialog's screen and takes the focus once, when it opens — a new onClose on a later render leaves the focus in the dialog opened over it", async () => {
     const { rerender } = render(<Page onClose={() => {}} />);
-    expect(document.activeElement).toBe(screen.getByTestId("post-preview-close"));
-    const field = screen.getByTestId("outside-code");
-    field.focus();
-    expect(document.activeElement).toBe(field);
+    const sheet = await screen.findByTestId("post-preview-sheet");
+    expect(sheet).toHaveAttribute("role", "dialog");
+    expect(sheet).toHaveClass(...SCREEN_PANEL.split(/\s+/).filter(Boolean), DIALOG_LAYER.modal);
+    await waitFor(() => expect(sheet).toHaveFocus());
+
+    rerender(<Page onClose={() => {}} over />);
+    const code = await screen.findByTestId("step-up-code");
+    code.focus();
+    expect(code).toHaveFocus();
     // The parent re-renders (a keystroke in the step-up dialog) with a new function.
-    rerender(<Page onClose={() => {}} />);
-    expect(document.activeElement).toBe(field);
+    rerender(<Page onClose={() => {}} over />);
+    expect(code).toHaveFocus();
   });
 
-  it("PSH-2 Escape calls the newest onClose, once", () => {
+  it("PSH-2 Escape, through the primitive's layer stack, calls the newest onClose, once", async () => {
     const first = vi.fn();
     const second = vi.fn();
     const { rerender } = render(<Page onClose={first} />);
     rerender(<Page onClose={second} />);
-    fireEvent.keyDown(document, { key: "Escape" });
+    const sheet = await screen.findByTestId("post-preview-sheet");
+    await waitFor(() => expect(sheet).toHaveFocus());
+    fireEvent.keyDown(sheet, { key: "Escape" });
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalledTimes(1);
   });

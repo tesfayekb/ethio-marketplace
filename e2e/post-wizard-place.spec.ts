@@ -1225,14 +1225,15 @@ test.describe("POSTING WIZARD", () => {
     categories.push(category.slug);
     const listingId = await openPinAt6(page, user.id, category);
 
-    const position = page.getByTestId("post-pin-position");
-    await expect(position, "PW-37: a pin existed before the seller placed one").toHaveAttribute(
+    // The sheet's own line while it is open; the step's line once Save has closed it.
+    const inSheet = page.getByTestId("post-pin-sheet-position");
+    await expect(inSheet, "PW-37: a pin existed before the seller placed one").toHaveAttribute(
       "data-lat",
       "",
     );
     await mapReady(page);
     await page.getByTestId("post-pin-map").click({ position: { x: 120, y: 90 } });
-    await expect(position, "PW-37: the tap placed no pin").not.toHaveAttribute("data-lat", "", {
+    await expect(inSheet, "PW-37: the tap placed no pin").not.toHaveAttribute("data-lat", "", {
       timeout: 20_000,
     });
 
@@ -1240,6 +1241,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(page.getByTestId("post-pin-saved")).toBeVisible({ timeout: 20_000 });
 
     // DB TRUTH: the coordinates the screen shows are the coordinates the row holds.
+    const position = page.getByTestId("post-pin-position");
     const shown = {
       lat: await position.getAttribute("data-lat"),
       lng: await position.getAttribute("data-lng"),
@@ -1275,7 +1277,7 @@ test.describe("POSTING WIZARD", () => {
     await expect(result, "PW-38: the search offered no place").toHaveCount(1, { timeout: 20_000 });
     await result.click();
 
-    const position = page.getByTestId("post-pin-position");
+    const position = page.getByTestId("post-pin-sheet-position");
     await expect(position, "PW-38: choosing a result placed no pin").not.toHaveAttribute(
       "data-lat",
       "",
@@ -1381,7 +1383,7 @@ test.describe("POSTING WIZARD", () => {
       "true",
       { timeout: 20_000 },
     );
-    await expect(page.getByTestId("post-pin-position")).toHaveAttribute("data-lat", /^9\.01/);
+    await expect(page.getByTestId("post-pin-sheet-position")).toHaveAttribute("data-lat", /^9\.01/);
     await page.getByTestId("post-pin-map").click({ position: { x: 120, y: 90 } });
     await expect(button, "PW-160: a hand-placed pin left the button pressed").toHaveAttribute(
       "aria-pressed",

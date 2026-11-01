@@ -1,15 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type * as Leaflet from "leaflet";
 
-import { Z_SHEET } from "@/components/layout/layers";
+import { LIST_CHOICE_ON, LIST_ROW, LIST_ROW_WRAP } from "@/components/shell/menu-row";
 import { LoadFailedHere } from "@/components/shell/on-demand-notice";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 import { logOnDemandFailure } from "@/lib/on-demand-failure";
+import { cn } from "@/lib/utils";
 
 import { fill } from "../refusal-text";
 import { readOutline, reverseStreet, searchPlaces, type GeoPlace, type GeoReason } from "./geocode";
@@ -43,10 +51,13 @@ import { NEW_PIN_PRECISION, type PinPrecision } from "./pin";
  * location details when they are empty. A soft, non-blocking notice says so
  * when the pin falls outside the ticked place's outline.
  *
- * THE FRAME: a full-screen sheet at ≤ 640 px, a dialog above that, with a
- * STICKY footer so "Save location" is always on screen (C5's finding: at 360 px
- * the save button sat below the fold, under the wizard's own action bar).
- * Cancel restores the saved pin and closes. The door stays the authority:
+ * THE FRAME (turn S6-4): the one dialog, the whole screen below md and a tall
+ * panel from md, its verbs in the footer that stays on screen (C5's finding: at
+ * 360 px the save button sat below the fold, under the wizard's own action bar).
+ * Cancel, Escape and the close button restore the saved pin and close; the focus
+ * trap, the page's scroll lock and the shell's notices are the primitive's. The
+ * map is drawn inside the panel, so Leaflet keeps its own keys, taps and wheel.
+ * The door stays the authority:
  * `onSave` resolves true only after `set_listing_pin` said so (F4).
  *
  * THE TILES: our route's provider; repeated errors switch this session to
@@ -78,14 +89,7 @@ export interface PinPlace {
   query: string | null;
 }
 
-export function MapPinDropper({
-  saved,
-  place,
-  note,
-  onNote,
-  onSave,
-  onClose,
-}: {
+interface PinSheetProps {
   saved: PinValue | null;
   place: PinPlace;
   /** The location details (B3) — one value, also shown in the step's own box. */
@@ -98,7 +102,31 @@ export function MapPinDropper({
     zoom: number;
   }) => Promise<boolean>;
   onClose: () => void;
-}) {
+}
+
+export function MapPinDropper(props: PinSheetProps) {
+  const { onClose } = props;
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <DialogContent
+        phone="full"
+        fit="fill"
+        data-testid="post-pin-sheet"
+        closeTestId="post-pin-close"
+      >
+        {/* The sheet's state lives inside the panel: the map's box exists once it is drawn. */}
+        <PinSheet {...props} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps) {
   const { t } = useI18n();
 
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -288,15 +316,6 @@ export function MapPinDropper({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tile]);
 
-  // Escape closes like Cancel.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   /* ------------------------------- the search ------------------------------ */
 
   useEffect(() => {
@@ -347,239 +366,223 @@ export function MapPinDropper({
     setState(ok ? "idle" : "failed");
   }
 
-  const sheet = (
-    <div
-      className={`fixed inset-0 ${Z_SHEET} flex items-stretch justify-center bg-background/80 sm:items-center sm:p-6`}
-      data-testid="post-pin-sheet"
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="post-pin-title"
-        className="flex h-full w-full flex-col bg-background sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-lg sm:border sm:border-border sm:shadow-lg"
-      >
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4" data-testid="post-pin">
-          <h2 id="post-pin-title" className="text-base font-semibold text-foreground">
-            {t("post.pin.title")}
-          </h2>
-          <p className="text-xs text-muted-foreground">{t("post.pin.why")}</p>
-
-          <div className="space-y-1">
-            <Label htmlFor="post-pin-search">{t("post.pin.searchLabel")}</Label>
-            <Input
-              id="post-pin-search"
-              className="min-h-11"
-              value={query}
-              placeholder={t("post.pin.searchPlaceholder")}
-              onChange={(event) => setQuery(event.target.value)}
-              data-testid="post-pin-search"
-            />
-            {searching && (
-              <p className="text-xs text-muted-foreground" data-testid="post-pin-searching">
-                {t("post.pin.searching")}
-              </p>
-            )}
-            {results.length > 0 && (
-              <ul className="divide-y divide-border rounded-md border border-border">
-                {results.map((result) => (
-                  <li key={`${result.label}:${result.lat}:${result.lng}`}>
-                    <button
-                      type="button"
-                      className="min-h-11 w-full px-3 py-2 text-start text-sm text-foreground hover:bg-accent"
-                      data-testid="post-pin-result"
-                      onClick={() => {
-                        setResults([]);
-                        setQuery(result.label);
-                        onNote(result.label);
-                        put(result.lat, result.lng, false);
-                        mapRef.current?.setView([result.lat, result.lng], 16);
-                      }}
-                    >
-                      {result.label}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {!searching && results.length === 0 && query.trim().length >= 3 && notice === null && (
-              <p className="text-xs text-muted-foreground" data-testid="post-pin-noresults">
-                {t("post.pin.noResults")}
-              </p>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {/* INC-436 — locating: disabled with the locating words; taken: pressed, filled green. */}
-            <Button
-              type="button"
-              variant={located === "pressed" ? "default" : "outline"}
-              className="min-h-11"
-              onClick={locate}
-              disabled={located === "locating"}
-              aria-pressed={located === "pressed"}
-              data-state={located}
-              data-testid="post-pin-locate"
-            >
-              {t(located === "locating" ? "post.pin.locating" : "post.pin.locate")}
-            </Button>
-            <Button
-              type="button"
-              variant={tile === "street" ? "default" : "outline"}
-              className="min-h-11"
-              onClick={() => setTile("street")}
-              data-testid="post-pin-layer-street"
-            >
-              {t("post.pin.layerStreet")}
-            </Button>
-            <Button
-              type="button"
-              variant={tile === "satellite" ? "default" : "outline"}
-              className="min-h-11"
-              onClick={() => setTile("satellite")}
-              data-testid="post-pin-layer-satellite"
-            >
-              {t("post.pin.layerSatellite")}
-            </Button>
-          </div>
-
-          <div
-            ref={boxRef}
-            className="isolate h-72 w-full overflow-hidden rounded-md border border-border sm:h-80"
-            data-testid="post-pin-map"
-            data-ready="0"
-            data-outline="0"
-            data-provider={backup ? "osm" : planRef.current.provider}
+  return (
+    <>
+      <DialogHeader>
+        <DialogTitle>{t("post.pin.title")}</DialogTitle>
+        <DialogDescription>{t("post.pin.why")}</DialogDescription>
+      </DialogHeader>
+      <div className="-mx-1 min-h-0 flex-1 space-y-3 overflow-y-auto px-1" data-testid="post-pin">
+        <div className="space-y-1">
+          <Label htmlFor="post-pin-search">{t("post.pin.searchLabel")}</Label>
+          <Input
+            id="post-pin-search"
+            className="min-h-11"
+            value={query}
+            placeholder={t("post.pin.searchPlaceholder")}
+            onChange={(event) => setQuery(event.target.value)}
+            data-testid="post-pin-search"
           />
-          {mapFailed && (
-            <LoadFailedHere
-              testid="post-pin-load-failed"
-              refreshTestid="post-pin-load-refresh"
-              className="items-start text-start"
-            />
-          )}
-          <p
-            className="text-end text-xs text-muted-foreground"
-            data-testid="post-pin-credit"
-            data-provider={backup ? "osm" : planRef.current.provider}
-          >
-            {credit}
-          </p>
-          <p className="text-xs text-muted-foreground">{t("post.pin.tapHint")}</p>
-          {backup && (
-            <p className="text-xs text-muted-foreground" data-testid="post-pin-fallback">
-              {t("post.pin.backupMap")}
+          {searching && (
+            <p className="text-xs text-muted-foreground" data-testid="post-pin-searching">
+              {t("post.pin.searching")}
             </p>
           )}
-          {outside && position !== null && (
-            <p className="text-xs text-muted-foreground" data-testid="post-pin-outside">
-              {t("post.pin.outsidePlace")}
-            </p>
+          {results.length > 0 && (
+            <ul className="grid gap-0.5">
+              {results.map((result) => (
+                <li key={`${result.label}:${result.lat}:${result.lng}`}>
+                  <button
+                    type="button"
+                    className={cn(LIST_ROW, LIST_ROW_WRAP, "cursor-pointer")}
+                    data-testid="post-pin-result"
+                    onClick={() => {
+                      setResults([]);
+                      setQuery(result.label);
+                      onNote(result.label);
+                      put(result.lat, result.lng, false);
+                      mapRef.current?.setView([result.lat, result.lng], 16);
+                    }}
+                  >
+                    <span>{result.label}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           )}
-          {notice !== null && (
-            <p className="text-xs text-muted-foreground" data-testid="post-pin-notice">
-              {t(notice)}
-            </p>
-          )}
-
-          <p
-            className="text-sm text-foreground"
-            data-testid="post-pin-position"
-            data-lat={position === null ? "" : position.lat.toFixed(5)}
-            data-lng={position === null ? "" : position.lng.toFixed(5)}
-          >
-            {position === null
-              ? t("post.pin.none")
-              : fill(t("post.pin.at"), {
-                  lat: position.lat.toFixed(5),
-                  lng: position.lng.toFixed(5),
-                })}
-          </p>
-
-          <div className="space-y-1">
-            <Label htmlFor="post-pin-street">{t("post.where.detailsLabel")}</Label>
-            <Input
-              id="post-pin-street"
-              className="min-h-11"
-              value={note}
-              maxLength={DETAILS_MAX}
-              onChange={(event) => {
-                onNote(event.target.value);
-                setState("idle");
-              }}
-              data-testid="post-pin-street"
-            />
-            <p className="text-xs text-muted-foreground">{t("post.where.detailsHelp")}</p>
-          </div>
-
-          <fieldset className="space-y-1">
-            <legend
-              className="text-sm font-medium text-foreground"
-              data-testid="post-pin-precision-label"
-            >
-              {t("post.pin.showAsLabel")}
-            </legend>
-            {(
-              [
-                ["exact", "post.pin.showAsExact"],
-                ["approx", "post.pin.showAsApprox"],
-              ] as const
-            ).map(([value, key]) => (
-              <label
-                key={value}
-                className="flex min-h-11 items-center gap-2 text-sm text-foreground"
-              >
-                <input
-                  type="radio"
-                  name="post-pin-precision"
-                  value={value}
-                  checked={precision === value}
-                  onChange={() => {
-                    setPrecision(value);
-                    setState("idle");
-                  }}
-                  data-testid={`post-pin-precision-${value}`}
-                />
-                {t(key)}
-              </label>
-            ))}
-          </fieldset>
-          {state === "failed" && (
-            <p className="text-sm text-destructive" data-testid="post-pin-error">
-              {t("post.pin.saveFailed")}
+          {!searching && results.length === 0 && query.trim().length >= 3 && notice === null && (
+            <p className="text-xs text-muted-foreground" data-testid="post-pin-noresults">
+              {t("post.pin.noResults")}
             </p>
           )}
         </div>
 
-        {/* C4 — the verbs stay on screen: a sticky footer, never below the fold. */}
+        <div className="flex flex-wrap gap-2">
+          {/* INC-436 — locating: disabled with the locating words; taken: pressed, filled green. */}
+          <Button
+            type="button"
+            variant={located === "pressed" ? "default" : "outline"}
+            className="min-h-11"
+            onClick={locate}
+            disabled={located === "locating"}
+            aria-pressed={located === "pressed"}
+            data-state={located}
+            data-testid="post-pin-locate"
+          >
+            {t(located === "locating" ? "post.pin.locating" : "post.pin.locate")}
+          </Button>
+          <Button
+            type="button"
+            variant={tile === "street" ? "default" : "outline"}
+            className="min-h-11"
+            onClick={() => setTile("street")}
+            data-testid="post-pin-layer-street"
+          >
+            {t("post.pin.layerStreet")}
+          </Button>
+          <Button
+            type="button"
+            variant={tile === "satellite" ? "default" : "outline"}
+            className="min-h-11"
+            onClick={() => setTile("satellite")}
+            data-testid="post-pin-layer-satellite"
+          >
+            {t("post.pin.layerSatellite")}
+          </Button>
+        </div>
+
         <div
-          className="flex gap-2 border-t border-border bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
-          data-testid="post-pin-actions"
+          ref={boxRef}
+          className="isolate h-72 w-full overflow-hidden rounded-md border border-border sm:h-80"
+          data-testid="post-pin-map"
+          data-ready="0"
+          data-outline="0"
+          data-provider={backup ? "osm" : planRef.current.provider}
+        />
+        {mapFailed && (
+          <LoadFailedHere
+            testid="post-pin-load-failed"
+            refreshTestid="post-pin-load-refresh"
+            className="items-start text-start"
+          />
+        )}
+        <p
+          className="text-end text-xs text-muted-foreground"
+          data-testid="post-pin-credit"
+          data-provider={backup ? "osm" : planRef.current.provider}
         >
-          <Button
-            type="button"
-            className="min-h-11 flex-1"
-            disabled={position === null || state === "busy"}
-            onClick={() => void save()}
-            data-testid="post-pin-save"
-          >
-            {state === "busy" ? t("post.pin.saving") : t("post.pin.saveLocation")}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="min-h-11 flex-1"
-            disabled={state === "busy"}
-            onClick={onClose}
-            data-testid="post-pin-cancel"
-          >
-            {t("post.pin.cancel")}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+          {credit}
+        </p>
+        <p className="text-xs text-muted-foreground">{t("post.pin.tapHint")}</p>
+        {backup && (
+          <p className="text-xs text-muted-foreground" data-testid="post-pin-fallback">
+            {t("post.pin.backupMap")}
+          </p>
+        )}
+        {outside && position !== null && (
+          <p className="text-xs text-muted-foreground" data-testid="post-pin-outside">
+            {t("post.pin.outsidePlace")}
+          </p>
+        )}
+        {notice !== null && (
+          <p className="text-xs text-muted-foreground" data-testid="post-pin-notice">
+            {t(notice)}
+          </p>
+        )}
 
-  return typeof document === "undefined" ? null : createPortal(sheet, document.body);
+        <p
+          className="text-sm text-foreground"
+          data-testid="post-pin-sheet-position"
+          data-lat={position === null ? "" : position.lat.toFixed(5)}
+          data-lng={position === null ? "" : position.lng.toFixed(5)}
+        >
+          {position === null
+            ? t("post.pin.none")
+            : fill(t("post.pin.at"), {
+                lat: position.lat.toFixed(5),
+                lng: position.lng.toFixed(5),
+              })}
+        </p>
+
+        <div className="space-y-1">
+          <Label htmlFor="post-pin-street">{t("post.where.detailsLabel")}</Label>
+          <Input
+            id="post-pin-street"
+            className="min-h-11"
+            value={note}
+            maxLength={DETAILS_MAX}
+            onChange={(event) => {
+              onNote(event.target.value);
+              setState("idle");
+            }}
+            data-testid="post-pin-street"
+          />
+          <p className="text-xs text-muted-foreground">{t("post.where.detailsHelp")}</p>
+        </div>
+
+        <fieldset className="space-y-1">
+          <legend
+            className="text-sm font-medium text-foreground"
+            data-testid="post-pin-precision-label"
+          >
+            {t("post.pin.showAsLabel")}
+          </legend>
+          {(
+            [
+              ["exact", "post.pin.showAsExact"],
+              ["approx", "post.pin.showAsApprox"],
+            ] as const
+          ).map(([value, key]) => (
+            <label
+              key={value}
+              className={cn(LIST_ROW, LIST_ROW_WRAP, LIST_CHOICE_ON, "cursor-pointer gap-3")}
+            >
+              <input
+                type="radio"
+                name="post-pin-precision"
+                value={value}
+                checked={precision === value}
+                onChange={() => {
+                  setPrecision(value);
+                  setState("idle");
+                }}
+                data-testid={`post-pin-precision-${value}`}
+              />
+              <span>{t(key)}</span>
+            </label>
+          ))}
+        </fieldset>
+        {state === "failed" && (
+          <p className="text-sm text-destructive" data-testid="post-pin-error">
+            {t("post.pin.saveFailed")}
+          </p>
+        )}
+      </div>
+
+      {/* C4 — the verbs stay on screen: the footer sits under the scrolling body. */}
+      <DialogFooter data-testid="post-pin-actions">
+        <Button
+          type="button"
+          variant="outline"
+          size="touch"
+          disabled={state === "busy"}
+          onClick={onClose}
+          data-testid="post-pin-cancel"
+        >
+          {t("post.pin.cancel")}
+        </Button>
+        <Button
+          type="button"
+          size="touch"
+          disabled={position === null || state === "busy"}
+          onClick={() => void save()}
+          data-testid="post-pin-save"
+        >
+          {state === "busy" ? t("post.pin.saving") : t("post.pin.saveLocation")}
+        </Button>
+      </DialogFooter>
+    </>
+  );
 }
 
 /** The circle drawn when a place has no outline, in metres. */

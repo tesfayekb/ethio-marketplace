@@ -27,9 +27,11 @@ import {
   DIALOG_FOOTER,
   DIALOG_GRABBER,
   DIALOG_PANEL,
+  DIALOG_PHONE,
   DIALOG_SCRIM,
   DIALOG_TEXT,
   DIALOG_TITLE,
+  SCREEN_PANEL,
   SHEET_PANEL,
   SHEET_SIDE,
 } from "./dialog-look";
@@ -130,6 +132,50 @@ describe("one dialog look (turn S6-1)", () => {
       expect(grabber !== null).toBe(side === "bottom");
     },
   );
+
+  it("DG-U5 the screen variant draws SCREEN_PANEL at every width and phone full fills a phone; a screen-sized panel takes the focus itself and gives it back to what held it (turn S6-4)", async () => {
+    function Screens({ open, phone }: { open: boolean; phone: boolean }) {
+      return (
+        <>
+          <button data-testid="opener">open</button>
+          <Dialog open={open}>
+            <DialogContent
+              data-testid="panel"
+              {...(phone
+                ? { phone: "full" as const, fit: "fill" as const }
+                : { variant: "screen" as const, phone: "sheet" as const })}
+              aria-describedby={undefined}
+            >
+              <DialogTitle>t</DialogTitle>
+              <Input data-testid="field" />
+            </DialogContent>
+          </Dialog>
+        </>
+      );
+    }
+    const { rerender } = render(<Screens open={false} phone={false} />);
+    const opener = screen.getByTestId("opener");
+    opener.focus();
+    rerender(<Screens open phone={false} />);
+    const panel = await waitFor(() => screen.getByTestId("panel"));
+    expectLook(panel, SCREEN_PANEL);
+    expect(panel.className).not.toContain("rounded-dialog");
+    expect(panel.className).toContain("z-50");
+    expect(panel.querySelector("[data-dialog-grabber]")).toBeNull();
+    await waitFor(() => expect(panel).toHaveFocus());
+    rerender(<Screens open={false} phone={false} />);
+    await waitFor(() => expect(screen.queryByTestId("panel")).toBeNull());
+    await waitFor(() => expect(opener).toHaveFocus());
+
+    opener.focus();
+    rerender(<Screens open phone />);
+    const card = await waitFor(() => screen.getByTestId("panel"));
+    // The card from md (its corners and lift), the whole screen below.
+    expectLook(card, "rounded-dialog shadow-dialog bg-popover");
+    expectLook(card, DIALOG_PHONE.full);
+    await waitFor(() => expect(card).toHaveFocus());
+    expect(screen.getByTestId("field")).not.toHaveFocus();
+  });
 
   it("DG-U4 the wrap option drops LIST_ROW's single line and its cut", () => {
     const merged = classesOf(cn(LIST_ROW, LIST_ROW_WRAP));
