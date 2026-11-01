@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { MODE_FREE_TOKENS, MODED_TOKENS } from "@/lib/schemas/theme";
 
-import { CARD_TIERS, cardLookOf } from "./card-tier";
+import { CARD_TIERS, cardLookOf, tierOf } from "./card-tier";
 
 /**
  * Sage S4 (spec §7, §8) — the tier mechanism's data: one look per tier, every class a utility
@@ -60,5 +60,12 @@ describe("card-tier — one look per tier", () => {
     expect(cardLookOf("premium").paid?.look.stars).toBe(2);
     expect(cardLookOf("featured").paid?.look.flag.length).toBe(44);
     expect(cardLookOf("featured").paid?.look.stars).toBe(1);
+  });
+
+  it("CTR-4 tierOf takes the three tiers and answers null for anything else (S5 ruling 1, answer 1)", () => {
+    for (const tier of CARD_TIERS) expect(tierOf(tier)).toBe(tier);
+    for (const other of ["", "Premium", "gold", null, undefined, 1, {}]) {
+      expect(tierOf(other), String(other)).toBeNull();
+    }
   });
 });

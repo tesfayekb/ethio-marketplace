@@ -50,6 +50,7 @@ import { MapFailedHere } from "../map/map-failed-here";
 import { MapFrame } from "../map/map-frame";
 import { useSteadyPin } from "../map/use-steady-pin";
 import type { Pin, PinPrecision } from "../map/pin";
+import type { ListingTier } from "@/features/feed/ranking";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
@@ -182,6 +183,8 @@ export type ListingActor = "buyer" | "owner" | "staff";
 export interface ListingDetailView {
   /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
   actor: ListingActor;
+  /** Sage S5 (ruling 1, answer 1) — the ad's tier, passed by the buyer's page only; absent or null = not known: the free look and no data-tier. */
+  tier?: ListingTier | null;
   /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
   counts?: { views: number; shares?: number; contacts?: number; saves?: number } | null;
   /** D201 rule 11 — the sold word (sold / rented / filled, translated by the caller) drawn as a red badge after the price; present on a sold ad only. */

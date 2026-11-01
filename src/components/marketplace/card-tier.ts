@@ -85,3 +85,18 @@ export function cardLookOf(tier: ListingTier): CardLook {
 
 /** Every tier a card can have, for the fixture grid (/dev/style). */
 export const CARD_TIERS: readonly ListingTier[] = ["regular", "premium", "featured"];
+
+/**
+ * Sage S5 (ruling 1, answer 1) — a tier read from outside: one of the three, or null when it is
+ * not known (an unknown word is never taken for the free look's tier).
+ */
+export function tierOf(value: unknown): ListingTier | null {
+  switch (value) {
+    case "premium":
+    case "featured":
+    case "regular":
+      return value;
+    default:
+      return null;
+  }
+}
