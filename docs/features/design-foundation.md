@@ -526,6 +526,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - PRESSED (menu-row.ts): row → card + lift-row-on + nav ink; list → nav pill + nav ink; segment/tab → card + lift-segment + nav ink; button and top-bar control → lift-row-on; card → lift-row-on on the card; a plain link → the nav pill behind its text (styles.css base layer).
 - On at once, off within 120 ms; no transition under reduced motion; only shadow, fill and ink change.
 - Turn C2: only the release fades — press.ts leaves `data-released` on the released element for 160 ms and PRESS_MOTION is keyed on it, so a current mark that moves for any other reason changes at once; a new press ends every earlier fade. The bottom bar takes PRESSED.bar / PRESSED.barIcon (the icon's current pill); the top bar's ☰ and search-close buttons take PRESSED.button.
+- Turn S6-1 (stop 4): PRESS_MOTION switches every transition off while `data-pressed` is on (`data-[pressed]:transition-none`; PRESSED.cardLink likewise), so a pressable's own hover transition (Button's and BreadcrumbLink's transition-colors, Tabs' transition-all) never fades the press in. PR-U9 (src/lib/press.test.ts) pins it.
 
 ## The chosen item and the tap tick (turn C2, D263/D271/D272, DEC-317)
 
@@ -533,3 +534,17 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - The bottom bar marks its items by isCurrentAt on that place, signed in or out (BAR_PATHS): Home on "/" and every /c/ page, Sign in on /auth, My listings, Account (/account, /settings) and Admin on theirs.
 - The tap tick: press.ts, on a click that followed a touch, on TICKABLE (buttons and the tappable roles, or a primitive's `data-tick`: menu rows, breadcrumb segments, bottom-bar items); plain links and cards never; `navigator.vibrate(10)`. The device's choice is /settings → "This device" → "Vibrate on tap" (on by default, browser storage). The iPhone path (a hidden switch checkbox) is not built: it could not be proven here (C2 report).
 - CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`) and 4 (vibrate and a switch checkbox only in press.ts).
+
+## Dialogs (turn S6-1)
+
+- One look for every dialog, alert dialog and sheet (D268, Sage §14), drawn from `src/components/ui/dialog-look.ts` by its three primitives (`dialog.tsx`, `alert-dialog.tsx`, `sheet.tsx`); a consumer picks a variant, never a class (CF-DIALOG-1, register rows 88 and 89).
+- The scrim is `--scrim` (a green-tinted dark wash in light, black in dark). The panel is the popover surface with 22 px above and below and 24 px at the sides, the 20 px dialog radius (`--radius-dialog`) and `--lift-dialog` (a 1 px ring in the hairline colour, then two drops; black in dark, as D262's card).
+- DialogContent's variants: `size` (narrow, default, wide), `fit` (bounded, scrolling inside 100dvh − 2rem; fill, a column of that height, 70vh from md), `phone` (float, or sheet: a bottom sheet below md with the grabber and the safe-area inset), `layer` (modal, viewer, top — the step-up's `Z_TOP` over every other layer) and `closeTestId`.
+- The heading is the display face at 20 px and 800; the description 14 px in the muted ink. The close button reads the top bar's control look (`CONTROL_LOOK`, which lives with `SEARCH_FIELD` in `menu-row.ts`): 44 px below md and on a coarse pointer, 40 px on a fine pointer from md; it sits at the panel's end edge and comes after the content, so the focus lands on the first field.
+- The footer (`DIALOG_FOOTER`) draws the top rule (`--lift-rule-top`) across the panel; its buttons are Cancel, then the action; on a phone they stack with the action on top. An alert dialog has no close button; its Action takes `tone="destructive"` (red) and Action and Cancel are touch-sized.
+- Sheets come from the start, end or bottom edge (logical sides only); a bottom sheet draws the grabber; from 640 px a side sheet takes the dialog radius on its inner corners.
+- A field (Input, Textarea, NativeSelect) inside a panel (`data-dialog-panel`) is the pressed-in field (`--field`, `--lift-field`) through the `in-data-[dialog-panel]:` variant; the posting form keeps the form kit's look.
+- A stacked list of choices in a dialog uses the list row (`LIST_ROW`) with the chosen ring (`LIST_CHOICE_ON`, `--lift-choice-on`) and, where a label may run long, the wrap option (`LIST_ROW_WRAP`: a report reason in Amharic is never cut).
+- First paint: dialog-look.ts holds dialog parts only and stays off the entry (211.2 → 211.4 KiB local in this turn); a page's first download carries it only when the page draws a dialog, a sheet, a field or the step-up gate. S6-3 takes the step-up gate's dialog on demand and those pages' ceilings come back down.
+- Retired with this turn: command, context-menu, drawer, hover-card, menubar, navigation-menu, select and sidebar (`src/components/ui`); their packages stay until a package turn and no file reaches them (CF-OV-4).
+- Specimens: /dev/style shows the dialog, the alert dialog and the end and bottom sheets from existing keys; e2e/dialogs.spec.ts measures them and Share this ad at 390, 834 and 1440, light and dark.

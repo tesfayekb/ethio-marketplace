@@ -311,9 +311,7 @@ export function NameChecks({
             </p>
           </div>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy} className="min-h-11">
-              {t("common.cancel")}
-            </AlertDialogCancel>
+            <AlertDialogCancel disabled={busy}>{t("common.cancel")}</AlertDialogCancel>
             <Button
               type="button"
               className="min-h-11"

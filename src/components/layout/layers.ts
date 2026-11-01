@@ -32,3 +32,7 @@ export const Z_SHEET = "z-50";
 
 /** D161 — the full-screen photo viewer, opened from a gallery inside a sheet: above the sheet. */
 export const Z_VIEWER = "z-[60]";
+
+/** INC-124 — the sensitive-action step-up owns the top layer, above every other dialog; only
+ *  DialogContent's `layer="top"` uses it (turn S6-1). */
+export const Z_TOP = "z-[100]";

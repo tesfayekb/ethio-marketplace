@@ -760,15 +760,11 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="min-h-11" data-testid="my-listing-confirm-cancel">
+              <AlertDialogCancel data-testid="my-listing-confirm-cancel">
                 {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
-                className={
-                  confirming === "delete"
-                    ? "min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    : "min-h-11"
-                }
+                tone={confirming === "delete" ? "destructive" : "default"}
                 data-testid="my-listing-confirm-yes"
                 onClick={() => {
                   const action = confirming;

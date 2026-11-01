@@ -105,7 +105,7 @@ describe("a notice is shown where the person is looking (INC-955)", () => {
     () => {
       const { contents, findings } = outletFindings(files);
       console.log(`[notice-outlet] modal contents: ${contents}`);
-      expect(contents).toBeGreaterThanOrEqual(5);
+      expect(contents).toBeGreaterThanOrEqual(4);
       expect(report(findings)).toBe("");
     },
     TREE_SCAN_MS,

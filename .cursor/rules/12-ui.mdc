@@ -1,0 +1,102 @@
+---
+description: Screen and look laws for ethio.com — the Sage tokens, the shared rows, bands, lists, cards, overlays and the press, the form kit, the one-line names, contrast and motion. Read before changing any screen, component, route view or style.
+globs: src/components/**,src/routes/**,src/features/**,src/styles.css,src/lib/themes.ts,src/lib/press.ts,src/lib/visible-area.ts,src/providers/**
+alwaysApply: false
+---
+
+# 12 — Screens and the look (the Sage system)
+
+The look is one system. Every part below names its mechanism; a screen never draws its own version.
+The detail and the operator's decisions behind each part are in `docs/features/design-foundation.md`
+(read the section for the part you touch) and the register `docs/governance/mechanisms.md` (rows 24,
+48, 77, 80, 81, 84, 85, 86 and ONE_LINE_SLOT among them). `/dev/style` shows the tokens, cards and
+candidates with fixture data.
+
+## Tokens and themes
+
+- Every colour, shadow, radius and type value is a token in `src/styles.css` (`:root` and `.dark`);
+  `src/lib/themes.ts` holds the same values as data (`THEMES.sage.light` / `.dark`, the shape in
+  `src/lib/schemas/theme.ts`), and the two change together in one commit (`themes.test.ts`, TH-2).
+  No hex, rgb, arbitrary colour, shadow, radius or font value anywhere else (CF-LOOK-1,
+  `scripts/conformance/look-values.test.ts`; `src/styles.tokens.test.ts`; `fonts.test.ts`).
+- A token whose value carries a trailing comment is kept on one line under prettier (turn C1: a
+  split value broke TH-2).
+- Contrast is a law, measured in the page: text 4.5 : 1 or more on every surface it sits on, in both
+  themes (the card, both tier fills, a raised or pressed state included); `styles.tokens.test.ts`
+  holds the token pairs and the `@a11y` axe roster (HS-2 on `/dev/style`) checks the page. Changing
+  a surface token means checking every ink that sits on it.
+- Dark mode is the `.dark` class; components use semantic tokens only. Flat surfaces: no gradients,
+  no background images.
+
+## The shell's parts
+
+- Menu rows, tiles and the current row: `src/components/shell/menu-row.ts` (`ITEM_*`, `ITEM_TILE`,
+  `ITEM_TILE_ON`); one look for the rail, the strip, the phone menu and every side panel (CF-ROWS-1,
+  `menu-rows.test.ts`). Menu rows share the menu's height down to a 32 px floor (D247, D248).
+- Bands (panel tabs, panel header, breadcrumb, location row): `src/components/shell/band-row.ts`
+  (`BAND_LOOK`, `BAND_ROW` 40 px, `BAND_SEGMENT`, `CURRENT_PILL`); the location track and its segments;
+  only the deepest chosen segment is raised (CF-BAND-1, `shell-bands.test.ts`).
+- Lists of choices that open from a control (language, account, location, panel menus, row actions,
+  currency and phone-code pickers): rows, panel, label, separator and icon from `menu-row.ts`
+  (`LIST_ROW`, `LIST_ROW_CURRENT`, `LIST_TICK`, `LIST_SURFACE`, `LIST_LABEL`, `LIST_SEPARATOR`,
+  `LIST_ICON`); the searchable picker owns its placement (CF-LIST-1, `choice-lists.test.ts`).
+- An open list stays in the visible area: `src/lib/visible-area.ts` (`visibleArea`, `placeList`,
+  `collisionPaddingNow`) over the `data-chrome` markers (CF-AREA-1, `visible-area.test.ts`).
+- Overlays (Tooltip, DropdownMenu, Dialog, AlertDialog, Sheet) are facades over
+  `src/components/ui/overlay-facade.tsx`; their code waits for the person's intent and never rides a
+  page's first download (CF-OV-1…3, `overlays.test.ts`); opening one never moves the page (row 77).
+- Cards take `CARD_SURFACE` (`src/components/layout/surface.ts`): no 1-px border; state borders sit
+  on top; one card shape per grid (`look-law.test.ts`, the house-style spec).
+- The top bar's controls take `CONTROL_LOOK` (`src/components/shell/app-header.tsx`); the phone bottom bar takes the current pill and the
+  Post disc raised by `--bar-rise`; every surface pinned above the bar clears the rise.
+
+## The press and the current item
+
+- A press is the raised look, never a darkening: `src/lib/press.ts` (mounted once in
+  `src/routes/__root.tsx`) marks `data-pressed`; each primitive reads its raised state from `PRESSED`
+  in `menu-row.ts`. Screens never write a pressed class, an `active:` class or a `data-[pressed]`
+  look (CF-PRESS-1, `scripts/conformance/press.test.ts`).
+- The press comes on at once and leaves within 120 ms; under reduced motion nothing transitions;
+  only shadow, fill and ink change, never size or place.
+- A menu item's current mark comes from the one rule (`isCurrentAt` in
+  `src/components/shell/menu-current.ts`); the frame (which panel, the bands, the breadcrumbs)
+  follows the shown page (`useShownPathname`, INC-581).
+
+## Words on screen
+
+- Names that can be long are cut by `CutText` (`src/components/ui/cut-text.tsx`) and a crowded row
+  measures its room with `useLabelRoom` (`src/components/ui/use-label-room.ts`). A sentence with
+  one slot stays on one line and only the slot cuts: `OneLineSlot` / `ONE_LINE_SLOT`
+  (`src/components/ui/one-line-slot.tsx`; CF-ONE-LINE-1). Never `wrap-anywhere` on a heading.
+- Every word is a translation key (rule 10, Strings). A test checks the words in every public
+  language by reading the app's language list, never a literal list (G0.6).
+- Action labels are two or three words in every language; explanations go in help text.
+
+## Forms
+
+- A control a person types into or chooses from renders inside the one `Field` primitive with the
+  door's field name as its id, carries `aria-invalid` and `aria-describedby` when refused, reports
+  its missing answer to the shared gate (`Field` and `focusFirstRefusal` in
+  `src/features/posting/field.tsx`, `reportMissing` in `src/features/posting/wizard.tsx`; row 14),
+  and shows its refusal only through the one refusal
+  reader as a translated key. No form without `noValidate`, no local `fieldClass`, no per-feature
+  error mapper, no sentinel number parse.
+- What a caught error says on a screen goes through `errorText` and `ActionMessage` (row 15).
+
+## Pages and parts that arrive later
+
+- A part fetched on demand (`resilientLazy`, `loadOnce`) holds its box from the first paint (row
+  60); a failed download tells the person through the shell's one notice (rows 41, 52, 67).
+- Every screen has translated loading, empty and error states; an empty state is a caption beside
+  the controls, never a replacement.
+- Data tables render only through `DataTable` (`src/components/shell/data-table.tsx`).
+
+## Phones first
+
+- Design at 360 px first; check 360, 768, 1024 and 1280. Touch targets 44 px or more (menu rows
+  excepted, as above). Primary actions near the bottom; nothing relies on hover. Logical properties
+  only (`ms-`, `me-`, `ps-`, `pe-`, `text-start`).
+- A change to code every page carries moves every page's size (rule 10, Speed and SEO).
+- Rendered-output acceptance belongs to the operator's walk. You verify by typecheck, tests (computed
+  styles read in the page after `settled(page)`, boxes through `layoutBoxes`) and structure, and
+  your report names what a person should look at.

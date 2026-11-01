@@ -3,6 +3,7 @@ import { errorText } from "@/lib/error-text";
 
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
@@ -77,7 +78,7 @@ export function CountryDialogActions({
 }) {
   const { t } = useI18n();
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <DialogFooter>
       <Button
         type="button"
         variant="outline"
@@ -96,7 +97,7 @@ export function CountryDialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </div>
+    </DialogFooter>
   );
 }
 

@@ -124,15 +124,11 @@ export function HistoryDrawer({
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col gap-4 overflow-y-auto sm:max-w-md"
-          data-testid={`history-drawer-${testId}`}
-        >
-          <SheetHeader className="text-start">
+        <SheetContent side="end" data-testid={`history-drawer-${testId}`}>
+          <SheetHeader>
             <SheetTitle>{t("admin.translations.history.title")}</SheetTitle>
-            <SheetDescription className="break-words font-mono text-xs">
-              {translationKey}
+            <SheetDescription className="break-words">
+              <code className="font-mono text-xs">{translationKey}</code>
             </SheetDescription>
           </SheetHeader>
 

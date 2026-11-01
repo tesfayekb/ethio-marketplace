@@ -1,8 +1,10 @@
 import { useState } from "react";
 
 import { FormField } from "@/components/shell/form-section";
+import { LIST_CHOICE_ON, LIST_ROW } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +16,7 @@ import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
 import { fillRefusal, splitRefusal } from "@/lib/refusal-tail";
+import { cn } from "@/lib/utils";
 
 import {
   ATTRIBUTE_TYPES,
@@ -123,7 +126,7 @@ function DialogActions({
   const { t } = useI18n();
   const attributeLabel = useAttributeLabel();
   return (
-    <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+    <DialogFooter>
       <Button
         type="button"
         variant="outline"
@@ -143,7 +146,7 @@ function DialogActions({
       >
         {submitLabel ?? t("common.save")}
       </Button>
-    </div>
+    </DialogFooter>
   );
 }
 
@@ -737,7 +740,7 @@ export function MergeAttributesDialog({
           {attributes
             .filter((row) => row.id !== targetId)
             .map((row) => (
-              <label key={row.id} className="flex min-h-11 items-center gap-2 text-sm">
+              <label key={row.id} className={cn(LIST_ROW, LIST_CHOICE_ON, "cursor-pointer gap-3")}>
                 <Checkbox
                   data-testid={`attribute-merge-source-${row.attrKey}`}
                   checked={sourceIds.includes(row.id)}

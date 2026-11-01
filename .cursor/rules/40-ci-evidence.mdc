@@ -1,6 +1,6 @@
 ---
-description: How to read CI for ethio.com — the ci-evidence branch, the two-step SHA check, classifying a red before touching code, and what may be said about CI.
-alwaysApply: true
+description: How to read CI for ethio.com — your pull request's checks, the ci-evidence branch, the two-step SHA check, classifying a red before touching code, what may be re-run, and what may be said about CI. Read at the start of every task and while waiting for your pull request.
+alwaysApply: false
 ---
 
 # 40 — CI and evidence: what counts as proof
@@ -8,9 +8,27 @@ alwaysApply: true
 CI is the judge. Your local checks make a commit green-shaped; only a completed CI run on a commit
 proves it. You never write "CI green" from a local run.
 
-## Where the evidence lives
+## Your pull request's checks
 
-CI writes its evidence to the branch `ci-evidence`. Read it with git — never the copies on dev or
+CI runs the full suite on every pull request into `dev`: the build and guards, the unit and
+conformance tests, and every browser test in sixteen numbered lanes plus the smoke, e-mail and
+repeat lanes, each on a temporary backend built from the repository's migrations (about half an
+hour). Read it with `gh`:
+
+```
+gh pr checks <number> --watch --interval 60     # wait; run again if the wait times out
+gh pr checks <number>                           # the list, once
+gh run list --branch cursor/<stem> --limit 3    # the runs on your branch
+gh run view <run-id>                            # a run's jobs
+gh run view <run-id> --log-failed               # the failed steps' logs
+```
+
+A pull request is done only when every check is green on your last commit. A newer push replaces a
+queued run, never the running one; read the run whose commit is your last.
+
+## The evidence files (the base, and the newest completed run)
+
+CI also writes its evidence to the branch `ci-evidence`. Read it with git, never the copies on dev or
 main (frozen old text):
 
 ```
@@ -21,23 +39,29 @@ git show origin/ci-evidence:docs/tracking/guards-last-failure.md
 git show origin/ci-evidence:docs/tracking/flake-ledger.md
 ```
 
-The two-step read, always both: (1) the conclusion; (2) the reported commit equals the commit you
-are judging. A mismatch means that commit's run is unfinished, queued or superseded — STALE, never
-current. `ci-status.md` reports runs on dev; a pull request's own run is read with
-`gh pr checks <number>` or `gh run view <id>` (read-only) when `gh` is available.
+These files describe the newest completed run, whichever branch it was on — a pull request's run
+included, so the reported commit may be yours. The two-step read,
+always both: (1) the conclusion; (2) the reported commit equals the commit you are judging. A
+mismatch means that commit's run is unfinished, queued or superseded: STALE, never current. At the
+start of a task they tell you the state of `dev` (step 1 of rule 00); `e2e-last-failure.md` carries
+each failed test's body and its quoted call log, and `guards-last-failure.md` each failed job's
+evidence lines and tail, so read them when they name your commit.
 
 ## Reading a red (classify first)
 
-(a) Preflight-only red "STAGING BEHIND: apply <file>" — the supervisor's staging apply is pending
+(a) Preflight-only red "STAGING BEHIND: apply <file>": the staging apply of a migration is pending
     (expected after a MIGRATION stop); not yours.
-(b) A 522 in global-setup or "fetch failed" — staging down or transport; not a code finding.
-(c) A red the previous report named as expected (a door landed, its screens not yet) — expected; any
-    OTHER red in that window is fixed first.
-(d) A run cancelled or superseded — no verdict; the shards that finished are still read.
-(e) Everything else is yours: read the failure body in `e2e-last-failure.md` /
-    `guards-last-failure.md` BEFORE touching code (the body is the brief); fix the cause, not the
-    symptom; a guard failure (migration linter, i18n map, format, deletions) is never answered with a
-    re-run.
+(b) A 522 in global-setup, "fetch failed", an image pull refused, or a runner lost: infrastructure,
+    not a code finding.
+(c) A red the task named as expected (a door landed, its screens not yet): expected; any OTHER red
+    in that window is fixed first.
+(d) A run cancelled or superseded: no verdict; the jobs that finished are still read.
+(e) Everything else is yours: read the failure body BEFORE touching code (the body is the brief);
+    fix the cause, not the symptom. A guard failure (migration linter, i18n map, format, deletions,
+    test ids, a page over its size ceiling) is your defect, never answered with a re-run.
+
+Only (b) and (d) may be re-run, once, with `gh run rerun <run-id> --failed`, and the re-run is named
+in the report with its reason. A second infrastructure red in a row is reported, not re-run.
 
 A flaky pass is ledgered; it is never your proof. Read `flake-ledger.md` whole: a test with three or
 more lines in seven days and no incident is a finding for your report.
@@ -47,16 +71,16 @@ more lines in seven days and no incident is a finding for your report.
 `build-and-check` (format, lint, typecheck, build, workflow lint, guard self-tests, deletions guard),
 `component-tests` (vitest including every `scripts/conformance` census), `i18n-usage-map`,
 `migration-lint`, `string-scan`, `listing-write-seam`, `import-gate`, `browse-path-guard`,
-`marketplace-weight`, `bundle-budget`, `secrets-scan` (gitleaks), `dependency-audit`, `semgrep`,
-`e2e-preflight` (migration parity with staging), the numbered E2E lanes + smoke + e-mail + the repeat
-lane on temporary backends built from the repository's migrations, `e2e` (the merged verdict, the
-server-error census, accessibility), `promote` (dev → main, fast-forward on full green). The pass bar:
-both viewport projects green at `retries: 0`; no secret in any log.
+`marketplace-weight`, `bundle-budget` (the entry and every page against its ceiling),
+`secrets-scan` (gitleaks), `dependency-audit`, `semgrep`, `e2e-preflight` (migration parity with
+staging), the numbered E2E lanes + smoke + e-mail + the repeat lane (the specs your change touched,
+run again and again, retries 0), `e2e` (the merged verdict, the server-error census, accessibility),
+`promote` (dev → main, fast-forward on full green; it runs only on `dev`, never on a pull request).
+The pass bar: both viewport projects green at `retries: 0`; no secret in any log.
 
 ## What you may and may not say
 
-- "CI green on <sha>" only after the two-step read of a completed run on that sha.
-- A report's CI line is the first six lines of `ci-status.md` for the last commit you can read.
-- Never request a re-run to make a red go away; never ask anyone to paste a log.
-- Never wait for CI inside a turn: push, open the pull request, end the turn; the supervisor reads
-  the run and rules.
+- "Every check green on <sha>" only after reading a completed run on that sha.
+- The report's CI section is the pull request's check list on your last commit
+  (`gh pr checks <number>`), plus the first six lines of `ci-status.md` for the base.
+- Never re-run a red outside (b) and (d); never ask anyone to paste a log.

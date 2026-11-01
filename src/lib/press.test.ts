@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PRESS_MOTION, PRESSED } from "@/components/shell/menu-row";
 import {
   installPress,
   PRESS_SLOP,
@@ -97,6 +98,22 @@ describe("press.ts (D263/D270, turn C1)", () => {
       expect($("btn").hasAttribute("data-released")).toBe(false);
     } finally {
       vi.useRealTimers();
+    }
+  });
+
+  it("PR-U9: a pressed look comes on with no transition, whatever transition its element carries", () => {
+    expect(PRESS_MOTION).toContain("data-[pressed]:transition-none");
+    for (const [name, look] of Object.entries(PRESSED)) {
+      const classes = look.split(/\s+/);
+      if (!classes.some((c) => c.startsWith("data-[pressed]:"))) continue;
+      expect(classes, name).toContain("data-[pressed]:transition-none");
+      expect(
+        classes.some(
+          (c) =>
+            c.startsWith("data-[pressed]:transition-") && c !== "data-[pressed]:transition-none",
+        ),
+        `${name}: no pressed fade`,
+      ).toBe(false);
     }
   });
 

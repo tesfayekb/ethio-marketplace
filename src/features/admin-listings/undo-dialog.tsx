@@ -3,6 +3,7 @@ import { useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n } from "@/i18n";
 
@@ -60,7 +61,7 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
             {problem}
           </p>
         ) : null}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -80,7 +81,7 @@ export function UndoDialog({ busy, problem, onCancel, onConfirm }: UndoDialogPro
           >
             {t("admin.listings.undo.confirm")}
           </Button>
-        </div>
+        </DialogFooter>
       </div>
     </CategoryModal>
   );

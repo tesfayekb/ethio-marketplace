@@ -14,8 +14,10 @@
 // Turn C2 (INC-1031's SGB-5 red): the fade belongs to the RELEASE alone — press.ts marks the
 // released element `data-released` for RELEASE_MS — so a current mark that moves for another
 // reason (a chosen location, a selected tab) changes at once, never mid-fade.
+// Turn S6-1 (stop 4): the press itself switches every transition off, so a pressable's own hover
+// transition (Button's, Tabs', BreadcrumbLink's transition-colors) never fades the press in.
 export const PRESS_MOTION =
-  "data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none";
+  "data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none";
 export const PRESSED = {
   /** A menu row: the raised current row (ITEM_ACTIVE's card, lift-row-on, nav ink). */
   row: `data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
@@ -32,7 +34,7 @@ export const PRESSED = {
   /** …and its icon takes the current pill (CURRENT_PILL's fill and lift), on its own box. */
   barIcon: `group-data-[pressed]/bar:bg-nav-pill group-data-[pressed]/bar:shadow-pill group-data-[pressed]/bar:text-nav-ink ${PRESS_MOTION}`,
   /** The card's own link has no surface: the card lifts, the link takes no pill. */
-  cardLink: "data-[pressed]:bg-transparent",
+  cardLink: "data-[pressed]:bg-transparent data-[pressed]:transition-none",
 } as const;
 
 export const ITEM_CORE =
@@ -72,6 +74,15 @@ export const LIST_ROW =
   "focus:bg-nav-pill focus:text-nav-ink data-[highlighted]:bg-nav-pill data-[highlighted]:text-nav-ink focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset " +
   "data-[state=checked]:bg-nav-pill data-[state=checked]:font-semibold data-[state=checked]:text-nav-ink " +
   "data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0";
+/** Turn S6-1 (ruling 6) — LIST_ROW's one option: the label wraps onto more lines and the row
+ *  grows, never cut (a report reason in Amharic). Read after LIST_ROW through cn(), which drops
+ *  the one-line classes it replaces. */
+export const LIST_ROW_WRAP =
+  "md:pointer-fine:h-auto py-2 whitespace-normal [&>span]:overflow-visible [&>span]:text-clip [&>span]:whitespace-normal";
+/** Turn S6-1 (Sage §14) — a choice row (a label holding a radio or a checkbox) while its control is
+ *  chosen: the nav pill, the nav ink and the 1.5 px ring in the primary green. */
+export const LIST_CHOICE_ON =
+  "has-checked:bg-nav-pill has-checked:font-semibold has-checked:text-nav-ink has-checked:shadow-choice-on has-[[data-state=checked]]:bg-nav-pill has-[[data-state=checked]]:font-semibold has-[[data-state=checked]]:text-nav-ink has-[[data-state=checked]]:shadow-choice-on";
 /** The shell's one selected look (ruling 1): the nav pill and the nav ink. */
 export const LIST_ROW_CURRENT = "bg-nav-pill font-semibold text-nav-ink";
 /** The row a keyboard is on in a hand-driven list: the same surface as focus. */
@@ -92,6 +103,16 @@ export const LIST_SCROLLER = "min-h-0 flex-1 overflow-y-auto";
 /** The control while its list is open: one style, from here (ruling 1). */
 export const OPEN_CONTROL =
   "data-[state=open]:bg-nav-pill data-[state=open]:text-nav-ink aria-expanded:bg-nav-pill aria-expanded:text-nav-ink";
+/**
+ * Sage §1 (turn SAGE-S1) — ONE CONTROL LOOK for the top bar's controls (the language and
+ * theme controls, the phone search button, the account trigger) and the dialog's close button
+ * (DIALOG_CLOSE): the card surface, a hairline edge, the control lift, 12 px corners. 44 px for
+ * a coarse pointer (C2); 36 px for a fine one.
+ */
+export const CONTROL_LOOK = `${PRESSED.button} min-h-11 md:pointer-fine:min-h-9 rounded-md border border-hairline bg-card text-foreground shadow-control hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`;
+/** Sage §1 — the top bar's search pill: the field fill and its pressed-in lift, no border. */
+export const SEARCH_FIELD =
+  "min-h-11 w-full rounded-full bg-field shadow-field ps-10 text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 /** D268 (F4b) — a list's parts beyond its rows, the one primitive's (CF-LIST-1 rules 8, 9);
  *  S6's dialog parts reuse them.
  *  LIST_LABEL: a non-interactive header row on the row's padding, muted, semibold, cut by

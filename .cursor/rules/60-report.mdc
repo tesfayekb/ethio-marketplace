@@ -5,13 +5,14 @@ alwaysApply: false
 
 # 60 — The completion report (a committed file)
 
-After your last code commit, write `docs/governance/reports/<brief-stem>.report.md` with exactly these
+After your last code commit, write `docs/governance/reports/<stem>.report.md` with exactly these
 headings, in this order; commit it on its own (`<stem>: report`), push, and open the pull request. The
-supervisor reads it from a fresh clone; it is part of the project record.
+supervisor reads it from a fresh clone; it is part of the project record. A fix made while waiting
+for the pull request's CI updates the report in the same commit.
 
 ```
 # <brief title> — report
-Base: <BASE sha> · Final commit: <sha of the last code commit> · Brief: docs/governance/briefs/<file> (sha256 <value>)
+Base: <BASE sha> · Final commit: <sha of the last code commit> · Brief: docs/governance/briefs/<stem>.md (sha256 <value, when the task gave one>)
 Review: <the self-review's last line, word for word — READY · <n> BLOCKER · <n> MAJOR · <n> MINOR · on <the last code commit>>
 
 ## 1. Done / not done, by part and step
@@ -24,7 +25,7 @@ Review: <the self-review's last line, word for word — READY · <n> BLOCKER · 
 ## 8. Strings  (every new or changed key with EN and AM text; "none" when the brief says no new string)
 ## 9. Migrations  (file, sha256, mark, apply pairing line; or "none")
 ## 10. Departures  (every difference from the brief with its reason; every STOP and ruling in the turn)
-## 11. CI  (the first six lines of ci-status.md for the last dev commit you can read, with the two-step SHA check; this pull request's run "has not completed" when it has not)
+## 11. CI  (the base's CI: the first six lines of ci-status.md with the two-step SHA check; every red of an earlier turn you fixed; for each red of this pull request's own runs: its class (rule 40), its cause and the commit that fixed it, and any re-run with its reason. The final "every check green" line goes in the pull request's description, not here)
 ## 12. Limits  (what you could not run or prove, and why — logs unavailable, no browser, no secret)
 ```
 

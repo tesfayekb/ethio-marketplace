@@ -5,6 +5,7 @@ import { callRoute, type RoutePath } from "@/lib/route-client";
 import { Button } from "@/components/ui/button";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
 import { doorKeyText } from "@/lib/refusal-tail";
@@ -592,7 +593,7 @@ export function ImportDialog({
         </p>
       )}
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <DialogFooter>
         {state === "applied" ? (
           <>
             {committed === null ? null : (
@@ -636,7 +637,7 @@ export function ImportDialog({
             )}
           </>
         )}
-      </div>
+      </DialogFooter>
     </CategoryModal>
   );
 }

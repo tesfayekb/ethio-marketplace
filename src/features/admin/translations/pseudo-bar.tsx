@@ -103,14 +103,8 @@ export function PseudoBar({ guard }: { guard: GuardFn }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="min-h-11">
-              {t("admin.translations.pseudo.confirmCancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="min-h-11"
-              data-testid="pseudo-generate-confirm-action"
-              onClick={run}
-            >
+            <AlertDialogCancel>{t("admin.translations.pseudo.confirmCancel")}</AlertDialogCancel>
+            <AlertDialogAction data-testid="pseudo-generate-confirm-action" onClick={run}>
               {t("admin.translations.pseudo.confirmAction")}
             </AlertDialogAction>
           </AlertDialogFooter>

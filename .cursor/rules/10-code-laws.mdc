@@ -10,7 +10,9 @@ Every law names its mechanism (file) and, where one exists, the guard in `script
 find its mechanism in `docs/governance/mechanisms.md` (a mechanism not in the register does not
 exist), use or extend it. A second local version of a mechanism is a defect, not a shortcut.
 `AGENTS.md`'s project lines name further mechanisms (overlays, fonts, the Supabase door, speed,
-on-demand failures, QR, legal texts, string layers); each binds exactly as written there.
+on-demand failures, QR, legal texts, string layers); each binds exactly as written there. The
+screens' look (the Sage tokens, rows, bands, cards, the press) is rule 12, which loads with any
+screen file.
 
 ## K — One mechanism per concern (G0)
 
@@ -139,7 +141,14 @@ over ~300 lines.
 
 Public pages SSR with correct title/meta/og (absolute URLs), declared language and hreflang;
 public-path database work is version-cached; images lazy with dimensions. Each page's first-download
-ceiling lives in `scripts/route-budgets.mjs` and is never raised without its named cause.
+ceiling lives in `scripts/route-budgets.mjs` (the entry's in `scripts/check-bundle-size.mjs`), and
+`bun run build && node scripts/check-bundle-size.mjs` checks them all. A ceiling moves only by
+DEC-296's form, with its cause written on its line: `ceilingFor(size)` = floor(size + 0.3) + 1 for a
+size CI measured, `ceilingForLocal` for a local one (`scripts/budget-band.mjs`; a local build reads
+about 0.1 KiB under CI). Code every page carries (the root, the shell, `src/styles.css`, a shared
+primitive) moves EVERY page: run the check on the base and on your tree, report each page's change,
+and raise now every page your change leaves inside the 0.3 KiB band, never only the one you looked
+at (INC-1031, turn C1: 24 pages crossed in CI).
 On-demand modules via `loadOnce` (`src/lib/load-once.ts`), on-demand components via
 `resilientLazy` (`src/lib/resilient-lazy.ts`), never a bare `React.lazy`; a failed on-demand
 download reports through `reportOnDemandFailure`. Nothing heavy on the first-paint path (charting,

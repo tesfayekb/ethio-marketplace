@@ -19,7 +19,14 @@ import { Link } from "@tanstack/react-router";
 
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   telHref,
   telegramHref,
@@ -1224,16 +1231,13 @@ export function ListingDetail(view: ListingDetailView) {
                       <DialogContent
                         data-testid="listing-map-dialog"
                         aria-describedby={undefined}
-                        className="flex h-[90dvh] w-[calc(100%-1rem)] flex-col p-4 md:h-[70vh] md:max-w-4xl"
+                        size="wide"
+                        fit="fill"
+                        closeTestId="listing-map-close"
                       >
-                        <div className="flex items-center justify-between gap-2 pe-8">
+                        <DialogHeader>
                           <DialogTitle>{t("adPage.section.location")}</DialogTitle>
-                          <DialogClose asChild>
-                            <Button variant="outline" size="touch" data-testid="listing-map-close">
-                              {t("common.close")}
-                            </Button>
-                          </DialogClose>
-                        </div>
+                        </DialogHeader>
                         <Suspense
                           fallback={
                             <p className="text-sm text-muted-foreground">{t("post.pin.title")}</p>
@@ -1292,33 +1296,39 @@ export function ListingDetail(view: ListingDetailView) {
         }}
       >
         {mapsChoice !== null && (
-          <DialogContent aria-describedby={undefined}>
-            <DialogTitle>{t("adPage.map.google")}</DialogTitle>
-            <Button asChild variant="outline" className="min-h-11">
-              <a
-                data-testid="listing-maps-app"
-                href={mapsChoice.app}
-                onClick={() => setMapsChoice(null)}
-              >
-                {t("adPage.map.app")}
-              </a>
-            </Button>
-            <Button asChild variant="outline" className="min-h-11">
-              <a
-                data-testid="listing-maps-web"
-                href={mapsChoice.web}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setMapsChoice(null)}
-              >
-                {t("adPage.map.web")}
-              </a>
-            </Button>
-            <DialogClose asChild>
-              <Button data-testid="listing-maps-cancel" variant="outline" className="min-h-11">
-                {t("common.cancel")}
+          <DialogContent aria-describedby={undefined} size="narrow">
+            <DialogHeader>
+              <DialogTitle>{t("adPage.map.google")}</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-2">
+              <Button asChild variant="outline" size="touch">
+                <a
+                  data-testid="listing-maps-app"
+                  href={mapsChoice.app}
+                  onClick={() => setMapsChoice(null)}
+                >
+                  {t("adPage.map.app")}
+                </a>
               </Button>
-            </DialogClose>
+              <Button asChild variant="outline" size="touch">
+                <a
+                  data-testid="listing-maps-web"
+                  href={mapsChoice.web}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setMapsChoice(null)}
+                >
+                  {t("adPage.map.web")}
+                </a>
+              </Button>
+            </div>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button data-testid="listing-maps-cancel" variant="outline" size="touch">
+                  {t("common.cancel")}
+                </Button>
+              </DialogClose>
+            </DialogFooter>
           </DialogContent>
         )}
       </Dialog>

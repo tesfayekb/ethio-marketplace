@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 637,
-  "dynamicCallSites": 406,
+  "scanned": 630,
+  "dynamicCallSites": 408,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -320,15 +320,19 @@
       "/post/$listingId"
     ],
     "adPage.report.note": [
+      "/dev/style",
       "/l/$slug"
     ],
     "adPage.report.open": [
+      "/dev/style",
       "/l/$slug"
     ],
     "adPage.report.question": [
+      "/dev/style",
       "/l/$slug"
     ],
     "adPage.report.send": [
+      "/dev/style",
       "/l/$slug"
     ],
     "adPage.save.add": [
@@ -459,6 +463,7 @@
     ],
     "adPage.share.qrHint": [
       "/admin/listings/$listingId/edit",
+      "/dev/style",
       "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",
@@ -468,6 +473,7 @@
     ],
     "adPage.share.title": [
       "/admin/listings/$listingId/edit",
+      "/dev/style",
       "/l/$slug",
       "/my-listings",
       "/my-listings/$listingId",
@@ -4777,6 +4783,7 @@
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
+      "/dev/style",
       "/l/$id/photo[/]jpg",
       "/l/$slug",
       "/my-listings",
@@ -5636,6 +5643,7 @@
       "/my-listings/$listingId"
     ],
     "myListings.action.delete": [
+      "/dev/style",
       "/my-listings"
     ],
     "myListings.ad.ends": [
@@ -5728,6 +5736,12 @@
     ],
     "myListings.col.photo": [
       "/my-listings"
+    ],
+    "myListings.confirm.deleteBody": [
+      "/dev/style"
+    ],
+    "myListings.confirm.deleteTitle": [
+      "/dev/style"
     ],
     "myListings.continue": [
       "/my-listings/$listingId"

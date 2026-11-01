@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DialogFooter } from "@/components/ui/dialog";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -89,7 +90,7 @@ export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: 
             {problem !== null ? t(problem) : refusal}
           </p>
         ) : null}
-        <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <DialogFooter>
           <Button
             type="button"
             variant="outline"
@@ -117,7 +118,7 @@ export function MoveDialog({ kind, count, busy, refusal, onCancel, onConfirm }: 
           >
             {t(MOVE_LABEL[kind])}
           </Button>
-        </div>
+        </DialogFooter>
       </div>
     </CategoryModal>
   );

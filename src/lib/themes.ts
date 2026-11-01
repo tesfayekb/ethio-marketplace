@@ -115,6 +115,11 @@ const SAGE: ThemeSetValue = {
     "lift-track": "inset 0 2px 3px oklch(0.337 0.055 163.4 / 0.12), inset 0 -1px 0 oklch(1 0 0)",
     "lift-menu":
       "0 0 0 1px oklch(0.915 0.014 155.6), 0 4px 12px oklch(0.337 0.055 163.4 / 0.12), 0 16px 32px -12px oklch(0.337 0.055 163.4 / 0.2)",
+    "lift-dialog":
+      "0 0 0 1px oklch(0.915 0.014 155.6), 0 4px 12px oklch(0.337 0.055 163.4 / 0.12), 0 28px 60px -12px oklch(0.337 0.055 163.4 / 0.45)",
+    "lift-rule-top": "inset 0 1px 0 oklch(0.929 0.012 153.7)",
+    "lift-choice-on": "inset 0 0 0 1.5px oklch(0.422 0.073 164.4)",
+    scrim: "oklch(0.254 0.036 164.6 / 0.55)",
     "lift-segment":
       "0 1px 2px oklch(0.337 0.055 163.4 / 0.2), 0 3px 8px oklch(0.337 0.055 163.4 / 0.1), inset 0 -1px 0 oklch(0.337 0.055 163.4 / 0.06)",
     "lift-card":
@@ -237,6 +242,11 @@ const SAGE: ThemeSetValue = {
     "lift-segment": "0 1px 2px oklch(0 0 0 / 0.45), 0 3px 8px oklch(0 0 0 / 0.3)",
     "lift-menu":
       "0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4), 0 16px 32px -12px oklch(0 0 0 / 0.55)",
+    "lift-dialog":
+      "0 0 0 1px oklch(0.339 0.02 159.5), 0 4px 12px oklch(0 0 0 / 0.4), 0 28px 60px -12px oklch(0 0 0 / 0.75)",
+    "lift-rule-top": "inset 0 1px 0 oklch(0.305 0.018 161.2)",
+    "lift-choice-on": "inset 0 0 0 1.5px oklch(0.777 0.09 162.9)",
+    scrim: "oklch(0 0 0 / 0.62)",
     "lift-card": "0 0 0 1px oklch(0.417 0.02 167.6), 0 2px 8px oklch(0 0 0 / 0.35)",
     "lift-badge":
       "inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -2px 0 oklch(0 0 0 / 0.18), 0 3px 8px oklch(0 0 0 / 0.45)",

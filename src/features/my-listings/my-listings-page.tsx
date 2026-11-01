@@ -859,15 +859,11 @@ export function MyListingsPage() {
               <AlertDialogDescription>{confirmBody}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="min-h-11" data-testid="my-listings-confirm-cancel">
+              <AlertDialogCancel data-testid="my-listings-confirm-cancel">
                 {t("common.cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
-                className={
-                  asking.action === "delete"
-                    ? "min-h-11 bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    : "min-h-11"
-                }
+                tone={asking.action === "delete" ? "destructive" : "default"}
                 data-testid="my-listings-confirm-yes"
                 onClick={() => {
                   const { action, rows: targets, bulk } = asking;

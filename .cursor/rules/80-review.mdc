@@ -5,15 +5,15 @@ alwaysApply: false
 
 # 80 — The review (read-only; you change nothing while reviewing)
 
-Review the turn as if you did not write it. Read the brief in force (`roadmap.md` line 3 →
+Review the task's work as if you did not write it. Read the brief in force (`roadmap.md` line 3 →
 `docs/governance/briefs/<file>.md`), these rules, and the whole diff `git diff <BASE>..HEAD`, where
-`<BASE>` is the brief's `BASE:` line. Read each base version with `git show <BASE>:<path>`. Report
+`<BASE>` is the task's `Base: dev <sha>`. Read each base version with `git show <BASE>:<path>`. Report
 under these headings, each with file:line evidence, or "none" after naming the grep you ran:
 
-1. SCOPE — every changed file against the brief's SCOPE block and the standing allowance; any file
-   outside; any file the brief named that was not changed.
+1. SCOPE — every changed file against the task's scope (files, globs or areas) and the standing
+   allowance; any file outside; any file the task named that was not changed.
 2. BEHAVIOUR CONTRACT — for each touched route, door, screen or function: does anything differ from
-   the base beyond the brief's numbered CHANGEs (status, words, body keys, headers, signatures, order
+   the base beyond the task's numbered changes (status, words, body keys, headers, signatures, order
    of side effects)?
 3. BANNED PATTERNS — sentinel defaults on identity, geography or screening paths (`?? 'ET'`,
    `?? guest`, `?? 0`); catch-and-continue or a success-shaped answer on failure; a table or function
