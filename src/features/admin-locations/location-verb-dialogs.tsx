@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -158,10 +159,10 @@ export function LocationMoveDialog({
           htmlFor="location-move-parent"
           help={t("admin.locations.move.hint")}
         >
-          <select
+          <NativeSelect
             id="location-move-parent"
             data-testid="location-move-parent"
-            className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm"
+            className="w-full"
             value={parentId}
             onChange={(event) => setParentId(event.target.value)}
           >
@@ -171,7 +172,7 @@ export function LocationMoveDialog({
                 {target.path}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </FormField>
       )}
       <LocationErrorLine refusal={refusal} />

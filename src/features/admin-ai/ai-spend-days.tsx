@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 
 import { PageCard } from "@/components/shell/page-card";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import {
@@ -51,10 +52,10 @@ export function AiSpendDays() {
         <label htmlFor={pickerId} className="text-sm text-foreground">
           {t("admin.ai.col.feature")}
         </label>
-        <select
+        <NativeSelect
           id={pickerId}
           data-testid="ai-days-feature"
-          className="h-11 min-w-0 max-w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          className="max-w-full"
           value={feature}
           onChange={(event) => setFeature(event.target.value)}
         >
@@ -64,7 +65,7 @@ export function AiSpendDays() {
               {nameOf(id)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </div>
 
       {query.isLoading ? <p className="text-sm">{t("common.loading")}</p> : null}

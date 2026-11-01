@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import {
@@ -212,10 +212,10 @@ export function AttributeLinkCells({
           {t("admin.attributes.link.defaultValue")}
         </label>
         {row.attrType === "single_select" || row.attrType === "boolean" ? (
-          <select
+          <NativeSelect
             id={`default-${row.linkId}`}
             data-testid={`category-attribute-default-${row.attrKey}`}
-            className={SELECT_CLASS}
+            className="w-full"
             value={defaultValue}
             onChange={(event) => setDefaultValue(event.target.value)}
           >
@@ -232,7 +232,7 @@ export function AttributeLinkCells({
                 </option>
               ))
             )}
-          </select>
+          </NativeSelect>
         ) : (
           <Input
             id={`default-${row.linkId}`}
@@ -267,9 +267,9 @@ export function AttributeLinkCells({
         <legend className="text-xs font-medium text-foreground">
           {t("admin.attributes.link.visibleWhen")}
         </legend>
-        <select
+        <NativeSelect
           data-testid={`category-attribute-condition-key-${row.attrKey}`}
-          className={SELECT_CLASS}
+          className="w-full"
           value={conditionKey}
           onChange={(event) => {
             setConditionKey(event.target.value);
@@ -284,7 +284,7 @@ export function AttributeLinkCells({
               {sibling.nameEn}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {conditionOptions.map((option) => (
           <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
             <Checkbox
@@ -309,10 +309,10 @@ export function AttributeLinkCells({
             >
               {t("admin.attributes.link.andWhen")}
             </label>
-            <select
+            <NativeSelect
               id={`condition-and-${row.linkId}`}
               data-testid={`category-attribute-condition-and-key-${row.attrKey}`}
-              className={SELECT_CLASS}
+              className="w-full"
               value={andKey}
               onChange={(event) => {
                 setAndKey(event.target.value);
@@ -327,7 +327,7 @@ export function AttributeLinkCells({
                     {sibling.nameEn}
                   </option>
                 ))}
-            </select>
+            </NativeSelect>
             {andOptions.map((option) => (
               <label key={option.value} className="flex min-h-11 items-center gap-2 text-xs">
                 <Checkbox

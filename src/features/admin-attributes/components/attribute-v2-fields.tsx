@@ -1,6 +1,6 @@
 import { FormField } from "@/components/shell/form-section";
 import { Input } from "@/components/ui/input";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n, type MessageKey } from "@/i18n";
 import { ownValue } from "@/lib/own-key";
 
@@ -105,10 +105,10 @@ export function AttributeNumberFields({
         htmlFor="attribute-format"
         help={t("admin.attributes.field.formatHelp")}
       >
-        <select
+        <NativeSelect
           id="attribute-format"
           data-testid="attribute-format"
-          className={SELECT_CLASS}
+          className="w-full"
           value={value.format}
           onChange={(event) => {
             const format = event.target.value;
@@ -121,17 +121,17 @@ export function AttributeNumberFields({
               {t(`admin.attributes.format.${choice}` as MessageKey)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
       <FormField
         label={t("admin.attributes.field.decimals")}
         htmlFor="attribute-decimals"
         help={yearFormat ? t("admin.attributes.field.decimalsYear") : undefined}
       >
-        <select
+        <NativeSelect
           id="attribute-decimals"
           data-testid="attribute-decimals"
-          className={SELECT_CLASS}
+          className="w-full"
           disabled={yearFormat}
           value={yearFormat ? "0" : value.decimals}
           onChange={(event) => patch({ decimals: event.target.value })}
@@ -142,7 +142,7 @@ export function AttributeNumberFields({
               {choice}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
     </div>
   );
@@ -192,10 +192,10 @@ export function AttributeTextFields({
         htmlFor="attribute-preset"
         help={t("admin.attributes.field.presetHelp")}
       >
-        <select
+        <NativeSelect
           id="attribute-preset"
           data-testid="attribute-preset"
-          className={SELECT_CLASS}
+          className="w-full"
           value={value.preset}
           onChange={(event) =>
             patch({ preset: event.target.value, presetN: "", presetA: "", presetB: "" })
@@ -207,7 +207,7 @@ export function AttributeTextFields({
               {t(`admin.attributes.preset.${ownValue(PRESET_LABEL_KEY, choice)}` as MessageKey)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
       {takesN ? (
         <FormField label={t("admin.attributes.field.presetN")} htmlFor="attribute-preset-n">

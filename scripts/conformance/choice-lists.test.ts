@@ -17,7 +17,8 @@ import { report, walkFiles, TREE_SCAN_MS } from "./kit";
  *  - a sideOffset above 0 (the panel opens against its control's edge);
  *  - an option that does not read LIST_ROW, and an owner (the facade's impl, the picker,
  *    the popover) that does not read the constants;
- *  - a native <select> (the device draws its open list).
+ *  - a native <select> outside NativeSelect (src/components/ui/native-select.tsx, turn S6-2):
+ *    the device draws its open list, and the closed control is the one component's.
  * Exceptions are lines `key | reason | until` in choice-lists-allowlist.txt, key
  * `file#part`; until is a date (expired fails), an INC/DEC/turn id, or `permanent`
  * with its reason; a line naming nothing found fails as stale.
@@ -38,6 +39,7 @@ const OWN_PANEL = /(?:^|\s)(?:border(?=\s|$)|(?:border-|shadow-|rounded-|p-\d|bg
 const OWN_HEIGHT = /(?:^|\s)max-h-\S*/;
 const OWN_PICKER_HEIGHT = /(?:^|\s)(?:(?:min-|max-)?h-|overflow-y-)\S*/;
 const LIST_PARTS = new Set(["DropdownMenuLabel", "DropdownMenuSeparator"]);
+export const SELECT_OWNER = "src/components/ui/native-select.tsx";
 const OWN_ICON = /(?:^|\s)(?:\[&_?>?svg\]:\S*|(?:size-|h-\d|w-\d|-?m[sexy]?-|text-)\S*)/;
 const OWN_PICKER_GEOMETRY = /(?:^|\s)(?:(?:min-|max-)?w-|start-|end-|left-|right-)\S*/;
 export const OWNERS: Record<string, RegExp> = {
@@ -108,7 +110,8 @@ export function listFindings(files: Src[]): { findings: Finding[]; keys: string[
           if (own && (/^[A-Z]/.test(tag) || /svg\]/.test(own[0])))
             push(node, "icon", `own row icon class "${own[0].trim()}" (DropdownMenuIcon)`);
         }
-        if (tag === "select") push(node, "select", "a native list the device draws");
+        if (tag === "select" && name !== SELECT_OWNER)
+          push(node, "select", `a native <select> outside NativeSelect (${SELECT_OWNER})`);
         if (ROW_PARTS.has(tag) || role === "option") {
           const own = cls.match(OWN_ROW);
           if (own)
@@ -263,6 +266,16 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
         "2026-10-31",
       ),
     ).toThrow(/permanent/);
+  });
+
+  it("CL-11: a planted <select> outside NativeSelect fails; NativeSelect's own passes", () => {
+    const { findings, keys } = listFindings([
+      { name: "src/x.tsx", text: `const a = <select className="w-full"><option /></select>;` },
+      { name: SELECT_OWNER, text: `const a = <select className={cn(look, className)} />;` },
+      { name: "src/y.tsx", text: `const a = <NativeSelect className="w-full" />;` },
+    ]);
+    expect(report(findings)).toContain("a native <select> outside NativeSelect");
+    expect(keys).toEqual(["src/x.tsx#select"]);
   });
 
   it("CL-6: a planted current row set by class fails; the picker (an owner) keeps it", () => {

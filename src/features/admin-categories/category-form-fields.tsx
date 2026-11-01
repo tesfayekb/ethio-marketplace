@@ -5,6 +5,7 @@ import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import { activeParentOptions, deriveSlugPreview, type CategoryNode } from "./categories-service";
@@ -29,9 +30,6 @@ import { activeParentOptions, deriveSlugPreview, type CategoryNode } from "./cat
  * hint until the silent name-blur suggestion lands; "Package" is applied at
  * SAVE time if no suggestion ever succeeded, never as a prefilled value.
  */
-
-export const SELECT_CLASS =
-  "h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground";
 
 export interface CategoryFormValues {
   nameEn: string;
@@ -188,10 +186,10 @@ export function CategoryFormFields({
 
       {mode === "create" ? (
         <FormField label={t("admin.categories.create.parent")} htmlFor="category-create-parent">
-          <select
+          <NativeSelect
             id="category-create-parent"
             data-testid="category-create-parent"
-            className={SELECT_CLASS}
+            className="w-full"
             value={values.parentId}
             onChange={(event) => onChange({ parentId: event.target.value, positionBefore: "" })}
           >
@@ -201,7 +199,7 @@ export function CategoryFormFields({
                 {option.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </FormField>
       ) : null}
 
@@ -210,10 +208,10 @@ export function CategoryFormFields({
            chosen ACTIVE sibling; placement rides admin_reorder_categories
            post-create (no RPC change). */
         <FormField label={t("admin.categories.create.position")} htmlFor="category-create-position">
-          <select
+          <NativeSelect
             id="category-create-position"
             data-testid="category-create-position"
-            className={SELECT_CLASS}
+            className="w-full"
             value={values.positionBefore}
             onChange={(event) => onChange({ positionBefore: event.target.value })}
           >
@@ -223,7 +221,7 @@ export function CategoryFormFields({
                 {option.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <p
             data-testid="category-create-position-caption"
             className="text-xs text-muted-foreground"

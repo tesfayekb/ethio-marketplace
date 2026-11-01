@@ -7,11 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DialogFooter } from "@/components/ui/dialog";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import type { CategoryNode } from "@/features/admin-categories/categories-service";
-import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useAdminCategories } from "@/features/admin-categories/use-categories";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -380,10 +381,10 @@ export function AttributeEditorDialog({
         />
       </FormField>
       <FormField label={t("admin.attributes.field.type")} htmlFor="attribute-type">
-        <select
+        <NativeSelect
           id="attribute-type"
           data-testid="attribute-type"
-          className={SELECT_CLASS}
+          className="w-full"
           value={attrType}
           onChange={(event) => {
             const next = event.target.value;
@@ -398,7 +399,7 @@ export function AttributeEditorDialog({
               {t(`admin.attributes.type.${option}` as MessageKey)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
 
       {/* DEC-045 — the dependency picker; hidden without the write permission. */}
@@ -408,10 +409,10 @@ export function AttributeEditorDialog({
           htmlFor="attribute-depends-on"
           help={t("admin.attributes.field.dependsOnHelp")}
         >
-          <select
+          <NativeSelect
             id="attribute-depends-on"
             data-testid="attribute-depends-on"
-            className={SELECT_CLASS}
+            className="w-full"
             value={dependsOn}
             onChange={(event) => {
               setDependsOn(event.target.value);
@@ -424,7 +425,7 @@ export function AttributeEditorDialog({
                 {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </FormField>
       ) : null}
 
@@ -458,10 +459,10 @@ export function AttributeEditorDialog({
                 label={t("admin.attributes.dependsOn.previewLabel")}
                 htmlFor="attribute-cascade-parent"
               >
-                <select
+                <NativeSelect
                   id="attribute-cascade-parent"
                   data-testid="attribute-cascade-parent"
-                  className={SELECT_CLASS}
+                  className="w-full"
                   value={preview}
                   onChange={(event) => setPreview(event.target.value)}
                 >
@@ -471,7 +472,7 @@ export function AttributeEditorDialog({
                       {value}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </FormField>
               <ul data-testid="attribute-cascade-child" className="space-y-1">
                 {optionRows
@@ -716,10 +717,10 @@ export function MergeAttributesDialog({
       <p className="text-sm text-muted-foreground">{t("admin.attributes.merge.hint")}</p>
 
       <FormField label={t("admin.attributes.merge.target")} htmlFor="attribute-merge-target">
-        <select
+        <NativeSelect
           id="attribute-merge-target"
           data-testid="attribute-merge-target"
-          className={SELECT_CLASS}
+          className="w-full"
           value={targetId}
           onChange={(event) => setTargetId(event.target.value)}
         >
@@ -729,7 +730,7 @@ export function MergeAttributesDialog({
               {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
 
       <fieldset className="space-y-2">
@@ -867,10 +868,10 @@ export function AssignAttributeDialog({
         onChange={(event) => setNeedle(event.target.value)}
       />
       <FormField label={t("admin.attributes.assign.category")} htmlFor="attribute-assign-picker">
-        <select
+        <NativeSelect
           id="attribute-assign-picker"
           data-testid="attribute-assign-picker"
-          className={SELECT_CLASS}
+          className="w-full"
           value={categoryId}
           onChange={(event) => setCategoryId(event.target.value)}
         >
@@ -880,7 +881,7 @@ export function AssignAttributeDialog({
               {`${"\u00b7 ".repeat(row.depth)}${row.nameEn} (${row.slug})`}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
       <AttributeErrorLine message={message} />
       <DialogActions
@@ -960,10 +961,10 @@ export function RemoveAttributeCategoryDialog({
             label={t("admin.attributes.remove.category")}
             htmlFor="attribute-remove-picker"
           >
-            <select
+            <NativeSelect
               id="attribute-remove-picker"
               data-testid="attribute-remove-picker"
-              className={SELECT_CLASS}
+              className="w-full"
               value={linkId}
               onChange={(event) => setLinkId(event.target.value)}
             >
@@ -973,7 +974,7 @@ export function RemoveAttributeCategoryDialog({
                   {`${row.nameEn} (${row.categorySlug})`}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </FormField>
           {chosen === null ? null : (
             <p data-testid="attribute-remove-confirm" className="text-sm text-foreground">

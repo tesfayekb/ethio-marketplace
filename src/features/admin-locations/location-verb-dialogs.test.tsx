@@ -3,11 +3,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
+import { DIALOG_FIELD } from "@/components/ui/dialog-look";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 
 import type { LocationNode } from "./locations-service";
 import { listLocations, reorderLocations } from "./locations-service";
-import { LocationReorderDialog } from "./location-verb-dialogs";
+import { LocationMoveDialog, LocationReorderDialog } from "./location-verb-dialogs";
 import { useAdminLocations } from "./use-locations";
 
 vi.mock("@/i18n", () => ({
@@ -103,5 +104,23 @@ describe("LocationReorderDialog (INC-814)", () => {
       expect(screen.getByTestId("location-reorder-item-0")).toHaveTextContent("adama"),
     );
     expect(screen.getByTestId("location-reorder-item-1")).toHaveTextContent("bishoftu");
+  });
+});
+
+describe("LocationMoveDialog (turn S6-2)", () => {
+  it("LVD-1 the new parent is chosen in the one native select's control look, the panel's field fill included", () => {
+    const city = place("loc-a", "adama", 1);
+    const region = { ...place("loc-r", "oromia", 1), level: "region" };
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <LocationMoveDialog row={city} roster={[city, region]} guard={guard} onClose={() => {}} />
+      </QueryClientProvider>,
+    );
+    const parent = screen.getByTestId("location-move-parent");
+    expect(parent.tagName).toBe("SELECT");
+    for (const cls of ["md:pointer-fine:h-9", "w-full", ...DIALOG_FIELD.split(/\s+/)])
+      expect(parent).toHaveClass(cls);
+    expect(parent).not.toHaveClass("bg-background");
+    expect(screen.getByRole("option", { name: region.path })).toBeInTheDocument();
   });
 });

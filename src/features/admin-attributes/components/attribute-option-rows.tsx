@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import type { AttributeOption } from "../attributes-service";
@@ -133,10 +133,10 @@ export function AttributeOptionRows({
             label={t("admin.attributes.options.parentFilter")}
             htmlFor="option-parent-filter"
           >
-            <select
+            <NativeSelect
               id="option-parent-filter"
               data-testid="option-parent-filter"
-              className={SELECT_CLASS}
+              className="w-full"
               value={parentFilter}
               onChange={(event) => setParentFilter(event.target.value)}
             >
@@ -146,7 +146,7 @@ export function AttributeOptionRows({
                   {value}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </FormField>
         ) : null}
       </div>

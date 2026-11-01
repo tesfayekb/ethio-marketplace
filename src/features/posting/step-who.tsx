@@ -32,6 +32,7 @@ import { checkChannel, normalizeTelegram } from "./validate";
 import { dateFormatter } from "@/lib/format";
 import { logOnDemandFailure, refreshPage } from "@/lib/on-demand-failure";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /**
  * U6-C2b — STEP 7: WHO IS SELLING, AND HOW A BUYER REACHES THEM (spec §4 B2).
@@ -1145,7 +1146,8 @@ export function StepWho({
          * Contact support to change it." is gone: a change is possible here,
          * inside the 30-day rule the door enforces.
          */}
-        <select
+        <NativeSelect
+          look="form"
           id="post-who-country"
           data-testid="post-who-country"
           className={controlClass(
@@ -1173,7 +1175,7 @@ export function StepWho({
                   )}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         {countryLocked && !countryChanging && (
           <button
             type="button"

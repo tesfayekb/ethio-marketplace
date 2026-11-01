@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CutText } from "@/components/ui/cut-text";
 import { Input } from "@/components/ui/input";
-import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
+import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { optionBelongsToParent } from "@/features/posting/reset-scope";
 import { useI18n } from "@/i18n";
@@ -454,10 +455,10 @@ export function CategoryAttributesDialog({
                     .replace("{parent}", parentLabel)
                     .replace("{child}", childLabel)}
                 </p>
-                <select
+                <NativeSelect
                   aria-label={parentLabel}
                   data-testid={`category-attribute-cascade-parent-${child.attrKey}`}
-                  className={SELECT_CLASS}
+                  className="w-full"
                   value={chosen[child.attrKey] ?? ""}
                   onChange={(event) =>
                     setChosen((prev) => ({ ...prev, [child.attrKey]: event.target.value }))
@@ -469,7 +470,7 @@ export function CategoryAttributesDialog({
                       {value}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 <p
                   className="text-xs text-muted-foreground"
                   data-testid={`category-attribute-cascade-caption-${child.attrKey}`}
@@ -513,10 +514,10 @@ export function CategoryAttributesDialog({
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
-        <select
+        <NativeSelect
           aria-label={t("admin.attributes.links.add")}
           data-testid="category-attribute-picker"
-          className={SELECT_CLASS}
+          className="w-full"
           value={picker}
           onChange={(event) => setPicker(event.target.value)}
         >
@@ -526,7 +527,7 @@ export function CategoryAttributesDialog({
               {`${attributeLabel(row.id, row.nameEn)} (${row.attrKey})`}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         <Button
           type="button"
           size="touch"
