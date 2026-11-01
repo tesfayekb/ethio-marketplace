@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41289759262
-- Commit: `3f221b8febdbd03a5c9917a4ff91b21a1a99639c`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41290534728
+- Commit: `6491b6492272509a50660b4ce4175f1525e5ea4c`
 - Attempt: 1
-- Written (UTC): 2026-11-01T09:00:03.009Z
+- Written (UTC): 2026-11-01T09:20:16.152Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -34,6 +34,7 @@ NEAR band failed (DEC-296):
     386.1 / 387 KiB  /admin/listings_/$listingId
     408.6 / 410 KiB  /admin/listings_/$listingId_/edit
     274.2 / 275 KiB  /admin/locations
+
     328.1 / 329 KiB  /admin/places
     293.6 / 294 KiB  /admin/roles
     312.6 / 314 KiB  /admin/roles_/$roleId
@@ -61,7 +62,6 @@ NEAR band failed (DEC-296):
     216.3 / 217 KiB  /privacy
     278.0 / 279 KiB  /settings
     216.3 / 217 KiB  /terms
-
 NEAR band failed (DEC-296):
   /admin/ai: 323.7 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 324 KiB — DEC-296: set it to ceilingFor(size) = 325
   /admin/legal_/edit: 288.9 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 289 KiB — DEC-296: set it to ceilingFor(size) = 290
@@ -69,7 +69,7 @@ NEAR band failed (DEC-296):
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/c68c9aa1-d4df-463f-8ca3-fa5d0e5e0844' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/b4929dc5-6a31-4668-a067-535ce7ba943e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
