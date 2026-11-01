@@ -44,34 +44,37 @@ function DropdownMenuContent(props: React.ComponentProps<typeof Impl.DropdownMen
   return <OverlayContent kind="menu" part="DropdownMenuContent" {...props} />;
 }
 
-type Part = keyof OverlaysImpl["menu"];
+type Menu = OverlaysImpl["menu"];
 
-/** A part drawn inside the real content: the real part once the module is here, else nothing. */
-function inside<K extends Part>(name: K) {
-  type P = React.ComponentProps<OverlaysImpl["menu"][K]>;
+/** A part drawn inside the real content: the real part once the module is here, else nothing.
+ *  `real` reads the part from the module, so its props are the real part's own. */
+function inside<P extends object>(name: keyof Menu, real: (menu: Menu) => React.ComponentType<P>) {
   function Inside(props: P) {
     const impl = useOverlays();
     if (impl === null) return null;
-    const Real = impl.menu[name] as unknown as React.ComponentType<Record<string, unknown>>;
-    return <Real {...(props as Record<string, unknown>)} />;
+    const Real = real(impl.menu);
+    return <Real {...props} />;
   }
   Inside.displayName = name;
   return Inside;
 }
 
-const DropdownMenuItem = inside("DropdownMenuItem");
-const DropdownMenuCheckboxItem = inside("DropdownMenuCheckboxItem");
-const DropdownMenuRadioItem = inside("DropdownMenuRadioItem");
-const DropdownMenuLabel = inside("DropdownMenuLabel");
-const DropdownMenuSeparator = inside("DropdownMenuSeparator");
-const DropdownMenuShortcut = inside("DropdownMenuShortcut");
-const DropdownMenuIcon = inside("DropdownMenuIcon");
-const DropdownMenuGroup = inside("DropdownMenuGroup");
-const DropdownMenuPortal = inside("DropdownMenuPortal");
-const DropdownMenuSub = inside("DropdownMenuSub");
-const DropdownMenuSubContent = inside("DropdownMenuSubContent");
-const DropdownMenuSubTrigger = inside("DropdownMenuSubTrigger");
-const DropdownMenuRadioGroup = inside("DropdownMenuRadioGroup");
+const DropdownMenuItem = inside("DropdownMenuItem", (m) => m.DropdownMenuItem);
+const DropdownMenuCheckboxItem = inside(
+  "DropdownMenuCheckboxItem",
+  (m) => m.DropdownMenuCheckboxItem,
+);
+const DropdownMenuRadioItem = inside("DropdownMenuRadioItem", (m) => m.DropdownMenuRadioItem);
+const DropdownMenuLabel = inside("DropdownMenuLabel", (m) => m.DropdownMenuLabel);
+const DropdownMenuSeparator = inside("DropdownMenuSeparator", (m) => m.DropdownMenuSeparator);
+const DropdownMenuShortcut = inside("DropdownMenuShortcut", (m) => m.DropdownMenuShortcut);
+const DropdownMenuIcon = inside("DropdownMenuIcon", (m) => m.DropdownMenuIcon);
+const DropdownMenuGroup = inside("DropdownMenuGroup", (m) => m.DropdownMenuGroup);
+const DropdownMenuPortal = inside("DropdownMenuPortal", (m) => m.DropdownMenuPortal);
+const DropdownMenuSub = inside("DropdownMenuSub", (m) => m.DropdownMenuSub);
+const DropdownMenuSubContent = inside("DropdownMenuSubContent", (m) => m.DropdownMenuSubContent);
+const DropdownMenuSubTrigger = inside("DropdownMenuSubTrigger", (m) => m.DropdownMenuSubTrigger);
+const DropdownMenuRadioGroup = inside("DropdownMenuRadioGroup", (m) => m.DropdownMenuRadioGroup);
 
 export {
   DropdownMenu,

@@ -80,6 +80,8 @@ describe("CL-U — every open list reads menu-row.ts's constants", () => {
     expect(impl).toMatch(/<Slot aria-hidden="true" className=\{LIST_ICON\}>/);
     expect(impl).toMatch(/<CutText text=\{children\} \/>/);
     const facade = readFileSync("src/components/ui/dropdown-menu.tsx", "utf8");
-    expect(facade).toMatch(/DropdownMenuIcon = inside\("DropdownMenuIcon"\)/);
+    expect(facade).toMatch(
+      /DropdownMenuIcon = inside\("DropdownMenuIcon", \(m\) => m\.DropdownMenuIcon\)/,
+    );
   });
 });

@@ -1,42 +1,45 @@
+"use client";
+
 import * as React from "react";
-import * as PopoverPrimitive from "@radix-ui/react-popover";
 
-import { LIST_MOTION, LIST_SURFACE } from "@/components/shell/menu-row";
-import { cn } from "@/lib/utils";
-import { collisionPaddingNow } from "@/lib/visible-area";
+import { OverlayContent, OverlayRoot, OverlayTrigger } from "./overlay-facade";
+import type * as Impl from "./popover-impl";
 
-const Popover = PopoverPrimitive.Root;
-
-const PopoverTrigger = PopoverPrimitive.Trigger;
-
-const PopoverAnchor = PopoverPrimitive.Anchor;
-
-const PopoverContent = React.forwardRef<
-  React.ElementRef<typeof PopoverPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
->(({ className, align = "center", sideOffset = 0, collisionPadding, ...props }, ref) => {
-  // D267 (F4a-2) — mounts on open, so this reads the visible area at that moment.
-  const [area] = React.useState(() => collisionPaddingNow());
+/**
+ * Turn S6-3 (DEC-259's row 48) — THE POPOVER, ITS CODE ON DEMAND. The same parts as before;
+ * Radix's popover, the visible area and the list surface (popover-impl.tsx) arrive on the
+ * trigger's first click — replayed on the same element once they are here — or once the page
+ * is idle (overlay-facade.tsx); a hover or a focus on the trigger starts the download. A
+ * controlled `open` is passed through: an owner that opens it has it drawn once the module is
+ * here.
+ */
+function Popover({ children, ...rootProps }: React.ComponentProps<typeof Impl.Popover>) {
   return (
-    <PopoverPrimitive.Portal>
-      <PopoverPrimitive.Content
-        ref={ref}
-        align={align}
-        sideOffset={sideOffset}
-        collisionPadding={collisionPadding ?? area}
-        className={cn(
-          // D264 (turn F): the open list's surface and motion; a popover keeps its own padding.
-          "z-50 w-72 outline-none",
-          LIST_SURFACE,
-          LIST_MOTION,
-          "p-4",
-          className,
-        )}
-        {...props}
-      />
-    </PopoverPrimitive.Portal>
+    <OverlayRoot
+      kind="popover"
+      openAtStart={rootProps.open === true || rootProps.defaultOpen === true}
+      real={(impl, { collector, content }) => (
+        <impl.popover.Popover {...rootProps}>
+          <impl.popover.PopoverTrigger asChild>{collector}</impl.popover.PopoverTrigger>
+          {content !== null ? <impl.popover.PopoverContent {...content} /> : null}
+        </impl.popover.Popover>
+      )}
+    >
+      {children}
+    </OverlayRoot>
   );
-});
-PopoverContent.displayName = PopoverPrimitive.Content.displayName;
+}
 
-export { Popover, PopoverTrigger, PopoverContent, PopoverAnchor };
+/** Always asChild: the consumer's own element is the trigger. */
+function PopoverTrigger({
+  asChild: _asChild,
+  ...props
+}: React.ComponentProps<typeof Impl.PopoverTrigger> & { asChild: true }) {
+  return <OverlayTrigger kind="popover" part="PopoverTrigger" {...props} />;
+}
+
+function PopoverContent(props: React.ComponentProps<typeof Impl.PopoverContent>) {
+  return <OverlayContent kind="popover" part="PopoverContent" {...props} />;
+}
+
+export { Popover, PopoverTrigger, PopoverContent };

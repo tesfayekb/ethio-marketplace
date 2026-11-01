@@ -47,7 +47,8 @@ export const OWNERS: Record<string, RegExp> = {
     /\bLIST_PANEL\b[\s\S]*\bLIST_ROW\b|\bLIST_ROW\b[\s\S]*\bLIST_PANEL\b/,
   "src/components/searchable-picker.tsx":
     /\bLIST_ROW\b[\s\S]*\bLIST_SURFACE\b|\bLIST_SURFACE\b[\s\S]*\bLIST_ROW\b/,
-  "src/components/ui/popover.tsx": /\bLIST_SURFACE\b/,
+  // Turn S6-3: the popover's surface moved into its on-demand impl (popover.tsx is its facade).
+  "src/components/ui/popover-impl.tsx": /\bLIST_SURFACE\b/,
 };
 
 function attr(node: ts.JsxOpeningLikeElement, name: string, source: ts.SourceFile): string | null {
@@ -295,7 +296,7 @@ describe("CF-LIST-1 — every list of choices that opens from a control reads on
 
   it("an owner that stops reading the constants fails", () => {
     const { findings } = listFindings([
-      { name: "src/components/ui/popover.tsx", text: "const x = 1;" },
+      { name: "src/components/ui/popover-impl.tsx", text: "const x = 1;" },
     ]);
     expect(report(findings)).toContain("owner");
   });

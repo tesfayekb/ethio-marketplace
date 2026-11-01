@@ -57,6 +57,8 @@ const FORBIDDEN = [
   // Foundations turn 31 (DEC-259) — the overlay primitives load on demand (src/components/ui/overlay-loader.ts).
   "@radix-ui/react-tooltip",
   "@radix-ui/react-dropdown-menu",
+  // Turn S6-3 (row 48) — the popover too: popover-impl.tsx through the same loader.
+  "@radix-ui/react-popover",
   // Foundations turn 32 (DEC-260) — the dialog and the alert dialog too.
   "@radix-ui/react-dialog",
   "@radix-ui/react-alert-dialog",
