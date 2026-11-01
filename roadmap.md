@@ -8,7 +8,7 @@ The brief in force: docs/governance/briefs/sage-s5-ad-page.md (turn SAGE-S5 — 
 - [x] Turn S6-3 (row 48): the popover on demand — popover-impl.tsx behind the overlay facade, the toolbar panel on the sheet's bottom side and the popover's panel, the step-up gate's dialog on demand, DG-1's low-level-parts clause, the toolbar pages' ceilings lowered (rulings: stop 1); then S6-4 (screens)
 - [x] Turn S6-2 (D268, Sage §14): one select — the 42 selects on NativeSelect (`look` control or form), SELECT_CLASS retired, CF-LIST-1's select rule (CL-11), the retire dialog's cast gone (rulings: stop 1); then S6-3 (popover, the toolbar panel onto the sheet), S6-4 (screens)
 - [x] Turn S6-1 (D268, Sage §14): one dialog look — dialog-look.ts and the three primitives on it, the field look in a panel, the consumers' footers and choice rows, eight primitives retired, CF-DIALOG-1 and CF-OV-4/5 (rulings: the plan, stop 1, stop 2); then S6-2 (select), S6-3 (popover, the toolbar panel onto the sheet), S6-4 (screens)
-- [ ] Ad-page turn (S5): listing-detail.tsx :524 reads the sticky sub-band itself → visibleArea
+- [x] Ad-page turn (S5): listing-detail.tsx :524 reads the sticky sub-band itself → visibleArea (turn SAGE-S5: the section bar's offset from `watchChromeTop`, on demand; CF-AREA-1 VA-5/6; with the ad page in the Sage look by tier, rows 81, 85, 90)
 - [ ] Turn F4a — D267 visibleArea + placeList + facade collision padding, CF-AREA-1, CL-E7…9
 - [ ] Turn B1 — INC-1030 TI-1/CF-ADOPT-1 reds; scripts/ tests first in the fast line (TC-E3); dark-card candidates A/B/C on /dev/style, B in .dark
 - [x] Turn CI-4 — INC-1028/DEC-313: the edit-page ceiling; a held-cron start with its proofs; CF-CI-START-1; the proofs census
