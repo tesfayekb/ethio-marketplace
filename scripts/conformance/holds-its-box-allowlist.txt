@@ -6,6 +6,7 @@ src/components/shell/breadcrumbs.tsx#AdminListingCrumb | a crumb waiting for its
 src/components/shell/breadcrumbs.tsx#AdminRoleCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
 src/components/shell/breadcrumbs.tsx#AdminUserCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
 src/components/shell/breadcrumbs.tsx#MyListingCrumb | a crumb waiting for its name draws PendingCrumb ("—") in the crumb bar's one line, whose height does not change | 2027-04-27
+src/features/auth/mfa/step-up-gate.tsx#StepUpDialog | the step-up dialog draws in a portal on the top layer, out of the page's flow (turn S6-3): while it downloads, or when it cannot, the page has no box of it to keep | 2027-05-01
 src/features/posting/preview/listing-detail.tsx#MapLarge | the large map opens in a dialog of fixed height (h-[90dvh], md:h-[70vh]): its place while it loads moves nothing on the page | 2027-04-27
 src/features/posting/step-where.tsx#MapPinDropper | the pin map opens as a fixed full-screen sheet over the step; the one line it shows while it downloads is covered as the sheet opens | 2027-04-27
 src/routes/c.$slug.tsx#Feed | the category feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945

@@ -170,6 +170,43 @@ test.describe("U1f step-up authentication", () => {
     expect(await statusChangeCount(target.id)).toBe(0);
   });
 
+  test("MF-8 the gate's dialog is not in the page's first download; the first step-up fetches it and draws it on the top layer", async ({
+    page,
+  }) => {
+    // Turn S6-3 (row 48): step-up-dialog.tsx arrives through resilientLazy, as step-up-dialog-<hash>.js.
+    const dialogChunk = /\/step-up-dialog-[^/]+\.js$/.source;
+    const asked = () =>
+      page.evaluate(
+        (source) => ({
+          preloaded: [...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')]
+            .map((link) => link.href)
+            .filter((href) => new RegExp(source).test(href)),
+          fetched: performance
+            .getEntriesByType("resource")
+            .map((entry) => entry.name)
+            .filter((name) => new RegExp(source).test(name)),
+        }),
+        dialogChunk,
+      );
+    const staff = await createUser({ confirmed: true });
+    await grantRole(staff.id, "admin");
+    const target = await createUser({ confirmed: true });
+    await switchUser(page, staff.email, staff.password);
+
+    await gotoReady(page, `/admin/users/${target.id}`);
+    await page.getByTestId("deactivate-reason").fill("MF-8 proof");
+    expect(await asked()).toEqual({ preloaded: [], fetched: [] });
+    await page.getByTestId("deactivate-user").click();
+
+    const modal = page.getByTestId("step-up-modal");
+    await expect(page.getByTestId("step-up-no-factor")).toBeVisible({ timeout: 15000 });
+    await expect(modal).toHaveCSS("z-index", "100");
+    expect((await asked()).fetched).toHaveLength(1);
+    await page.getByTestId("step-up-cancel").click();
+    await expect(modal).toHaveCount(0);
+    expect(await statusChangeCount(target.id)).toBe(0);
+  });
+
   test("MF-4 server: permission first, then step-up — the RPC refuses regardless of UI", async ({
     page,
   }) => {
