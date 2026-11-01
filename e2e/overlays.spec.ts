@@ -83,23 +83,28 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
     page,
   }) => {
     await useJobSuperAdmin(page);
-    await gotoReady(page, "/admin/countries");
-    const first = await page.evaluate((source) => {
+    const path = "/admin/countries";
+    // The page as the server sent it to this very navigation: the page's own idle download
+    // adds its preload links to the live document later, so the live document is not judged.
+    const documentResponse = page.waitForResponse(
+      (response) =>
+        response.request().resourceType() === "document" &&
+        new URL(response.url()).pathname === path,
+    );
+    await gotoReady(page, path);
+    const html = await (await documentResponse).text();
+    expect(html.match(/overlays-impl-[^"'/]+\.js/g) ?? []).toEqual([]);
+    const beforeLoad = await page.evaluate((source) => {
       const chunk = new RegExp(source);
       const navigation = performance.getEntriesByType(
         "navigation",
       )[0] as PerformanceNavigationTiming;
-      return {
-        preloaded: [...document.querySelectorAll<HTMLLinkElement>('link[rel="modulepreload"]')]
-          .map((link) => link.href)
-          .filter((href) => chunk.test(href)),
-        beforeLoad: performance
-          .getEntriesByType("resource")
-          .filter((entry) => chunk.test(entry.name) && entry.startTime < navigation.loadEventEnd)
-          .map((entry) => entry.name),
-      };
+      return performance
+        .getEntriesByType("resource")
+        .filter((entry) => chunk.test(entry.name) && entry.startTime < navigation.loadEventEnd)
+        .map((entry) => entry.name);
     }, OVERLAY_CHUNK.source);
-    expect(first).toEqual({ preloaded: [], beforeLoad: [] });
+    expect(beforeLoad).toEqual([]);
 
     // Turn S6-3 (row 48): the panel is the popover from md, the sheet's bottom side on a phone.
     const trigger = page.getByTestId("country-filters");
