@@ -75,7 +75,7 @@ const BASE: FeedListing = {
  * the invitation fills its cell without growing past a card.
  */
 describe("ListingCard and InviteCard — one card shape", () => {
-  it("LC-1 the card fills its cell; the tier pill sits on the picture; the place line is kept without a place; the price slot is reserved", () => {
+  it("LC-1 the card fills its cell; the tier's flag sits on the picture; the place line is kept without a place, holding the tier word alone; the price slot is reserved", () => {
     const { unmount } = render(
       <ListingCard listing={{ ...BASE, tier: "premium", locationNameEn: null }} />,
     );
@@ -89,7 +89,9 @@ describe("ListingCard and InviteCard — one card shape", () => {
     );
     expect(card.querySelector("h3")!.contains(pill)).toBe(false);
     const place = within(card).getByTestId("listing-card-place");
-    expect(place).toBeEmptyDOMElement();
+    // S4 (G38): the place slot now carries the tier word; with no place, the word alone.
+    expect(place.children).toHaveLength(1);
+    expect(place.firstElementChild).toBe(within(place).getByTestId("listing-card-tier-word"));
     expect(place.className).toContain("mt-auto");
     const price = within(card).getByTestId("listing-card-price").parentElement!;
     expect(price.className).toContain("min-h-[3.625rem]");
@@ -99,6 +101,61 @@ describe("ListingCard and InviteCard — one card shape", () => {
     render(<ListingCard listing={BASE} />);
     expect(screen.getByTestId("listing-card-place")).toHaveTextContent("Bole");
     expect(screen.queryByTestId("listing-card-tier")).toBeNull();
+    expect(screen.queryByTestId("listing-card-tier-word")).toBeNull();
+  });
+
+  it("LC-8 the tier's look: fill and frame over the card's surface, divider and ink, flag, word and ribbon palette (S4)", () => {
+    const cases = [
+      { tier: "regular", fill: "bg-card", lift: "shadow-card", rule: "border-card-rule" },
+      {
+        tier: "premium",
+        fill: "bg-tier-premium",
+        lift: "shadow-premium",
+        rule: "border-tier-premium-rule",
+      },
+      {
+        tier: "featured",
+        fill: "bg-tier-featured",
+        lift: "shadow-featured",
+        rule: "border-tier-featured-rule",
+      },
+    ] as const;
+    for (const { tier, fill, lift, rule } of cases) {
+      const { unmount } = render(<ListingCard listing={{ ...BASE, tier, reserved: true }} />);
+      const card = screen.getByTestId("listing-card");
+      const classes = card.className.split(" ");
+      expect(classes).toContain(fill);
+      expect(classes).toContain(lift);
+      expect(classes.filter((c) => /^bg-/.test(c))).toEqual([fill]);
+      expect(classes.filter((c) => /^shadow-/.test(c))).toEqual([lift]);
+      // The fold and the caps show past the card's edges; the picture keeps its top corners.
+      expect(classes).not.toContain("overflow-hidden");
+      expect(screen.getByTestId("listing-card-picture").className).toContain("rounded-t-card");
+      expect(screen.getByTestId("listing-card-place").className.split(" ")).toContain(rule);
+      expect(screen.getByTestId("listing-ribbon")).toHaveAttribute(
+        "data-ribbon",
+        { regular: "pearl", premium: "gold", featured: "sage" }[tier],
+      );
+      if (tier === "regular") {
+        expect(screen.queryByTestId("listing-card-tier")).toBeNull();
+      } else {
+        const flag = screen.getByTestId("listing-card-tier");
+        expect(flag).toHaveAttribute("role", "img");
+        expect(flag).toHaveAttribute("aria-label", `tier.${tier}`);
+        expect(screen.getByTestId("listing-card-tier-word")).toHaveAttribute("aria-hidden", "true");
+      }
+      unmount();
+    }
+  });
+
+  it("LC-9 every compact card reserves the place slot's two lines, so grids with and without a paid card match (S4 ruling 3)", () => {
+    for (const tier of ["regular", "premium", "featured"] as const) {
+      const { unmount } = render(<ListingCard listing={{ ...BASE, tier }} />);
+      const place = screen.getByTestId("listing-card-place").className.split(" ");
+      expect(place).toContain("min-h-[2lh]");
+      expect(place).toContain("@min-[11rem]:min-h-[1lh]");
+      unmount();
+    }
   });
 
   it("LC-2 the invitation fills its cell and holds its sentence to a card's height", () => {
