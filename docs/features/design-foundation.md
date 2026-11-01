@@ -558,6 +558,18 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - CF-DIALOG-1's DG-1 also reads a part of a namespace imported from dialog-primitive outside the primitives (skipping a `modal={false}` root's subtree: the phone menu) and `PopoverContent` outside the popover's own files (DG-7).
 - First paint: Radix's popover leaves every staff toolbar's first download, about 18 KiB off each of 16 pages; the popover's facade adds 0.2 KiB to the entry (211.4 → 211.6 KiB local, ceiling 212 → 213).
 
+## The full-screen surfaces (turn S6-4)
+
+- Dialog draws the whole screen too, so a full-screen surface gets the primitive's focus trap, Escape, scroll lock (row 77), notices (row 52) and scrim, and keeps no layer, Escape handler, focus code or body lock of its own (register rows 48 and 88).
+- `variant="screen"` (`SCREEN_PANEL`): the panel is the whole screen at every width, in the page's own surface and ink, scrolling inside. The photo viewer (`photo-gallery.tsx`, `layer="viewer"`, over the ad preview when both are open) and the ad preview (`preview-sheet.tsx`, `layer="modal"`) are drawn by it. The preview's own Close button gave way to the dialog's close (`post-preview-close`).
+- `phone="full"` (`DIALOG_PHONE.full`): the whole screen below md (no radius, no lift, the safe-area inset under the footer), the panel at its size from md. The map pin dropper (`map-pin-dropper.tsx`) is `phone="full" fit="fill"`: full-screen on a phone, a 32rem card from md, with Cancel and Save in the footer part.
+- Focus on a screen-sized surface (`variant="screen"` or `phone="full"`): the panel itself takes the focus when it opens, and the focus returns to the element that held it before (the opener) when it closes, even when the owner opened it without a trigger. Escape closes only the top layer: Escape on the viewer over the preview closes the viewer alone.
+- The viewer's ‹ › arrows step through the photos on the photo itself, so they are the photo's own controls, not the dialog's actions; they sit on one CF-DIALOG-1 DG-4 allowlist line until 2027-05-01. The arrow keys step through the photos while the viewer has focus.
+- Opening never moves the page (row 77): the place step keeps its pin line (`post-pin-position`) drawn while the pin sheet is open, and the sheet's own line is `post-pin-sheet-position`.
+- Every z-index of the three surfaces comes from `layers.ts` through `DIALOG_LAYER`.
+- CF-DIALOG-1's DG-2: `role="dialog"` or `"alertdialog"`, `aria-modal`, or a class list holding both `fixed` and `inset-0`, in any .ts or .tsx file outside the primitive's own files, fails. Its allowlist starts empty; the phone menu is non-modal and passes by definition.
+- Proof: DLG-E8 (`e2e/dialogs.spec.ts`) opens the viewer on the ad page, the preview and the viewer over it on the review step, and the pin map on the place step, at 390 and 1440, light and dark (dark with reduced motion). It checks the top layer only closes on Escape, the focus returns to the opener, the page and the opener hold still, and no animation runs under reduced motion. `stillPage` (`e2e/helpers/ui.ts`) waits first for content that arrives late over the network.
+
 ## One select (turn S6-2)
 
 - Every `<select>` in src is `NativeSelect` (`src/components/ui/native-select.tsx`): the device draws the open list, and the closed control is the one component's (CF-LIST-1 refuses a `<select>` anywhere else, CL-11; register row 87).
