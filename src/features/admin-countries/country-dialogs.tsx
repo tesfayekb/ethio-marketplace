@@ -5,7 +5,7 @@ import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -130,10 +130,10 @@ export function CountryFormFields({
         />
       </FormField>
       <FormField label={t("admin.countries.field.unit")} htmlFor={`${idPrefix}-unit`}>
-        <select
+        <NativeSelect
           id={`${idPrefix}-unit`}
           data-testid={`${idPrefix}-unit`}
-          className={SELECT_CLASS}
+          className="w-full"
           value={values.unitSystem}
           onChange={(event) => onChange({ unitSystem: event.target.value })}
         >
@@ -142,7 +142,7 @@ export function CountryFormFields({
               {t(`admin.countries.unit.${name}` as MessageKey)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
       <FormField
         label={t("admin.countries.field.currency")}

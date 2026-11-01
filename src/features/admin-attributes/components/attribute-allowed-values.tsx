@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import type { AttributeOption } from "../attributes-service";
@@ -142,9 +142,9 @@ export function AttributeAllowedValues({
           {t("admin.attributes.options.allowedNoTargets")}
         </p>
       ) : unused.length === 0 || atCeiling ? null : (
-        <select
+        <NativeSelect
           data-testid="option-allowed-add"
-          className={SELECT_CLASS}
+          className="w-full"
           value=""
           onChange={(event) => {
             if (event.target.value !== "") addTarget(event.target.value);
@@ -156,7 +156,7 @@ export function AttributeAllowedValues({
               {target.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       )}
     </div>
   );

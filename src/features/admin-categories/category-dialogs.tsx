@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
@@ -24,7 +25,6 @@ import { suggestCategoryIcon } from "./category-images-service";
 import {
   CategoryFormFields,
   emptyCategoryForm,
-  SELECT_CLASS,
   type CategoryFormValues,
 } from "./category-form-fields";
 
@@ -60,10 +60,6 @@ import { CategoryImagePanel } from "./category-image-dialog";
  * server-side (F3), so a refusal here is a translated error, never a silent
  * no-op (F4). 360-first: full-width controls, ≥44px targets, logical spacing.
  */
-
-/** C5k — the select style now lives with the shared form; re-exported here so
- *  the page's existing import keeps working (one definition, B2). */
-export { SELECT_CLASS };
 
 export function CategoryModal({
   testid,
@@ -703,10 +699,10 @@ export function RetireCategoryDialog({
           )}
           htmlFor="category-retire-target"
         >
-          <select
+          <NativeSelect
             id="category-retire-target"
             data-testid="category-retire-target"
-            className={SELECT_CLASS}
+            className="w-full"
             value={reassignTo}
             onChange={(event) => setReassignTo(event.target.value)}
           >
@@ -718,7 +714,7 @@ export function RetireCategoryDialog({
                   {`${"— ".repeat(row.depth)}${row.nameEn}`}
                 </option>
               ))}
-          </select>
+          </NativeSelect>
         </FormField>
       ) : (
         <p className="text-sm text-muted-foreground" data-testid="category-retire-no-listings">
@@ -782,10 +778,10 @@ export function AddPointerDialog({
     >
       <p className="text-sm text-muted-foreground">{t("admin.categories.pointer.hint")}</p>
       <FormField label={t("admin.categories.pointer.parent")} htmlFor="category-pointer-parent">
-        <select
+        <NativeSelect
           id="category-pointer-parent"
           data-testid="category-pointer-parent"
-          className={SELECT_CLASS}
+          className="w-full"
           value={parentId}
           onChange={(event) => setParentId(event.target.value)}
         >
@@ -795,7 +791,7 @@ export function AddPointerDialog({
               {option.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
       <ErrorLine message={message} />
       <DialogActions
@@ -907,10 +903,10 @@ export function CategoryPathsDialog({
                 ) : null}
               </p>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <select
+                <NativeSelect
                   aria-label={t("admin.categories.paths.moveTo")}
                   data-testid={`category-path-move-${pointer.pointerId}`}
-                  className={SELECT_CLASS}
+                  className="w-full"
                   value={pointer.parentId ?? ""}
                   disabled={busy}
                   onChange={(event) => {
@@ -926,7 +922,7 @@ export function CategoryPathsDialog({
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 {/* Bundle 11 B3 (G29) — it removes the path at once: a destructive
                     act is red on the button that performs it. */}
                 <Button
@@ -958,10 +954,10 @@ export function CategoryPathsDialog({
       )}
 
       <FormField label={t("admin.categories.paths.add")} htmlFor="category-paths-add">
-        <select
+        <NativeSelect
           id="category-paths-add"
           data-testid="category-paths-add"
-          className={SELECT_CLASS}
+          className="w-full"
           value={addParentId}
           disabled={busy}
           onChange={(event) => setAddParentId(event.target.value)}
@@ -972,7 +968,7 @@ export function CategoryPathsDialog({
               {option.label}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
       <ErrorLine message={message} />
       <DialogActions

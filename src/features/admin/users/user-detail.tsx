@@ -8,6 +8,7 @@ import { PageCard } from "@/components/shell/page-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { ImpersonationStarter } from "@/features/admin/impersonation/impersonation-starter";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
@@ -308,10 +309,10 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                   >
                     {t("admin.users.roles.assign")}
                   </label>
-                  <select
+                  <NativeSelect
                     id="assign-role"
                     data-testid="assign-role-select"
-                    className="mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+                    className="mt-1 w-full"
                     value={selectedRole}
                     onChange={(event) => setSelectedRole(event.target.value)}
                   >
@@ -321,7 +322,7 @@ export function AdminUserDetailPage({ userId }: { userId: string }) {
                         {role.displayName ?? role.name}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 </div>
                 <Button
                   className="min-h-11"
@@ -539,10 +540,10 @@ function AdminUserEditForm({
       ) : null}
 
       <FormField label={t("admin.users.edit.country")} htmlFor="edit-country">
-        <select
+        <NativeSelect
           id="edit-country"
           data-testid="edit-country"
-          className="h-11 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          className="w-full"
           value={country}
           onChange={(event) => {
             setCountry(event.target.value);
@@ -555,7 +556,7 @@ function AdminUserEditForm({
               {option.nameEn}
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </FormField>
     </FormSection>
   );

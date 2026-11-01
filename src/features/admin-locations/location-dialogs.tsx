@@ -5,7 +5,8 @@ import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { CategoryModal, SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
+import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -209,10 +210,10 @@ export function LocationCreateDialog({
             {parent?.path ?? "—"}
           </p>
         ) : (
-          <select
+          <NativeSelect
             id="location-create-parent"
             data-testid="location-create-parent"
-            className={SELECT_CLASS}
+            className="w-full"
             value={chosen}
             onChange={(event) => setChosen(event.target.value)}
           >
@@ -228,7 +229,7 @@ export function LocationCreateDialog({
                     : `${row.path} · ${t("admin.locations.filter.closedSuffix")}`}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
       </FormField>
       <p className="text-sm text-muted-foreground" data-testid="location-create-level">

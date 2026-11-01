@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
@@ -342,10 +343,10 @@ export function LegalPage() {
                       {t("admin.legal.addCountry.label")}
                     </label>
                     <div className="flex flex-wrap gap-2">
-                      <select
+                      <NativeSelect
                         id={`legal-country-${kind}`}
                         data-testid="legal-add-country-select"
-                        className="min-h-11 min-w-0 grow rounded-md border border-input bg-background px-3"
+                        className="grow"
                         value={picked}
                         onChange={(e) =>
                           setSelected((prev) => ({ ...prev, [kind]: e.target.value }))
@@ -357,7 +358,7 @@ export function LegalPage() {
                             {c.nameEn}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                       <Button
                         asChild
                         disabled={!picked}

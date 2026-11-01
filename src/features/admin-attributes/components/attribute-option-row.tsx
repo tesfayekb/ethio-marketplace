@@ -2,7 +2,7 @@ import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { SELECT_CLASS } from "@/features/admin-categories/category-dialogs";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 
 import type { AttributeOption } from "../attributes-service";
@@ -224,9 +224,9 @@ export function OptionRow({
             {t("admin.attributes.options.boundsNoTargets")}
           </p>
         ) : unusedTargets.length === 0 ? null : (
-          <select
+          <NativeSelect
             data-testid="option-bounds-add"
-            className={SELECT_CLASS}
+            className="w-full"
             value=""
             onChange={(event) => {
               if (event.target.value !== "") setBound(event.target.value, {});
@@ -238,7 +238,7 @@ export function OptionRow({
                 {target.label}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         )}
       </div>
 

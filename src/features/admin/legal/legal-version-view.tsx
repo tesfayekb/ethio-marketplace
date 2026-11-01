@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Textarea } from "@/components/ui/textarea";
 import { unknownTokens } from "@/features/legal/legal-markdown";
 import { Button } from "@/components/ui/button";
@@ -299,11 +300,11 @@ export function LegalVersionView({
                     {addingTranslation ? (
                       <div data-testid="legal-translation-panel" className="min-w-0 space-y-3">
                         <label htmlFor="legal-translation-language">{t("language.label")}</label>
-                        <select
+                        <NativeSelect
                           ref={languageSelect}
                           id="legal-translation-language"
                           data-testid="legal-translation-language"
-                          className="min-h-11 w-full rounded-md border border-input bg-background px-3 text-base"
+                          className="w-full"
                           value={translationLanguage}
                           disabled={translationSaving}
                           onChange={(e) => {
@@ -318,7 +319,7 @@ export function LegalVersionView({
                               {l.name_en}
                             </option>
                           ))}
-                        </select>
+                        </NativeSelect>
                         <label htmlFor="legal-translation-body">
                           {t("admin.legal.field.textOptional").replace(
                             "{language}",

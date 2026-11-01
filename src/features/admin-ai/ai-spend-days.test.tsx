@@ -84,4 +84,13 @@ describe("AiSpendDays (bundle 13 turn 14)", () => {
     fireEvent.click(screen.getByText("common.retry"));
     expect(read.refetch).toHaveBeenCalledTimes(1);
   });
+
+  it("AID-7 the feature picker is the one native select's control look (turn S6-2)", () => {
+    render(<AiSpendDays />);
+    const picker = screen.getByTestId("ai-days-feature");
+    expect(picker.tagName).toBe("SELECT");
+    for (const cls of ["h-11", "md:pointer-fine:h-9", "bg-card", "max-w-full"])
+      expect(picker).toHaveClass(cls);
+    expect(picker).not.toHaveClass("bg-background");
+  });
 });
