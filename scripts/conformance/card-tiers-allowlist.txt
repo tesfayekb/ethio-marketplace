@@ -1,0 +1,2 @@
+# CF-TIER-1 (scripts/conformance/card-tiers.test.ts) — recorded exceptions: `<file> (<findings>)` | reason | until
+src/routes/dev.style.tsx (4) | D262's dark-card choice board (DEC-314): three candidate card sets drawn by hand so e2e/dark-cards.spec.ts measures each candidate's fill and ink; a fixture, never a public page | DEC-314

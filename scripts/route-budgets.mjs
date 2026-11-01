@@ -79,3 +79,39 @@ export const ROUTE_BUDGETS_KIB = {
 
 /** A page this far under its ceiling (KiB) fails until the ceiling is lowered. */
 export const RATCHET_SLACK_KIB = 8;
+
+/**
+ * Turn SAGE-S4 (ruling 1, CF-TIER-3) — THE TIER FLAG RIDES CARD PAGES ONLY. The flag's
+ * drawing (src/components/marketplace/tier-flag.tsx) reaches a page's first download only
+ * where the page draws listing cards; TIER_FLAG_MARKER is its star path, TIER_STAR_PATH there
+ * (scripts/conformance/card-tiers.test.ts holds the two equal). check-bundle-size.mjs judges
+ * every page's closure with tierFlagViolations.
+ */
+export const CARD_PAGES = ["/", "/c/$slug", "/account_/saved", "/$name", "/l/$slug", "/dev/style"];
+export const TIER_FLAG_MARKER =
+  "M11 0l3.2 6.6 7.3 1-5.3 5.1 1.3 7.2L11 16.5 4.5 19.9l1.3-7.2L.5 7.6l7.3-1z";
+
+/**
+ * The pages whose first download carries the flag and are not card pages, and a marker that
+ * no page carries (it no longer matches the drawing, so the judge would pass vacuously).
+ * `pages` is [{ id, closure: chunk names }]; `textOf(name)` reads a chunk.
+ */
+export function tierFlagViolations(pages, textOf) {
+  const cache = new Map();
+  const carries = (name) => {
+    if (!cache.has(name)) cache.set(name, textOf(name).includes(TIER_FLAG_MARKER));
+    return cache.get(name);
+  };
+  const failures = [];
+  let carried = 0;
+  for (const { id, closure } of pages) {
+    const chunk = closure.find(carries);
+    if (chunk === undefined) continue;
+    carried += 1;
+    if (!CARD_PAGES.includes(id))
+      failures.push(`${id}: ${chunk} carries the tier flag, which only card pages download`);
+  }
+  if (carried === 0)
+    failures.push("no page carries the tier flag's marker; it no longer matches tier-flag.tsx");
+  return failures;
+}

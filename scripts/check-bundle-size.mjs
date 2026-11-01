@@ -30,7 +30,7 @@ import {
   staticClosure,
 } from "./bundle-closure.mjs";
 import { judgedSize, exceedsCeiling, nearFindings } from "./budget-band.mjs";
-import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB } from "./route-budgets.mjs";
+import { RATCHET_SLACK_KIB, ROUTE_BUDGETS_KIB, tierFlagViolations } from "./route-budgets.mjs";
 
 /** Ceilings in KiB, gzipped, for everything the browser loads before paint. */
 const BUDGET_KIB = {
@@ -223,6 +223,20 @@ for (const { id, kib, ceiling } of rows) {
     `  ${(kib - judgedSize(0)).toFixed(1).padStart(7)} / ${String(ceiling).padStart(3)} KiB  ${id}`,
   );
 }
+/** Turn SAGE-S4 (ruling 1, CF-TIER-3): the tier flag's drawing rides card pages only. */
+const flagFailures = tierFlagViolations(
+  pageRouteIds(routes).map((id) => ({
+    id,
+    closure: staticClosure(assetsDir, routePreloads(routes, id)),
+  })),
+  (name) => readFileSync(join(assetsDir, name), "utf8"),
+);
+if (flagFailures.length > 0) {
+  console.error("\nTier flag off card pages failed (CF-TIER-3):");
+  for (const line of flagFailures) console.error(`  ${line}`);
+  process.exit(1);
+}
+console.log("Tier flag: card pages only (CF-TIER-3) — ok");
 if (failures.length > 0) {
   console.error("\nPer-page budget failed (D234):");
   for (const line of failures) console.error(`  ${line}`);
