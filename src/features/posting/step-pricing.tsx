@@ -9,6 +9,7 @@ import {
   usePickerKeys,
   usePickerPlacement,
 } from "@/components/searchable-picker";
+import { NativeSelect } from "@/components/ui/native-select";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
 
@@ -608,7 +609,8 @@ export function StepPricing({
                   onChange({ priceAmount: scaleAmount(raw, amountScale) }, false);
                 }}
               />
-              <select
+              <NativeSelect
+                look="form"
                 aria-label={t("post.price.scaleLabel")}
                 data-testid="post-price-scale"
                 className="min-h-11 shrink-0 rounded-md border border-input bg-background px-2 text-sm text-foreground"
@@ -622,7 +624,7 @@ export function StepPricing({
                 <option value="0">{t("post.price.scaleNone")}</option>
                 <option value="3">{t("post.price.scaleThousand")}</option>
                 <option value="6">{t("post.price.scaleMillion")}</option>
-              </select>
+              </NativeSelect>
             </div>
           </Field>
         </>
@@ -679,7 +681,8 @@ export function StepPricing({
           required={false}
           refusal={periodRefusal}
         >
-          <select
+          <NativeSelect
+            look="form"
             id="post-price-period"
             data-testid="post-price-period"
             className={controlClass(periodRefusal !== null)}
@@ -691,7 +694,7 @@ export function StepPricing({
                 {t(ownValue(PERIOD_KEYS, period) ?? "post.price.period.once")}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </Field>
       )}
       {/* DEC-067 — a LOCKED period says nothing here: the buyer reads it on the

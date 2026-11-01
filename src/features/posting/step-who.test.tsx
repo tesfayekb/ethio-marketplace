@@ -97,6 +97,30 @@ it("D231 the contact step closes Next until every required answer is given", asy
   view?.unmount();
 });
 
+it("SWO-1 a refused home country still reaches its select through NativeSelect: aria-invalid, the form kit's red border, the step's message (turn S6-2)", async () => {
+  let view: ReturnType<typeof render> | undefined;
+  await act(async () => {
+    view = render(
+      <StepWho
+        contactPref={{ messages: true }}
+        refusals={[{ field: "home_country_code", reason: "required" }]}
+        onChange={() => {}}
+        onMissing={() => {}}
+      />,
+    );
+  });
+  const country = screen.getByTestId("post-who-country");
+  await waitFor(() => expect(country).toBeDisabled());
+  expect(country.tagName).toBe("SELECT");
+  expect(country).toHaveAttribute("aria-invalid", "true");
+  for (const cls of ["min-h-11", "bg-background", "border-destructive", "ring-destructive"])
+    expect(country).toHaveClass(cls);
+  for (const cls of ["shadow-xs", "bg-card", "disabled:opacity-50"])
+    expect(country).not.toHaveClass(cls);
+  expect(screen.getByTestId("post-who-country-refusal")).toHaveTextContent("post.refusal.required");
+  view?.unmount();
+});
+
 it("PLF-1 a phone library that cannot download says so in place and offers a refresh, not a retry (INC-911)", async () => {
   phone.fails = true;
   refresh.calls = 0;

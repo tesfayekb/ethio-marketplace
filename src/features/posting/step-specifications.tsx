@@ -5,6 +5,7 @@ import { entityName } from "@/i18n/entity";
 import { useCatalogScope } from "./catalog-scope";
 import { CatalogWords } from "./catalog-words";
 import { DateField } from "@/components/shell/date-field";
+import { NativeSelect } from "@/components/ui/native-select";
 
 import { resolveBound, settledRanges, yearLabel } from "./attribute-display";
 import {
@@ -1393,7 +1394,8 @@ export function StepSpecifications({
             )}
 
             {def.attrType === "number" && yearMode && (
-              <select
+              <NativeSelect
+                look="form"
                 id={controlId}
                 data-testid="post-attr-control"
                 data-attr={def.attrKey}
@@ -1413,7 +1415,7 @@ export function StepSpecifications({
                     {yearLabel(Number(year), language, t("post.specs.yearEcSuffix"))}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             )}
 
             {def.attrType === "number" && !yearMode && (
@@ -1503,7 +1505,8 @@ export function StepSpecifications({
             )}
 
             {def.attrType === "single_select" && !settledOther && (
-              <select
+              <NativeSelect
+                look="form"
                 id={otherOwed && chosen === "other" ? undefined : controlId}
                 data-testid="post-attr-control"
                 data-attr={def.attrKey}
@@ -1541,7 +1544,7 @@ export function StepSpecifications({
                     {optionLabel(option, def.attributeId, entities, catalogScope)}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             )}
 
             {/* D26 / INC-259 — THE COLOUR IS SHOWN. The picker above stays (it is

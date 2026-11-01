@@ -154,3 +154,27 @@ it("INC-809 Specifications shows the last of four choices after deferred saves",
   unmount();
   vi.useRealTimers();
 });
+
+it("SSP-1 a refused detail still reaches its select through NativeSelect: the form kit's red border and Field's message (turn S6-2)", async () => {
+  const { unmount } = render(
+    <StepSpecifications
+      categoryId="c-1"
+      values={{}}
+      refusals={[{ field: "model", reason: "required" }]}
+      onChange={() => {}}
+    />,
+  );
+  const model = await waitFor(() => {
+    const field = document.getElementById("post-attr-model");
+    if (!field) throw new Error("model not rendered");
+    return field;
+  });
+  expect(model.tagName).toBe("SELECT");
+  for (const cls of ["min-h-11", "bg-background", "border-destructive", "ring-destructive"])
+    expect(model).toHaveClass(cls);
+  for (const cls of ["shadow-xs", "bg-card", "disabled:opacity-50"])
+    expect(model).not.toHaveClass(cls);
+  const refusal = document.querySelector('[data-testid="post-attr-refusal"][data-attr="model"]');
+  expect(refusal).toHaveTextContent("post.refusal.required");
+  unmount();
+});

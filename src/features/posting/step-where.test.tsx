@@ -433,3 +433,45 @@ describe("StepWhere — one city box per city, no repeats (walk round 2 W1/W2)",
     expect(screen.queryByTestId("post-where-add-region")).toBeNull();
   });
 });
+
+/** Turn S6-2 — the place step's selects on NativeSelect keep the step's own form look. */
+function expectFormLook(select: HTMLElement) {
+  expect(select.tagName).toBe("SELECT");
+  for (const cls of ["min-h-11", "w-full", "border-input", "bg-background", "text-base"])
+    expect(select).toHaveClass(cls);
+  for (const cls of ["shadow-xs", "bg-card", "md:pointer-fine:h-9", "disabled:opacity-50"])
+    expect(select).not.toHaveClass(cls);
+}
+
+describe("StepWhere — the refusal still reaches its selects (turn S6-2)", () => {
+  it("SWR-1 a refused coverage rings the item's country box around its market select; an empty region box is red with its mark", async () => {
+    render(
+      <StepWhere
+        coverage={[]}
+        refusals={[{ field: "coverage", reason: "required" }]}
+        onChange={() => {}}
+        maxCities={3}
+        maxRegions={2}
+        maxCountries={2}
+      />,
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(primaryBox()).toHaveClass("border-destructive", "ring-1", "ring-destructive");
+    expectFormLook(within(primaryBox()).getByTestId("post-where-market"));
+    expect(screen.getByTestId("post-where-refusal")).toHaveAttribute("role", "alert");
+
+    fireEvent.click(within(primaryBox()).getByTestId("post-where-add-region"));
+    const pending = within(primaryBox())
+      .getAllByTestId("post-where-region-box")
+      .find((box) => box.getAttribute("data-region") === "");
+    if (pending === undefined) throw new Error("no pending region box");
+    expect(pending).toHaveAttribute("data-red", "1");
+    expect(pending).toHaveClass("border-destructive");
+    const region = within(pending).getByTestId("post-where-row-region");
+    expectFormLook(region);
+    const label = pending.querySelector(`label[for="${region.id}"]`);
+    expect(label?.querySelector('[data-testid="post-required-mark"]')).not.toBeNull();
+  });
+});

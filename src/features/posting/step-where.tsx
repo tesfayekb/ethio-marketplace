@@ -4,6 +4,7 @@ import { sortPlacesByName } from "@/lib/place-order";
 import { callRoute } from "@/lib/route-client";
 import { resilientLazy } from "@/lib/resilient-lazy";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { ReactNode } from "react";
 
 import {
@@ -418,7 +419,8 @@ export function CountryBox({
                   {t(LEVEL_KEYS["region"] ?? "post.where.level.region")}
                   {group.region === null && <RequiredMark />}
                 </label>
-                <select
+                <NativeSelect
+                  look="form"
                   id={hasPrimary ? "post-where-region" : `post-where-region-${group.key}`}
                   data-testid={hasPrimary ? "post-where-region" : "post-where-row-region"}
                   className={fieldClass}
@@ -436,7 +438,7 @@ export function CountryBox({
                       {nameOf(node)}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
                 {regions.length === 0 && (
                   <p
                     className="text-xs text-muted-foreground"
@@ -497,7 +499,8 @@ export function CountryBox({
                               {t(LEVEL_KEYS["city"] ?? "post.where.level.city")}
                               {placeOf(head) === null && <RequiredMark />}
                             </label>
-                            <select
+                            <NativeSelect
+                              look="form"
                               id={cityId}
                               data-testid={isPrimary ? "post-where-city" : "post-where-row-city"}
                               className={fieldClass}
@@ -510,7 +513,7 @@ export function CountryBox({
                                   {nameOf(node)}
                                 </option>
                               ))}
-                            </select>
+                            </NativeSelect>
                           </div>
                         )}
                       </div>
@@ -530,7 +533,8 @@ export function CountryBox({
                           >
                             {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
                           </label>
-                          <select
+                          <NativeSelect
+                            look="form"
                             id={isPrimary ? "post-where-subcity" : `post-where-subcity-${head.key}`}
                             data-testid={
                               isPrimary ? "post-where-subcity" : "post-where-row-subcity"
@@ -549,7 +553,7 @@ export function CountryBox({
                                 {nameOf(node)}
                               </option>
                             ))}
-                          </select>
+                          </NativeSelect>
                         </div>
                       )}
                       {subMode &&
@@ -581,7 +585,8 @@ export function CountryBox({
                               >
                                 {t(LEVEL_KEYS["sub_city"] ?? "post.where.level.sub_city")}
                               </label>
-                              <select
+                              <NativeSelect
+                                look="form"
                                 id={subId}
                                 data-testid={
                                   rowPrimary ? "post-where-subcity" : "post-where-row-subcity"
@@ -604,7 +609,7 @@ export function CountryBox({
                                     {nameOf(node)}
                                   </option>
                                 ))}
-                              </select>
+                              </NativeSelect>
                               {/* W6b-1 R3 — Remove only while the step holds more than one
                                   place; a lone sub-city is undone via "All of <city>". */}
                               {tickLine(row, canRemove ? () => onRemove(row.key) : null)}
@@ -682,7 +687,8 @@ function OtherCountryBox({
         {t("post.where.marketLabel")}
         {code === null && <RequiredMark />}
       </label>
-      <select
+      <NativeSelect
+        look="form"
         id={id}
         data-testid="post-where-row-market"
         className={fieldClass}
@@ -708,7 +714,7 @@ function OtherCountryBox({
                   )}
             </option>
           ))}
-      </select>
+      </NativeSelect>
     </div>
   );
   return (
@@ -1513,7 +1519,8 @@ export function StepWhere({
           {t("post.where.marketFailed")}
         </p>
       ) : (
-        <select
+        <NativeSelect
+          look="form"
           id="post-where-market"
           data-testid="post-where-market"
           className={fieldClass}
@@ -1551,7 +1558,7 @@ export function StepWhere({
                     )}
               </option>
             ))}
-        </select>
+        </NativeSelect>
       )}
       {marketUnresolved && country === null && (
         <p className="text-xs text-muted-foreground" data-testid="post-where-market-unresolved">

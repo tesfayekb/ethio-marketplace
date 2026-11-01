@@ -1,8 +1,4 @@
 # CF-LIST-1 (D264, turn F) exceptions: key = file#part | reason | until
 src/components/ui/native-select.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
-src/features/posting/step-pricing.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
-src/features/posting/step-specifications.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
-src/features/posting/step-where.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
-src/features/posting/step-who.tsx#select | a native <select>: the device draws its open list; only the closed control is ours (D264 premise 4) | SAGE-S6 overlays turn
 src/components/shell/location-selector.tsx#DropdownMenuContent | permanent: a height is not a row or panel class; the location list caps its height and scrolls | permanent
 src/components/shell/toolbar-panel.tsx#PopoverContent | the filter panel is not a list: its body and foot draw their own padding inside the shared surface | SAGE-S6 overlays turn
