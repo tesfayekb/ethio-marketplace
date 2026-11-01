@@ -171,11 +171,14 @@ export async function setCountryExclusions(input: {
   if (error) throw error;
 }
 
-export async function retireCategory(input: { id: string; reassignTo: string }): Promise<void> {
+export async function retireCategory(input: {
+  id: string;
+  reassignTo: string | null;
+}): Promise<void> {
   const { error } = await supabase.rpc("admin_retire_category", {
     p_id: input.id,
     p_reassign_to: input.reassignTo,
-  });
+  } as never); // The generated uuid type omits SQL NULL; the door accepts it (no listings to move).
   if (error) throw error;
 }
 

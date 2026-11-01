@@ -674,7 +674,7 @@ export function RetireCategoryDialog({
       try {
         await retire.mutateAsync({
           id: category.id,
-          reassignTo: hasListings ? reassignTo : (null as unknown as string),
+          reassignTo: hasListings ? reassignTo : null,
         });
         onClose();
       } catch (error) {

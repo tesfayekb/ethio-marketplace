@@ -82,7 +82,7 @@ export function useSetCountryExclusions() {
 export function useRetireCategory() {
   const invalidate = useInvalidateCategories();
   return useMutation({
-    mutationFn: (input: { id: string; reassignTo: string }) => retireCategory(input),
+    mutationFn: (input: { id: string; reassignTo: string | null }) => retireCategory(input),
     onSettled: invalidate,
   });
 }
