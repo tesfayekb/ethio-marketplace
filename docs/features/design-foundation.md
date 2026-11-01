@@ -99,7 +99,8 @@ an ADR: one self-hosted, subset, non-blocking file and one token change.
 
 ## Performance stance
 
-- **Flat surfaces only.** No background images, no gradients anywhere.
+- **Flat surfaces only.** No background images. The only gradients are the status ribbon's
+  satin and the tier flag's stars (turn S4, below), both from tokens.
 - Listing photos will be `loading="lazy"` with explicit dimensions when the
   EXIF-strip pass surfaces them; today every card renders a placeholder.
 - The brand mark and the spinner are inline SVG + CSS — zero image requests.
@@ -214,7 +215,8 @@ Listing cards reserve a fixed `aspect-4/3` box, so the loading→empty/error
 transition costs no layout shift; when the photo strip lands the image goes in that
 box `loading="lazy"` with explicit dimensions. The marketplace module graph is 28
 modules and contains no chart, map or 3D library — enforced by
-`scripts/check-marketplace-imports.mjs` in CI. No background image, no gradient.
+`scripts/check-marketplace-imports.mjs` in CI. No background image, no gradient (until
+turn S4's satin ribbon and tier flag, below).
 
 Security: the feed is strictly read-only — it filters `status = 'active'` on top of
 the table's public-read RLS policy rather than in place of it, and no write call
@@ -393,7 +395,8 @@ ONE breakpoint governs both the sidebar collapse and the top-bar minimization:
   44px tap target is untouched.
 
 No new colour was introduced: cool slate + green, gold only on the logo dot and
-the Featured badge. No background image, no gradient.
+the Featured badge. No background image, no gradient (until turn S4's satin ribbon and
+tier flag, below).
 
 ## Stabilization notes (2026-08-05)
 
@@ -578,3 +581,14 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
   - `form`: the posting form kit's look, which the step passes whole as its className (`controlClass` with its refused and soft borders, or the step's own field class); NativeSelect adds nothing of its own, so a refusal still draws its red border and ring. The posting steps' 11 selects take it.
 - `SELECT_CLASS` (category-form-fields.tsx) is retired; the 21 "until SAGE-S6" select lines left choice-lists-allowlist.txt.
 - The retire dialog sends a plain `null` target when the category has no listings to move (the service and hook take `string | null`; the generated uuid type omits SQL NULL, so the call passes its arguments `as never`, as report.ts does).
+
+## Premium, Featured, the satin ribbon and the invite card (turn S4, Sage §7–§9, §13)
+
+- **One mechanism** (register row 90): `cardLookOf(tier)` in `src/components/marketplace/card-tier.ts` gives the card its surface (`bg-tier-premium shadow-premium` / `bg-tier-featured shadow-featured`, the shadow carrying the 1.5 px frame), its place line's rule and ink, its ribbon palette and its paid look; `ListingCard` draws it on every card surface (the feed, category pages, saved ads, similar ads, the seller page). CF-TIER-1/2 refuse a tier class, a flag reference, a ribbon internal or a tier comparison anywhere else.
+- **The flag** (`TierFlag`, `src/components/marketplace/tier-flag.tsx`): an SVG at the picture's top-left, 64 units long for Premium and 44 for Featured, its stars painted from `--flag-<tier>-1…3`, its fold from `--tier-<tier>-fold`, its body `--flag-body`, its drop `--flag-shade`; 1.6× on a compact phone card, 1.25× on a compact tablet card, 1× on a wide one (container queries at 11rem); mirrored in right-to-left; `role="img"` with the translated tier name. Its chunk rides card pages only (`CARD_PAGES`, CF-TIER-3 in check-bundle-size.mjs).
+- **The word** (`TierWord`): 9 / 10 / 11 px, 800, upper case, 0.6 px tracking, two stars for Premium and one for Featured, at the place line's end on a wide card and on its own line on a compact one. Every compact card reserves two place lines, so a grid with a paid card and one without stand the same height (ruling 1, answer 3).
+- **The satin ribbon** (`ListingRibbon`, `RibbonEnds`; `ribbon-geometry.ts`): the band's place, angle and size are unchanged (D122, INC-670). The satin runs through `--ribbon-<palette>-1…6`, spaced so the picture shows its 7 % to 92 % stops and the two dark end stops fall on the rolled caps beyond the picture's right and bottom edges (`--ribbon-<palette>-end` / `-mid`). The gloss and the shade are strips held in picture units (`SATIN_STRIPS`: 12 % and 14 % of the band at its own size) inside the text's padding, so they never lie under a letter at the 9 px floor. The palette follows the card: pearl for a regular ad (light and dark), gold for Premium, sage for Featured. The picture box no longer clips: its clip layer holds the photo and the band, and the caps sit on a copy of the drawn frame.
+- **Contrast, measured in the page** (e2e/sage-tiers.spec.ts STG-2, ruling 1, answer 2): every ribbon word of every public language at its worst point under its letters' box, at 390, 834 and 1440 px, light and dark. The lowest: gold 4.551 and sage 4.552 (both at 390), pearl 7.12 (390, dark); the tier words 6.43 (Premium) and 8.04 (Featured) light, 6.97 and 6.28 dark. The 92 % stops were raised by the least lightness that passes: gold `--ribbon-gold-5` L 0.651 → 0.671, sage `--ribbon-sage-5` L 0.543 → 0.61; no 7 % stop moved.
+- **The invite card** (`InviteCard`): the card's shape with a 2 px `border-gold`, its fill `--invite` (light #FFF8EC; dark the Premium tier's fill, ruling 4), the card's lift; the disc 24 / 36 / 46 px with the badge lift, the sentence 12 / 13 / 18 px (600, the display face at 700 on a wide card), the button 10 px round on a phone and 12 px from md (STG-6).
+- **/dev/style** draws the real cards (a regular, a Premium and a Featured `ListingCard` and the `InviteCard`, in light and dark) for the operator's walk (ruling 1, answer 6).
+- **Left for S5** (ruling 1, answer 5): the ad page's photo, the preview, the seller's own ad and the wizard draw the pearl satin with no tier palette, flag or uncut caps.
