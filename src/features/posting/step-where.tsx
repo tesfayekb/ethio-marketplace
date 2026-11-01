@@ -1765,21 +1765,21 @@ export function StepWhere({
           </p>
         ) : (
           <div className="space-y-2">
-            {!pinOpen && (
-              <p
-                className="text-sm text-foreground"
-                data-testid="post-pin-position"
-                data-lat={pin === null ? "" : pin.lat.toFixed(5)}
-                data-lng={pin === null ? "" : pin.lng.toFixed(5)}
-              >
-                {pin === null
-                  ? t("post.pin.none")
-                  : fill(t("post.pin.at"), {
-                      lat: pin.lat.toFixed(5),
-                      lng: pin.lng.toFixed(5),
-                    })}
-              </p>
-            )}
+            {/* Turn S6-4 (row 77) — drawn while the pin sheet is open too: hiding it moved the
+                page under the sheet. The sheet's own line is post-pin-sheet-position. */}
+            <p
+              className="text-sm text-foreground"
+              data-testid="post-pin-position"
+              data-lat={pin === null ? "" : pin.lat.toFixed(5)}
+              data-lng={pin === null ? "" : pin.lng.toFixed(5)}
+            >
+              {pin === null
+                ? t("post.pin.none")
+                : fill(t("post.pin.at"), {
+                    lat: pin.lat.toFixed(5),
+                    lng: pin.lng.toFixed(5),
+                  })}
+            </p>
             {cityCleared && pin === null && (
               <p
                 className="text-xs text-muted-foreground"

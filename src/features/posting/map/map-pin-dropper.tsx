@@ -492,7 +492,7 @@ function PinSheet({ saved, place, note, onNote, onSave, onClose }: PinSheetProps
 
         <p
           className="text-sm text-foreground"
-          data-testid="post-pin-position"
+          data-testid="post-pin-sheet-position"
           data-lat={position === null ? "" : position.lat.toFixed(5)}
           data-lng={position === null ? "" : position.lng.toFixed(5)}
         >

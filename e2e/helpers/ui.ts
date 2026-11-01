@@ -65,6 +65,38 @@ export async function settled(page: Page) {
   });
 }
 
+/**
+ * Turn S6-4 — CONTENT THAT ARRIVES LATE OVER THE NETWORK. A section or a photo that lands after
+ * the page drew moves what is under it, and the browser's scroll anchoring follows: a test that
+ * measures "the page does not move" must start from a page that has stopped growing. Waits until
+ * the target's box, the document's height and the scroll read the same twice, half a second apart
+ * — a bounded wait (`timeout`), polled, never a fixed sleep. `settled` waits for animations,
+ * `layoutBoxes` for two frames; this waits for the network's late parts.
+ */
+export async function stillPage(
+  target: Locator,
+  { what = "the page", timeout = 30_000 }: { what?: string; timeout?: number } = {},
+) {
+  let last = "";
+  await expect
+    .poll(
+      async () => {
+        const now = JSON.stringify(
+          await target.evaluate((element) => {
+            const rect = element.getBoundingClientRect();
+            const { scrollHeight } = element.ownerDocument.documentElement;
+            return [rect.x, rect.y, rect.width, rect.height, scrollHeight, window.scrollY];
+          }),
+        );
+        const same = now === last;
+        last = now;
+        return same;
+      },
+      { intervals: [500], timeout, message: `${what} never stopped moving` },
+    )
+    .toBe(true);
+}
+
 /** A box as Playwright's boundingBox() gives it: viewport pixels of the main frame. */
 export type LayoutBox = { x: number; y: number; width: number; height: number };
 
