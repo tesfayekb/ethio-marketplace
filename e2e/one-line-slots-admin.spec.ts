@@ -5,12 +5,15 @@ import { ADMIN_SECTIONS } from "../src/features/admin/sections";
 import { expect, test } from "./fixtures";
 import { readAdminSlots, slotFaults } from "./helpers/one-line";
 import { MODES, setMode, type Mode } from "./helpers/sage-look";
+import { sessionsIn } from "./helpers/session";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
   signIn,
   switchLanguage,
   waitForHydration,
+  consumeAccountLanguage,
+  watchAccountLanguage,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -44,9 +47,13 @@ async function publicLanguages(page: Page): Promise<string[]> {
 async function ensureMode(page: Page, mode: Mode) {
   if ((await page.locator("html").getAttribute("data-mode")) === mode) return;
   await setMode(page, mode);
+  // D239 — the reload's account read replaces a pick made while it is in flight.
+  const signedIn = (await sessionsIn(page)).length > 0;
+  const account = signedIn ? watchAccountLanguage(page) : Promise.resolve();
   await page.reload();
   await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
+  await account;
 }
 
 async function walk(page: Page, paths: string[]) {
@@ -65,17 +72,20 @@ async function walk(page: Page, paths: string[]) {
     .insert({ user_id: staff.id, role_id: role.id, scope_type: "global" });
   if (granted.error) throw new Error(`[e2e:ols] granting admin failed: ${granted.error.message}`);
   await signIn(page, staff.email, staff.password);
-  await gotoReady(page, paths[0] ?? "/admin");
-  const languages = await publicLanguages(page);
+  await consumeAccountLanguage(page);
+  let languages: string[] = [];
   for (const path of paths) {
+    const account = watchAccountLanguage(page);
     await gotoReady(page, path);
     await expect(page.getByTestId("admin-access-notice")).toHaveCount(0);
+    await account;
+    if (languages.length === 0) languages = await publicLanguages(page);
     for (const mode of MODES) {
       await ensureMode(page, mode);
       for (const language of languages) {
         await switchLanguage(page, language);
-        const readings = await page.evaluate(readAdminSlots);
-        expect(slotFaults(readings), `${path} ${mode} ${language}`).toEqual([]);
+        const measured = await page.evaluate(readAdminSlots);
+        expect(slotFaults(measured), `${path} ${mode} ${language}`).toEqual([]);
         await expectNoHorizontalOverflow(page);
       }
     }

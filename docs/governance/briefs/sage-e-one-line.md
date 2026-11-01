@@ -31,3 +31,11 @@ RULING on the E plan. Base: dev c21ec755. Approved as one pull request.
 3. Confirmed: the admin tables in the second spec, one line with the ellipsis allowed; the everywhere heading declared one line; bare truncate cells reported (K2), not moved.
 K2 filed from your census: the bare truncate cells (33 places) and the unmeasured phone slots that fit today (tier word at 360, Sold badge, place line); the evidence files' commit field naming a commit not in the clone (612469b7) is a reporter finding for the supervisor.
 ```
+
+# Ruling on stop 1 (as pasted by the operator)
+
+```text
+RULING — sage-e-one-line, stop 1. Base: dev c21ec755.
+The factor, not the words. The 1.22 estimates Kefa from Noto, so it is a correction relative to Noto, not to whatever face the runner has. Fix at the helper: measure one calibration string (a fixed Ge'ez string whose Noto width at a fixed size you record once in the helper, from CI's own face) to find the runner's ratio to Noto, then apply max(1, 1.22 / that ratio). On CI (Noto) that is 1.22; on a Mac with Kefa it is about 1.01; a runner with no Ethiopic face at all (the calibration string drawn in a fallback) is a STOP in the helper, never a silent 1. A unit test proves the three cases. "ያስተዋውቁ" stays; the five-item bar then passes with its 5 px spare, as the screenshot shows. Record the calibration width and the runner's ratio in the report.
+continue
+```

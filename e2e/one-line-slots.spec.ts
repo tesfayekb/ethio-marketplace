@@ -8,6 +8,7 @@ import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { readSlots, slotFaults } from "./helpers/one-line";
 import { MODES, setMode, type Mode } from "./helpers/sage-look";
+import { sessionsIn } from "./helpers/session";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
@@ -15,12 +16,15 @@ import {
   signIn,
   switchLanguage,
   waitForHydration,
+  consumeAccountLanguage,
+  watchAccountLanguage,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * INC-957 — one line at 360, in every public language and both themes.
- * Latin is the runner's font. Ge'ez is that width times 1.22 (e2e/helpers/one-line.ts).
+ * Latin is the runner's font. Ge'ez is that width times the Noto correction
+ * (e2e/helpers/one-line.ts): max(1, 1.22 / the runner's ratio to Noto).
  * The phone project measures; the desktop project skips, as OLH-1 does.
  */
 
@@ -46,15 +50,19 @@ async function publicLanguages(page: Page): Promise<string[]> {
 async function ensureMode(page: Page, mode: Mode) {
   if ((await page.locator("html").getAttribute("data-mode")) === mode) return;
   await setMode(page, mode);
+  // D239 — the reload's account read replaces a pick made while it is in flight.
+  const signedIn = (await sessionsIn(page)).length > 0;
+  const account = signedIn ? watchAccountLanguage(page) : Promise.resolve();
   await page.reload();
   await waitForHydration(page);
   await expect(page.locator("html")).toHaveAttribute("data-mode", mode);
+  await account;
 }
 
 async function expectFits(page: Page, where: string) {
   await expect(page.getByTestId("bottom-bar")).toBeVisible();
-  const readings = await page.evaluate(readSlots, true);
-  expect(slotFaults(readings), where).toEqual([]);
+  const measured = await page.evaluate(readSlots, true);
+  expect(slotFaults(measured), where).toEqual([]);
   await expectNoHorizontalOverflow(page);
 }
 
@@ -77,7 +85,10 @@ test("OLS-1 the home heading and the signed-out bar fit in every public language
 test("OLS-2 a signed-in bar shows the short seller label whole", async ({ page }) => {
   const user = await leaseUser();
   await signIn(page, user.email, user.password);
+  await consumeAccountLanguage(page);
+  const account = watchAccountLanguage(page);
   await gotoReady(page, "/");
+  await account;
   const languages = await publicLanguages(page);
   for (const mode of MODES) {
     await ensureMode(page, mode);
@@ -98,7 +109,10 @@ test("OLS-3 an admin's five-item bar shows the short seller label whole", async 
   const staff = await leaseUser();
   await grantAdmin(staff.id);
   await signIn(page, staff.email, staff.password);
+  await consumeAccountLanguage(page);
+  const account = watchAccountLanguage(page);
   await gotoReady(page, "/");
+  await account;
   await expect(page.getByTestId("bottom-bar-admin")).toBeVisible();
   const languages = await publicLanguages(page);
   for (const mode of MODES) {

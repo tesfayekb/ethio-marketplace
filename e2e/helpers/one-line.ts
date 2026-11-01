@@ -1,21 +1,52 @@
 /**
  * INC-957 — a one-line slot at 360. Latin is the runner's own font. Ge'ez is that
- * width times GEEZ_FACTOR, because the site ships no Ethiopic face (DEC-262) and
- * Kefa on Apple is wider than the Noto the runner draws.
+ * width times a factor, because the site ships no Ethiopic face (DEC-262) and
+ * Kefa on Apple is wider than the Noto CI draws.
  *
- * Measured on this machine (Core Text), recorded so the factor can be re-judged
- * when a new string arrives:
- * - "የኢትዮጵያ ማስታወቂያዎች" at 21px / 800 / −0.9px: Kefa ExtraBold 237.8, Noto 800 196.2, ratio 1.212.
+ * The 1.22 estimates Kefa from Noto. It is a correction relative to Noto, not to
+ * whatever face the runner has: one calibration string is measured in the runner,
+ * divided by its recorded Noto width, and the factor is max(1, 1.22 / that ratio).
+ * On Noto the ratio is 1 and the factor is 1.22. On Kefa it is about 1. A runner
+ * with no Ethiopic face draws the string as missing glyphs and the helper stops.
+ *
+ * Recorded once, Chromium scrollWidth, weight 400, letter-spacing normal, 100px,
+ * of "የኢትዮጵያ ማስታወቂያዎች" in Noto Sans Ethiopic: 907.
+ * The same probe on this Mac's stack was 1109 (ratio 1.223), so the factor is 1.
+ * Core Text, for re-judging the 1.22 when a new string arrives:
+ * - the same words at 21px / 800 / −0.9px: Kefa ExtraBold 237.8, Noto 800 196.2, ratio 1.212.
  * - "ፎቶዎች በቅርቡ" at 17.2px / 700: ratio 1.184.
- * The factor is 1.22, which covers 1.212. The method is the runner's scrollWidth
- * (or a nowrap probe of the same font) multiplied by the factor, compared with the
- * slot's room. The room is the constrained box (the heading's row, the bar item's
- * content), never the element's own shrink-wrapped width: that width is the text,
- * and the factor would then fail every Ge'ez line. A font-size change is not the
+ *
+ * The room is the constrained box (the heading's row, the bar item's content),
+ * never the element's own shrink-wrapped width. A font-size change is not the
  * same number once tracking is set.
  */
 
 export const GEEZ_FACTOR = 1.22;
+
+/** The calibration string. The page probe and this constant are the same words. */
+export const CALIBRATION_TEXT = "የኢትዮጵያ ማስታወቂያዎች";
+
+/** The calibration size, px. Weight 400, letter-spacing normal. */
+export const CALIBRATION_PX = 100;
+
+/**
+ * Noto Sans Ethiopic scrollWidth of CALIBRATION_TEXT at CALIBRATION_PX.
+ * Chromium 1208, the variable face at weight 400. CI's runner is this face.
+ */
+export const NOTO_CALIBRATION_WIDTH = 907;
+
+/**
+ * The factor for this runner. `missingWidth` is the same probe with every
+ * Ethiopic letter replaced by a missing glyph: when the two widths match, the
+ * runner drew a fallback and this throws. It never answers 1 for that case.
+ */
+export function runnerFactor(runnerWidth: number, missingWidth: number): number {
+  if (!(runnerWidth > 0) || Math.abs(runnerWidth - missingWidth) <= 0.5) {
+    throw new Error("the runner has no Ethiopic face");
+  }
+  const ratio = runnerWidth / NOTO_CALIBRATION_WIDTH;
+  return Math.max(1, GEEZ_FACTOR / ratio);
+}
 
 /** Ethiopic, Ethiopic Supplement, Ethiopic Extended, Ethiopic Extended-A. */
 const ETHIOPIC = /[\u1200-\u137F\u1380-\u139F\u2D80-\u2DDF\uAB00-\uAB2F]/;
@@ -24,9 +55,9 @@ export function hasEthiopic(text: string): boolean {
   return ETHIOPIC.test(text);
 }
 
-/** The width the widest platform font needs for this text. */
-export function factoredWidth(text: string, textWidth: number): number {
-  return hasEthiopic(text) ? textWidth * GEEZ_FACTOR : textWidth;
+/** The width the widest platform font needs for this text, at the runner's factor. */
+export function factoredWidth(text: string, textWidth: number, factor: number): number {
+  return hasEthiopic(text) ? textWidth * factor : textWidth;
 }
 
 export type SlotReading = {
@@ -45,11 +76,11 @@ export type SlotReading = {
 };
 
 /** A fault, or null when the slot holds. Tolerance 0.5px, as OLH uses. */
-export function slotFault(reading: SlotReading): string | null {
+export function slotFault(reading: SlotReading, factor: number): string | null {
   if (!reading.oneLine) return `${reading.name} wraps`;
   if (!reading.onScreen) return `${reading.name} leaves the screen`;
   if (reading.cut) return null;
-  const width = factoredWidth(reading.text, reading.textWidth);
+  const width = factoredWidth(reading.text, reading.textWidth, factor);
   if (width > reading.room + 0.5) {
     const over = (width - reading.room).toFixed(1);
     const face = reading.face === undefined ? "" : `, ${reading.face}`;
@@ -62,9 +93,18 @@ export function slotFault(reading: SlotReading): string | null {
   return null;
 }
 
-export function slotFaults(readings: SlotReading[]): string[] {
-  return readings.flatMap((reading) => {
-    const fault = slotFault(reading);
+export type OneLineMeasure = {
+  readings: SlotReading[];
+  /** The calibration string in the runner's face, px. */
+  runnerWidth: number;
+  /** The same probe with Ethiopic letters replaced by a missing glyph, px. */
+  missingWidth: number;
+};
+
+export function slotFaults(measured: OneLineMeasure): string[] {
+  const factor = runnerFactor(measured.runnerWidth, measured.missingWidth);
+  return measured.readings.flatMap((reading) => {
+    const fault = slotFault(reading, factor);
     return fault === null ? [] : [fault];
   });
 }
@@ -74,9 +114,35 @@ export function slotFaults(readings: SlotReading[]): string[] {
  * flex-stretched button is not measured as wider than its words. Room for a cut
  * label is its own box; room for a fit-whole label is that same box (the words
  * must show). The bottom bar is fit-whole even though it uses CutText.
+ *
+ * The calibration is written out inside each evaluated function. page.evaluate
+ * serializes the function it is given and nothing it calls.
  */
-export function readSlots(fitBar: boolean): SlotReading[] {
+
+export function readSlots(fitBar: boolean): OneLineMeasure {
   const view = window.innerWidth;
+  const text = "የኢትዮጵያ ማስታወቂያዎች";
+  const missing = Array.from(text, (ch) => (ch === " " ? " " : "\uE000")).join("");
+  const family =
+    getComputedStyle(document.body).fontFamily ||
+    getComputedStyle(document.documentElement).fontFamily;
+  function at(value: string): number {
+    const probe = document.createElement("span");
+    probe.textContent = value;
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.whiteSpace = "nowrap";
+    probe.style.fontStyle = "normal";
+    probe.style.fontWeight = "400";
+    probe.style.fontSize = "100px";
+    probe.style.letterSpacing = "normal";
+    probe.style.fontFamily = family;
+    document.body.append(probe);
+    const width = probe.scrollWidth;
+    probe.remove();
+    return width;
+  }
+  const calibration = { runnerWidth: at(text), missingWidth: at(missing) };
 
   function shown(el: Element): el is HTMLElement {
     if (!(el instanceof HTMLElement)) return false;
@@ -241,14 +307,36 @@ export function readSlots(fitBar: boolean): SlotReading[] {
     });
   }
 
-  return out;
+  return { readings: out, ...calibration };
 }
 
 /** Admin tables: one line, the ellipsis allowed, the box inside the screen or a scroller. */
-export function readAdminSlots(): SlotReading[] {
+export function readAdminSlots(): OneLineMeasure {
   const view = window.innerWidth;
   const out: SlotReading[] = [];
   const seen = new Set<HTMLElement>();
+  const text = "የኢትዮጵያ ማስታወቂያዎች";
+  const missing = Array.from(text, (ch) => (ch === " " ? " " : "\uE000")).join("");
+  const family =
+    getComputedStyle(document.body).fontFamily ||
+    getComputedStyle(document.documentElement).fontFamily;
+  function at(value: string): number {
+    const probe = document.createElement("span");
+    probe.textContent = value;
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.whiteSpace = "nowrap";
+    probe.style.fontStyle = "normal";
+    probe.style.fontWeight = "400";
+    probe.style.fontSize = "100px";
+    probe.style.letterSpacing = "normal";
+    probe.style.fontFamily = family;
+    document.body.append(probe);
+    const width = probe.scrollWidth;
+    probe.remove();
+    return width;
+  }
+  const calibration = { runnerWidth: at(text), missingWidth: at(missing) };
 
   function probeText(el: HTMLElement): number {
     const style = getComputedStyle(el);
@@ -326,5 +414,5 @@ export function readAdminSlots(): SlotReading[] {
       face: inBar ? getComputedStyle(el).font : undefined,
     });
   }
-  return out;
+  return { readings: out, ...calibration };
 }
