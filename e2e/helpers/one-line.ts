@@ -9,7 +9,10 @@
  * - "ፎቶዎች በቅርቡ" at 17.2px / 700: ratio 1.184.
  * The factor is 1.22, which covers 1.212. The method is the runner's scrollWidth
  * (or a nowrap probe of the same font) multiplied by the factor, compared with the
- * slot's room. A font-size change is not the same number once tracking is set.
+ * slot's room. The room is the constrained box (the heading's row, the bar item's
+ * content), never the element's own shrink-wrapped width: that width is the text,
+ * and the factor would then fail every Ge'ez line. A font-size change is not the
+ * same number once tracking is set.
  */
 
 export const GEEZ_FACTOR = 1.22;
@@ -37,6 +40,8 @@ export type SlotReading = {
   onScreen: boolean;
   /** The ellipsis is allowed. The line and the box are still judged. */
   cut: boolean;
+  /** The computed font, so a later reading can tell a wide face from the factor. */
+  face?: string;
 };
 
 /** A fault, or null when the slot holds. Tolerance 0.5px, as OLH uses. */
@@ -47,7 +52,12 @@ export function slotFault(reading: SlotReading): string | null {
   const width = factoredWidth(reading.text, reading.textWidth);
   if (width > reading.room + 0.5) {
     const over = (width - reading.room).toFixed(1);
-    return `${reading.name} overflows by ${over}px`;
+    const face = reading.face === undefined ? "" : `, ${reading.face}`;
+    return (
+      `${reading.name} overflows by ${over}px ` +
+      `(runner ${reading.textWidth.toFixed(1)}, factored ${width.toFixed(1)}, ` +
+      `room ${reading.room.toFixed(1)}${face})`
+    );
   }
   return null;
 }
@@ -119,6 +129,34 @@ export function readSlots(fitBar: boolean): SlotReading[] {
     return whiteSpace === "nowrap" || whiteSpace === "pre";
   }
 
+  /** The row's free width on this line: the heading shrinks to its text when the text fits. */
+  function rowRoom(el: HTMLElement): number {
+    const row = el.parentElement;
+    if (!(row instanceof HTMLElement)) return el.clientWidth;
+    const top = el.getBoundingClientRect().top;
+    const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+    let taken = 0;
+    let siblings = 0;
+    for (const child of row.children) {
+      if (!(child instanceof HTMLElement) || child === el) continue;
+      const box = child.getBoundingClientRect();
+      if (box.width < 1 || box.height < 1) continue;
+      if (Math.abs(box.top - top) > 4) continue;
+      taken += box.width;
+      siblings += 1;
+    }
+    return Math.max(el.clientWidth, row.clientWidth - taken - siblings * gap);
+  }
+
+  /** A bar item's content box. The label's own grid sizes to a short floor, not to the item. */
+  function itemRoom(el: HTMLElement): number {
+    const item = el.closest("a, button");
+    if (!(item instanceof HTMLElement)) return el.clientWidth;
+    const style = getComputedStyle(item);
+    const pad = (parseFloat(style.paddingLeft) || 0) + (parseFloat(style.paddingRight) || 0);
+    return Math.max(0, item.clientWidth - pad);
+  }
+
   const out: SlotReading[] = [];
 
   const heading = document.querySelector("[data-testid='feed-heading']");
@@ -131,26 +169,28 @@ export function readSlots(fitBar: boolean): SlotReading[] {
       name: "feed-heading",
       text: fixed.map((el) => el.textContent ?? "").join(""),
       textWidth: fixed.reduce((sum, el) => sum + el.scrollWidth, 0),
-      room: heading.clientWidth,
+      room: rowRoom(heading),
       oneLine: Number.isFinite(lineHeight) && height < lineHeight * 1.5,
       onScreen: onScreen(heading),
       cut: false,
+      face: getComputedStyle(heading).font,
     });
   }
 
   const bar = document.querySelector("[data-testid='bottom-bar']");
   if (bar instanceof HTMLElement) {
     for (const el of bar.querySelectorAll("[data-cut-text]")) {
-      if (!shown(el)) continue;
+      if (!(el instanceof HTMLElement) || !shown(el)) continue;
       const text = el.textContent ?? "";
       out.push({
         name: `bottom-bar:${text}`,
         text,
-        textWidth: el.scrollWidth,
-        room: el.clientWidth,
+        textWidth: probeWidth(el),
+        room: itemRoom(el),
         oneLine: nowrap(el),
         onScreen: onScreen(el),
         cut: !fitBar,
+        face: getComputedStyle(el).font,
       });
     }
   }
@@ -209,6 +249,22 @@ export function readAdminSlots(): SlotReading[] {
   const view = window.innerWidth;
   const out: SlotReading[] = [];
   const seen = new Set<HTMLElement>();
+
+  function probeText(el: HTMLElement): number {
+    const style = getComputedStyle(el);
+    const probe = document.createElement("span");
+    probe.textContent = el.textContent ?? "";
+    probe.style.position = "absolute";
+    probe.style.visibility = "hidden";
+    probe.style.whiteSpace = "nowrap";
+    probe.style.font = style.font;
+    probe.style.letterSpacing = style.letterSpacing;
+    probe.style.textTransform = style.textTransform;
+    document.body.append(probe);
+    const width = probe.scrollWidth;
+    probe.remove();
+    return width;
+  }
   for (const el of document.querySelectorAll("[data-cut-text], .truncate, [data-one-line]")) {
     if (!(el instanceof HTMLElement) || seen.has(el)) continue;
     seen.add(el);
@@ -247,14 +303,27 @@ export function readAdminSlots(): SlotReading[] {
         ? rect.height < lineHeight * 1.5
         : whiteSpace === "nowrap" || whiteSpace === "pre";
     const inBar = el.closest("[data-testid='bottom-bar']") !== null;
+    const item = el.closest("a, button");
+    const pad =
+      item instanceof HTMLElement
+        ? (parseFloat(getComputedStyle(item).paddingLeft) || 0) +
+          (parseFloat(getComputedStyle(item).paddingRight) || 0)
+        : 0;
+    const room =
+      inBar && item instanceof HTMLElement ? Math.max(0, item.clientWidth - pad) : el.clientWidth;
+    const name =
+      inBar && item instanceof HTMLElement
+        ? (item.getAttribute("data-testid") ?? "bottom-bar")
+        : (el.getAttribute("data-testid") ?? el.className.slice(0, 40));
     out.push({
-      name: `${el.getAttribute("data-testid") ?? el.className.slice(0, 40)}:${text.slice(0, 40)}`,
+      name: `${name}:${text.slice(0, 40)}`,
       text,
-      textWidth: el.scrollWidth,
-      room: el.clientWidth,
+      textWidth: inBar ? probeText(el) : el.scrollWidth,
+      room,
       oneLine,
       onScreen: inside,
       cut: !inBar,
+      face: inBar ? getComputedStyle(el).font : undefined,
     });
   }
   return out;
