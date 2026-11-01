@@ -1253,7 +1253,8 @@ export function userRow(page: Page, userId: string) {
   return page.getByTestId(isMobile(page) ? `user-row-${userId}-card` : `user-row-${userId}`);
 }
 
-export async function switchLanguage(page: Page, code: "en" | "am") {
+/** `code` is a public language as the switcher lists it, not only the compiled catalogs. */
+export async function switchLanguage(page: Page, code: string) {
   await waitForHydration(page);
   /**
    * INC-1004 — a person opens the switcher only when no menu is open: a click

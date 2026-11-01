@@ -163,7 +163,7 @@ export const AREAS: Area[] = [
   {
     name: "admin-shell",
     src: ["src/features/admin/**", "src/routes/admin.tsx", "src/routes/api/admin/**"],
-    specs: ["e2e/admin-shell.spec.ts"],
+    specs: ["e2e/admin-shell.spec.ts", "e2e/one-line-slots-admin.spec.ts"],
   },
   {
     name: "auth",
@@ -193,6 +193,7 @@ export const AREAS: Area[] = [
       "e2e/locations-tree.spec.ts",
       "e2e/viewing-place.spec.ts",
       "e2e/rail-first-paint.spec.ts",
+      "e2e/one-line-slots.spec.ts",
     ],
   },
   {
@@ -246,6 +247,7 @@ export const AREAS: Area[] = [
       "e2e/breadcrumbs.spec.ts",
       "e2e/post-wizard-pricing.spec.ts",
       "e2e/viewing-place.spec.ts",
+      "e2e/one-line-slots.spec.ts",
     ],
   },
   {
@@ -264,6 +266,8 @@ export const AREAS: Area[] = [
       "e2e/fonts.spec.ts",
       "e2e/dark-cards.spec.ts",
       "e2e/sage-cards.spec.ts",
+      "e2e/one-line-slots.spec.ts",
+      "e2e/one-line-slots-admin.spec.ts",
       "e2e/dialogs.spec.ts",
     ],
   },
