@@ -545,9 +545,18 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - Sheets come from the start, end or bottom edge (logical sides only); a bottom sheet draws the grabber; from 640 px a side sheet takes the dialog radius on its inner corners.
 - A field (Input, Textarea, NativeSelect) inside a panel (`data-dialog-panel`) is the pressed-in field (`--field`, `--lift-field`) through the `in-data-[dialog-panel]:` variant; the posting form keeps the form kit's look.
 - A stacked list of choices in a dialog uses the list row (`LIST_ROW`) with the chosen ring (`LIST_CHOICE_ON`, `--lift-choice-on`) and, where a label may run long, the wrap option (`LIST_ROW_WRAP`: a report reason in Amharic is never cut).
-- First paint: dialog-look.ts holds dialog parts only and stays off the entry (211.2 → 211.4 KiB local in this turn); a page's first download carries it only when the page draws a dialog, a sheet, a field or the step-up gate. S6-3 takes the step-up gate's dialog on demand and those pages' ceilings come back down.
+- First paint: dialog-look.ts holds dialog parts only and stays off the entry (211.2 → 211.4 KiB local in this turn); a page's first download carries it only when the page draws a dialog, a sheet or a field (S6-3 took the step-up gate's dialog on demand: see below).
 - Retired with this turn: command, context-menu, drawer, hover-card, menubar, navigation-menu, select and sidebar (`src/components/ui`); their packages stay until a package turn and no file reaches them (CF-OV-4).
 - Specimens: /dev/style shows the dialog, the alert dialog and the end and bottom sheets from existing keys; e2e/dialogs.spec.ts measures them and Share this ad at 390, 834 and 1440, light and dark.
+
+## The popover on demand (turn S6-3)
+
+- The popover joins the overlay facade (register row 48): `popover.tsx` is a facade on `OverlayRoot` with `kind="popover"`; Radix's popover, its floating-ui layer and `collisionPaddingNow` live in `popover-impl.tsx`, re-exported by `overlays-impl.ts` and fetched with the other overlays. Its trigger is the consumer's own element from the first render (`aria-haspopup="dialog"`, `aria-expanded="false"` while closed); the first click is replayed on that element once the code is here, and the consumer's own click handler hears it once. A controlled `open` is passed through. `PopoverAnchor` is retired (no consumer).
+- `PopoverContent` takes a variant, never a look: `list` (the default: the list surface, 288 px, 16 px padding) or `panel` (the dialog panel's padding, 320 px, bounded by the room Radix leaves, `data-dialog-panel` so its fields are pressed in).
+- The toolbar panel (Filters, Columns) draws no look of its own: on a phone it is `Sheet side="bottom"` (the scrim, the grabber, the title, the close at `${testid}-close` and the notices come with it); from md it is `PopoverContent variant="panel"`. Both put the footer's link and its primary in the shared footer part, in one row.
+- The step-up gate's dialog lives in `src/features/auth/mfa/step-up-dialog.tsx`, fetched through `resilientLazy` on the first step-up and drawn on the top layer as before. A failed download raises the shell's notice and ends the guarded action as unavailable (SUG-2). The bundler's preload list for that import (the 56 chunks the dialog needs, 0.8 KiB) rides the gate's chunk, so a page that keeps its own dialogs pays about 0.4 KiB net, and a page whose only dialog was the gate's saves 0.6–1.1 KiB.
+- CF-DIALOG-1's DG-1 also reads a part of a namespace imported from dialog-primitive outside the primitives (skipping a `modal={false}` root's subtree: the phone menu) and `PopoverContent` outside the popover's own files (DG-7).
+- First paint: Radix's popover leaves every staff toolbar's first download, about 18 KiB off each of 16 pages; the popover's facade adds 0.2 KiB to the entry (211.4 → 211.6 KiB local, ceiling 212 → 213).
 
 ## One select (turn S6-2)
 

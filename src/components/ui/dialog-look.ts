@@ -7,8 +7,8 @@ import { CONTROL_LOOK } from "@/components/shell/menu-row";
  * (ui/dialog.tsx, ui/alert-dialog.tsx, ui/sheet.tsx; CF-DIALOG-1 judges). A consumer passes a
  * variant (size, fit, phone, layer, side), never its own look. It holds dialog parts only; the
  * top bar's looks live in menu-row.ts, so it stays off the entry and reaches a page's first
- * download only when the page draws a dialog, a sheet, a field or the step-up gate (S6-3 takes
- * the step-up gate's dialog on demand).
+ * download only when the page draws a dialog, a sheet or a field (the step-up gate's dialog is
+ * fetched on the first step-up, turn S6-3).
  * Logical properties only (right-to-left), no scale on open (D264 ruling 2).
  */
 
