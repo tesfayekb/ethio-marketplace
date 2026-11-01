@@ -182,6 +182,46 @@ describe("ListingCard and InviteCard — one card shape", () => {
     expect(text).toHaveTextContent("feed.invite.place");
   });
 
+  it("LC-10 the invitation's Sage look: warm fill, gold border, the card's lift, a raised disc, a raised button (S4 §9)", () => {
+    render(
+      <InviteCard
+        invite={{
+          placeId: null,
+          placeName: null,
+          categoryId: null,
+          categoryName: null,
+          placeCount: 0,
+        }}
+        at="alone"
+      />,
+    );
+    const surface = screen.getByTestId("feed-invite-surface").className.split(" ");
+    for (const c of ["bg-invite", "border-2", "border-gold", "rounded-card", "shadow-card"])
+      expect(surface).toContain(c);
+    expect(surface.filter((c) => c.startsWith("bg-"))).toEqual(["bg-invite"]);
+    const star = screen.getByTestId("feed-invite-star").className.split(" ");
+    for (const c of [
+      "size-6",
+      "md:@max-[11rem]:size-9",
+      "@min-[11rem]:size-[46px]",
+      "shadow-badge",
+    ])
+      expect(star).toContain(c);
+    const text = screen.getByTestId("feed-invite-text").className.split(" ");
+    for (const c of [
+      "text-xs",
+      "md:@max-[11rem]:text-[13px]",
+      "@min-[11rem]:text-lg",
+      "@min-[11rem]:font-display",
+      "@min-[11rem]:font-bold",
+    ])
+      expect(text).toContain(c);
+    const button = screen.getByTestId("feed-invite-post").className.split(" ");
+    for (const c of ["rounded-sm", "md:rounded-md", "font-semibold", "shadow-button"])
+      expect(button).toContain(c);
+    expect(button).not.toContain("rounded-md");
+  });
+
   it("LC-3 the seller's cover photo is drawn when the feed gives its link, else the category's picture (INC-606)", () => {
     const link = "https://stub.supabase.co/storage/v1/object/sign/listing-photos/card.webp?token=t";
     const { unmount } = render(

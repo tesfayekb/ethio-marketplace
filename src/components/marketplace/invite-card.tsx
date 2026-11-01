@@ -50,7 +50,7 @@ export function InvitePostButton({ invite }: { invite: Invite }) {
   return (
     <Button
       asChild
-      className="h-auto min-h-11 px-2 text-xs whitespace-normal @min-[11rem]:px-4 @min-[11rem]:text-sm"
+      className="h-auto min-h-11 rounded-sm px-2 text-xs font-semibold whitespace-normal md:rounded-md @min-[11rem]:px-4 @min-[11rem]:text-sm"
     >
       <Link
         to="/post"
@@ -70,6 +70,9 @@ export function InvitePostButton({ invite }: { invite: Invite }) {
  * D119 — the card at the end of the chosen place's row, or first when it has none.
  * DEC-169 — it stands out in gold, the token's third placement (the operator's
  * choice of 2026-10-09): a gold border and tint, a star, the green button.
+ * Sage S4 (spec §9; ruling 4) — the warm fill (`invite`; in dark mode Premium's
+ * fill), the card's lift, a raised star disc and a raised button; the sentence
+ * in the display face, 12 px on a phone, 13 on a compact tablet card, 18 wider.
  */
 export function InviteCard({ invite, at }: { invite: Invite; at: InviteSpot }) {
   // The operator, 2026-10-10: one card among the others, never a wider one; below
@@ -86,16 +89,20 @@ export function InviteCard({ invite, at }: { invite: Invite; at: InviteSpot }) {
       data-category={invite.categoryId ?? undefined}
       className="@container h-full"
     >
-      <div className="flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-card border-2 border-gold bg-gold/15 p-2 text-center @min-[11rem]:gap-3 @min-[11rem]:p-4">
+      <div
+        data-testid="feed-invite-surface"
+        className="flex h-full flex-col items-center justify-center gap-1 overflow-hidden rounded-card border-2 border-gold bg-invite p-2 text-center shadow-card @min-[11rem]:gap-3 @min-[11rem]:p-4"
+      >
         <span
           aria-hidden="true"
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gold text-gold-foreground @min-[11rem]:h-9 @min-[11rem]:w-9"
+          data-testid="feed-invite-star"
+          className="flex size-6 shrink-0 items-center justify-center rounded-full bg-gold text-gold-foreground shadow-badge md:@max-[11rem]:size-9 @min-[11rem]:size-[46px]"
         >
-          <Star className="h-3 w-3 @min-[11rem]:h-5 @min-[11rem]:w-5" fill="currentColor" />
+          <Star className="size-3 md:@max-[11rem]:size-5 @min-[11rem]:size-6" fill="currentColor" />
         </span>
         <InviteText
           invite={invite}
-          className="line-clamp-6 text-xs leading-[14px] font-semibold break-words text-foreground @min-[11rem]:line-clamp-4 @min-[11rem]:text-sm @min-[11rem]:leading-5"
+          className="line-clamp-6 text-xs leading-[14px] font-semibold break-words text-foreground md:@max-[11rem]:text-[13px] md:@max-[11rem]:leading-4 @min-[11rem]:line-clamp-4 @min-[11rem]:font-display @min-[11rem]:text-lg @min-[11rem]:leading-6 @min-[11rem]:font-bold"
         />
         <InvitePostButton invite={invite} />
       </div>

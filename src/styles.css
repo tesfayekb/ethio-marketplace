@@ -163,6 +163,7 @@
   /* Gold micro-accent: ONLY the four placements named in the header (logo dot, Featured, invite card, cover ribbon). */
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-invite: var(--invite); /* Sage S4 §9: the invite card's fill (dark: Premium's fill) */
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
