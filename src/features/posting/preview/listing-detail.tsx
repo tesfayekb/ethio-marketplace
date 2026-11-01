@@ -51,6 +51,17 @@ import { MapFrame } from "../map/map-frame";
 import { useSteadyPin } from "../map/use-steady-pin";
 import type { Pin, PinPrecision } from "../map/pin";
 import type { ListingTier } from "@/features/feed/ranking";
+import { adPageLookOf } from "@/components/marketplace/card-tier";
+import { BAND_TAB, BAND_TAB_CURRENT, BAND_TAB_IDLE } from "@/components/shell/band-row";
+import { STILL_MAP_BOX } from "../map/still-map";
+
+/**
+ * Sage S5 (spec §12) — the ad body's boxes take CARD_SURFACE at the box radius (16 px, 20 px
+ * from 768 px) and the section bar at its own (12 / 14 px): each re-scopes --card-radius, so
+ * CARD_SURFACE's own radius draws it.
+ */
+const AD_BODY_RADIUS = "[--card-radius:var(--box-radius)]";
+const BAR_RADIUS = "[--card-radius:var(--bar-radius)]";
 
 /**
  * U6-C1-R3b-4 — the still map is its own lazy chunk, shared with U7: a listing
@@ -185,6 +196,9 @@ export interface ListingDetailView {
   actor: ListingActor;
   /** Sage S5 (ruling 1, answer 1) — the ad's tier, passed by the buyer's page only; absent or null = not known: the free look and no data-tier. */
   tier?: ListingTier | null;
+  /** Sage S5 (spec §12) — the tier flag for the main photo's top-start corner and the tier tag above the title, passed by the buyer's page only (the flag's code rides card pages only, CF-TIER-3). */
+  tierFlag?: ReactNode;
+  tierTag?: ReactNode;
   /** D201 §0 rule 10 — the owner's counts, passed only by the seller's ad page: undefined = not asked (the wizard), null = asked and not answered, a number = the count. Only what is counted is passed — views now; shares when the share sheet lands; contacts when the contact block lands; Saves at M3 — never a count nothing writes. */
   counts?: { views: number; shares?: number; contacts?: number; saves?: number } | null;
   /** D201 rule 11 — the sold word (sold / rented / filled, translated by the caller) drawn as a red badge after the price; present on a sold ad only. */
@@ -297,6 +311,7 @@ export function ListingDetail(view: ListingDetailView) {
   const scope = useCatalogScope();
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
+  const look = adPageLookOf(view.tier ?? null);
 
   // INC-588 / D151 — every stored photo, through links that expire; D161 — each
   // with its card size for the page, its cover for the viewer and its thumb.
@@ -644,9 +659,10 @@ export function ListingDetail(view: ListingDetailView) {
   return (
     <article
       ref={articleRef}
-      className="@container flex min-w-0 flex-col gap-4 wrap-anywhere"
+      className={`@container flex min-w-0 flex-col gap-4 wrap-anywhere ${AD_BODY_RADIUS}`}
       data-testid="listing-detail"
       data-actor={view.actor}
+      data-tier={view.tier ?? undefined}
     >
       {view.actor === "owner" && view.counts !== undefined && (
         <p
@@ -714,6 +730,7 @@ export function ListingDetail(view: ListingDetailView) {
             data-testid="listing-detail-media"
             className={cn(
               CARD_SURFACE,
+              look.box,
               "relative isolate min-w-0 p-2 @2xl:flex @2xl:flex-col @2xl:p-3 @2xl:@max-[57.5rem]:shrink-0 @2xl:@max-[57.5rem]:basis-[calc(60%-0.6rem)]",
             )}
           >
@@ -723,6 +740,9 @@ export function ListingDetail(view: ListingDetailView) {
                 markUnscreened={view.markUnscreened === true}
                 ribbon={view.ribbon ?? null}
                 fill
+                palette={look.palette}
+                flag={view.tierFlag ?? null}
+                thumbOn={look.thumbOn}
               />
             ) : (
               <ListingPicture
@@ -731,6 +751,9 @@ export function ListingDetail(view: ListingDetailView) {
                 priority
                 photosSoon={view.photosSoon === true}
                 ribbon={view.ribbon ?? null}
+                palette={look.palette}
+                rounded="rounded-row"
+                corner={view.tierFlag ?? null}
                 boxTestId={
                   view.illustrationUrl !== null
                     ? "listing-detail-illustration"
@@ -747,21 +770,26 @@ export function ListingDetail(view: ListingDetailView) {
               data-testid="listing-detail-headline"
               className={cn(
                 CARD_SURFACE,
+                look.titleBox,
                 "isolate min-w-0 flex flex-col gap-3 p-4 @2xl:p-5 @2xl:@max-[57.5rem]:flex-1",
               )}
             >
               {/* ---------------------------- title and price ----------------------- */}
+              {view.tierTag}
               <Title
-                className="font-display text-xl font-semibold leading-tight text-foreground @4xl:text-2xl"
+                className="font-display text-[21px] font-extrabold leading-tight text-foreground @4xl:text-[27px]"
                 data-testid="listing-detail-title"
               >
                 {view.title === "" ? t("post.review.noTitle") : view.title}
               </Title>
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-2xl font-bold text-primary" data-testid="listing-detail-price">
+                <p
+                  className={cn("text-2xl font-extrabold @4xl:text-3xl", look.ink)}
+                  data-testid="listing-detail-price"
+                >
                   {priceLine}
                 </p>
-                {view.priceNegotiable === true && <NegotiableBadge />}
+                {view.priceNegotiable === true && <NegotiableBadge tone={look.negotiable} />}
                 {typeof view.soldBadge === "string" && view.soldBadge.length > 0 && (
                   <span
                     data-testid="listing-detail-sold-badge"
@@ -791,7 +819,7 @@ export function ListingDetail(view: ListingDetailView) {
                       key={definition.attrKey}
                       data-testid="listing-key-fact"
                       data-fact-key={definition.attrKey}
-                      className="rounded-md border border-border px-2 py-1 text-xs"
+                      className={cn("rounded-list-row border bg-card px-2 py-1 text-xs", look.chip)}
                     >
                       <span className="text-muted-foreground">{factLabel(definition)}</span>
                       {definition.attrType !== "boolean" && (
@@ -829,7 +857,10 @@ export function ListingDetail(view: ListingDetailView) {
                     }}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-11 items-center text-primary underline underline-offset-4"
+                    className={cn(
+                      "inline-flex min-h-11 items-center underline underline-offset-4",
+                      look.ink,
+                    )}
                   >
                     <span data-testid="listing-detail-places">{places.join(", ")}</span>
                   </a>
@@ -868,13 +899,19 @@ export function ListingDetail(view: ListingDetailView) {
               {(view.save !== undefined || view.share !== undefined) && (
                 <div
                   data-testid="listing-detail-actions"
-                  className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border pt-2"
+                  className={cn(
+                    "mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t pt-2",
+                    look.rule,
+                  )}
                 >
                   {view.save !== undefined && (
                     <Button
                       asChild={view.save.viewer === "signedOut"}
                       variant="ghost"
-                      className="h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+                      className={cn(
+                        "h-auto min-h-11 gap-2 px-0 font-semibold hover:bg-transparent",
+                        look.ink,
+                      )}
                       {...(view.save.viewer === "signedOut"
                         ? {}
                         : {
@@ -943,6 +980,7 @@ export function ListingDetail(view: ListingDetailView) {
               aria-label={t("post.preview.sellerLabel")}
               className={cn(
                 CARD_SURFACE,
+                look.box,
                 `isolate flex min-w-0 flex-1 scroll-mt-14 flex-col gap-3 p-4 @2xl:p-5 ${layout.seller} ${contactHighlight ? "ring-2 ring-primary ring-offset-2" : ""}`,
               )}
               data-testid="listing-detail-seller"
@@ -965,12 +1003,17 @@ export function ListingDetail(view: ListingDetailView) {
                 (view.actor === "buyer"
                   ? view.contact?.viewer !== "unknown"
                   : channels.length > 0) && (
-                  <div className="border-t border-border pt-3" data-testid="listing-detail-contact">
+                  <div
+                    className={cn("border-t pt-3", look.rule)}
+                    data-testid="listing-detail-contact"
+                  >
                     {view.actor === "buyer" && view.contact !== undefined ? (
                       <BuyerContact
                         contact={view.contact}
                         channels={channels}
                         showRef={showContactRef}
+                        contactLook={look.contact}
+                        ink={look.ink}
                       />
                     ) : (
                       <ul className="divide-y divide-border text-sm">
@@ -1030,7 +1073,10 @@ export function ListingDetail(view: ListingDetailView) {
                   data-testid="listing-seller-all-ads"
                   to="/$name"
                   params={{ name: view.sellerAdsKey }}
-                  className="mt-auto inline-flex min-h-11 items-center self-start text-sm text-primary underline underline-offset-4"
+                  className={cn(
+                    "mt-auto inline-flex min-h-11 items-center self-start text-sm underline underline-offset-4",
+                    look.ink,
+                  )}
                 >
                   {t("adPage.seller.allAds")}
                 </Link>
@@ -1046,6 +1092,8 @@ export function ListingDetail(view: ListingDetailView) {
             aria-label={t("adPage.sections.label")}
             className={cn(
               CARD_SURFACE,
+              look.box,
+              BAR_RADIUS,
               `scrollbar-none sticky top-[var(--listing-nav-top,8.5rem)] z-10 flex min-w-0 overflow-x-auto @2xl:@max-[57.5rem]:basis-full ${
                 // DEC-201 — below 57.5rem Seller and one other section show
                 // the bar; large screens keep DEC-197's "two or more".
@@ -1061,10 +1109,16 @@ export function ListingDetail(view: ListingDetailView) {
                 data-testid="listing-section-nav-item"
                 data-target={section.target}
                 aria-current={currentSection === section.target ? "true" : undefined}
-                className={`min-h-11 flex-1 justify-center rounded-none border-b-2 px-2 whitespace-nowrap @2xl:flex-none @2xl:justify-start @2xl:px-3 ${
+                // Sage S5 (R9) — the segmented bar's tabs; the current one pressed in, a paid tier tinting it.
+                className={cn(
+                  BAND_TAB,
+                  "flex-1 justify-center px-2 @2xl:flex-none @2xl:justify-start @2xl:px-3",
                   // DEC-201 — the Seller tab shows below 57.5rem.
-                  section.target === "seller" ? "@min-[57.5rem]:hidden" : ""
-                } ${currentSection === section.target ? "border-primary text-primary" : "border-transparent text-muted-foreground"}`}
+                  section.target === "seller" && "@min-[57.5rem]:hidden",
+                  currentSection === section.target
+                    ? cn(BAND_TAB_CURRENT, look.tab)
+                    : BAND_TAB_IDLE,
+                )}
                 onClick={() => {
                   // INC-753 — the tap's choice holds until its own scroll has stopped (200 ms still, 3 s at most): a fixed 1 s pin, or the first scrollend, handed 'current' to another tab while a slow smooth scroll was still moving. INC-779 — then it stays current until the reader moves the page.
                   pinnedRef.current = section.target;
@@ -1109,11 +1163,12 @@ export function ListingDetail(view: ListingDetailView) {
               id="ad-details"
               className={cn(
                 CARD_SURFACE,
+                look.box,
                 `isolate min-w-0 scroll-mt-14 space-y-3 p-4 @2xl:p-5 ${layout.details}`,
               )}
               data-testid="listing-detail-specs"
             >
-              <h3 className="font-display text-base font-semibold text-foreground">
+              <h3 className="font-display text-lg font-semibold text-foreground">
                 {t("post.preview.detailsLabel")}
               </h3>
               <dl className="space-y-2 text-sm">
@@ -1138,6 +1193,7 @@ export function ListingDetail(view: ListingDetailView) {
               id="ad-description"
               className={cn(
                 CARD_SURFACE,
+                look.box,
                 `isolate flex min-w-0 scroll-mt-14 flex-col gap-3 p-4 @2xl:p-5 ${layout.description}`,
               )}
             >
@@ -1154,7 +1210,7 @@ export function ListingDetail(view: ListingDetailView) {
               {view.actor === "buyer" && overflows && (
                 <Button
                   variant="ghost"
-                  className="mt-auto min-h-11 self-start text-primary"
+                  className={cn("mt-auto min-h-11 self-start", look.ink)}
                   data-testid="listing-description-toggle"
                   aria-expanded={expanded}
                   onClick={() => setExpanded((current) => !current)}
@@ -1171,6 +1227,7 @@ export function ListingDetail(view: ListingDetailView) {
               data-testid="listing-detail-location"
               className={cn(
                 CARD_SURFACE,
+                look.box,
                 `isolate min-w-0 scroll-mt-14 space-y-3 p-4 @2xl:p-5 ${layout.location}`,
               )}
             >
@@ -1220,12 +1277,25 @@ export function ListingDetail(view: ListingDetailView) {
                       {...(view.actor === "buyer" ? { audience: "buyer" as const } : {})}
                     />
                   </Suspense>
+                  {/* Sage S5 (ruling 1, answer 4d) — the map well pressed in: drawn over the
+                      still map's own box, since the tiles would cover an inset shadow of its own. */}
+                  <span
+                    aria-hidden="true"
+                    data-testid="listing-map-well"
+                    className={cn(
+                      STILL_MAP_BOX,
+                      "pointer-events-none absolute inset-x-0 top-0 z-10 border-transparent shadow-field",
+                    )}
+                  />
                   <Button
                     type="button"
                     variant="outline"
                     size="touch"
                     data-testid="listing-map-enlarge"
-                    className="absolute end-2 top-2 z-10 gap-2 bg-card"
+                    className={cn(
+                      "absolute end-2 top-2 z-10 gap-2 border-hairline bg-card shadow-control",
+                      look.edge,
+                    )}
                     onClick={() => setMapOpen(true)}
                   >
                     <Expand className="size-4" aria-hidden="true" />
@@ -1270,7 +1340,10 @@ export function ListingDetail(view: ListingDetailView) {
                       }}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
+                      className={cn(
+                        "inline-flex min-h-11 items-center text-sm underline underline-offset-4",
+                        look.ink,
+                      )}
                     >
                       {t("adPage.map.google")}
                     </a>
@@ -1346,11 +1419,16 @@ function BuyerContact({
   contact,
   channels,
   showRef,
+  contactLook,
+  ink,
 }: {
   contact: NonNullable<ListingDetailView["contact"]>;
   channels: readonly ContactChannel[];
   // DEC-196 — the sign-in return's one-time focus target.
   showRef?: Ref<HTMLButtonElement>;
+  /** Sage S5 — Show contact's fill, ink and lift, and the revealed links' ink (adPageLookOf). */
+  contactLook: string;
+  ink: string;
 }) {
   const { t } = useI18n();
 
@@ -1391,6 +1469,7 @@ function BuyerContact({
           type="button"
           variant="default"
           size="touch"
+          className={contactLook}
           data-testid="listing-contact-show"
           disabled={state.kind === "loading"}
           onClick={contact.onReveal}
@@ -1428,7 +1507,7 @@ function BuyerContact({
                     {...(channel === "telegram" || channel === "whatsapp"
                       ? { target: "_blank", rel: "noopener" }
                       : {})}
-                    className="text-primary underline underline-offset-4"
+                    className={cn("underline underline-offset-4", ink)}
                   >
                     {shown}
                   </a>

@@ -130,3 +130,14 @@ describe("D224 the caller-opened way", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 });
+
+describe("Sage S5 the ghost opener's ink", () => {
+  it("SH-6 takes the ad page's accent, the site green by default", () => {
+    const { unmount } = render(<ShareAd {...props} />);
+    expect(screen.getByTestId("listing-share-open")).toHaveClass("text-primary");
+    unmount();
+    render(<ShareAd {...props} ink="text-tier-premium-ink" />);
+    expect(screen.getByTestId("listing-share-open")).toHaveClass("text-tier-premium-ink");
+    expect(screen.getByTestId("listing-share-open")).not.toHaveClass("text-primary");
+  });
+});

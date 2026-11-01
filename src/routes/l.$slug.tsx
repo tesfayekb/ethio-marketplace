@@ -17,6 +17,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { PageShell } from "@/components/layout/page-shell";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
+import { adPageLookOf, cardLookOf } from "@/components/marketplace/card-tier";
+import { TierFlag, TierTag } from "@/components/marketplace/tier-flag";
 import { adPageView } from "@/features/ad-page/public-listing";
 import { ownValue } from "@/lib/own-key";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
@@ -198,6 +200,8 @@ function AdPage() {
   const { t, language } = useI18n();
   // INC-958 — one view (and one pin) per document and language, so the map effects run once.
   const view = useMemo(() => adPageView(doc, language), [doc, language]);
+  // Sage S5 (spec §12) — a paid ad's flag on its main photo and its tag above the title.
+  const paid = view.tier === null || view.tier === undefined ? null : cardLookOf(view.tier).paid;
   const sharePrice = sharePriceText(
     {
       mode: doc.price.mode,
@@ -222,12 +226,15 @@ function AdPage() {
       <ListingDetail
         {...view}
         photoLinks={photoLinks}
+        tierFlag={paid === null ? null : <TierFlag {...paid} on="photo" />}
+        tierTag={paid === null ? null : <TierTag {...paid} />}
         share={
           <ShareAd
             publicId={doc.public_id}
             canonicalPath={canonical}
             title={doc.title}
             priceText={sharePrice}
+            ink={adPageLookOf(view.tier ?? null).ink}
           />
         }
         publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}
