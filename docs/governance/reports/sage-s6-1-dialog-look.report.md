@@ -1,7 +1,7 @@
 # Turn S6-1 — one dialog look — report
 
-Base: 04fee757 · Final commit: 7364e0ddc · Brief: docs/governance/briefs/sage-s6-1-dialog-look.md (rulings beside it: .ruling-1.md, .ruling-2.md, .ruling-3.md; the task gave no sha256)
-Review: READY · 0 BLOCKER · 1 MAJOR · 3 MINOR · on 7364e0d
+Base: 04fee757 · Final commit: a069121c8 · Brief: docs/governance/briefs/sage-s6-1-dialog-look.md (rulings beside it: .ruling-1.md to .ruling-4.md; the task gave no sha256)
+Review: READY · 0 BLOCKER · 0 MAJOR · 4 MINOR · on a069121
 
 CI on the base: 04fee757 SUCCESS (run 41230127440). `origin/dev` was still 04fee757 at the last
 fetch, so no file of this turn's scope moved under it.
@@ -36,13 +36,24 @@ fetch, so no file of this turn's scope moved under it.
     `dialog-look.ts` holds dialog parts only;
   - `e2e/dialogs.spec.ts` joins the house-style area in `scripts/e2e-select.ts`.
 - Part L (7364e0ddc): 31 page ceilings moved by DEC-296, each with its cause.
-- Not done: the plan ruling's fix of the `as unknown as` in `category-dialogs.tsx:681` (see
-  Departures); DG-1's namespace clause, which moves to S6-3 (stop 2, ruling 3).
-- THE CHECKS, THE BROWSER CHECK and THE SELF-REVIEW ran on 7364e0ddc (sections 5 and 11).
+- Part M (a069121c8), ruling 4 of stop 4:
+  - PRESS_MOTION in `menu-row.ts` gains `data-[pressed]:transition-none`, and PRESSED.cardLink
+    likewise, so every press comes on at once;
+  - PR-U9 in `src/lib/press.test.ts`;
+  - a design-foundation bullet and a changelog line.
+- Not done:
+  - the plan ruling's fix of the `as unknown as` in `category-dialogs.tsx:681`, filed for S6-2 (ruling 4, item 3);
+  - DG-1's namespace clause, which moves to S6-3 (stop 2, ruling 3);
+  - CF-PRESS-1's refusal of a pressable's own transition, named as guard debt (section 7).
+- THE CHECKS, THE BROWSER CHECK and THE SELF-REVIEW ran again on a069121c8 (sections 5 and 11).
 
 ## 2. Files changed
 
-`git diff --name-only 04fee757..7364e0ddc` (85 paths):
+`git diff --name-only 04fee757..a069121c8` (89 paths): the 85 below, plus
+`docs/governance/briefs/sage-s6-1-dialog-look.ruling-4.md`,
+`docs/governance/reports/sage-s6-1-dialog-look.report.md`,
+`docs/governance/reports/sage-s6-1-dialog-look.stop-4.md` and `src/lib/press.test.ts` (PR-U9,
+ruling 4). Ruling 4's files are tracked (`git ls-files`).
 
 ```
 .cursor/rules/00-protocol.mdc
@@ -151,9 +162,10 @@ src/styles.css
 ## 3. Behaviour contract — answer tables before → after
 
 No route, door, server function, schema or string changed. Every change is to how a dialog,
-an alert dialog or a sheet draws, and to which props its primitive takes.
+an alert dialog or a sheet draws, to which props its primitive takes, and (part M, ruling 4) to how
+a press switches transitions off.
 
-| Part | At 04fee757 | At 7364e0ddc |
+| Part | At 04fee757 | At a069121c8 |
 |---|---|---|
 | `DialogContent` | `overlayClassName`; its look from Tailwind classes in dialog.tsx and in each consumer | `size` (narrow / default / wide), `fit` (bounded / fill), `phone` (float / sheet), `layer` (modal / viewer / top), `closeTestId`; the look only from dialog-look.ts; `data-dialog-panel`, `data-dialog-scrim`, and `data-dialog-grabber` on the phone sheet |
 | Close button | 16 px icon, physical `right-4` | 44 px below md and on coarse pointers, 40 px on a fine pointer from md; the control look; logical `end` |
@@ -163,6 +175,7 @@ an alert dialog or a sheet draws, and to which props its primitive takes.
 | Step-up gate | `z-[100]` on its own classes | `layer="top"` (`Z_TOP` in layers.ts, the same z-index) |
 | Report reasons, merge sources, country exclusions | their own label classes | LIST_ROW plus LIST_CHOICE_ON (LIST_ROW_WRAP for long names) |
 | Fields inside a dialog panel | the form kit's look | the pressed-in field (`DIALOG_FIELD`) through `in-data-[dialog-panel]:`; outside a panel, unchanged |
+| A press (PRESS_MOTION, PRESSED.cardLink) | the pressed look faded in over the element's own hover transition, where it had one (BreadcrumbLink's and Button's `transition-colors`, Tabs' `transition-all`) | `data-[pressed]:transition-none`: the pressed look comes on in the first frame; the release keeps its 120 ms fade, and reduced motion still has none |
 
 The differences beyond the plan's wording are listed under Departures.
 
@@ -188,7 +201,10 @@ The differences beyond the plan's wording are listed under Departures.
   - DG-U1–DG-U4 (`src/components/ui/dialog-look.test.tsx`);
   - DLG-E1, E2, E3, E5, E6 and E7 (`e2e/dialogs.spec.ts`);
   - DG-1, DG-3, DG-4, DG-5 and DG-6, each with its planted case (`scripts/conformance/dialogs.test.ts`);
-  - CF-OV-4 and CF-OV-5 (`overlays.test.ts`).
+  - CF-OV-4 and CF-OV-5 (`overlays.test.ts`);
+  - PR-U9 (`src/lib/press.test.ts`, ruling 4): PRESS_MOTION holds `data-[pressed]:transition-none`,
+    and every PRESSED look that draws its own `data-[pressed]:` state carries it, with no pressed
+    fade of its own.
   
   A grep showed no id collision.
 - Changed:
@@ -197,22 +213,28 @@ The differences beyond the plan's wording are listed under Departures.
   - `wired.test.ts` names CF-DIALOG-1's caller.
   
   No assertion was loosened.
-- Red-first: the guards' planted cases each fail on their plant (the planted tests above); DG-6
-  fails a stale and an expired line.
-- `bun run typecheck`: 0 errors on 7364e0ddc.
+- Red-first:
+  - the guards' planted cases each fail on their plant (the planted tests above), and DG-6 fails a
+    stale and an expired line;
+  - PR-U9 against 7364e0ddc's `menu-row.ts`: "1 failed | 9 skipped", with "expected
+    'data-[released]:transition-[backgroun…' to contain 'data-[pressed]:transition-none'"; on
+    a069121c8, `src/lib/press.test.ts`: 10 passed.
+- `bun run typecheck`: 0 errors on a069121c8.
 - `bun run lint`: 0 errors, 46 warnings (48 on the base; sidebar.tsx's two went with it).
-- Unit, from THE CHECKS' logs on the final tree:
-  - component tests: Test Files 1 failed | 407 passed (408); Tests 1 failed | 2490 passed (2491);
-  - the scripts laws: Test Files 1 failed | 81 passed (82); Tests 1 failed | 406 passed (407).
+- Unit, from THE CHECKS' logs on a069121c8:
+  - component tests: Test Files 1 failed | 407 passed (408); Tests 1 failed | 2491 passed (2492);
+  - the scripts laws: Test Files 1 failed | 81 passed (82); Tests 1 failed | 406 passed (407);
+  - `src/components/shell`, `src/lib` and `src/components/ui`: 78 files, 403 tests, all passed.
   
-  The one failure in each is NH-6, the macOS time-zone case (Limits).
-- THE CHECKS (`bun run checks` on 7364e0ddc):
-  - fast line: `checks (fast): 17 PASS · 4 FAIL · 234s`; last line: `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 293s`;
+  The one failure in each run is NH-6, the macOS time-zone case (Limits).
+- THE CHECKS (`bun run checks` on a069121c8):
+  - fast line: `checks (fast): 17 PASS · 4 FAIL · 242s`; last line: `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 296s`;
   - the FAILs: laws-first and component-tests (NH-6 only), and actionlint and gitleaks (the runner
     downloads Linux x64 binaries, which do not run on this Mac);
   - run by hand behind the actionlint FAIL, all OK: format:check, lint (above), the
-    `e2e-select --self-test`, check-root-routes' self-test (59 entries), and the build plus the
-    bundle check;
+    `e2e-select --self-test`, check-root-routes (self-test 12 allowed, 5 refused; 59 entries), and
+    the build plus the bundle check (entry JS 211.4 / 212, CSS 21.5 / 40, "0 NEAR, none grew"; every
+    page reads the same at one decimal as on 7364e0ddc);
   - NOT RUN for an earlier failed step: the changed folders' unit tests (the component tests cover
     them), Semgrep on changed files (the whole Semgrep scan passed), typecheck, format, lint, the
     e2e-select self-test, root route names, build and bundle report in build-and-check (each run by
@@ -223,6 +245,8 @@ The differences beyond the plan's wording are listed under Departures.
 - THE BROWSER CHECK (`bun run e2e:local -- <files> --retries=0`, ethio-staging, both projects):
   - on 7364e0ddc, `e2e/dialogs.spec.ts` plus `e2e/sage-shell.spec.ts`: 46 passed, 46 skipped (each
     test's other project), 0 [ssr-error].
+  - on a069121c8, `e2e/press.spec.ts`, `e2e/sage-shell.spec.ts` and `e2e/dialogs.spec.ts`: 61 passed,
+    47 skipped, 0 [ssr-error].
   - At ff2de8377, the G38 set (the 33 specs that name the changed dialogs' test ids): 1223 passed, 20
     failed, 147 skipped. The 20 failures:
     - 14 from Control+A on macOS (AL-20, AL-23, AL-30, SC-25, SC-26, MLA-13, MLP-6, both projects);
@@ -231,8 +255,9 @@ The differences beyond the plan's wording are listed under Departures.
   - [ssr-error] 9 in that run:
     - /api/admin/attributes/import 4 and /api/admin/categories/import 4 (the specs' planted bad files);
     - /api/listings/view 1 (a view counted for a listing the test had already removed).
-- PSP-1 (`e2e/press.spec.ts`) "band segment: pressed ink" is a timing race whose cause is present at
-  the base (section 6). In CI, this tree loses it: stop 4 puts the fix to the supervisor.
+- PSP-1 (`e2e/press.spec.ts`) "band segment: pressed ink" was a timing race whose cause was present
+  at the base (section 6). In CI, this tree lost it. Stop 4 put the fix to the supervisor, and part M
+  is ruling 4's fix.
   - Probe: one requestAnimationFrame after pointer-down on `breadcrumb-home` in light mode, the
     segment's fill reads `oklab(1 0 0 / 0.033)` on the tree and between `/ 0.0065` and `/ 0.031` on
     the base. Both are mid-transition, because the segment carries `transition-colors` (0.15 s).
@@ -241,8 +266,9 @@ The differences beyond the plan's wording are listed under Departures.
   - In CI it failed on ba7edaa4f (desktop, both tries) and on 1bcf3e3a2 (mobile, both tries). On
     3d5f08e9a its desktop half passed, and its mobile half sat in Lane 7, which never ran a test.
     Locally on 7364e0ddc, `press.spec.ts` whole: 15 passed, 1 skipped.
-  - An experiment, not committed: `data-[pressed]:transition-none` in PRESS_MOTION made the first
-    frame read the full card fill and the nav ink. The probe spec was deleted.
+  - An experiment before stop 4, not committed: `data-[pressed]:transition-none` in PRESS_MOTION
+    made the first frame read the full card fill `oklch(1 0 89.9)` and the nav ink. The probe spec
+    was deleted. Part M commits that change.
 - J-audit (`e2e/dialogs.spec.ts`):
   - J1/J3: one scratch seller and listing per test from `adPageFixtures()`, removed in `afterEach`;
     no real row.
@@ -281,10 +307,15 @@ Greps: `rg 'as unknown as' src`, `rg 'fieldClass =' src`, `rg 'DialogPrimitive\.
   - HM-2 and HM-3 race the language provider's direction rewrite: `src/i18n/provider.tsx:732`
     re-applies `<html dir>` about 0.6 s after load (612 and 625 ms on the base, 617 ms on the tree).
   - AT-12 and PP-8 fail on the base locally; compare CI's result.
-- New finding: `src/components/ui/breadcrumb.tsx:58` gives every breadcrumb segment
-  `transition-colors`, so the band segment's pressed look fades in over 0.15 s. The press law asks
-  it to come on at once, and PSP-1's "pressed ink" check races the fade. The file is outside this
-  turn's scope and not touched.
+- Pressables with a transition of their own (`rg` for a PRESSED class beside a `transition-*`, plus
+  the band segment's BreadcrumbLink):
+  - `src/components/ui/breadcrumb.tsx:58` (`transition-colors`);
+  - `src/components/ui/button.tsx:9` (`transition-colors`);
+  - `src/components/ui/tabs.tsx:33` (`transition-all`).
+  
+  At the base, the band segment's and the tab's pressed fill and ink faded in. Since part M, the
+  mechanism switches every transition off while pressed, so these classes no longer touch the
+  press. The files are outside the scope and not touched.
 
 ## 7. Allowlists and guards
 
@@ -296,6 +327,13 @@ Greps: `rg 'as unknown as' src`, `rg 'fieldClass =' src`, `rg 'DialogPrimitive\.
 - The guards' self-tests ran: DG-1/3/4/5/6 and CF-OV-5 planted, CF-KIT-7 (the guard's
   `readAllowlist` reason), and `wired.test.ts`. Also green: the deletion guard, the
   `e2e-select --self-test` and the bundle check's NEAR band (0 NEAR).
+- Guard debt (ruling 4, item 1): CF-PRESS-1 rule 2 does not refuse a pressable with a transition of
+  its own on a pressed look. It is not cheap. Three primitives carry one today (section 6), all
+  outside the scope, and CF-PRESS-1 has no allowlist to hold them ("The allowlist starts empty:
+  there is none"). The rule would also have to follow a class through its composition: the band
+  segment's transition comes from BreadcrumbLink, while its PRESSED look comes from band-row.ts.
+  PR-U9 pins the mechanism instead, so a PRESSED look that loses `data-[pressed]:transition-none`
+  fails.
 
 ## 8. Strings
 
@@ -312,6 +350,13 @@ None (flag no-migration).
 - Stop 1: the theme's shape was outside the scope. Ruling 1: `theme.ts` joins for the four MODED_TOKENS lines.
 - Stop 2: the CF-DIALOG-1 census. Ruling 2: the seven rows and two lists join; DG-4 and DG-5 are narrowed; photo-editor gets its line; DG-1's namespace clause and the low-level parts go to S6-3; CF-NO-1's floor goes 5 → 4.
 - Stop 3: growth and the spec selector's area. Ruling 3, applied as below.
+- Stop 4: PSP-1's band-segment press faded in. Ruling 4 accepted the following, applied in part M:
+  - `data-[pressed]:transition-none` in PRESS_MOTION, with a PR-U case;
+  - CF-PRESS-1's extension, if cheap, else guard debt (section 7);
+  - one re-run for each infrastructure lane (section 11);
+  - the entry staying at 212, the 31 ceilings, the step-up gate correction, and the cast filed for S6-2.
+- PRESSED.cardLink also takes `data-[pressed]:transition-none`. It is the one PRESSED look with its
+  own `data-[pressed]:` state that does not read PRESS_MOTION, and PR-U9 reads every such look.
 
 **A correction to stop 3:** its premise was wrong. It said `dialog.tsx` rode the entry through the
 root's step-up gate, so ruling 3's reason ("rides the first paint for one reason alone, the step-up
@@ -386,8 +431,8 @@ The moved ceilings:
   `admin_retire_category`'s generated arguments require `p_reassign_to: string`, and the service and
   the hook pass that type through. Removing the cast needs either a migration (`DEFAULT NULL`, so the
   generated type becomes optional) or a change to `categories-service.ts` and `use-categories.ts`,
-  which are outside the scope. Both options are for the supervisor to rule. This is the review's
-  MAJOR.
+  which are outside the scope. Ruling 4 (item 3) accepts it and files it for S6-2 with both
+  options. The review lists it as a MINOR.
 - **CF-NO-1's floor 5 → 4:** drawer.tsx was retired (ruling 2 of stop 2).
 - **The legal editor's discard:** now red and touch-sized (`Button variant="destructive"
   size="touch"`) inside AlertDialogFooter; at the base its buttons sat in a plain div.
@@ -405,6 +450,16 @@ The moved ceilings:
   is a read-only command outside rule 00's list.
 - **88278faa4 was amended before it was ever pushed** (no published history changed).
 - **Chromium install:** `bunx playwright install chromium` was run once for the local browser check.
+
+The self-review's four MINORs, on a069121:
+1. the cast at `category-dialogs.tsx:681`, filed for S6-2;
+2. OVS-4 asserted inside DLG-E5 rather than under its own id;
+3. CF-PRESS-1's guard debt (section 7);
+4. the base measurements' use of `git cat-file`, outside rule 00's list of git commands.
+
+Its banned-pattern sweep over the added lines of `src`, `e2e` and `scripts` found none of the
+following: `as unknown as`, `any`, `!`, `@ts-` comments, colours outside the tokens, physical sides,
+`test.only`, `waitForTimeout`, `.first()`, sentinel defaults, or secret-shaped text.
 
 ## 11. CI
 
@@ -426,7 +481,7 @@ This pull request's runs so far:
   - The first-paint bundle budget: this turn's growth, fixed by parts K and L.
   - The i18n map: fixed in part F (0f78a033a).
   - E2E Lane 15, PSP-1 "band segment: pressed ink": the timing race (sections 5 and 6), which
-    this tree loses in CI; its fix is stop 4's question.
+    this tree lost in CI; fixed in part M (a069121c8, ruling 4).
 - **3d5f08e9a (run 41252914051), FAILURE.**
   - "Build, typecheck, lint" and "Component tests": the e2e-select self-test ("spec not reachable from
     any area: e2e/dialogs.spec.ts"), fixed in part K (1de478955).
@@ -441,7 +496,10 @@ This pull request's runs so far:
 - **1bcf3e3a2 (run 41258218083), FAILURE on one lane.** 39 checks passed.
   - E2E Lane 7: PSP-1 "band segment: pressed ink", 1.3276 against ≥ 4.5, mobile-360 light, on the
     first try and the retry. 76 other tests passed. The ethio-staging Verdict failed with it. This is
-    a test red of this pull request, whose fix is stop 4's question.
+    a test red of this pull request, fixed in part M (a069121c8, ruling 4).
+- Re-runs (ruling 4, item 2): two infrastructure reds were allowed one re-run each, Lane 7 of run
+  41252914051 (on 3d5f08e9a) and Lane 10 of run 41255469439 (on 444e4ad82). Neither was re-run:
+  each run belongs to a commit a later push superseded, and each later run ran its lanes fresh.
 
 ## 12. Limits
 
