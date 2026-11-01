@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `21888078d6f1ae673f6e61ca2c91f22c1a66d951`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41255469439
+- Commit: `eca8cc87a36706bd07df52f4ac14ad28243d02e0`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41258218083
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 1019 | 63 | applied 383/383 | 205 | 0 | 0 | 69 | 274 |
-| email | 179 | 50 | applied 383/383 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 915 | 50 | applied 383/383 | 163 | 0 | 0 | 6 | 169 |
-| 2 | 1055 | 57 | applied 383/383 | 170 | 0 | 0 | 1 | 171 |
-| 3 | 778 | 74 | applied 383/383 | 121 | 0 | 0 | 24 | 145 |
-| 4 | 576 | 50 | applied 383/383 | 154 | 0 | 0 | 2 | 156 |
-| 5 | 667 | 50 | applied 383/383 | 159 | 0 | 0 | 7 | 166 |
-| 6 | 1073 | 74 | applied 383/383 | 191 | 0 | 0 | 1 | 192 |
-| 7 | 500 | 73 | applied 383/383 | 77 | 0 | 0 | 50 | 127 |
-| 8 | 740 | 73 | applied 383/383 | 104 | 0 | 0 | 50 | 154 |
-| 9 | 920 | 71 | applied 383/383 | 152 | 0 | 0 | 13 | 165 |
-| 10 | not run | 73 | applied 383/383 | 0 | 0 | 0 | 0 | 0 |
-| 11 | 904 | 73 | applied 383/383 | 126 | 0 | 0 | 35 | 161 |
-| 12 | 795 | 71 | applied 383/383 | 156 | 0 | 0 | 5 | 161 |
-| 13 | 759 | 58 | applied 383/383 | 154 | 0 | 0 | 7 | 161 |
-| 14 | 872 | 58 | applied 383/383 | 190 | 0 | 0 | 2 | 192 |
-| 15 | 370 | 66 | applied 383/383 | 74 | 0 | 0 | 52 | 126 |
-| 16 | 586 | 51 | applied 383/383 | 123 | 0 | 0 | 36 | 159 |
-| repeat | 615 | 72 | applied 383/383 | 72 | 0 | 0 | 0 | 72 |
-| TOTAL | — | — | — | 2397 | 0 | 0 | 360 | 2757 |
+| smoke | 992 | 68 | applied 383/383 | 205 | 0 | 0 | 69 | 274 |
+| email | 279 | 51 | applied 383/383 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 851 | 50 | applied 383/383 | 163 | 0 | 0 | 6 | 169 |
+| 2 | 1143 | 62 | applied 383/383 | 170 | 0 | 0 | 1 | 171 |
+| 3 | 620 | 51 | applied 383/383 | 121 | 0 | 0 | 24 | 145 |
+| 4 | 790 | 73 | applied 383/383 | 154 | 0 | 0 | 2 | 156 |
+| 5 | 904 | 75 | applied 383/383 | 159 | 0 | 0 | 7 | 166 |
+| 6 | 805 | 49 | applied 383/383 | 191 | 0 | 0 | 1 | 192 |
+| 7 | 333 | 51 | applied 383/383 | 76 | 1 | 0 | 50 | 127 |
+| 8 | 755 | 64 | applied 383/383 | 104 | 0 | 0 | 50 | 154 |
+| 9 | 936 | 68 | applied 383/383 | 152 | 0 | 0 | 13 | 165 |
+| 10 | 1056 | 61 | applied 383/383 | 153 | 0 | 0 | 2 | 155 |
+| 11 | 795 | 52 | applied 383/383 | 126 | 0 | 0 | 35 | 161 |
+| 12 | 833 | 72 | applied 383/383 | 156 | 0 | 0 | 5 | 161 |
+| 13 | 856 | 60 | applied 383/383 | 154 | 0 | 0 | 7 | 161 |
+| 14 | 938 | 60 | applied 383/383 | 190 | 0 | 0 | 2 | 192 |
+| 15 | 283 | 51 | applied 383/383 | 74 | 0 | 0 | 52 | 126 |
+| 16 | 645 | 50 | applied 383/383 | 123 | 0 | 0 | 36 | 159 |
+| repeat | 565 | 73 | applied 383/383 | 72 | 0 | 0 | 0 | 72 |
+| TOTAL | — | — | — | 2549 | 1 | 0 | 362 | 2912 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 6 1073 s
+- Slowest lane: 2 1143 s
 - Repeat lane (DEC-283): Repeat: each 6 on both projects; 6 tests selected, 6 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 1 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 7, email 4, 1 4, 2 6, 3 9, 4 4, 5 4, 6 9, 7 9, 8 9, 9 8, 10 9, 11 9, 12 8, 13 6, 14 6, 15 7, 16 5, repeat 8
+- Database session samples during each start (INC-944): smoke 8, email 5, 1 4, 2 7, 3 4, 4 9, 5 9, 6 4, 7 5, 8 7, 9 8, 10 6, 11 5, 12 8, 13 6, 14 6, 15 5, 16 4, repeat 9
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41255469439-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41255469439-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41255469439-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 41255469439-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 41255469439-local-3
-  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41255469439-local-4
-  - 5: [e2e:teardown] deleted 20 user(s) owned by process 41255469439-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41255469439-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41255469439-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41255469439-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41255469439-local-9
-  - 10: not found
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41255469439-local-11
-  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41255469439-local-12
-  - 13: [e2e:teardown] deleted 20 user(s) owned by process 41255469439-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41255469439-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41255469439-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41255469439-local-16
-  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41255469439-local-repeat
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41258218083-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41258218083-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41258218083-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 41258218083-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 41258218083-local-3
+  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41258218083-local-4
+  - 5: [e2e:teardown] deleted 20 user(s) owned by process 41258218083-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41258218083-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41258218083-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41258218083-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41258218083-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 41258218083-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41258218083-local-11
+  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41258218083-local-12
+  - 13: [e2e:teardown] deleted 20 user(s) owned by process 41258218083-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41258218083-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41258218083-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41258218083-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41258218083-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -75,29 +75,10 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
 
-## Lane 10
+## Lane 7
 - Step failure:
-Step install-chromium-s-system-libraries: outcome failure
-  Ign:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
-  Ign:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease
-  Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease
-  Ign:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease
-  Ign:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
-  Ign:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease
-  Ign:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease
-  Ign:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease
-  Hit:2 https://archive.ubuntu.com/ubuntu noble InRelease
-  Get:3 https://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
-  Ign:9 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages
-  Ign:10 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en
-  Ign:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages
-  Ign:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en
-  Ign:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages
-  Ign:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en
-  Ign:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en
-  Get:4 https://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
-  Get:5 https://archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
-  ::error title=ci-deadline::bunx playwright install-deps chromium ran past its 1500s deadline on try 1 of 1
-- No JSON results; smoke skipped
+Step smoke: outcome failure
+  
+- press.spec.ts / The raised press (light) / PSP-1 a press raises each primitive at once and nothing moves (light) / mobile-360 — Error: band segment: pressed ink
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
