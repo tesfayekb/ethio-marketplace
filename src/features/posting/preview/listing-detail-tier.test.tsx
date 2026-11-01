@@ -47,47 +47,51 @@ const definitions =
   })?.attributes ?? [];
 
 /** A buyer's page with every box the look reaches: photo, facts, description, map, contact. */
+const BUYER_PAGE: ListingDetailView = {
+  actor: "buyer",
+  title: "Scratch ad",
+  description: "scratch description",
+  priceMode: "fixed",
+  priceAmount: 100,
+  priceCurrency: "ETB",
+  pricePeriod: null,
+  priceNegotiable: true,
+  attributes: { note: "scratch fact" },
+  definitions,
+  attributeOptions: {},
+  photos: [
+    { id: "ldt-photo-1", displayOrder: 0, paths: null, storagePath: null },
+    { id: "ldt-photo-2", displayOrder: 1, paths: null, storagePath: null },
+  ],
+  illustrationUrl: null,
+  coverage: [],
+  placeList: [{ id: "ldt-place", nameEn: "Scratch place" }],
+  country: null,
+  contactPref: { phone: { show: true } },
+  sellerAlias: "scratch",
+  sellerBusinessName: null,
+  sellerAdsKey: "scratch",
+  pin: { lat: 9.0054, lng: 38.7636, precision: "exact" },
+  ribbon: "Reserved",
+  contact: {
+    viewer: "signedIn",
+    signInTo: { to: "/auth", search: { return: "/l/scratch#contact" } },
+    state: { kind: "idle" },
+    onReveal: () => {},
+    onSignInTap: () => {},
+    whatsappText: "scratch",
+  },
+};
+
 function buyerPage(tier: ListingTier | null, extra: Partial<ListingDetailView> = {}) {
   const paid = tier === null ? null : cardLookOf(tier).paid;
   return (
     <ListingDetail
-      actor="buyer"
+      {...BUYER_PAGE}
       tier={tier}
       tierFlag={paid === null ? null : <TierFlag {...paid} on="photo" />}
       tierTag={paid === null ? null : <TierTag {...paid} />}
-      title="Scratch ad"
-      description="scratch description"
-      priceMode="fixed"
-      priceAmount={100}
-      priceCurrency="ETB"
-      pricePeriod={null}
-      priceNegotiable
-      attributes={{ note: "scratch fact" }}
-      definitions={definitions}
-      attributeOptions={{}}
-      photos={[
-        { id: "ldt-photo-1", displayOrder: 0, paths: null, storagePath: null },
-        { id: "ldt-photo-2", displayOrder: 1, paths: null, storagePath: null },
-      ]}
-      illustrationUrl={null}
-      coverage={[]}
-      placeList={[{ id: "ldt-place", nameEn: "Scratch place" }]}
-      country={null}
-      contactPref={{ phone: { show: true } }}
-      sellerAlias="scratch"
-      sellerBusinessName={null}
-      sellerAdsKey="scratch"
-      pin={{ lat: 9.0054, lng: 38.7636, precision: "exact" }}
-      ribbon="Reserved"
       share={<span />}
-      contact={{
-        viewer: "signedIn",
-        signInTo: { to: "/auth", search: { return: "/l/scratch#contact" } },
-        state: { kind: "idle" },
-        onReveal: () => {},
-        onSignInTap: () => {},
-        whatsappText: "scratch",
-      }}
       {...extra}
     />
   );
