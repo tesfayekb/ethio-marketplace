@@ -14,6 +14,8 @@ import { gotoReady, useJobSuperAdmin } from "./helpers/ui";
 
 /** The overlay chunk's own name in the build: overlays-impl-<hash>.js. */
 const OVERLAY_CHUNK = /\/overlays-impl-[^/]+\.js$/;
+/** A name only Radix's popover code carries (its portal part), turn S6-3. */
+const RADIX_POPOVER = "PopoverPortal";
 
 test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
   test("OVE-1 the overlay code is asked for after the page's load event, never before its first paint", async ({
@@ -83,28 +85,29 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
     page,
   }) => {
     await useJobSuperAdmin(page);
-    const path = "/admin/countries";
-    // The page as the server sent it to this very navigation: the page's own idle download
-    // adds its preload links to the live document later, so the live document is not judged.
-    const documentResponse = page.waitForResponse(
-      (response) =>
-        response.request().resourceType() === "document" &&
-        new URL(response.url()).pathname === path,
-    );
-    await gotoReady(page, path);
-    const html = await (await documentResponse).text();
-    expect(html.match(/overlays-impl-[^"'/]+\.js/g) ?? []).toEqual([]);
-    const beforeLoad = await page.evaluate((source) => {
-      const chunk = new RegExp(source);
+    await gotoReady(page, "/admin/countries");
+    // The first download: every script the page asked for before its load event (as OVE-1);
+    // the page's own idle download comes after it.
+    const firstScripts = await page.evaluate(() => {
       const navigation = performance.getEntriesByType(
         "navigation",
       )[0] as PerformanceNavigationTiming;
       return performance
         .getEntriesByType("resource")
-        .filter((entry) => chunk.test(entry.name) && entry.startTime < navigation.loadEventEnd)
-        .map((entry) => entry.name);
-    }, OVERLAY_CHUNK.source);
-    expect(beforeLoad).toEqual([]);
+        .filter((entry) => entry.startTime < navigation.loadEventEnd)
+        .map((entry) => entry.name)
+        .filter((name) => new URL(name).pathname.endsWith(".js"));
+    });
+    expect(firstScripts.length).toBeGreaterThan(0);
+    expect(firstScripts.filter((name) => OVERLAY_CHUNK.test(name))).toEqual([]);
+    // Radix's popover names its portal part "PopoverPortal"; no file of ours does, so a script
+    // that carries the string carries Radix's popover.
+    const carriers: string[] = [];
+    for (const script of firstScripts) {
+      if ((await (await page.request.get(script)).text()).includes(RADIX_POPOVER))
+        carriers.push(script);
+    }
+    expect(carriers).toEqual([]);
 
     // Turn S6-3 (row 48): the panel is the popover from md, the sheet's bottom side on a phone.
     const trigger = page.getByTestId("country-filters");
@@ -115,15 +118,16 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
     await expect(panel).toBeVisible();
     await expect(panel).toHaveAttribute("data-dialog-panel", "");
     await expect(trigger).toHaveAttribute("aria-expanded", "true");
-    expect(
-      await page.evaluate(
-        (source) =>
-          performance
-            .getEntriesByType("resource")
-            .some((entry) => new RegExp(source).test(entry.name)),
-        OVERLAY_CHUNK.source,
-      ),
-    ).toBe(true);
+    const overlayChunk = await page.evaluate(
+      (source) =>
+        performance
+          .getEntriesByType("resource")
+          .map((entry) => entry.name)
+          .find((name) => new RegExp(source).test(name)) ?? null,
+      OVERLAY_CHUNK.source,
+    );
+    if (overlayChunk === null) throw new Error("the press fetched no overlay chunk");
+    expect(await (await page.request.get(overlayChunk)).text()).toContain(RADIX_POPOVER);
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
     await expect(trigger).toHaveAttribute("aria-expanded", "false");
