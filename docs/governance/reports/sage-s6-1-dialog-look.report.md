@@ -429,6 +429,11 @@ This pull request's runs so far:
   - "First-paint bundle budget": fixed by parts K and L.
   - E2E Lane 7 is infrastructure: its "install Chromium's system libraries" step failed before any
     test ran. No re-run, because the next push starts a fresh run.
+- **444e4ad82 (run 41255469439), FAILURE on one lane.** Every other check passed.
+  - E2E Lane 10 is infrastructure: "bunx playwright install-deps chromium ran past its 1500s deadline
+    on try 1 of 1", and the step timed out after 27 minutes, before any test ran. The ethio-staging
+    Verdict failed because that lane did.
+  - No re-run: this report's update starts a fresh run.
 
 ## 12. Limits
 
