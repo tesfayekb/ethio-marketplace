@@ -144,5 +144,3 @@ export function StepUpDialog({
     </Dialog>
   );
 }
-
-export default StepUpDialog;
