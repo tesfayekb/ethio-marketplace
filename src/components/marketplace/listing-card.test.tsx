@@ -75,7 +75,7 @@ const BASE: FeedListing = {
  * the invitation fills its cell without growing past a card.
  */
 describe("ListingCard and InviteCard — one card shape", () => {
-  it("LC-1 the card fills its cell; the tier pill sits on the picture; the place line is kept without a place; the price slot is reserved", () => {
+  it("LC-1 the card fills its cell; the tier's flag sits on the picture; the place line is kept without a place, holding the tier word alone; the price slot is reserved", () => {
     const { unmount } = render(
       <ListingCard listing={{ ...BASE, tier: "premium", locationNameEn: null }} />,
     );
@@ -89,7 +89,9 @@ describe("ListingCard and InviteCard — one card shape", () => {
     );
     expect(card.querySelector("h3")!.contains(pill)).toBe(false);
     const place = within(card).getByTestId("listing-card-place");
-    expect(place).toBeEmptyDOMElement();
+    // S4 (G38): the place slot now carries the tier word; with no place, the word alone.
+    expect(place.children).toHaveLength(1);
+    expect(place.firstElementChild).toBe(within(place).getByTestId("listing-card-tier-word"));
     expect(place.className).toContain("mt-auto");
     const price = within(card).getByTestId("listing-card-price").parentElement!;
     expect(price.className).toContain("min-h-[3.625rem]");
@@ -99,6 +101,61 @@ describe("ListingCard and InviteCard — one card shape", () => {
     render(<ListingCard listing={BASE} />);
     expect(screen.getByTestId("listing-card-place")).toHaveTextContent("Bole");
     expect(screen.queryByTestId("listing-card-tier")).toBeNull();
+    expect(screen.queryByTestId("listing-card-tier-word")).toBeNull();
+  });
+
+  it("LC-8 the tier's look: fill and frame over the card's surface, divider and ink, flag, word and ribbon palette (S4)", () => {
+    const cases = [
+      { tier: "regular", fill: "bg-card", lift: "shadow-card", rule: "border-card-rule" },
+      {
+        tier: "premium",
+        fill: "bg-tier-premium",
+        lift: "shadow-premium",
+        rule: "border-tier-premium-rule",
+      },
+      {
+        tier: "featured",
+        fill: "bg-tier-featured",
+        lift: "shadow-featured",
+        rule: "border-tier-featured-rule",
+      },
+    ] as const;
+    for (const { tier, fill, lift, rule } of cases) {
+      const { unmount } = render(<ListingCard listing={{ ...BASE, tier, reserved: true }} />);
+      const card = screen.getByTestId("listing-card");
+      const classes = card.className.split(" ");
+      expect(classes).toContain(fill);
+      expect(classes).toContain(lift);
+      expect(classes.filter((c) => /^bg-/.test(c))).toEqual([fill]);
+      expect(classes.filter((c) => /^shadow-/.test(c))).toEqual([lift]);
+      // The fold and the caps show past the card's edges; the picture keeps its top corners.
+      expect(classes).not.toContain("overflow-hidden");
+      expect(screen.getByTestId("listing-card-picture").className).toContain("rounded-t-card");
+      expect(screen.getByTestId("listing-card-place").className.split(" ")).toContain(rule);
+      expect(screen.getByTestId("listing-ribbon")).toHaveAttribute(
+        "data-ribbon",
+        { regular: "pearl", premium: "gold", featured: "sage" }[tier],
+      );
+      if (tier === "regular") {
+        expect(screen.queryByTestId("listing-card-tier")).toBeNull();
+      } else {
+        const flag = screen.getByTestId("listing-card-tier");
+        expect(flag).toHaveAttribute("role", "img");
+        expect(flag).toHaveAttribute("aria-label", `tier.${tier}`);
+        expect(screen.getByTestId("listing-card-tier-word")).toHaveAttribute("aria-hidden", "true");
+      }
+      unmount();
+    }
+  });
+
+  it("LC-9 every compact card reserves the place slot's two lines, so grids with and without a paid card match (S4 ruling 3)", () => {
+    for (const tier of ["regular", "premium", "featured"] as const) {
+      const { unmount } = render(<ListingCard listing={{ ...BASE, tier }} />);
+      const place = screen.getByTestId("listing-card-place").className.split(" ");
+      expect(place).toContain("min-h-[2lh]");
+      expect(place).toContain("@min-[11rem]:min-h-[1lh]");
+      unmount();
+    }
   });
 
   it("LC-2 the invitation fills its cell and holds its sentence to a card's height", () => {
@@ -123,6 +180,46 @@ describe("ListingCard and InviteCard — one card shape", () => {
     expect(text.className).toContain("@min-[11rem]:line-clamp-4");
     // The whole sentence stays in the page.
     expect(text).toHaveTextContent("feed.invite.place");
+  });
+
+  it("LC-10 the invitation's Sage look: warm fill, gold border, the card's lift, a raised disc, a raised button (S4 §9)", () => {
+    render(
+      <InviteCard
+        invite={{
+          placeId: null,
+          placeName: null,
+          categoryId: null,
+          categoryName: null,
+          placeCount: 0,
+        }}
+        at="alone"
+      />,
+    );
+    const surface = screen.getByTestId("feed-invite-surface").className.split(" ");
+    for (const c of ["bg-invite", "border-2", "border-gold", "rounded-card", "shadow-card"])
+      expect(surface).toContain(c);
+    expect(surface.filter((c) => c.startsWith("bg-"))).toEqual(["bg-invite"]);
+    const star = screen.getByTestId("feed-invite-star").className.split(" ");
+    for (const c of [
+      "size-6",
+      "md:@max-[11rem]:size-9",
+      "@min-[11rem]:size-[46px]",
+      "shadow-badge",
+    ])
+      expect(star).toContain(c);
+    const text = screen.getByTestId("feed-invite-text").className.split(" ");
+    for (const c of [
+      "text-xs",
+      "md:@max-[11rem]:text-[13px]",
+      "@min-[11rem]:text-lg",
+      "@min-[11rem]:font-display",
+      "@min-[11rem]:font-bold",
+    ])
+      expect(text).toContain(c);
+    const button = screen.getByTestId("feed-invite-post").className.split(" ");
+    for (const c of ["rounded-sm", "md:rounded-md", "font-semibold", "shadow-button"])
+      expect(button).toContain(c);
+    expect(button).not.toContain("rounded-md");
   });
 
   it("LC-3 the seller's cover photo is drawn when the feed gives its link, else the category's picture (INC-606)", () => {
@@ -183,11 +280,51 @@ describe("ListingCard and InviteCard — one card shape", () => {
 });
 
 describe("ListingPicture — ribbon colour", () => {
-  it("D197 the photos-soon band is drawn in the gold like the status ribbons", () => {
-    render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} />);
+  it("D197 the photos-soon band takes the picture's palette like the status ribbons (S4: pearl unless the card names gold or sage)", () => {
+    const pearl = render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} />);
     const ribbon = screen.getByTestId("listing-photos-soon-ribbon");
-    const band = ribbon.firstElementChild as HTMLElement;
-    expect(band.className).toContain("bg-gold");
+    expect(ribbon).toHaveAttribute("data-ribbon", "pearl");
+    expect((ribbon.firstElementChild as HTMLElement).className).toBe(RIBBON_BAND_CLASS);
+    expect(ribbon.getAttribute("style")).toContain("--rb-ink: var(--ribbon-pearl-ink)");
+    pearl.unmount();
+
+    render(<ListingPicture photoUrl={null} categoryUrl={null} photosSoon={true} palette="sage" />);
+    expect(screen.getByTestId("listing-photos-soon-ribbon")).toHaveAttribute("data-ribbon", "sage");
+    expect(screen.getByTestId("listing-ribbon-ends")).toHaveAttribute("data-ribbon", "sage");
+  });
+
+  it("RBN-6 the photo and band stay inside the box's corners; the caps sit outside the clip, on a copy of the drawn frame", () => {
+    const { unmount } = render(
+      <ListingPicture
+        photoUrl={null}
+        categoryUrl="/c.webp"
+        ribbon="Sold"
+        palette="gold"
+        boxTestId="box"
+        imgTestId="img"
+        rounded="rounded-t-card"
+      />,
+    );
+    const box = screen.getByTestId("box");
+    expect(box.className).not.toContain("overflow-hidden");
+    expect(box.className).toContain("rounded-t-card");
+    const frame = screen.getByTestId("img-frame");
+    const clip = frame.parentElement as HTMLElement;
+    expect(clip.className).toContain("overflow-hidden");
+    expect(clip.className).toContain("rounded-[inherit]");
+    // The band's own clip box is the frame (PW-141 reads it as the ribbon's parent).
+    expect(screen.getByTestId("listing-ribbon").parentElement).toBe(frame);
+    const ends = screen.getByTestId("listing-ribbon-ends");
+    expect(clip.contains(ends)).toBe(false);
+    expect(box.contains(ends)).toBe(true);
+    expect((ends.parentElement as HTMLElement).getAttribute("style")).toBe(
+      frame.getAttribute("style"),
+    );
+    expect(ends.querySelectorAll(".ribbon-cap-end, .ribbon-cap-foot")).toHaveLength(2);
+    unmount();
+
+    render(<ListingPicture photoUrl={null} categoryUrl={null} />);
+    expect(screen.queryByTestId("listing-ribbon-ends")).toBeNull();
   });
 
   /**

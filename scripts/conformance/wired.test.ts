@@ -106,6 +106,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/dialogs.test.ts"), "utf8")).toContain(
       "DG-6",
     );
+    // card-tiers.test.ts CF-TIER-1…3 (turn SAGE-S4) is discovered by test:unit's scripts/**/*.test.ts;
+    // its build judge (route-budgets.mjs tierFlagViolations) runs in check-bundle-size.mjs.
+    expect(readFileSync(join(ROOT, "scripts/conformance/card-tiers.test.ts"), "utf8")).toContain(
+      "CF-TIER-3",
+    );
+    expect(readFileSync(join(ROOT, "scripts/check-bundle-size.mjs"), "utf8")).toContain(
+      "tierFlagViolations(",
+    );
     // vendor-seams.test.ts VS-1…3 is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",

@@ -78,6 +78,19 @@ export const MODED_TOKENS = [
   "tier-featured-fold",
   "tier-featured-ink",
   "tier-featured-star",
+  "ribbon-pearl-1",
+  "ribbon-pearl-2",
+  "ribbon-pearl-3",
+  "ribbon-pearl-4",
+  "ribbon-pearl-5",
+  "ribbon-pearl-6",
+  "ribbon-pearl-end",
+  "ribbon-pearl-mid",
+  "ribbon-pearl-ink",
+  "ribbon-pearl-emboss",
+  "ribbon-pearl-shade",
+  "flag-shade",
+  "invite",
   "band",
   "band-edge",
   "band-label",
@@ -113,8 +126,9 @@ export const MODED_TOKENS = [
   "lift-disc",
 ] as const;
 
-/** Tokens a theme sets once, in its light set (the radii, and the wider cards' lift — dark cards keep
- * one lift at every width; :root only). */
+/** Tokens a theme sets once, in its light set (the radii, the wider cards' lift — dark cards keep
+ * one lift at every width — and the colours that hold in both modes: the gold and sage ribbons,
+ * the satin's gloss, the mini flag's body and stars; :root only). */
 export const MODE_FREE_TOKENS = [
   "lift-card-md",
   "lift-card-lg",
@@ -126,6 +140,37 @@ export const MODE_FREE_TOKENS = [
   "track-radius-md",
   "segment-radius",
   "segment-radius-md",
+  "ribbon-gold-1",
+  "ribbon-gold-2",
+  "ribbon-gold-3",
+  "ribbon-gold-4",
+  "ribbon-gold-5",
+  "ribbon-gold-6",
+  "ribbon-gold-end",
+  "ribbon-gold-mid",
+  "ribbon-gold-ink",
+  "ribbon-gold-emboss",
+  "ribbon-gold-shade",
+  "ribbon-sage-1",
+  "ribbon-sage-2",
+  "ribbon-sage-3",
+  "ribbon-sage-4",
+  "ribbon-sage-5",
+  "ribbon-sage-6",
+  "ribbon-sage-end",
+  "ribbon-sage-mid",
+  "ribbon-sage-ink",
+  "ribbon-sage-emboss",
+  "ribbon-sage-shade",
+  "ribbon-gloss",
+  "ribbon-gloss-dark",
+  "flag-body",
+  "flag-premium-1",
+  "flag-premium-2",
+  "flag-premium-3",
+  "flag-featured-1",
+  "flag-featured-2",
+  "flag-featured-3",
 ] as const;
 
 const NUM = String.raw`-?\d+(?:\.\d+)?`;
@@ -143,9 +188,20 @@ const reference = z
     /^(?:var\(--[a-z][a-z0-9-]*\)|color-mix\(in oklab, var\(--[a-z][a-z0-9-]*\) \d+%, transparent\))$/,
   );
 
+/** A fill one mode draws and the other borrows from a token (S4 ruling 4: the invite card's dark
+ * fill is the Premium tier's). */
+const colourOrReference = z.string().regex(new RegExp(`^(?:${OKLCH}|var\\(--[a-z][a-z0-9-]*\\))$`));
+
 function grammarOf(name: string): z.ZodString {
   if (name.startsWith("lift-")) return shadow;
   if (name.startsWith("band")) return reference;
+  if (name === "invite") return colourOrReference;
+  return colour;
+}
+
+function modeFreeGrammarOf(name: string): z.ZodString {
+  if (name.startsWith("lift-")) return shadow;
+  if (/(?:^|-)radius(?:-|$)/.test(name)) return length;
   return colour;
 }
 
@@ -154,7 +210,7 @@ const moded = Object.fromEntries(MODED_TOKENS.map((name) => [name, grammarOf(nam
   z.ZodString
 >;
 const modeFree = Object.fromEntries(
-  MODE_FREE_TOKENS.map((name) => [name, name.startsWith("lift-") ? shadow : length]),
+  MODE_FREE_TOKENS.map((name) => [name, modeFreeGrammarOf(name)]),
 ) as Record<(typeof MODE_FREE_TOKENS)[number], z.ZodString>;
 
 export const ThemeModeSet = z.object(moded).strict();

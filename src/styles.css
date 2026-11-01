@@ -163,6 +163,7 @@
   /* Gold micro-accent: ONLY the four placements named in the header (logo dot, Featured, invite card, cover ribbon). */
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+  --color-invite: var(--invite); /* Sage S4 §9: the invite card's fill (dark: Premium's fill) */
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
@@ -356,6 +357,55 @@
   --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
   --tier-featured-ink: oklch(0.388 0.07 163.8); /* #17503A — Featured word */
   --tier-featured-star: oklch(0.585 0.074 164); /* #4F8A70 — Featured stars beside the word */
+  /* Sage S4 (spec §8, §7, §9) — the status ribbon's palettes, read through --rb-* by
+     listing-picture.tsx: six satin stops, the rolled ends' end and middle, the ink, its emboss
+     and the drop shadow. Pearl (a regular ad) is set per mode; gold (Premium) and sage
+     (Featured) once, below. Ruling 2: the 92 % stops of gold and sage are raised to 4.5 : 1. */
+  --ribbon-pearl-1: oklch(0.67 0.014 164.6); /* #8E9893 */
+  --ribbon-pearl-2: oklch(1 0 0); /* #FFFFFF */
+  --ribbon-pearl-3: oklch(0.98 0.002 165.1); /* #F7F9F8 */
+  --ribbon-pearl-4: oklch(0.929 0.007 160.1); /* #E4E9E6 */
+  --ribbon-pearl-5: oklch(0.844 0.011 158.8); /* #C6CEC9 */
+  --ribbon-pearl-6: oklch(0.647 0.014 164.6); /* #87918C */
+  --ribbon-pearl-end: oklch(0.604 0.014 164.5); /* #7A847F */
+  --ribbon-pearl-mid: oklch(0.971 0.002 165.1); /* #F4F6F5 */
+  --ribbon-pearl-ink: oklch(0.298 0.016 163.6); /* #26302B */
+  --ribbon-pearl-emboss: oklch(1 0 0 / 0.7);
+  --ribbon-pearl-shade: oklch(0.205 0.02 160.1 / 0.3); /* #0F1A14 */
+  --flag-shade: oklch(0.254 0.014 253.1 / 0.22); /* #1E2329 — the mini flag's drop shadow */
+  --invite: oklch(0.981 0.018 81.3); /* #FFF8EC — the invite card's fill */
+  --ribbon-gold-1: oklch(0.561 0.108 74.2); /* #9A6A1C */
+  --ribbon-gold-2: oklch(0.941 0.068 92.7); /* #FBEBB8 */
+  --ribbon-gold-3: oklch(0.855 0.116 87.9); /* #EFCB72 */
+  --ribbon-gold-4: oklch(0.751 0.128 79.5); /* #D9A443 */
+  --ribbon-gold-5: oklch(0.671 0.122 76.5); /* #C08A30; the spec's #B98428 + 0.020 L */
+  --ribbon-gold-6: oklch(0.509 0.103 70.8); /* #8A5A12 */
+  --ribbon-gold-end: oklch(0.463 0.094 69.8); /* #7A4E0E */
+  --ribbon-gold-mid: oklch(0.828 0.115 87); /* #E7C26A */
+  --ribbon-gold-ink: oklch(0.301 0.055 77.9); /* #3D2A08 */
+  --ribbon-gold-emboss: oklch(1 0 0 / 0.5);
+  --ribbon-gold-shade: oklch(0.233 0.045 73.9 / 0.3); /* #2A1A03 */
+  --ribbon-sage-1: oklch(0.422 0.073 164.4); /* #1E5A43 */
+  --ribbon-sage-2: oklch(0.925 0.035 161.4); /* #D3EEDF */
+  --ribbon-sage-3: oklch(0.807 0.077 161.9); /* #93D0B1 */
+  --ribbon-sage-4: oklch(0.664 0.09 163.4); /* #5BA584 */
+  --ribbon-sage-5: oklch(0.61 0.084 163.7); /* the spec's #3A7F62 + 0.067 L */
+  --ribbon-sage-6: oklch(0.34 0.056 162.2); /* #18412F */
+  --ribbon-sage-end: oklch(0.316 0.051 164.6); /* #143A2B */
+  --ribbon-sage-mid: oklch(0.781 0.084 161.5); /* #86C9A7 */
+  --ribbon-sage-ink: oklch(0.237 0.038 162.4); /* #0B2419 */
+  --ribbon-sage-emboss: oklch(1 0 0 / 0.45);
+  --ribbon-sage-shade: oklch(0.222 0.035 162 / 0.32); /* #0A2016 */
+  --ribbon-gloss: oklch(1 0 0 / 0.38); /* the satin's top strip */
+  --ribbon-gloss-dark: oklch(0 0 0 / 0.12); /* the satin's bottom strip */
+  /* Sage S4 (spec §7) — the mini flag: its white body and the stars' three stops per tier. */
+  --flag-body: oklch(1 0 0);
+  --flag-premium-1: oklch(0.875 0.097 86.5); /* #F2D28A */
+  --flag-premium-2: oklch(0.725 0.131 76.7); /* #D49A38 */
+  --flag-premium-3: oklch(0.57 0.114 72.6); /* #A06B16 */
+  --flag-featured-1: oklch(0.581 0.093 163.3); /* #3E8C6B */
+  --flag-featured-2: oklch(0.422 0.073 164.4); /* #1E5A43 */
+  --flag-featured-3: oklch(0.319 0.053 165.4); /* #133B2C */
   --band: var(--sidebar); /* D260 band surface (tabs bar, breadcrumb, location row) */
   --band-edge: var(--hairline); /* D260 band edge */
   --band-label: var(--muted-foreground); /* D260 band label */
@@ -514,6 +564,20 @@
   --tier-featured-fold: oklch(0.442 0.063 163); /* #2F5E49 — Featured flag fold */
   --tier-featured-ink: oklch(0.777 0.09 162.9); /* #7FC9A6 — Featured word */
   --tier-featured-star: oklch(0.634 0.093 163.1); /* #4F9C7A — Featured stars beside the word */
+  /* Sage S4 (spec §8, §13) — the dark pearl ribbon; gold and sage stay as in :root. */
+  --ribbon-pearl-1: oklch(0.507 0.015 164.4); /* #5E6863 */
+  --ribbon-pearl-2: oklch(0.967 0.004 157.2); /* #F2F5F3 */
+  --ribbon-pearl-3: oklch(0.913 0.008 157.1); /* #DEE4E0 */
+  --ribbon-pearl-4: oklch(0.841 0.011 158.8); /* #C5CDC8 */
+  --ribbon-pearl-5: oklch(0.738 0.014 159.8); /* #A3ADA7 */
+  --ribbon-pearl-6: oklch(0.482 0.015 164.3); /* #57615C */
+  --ribbon-pearl-end: oklch(0.454 0.015 164.3); /* #4F5954 */
+  --ribbon-pearl-mid: oklch(0.935 0.007 160.1); /* #E6EBE8 */
+  --ribbon-pearl-ink: oklch(0.243 0.014 163.6); /* #1A221E */
+  --ribbon-pearl-emboss: oklch(1 0 0 / 0.45);
+  --ribbon-pearl-shade: oklch(0 0 0 / 0.55);
+  --flag-shade: oklch(0 0 0 / 0.45);
+  --invite: var(--tier-premium); /* ruling 4: the Premium tier's dark fill */
   --band: var(--sidebar); /* D260 band surface (tabs bar, breadcrumb, location row) */
   --band-edge: var(--hairline); /* D260 band edge */
   --band-label: var(--muted-foreground); /* D260 band label */
@@ -828,6 +892,44 @@
       transition-property: background-color, color, box-shadow;
       transition-duration: 120ms;
     }
+  }
+}
+
+/* Sage S4 (spec §8; ruling 1) — THE SATIN RIBBON. listing-picture.tsx draws the band and its two
+ * rolled caps and sets --rb-* to one palette's tokens (pearl, gold or sage) and --satin-x /
+ * --satin-len from ribbon-geometry.ts (ruling 2: the picture shows the 7 % to 92 % stops). Gloss
+ * on the band's top strip, shade on its bottom one (--satin-gloss / --satin-shade: 12 % and 14 % of
+ * the band at its own size, inside the text's padding at every size); the ink embossed below. */
+@layer components {
+  .ribbon-band {
+    background:
+      linear-gradient(
+        var(--ribbon-gloss) var(--satin-gloss),
+        transparent 0 calc(100% - var(--satin-shade)),
+        var(--ribbon-gloss-dark) 0
+      ),
+      linear-gradient(
+          90deg,
+          var(--rb-1),
+          var(--rb-2) 7%,
+          var(--rb-3) 22%,
+          var(--rb-4) 58%,
+          var(--rb-5) 92%,
+          var(--rb-6)
+        )
+        var(--satin-x) 0 / var(--satin-len) 100% no-repeat;
+    color: var(--rb-ink);
+    text-shadow: 0 0.25cqw 0 var(--rb-emboss);
+    filter: drop-shadow(0 0.625cqw 0.625cqw var(--rb-shade));
+  }
+  .ribbon-ends {
+    filter: drop-shadow(0 0.625cqw 0.625cqw var(--rb-shade));
+  }
+  .ribbon-cap-end {
+    background: linear-gradient(var(--rb-end), var(--rb-mid), var(--rb-end));
+  }
+  .ribbon-cap-foot {
+    background: linear-gradient(90deg, var(--rb-end), var(--rb-mid), var(--rb-end));
   }
 }
 

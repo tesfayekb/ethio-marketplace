@@ -67,6 +67,23 @@ describe("THEMES", () => {
     ).toBe(false);
   });
 
+  it("TH-5 the colours a theme sets once are colours; the invite's fill is a colour or a token, never raw CSS (S4)", () => {
+    const light = { ...THEMES.sage.light };
+    const dark = { ...THEMES.sage.dark };
+    expect(Object.hasOwn(dark, "ribbon-gold-1")).toBe(false);
+    expect(dark.invite).toBe("var(--tier-premium)");
+    const parses = (set: unknown) => ThemeSet.safeParse(set).success;
+    expect(parses({ light: { ...light, "ribbon-gold-1": "0.75rem" }, dark })).toBe(false);
+    expect(parses({ light: { ...light, "flag-body": "#FFFFFF" }, dark })).toBe(false);
+    expect(parses({ light: { ...light, radius: "oklch(1 0 0)" }, dark })).toBe(false);
+    expect(parses({ light, dark: { ...dark, invite: "var(--tier-premium); color: red" } })).toBe(
+      false,
+    );
+    expect(parses({ light, dark: { ...dark, invite: "#3A2F1D" } })).toBe(false);
+    expect(parses({ light, dark: { ...dark, "ribbon-pearl-1": "var(--card)" } })).toBe(false);
+    expect(parses({ light, dark: { ...dark, "ribbon-sage-1": "oklch(1 0 0)" } })).toBe(false);
+  });
+
   it("TH-3 the shape refuses raw CSS, an unknown token and a missing one", () => {
     const light = { ...THEMES.sage.light };
     for (const set of Object.values(THEMES)) expect(ThemeSet.safeParse(set).success).toBe(true);

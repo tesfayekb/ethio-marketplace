@@ -268,6 +268,22 @@ export const AREAS: Area[] = [
     ],
   },
   {
+    // Turn SAGE-S4: the tier look, the flag, the satin ribbon and the invite card.
+    name: "sage-tiers",
+    src: [
+      "src/components/marketplace/card-tier.ts",
+      "src/components/marketplace/tier-flag.tsx",
+      "src/components/marketplace/listing-card.tsx",
+      "src/components/marketplace/listing-picture.tsx",
+      "src/components/marketplace/ribbon-geometry.ts",
+      "src/components/marketplace/invite-card.tsx",
+      "src/styles.css",
+      "src/lib/themes.ts",
+      "src/routes/dev.style.tsx",
+    ],
+    specs: ["e2e/sage-tiers.spec.ts"],
+  },
+  {
     name: "press",
     src: [
       "src/lib/press.ts",

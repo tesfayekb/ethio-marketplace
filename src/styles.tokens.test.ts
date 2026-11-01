@@ -122,6 +122,42 @@ describe.each(MODES)("contrast, theme %s, %s mode", (name, mode, tokens) => {
   });
 });
 
+/**
+ * Turn SAGE-S4 (spec §8, §9; rulings 2 and 4) — a ribbon's ink on every satin stop the picture
+ * shows: the visible band runs from the 7 % stop to the 92 % stop, the dark end stops lying on
+ * the rolled caps beyond the picture's edges (ribbon-geometry.ts). Gold and sage are set once,
+ * so a mode reads the light set beneath its own. The invite card's text on its fill, whose dark
+ * value is the Premium fill by reference.
+ */
+const SHOWN_STOPS = ["2", "3", "4", "5"];
+const RIBBON_PAIRS: ReadonlyArray<[string, string]> = ["pearl", "gold", "sage"].flatMap((palette) =>
+  SHOWN_STOPS.map((stop): [string, string] => [
+    `ribbon-${palette}-ink`,
+    `ribbon-${palette}-${stop}`,
+  ]),
+);
+
+describe.each(MODES)("ribbon and invite contrast, theme %s, %s mode", (name, mode, own) => {
+  const light = MODES.find(([n, m]) => n === name && m === "light")?.[2] ?? own;
+  const tokens = new Map([...light, ...own]);
+  const resolve = (value: string | undefined): string | undefined => {
+    const ref = value === undefined ? null : /^var\(--([\w-]+)\)$/.exec(value);
+    return ref?.[1] === undefined ? value : resolve(tokens.get(ref[1]));
+  };
+  it.each([...RIBBON_PAIRS, ["foreground", "invite"] as [string, string]])(
+    "%s on %s is at least 4.5:1",
+    (fg, bg) => {
+      const f = resolve(tokens.get(fg));
+      const b = resolve(tokens.get(bg));
+      if (f === undefined || b === undefined)
+        throw new Error(`${name} ${mode} lacks --${fg} or --${bg}`);
+      const ratio = contrast(f, b);
+      console.log(`[tokens] ${name} ${mode} ${fg} on ${bg} ${ratio.toFixed(2)}:1`);
+      expect(ratio, `${name} ${mode} ${fg} ${f} on ${bg} ${b}`).toBeGreaterThanOrEqual(4.5);
+    },
+  );
+});
+
 function hexLuminance(hex: string): number {
   const [r, g, b] = [1, 3, 5].map((i) => {
     const c = parseInt(hex.slice(i, i + 2), 16) / 255;

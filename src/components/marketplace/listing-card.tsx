@@ -9,28 +9,17 @@ import { MapPin } from "lucide-react";
 import type { FeedListing } from "@/features/feed/use-feed";
 import { ribbonOf } from "@/features/feed/feed-page";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
+import { cardLookOf } from "@/components/marketplace/card-tier";
+import { TierFlag, TierWord } from "@/components/marketplace/tier-flag";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
 import { fill } from "@/features/posting/refusal-text";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
+import { NegotiableBadge } from "@/components/marketplace/negotiable-badge";
 
-/**
- * DEC-081 (D62-2) — NEGOTIABLE IS A FLAG, SHOWN AS A BADGE beside the price on
- * every surface that prints one (card, preview, detail, review, impersonation).
- */
-export function NegotiableBadge() {
-  const { t } = useI18n();
-  return (
-    <span
-      data-testid="price-negotiable-badge"
-      className="inline-flex shrink-0 items-center rounded-full bg-success-soft px-2 py-0.5 text-[11px] font-semibold leading-4 text-success-ink"
-    >
-      {t("price.negotiable")}
-    </span>
-  );
-}
+export { NegotiableBadge };
 
 export function ListingCard({
   listing,
@@ -105,31 +94,20 @@ export function ListingCard({
    * no size difference between the different cards in all screens") — ONE CARD
    * SHAPE. Every card fills its grid cell (`h-full`; the feed's rows are equal,
    * `auto-rows-fr`) and lays out the same slots in the same places: the picture
-   * with the tier pill on its corner; the title on one line; the price slot
+   * with the tier's flag on its corner; the title on one line; the price slot
    * sized for its longest common case (a compact card: two lines of price and
    * the Negotiable pill — 58 px; a wider one: 44 px), so cards in different
    * sections match too (a rarer, longer price still shows whole and its row
    * grows with it); the place on the last line, kept even when the card has
-   * none.
+   * none, with the tier word beside it — on a compact card under it, and every
+   * compact card keeps that second line (S4 ruling 3).
+   *
+   * Sage S4 (spec §7, §8) — the tier's look (fill and frame, divider, flag, word, ribbon
+   * palette) comes from card-tier.ts; the card no longer clips, so the flag's fold and the
+   * ribbon's caps show past its edges, and the picture keeps the card's top corners itself.
    */
-  const tierPill =
-    listing.tier === "premium" ? (
-      <span
-        data-testid="listing-card-tier"
-        data-tier="premium"
-        className="absolute start-1 top-1 rounded-full bg-primary px-1.5 py-0.5 text-[11px] font-medium leading-4 text-primary-foreground shadow-sm @min-[11rem]:start-2 @min-[11rem]:top-2 @min-[11rem]:px-2 @min-[11rem]:text-xs"
-      >
-        {t("tier.premium")}
-      </span>
-    ) : listing.tier === "featured" ? (
-      <span
-        data-testid="listing-card-tier"
-        data-tier="featured"
-        className="absolute start-1 top-1 rounded-full bg-gold px-1.5 py-0.5 text-[11px] font-medium leading-4 text-gold-foreground shadow-sm @min-[11rem]:start-2 @min-[11rem]:top-2 @min-[11rem]:px-2 @min-[11rem]:text-xs"
-      >
-        {t("tier.featured")}
-      </span>
-    ) : null;
+  const look = cardLookOf(listing.tier);
+  const paid = look.paid;
 
   const content = (
     <>
@@ -145,13 +123,14 @@ export function ListingCard({
           categoryUrl={nearestCategoryPicture(tree, listing.categoryId)}
           photosSoon={listing.photosSoon}
           ribbon={ribbonKey === undefined ? null : t(ribbonKey)}
+          palette={look.palette}
           boxTestId="listing-card-picture"
-          rounded=""
+          rounded="rounded-t-card"
           fill
           crop
           priority={priority}
         />
-        {tierPill}
+        {paid ? <TierFlag tier={paid.tier} look={paid.look} /> : null}
       </div>
 
       {/* D123 — below 11rem (three or four a row) the card is compact. */}
@@ -178,16 +157,26 @@ export function ListingCard({
 
         <p
           data-testid="listing-card-place"
-          className="mt-auto box-content flex min-h-[1lh] min-w-0 items-center gap-1 border-t border-card-rule pt-[6px] text-xs leading-4 text-leaf-ink group-data-[tier=featured]/card:text-tier-featured-ink @min-[11rem]:pt-[9px]"
+          className={cn(
+            "mt-auto box-content flex min-h-[2lh] min-w-0 flex-wrap content-start items-center gap-x-1 border-t pt-[6px] text-xs leading-4 @min-[11rem]:min-h-[1lh] @min-[11rem]:flex-nowrap @min-[11rem]:pt-[9px]",
+            look.place,
+          )}
         >
           {locationName ? (
-            <>
+            <span className="flex min-w-0 flex-1 items-center gap-1">
               <MapPin
                 className="h-3 w-3 shrink-0 @min-[11rem]:h-3.5 @min-[11rem]:w-3.5"
                 aria-hidden="true"
               />
               <CutText text={locationName} />
-            </>
+            </span>
+          ) : null}
+          {paid ? (
+            <TierWord
+              tier={paid.tier}
+              look={paid.look}
+              className="basis-full @min-[11rem]:ms-auto @min-[11rem]:basis-auto"
+            />
           ) : null}
         </p>
       </div>
@@ -201,8 +190,9 @@ export function ListingCard({
       data-tier={listing.tier}
       className={cn(
         CARD_SURFACE,
+        look.surface,
         PRESSED.card,
-        "group/card @container flex h-full flex-col overflow-hidden wrap-anywhere",
+        "group/card @container flex h-full flex-col wrap-anywhere",
       )}
     >
       {typeof listing.publicId === "string" ? (
