@@ -548,3 +548,12 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - First paint: dialog-look.ts holds dialog parts only and stays off the entry (211.2 → 211.4 KiB local in this turn); a page's first download carries it only when the page draws a dialog, a sheet, a field or the step-up gate. S6-3 takes the step-up gate's dialog on demand and those pages' ceilings come back down.
 - Retired with this turn: command, context-menu, drawer, hover-card, menubar, navigation-menu, select and sidebar (`src/components/ui`); their packages stay until a package turn and no file reaches them (CF-OV-4).
 - Specimens: /dev/style shows the dialog, the alert dialog and the end and bottom sheets from existing keys; e2e/dialogs.spec.ts measures them and Share this ad at 390, 834 and 1440, light and dark.
+
+## One select (turn S6-2)
+
+- Every `<select>` in src is `NativeSelect` (`src/components/ui/native-select.tsx`): the device draws the open list, and the closed control is the one component's (CF-LIST-1 refuses a `<select>` anywhere else, CL-11; register row 87).
+- Two looks, chosen by `look`, never by a class that restyles the control:
+  - `control` (the default): THE SIZE RULE's 44 px, 36 px on a fine pointer from md, the card surface with the input border; inside a dialog, a sheet or the filter panel it is the pressed-in field (`DIALOG_FIELD`). The admin screens' 31 selects take it; a consumer passes layout only (`w-full`, `grow`, `max-w-full`, a margin).
+  - `form`: the posting form kit's look, which the step passes whole as its className (`controlClass` with its refused and soft borders, or the step's own field class); NativeSelect adds nothing of its own, so a refusal still draws its red border and ring. The posting steps' 11 selects take it.
+- `SELECT_CLASS` (category-form-fields.tsx) is retired; the 21 "until SAGE-S6" select lines left choice-lists-allowlist.txt.
+- The retire dialog sends a plain `null` target when the category has no listings to move (the service and hook take `string | null`; the generated uuid type omits SQL NULL, so the call passes its arguments `as never`, as report.ts does).
