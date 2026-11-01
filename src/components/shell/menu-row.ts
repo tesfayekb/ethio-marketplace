@@ -14,8 +14,10 @@
 // Turn C2 (INC-1031's SGB-5 red): the fade belongs to the RELEASE alone — press.ts marks the
 // released element `data-released` for RELEASE_MS — so a current mark that moves for another
 // reason (a chosen location, a selected tab) changes at once, never mid-fade.
+// Turn S6-1 (stop 4): the press itself switches every transition off, so a pressable's own hover
+// transition (Button's, Tabs', BreadcrumbLink's transition-colors) never fades the press in.
 export const PRESS_MOTION =
-  "data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none";
+  "data-[pressed]:transition-none data-[released]:transition-[background-color,box-shadow,color] data-[released]:duration-120 data-[released]:ease-out motion-reduce:transition-none";
 export const PRESSED = {
   /** A menu row: the raised current row (ITEM_ACTIVE's card, lift-row-on, nav ink). */
   row: `data-[pressed]:bg-card data-[pressed]:text-nav-ink data-[pressed]:shadow-row-on ${PRESS_MOTION}`,
@@ -32,7 +34,7 @@ export const PRESSED = {
   /** …and its icon takes the current pill (CURRENT_PILL's fill and lift), on its own box. */
   barIcon: `group-data-[pressed]/bar:bg-nav-pill group-data-[pressed]/bar:shadow-pill group-data-[pressed]/bar:text-nav-ink ${PRESS_MOTION}`,
   /** The card's own link has no surface: the card lifts, the link takes no pill. */
-  cardLink: "data-[pressed]:bg-transparent",
+  cardLink: "data-[pressed]:bg-transparent data-[pressed]:transition-none",
 } as const;
 
 export const ITEM_CORE =

@@ -526,6 +526,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - PRESSED (menu-row.ts): row → card + lift-row-on + nav ink; list → nav pill + nav ink; segment/tab → card + lift-segment + nav ink; button and top-bar control → lift-row-on; card → lift-row-on on the card; a plain link → the nav pill behind its text (styles.css base layer).
 - On at once, off within 120 ms; no transition under reduced motion; only shadow, fill and ink change.
 - Turn C2: only the release fades — press.ts leaves `data-released` on the released element for 160 ms and PRESS_MOTION is keyed on it, so a current mark that moves for any other reason changes at once; a new press ends every earlier fade. The bottom bar takes PRESSED.bar / PRESSED.barIcon (the icon's current pill); the top bar's ☰ and search-close buttons take PRESSED.button.
+- Turn S6-1 (stop 4): PRESS_MOTION switches every transition off while `data-pressed` is on (`data-[pressed]:transition-none`; PRESSED.cardLink likewise), so a pressable's own hover transition (Button's and BreadcrumbLink's transition-colors, Tabs' transition-all) never fades the press in. PR-U9 (src/lib/press.test.ts) pins it.
 
 ## The chosen item and the tap tick (turn C2, D263/D271/D272, DEC-317)
 
