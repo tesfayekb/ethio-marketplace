@@ -1,5 +1,8 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DIALOG_LAYER, SCREEN_PANEL } from "@/components/ui/dialog-look";
 
 import type { GalleryPhoto } from "../photo-links";
 
@@ -46,7 +49,7 @@ function drag(element: HTMLElement, fromX: number, toX: number) {
  * move, and a full-screen viewer on a tap.
  */
 describe("PhotoGallery (D161)", () => {
-  it("GAL-1 one photo: no arrows, no counter, no thumbnails; a tap opens the viewer at the cover size, and Close returns", () => {
+  it("GAL-1 one photo: no arrows, no counter, no thumbnails; a tap opens the viewer (the one dialog's screen, on the viewer layer) at the cover size, and Close gives the focus back to the photo", async () => {
     render(<PhotoGallery photos={[photo("p1")]} />);
     expect(mainImage()).toHaveAttribute("src", link("p1", "card"));
     expect(mainImage()).toHaveAttribute(
@@ -57,16 +60,22 @@ describe("PhotoGallery (D161)", () => {
     expect(screen.queryByTestId("gallery-count")).toBeNull();
     expect(screen.queryByTestId("gallery-thumbs")).toBeNull();
 
-    fireEvent.click(screen.getByTestId("gallery-main"));
-    const viewer = screen.getByTestId("gallery-viewer");
+    // A browser's click focuses the button it presses; jsdom's does not.
+    const main = screen.getByTestId("gallery-main");
+    main.focus();
+    fireEvent.click(main);
+    const viewer = await screen.findByTestId("gallery-viewer");
+    expect(viewer).toHaveAttribute("role", "dialog");
+    expect(viewer).toHaveAttribute("data-dialog-panel");
+    expect(viewer).toHaveClass(...SCREEN_PANEL.split(/\s+/).filter(Boolean), DIALOG_LAYER.viewer);
     expect(within(viewer).getByTestId("gallery-viewer-image")).toHaveAttribute(
       "src",
       link("p1", "cover"),
     );
     expect(within(viewer).queryByTestId("gallery-viewer-thumbs")).toBeNull();
     fireEvent.click(within(viewer).getByTestId("gallery-viewer-close"));
-    expect(screen.queryByTestId("gallery-viewer")).toBeNull();
-    expect(screen.getByTestId("gallery-main")).toHaveFocus();
+    await waitFor(() => expect(screen.queryByTestId("gallery-viewer")).toBeNull());
+    await waitFor(() => expect(main).toHaveFocus());
   });
 
   it("GAL-2 several photos: a counter, a thumbnail each at its thumb size; a thumbnail shows its photo; the arrows stop at the ends", () => {
@@ -122,46 +131,48 @@ describe("PhotoGallery (D161)", () => {
     expect(screen.getByTestId("gallery-viewer")).toBeInTheDocument();
   });
 
-  it("GAL-4 the viewer: arrow keys and its arrows move, a double click zooms, Escape closes the viewer only", () => {
-    const sheetEscape = vi.fn();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") sheetEscape();
-    };
-    // The preview sheet closes on a document keydown listener of its own.
-    document.addEventListener("keydown", onKey);
-    try {
-      render(<PhotoGallery photos={THREE} />);
-      fireEvent.click(screen.getByTestId("gallery-main"));
-      const viewer = screen.getByTestId("gallery-viewer");
-      expect(within(viewer).getByTestId("gallery-viewer-close")).toHaveFocus();
-      expect(within(viewer).getAllByTestId("gallery-thumb")).toHaveLength(3);
+  it("GAL-4 the viewer inside a sheet: it takes the focus, arrow keys and its arrows move, a double click zooms, and Escape closes the viewer only (the primitive's layer stack)", async () => {
+    // The preview sheet is the one dialog's screen variant too.
+    const sheetClose = vi.fn();
+    render(
+      <Dialog open onOpenChange={sheetClose}>
+        <DialogContent variant="screen" aria-describedby={undefined}>
+          <DialogTitle>t</DialogTitle>
+          <PhotoGallery photos={THREE} />
+        </DialogContent>
+      </Dialog>,
+    );
+    const main = await screen.findByTestId("gallery-main");
+    main.focus();
+    fireEvent.click(main);
+    const viewer = await screen.findByTestId("gallery-viewer");
+    await waitFor(() => expect(viewer).toHaveFocus());
+    expect(within(viewer).getAllByTestId("gallery-thumb")).toHaveLength(3);
 
-      fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowRight" });
-      expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("2 / 3");
-      fireEvent.click(within(viewer).getByTestId("gallery-viewer-next"));
-      expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("3 / 3");
-      expect(within(viewer).getByTestId("gallery-viewer-image")).toHaveAttribute(
-        "src",
-        link("p3", "cover"),
-      );
-      fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowLeft" });
-      expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("2 / 3");
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowRight" });
+    expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("2 / 3");
+    fireEvent.click(within(viewer).getByTestId("gallery-viewer-next"));
+    expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("3 / 3");
+    expect(within(viewer).getByTestId("gallery-viewer-image")).toHaveAttribute(
+      "src",
+      link("p3", "cover"),
+    );
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "ArrowLeft" });
+    expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("2 / 3");
 
-      const image = within(viewer).getByTestId("gallery-viewer-image");
-      expect(image).not.toHaveClass("scale-200");
-      fireEvent.doubleClick(image);
-      expect(image).toHaveClass("scale-200");
-      // A zoomed photo is panned, not swiped away.
-      drag(image, 300, 100);
-      expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("2 / 3");
+    const image = within(viewer).getByTestId("gallery-viewer-image");
+    expect(image).not.toHaveClass("scale-200");
+    fireEvent.doubleClick(image);
+    expect(image).toHaveClass("scale-200");
+    // A zoomed photo is panned, not swiped away.
+    drag(image, 300, 100);
+    expect(within(viewer).getByTestId("gallery-viewer-count")).toHaveTextContent("2 / 3");
 
-      fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
-      expect(screen.queryByTestId("gallery-viewer")).toBeNull();
-      expect(sheetEscape).not.toHaveBeenCalled();
-      expect(screen.getByTestId("gallery-count")).toHaveTextContent("2 / 3");
-    } finally {
-      document.removeEventListener("keydown", onKey);
-    }
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
+    await waitFor(() => expect(screen.queryByTestId("gallery-viewer")).toBeNull());
+    expect(sheetClose).not.toHaveBeenCalled();
+    expect(screen.getByTestId("gallery-count")).toHaveTextContent("2 / 3");
+    await waitFor(() => expect(main).toHaveFocus());
   });
 });
 

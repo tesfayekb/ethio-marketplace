@@ -6,10 +6,9 @@ import {
   type PointerEvent as ReactPointerEvent,
   type RefObject,
 } from "react";
-import { createPortal } from "react-dom";
 
-import { Z_VIEWER } from "@/components/layout/layers";
 import { ListingRibbon } from "@/components/marketplace/listing-picture";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { StripArrows, keepInStrip } from "@/components/ui/strip-arrows";
 import { useI18n } from "@/i18n";
 
@@ -98,19 +97,11 @@ export function PhotoGallery({
   const total = photos.length;
   const [index, setIndex] = useState(0);
   const [viewer, setViewer] = useState(false);
-  const mainRef = useRef<HTMLButtonElement>(null);
   const stripRef = useRef<HTMLUListElement>(null);
   const placeId = useId();
   const at = Math.min(index, total - 1);
   const go = (next: number) => setIndex(Math.max(0, Math.min(total - 1, next)));
   const swipe = useSwipe((direction) => go(at + direction));
-  // When the shown photo changes (the photo's ‹ ›, a swipe, a key), its
-  // thumbnail is kept fully inside the strip — the strip's own scroll only.
-  useEffect(() => {
-    const strip = stripRef.current;
-    const item = strip?.children[at];
-    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
-  }, [at, total]);
   if (total === 0) return null;
   const photo = photos[at]!;
   const several = total > 1;
@@ -127,7 +118,6 @@ export function PhotoGallery({
           className={`relative min-w-0 flex-1${fillColumn ? " @min-[32rem]:flex @min-[32rem]:flex-col" : ""}`}
         >
           <button
-            ref={mainRef}
             type="button"
             data-testid="gallery-main"
             data-index={at}
@@ -230,15 +220,7 @@ export function PhotoGallery({
         ) : null}
       </div>
       {viewer ? (
-        <Viewer
-          photos={photos}
-          at={at}
-          onGo={go}
-          onClose={() => {
-            setViewer(false);
-            mainRef.current?.focus();
-          }}
-        />
+        <Viewer photos={photos} at={at} onGo={go} onClose={() => setViewer(false)} />
       ) : null}
     </div>
   );
@@ -272,6 +254,13 @@ function Thumbs({
   className: string;
 }) {
   const { t } = useI18n();
+  // When the shown photo changes (the photo's ‹ ›, a swipe, a key), its
+  // thumbnail is kept fully inside the strip — the strip's own scroll only.
+  useEffect(() => {
+    const strip = ref.current;
+    const item = strip?.children[at];
+    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
+  }, [ref, at, photos.length]);
   return (
     <ul ref={ref} data-testid={testid} className={className}>
       {photos.map((photo, index) => (
@@ -316,125 +305,105 @@ function Viewer({
   const { t } = useI18n();
   const total = photos.length;
   const photo = photos[at]!;
-  const closeRef = useRef<HTMLButtonElement>(null);
   const stripRef = useRef<HTMLUListElement>(null);
   const [zoomed, setZoomed] = useState(false);
-  // The viewer's row keeps the shown photo's thumbnail fully inside it.
-  useEffect(() => {
-    const strip = stripRef.current;
-    const item = strip?.children[at];
-    if (strip && item instanceof HTMLElement) keepInStrip(strip, item);
-  }, [at, total]);
   const swipe = useSwipe((direction) => {
     if (!zoomed) onGo(at + direction);
   });
-
-  useEffect(() => {
-    closeRef.current?.focus();
-  }, []);
   useEffect(() => {
     setZoomed(false);
   }, [at]);
-  // Captured on the document and stopped there: the preview sheet under the
-  // viewer closes on its own Escape (a document listener), and one Escape must
-  // close the viewer only.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
-      else if (event.key === "ArrowRight") onGo(at + 1);
-      else if (event.key === "ArrowLeft") onGo(at - 1);
-      else return;
-      event.stopPropagation();
-      event.preventDefault();
-    };
-    document.addEventListener("keydown", onKey, true);
-    return () => document.removeEventListener("keydown", onKey, true);
-  }, [at, onGo, onClose]);
+  const place = fill(t("post.preview.photoCount"), { index: at + 1, total });
 
-  if (typeof document === "undefined") return null;
-  return createPortal(
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={fill(t("post.preview.photoCount"), { index: at + 1, total })}
-      data-testid="gallery-viewer"
-      className={`fixed inset-0 ${Z_VIEWER} flex flex-col bg-background`}
+  // Turn S6-4 — the one dialog's screen variant, on the viewer layer above the preview sheet:
+  // one Escape closes the top layer only, and the focus goes back to the photo that opened it.
+  return (
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
     >
-      <div className="flex items-center justify-between gap-3 p-2">
-        <span data-testid="gallery-viewer-count" className="px-2 text-sm text-muted-foreground">
-          {`${at + 1} / ${total}`}
-        </span>
-        <button
-          ref={closeRef}
-          type="button"
-          data-testid="gallery-viewer-close"
-          className="inline-flex min-h-11 items-center rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground hover:bg-accent"
-          onClick={onClose}
-        >
-          {t("common.close")}
-        </button>
-      </div>
-      <div
-        className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
-        style={{ touchAction: "pan-y pinch-zoom" }}
-        {...swipe.handlers}
+      <DialogContent
+        variant="screen"
+        layer="viewer"
+        data-testid="gallery-viewer"
+        closeTestId="gallery-viewer-close"
+        aria-describedby={undefined}
+        onKeyDown={(event) => {
+          if (event.key === "ArrowRight") onGo(at + 1);
+          else if (event.key === "ArrowLeft") onGo(at - 1);
+          else return;
+          event.preventDefault();
+        }}
       >
-        <img
-          data-testid="gallery-viewer-image"
-          src={photo.large ?? photo.main}
-          alt={fill(t("post.preview.photoCount"), { index: at + 1, total })}
-          className={`max-h-full max-w-full object-contain transition-transform ${
-            zoomed ? "scale-200 cursor-zoom-out" : "cursor-zoom-in"
-          }`}
-          draggable={false}
-          onDoubleClick={() => setZoomed((value) => !value)}
-        />
-        {total > 1 ? (
-          <>
-            <button
-              type="button"
-              data-testid="gallery-viewer-previous"
-              aria-label={t("post.gallery.previous")}
-              className={`${arrowClass} start-2`}
-              disabled={at === 0}
-              onClick={() => onGo(at - 1)}
-            >
-              <span aria-hidden="true">‹</span>
-            </button>
-            <button
-              type="button"
-              data-testid="gallery-viewer-next"
-              aria-label={t("post.gallery.next")}
-              className={`${arrowClass} end-2`}
-              disabled={at === total - 1}
-              onClick={() => onGo(at + 1)}
-            >
-              <span aria-hidden="true">›</span>
-            </button>
-          </>
-        ) : null}
-      </div>
-      {total > 1 ? (
-        <div className="relative">
-          <Thumbs
-            ref={stripRef}
-            photos={photos}
-            at={at}
-            onPick={onGo}
-            testid="gallery-viewer-thumbs"
-            // INC-720 — safe centre: centred while the row fits, start-aligned
-            // when it overflows, so the first photos stay reachable.
-            className="scrollbar-none flex justify-center-safe gap-2 overflow-x-auto p-2"
-          />
-          <StripArrows
-            stripRef={stripRef}
-            backLabel={t("post.gallery.stripBack")}
-            moreLabel={t("post.gallery.stripMore")}
-            testIdPrefix="gallery-viewer-strip"
-          />
+        <DialogTitle className="sr-only">{place}</DialogTitle>
+        <div className="flex min-h-16 items-center px-4 pe-16">
+          <span data-testid="gallery-viewer-count" className="text-sm text-muted-foreground">
+            {`${at + 1} / ${total}`}
+          </span>
         </div>
-      ) : null}
-    </div>,
-    document.body,
+        <div
+          className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden"
+          style={{ touchAction: "pan-y pinch-zoom" }}
+          {...swipe.handlers}
+        >
+          <img
+            data-testid="gallery-viewer-image"
+            src={photo.large ?? photo.main}
+            alt={place}
+            className={`max-h-full max-w-full object-contain transition-transform ${
+              zoomed ? "scale-200 cursor-zoom-out" : "cursor-zoom-in"
+            }`}
+            draggable={false}
+            onDoubleClick={() => setZoomed((value) => !value)}
+          />
+          {total > 1 ? (
+            <>
+              <button
+                type="button"
+                data-testid="gallery-viewer-previous"
+                aria-label={t("post.gallery.previous")}
+                className={`${arrowClass} start-2`}
+                disabled={at === 0}
+                onClick={() => onGo(at - 1)}
+              >
+                <span aria-hidden="true">‹</span>
+              </button>
+              <button
+                type="button"
+                data-testid="gallery-viewer-next"
+                aria-label={t("post.gallery.next")}
+                className={`${arrowClass} end-2`}
+                disabled={at === total - 1}
+                onClick={() => onGo(at + 1)}
+              >
+                <span aria-hidden="true">›</span>
+              </button>
+            </>
+          ) : null}
+        </div>
+        {total > 1 ? (
+          <div className="relative">
+            <Thumbs
+              ref={stripRef}
+              photos={photos}
+              at={at}
+              onPick={onGo}
+              testid="gallery-viewer-thumbs"
+              // INC-720 — safe centre: centred while the row fits, start-aligned
+              // when it overflows, so the first photos stay reachable.
+              className="scrollbar-none flex justify-center-safe gap-2 overflow-x-auto p-2"
+            />
+            <StripArrows
+              stripRef={stripRef}
+              backLabel={t("post.gallery.stripBack")}
+              moreLabel={t("post.gallery.stripMore")}
+              testIdPrefix="gallery-viewer-strip"
+            />
+          </div>
+        ) : null}
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -6764,13 +6764,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.preview.close": [
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
     "post.preview.descriptionLabel": [
       "(every page)",
       "/admin/listings/$listingId",

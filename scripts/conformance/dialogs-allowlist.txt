@@ -1,3 +1,4 @@
 # CF-DIALOG-1 (turn S6-1, Sage §14; scripts/conformance/dialogs.test.ts) — a dialog part's own look, a button row outside the footer, a choice row of its own.
 # Key: `<file>#<rule>` | reason | until (a date, or an INC/DEC id). A stale or expired line fails (DG-6).
 src/features/posting/photo-editor.tsx#DG-4 | the rotate tools are the editor's own controls on the photo, not actions on the dialog (ruling 2 of stop 2); their raw buttons move onto Button with the form kit | INC-899
+src/features/posting/preview/photo-gallery.tsx#DG-4 | the viewer's ‹ › arrows sit on the photo at its two edges and step through the photos — the photo's own controls, not actions on the dialog (as the photo editor's rotate tools, ruling 2 of S6-1's stop 2) | 2027-05-01

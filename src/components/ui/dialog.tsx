@@ -20,10 +20,12 @@ import {
   DIALOG_SIZE,
   DIALOG_TEXT,
   DIALOG_TITLE,
+  SCREEN_PANEL,
   type DialogFit,
   type DialogLayer,
   type DialogPhone,
   type DialogSize,
+  type DialogVariant,
 } from "./dialog-look";
 
 const Dialog = DialogPrimitive.Root;
@@ -48,11 +50,15 @@ const DialogOverlay = React.forwardRef<
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
 type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  /** panel: the card; screen: the whole screen at every width (turn S6-4) — size, fit and phone
+   *  shape the card only. */
+  variant?: DialogVariant;
   /** narrow 24rem, default 32rem, wide 56rem — never wider than the screen less 16 px a side. */
   size?: DialogSize;
   /** bounded: as tall as the content, scrolling inside; fill: a tall panel for a map. */
   fit?: DialogFit;
-  /** Below md: float (the centred card) or sheet (docked to the bottom, with the grabber). */
+  /** Below md: float (the centred card), sheet (docked to the bottom, with the grabber) or full
+   *  (the whole screen). */
   phone?: DialogPhone;
   /** U4i-6 (a), INC-124 — the STACKING LAW: every dialog paints on `modal`; the sensitive-action
    *  step-up alone takes `top`, so it always owns the top layer whatever mounted last. */
@@ -69,17 +75,26 @@ const DialogContent = React.forwardRef<
   (
     {
       className,
+      variant = "panel",
       size = "default",
       fit = "bounded",
       phone = "float",
       layer = "modal",
       closeTestId,
+      onOpenAutoFocus,
+      onCloseAutoFocus,
       children,
       ...props
     },
     ref,
   ) => {
     const { t } = useI18n();
+    const screen = variant === "screen";
+    // Turn S6-4 — a screen-sized surface opens from a tap its owner hears, never from a
+    // DialogTrigger, and Radix returns the focus to a trigger only: it takes the focus on the panel
+    // itself (a phone's keyboard does not rise over it) and gives it back to what held it.
+    const screenSized = screen || phone === "full";
+    const opener = React.useRef<HTMLElement | null>(null);
     return (
       <DialogPortal>
         <DialogOverlay className={DIALOG_LAYER[layer]} />
@@ -87,16 +102,35 @@ const DialogContent = React.forwardRef<
           ref={ref}
           data-dialog-panel=""
           className={cn(
-            DIALOG_PANEL,
+            screen
+              ? SCREEN_PANEL
+              : [DIALOG_PANEL, DIALOG_SIZE[size], DIALOG_FIT[fit], DIALOG_PHONE[phone]],
             DIALOG_LAYER[layer],
-            DIALOG_SIZE[size],
-            DIALOG_FIT[fit],
-            DIALOG_PHONE[phone],
             className,
           )}
+          onOpenAutoFocus={(event) => {
+            const panel = event.target;
+            if (screenSized && panel instanceof HTMLElement) {
+              const held = panel.ownerDocument.activeElement;
+              opener.current = held instanceof HTMLElement ? held : null;
+            }
+            onOpenAutoFocus?.(event);
+            if (!screenSized || event.defaultPrevented || !(panel instanceof HTMLElement)) return;
+            event.preventDefault();
+            panel.focus({ preventScroll: true });
+          }}
+          onCloseAutoFocus={(event) => {
+            onCloseAutoFocus?.(event);
+            const back = opener.current;
+            opener.current = null;
+            if (event.defaultPrevented || back === null || !back.isConnected) return;
+            if (back === back.ownerDocument.body) return;
+            event.preventDefault();
+            back.focus({ preventScroll: true });
+          }}
           {...props}
         >
-          {phone === "sheet" ? (
+          {!screen && phone === "sheet" ? (
             <div
               aria-hidden="true"
               data-dialog-grabber=""

@@ -25,6 +25,11 @@ export const DIALOG_SCRIM = `fixed inset-0 bg-scrim ${FADE}`;
 /** The panel: the popover surface, 22 × 24 px padding, 20 px corners, the dialog lift whose first
  *  layer is the ring. Centred by its insets and auto margins, never by a physical translate. */
 export const DIALOG_PANEL = `fixed inset-0 m-auto grid h-fit w-[calc(100%-2rem)] gap-4 bg-popover px-6 py-5.5 text-popover-foreground rounded-dialog shadow-dialog outline-none duration-200 ${FADE}`;
+/** Turn S6-4 — a full-screen surface (the photo viewer, the buyer's-eye preview): the page's own
+ *  surface edge to edge at every width, no corners and no lift; it scrolls inside itself. */
+export const SCREEN_PANEL = `fixed inset-0 flex flex-col overflow-y-auto bg-background text-foreground outline-none duration-200 ${FADE}`;
+/** panel: the card (size, fit, phone choose its shape); screen: SCREEN_PANEL at every width. */
+export type DialogVariant = "panel" | "screen";
 export const DIALOG_SIZE = { narrow: "max-w-sm", default: "max-w-lg", wide: "max-w-4xl" } as const;
 export type DialogSize = keyof typeof DIALOG_SIZE;
 /** bounded: as tall as its content, scrolling inside the screen less 16 px a side; fill: a tall
@@ -34,11 +39,13 @@ export const DIALOG_FIT = {
   fill: "flex h-[calc(100dvh-2rem)] flex-col md:h-[70vh]",
 } as const;
 export type DialogFit = keyof typeof DIALOG_FIT;
-/** Below md, float keeps the centred card; sheet docks it to the bottom edge, with the grabber. */
+/** Below md, float keeps the centred card; sheet docks it to the bottom edge, with the grabber;
+ *  full fills the screen (the pin map: turn S6-4). */
 export const DIALOG_PHONE = {
   float: "",
   sheet:
     "max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:m-0 max-md:w-full max-md:max-w-none max-md:rounded-b-none max-md:pb-[calc(1.375rem+env(safe-area-inset-bottom))] max-md:data-[state=open]:slide-in-from-bottom max-md:data-[state=closed]:slide-out-to-bottom",
+  full: "max-md:m-0 max-md:h-dvh max-md:max-h-none max-md:w-full max-md:max-w-none max-md:rounded-none max-md:shadow-none max-md:pb-[calc(1.375rem+env(safe-area-inset-bottom))]",
 } as const;
 export type DialogPhone = keyof typeof DIALOG_PHONE;
 /** The bottom sheet's grabber (ruling 11): a short bar on the panel's top edge. */

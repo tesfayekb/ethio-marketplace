@@ -44,6 +44,7 @@ export const OWNERS: Record<string, readonly string[]> = {
   "src/components/ui/dialog.tsx": [
     "DIALOG_SCRIM",
     "DIALOG_PANEL",
+    "SCREEN_PANEL",
     "DIALOG_CLOSE",
     "DIALOG_HEADER",
     "DIALOG_TITLE",
