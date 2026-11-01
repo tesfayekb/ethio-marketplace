@@ -19,4 +19,14 @@ describe("OneLineSlot (§5, turn B2)", () => {
     expect(container.querySelector("[data-one-line-slot] [data-cut]")).not.toBeNull();
     expect(container.textContent).toBe("የAddis Ababa ማስታወቂያዎች");
   });
+
+  it("OLS-U3: a sentence with no slot is one uncut fixed line", () => {
+    const { container } = render(<OneLineSlot sentence="All listings" slot="{location}" text="" />);
+    expect(container.textContent).toBe("All listings");
+    expect(container.querySelector("[data-cut]")).toBeNull();
+    const fixed = container.querySelector("[data-one-line-fixed]");
+    expect(fixed?.textContent).toBe("All listings");
+    expect(fixed?.className).toContain("shrink-0");
+    expect(container.querySelector("[data-one-line]")?.className).toContain("whitespace-nowrap");
+  });
 });

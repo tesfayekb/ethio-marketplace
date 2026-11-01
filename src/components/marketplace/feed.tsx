@@ -298,7 +298,7 @@ export function Feed() {
               slotClassName="text-primary"
             />
           ) : (
-            t("nav.allListings")
+            <OneLineSlot sentence={t("nav.allListings")} slot="{location}" text="" />
           )}
         </h1>
         {categoryNode ? (

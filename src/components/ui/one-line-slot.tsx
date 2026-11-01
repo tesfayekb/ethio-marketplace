@@ -36,7 +36,9 @@ export function OneLineSlot({
   if (parts === null) {
     return (
       <span data-one-line="" className={ONE_LINE_SLOT}>
-        <span className="shrink-0">{sentence}</span>
+        <span data-one-line-fixed="" className="shrink-0 whitespace-pre">
+          {sentence}
+        </span>
       </span>
     );
   }

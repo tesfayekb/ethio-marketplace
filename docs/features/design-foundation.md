@@ -520,7 +520,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 ## Sage S3 (turn B2)
 
 - Dark card C live (#28342E card, #42504A edge, #3A2F1D / #243A2F tier fills).
-- Feed heading 21/25/30 px, 800, -0.9 px, place in primary, one line via ONE_LINE_SLOT.
+- Feed heading 21/25/30 px, 800, -0.9 px, place in primary, one line via ONE_LINE_SLOT. The everywhere heading is the same slot. At 360, Ge'ez is judged at the runner's width times max(1, 1.22 / the runner's ratio to Noto); the recorded Noto width of the calibration string is 907px at 100px (the measured Kefa/Noto maximum on the heading was 1.212). Latin is the runner's own font. A runner with no Ethiopic face stops. The bottom bar's seller item is panel.myListingsShort; the panel's name stays panel.myListings.
 - Card body 13/14/14 px (compact 8/9 tablet, 6/7 phone); price 16/13/12 bold; Negotiable pill success-soft + success ink, 11 px semibold; place line divider (rule) with 9/6 px top, leaf ink (Featured: its own ink, D269); empty well photo-empty with a bottom rule.
 
 ## The press (turn C1, D263/D270, DEC-317)

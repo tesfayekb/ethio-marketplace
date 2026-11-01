@@ -256,6 +256,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "auth.errorResetLinkInvalid": "ይህ የዳግም ማስጀመሪያ አገናኝ ልክ ያልሆነ ወይም ጊዜው ያለፈበት ነው። አዲስ ይጠይቁ።",
   "panel.marketplace": "ገበያ",
   "panel.myListings": "የሻጭ ማዕከል",
+  "panel.myListingsShort": "ሽያጭ",
   "panel.account": "አካውንት",
   "panel.admin": "አስተዳደር",
   "navSection.menu": "ዝርዝር",
