@@ -79,7 +79,7 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
     await expect(page.getByTestId("rail-menu")).toBeVisible();
   });
 
-  test("DLG-E4+OVE-4 a staff page's first download carries no popover or sheet code; the first press on Filters opens its panel on the same button", async ({
+  test("DLG-E4+OVE-4 a staff page's first download carries no Radix popover or dialog code (the overlay chunk); the first press on Filters opens its panel on the same button", async ({
     page,
   }) => {
     await useJobSuperAdmin(page);
