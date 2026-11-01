@@ -59,18 +59,23 @@ async function ensureMode(page: Page, mode: Mode) {
 async function walk(page: Page, paths: string[]) {
   const staff = await leaseUser();
   const supabase = adminClient();
+  // The admin role's seed does not hold every section (translations, legal,
+  // services). A fresh backend then sends those paths back to the landing
+  // notice. super_admin is the staff fixture the other admin specs use.
   const { data: role, error: roleError } = await supabase
     .from("roles")
     .select("id")
-    .eq("name", "admin")
+    .eq("name", "super_admin")
     .single();
   if (roleError || !role) {
-    throw new Error(`[e2e:ols] role admin not found: ${roleError?.message ?? "none"}`);
+    throw new Error(`[e2e:ols] role super_admin not found: ${roleError?.message ?? "none"}`);
   }
   const granted = await supabase
     .from("user_roles")
     .insert({ user_id: staff.id, role_id: role.id, scope_type: "global" });
-  if (granted.error) throw new Error(`[e2e:ols] granting admin failed: ${granted.error.message}`);
+  if (granted.error) {
+    throw new Error(`[e2e:ols] granting super_admin failed: ${granted.error.message}`);
+  }
   await signIn(page, staff.email, staff.password);
   await consumeAccountLanguage(page);
   let languages: string[] = [];
