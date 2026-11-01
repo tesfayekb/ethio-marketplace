@@ -443,7 +443,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await expectActivePanel(page, "my-listings");
     await expect(
       page.getByTestId(isMobile(page) ? "bottom-bar-my-listings" : "panel-tab-my-listings"),
-    ).toContainText(en["panel.myListings"]);
+    ).toContainText(isMobile(page) ? en["panel.myListingsShort"] : en["panel.myListings"]);
     await expect(page.getByText(en["shell.placeholderTitle"])).toHaveCount(0);
     const scope = await openRailScope(page);
     const item = scope.getByTestId("rail-item-ml-listings");

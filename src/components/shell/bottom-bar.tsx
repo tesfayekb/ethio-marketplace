@@ -122,18 +122,17 @@ export function BottomBar() {
         <ItemBody icon={House} label={label("nav.home")} current={home} />
       </Link>
       {signedIn ? (
-        // Bundle 16 turn R1 (D182 1) — the item opens the seller's panel, so it carries the panel's name
-        // (Seller Centre), as Account does; "My listings" is the panel's list.
+        // The bar uses the short label, as Post does. The panel's name stays panel.myListings.
         <button
           type="button"
           data-testid="bottom-bar-my-listings"
           data-tick=""
-          aria-label={label("panel.myListings")}
+          aria-label={t("panel.myListingsShort")}
           aria-current={myListings ? "page" : undefined}
           onClick={() => switchPanel("my-listings")}
           className={cn(ITEM, tone(myListings))}
         >
-          <ItemBody icon={ClipboardList} label={label("panel.myListings")} current={myListings} />
+          <ItemBody icon={ClipboardList} label={t("panel.myListingsShort")} current={myListings} />
         </button>
       ) : null}
       <Link

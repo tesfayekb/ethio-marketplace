@@ -5898,6 +5898,9 @@
     "panel.admin": [
       "(every page)"
     ],
+    "panel.myListingsShort": [
+      "(every page)"
+    ],
     "post.action.back": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
