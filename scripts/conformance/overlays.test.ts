@@ -7,12 +7,12 @@ import { report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
 
 /**
  * DEC-259 (Foundations turn 31; D234 speed S8) and DEC-260 (turn 32; S9) — THE
- * OVERLAY PRIMITIVES ARRIVE ON DEMAND. The Radix tooltip, dropdown menu, dialog
- * and alert dialog (with floating-ui and their focus and scroll layers) are
+ * OVERLAY PRIMITIVES ARRIVE ON DEMAND. The Radix tooltip, dropdown menu, popover
+ * (turn S6-3), dialog and alert dialog (with floating-ui and their focus and scroll layers) are
  * reached by value only through their impl files, the impl files only through
  * src/components/ui/overlays-impl.ts, and that module only through the loader's
  * loadOnce (src/components/ui/overlay-loader.ts). Everything else uses the
- * facades (tooltip.tsx, dropdown-menu.tsx, dialog-primitive.tsx,
+ * facades (tooltip.tsx, dropdown-menu.tsx, popover.tsx, dialog-primitive.tsx,
  * alert-dialog-primitive.tsx), which draw the trigger at once and the real
  * primitive on the person's first intent. A type-only import is erased by the
  * compiler and passes.
@@ -21,16 +21,19 @@ type Finding = { file: string; line: number; what: string };
 
 /** The specifiers the census watches. */
 const WATCHED =
-  /^(?:@radix-ui\/react-(?:tooltip|dropdown-menu|dialog|alert-dialog)|(?:@\/components\/ui\/|\.{1,2}\/(?:[\w.-]+\/)*)(?:tooltip-impl|dropdown-menu-impl|dialog-impl|alert-dialog-impl|submenu-impl|overlays-impl))$/;
+  /^(?:@radix-ui\/react-(?:tooltip|dropdown-menu|popover|dialog|alert-dialog)|(?:@\/components\/ui\/|\.{1,2}\/(?:[\w.-]+\/)*)(?:tooltip-impl|dropdown-menu-impl|popover-impl|dialog-impl|alert-dialog-impl|submenu-impl|overlays-impl))$/;
 
 /** The one file allowed to reach each watched module (an impl file by its base name). */
 export const MAY_REACH: Record<string, string> = {
   "@radix-ui/react-tooltip": "src/components/ui/tooltip-impl.tsx",
   "@radix-ui/react-dropdown-menu": "src/components/ui/dropdown-menu-impl.tsx",
+  // Turn S6-3: the popover joins the facade (row 48).
+  "@radix-ui/react-popover": "src/components/ui/popover-impl.tsx",
   "@radix-ui/react-dialog": "src/components/ui/dialog-impl.ts",
   "@radix-ui/react-alert-dialog": "src/components/ui/alert-dialog-impl.ts",
   "./tooltip-impl": "src/components/ui/overlays-impl.ts",
   "./dropdown-menu-impl": "src/components/ui/overlays-impl.ts",
+  "./popover-impl": "src/components/ui/overlays-impl.ts",
   "./dialog-impl": "src/components/ui/overlays-impl.ts",
   "./alert-dialog-impl": "src/components/ui/overlays-impl.ts",
   "./submenu-impl": "src/components/ui/overlays-impl.ts",
@@ -139,7 +142,7 @@ const ROOT = process.cwd();
 
 describe("the overlay primitives on demand (DEC-259)", () => {
   it(
-    "CF-OV-1 only the impl files reach Radix's tooltip, menu, dialog and alert dialog, only overlays-impl reaches the impl files, only the loader reaches overlays-impl",
+    "CF-OV-1 only the impl files reach Radix's tooltip, menu, popover, dialog and alert dialog, only overlays-impl reaches the impl files, only the loader reaches overlays-impl",
     () => {
       const files = walkFiles(["src", "e2e", "scripts"], { ext: ["ts", "tsx", "mts", "mjs"] }).map(
         (file) => join(ROOT, file),
@@ -174,6 +177,35 @@ describe("the overlay primitives on demand (DEC-259)", () => {
           "src/features/bad.tsx:1 reaches @radix-ui/react-tooltip by value; only src/components/ui/tooltip-impl.tsx may (DEC-259)",
           "src/features/bad.tsx:2 reaches @/components/ui/dropdown-menu-impl by value; only src/components/ui/overlays-impl.ts may (DEC-259)",
           "src/features/bad.tsx:3 reaches ../components/ui/overlays-impl by value; only src/components/ui/overlay-loader.ts may (DEC-259)",
+        ].join("\n"),
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("CF-OV-6 planted: the popover's package and its impl file are reached only by their one reader (turn S6-3)", () => {
+    const dir = join(ROOT, "node_modules/.cache/overlays-popover");
+    mkdirSync(join(dir, "src/components/ui"), { recursive: true });
+    mkdirSync(join(dir, "src/components/shell"), { recursive: true });
+    try {
+      writeFileSync(
+        join(dir, "src/components/shell/panel.tsx"),
+        'import * as P from "@radix-ui/react-popover";\nimport { PopoverContent } from "@/components/ui/popover-impl";\nimport type * as Impl from "@/components/ui/popover-impl";\n',
+      );
+      writeFileSync(
+        join(dir, "src/components/ui/popover-impl.tsx"),
+        'import * as PopoverPrimitive from "@radix-ui/react-popover";\n',
+      );
+      writeFileSync(
+        join(dir, "src/components/ui/overlays-impl.ts"),
+        'export * as popover from "./popover-impl";\n',
+      );
+      const files = walkFiles([join(dir, "src")], { ext: ["ts", "tsx"] });
+      expect(report(overlayReaches(files, dir))).toBe(
+        [
+          "src/components/shell/panel.tsx:1 reaches @radix-ui/react-popover by value; only src/components/ui/popover-impl.tsx may (DEC-259)",
+          "src/components/shell/panel.tsx:2 reaches @/components/ui/popover-impl by value; only src/components/ui/overlays-impl.ts may (DEC-259)",
         ].join("\n"),
       );
     } finally {
@@ -227,6 +259,14 @@ describe("the overlay primitives on demand (DEC-259)", () => {
     expect(exportedNames("src/components/ui/dropdown-menu.tsx")).toEqual(
       exportedNames("src/components/ui/dropdown-menu-impl.tsx"),
     );
+    expect(exportedNames("src/components/ui/popover.tsx")).toEqual(
+      exportedNames("src/components/ui/popover-impl.tsx"),
+    );
+    expect(exportedNames("src/components/ui/popover.tsx")).toEqual([
+      "Popover",
+      "PopoverContent",
+      "PopoverTrigger",
+    ]);
     expect(exportedNames("src/components/ui/tooltip.tsx")).toHaveLength(4);
     expect(exportedNames("src/components/ui/dropdown-menu.tsx")).toHaveLength(16); // F4b (D268): DropdownMenuIcon joins the parts
     expect(exportedNames("src/components/ui/dialog-primitive.tsx")).toEqual([

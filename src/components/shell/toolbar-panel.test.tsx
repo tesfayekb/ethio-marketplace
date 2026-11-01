@@ -34,24 +34,34 @@ describe("ToolbarPanel", () => {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: WIDTH });
   });
 
-  it("HS-16 a narrow screen opens a modal bottom sheet with a named close; a wide one a popover; Escape and the footer close both", async () => {
+  it("HS-16 a narrow screen opens the sheet's bottom side (grabber, named close, the shared footer); a wide one the popover's panel; Escape and the footer close both", async () => {
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 360 });
     const narrow = renderPanel();
     fireEvent.click(await screen.findByTestId("f"));
     const sheet = await screen.findByTestId("f-panel");
     expect(sheet).toHaveAttribute("role", "dialog");
+    expect(sheet).toHaveAttribute("data-dialog-panel", "");
+    expect(sheet.querySelector("[data-dialog-grabber]")).not.toBeNull();
+    expect(document.querySelector("[data-dialog-scrim]")).not.toBeNull();
     expect(screen.getByRole("heading", { name: "Filters" })).toBeTruthy();
     expect(screen.getByTestId("f-close")).toHaveAccessibleName("common.close");
+    expect(screen.getByTestId("f-done").parentElement).toHaveClass("flex-row", "shadow-rule-top");
     fireEvent.click(screen.getByTestId("f-done"));
     expect(screen.queryByTestId("f-panel")).toBeNull();
     narrow.unmount();
 
     Object.defineProperty(window, "innerWidth", { configurable: true, value: 1280 });
     renderPanel();
+    expect(screen.getByTestId("f")).toHaveAttribute("aria-haspopup", "dialog");
     fireEvent.click(screen.getByTestId("f"));
     expect(await screen.findByTestId("f-body")).toBeTruthy();
+    const panel = screen.getByTestId("f-panel");
+    expect(panel).toHaveAttribute("data-dialog-panel", "");
+    expect(panel.querySelector("[data-dialog-grabber]")).toBeNull();
+    expect(document.querySelector("[data-dialog-scrim]")).toBeNull();
     expect(screen.queryByTestId("f-close")).toBeNull();
-    fireEvent.keyDown(screen.getByTestId("f-panel"), { key: "Escape" });
+    expect(screen.getByTestId("f-done").parentElement).toHaveClass("flex-row", "shadow-rule-top");
+    fireEvent.keyDown(panel, { key: "Escape" });
     expect(screen.queryByTestId("f-panel")).toBeNull();
   });
 

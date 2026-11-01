@@ -47,7 +47,8 @@ const BUDGET_KIB = {
   // DEC-296 (turn A): local 208.706 + 0.1 = 208.8 KiB sat inside the NEAR band (CI's evidence prints no entry size for a green run); 209 → 210 = floor(208.8 + 0.3) + 1.
   // DEC-296 (turn C1): local 210.2 KiB, over 210 — press.ts (the one press listener, D263/D270) and the PRESSED classes in the root, on every page; 210 → 211 = floor(210.2 + 0.3) + 1.
   // DEC-296 (turn C2): local 210.9 KiB, over 211 — the tap tick and its switch store (press.ts), the release fade, useMenuAt on the router's state, and the bottom bar's rule, all in the root; 211 → 212 = floor(210.9 + 0.3) + 1.
-  js: 212,
+  // DEC-296 (turn S6-3): local 211.6 + 0.1 KiB sat inside the NEAR band of 212 — the popover joins the overlay facade (row 48): its closed state and the click replayed once in overlay-facade.tsx, on every page, while Radix's popover leaves the staff toolbars' first download; 212 → 213 = ceilingForLocal(211.6).
+  js: 213,
   css: 40,
 };
 

@@ -35,8 +35,12 @@ import {
  * The server and the hydration render draw the closed trigger alone, so they
  * agree; a failed download leaves the closed trigger and the next intent asks
  * again (overlay-loader.ts logs the failure).
+ *
+ * Turn S6-3 — the popover (popover.tsx) is the third kind: Radix's popover opens on its
+ * trigger's click, so the click is the intent replayed; the consumer's own click handler hears
+ * the person's click once, never the replay.
  */
-export type OverlayKind = "tooltip" | "menu";
+export type OverlayKind = "tooltip" | "menu" | "popover";
 
 type Props = Record<string, unknown>;
 
@@ -45,7 +49,8 @@ type Intent =
   | { kind: "hover" }
   | { kind: "focus" }
   | { kind: "press"; pointerType: string }
-  | { kind: "key"; key: string };
+  | { kind: "key"; key: string }
+  | { kind: "click" };
 
 const useIsoLayoutEffect = typeof window === "undefined" ? React.useEffect : React.useLayoutEffect;
 
@@ -68,6 +73,14 @@ interface RootState {
 const ROOTS: Record<OverlayKind, React.Context<RootState | null>> = {
   tooltip: React.createContext<RootState | null>(null),
   menu: React.createContext<RootState | null>(null),
+  popover: React.createContext<RootState | null>(null),
+};
+
+/** What a failed download is reported as (INC-911). */
+const FAILED: Record<OverlayKind, string> = {
+  tooltip: "a menu's code",
+  menu: "a menu's code",
+  popover: "a panel's code",
 };
 
 function useRoot(kind: OverlayKind, part: string): RootState {
@@ -125,19 +138,22 @@ export function OverlayRoot({
   /** Turn 34c-3 — each activation's number: a late failure of an older one says nothing. */
   const asks = React.useRef(0);
 
-  const activate = React.useCallback((next: Intent | null) => {
-    asks.current += 1;
-    const ask = asks.current;
-    intent.current = next;
-    setWanted(true);
-    loadOverlays().catch((error: unknown) => {
-      if (ask !== asks.current) return;
-      intent.current = null;
-      setWanted(false);
-      // INC-911 — the person's tap opened nothing: the shell's notice says so.
-      reportOnDemandFailure("a menu's code", error);
-    });
-  }, []);
+  const activate = React.useCallback(
+    (next: Intent | null) => {
+      asks.current += 1;
+      const ask = asks.current;
+      intent.current = next;
+      setWanted(true);
+      loadOverlays().catch((error: unknown) => {
+        if (ask !== asks.current) return;
+        intent.current = null;
+        setWanted(false);
+        // INC-911 — the person's tap opened nothing: the shell's notice says so.
+        reportOnDemandFailure(FAILED[kind], error);
+      });
+    },
+    [kind],
+  );
 
   const warm = React.useCallback(() => {
     loadOverlays().catch(() => undefined);
@@ -174,6 +190,12 @@ const CLOSED: Record<OverlayKind, Props> = {
   menu: {
     type: "button",
     "aria-haspopup": "menu",
+    "aria-expanded": false,
+    "data-state": "closed",
+  },
+  popover: {
+    type: "button",
+    "aria-haspopup": "dialog",
     "aria-expanded": false,
     "data-state": "closed",
   },
@@ -221,6 +243,9 @@ function replay(intent: Intent, node: HTMLElement, hovered: boolean): void {
       node.dispatchEvent(
         new KeyboardEvent("keydown", { bubbles: true, cancelable: true, key: intent.key }),
       );
+      return;
+    case "click":
+      node.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
   }
 }
 
@@ -238,6 +263,8 @@ export function OverlayTrigger({
   const node = React.useRef<HTMLElement | null>(null);
   const hovered = React.useRef(false);
   const pressed = React.useRef(false);
+  /** True while the intent is replayed: the consumer heard the person's click already. */
+  const replaying = React.useRef(false);
 
   useIsoLayoutEffect(() => {
     const sink = root.sink;
@@ -253,7 +280,13 @@ export function OverlayTrigger({
     if (!live) return;
     const intent = root.intent.current;
     root.intent.current = null;
-    if (intent !== null && node.current !== null) replay(intent, node.current, hovered.current);
+    if (intent === null || node.current === null) return;
+    replaying.current = true;
+    try {
+      replay(intent, node.current, hovered.current);
+    } finally {
+      replaying.current = false;
+    }
   }, [live, root.intent]);
 
   const track: Props = {
@@ -295,6 +328,20 @@ export function OverlayTrigger({
         if (!pressed.current) root.activate({ kind: "focus" });
       },
     };
+  } else if (root.kind === "popover") {
+    mine = {
+      ...CLOSED.popover,
+      ...track,
+      onPointerEnter: (event: React.PointerEvent) => {
+        (track.onPointerEnter as Handler)(event);
+        root.warm();
+      },
+      onFocus: () => root.warm(),
+      // As Radix's trigger: a click the consumer prevented opens nothing.
+      onClick: (event: React.MouseEvent) => {
+        if (!event.defaultPrevented) root.activate({ kind: "click" });
+      },
+    };
   } else {
     mine = {
       ...CLOSED.menu,
@@ -326,9 +373,25 @@ export function OverlayTrigger({
     [theirs],
   );
 
+  /** The consumer's click handler (on the part or on its element), deaf to the replayed click. */
+  const heardOnce = (handler: unknown): Handler | undefined =>
+    typeof handler === "function"
+      ? (event) => {
+          if (!replaying.current) (handler as Handler)(event);
+        }
+      : undefined;
+  const own: Props =
+    incoming.onClick === undefined
+      ? incoming
+      : { ...incoming, onClick: heardOnce(incoming.onClick) };
+  const element =
+    React.isValidElement<Props>(children) && children.props.onClick !== undefined
+      ? React.cloneElement(children, { onClick: heardOnce(children.props.onClick) })
+      : children;
+
   return (
     <Slot {...mine} ref={ref}>
-      <Slot {...incoming}>{children}</Slot>
+      <Slot {...own}>{element}</Slot>
     </Slot>
   );
 }

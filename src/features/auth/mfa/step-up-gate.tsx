@@ -1,139 +1,54 @@
-import { Link } from "@tanstack/react-router";
-import { useRef, useState, type ReactNode } from "react";
+import { Suspense, useEffect, type ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { useI18n } from "@/i18n";
+import { resilientLazy } from "@/lib/resilient-lazy";
 
+import type { StepUpDialogProps } from "./step-up-dialog";
 import { useStepUp, type GuardFn } from "./use-step-up";
+
+/** The dialog's code did not download: the guarded action ends as unavailable (INC-911). */
+function StepUpUnreachable({ unavailable }: StepUpDialogProps) {
+  useEffect(() => {
+    unavailable();
+  }, [unavailable]);
+  return null;
+}
+
+const StepUpDialog = resilientLazy(
+  () => import("./step-up-dialog").then((module) => module.StepUpDialog),
+  "the step-up dialog",
+  StepUpUnreachable,
+);
 
 /**
  * U1f — STEP-UP GATE (INC-079).
  *
  * Render-prop wrapper: children receive `guard`, and every sensitive action's
- * click handler passes its work to it. The modal below is the one dialog look
- * (turn S6-1), 360-first (full-width controls, ≥44px targets) and RTL-safe
- * (logical spacing only).
+ * click handler passes its work to it. While an action waits, the gate draws
+ * its dialog (step-up-dialog.tsx) on the TOP layer (INC-124).
  *
- * U4i-6 (a) — STACKING LAW (INC-124). The gate used to be a plain in-tree
- * `fixed z-50` panel, so any Radix dialog that ARMED the action (the delete
- * confirm) portalled to the end of <body> at the same z and painted over it —
- * and kept the focus trap. It now renders through the dialog primitive's own
- * portal on the dedicated TOP layer (`layer="top"`, layers.ts Z_TOP) with focus
- * moved to the code input, so the arming dialog stays visible beneath and
- * step-up is usable.
+ * Turn S6-3 (row 48) — the dialog is fetched on the first step-up, never on the
+ * page's first download (resilientLazy); a failed download reports through the
+ * shell's one notice and ends the guarded action as StepUpUnavailable, as a
+ * failed overlay download does (the dialog root's `onUnavailable`).
  */
 export function StepUpGate({ children }: { children: (guard: GuardFn) => ReactNode }) {
-  const { t } = useI18n();
   const { mode, busy, errorKey, guard, submitCode, close, unavailable } = useStepUp();
-  const [code, setCode] = useState("");
-  const codeRef = useRef<HTMLInputElement | null>(null);
-
-  const cancel = () => {
-    setCode("");
-    close();
-  };
 
   return (
     <>
       {children(guard)}
 
       {mode === "closed" ? null : (
-        <Dialog
-          open
-          onUnavailable={unavailable}
-          onOpenChange={(next) => {
-            if (!next && !busy) cancel();
-          }}
-        >
-          <DialogContent
-            data-testid="step-up-modal"
-            layer="top"
-            size="narrow"
-            onOpenAutoFocus={(event) => {
-              if (mode !== "code") return;
-              event.preventDefault();
-              codeRef.current?.focus();
-            }}
-          >
-            <DialogHeader>
-              <DialogTitle id="step-up-title">
-                {mode === "code" ? t("mfa.stepUpTitle") : t("mfa.stepUpNoFactorTitle")}
-              </DialogTitle>
-              {mode === "code" ? (
-                <DialogDescription>{t("mfa.stepUpBody")}</DialogDescription>
-              ) : (
-                <DialogDescription data-testid="step-up-no-factor">
-                  {t("mfa.stepUpNoFactorBody")}
-                </DialogDescription>
-              )}
-            </DialogHeader>
-
-            {mode === "code" ? (
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-foreground" htmlFor="step-up-code">
-                  {t("mfa.codeLabel")}
-                </label>
-                <Input
-                  id="step-up-code"
-                  ref={codeRef}
-                  data-testid="step-up-code"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={6}
-                  placeholder={t("mfa.codePlaceholder")}
-                  value={code}
-                  onChange={(event) => setCode(event.target.value)}
-                />
-                {errorKey ? (
-                  <p role="alert" data-testid="step-up-error" className="text-sm text-destructive">
-                    {t(errorKey)}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                size="touch"
-                data-testid="step-up-cancel"
-                disabled={busy}
-                onClick={cancel}
-              >
-                {t("settings.cancel")}
-              </Button>
-              {mode === "code" ? (
-                <Button
-                  size="touch"
-                  data-testid="step-up-submit"
-                  disabled={busy || code.trim().length === 0}
-                  onClick={() => {
-                    void submitCode(code).then((ok) => {
-                      if (ok) setCode("");
-                    });
-                  }}
-                >
-                  {t("mfa.stepUpConfirm")}
-                </Button>
-              ) : (
-                <Button asChild size="touch">
-                  <Link to="/settings" data-testid="step-up-settings-link">
-                    {t("mfa.stepUpGoToSettings")}
-                  </Link>
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Suspense fallback={null}>
+          <StepUpDialog
+            mode={mode}
+            busy={busy}
+            errorKey={errorKey}
+            submitCode={submitCode}
+            close={close}
+            unavailable={unavailable}
+          />
+        </Suspense>
       )}
     </>
   );

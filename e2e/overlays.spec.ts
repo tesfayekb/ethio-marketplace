@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-import { gotoReady } from "./helpers/ui";
+import { gotoReady, useJobSuperAdmin } from "./helpers/ui";
 
 /**
  * DEC-259 (Foundations turn 31) and DEC-260 (turn 32) — THE OVERLAY PRIMITIVES
@@ -8,11 +8,14 @@ import { gotoReady } from "./helpers/ui";
  * floating-ui and their layers) is not on any page's first download: the browser
  * asks for it once the page has loaded and is idle, or on a trigger's first
  * intent, and the trigger the person already sees answers that intent itself.
- * Read-only: no rows are written.
+ * Turn S6-3 adds the popover (row 48), whose code arrives the same way.
+ * Read-only: no rows are written. DLG-E4+OVE-4 signs in the pooled job super admin (J9).
  */
 
 /** The overlay chunk's own name in the build: overlays-impl-<hash>.js. */
 const OVERLAY_CHUNK = /\/overlays-impl-[^/]+\.js$/;
+/** A name only Radix's popover code carries (its portal part), turn S6-3. */
+const RADIX_POPOVER = "PopoverPortal";
 
 test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
   test("OVE-1 the overlay code is asked for after the page's load event, never before its first paint", async ({
@@ -76,5 +79,57 @@ test.describe("OVERLAYS — their code after the first paint (DEC-259)", () => {
     await expect(toggle).toBeFocused();
     await toggle.click();
     await expect(page.getByTestId("rail-menu")).toBeVisible();
+  });
+
+  test("DLG-E4+OVE-4 a staff page's first download carries no Radix popover or dialog code (the overlay chunk); the first press on Filters opens its panel on the same button", async ({
+    page,
+  }) => {
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/countries");
+    // The first download: every script the page asked for before its load event (as OVE-1);
+    // the page's own idle download comes after it.
+    const firstScripts = await page.evaluate(() => {
+      const navigation = performance.getEntriesByType(
+        "navigation",
+      )[0] as PerformanceNavigationTiming;
+      return performance
+        .getEntriesByType("resource")
+        .filter((entry) => entry.startTime < navigation.loadEventEnd)
+        .map((entry) => entry.name)
+        .filter((name) => new URL(name).pathname.endsWith(".js"));
+    });
+    expect(firstScripts.length).toBeGreaterThan(0);
+    expect(firstScripts.filter((name) => OVERLAY_CHUNK.test(name))).toEqual([]);
+    // Radix's popover names its portal part "PopoverPortal"; no file of ours does, so a script
+    // that carries the string carries Radix's popover.
+    const carriers: string[] = [];
+    for (const script of firstScripts) {
+      if ((await (await page.request.get(script)).text()).includes(RADIX_POPOVER))
+        carriers.push(script);
+    }
+    expect(carriers).toEqual([]);
+
+    // Turn S6-3 (row 48): the panel is the popover from md, the sheet's bottom side on a phone.
+    const trigger = page.getByTestId("country-filters");
+    await expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await trigger.click();
+    const panel = page.getByTestId("country-filters-panel");
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveAttribute("data-dialog-panel", "");
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    const overlayChunk = await page.evaluate(
+      (source) =>
+        performance
+          .getEntriesByType("resource")
+          .map((entry) => entry.name)
+          .find((name) => new RegExp(source).test(name)) ?? null,
+      OVERLAY_CHUNK.source,
+    );
+    if (overlayChunk === null) throw new Error("the press fetched no overlay chunk");
+    expect(await (await page.request.get(overlayChunk)).text()).toContain(RADIX_POPOVER);
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
 });

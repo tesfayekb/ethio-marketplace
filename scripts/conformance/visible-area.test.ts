@@ -10,8 +10,8 @@ import { codeOf, readAllowlist, report, walkFiles, TREE_SCAN_MS } from "./kit";
  *    bar `bottom-bar` or the form action bar `form-layout-actions`) outside visible-area.ts;
  *  - a DropdownMenuContent or PopoverContent given its own collisionPadding (each owner reads
  *    the area on open; F4a-2 adds the popover);
- *  - an import of visible-area.ts outside its readers — the facade's on-demand impl, the
- *    searchable picker and (F4a-2) the popover.
+ *  - an import of visible-area.ts outside its readers — the facade's on-demand impls (the
+ *    menu's, and from turn S6-3 the popover's, popover-impl.tsx) and the searchable picker.
  * Exceptions are lines `key | reason | until` in visible-area-allowlist.txt (empty, ruled).
  */
 type Finding = { file: string; line: number; what: string };
@@ -21,7 +21,7 @@ export const AREA_MODULE = "src/lib/visible-area.ts";
 export const AREA_READERS = new Set([
   "src/components/ui/dropdown-menu-impl.tsx",
   "src/components/searchable-picker.tsx",
-  "src/components/ui/popover.tsx",
+  "src/components/ui/popover-impl.tsx",
 ]);
 const CHROME_READ =
   /querySelector(?:All)?\s*(?:<[^>()]*>)?\(\s*["'`][^"'`]*(?:data-chrome|data-testid=\\?["']?(?:bottom-bar|form-layout-actions)\\?["']?\])/g;
@@ -42,7 +42,7 @@ export function areaFindings(files: Src[]): { findings: Finding[]; keys: string[
       push(m.index ?? 0, "chrome", "reads the chrome itself; use visibleArea() (D267)");
     if (
       name !== "src/components/ui/dropdown-menu-impl.tsx" &&
-      name !== "src/components/ui/popover.tsx"
+      name !== "src/components/ui/popover-impl.tsx"
     )
       for (const m of code.matchAll(OWN_PADDING))
         push(m.index ?? 0, "padding", "a menu with its own collisionPadding (D267)");
@@ -115,5 +115,14 @@ describe("CF-AREA-1 — an open list's room comes from one reader (D267)", () =>
       },
     ]);
     expect(clean.findings).toEqual([]);
+  });
+
+  it("VA-4: the popover's facade reading the area fails; its on-demand impl passes (turn S6-3)", () => {
+    const text = `import { collisionPaddingNow } from "@/lib/visible-area";`;
+    const { keys } = areaFindings([
+      { name: "src/components/ui/popover.tsx", text },
+      { name: "src/components/ui/popover-impl.tsx", text },
+    ]);
+    expect(keys).toEqual(["src/components/ui/popover.tsx#import"]);
   });
 });
