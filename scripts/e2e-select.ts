@@ -284,6 +284,26 @@ export const AREAS: Area[] = [
     specs: ["e2e/sage-tiers.spec.ts"],
   },
   {
+    // Turn SAGE-S5: the buyer's ad page in the Sage look by tier.
+    name: "sage-ad-page",
+    src: [
+      "src/components/marketplace/card-tier.ts",
+      "src/components/marketplace/tier-flag.tsx",
+      "src/components/marketplace/listing-picture.tsx",
+      "src/components/marketplace/negotiable-badge.tsx",
+      "src/components/shell/band-row.ts",
+      "src/features/posting/preview/listing-detail.tsx",
+      "src/features/posting/preview/photo-gallery.tsx",
+      "src/features/posting/preview/safety-box.tsx",
+      "src/features/ad-page/**",
+      "src/lib/visible-area.ts",
+      "src/routes/l.*",
+      "src/styles.css",
+      "src/lib/themes.ts",
+    ],
+    specs: ["e2e/sage-ad-page.spec.ts"],
+  },
+  {
     name: "press",
     src: [
       "src/lib/press.ts",

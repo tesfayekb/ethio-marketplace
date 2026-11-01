@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { cardLookOf, type PaidLook, type PaidTier } from "./card-tier";
-import { TIER_STAR_PATH, TierFlag, TierWord } from "./tier-flag";
+import { TIER_STAR_PATH, TierFlag, TierTag, TierWord } from "./tier-flag";
 
 vi.mock("@/i18n", () => ({
   useI18n: () => ({ t: (key: string) => key, language: "en" }),
@@ -96,5 +96,47 @@ describe("TierFlag and TierWord", () => {
     unmount();
     render(<TierWord {...paid("featured")} />);
     expect(screen.getByTestId("listing-card-tier-word").querySelectorAll("svg")).toHaveLength(1);
+  });
+
+  it("TFL-5 on the ad page's photo the flag keeps its drawing and name, ×1.15 then ×0.72 from 32rem (S5)", () => {
+    render(<TierFlag {...paid("premium")} on="photo" />);
+    expect(screen.queryByTestId("listing-card-tier")).toBeNull();
+    const flag = screen.getByTestId("listing-detail-tier");
+    expect(flag).toHaveAttribute("role", "img");
+    expect(flag).toHaveAttribute("aria-label", "tier.premium");
+    expect(flag).toHaveAttribute("data-tier", "premium");
+    const classes = flag.getAttribute("class")?.split(/\s+/) ?? [];
+    for (const c of ["[--flag-scale:1.15]", "@min-[32rem]:[--flag-scale:0.72]", "rtl:-scale-x-100"])
+      expect(classes).toContain(c);
+    expect(classes).not.toContain("[--flag-scale:1.6]");
+    expect(flag.querySelectorAll(`path[d="${TIER_STAR_PATH}"]`)).toHaveLength(2);
+  });
+
+  it("TFL-6 the tier tag is the word and its stars in a pill ringed in the tier colour, silent (S5)", () => {
+    const { unmount } = render(<TierTag {...paid("premium")} />);
+    const tag = screen.getByTestId("listing-detail-tier-tag");
+    expect(tag).toHaveAttribute("aria-hidden", "true");
+    expect(tag).toHaveAttribute("data-tier", "premium");
+    expect(tag).toHaveTextContent("tier.premium");
+    const classes = tag.getAttribute("class")?.split(/\s+/) ?? [];
+    for (const c of [
+      "bg-card",
+      "rounded-full",
+      "text-xs",
+      "font-extrabold",
+      "uppercase",
+      "ring-1",
+      "text-tier-premium-ink",
+      "ring-tier-premium-ring",
+    ])
+      expect(classes).toContain(c);
+    expect(tag.querySelectorAll("svg")).toHaveLength(2);
+    expect(tag.firstElementChild?.className).toContain("text-tier-premium-star");
+    unmount();
+    render(<TierTag {...paid("featured")} />);
+    const featured = screen.getByTestId("listing-detail-tier-tag");
+    expect(featured.getAttribute("class")).toContain("ring-tier-featured-ring");
+    expect(featured.getAttribute("class")).toContain("text-tier-featured-ink");
+    expect(featured.querySelectorAll("svg")).toHaveLength(1);
   });
 });

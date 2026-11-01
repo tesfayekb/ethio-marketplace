@@ -16,8 +16,20 @@ export const BAND_LOOK = {
   heading: "text-xs font-bold uppercase tracking-[1.2px] text-band-label",
 } as const;
 
-/** D265 — the current-item pill belongs only to the phone bottom bar. */
+/**
+ * D265 — the current-item pill: the phone bottom bar's current item (and, by the same values, its
+ * pressed icon, menu-row.ts PRESSED.barIcon) and, from turn S5 (ruling 1, answer 3), the ad
+ * page's section bar's current tab (BAND_TAB_CURRENT).
+ */
 export const CURRENT_PILL = "rounded-full bg-nav-pill shadow-pill text-nav-ink";
+/**
+ * Sage S5 (spec §12, R9) — the ad page's segmented section bar: a tab is a full-height (44 px)
+ * segment with no track padding; the current one is pressed in, a paid ad's tier tinting it
+ * (card-tier.ts adPageLookOf().tab).
+ */
+export const BAND_TAB = "min-h-11 rounded-full whitespace-nowrap";
+export const BAND_TAB_IDLE = "bg-transparent text-muted-foreground";
+export const BAND_TAB_CURRENT = CURRENT_PILL;
 
 /** D265 — the three content rows share the location track and segment geometry. */
 export const BAND_TRACK = "flex h-8.5 items-center rounded-track bg-track p-0.75 shadow-track";

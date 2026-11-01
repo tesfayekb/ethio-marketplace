@@ -4,10 +4,12 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
   type RefObject,
 } from "react";
 
-import { ListingRibbon } from "@/components/marketplace/listing-picture";
+import { PhotoRibbon } from "@/components/marketplace/listing-picture";
+import type { RibbonPalette } from "@/components/marketplace/ribbon-geometry";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { StripArrows, keepInStrip } from "@/components/ui/strip-arrows";
 import { useI18n } from "@/i18n";
@@ -49,9 +51,10 @@ function useSwipe(onStep: (direction: 1 | -1) => void) {
   };
 }
 
+/** Sage S5 (spec §12) — 44 px round, white at 92 %, a soft drop and no border. */
 const arrowClass =
   "absolute top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full " +
-  "border border-border bg-background/90 text-lg text-foreground shadow-sm disabled:opacity-30";
+  "bg-card/92 text-lg text-foreground shadow-arrow disabled:opacity-30";
 
 /**
  * D161 (the operator, 2026-10-13) — THE LISTING'S PHOTO GALLERY, as big sites
@@ -78,12 +81,20 @@ const arrowClass =
  * INC-613 — on a computer the photo sits at the TOP of its 4:3 frame, so a
  * photo wider than 4:3 lines up with the first thumbnail beside it (centred, a
  * wide photo sat below the thumbnails' top). On a phone it stays centred.
+ *
+ * Sage S5 (spec §12) — the photo well in --photo-empty at 14 px; the ribbon in
+ * the ad's palette pinned to the main photo's bottom-end corner with its caps
+ * uncut, the tier flag (the caller's) on its top-start corner; thumbnails at
+ * 6 px with a hairline ring, the chosen one edged in the tier's accent.
  */
 export function PhotoGallery({
   photos,
   markUnscreened = false,
   ribbon = null,
   fill: fillColumn = false,
+  palette = "pearl",
+  flag = null,
+  thumbOn = "border-primary",
 }: {
   photos: readonly GalleryPhoto[];
   /** D158 — staff's preview marks a photo held while photo screening was off. */
@@ -92,6 +103,12 @@ export function PhotoGallery({
   ribbon?: string | null;
   /** DEC-197 — from a 32rem container the gallery grows to its card's height (the photo whole, centred, never shorter than its 4:3 height). Below 32rem nothing changes. */
   fill?: boolean;
+  /** Spec §8 — the ribbon's palette, from the ad's tier (card-tier.ts adPageLookOf). */
+  palette?: RibbonPalette;
+  /** Spec §12 — the tier flag (TierFlag on="photo"), drawn on the main photo's top-start corner. */
+  flag?: ReactNode;
+  /** The chosen thumbnail's edge (adPageLookOf().thumbOn). */
+  thumbOn?: string;
 }) {
   const { t } = useI18n();
   const total = photos.length;
@@ -123,7 +140,7 @@ export function PhotoGallery({
             data-index={at}
             aria-label={t("post.gallery.enlarge")}
             aria-describedby={placeId}
-            className={`flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-md bg-muted${fillColumn ? " @min-[32rem]:min-h-full" : ""}`}
+            className={`flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-row bg-photo-empty${fillColumn ? " @min-[32rem]:min-h-full" : ""}`}
             style={{ touchAction: "pan-y" }}
             {...swipe.handlers}
             onClick={() => {
@@ -149,11 +166,23 @@ export function PhotoGallery({
             />
           </button>
           {ribbon !== null ? (
-            <div
-              className={`pointer-events-none absolute overflow-hidden rounded-md ${fillColumn ? "inset-0" : "inset-x-0 top-0 aspect-[4/3]"}`}
-            >
-              <ListingRibbon text={ribbon} />
+            <>
+              <PhotoRibbon
+                text={ribbon}
+                palette={palette}
+                rounded="rounded-row"
+                className={fillColumn ? "inset-0" : "inset-x-0 top-0 aspect-[4/3]"}
+              />
               <span className="sr-only">{ribbon}</span>
+            </>
+          ) : null}
+          {flag !== null ? (
+            // The flag's own container, so its size follows the photo and no other query moves.
+            <div
+              data-testid="gallery-flag"
+              className="@container pointer-events-none absolute inset-0"
+            >
+              {flag}
             </div>
           ) : null}
           {markUnscreened && photo.unscreened === true ? (
@@ -207,6 +236,7 @@ export function PhotoGallery({
               photos={photos}
               at={at}
               onPick={go}
+              thumbOn={thumbOn}
               testid="gallery-thumbs"
               className="scrollbar-none flex gap-2 overflow-x-auto @min-[32rem]:max-h-[27rem] @min-[32rem]:w-16 @min-[32rem]:flex-col @min-[32rem]:overflow-x-hidden @min-[32rem]:overflow-y-auto"
             />
@@ -220,7 +250,13 @@ export function PhotoGallery({
         ) : null}
       </div>
       {viewer ? (
-        <Viewer photos={photos} at={at} onGo={go} onClose={() => setViewer(false)} />
+        <Viewer
+          photos={photos}
+          at={at}
+          onGo={go}
+          onClose={() => setViewer(false)}
+          thumbOn={thumbOn}
+        />
       ) : null}
     </div>
   );
@@ -242,6 +278,7 @@ function Thumbs({
   photos,
   at,
   onPick,
+  thumbOn = "border-primary",
   testid,
   className,
 }: {
@@ -250,6 +287,7 @@ function Thumbs({
   photos: readonly GalleryPhoto[];
   at: number;
   onPick: (index: number) => void;
+  thumbOn?: string;
   testid: string;
   className: string;
 }) {
@@ -271,8 +309,11 @@ function Thumbs({
             data-index={index}
             aria-label={fill(t("post.gallery.show"), { index: index + 1 })}
             aria-current={index === at ? "true" : undefined}
-            className={`block h-12 w-16 overflow-hidden rounded-sm border-2 ${
-              index === at ? "border-primary" : "border-transparent opacity-80 hover:opacity-100"
+            // The idle edge is an outline on the border's band: a ring would be cut by the strip.
+            className={`block h-12 w-16 overflow-hidden rounded-thumb border-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring ${
+              index === at
+                ? thumbOn
+                : "border-transparent opacity-80 outline-1 -outline-offset-1 outline-hairline hover:opacity-100"
             }`}
             onClick={() => onPick(index)}
           >
@@ -296,11 +337,13 @@ function Viewer({
   at,
   onGo,
   onClose,
+  thumbOn,
 }: {
   photos: readonly GalleryPhoto[];
   at: number;
   onGo: (index: number) => void;
   onClose: () => void;
+  thumbOn: string;
 }) {
   const { t } = useI18n();
   const total = photos.length;
@@ -390,6 +433,7 @@ function Viewer({
               photos={photos}
               at={at}
               onPick={onGo}
+              thumbOn={thumbOn}
               testid="gallery-viewer-thumbs"
               // INC-720 — safe centre: centred while the row fits, start-aligned
               // when it overflows, so the first photos stay reachable.

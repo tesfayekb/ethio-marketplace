@@ -183,6 +183,17 @@ it("AV-7 the buyer's mapping says buyer and carries no value", () => {
   expect(Object.values(view.contactPref)).toEqual([{ show: true }, { show: true }]);
 });
 
+it("AV-11 the document's tier travels into the view; a word it does not know is null (Sage S5)", () => {
+  const doc = document();
+  expect(adPageView(doc, "en").tier).toBe("regular");
+  doc.tier = "premium";
+  expect(adPageView(doc, "en").tier).toBe("premium");
+  doc.tier = "featured";
+  expect(adPageView(doc, "en").tier).toBe("featured");
+  doc.tier = "platinum";
+  expect(adPageView(doc, "en").tier).toBeNull();
+});
+
 it("AV-9 the coverage places' names travel into the view in the document's order (INC-940)", () => {
   const doc = document();
   doc.places.coverage = ["b", "a"];

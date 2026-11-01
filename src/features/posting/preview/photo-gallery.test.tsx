@@ -268,6 +268,42 @@ describe("PhotoGallery — the thumbnails' strip (INC-717, INC-720)", () => {
     expect(screen.getByTestId("listing-detail-gallery")).not.toHaveClass("@min-[32rem]:h-full");
     expect(mainImage()).toHaveClass("@min-[32rem]:object-top");
   });
+
+  it("GAL-11 the tier's flag sits in its own measured corner over the main photo; without one nothing is drawn (Sage S5)", () => {
+    const { unmount } = render(<PhotoGallery photos={THREE} />);
+    expect(screen.queryByTestId("gallery-flag")).toBeNull();
+    unmount();
+    render(<PhotoGallery photos={THREE} flag={<span data-testid="scratch-flag" />} />);
+    const corner = screen.getByTestId("gallery-flag");
+    expect(corner).toHaveClass("@container", "pointer-events-none", "absolute", "inset-0");
+    expect(within(corner).getByTestId("scratch-flag")).toBeInTheDocument();
+    expect(corner.parentElement).toBe(screen.getByTestId("gallery-main").parentElement);
+    expect(screen.getByTestId("gallery-main").parentElement).not.toHaveClass("@container");
+  });
+
+  it("GAL-12 the ribbon takes the tier's palette; its band is clipped to the photo's corners and its caps are not (Sage S5)", () => {
+    render(<PhotoGallery photos={THREE} ribbon="Reserved" palette="gold" />);
+    const band = screen.getByTestId("listing-ribbon");
+    expect(band).toHaveAttribute("data-ribbon", "gold");
+    expect(band.parentElement).toHaveClass("overflow-hidden", "rounded-row");
+    const ends = screen.getByTestId("listing-ribbon-ends");
+    expect(ends).toHaveAttribute("data-ribbon", "gold");
+    expect(ends.closest(".overflow-hidden")).toBeNull();
+    expect(screen.getByTestId("gallery-main")).not.toContainElement(ends);
+  });
+
+  it("GAL-13 the chosen thumbnail takes the tier's edge and the others a hairline; the photo and arrows wear the Sage frame (Sage S5)", () => {
+    render(<PhotoGallery photos={THREE} thumbOn="border-gold" />);
+    const [first, second] = screen.getAllByTestId("gallery-thumb");
+    expect(first).toHaveClass("rounded-thumb", "border-gold");
+    expect(first).not.toHaveClass("border-primary");
+    expect(second).toHaveClass("rounded-thumb", "border-transparent", "outline-hairline");
+    expect(screen.getByTestId("gallery-main")).toHaveClass("rounded-row", "bg-photo-empty");
+    expect(screen.getByTestId("gallery-next")).toHaveClass("bg-card/92", "shadow-arrow");
+    fireEvent.click(second);
+    expect(second).toHaveClass("border-gold");
+    expect(first).toHaveClass("border-transparent");
+  });
 });
 
 describe("PhotoGallery — the middle size (D162)", () => {

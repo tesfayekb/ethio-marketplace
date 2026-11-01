@@ -4,6 +4,7 @@ import { readPin } from "@/features/posting/map/pin";
 import type { ListingDetailView } from "@/features/posting/preview/listing-detail";
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 import { catalogText } from "@/i18n/entity";
+import { tierOf } from "@/components/marketplace/card-tier";
 
 type PublicValue =
   | string
@@ -109,6 +110,7 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
       : catalogText(label?.en, label?.am, language) || null;
   return {
     actor: "buyer",
+    tier: tierOf(doc.tier),
     title: doc.title,
     postedAt: doc.published_at,
     description: doc.description,

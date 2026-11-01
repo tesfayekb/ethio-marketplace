@@ -10,6 +10,8 @@ import { codeOf, report } from "./kit";
  *  - a band-row file whose row is missing its `data-band-row` mark or BAND_ROW;
  *  - a literal height (h-*, min-h-*, max-h-*) on a band row's own tag;
  *  - a second source: BAND_ROW declared, or its value written, anywhere but band-row.ts.
+ * From turn S5 it also holds the ad page's segmented section bar (listing-detail.tsx) to
+ * BAND_TAB and BAND_TAB_CURRENT: no pill or underline of its own.
  *
  * CF-BAR-1 (D256; Foundations turn R1d-c) — ONE SPACING SCALE FOR THE TOP BAR from 768 px.
  * The band, by definition: AppHeader (app-header.tsx) and the shell's band up to the rail
@@ -219,6 +221,27 @@ describe("CF-BAR-1 one spacing scale for the top bar", () => {
   });
 });
 
+/** Sage S5 (R9; ruling 1, answer 3) — the ad page's segmented section bar. */
+export const SECTION_BAR = "src/features/posting/preview/listing-detail.tsx";
+
+/** The section bar reads BAND_TAB and BAND_TAB_CURRENT; it draws no pill or underline of its own. */
+export function sectionBarFindings(file: File): Finding[] {
+  const code = codeOf(file.text);
+  const findings: Finding[] = [];
+  for (const name of ["BAND_TAB", "BAND_TAB_CURRENT"])
+    if (!new RegExp(`\\b${name}\\b`).test(code))
+      findings.push({ file: file.name, line: 1, what: `the section bar does not read ${name}` });
+  code.split("\n").forEach((text, index) => {
+    if (/(?:^|[\s"'`])(?:bg-nav-pill|shadow-pill|bg-nav-active|border-b-2)(?![\w-])/.test(text))
+      findings.push({
+        file: file.name,
+        line: index + 1,
+        what: "a section-bar pill or underline of its own, not BAND_TAB_CURRENT",
+      });
+  });
+  return findings;
+}
+
 describe("CF-BAND-1 one look for every band row (D260)", () => {
   it("D261 has one last-row drop reader and P-S3 one current-pill source", () => {
     const shell = codeOf(read(SHELL).text);
@@ -231,6 +254,21 @@ describe("CF-BAND-1 one look for every band row (D260)", () => {
       expect(code).toContain("CURRENT_PILL");
       expect(code).not.toMatch(/bg-nav-pill|shadow-pill|bg-nav-active/);
     }
+  });
+
+  it("the ad page's section bar reads BAND_TAB and BAND_TAB_CURRENT; a private pill or underline fails (S5)", () => {
+    const findings = sectionBarFindings(read(SECTION_BAR));
+    expect(findings, report(findings)).toEqual([]);
+    expect(
+      sectionBarFindings({
+        name: SECTION_BAR,
+        text: 'const tab = cn(BAND_TAB, current ? "rounded-full bg-nav-pill shadow-pill" : "");\nconst old = "border-b-2 border-primary";',
+      }).map((f) => `${f.line} ${f.what}`),
+    ).toEqual([
+      "1 the section bar does not read BAND_TAB_CURRENT",
+      "1 a section-bar pill or underline of its own, not BAND_TAB_CURRENT",
+      "2 a section-bar pill or underline of its own, not BAND_TAB_CURRENT",
+    ]);
   });
 
   it("every band row and sub-band reads BAND_LOOK, never its own surface, edge or shadow", () => {

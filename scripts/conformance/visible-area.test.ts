@@ -7,11 +7,14 @@ import { codeOf, readAllowlist, report, walkFiles, TREE_SCAN_MS } from "./kit";
  * comes only from src/lib/visible-area.ts. The domain, by definition: every non-test file in
  * src. The census refuses:
  *  - a placement read of the chrome (a querySelector naming `data-chrome`, the phone bottom
- *    bar `bottom-bar` or the form action bar `form-layout-actions`) outside visible-area.ts;
+ *    bar `bottom-bar`, the form action bar `form-layout-actions`, or from turn S5 the shell's
+ *    bands `shell-band` / `shell-subband`) outside visible-area.ts;
  *  - a DropdownMenuContent or PopoverContent given its own collisionPadding (each owner reads
  *    the area on open; F4a-2 adds the popover);
  *  - an import of visible-area.ts outside its readers — the facade's on-demand impls (the
- *    menu's, and from turn S6-3 the popover's, popover-impl.tsx) and the searchable picker.
+ *    menu's, and from turn S6-3 the popover's, popover-impl.tsx) and the searchable picker;
+ *    from turn S5 the ad page's section bar (listing-detail.tsx) reads it by a dynamic import
+ *    only (loadOnce, ruling 1 answer 2), so the first download stays without it.
  * Exceptions are lines `key | reason | until` in visible-area-allowlist.txt (empty, ruled).
  */
 type Finding = { file: string; line: number; what: string };
@@ -23,10 +26,13 @@ export const AREA_READERS = new Set([
   "src/components/searchable-picker.tsx",
   "src/components/ui/popover-impl.tsx",
 ]);
+/** Readers that fetch the module on demand only (a dynamic import, never `from`). */
+export const AREA_ON_DEMAND = new Set(["src/features/posting/preview/listing-detail.tsx"]);
 const CHROME_READ =
-  /querySelector(?:All)?\s*(?:<[^>()]*>)?\(\s*["'`][^"'`]*(?:data-chrome|data-testid=\\?["']?(?:bottom-bar|form-layout-actions)\\?["']?\])/g;
+  /querySelector(?:All)?\s*(?:<[^>()]*>)?\(\s*["'`][^"'`]*(?:data-chrome|data-testid=\\?["']?(?:bottom-bar|form-layout-actions|shell-band|shell-subband)\\?["']?\])/g;
 const OWN_PADDING = /<(?:DropdownMenuContent|PopoverContent)\b[^>]*\bcollisionPadding\s*=/g;
 const IMPORTS_AREA = /from\s+["'](?:@\/lib\/visible-area|[./]+lib\/visible-area)["']/g;
+const FETCHES_AREA = /import\(\s*["'](?:@\/lib\/visible-area|[./]+lib\/visible-area)["']\s*\)/g;
 
 export function areaFindings(files: Src[]): { findings: Finding[]; keys: string[] } {
   const findings: Finding[] = [];
@@ -49,6 +55,9 @@ export function areaFindings(files: Src[]): { findings: Finding[]; keys: string[
     if (!AREA_READERS.has(name))
       for (const m of code.matchAll(IMPORTS_AREA))
         push(m.index ?? 0, "import", "imports visible-area.ts outside its on-demand readers");
+    if (!AREA_READERS.has(name) && !AREA_ON_DEMAND.has(name))
+      for (const m of code.matchAll(FETCHES_AREA))
+        push(m.index ?? 0, "fetch", "fetches visible-area.ts outside its on-demand readers");
   }
   return { findings, keys };
 }
@@ -124,5 +133,43 @@ describe("CF-AREA-1 — an open list's room comes from one reader (D267)", () =>
       { name: "src/components/ui/popover-impl.tsx", text },
     ]);
     expect(keys).toEqual(["src/components/ui/popover.tsx#import"]);
+  });
+
+  it("VA-5: a planted read of the shell's sub-band for a sticky offset fails (turn S5)", () => {
+    const { findings } = areaFindings([
+      {
+        name: "src/features/posting/preview/listing-detail.tsx",
+        text: `const s = document.querySelector<HTMLElement>('[data-testid="shell-subband"]');`,
+      },
+    ]);
+    expect(report(findings)).toContain("reads the chrome itself");
+  });
+
+  it("VA-6: the ad page fetches the area on demand only; its static import and a stranger's fetch fail (turn S5)", () => {
+    const fetches = `const AREA = loadOnce(() => import("@/lib/visible-area"));`;
+    const { keys } = areaFindings([
+      { name: "src/features/posting/preview/listing-detail.tsx", text: fetches },
+      {
+        name: "src/routes/l.$slug.tsx",
+        text: `import { watchChromeTop } from "@/lib/visible-area";`,
+      },
+      {
+        name: "src/features/posting/preview/photo-gallery.tsx",
+        text: `import { watchChromeTop } from "@/lib/visible-area";`,
+      },
+      { name: "src/components/shell/app-header.tsx", text: fetches },
+    ]);
+    expect(keys).toEqual([
+      "src/routes/l.$slug.tsx#import",
+      "src/features/posting/preview/photo-gallery.tsx#import",
+      "src/components/shell/app-header.tsx#fetch",
+    ]);
+    const statically = areaFindings([
+      {
+        name: "src/features/posting/preview/listing-detail.tsx",
+        text: `import { watchChromeTop } from "@/lib/visible-area";`,
+      },
+    ]);
+    expect(statically.keys).toEqual(["src/features/posting/preview/listing-detail.tsx#import"]);
   });
 });

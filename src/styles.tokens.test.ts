@@ -93,6 +93,14 @@ const SAGE_PAIRS: ReadonlyArray<[string, string]> = [
   ["foreground", "track"],
   ["foreground", "field"],
   ["primary-foreground", "primary"],
+  // Turn SAGE-S5 (§12): the ad page's accents on its title box and white boxes, every tier.
+  ["primary", "card"],
+  ["primary", "tier-featured"],
+  ["tier-premium-ink", "tier-premium-chip"],
+  ["foreground", "tier-premium"],
+  ["foreground", "tier-featured"],
+  ["muted-foreground", "tier-premium"],
+  ["muted-foreground", "tier-featured"],
 ];
 
 /** The spec's pairs written as hex with no token of their own (light). */

@@ -39,6 +39,7 @@ export function ShareAd({
   title,
   priceText,
   prominent = false,
+  ink = "text-primary",
   open,
   onOpenChange,
 }: {
@@ -48,6 +49,8 @@ export function ShareAd({
   priceText: string | null;
   /** D218 — a primary opener after posting; existing ad-page callers stay ghost. */
   prominent?: boolean;
+  /** Sage S5 — the ghost opener's ink: the ad page's accent (card-tier.ts adPageLookOf().ink). */
+  ink?: string;
   /**
    * D224 — OPTIONAL caller-held open state (My listings' ⋯ menu). With both
    * given, ShareAd renders no opener button of its own; the open-time setup
@@ -107,7 +110,7 @@ export function ShareAd({
           className={
             prominent
               ? "h-auto min-h-11 gap-2 font-semibold"
-              : "h-auto min-h-11 gap-2 px-0 font-semibold text-primary hover:bg-transparent"
+              : `h-auto min-h-11 gap-2 px-0 font-semibold hover:bg-transparent ${ink}`
           }
           data-testid="listing-share-open"
           onClick={() => changeOpen(true)}
