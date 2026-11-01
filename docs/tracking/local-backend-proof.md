@@ -1,54 +1,54 @@
 # Local backend proof (non-gating)
 
-- Commit: `043f8aa925ec2d417b8430da069b6d2eea285ebf`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41298434038
+- Commit: `e2201a036076ee35056dd8de55ad70d668020ccc`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41301746037
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 1014 | 73 | applied 383/383 | 205 | 0 | 0 | 69 | 274 |
-| email | 208 | 74 | applied 383/383 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 915 | 58 | applied 383/383 | 163 | 0 | 0 | 6 | 169 |
-| 2 | 1210 | 72 | applied 383/383 | 170 | 0 | 0 | 1 | 171 |
-| 3 | 754 | 72 | applied 383/383 | 122 | 0 | 0 | 24 | 146 |
-| 4 | 789 | 72 | applied 383/383 | 159 | 0 | 0 | 2 | 161 |
-| 5 | 636 | 49 | applied 383/383 | 156 | 0 | 0 | 7 | 163 |
-| 6 | 758 | 49 | applied 383/383 | 191 | 0 | 0 | 1 | 192 |
-| 7 | 403 | 73 | applied 383/383 | 77 | 0 | 0 | 50 | 127 |
-| 8 | 689 | 73 | applied 383/383 | 106 | 0 | 0 | 51 | 157 |
+| smoke | 953 | 56 | applied 383/383 | 205 | 0 | 0 | 69 | 274 |
+| email | 216 | 72 | applied 383/383 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 1015 | 72 | applied 383/383 | 163 | 0 | 0 | 6 | 169 |
+| 2 | 1071 | 61 | applied 383/383 | 170 | 0 | 0 | 1 | 171 |
+| 3 | 688 | 61 | applied 383/383 | 122 | 0 | 0 | 24 | 146 |
+| 4 | 743 | 60 | applied 383/383 | 159 | 0 | 0 | 2 | 161 |
+| 5 | 769 | 61 | applied 383/383 | 156 | 0 | 0 | 7 | 163 |
+| 6 | 964 | 72 | applied 383/383 | 191 | 0 | 0 | 1 | 192 |
+| 7 | 396 | 72 | applied 383/383 | 77 | 0 | 0 | 50 | 127 |
+| 8 | 590 | 49 | applied 383/383 | 106 | 0 | 0 | 51 | 157 |
 | 9 | 743 | 50 | applied 383/383 | 150 | 0 | 0 | 12 | 162 |
-| 10 | 1117 | 68 | applied 383/383 | 158 | 0 | 0 | 2 | 160 |
-| 11 | 875 | 68 | applied 383/383 | 133 | 0 | 0 | 35 | 168 |
-| 12 | 788 | 72 | applied 383/383 | 145 | 0 | 0 | 5 | 150 |
-| 13 | 918 | 66 | applied 383/383 | 156 | 0 | 0 | 7 | 163 |
-| 14 | 887 | 61 | applied 383/383 | 190 | 0 | 0 | 2 | 192 |
-| 15 | 343 | 62 | applied 383/383 | 74 | 0 | 0 | 52 | 126 |
-| 16 | 659 | 71 | applied 383/383 | 123 | 0 | 0 | 36 | 159 |
-| repeat | 1011 | 64 | applied 383/383 | 139 | 0 | 0 | 13 | 152 |
-| TOTAL | — | — | — | 2623 | 0 | 0 | 375 | 2998 |
+| 10 | 1031 | 59 | applied 383/383 | 158 | 0 | 0 | 2 | 160 |
+| 11 | 872 | 68 | applied 383/383 | 133 | 0 | 0 | 35 | 168 |
+| 12 | 788 | 74 | applied 383/383 | 145 | 0 | 0 | 5 | 150 |
+| 13 | 692 | 49 | applied 383/383 | 156 | 0 | 0 | 7 | 163 |
+| 14 | 797 | 49 | applied 383/383 | 190 | 0 | 0 | 2 | 192 |
+| 15 | 326 | 60 | applied 383/383 | 74 | 0 | 0 | 52 | 126 |
+| 16 | 626 | 61 | applied 383/383 | 123 | 0 | 0 | 36 | 159 |
+| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
+| TOTAL | — | — | — | 2484 | 0 | 0 | 362 | 2846 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 2 1210 s
-- Repeat lane (DEC-283): Not repeated: e2e/post-wizard-bundle2.spec.ts (35 tests); Not repeated: e2e/post-wizard-where.spec.ts (16 tests); Not repeated: e2e/ad-page-doors.spec.ts (15 tests); Not repeated: e2e/ad-page.spec.ts (39 tests); Not repeated: e2e/admin-attributes-editor.spec.ts (18 tests); Not repeated: e2e/admin-attributes-import.spec.ts (20 tests); Not repeated: e2e/admin-attributes-library.spec.ts (21 tests); Not repeated: e2e/admin-attributes-links.spec.ts (17 tests); Not repeated: e2e/admin-attributes-safety.spec.ts (9 tests); Not repeated: e2e/admin-categories-console.spec.ts (17 tests); Not repeated: e2e/admin-categories-home.spec.ts (5 tests); Not repeated: e2e/admin-categories-lifecycle.spec.ts (26 tests); Not repeated: e2e/admin-countries.spec.ts (9 tests); Not repeated: e2e/admin-coverage.spec.ts (8 tests); Not repeated: e2e/admin-listings.spec.ts (31 tests); Not repeated: e2e/admin-locations.spec.ts (19 tests); Not repeated: e2e/admin-roles.spec.ts (13 tests); Not repeated: e2e/admin-screening.spec.ts (26 tests); Not repeated: e2e/admin-services.spec.ts (5 tests); Not repeated: e2e/admin-shell.spec.ts (6 tests); Not repeated: e2e/admin-translations-console.spec.ts (22 tests); Not repeated: e2e/admin-translations-data.spec.ts (5 tests); Not repeated: e2e/admin-translations-governance.spec.ts (4 tests); Not repeated: e2e/admin-users.spec.ts (14 tests); Not repeated: e2e/auth-callback.spec.ts (4 tests); Not repeated: e2e/auth-caller-gates.spec.ts (4 tests); Not repeated: e2e/auth-google.spec.ts (2 tests); Not repeated: e2e/auth-reset.spec.ts (6 tests); Not repeated: e2e/auth-signin-errors.spec.ts (5 tests); Not repeated: e2e/auth-signout.spec.ts (17 tests); Not repeated: e2e/breadcrumbs.spec.ts (3 tests); Not repeated: e2e/category-nav.spec.ts (5 tests); Not repeated: e2e/choice-lists.spec.ts (48 tests); Not repeated: e2e/dark-cards.spec.ts (2 tests); Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/feed-route.spec.ts (11 tests); Not repeated: e2e/feed-screens.spec.ts (18 tests); Not repeated: e2e/fonts.spec.ts (1 tests); Not repeated: e2e/house-style.spec.ts (6 tests); Not repeated: e2e/i18n-bundle.spec.ts (3 tests); Not repeated: e2e/i18n-coverage.spec.ts (7 tests); Not repeated: e2e/i18n-layers.spec.ts (3 tests); Not repeated: e2e/i18n-sign-in-language.spec.ts (6 tests); Not repeated: e2e/import-security.spec.ts (18 tests); Not repeated: e2e/layout.spec.ts (5 tests); Not repeated: e2e/legal-accept.spec.ts (6 tests); Not repeated: e2e/legal-admin.spec.ts (21 tests); Not repeated: e2e/legal-certify.spec.ts (21 tests); Not repeated: e2e/legal-doors.spec.ts (17 tests); Not repeated: e2e/legal-history.spec.ts (3 tests); Not repeated: e2e/legal-pages.spec.ts (5 tests); Not repeated: e2e/locale-format.spec.ts (1 tests); Not repeated: e2e/menu-rows.spec.ts (3 tests); Not repeated: e2e/mfa-stepup.spec.ts (10 tests); Not repeated: e2e/my-listings-ad.spec.ts (18 tests); Not repeated: e2e/my-listings-doors.spec.ts (14 tests); Not repeated: e2e/my-listings-page.spec.ts (8 tests); Not repeated: e2e/name-check-queue.spec.ts (4 tests); Not repeated: e2e/on-demand-failure.spec.ts (1 tests); Not repeated: e2e/overlay-shift.spec.ts (3 tests); Not repeated: e2e/overlays.spec.ts (4 tests); Not repeated: e2e/page-head.spec.ts (2 tests); Not repeated: e2e/phone-frame.spec.ts (9 tests); Not repeated: e2e/photo-pipeline.spec.ts (34 tests); Not repeated: e2e/post-wizard-category.spec.ts (24 tests); Not repeated: e2e/post-wizard-details.spec.ts (4 tests); Not repeated: e2e/post-wizard-finder.spec.ts (4 tests); Not repeated: e2e/post-wizard-pricing.spec.ts (26 tests); Not repeated: e2e/post-wizard-recent.spec.ts (1 tests); Not repeated: e2e/post-wizard-removed.spec.ts (2 tests); Not repeated: e2e/post-wizard-resets.spec.ts (17 tests); Not repeated: e2e/post-wizard-specs.spec.ts (41 tests); Not repeated: e2e/post-wizard-units.spec.ts (2 tests); Not repeated: e2e/posting-routes-catalog.spec.ts (9 tests); Not repeated: e2e/posting-routes-dials.spec.ts (9 tests); Not repeated: e2e/posting-routes-identity.spec.ts (2 tests); Not repeated: e2e/posting-routes.spec.ts (40 tests); Not repeated: e2e/press.spec.ts (8 tests); Not repeated: e2e/primitives-law.spec.ts (12 tests); Not repeated: e2e/rail-first-paint.spec.ts (2 tests); Not repeated: e2e/rbac.spec.ts (3 tests); Not repeated: e2e/sage-bands.spec.ts (38 tests); Not repeated: e2e/sage-cards.spec.ts (14 tests); Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/seller-name-hidden.spec.ts (1 tests); Not repeated: e2e/settings.spec.ts (9 tests); Not repeated: e2e/shell-bands.spec.ts (8 tests); Not repeated: e2e/shell-table-law.spec.ts (1 tests); Not repeated: e2e/shell.spec.ts (117 tests); Not repeated: e2e/smoke-auth-i18n.spec.ts (1 tests); Not repeated: e2e/submenu-look.spec.ts (6 tests); Not repeated: e2e/submenu-touch.spec.ts (4 tests); Not repeated: e2e/submenu.spec.ts (7 tests); Not repeated: e2e/supabase-door.spec.ts (6 tests); Not repeated: e2e/viewing-place.spec.ts (11 tests); Repeat: each 2 on both projects; 1280 tests selected, 38 repeated; budget 720 s at 4.7 s a test; directly changed: 2 of 4 repeated; importers of a changed helper: 5 of 98; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-160 Use my location stays pressed until the pin is moved by hand / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-33 a region alone never lists itself; its city does (W6 R2) / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-37 a tap on the map places a pin and the door stores it as exact / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-38 a place search moves the pin and fills the street line / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-39 an approximate pin is stored as approx and drawn as an area, never a point / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-40 removing the pin clears all four columns / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-41 the geocode route spends a dial and refuses the call past its ceiling / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-76 a detail the model pins to one value is filled and hidden, and still reviewed (DEC-085) / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-78 a big model list shows its required mark once the brand is chosen (INC-336) / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-80 a city is required: marked before Next, refused and scrolled to on Next, cleared by a city / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-81 a prefilled city counts as chosen: no mark, Next passes untouched / desktop-1280; Not repeated (time cap): post-wizard-place.spec.ts / POSTING WIZARD / PW-82 the add buttons follow the plan's own limits / desktop-1280
-- Database session samples during each start (INC-944): smoke 9, email 9, 1 6, 2 9, 3 9, 4 8, 5 4, 6 4, 7 9, 8 9, 9 4, 10 8, 11 8, 12 8, 13 7, 14 6, 15 7, 16 8, repeat 7
+- Slowest lane: 2 1071 s
+- Repeat lane (DEC-283): Repeat: nothing to repeat
+- Database session samples during each start (INC-944): smoke 5, email 8, 1 9, 2 6, 3 6, 4 6, 5 7, 6 8, 7 8, 8 4, 9 4, 10 6, 11 8, 12 9, 13 4, 14 4, 15 6, 16 6, repeat not run
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41298434038-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41298434038-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41298434038-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 41298434038-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 41298434038-local-3
-  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41298434038-local-4
-  - 5: [e2e:teardown] deleted 22 user(s) owned by process 41298434038-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41298434038-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41298434038-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41298434038-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41298434038-local-9
-  - 10: [e2e:teardown] deleted 4 user(s) owned by process 41298434038-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41298434038-local-11
-  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41298434038-local-12
-  - 13: [e2e:teardown] deleted 22 user(s) owned by process 41298434038-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41298434038-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41298434038-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41298434038-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41301746037-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41301746037-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41301746037-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 41301746037-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 41301746037-local-3
+  - 4: [e2e:teardown] deleted 15 user(s) owned by process 41301746037-local-4
+  - 5: [e2e:teardown] deleted 22 user(s) owned by process 41301746037-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41301746037-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41301746037-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41301746037-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41301746037-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 41301746037-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41301746037-local-11
+  - 12: [e2e:teardown] deleted 15 user(s) owned by process 41301746037-local-12
+  - 13: [e2e:teardown] deleted 22 user(s) owned by process 41301746037-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41301746037-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41301746037-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41301746037-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -74,9 +74,5 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
-
-## Lane repeat
-- Outside test — Timed out waiting 840s for the test suite to run
-- Outside test — Timed out waiting 840s for the teardown for test suite to run
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
