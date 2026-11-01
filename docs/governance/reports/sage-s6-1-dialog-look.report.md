@@ -231,14 +231,18 @@ The differences beyond the plan's wording are listed under Departures.
   - [ssr-error] 9 in that run:
     - /api/admin/attributes/import 4 and /api/admin/categories/import 4 (the specs' planted bad files);
     - /api/listings/view 1 (a view counted for a listing the test had already removed).
-- PSP-1 (`e2e/press.spec.ts`), which CI's Lane 15 failed on ba7edaa4f, is a timing race present at the
-  base (section 6).
+- PSP-1 (`e2e/press.spec.ts`) "band segment: pressed ink" is a timing race whose cause is present at
+  the base (section 6). In CI, this tree loses it: stop 4 puts the fix to the supervisor.
   - Probe: one requestAnimationFrame after pointer-down on `breadcrumb-home` in light mode, the
     segment's fill reads `oklab(1 0 0 / 0.033)` on the tree and between `/ 0.0065` and `/ 0.031` on
     the base. Both are mid-transition, because the segment carries `transition-colors` (0.15 s).
   - When the alpha rounds to 0 in the test's one-pixel canvas, the fill reads as black, and the dark
     ink gives the 1.3276:1 that CI logged.
-  - Lane 15 passed on 3d5f08e9a. The probe spec was deleted, uncommitted.
+  - In CI it failed on ba7edaa4f (desktop, both tries) and on 1bcf3e3a2 (mobile, both tries). On
+    3d5f08e9a its desktop half passed, and its mobile half sat in Lane 7, which never ran a test.
+    Locally on 7364e0ddc, `press.spec.ts` whole: 15 passed, 1 skipped.
+  - An experiment, not committed: `data-[pressed]:transition-none` in PRESS_MOTION made the first
+    frame read the full card fill and the nav ink. The probe spec was deleted.
 - J-audit (`e2e/dialogs.spec.ts`):
   - J1/J3: one scratch seller and listing per test from `adPageFixtures()`, removed in `afterEach`;
     no real row.
@@ -421,8 +425,8 @@ This pull request's runs so far:
 - **ba7edaa4f (run 41239030996), FAILURE.**
   - The first-paint bundle budget: this turn's growth, fixed by parts K and L.
   - The i18n map: fixed in part F (0f78a033a).
-  - E2E Lane 15, PSP-1 "band segment: pressed ink": the timing race at the base (sections 5 and 6),
-    not caused by this diff. It passed on 3d5f08e9a.
+  - E2E Lane 15, PSP-1 "band segment: pressed ink": the timing race (sections 5 and 6), which
+    this tree loses in CI; its fix is stop 4's question.
 - **3d5f08e9a (run 41252914051), FAILURE.**
   - "Build, typecheck, lint" and "Component tests": the e2e-select self-test ("spec not reachable from
     any area: e2e/dialogs.spec.ts"), fixed in part K (1de478955).
@@ -434,6 +438,10 @@ This pull request's runs so far:
     on try 1 of 1", and the step timed out after 27 minutes, before any test ran. The ethio-staging
     Verdict failed because that lane did.
   - No re-run: this report's update starts a fresh run.
+- **1bcf3e3a2 (run 41258218083), FAILURE on one lane.** 39 checks passed.
+  - E2E Lane 7: PSP-1 "band segment: pressed ink", 1.3276 against ≥ 4.5, mobile-360 light, on the
+    first try and the retry. 76 other tests passed. The ethio-staging Verdict failed with it. This is
+    a test red of this pull request, whose fix is stop 4's question.
 
 ## 12. Limits
 
