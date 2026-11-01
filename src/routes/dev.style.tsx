@@ -3,6 +3,8 @@ import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
+import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
+import { ListingCard } from "@/components/marketplace/listing-card";
 import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";
@@ -50,6 +52,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import type { FeedListing } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
 import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
@@ -138,16 +141,50 @@ const RADII = [
 /*
  * Turn SAGE-S0 (ruling 1) — the Sage grid: theme × mode × card type, fixture data only. Each
  * panel scopes its theme's tokens from THEMES (validated data, D250) on its own container, so
- * both modes show at once whatever the page's mode; S4 completes the cards (flag, ribbon).
+ * both modes show at once whatever the page's mode. Turn SAGE-S4 — the cards are the real
+ * ListingCard (its tier's look from card-tier.ts, a ribbon on each) and the real InviteCard,
+ * so the operator walks the tiers here without a seeded row (S4 operator decision 1).
  */
-const CARD_TYPES = [
-  ["regular", "bg-card shadow-card", "", "text-primary"],
-  ["featured", "bg-tier-featured shadow-featured", "★ FEATURED", "text-tier-featured-ink"],
-  ["premium", "bg-tier-premium shadow-premium", "★★ PREMIUM", "text-tier-premium-ink"],
-] as const;
 /** Fixture card words (a dev page, English only). */
 const FIXTURE_TITLE = "Sample listing";
 const FIXTURE_PLACE = "Bole, Addis Ababa";
+const FIXTURE_CARD: FeedListing = {
+  id: "style-fixture",
+  publicId: null,
+  title: FIXTURE_TITLE,
+  tier: "regular",
+  priceAmount: null,
+  priceCurrency: null,
+  priceMode: "contact",
+  priceBp: null,
+  priceNegotiable: false,
+  pricePeriod: "once",
+  priceUnit: null,
+  priceUnitText: null,
+  photosSoon: false,
+  coverPhotoId: null,
+  soldWord: null,
+  reserved: false,
+  priceWas: null,
+  publishedAt: "2026-10-10T08:00:00Z",
+  categoryId: "style-fixture",
+  locationId: null,
+  locationNameEn: FIXTURE_PLACE,
+  locationNameAm: null,
+  step: 1,
+};
+const FIXTURE_CARDS: FeedListing[] = [
+  { ...FIXTURE_CARD, id: "style-regular", tier: "regular", soldWord: "sold" },
+  { ...FIXTURE_CARD, id: "style-premium", tier: "premium", reserved: true },
+  { ...FIXTURE_CARD, id: "style-featured", tier: "featured", soldWord: "rented" },
+];
+const FIXTURE_INVITE: Invite = {
+  placeId: null,
+  placeName: FIXTURE_PLACE,
+  categoryId: null,
+  categoryName: null,
+  placeCount: 0,
+};
 
 /** The theme data arrives on demand: no page's first download carries it (DEC-296). */
 const themesModule = loadOnce(() => import("@/lib/themes").then((module) => module.THEMES));
@@ -183,20 +220,19 @@ function SageGrid() {
             className={`${mode === "dark" ? "dark " : ""}rounded-card bg-background p-4 text-foreground`}
             style={themeScope(themes, name, mode)}
           >
-            <div className="grid grid-cols-3 gap-3">
-              {CARD_TYPES.map(([tier, surface, word, ink]) => (
+            <div className="grid auto-rows-fr grid-cols-2 gap-3 md:grid-cols-4">
+              {FIXTURE_CARDS.map((listing) => (
                 <div
-                  key={tier}
-                  data-testid={`style-card-${tier}-${mode}`}
-                  className={`min-w-0 overflow-hidden rounded-card ${surface}`}
+                  key={listing.id}
+                  data-testid={`style-card-${listing.tier}-${mode}`}
+                  className="min-w-0"
                 >
-                  <div className="aspect-[4/3] bg-photo-empty" />
-                  <p className="truncate p-3 text-sm font-semibold">{FIXTURE_TITLE}</p>
-                  <p className={`px-3 pb-3 text-xs font-extrabold uppercase ${ink}`}>
-                    {word || FIXTURE_PLACE}
-                  </p>
+                  <ListingCard listing={listing} />
                 </div>
               ))}
+              <div data-testid={`style-card-invite-${mode}`} className="min-w-0">
+                <InviteCard invite={FIXTURE_INVITE} at="end" />
+              </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {Object.keys(themes[name].dark)
