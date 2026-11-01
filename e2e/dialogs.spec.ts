@@ -452,6 +452,8 @@ test.describe("the full-screen surfaces on the one primitive (turn S6-4)", () =>
   test("DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected", async ({
     page,
   }) => {
+    // Two modes × three surfaces, each opened and closed from a page that first stops growing,
+    // after seeding two ads with photos, a category, a place chain and a draft through the route.
     test.setTimeout(300_000);
     const width = test.info().project.name === "mobile-360" ? 390 : 1440;
     await page.setViewportSize({ width, height: 900 });
