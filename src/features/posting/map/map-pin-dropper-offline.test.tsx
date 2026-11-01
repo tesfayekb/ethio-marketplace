@@ -1,6 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { DIALOG_LAYER } from "@/components/ui/dialog-look";
+
 /**
  * INC-911 (Foundations turn 34b-3) — the pin map whose code cannot download says so in its own
  * place and offers to refresh the page (the browser keeps a failed download for the page's life,
@@ -42,6 +44,7 @@ describe("the pin map offline (INC-911)", () => {
     const sheet = screen.getByTestId("post-pin-sheet");
     expect(sheet).toHaveAttribute("role", "dialog");
     expect(sheet).toHaveAttribute("data-dialog-panel");
+    expect(sheet).toHaveClass(DIALOG_LAYER.modal);
     expect(sheet.contains(failed)).toBe(true);
     expect(failed.getAttribute("role")).toBe("alert");
     expect(failed.textContent).toContain("common.loadFailed");
