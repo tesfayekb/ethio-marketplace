@@ -69,6 +69,7 @@ const MapPreview = resilientLazy(
   MapPreviewUnavailable,
   { inPlace: true },
 );
+const VISIBLE_AREA = loadOnce(() => import("@/lib/visible-area"));
 const MapLarge = resilientLazy(
   () => import("../map/map-large").then((mod) => mod.MapLarge),
   "the large map",
@@ -525,25 +526,26 @@ export function ListingDetail(view: ListingDetailView) {
   useEffect(() => {
     currentSectionRef.current = currentSection;
   }, [currentSection]);
+  // Sage S5 (ruling 1, answer 2) — the bar sticks at the top chrome's edge, told by the one
+  // visible-area reader, fetched only where the bar is drawn; a failed download is logged and the
+  // bar keeps the stylesheet's offset.
   useEffect(() => {
     const article = articleRef.current;
-    if (!article) return;
-    const subband = document.querySelector<HTMLElement>('[data-testid="shell-subband"]');
-    const align = () => {
-      if (!subband) return;
-      const top =
-        Number.parseFloat(getComputedStyle(subband).top) + subband.getBoundingClientRect().height;
-      article.style.setProperty("--listing-nav-top", `${top}px`);
-    };
-    align();
-    const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(align);
-    if (subband) resize?.observe(subband);
-    window.addEventListener("resize", align);
+    if (!article || !showSections) return;
+    let active = true;
+    let stop: (() => void) | null = null;
+    VISIBLE_AREA.load().then(
+      ({ watchChromeTop }) => {
+        if (!active) return;
+        stop = watchChromeTop((top) => article.style.setProperty("--listing-nav-top", `${top}px`));
+      },
+      (error: unknown) => logOnDemandFailure("the section bar's offset", error),
+    );
     return () => {
-      resize?.disconnect();
-      window.removeEventListener("resize", align);
+      active = false;
+      stop?.();
     };
-  }, []);
+  }, [showSections]);
   // INC-727 — a tap is the visitor's choice; the observer's view during
   // the tab's own scroll is not. Hold that choice until scrolling ends, and
   // read the sections' tops fresh when the next observer change decides.

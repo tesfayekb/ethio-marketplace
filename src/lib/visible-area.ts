@@ -5,6 +5,10 @@
  * bottom bar, a sticky form action bar). With no marker drawn it falls back to the page's
  * own scroll-padding (styles.css), never to zero chrome. Read only on demand — by the
  * facade's impl and the searchable picker (CF-AREA-1), never on first paint.
+ *
+ * Sage S5 (ruling 1, answer 2) — the ad page's sticky section bar stands at the top chrome's
+ * edge with no margin: `watchChromeTop` is the one observer of that edge, fetched on demand by
+ * listing-detail.tsx (CF-AREA-1 names it), so no page measures the bands itself.
  */
 
 export type VisibleArea = { top: number; bottom: number };
@@ -20,6 +24,7 @@ export function areaFrom(
   bottoms: Box[],
   viewportHeight: number,
   fallback: { top: number; bottom: number },
+  margin = AREA_MARGIN,
 ): VisibleArea {
   const shownTops = tops.filter((box) => box.shown);
   const shownBottoms = bottoms.filter((box) => box.shown);
@@ -29,7 +34,7 @@ export function areaFrom(
     shownBottoms.length > 0
       ? Math.min(viewportHeight, ...shownBottoms.map((box) => box.top))
       : viewportHeight - fallback.bottom;
-  return { top: top + AREA_MARGIN, bottom: Math.max(top, bottom) - AREA_MARGIN };
+  return { top: top + margin, bottom: Math.max(top, bottom) - margin };
 }
 
 function boxes(edge: "top" | "bottom"): Box[] {
@@ -52,13 +57,33 @@ function px(value: string): number {
   return Number.isFinite(number) ? number : 0;
 }
 
-/** The visible area now, in viewport pixels. */
-export function visibleArea(): VisibleArea {
+/** The visible area now, in viewport pixels, `margin` inside each edge. */
+export function visibleArea(margin = AREA_MARGIN): VisibleArea {
   const html = window.getComputedStyle(document.documentElement);
-  return areaFrom(boxes("top"), boxes("bottom"), window.innerHeight, {
-    top: px(html.scrollPaddingTop),
-    bottom: px(html.scrollPaddingBottom),
-  });
+  return areaFrom(
+    boxes("top"),
+    boxes("bottom"),
+    window.innerHeight,
+    { top: px(html.scrollPaddingTop), bottom: px(html.scrollPaddingBottom) },
+    margin,
+  );
+}
+
+/**
+ * The top chrome's lower edge (no margin), told now and again whenever a top marker changes
+ * size or the window does; the answer stops the watch.
+ */
+export function watchChromeTop(onTop: (top: number) => void): () => void {
+  const tell = () => onTop(visibleArea(0).top);
+  tell();
+  const resize = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(tell);
+  for (const element of document.querySelectorAll<HTMLElement>('[data-chrome="top"]'))
+    resize?.observe(element);
+  window.addEventListener("resize", tell);
+  return () => {
+    resize?.disconnect();
+    window.removeEventListener("resize", tell);
+  };
 }
 
 /** The facade's per-side collision padding, from the visible area (D267). */

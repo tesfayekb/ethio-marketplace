@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { AREA_MARGIN, areaFrom } from "./visible-area";
+import { AREA_MARGIN, areaFrom, watchChromeTop } from "./visible-area";
 
 const fallback = { top: 136, bottom: 70 };
 
@@ -49,5 +49,41 @@ describe("D267 — the visible area", () => {
       fallback,
     );
     expect(area).toEqual({ top: 10 + AREA_MARGIN, bottom: 600 - AREA_MARGIN });
+  });
+
+  it("VA-U5: with no margin the area is the chrome's own edge (turn S5)", () => {
+    const area = areaFrom(
+      [
+        { top: 0, bottom: 52, shown: true },
+        { top: 52, bottom: 92, shown: true },
+      ],
+      [],
+      800,
+      fallback,
+      0,
+    );
+    expect(area).toEqual({ top: 92, bottom: 800 - fallback.bottom });
+  });
+
+  it("VA-U6: watchChromeTop tells the top chrome's edge now and on every resize, until stopped (turn S5)", () => {
+    const band = document.createElement("div");
+    band.setAttribute("data-chrome", "top");
+    document.body.append(band);
+    let bottom = 92;
+    band.getBoundingClientRect = () => new DOMRect(0, 52, 360, bottom - 52);
+    const told: number[] = [];
+    try {
+      const stop = watchChromeTop((top) => told.push(top));
+      expect(told).toEqual([92]);
+      bottom = 132;
+      window.dispatchEvent(new Event("resize"));
+      expect(told).toEqual([92, 132]);
+      stop();
+      bottom = 52;
+      window.dispatchEvent(new Event("resize"));
+      expect(told).toEqual([92, 132]);
+    } finally {
+      band.remove();
+    }
   });
 });
