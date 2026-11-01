@@ -142,7 +142,7 @@ const ROOT = process.cwd();
 
 describe("the overlay primitives on demand (DEC-259)", () => {
   it(
-    "CF-OV-1 only the impl files reach Radix's tooltip, menu, dialog and alert dialog, only overlays-impl reaches the impl files, only the loader reaches overlays-impl",
+    "CF-OV-1 only the impl files reach Radix's tooltip, menu, popover, dialog and alert dialog, only overlays-impl reaches the impl files, only the loader reaches overlays-impl",
     () => {
       const files = walkFiles(["src", "e2e", "scripts"], { ext: ["ts", "tsx", "mts", "mjs"] }).map(
         (file) => join(ROOT, file),

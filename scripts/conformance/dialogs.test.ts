@@ -25,9 +25,10 @@ import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *    another row is a different concern and passes without an allowlist line.
  *  - DG-6: the allowlist's lines `file#rule | reason | until` (kit.ts: a date or an INC/DEC id);
  *    a stale or expired line fails.
- * The primitive's own namespace (dialog-primitive.tsx) is judged from turn S6-3, when the
- * toolbar panel moves onto the sheet; that clause skips non-modal content (the phone menu,
- * `modal={false}`, ruling 9).
+ * DG-1 reads the low-level parts too (turn S6-3): a part of a namespace imported from
+ * dialog-primitive (`<NS.Content>`, `<NS.Title>`, …) outside the primitives, skipping the
+ * subtree of a `<NS.Root modal={false}>` (non-modal content: the phone menu, the plan's
+ * ruling 9); and `PopoverContent` outside the popover's own files, which takes a variant.
  */
 type Finding = { file: string; line: number; what: string };
 type Src = { name: string; text: string };
@@ -108,6 +109,29 @@ const BUTTONS = new Set([
   "SheetClose",
 ]);
 const CHOICES = new Set(["RadioGroupItem", "Checkbox"]);
+/** The popover's own files, which draw its look (turn S6-3). */
+const POPOVER_OWNERS = new Set([
+  "src/components/ui/popover.tsx",
+  "src/components/ui/popover-impl.tsx",
+]);
+const DIALOG_PRIMITIVE = /(?:^|\/)dialog-primitive$/;
+
+/** The local names of the namespaces a file imports from dialog-primitive. */
+function primitiveNamespaces(source: ts.SourceFile): Set<string> {
+  const names = new Set<string>();
+  for (const statement of source.statements) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier))
+      continue;
+    const bindings = statement.importClause?.namedBindings;
+    if (
+      DIALOG_PRIMITIVE.test(statement.moduleSpecifier.text) &&
+      bindings !== undefined &&
+      ts.isNamespaceImport(bindings)
+    )
+      names.add(bindings.name.text);
+  }
+  return names;
+}
 
 /** A look utility, read after its variants (the text after the last `:`). */
 const LOOK =
@@ -259,7 +283,10 @@ export function dialogFindings(files: Src[]): { findings: Finding[]; keys: strin
           push(label, "DG-5", "a choice row not reading LIST_ROW and LIST_CHOICE_ON (menu-row.ts)");
       }
     };
+    const namespaces = primitiveNamespaces(source);
+    const namespacePart = (tag: string) => namespaces.has(tag.slice(0, tag.indexOf(".")));
     let inContent = 0;
+    let nonModal = 0;
     const walk = (node: ts.Node) => {
       const open = opening(node);
       if (open === null) {
@@ -267,7 +294,11 @@ export function dialogFindings(files: Src[]): { findings: Finding[]; keys: strin
         return;
       }
       const tag = tagOf(open, source);
-      if (PARTS.has(tag)) {
+      const judged =
+        PARTS.has(tag) ||
+        (nonModal === 0 && namespacePart(tag)) ||
+        (tag === "PopoverContent" && !POPOVER_OWNERS.has(name));
+      if (judged) {
         if (attr(open, "overlayClassName", source) !== null)
           push(open, "DG-1", `${tag}: overlayClassName (use layer, dialog-look.ts)`);
         const own = utilities(attr(open, "className", source) ?? "").filter((u) => LOOK.test(u));
@@ -276,9 +307,15 @@ export function dialogFindings(files: Src[]): { findings: Finding[]; keys: strin
       if (CONTENT.has(tag) && ts.isJsxElement(node)) actionRows(node);
       if ((inContent > 0 || CONTENT.has(tag)) && ts.isJsxElement(node)) choiceRows(node);
       const content = CONTENT.has(tag) ? 1 : 0;
+      const modeless =
+        namespacePart(tag) && tag.endsWith(".Root") && attr(open, "modal", source) === "{false}"
+          ? 1
+          : 0;
       inContent += content;
+      nonModal += modeless;
       ts.forEachChild(node, walk);
       inContent -= content;
+      nonModal -= modeless;
     };
     walk(source);
   }
@@ -330,6 +367,35 @@ describe("CF-DIALOG-1 — every dialog, alert dialog and sheet reads one look (D
         "src/x.tsx:2 DG-1 DialogContent: overlayClassName (use layer, dialog-look.ts)",
         'src/x.tsx:3 DG-1 AlertDialogAction: own look class "min-h-11"',
         'src/x.tsx:4 DG-1 CategoryModal: own look class "p-0 shadow-none"',
+      ].join("\n"),
+    );
+  });
+
+  it("DG-7 planted: a dialog-primitive namespace part and PopoverContent with their own look fail; non-modal content and the popover's own files pass (turn S6-3)", () => {
+    const { findings } = dialogFindings([
+      {
+        name: "src/x.tsx",
+        text:
+          `import * as DP from "@/components/ui/dialog-primitive";\n` +
+          `const a = <DP.Content className="fixed inset-0 bg-card">x</DP.Content>;\n` +
+          `const b = <DP.Root modal={false}><DP.Content className="fixed bg-card">\n` +
+          `  <DP.Title className="text-lg">t</DP.Title></DP.Content></DP.Root>;\n` +
+          `const c = <DP.Title className="sr-only">t</DP.Title>;\n` +
+          `const d = <PopoverContent className="w-80 p-0">y</PopoverContent>;\n` +
+          `const e = <PopoverContent variant="panel" align="end">y</PopoverContent>;\n` +
+          `const f = <Other.Content className="fixed">z</Other.Content>;\n` +
+          `const g = <DP.Overlay overlayClassName="z-[100]" />;\n`,
+      },
+      {
+        name: "src/components/ui/popover.tsx",
+        text: `const a = <PopoverContent className="w-72 p-4">y</PopoverContent>;\n`,
+      },
+    ]);
+    expect(report(findings)).toBe(
+      [
+        'src/x.tsx:2 DG-1 DP.Content: own look class "fixed inset-0 bg-card"',
+        'src/x.tsx:6 DG-1 PopoverContent: own look class "w-80 p-0"',
+        "src/x.tsx:9 DG-1 DP.Overlay: overlayClassName (use layer, dialog-look.ts)",
       ].join("\n"),
     );
   });
