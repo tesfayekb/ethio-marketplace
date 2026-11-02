@@ -48,8 +48,32 @@ supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql
 
 ## The file
 
-- `supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql` — 15501 bytes,
-  sha256 `877736ec40f740da9c1ca566bd041a1b532f647c62056a88afc283af0036fe8f` (commit 7907b89b).
+- `supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql` — 17248 bytes,
+  sha256 `0d5dc77a2bf8e01235e5e3b967080ab2717119ec8a54600ad805f20498c79df7` (commit 625ca5da).
+- Round 2 (sha256 `877736ec…fe8f`, 15501 bytes) FAILED its staging apply, INC-1033 b: `ERROR
+  23514: … violates check constraint "listings_place_unless_draft"` at the INSERT of the active
+  scratch listing (`location_id` null). Nothing landed. Fixed the INC-949 proof's way: a scratch
+  market inside the sentinel block — country `XZ` (raise if `countries` already holds it), the
+  anchor row the countries trigger creates (exactly one, switched on), one region and one city
+  under it; the active and the removed scratch listings take `home_country_code = XZ` and
+  `location_id = <the city>`; the draft keeps no place. The real-country read is dropped: the
+  proof reads no real row (G27). The scratch country is named `e2e-mig-t1-m1`, and the anchor's
+  SELECT and UPDATE carry that name in their predicate — the real-row guard's own scratch
+  namespace, so no allowlist line. Name and mark unchanged.
+- Checked for the scratch rows before committing: the five `listings_*` CHECKs —
+  `listings_place_unless_draft` (the two non-draft rows carry the city; the draft is the
+  constraint's draft branch), `listings_draft_step_range` and `listings_renewed_count_range`
+  (defaults), `listings_public_id_shape` (the `new_public_id()` default), `listings_resume_status_check`
+  (null); the table's NOT NULLs (`seller_id`, `category_id`, `title`, `description`,
+  `home_country_code` → the scratch country, `attributes`, `price_mode`, `status`, `public_id`,
+  the timestamps — all given or defaulted; `location_id` is nullable since `20260917112956`);
+  the trigger chain on the active row: `acceptance_guard` (no caller at insert → passes),
+  `listings_search_tsv_refresh` (coalesces title/description/attributes), `feed_index_on_listing_insert`
+  and `_update` (key the row by the city and its ancestors through `feed_keys`: region, anchor,
+  the all-places key — rows exist, so proof (b)'s rank check can run), `update_listings_updated_at`;
+  `listings_state_marks`, `listings_price_marks` and `listing_photos_approved_with_ad` fire on
+  columns the proof never updates. The revision rows: `listing_id`, `seller_id`, `kind` given;
+  `home_country_code` filled by `listing_revisions_home_country` from the scratch listing.
 - Round 1 (sha256 `348c91f7…d172`, 15499 bytes) FAILED its staging apply, INC-1033: `ERROR 42601:
   syntax error at end of input` while parsing the proof block — plpgsql reads an IF condition up
   to the first `THEN` outside parentheses, so the unparenthesised `CASE … WHEN … THEN` inside
@@ -90,7 +114,8 @@ supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql
 ## The proof (one sentinel block, scratch rows only, rolled back whole)
 
 - Where it ran: proofs not yet executed (no SQL runner here); the staging apply is their first
-  run. Round 1's apply failed before execution (INC-1033, above); this is the second attempt.
+  run. Rounds 1 and 2 failed before the proof's assertions ran (INC-1033, above); this is the
+  third attempt.
 
 - (a) the header and the grants: SECURITY DEFINER, VOLATILE, `{search_path=public}`; no PUBLIC
   grantee, anon cannot execute, authenticated and service_role can; `listings:enforce` asks a
@@ -108,10 +133,10 @@ supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql
 - (g) with the dial's override at 2: the second success (Regular, promotion_ended) answers `{ok,
   from premium, to regular}`; the third call → `rateLimited`; two revisions, two audit rows, tier
   regular, feed rank 0.
-- Scratch rows: three `auth.users` (tag `e2e-t1-m1-<8 hex>`), a super_admin role row, an auth
-  session, factor and amr claim, a `rate_overrides` row, a category and three listings. The only
-  real row read is the first country code by order (for `home_country_code`), as the earlier
-  listing proofs do.
+- Scratch rows: a market `XZ` (country `e2e-mig-t1-m1`, its anchor, a region, a city), three
+  `auth.users` (tag `e2e-mig-t1-m1-<8 hex>`), a super_admin role row, an auth session, factor and
+  amr claim, a `rate_overrides` row, a category and three listings (the active and the removed
+  placed in the city). The proof reads no real row.
 
 ## The guards (`bash scripts/check-migrations.sh`, this tree)
 
