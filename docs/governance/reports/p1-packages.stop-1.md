@@ -1,6 +1,7 @@
 MIGRATION — p1-packages part A: the plan's dials, the packages and their prices (M1a, M1b, M1c)
-DONE: STEP 0 (the task, the spec, the ruling saved); part A (three migration files written, not
-applied; the allowlist lines; the pool-reset map)
+— second round after ruling 2 (INC-1035, S512)
+DONE: STEP 0 (the task, the spec, the rulings saved); part A (three migration files written, not
+applied; the allowlist lines; the pool-reset map); ruling 2's two fixes
 LEFT: parts B (Admin › Plans), C (Admin › Packages, CF-PRICE-1, CF-PERM-1), D (W4), E (docs, THE
 CHECKS, THE BROWSER CHECK, THE SELF-REVIEW, THE REPORT); the Amharic strings commit after the
 ruling this stop asks for (ruling 1, answer 12)
@@ -22,6 +23,37 @@ supabase/migrations/20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql
 supabase/migrations/20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql
 supabase/migrations/20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql
 
+## Round 2 (ruling 2 on stop 1): the keys' pattern
+
+The first round's three files failed their staging apply cleanly (the supervisor's read-back:
+nothing landed). Two causes, both fixed in their own commits, nothing else changed:
+- M1a proof (c) — `badPlan` from the scratch plan `e2e_mig_p_…`: the live plan pattern
+  `^[a-z_]{2,32}$` (the table CHECK of `20260915162131…sql:300` and the door's rule) takes no
+  digit. The scratch plan is now `emig_plan_<8 letters>` (letters and underscores only). The
+  real-row guard's `e2e-mig-` namespace is for the identity and reference tables
+  (`scripts/check-migrations.sh:663–686`: `auth.users`, `user_roles`, `profiles`,
+  `user_directory`, `locations`, `categories`, `attributes`); `coverage_plans` is not among them,
+  and every read of it is keyed by `v_plan`. Side effect worth naming: in round 1, proof (c)'s
+  three CHECK probes would have been refused by the plan CHECK itself rather than by the CHECK
+  under test; now each probe reaches its own CHECK. Commit `46171810` (INC-1035).
+- M1b seeds — `listing_packages_key_check` on `featured_45`: the key pattern becomes
+  `^[a-z][a-z0-9_]{1,31}$` (S512) in the table CHECK (M1b) and the save door's `bad key` rule
+  (M1c); the seeds stand; the `bad key` probe now leads with a digit (`1_bad`), which only the
+  new rule refuses. The scratch package key `e2e_mig_pk_<8 letters>` matches the new pattern
+  (round 1's direct INSERT of it in M1b would have failed the old CHECK too). Commit `4735e811`.
+  The EN hint and refusal texts (`admin.packages.field.keyHint`, `admin.packages.error.badKey`)
+  and any pattern test come with part C's strings (no string file is touched before the screens).
+- M1c had failed only on the missing table; nothing else changed there.
+- The four-check scan gained its fifth check (answer 5; `/tmp/mig-scan.py`, outside the
+  repository): every scratch key built as `'<prefix>' || translate(substr(gen_random_uuid()…))`
+  is matched against every `~ '…'` pattern in the file plus the live coverage plan pattern (a
+  note the reader judges by the column it is written to), and every string literal in an INSERT
+  at the position of a column with a pattern CHECK is matched against that CHECK. Planted on the
+  round-1 files it reports exactly staging's three failures (M1a `v_plan` vs the plan pattern;
+  M1b `featured_45`, `premium_60` vs the old key CHECK) plus `v_pkg` vs the old CHECK; on the
+  round-2 files it reports only `v_pkg` against the coverage plan pattern (a column `v_pkg` is
+  never written to).
+
 ## Three files, not two (a departure from ruling 1, answer 13, under rule 30)
 
 The ruling named two files and two marks. The second file, written whole, came to 47 810 bytes;
@@ -35,16 +67,18 @@ concern (the three doors). The marks: M1a `20261102220000`, M1b `20261102230000`
 
 ## The files
 
-- `supabase/migrations/20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql` — M1a, 19 685
-  bytes, sha256 `e542414e6c2f2c9c92d38617c99de15d5e50d187642b3524c19d55f38daf62a1` (commit
-  `9f5e077b`, unchanged since). Header `-- e2e-areas: admin-coverage, posting`. Mark
-  `20261102220000`.
-- `supabase/migrations/20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql` — M1b, 24 173
-  bytes, sha256 `7893ef35d97455421043f7dd45c362fb76eef3a7376dd515a03357bb461f9494` (commit
-  `37725f58`). Header `-- e2e-areas: admin-packages, admin-roles`. Mark `20261102230000`.
-- `supabase/migrations/20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql` — M1c, 25 853
-  bytes, sha256 `1b3957cb0ebf756d562c3829bfbec0af026e8db7e268ee1a5cbfb9c7e57b5e3a` (commit
-  `37725f58`). Header `-- e2e-areas: admin-packages`. Mark `20261103000000`.
+- `supabase/migrations/20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql` — M1a, 19 969
+  bytes, sha256 `c6405baa15d84f30d6363c79241b18f27178bf6032f586d01fac648cd1527074` (commit
+  `46171810`; round 1 was 19 685 bytes, `e542414e…62a1`). Header `-- e2e-areas: admin-coverage,
+  posting`. Mark `20261102220000`.
+- `supabase/migrations/20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql` — M1b, 24 273
+  bytes, sha256 `79e44a3fe5977c1be603ebb395ecbd42c35b2d0d3038124aeeefecf7b9fccc91` (commit
+  `4735e811`; round 1 was 24 173 bytes, `7893ef35…9494`). Header `-- e2e-areas: admin-packages,
+  admin-roles`. Mark `20261102230000`.
+- `supabase/migrations/20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql` — M1c, 25 863
+  bytes, sha256 `7551b59ad42ceee6636d113e51fc012100e52964de3b9a367345df6c20216bf1` (commit
+  `4735e811`; round 1 was 25 853 bytes, `1b3957cb…5e3a`). Header `-- e2e-areas: admin-packages`.
+  Mark `20261103000000`.
 - The order is the stamp order: M1a → M1b → M1c; M1c's doors write M1b's tables and M1b's
   resource row answers their `has_permission`.
 - `origin/dev` is still `94249bf8` (the base) at this stop; no file in scope moved.
@@ -96,12 +130,12 @@ concern (the three doors). The marks: M1a `20261102220000`, M1b `20261102230000`
   row carries old and new.
 - (h) the same super admin on an aal1 session → SQLSTATE `P0009`.
 - Scratch rows: one `auth.users` (tag `e2e-mig-p1-m1a-<8 hex>`), its super_admin role row, a
-  session, a factor, an amr claim, one `coverage_plans` row (`e2e_mig_p_<8 letters>`). No real row
-  read.
+  session, a factor, an amr claim, one `coverage_plans` row (`emig_plan_<8 letters>`, round 2). No
+  real row read.
 
 ## M1b — what it creates (D281, D282, D283; answers 5, 8)
 
-- `public.listing_packages` (`key text PRIMARY KEY` CHECK `^[a-z_]{2,32}$`; `tier` IN featured /
+- `public.listing_packages` (`key text PRIMARY KEY` CHECK `^[a-z][a-z0-9_]{1,31}$` — S512; `tier` IN featured /
   premium; `days > 0`; `enabled`, `self_serve`, `extends_lifetime` booleans; `label_key` CHECK
   as the plan's; `sort`; `updated_by` → profiles ON DELETE SET NULL; `created_at`, `updated_at`
   with the `updated_at` trigger). Born closed: REVOKE from PUBLIC, anon, authenticated; GRANT ALL
@@ -199,7 +233,7 @@ concern (the three doors). The marks: M1a `20261102220000`, M1b `20261102230000`
 - (d) before anything ends, the same scope again (open, and a future window) → `overlapping
   window`, nothing written; after A ends, two adjacent future windows G `[+1d, +2d)` and H
   `[+2d, +3d)` on A's scope are accepted; ending G at +2.5 d → `overlapping window`, G unchanged.
-- (e) thirteen refusals, each its own words, each writing nothing: `bad key`, `unknown tier`,
+- (e) thirteen refusals, each its own words, each writing nothing: `bad key` (`1_bad`), `unknown tier`,
   `bad days`, `bad label key`; `unknown package`, `bad amount`, `unknown currency` (`e2e`),
   `unknown country` (`XQ`, no such market — the K4 exception, as `XZ`), `unknown category`
   (a random uuid), `bad window`; `price not found`, `bad window` (ending H before it starts),
@@ -213,7 +247,7 @@ concern (the three doors). The marks: M1a `20261102220000`, M1b `20261102230000`
   No market in this file (the market precedence is M1b's); no real row read.
 - Not run anywhere: no SQL runner here; the staging apply is the proofs' first run (as T1).
 
-## The guards (`bash scripts/check-migrations.sh`, this tree, after `37725f58`)
+## The guards (`bash scripts/check-migrations.sh`, this tree, after `4735e811`)
 
 ```
 Born-closed guard OK (floor 20261007143529).
@@ -224,8 +258,9 @@ Real-row proof guard OK (floor 20261007000000).
 Migration guard OK.
 ```
 
-- The four-check scan (`/tmp/mig-scan.py`, ruling T1 stop 2) on the three files: M1a 0 findings;
-  M1b 1, M1c 2 — all three are class (iv) notes on reads inside FUNCTION bodies keyed by their
+- The scan (`/tmp/mig-scan.py`, ruling T1 stop 2, now five checks) on the three files: M1a 0
+  findings; M1b 2, M1c 3 — one each is the (v) note on `v_pkg` against the coverage plan pattern
+  (above), the other three are class (iv) notes on reads inside FUNCTION bodies keyed by their
   arguments (the resolver's `listings`/`locations` read by `p_listing_id`; the price door's
   `countries` / `categories` existence checks by `p_country_code` / `p_category_id`), not proof
   reads; the real-row guard (the authority for (iv)) is OK. No (i) CASE-in-condition, (ii) literal
@@ -243,7 +278,8 @@ Migration guard OK.
   backend.
 - `e2e/helpers/pool-reset-map.ts`: `POOL_EXEMPT_TABLES` +`listing_packages`, +`package_prices`
   (`updated_by` is attribution on a global row) — ruling 1, answer 1.
-- Laws (`bunx vitest run scripts --maxWorkers=2`, after the split): 429 passed, 1 failed — NH-6
+- Laws (`bunx vitest run scripts --maxWorkers=2`, after the split; round 2 touched only the
+  three migration files, which no law parses — the migration guard ran again, above): 429 passed, 1 failed — NH-6
   (`scripts/ci/nightly-hour.test.ts`), red on the base tree too (macOS `date` ignores `TZDIR`;
   the same red T1 and C1 named); outside scope; CI (Ubuntu) is its proof. `bun run typecheck`
   green; `bun run lint` 0 errors, 46 warnings, the base tree's 46.
@@ -254,4 +290,5 @@ apply 502ee113 → expect mark 20261102230000
 apply ac5b1435 → expect mark 20261103000000
 
 Asked with this stop (ruling 1, answer 12): the Amharic for every §4 key, for the strings commit
-after the screens. Next after `continue`: part B (Admin › Plans), then C, D, E.
+after the screens. Next after `continue`: part B (Admin › Plans), then C, D, E. The branch head
+at this stop is the commit that carries this report (round 2).
