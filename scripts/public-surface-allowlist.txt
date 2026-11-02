@@ -162,3 +162,4 @@ get_ui_bundle | anon,authenticated | Approved public/base-language UI translatio
 get_ui_bundle_version | anon,authenticated | Read-only UI translation version/change token; inspect full body for language/status filters. (DEC-310 legacy surface)
 get_entity_bundle | anon,authenticated | Approved non-null entity translations only, for enabled-public or base language; otherwise empty object. (DEC-310 legacy surface)
 price_shape_for_basis | anon,authenticated | Pure immutable strict mapping from basis token to mode/period; no table access. (DEC-310 legacy surface)
+admin_set_listing_tier | authenticated | Turn T1 (D242, D276): staff set an ad's tier (premium, featured, regular); listings:enforce with a fresh second factor; never a draft, a removed or the admin's own listing; a reason (promotion, promotion_ended, other with a note); a revision and an audit row
