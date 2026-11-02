@@ -2358,9 +2358,10 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(first.getByTestId("listing-history-what")).toHaveText(
       en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.filter.tier"]),
     );
-    await expect(first.getByTestId("listing-history-reason")).toContainText(
-      en["admin.listings.reason.promotion"],
-    );
+    // The History line's reason comes from the seller notice written at the same moment
+    // (admin_listing_detail); this door writes none (ruling 1, answer 5), so the line carries
+    // no reason — the reason lives on the audit row, read below.
+    await expect(first.getByTestId("listing-history-reason")).toHaveCount(0);
 
     expect((await tierTruth(ad.id))?.["tier"]).toBe("premium");
     const audits = await tierAudits(ad.id);

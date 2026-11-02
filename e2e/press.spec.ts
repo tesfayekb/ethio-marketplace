@@ -408,6 +408,10 @@ test.describe("The chosen mark moves at once", () => {
   test("PS-9 the panel switcher checks the chosen panel before its page lands; the heading waits", async ({
     page,
   }) => {
+    // The panel band lives in the rail, md and up (the drawer has none): the phone project
+    // reads it at md's floor, as PS-7 reads the tabs.
+    if (test.info().project.name === "mobile-360")
+      await page.setViewportSize({ width: 768, height: 1024 });
     const seller = await feed.scratchSeller();
     await page.goto("/");
     await signIn(page, seller.email, seller.password);
