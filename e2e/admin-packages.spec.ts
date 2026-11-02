@@ -344,6 +344,14 @@ test.describe("P-1 Admin › Packages", () => {
     return data.id as string;
   }
 
+  /** The joined resource's name on a permissions row, narrowed by shape (no cast). */
+  function resourceNameOf(row: unknown): string | null {
+    if (typeof row !== "object" || row === null || !("resources" in row)) return null;
+    const joined = row.resources;
+    if (typeof joined !== "object" || joined === null || !("name" in joined)) return null;
+    return typeof joined.name === "string" ? joined.name : null;
+  }
+
   /** A pooled account holding exactly the named permissions through a scratch role. */
   async function scratchHolder(wanted: Array<[resource: string, action: string]>) {
     const supabase = adminClient();
@@ -360,11 +368,7 @@ test.describe("P-1 Admin › Packages", () => {
       .select("id, action, resources!inner(name)")
       .in("resources.name", [...new Set(wanted.map(([resource]) => resource))]);
     const picked = (perms ?? []).filter((p) =>
-      wanted.some(
-        ([resource, action]) =>
-          (p as unknown as { resources: { name: string } }).resources.name === resource &&
-          p.action === action,
-      ),
+      wanted.some(([resource, action]) => resourceNameOf(p) === resource && p.action === action),
     );
     expect(
       picked,

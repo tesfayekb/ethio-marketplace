@@ -1,5 +1,6 @@
 import type { MessageKey } from "@/i18n";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { ownValue } from "@/lib/own-key";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { getSupabase, rpc } from "@/lib/supabase-door";
 
@@ -239,9 +240,8 @@ export function packagesErrorKey(message: string, code: string | null = null): P
     return { key: "admin.packages.error.stepUp", raw: null };
   }
   const head = raw.includes(":") ? raw.slice(0, raw.indexOf(":")).trim() : raw;
-  const known = Object.prototype.hasOwnProperty.call(DOOR_MESSAGE_KEYS, head)
-    ? DOOR_MESSAGE_KEYS[head]
-    : undefined;
+  // The head comes from the database's message: an own-key read (H1), never map[key].
+  const known = ownValue(DOOR_MESSAGE_KEYS, head);
   if (known !== undefined) return { key: known, raw: null };
   return { key: "admin.packages.error.unknown", raw: raw === "" ? null : raw };
 }
