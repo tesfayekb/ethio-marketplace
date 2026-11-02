@@ -203,6 +203,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.roles.perm.resource.legal": "ሕጋዊ ሰነዶች",
   "admin.roles.perm.resource.listings": "ማስታወቂያዎች",
   "admin.roles.perm.resource.locations": "አካባቢዎች",
+  "admin.roles.perm.resource.packages": "ጥቅሎች",
   "admin.roles.perm.resource.permissions": "ፈቃዶች",
   "admin.roles.perm.resource.profiles": "መገለጫዎች",
   "admin.roles.perm.resource.roles": "ሚናዎች",

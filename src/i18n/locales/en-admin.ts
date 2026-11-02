@@ -207,6 +207,7 @@ export const enAdmin = {
   "admin.roles.perm.resource.legal": "Legal documents",
   "admin.roles.perm.resource.listings": "Listings",
   "admin.roles.perm.resource.locations": "Locations",
+  "admin.roles.perm.resource.packages": "Packages",
   "admin.roles.perm.resource.permissions": "Permissions",
   "admin.roles.perm.resource.profiles": "Profiles",
   "admin.roles.perm.resource.roles": "Roles",
