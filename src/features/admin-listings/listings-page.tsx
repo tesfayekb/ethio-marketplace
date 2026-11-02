@@ -45,6 +45,9 @@ import { catalogText, entityName } from "@/i18n/entity";
 import { ListingSettings } from "./listing-settings";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
+import { TierDialog } from "./tier-dialog";
+import { mayTier } from "./tier-reasons";
+import { changeListingTier } from "./change-listing-tier";
 import {
   ADMIN_LISTINGS_KEY,
   LISTING_TIERS,
@@ -130,6 +133,8 @@ export function AdminListingsPage() {
   const [tier, setTier] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [move, setMove] = useState<Move>(null);
+  /** P-1 W4 — the row whose tier the dialog is changing. */
+  const [tiering, setTiering] = useState<AdminListingRow | null>(null);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice>(null);
@@ -221,6 +226,13 @@ export function AdminListingsPage() {
   const own = (row: AdminListingRow) => user !== null && row.sellerId === user.id;
   const rowMoves = (row: AdminListingRow): MoveKind[] =>
     mayEnforce && !own(row) ? movesFor(row.status) : [];
+  // P-1 W4 — "Set tier" from the row: the ad page's gate, dialog and door (T1).
+  const rowMayTier = (row: AdminListingRow) => mayEnforce && !own(row) && mayTier(row.status);
+  const openTier = (row: AdminListingRow) => {
+    setRefusal(null);
+    setNotice(null);
+    setTiering(row);
+  };
   const openMove = (kind: MoveKind, ids: string[]) => {
     moved.current = new Set();
     setRefusal(null);
@@ -244,6 +256,15 @@ export function AdminListingsPage() {
           ...(kind === "remove" ? { tone: "danger" as const } : {}),
           onSelect: () => openMove(kind, [row.id]),
         })),
+        ...(rowMayTier(row)
+          ? [
+              {
+                key: "tier",
+                label: t("admin.listings.action.tier"),
+                onSelect: () => openTier(row),
+              },
+            ]
+          : []),
         ...(mayViewAs && !own(row)
           ? [
               {
@@ -324,6 +345,26 @@ export function AdminListingsPage() {
             tone: "error",
           },
     );
+  };
+
+  /** P-1 W4 — one ad's tier from its row, through the ad page's runner (no second mapper). */
+  const runTier = async (guard: GuardFn, tier: string, reason: string, note: string) => {
+    if (tiering === null) return;
+    setBusy(true);
+    setRefusal(null);
+    const outcome = await changeListingTier(guard, tiering.id, tier, reason, note);
+    setBusy(false);
+    // A cancelled second factor leaves the dialog open, as it was.
+    if (!outcome.ok) {
+      if (!outcome.cancelled) setRefusal(t(outcome.refusal));
+      return;
+    }
+    setTiering(null);
+    setNotice({
+      text: t("admin.listings.tier.done").replace("{tier}", tierLabel(tier)),
+      tone: "ok",
+    });
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
   /*
@@ -837,6 +878,18 @@ export function AdminListingsPage() {
                 setRefusal(null);
               }}
               onConfirm={(reason, note) => void runMove(guard, reason, note)}
+            />
+          ) : null}
+          {tiering !== null ? (
+            <TierDialog
+              current={tiering.tier}
+              busy={busy}
+              refusal={refusal}
+              onCancel={() => {
+                setTiering(null);
+                setRefusal(null);
+              }}
+              onConfirm={(tier, reason, note) => void runTier(guard, tier, reason, note)}
             />
           ) : null}
           {viewAs !== null ? (

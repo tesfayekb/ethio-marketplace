@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 639,
-  "dynamicCallSites": 411,
+  "scanned": 640,
+  "dynamicCallSites": 414,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2797,6 +2797,7 @@
       "/admin/screening"
     ],
     "admin.listings.action.tier": [
+      "/admin/listings",
       "/admin/listings/$listingId"
     ],
     "admin.listings.action.viewAsSeller": [
@@ -2920,7 +2921,8 @@
     ],
     "admin.listings.filter.tier": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "/admin/screening"
     ],
     "admin.listings.filter.to": [
       "/admin/listings"
@@ -3107,9 +3109,11 @@
       "/admin/listings"
     ],
     "admin.listings.tier.done": [
+      "/admin/listings",
       "/admin/listings/$listingId"
     ],
     "admin.listings.tier.hint": [
+      "/admin/listings",
       "/admin/listings/$listingId"
     ],
     "admin.listings.tier.regular": [
@@ -3117,6 +3121,7 @@
       "/admin/listings/$listingId"
     ],
     "admin.listings.tier.title": [
+      "/admin/listings",
       "/admin/listings/$listingId"
     ],
     "admin.listings.undo.confirm": [

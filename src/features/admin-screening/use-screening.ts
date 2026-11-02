@@ -37,7 +37,12 @@ export interface ScreeningFilters {
    * on it is refused and every filtered read failed.
    */
   country: string | null;
+  /** P-1 W4 — the ad's tier (`listings.tier`, the listings table's own filter). */
+  tier: string | null;
 }
+
+/** The toolbar with no filter set. */
+export const NO_SCREENING_FILTERS: ScreeningFilters = { country: null, tier: null };
 
 type Named = { name_en: string; name_am: string | null } | null;
 
@@ -152,7 +157,7 @@ export async function listScreening(
   page: number,
   search: string,
   pageSize: number = SCREENING_PAGE_SIZE,
-  filters: ScreeningFilters = { country: null },
+  filters: ScreeningFilters = NO_SCREENING_FILTERS,
 ): Promise<{ rows: ScreeningRow[]; total: number }> {
   const from = page * pageSize;
   let query = supabase
@@ -166,6 +171,8 @@ export async function listScreening(
   if (filters.country !== null) {
     query = query.eq("place.country_code", filters.country).not("place", "is", null);
   }
+  // P-1 W4 — the tier filter the listings table has (`p_tier` there, the column here).
+  if (filters.tier !== null) query = query.eq("tier", filters.tier);
   const { data, error, count } = await query
     .order("updated_at", { ascending: true })
     .order("id", { ascending: true })
@@ -181,10 +188,18 @@ export function useScreeningQueue(
   page: number,
   search: string,
   pageSize: number = SCREENING_PAGE_SIZE,
-  filters: ScreeningFilters = { country: null },
+  filters: ScreeningFilters = NO_SCREENING_FILTERS,
 ) {
   return useQuery({
-    queryKey: [...ADMIN_SCREENING_KEY, "list", page, search, pageSize, filters.country],
+    queryKey: [
+      ...ADMIN_SCREENING_KEY,
+      "list",
+      page,
+      search,
+      pageSize,
+      filters.country,
+      filters.tier,
+    ],
     queryFn: () => listScreening(page, search, pageSize, filters),
     placeholderData: keepPreviousData,
     staleTime: 10_000,
