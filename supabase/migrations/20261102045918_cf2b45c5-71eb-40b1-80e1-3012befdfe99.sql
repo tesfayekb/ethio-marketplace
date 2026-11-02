@@ -202,7 +202,7 @@ BEGIN
                             'session_id', v_session::text,
                             'amr', json_build_array(json_build_object('method', 'totp')))::text, true);
       END IF;
-      IF v_msg IS DISTINCT FROM CASE v_case
+      IF v_msg IS DISTINCT FROM (CASE v_case
            WHEN 'plain' THEN 'permission denied'
            WHEN 'removed' THEN 'a removed listing takes no tier'
            WHEN 'draft' THEN 'listing not found'
@@ -210,7 +210,7 @@ BEGIN
            WHEN 'same tier' THEN 'nothing changed'
            WHEN 'unknown reason' THEN 'unknown reason'
            WHEN 'no note' THEN 'a note is required'
-         END THEN
+         END) THEN
         RAISE EXCEPTION 'T1 M1 proof (c-e): % answered %', v_case, coalesce(v_msg, 'success');
       END IF;
     END LOOP;
