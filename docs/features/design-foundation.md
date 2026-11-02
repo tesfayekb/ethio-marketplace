@@ -155,7 +155,9 @@ value; components use semantic tokens only, never raw colours.
   app-shell.tsx and `OnDemandNotice`'s own region (a `NoticeOutlet` copy keeps its card look).
   CF-DOCK-1 (`scripts/conformance/notice-dock.test.ts`) refuses a fixed surface placed from
   `--bottom-bar` outside the constant (the phone menu, its strip and scrim are allowlisted) and
-  ties the strip's width to the dock's inset (NDK-4); SP-8 (e2e/auth-signout.spec.ts) judges the
+  ties the strip's width to the dock's inset (NDK-4); turn T1: a live notice (`role="status"` /
+  `"alert"`, `aria-live`) whose own class is fixed and pinned to the bottom below md without
+  NOTICE_DOCK is refused too, whatever its bottom is measured from (NDK-5); SP-8 (e2e/auth-signout.spec.ts) judges the
   placement at 360 in both themes and both languages.
 - One "chosen" lift: the chosen filter pill takes `shadow-tile-on`.
 
@@ -549,7 +551,7 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 - The bottom bar marks its items by isCurrentAt on that place, signed in or out (BAR_PATHS): Home on "/" and every /c/ page, Sign in on /auth, My listings, Account (/account, /settings) and Admin on theirs.
 - The tap tick: press.ts, on a click that followed a touch, on TICKABLE (buttons and the tappable roles, or a primitive's `data-tick`: menu rows, breadcrumb segments, bottom-bar items); plain links and cards never; `navigator.vibrate(10)`. The device's choice is /settings → "This device" → "Vibrate on tap" (on by default, browser storage). The tick is Android's only (turn T1, D277, INC-1032): W3's iPhone path (a hidden switch checkbox clicked through its label) never ticked — since WebKit fc1ef83 (iOS 26.5 and later) a label clicked by script forwards an untrusted click and a switch's haptic plays only for a trusted one — and it is gone. Settings shows "This device" only where the browser can vibrate (`canTapTick`, press.ts): the server draws none and a device that can vibrate adds it after hydration, as the page's last section, so nothing above it moves. PR-U11 (no vibrate: nothing ticks, no element is made) and PS-8 (no vibrate: no row) judge.
 - Turn W3: the panel tabs' current mark follows the press too — `panelAt(useMenuAt().pathname, panelChoice)` (menu-current.ts), the chosen page's panel or the shell's chosen panel; the shell's `activePanel` (the frame) stays on the shown page. PS-7 (e2e/press.spec.ts) judges it at 768 and 1280. Turn T1 (W3's K2): the panel switcher's checked panel (panel-header.tsx, its radio group's value) reads the same `panelAt`, while its heading keeps naming the panel shown; PS-9 judges it.
-- CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`; turn W3: `aria-selected` marks are read too, panel-tabs.tsx is a menu file, and a mark read from `activePanel` is refused — PRP-9; turn T1: panel-header.tsx is a menu file, its radio group's `value` and `aria-checked` marks are read — PRP-11) and 4 (vibrate only in press.ts; turn T1, INC-1032: no switch checkbox anywhere, press.ts included — PRP-7).
+- CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`; turn W3: `aria-selected` marks are read too, panel-tabs.tsx is a menu file, and a mark read from `activePanel` is refused — PRP-9; turn T1: panel-header.tsx is a menu file, its radio group's `value` and `aria-checked` marks are read — PRP-11; turn T1: a mark is followed through a multi-line const, a chain of consts and a helper's body — PRP-10) and 4 (vibrate only in press.ts; turn T1, INC-1032: no switch checkbox anywhere, press.ts included — PRP-7).
 
 ## Dialogs (turn S6-1)
 

@@ -17,6 +17,9 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     `current` mark reads `activePanel`.
  *     (turn W3) The panel tabs are a menu file; every menu file reads useMenuAt, and an
  *     `aria-selected` mark joins the rule — read from activePanel directly or through a const.
+ *     (turn T1) A word is followed to a fixed point: a const over several lines, a const built
+ *     from such a const, and a helper (`function f() {…}` or an arrow const) whose body reads
+ *     one — a mark that calls the helper is read from activePanel too (PRP-10).
  *     (turn T1, W3's K2) The panel switcher (panel-header.tsx) is a menu file: its radio
  *     group's `value` and an `aria-checked` mark join the rule — PRP-11.
  *     (turn C fix 1) The section a path belongs to is panelOf's alone: a menu file declares
@@ -61,6 +64,37 @@ const TICK_OWNER = "src/lib/press.ts";
 const VIBRATE = /\bvibrate\s*\(/;
 const SWITCH_BOX = /<input\b[^>]*\bswitch\b|setAttribute\(\s*["']switch["']|\.switch\s*=/;
 
+/** The end of a body opened at `open` (its matching `}`), or the text's end. */
+function closeOf(code: string, open: number): number {
+  let depth = 0;
+  for (let at = open; at < code.length; at += 1) {
+    if (code[at] === "{") depth += 1;
+    if (code[at] === "}" && --depth === 0) return at;
+  }
+  return code.length;
+}
+
+/** Rule 3 (PRP-10) — every const and helper whose value or body reads activePanel, transitively. */
+export function panelWords(code: string): string[] {
+  const defs: Array<{ name: string; body: string }> = [];
+  for (const match of code.matchAll(/\bconst\s+(\w+)\s*(?::[^=]+)?=([^;]*)/g))
+    defs.push({ name: match[1] ?? "", body: match[2] ?? "" });
+  for (const match of code.matchAll(/\bfunction\s+(\w+)\s*\([^)]*\)[^{]*\{/g)) {
+    const open = (match.index ?? 0) + match[0].length - 1;
+    defs.push({ name: match[1] ?? "", body: code.slice(open, closeOf(code, open)) });
+  }
+  const words = new Set(["activePanel"]);
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const { name, body } of defs)
+      if (!words.has(name) && [...words].some((word) => new RegExp(`\\b${word}\\b`).test(body))) {
+        words.add(name);
+        grew = true;
+      }
+  }
+  return [...words];
+}
+
 export function currentFindings(files: Array<{ name: string; text: string }>): Finding[] {
   const findings: Finding[] = [];
   for (const { name, text } of files) {
@@ -71,9 +105,7 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
       findings.push({ file: name, line: 1, what: "isCurrentAt outside a named menu file" });
     if (menu && !/\buseMenuAt\(/.test(code))
       findings.push({ file: name, line: 1, what: "the mark does not read useMenuAt" });
-    const fromPanel = [...code.matchAll(/\bconst\s+(\w+)\s*=[^;\n]*\bactivePanel\b/g)].map(
-      (match) => match[1],
-    );
+    const fromPanel = panelWords(code);
     if (SECTION_READERS.includes(name) && !/\bpanelOf\(/.test(code))
       findings.push({ file: name, line: 1, what: "the bar does not read panelOf" });
     const raw = text.split("\n");
@@ -91,7 +123,7 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
       if (
         menu &&
         mark !== undefined &&
-        ["activePanel", ...fromPanel].some((word) => new RegExp(`\\b${word}\\b`).test(mark))
+        fromPanel.some((word) => new RegExp(`\\b${word}\\b`).test(mark))
       )
         findings.push({ ...at, what: "a current mark read from activePanel" });
       if (name !== TICK_OWNER && VIBRATE.test(line))
@@ -269,6 +301,50 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
         {
           name: "src/components/shell/panel-tabs.tsx",
           text: `const chosen = panelAt(useMenuAt().pathname, panelChoice);\nconst active = panel.id === chosen;\n<button role="tab" aria-selected={active} />`,
+        },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("PRP-10: a mark read from activePanel through a multi-line const, a chain of consts or a helper fails", () => {
+    const found = currentFindings([
+      {
+        name: "src/components/shell/panel-tabs.tsx",
+        text: [
+          "const at = useMenuAt();",
+          "const active =",
+          "  panel.id ===",
+          "  activePanel;",
+          "const on = active && shown;",
+          "function isOn(id: string) {",
+          "  if (id === '') return false;",
+          "  return id === activePanel;",
+          "}",
+          "const isMine = (id: string) =>",
+          "  isOn(id);",
+          '<button role="tab" aria-selected={on} />',
+          '<button role="tab" aria-selected={isOn(panel.id)} />',
+          '<button role="tab" aria-selected={isMine(panel.id)} />',
+        ].join("\n"),
+      },
+    ]);
+    expect(report(found)).toContain("panel-tabs.tsx:12 a current mark read from activePanel");
+    expect(report(found)).toContain("panel-tabs.tsx:13 a current mark read from activePanel");
+    expect(report(found)).toContain("panel-tabs.tsx:14 a current mark read from activePanel");
+    expect(found).toHaveLength(3);
+    expect(
+      currentFindings([
+        {
+          name: "src/components/shell/panel-tabs.tsx",
+          text: [
+            "const { activePanel, panelChoice } = useShell();",
+            "const chosen = panelAt(useMenuAt().pathname, panelChoice);",
+            "function isOn(id: string) {",
+            "  return id === chosen;",
+            "}",
+            "const heading = labelOf(activePanel);",
+            '<button role="tab" aria-selected={isOn(panel.id)} />',
+          ].join("\n"),
         },
       ]),
     ).toEqual([]);
