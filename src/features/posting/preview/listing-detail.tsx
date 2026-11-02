@@ -1468,7 +1468,7 @@ function BuyerContact({
           ref={showRef}
           type="button"
           variant="default"
-          size="touch"
+          size="cta"
           className={contactLook}
           data-testid="listing-contact-show"
           disabled={state.kind === "loading"}

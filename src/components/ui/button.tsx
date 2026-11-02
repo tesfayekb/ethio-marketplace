@@ -30,6 +30,8 @@ const buttonVariants = cva(
         // C2 law (L6): the 44px touch target is a PRIMITIVE size, never a
         // per-instance min-h hack. Verb bars and dialog actions use it.
         touch: "h-11 min-h-11 px-4 py-2",
+        // D274: the ad page's one primary action. 48 px, the full width of its box.
+        cta: "h-12 min-h-12 w-full px-4 py-2",
       },
     },
     defaultVariants: {

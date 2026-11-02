@@ -128,8 +128,17 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
       expect(classesOf("listing-seller-all-ads")).toContain("text-primary");
       expect(classesOf("listing-map-google")).toContain("text-primary");
       expect(classesOf("listing-contact-show")).toEqual(
-        expect.arrayContaining(["bg-primary", "text-primary-foreground", "shadow-button"]),
+        expect.arrayContaining([
+          "bg-primary",
+          "text-primary-foreground",
+          "shadow-button",
+          "h-12",
+          "min-h-12",
+          "w-full",
+        ]),
       );
+      expect(classesOf("listing-contact-show")).not.toContain("h-11");
+      expect(classesOf("listing-contact-show")).not.toContain("min-h-11");
       expect(classesOf("price-negotiable-badge")).toContain("bg-success-soft");
       expect(currentTab()).toEqual(
         expect.arrayContaining(["rounded-full", "bg-nav-pill", "shadow-pill", "text-nav-ink"]),
@@ -164,9 +173,18 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
       expect(classesOf(link), link).not.toContain("text-primary");
     }
     expect(classesOf("listing-contact-show")).toEqual(
-      expect.arrayContaining(["bg-gold", "text-gold-foreground", "shadow-contact-premium"]),
+      expect.arrayContaining([
+        "bg-gold",
+        "text-gold-foreground",
+        "shadow-contact-premium",
+        "h-12",
+        "min-h-12",
+        "w-full",
+      ]),
     );
     expect(classesOf("listing-contact-show")).not.toContain("bg-primary");
+    expect(classesOf("listing-contact-show")).not.toContain("h-11");
+    expect(classesOf("listing-contact-show")).not.toContain("min-h-11");
     expect(classesOf("price-negotiable-badge")).toEqual(
       expect.arrayContaining(["bg-tier-premium-chip", "text-tier-premium-ink"]),
     );

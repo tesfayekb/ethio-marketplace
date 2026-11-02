@@ -277,7 +277,7 @@ export const enBase = {
   "auth.errorResetLinkInvalid": "This reset link is invalid or has expired. Request a new one.",
   "panel.marketplace": "Marketplace",
   "panel.myListings": "Seller Centre",
-  "panel.myListingsShort": "Sell",
+  "panel.myListingsShort": "My listing",
   "panel.account": "Account",
   "panel.admin": "Admin",
   "navSection.menu": "Menu",
