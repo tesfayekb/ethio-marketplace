@@ -1,5 +1,5 @@
 MIGRATION — p1-packages part A: the plan's dials, the packages and their prices (M1a, M1b, M1c)
-— second round after ruling 2 (INC-1035, S512)
+— third round after ruling 3 (M1c only; M1a and M1b are applied on ethio-staging)
 DONE: STEP 0 (the task, the spec, the rulings saved); part A (three migration files written, not
 applied; the allowlist lines; the pool-reset map); ruling 2's two fixes
 LEFT: parts B (Admin › Plans), C (Admin › Packages, CF-PRICE-1, CF-PERM-1), D (W4), E (docs, THE
@@ -22,6 +22,26 @@ scripts/public-surface-allowlist.txt
 supabase/migrations/20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql
 supabase/migrations/20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql
 supabase/migrations/20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql
+
+## Round 3 (ruling 3): M1c's last check
+
+M1a and M1b are APPLIED on ethio-staging (ruling 3, item 1; `admin_set_coverage_plan`'s new prosrc
+md5 `855f4bcc652283b1abd5b32eaf83d655`, the marks `20261102220000` and `20261102230000`); they are
+not re-applied. M1c failed at its last check, cleanly: `P-1 M1c proof (d-h): a refused call wrote`.
+The count agrees with the supervisor's reading: the proof makes exactly two successful package
+saves — the create (`(b)`, line 271) and the edit (line 300); the dial-refused call and every
+refusal write none, and the proof itself asserts `<> 1` after the create and after the dial test.
+The `3` was a leftover of the first (48 KB) draft, whose chain re-enabled the package with a third
+save before the precedence checks; that call left with the split into M1b/M1c and the count did
+not follow. Every other condition matched (4 price rows A, B, G, H; days 14; H's `valid_to` = now()
++ 3 days; 4 `package_price.saved`; 1 `package_price.ended`). The check is now one RAISE per
+condition, each naming the value it saw and the one expected (INC-1033 d), with `v_n` and `v_to`
+declared for it. Commit `78513a91`. Same file, name and mark. Staging had run every earlier
+check of M1c's proof before this one, so (a)–(h) up to it are already proven there.
+
+Named, not changed (the class rule from here): M1c's earlier checks (b), (c), (d) and (h) are
+still composite with one message each (lines 275–284, 301–310, 315–324, 292–296, 346–352); they
+passed on staging. Splitting them is a one-line ruling away; it was not in this ruling's commit.
 
 ## Round 2 (ruling 2 on stop 1): the keys' pattern
 
@@ -75,10 +95,10 @@ concern (the three doors). The marks: M1a `20261102220000`, M1b `20261102230000`
   bytes, sha256 `79e44a3fe5977c1be603ebb395ecbd42c35b2d0d3038124aeeefecf7b9fccc91` (commit
   `4735e811`; round 1 was 24 173 bytes, `7893ef35…9494`). Header `-- e2e-areas: admin-packages,
   admin-roles`. Mark `20261102230000`.
-- `supabase/migrations/20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql` — M1c, 25 863
-  bytes, sha256 `7551b59ad42ceee6636d113e51fc012100e52964de3b9a367345df6c20216bf1` (commit
-  `4735e811`; round 1 was 25 853 bytes, `1b3957cb…5e3a`). Header `-- e2e-areas: admin-packages`.
-  Mark `20261103000000`.
+- `supabase/migrations/20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql` — M1c, 26 667
+  bytes, sha256 `551f722777c90c7076039eb319fc2366243f512e2a055b566cf89d754130bc98` (commit
+  `78513a91`; round 2 was 25 863 bytes, `7551b59a…6bf1`; round 1 25 853, `1b3957cb…5e3a`). Header
+  `-- e2e-areas: admin-packages`. Mark `20261103000000`.
 - The order is the stamp order: M1a → M1b → M1c; M1c's doors write M1b's tables and M1b's
   resource row answers their `has_permission`.
 - `origin/dev` is still `94249bf8` (the base) at this stop; no file in scope moved.
@@ -240,14 +260,15 @@ concern (the three doors). The marks: M1a `20261102220000`, M1b `20261102230000`
   `price already ended` (A).
 - (f) a scratch user without `packages:update` → `permission denied` at each door.
 - (g) the super admin on an aal1 session → `P0009` at each door.
-- After (d)–(g): four price rows, days 14, H's `valid_to` intact, three `package.saved`, four
-  `package_price.saved`, one `package_price.ended` for the scratch ids.
+- After (d)–(g), one check per condition: four price rows, days 14, H's `valid_to` intact, two
+  `package.saved` (the create and the edit), four `package_price.saved`, one
+  `package_price.ended` for the scratch ids.
 - Scratch rows: two `auth.users` (tag `e2e-mig-p1-m1c-<8 hex>`), a role row, a session, a factor,
   an amr claim, a `rate_overrides` row, one category with its pointer, one package, four prices.
   No market in this file (the market precedence is M1b's); no real row read.
 - Not run anywhere: no SQL runner here; the staging apply is the proofs' first run (as T1).
 
-## The guards (`bash scripts/check-migrations.sh`, this tree, after `4735e811`)
+## The guards (`bash scripts/check-migrations.sh`, this tree, after `78513a91`)
 
 ```
 Born-closed guard OK (floor 20261007143529).
@@ -285,10 +306,9 @@ Migration guard OK.
   green; `bun run lint` 0 errors, 46 warnings, the base tree's 46.
 - Expected after the merge until the files are applied: STAGING BEHIND for the three marks.
 
-apply ecdb5eab → expect mark 20261102220000
-apply 502ee113 → expect mark 20261102230000
+(M1a and M1b applied — ruling 3, item 1; M1c alone:)
 apply ac5b1435 → expect mark 20261103000000
 
 Asked with this stop (ruling 1, answer 12): the Amharic for every §4 key, for the strings commit
 after the screens. Next after `continue`: part B (Admin › Plans), then C, D, E. The branch head
-at this stop is the commit that carries this report (round 2).
+at this stop is the commit that carries this report (round 3).
