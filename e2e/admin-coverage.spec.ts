@@ -48,6 +48,16 @@ function planRow(page: Page, plan: string): Locator {
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-card` : id);
 }
 
+/**
+ * P-1 — the whole of a plan's row: the table row, or on the card twin the card's
+ * surface (`-actions`), which holds the footer notes the `-card` body does not
+ * (Label key, Updated).
+ */
+function planSurface(page: Page, plan: string): Locator {
+  const id = `coverage-${plan}`;
+  return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : id);
+}
+
 function actionsOf(page: Page, plan: string): Locator {
   const id = `coverage-${plan}`;
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
@@ -124,14 +134,19 @@ async function seedPlan(plan: string, dials: { maxActiveAds?: number } = {}) {
   if (error) throw new Error(`[e2e:l2b] seeding the plan ${plan} failed: ${error.message}`);
 }
 
-/** P-1 — the door's audit rows for one plan (`coverage.plan.update`, old → new). */
-async function planAudits(plan: string) {
+/**
+ * P-1 — the door's audit rows for one plan (`coverage.plan.update`, old → new)
+ * written since `since`: audit rows outlive the scratch plan, so an earlier run
+ * on the same plan name never counts (J3).
+ */
+async function planAudits(plan: string, since: string) {
   const { data, error } = await adminClient()
     .from("audit_log")
     .select("action,meta")
     .eq("entity_type", "coverage_plan")
     .eq("entity_id", plan)
-    .eq("action", "coverage.plan.update");
+    .eq("action", "coverage.plan.update")
+    .gte("created_at", since);
   if (error) throw new Error(`[e2e:l2b] audit read failed: ${error.message}`);
   return (data ?? []) as Array<{ action: string; meta: Record<string, unknown> }>;
 }
@@ -358,16 +373,17 @@ test.describe("L2b coverage console", () => {
       await expect(row.getByTestId(`coverage-${plan}-ads`)).toHaveText(
         en["admin.coverage.unlimited"],
       );
-      await expect(row.getByTestId(`coverage-${plan}-label`)).toHaveText(`plan.${plan}`);
+      const whole = planSurface(page, plan);
+      await expect(whole.getByTestId(`coverage-${plan}-label`)).toHaveText(`plan.${plan}`);
 
       await page.getByTestId("coverage-columns").click();
       await page.getByTestId("coverage-columns-label").click();
       await page.keyboard.press("Escape");
-      await expect(row.getByTestId(`coverage-${plan}-label`)).toHaveCount(0);
+      await expect(whole.getByTestId(`coverage-${plan}-label`)).toHaveCount(0);
       await page.getByTestId("coverage-columns").click();
       await page.getByTestId("coverage-columns-label").click();
       await page.keyboard.press("Escape");
-      await expect(row.getByTestId(`coverage-${plan}-label`)).toBeVisible();
+      await expect(whole.getByTestId(`coverage-${plan}-label`)).toBeVisible();
       await expectNoHorizontalOverflow(page);
     } finally {
       await destroyPlan(plan);
@@ -379,6 +395,7 @@ test.describe("L2b coverage console", () => {
   }, testInfo) => {
     const { secret } = await useJobSuperAdmin(page);
     const plan = scratchPlan("save", testInfo.project.name);
+    const since = new Date().toISOString();
     try {
       await seedPlan(plan);
       await gotoReady(page, "/admin/coverage");
@@ -413,9 +430,11 @@ test.describe("L2b coverage console", () => {
       const row = planRow(page, plan);
       await expect(row.getByTestId(`coverage-${plan}-days`)).toHaveText("45", { timeout: 20000 });
       await expect(row.getByTestId(`coverage-${plan}-ads`)).toHaveText("20");
-      await expect(row.getByTestId(`coverage-${plan}-label`)).toHaveText(`plan.${plan}.two`);
+      await expect(planSurface(page, plan).getByTestId(`coverage-${plan}-label`)).toHaveText(
+        `plan.${plan}.two`,
+      );
 
-      const audits = await planAudits(plan);
+      const audits = await planAudits(plan, since);
       expect(audits).toHaveLength(1);
       expect(audits[0]?.meta["old"]).toMatchObject({
         default_days: 30,
@@ -437,6 +456,7 @@ test.describe("L2b coverage console", () => {
   }, testInfo) => {
     await useJobSuperAdmin(page);
     const plan = scratchPlan("refuse", testInfo.project.name);
+    const since = new Date().toISOString();
     try {
       await seedPlan(plan);
       await gotoReady(page, "/admin/coverage");
@@ -472,7 +492,7 @@ test.describe("L2b coverage console", () => {
       expect(stored?.default_days).toBe(30);
       expect(stored?.max_active_ads).toBeNull();
       expect(stored?.label_key).toBe(`plan.${plan}`);
-      expect(await planAudits(plan)).toHaveLength(0);
+      expect(await planAudits(plan, since)).toHaveLength(0);
       await page.getByTestId("coverage-dialog-cancel").click();
     } finally {
       await destroyPlan(plan);
@@ -484,6 +504,7 @@ test.describe("L2b coverage console", () => {
   }, testInfo) => {
     const { secret } = await useJobSuperAdmin(page);
     const plan = scratchPlan("quota", testInfo.project.name);
+    const since = new Date().toISOString();
     try {
       await seedPlan(plan, { maxActiveAds: 5 });
       await gotoReady(page, "/admin/coverage");
@@ -510,7 +531,7 @@ test.describe("L2b coverage console", () => {
         en["admin.coverage.unlimited"],
         { timeout: 20000 },
       );
-      const audits = await planAudits(plan);
+      const audits = await planAudits(plan, since);
       expect(audits).toHaveLength(1);
       expect(audits[0]?.meta["old"]).toMatchObject({ max_active_ads: 5 });
       expect(audits[0]?.meta["new"]).toMatchObject({ max_active_ads: null });
