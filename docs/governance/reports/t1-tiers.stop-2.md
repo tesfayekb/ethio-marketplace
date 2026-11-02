@@ -14,8 +14,14 @@ supabase/migrations/20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql
 
 ## The file
 
-- `supabase/migrations/20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql` — 18015 bytes,
-  sha256 `a5f81f5aacb491b3b6d3c689b630bce09d80e06dc6e0571a36e2a9f66d9ccb38` (commit 9ac910c4).
+- `supabase/migrations/20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql` — 18021 bytes,
+  sha256 `2f4f4846a0e9bda7f158d9c270224b9029f1c2b066dc8eb866b5c8e6a9bdb50e` (commit bee11812).
+- Round 1 (sha256 `a5f81f5a…cb38`, 18015 bytes) was NOT applied, INC-1033 c: proof (b)'s two
+  insertion literals held single quotes inside single-quoted SQL literals (`'tier = 'regular', '`),
+  which Postgres reads as `'tier = '` then the identifier `regular` (`ERROR 42601`). Both inner
+  quotes are now doubled (`'tier = ''regular'', '`; `'… = ''removed'' THEN ''regular'' …'`). The
+  function body itself is untouched (proven byte-equal to the old one, answer 1). Name and mark
+  unchanged.
 - Mark `20261102210000` (ruling 1, answer 7; the stamp 20261102052535 is earlier than the mark).
   Self-mark in the file, last statement.
 - `origin/dev` is still `e5e191c6` (the base).
@@ -38,11 +44,13 @@ supabase/migrations/20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql
   `tier = 'regular'` there would have cleared the tier on a sale, against the brief's reading
   (sold, expired, held keep it). The insertion is therefore conditional on `p_new_status =
   'removed'` inside that one statement; the two-insertion form and its md5 check still hold.
-- **Question for the ruling (not done):** the plan also said the state revision's before/after
-  would carry `tier` when it changed. That is a third insertion, outside ruling 1's "two named
-  insertions" and its md5 form, so this file does not make it: a removal's revision row stays
-  `{status: old} → {status: removed}`, and the tier's clearing is visible on the listing itself
-  (and in the feed). Say `continue` to keep it so, or rule a third insertion and I redeclare.
+- The conditional second insertion is ACCEPTED (stop-2 ruling, answer 2); the final report names
+  it under Departures with the reason.
+- The third insertion the plan had (the state revision carrying `tier` when it changed) is ruled
+  NOT now (stop-2 ruling, answer 4): the owner's and staff's history already show the tier change
+  through M1's revision row, and the state revision's shape is shared by every transition. The
+  file stays two insertions; the final report lists it under "left", with a roadmap line at the
+  records turn.
 
 ## The md5 (ruling 1, answer 11)
 
@@ -59,7 +67,8 @@ supabase/migrations/20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql
 ## The proof (one sentinel block, scratch rows only, rolled back whole)
 
 - Where it ran: proofs not yet executed (no SQL runner here); the staging apply is their first
-  run (INC-1033 class line).
+  run (INC-1033 class line). Round 1 was refused before the apply (answer 3); this is the second
+  attempt.
 - (a) header and grants as the door had them (SECURITY DEFINER, VOLATILE, `{search_path=public}`,
   no PUBLIC grantee, anon cannot execute, authenticated and service_role can).
 - (b) the md5 above.
@@ -81,8 +90,20 @@ supabase/migrations/20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql
   only), `feed_index_on_listing_insert`/`_update` (rows at rank 2 while active, deleted on
   removal), `rate_gate('revise')` for the owner (the dial exists; a fresh user has no count), the
   reviewer branch for `held` (the service path passes it without step-up).
-- Every IF / ELSIF / WHILE / EXIT WHEN condition in the file was scanned for a CASE expression
-  (INC-1033): none. The body's two CASEs are an assignment and a SET expression.
+- The pre-commit scan (stop-2 ruling, answer 6), run on this file and on M1, each 0 findings,
+  and proven on the three earlier failures planted (M1 round 1: the CASE, the placeless active
+  listing, the real-country read; M2 round 1: the three quoted literals):
+  (i) a CASE expression inside an IF / ELSIF / WHILE / EXIT WHEN condition is parenthesised — the
+  body's two CASEs are an assignment and a SET expression, outside any condition;
+  (ii) every string literal with a quote inside is doubled or dollar-quoted — the walk tokenises
+  `--` comments, `$tag$` bodies and `'…'` literals with `''` escapes, and flags a literal whose
+  closing quote runs straight into an identifier character;
+  (iii) every non-draft scratch listing has a place — every `INSERT INTO public.listings` that
+  names a `status` also names `location_id`;
+  (iv) the proof reads no real row — every SELECT / UPDATE / DELETE on a reference table carries
+  the `e2e-mig-` namespace or is keyed by a scratch variable (and the real-row guard judges again).
+  The scan lives outside the repository (a `/tmp` script); the four checks are named here as the
+  ruling asks.
 
 ## The guards (`bash scripts/check-migrations.sh`, this tree)
 
