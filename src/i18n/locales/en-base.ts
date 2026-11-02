@@ -410,8 +410,6 @@ export const enBase = {
   "admin.section.countries.title": "Countries",
   "admin.section.countries.body":
     "Every market: open or closed, units, currency and the order of its rail.",
-  "admin.section.coverage.title": "Coverage",
-  "admin.section.coverage.body": "How far a seller may reach on each plan.",
   "admin.section.plans.title": "Plans",
   "admin.section.plans.body":
     "What a seller may do on each plan: reach, photos, ad lifetime and how many ads.",
