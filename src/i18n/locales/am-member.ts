@@ -204,6 +204,8 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "admin.listings.reason.photo": "ተገቢ ያልሆነ ፎቶ",
   "admin.listings.reason.rules": "የጣቢያው ደንቦች",
   "admin.listings.reason.other": "ሌላ",
+  "admin.listings.reason.promotion": "ማስተዋወቅ",
+  "admin.listings.reason.promotion_ended": "ማስተዋወቁ ተጠናቋል",
   "admin.listings.reason.wrong_category": "የተሳሳተ ምድብ",
   "admin.listings.reason.removed_in_error": "በስህተት የተወገደ",
   "admin.listings.reason.appeal_accepted": "ይግባኝ ተቀባይነት አግኝቷል",

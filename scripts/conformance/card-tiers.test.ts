@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 import { CARD_PAGES, TIER_FLAG_MARKER, tierFlagViolations } from "../route-budgets.mjs";
@@ -22,6 +23,10 @@ import { codeOf, readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  * contact's lift) are look classes too, and the photo's flag and the tier tag are tier marks.
  * CF-TIER-3 proves the build judge (route-budgets.mjs tierFlagViolations, run by
  * check-bundle-size.mjs on every page's first download): the flag rides card pages only.
+ * Turn T1 — CF-TIER-4: the tier reaches every view of an ad. Every `<ListingDetail>` under src/
+ * (tests aside) names `tier` or spreads a whole view, every `<PreviewSheet view={{…}}>` literal
+ * names `tier`, and none of them writes the tier away as a literal null (a view that reads no
+ * tier passes `tierOf(…)` of what it read). There is no allowance; CTR-6 and CTR-7 prove it.
  */
 type Finding = { file: string; line: number; what: string };
 
@@ -71,6 +76,64 @@ export function tierFindings(files: string[], root: string): Finding[] {
       if (name === FLAG && STOP_LITERAL.test(text))
         hit("sets a stop colour that is not a token reference");
     });
+  }
+  return found;
+}
+
+/** CF-TIER-4 — every view of an ad that drops its tier, in these files (tests aside). */
+export function viewTierFindings(files: Array<{ name: string; text: string }>): Finding[] {
+  const found: Finding[] = [];
+  for (const { name, text } of files) {
+    if (/\.test\.tsx?$/.test(name) || !name.endsWith(".tsx")) continue;
+    const source = ts.createSourceFile(name, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const hit = (node: ts.Node, what: string) =>
+      found.push({
+        file: name,
+        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
+        what: `${what} (T1: the tier reaches every view of an ad)`,
+      });
+    const isNull = (node: ts.Node | undefined) =>
+      node !== undefined &&
+      (node.kind === ts.SyntaxKind.NullKeyword ||
+        (ts.isJsxExpression(node) && node.expression?.kind === ts.SyntaxKind.NullKeyword));
+    const walk = (node: ts.Node) => {
+      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        const tag = node.tagName.getText(source);
+        const props = node.attributes.properties;
+        if (tag === "ListingDetail") {
+          const tier = props.find((p) => ts.isJsxAttribute(p) && p.name.getText(source) === "tier");
+          const spread = props.some((p) => ts.isJsxSpreadAttribute(p));
+          if (tier === undefined && !spread) hit(node, "a ListingDetail without its tier");
+          if (tier !== undefined && ts.isJsxAttribute(tier) && isNull(tier.initializer))
+            hit(tier, "a ListingDetail whose tier is a literal null");
+        }
+        if (tag === "PreviewSheet") {
+          const view = props.find((p) => ts.isJsxAttribute(p) && p.name.getText(source) === "view");
+          const literal =
+            view !== undefined &&
+            ts.isJsxAttribute(view) &&
+            view.initializer !== undefined &&
+            ts.isJsxExpression(view.initializer) &&
+            view.initializer.expression !== undefined &&
+            ts.isObjectLiteralExpression(view.initializer.expression)
+              ? view.initializer.expression
+              : null;
+          if (literal !== null) {
+            const tier = literal.properties.find(
+              (p) =>
+                (ts.isPropertyAssignment(p) || ts.isShorthandPropertyAssignment(p)) &&
+                p.name.getText(source) === "tier",
+            );
+            const spread = literal.properties.some((p) => ts.isSpreadAssignment(p));
+            if (tier === undefined && !spread) hit(literal, "a PreviewSheet view without its tier");
+            if (tier !== undefined && ts.isPropertyAssignment(tier) && isNull(tier.initializer))
+              hit(tier, "a PreviewSheet view whose tier is a literal null");
+          }
+        }
+      }
+      ts.forEachChild(node, walk);
+    };
+    walk(source);
   }
   return found;
 }
@@ -158,6 +221,61 @@ describe("a card's tier and its ribbon have one mechanism each (S4)", () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it(
+    "CF-TIER-4 every ListingDetail and every PreviewSheet view literal under src/ carries the ad's tier",
+    () => {
+      const files = walkFiles(["src"], { ext: ["tsx"], skipTests: true }).map((name) => ({
+        name: name.split("\\").join("/"),
+        text: readFileSync(name, "utf8"),
+      }));
+      const views = files.filter((f) => /<(?:ListingDetail|PreviewSheet)\b/.test(f.text));
+      console.log(`[CF-TIER-4] files with a view of an ad: ${views.length}`);
+      expect(views.length).toBeGreaterThanOrEqual(5);
+      expect(report(viewTierFindings(files))).toBe("");
+    },
+    TREE_SCAN_MS,
+  );
+
+  it("CTR-6 planted: a ListingDetail or a PreviewSheet view without its tier, or with a literal null, fails", () => {
+    const found = viewTierFindings([
+      {
+        name: "src/features/x/page.tsx",
+        text: [
+          'const a = <ListingDetail actor="owner" title={t} />;',
+          'const b = <ListingDetail actor="staff" tier={null} />;',
+          'const c = <PreviewSheet onClose={close} view={{ actor: "staff", title: t }} />;',
+          'const d = <PreviewSheet onClose={close} view={{ actor: "owner", tier: null }} />;',
+        ].join("\n"),
+      },
+    ]);
+    expect(report(found)).toBe(
+      [
+        "src/features/x/page.tsx:1 a ListingDetail without its tier (T1: the tier reaches every view of an ad)",
+        "src/features/x/page.tsx:2 a ListingDetail whose tier is a literal null (T1: the tier reaches every view of an ad)",
+        "src/features/x/page.tsx:3 a PreviewSheet view without its tier (T1: the tier reaches every view of an ad)",
+        "src/features/x/page.tsx:4 a PreviewSheet view whose tier is a literal null (T1: the tier reaches every view of an ad)",
+      ].join("\n"),
+    );
+  });
+
+  it("CTR-7 a read tier, a whole view spread, a view held in a variable and a test file pass", () => {
+    expect(
+      viewTierFindings([
+        {
+          name: "src/features/x/page.tsx",
+          text: [
+            'const a = <ListingDetail actor="staff" tier={tierOf(listing.tier)} />;',
+            "const b = <ListingDetail {...view} />;",
+            'const c = <PreviewSheet view={{ actor: "owner", tier }} onClose={close} />;',
+            "const d = <PreviewSheet view={{ ...base, title }} onClose={close} />;",
+            "const e = <PreviewSheet view={view} onClose={close} />;",
+          ].join("\n"),
+        },
+        { name: "src/features/x/page.test.tsx", text: "const f = <ListingDetail tier={null} />;" },
+      ]),
+    ).toEqual([]);
   });
 
   it("CF-TIER-3 the build judge: the flag rides card pages only, its marker is the drawing's, and check-bundle-size runs it", () => {

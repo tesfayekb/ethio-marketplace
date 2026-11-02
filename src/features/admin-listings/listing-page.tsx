@@ -21,6 +21,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
+import { tierOf } from "@/components/marketplace/card-tier";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -37,9 +38,12 @@ import {
 import { ListingPhotos } from "./listing-photos";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
+import { TierDialog } from "./tier-dialog";
+import { TIER_LABEL, isTierValue, mayTier, tierErrorKey } from "./tier-reasons";
 import { UndoDialog } from "./undo-dialog";
 import { mayUndo, undoErrorKey, undoRefusalGroups } from "./undo-edit";
 import {
+  setAdminListingTier,
   undoAdminListingEdit,
   useAdminListing,
   useAdminListingCertifications,
@@ -136,6 +140,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const { tree } = useCategoryTree();
 
   const [move, setMove] = useState<MoveKind | null>(null);
+  /** Turn T1 — the tier dialog is open. */
+  const [tiering, setTiering] = useState(false);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -167,7 +173,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     en === null ? "—" : catalogText(en, am, language);
   const statusLabel = (status: string) => t(`admin.listings.status.${status}` as MessageKey);
   const tierLabel = (tier: string) =>
-    tier === "regular" ? t("admin.listings.tier.regular") : t(`tier.${tier}` as MessageKey);
+    isTierValue(tier) ? t(TIER_LABEL[tier]) : t("admin.listings.tier.regular");
   const categoryName = (id: unknown) => {
     if (typeof id !== "string") return "—";
     const node = tree.byId.get(id);
@@ -200,6 +206,8 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const moves = mayEnforce && !own ? movesFor(listing.status) : [];
   // The door's own rule: never the admin's own listing, never a removed one (drafts never reach this page).
   const mayEdit = mayEnforce && !own && listing.status !== "removed";
+  // Turn T1 (D242, D276) — Set tier: the door's own rules, read before it is asked.
+  const maySetTier = mayEnforce && !own && mayTier(listing.status);
   // Bundle 16 turn 4b (D178) — a reviewer shows a photo kept hidden for review (never on their own ad).
   const mayAllowPhotos = permissions.includes("listings:review") && !own;
   const sellerName = seller.businessName ?? seller.alias ?? "—";
@@ -343,6 +351,25 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
+  const runTier = async (guard: GuardFn, tier: string, reason: string, note: string) => {
+    setBusy(true);
+    setRefusal(null);
+    try {
+      await guard(() => setAdminListingTier(listingId, tier, reason, note));
+    } catch (error) {
+      setBusy(false);
+      const abort = stepUpAbortKey(error);
+      // A cancelled second factor leaves the dialog open, as it was.
+      if (abort === null) return;
+      setRefusal(t(abort ?? tierErrorKey(errorText(error))));
+      return;
+    }
+    setBusy(false);
+    setTiering(false);
+    setNotice(t("admin.listings.tier.done").replace("{tier}", tierLabel(tier)));
+    await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
+  };
+
   /** The fields a door names (title, price, …), as the person reads them. */
   const fieldNames = (fields: string[]) =>
     fields
@@ -461,6 +488,21 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                   {t(MOVE_LABEL[kind])}
                 </Button>
               ))}
+              {maySetTier ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="touch"
+                  data-testid="listing-set-tier"
+                  onClick={() => {
+                    setRefusal(null);
+                    setNotice(null);
+                    setTiering(true);
+                  }}
+                >
+                  {t("admin.listings.action.tier")}
+                </Button>
+              ) : null}
               {mayViewAs && !own ? (
                 <Button
                   type="button"
@@ -491,6 +533,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
               <ListingDetail
                 actor="staff"
+                tier={tierOf(listing.tier)}
                 title={listing.title}
                 description={listing.description}
                 priceMode={listing.priceMode}
@@ -827,6 +870,18 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                 setRefusal(null);
               }}
               onConfirm={(reason, note) => void runMove(guard, reason, note)}
+            />
+          ) : null}
+          {tiering ? (
+            <TierDialog
+              current={listing.tier}
+              busy={busy}
+              refusal={refusal}
+              onCancel={() => {
+                setTiering(false);
+                setRefusal(null);
+              }}
+              onConfirm={(tier, reason, note) => void runTier(guard, tier, reason, note)}
             />
           ) : null}
           {undoing !== null ? (

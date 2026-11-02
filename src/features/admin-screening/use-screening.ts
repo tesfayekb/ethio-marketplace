@@ -10,6 +10,8 @@ import {
   type DraftPhotoRow,
 } from "@/features/posting/posting-service";
 import { supabase } from "@/integrations/supabase/client";
+import { tierOf } from "@/components/marketplace/card-tier";
+import type { ListingTier } from "@/features/feed/ranking";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ReaderError } from "@/lib/reader-failure";
 
@@ -58,6 +60,8 @@ export interface ScreeningRow {
   priceUnitText: string | null;
   attributes: Record<string, unknown>;
   photosSoon: boolean;
+  /** Turn T1 — the ad's tier, for the preview's tier look; null = not known. */
+  tier: ListingTier | null;
   updatedAt: string;
   category: Named;
   place: Named;
@@ -70,7 +74,7 @@ function escapeLike(value: string): string {
 
 /** The queue's columns: the ad's public row with its category and its place embedded. */
 const SCREENING_SELECT =
-  "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am,country_code)";
+  "id,title,description,category_id,location_id,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,price_unit,price_unit_text,attributes,photos_soon,tier,updated_at,category:categories(name_en,name_am),place:locations(name_en,name_am,country_code)";
 
 type ScreeningSelected = {
   id: string;
@@ -88,6 +92,7 @@ type ScreeningSelected = {
   price_unit_text: string | null;
   attributes: unknown;
   photos_soon: boolean;
+  tier: unknown;
   updated_at: string;
   category: unknown;
   place: unknown;
@@ -119,6 +124,7 @@ function screeningRowOf(row: ScreeningSelected): ScreeningRow {
         ? (row.attributes as Record<string, unknown>)
         : {},
     photosSoon: row.photos_soon,
+    tier: tierOf(row.tier),
     updatedAt: row.updated_at,
     category: (row.category as Named) ?? null,
     place: (row.place as Named) ?? null,

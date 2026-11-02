@@ -69,6 +69,7 @@ it("RV-1 the review card and sheet name the draft's city, not the visitor's othe
         <StepReview
           listingId={null}
           categoryPath="Scratch category"
+          tier={null}
           placeCountry="ET"
           values={values}
           photos={[]}
@@ -104,6 +105,7 @@ async function publishedReview() {
       <StepReview
         listingId="scratch-listing"
         categoryPath="Scratch category"
+        tier={null}
         values={values}
         photos={[]}
         illustrationUrl={null}

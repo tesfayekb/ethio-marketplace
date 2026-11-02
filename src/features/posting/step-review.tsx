@@ -21,6 +21,7 @@ import { DateField } from "@/components/shell/date-field";
 import { readAreaCookie } from "@/components/shell/location-data";
 import { useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n";
+import type { ListingTier } from "@/features/feed/ranking";
 
 import { Switch } from "@/components/ui/switch";
 
@@ -134,6 +135,7 @@ export function StepReview({
   photos,
   illustrationUrl,
   photosSoon = false,
+  tier,
   expiryDays,
   refusals: doorRefusals,
   onChangeExpiry,
@@ -159,6 +161,8 @@ export function StepReview({
   illustrationUrl: string | null;
   /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
   photosSoon?: boolean;
+  /** Turn T1 — the ad's tier as read, for the buyer's-eye preview's tier look; null = not known. */
+  tier: ListingTier | null;
   /** The category's listing lifetime in days; `null` = no limit, the ad has no end (DEC-117). */
   expiryDays: number | null;
   /** The draft door's own refusals, so `posterExpiry*` lands on this field. */
@@ -716,6 +720,7 @@ export function StepReview({
             photos,
             illustrationUrl,
             photosSoon,
+            tier,
             coverage: values.coverage,
             country: placeCountry ?? readAreaCookie()?.country ?? null,
             contactPref: values.contactPref,

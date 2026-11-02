@@ -3,6 +3,8 @@ import { BAND_LOOK, BAND_ROW, RAIL_HEADER } from "@/components/shell/band-row";
 import { ChevronDown } from "lucide-react";
 
 import { useShell } from "@/components/shell-context";
+import { panelAt } from "@/components/shell/menu-current";
+import { useMenuAt } from "@/components/shell/use-shown-pathname";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,19 +31,23 @@ import { OPEN_CONTROL } from "@/components/shell/menu-row";
  *
  * A user with a single visible panel (logged out) gets the heading with no
  * trigger — a one-option chooser is chrome with no choice in it.
+ *
+ * Turn T1 (W3's K2, D263/D271) — the switcher's checked panel is the chosen one at once
+ * (panelAt on useMenuAt, as the tabs), while the heading keeps naming the panel shown (the frame).
  */
 // D258 (R1d-c) — one band row tall (BAND_ROW), flush under the top bar, its label centred.
 const BAND = `flex items-center px-2 ${BAND_ROW} ${RAIL_HEADER}`;
 
 export function PanelHeader({ className }: { className?: string }) {
   const { t } = useI18n();
-  const { auth, activePanel } = useShell();
+  const { auth, activePanel, panelChoice } = useShell();
   // U0e (INC-071): the same navigation helper the top tabs use. The drawer
   // stays OPEN through the navigation.
   const switchPanel = useSwitchPanel();
   const panels = panelsForUser(auth);
   const current = panels.find((p) => p.id === activePanel) ?? panels[0]!;
   const label = t(current.labelKey);
+  const chosen = panelAt(useMenuAt().pathname, panelChoice);
 
   if (panels.length < 2) {
     return (
@@ -72,7 +78,7 @@ export function PanelHeader({ className }: { className?: string }) {
         <DropdownMenuContent align="start">
           {/* INC-1027 — a radio group: the current panel is heard (aria-checked) and
               seen (LIST_ROW's checked state and the impl's tick). */}
-          <DropdownMenuRadioGroup value={activePanel}>
+          <DropdownMenuRadioGroup value={chosen}>
             {panels.map((panel) => {
               const Icon = panel.icon;
               return (

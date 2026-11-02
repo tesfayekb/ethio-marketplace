@@ -624,6 +624,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             <ListingDetail
               actor="owner"
               soldBadge={sold && soldKey !== undefined ? t(soldKey) : null}
+              tier={draft.draft.tier}
               counts={
                 row.publishedFirstAt === null
                   ? undefined

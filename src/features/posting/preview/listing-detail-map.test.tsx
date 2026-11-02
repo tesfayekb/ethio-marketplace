@@ -56,6 +56,7 @@ vi.mock("../map/map-preview", async () => {
 vi.mock("../map/map-large", () => ({ MapLarge: () => null }));
 
 const BASE: ListingDetailView = {
+  tier: null,
   actor: "owner",
   title: "Scratch ad",
   description: "",

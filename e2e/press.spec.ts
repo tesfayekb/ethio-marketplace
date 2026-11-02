@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 import { gotoReady, layoutBoxes, openRailScope, signIn } from "./helpers/ui";
 import { adPageFixtures } from "./helpers/ad-page";
 import { whilePageLives } from "./helpers/route-guard";
+import { en } from "../src/i18n/locales/en";
 
 /**
  * Turn C1 (D263/D270, DEC-317) — a press shows the raised look at once.
@@ -240,6 +241,9 @@ for (const mode of MODES) {
  *   across a reload; a touch on a button ticks once (10 ms) while on, never while off.
  * PS-7 (turn W3): a chosen panel tab is current while its page's code is held (useMenuAt), the
  *   old tab no longer; the body still shows the old page.
+ * PS-8 (turn T1, D277): a browser that cannot vibrate shows no "This device" row.
+ * PS-9 (turn T1): the panel switcher's checked panel is the chosen one while its page's code is
+ *   held; the heading still names the panel shown (INC-581).
  */
 const ANY_CODE = /\/assets\/[^/]*\.js(?:\?|$)/;
 
@@ -400,6 +404,38 @@ test.describe("The chosen mark moves at once", () => {
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByTestId("account-page-shell")).toHaveCount(0);
   });
+
+  test("PS-9 the panel switcher checks the chosen panel before its page lands; the heading waits", async ({
+    page,
+  }) => {
+    // The panel band lives in the rail, md and up (the drawer has none): the phone project
+    // reads it at md's floor, as PS-7 reads the tabs.
+    if (test.info().project.name === "mobile-360")
+      await page.setViewportSize({ width: 768, height: 1024 });
+    const seller = await feed.scratchSeller();
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, "/");
+    const rail = await openRailScope(page);
+    const title = rail.getByTestId("panel-header-title");
+    await expect(title).toHaveText(en["panel.marketplace"]);
+    const switcher = rail.getByTestId("panel-header-switcher");
+    const option = (id: string) => page.getByRole("menu").getByTestId(`panel-header-option-${id}`);
+    await switcher.click();
+    await expect(option("marketplace")).toHaveAttribute("aria-checked", "true");
+    const release = await holdCode(page);
+    await option("account").click();
+    await expect(page.getByRole("menu")).toHaveCount(0);
+    await switcher.click();
+    await expect(option("account")).toHaveAttribute("aria-checked", "true");
+    await expect(option("marketplace")).toHaveAttribute("aria-checked", "false");
+    // INC-581: the heading names the panel shown, and the body is still the feed.
+    await expect(title).toHaveText(en["panel.marketplace"]);
+    await expect(page.getByTestId("account-page-shell")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    await release();
+    await expect(page.getByTestId("account-page-shell")).toBeVisible({ timeout: 15000 });
+  });
 });
 
 test.describe("The tap tick (D272)", () => {
@@ -465,5 +501,27 @@ test.describe("The tap tick (D272)", () => {
       );
     await page.getByTestId("footer-terms").tap();
     expect(await ticks(page)).toEqual([10]);
+  });
+
+  test("PS-8 a browser that cannot vibrate (the iPhone, D277) shows no tick row, and a tap makes no switch", async ({
+    page,
+  }) => {
+    const seller = await feed.scratchSeller();
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, "vibrate", {
+        configurable: true,
+        value: undefined,
+      });
+    });
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, "/settings");
+    await expect(page.getByTestId("settings-devices")).toBeVisible();
+    expect(await page.evaluate(() => typeof navigator.vibrate)).toBe("undefined");
+    await expect(page.getByTestId("settings-this-device")).toHaveCount(0);
+    await expect(page.getByRole("switch", { name: "Vibrate on tap" })).toHaveCount(0);
+    await page.getByTestId("theme-toggle").tap();
+    await page.getByTestId("theme-toggle").tap();
+    expect(await page.locator("label[data-tick-switch], input[switch]").count()).toBe(0);
   });
 });

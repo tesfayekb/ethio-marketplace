@@ -2289,4 +2289,226 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expect(page.getByTestId("admin-listing-detail")).toBeVisible();
     await expect(page.getByTestId("listing-reports")).toHaveCount(0);
   });
+
+  // ───────────── Turn T1 part B (D242, D276) — STAFF SET AN AD'S TIER (ATR-1..ATR-5) ─────────────
+  // The one door `admin_set_listing_tier` (M1: listings:enforce with a fresh second factor; a tier
+  // among premium, featured and regular; never a draft, a removed or the caller's own listing; a
+  // reason and, for Other, a note; a revision and an audit row, no seller notice) and the state
+  // machine's clearing of the tier on removal (M2). Each test signs ONE person into the browser
+  // (the AL-3 lesson); the reviewer and the factor-less enforcer call the door through the page's
+  // own client; DB truth through the service client.
+
+  async function tierTruth(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("listings")
+      .select("status,tier,deleted_at")
+      .eq("id", listingId)
+      .maybeSingle();
+    if (error) throw new Error(`[e2e:atr] listing read failed: ${error.message}`);
+    return data as Row | null;
+  }
+
+  const tierAudits = async (listingId: string) =>
+    (await auditRows(listingId)).filter((row) => row["action"] === "listing.admin_tier");
+
+  async function feedRanks(listingId: string) {
+    const { data, error } = await adminClient()
+      .from("feed_index")
+      .select("tier_rank")
+      .eq("listing_id", listingId);
+    if (error) throw new Error(`[e2e:atr] feed read failed: ${error.message}`);
+    return [...new Set((data ?? []).map((row) => (row as Row)["tier_rank"]))];
+  }
+
+  /** The console's Set tier, as the signed-in super admin: pick, reason, confirm, the second factor. */
+  async function setTierViaConsole(
+    page: Page,
+    secret: string,
+    tier: "premium" | "featured" | "regular",
+    reason: string,
+  ) {
+    await page.getByTestId("listing-set-tier").click();
+    await expect(page.getByTestId("listings-tier-dialog")).toBeVisible();
+    await page.getByTestId(`listings-tier-pick-${tier}`).click();
+    await page.getByTestId(`listings-tier-reason-${reason}`).click();
+    await page.getByTestId("listings-tier-confirm").click();
+    await stepUpIfPrompted(page, secret);
+  }
+
+  test("ATR-1 Premium from the console: the badge, the preview's look, the History line, the row, one audit row, the feed's rank; then Regular again", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const admin = await useJobSuperAdmin(page);
+
+    await gotoReady(page, `/admin/listings/${ad.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(ad.title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-tier")).toHaveCount(0);
+
+    await setTierViaConsole(page, admin.secret, "premium", "promotion");
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.tier.done"].replace("{tier}", en["tier.premium"]),
+      { timeout: 20000 },
+    );
+    await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
+    await expect(page.getByTestId("listing-tier")).toHaveText(en["tier.premium"]);
+    await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-tier", "premium");
+    const first = page.getByTestId("listing-history-entry-0");
+    await expect(first.getByTestId("listing-history-what")).toHaveText(
+      en["admin.listings.history.edited"].replace("{fields}", en["admin.listings.filter.tier"]),
+    );
+    // The History line's reason comes from the seller notice written at the same moment
+    // (admin_listing_detail); this door writes none (ruling 1, answer 5), so the line carries
+    // no reason — the reason lives on the audit row, read below.
+    await expect(first.getByTestId("listing-history-reason")).toHaveCount(0);
+
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("premium");
+    const audits = await tierAudits(ad.id);
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.["actor_id"]).toBe(admin.user.id);
+    expect(audits[0]?.["meta"]).toEqual({ from: "regular", to: "premium", reason: "promotion" });
+    const revisions = await revisionRows(ad.id, "edit");
+    expect(revisions).toHaveLength(1);
+    expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
+    expect(revisions[0]?.["after"]).toEqual({ tier: "premium" });
+    expect(await feedRanks(ad.id)).toEqual([2]);
+    // No seller notice (ruling 1, answer 5).
+    expect(await noticeRows(ad.id)).toHaveLength(0);
+
+    // Back to Regular: the free look, a second audit row, the feed at rank 0.
+    await setTierViaConsole(page, admin.secret, "regular", "promotion_ended");
+    await expect(page.getByTestId("listing-notice")).toHaveText(
+      en["admin.listings.tier.done"].replace("{tier}", en["admin.listings.tier.regular"]),
+      { timeout: 20000 },
+    );
+    await expect(page.getByTestId("listing-tier")).toHaveCount(0);
+    await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-tier", "regular");
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(ad.id)).toHaveLength(2);
+    expect(await feedRanks(ad.id)).toEqual([0]);
+  });
+
+  test("ATR-2 the dialog refuses the unchanged tier and Other without a note; the door refuses a removed ad, which offers no Set tier", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const gone = await seed(seller, "removed");
+    await useJobSuperAdmin(page);
+
+    await gotoReady(page, `/admin/listings/${ad.id}`);
+    await expect(page.getByTestId("listing-set-tier")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listing-set-tier").click();
+    await page.getByTestId("listings-tier-reason-promotion").click();
+    await page.getByTestId("listings-tier-confirm").click();
+    await expect(page.getByTestId("listings-tier-problem")).toHaveText(
+      en["admin.listings.tier.error.same"],
+    );
+    await page.getByTestId("listings-tier-pick-featured").click();
+    await page.getByTestId("listings-tier-reason-other").click();
+    await page.getByTestId("listings-tier-confirm").click();
+    await expect(page.getByTestId("listings-tier-problem")).toHaveText(
+      en["admin.listings.move.noteRequired"],
+    );
+    await page.getByTestId("listings-tier-cancel").click();
+    await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
+
+    // The door's own refusal for a removed ad, as the same signed-in super admin.
+    const refused = await rpcResult(page, "admin_set_listing_tier", {
+      p_listing_id: gone.id,
+      p_tier: "premium",
+      p_reason: "promotion",
+    });
+    expect(refused.error).toBe("a removed listing takes no tier");
+    expect((await tierTruth(gone.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(gone.id)).toHaveLength(0);
+
+    await gotoReady(page, `/admin/listings/${gone.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(gone.title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-set-tier")).toHaveCount(0);
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(ad.id)).toHaveLength(0);
+  });
+
+  test("ATR-3 a reviewer is refused by the door and sees no Set tier; nothing is written", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const reviewer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+      ["listings", "review"],
+    ]);
+    await signInViaSession(page, reviewer.email, reviewer.password);
+    const denied = await rpcResult(page, "admin_set_listing_tier", {
+      p_listing_id: ad.id,
+      p_tier: "premium",
+      p_reason: "promotion",
+    });
+    expect(denied.error).toBe("permission denied");
+
+    await gotoReady(page, `/admin/listings/${ad.id}`);
+    await expect(page.getByTestId("listing-title")).toHaveText(ad.title, { timeout: 20000 });
+    await expect(page.getByTestId("listing-set-tier")).toHaveCount(0);
+
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(ad.id)).toHaveLength(0);
+    expect(await revisionRows(ad.id, "edit")).toHaveLength(0);
+  });
+
+  test("ATR-4 an enforcer with no second factor is asked for it before anything is written", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const enforcer = await scratchHolder([
+      ["listings", "view"],
+      ["listings", "enforce"],
+    ]);
+    await signInViaSession(page, enforcer.email, enforcer.password);
+    const asked = await rpcResult(page, "admin_set_listing_tier", {
+      p_listing_id: ad.id,
+      p_tier: "premium",
+      p_reason: "promotion",
+    });
+    expect(asked.error ?? "").toMatch(/^step-up required/);
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(ad.id)).toHaveLength(0);
+    expect(await revisionRows(ad.id, "edit")).toHaveLength(0);
+  });
+
+  test("ATR-5 the seller's own page draws Premium; his delete clears the tier (M2) and a sale keeps it", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const premium = await seed(seller, "active", { tier: "premium" });
+    const sold = await seed(seller, "active", { tier: "premium" });
+    await signInViaSession(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${premium.id}`);
+    await expect(page.getByTestId("listing-detail")).toHaveAttribute("data-tier", "premium", {
+      timeout: 20000,
+    });
+
+    const deleted = await rpcResult(page, "transition_listing", {
+      p_listing_id: premium.id,
+      p_new_status: "removed",
+    });
+    expect(deleted.error).toBeNull();
+    const gone = await tierTruth(premium.id);
+    expect(gone?.["status"]).toBe("removed");
+    expect(gone?.["tier"]).toBe("regular");
+    expect(gone?.["deleted_at"]).not.toBeNull();
+    expect(await feedRanks(premium.id)).toEqual([]);
+
+    const sale = await rpcResult(page, "transition_listing", {
+      p_listing_id: sold.id,
+      p_new_status: "sold",
+    });
+    expect(sale.error).toBeNull();
+    const kept = await tierTruth(sold.id);
+    expect(kept?.["status"]).toBe("sold");
+    expect(kept?.["tier"]).toBe("premium");
+  });
 });

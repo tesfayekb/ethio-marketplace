@@ -1668,6 +1668,7 @@ function WizardShell({
                             photos={draft.photos}
                             illustrationUrl={illustrationUrl}
                             photosSoon={draft.photosSoon}
+                            tier={draft.tier}
                             expiryDays={facts?.expiryDays ?? null}
                             refusals={draft.refusals}
                             maxPhotos={planCaps?.maxPhotos ?? null}

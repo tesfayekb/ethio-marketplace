@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { Switch } from "@/components/ui/switch";
-import { setTapTick, subscribeTapTick, tapTickSnapshot } from "@/lib/press";
+import { canTapTick, setTapTick, subscribeTapTick, tapTickSnapshot } from "@/lib/press";
 import {
   changeEmail,
   changePassword,
@@ -912,13 +912,21 @@ function SettingsScreen() {
   );
 }
 
+/** A device's abilities do not change while the page is open: nothing to subscribe to. */
+const steadyDevice = () => () => {};
+
 /**
  * D272 (turn C2, ruling 1) — "This device": the tap tick's switch. The choice is this device's
  * (browser storage, src/lib/press.ts); the server draws the default (on).
+ * D277 (INC-1032) — shown only where the browser can vibrate (canTapTick): the server draws none
+ * and a device that can vibrate adds it after hydration. It is the page's last section, so
+ * nothing above it moves.
  */
 function ThisDeviceSection() {
   const { t } = useI18n();
+  const able = useSyncExternalStore(steadyDevice, canTapTick, () => false);
   const on = useSyncExternalStore(subscribeTapTick, tapTickSnapshot, () => true);
+  if (!able) return null;
   return (
     <Section aria-labelledby="settings-this-device" testid="settings-this-device">
       <h2 id="settings-this-device" className="text-base font-semibold text-foreground">

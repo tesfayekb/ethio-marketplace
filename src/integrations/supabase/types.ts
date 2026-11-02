@@ -4699,6 +4699,15 @@ export type Database = {
         Args: { p_renew_allowed: boolean; p_renew_days: number }
         Returns: Json
       }
+      admin_set_listing_tier: {
+        Args: {
+          p_listing_id: string
+          p_note?: string
+          p_reason: string
+          p_tier: string
+        }
+        Returns: Json
+      }
       admin_set_location_active: {
         Args: { p_active: boolean; p_id: string }
         Returns: undefined

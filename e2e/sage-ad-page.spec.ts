@@ -17,7 +17,9 @@ import {
   gotoReady,
   layoutBoxes,
   settled,
+  signIn,
   signInViaSession,
+  useJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 
@@ -34,6 +36,9 @@ import { adminClient, leaseUser } from "./helpers/users";
  *   by no box; the section bar's radius and its current segment; the safety box unchanged.
  * SAP-2: at 390 and 1440, light, the free tier — Show contact is 48 px tall and as wide as
  *   its parent box.
+ * SAP-3 (turn T1): the tier reaches every view of an ad — a Premium ad's own page and its
+ *   edit's Review preview (the seller), and a Featured ad's Screening preview (staff), each
+ *   carry `data-tier` and the tinted title box, with no flag and no tag (those are the buyer's).
  */
 type Tier = "regular" | "premium" | "featured";
 const WIDTHS = [390, 834, 1440];
@@ -303,3 +308,54 @@ for (const width of WIDTHS) {
     });
   }
 }
+
+test.describe("The tier on every view of an ad (turn T1)", () => {
+  const fixtures = adPageFixtures();
+  test.afterEach(async () => {
+    await fixtures.cleanup();
+  });
+
+  async function marked(id: string, tier: Tier) {
+    const done = await adminClient().from("listings").update({ tier }).eq("id", id);
+    if (done.error) throw new Error(`[e2e:sap] marking ${tier} failed: ${done.error.message}`);
+  }
+
+  async function expectTierLook(view: Locator, tier: Tier) {
+    const detail = view.getByTestId("listing-detail");
+    await expect(detail).toHaveAttribute("data-tier", tier, { timeout: 20000 });
+    await expect(view.getByTestId("listing-detail-headline")).toHaveClass(
+      new RegExp(`(^|\\s)bg-tier-${tier}(\\s|$)`),
+    );
+    await expect(view.getByTestId("listing-detail-tier")).toHaveCount(0);
+    await expect(view.getByTestId("listing-detail-tier-tag")).toHaveCount(0);
+  }
+
+  test("SAP-3 the seller's own page, the edit's Review preview and Screening's preview carry the tier look", async ({
+    page,
+  }) => {
+    const seller = await fixtures.scratchSeller();
+    const own = await fixtures.seed(seller, "active");
+    await marked(own.id, "premium");
+    const waiting = await fixtures.seed(seller, "screening");
+    await marked(waiting.id, "featured");
+
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, `/my-listings/${own.id}`);
+    await expectTierLook(page.getByTestId("my-listing-as-seen"), "premium");
+
+    await gotoReady(page, `/my-listings/${own.id}/edit`);
+    await expect(page.getByTestId("post-review")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("post-preview-open").click();
+    await expectTierLook(page.getByTestId("post-preview-sheet"), "premium");
+
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/screening");
+    await page.getByTestId("admin-screening-search").fill(waiting.title);
+    const more = page.locator(`[data-testid="admin-screening-actions-${waiting.id}-more"]:visible`);
+    await expect(more).toBeVisible({ timeout: 20000 });
+    await more.click();
+    await page.getByTestId(`admin-screening-actions-${waiting.id}-more-open`).click();
+    await expectTierLook(page.getByTestId("post-preview-sheet"), "featured");
+  });
+});

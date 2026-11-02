@@ -60,6 +60,7 @@ admin_set_language_flags(text,boolean,boolean) | staff | Writes languages; rejec
 admin_set_language_order(text[]) | staff | Delegates languages ordering to set_language_order_impl; rejects callers lacking translations:manage first
 admin_set_legal_settings(jsonb) | staff | Writes legal_settings, audit_log; rejects callers lacking legal:edit before its mutations
 admin_set_listing_policy(boolean,integer) | staff | Writes listing_policy, audit_log; rejects callers lacking listings:enforce before its mutations
+admin_set_listing_tier(uuid,text,text,text) | staff | Writes listings (the tier only), listing_revisions, audit_log; rejects callers lacking listings:enforce before its mutations
 admin_set_location_active(uuid,boolean) | staff | Writes locations; rejects callers lacking locations:update before its mutations
 admin_set_primary_pointer(uuid) | staff | Writes category_tree_pointers; rejects callers lacking categories:restructure before its mutations
 admin_set_role_permission(uuid,uuid,boolean) | staff | Writes role_permissions; rejects callers lacking roles:update before its mutations

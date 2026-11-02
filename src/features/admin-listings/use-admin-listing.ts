@@ -248,6 +248,27 @@ export async function undoAdminListingEdit(
   return editAnswerOf(data);
 }
 
+/**
+ * Turn T1 part B (D242, D276) — staff set an ad's tier through the one door
+ * `admin_set_listing_tier` (listings:enforce with a fresh second factor; the
+ * door writes the tier, a revision and an audit row; no seller notice). The
+ * door's error is thrown as it came, so the step-up guard can read it.
+ */
+export async function setAdminListingTier(
+  listingId: string,
+  tier: string,
+  reason: string,
+  note: string,
+): Promise<void> {
+  const { error } = await supabase.rpc("admin_set_listing_tier", {
+    p_listing_id: listingId,
+    p_tier: tier,
+    p_reason: reason,
+    ...(note.trim() === "" ? {} : { p_note: note.trim() }),
+  });
+  if (error) throw error;
+}
+
 export function useAdminListing(listingId: string) {
   return useQuery({
     queryKey: [...ADMIN_LISTINGS_KEY, "detail", listingId],

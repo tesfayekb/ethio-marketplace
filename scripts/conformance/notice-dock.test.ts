@@ -17,6 +17,10 @@ import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     rule that pairs `position: fixed` with one, are findings.
  *  3. (NDK-4) The constant's start inset is the phone strip's width (app-rail.tsx `rail-strip`):
  *     the notice starts where the strip ends, and the two cannot drift apart.
+ *  4. (turn T1, NDK-5) A live notice — an element with `role="status"` / `"alert"` or an
+ *     `aria-live` other than "off" — whose own class is fixed and pinned to the bottom below md
+ *     (`bottom-…`, `inset-0`, `inset-y-…` or `[inset-block-end:…]`, with no md-or-wider variant)
+ *     and does not read NOTICE_DOCK is a finding, whatever its bottom is measured from.
  * A finding's key is `<file>#<data-testid of its element>` (or `#<line>`); the allowlist
  * (`notice-dock-allowlist.txt`, `key | reason | until`) names the surfaces that are not notices.
  */
@@ -47,6 +51,37 @@ function testidOf(node: ts.Node): string | null {
     }
   }
   return null;
+}
+
+/** A class that holds below md: none of its variants is md or wider (sm: starts below md). */
+const WIDE = /^(?:md|lg|xl|2xl|tbl-md|min-\[[^\]]*\])$/;
+function belowMd(token: string, base: RegExp): boolean {
+  const parts = token.split(":");
+  const own = parts.pop() ?? "";
+  return base.test(own) && !parts.some((variant) => WIDE.test(variant));
+}
+const FIXED_CLASS = /^fixed$/;
+const BOTTOM_CLASS = /^(?:-?bottom-|inset-0$|inset-y-|\[inset-block-end:)/;
+
+/** NDK-5 — a live notice pinned to the phone's bottom by its own class, off the dock. */
+function liveOffDock(element: ts.JsxOpeningElement | ts.JsxSelfClosingElement): boolean {
+  let live = false;
+  let classes: string | null = null;
+  for (const attr of element.attributes.properties) {
+    if (!ts.isJsxAttribute(attr)) continue;
+    const attrName = attr.name.getText();
+    const value = attr.initializer;
+    const literal = value !== undefined && ts.isStringLiteral(value) ? value.text : null;
+    if (attrName === "role" && (literal === "status" || literal === "alert")) live = true;
+    if (attrName === "aria-live" && literal !== "off") live = true;
+    if (attrName === "className" && value !== undefined) classes = value.getText();
+  }
+  if (!live || classes === null || /\bNOTICE_DOCK\b/.test(classes)) return false;
+  const tokens = classes.split(/[\s"'`(),{}]+/).filter((token) => token !== "");
+  return (
+    tokens.some((token) => belowMd(token, FIXED_CLASS)) &&
+    tokens.some((token) => belowMd(token, BOTTOM_CLASS))
+  );
 }
 
 function propertyText(object: ts.ObjectLiteralExpression, names: string[]): string | null {
@@ -101,6 +136,11 @@ export function dockFindings(files: Array<{ name: string; text: string }>): Find
           push(node, "a pinned bottom from --bottom-bar outside notice-dock.ts (use NOTICE_DOCK)");
         if (ts.isTemplateExpression(node)) return;
       }
+      if ((ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) && liveOffDock(node))
+        push(
+          node.attributes,
+          "a live notice pinned to the phone's bottom off the dock (use NOTICE_DOCK)",
+        );
       if (ts.isObjectLiteralExpression(node)) {
         const position = propertyText(node, ["position"]);
         const bottom = propertyText(node, ["bottom", "insetBlockEnd", "inset-block-end"]);
@@ -199,6 +239,47 @@ describe("CF-DOCK-1 — a notice on a phone is docked on the bottom bar (turn W3
         {
           name: "src/styles.css",
           text: "html {\n  scroll-padding-bottom: calc(var(--bottom-bar) + var(--bar-rise));\n}",
+        },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("NDK-5 a live notice pinned by bottom-0 (or any bottom below md) off the dock fails; the dock, md-only or a quiet panel passes", () => {
+    const found = dockFindings([
+      {
+        name: "src/routes/x.tsx",
+        text: `<div role="status" data-testid="toast" className="fixed inset-x-0 bottom-0 z-50" />`,
+      },
+      {
+        name: "src/routes/y.tsx",
+        text: `<p aria-live="polite" className={cn("max-md:fixed", "max-md:bottom-4")} />`,
+      },
+      {
+        name: "src/routes/z.tsx",
+        text: `<div\n  role="alert"\n  className={\`fixed \${Z} sm:bottom-2\`}\n>x</div>`,
+      },
+    ]);
+    expect(found.map((f) => f.key)).toEqual([
+      "src/routes/x.tsx#toast",
+      "src/routes/y.tsx#1",
+      "src/routes/z.tsx#2",
+    ]);
+    expect(report(found)).toContain("a live notice pinned to the phone's bottom off the dock");
+    expect(
+      dockFindings([
+        {
+          name: "src/components/app-shell.tsx",
+          text: `<div role="status" className={cn("fixed inset-x-2 bottom-2 z-50", NOTICE_DOCK)} />`,
+        },
+        {
+          name: "src/routes/a.tsx",
+          text: `<div role="status" className="md:fixed md:bottom-4" />`,
+        },
+        { name: "src/routes/b.tsx", text: `<div className="fixed inset-x-0 bottom-0" />` },
+        { name: "src/routes/c.tsx", text: `<div role="status" className="sticky bottom-0" />` },
+        {
+          name: "src/routes/d.tsx",
+          text: `<div aria-live="off" className="fixed bottom-0" />`,
         },
       ]),
     ).toEqual([]);
