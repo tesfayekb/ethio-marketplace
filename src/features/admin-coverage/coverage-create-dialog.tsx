@@ -10,10 +10,9 @@ import {
   CoverageDialogActions,
   CoverageErrorLine,
   CoverageFormFields,
-  coverageFormInput,
   useCoverageError,
-  type CoverageFormValues,
 } from "./coverage-dialogs";
+import { coverageFormInput, type CoverageFormValues } from "./coverage-forms";
 import { COVERAGE_PLAN_PATTERN } from "./coverage-service";
 import { useSetCoveragePlan } from "./use-coverage";
 

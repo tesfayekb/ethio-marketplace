@@ -1,13 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
+import { useCoverageError } from "./coverage-dialogs";
 import {
   coverageFormInput,
   coverageFormOf,
-  useCoverageError,
   wholeNumber,
   type CoverageFormValues,
-} from "./coverage-dialogs";
+} from "./coverage-forms";
 import { COVERAGE_REFUSAL_IDS, coverageErrorKey } from "./coverage-service";
 
 /** P-1 — a form that passes every rule, to bend one at a time. */

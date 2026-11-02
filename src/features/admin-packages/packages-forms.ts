@@ -1,4 +1,4 @@
-import { wholeNumber } from "@/features/admin-coverage/coverage-dialogs";
+import { wholeNumber } from "@/features/admin-coverage/coverage-forms";
 import {
   childrenOf,
   rootsOf,
