@@ -1,32 +1,34 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41327085361
-- Commit: `e3a6dfd22a19e15bbfd386d68e7b478a6af98f72`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41483057461
+- Commit: `af312ca2238538efd905ed6ea5fc97c262b0ac19`
 - Attempt: 1
-- Written (UTC): 2026-11-01T21:42:52.672Z
-- Passed: 2308 · Skipped: 317 · Failed: 2
-- Gating failures: 2 · Quarantined (@global-state, INC-117, non-gating): 0
+- Written (UTC): 2026-11-02T22:38:19.550Z
+- Passed: 0 · Skipped: 0 · Failed: 1
+- Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
-- Post-test errors (DEC-059, non-gating): nightly, full
-- Sources without results: none
+- Post-test errors (DEC-059, non-gating): nightly
+- Sources without results: full
 - Errors outside any test (INC-589): none
 
 ## Errors outside any test (INC-589)
 
-None: no results file lists one and no log's summary names one (2 of 2 results files read, 2 of 2 logs read).
+None: no results file lists one and no log's summary names one (1 of 2 results files read, 2 of 2 logs read).
 
 ## Server errors — census (DEC-083, non-gating)
 
 Logs read: nightly, full · unavailable: none
 
-62 line(s), 27 message(s): 0 off the allowlist, 27 allowlisted.
+73 line(s), 32 message(s): 5 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
+| `listing not found` | 6 | full |
 | `categories badHeader` (quiet) | 4 | full |
 | `categories wrongFile` (quiet) | 4 | full |
 | `definitions badHeader` (quiet) | 4 | full |
 | `definitions wrongFile` (quiet) | 4 | full |
+| `[incident <uuid>] Error: storage put default/<uuid>/<uuid>/<uuid>/cover.png: Gateway Timeout` | 2 | full |
 | `categories file too large` (quiet) | 2 | full |
 | `categories nulByte` (quiet) | 2 | full |
 | `categories unknownColumn` (quiet) | 2 | full |
@@ -50,10 +52,58 @@ Logs read: nightly, full · unavailable: none
 | `strings tooManyRows` (quiet) | 2 | full |
 | `strings unknownColumn` (quiet) | 2 | full |
 | `strings wrongFile` (quiet) | 2 | full |
+| `[incident <uuid>] Error: storage put default/<uuid>/<uuid>/<uuid>/card.jpg: Gateway Timeout` | 1 | full |
+| `[incident <uuid>] Error: storage put default/<uuid>/<uuid>/<uuid>/cover.webp: Gateway Timeout` | 1 | full |
+| `gate fetch threw upstream ssr language gate timed out after <n>ms` | 1 | full |
 
 Quiet (allowlisted): categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
 
-Off the allowlist: none.
+Off the allowlist:
+
+### listing not found
+
+- Count: 6 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused ×2 · PP-33 the seller is told why a photo is hidden: the rule it may break, or an uns ×2 · PP-19 Next and Back wait while a photo is sent, and the cover carries its ribbon ×1 · PP-20 a draft begun on /post takes its own address, and a reload opens it again ×1 · PP-29 a photo that may not fit the ad is stored with a warning the seller sees a ×1 · PP-30 Remove background is on the cover only; the preview lies on the house back ×1
+
+```text
+[WebServer] [ssr-error] /api/upload/photo listing not found
+```
+
+### [incident <uuid>] Error: storage put default/<uuid>/<uuid>/<uuid>/cover.png: Gateway Timeout
+
+- Count: 2 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-21 a published ad's cover photo reaches the feed card, signed for a visitor w ×1 · PP-22 the buyer's preview is a gallery: thumbnails, arrows, a swipe and a full-s ×1 · PP-7 the eleventh photo is refused tooManyPhotos ×1 · PP-8 DELETE removes the row and the objects; POST makes a photo the cover ×1
+
+```text
+[WebServer] [ssr-error] /api/upload/photo [incident b55e36dd-6a8d-4c15-9232-44d56c942062] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/8f679668-ab4f-42c0-8f4e-7e915b6d8119/18c9c633-cf41-4f6a-ba34-baafe98a17ba/cover.png: Gateway Timeout
+```
+
+### [incident <uuid>] Error: storage put default/<uuid>/<uuid>/<uuid>/card.jpg: Gateway Timeout
+
+- Count: 1 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-15 a photo stored in an earlier visit can be made the cover, which moves it f ×1 · PP-16 a photo dropped on the step is added like a picked one ×1
+
+```text
+[WebServer] [ssr-error] /api/upload/photo [incident 142f71ee-230c-4887-9586-3d519f5ef189] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/c2166317-0f97-4947-a6f2-3b94b21c3235/21a9d60e-e9df-40fd-9fad-f99a20038d5e/card.jpg: Gateway Timeout
+```
+
+### [incident <uuid>] Error: storage put default/<uuid>/<uuid>/<uuid>/cover.webp: Gateway Timeout
+
+- Count: 1 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-25 an edited photo takes the old photo's place; its objects go; at the cap it ×1 · PP-26 a refused edit leaves the old photo as it was; a photo not on the listing  ×1
+
+```text
+[WebServer] [ssr-error] /api/upload/photo [incident ce7d8cb4-88a8-4b1a-bdfe-a2124d4a143f] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/caae2c27-796a-46ad-839c-823fbd9379a1/539ea2c1-d3ac-4b92-bea3-4f6e7c87f48f/cover.webp: Gateway Timeout
+```
+
+### gate fetch threw upstream ssr language gate timed out after <n>ms
+
+- Count: 1 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PR-5 assist answers from the facts alone, within the field caps ×1 · PR-6 the options route is ETag'd: a conditional repeat costs a 304 ×1
+
+```text
+[WebServer] [ssr-error] /__root gate fetch threw upstream ssr language gate timed out after 1500ms
+```
 
 ## Accessibility (DEC-084, gating)
 
@@ -63,144 +113,21 @@ Logs read: nightly, full · unavailable: none
 
 ## Timing (DEC-087, non-gating)
 
-Results read: nightly, full · unavailable: none
+Results read: nightly · unavailable: full
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-01T16:57:25.464Z | 0.6 min |
-| full | 2026-11-01T16:58:04.291Z | 284.7 min |
+| nightly | 2026-11-02T16:38:04.716Z | 0.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
-| `photo-pipeline.spec.ts` | 68 | 11.7 min | full |
-| `shell.spec.ts` | 234 | 11.3 min | full |
-| `post-wizard-specs.spec.ts` | 82 | 9.7 min | full |
-| `ad-page.spec.ts` | 78 | 9.6 min | full |
-| `post-wizard-bundle2.spec.ts` | 70 | 9.5 min | full |
-| `import-security.spec.ts` | 36 | 9.0 min | full |
-| `admin-screening.spec.ts` | 52 | 8.6 min | full |
-| `admin-listings.spec.ts` | 62 | 8.4 min | full |
-| `posting-routes.spec.ts` | 80 | 7.0 min | full |
-| `admin-attributes-library.spec.ts` | 42 | 7.0 min | full |
-| `admin-categories-lifecycle.spec.ts` | 52 | 6.8 min | full |
-| `post-wizard-pricing.spec.ts` | 52 | 6.6 min | full |
-| `post-wizard-place.spec.ts` | 38 | 6.6 min | full |
-| `my-listings-ad.spec.ts` | 36 | 6.1 min | full |
-| `post-wizard-where.spec.ts` | 32 | 5.9 min | full |
-| `admin-categories-console.spec.ts` | 34 | 5.8 min | full |
-| `admin-attributes-links.spec.ts` | 34 | 5.8 min | full |
-| `admin-translations-console.spec.ts` | 46 | 5.7 min | full |
-| `post-wizard-category.spec.ts` | 48 | 5.5 min | full |
-| `feed-screens.spec.ts` | 36 | 5.5 min | full |
-| `admin-locations.spec.ts` | 38 | 5.5 min | full |
-| `admin-translations-governance.spec.ts` | 20 | 5.4 min | full |
-| `legal-certify.spec.ts` | 42 | 5.4 min | full |
-| `post-wizard-resets.spec.ts` | 34 | 5.3 min | full |
-| `admin-users.spec.ts` | 28 | 5.3 min | full |
-| `admin-attributes-editor.spec.ts` | 36 | 4.9 min | full |
-| `admin-roles.spec.ts` | 26 | 4.9 min | full |
-| `viewing-place.spec.ts` | 22 | 4.8 min | full |
-| `sage-bands.spec.ts` | 76 | 4.6 min | full |
-| `choice-lists.spec.ts` | 96 | 4.6 min | full |
-| `auth-signout.spec.ts` | 34 | 4.4 min | full |
-| `legal-admin.spec.ts` | 42 | 3.7 min | full |
-| `admin-attributes-import.spec.ts` | 40 | 3.6 min | full |
-| `admin-attributes-safety.spec.ts` | 18 | 3.6 min | full |
-| `my-listings-doors.spec.ts` | 28 | 3.4 min | full |
-| `ad-page-doors.spec.ts` | 30 | 3.2 min | full |
-| `my-listings-page.spec.ts` | 16 | 2.6 min | full |
-| `admin-countries.spec.ts` | 18 | 2.5 min | full |
-| `legal-doors.spec.ts` | 34 | 2.4 min | full |
-| `admin-translations-data.spec.ts` | 10 | 2.4 min | full |
-| `sage-tiers.spec.ts` | 40 | 2.3 min | full |
-| `admin-audit.spec.ts` | 14 | 2.2 min | full |
-| `dialogs.spec.ts` | 14 | 2.1 min | full |
-| `admin-categories-home.spec.ts` | 10 | 2.1 min | full |
-| `posting-routes-catalog.spec.ts` | 18 | 2.1 min | full |
-| `admin-categories-images.spec.ts` | 4 | 2.0 min | full |
-| `mfa-stepup.spec.ts` | 20 | 2.0 min | full |
-| `feed-index.spec.ts` | 30 | 1.8 min | full |
-| `admin-shell.spec.ts` | 12 | 1.7 min | full |
-| `press.spec.ts` | 16 | 1.5 min | full |
-| `feed-route.spec.ts` | 22 | 1.5 min | full |
-| `name-check-queue.spec.ts` | 8 | 1.5 min | full |
-| `posting-routes-dials.spec.ts` | 18 | 1.3 min | full |
-| `i18n-sign-in-language.spec.ts` | 12 | 1.3 min | full |
-| `phone-frame.spec.ts` | 18 | 1.2 min | full |
-| `admin-coverage.spec.ts` | 16 | 1.2 min | full |
-| `locations-tree.spec.ts` | 8 | 1.0 min | full |
-| `post-wizard-removed.spec.ts` | 4 | 1.0 min | full |
-| `supabase-door.spec.ts` | 12 | 1.0 min | full |
-| `post-wizard-details.spec.ts` | 8 | 1.0 min | full |
-| `auth-caller-gates.spec.ts` | 8 | 0.9 min | full |
-| `sage-cards.spec.ts` | 28 | 0.9 min | full |
-| `sage-shell.spec.ts` | 80 | 0.9 min | full |
-| `legal-accept.spec.ts` | 12 | 0.9 min | full |
-| `post-wizard-finder.spec.ts` | 8 | 0.9 min | full |
-| `breadcrumbs.spec.ts` | 6 | 0.7 min | full |
-| `i18n-bundle.spec.ts` | 6 | 0.6 min | full |
-| `posting-routes-identity.spec.ts` | 4 | 0.5 min | full |
 | `auth-resend-exhaustion.spec.ts` | 1 | 0.5 min | nightly |
-| `post-wizard-units.spec.ts` | 4 | 0.5 min | full |
-| `legal-history.spec.ts` | 6 | 0.5 min | full |
-| `house-style.spec.ts` | 12 | 0.5 min | full |
-| `admin-services.spec.ts` | 10 | 0.5 min | full |
-| `primitives-law.spec.ts` | 24 | 0.5 min | full |
-| `account-saved.spec.ts` | 4 | 0.5 min | full |
-| `i18n-coverage.spec.ts` | 14 | 0.5 min | full |
-| `a11y.spec.ts` | 4 | 0.5 min | full |
-| `legal-pages.spec.ts` | 10 | 0.4 min | full |
-| `settings.spec.ts` | 9 | 0.4 min | full |
-| `shell-bands.spec.ts` | 16 | 0.4 min | full |
-| `page-head.spec.ts` | 4 | 0.4 min | full |
-| `submenu.spec.ts` | 14 | 0.4 min | full |
-| `category-image-routes.spec.ts` | 10 | 0.4 min | full |
-| `post-wizard-recent.spec.ts` | 2 | 0.3 min | full |
-| `rbac.spec.ts` | 6 | 0.3 min | full |
-| `category-nav.spec.ts` | 10 | 0.3 min | full |
-| `layout.spec.ts` | 10 | 0.3 min | full |
-| `submenu-look.spec.ts` | 12 | 0.3 min | full |
-| `auth-reset.spec.ts` | 6 | 0.3 min | full |
-| `seller-name-hidden.spec.ts` | 2 | 0.2 min | full |
-| `menu-rows.spec.ts` | 6 | 0.2 min | full |
-| `ad-page-layout.spec.ts` | 2 | 0.2 min | full |
-| `smoke-auth-i18n.spec.ts` | 2 | 0.2 min | full |
-| `locale-format.spec.ts` | 2 | 0.2 min | full |
-| `overlays.spec.ts` | 8 | 0.2 min | full |
-| `auth-signin-errors.spec.ts` | 5 | 0.2 min | full |
-| `admin-ai-calls.spec.ts` | 2 | 0.2 min | full |
-| `shell-table-law.spec.ts` | 2 | 0.1 min | full |
-| `auth-callback.spec.ts` | 4 | 0.1 min | full |
-| `overlay-shift.spec.ts` | 6 | 0.1 min | full |
-| `submenu-touch.spec.ts` | 8 | 0.1 min | full |
-| `i18n-layers.spec.ts` | 6 | 0.1 min | full |
-| `on-demand-failure.spec.ts` | 2 | 0.1 min | full |
-| `dark-cards.spec.ts` | 4 | 0.1 min | full |
-| `fonts.spec.ts` | 2 | 0.0 min | full |
-| `rail-first-paint.spec.ts` | 4 | 0.0 min | full |
-| `auth-google.spec.ts` | 2 | 0.0 min | full |
-| `geo.spec.ts` | 10 | 0.0 min | full |
-| `ad-page-routes.spec.ts` | 4 | 0.0 min | full |
 
 15 slowest tests:
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `admin-translations-governance.spec.ts` › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state | desktop-1280 | 133.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | mobile-360 | 55.7 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 53.4 s |
-| `admin-categories-images.spec.ts` › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state | desktop-1280 | 53.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-locations: a changed file cannot be committed and previews are rate limited | desktop-1280 | 53.1 s |
-| `import-security.spec.ts` › @private-identity IG-3 translations: a changed file cannot be committed and previews are rate limited | mobile-360 | 51.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | mobile-360 | 51.3 s |
-| `import-security.spec.ts` › @private-identity IG-3 locations-countries: a changed file cannot be committed and previews are rate limited | desktop-1280 | 50.4 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | mobile-360 | 49.8 s |
-| `import-security.spec.ts` › @private-identity IG-3 categories: a changed file cannot be committed and previews are rate limited | desktop-1280 | 40.8 s |
-| `admin-categories-images.spec.ts` › CI-4 image tab: generate persists three assets and regenerate re-versions them | desktop-1280 | 34.8 s |
-| `admin-categories-images.spec.ts` › CI-4 image tab: generate persists three assets and regenerate re-versions them | mobile-360 | 34.7 s |
-| `my-listings-ad.spec.ts` › MLA-17 INC-658: in the Edit's Place, a country change with no city closes Save changes; a tap says Choose a city; a city opens it; Save writes it | mobile-360 | 34.6 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | desktop-1280 | 33.6 s |
-| `admin-locations.spec.ts` › LT-4 path rule: retiring a scratch region hides its active descendants from the public tree | mobile-360 | 33.5 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.1 s |
 
 ## Post-test errors: nightly
 
@@ -209,17 +136,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 41327085361-nightly
-```
-
-## Post-test errors: full
-
-full: every test's verdict stands — these lines were printed OUTSIDE any test (fixture teardown / process exit) and are non-gating.
-
-```text
-[e2e:teardown] accounts signed in this run: 84 (pool 2, fresh 82)
-[e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 118 user(s) owned by process 41327085361-nightly
+[e2e:teardown] deleted 3 user(s) owned by process 41483057461-nightly
 ```
 
 ## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
@@ -262,51 +179,7 @@ Call log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/nightly/auth-resend-exhaustion.spec.ts:50:76
 ```
 
-Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 0 context file(s); of the same spec: none
-
-## post-wizard-resets.spec.ts › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332)
-
-- Source: `full`
-- Project: `desktop-1280`
-
-```text
-Error: PW-79: the tap on Next was lost — no refusal summary
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-refusal-summary')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-79: the tap on Next was lost — no refusal summary with timeout 20000ms
-  - waiting for getByTestId('post-refusal-summary')
-
---- further error 1 ---
-Error: PW-79: the tap on Next was lost — no refusal summary
-
-expect(locator).toBeVisible() failed
-
-Locator: getByTestId('post-refusal-summary')
-Expected: visible
-Timeout: 20000ms
-Error: element(s) not found
-
-Call log:
-  - PW-79: the tap on Next was lost — no refusal summary with timeout 20000ms
-  - waiting for getByTestId('post-refusal-summary')
-
-
-  1143 |       page.getByTestId("post-refusal-summary"),
-  1144 |       "PW-79: the tap on Next was lost — no refusal summary",
-> 1145 |     ).toBeVisible({ timeout: 20_000 });
-       |       ^
-  1146 |     await expect(page.getByTestId("post-step-5")).toBeVisible();
-  1147 |     await expect(
-```
-
-Context: context file not found for `post-wizard-resets-POSTING-WIZARD-PW-79-clearing-the-title-and-tapping-Next-at-once-still-registers-the-tap-INC-332-desktop-1280` — Playwright's name `post-wizard-resets-POSTING-f73f2--registers-the-tap-INC-332--desktop-1280`; this run carried 0 context file(s); of the same spec: none
+Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 5 context file(s); of the same spec: none
 
 ## Server errors: nightly
 
@@ -322,13 +195,6 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 ## Server errors: full
 
 ```text
-[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
-[WebServer] [ssr-error] /api/admin/categories/import categories file too large
-[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
-[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
-[WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
-[WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
-[WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
 [WebServer] [ssr-error] /api/admin/translations/import strings nulByte
 [WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
 [WebServer] [ssr-error] /api/admin/locations/import countries badHeader
@@ -342,8 +208,81 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/upload/photo listing not found
+[WebServer] [ssr-error] /api/upload/photo [incident b55e36dd-6a8d-4c15-9232-44d56c942062] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/8f679668-ab4f-42c0-8f4e-7e915b6d8119/18c9c633-cf41-4f6a-ba34-baafe98a17ba/cover.png: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo [incident 142f71ee-230c-4887-9586-3d519f5ef189] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/c2166317-0f97-4947-a6f2-3b94b21c3235/21a9d60e-e9df-40fd-9fad-f99a20038d5e/card.jpg: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo listing not found
+[WebServer] [ssr-error] /api/upload/photo [incident 337d631c-3157-4f14-ba8c-3fc75b2f7579] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/032e5c4e-232c-4c6c-bb21-9e878061af5b/4c2587de-5c35-438c-8953-3dafe9afc6d7/cover.png: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo [incident ce7d8cb4-88a8-4b1a-bdfe-a2124d4a143f] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/caae2c27-796a-46ad-839c-823fbd9379a1/539ea2c1-d3ac-4b92-bea3-4f6e7c87f48f/cover.webp: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo listing not found ×4
 ```
 
 ## Client errors: full
 
 No `[client-error]` lines in the `full` log (or no log was uploaded).
+
+## full: no results file
+
+full: no results file — the process failed outside test results (setup/teardown/preflight).
+
+```text
+--- error lines (25) ---
+  ✘   356 [mobile-360] › e2e/admin-translations-console.spec.ts:437:3 › U4b translations console › TR-10 translator card proves both permission states (4.2s)
+  ✘  1548 [desktop-1280] › e2e/admin-categories-images.spec.ts:43:3 › C2 categories console › CI-4 image tab: generate persists three assets and regenerate re-versions them (1.0m)
+  ✘  1549 [desktop-1280] › e2e/admin-categories-images.spec.ts:162:3 › C2 categories console › CI-5 bulk fill: the missing-assets run fills every seeded row @global-state (2.0m)
+  ✘  2116 [desktop-1280] › e2e/photo-pipeline.spec.ts:190:3 › PHOTO PIPELINE › PP-2 a PNG and a WebP carrying metadata chunks are stored as image data only (1.3m)
+[WebServer] [ssr-error] /api/upload/photo [incident b55e36dd-6a8d-4c15-9232-44d56c942062] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/8f679668-ab4f-42c0-8f4e-7e915b6d8119/18c9c633-cf41-4f6a-ba34-baafe98a17ba/cover.png: Gateway Timeout
+  ✘  2121 [desktop-1280] › e2e/photo-pipeline.spec.ts:289:3 › PHOTO PIPELINE › PP-7 the eleventh photo is refused tooManyPhotos (1.5m)
+  ✘  2122 [desktop-1280] › e2e/photo-pipeline.spec.ts:309:3 › PHOTO PIPELINE › PP-8 DELETE removes the row and the objects; POST makes a photo the cover (1.4m)
+  ✘  2129 [desktop-1280] › e2e/photo-pipeline.spec.ts:681:3 › PHOTO PIPELINE › PP-14 a photo removed while it uploads, or while it waits its turn, never comes back (54.7s)
+[WebServer] [ssr-error] /api/upload/photo [incident 142f71ee-230c-4887-9586-3d519f5ef189] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/c2166317-0f97-4947-a6f2-3b94b21c3235/21a9d60e-e9df-40fd-9fad-f99a20038d5e/card.jpg: Gateway Timeout
+  ✘  2130 [desktop-1280] › e2e/photo-pipeline.spec.ts:750:3 › PHOTO PIPELINE › PP-15 a photo stored in an earlier visit can be made the cover, which moves it first, and removed (1.4m)
+  ✘  2132 [desktop-1280] › e2e/photo-pipeline.spec.ts:850:3 › PHOTO PIPELINE › PP-17 Move earlier and Move later put a photo at its place, and the first is the cover (1.2m)
+  ✘  2133 [desktop-1280] › e2e/photo-pipeline.spec.ts:922:3 › PHOTO PIPELINE › PP-18 a photo dragged onto another photo takes its place (computer) (1.1m)
+[WebServer] [ssr-error] /api/upload/photo [incident 337d631c-3157-4f14-ba8c-3fc75b2f7579] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/032e5c4e-232c-4c6c-bb21-9e878061af5b/4c2587de-5c35-438c-8953-3dafe9afc6d7/cover.png: Gateway Timeout
+  ✘  2136 [desktop-1280] › e2e/photo-pipeline.spec.ts:1102:3 › PHOTO PIPELINE › PP-21 a published ad's cover photo reaches the feed card, signed for a visitor without a session (2.2m)
+  ✘  2138 [desktop-1280] › e2e/photo-pipeline.spec.ts:1304:3 › PHOTO PIPELINE › PP-23 the gallery draws the middle size, and on a computer a wide photo's top meets the first thumbnail (D162, INC-613) (1.4m)
+[WebServer] [ssr-error] /api/upload/photo [incident ce7d8cb4-88a8-4b1a-bdfe-a2124d4a143f] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/caae2c27-796a-46ad-839c-823fbd9379a1/539ea2c1-d3ac-4b92-bea3-4f6e7c87f48f/cover.webp: Gateway Timeout
+  ✘  2140 [desktop-1280] › e2e/photo-pipeline.spec.ts:1438:3 › PHOTO PIPELINE › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) (1.9m)
+  ✘  2141 [desktop-1280] › e2e/photo-pipeline.spec.ts:1518:3 › PHOTO PIPELINE › PP-26 a refused edit leaves the old photo as it was; a photo not on the listing is gone (D154 B2) (1.4m)
+  ✘  2142 [desktop-1280] › e2e/photo-pipeline.spec.ts:1579:3 › PHOTO PIPELINE › PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) (1.6m)
+  ✘  2144 [desktop-1280] › e2e/photo-pipeline.spec.ts:1722:3 › PHOTO PIPELINE › PP-29 a photo that may not fit the ad is stored with a warning the seller sees and no visitor reads (D154 B3) (1.6m)
+  ✘  2145 [desktop-1280] › e2e/photo-pipeline.spec.ts:1810:3 › PHOTO PIPELINE › PP-30 Remove background is on the cover only; the preview lies on the house background; Keep stores it as the cover (D159) (1.5m)
+  ✘  2146 [desktop-1280] › e2e/photo-pipeline.spec.ts:1900:3 › PHOTO PIPELINE › PP-31 the background route: the seller's own cover only, two tries an ad, then spent; nothing stored (D159) (1.1m)
+  ✘  2147 [desktop-1280] › e2e/photo-pipeline.spec.ts:1952:3 › PHOTO PIPELINE › PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183) (1.2m)
+  ✘  2148 [desktop-1280] › e2e/photo-pipeline.spec.ts:2042:3 › PHOTO PIPELINE › PP-33 the seller is told why a photo is hidden: the rule it may break, or an unsure check (D178) (1.2m)
+  ✘  2273 [desktop-1280] › e2e/post-wizard-resets.spec.ts:1119:3 › POSTING WIZARD › PW-79 clearing the title and tapping Next at once still registers the tap (INC-332) (29.2s)
+--- final 10 lines ---
+[WebServer] [upstream] ssr language gate 200 62ms
+  ✓  2572 [desktop-1280] › e2e/shell.spec.ts:722:3 › corner-block grid › logo cell sits exactly above the rail and beside the top bar (1.0s)
+[WebServer] [upstream] ssr language gate 200 37ms
+  ✓  2573 [desktop-1280] › e2e/shell.spec.ts:746:3 › corner-block grid › the lockup's second line spans the wordmark exactly (829ms)
+[WebServer] [upstream] ssr language gate 200 61ms
+  ✓  2574 [desktop-1280] › e2e/shell.spec.ts:758:3 › corner-block grid › rail submenus expand and collapse (861ms)
+[WebServer] [upstream] ssr language gate 200 55ms
+  ✓  2575 [desktop-1280] › e2e/shell.spec.ts:773:3 › corner-block grid › every rail row carries a leading icon on one gutter (2.1s)
+[WebServer] [upstream] ssr language gate 200 41ms
+```
+
+```text
+[WebServer] [ssr-error] /api/admin/translations/import strings nulByte
+[WebServer] [ssr-error] /api/admin/translations/import strings emptyFile
+[WebServer] [ssr-error] /api/admin/locations/import countries badHeader
+[WebServer] [ssr-error] /api/admin/locations/import countries wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import countries unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import countries tooManyRows
+[WebServer] [ssr-error] /api/admin/locations/import countries nulByte
+[WebServer] [ssr-error] /api/admin/locations/import locations badHeader
+[WebServer] [ssr-error] /api/admin/locations/import locations wrongFile
+[WebServer] [ssr-error] /api/admin/locations/import locations unknownColumn
+[WebServer] [ssr-error] /api/admin/locations/import locations file too large
+[WebServer] [ssr-error] /api/admin/locations/import locations nulByte
+[WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/upload/photo listing not found
+[WebServer] [ssr-error] /api/upload/photo [incident b55e36dd-6a8d-4c15-9232-44d56c942062] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/8f679668-ab4f-42c0-8f4e-7e915b6d8119/18c9c633-cf41-4f6a-ba34-baafe98a17ba/cover.png: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo [incident 142f71ee-230c-4887-9586-3d519f5ef189] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/c2166317-0f97-4947-a6f2-3b94b21c3235/21a9d60e-e9df-40fd-9fad-f99a20038d5e/card.jpg: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo listing not found
+[WebServer] [ssr-error] /api/upload/photo [incident 337d631c-3157-4f14-ba8c-3fc75b2f7579] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/032e5c4e-232c-4c6c-bb21-9e878061af5b/4c2587de-5c35-438c-8953-3dafe9afc6d7/cover.png: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo [incident ce7d8cb4-88a8-4b1a-bdfe-a2124d4a143f] Error: storage put default/136bc7f3-97a3-48da-a8d3-05808d50ff8a/caae2c27-796a-46ad-839c-823fbd9379a1/539ea2c1-d3ac-4b92-bea3-4f6e7c87f48f/cover.webp: Gateway Timeout
+[WebServer] [ssr-error] /api/upload/photo listing not found ×4
+```
