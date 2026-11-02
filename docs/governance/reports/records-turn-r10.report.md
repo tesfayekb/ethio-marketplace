@@ -150,6 +150,7 @@ None.
 - One commit for the brief and the records, as the brief's step 7 titles it, instead of rule 00's
   separate `<stem>: task saved` commit. The report is its own commit, after the pull request was
   opened, because step 8 asks for the pull request's link in it.
+- Ruling 1 (records-turn-r10.ruling-1.md): findings 1–3 corrected by the supervisor's four replacements; finding 4 is DEC-022's declared marks, not a defect.
 
 FINDINGS (the records are unchanged; each is the supervisor's to rule):
 
