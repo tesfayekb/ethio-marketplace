@@ -186,9 +186,10 @@ BEGIN
 END $$;
 
 -- ------------------------------------------------------------ 5. THE DOORS
--- The shape of the staff doors (admin_set_listing_tier, T1 M1): signed in, packages:update, not
--- deactivated, the staff_config dial; the door's own rules; the second factor; then the write,
--- one audit row, a jsonb answer. A refusal raises, so nothing it reached is kept (INC-844).
+-- The shape of the config doors (INC-951 3c, as admin_set_coverage_plan beside them): signed in,
+-- packages:update, not deactivated, the second factor, the staff_config dial (after the door's
+-- authority, before its first write); the door's own rules; then the write, one audit row, a
+-- jsonb answer. A refusal raises, so nothing it reached is kept (INC-844).
 CREATE FUNCTION public.admin_save_listing_package(p_key text, p_tier text, p_days integer, p_enabled boolean, p_self_serve boolean, p_extends_lifetime boolean, p_label_key text DEFAULT NULL::text, p_sort integer DEFAULT NULL::integer)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -210,6 +211,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = v_uid AND account_status = 'deactivated') THEN
     RAISE EXCEPTION 'account is deactivated';
   END IF;
+  PERFORM public.require_step_up_if_needed('packages', 'update');
   IF NOT coalesce((public.rate_gate('staff_config')->>'allowed')::boolean, false) THEN RAISE EXCEPTION 'rateLimited'; END IF;
 
   IF coalesce(p_key, '') !~ '^[a-z_]{2,32}$' THEN
@@ -224,7 +226,6 @@ BEGIN
   IF p_label_key IS NOT NULL AND p_label_key !~ '^[a-z][a-z0-9_.]{1,79}$' THEN
     RAISE EXCEPTION 'bad label key';
   END IF;
-  PERFORM public.require_step_up_if_needed('packages', 'update');
 
   SELECT * INTO v_old FROM public.listing_packages WHERE key = p_key FOR UPDATE;
   INSERT INTO public.listing_packages (key, tier, days, enabled, self_serve, extends_lifetime, label_key, sort, updated_by, updated_at)
@@ -279,6 +280,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = v_uid AND account_status = 'deactivated') THEN
     RAISE EXCEPTION 'account is deactivated';
   END IF;
+  PERFORM public.require_step_up_if_needed('packages', 'update');
   IF NOT coalesce((public.rate_gate('staff_config')->>'allowed')::boolean, false) THEN RAISE EXCEPTION 'rateLimited'; END IF;
 
   SELECT * INTO v_pkg FROM public.listing_packages WHERE key = p_package_key FOR UPDATE;
@@ -308,7 +310,6 @@ BEGIN
                 AND coalesce(x.valid_to, 'infinity'::timestamptz) > v_from) THEN
     RAISE EXCEPTION 'overlapping window';
   END IF;
-  PERFORM public.require_step_up_if_needed('packages', 'update');
 
   INSERT INTO public.package_prices (package_key, country_code, category_id, amount, currency, valid_from, valid_to, updated_by)
   VALUES (p_package_key, p_country_code, p_category_id, p_amount, p_currency, v_from, p_valid_to, v_uid)
@@ -345,6 +346,7 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.profiles WHERE user_id = v_uid AND account_status = 'deactivated') THEN
     RAISE EXCEPTION 'account is deactivated';
   END IF;
+  PERFORM public.require_step_up_if_needed('packages', 'update');
   IF NOT coalesce((public.rate_gate('staff_config')->>'allowed')::boolean, false) THEN RAISE EXCEPTION 'rateLimited'; END IF;
 
   -- The package row is the lock for every window of its prices (as the save door takes it).
@@ -371,7 +373,6 @@ BEGIN
                 AND coalesce(x.valid_to, 'infinity'::timestamptz) > v_row.valid_from) THEN
     RAISE EXCEPTION 'overlapping window';
   END IF;
-  PERFORM public.require_step_up_if_needed('packages', 'update');
 
   UPDATE public.package_prices SET valid_to = v_to, updated_by = v_uid WHERE id = p_id;
   INSERT INTO public.audit_log (actor_id, action, entity_type, entity_id, meta)
