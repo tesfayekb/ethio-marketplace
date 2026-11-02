@@ -32,6 +32,8 @@ import { adminClient, leaseUser } from "./helpers/users";
  *   and its contrast; the price's and the links' ink and their contrast; the tier tag; the flag
  *   at the main photo's top-start corner; the ribbon's caps past the photo's end and foot, cut
  *   by no box; the section bar's radius and its current segment; the safety box unchanged.
+ * SAP-2: at 390 and 1440, light, the free tier — Show contact is 48 px tall and as wide as
+ *   its parent box.
  */
 type Tier = "regular" | "premium" | "featured";
 const WIDTHS = [390, 834, 1440];
@@ -157,7 +159,7 @@ for (const width of WIDTHS) {
           );
           expect(await style(seller, "border-top-left-radius"), at).toBe(boxRadius);
 
-          // Show contact: gold on Premium, the site green otherwise; its size untouched.
+          // Show contact: gold on Premium, the site green otherwise. Its size is SAP-2.
           const show = page.getByTestId("listing-contact-show");
           const showFill = await style(show, "background-color");
           const showInk = await style(show, "color");
@@ -279,6 +281,25 @@ for (const width of WIDTHS) {
           await expectNoHorizontalOverflow(page);
         }
       });
+
+      if (mode === "light" && (width === 390 || width === 1440)) {
+        test(`SAP-2 Show contact is 48px and as wide as its box (${width})`, async ({ page }) => {
+          const paths = await seedTiers();
+          const buyer = await leaseUser();
+          await signInViaSession(page, buyer.email, buyer.password);
+          await setMode(page, mode);
+          await openAs(page, paths.regular, mode);
+          const show = page.getByTestId("listing-contact-show");
+          const boxes = await layoutBoxes({ show, parent: show.locator("..") });
+          expect(Math.abs(boxes.show.height - 48), "Show contact's height").toBeLessThanOrEqual(
+            0.5,
+          );
+          expect(
+            Math.abs(boxes.show.width - boxes.parent.width),
+            "Show contact's width",
+          ).toBeLessThanOrEqual(0.5);
+        });
+      }
     });
   }
 }
