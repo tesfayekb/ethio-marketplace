@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `cbdfc96929874e4cd27478b971f3ca6436296e8d`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41395409251
+- Commit: `b6ce550787012289ce35c9e3e1caf06978429fb2`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41401574542
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 910 | 50 | applied 385/385 | 206 | 0 | 0 | 70 | 276 |
-| email | 170 | 48 | applied 385/385 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 969 | 63 | applied 385/385 | 163 | 0 | 0 | 6 | 169 |
-| 2 | 1003 | 53 | applied 385/385 | 170 | 0 | 0 | 1 | 171 |
-| 3 | 767 | 73 | applied 385/385 | 134 | 0 | 0 | 24 | 158 |
-| 4 | 899 | 60 | applied 385/385 | 176 | 0 | 0 | 2 | 178 |
-| 5 | 931 | 71 | applied 385/385 | 165 | 0 | 0 | 7 | 172 |
-| 6 | 824 | 73 | applied 385/385 | 164 | 0 | 0 | 1 | 165 |
-| 7 | 445 | 62 | applied 385/385 | 80 | 1 | 0 | 68 | 149 |
-| 8 | 710 | 72 | applied 385/385 | 116 | 0 | 0 | 51 | 167 |
-| 9 | 1078 | 73 | applied 385/385 | 166 | 0 | 0 | 13 | 179 |
-| 10 | 1005 | 50 | applied 385/385 | 170 | 0 | 0 | 1 | 171 |
-| 11 | 843 | 68 | applied 385/385 | 122 | 0 | 0 | 37 | 159 |
-| 12 | 644 | 51 | applied 385/385 | 156 | 0 | 0 | 4 | 160 |
-| 13 | 886 | 72 | applied 385/385 | 155 | 0 | 0 | 17 | 172 |
-| 14 | 726 | 60 | applied 385/385 | 163 | 0 | 0 | 2 | 165 |
-| 15 | 465 | 73 | applied 385/385 | 96 | 0 | 0 | 62 | 158 |
-| 16 | 665 | 71 | applied 385/385 | 123 | 0 | 0 | 36 | 159 |
-| repeat | 635 | 72 | applied 385/385 | 90 | 3 | 0 | 27 | 120 |
-| TOTAL | — | — | — | 2621 | 4 | 0 | 429 | 3054 |
+| smoke | 1033 | 72 | applied 385/385 | 206 | 0 | 0 | 70 | 276 |
+| email | 160 | 49 | applied 385/385 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 1016 | 72 | applied 385/385 | 163 | 0 | 0 | 6 | 169 |
+| 2 | 1196 | 73 | applied 385/385 | 175 | 0 | 0 | 1 | 176 |
+| 3 | 768 | 72 | applied 385/385 | 134 | 0 | 0 | 24 | 158 |
+| 4 | 721 | 49 | applied 385/385 | 176 | 0 | 0 | 2 | 178 |
+| 5 | 736 | 49 | applied 385/385 | 165 | 0 | 0 | 7 | 172 |
+| 6 | 644 | 50 | applied 385/385 | 164 | 0 | 0 | 1 | 165 |
+| 7 | 446 | 68 | applied 385/385 | 82 | 0 | 0 | 68 | 150 |
+| 8 | 716 | 72 | applied 385/385 | 115 | 0 | 0 | 51 | 166 |
+| 9 | 1043 | 67 | applied 385/385 | 166 | 0 | 0 | 13 | 179 |
+| 10 | 1065 | 70 | applied 385/385 | 153 | 0 | 0 | 1 | 154 |
+| 11 | 904 | 58 | applied 385/385 | 144 | 0 | 0 | 37 | 181 |
+| 12 | 792 | 72 | applied 385/385 | 156 | 0 | 0 | 4 | 160 |
+| 13 | 799 | 61 | applied 385/385 | 155 | 0 | 0 | 17 | 172 |
+| 14 | 633 | 48 | applied 385/385 | 163 | 0 | 0 | 2 | 165 |
+| 15 | 467 | 72 | applied 385/385 | 96 | 0 | 0 | 62 | 158 |
+| 16 | 660 | 67 | applied 385/385 | 123 | 0 | 0 | 36 | 159 |
+| repeat | 701 | 72 | applied 385/385 | 144 | 0 | 0 | 0 | 144 |
+| TOTAL | — | — | — | 2686 | 0 | 0 | 402 | 3088 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 9 1078 s
-- Repeat lane (DEC-283): Repeat: each 3 on both projects; 20 tests selected, 20 repeated; budget 720 s at 4.7 s a test; directly changed: 2 of 2 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 4, email 4, 1 7, 2 5, 3 9, 4 6, 5 8, 6 9, 7 7, 8 8, 9 9, 10 4, 11 8, 12 5, 13 8, 14 6, 15 9, 16 8, repeat 9
+- Slowest lane: 2 1196 s
+- Repeat lane (DEC-283): Not repeated: e2e/press.spec.ts (11 tests); Not repeated: e2e/sage-ad-page.spec.ts (9 tests); Repeat: each 2 on both projects; 56 tests selected, 36 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 3 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 8, email 4, 1 8, 2 9, 3 9, 4 4, 5 4, 6 4, 7 8, 8 9, 9 8, 10 8, 11 6, 12 9, 13 6, 14 4, 15 8, 16 8, repeat 9
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41395409251-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41395409251-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41395409251-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 41395409251-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 41395409251-local-3
-  - 4: [e2e:teardown] deleted 34 user(s) owned by process 41395409251-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 41395409251-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41395409251-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41395409251-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41395409251-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41395409251-local-9
-  - 10: [e2e:teardown] deleted 5 user(s) owned by process 41395409251-local-10
-  - 11: [e2e:teardown] deleted 12 user(s) owned by process 41395409251-local-11
-  - 12: [e2e:teardown] deleted 34 user(s) owned by process 41395409251-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 41395409251-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41395409251-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41395409251-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41395409251-local-16
-  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 41395409251-local-repeat
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41401574542-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41401574542-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41401574542-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 41401574542-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 41401574542-local-3
+  - 4: [e2e:teardown] deleted 34 user(s) owned by process 41401574542-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 41401574542-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41401574542-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41401574542-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41401574542-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41401574542-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 41401574542-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41401574542-local-11
+  - 12: [e2e:teardown] deleted 34 user(s) owned by process 41401574542-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 41401574542-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41401574542-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41401574542-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41401574542-local-16
+  - repeat: [e2e:teardown] deleted 6 user(s) owned by process 41401574542-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -74,19 +74,5 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
-
-## Lane 7
-- Step failure:
-Step smoke: outcome failure
-  
-- press.spec.ts / The chosen mark moves at once / PS-9 the panel switcher checks the chosen panel before its page lands; the heading waits / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
-
-## Lane repeat
-- Step failure:
-Step smoke: outcome failure
-  repeat-cap: failed
-- press.spec.ts / The chosen mark moves at once / PS-9 the panel switcher checks the chosen panel before its page lands; the heading waits / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
-- press.spec.ts / The chosen mark moves at once / PS-9 the panel switcher checks the chosen panel before its page lands; the heading waits / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
-- press.spec.ts / The chosen mark moves at once / PS-9 the panel switcher checks the chosen panel before its page lands; the heading waits / mobile-360 — Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveText[2m([22m[32mexpected[39m[2m)[22m failed
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
