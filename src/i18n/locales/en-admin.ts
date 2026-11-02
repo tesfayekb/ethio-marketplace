@@ -1831,8 +1831,6 @@ export const enAdmin = {
   "admin.attributes.link.saveFailed": "That change was not saved. Try again.",
   "admin.attributes.link.alwaysVisible": "Always visible",
   "admin.coverage.maxPhotos": "Photos",
-  "admin.section.coverage.title": "Coverage",
-  "admin.section.coverage.body": "How far a seller may reach on each plan.",
   "admin.legal.scope.global": "All countries",
   "admin.legal.addCountry.label": "Country version",
   "admin.legal.addCountry.action": "Add country",

@@ -1737,8 +1737,6 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.attributes.link.saveFailed": "ይህ ለውጥ አልተቀመጠም። እንደገና ይሞክሩ።",
   "admin.attributes.link.alwaysVisible": "ሁልጊዜ ይታይ",
   "admin.coverage.maxPhotos": "ፎቶዎች",
-  "admin.section.coverage.title": "ሽፋን",
-  "admin.section.coverage.body": "በየእቅዱ ሻጭ እስከምን ድረስ መድረስ ይችላል።",
   "admin.legal.scope.global": "ሁሉም አገሮች",
   "admin.legal.addCountry.label": "የአገር ስሪት",
   "admin.legal.addCountry.action": "አገር ጨምር",

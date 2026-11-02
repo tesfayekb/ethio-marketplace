@@ -28,8 +28,9 @@ const LINKS = [
     permission: "coverage:view",
     path: "/admin/coverage",
     key: "coverage",
-    titleKey: "admin.section.coverage.title",
-    bodyKey: "admin.section.coverage.body",
+    // P-1 (D279): the section is Admin › Plans; its key, path and permission stay coverage.
+    titleKey: "admin.section.plans.title",
+    bodyKey: "admin.section.plans.body",
   },
 ] as const;
 
