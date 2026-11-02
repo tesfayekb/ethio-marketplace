@@ -220,6 +220,8 @@ DECLARE
   v_b       uuid;
   v_g       uuid;
   v_h       uuid;
+  v_n       integer;
+  v_to      timestamptz;
   v_answer  jsonb;
   v_msg     text;
   v_state   text;
@@ -427,16 +429,24 @@ BEGIN
       END IF;
     END LOOP;
     PERFORM set_config('request.jwt.claims', '{}', true);
-    IF (SELECT count(*) FROM public.package_prices WHERE package_key = v_pkg) <> 4
-       OR (SELECT days FROM public.listing_packages WHERE key = v_pkg) <> 14
-       OR (SELECT valid_to FROM public.package_prices WHERE id = v_h) IS DISTINCT FROM now() + interval '3 days'
-       OR (SELECT count(*) FROM public.audit_log WHERE action = 'package.saved' AND entity_id = v_pkg) <> 3
-       OR (SELECT count(*) FROM public.audit_log WHERE action = 'package_price.saved'
-            AND entity_id IN (v_a::text, v_b::text, v_g::text, v_h::text)) <> 4
-       OR (SELECT count(*) FROM public.audit_log WHERE action = 'package_price.ended'
-            AND entity_id IN (v_a::text, v_b::text, v_g::text, v_h::text)) <> 1 THEN
-      RAISE EXCEPTION 'P-1 M1c proof (d-h): a refused call wrote';
+    -- Nothing refused wrote: one check per condition, each naming what it saw (INC-1033 d). The
+    -- successful saves are two (the create and the edit); the price rows A, B, G, H; one end (A).
+    SELECT count(*) INTO v_n FROM public.package_prices WHERE package_key = v_pkg;
+    IF v_n <> 4 THEN RAISE EXCEPTION 'P-1 M1c proof (d-h): price rows % expected 4', v_n; END IF;
+    SELECT days INTO v_n FROM public.listing_packages WHERE key = v_pkg;
+    IF v_n IS DISTINCT FROM 14 THEN RAISE EXCEPTION 'P-1 M1c proof (d-h): days % expected 14', v_n; END IF;
+    SELECT valid_to INTO v_to FROM public.package_prices WHERE id = v_h;
+    IF v_to IS DISTINCT FROM now() + interval '3 days' THEN
+      RAISE EXCEPTION 'P-1 M1c proof (d-h): H valid_to % expected %', v_to, now() + interval '3 days';
     END IF;
+    SELECT count(*) INTO v_n FROM public.audit_log WHERE action = 'package.saved' AND entity_id = v_pkg;
+    IF v_n <> 2 THEN RAISE EXCEPTION 'P-1 M1c proof (d-h): package.saved rows % expected 2', v_n; END IF;
+    SELECT count(*) INTO v_n FROM public.audit_log WHERE action = 'package_price.saved'
+      AND entity_id IN (v_a::text, v_b::text, v_g::text, v_h::text);
+    IF v_n <> 4 THEN RAISE EXCEPTION 'P-1 M1c proof (d-h): package_price.saved rows % expected 4', v_n; END IF;
+    SELECT count(*) INTO v_n FROM public.audit_log WHERE action = 'package_price.ended'
+      AND entity_id IN (v_a::text, v_b::text, v_g::text, v_h::text);
+    IF v_n <> 1 THEN RAISE EXCEPTION 'P-1 M1c proof (d-h): package_price.ended rows % expected 1', v_n; END IF;
 
     RAISE EXCEPTION 'p1-m1c-proof-ok';
   EXCEPTION WHEN raise_exception THEN
