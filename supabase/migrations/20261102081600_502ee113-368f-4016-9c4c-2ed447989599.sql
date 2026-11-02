@@ -22,7 +22,8 @@
 
 -- ------------------------------------------------------------ 1. THE PACKAGES
 CREATE TABLE public.listing_packages (
-  key              text PRIMARY KEY CHECK (key ~ '^[a-z_]{2,32}$'),
+  -- S512 (ruling 2): a letter first, then letters, digits and underscores, 2 to 32 in all.
+  key              text PRIMARY KEY CHECK (key ~ '^[a-z][a-z0-9_]{1,31}$'),
   tier             text NOT NULL CHECK (tier IN ('featured', 'premium')),
   days             integer NOT NULL CHECK (days > 0),
   enabled          boolean NOT NULL DEFAULT true,

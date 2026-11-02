@@ -32,7 +32,7 @@ BEGIN
   PERFORM public.require_step_up_if_needed('packages', 'update');
   IF NOT coalesce((public.rate_gate('staff_config')->>'allowed')::boolean, false) THEN RAISE EXCEPTION 'rateLimited'; END IF;
 
-  IF coalesce(p_key, '') !~ '^[a-z_]{2,32}$' THEN
+  IF coalesce(p_key, '') !~ '^[a-z][a-z0-9_]{1,31}$' THEN
     RAISE EXCEPTION 'bad key';
   END IF;
   IF p_tier IS NULL OR p_tier NOT IN ('featured', 'premium') THEN
@@ -370,7 +370,7 @@ BEGIN
       v_msg := NULL;
       BEGIN
         CASE v_case
-          WHEN 'bad key' THEN PERFORM public.admin_save_listing_package('Bad', 'premium', 7, true, true, true);
+          WHEN 'bad key' THEN PERFORM public.admin_save_listing_package('1_bad', 'premium', 7, true, true, true);
           WHEN 'unknown tier' THEN PERFORM public.admin_save_listing_package(v_pkg, 'gold', 7, true, true, true);
           WHEN 'bad days' THEN PERFORM public.admin_save_listing_package(v_pkg, 'premium', 0, true, true, true);
           WHEN 'bad label key' THEN PERFORM public.admin_save_listing_package(v_pkg, 'premium', 7, true, true, true, 'Bad Key');
