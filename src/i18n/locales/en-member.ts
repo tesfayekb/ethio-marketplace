@@ -207,6 +207,8 @@ export const enMember = {
   "admin.listings.reason.photo": "Inappropriate photo",
   "admin.listings.reason.rules": "The site's rules",
   "admin.listings.reason.other": "Other",
+  "admin.listings.reason.promotion": "Promotion",
+  "admin.listings.reason.promotion_ended": "Promotion ended",
   "admin.listings.reason.wrong_category": "Wrong category",
   "admin.listings.reason.removed_in_error": "Removed in error",
   "admin.listings.reason.appeal_accepted": "Appeal accepted",

@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 637,
-  "dynamicCallSites": 408,
+  "scanned": 639,
+  "dynamicCallSites": 410,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2796,6 +2796,9 @@
       "/admin/listings/$listingId",
       "/admin/screening"
     ],
+    "admin.listings.action.tier": [
+      "component: tier-dialog"
+    ],
     "admin.listings.action.viewAsSeller": [
       "/admin/listings",
       "/admin/listings/$listingId"
@@ -2917,7 +2920,8 @@
     ],
     "admin.listings.filter.tier": [
       "/admin/listings",
-      "/admin/listings/$listingId"
+      "/admin/listings/$listingId",
+      "component: tier-dialog"
     ],
     "admin.listings.filter.to": [
       "/admin/listings"
@@ -3103,9 +3107,15 @@
     "admin.listings.settings.title": [
       "/admin/listings"
     ],
+    "admin.listings.tier.hint": [
+      "component: tier-dialog"
+    ],
     "admin.listings.tier.regular": [
       "/admin/listings",
       "/admin/listings/$listingId"
+    ],
+    "admin.listings.tier.title": [
+      "component: tier-dialog"
     ],
     "admin.listings.undo.confirm": [
       "/admin/listings/$listingId"
@@ -4790,7 +4800,8 @@
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
-      "/post/$listingId"
+      "/post/$listingId",
+      "component: tier-dialog"
     ],
     "common.close": [
       "(every page)",
