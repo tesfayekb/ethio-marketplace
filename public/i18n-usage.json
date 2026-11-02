@@ -3881,14 +3881,14 @@
     "admin.section.countries.title": [
       "/admin/countries"
     ],
-    "admin.section.coverage.title": [
-      "/admin/coverage"
-    ],
     "admin.section.legal.title": [
       "/admin/legal"
     ],
     "admin.section.places.title": [
       "/admin/places"
+    ],
+    "admin.section.plans.title": [
+      "/admin/coverage"
     ],
     "admin.translations.add.added": [
       "/admin/translations"

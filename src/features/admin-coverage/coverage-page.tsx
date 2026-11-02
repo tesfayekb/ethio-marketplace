@@ -195,7 +195,7 @@ export function AdminCoveragePage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-coverage" className="min-w-0 space-y-4">
-          <TableActions testid="coverage-header" title={t("admin.section.coverage.title")}>
+          <TableActions testid="coverage-header" title={t("admin.section.plans.title")}>
             {mayUpdate ? (
               <TableActionButton
                 variant="default"

@@ -115,8 +115,9 @@ export const ADMIN_SECTIONS = [
     id: "coverage",
     path: "/admin/coverage",
     permission: "coverage:view",
-    titleKey: "admin.section.coverage.title",
-    bodyKey: "admin.section.coverage.body",
+    // P-1 (D279): the screen is Admin › Plans; the id, path and permission stay coverage.
+    titleKey: "admin.section.plans.title",
+    bodyKey: "admin.section.plans.body",
     group: "locations",
   },
   {

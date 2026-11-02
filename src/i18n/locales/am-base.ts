@@ -390,6 +390,9 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.countries.body": "እያንዳንዱ ገበያ፦ ክፍት ወይም ዝግ፣ መለኪያ፣ ገንዘብ እና የሐዲዱ ቅደም ተከተል።",
   "admin.section.coverage.title": "ሽፋን",
   "admin.section.coverage.body": "በየእቅዱ ሻጭ እስከምን ድረስ መድረስ ይችላል።",
+  "admin.section.plans.title": "ዕቅዶች",
+  "admin.section.plans.body":
+    "በእያንዳንዱ ዕቅድ ሻጭ ምን ማድረግ እንደሚችል፦ ሽፋን፣ ፎቶዎች፣ የማስታወቂያ ቆይታ እና የማስታወቂያዎች ብዛት።",
   "admin.nav.group.catalog": "ካታሎግ",
   "admin.nav.group.locations": "አካባቢዎች",
   "admin.section.categories.title": "ምድቦች",
