@@ -398,7 +398,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.attributes.body": "የጋራ የባህሪ ቤተ-መዝገብ፦ ትርጓሜዎች፣ ምድቦቻቸው እና በዝርዝር ካርድ ላይ የሚታየው።",
   "admin.section.images.title": "ምስሎች",
   "admin.section.images.body": "የምስል መሣሪያዎች በU8 ይመጣሉ።",
-  "common.dismiss": "አሰናብት",
+  "common.dismiss": "ዝጋ",
   "session.idleWarning": "እንቅስቃሴ ባለመኖሩ በ{s} ሰከንድ ውስጥ ይወጣሉ",
   "session.staySignedIn": "ገብቼ ልቆይ",
   "session.signedOutIdle": "እንቅስቃሴ ባለመኖሩ ወጥተዋል",

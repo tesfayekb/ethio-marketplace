@@ -466,4 +466,26 @@ test.describe("The tap tick (D272)", () => {
     await page.getByTestId("footer-terms").tap();
     expect(await ticks(page)).toEqual([10]);
   });
+
+  test("PS-8 a browser that cannot vibrate (the iPhone, D277) shows no tick row, and a tap makes no switch", async ({
+    page,
+  }) => {
+    const seller = await feed.scratchSeller();
+    await page.addInitScript(() => {
+      Object.defineProperty(Navigator.prototype, "vibrate", {
+        configurable: true,
+        value: undefined,
+      });
+    });
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, "/settings");
+    await expect(page.getByTestId("settings-devices")).toBeVisible();
+    expect(await page.evaluate(() => typeof navigator.vibrate)).toBe("undefined");
+    await expect(page.getByTestId("settings-this-device")).toHaveCount(0);
+    await expect(page.getByRole("switch", { name: "Vibrate on tap" })).toHaveCount(0);
+    await page.getByTestId("theme-toggle").tap();
+    await page.getByTestId("theme-toggle").tap();
+    expect(await page.locator("label[data-tick-switch], input[switch]").count()).toBe(0);
+  });
 });

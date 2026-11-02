@@ -20,8 +20,11 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     (turn C fix 1) The section a path belongs to is panelOf's alone: a menu file declares
  *     no list of paths (`["/a", …]`) and no `startsWith("/…")` test, and the bottom bar
  *     reads panelOf.
- *  4. (turn C2, D272) The tick is press.ts's alone: no `vibrate(` call and no switch checkbox
- *     (`<input … switch>`, `setAttribute("switch")`) anywhere else.
+ *  4. (turn C2, D272) The tick is press.ts's alone: no `vibrate(` call anywhere else.
+ *     (turn T1, D277, INC-1032) No switch checkbox anywhere (`<input … switch>`,
+ *     `setAttribute("switch")`), press.ts included: since WebKit fc1ef83 (iOS 26.5) a label
+ *     clicked by script forwards an untrusted click and a switch's haptic never plays, so a
+ *     hidden switch is a silent no-op; the tick is Android's `navigator.vibrate`.
  * The allowlist starts empty: there is none.
  */
 type Finding = { file: string; line: number; what: string };
@@ -88,8 +91,8 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
         findings.push({ ...at, what: "a current mark read from activePanel" });
       if (name !== TICK_OWNER && VIBRATE.test(line))
         findings.push({ ...at, what: "a vibrate call outside press.ts" });
-      if (name !== TICK_OWNER && SWITCH_BOX.test(line))
-        findings.push({ ...at, what: "a switch checkbox outside press.ts" });
+      if (SWITCH_BOX.test(line))
+        findings.push({ ...at, what: "a switch checkbox (INC-1032: it never ticks)" });
     });
   }
   return findings;
@@ -221,13 +224,14 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
     expect(report(found)).toContain("vibrate call outside press.ts");
   });
 
-  it("PRP-7: a switch checkbox outside press.ts fails", () => {
+  it("PRP-7: a switch checkbox fails anywhere, press.ts included (INC-1032)", () => {
     const found = currentFindings([
       { name: "src/routes/x.tsx", text: `const b = <input type="checkbox" switch />;` },
       { name: "src/routes/y.ts", text: `box.setAttribute("switch", "");` },
+      { name: "src/lib/press.ts", text: `box.setAttribute("switch", "");` },
     ]);
-    expect(found).toHaveLength(2);
-    expect(report(found)).toContain("switch checkbox outside press.ts");
+    expect(found).toHaveLength(3);
+    expect(report(found)).toContain("src/lib/press.ts:1 a switch checkbox");
   });
 
   it("PRP-8: a second path list in a menu file fails, and a bar without panelOf", () => {
