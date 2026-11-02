@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41414833020
-- Commit: `9c430cf99c2a0219d7b8e71c92cd55b9f7eb5fc7`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41417522518
+- Commit: `919cea1524b0f9e7fc765c2cbc7501f89d4d52cf`
 - Attempt: 1
-- Written (UTC): 2026-11-02T08:47:45.770Z
+- Written (UTC): 2026-11-02T09:09:03.545Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -20,8 +20,8 @@ None: no results file lists one and no log's summary names one (0 of 18 results 
 The temporary backend never came up, so these sources have neither results nor a lane log: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16. The start log's error lines, redacted, from `smoke` (one lane's lines stand for every lane that failed the same way):
 
 ```text
-migration: Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-ERROR: badPlan (SQLSTATE P0001)
+migration: Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
+ERROR: P-1 M1c proof (d-h): a refused call wrote (SQLSTATE P0001)
 ```
 
 ## Server errors — census (DEC-083, non-gating)
