@@ -181,4 +181,41 @@ describe("the tap tick (D272, turn C2)", () => {
     tap($("btn"));
     expect(ticks).toHaveLength(4);
   });
+
+  it("PR-U10: without vibrate (the iPhone) a touch on a button clicks the hidden switch's label once — never with the switch off, never after a mouse, never while vibrate is there; it moves no focus and is out of the accessibility tree", () => {
+    const labelClicks = vi.spyOn(HTMLLabelElement.prototype, "click");
+    const switchOf = () => document.querySelector<HTMLLabelElement>("label[data-tick-switch]");
+    tap($("btn"));
+    expect(ticks).toEqual([TICK_MS]);
+    expect(labelClicks).not.toHaveBeenCalled();
+    expect(switchOf()).toBeNull();
+
+    Object.defineProperty(window.navigator, "vibrate", { configurable: true, value: undefined });
+    $("quiet").focus();
+    tap($("btn"));
+    expect(labelClicks).toHaveBeenCalledTimes(1);
+    const label = switchOf();
+    expect(label).not.toBeNull();
+    expect(labelClicks.mock.contexts[0]).toBe(label);
+    const box = label?.querySelector("input");
+    expect(box?.type).toBe("checkbox");
+    expect(box?.hasAttribute("switch")).toBe(true);
+    expect(box?.tabIndex).toBe(-1);
+    expect(label?.hidden).toBe(true);
+    expect(label?.getAttribute("aria-hidden")).toBe("true");
+    expect(label?.textContent).toBe("");
+    expect(document.activeElement).toBe($("quiet"));
+
+    tap($("btn"));
+    expect(labelClicks).toHaveBeenCalledTimes(2);
+    expect(document.querySelectorAll("label[data-tick-switch]")).toHaveLength(1);
+    tap($("btn"), "mouse");
+    tap($("link"));
+    expect(labelClicks).toHaveBeenCalledTimes(2);
+    setTapTick(false);
+    tap($("btn"));
+    expect(labelClicks).toHaveBeenCalledTimes(2);
+    expect(ticks).toEqual([TICK_MS]);
+    labelClicks.mockRestore();
+  });
 });
