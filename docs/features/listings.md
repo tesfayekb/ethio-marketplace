@@ -104,6 +104,13 @@ zero new write paths to audit, and no client can invent a state transition.
 
 Grants: `EXECUTE` to `authenticated` only; revoked from `PUBLIC`/`anon`.
 
+Turn T1 part B (D276, M2 `20261102052535_4fb5d636`): a removal clears the ad's
+tier — the owner's delete sets `tier = 'regular'`, and the shared last UPDATE sets
+it to `regular` only when the new status is `removed`. A sale, an expiry, a hold or
+a rejection keeps the tier (so a relisted or restored ad keeps what staff gave it).
+Staff set the tier through `admin_set_listing_tier` (M1) — see
+`docs/features/admin-listings.md`.
+
 ## `public.expire_stale_listings()` — authored, not scheduled
 
 Flips `active → expired` where `expires_at < now()`. Idempotent, safe to run
