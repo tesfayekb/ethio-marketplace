@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { tierOf } from "@/components/marketplace/card-tier";
+import type { ListingTier } from "@/features/feed/ranking";
 
 import { editErrorKey } from "@/features/admin-listings/edit-listing";
 import { editAdminListing, readAdminListing } from "@/features/admin-listings/use-admin-listing";
@@ -183,6 +185,7 @@ export function useEditDraft(
   const [photoNonce, setPhotoNonce] = useState(0);
   const [pin, setPin] = useState<DraftPin | null>(null);
   const [photosSoon, setPhotosSoon] = useState(false);
+  const [tier, setTier] = useState<ListingTier | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [reason, setReasonState] = useState({ reason: "", note: "" });
   const reasonRef = useRef(reason);
@@ -224,6 +227,7 @@ export function useEditDraft(
           text = { streetAddress: found.draft.streetAddress, directions: found.draft.directions };
           setPhotos(found.photos);
           setPhotosSoon(found.draft.photosSoon);
+          setTier(found.draft.tier);
           setStatus(found.draft.status);
           // INC-958 — the saved pin as read, whole or absent; its precision is never guessed.
           setPin(
@@ -271,6 +275,7 @@ export function useEditDraft(
           text = { streetAddress: null, directions: null };
           setPhotos(found.photos);
           setPhotosSoon(row.photosSoon);
+          setTier(tierOf(row.tier));
           setStatus(row.status);
           setPin(null);
         }
@@ -523,6 +528,7 @@ export function useEditDraft(
       setDirections,
       photosSoon,
       setPhotosSoon,
+      tier,
       loading,
       loadError,
       outcome,
@@ -554,6 +560,7 @@ export function useEditDraft(
       placeText,
       setDirections,
       photosSoon,
+      tier,
       loading,
       loadError,
       outcome,

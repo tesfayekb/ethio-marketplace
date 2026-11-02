@@ -48,6 +48,7 @@ const definitions =
 
 /** A buyer's page with every box the look reaches: photo, facts, description, map, contact. */
 const BUYER_PAGE: ListingDetailView = {
+  tier: null,
   actor: "buyer",
   title: "Scratch ad",
   description: "scratch description",
@@ -257,5 +258,23 @@ describe("the ad page by tier (Sage S5, spec §12)", () => {
       expect(classes).toEqual(expect.arrayContaining(["min-h-11", "rounded-full"]));
       expect(classes).not.toContain("border-b-2");
     }
+  });
+
+  it("LD-31 the seller's and staff's views take the tier look (tint, frames, data-tier) with no flag and no tag (turn T1)", () => {
+    for (const actor of ["owner", "staff"] as const)
+      for (const tier of ["premium", "featured"] as const) {
+        const { unmount } = render(
+          <ListingDetail {...BUYER_PAGE} actor={actor} contact={undefined} tier={tier} />,
+        );
+        const label = `${actor} ${tier}`;
+        expect(screen.getByTestId("listing-detail"), label).toHaveAttribute("data-tier", tier);
+        expect(classesOf("listing-detail-headline"), label).toEqual(
+          expect.arrayContaining([`bg-tier-${tier}`, `shadow-${tier}`]),
+        );
+        expect(classesOf("listing-detail-media"), label).toContain(`shadow-${tier}`);
+        expect(screen.queryByTestId("listing-detail-tier"), label).toBeNull();
+        expect(screen.queryByTestId("listing-detail-tier-tag"), label).toBeNull();
+        unmount();
+      }
   });
 });

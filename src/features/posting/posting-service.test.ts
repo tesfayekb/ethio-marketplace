@@ -9,10 +9,39 @@ const { callRoute, uploadRoute } = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/route-client", () => ({ callRoute, uploadRoute }));
 
+/** Turn T1 — the owner's draft read: each table's rows, and the select each read sent. */
+const tables = vi.hoisted(() => ({
+  rows: {} as Record<string, unknown>,
+  selects: [] as Array<[string, string]>,
+}));
+vi.mock("@/integrations/supabase/client", () => {
+  const builderFor = (table: string) => {
+    const answer = () => ({ data: tables.rows[table] ?? null, error: null });
+    const builder = {
+      select: (columns: string) => {
+        tables.selects.push([table, columns]);
+        return builder;
+      },
+      eq: () => builder,
+      order: () => builder,
+      maybeSingle: () => Promise.resolve(answer()),
+      then: (done: (value: unknown) => unknown) => Promise.resolve(answer()).then(done),
+    };
+    return builder;
+  };
+  return {
+    supabase: {
+      from: builderFor,
+      rpc: () => Promise.resolve({ data: { contact_pref: { messages: true } }, error: null }),
+    },
+  };
+});
+
 import {
   call,
   mayResumePosting,
   publishListing,
+  readDraft,
   removeBackground,
   SAVE_TIMEOUT_MS,
   saveDraft,
@@ -193,5 +222,52 @@ describe("photo upload certification (bundle 22 turn 6)", () => {
     const form = await sent();
     expect(form.has("certified")).toBe(false);
     expect(form.has("language")).toBe(false);
+  });
+});
+
+describe("the owner's draft read (turn T1)", () => {
+  it("PSV-7 readDraft selects the tier and reads it through tierOf: a known tier as it is, anything else null", async () => {
+    const row = (tier: unknown) => ({
+      id: "psv-7",
+      category_id: null,
+      draft_step: 8,
+      status: "active",
+      title: "Scratch",
+      description: null,
+      video_url: null,
+      attributes: {},
+      price_mode: null,
+      price_amount: null,
+      price_currency: null,
+      price_period: null,
+      price_bp: null,
+      price_negotiable: false,
+      poster_expires_at: null,
+      pin_precision: null,
+      pin_zoom: null,
+      street_address: null,
+      directions: null,
+      photos_soon: false,
+      tier,
+    });
+    tables.rows = { listing_photos: [], listing_locations: [] };
+    tables.selects.length = 0;
+    try {
+      for (const [stored, read] of [
+        ["premium", "premium"],
+        ["featured", "featured"],
+        ["regular", "regular"],
+        ["gold", null],
+        [null, null],
+      ] as const) {
+        tables.rows["listings"] = row(stored);
+        const found = await readDraft("psv-7");
+        expect(found?.draft.tier, String(stored)).toBe(read);
+      }
+      const listingSelect = tables.selects.find(([table]) => table === "listings")?.[1] ?? "";
+      expect(listingSelect.split(",")).toContain("tier");
+    } finally {
+      tables.rows = {};
+    }
   });
 });

@@ -194,8 +194,8 @@ export type ListingActor = "buyer" | "owner" | "staff";
 export interface ListingDetailView {
   /** D201 §5 — who is looking: the buyer's page, the owner's previews (the seller's ad page, the wizard's Review), staff's previews (Admin › Listings, Screening). The component draws the same ad for all three and differs only where this brief says. */
   actor: ListingActor;
-  /** Sage S5 (ruling 1, answer 1) — the ad's tier, passed by the buyer's page only; absent or null = not known: the free look and no data-tier. */
-  tier?: ListingTier | null;
+  /** Sage S5 (ruling 1, answer 1); turn T1 — the ad's tier, on every view of an ad (the buyer's page, the seller's own, the Review's and Screening's previews, staff's page); null = not known: the free look and no data-tier. */
+  tier: ListingTier | null;
   /** Sage S5 (spec §12) — the tier flag for the main photo's top-start corner and the tier tag above the title, passed by the buyer's page only (the flag's code rides card pages only, CF-TIER-3). */
   tierFlag?: ReactNode;
   tierTag?: ReactNode;
@@ -311,7 +311,7 @@ export function ListingDetail(view: ListingDetailView) {
   const scope = useCatalogScope();
   const tree = useCountryTree(view.country);
   const nodes: TreeNode[] = tree.loadedCountry === view.country ? tree.nodes : [];
-  const look = adPageLookOf(view.tier ?? null);
+  const look = adPageLookOf(view.tier);
 
   // INC-588 / D151 — every stored photo, through links that expire; D161 — each
   // with its card size for the page, its cover for the viewer and its thumb.

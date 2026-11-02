@@ -21,6 +21,7 @@ import { useAuth } from "@/features/auth/use-auth";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
+import { tierOf } from "@/components/marketplace/card-tier";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -491,6 +492,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               <h2 className="text-sm font-semibold text-foreground">{t("post.preview.title")}</h2>
               <ListingDetail
                 actor="staff"
+                tier={tierOf(listing.tier)}
                 title={listing.title}
                 description={listing.description}
                 priceMode={listing.priceMode}

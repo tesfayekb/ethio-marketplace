@@ -803,6 +803,7 @@ export function AdminScreeningPage({
                   markUnscreened: true,
                   illustrationUrl: nearestCategoryPicture(tree, previewRow.categoryId),
                   photosSoon: previewRow.photosSoon,
+                  tier: previewRow.tier,
                   coverage: previewRow.locationId === null ? [] : [previewRow.locationId],
                   country: previewFacts?.country ?? null,
                   contactPref,

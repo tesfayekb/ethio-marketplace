@@ -2,6 +2,8 @@ import { errorText } from "@/lib/error-text";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
 import { callRoute, uploadRoute, type RouteAnswer, type RoutePath } from "@/lib/route-client";
 import { currentSession } from "@/lib/supabase-door";
+import { tierOf } from "@/components/marketplace/card-tier";
+import type { ListingTier } from "@/features/feed/ranking";
 import { supabase } from "@/integrations/supabase/client";
 import type { Certification } from "@/features/my-listings/my-listing";
 
@@ -266,6 +268,8 @@ export interface DraftRow {
   directions: string | null;
   /** Bundle 4 step 15 — "Photos coming soon" as the door stores it. */
   photosSoon: boolean;
+  /** Turn T1 — the ad's tier (staff set it), for the preview's tier look; null = not known. */
+  tier: ListingTier | null;
 }
 
 export interface DraftPhotoRow {
@@ -379,7 +383,7 @@ export async function readDraft(
   const { data, error } = await supabase
     .from("listings")
     .select(
-      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,pin_precision,pin_zoom,street_address,directions,photos_soon",
+      "id,category_id,draft_step,status,title,description,video_url,attributes,price_mode,price_amount,price_currency,price_period,price_bp,price_negotiable,poster_expires_at,pin_precision,pin_zoom,street_address,directions,photos_soon,tier",
     )
     .eq("id", listingId)
     .maybeSingle();
@@ -443,6 +447,7 @@ export async function readDraft(
       streetAddress: data.street_address,
       directions: typeof data.directions === "string" ? data.directions : null,
       photosSoon: data.photos_soon === true,
+      tier: tierOf(data.tier),
     },
     photos: (photos ?? []).map(photoRowOf),
   };

@@ -228,3 +228,45 @@ describe("nameCheckSummaryOf", () => {
     }
   });
 });
+
+/** Turn T1 — the preview's tier look reads the ad's tier from the queue's own select. */
+describe("the screening row's tier", () => {
+  it("SF-6 the select names tier; a known tier is read as it is, anything else null", async () => {
+    calls.length = 0;
+    const row = (id: string, tier: unknown) => ({
+      id,
+      title: "Fridge",
+      description: "Cold",
+      category_id: "c-1",
+      location_id: null,
+      price_mode: "contact",
+      price_amount: null,
+      price_currency: null,
+      price_period: null,
+      price_bp: null,
+      price_negotiable: false,
+      price_unit: null,
+      price_unit_text: null,
+      attributes: {},
+      photos_soon: false,
+      tier,
+      updated_at: "2026-11-02T00:00:00Z",
+      category: null,
+      place: null,
+    });
+    answer.rows = [
+      row("l-1", "premium"),
+      row("l-2", "featured"),
+      row("l-3", "gold"),
+      row("l-4", null),
+    ];
+    try {
+      const { rows } = await listScreening(0, "", 25, { country: null });
+      expect(rows.map((r) => r.tier)).toEqual(["premium", "featured", null, null]);
+      const select = calls.find(([name]) => name === "select");
+      expect(String(select?.[1][0]).split(",")).toContain("tier");
+    } finally {
+      answer.rows = [];
+    }
+  });
+});
