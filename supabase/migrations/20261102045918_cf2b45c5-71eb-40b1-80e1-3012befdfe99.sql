@@ -85,6 +85,8 @@ GRANT EXECUTE ON FUNCTION public.admin_set_listing_tier(uuid, text, text, text) 
 --   (f) the second factor: the same super admin on an aal1 session is refused (P0009).
 --   (g) the dial: with the window full, the next call is refused 'rateLimited'.
 --   After every refusal: no revision, no audit row and no tier beyond the successes'.
+--   The rows are scratch: a market XZ (country, its anchor, a region, a city — the INC-949 proof's
+--   way), three users, a category and three listings; the proof reads no real row.
 DO $proof$
 DECLARE
   v_fn      regprocedure := 'public.admin_set_listing_tier(uuid,text,text,text)'::regprocedure;
@@ -92,8 +94,11 @@ DECLARE
   v_plain   uuid := gen_random_uuid();
   v_seller  uuid := gen_random_uuid();
   v_session uuid := gen_random_uuid();
-  v_tag     text := 'e2e-t1-m1-' || substr(gen_random_uuid()::text, 1, 8);
-  v_country char(2);
+  v_tag     text := 'e2e-mig-t1-m1-' || substr(gen_random_uuid()::text, 1, 8);
+  v_code    char(2) := 'XZ';
+  v_anc     uuid;
+  v_region  uuid;
+  v_city    uuid;
   v_cat     uuid;
   v_live    uuid;
   v_gone    uuid;
@@ -118,6 +123,25 @@ BEGIN
   END IF;
 
   BEGIN
+    -- A scratch market (the INC-949 proof's way): the proof reads no real row (G27). The
+    -- country is named in the scratch namespace; its anchor row (the countries trigger copies
+    -- name_en) is read and switched on by that name.
+    IF EXISTS (SELECT 1 FROM public.countries WHERE code = v_code) THEN
+      RAISE EXCEPTION 'T1 M1 proof: scratch code % already exists', v_code;
+    END IF;
+    INSERT INTO public.countries (code, name_en, is_active) VALUES (v_code, 'e2e-mig-t1-m1', true);
+    SELECT a.id INTO v_anc FROM public.locations a
+     WHERE a.country_code = v_code AND a.level = 'country' AND a.name_en = 'e2e-mig-t1-m1';
+    IF v_anc IS NULL OR (SELECT count(*) FROM public.locations a
+                          WHERE a.country_code = v_code AND a.level = 'country' AND a.name_en = 'e2e-mig-t1-m1') <> 1 THEN
+      RAISE EXCEPTION 'T1 M1 proof: the scratch market has no single anchor';
+    END IF;
+    UPDATE public.locations SET is_active = true WHERE id = v_anc AND name_en = 'e2e-mig-t1-m1';
+    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id)
+    VALUES ('region', v_code, 'E2E T1 M1 Region', v_tag || '-r', true, v_anc) RETURNING id INTO v_region;
+    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
+    VALUES ('city', v_code, 'E2E T1 M1 City', v_tag || '-c', true, v_region, 9.03, 38.74) RETURNING id INTO v_city;
+
     INSERT INTO auth.users (id, email, raw_user_meta_data, aud, role, created_at, updated_at) VALUES
       (v_admin, v_tag || '-admin@example.invalid', '{}'::jsonb, 'authenticated', 'authenticated', now(), now()),
       (v_plain, v_tag || '-plain@example.invalid', '{}'::jsonb, 'authenticated', 'authenticated', now(), now()),
@@ -132,20 +156,20 @@ BEGIN
     VALUES (gen_random_uuid(), v_session, now(), now(), 'totp');
     INSERT INTO public.rate_overrides (user_id, action, max_count) VALUES (v_admin, 'staff_moderation', 2);
 
-    SELECT k.code INTO v_country FROM public.countries k ORDER BY k.code LIMIT 1;
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E T1 M1 Leaf', v_tag, true, true, true, 9999)
     RETURNING id INTO v_cat;
-    INSERT INTO public.listings (seller_id, category_id, title, description, home_country_code,
+    -- A non-draft listing needs its place (listings_place_unless_draft); the draft keeps none.
+    INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code,
                                  status, published_at, published_first_at, expires_at)
-    VALUES (v_seller, v_cat, 'E2E T1 M1 live', 'scratch', v_country,
+    VALUES (v_seller, v_cat, v_city, 'E2E T1 M1 live', 'scratch', v_code,
             'active', now(), now(), now() + interval '28 days')
     RETURNING id INTO v_live;
-    INSERT INTO public.listings (seller_id, category_id, title, description, home_country_code, status)
-    VALUES (v_seller, v_cat, 'E2E T1 M1 removed', 'scratch', v_country, 'removed')
+    INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code, status)
+    VALUES (v_seller, v_cat, v_city, 'E2E T1 M1 removed', 'scratch', v_code, 'removed')
     RETURNING id INTO v_gone;
     INSERT INTO public.listings (seller_id, category_id, title, description, home_country_code)
-    VALUES (v_seller, v_cat, 'E2E T1 M1 draft', 'scratch', v_country)
+    VALUES (v_seller, v_cat, 'E2E T1 M1 draft', 'scratch', v_code)
     RETURNING id INTO v_draft;
     IF (SELECT tier FROM public.listings WHERE id = v_live) <> 'regular' THEN
       RAISE EXCEPTION 'T1 M1 proof: a new listing is not regular';
