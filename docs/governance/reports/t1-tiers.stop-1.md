@@ -48,8 +48,15 @@ supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql
 
 ## The file
 
-- `supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql` — 15499 bytes,
-  sha256 `348c91f788f47247fb31a236488d568f2c40b52f2f9f9ff04b93ac5b1708d172`.
+- `supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql` — 15501 bytes,
+  sha256 `877736ec40f740da9c1ca566bd041a1b532f647c62056a88afc283af0036fe8f` (commit 7907b89b).
+- Round 1 (sha256 `348c91f7…d172`, 15499 bytes) FAILED its staging apply, INC-1033: `ERROR 42601:
+  syntax error at end of input` while parsing the proof block — plpgsql reads an IF condition up
+  to the first `THEN` outside parentheses, so the unparenthesised `CASE … WHEN … THEN` inside
+  `IF v_msg IS DISTINCT FROM CASE v_case …` ended the condition early. Nothing landed (one
+  transaction). Fixed in place by parenthesising the CASE expression; the whole file was scanned
+  for every IF / ELSIF / WHILE / EXIT WHEN condition holding a CASE expression — that one was the
+  only one. Name and mark unchanged.
 - Mark `20261102200000` (ruling 1, answer 7: the filename stamp 20261102045918 is earlier than the
   mark, so the mark stands). Self-mark in the file, last statement.
 - `origin/dev` is still `e5e191c6` (the base); no file in scope moved.
@@ -75,10 +82,15 @@ supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql
   `feed_index_on_listing_update` trigger (no change to it).
 - Departure from the plan, named: the plan placed the dial after the second factor. The file puts
   it where every staff listing door does (after the authority checks, before the door's rules),
-  and the second factor after the rules, as `admin_move_listing` asks it. A refusal raises, so the
-  dial's count rolls back with it (INC-844) — the proof's (g) counts on that.
+  and the second factor after the rules, as `admin_move_listing` asks it (INC-951 3b). A refusal
+  raises, so the dial's count rolls back with it (INC-844) — the proof's (g) counts on that.
+  ACCEPTED by the stop-1 ruling (answer 2): one shape for every staff listing door; the final
+  report carries it under Departures.
 
 ## The proof (one sentinel block, scratch rows only, rolled back whole)
+
+- Where it ran: proofs not yet executed (no SQL runner here); the staging apply is their first
+  run. Round 1's apply failed before execution (INC-1033, above); this is the second attempt.
 
 - (a) the header and the grants: SECURITY DEFINER, VOLATILE, `{search_path=public}`; no PUBLIC
   grantee, anon cannot execute, authenticated and service_role can; `listings:enforce` asks a
@@ -117,6 +129,8 @@ Migration guard OK.
   staff | …` (ruling 1, answer 6). The acceptance-doors guard runs against CI's temporary backend.
 - Laws (`bunx vitest run scripts --maxWorkers=2`): 429 passed, 1 failed — NH-6, the macOS-only
   limit (its `date` ignores `TZDIR`), unchanged from parts C–A; CI is its proof.
+- Neither the migration guard nor the laws parse plpgsql (INC-1033): "Migration guard OK" says
+  nothing about a proof block's syntax. The guard lines above are from the fixed file.
 - Expected after the merge until the file is applied: STAGING BEHIND for this file's mark.
 
 apply cf2b45c5 → expect mark 20261102200000
