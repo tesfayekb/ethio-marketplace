@@ -1518,9 +1518,12 @@ test.describe("ADMIN SCREENING", () => {
 
     const tier = (value: string) => page.getByTestId(`admin-screening-filter-tier-${value}`);
     await page.getByTestId("admin-screening-filters").click();
+    // The group's accessible name is the listings table's own label (`aria-labelledby`).
     await expect(
-      page.getByTestId("admin-screening-filters-panel").getByTestId("admin-screening-filter-tier"),
-    ).toContainText(en["admin.listings.filter.tier"]);
+      page
+        .getByTestId("admin-screening-filters-panel")
+        .getByRole("group", { name: en["admin.listings.filter.tier"] }),
+    ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
     await expect(tier("premium")).toHaveText(en["tier.premium"]);
     await expect(tier("regular")).toHaveText(en["admin.listings.tier.regular"]);
     await tier("premium").click();
