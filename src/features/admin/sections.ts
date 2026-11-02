@@ -75,6 +75,15 @@ export const ADMIN_SECTIONS = [
     group: "listings",
   },
   {
+    // P-1 (D280): the promotions a seller may apply to an ad, and their prices.
+    id: "packages",
+    path: "/admin/packages",
+    permission: "packages:view",
+    titleKey: "admin.section.packages.title",
+    bodyKey: "admin.section.packages.body",
+    group: "listings",
+  },
+  {
     id: "users",
     path: "/admin/users",
     permission: "profiles:view",

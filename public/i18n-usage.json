@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 640,
-  "dynamicCallSites": 414,
+  "scanned": 651,
+  "dynamicCallSites": 423,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -1411,6 +1411,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1422,6 +1423,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1436,6 +1438,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1447,6 +1450,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1458,6 +1462,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1469,6 +1474,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1480,6 +1486,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1491,6 +1498,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1502,6 +1510,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1513,6 +1522,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1524,6 +1534,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1535,6 +1546,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1546,6 +1558,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1557,6 +1570,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1568,6 +1582,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1579,6 +1594,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1596,6 +1612,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1607,6 +1624,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1618,6 +1636,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1629,6 +1648,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1640,6 +1660,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1651,6 +1672,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1662,6 +1684,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1673,6 +1696,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1693,6 +1717,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1704,6 +1729,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1715,6 +1741,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1726,6 +1753,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1737,6 +1765,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1748,6 +1777,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1759,6 +1789,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1770,6 +1801,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1781,6 +1813,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1792,6 +1825,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1803,6 +1837,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1830,6 +1865,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1841,6 +1877,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1852,6 +1889,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1863,6 +1901,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1874,6 +1913,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1885,6 +1925,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1896,6 +1937,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1907,6 +1949,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1918,6 +1961,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1929,6 +1973,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1940,6 +1985,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1951,6 +1997,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1962,6 +2009,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1973,6 +2021,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -1996,6 +2045,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2007,6 +2057,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2018,6 +2069,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2029,6 +2081,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2040,6 +2093,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2051,6 +2105,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2062,6 +2117,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2073,6 +2129,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2084,6 +2141,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2095,6 +2153,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2106,6 +2165,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2117,6 +2177,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2128,6 +2189,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2139,6 +2201,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2150,6 +2213,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2161,6 +2225,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2172,6 +2237,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2183,6 +2249,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2194,6 +2261,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2205,6 +2273,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2216,6 +2285,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2227,6 +2297,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2238,6 +2309,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2279,6 +2351,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2290,6 +2363,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2301,6 +2375,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2312,6 +2387,7 @@
       "/admin/coverage",
       "/admin/listings",
       "/admin/listings/$listingId",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening"
     ],
@@ -2502,19 +2578,24 @@
       "/admin/coverage"
     ],
     "admin.coverage.error.reason": [
-      "/admin/coverage"
+      "/admin/coverage",
+      "/admin/packages"
     ],
     "admin.coverage.field.adsUnlimited": [
-      "/admin/coverage"
+      "/admin/coverage",
+      "/admin/packages"
     ],
     "admin.coverage.field.everywhere": [
-      "/admin/coverage"
+      "/admin/coverage",
+      "/admin/packages"
     ],
     "admin.coverage.field.label": [
-      "/admin/coverage"
+      "/admin/coverage",
+      "/admin/packages"
     ],
     "admin.coverage.field.labelHint": [
-      "/admin/coverage"
+      "/admin/coverage",
+      "/admin/packages"
     ],
     "admin.coverage.field.plan": [
       "/admin/coverage"
@@ -3324,6 +3405,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3341,6 +3423,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3358,6 +3441,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3375,6 +3459,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3392,6 +3477,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3409,6 +3495,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3426,6 +3513,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3443,6 +3531,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3463,6 +3552,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -3572,6 +3662,150 @@
     ],
     "admin.overview.stats": [
       "/admin/locations"
+    ],
+    "admin.packages.action.edit": [
+      "/admin/packages"
+    ],
+    "admin.packages.caption": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.days": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.enabled": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.extends": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.key": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.selfServe": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.sort": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.tier": [
+      "/admin/packages"
+    ],
+    "admin.packages.col.updated": [
+      "/admin/packages"
+    ],
+    "admin.packages.create.open": [
+      "/admin/packages"
+    ],
+    "admin.packages.empty": [
+      "/admin/packages"
+    ],
+    "admin.packages.error": [
+      "/admin/packages"
+    ],
+    "admin.packages.field.days": [
+      "/admin/packages"
+    ],
+    "admin.packages.field.key": [
+      "/admin/packages"
+    ],
+    "admin.packages.field.keyHint": [
+      "/admin/packages"
+    ],
+    "admin.packages.field.label": [
+      "/admin/packages"
+    ],
+    "admin.packages.field.sort": [
+      "/admin/packages"
+    ],
+    "admin.packages.field.tier": [
+      "/admin/packages"
+    ],
+    "admin.packages.loading": [
+      "/admin/packages"
+    ],
+    "admin.packages.noDelete": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.action.end": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.caption": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.col.amount": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.col.category": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.col.from": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.col.market": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.col.to": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.create.open": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.create.title": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.end.body": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.end.title": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.error": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.everyCategory": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.everyMarket": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.amount": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.amountHint": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.category": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.currency": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.from": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.market": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.to": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.field.toHint": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.filter": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.free": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.loading": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.open": [
+      "/admin/packages"
+    ],
+    "admin.packages.prices.title": [
+      "/admin/packages"
     ],
     "admin.roles.action.open": [
       "/admin/roles"
@@ -3909,6 +4143,9 @@
     ],
     "admin.section.legal.title": [
       "/admin/legal"
+    ],
+    "admin.section.packages.title": [
+      "/admin/packages"
     ],
     "admin.section.places.title": [
       "/admin/places"
@@ -4818,6 +5055,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
@@ -4845,6 +5083,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -4884,6 +5123,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/screening",
       "/auth/callback",
       "/auth/reset",
@@ -4924,6 +5164,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/screening",
       "/auth/callback",
       "/auth/reset",
@@ -4957,6 +5198,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening",
       "/dev/primitives",
@@ -5446,6 +5688,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5467,6 +5710,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5524,6 +5768,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5544,6 +5789,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5564,6 +5810,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5584,6 +5831,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5605,6 +5853,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -5625,6 +5874,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",
@@ -8390,6 +8640,7 @@
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8398,6 +8649,7 @@
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8406,6 +8658,7 @@
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8414,6 +8667,7 @@
       "/admin/audit",
       "/admin/listings",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
@@ -8443,6 +8697,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8455,6 +8710,7 @@
     ],
     "prim.table.all": [
       "/admin/listings",
+      "/admin/packages",
       "/admin/screening",
       "/my-listings"
     ],
@@ -8464,6 +8720,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening",
       "/admin/translations/$lang",
@@ -8480,6 +8737,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8497,6 +8755,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8512,6 +8771,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening",
       "/admin/translations/$lang",
@@ -8528,6 +8788,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8547,6 +8808,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8566,6 +8828,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8585,6 +8848,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8604,6 +8868,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8620,6 +8885,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening",
       "/admin/translations/$lang",
@@ -8636,6 +8902,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8655,6 +8922,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8674,6 +8942,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8693,6 +8962,7 @@
       "/admin/coverage",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/screening",
@@ -8707,6 +8977,7 @@
       "/admin/categories",
       "/admin/countries",
       "/admin/listings",
+      "/admin/packages",
       "/admin/places",
       "/admin/screening",
       "/admin/translations/$lang",
@@ -8744,6 +9015,7 @@
       "/admin/listings",
       "/admin/listings/$listingId",
       "/admin/listings/$listingId/edit",
+      "/admin/packages",
       "/admin/places",
       "/admin/roles",
       "/admin/roles/$roleId",

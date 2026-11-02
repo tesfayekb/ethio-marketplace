@@ -8,6 +8,7 @@ import {
   LibraryBig,
   List,
   MapPin,
+  Package,
   Plug,
   Sparkles,
   Store,
@@ -55,6 +56,7 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   translations: Languages,
   legal: Scale,
   screening: ClipboardCheck,
+  packages: Package,
   listings: List,
   ai: Sparkles,
 };

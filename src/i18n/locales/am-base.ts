@@ -391,6 +391,8 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.plans.title": "ዕቅዶች",
   "admin.section.plans.body":
     "በእያንዳንዱ ዕቅድ ሻጭ ምን ማድረግ እንደሚችል፦ ሽፋን፣ ፎቶዎች፣ የማስታወቂያ ቆይታ እና የማስታወቂያዎች ብዛት።",
+  "admin.section.packages.title": "ጥቅሎች",
+  "admin.section.packages.body": "ሻጭ በማስታወቂያ ላይ ሊጠቀምባቸው የሚችላቸው ማስተዋወቂያዎች እና ዋጋዎቻቸው።",
   "admin.nav.group.catalog": "ካታሎግ",
   "admin.nav.group.locations": "አካባቢዎች",
   "admin.section.categories.title": "ምድቦች",

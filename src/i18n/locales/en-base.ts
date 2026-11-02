@@ -413,6 +413,8 @@ export const enBase = {
   "admin.section.plans.title": "Plans",
   "admin.section.plans.body":
     "What a seller may do on each plan: reach, photos, ad lifetime and how many ads.",
+  "admin.section.packages.title": "Packages",
+  "admin.section.packages.body": "The promotions a seller may apply to an ad, and their prices.",
   "admin.nav.group.catalog": "Catalog",
   "admin.nav.group.locations": "Locations",
   "admin.section.categories.title": "Categories",

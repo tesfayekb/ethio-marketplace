@@ -137,6 +137,12 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-screening.spec.ts", "e2e/name-check-queue.spec.ts"],
   },
   {
+    // P-1 — Admin › Packages: the packages, their prices, the roles matrix's new resource.
+    name: "admin-packages",
+    src: ["src/routes/admin.packages.tsx", "src/features/admin-packages/**"],
+    specs: ["e2e/admin-packages.spec.ts", "e2e/admin-roles.spec.ts"],
+  },
+  {
     name: "admin-listings",
     src: ["src/routes/admin.listings*.tsx", "src/features/admin-listings/**"],
     specs: ["e2e/admin-listings.spec.ts"],
