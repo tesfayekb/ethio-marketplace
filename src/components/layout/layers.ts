@@ -25,6 +25,12 @@
 /** The sticky mobile action bar — the LOWEST of the three. */
 export const Z_ACTION_BAR = "z-20";
 
+/** Turn W3 — a notice docked on the phone's bottom bar (notice-dock.ts): above the action bar,
+ *  below the bottom bar (z-30), so the Post disc raised above the bar's top edge stays painted
+ *  and tappable over the notice. Phones only: from md there is no bar and each notice keeps its
+ *  own layer. */
+export const Z_NOTICE = "max-md:z-[25]";
+
 /** Any popover, listbox or menu a step opens: above the bar. */
 export const Z_POPOVER = "z-40";
 

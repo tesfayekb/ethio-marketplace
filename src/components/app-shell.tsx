@@ -9,6 +9,7 @@ import { AppHeader, SearchRow } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { OnDemandNotice } from "@/components/shell/on-demand-notice";
+import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
 import { BAR_GAP, BAR_INSET } from "@/components/shell/bar-spacing";
@@ -936,7 +937,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-idle-warning"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+          className={cn(
+            "fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between",
+            NOTICE_DOCK,
+            NOTICE_DOCK_SURFACE,
+          )}
         >
           <p className="text-sm text-foreground">
             {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
@@ -957,7 +962,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-notice"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg"
+          className={cn(
+            "fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg",
+            NOTICE_DOCK,
+            NOTICE_DOCK_SURFACE,
+          )}
         >
           <p className="text-sm text-foreground">{t(sessionNotice)}</p>
           <button

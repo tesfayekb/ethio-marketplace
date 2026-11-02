@@ -94,4 +94,27 @@ describe("OnDemandNotice (INC-911)", () => {
     expect(screen.queryByTestId("on-demand-failed")).toBeNull();
     errors.mockRestore();
   });
+
+  it("ODN-4 in the shell's own region the card is docked on the phone's bar; inside an overlay's outlet it keeps the card", () => {
+    const errors = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const page = (overlay: boolean) => (
+      <>
+        <OnDemandNotice />
+        {overlay ? <NoticeOutlet /> : null}
+      </>
+    );
+    const { rerender } = render(page(false));
+    act(() => {
+      reportOnDemandFailure("a menu's code", new Error("offline"));
+    });
+    const docked = screen.getByTestId("on-demand-failed");
+    expect(docked.className).toContain("max-md:rounded-se-bar");
+    expect(docked.parentElement?.className).toContain("max-md:bottom-[var(--bottom-bar)]");
+    rerender(page(true));
+    const inOutlet = screen.getByTestId("on-demand-failed");
+    expect(inOutlet.closest("[data-notice-outlet]")).not.toBeNull();
+    expect(inOutlet.className).toContain("rounded-card");
+    expect(inOutlet.className).not.toContain("max-md:");
+    errors.mockRestore();
+  });
 });
