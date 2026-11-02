@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { categoryPath, isCurrentAt, menuAtOf, panelOf, parseMenuAt } from "./menu-current";
+import { categoryPath, isCurrentAt, menuAtOf, panelAt, panelOf, parseMenuAt } from "./menu-current";
 
 const at = (pathname: string, hash = "") => ({ pathname, hash });
 
@@ -87,5 +87,13 @@ describe("panelOf — the one section rule (turn C fix 1, INC-359)", () => {
     expect(panelOf("/settings/x")).toBe("account");
     expect(panelOf("/admin/users")).toBe("admin");
     for (const p of ["/", "/c/cars", "/auth"]) expect(panelOf(p), p).toBeNull();
+  });
+
+  it("PO-U3: panelAt — a path's own section wins; where no route owns one, the choice", () => {
+    expect(panelAt("/account", "marketplace")).toBe("account");
+    expect(panelAt("/post/42", "marketplace")).toBe("my-listings");
+    expect(panelAt("/", "marketplace")).toBe("marketplace");
+    expect(panelAt("/c/cars", "my-listings")).toBe("my-listings");
+    expect(panelAt("/l/some-ad", "marketplace")).toBe("marketplace");
   });
 });

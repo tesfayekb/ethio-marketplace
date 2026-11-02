@@ -26,6 +26,9 @@ export type ShellValue = {
    */
   requestSignOut: () => void;
   activePanel: PanelId;
+  /** Turn W3 — the chosen panel where no route owns one (panelAt): the panel tabs' mark reads it
+   *  on the chosen page, the frame (activePanel) on the shown one. */
+  panelChoice: PanelId;
   setActivePanel: (panel: PanelId) => void;
   /**
    * U0l (INC-073) — DERIVED FROM THE URL, never settable state. The rail
