@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 651,
+  "scanned": 652,
   "dynamicCallSites": 423,
   "keys": {
     "account.deactivatedBanner": [
@@ -2582,20 +2582,16 @@
       "/admin/packages"
     ],
     "admin.coverage.field.adsUnlimited": [
-      "/admin/coverage",
-      "/admin/packages"
+      "/admin/coverage"
     ],
     "admin.coverage.field.everywhere": [
-      "/admin/coverage",
-      "/admin/packages"
+      "/admin/coverage"
     ],
     "admin.coverage.field.label": [
-      "/admin/coverage",
-      "/admin/packages"
+      "/admin/coverage"
     ],
     "admin.coverage.field.labelHint": [
-      "/admin/coverage",
-      "/admin/packages"
+      "/admin/coverage"
     ],
     "admin.coverage.field.plan": [
       "/admin/coverage"
