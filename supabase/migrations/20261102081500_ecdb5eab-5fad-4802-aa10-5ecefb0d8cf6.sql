@@ -144,7 +144,10 @@ DECLARE
   v_admin   uuid := gen_random_uuid();
   v_session uuid := gen_random_uuid();
   v_tag     text := 'e2e-mig-p1-m1a-' || substr(gen_random_uuid()::text, 1, 8);
-  v_plan    text := 'e2e_mig_p_' || translate(substr(gen_random_uuid()::text, 1, 8), '0123456789-', 'abcdefghijk');
+  -- INC-1035: a scratch key satisfies the column's own CHECK — the plan pattern ^[a-z_]{2,32}$
+  -- takes no digit, so the name is letters and underscores only (the real-row guard's namespace
+  -- is for the identity and reference tables; coverage_plans is read by this variable).
+  v_plan    text := 'emig_plan_' || translate(substr(gen_random_uuid()::text, 1, 8), '0123456789-', 'abcdefghijk');
   v_row     public.coverage_plans%ROWTYPE;
   v_audits  integer;
   v_msg     text;
