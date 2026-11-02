@@ -25,14 +25,14 @@ function doorList(sql: string, column: string): string[] {
 }
 
 describe("the listing tier (turn T1)", () => {
-  it("TR-1 the tiers and the reasons are exactly the door's, in its order", () => {
+  it("TIR-1 the tiers and the reasons are exactly the door's, in its order", () => {
     const sql = readFileSync(M1, "utf8");
     expect([...TIERS]).toEqual(doorList(sql, "p_tier"));
     expect([...TIER_REASONS]).toEqual(doorList(sql, "p_reason"));
     for (const tier of TIERS) expect(TIER_LABEL[tier]).toBeTruthy();
   });
 
-  it("TR-2 a removed listing and a draft take no tier; the others do", () => {
+  it("TIR-2 a removed listing and a draft take no tier; the others do", () => {
     expect(mayTier("removed")).toBe(false);
     expect(mayTier("draft")).toBe(false);
     for (const status of [
@@ -49,7 +49,7 @@ describe("the listing tier (turn T1)", () => {
     }
   });
 
-  it("TR-3 the tier must change; a reason is required; Other needs a note; 500 characters at most", () => {
+  it("TIR-3 the tier must change; a reason is required; Other needs a note; 500 characters at most", () => {
     expect(tierProblem("gold", "regular", "promotion", "")).toBe(
       "admin.listings.tier.error.unknown",
     );
@@ -67,7 +67,7 @@ describe("the listing tier (turn T1)", () => {
     expect(tierProblem("regular", "premium", "promotion_ended", "")).toBeNull();
   });
 
-  it("TR-4 each refusal of the door has its own words; an unknown one is the common error", () => {
+  it("TIR-4 each refusal of the door has its own words; an unknown one is the common error", () => {
     expect(tierErrorKey("listing not found")).toBe("admin.listings.move.error.notFound");
     expect(tierErrorKey("your own listing is changed the seller's way")).toBe(
       "admin.listings.move.error.own",
@@ -85,7 +85,7 @@ describe("the listing tier (turn T1)", () => {
     expect(tierErrorKey("step-up required: listings:enforce")).toBe("common.error");
   });
 
-  it("TR-5 the door's messages in M1 are the ones this file knows", () => {
+  it("TIR-5 the door's messages in M1 are the ones this file knows", () => {
     const sql = readFileSync(M1, "utf8");
     const body = sql.slice(sql.indexOf("AS $function$"), sql.indexOf("$function$;"));
     const raised = [...body.matchAll(/RAISE EXCEPTION '((?:[^']|'')*)'/g)].map((m) =>
