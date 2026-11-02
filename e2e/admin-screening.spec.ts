@@ -196,6 +196,8 @@ test.describe("ADMIN SCREENING", () => {
        * which `admin_edit_listing` checks before it removes a photo.
        */
       priced?: boolean;
+      /** P-1 W4 — the ad's tier (regular unless given). */
+      tier?: "premium" | "featured";
     } = {},
   ) {
     const seller = await leaseSeller({ alias: true });
@@ -229,6 +231,7 @@ test.describe("ADMIN SCREENING", () => {
           ? { price_mode: "fixed", price_amount: 100, price_currency: "ETB", price_period: "once" }
           : {}),
         ...(options.contactPref === undefined ? {} : { contact_pref: options.contactPref }),
+        ...(options.tier === undefined ? {} : { tier: options.tier }),
       })
       .select("id")
       .single();
@@ -1492,5 +1495,61 @@ test.describe("ADMIN SCREENING", () => {
       .not.toContain("decided");
     await expect(page.locator(`[data-testid^="admin-screening-row-${ad.id}"]`)).toHaveCount(0);
     expect(await titleOf(ad.id)).toEqual({ title: corrected, status: "rejected" });
+  });
+
+  /**
+   * P-1 W4 — the tier filter Admin › Listings has, in Screening's Filters: the
+   * same words (`admin.listings.filter.tier`, the tiers' own), the same pills.
+   * Proven by a result the unfiltered list cannot give: of two waiting ads with
+   * one title stem, the Premium pill lists the premium one alone; its chip
+   * clears it and both are back.
+   */
+  test("SC-27 the Filters panel's Tier pill lists only the ads of that tier; its chip clears it", async ({
+    page,
+  }) => {
+    const stem = `e2e-screen-${RUN}-${rand()}`;
+    const premium = await seedWaiting({ title: `${stem}-premium`, tier: "premium" });
+    const regular = await seedWaiting({ title: `${stem}-regular` });
+    await useJobSuperAdmin(page);
+    await gotoReady(page, "/admin/screening");
+    await page.getByTestId("admin-screening-search").fill(stem);
+    await expect(rowOf(page, premium.id)).toBeVisible({ timeout: 20000 });
+    await expect(rowOf(page, regular.id)).toBeVisible();
+
+    const tier = (value: string) => page.getByTestId(`admin-screening-filter-tier-${value}`);
+    await page.getByTestId("admin-screening-filters").click();
+    // The group's accessible name is the listings table's own label (`aria-labelledby`).
+    await expect(
+      page
+        .getByTestId("admin-screening-filters-panel")
+        .getByRole("group", { name: en["admin.listings.filter.tier"] }),
+    ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
+    await expect(tier("premium")).toHaveText(en["tier.premium"]);
+    await expect(tier("regular")).toHaveText(en["admin.listings.tier.regular"]);
+    await tier("premium").click();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
+    await expect(page.getByTestId("admin-screening-chips-chip-tier")).toContainText(
+      en["tier.premium"],
+    );
+    await expect(
+      rowOf(page, regular.id),
+      "SC-27: the Premium pill still listed the regular ad",
+    ).toHaveCount(0, { timeout: 20000 });
+    await expect(
+      rowOf(page, premium.id),
+      "SC-27: the Premium pill dropped the premium ad",
+    ).toBeVisible();
+    await expect(page.getByTestId("data-table-error")).toHaveCount(0);
+
+    // The chip clears the tier alone; the search stays.
+    await page.getByTestId("admin-screening-chips-chip-tier-remove").click();
+    await expect(page.getByTestId("admin-screening-chips-chip-tier")).toHaveCount(0);
+    await expect(page.getByTestId("admin-screening-filters-count")).toHaveCount(0);
+    await expect(
+      rowOf(page, regular.id),
+      "SC-27: the cleared chip did not bring the regular ad back",
+    ).toBeVisible({ timeout: 20000 });
+    await expect(rowOf(page, premium.id)).toBeVisible();
   });
 });

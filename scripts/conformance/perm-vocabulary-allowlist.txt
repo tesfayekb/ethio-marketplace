@@ -1,0 +1,2 @@
+# P-1 (scripts/conformance/perm-vocabulary.test.ts, CF-PERM-1): a resource or action a migration seeds without its admin.roles.perm.* key in en-admin.ts and am-admin.ts. A new permission ships its keys in the same change (rule 10, Strings); an allowance is a dated exception.
+# key "resource:<name>" or "action:<name>" | reason | until (YYYY-MM-DD, INC-n or DEC-n)

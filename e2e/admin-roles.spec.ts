@@ -577,4 +577,48 @@ test.describe("U2 roles console", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/users\\?role=${name}$`), { timeout: 20000 });
     await expectRoleChosen(page, name);
   });
+
+  /**
+   * P-1 (D280; ruling 1 answer 3) — the staff doors of Admin › Packages sit behind
+   * a resource of their own: `packages` with View (no second factor) and Update
+   * (step-up). The matrix shows the resource by its key (CF-PERM-1 guards the
+   * key's presence), both actions, and the step-up mark on Update alone.
+   */
+  test("RP-17 P-1: the matrix shows the packages resource with View and Update, Update marked step-up", async ({
+    page,
+  }) => {
+    const { secret } = await signInAsSuperAdmin(page);
+    const name = await createRoleViaUi(page, secret);
+    const id = await roleId(name);
+    await gotoReady(page, `/admin/roles/${id}`);
+
+    await expect(page.getByTestId("role-resource-heading-packages")).toHaveText(
+      en["admin.roles.perm.resource.packages"],
+    );
+    const view = page.getByTestId("role-permission-packages:view");
+    const update = page.getByTestId("role-permission-packages:update");
+    await expect(view).toBeVisible();
+    await expect(update).toBeVisible();
+    await expect(update).toContainText(en["admin.roles.perm.stepUp"]);
+    await expect(view).not.toContainText(en["admin.roles.perm.stepUp"]);
+    await expect(page.getByTestId("role-permission-toggle-packages:view")).toBeVisible();
+    await expect(page.getByTestId("role-permission-toggle-packages:update")).toBeVisible();
+
+    // The seeds themselves (M1b), read as truth (J4): two assignable permissions, Update stepped up.
+    const { data: perms } = await adminClient()
+      .from("permissions")
+      .select("action, requires_step_up, assignable, resources!inner(name)")
+      .eq("resources.name", "packages")
+      .order("action");
+    expect((perms ?? []).map((row) => [row.action, row.requires_step_up, row.assignable])).toEqual([
+      ["update", true, true],
+      ["view", false, true],
+    ]);
+
+    await switchLanguage(page, "am");
+    await expect(page.getByTestId("role-resource-heading-packages")).toHaveText(
+      am["admin.roles.perm.resource.packages"],
+    );
+    await expectNoHorizontalOverflow(page);
+  });
 });

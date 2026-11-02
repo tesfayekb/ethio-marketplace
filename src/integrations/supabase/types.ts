@@ -901,6 +901,9 @@ export type Database = {
       coverage_plans: {
         Row: {
           allow_everywhere: boolean
+          default_days: number
+          label_key: string | null
+          max_active_ads: number | null
           max_cities: number
           max_countries: number
           max_photos: number
@@ -911,6 +914,9 @@ export type Database = {
         }
         Insert: {
           allow_everywhere?: boolean
+          default_days?: number
+          label_key?: string | null
+          max_active_ads?: number | null
           max_cities: number
           max_countries: number
           max_photos?: number
@@ -921,6 +927,9 @@ export type Database = {
         }
         Update: {
           allow_everywhere?: boolean
+          default_days?: number
+          label_key?: string | null
+          max_active_ads?: number | null
           max_cities?: number
           max_countries?: number
           max_photos?: number
@@ -1905,6 +1914,56 @@ export type Database = {
           },
         ]
       }
+      listing_packages: {
+        Row: {
+          created_at: string
+          days: number
+          enabled: boolean
+          extends_lifetime: boolean
+          key: string
+          label_key: string | null
+          self_serve: boolean
+          sort: number
+          tier: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          days: number
+          enabled?: boolean
+          extends_lifetime?: boolean
+          key: string
+          label_key?: string | null
+          self_serve?: boolean
+          sort?: number
+          tier: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          days?: number
+          enabled?: boolean
+          extends_lifetime?: boolean
+          key?: string
+          label_key?: string | null
+          self_serve?: boolean
+          sort?: number
+          tier?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_packages_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       listing_photo_changes: {
         Row: {
           codes: string[]
@@ -2689,6 +2748,84 @@ export type Database = {
           word?: string
         }
         Relationships: []
+      }
+      package_prices: {
+        Row: {
+          amount: number
+          category_id: string | null
+          country_code: string | null
+          created_at: string
+          currency: string
+          id: string
+          package_key: string
+          updated_at: string
+          updated_by: string | null
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          currency: string
+          id?: string
+          package_key: string
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          package_key?: string
+          updated_at?: string
+          updated_by?: string | null
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_prices_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_prices_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "package_prices_currency_fkey"
+            columns: ["currency"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "package_prices_package_key_fkey"
+            columns: ["package_key"]
+            isOneToOne: false
+            referencedRelation: "listing_packages"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "package_prices_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -3924,6 +4061,10 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_end_package_price: {
+        Args: { p_id: string; p_valid_to?: string }
+        Returns: Json
+      }
       admin_entity_translation_stats: {
         Args: { p_lang?: string }
         Returns: {
@@ -4593,6 +4734,31 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_save_listing_package: {
+        Args: {
+          p_days: number
+          p_enabled: boolean
+          p_extends_lifetime: boolean
+          p_key: string
+          p_label_key?: string
+          p_self_serve: boolean
+          p_sort?: number
+          p_tier: string
+        }
+        Returns: Json
+      }
+      admin_save_package_price: {
+        Args: {
+          p_amount: number
+          p_category_id?: string
+          p_country_code?: string
+          p_currency: string
+          p_package_key: string
+          p_valid_from?: string
+          p_valid_to?: string
+        }
+        Returns: Json
+      }
       admin_save_translation: {
         Args: { p_key: string; p_lang: string; p_value: string }
         Returns: undefined
@@ -4655,7 +4821,11 @@ export type Database = {
       }
       admin_set_coverage_plan: {
         Args: {
+          p_ads_unlimited?: boolean
           p_allow_everywhere: boolean
+          p_default_days?: number
+          p_label_key?: string
+          p_max_active_ads?: number
           p_max_cities: number
           p_max_countries: number
           p_max_photos?: number
@@ -5587,6 +5757,10 @@ export type Database = {
       name_unaccent: { Args: { p: string }; Returns: string }
       new_public_id: { Args: never; Returns: string }
       next_language_sort: { Args: never; Returns: number }
+      package_price_for: {
+        Args: { p_listing_id: string; p_package_key: string }
+        Returns: Json
+      }
       peek_rate_limit: {
         Args: {
           p_action: string

@@ -1,6 +1,7 @@
 import { type Locator, type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
+import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 
 import { grantRole } from "./helpers/categories";
@@ -17,7 +18,8 @@ import {
 import { adminClient, leaseUser } from "./helpers/users";
 
 /**
- * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-8).
+ * LOCATIONS ERA L2b-C2 — THE COVERAGE CONSOLE (CV-1..CV-8); P-1 — Admin › Plans
+ * (CV-9..CV-12: the ad lifetime, the ads quota, the label key).
  *
  * Identity: the pooled job super admin for consumers (J9). Truth: the service
  * client, never a rendered summary (J4). Anchors: structure and testids, never
@@ -46,6 +48,16 @@ function planRow(page: Page, plan: string): Locator {
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-card` : id);
 }
 
+/**
+ * P-1 — the whole of a plan's row: the table row, or on the card twin the card's
+ * surface (`-actions`), which holds the footer notes the `-card` body does not
+ * (Label key, Updated).
+ */
+function planSurface(page: Page, plan: string): Locator {
+  const id = `coverage-${plan}`;
+  return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : id);
+}
+
 function actionsOf(page: Page, plan: string): Locator {
   const id = `coverage-${plan}`;
   return surface(page).getByTestId(isCardTwin(page) ? `${id}-actions` : `${id}-actions-cell`);
@@ -62,7 +74,9 @@ async function openEditor(page: Page, plan: string) {
 async function readPlan(plan: string) {
   const { data, error } = await adminClient()
     .from("coverage_plans")
-    .select("plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere")
+    .select(
+      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, default_days, max_active_ads, label_key",
+    )
     .eq("plan", plan)
     .maybeSingle();
   if (error) throw new Error(`[e2e:l2b] reading the plan ${plan} failed: ${error.message}`);
@@ -99,17 +113,42 @@ async function destroyPlan(plan: string) {
   await adminClient().from("coverage_plans").delete().eq("plan", plan);
 }
 
-/** Seeds the test's own plan through the service client (seed before navigate, J7). */
-async function seedPlan(plan: string) {
+/**
+ * Seeds the test's own plan through the service client (seed before navigate, J7).
+ * P-1 — the row carries a label key (the editor requires one) and, when given,
+ * a quota; the lifetime takes the column's default (30).
+ */
+async function seedPlan(plan: string, dials: { maxActiveAds?: number } = {}) {
   await destroyPlan(plan);
-  const { error } = await adminClient().from("coverage_plans").insert({
-    plan,
-    max_cities: 1,
-    max_regions: 1,
-    max_countries: 1,
-    allow_everywhere: false,
-  });
+  const { error } = await adminClient()
+    .from("coverage_plans")
+    .insert({
+      plan,
+      max_cities: 1,
+      max_regions: 1,
+      max_countries: 1,
+      allow_everywhere: false,
+      label_key: `plan.${plan}`,
+      ...(dials.maxActiveAds === undefined ? {} : { max_active_ads: dials.maxActiveAds }),
+    });
   if (error) throw new Error(`[e2e:l2b] seeding the plan ${plan} failed: ${error.message}`);
+}
+
+/**
+ * P-1 — the door's audit rows for one plan (`coverage.plan.update`, old → new)
+ * written since `since`: audit rows outlive the scratch plan, so an earlier run
+ * on the same plan name never counts (J3).
+ */
+async function planAudits(plan: string, since: string) {
+  const { data, error } = await adminClient()
+    .from("audit_log")
+    .select("action,meta")
+    .eq("entity_type", "coverage_plan")
+    .eq("entity_id", plan)
+    .eq("action", "coverage.plan.update")
+    .gte("created_at", since);
+  if (error) throw new Error(`[e2e:l2b] audit read failed: ${error.message}`);
+  return (data ?? []) as Array<{ action: string; meta: Record<string, unknown> }>;
 }
 
 test.describe("L2b coverage console", () => {
@@ -312,6 +351,195 @@ test.describe("L2b coverage console", () => {
     }
   });
 
+  // ───────────── P-1 (D279, D283) — ADMIN › PLANS: THE THREE DIALS (CV-9..CV-12) ─────────────
+  // Each test owns its plan (R-CV); the real `free` row is only ever read. The door
+  // `admin_set_coverage_plan` is the authority: a refusal is shown by its own name and
+  // writes nothing; a save is proven on the stored row and its audit row (old → new).
+
+  test("CV-9 roster: a plan's ad lifetime, its quota (Unlimited) and its label key are columns; Columns hides the label", async ({
+    page,
+  }, testInfo) => {
+    await useJobSuperAdmin(page);
+    const plan = scratchPlan("dials", testInfo.project.name);
+    try {
+      await seedPlan(plan);
+      await gotoReady(page, "/admin/coverage");
+      const row = planRow(page, plan);
+      await expect(row).toBeVisible({ timeout: 20000 });
+      const stored = await readPlan(plan);
+      expect(stored?.default_days).toBe(30);
+      expect(stored?.max_active_ads).toBeNull();
+      await expect(row.getByTestId(`coverage-${plan}-days`)).toHaveText("30");
+      await expect(row.getByTestId(`coverage-${plan}-ads`)).toHaveText(
+        en["admin.coverage.unlimited"],
+      );
+      const whole = planSurface(page, plan);
+      await expect(whole.getByTestId(`coverage-${plan}-label`)).toHaveText(`plan.${plan}`);
+
+      await page.getByTestId("coverage-columns").click();
+      await page.getByTestId("coverage-columns-label").click();
+      await page.keyboard.press("Escape");
+      await expect(whole.getByTestId(`coverage-${plan}-label`)).toHaveCount(0);
+      await page.getByTestId("coverage-columns").click();
+      await page.getByTestId("coverage-columns-label").click();
+      await page.keyboard.press("Escape");
+      await expect(whole.getByTestId(`coverage-${plan}-label`)).toBeVisible();
+      await expectNoHorizontalOverflow(page);
+    } finally {
+      await destroyPlan(plan);
+    }
+  });
+
+  test("CV-10 edit: lifetime 45, quota 20 and a label key are saved through the door, read back, and audited old → new", async ({
+    page,
+  }, testInfo) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const plan = scratchPlan("save", testInfo.project.name);
+    const since = new Date().toISOString();
+    try {
+      await seedPlan(plan);
+      await gotoReady(page, "/admin/coverage");
+      await expect(planRow(page, plan)).toBeVisible({ timeout: 20000 });
+      await openEditor(page, plan);
+      await expect(page.getByTestId("coverage-editor-days")).toHaveValue("30");
+      await expect(page.getByTestId("coverage-editor-ads-unlimited")).toBeChecked();
+      await expect(page.getByTestId("coverage-editor-ads")).toBeDisabled();
+      await expect(page.getByTestId("coverage-editor-label")).toHaveValue(`plan.${plan}`);
+      await page.getByTestId("coverage-editor-days").fill("45");
+      await page.getByTestId("coverage-editor-ads-unlimited").uncheck();
+      await page.getByTestId("coverage-editor-ads").fill("20");
+      await page.getByTestId("coverage-editor-label").fill(`plan.${plan}.two`);
+      await page.getByTestId("coverage-editor-save").click();
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readPlan(plan))?.default_days === 45,
+          describe: `CV-10: coverage_plans.default_days = 45 for ${plan}`,
+        },
+        { timeout: 30000 },
+      );
+      await expect(page.getByTestId("coverage-editor")).toHaveCount(0, { timeout: 20000 });
+      const stored = await readPlan(plan);
+      expect(stored?.default_days).toBe(45);
+      expect(stored?.max_active_ads).toBe(20);
+      expect(stored?.label_key).toBe(`plan.${plan}.two`);
+      // INC-188 — the save kept the limits it did not show changed.
+      expect(stored?.max_cities).toBe(1);
+      expect(stored?.max_photos).toBe(10);
+      const row = planRow(page, plan);
+      await expect(row.getByTestId(`coverage-${plan}-days`)).toHaveText("45", { timeout: 20000 });
+      await expect(row.getByTestId(`coverage-${plan}-ads`)).toHaveText("20");
+      await expect(planSurface(page, plan).getByTestId(`coverage-${plan}-label`)).toHaveText(
+        `plan.${plan}.two`,
+      );
+
+      const audits = await planAudits(plan, since);
+      expect(audits).toHaveLength(1);
+      expect(audits[0]?.meta["old"]).toMatchObject({
+        default_days: 30,
+        max_active_ads: null,
+        label_key: `plan.${plan}`,
+      });
+      expect(audits[0]?.meta["new"]).toMatchObject({
+        default_days: 45,
+        max_active_ads: 20,
+        label_key: `plan.${plan}.two`,
+      });
+    } finally {
+      await destroyPlan(plan);
+    }
+  });
+
+  test("CV-11 refusal: a lifetime of 0, a quota of 0 and a bad label key are each refused by name; nothing is saved", async ({
+    page,
+  }, testInfo) => {
+    await useJobSuperAdmin(page);
+    const plan = scratchPlan("refuse", testInfo.project.name);
+    const since = new Date().toISOString();
+    try {
+      await seedPlan(plan);
+      await gotoReady(page, "/admin/coverage");
+      await expect(planRow(page, plan)).toBeVisible({ timeout: 20000 });
+      await openEditor(page, plan);
+      const error = page.getByTestId("coverage-editor-error");
+
+      await page.getByTestId("coverage-editor-days").fill("0");
+      await page.getByTestId("coverage-editor-save").click();
+      await expect(error).toHaveText(en["admin.coverage.error.badDefaultDays"], {
+        timeout: 20000,
+      });
+      await page.getByTestId("coverage-editor-days").fill("30");
+
+      await page.getByTestId("coverage-editor-ads-unlimited").uncheck();
+      await page.getByTestId("coverage-editor-ads").fill("0");
+      await page.getByTestId("coverage-editor-save").click();
+      await expect(error).toHaveText(en["admin.coverage.error.badMaxActiveAds"]);
+      await page.getByTestId("coverage-editor-ads-unlimited").check();
+
+      await page.getByTestId("coverage-editor-label").fill("Plan Name");
+      await page.getByTestId("coverage-editor-save").click();
+      await expect(error).toHaveText(en["admin.coverage.error.badLabelKey"]);
+
+      // A blank number is refused, never read as 0 (ruling 1, answer 10).
+      await page.getByTestId("coverage-editor-label").fill(`plan.${plan}`);
+      await page.getByTestId("coverage-editor-days").fill("");
+      await page.getByTestId("coverage-editor-save").click();
+      await expect(error).toHaveText(en["admin.coverage.error.badDefaultDays"]);
+
+      await expect(page.getByTestId("coverage-editor")).toBeVisible();
+      const stored = await readPlan(plan);
+      expect(stored?.default_days).toBe(30);
+      expect(stored?.max_active_ads).toBeNull();
+      expect(stored?.label_key).toBe(`plan.${plan}`);
+      expect(await planAudits(plan, since)).toHaveLength(0);
+      await page.getByTestId("coverage-dialog-cancel").click();
+    } finally {
+      await destroyPlan(plan);
+    }
+  });
+
+  test("CV-12 Unlimited clears a quota through the door; the roster says so", async ({
+    page,
+  }, testInfo) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const plan = scratchPlan("quota", testInfo.project.name);
+    const since = new Date().toISOString();
+    try {
+      await seedPlan(plan, { maxActiveAds: 5 });
+      await gotoReady(page, "/admin/coverage");
+      const row = planRow(page, plan);
+      await expect(row).toBeVisible({ timeout: 20000 });
+      await expect(row.getByTestId(`coverage-${plan}-ads`)).toHaveText("5");
+      await openEditor(page, plan);
+      await expect(page.getByTestId("coverage-editor-ads")).toHaveValue("5");
+      await expect(page.getByTestId("coverage-editor-ads-unlimited")).not.toBeChecked();
+      await page.getByTestId("coverage-editor-ads-unlimited").check();
+      await expect(page.getByTestId("coverage-editor-ads")).toBeDisabled();
+      await page.getByTestId("coverage-editor-save").click();
+      await awaitGuardedOutcome(
+        page,
+        secret,
+        {
+          poll: async () => (await readPlan(plan))?.max_active_ads === null,
+          describe: `CV-12: coverage_plans.max_active_ads is null for ${plan}`,
+        },
+        { timeout: 30000 },
+      );
+      expect((await readPlan(plan))?.max_active_ads).toBeNull();
+      await expect(row.getByTestId(`coverage-${plan}-ads`)).toHaveText(
+        en["admin.coverage.unlimited"],
+        { timeout: 20000 },
+      );
+      const audits = await planAudits(plan, since);
+      expect(audits).toHaveLength(1);
+      expect(audits[0]?.meta["old"]).toMatchObject({ max_active_ads: 5 });
+      expect(audits[0]?.meta["new"]).toMatchObject({ max_active_ads: null });
+    } finally {
+      await destroyPlan(plan);
+    }
+  });
+
   test("CV-6 geometry: nothing overflows and the editor's controls are on screen", async ({
     page,
   }) => {
@@ -367,7 +595,7 @@ test.describe("L2b coverage plans — the browser's columns", () => {
     expect(url !== "" && key !== "", "CV-8 the staging address and key are set").toBe(true);
     const none = "e_probe_none";
     const own =
-      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, updated_at";
+      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, default_days, max_active_ads, label_key, updated_at";
 
     const anon = createClient(url, key, { auth: { persistSession: false } });
     const plain = await leaseUser();

@@ -4,9 +4,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AdminCoveragePage } from "@/features/admin-coverage/coverage-page";
 
 /**
- * LOCATIONS ERA L2b-C2 — the Coverage section. The /admin layout owns the
- * `coverage:view` gate; the plan write re-checks `coverage:update` and step-up
- * inside the door (F3).
+ * LOCATIONS ERA L2b-C2 — the Coverage section, Admin › Plans since P-1 (D279: a
+ * plan's dials — reach, photos, ad lifetime, how many ads — are its rows). The
+ * /admin layout owns the `coverage:view` gate; the plan write re-checks
+ * `coverage:update` and step-up inside the door (F3).
  */
 export const Route = createFileRoute("/admin/coverage")({
   head: () => ({
@@ -14,10 +15,10 @@ export const Route = createFileRoute("/admin/coverage")({
       ...pageHead(
         "head.admin.pattern.title",
         "head.admin.pattern.description",
-        "admin.section.coverage.title",
+        "admin.section.plans.title",
         null,
-        "Coverage — ethio.com Admin",
-        "Coverage in the ethio.com staff panel.",
+        "Plans — ethio.com Admin",
+        "Plans in the ethio.com staff panel.",
       ).meta,
       { name: "robots", content: "noindex" },
       { property: "og:type", content: "website" },

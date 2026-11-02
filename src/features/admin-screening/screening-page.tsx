@@ -33,6 +33,12 @@ import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
+import {
+  TIERS,
+  TIER_LABEL,
+  isTierValue,
+  type TierValue,
+} from "@/features/admin-listings/tier-reasons";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { heldWithAd } from "@/features/posting/posting-service";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
@@ -130,6 +136,8 @@ export function AdminScreeningPage({
 
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState<string | null>(null);
+  // P-1 W4 — the tier filter, as Admin › Listings has it.
+  const [tier, setTier] = useState<TierValue | null>(null);
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
     "ethio.admin.screening.pageSize",
@@ -157,7 +165,7 @@ export function AdminScreeningPage({
   const { tree } = useCategoryTree();
   const unitLabels = usePriceUnitLabels(previewRow !== null && previewRow.priceUnit !== null);
 
-  const query = useScreeningQueue(page, search, pageSize, { country });
+  const query = useScreeningQueue(page, search, pageSize, { country, tier });
   const photos = useScreeningPhotos(previewRow?.id ?? null);
   // Bundle 16 turn 4b (D178) — only photos held while checking was off are approved with
   // the ad; a photo the check judged carries its own mark and Allow.
@@ -392,8 +400,8 @@ export function AdminScreeningPage({
   // D154 B3 — the page's ads that hold a photo the screen warned about.
   const warned = useWarnedListings(rows.map((row) => row.id)).data ?? new Set<string>();
 
-  const chips =
-    country === null
+  const chips = [
+    ...(country === null
       ? []
       : [
           {
@@ -404,7 +412,20 @@ export function AdminScreeningPage({
               resetPaging();
             },
           },
-        ];
+        ]),
+    ...(tier === null
+      ? []
+      : [
+          {
+            key: "tier",
+            label: t(TIER_LABEL[tier]),
+            onRemove: () => {
+              setTier(null);
+              resetPaging();
+            },
+          },
+        ]),
+  ];
 
   return (
     <StepUpGate>
@@ -523,9 +544,10 @@ export function AdminScreeningPage({
                     <FiltersButton
                       testid="admin-screening-filters"
                       count={chips.length}
-                      state={country ?? ""}
+                      state={`${country ?? ""}|${tier ?? ""}`}
                       onClearAll={() => {
                         setCountry(null);
+                        setTier(null);
                         resetPaging();
                       }}
                     >
@@ -544,6 +566,20 @@ export function AdminScreeningPage({
                             value: market.code,
                             label: marketName(market.code),
                           })),
+                        ]}
+                      />
+                      {/* P-1 W4 — the listings table's tier filter, the same words. */}
+                      <FilterChoices
+                        testid="admin-screening-filter-tier"
+                        label={t("admin.listings.filter.tier")}
+                        value={tier ?? ""}
+                        onChange={(value) => {
+                          setTier(isTierValue(value) ? value : null);
+                          resetPaging();
+                        }}
+                        options={[
+                          { value: "", label: t("prim.table.all") },
+                          ...TIERS.map((value) => ({ value, label: t(TIER_LABEL[value]) })),
                         ]}
                       />
                     </FiltersButton>

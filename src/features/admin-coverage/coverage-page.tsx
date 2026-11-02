@@ -141,6 +141,31 @@ export function AdminCoveragePage() {
         </span>
       ),
     },
+    // P-1 (D279, D283) — the plan's lifetime and quota dials; the label key is detail.
+    {
+      key: "days",
+      header: t("admin.coverage.col.days"),
+      priority: COVERAGE_COLUMN_PRIORITIES.days,
+      card: "meta",
+      align: "end",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-days`}>
+          {row.defaultDays}
+        </span>
+      ),
+    },
+    {
+      key: "ads",
+      header: t("admin.coverage.col.ads"),
+      priority: COVERAGE_COLUMN_PRIORITIES.ads,
+      card: "meta",
+      align: "end",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`coverage-${row.plan}-ads`}>
+          {row.maxActiveAds === null ? t("admin.coverage.unlimited") : row.maxActiveAds}
+        </span>
+      ),
+    },
     {
       key: "everywhere",
       header: t("admin.coverage.col.everywhere"),
@@ -159,6 +184,17 @@ export function AdminCoveragePage() {
           )}
           testid={`coverage-${row.plan}-everywhere`}
         />
+      ),
+    },
+    {
+      key: "label",
+      header: t("admin.coverage.col.label"),
+      priority: COVERAGE_COLUMN_PRIORITIES.label,
+      card: "foot",
+      cell: (row) => (
+        <span className="min-w-0 break-all text-sm" data-testid={`coverage-${row.plan}-label`}>
+          {row.labelKey ?? "—"}
+        </span>
       ),
     },
     {
@@ -195,7 +231,7 @@ export function AdminCoveragePage() {
     <StepUpGate>
       {(guard) => (
         <div data-testid="admin-section-coverage" className="min-w-0 space-y-4">
-          <TableActions testid="coverage-header" title={t("admin.section.coverage.title")}>
+          <TableActions testid="coverage-header" title={t("admin.section.plans.title")}>
             {mayUpdate ? (
               <TableActionButton
                 variant="default"

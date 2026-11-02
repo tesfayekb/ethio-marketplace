@@ -1,0 +1,14 @@
+# P-1 — ruling 2, on stop 1 (the three migrations)
+
+```text
+RULING — P-1, stop 1 (the three migrations). Base: dev 94249bf8; branch head fa84ed0d.
+**MODEL — Claude Fable 5.1 (High), unchanged.**
+
+The operator applied the three files on ethio-staging in order; all three FAILED, each cleanly (one transaction per file; staging read back by me: no new column, the old `admin_set_coverage_plan` signature, no `listing_packages`, no `package_prices`, no `packages` resource, no mark, no scratch row). Two causes, both in the keys' pattern:
+
+1. M1a, proof (c): `ERROR P0001: badPlan` at the door's line 16, from `admin_set_coverage_plan(v_plan, …)` with `v_plan = 'e2e_mig_p_' || …` (line 147). The plan pattern `^[a-z_]{2,32}$` refuses the digit in `e2e`. Keep the plan pattern (the live one); change the scratch plan's name to letters and underscores only, in whatever namespace the real-row guard accepts without a digit (read `scripts/check-migrations.sh`'s real-row rule first; if its namespace must read `e2e`, key the proof's reads by the `v_plan` variable, which the guard already accepts for function bodies, and choose a letters-only name). Nothing else in M1a changes.
+2. M1b, the seeds: `ERROR 23514: listing_packages_key_check` on `featured_45` — the CHECK `^[a-z_]{2,32}$` (line 25) refuses digits, and the seeds carry them. The spec's pattern was wrong for its own seed names (my slip, S512): a package key becomes `^[a-z][a-z0-9_]{1,31}$` — a letter first, then letters, digits and underscores, 2 to 32 in all — in the table CHECK (M1b), the save door's `bad key` rule (M1c line 35), the proofs that provoke `bad key`, the EN hint and refusal texts (`admin.packages.field.keyHint` "2 to 32 lower-case letters, digits or underscores, starting with a letter"; `admin.packages.error.badKey` the same words), and any test that asserts the pattern. The seeds stay `featured_45` and `premium_60`. The plan pattern of `coverage_plans` is untouched (its keys are words).
+3. M1c failed only because M1b had (`relation "public.listing_packages" does not exist`); nothing to change there beyond the pattern in (2).
+4. Same three files, same names, same marks (`20261102220000`, `20261102230000`, `20261103000000`); new commits (`p1-packages: M1a proof — a letters-only scratch plan (INC-1035)`, `p1-packages: M1b/M1c — package keys take digits (S512)`); the stop report's three sha256 lines and byte counts in a new commit; the four-check scan again on all three; push; stop again with the three pairing lines. The operator re-applies all three from the branch's raw files.
+5. INC-1035 is registered on my side: a migration proof's scratch key must satisfy the same CHECK the real rows do — the four-check scan gains a fifth check: every scratch key written to a column with a pattern CHECK is matched against that pattern before the stop.
+```

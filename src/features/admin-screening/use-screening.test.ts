@@ -79,15 +79,27 @@ describe("parseScreeningFacts", () => {
 describe("listScreening", () => {
   it("SF-2 a market filter reads the ad's place, never home_country_code; no market sends no place filter", async () => {
     calls.length = 0;
-    await listScreening(0, "", 25, { country: "ET" });
+    await listScreening(0, "", 25, { country: "ET", tier: null });
     expect(calls).toContainEqual(["eq", ["place.country_code", "ET"]]);
     expect(calls).toContainEqual(["not", ["place", "is", null]]);
     expect(JSON.stringify(calls)).not.toContain("home_country_code");
 
     calls.length = 0;
-    await listScreening(0, "", 25, { country: null });
+    await listScreening(0, "", 25, { country: null, tier: null });
     expect(calls.filter(([name]) => name === "not")).toEqual([]);
     expect(calls.filter(([name, args]) => name === "eq" && args[0] !== "status")).toEqual([]);
+  });
+
+  /** P-1 W4 — the tier filter the listings table has, on the queue's own column. */
+  it("SF-7 a tier filter reads the ad's tier column; no tier sends no tier filter", async () => {
+    calls.length = 0;
+    await listScreening(0, "", 25, { country: null, tier: "premium" });
+    expect(calls).toContainEqual(["eq", ["tier", "premium"]]);
+    expect(calls.filter(([name]) => name === "not")).toEqual([]);
+
+    calls.length = 0;
+    await listScreening(0, "", 25, { country: "ET", tier: null });
+    expect(calls.filter(([name, args]) => name === "eq" && args[0] === "tier")).toEqual([]);
   });
 });
 
@@ -138,7 +150,7 @@ describe("listScreening — the row's market", () => {
       },
     ];
     try {
-      const { rows } = await listScreening(0, "", 25, { country: null });
+      const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
       expect(rows.map((row) => row.countryCode)).toEqual(["ET", null]);
       const select = calls.find(([name]) => name === "select");
       expect(String(select?.[1][0])).toContain("place:locations(name_en,name_am,country_code)");
@@ -261,7 +273,7 @@ describe("the screening row's tier", () => {
       row("l-4", null),
     ];
     try {
-      const { rows } = await listScreening(0, "", 25, { country: null });
+      const { rows } = await listScreening(0, "", 25, { country: null, tier: null });
       expect(rows.map((r) => r.tier)).toEqual(["premium", "featured", null, null]);
       const select = calls.find(([name]) => name === "select");
       expect(String(select?.[1][0]).split(",")).toContain("tier");

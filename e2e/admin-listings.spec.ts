@@ -952,7 +952,11 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
   });
 
   /** Turn L2b — a row's three-dots item, in whichever twin the width draws. */
-  async function rowMenu(page: Page, id: string, item: "remove" | "restore" | "send_back") {
+  async function rowMenu(
+    page: Page,
+    id: string,
+    item: "remove" | "restore" | "send_back" | "tier",
+  ) {
     const actions = page.getByTestId(
       isCardTwin(page) ? `listing-row-${id}-actions` : `listing-row-${id}-actions-cell`,
     );
@@ -2510,5 +2514,115 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const kept = await tierTruth(sold.id);
     expect(kept?.["status"]).toBe("sold");
     expect(kept?.["tier"]).toBe("premium");
+  });
+
+  // ───────────── P-1 W4 — SET TIER FROM THE TABLE'S ROW MENU (ATR-6, ATR-7) ─────────────
+  // The same gate (listings:enforce, never the admin's own, never a removed or draft ad), the
+  // same dialog (`listings-tier-dialog`) and the same door as the ad's page; the table's Tier
+  // filter proves the change, with the DB's row, one audit row and one revision.
+
+  /** The row's three-dots, in whichever twin the width draws. */
+  const rowMore = (page: Page, id: string) =>
+    page
+      .getByTestId(
+        isCardTwin(page) ? `listing-row-${id}-actions` : `listing-row-${id}-actions-cell`,
+      )
+      .getByTestId(`listing-actions-${id}-more`);
+
+  test("ATR-6 Set tier from the row menu: Premium through the ad page's dialog and door, the Tier filter lists it, one audit row and one revision; the own row and a removed row offer none", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const gone = await seed(seller, "removed");
+    const admin = await useJobSuperAdmin(page);
+    const own = await seed({ ...seller, id: admin.user.id }, "active", { own: true });
+
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(ad.id);
+    await expect(listingRow(page, ad.id)).toBeVisible({ timeout: 20000 });
+    await rowMenu(page, ad.id, "tier");
+    await expect(page.getByTestId("listings-tier-dialog")).toBeVisible();
+    await page.getByTestId("listings-tier-pick-premium").click();
+    await page.getByTestId("listings-tier-reason-promotion").click();
+    await page.getByTestId("listings-tier-confirm").click();
+    await stepUpIfPrompted(page, admin.secret);
+    await expect(page.getByTestId("listings-notice")).toHaveText(
+      en["admin.listings.tier.done"].replace("{tier}", en["tier.premium"]),
+      { timeout: 20000 },
+    );
+    await expect(page.getByTestId("listings-tier-dialog")).toHaveCount(0);
+
+    // The table's own Tier filter proves the row's tier: Regular drops it, Premium lists it.
+    await page.getByTestId("listings-filters").click();
+    await page.getByTestId("listings-filter-tier-regular").click();
+    await page.keyboard.press("Escape");
+    await expect(listingRow(page, ad.id), "ATR-6: Regular still listed the ad").toHaveCount(0, {
+      timeout: 20000,
+    });
+    await page.getByTestId("listings-filters").click();
+    await page.getByTestId("listings-filter-tier-premium").click();
+    await page.keyboard.press("Escape");
+    await expect(listingRow(page, ad.id), "ATR-6: Premium did not list the ad").toBeVisible({
+      timeout: 20000,
+    });
+
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("premium");
+    const audits = await tierAudits(ad.id);
+    expect(audits).toHaveLength(1);
+    expect(audits[0]?.["actor_id"]).toBe(admin.user.id);
+    expect(audits[0]?.["meta"]).toEqual({ from: "regular", to: "premium", reason: "promotion" });
+    const revisions = await revisionRows(ad.id, "edit");
+    expect(revisions).toHaveLength(1);
+    expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
+    expect(revisions[0]?.["after"]).toEqual({ tier: "premium" });
+
+    // The admin's own ad and a removed ad: Open in the menu, no Set tier (the ad page's gate).
+    await page.getByTestId("listings-chips-clear").click();
+    await expect(page.getByTestId("listings-chips-chip-tier")).toHaveCount(0);
+    for (const id of [own.id, gone.id]) {
+      await page.getByTestId("listings-search").fill(id);
+      await expect(listingRow(page, id)).toBeVisible({ timeout: 20000 });
+      await rowMore(page, id).click();
+      await expect(page.getByTestId(`listing-actions-${id}-more-open`)).toBeVisible();
+      await expect(page.getByTestId(`listing-actions-${id}-more-tier`)).toHaveCount(0);
+      await page.keyboard.press("Escape");
+    }
+    expect((await tierTruth(own.id))?.["tier"]).toBe("regular");
+    expect((await tierTruth(gone.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(own.id)).toHaveLength(0);
+    expect(await tierAudits(gone.id)).toHaveLength(0);
+  });
+
+  test("ATR-7 a reviewer's row menu has no Set tier and the door refuses him; nothing is written", async ({
+    page,
+  }) => {
+    const seller = await scratchSeller();
+    const ad = await seed(seller, "active");
+    const reviewer = await scratchHolder([
+      ["admin_panel", "access"],
+      ["listings", "view"],
+      ["listings", "review"],
+    ]);
+    await signInViaSession(page, reviewer.email, reviewer.password);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId("listings-search")).toBeVisible({ timeout: 20000 });
+    await page.getByTestId("listings-search").fill(ad.id);
+    await expect(listingRow(page, ad.id)).toBeVisible({ timeout: 20000 });
+    await rowMore(page, ad.id).click();
+    await expect(page.getByTestId(`listing-actions-${ad.id}-more-open`)).toBeVisible();
+    await expect(page.getByTestId(`listing-actions-${ad.id}-more-tier`)).toHaveCount(0);
+    await page.keyboard.press("Escape");
+
+    const denied = await rpcResult(page, "admin_set_listing_tier", {
+      p_listing_id: ad.id,
+      p_tier: "premium",
+      p_reason: "promotion",
+    });
+    expect(denied.error).toBe("permission denied");
+    expect((await tierTruth(ad.id))?.["tier"]).toBe("regular");
+    expect(await tierAudits(ad.id)).toHaveLength(0);
+    expect(await revisionRows(ad.id, "edit")).toHaveLength(0);
   });
 });

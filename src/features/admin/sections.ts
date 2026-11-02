@@ -75,6 +75,15 @@ export const ADMIN_SECTIONS = [
     group: "listings",
   },
   {
+    // P-1 (D280): the promotions a seller may apply to an ad, and their prices.
+    id: "packages",
+    path: "/admin/packages",
+    permission: "packages:view",
+    titleKey: "admin.section.packages.title",
+    bodyKey: "admin.section.packages.body",
+    group: "listings",
+  },
+  {
     id: "users",
     path: "/admin/users",
     permission: "profiles:view",
@@ -115,8 +124,9 @@ export const ADMIN_SECTIONS = [
     id: "coverage",
     path: "/admin/coverage",
     permission: "coverage:view",
-    titleKey: "admin.section.coverage.title",
-    bodyKey: "admin.section.coverage.body",
+    // P-1 (D279): the screen is Admin › Plans; the id, path and permission stay coverage.
+    titleKey: "admin.section.plans.title",
+    bodyKey: "admin.section.plans.body",
     group: "locations",
   },
   {

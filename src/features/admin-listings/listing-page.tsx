@@ -38,12 +38,12 @@ import {
 import { ListingPhotos } from "./listing-photos";
 import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
+import { changeListingTier } from "./change-listing-tier";
 import { TierDialog } from "./tier-dialog";
-import { TIER_LABEL, isTierValue, mayTier, tierErrorKey } from "./tier-reasons";
+import { TIER_LABEL, isTierValue, mayTier } from "./tier-reasons";
 import { UndoDialog } from "./undo-dialog";
 import { mayUndo, undoErrorKey, undoRefusalGroups } from "./undo-edit";
 import {
-  setAdminListingTier,
   undoAdminListingEdit,
   useAdminListing,
   useAdminListingCertifications,
@@ -354,17 +354,13 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const runTier = async (guard: GuardFn, tier: string, reason: string, note: string) => {
     setBusy(true);
     setRefusal(null);
-    try {
-      await guard(() => setAdminListingTier(listingId, tier, reason, note));
-    } catch (error) {
-      setBusy(false);
-      const abort = stepUpAbortKey(error);
-      // A cancelled second factor leaves the dialog open, as it was.
-      if (abort === null) return;
-      setRefusal(t(abort ?? tierErrorKey(errorText(error))));
+    const outcome = await changeListingTier(guard, listingId, tier, reason, note);
+    setBusy(false);
+    // A cancelled second factor leaves the dialog open, as it was.
+    if (!outcome.ok) {
+      if (!outcome.cancelled) setRefusal(t(outcome.refusal));
       return;
     }
-    setBusy(false);
     setTiering(false);
     setNotice(t("admin.listings.tier.done").replace("{tier}", tierLabel(tier)));
     await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });

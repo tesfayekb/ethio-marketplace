@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { stepUpAbortKey } from "@/features/auth/mfa/mfa-service";
 import { useI18n, type MessageKey } from "@/i18n";
 
+import { type CoverageFormValues } from "./coverage-forms";
 import { coverageErrorKey, type CoverageRefusal } from "./coverage-service";
 
 /**
@@ -91,15 +92,6 @@ export function CoverageDialogActions({
   );
 }
 
-export interface CoverageFormValues {
-  maxCities: string;
-  maxRegions: string;
-  maxCountries: string;
-  /** D22 — the plan's photo cap, as typed. */
-  maxPhotos: string;
-  allowEverywhere: boolean;
-}
-
 /** The limit fields, shared by create and the editor (B3). */
 export function CoverageFormFields({
   idPrefix,
@@ -112,10 +104,11 @@ export function CoverageFormFields({
 }) {
   const { t } = useI18n();
   const number = (
-    key: "maxCities" | "maxRegions" | "maxCountries" | "maxPhotos",
+    key: "maxCities" | "maxRegions" | "maxCountries" | "maxPhotos" | "defaultDays" | "maxActiveAds",
     label: MessageKey,
     suffix: string,
     help: MessageKey = "admin.coverage.field.limitHint",
+    disabled = false,
   ) => (
     <FormField label={t(label)} htmlFor={`${idPrefix}-${suffix}`} help={t(help)}>
       <Input
@@ -123,6 +116,7 @@ export function CoverageFormFields({
         data-testid={`${idPrefix}-${suffix}`}
         inputMode="numeric"
         value={values[key]}
+        disabled={disabled}
         onChange={(event) => onChange({ [key]: event.target.value } as Partial<CoverageFormValues>)}
       />
     </FormField>
@@ -150,11 +144,38 @@ export function CoverageFormFields({
         />
         <span>{t("admin.coverage.field.everywhere")}</span>
       </label>
+      {/* P-1 (D279, D283) — the plan's lifetime and quota dials; a quota is a number or Unlimited. */}
+      {number("defaultDays", "admin.coverage.field.days", "days", "admin.coverage.field.daysHint")}
+      {number(
+        "maxActiveAds",
+        "admin.coverage.field.ads",
+        "ads",
+        "admin.coverage.field.adsHint",
+        values.adsUnlimited,
+      )}
+      <label className="flex min-h-11 min-w-0 items-center gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="size-5"
+          data-testid={`${idPrefix}-ads-unlimited`}
+          checked={values.adsUnlimited}
+          onChange={(event) => onChange({ adsUnlimited: event.target.checked })}
+        />
+        <span>{t("admin.coverage.field.adsUnlimited")}</span>
+      </label>
+      <FormField
+        label={t("admin.coverage.field.label")}
+        htmlFor={`${idPrefix}-label`}
+        help={t("admin.coverage.field.labelHint")}
+      >
+        <Input
+          id={`${idPrefix}-label`}
+          data-testid={`${idPrefix}-label`}
+          value={values.labelKey}
+          maxLength={80}
+          onChange={(event) => onChange({ labelKey: event.target.value })}
+        />
+      </FormField>
     </>
   );
-}
-
-export function numberOrZero(raw: string): number {
-  const parsed = Number(raw.trim());
-  return Number.isFinite(parsed) ? parsed : 0;
 }
