@@ -2456,13 +2456,22 @@
     "admin.coverage.caption": [
       "/admin/coverage"
     ],
+    "admin.coverage.col.ads": [
+      "/admin/coverage"
+    ],
     "admin.coverage.col.cities": [
       "/admin/coverage"
     ],
     "admin.coverage.col.countries": [
       "/admin/coverage"
     ],
+    "admin.coverage.col.days": [
+      "/admin/coverage"
+    ],
     "admin.coverage.col.everywhere": [
+      "/admin/coverage"
+    ],
+    "admin.coverage.col.label": [
       "/admin/coverage"
     ],
     "admin.coverage.col.photos": [
@@ -2495,7 +2504,16 @@
     "admin.coverage.error.reason": [
       "/admin/coverage"
     ],
+    "admin.coverage.field.adsUnlimited": [
+      "/admin/coverage"
+    ],
     "admin.coverage.field.everywhere": [
+      "/admin/coverage"
+    ],
+    "admin.coverage.field.label": [
+      "/admin/coverage"
+    ],
+    "admin.coverage.field.labelHint": [
       "/admin/coverage"
     ],
     "admin.coverage.field.plan": [
@@ -2517,6 +2535,9 @@
       "/admin/coverage"
     ],
     "admin.coverage.searchPlaceholder": [
+      "/admin/coverage"
+    ],
+    "admin.coverage.unlimited": [
       "/admin/coverage"
     ],
     "admin.landing.body": [

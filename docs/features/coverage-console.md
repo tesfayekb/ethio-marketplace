@@ -116,3 +116,39 @@ The page's heading ("Coverage") leads the header row, whose actions are icon til
 ## Bundle 12 T14 — the browser's columns
 
 The browser roles (anon and authenticated) read the plans table by column: every column except `updated_by`, which no screen shows. The console reads plan, the three limits, the photo cap, the everywhere flag and Updated (src/features/admin-coverage/coverage-service.ts); the wizard reads the limits through `get_posting_schema`; writes go through `admin_set_coverage_plan`. A read naming `updated_by`, or every column (`*`), is refused (42501). The migration's proofs read the privileges from the catalogue and plan each role's reads with WHERE false. Test: CV-8 (anonymous and signed-in, on a plan no row has).
+
+## P-1 — Admin › Plans (D279, D283; ruling 1 answer 10)
+
+The section is now called **Plans** (`admin.section.plans.title` / `.body`; the
+route stays `/admin/coverage`, the section id `coverage`, the gate `coverage:view`,
+the root testid `admin-section-coverage`). Three dials joined `coverage_plans`
+(migration `20261102081500`): `default_days` (the lifetime a new ad gets, ≥ 1,
+default 30), `max_active_ads` (the plan's quota of live ads; NULL is unlimited)
+and `label_key` (the plan's display name as a translation key, `^[a-z][a-z0-9_.]{1,79}$`).
+
+- Roster columns: Days (`coverage-<plan>-days`, primary) · Ads
+  (`coverage-<plan>-ads`, primary; `admin.coverage.unlimited` when NULL) · Label
+  key (`coverage-<plan>-label`, detail, card foot; `—` when NULL).
+- Editor and New plan: `<prefix>-days`, `<prefix>-ads` (disabled while
+  `<prefix>-ads-unlimited` is ticked) and `<prefix>-label`. New plan starts at
+  30 / Unlimited and proposes `plan.<name>` as the label key until it is typed.
+- The door `admin_set_coverage_plan(…, p_default_days, p_max_active_ads,
+p_ads_unlimited, p_label_key)`: a ticked Unlimited sends `p_ads_unlimited:
+true`; a count sends `p_max_active_ads` with `p_ads_unlimited: false`; the
+  label key is always sent (NULL would mean "keep", so the field is required).
+- The judge (`coverageFormInput`, coverage-dialogs.tsx) mirrors the door's rules
+  and reads every number through `wholeNumber`: a blank or non-numeric field is a
+  typed refusal (`belowMinimum`, `badMaxPhotos`, `badDefaultDays`,
+  `badMaxActiveAds`, `badLabelKey`), never 0 — `numberOrZero` is gone from this
+  console (its twin in `admin-countries/country-dialogs.tsx` is reported, not
+  touched).
+- Refusal keys: `admin.coverage.error.badDefaultDays` / `.badMaxActiveAds` /
+  `.badLabelKey` map the door's `RAISE` names (F4, `COVERAGE_REFUSAL_IDS`).
+
+Tests: `coverage-dialogs.test.tsx` CVF-1..CVF-5 (the judge, the form of a row,
+the refusal ids) · CV-8 reads the three new columns as the browser roles · CV-9
+the roster's three cells and Columns hiding Label key · CV-10 lifetime 45, quota
+20 and a new label key saved through step-up, read back, audited old → new, the
+other limits kept · CV-11 lifetime 0, quota 0, a bad label key and a blank
+lifetime each refused by name, nothing saved, no audit row · CV-12 Unlimited
+clears a quota.

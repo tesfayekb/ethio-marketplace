@@ -27,6 +27,12 @@ export interface CoveragePlanRow {
   /** D22 — how many photos a listing on this plan may carry (0..30). */
   maxPhotos: number;
   allowEverywhere: boolean;
+  /** P-1 (D279) — an ad's lifetime in days where its category sets none (≥ 1). */
+  defaultDays: number;
+  /** P-1 (D283) — live ads at most per seller; null = unlimited. */
+  maxActiveAds: number | null;
+  /** P-1 — the translation key naming the plan on screens; null when none is set. */
+  labelKey: string | null;
   updatedAt: string;
 }
 
@@ -34,7 +40,7 @@ export async function listCoveragePlans(): Promise<CoveragePlanRow[]> {
   const { data, error } = await supabase
     .from("coverage_plans")
     .select(
-      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, updated_at",
+      "plan, max_cities, max_regions, max_countries, max_photos, allow_everywhere, default_days, max_active_ads, label_key, updated_at",
     )
     .order("plan");
   if (error) throw error;
@@ -45,6 +51,9 @@ export async function listCoveragePlans(): Promise<CoveragePlanRow[]> {
     maxCountries: Number(row.max_countries ?? 0),
     maxPhotos: Number(row.max_photos ?? 0),
     allowEverywhere: row.allow_everywhere === true,
+    defaultDays: row.default_days,
+    maxActiveAds: row.max_active_ads,
+    labelKey: row.label_key,
     updatedAt: row.updated_at ?? "",
   }));
 }
@@ -56,6 +65,10 @@ export interface SetCoveragePlanInput {
   maxCountries: number;
   maxPhotos: number;
   allowEverywhere: boolean;
+  defaultDays: number;
+  /** null = unlimited (the door's `p_ads_unlimited`). */
+  maxActiveAds: number | null;
+  labelKey: string;
 }
 
 export async function setCoveragePlan(input: SetCoveragePlanInput): Promise<void> {
@@ -68,6 +81,12 @@ export async function setCoveragePlan(input: SetCoveragePlanInput): Promise<void
     // drops a field the surface holds).
     p_max_photos: input.maxPhotos,
     p_allow_everywhere: input.allowEverywhere,
+    // P-1 — the three dials travel too; an unlimited quota is the flag, never a number.
+    p_default_days: input.defaultDays,
+    ...(input.maxActiveAds === null
+      ? { p_ads_unlimited: true }
+      : { p_max_active_ads: input.maxActiveAds, p_ads_unlimited: false }),
+    p_label_key: input.labelKey,
   });
   if (error) throw error;
 }
@@ -75,7 +94,14 @@ export async function setCoveragePlan(input: SetCoveragePlanInput): Promise<void
 /* ------------------------------- refusals -------------------------------- */
 
 /** Every refusal id the coverage door raises, copied by name (E7). */
-export const COVERAGE_REFUSAL_IDS = ["badPlan", "belowMinimum", "badMaxPhotos"] as const;
+export const COVERAGE_REFUSAL_IDS = [
+  "badPlan",
+  "belowMinimum",
+  "badMaxPhotos",
+  "badDefaultDays",
+  "badMaxActiveAds",
+  "badLabelKey",
+] as const;
 
 export interface CoverageRefusal {
   key: MessageKey;
@@ -99,6 +125,8 @@ export function coverageErrorKey(message: string): CoverageRefusal {
 
 /** The door's own plan shape, so the surface refuses before the round trip. */
 export const COVERAGE_PLAN_PATTERN = /^[a-z_]{2,32}$/;
+/** P-1 — the door's label-key shape (`coverage_plans_label_key_check`). */
+export const COVERAGE_LABEL_KEY_PATTERN = /^[a-z][a-z0-9_.]{1,79}$/;
 
 export const COVERAGE_COLUMN_PRIORITIES = {
   plan: "primary",
@@ -106,6 +134,9 @@ export const COVERAGE_COLUMN_PRIORITIES = {
   regions: "primary",
   countries: "primary",
   photos: "primary",
+  days: "primary",
+  ads: "primary",
   everywhere: "secondary",
+  label: "detail",
   updated: "detail",
 } as const;

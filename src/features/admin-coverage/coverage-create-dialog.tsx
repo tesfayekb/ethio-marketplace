@@ -10,7 +10,7 @@ import {
   CoverageDialogActions,
   CoverageErrorLine,
   CoverageFormFields,
-  numberOrZero,
+  coverageFormInput,
   useCoverageError,
   type CoverageFormValues,
 } from "./coverage-dialogs";
@@ -27,13 +27,24 @@ export function CoverageCreateDialog({ guard, onClose }: { guard: GuardFn; onClo
   const save = useSetCoveragePlan();
   const { refusal, clear, fail, render } = useCoverageError();
   const [plan, setPlan] = useState("");
+  // P-1 — the label key follows the plan's name (`plan.<name>`) until it is typed.
+  const [labelTyped, setLabelTyped] = useState(false);
   const [form, setForm] = useState<CoverageFormValues>({
     maxCities: "1",
     maxRegions: "1",
     maxCountries: "1",
     maxPhotos: "10",
     allowEverywhere: false,
+    defaultDays: "30",
+    maxActiveAds: "",
+    adsUnlimited: true,
+    labelKey: "",
   });
+  const changePlan = (value: string) => {
+    const next = value.toLowerCase();
+    setPlan(next);
+    if (!labelTyped) setForm((prev) => ({ ...prev, labelKey: `plan.${next.trim()}` }));
+  };
 
   const submit = () => {
     clear();
@@ -41,29 +52,14 @@ export function CoverageCreateDialog({ guard, onClose }: { guard: GuardFn; onClo
       render("admin.coverage.error.badPlan");
       return;
     }
-    if (
-      numberOrZero(form.maxCities) < 1 ||
-      numberOrZero(form.maxRegions) < 1 ||
-      numberOrZero(form.maxCountries) < 1
-    ) {
-      render("admin.coverage.error.belowMinimum");
-      return;
-    }
-    const photos = numberOrZero(form.maxPhotos);
-    if (photos < 0 || photos > 30) {
-      render("admin.coverage.error.badMaxPhotos");
+    const judged = coverageFormInput(form);
+    if (!judged.ok) {
+      render(judged.key);
       return;
     }
     void guard(async () => {
       try {
-        await save.mutateAsync({
-          plan: plan.trim(),
-          maxCities: numberOrZero(form.maxCities),
-          maxRegions: numberOrZero(form.maxRegions),
-          maxCountries: numberOrZero(form.maxCountries),
-          maxPhotos: photos,
-          allowEverywhere: form.allowEverywhere,
-        });
+        await save.mutateAsync({ plan: plan.trim(), ...judged.input });
         onClose();
       } catch (error) {
         fail(error);
@@ -88,13 +84,16 @@ export function CoverageCreateDialog({ guard, onClose }: { guard: GuardFn; onClo
           data-testid="coverage-create-plan"
           value={plan}
           maxLength={32}
-          onChange={(event) => setPlan(event.target.value.toLowerCase())}
+          onChange={(event) => changePlan(event.target.value)}
         />
       </FormField>
       <CoverageFormFields
         idPrefix="coverage-create"
         values={form}
-        onChange={(next) => setForm((prev) => ({ ...prev, ...next }))}
+        onChange={(next) => {
+          if (next.labelKey !== undefined) setLabelTyped(true);
+          setForm((prev) => ({ ...prev, ...next }));
+        }}
       />
       <CoverageErrorLine refusal={refusal} />
       <CoverageDialogActions

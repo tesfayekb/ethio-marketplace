@@ -8,16 +8,17 @@ import {
   CoverageDialogActions,
   CoverageErrorLine,
   CoverageFormFields,
-  numberOrZero,
+  coverageFormInput,
+  coverageFormOf,
   useCoverageError,
-  type CoverageFormValues,
 } from "./coverage-dialogs";
 import type { CoveragePlanRow } from "./coverage-service";
 import { useSetCoveragePlan } from "./use-coverage";
 
 /**
  * L2b-C2 — THE PLAN EDITOR IS THE ROW'S ONE SURFACE (CT-8). The roster carries
- * a single 44px pencil per row; the four limits and the save live here.
+ * a single 44px pencil per row; the four limits, the three dials of P-1 (ad
+ * lifetime, ads at most, the label key) and the save live here.
  *
  * INC-188 — the save round-trips EVERY stored field this surface holds, so it
  * never drops what the operator did not touch. The plan name is the row's
@@ -38,41 +39,19 @@ export function CoverageEditorDialog({
   const { t } = useI18n();
   const save = useSetCoveragePlan();
   const { refusal, clear, fail, render } = useCoverageError();
-  const [form, setForm] = useState<CoverageFormValues>(() => ({
-    maxCities: String(row.maxCities),
-    maxRegions: String(row.maxRegions),
-    maxCountries: String(row.maxCountries),
-    maxPhotos: String(row.maxPhotos),
-    allowEverywhere: row.allowEverywhere,
-  }));
+  const [form, setForm] = useState(() => coverageFormOf(row));
 
   const submit = () => {
     clear();
-    if (
-      numberOrZero(form.maxCities) < 1 ||
-      numberOrZero(form.maxRegions) < 1 ||
-      numberOrZero(form.maxCountries) < 1
-    ) {
-      render("admin.coverage.error.belowMinimum");
-      return;
-    }
-    // D22 — the door's own bound, mirrored so the surface refuses before the
-    // round trip; the door remains the authority (F3).
-    const photos = numberOrZero(form.maxPhotos);
-    if (photos < 0 || photos > 30) {
-      render("admin.coverage.error.badMaxPhotos");
+    // The door's rules, mirrored (coverageFormInput); the door remains the authority (F3).
+    const judged = coverageFormInput(form);
+    if (!judged.ok) {
+      render(judged.key);
       return;
     }
     void guard(async () => {
       try {
-        await save.mutateAsync({
-          plan: row.plan,
-          maxCities: numberOrZero(form.maxCities),
-          maxRegions: numberOrZero(form.maxRegions),
-          maxCountries: numberOrZero(form.maxCountries),
-          maxPhotos: photos,
-          allowEverywhere: form.allowEverywhere,
-        });
+        await save.mutateAsync({ plan: row.plan, ...judged.input });
         onClose();
       } catch (error) {
         fail(error);
