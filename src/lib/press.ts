@@ -93,6 +93,26 @@ export function tickTarget(target: EventTarget | null): Element | null {
   return el;
 }
 
+/**
+ * D272 (turn W3) — THE IPHONE'S TICK. Safari has no `navigator.vibrate`; from iOS 18 a switch
+ * checkbox ticks when it is toggled inside a person's activation. One hidden switch per document,
+ * made on the first tick that needs it and clicked through its own label: hidden (not drawn),
+ * out of the accessibility tree, never focusable, no words.
+ */
+function makeTickSwitch(doc: Document): HTMLLabelElement {
+  const label = doc.createElement("label");
+  label.hidden = true;
+  label.setAttribute("aria-hidden", "true");
+  label.setAttribute("data-tick-switch", "");
+  const box = doc.createElement("input");
+  box.type = "checkbox";
+  box.setAttribute("switch", "");
+  box.tabIndex = -1;
+  label.append(box);
+  doc.body.append(label);
+  return label;
+}
+
 /** How long a released element keeps `data-released` (its 120 ms fade, with a frame to spare). */
 export const RELEASE_MS = 160;
 
@@ -167,15 +187,21 @@ export function installPress(doc: Document = document): () => void {
   };
 
   // D272 — one tick per activation, only after a touch (the coarse pointer), only when the
-  // device's switch is on and the browser can vibrate.
+  // device's switch is on: the browser's vibrate, or (turn W3) the hidden switch where there is
+  // none. The switch's own click arrives here after the touch is spent, so it never ticks again.
+  let tickSwitch: HTMLLabelElement | null = null;
   const onClick = (event: Event) => {
     const touched = lastPointer === "touch";
     lastPointer = "";
     if (!touched || !tapTickSnapshot()) return;
     if (tickTarget(event.target) === null) return;
     const nav = doc.defaultView?.navigator;
-    if (nav === undefined || typeof nav.vibrate !== "function") return;
-    nav.vibrate(TICK_MS);
+    if (nav !== undefined && typeof nav.vibrate === "function") {
+      nav.vibrate(TICK_MS);
+      return;
+    }
+    tickSwitch ??= makeTickSwitch(doc);
+    tickSwitch.click();
   };
 
   const listeners: Array<[string, (event: Event) => void]> = [
@@ -197,6 +223,8 @@ export function installPress(doc: Document = document): () => void {
   return () => {
     clear();
     settle();
+    tickSwitch?.remove();
+    tickSwitch = null;
     for (const [name, fn] of listeners) doc.removeEventListener(name, fn, { capture: true });
     win?.removeEventListener("blur", clear);
   };

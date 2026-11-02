@@ -72,3 +72,15 @@ export function panelOf(pathname: string): PathPanel | null {
   if (under("/post") || under("/my-listings")) return "my-listings";
   return null;
 }
+
+/**
+ * Turn W3 — THE PANEL AT A PATH: the section the path belongs to (panelOf), else the person's
+ * choice. The frame reads it at the shown page (app-shell.tsx, INC-581); the panel tabs' mark
+ * at the chosen one (useMenuAt), so a pressed tab is current before its page lands.
+ */
+export function panelAt<Choice extends string>(
+  pathname: string,
+  choice: Choice,
+): PathPanel | Choice {
+  return panelOf(pathname) ?? choice;
+}

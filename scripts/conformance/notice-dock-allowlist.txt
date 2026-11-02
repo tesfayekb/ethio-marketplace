@@ -1,0 +1,4 @@
+# The notice-dock census (scripts/conformance/notice-dock.test.ts, CF-DOCK-1): a surface pinned on a bottom from --bottom-bar that is not a notice — key "<file>#<data-testid>" | reason | until.
+src/components/shell/app-rail.tsx#rail-strip | the phone menu's strip, not a notice: it runs from the top band to the bottom bar's top edge (turn W3) | 2027-06-30
+src/components/shell/app-rail.tsx#rail-menu-scrim | the open phone menu's scrim, not a notice: it covers the page down to the bottom bar's top edge (turn W3) | 2027-06-30
+src/components/shell/app-rail.tsx#rail-menu | the open phone menu, not a notice: it runs from the top band to the bottom bar's top edge (turn W3) | 2027-06-30

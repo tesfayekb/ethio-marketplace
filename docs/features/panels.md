@@ -87,6 +87,12 @@ Selecting a tab sets `activePanel` through `useShell`, which swaps both the rail
 and the body. Permission gating is unchanged and law F3 still governs: the
 server is the sole authorization authority.
 
+Turn W3: the tab's current mark (`aria-selected`) follows the press, not the
+shown page: `panelAt(useMenuAt().pathname, panelChoice)` (menu-current.ts) is
+the chosen page's own panel, or the shell's chosen panel (`panelChoice`, on
+`useShell`) where the page owns none. The rail and body still follow
+`activePanel`, which reads the shown page (INC-581).
+
 ## Breadcrumbs
 
 Band 4 renders `Home › <panel> › <category path>` with every segment a control:

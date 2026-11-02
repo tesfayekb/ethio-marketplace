@@ -238,6 +238,8 @@ for (const mode of MODES) {
  *   out; Home after the breadcrumb's Home; Account on /settings.
  * PS-6 (D272): /settings' "This device" switch — role switch, on by default, kept per device
  *   across a reload; a touch on a button ticks once (10 ms) while on, never while off.
+ * PS-7 (turn W3): a chosen panel tab is current while its page's code is held (useMenuAt), the
+ *   old tab no longer; the body still shows the old page.
  */
 const ANY_CODE = /\/assets\/[^/]*\.js(?:\?|$)/;
 
@@ -366,6 +368,37 @@ test.describe("The chosen mark moves at once", () => {
     await expect(page).toHaveURL(/\/$/);
     await expect(home).toHaveAttribute("aria-current", "page");
     await expect(page.getByTestId("bottom-bar-account")).not.toHaveAttribute("aria-current", /.*/);
+  });
+
+  test("PS-7 a chosen panel tab is current before its page lands; the old tab is not", async ({
+    page,
+  }) => {
+    // The tabs show from md: the phone project reads them on a touch screen at md's floor.
+    if (test.info().project.name === "mobile-360")
+      await page.setViewportSize({ width: 768, height: 1024 });
+    const seller = await feed.scratchSeller();
+    await page.goto("/");
+    await signIn(page, seller.email, seller.password);
+    await gotoReady(page, "/");
+    const marketplace = page.getByTestId("panel-tab-marketplace");
+    const account = page.getByTestId("panel-tab-account");
+    await expect(marketplace).toHaveAttribute("aria-selected", "true");
+    const release = await holdCode(page);
+    await account.click();
+    await expect(account).toHaveAttribute("aria-selected", "true");
+    await expect(marketplace).toHaveAttribute("aria-selected", "false");
+    // INC-581: the body still shows the feed while the chosen page's code is held.
+    await expect(page.getByTestId("account-page-shell")).toHaveCount(0);
+    await release();
+    await expect(page.getByTestId("account-page-shell")).toBeVisible({ timeout: 15000 });
+    await expect(account).toHaveAttribute("aria-selected", "true");
+
+    // Back to the Marketplace: the person's choice marks it where no route owns a panel.
+    await marketplace.click();
+    await expect(marketplace).toHaveAttribute("aria-selected", "true");
+    await expect(account).toHaveAttribute("aria-selected", "false");
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByTestId("account-page-shell")).toHaveCount(0);
   });
 });
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/i18n";
 import { refreshPage, useOnDemandFailures } from "@/lib/on-demand-failure";
@@ -13,8 +14,8 @@ import { cn } from "@/lib/utils";
  * INC-911 — the shell's one notice for a piece of the page whose code did not download
  * (src/lib/on-demand-failure.ts): it says so and offers to refresh the page, the only cure
  * (the browser keeps a failed download for the page's life). It shows from the first failure
- * until the person closes it or refreshes; a later failure shows it again. Drawn above the
- * phone's bottom bar; a polite live region, so a screen reader hears it once. The region is
+ * until the person closes it or refreshes; a later failure shows it again. Docked on the
+ * phone's bottom bar (notice-dock.ts, turn W3); a polite live region, so a screen reader hears it once. The region is
  * there from the first paint (a live region must exist before its words arrive) and carries no
  * role: an empty role="status" on every page answered a page's own getByRole("status") too
  * (the reset screen's R-2 and R-4, CI on turn 34b-2's landing). INC-955 — while a dialog, sheet,
@@ -37,6 +38,7 @@ export function OnDemandNotice() {
         className={cn(
           CARD_SURFACE,
           "pointer-events-auto flex max-w-md items-center gap-3 px-3 py-2 text-sm text-foreground",
+          outlet === null && cn(NOTICE_DOCK_SURFACE, "max-md:w-full"),
         )}
       >
         <span>{t("common.loadFailed")}</span>
@@ -64,7 +66,10 @@ export function OnDemandNotice() {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 flex justify-center px-4 md:bottom-6"
+      className={cn(
+        "pointer-events-none fixed inset-x-0 z-50 flex justify-center md:bottom-6 md:px-4",
+        NOTICE_DOCK,
+      )}
     >
       {notice !== null && outlet !== null ? createPortal(notice, outlet) : notice}
     </div>

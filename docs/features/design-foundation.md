@@ -145,6 +145,18 @@ value; components use semantic tokens only, never raw colours.
 - The phone bar: 18 px top corners, the current pill, the Post disc raised by `--bar-rise`.
   Every surface pinned above the bar (the FormSection / FormLayout / PageHeader action bars, the
   shell's notices) and the page's bottom scroll padding clear the rise; SGS-7 judges.
+- Turn W3: a notice pinned to the bottom of a phone screen is docked on the bar
+  (`src/components/shell/notice-dock.ts`): `NOTICE_DOCK` places it from the phone strip's end
+  edge (`inset-s-12`, the strip's `w-12`) to the screen's end edge with its bottom on the bar's
+  top, in `Z_NOTICE` (layers.ts: above the action bar, below the bar, so the Post disc stays
+  painted and tappable over it); `NOTICE_DOCK_SURFACE` squares the start-top corner, rounds the
+  end-top corner by `--radius-bar`, takes `shadow-bar-up` and pads its bottom by `--bar-rise`.
+  From md both are inert and each notice keeps its own place. Users: the session notices in
+  app-shell.tsx and `OnDemandNotice`'s own region (a `NoticeOutlet` copy keeps its card look).
+  CF-DOCK-1 (`scripts/conformance/notice-dock.test.ts`) refuses a fixed surface placed from
+  `--bottom-bar` outside the constant (the phone menu, its strip and scrim are allowlisted) and
+  ties the strip's width to the dock's inset (NDK-4); SP-8 (e2e/auth-signout.spec.ts) judges the
+  placement at 360 in both themes and both languages.
 - One "chosen" lift: the chosen filter pill takes `shadow-tile-on`.
 
 ## One Sage band look and the location track (turn SAGE-S2, D260, spec §4)
@@ -535,8 +547,9 @@ Beyond its rows and panel, every list's parts come from menu-row.ts: `LIST_LABEL
 
 - A menu item's current mark and `aria-current` read `useMenuAt()` (use-shown-pathname.ts, over menuAtOf in menu-current.ts): the router's location while a navigation is pending, else the shown page. The frame (panel, bands, breadcrumbs) stays on useShownPathname (INC-581). A superseded choice brings the old mark back by itself.
 - The bottom bar marks its items by isCurrentAt on that place, signed in or out (BAR_PATHS): Home on "/" and every /c/ page, Sign in on /auth, My listings, Account (/account, /settings) and Admin on theirs.
-- The tap tick: press.ts, on a click that followed a touch, on TICKABLE (buttons and the tappable roles, or a primitive's `data-tick`: menu rows, breadcrumb segments, bottom-bar items); plain links and cards never; `navigator.vibrate(10)`. The device's choice is /settings → "This device" → "Vibrate on tap" (on by default, browser storage). The iPhone path (a hidden switch checkbox) is not built: it could not be proven here (C2 report).
-- CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`) and 4 (vibrate and a switch checkbox only in press.ts).
+- The tap tick: press.ts, on a click that followed a touch, on TICKABLE (buttons and the tappable roles, or a primitive's `data-tick`: menu rows, breadcrumb segments, bottom-bar items); plain links and cards never; `navigator.vibrate(10)`. The device's choice is /settings → "This device" → "Vibrate on tap" (on by default, browser storage). Turn W3, the iPhone path: where `navigator.vibrate` is absent and the device's choice is on, press.ts clicks one hidden `<label>` holding an `<input type="checkbox" switch>` (made on the first tick, aria-hidden, tabIndex -1, removed on uninstall); Safari on iOS 18 or later answers a switch's toggle with a system tick. That answer is Apple's behaviour, not a web standard, and is proven only by the operator's walk; PR-U10 pins the code path.
+- Turn W3: the panel tabs' current mark follows the press too — `panelAt(useMenuAt().pathname, panelChoice)` (menu-current.ts), the chosen page's panel or the shell's chosen panel; the shell's `activePanel` (the frame) stays on the shown page. PS-7 (e2e/press.spec.ts) judges it at 768 and 1280.
+- CF-PRESS-1 rules 3 (the mark reads useMenuAt; a frame read says `// frame: INC-581`; turn W3: `aria-selected` marks are read too, panel-tabs.tsx is a menu file, and a mark read from `activePanel` is refused — PRP-9) and 4 (vibrate and a switch checkbox only in press.ts).
 
 ## Dialogs (turn S6-1)
 

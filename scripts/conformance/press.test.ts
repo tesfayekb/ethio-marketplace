@@ -15,6 +15,8 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     reads useShownPathname or useRouterState (a line that is the frame's own read says
  *     `// frame: INC-581`), and no `aria-current` or
  *     `current` mark reads `activePanel`.
+ *     (turn W3) The panel tabs are a menu file; every menu file reads useMenuAt, and an
+ *     `aria-selected` mark joins the rule — read from activePanel directly or through a const.
  *     (turn C fix 1) The section a path belongs to is panelOf's alone: a menu file declares
  *     no list of paths (`["/a", …]`) and no `startsWith("/…")` test, and the bottom bar
  *     reads panelOf.
@@ -42,7 +44,9 @@ export const PRIMITIVES: ReadonlyArray<{ file: string; needs: readonly string[] 
 export const MENU_FILES = [
   "src/components/shell/app-rail.tsx",
   "src/components/shell/bottom-bar.tsx",
+  "src/components/shell/panel-tabs.tsx",
 ];
+const MARK = /\b(?:aria-current|aria-selected|current)=\{([^}]*)\}/;
 const RULE = "src/components/shell/menu-current.ts";
 const SECTION_READERS = ["src/components/shell/bottom-bar.tsx"];
 const PATH_LIST = /\[\s*["']\/[^"']*["']\s*,|startsWith\(\s*["'`]\//;
@@ -56,12 +60,13 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
     const code = codeOf(text);
     const lines = code.split("\n");
     const menu = MENU_FILES.includes(name);
-    if (name !== RULE && /\bisCurrentAt\(/.test(code)) {
-      if (!menu)
-        findings.push({ file: name, line: 1, what: "isCurrentAt outside a named menu file" });
-      else if (!/\buseMenuAt\(/.test(code))
-        findings.push({ file: name, line: 1, what: "the mark does not read useMenuAt" });
-    }
+    if (name !== RULE && !menu && /\bisCurrentAt\(/.test(code))
+      findings.push({ file: name, line: 1, what: "isCurrentAt outside a named menu file" });
+    if (menu && !/\buseMenuAt\(/.test(code))
+      findings.push({ file: name, line: 1, what: "the mark does not read useMenuAt" });
+    const fromPanel = [...code.matchAll(/\bconst\s+(\w+)\s*=[^;\n]*\bactivePanel\b/g)].map(
+      (match) => match[1],
+    );
     if (SECTION_READERS.includes(name) && !/\bpanelOf\(/.test(code))
       findings.push({ file: name, line: 1, what: "the bar does not read panelOf" });
     const raw = text.split("\n");
@@ -74,7 +79,12 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
         findings.push({ ...at, what: "a menu's mark reads the shown page (read useMenuAt)" });
       if (menu && PATH_LIST.test(line))
         findings.push({ ...at, what: "a second path list in a menu file (read panelOf)" });
-      if (menu && /\b(aria-current|current)=\{[^}]*\bactivePanel\b/.test(line))
+      const mark = MARK.exec(line)?.[1];
+      if (
+        menu &&
+        mark !== undefined &&
+        ["activePanel", ...fromPanel].some((word) => new RegExp(`\\b${word}\\b`).test(mark))
+      )
         findings.push({ ...at, what: "a current mark read from activePanel" });
       if (name !== TICK_OWNER && VIBRATE.test(line))
         findings.push({ ...at, what: "a vibrate call outside press.ts" });
@@ -230,6 +240,29 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
     expect(report(found)).toContain("a second path list in a menu file");
     expect(report(found)).toContain("the bar does not read panelOf");
     expect(found).toHaveLength(3);
+  });
+
+  it("PRP-9: a panel tab marked from activePanel (through a const), or tabs without useMenuAt, fail", () => {
+    const old = `const { auth, activePanel } = useShell();\nconst active = panel.id === activePanel;\n<button role="tab" aria-selected={active} />`;
+    const found = currentFindings([
+      { name: "src/components/shell/panel-tabs.tsx", text: old },
+      {
+        name: "src/components/shell/panel-tabs.tsx",
+        text: `const at = useMenuAt();\n<button role="tab" aria-selected={panel.id === activePanel} />`,
+      },
+    ]);
+    expect(report(found)).toContain("panel-tabs.tsx:3 a current mark read from activePanel");
+    expect(report(found)).toContain("panel-tabs.tsx:2 a current mark read from activePanel");
+    expect(report(found)).toContain("panel-tabs.tsx:1 the mark does not read useMenuAt");
+    expect(found).toHaveLength(3);
+    expect(
+      currentFindings([
+        {
+          name: "src/components/shell/panel-tabs.tsx",
+          text: `const chosen = panelAt(useMenuAt().pathname, panelChoice);\nconst active = panel.id === chosen;\n<button role="tab" aria-selected={active} />`,
+        },
+      ]),
+    ).toEqual([]);
   });
 
   it("the menus reading useMenuAt, and press.ts's own tick, pass", () => {

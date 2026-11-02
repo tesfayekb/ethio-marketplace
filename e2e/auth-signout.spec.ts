@@ -9,12 +9,14 @@ import {
   fillUntilStable,
   gotoReady,
   isMobile,
+  layoutBoxes,
   openRailScope,
   signIn,
   signInViaSession,
   signInMarker,
   signOutViaUi,
   signedInMarker,
+  switchLanguage,
   waitForHydration,
 } from "./helpers/ui";
 import {
@@ -540,6 +542,82 @@ test.describe("U0k session policy", () => {
     );
     expect(after.sessionRef).toBe(before.sessionRef);
     await expect(page.getByTestId("session-notice")).toHaveCount(0);
+  });
+
+  /**
+   * Turn W3 (the operator's walk, 2026-11-01) — the "Signed out for inactivity" notice on a phone
+   * is docked on the bottom bar (src/components/shell/notice-dock.ts): from the phone strip's end
+   * edge to the screen's end edge, its bottom on the bar's top, the Post disc painted over it.
+   * One notice, read in both modes and two languages (it is the shell's state until a sign-in).
+   */
+  test("SP-8 the session notice on a phone is docked on the bottom bar, the Post disc over it", async ({
+    page,
+  }) => {
+    test.skip(!isMobile(page), "the bottom bar is the phone's (below md)");
+    await overridePolicy(page, { idleMs: 4000, warnMs: 2500, absoluteMs: 600_000 });
+    const user = await leaseUser();
+
+    await signIn(page, user.email, user.password);
+    await expect(page.getByTestId("session-idle-warning")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("account-menu")).toHaveCount(0, { timeout: 15000 });
+    const notice = page.getByTestId("session-notice");
+    await expect(notice).toBeVisible();
+
+    const html = page.locator("html");
+    for (const [mode, code] of [
+      ["light", "en"],
+      ["dark", "en"],
+      ["dark", "am"],
+      ["light", "am"],
+    ] as const) {
+      if ((await html.getAttribute("data-mode")) !== mode)
+        await page.getByTestId("theme-toggle").click();
+      await expect(html).toHaveAttribute("data-mode", mode);
+      if ((await html.getAttribute("lang")) !== code) await switchLanguage(page, code);
+      await expect(notice, `${mode}/${code}: the notice is still shown`).toBeVisible();
+
+      const boxes = await layoutBoxes({
+        notice,
+        bar: page.getByTestId("bottom-bar"),
+        strip: page.getByTestId("rail-strip"),
+        disc: page.getByTestId("bottom-bar-disc"),
+      });
+      const end = await page.evaluate(() => document.documentElement.clientWidth);
+      const at = `${mode}/${code} ${JSON.stringify(boxes)}`;
+      expect(
+        Math.abs(boxes.notice.x - (boxes.strip.x + boxes.strip.width)),
+        `${at}: starts at the strip's end edge`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(boxes.notice.x + boxes.notice.width - end),
+        `${at}: ends at the screen's end edge`,
+      ).toBeLessThanOrEqual(1);
+      expect(
+        Math.abs(boxes.notice.y + boxes.notice.height - boxes.bar.y),
+        `${at}: its bottom on the bar's top`,
+      ).toBeLessThanOrEqual(1);
+
+      const x = boxes.disc.x + boxes.disc.width / 2;
+      const points: Array<[number, number]> = [
+        [x, boxes.disc.y + boxes.disc.height / 2],
+        [x, boxes.disc.y + 3],
+      ];
+      expect(boxes.disc.y + 3, `${at}: the second point lies over the notice`).toBeGreaterThan(
+        boxes.notice.y,
+      );
+      expect(boxes.disc.y + 3).toBeLessThan(boxes.notice.y + boxes.notice.height);
+      const hits = await page.evaluate((points) => {
+        const disc = document.querySelector('[data-testid="bottom-bar-disc"]');
+        return points.map(([px, py]) => {
+          const hit = document.elementFromPoint(px, py);
+          return hit !== null && disc !== null && disc.contains(hit);
+        });
+      }, points);
+      expect(hits, `${at}: the Post disc is on top at its centre and 3 px below its top`).toEqual([
+        true,
+        true,
+      ]);
+    }
   });
 });
 

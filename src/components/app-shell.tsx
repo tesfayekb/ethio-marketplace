@@ -9,6 +9,7 @@ import { AppHeader, SearchRow } from "@/components/shell/app-header";
 import { AppRail } from "@/components/shell/app-rail";
 import { BottomBar } from "@/components/shell/bottom-bar";
 import { OnDemandNotice } from "@/components/shell/on-demand-notice";
+import { NOTICE_DOCK, NOTICE_DOCK_SURFACE } from "@/components/shell/notice-dock";
 import { Breadcrumbs } from "@/components/shell/breadcrumbs";
 import { BAND_LOOK, BAND_ROW } from "@/components/shell/band-row";
 import { BAR_GAP, BAR_INSET } from "@/components/shell/bar-spacing";
@@ -39,7 +40,7 @@ import { Menu } from "lucide-react";
 import { MENU_INSET, MENU_WIDTH } from "@/components/shell/menu-width";
 import { cn } from "@/lib/utils";
 import type { PanelAuthContext, PanelId } from "@/config/panels.types";
-import { panelOf } from "@/components/shell/menu-current";
+import { panelAt } from "@/components/shell/menu-current";
 import { ImpersonationBanner } from "@/features/admin/impersonation/impersonation-banner";
 import { takeDeactivatedSignOut } from "@/features/auth/deactivated";
 import { useAuth } from "@/features/auth/use-auth";
@@ -540,9 +541,6 @@ export function AppShell({ children }: { children: ReactNode }) {
    * page beside the MARKETPLACE category rail. The panel is now DERIVED: a
    * route that belongs to a panel owns the panel while it is open.
    */
-  // INC-359 / turn C fix 1 — the one section rule (panelOf), read by the bottom bar too:
-  // the posting pages and /my-listings belong to My Listings.
-  const routePanel: PanelId | null = panelOf(pathname);
   /** The marketplace feed is "/" and every category route /c/<slug>. */
   // D234 S5 — the address read once, as the server's first page reads it (feedRouteOf).
   const feedRoute = feedRouteOf(pathname);
@@ -579,7 +577,10 @@ export function AppShell({ children }: { children: ReactNode }) {
    */
   const feedInputsReady =
     (selectedCategorySlug === null || !categoriesLoading) && !marketsLoading && areaSettled;
-  const activePanel: PanelId = routePanel ?? panelChoice;
+  // INC-359 / turn C fix 1 — the one section rule (panelOf, inside panelAt), read by the bottom
+  // bar too: the posting pages and /my-listings belong to My Listings. Turn W3: the panel tabs'
+  // mark reads the same panelAt at the chosen page.
+  const activePanel: PanelId = panelAt(pathname, panelChoice);
   // D261: one stuck-state reader transfers the drop, never a per-row observer.
   useEffect(() => {
     const sticky = subbandRef.current;
@@ -870,6 +871,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       authLoading,
       requestSignOut,
       activePanel,
+      panelChoice,
       setActivePanel,
       selectedCategorySlug,
       selectedCategoryId,
@@ -895,6 +897,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     permissions,
     requestSignOut,
     activePanel,
+    panelChoice,
     setActivePanel,
     selectedCategorySlug,
     selectedCategoryId,
@@ -936,7 +939,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-idle-warning"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between"
+          className={cn(
+            "fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md flex-col gap-2 rounded-card bg-card p-3 shadow-lg sm:flex-row sm:items-center sm:justify-between",
+            NOTICE_DOCK,
+            NOTICE_DOCK_SURFACE,
+          )}
         >
           <p className="text-sm text-foreground">
             {t("session.idleWarning").replace("{s}", String(warningSecondsLeft))}
@@ -957,7 +964,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           data-testid="session-notice"
           role="status"
           aria-live="polite"
-          className="fixed inset-x-2 bottom-[calc(var(--bottom-bar)+var(--bar-rise)+0.5rem)] z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg"
+          className={cn(
+            "fixed inset-x-2 bottom-2 z-50 mx-auto flex max-w-md items-center justify-between gap-2 rounded-card bg-card p-3 shadow-lg",
+            NOTICE_DOCK,
+            NOTICE_DOCK_SURFACE,
+          )}
         >
           <p className="text-sm text-foreground">{t(sessionNotice)}</p>
           <button

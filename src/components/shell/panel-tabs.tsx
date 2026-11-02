@@ -8,6 +8,8 @@ import {
   BAND_SEGMENT_IDLE,
 } from "@/components/shell/band-row";
 import { useShell } from "@/components/shell-context";
+import { panelAt } from "@/components/shell/menu-current";
+import { useMenuAt } from "@/components/shell/use-shown-pathname";
 import { useSwitchPanel } from "@/components/shell/use-switch-panel";
 import { panelsForUser } from "@/config/panels";
 import { useI18n } from "@/i18n";
@@ -23,13 +25,17 @@ import { cn } from "@/lib/utils";
  *
  * Selecting a tab sets activePanel through useShell, which swaps BOTH the rail
  * and the body. Emphasis is the locked green (pill + text); no new colour.
+ *
+ * Turn W3 (D263/D271) — the chosen tab is current at once: its mark reads panelAt on the
+ * chosen page (useMenuAt), while the frame keeps following the shown one (INC-581).
  */
 export function PanelTabs() {
   const { t } = useI18n();
-  const { auth, activePanel } = useShell();
+  const { auth, panelChoice } = useShell();
   // U0e (INC-071): activation NAVIGATES, through the one shared helper the
   // rail/drawer switcher also calls — zero divergence between the two.
   const switchPanel = useSwitchPanel();
+  const chosen = panelAt(useMenuAt().pathname, panelChoice);
   const panels = panelsForUser(auth);
 
   if (!auth.isAuthenticated || panels.length < 2) return null;
@@ -53,7 +59,7 @@ export function PanelTabs() {
       <div data-testid="panel-track" className={cn(BAND_TRACK, "min-w-0 shrink")}>
         {panels.map((panel) => {
           const Icon = panel.icon;
-          const active = panel.id === activePanel;
+          const active = panel.id === chosen;
           return (
             <button
               key={panel.id}
