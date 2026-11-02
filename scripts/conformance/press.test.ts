@@ -17,6 +17,8 @@ import { codeOf, report, TREE_SCAN_MS, walkFiles } from "./kit";
  *     `current` mark reads `activePanel`.
  *     (turn W3) The panel tabs are a menu file; every menu file reads useMenuAt, and an
  *     `aria-selected` mark joins the rule — read from activePanel directly or through a const.
+ *     (turn T1, W3's K2) The panel switcher (panel-header.tsx) is a menu file: its radio
+ *     group's `value` and an `aria-checked` mark join the rule — PRP-11.
  *     (turn C fix 1) The section a path belongs to is panelOf's alone: a menu file declares
  *     no list of paths (`["/a", …]`) and no `startsWith("/…")` test, and the bottom bar
  *     reads panelOf.
@@ -48,8 +50,10 @@ export const MENU_FILES = [
   "src/components/shell/app-rail.tsx",
   "src/components/shell/bottom-bar.tsx",
   "src/components/shell/panel-tabs.tsx",
+  "src/components/shell/panel-header.tsx",
 ];
-const MARK = /\b(?:aria-current|aria-selected|current)=\{([^}]*)\}/;
+const MARK =
+  /\b(?:aria-current|aria-selected|aria-checked|current)=\{([^}]*)\}|RadioGroup\b[^>]*?\bvalue=\{([^}]*)\}/;
 const RULE = "src/components/shell/menu-current.ts";
 const SECTION_READERS = ["src/components/shell/bottom-bar.tsx"];
 const PATH_LIST = /\[\s*["']\/[^"']*["']\s*,|startsWith\(\s*["'`]\//;
@@ -82,7 +86,8 @@ export function currentFindings(files: Array<{ name: string; text: string }>): F
         findings.push({ ...at, what: "a menu's mark reads the shown page (read useMenuAt)" });
       if (menu && PATH_LIST.test(line))
         findings.push({ ...at, what: "a second path list in a menu file (read panelOf)" });
-      const mark = MARK.exec(line)?.[1];
+      const found = MARK.exec(line);
+      const mark = found?.[1] ?? found?.[2];
       if (
         menu &&
         mark !== undefined &&
@@ -264,6 +269,26 @@ describe("CF-PRESS-1 — one pressed look, from the primitives (D263/D270)", () 
         {
           name: "src/components/shell/panel-tabs.tsx",
           text: `const chosen = panelAt(useMenuAt().pathname, panelChoice);\nconst active = panel.id === chosen;\n<button role="tab" aria-selected={active} />`,
+        },
+      ]),
+    ).toEqual([]);
+  });
+
+  it("PRP-11: the panel switcher's radio value (or an aria-checked mark) read from activePanel fails; read from panelAt it passes", () => {
+    const found = currentFindings([
+      {
+        name: "src/components/shell/panel-header.tsx",
+        text: `const at = useMenuAt();\n<DropdownMenuRadioGroup value={activePanel}>\n<div role="menuitemradio" aria-checked={activePanel === p.id} />`,
+      },
+    ]);
+    expect(report(found)).toContain("panel-header.tsx:2 a current mark read from activePanel");
+    expect(report(found)).toContain("panel-header.tsx:3 a current mark read from activePanel");
+    expect(found).toHaveLength(2);
+    expect(
+      currentFindings([
+        {
+          name: "src/components/shell/panel-header.tsx",
+          text: `const { activePanel, panelChoice } = useShell();\nconst current = panels.find((p) => p.id === activePanel);\nconst chosen = panelAt(useMenuAt().pathname, panelChoice);\n<DropdownMenuRadioGroup value={chosen}>\n<DropdownMenuRadioItem value={panel.id} />`,
         },
       ]),
     ).toEqual([]);
