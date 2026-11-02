@@ -223,8 +223,8 @@ BEGIN
   END IF;
   -- (b)
   SELECT md5(replace(replace(replace(p.prosrc, chr(13), ''),
-                             'tier = 'regular', ', ''),
-                     'tier = CASE WHEN p_new_status = 'removed' THEN 'regular' ELSE tier END, ', ''))
+                             'tier = ''regular'', ', ''),
+                     'tier = CASE WHEN p_new_status = ''removed'' THEN ''regular'' ELSE tier END, ', ''))
     INTO v_md5 FROM pg_proc p WHERE p.oid = v_fn;
   IF v_md5 IS DISTINCT FROM 'f2b4a89cedf83e4dce63d17be85e1ce8' THEN
     RAISE EXCEPTION 'T1 M2 proof (b): transition_listing differs from its earlier body beyond the two insertions (%)', v_md5;
