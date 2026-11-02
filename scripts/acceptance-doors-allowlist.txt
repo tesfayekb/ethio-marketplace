@@ -52,7 +52,7 @@ admin_set_category_window(uuid,timestamp with time zone,timestamp with time zone
 admin_set_country_active(text,boolean,boolean) | staff | Writes countries, locations; rejects callers lacking countries:activate before its mutations
 admin_set_country_exclusions(uuid,text[]) | staff | Writes category_country_exclusions; rejects callers lacking categories:update before its mutations
 admin_set_country_root_order(text,uuid[]) | staff | Writes country_root_order; rejects callers lacking countries:update before its mutations
-admin_set_coverage_plan(text,integer,integer,integer,boolean,smallint) | staff | Writes coverage_plans; rejects callers lacking coverage:update before its mutations
+admin_set_coverage_plan(text,integer,integer,integer,boolean,smallint,integer,integer,boolean,text) | staff | Writes coverage_plans (P-1: the plan's days, quota and label key too); rejects callers lacking coverage:update before its mutations
 admin_set_entity_translation_status(text,uuid,text,text,text) | staff | Writes entity_translations; rejects callers lacking translations:approve before its mutations
 admin_set_fact_attributes(uuid,uuid[]) | staff | Writes category_attribute_links; rejects callers lacking categories:update before its mutations
 admin_set_key_context(text,text) | staff | Writes ui_translations; rejects callers lacking translations:manage before its mutations
@@ -116,3 +116,6 @@ user_set_preferred_language(text) | account | Updates only the caller’s prefer
 user_set_viewing_location(uuid) | account | Updates only the caller’s viewing_location_id and viewing_location_at after validation and rate limiting; own browsing preference does not move an ad
 admin_name_check_clear(uuid,text,text,text) | staff | Writes name_checks and audit_log; rejects callers lacking profiles:update (then step-up) before its capture and mutation
 admin_job_resume(text) | staff | Deletes job_pauses (through job_pause_clear) and writes audit_log; rejects callers lacking services:manage (then step-up) before its capture and mutation
+admin_save_listing_package(text,text,integer,boolean,boolean,boolean,text,integer) | staff | Writes listing_packages, audit_log; rejects callers lacking packages:update (then step-up) before its mutations
+admin_save_package_price(text,numeric,character,character,uuid,timestamp with time zone,timestamp with time zone) | staff | Writes package_prices, audit_log; rejects callers lacking packages:update (then step-up) before its mutations
+admin_end_package_price(uuid,timestamp with time zone) | staff | Writes package_prices (valid_to only), audit_log; rejects callers lacking packages:update (then step-up) before its mutations
