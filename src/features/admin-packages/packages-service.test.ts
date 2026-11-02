@@ -11,7 +11,7 @@ const door = {
   calls: [] as Array<{ name: string; args: unknown }>,
 };
 
-vi.mock("@/integrations/supabase/client", () => {
+vi.mock("@/lib/supabase-door", () => {
   const query = () => {
     const chain = {
       select: () => chain,
@@ -23,12 +23,10 @@ vi.mock("@/integrations/supabase/client", () => {
     return chain;
   };
   return {
-    supabase: {
-      from: () => query(),
-      rpc: async (name: string, args: unknown) => {
-        door.calls.push({ name, args });
-        return { data: null, error: door.rpc };
-      },
+    getSupabase: async () => ({ from: () => query() }),
+    rpc: async (name: string, args: unknown) => {
+      door.calls.push({ name, args });
+      return { data: null, error: door.rpc };
     },
   };
 });

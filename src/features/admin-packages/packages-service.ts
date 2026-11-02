@@ -1,6 +1,7 @@
 import type { MessageKey } from "@/i18n";
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase, rpc } from "@/lib/supabase-door";
 
 /**
  * P-1 (D280, D283) — ADMIN › PACKAGES: THE CLIENT SEAM.
@@ -21,8 +22,23 @@ import { supabase } from "@/integrations/supabase/client";
  *
  * Law F4 — no phantom success: every door error is thrown; a failed read is a
  * typed `ReaderError`; `packagesErrorKey` turns the door's own RAISE message
- * into a translated key.
+ * into a translated key. The client arrives through the Supabase door (DEC-261);
+ * a failed download of it is reported to the shell's one notice (INC-911) and
+ * read as a typed failure, never a blank table.
  */
+
+/** The one place this file asks the door for the client (INC-915's shape). */
+async function readerClient(): Promise<Awaited<ReturnType<typeof getSupabase>>> {
+  try {
+    return await getSupabase();
+  } catch (error) {
+    reportOnDemandFailure("the packages console's code", error);
+    throw new ReaderError({
+      class: "network",
+      message: "the packages console's code did not load",
+    });
+  }
+}
 
 /* --------------------------------- rows ---------------------------------- */
 
@@ -70,7 +86,8 @@ function tierOf(key: string, value: string): PackageTier {
 }
 
 export async function listPackages(): Promise<PackageRow[]> {
-  const { data, error } = await supabase
+  const client = await readerClient();
+  const { data, error } = await client
     .from("listing_packages")
     .select("key, tier, days, enabled, self_serve, extends_lifetime, label_key, sort, updated_at")
     .order("sort")
@@ -91,7 +108,8 @@ export async function listPackages(): Promise<PackageRow[]> {
 
 /** The one admin reader of a package's price rows (CF-PRICE-1), newest window first. */
 export async function listPackagePrices(packageKey: string): Promise<PriceRow[]> {
-  const { data, error } = await supabase
+  const client = await readerClient();
+  const { data, error } = await client
     .from("package_prices")
     .select("id, package_key, country_code, category_id, amount, currency, valid_from, valid_to")
     .eq("package_key", packageKey)
@@ -135,7 +153,7 @@ export class PackagesDoorError extends Error {
 }
 
 export async function savePackage(input: SavePackageInput): Promise<void> {
-  const { error } = await supabase.rpc("admin_save_listing_package", {
+  const { error } = await rpc("admin_save_listing_package", {
     p_key: input.key,
     p_tier: input.tier,
     p_days: input.days,
@@ -164,7 +182,7 @@ export interface SavePriceInput {
 }
 
 export async function savePrice(input: SavePriceInput): Promise<void> {
-  const { error } = await supabase.rpc("admin_save_package_price", {
+  const { error } = await rpc("admin_save_package_price", {
     p_package_key: input.packageKey,
     p_amount: input.amount,
     p_currency: input.currency,
@@ -177,7 +195,7 @@ export async function savePrice(input: SavePriceInput): Promise<void> {
 }
 
 export async function endPrice(id: string, validTo: string | null): Promise<void> {
-  const { error } = await supabase.rpc("admin_end_package_price", {
+  const { error } = await rpc("admin_end_package_price", {
     p_id: id,
     ...(validTo === null ? {} : { p_valid_to: validTo }),
   });
