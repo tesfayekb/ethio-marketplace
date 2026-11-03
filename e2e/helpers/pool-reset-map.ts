@@ -59,12 +59,18 @@ export const POOL_EXEMPT_TABLES = {
   listing_photo_reviews:
     "decided_by is attribution on a photo's review; the account's own reviews cascade with its photos and listings (bundle 16 turn 4a)",
   listing_policy: "updated_by is attribution on the global renew setting row (bundle 16)",
-  listing_packages: "updated_by is attribution on a global package row (turn P-1)",
+  listing_packages:
+    "created_by / updated_by are attribution on a global package row (turn P-1, created_by in P-1b)",
+  level_overrides:
+    "created_by / updated_by are attribution on a global level-override row (turn P-1b)",
+  market_settings:
+    "created_by / updated_by are attribution on a global market-settings row (turn P-1b)",
   screening_verdicts: "reviewer is attribution; the account's own verdicts cascade with listings",
   legal_versions:
     "created_by / published_by are attribution on version history; published scratch rows are never pooled (bundle 22 turn 1)",
   legal_settings: "updated_by is attribution on the global legal-facts row (bundle 22 turn 1)",
-  package_prices: "updated_by is attribution on a global price row (turn P-1)",
+  package_prices:
+    "created_by / updated_by are attribution on a global price row (turn P-1, created_by in P-1b)",
   legal_reviews:
     "reviewed_by is attribution on a legal review; scratch reviews go with their e2e- document (bundle 22 turn 20)",
   ui_translation_revisions: "changed_by is attribution on revision history",
