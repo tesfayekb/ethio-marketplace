@@ -1,35 +1,35 @@
 # Local backend proof (non-gating)
 
-- Commit: `fa42235995c3136370ebc6e58761f694386cf31d`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41579268496
+- Commit: `f95f3c00ad1ea92452718d8aafc12b67f4ca7945`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41585603042
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| email | not run | 76 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 1 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 2 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 3 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 4 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 5 | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 6 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 7 | not run | 58 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| smoke | not run | 57 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| email | not run | 49 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 1 | not run | 51 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 2 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 3 | not run | 65 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 4 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 5 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 6 | not run | 64 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 7 | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | 8 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 9 | not run | 58 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 10 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 11 | not run | 68 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 12 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 13 | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 14 | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 15 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 16 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 9 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 10 | not run | 50 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 11 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 12 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 13 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 14 | not run | 66 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 15 | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 16 | not run | 56 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
 | TOTAL | — | — | — | 0 | 0 | 0 | 0 | 0 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
 - Slowest lane: none 0 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 6, email 9, 1 9, 2 6, 3 9, 4 6, 5 6, 6 8, 7 6, 8 8, 9 6, 10 6, 11 8, 12 6, 13 6, 14 9, 15 9, 16 8, repeat not run
+- Database session samples during each start (INC-944): smoke 6, email 4, 1 5, 2 9, 3 7, 4 9, 5 9, 6 7, 7 9, 8 8, 9 9, 10 4, 11 9, 12 9, 13 9, 14 8, 15 6, 16 6, repeat not run
 - Teardown:
   - smoke: not found
   - email: not found
@@ -74,7 +74,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 
 ## Lane smoke
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -85,43 +85,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:53.238941+00, 2026-11-03 04:55:53.238941+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:51 | 274 | @effect/sql-pg | client backend | active | : | -- ===== B — admin_set_ai_feature, whole ===== CREATE OR REPLACE FUNCTION public.admin_set_ai_feature( p_feature text, p
-04:55:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:55:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+05:46:53 | 274 | @effect/sql-pg | client backend | active | : | CREATE FUNCTION public.ai_record_call( p_feature text, p_task text, p_task_version integer, p_model text, p_actor uuid, 
+05:46:53 | 390 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:46:53 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:53 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:53 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:53 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:53 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane email
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -132,43 +149,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:06.459061+00, 2026-11-03 04:56:06.459061+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:04 | 427 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:56:04 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:04 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:04 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:04 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:04 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+05:47:05 | 274 | @effect/sql-pg | client backend | active | : | REVOKE ALL ON FUNCTION public.transition_listing(uuid, text) FROM PUBLIC, anon
+05:47:05 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:47:05 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:47:05 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:47:05 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:47:05 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 1
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -179,43 +213,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql...
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:59.506159+00, 2026-11-03 04:55:59.506159+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:00 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:00 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:00 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:00 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:00 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+05:46:49 | 274 | @effect/sql-pg | client backend | active | : | RESET ALL
+05:46:49 | 368 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:46:49 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:49 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:49 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:49 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:49 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 2
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -226,43 +277,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:06.0342+00, 2026-11-03 04:56:06.0342+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:03 | 272 | @effect/sql-pg | client backend | active | : | -- Proofs — a scratch admin and scratch rows inside a block that always rolls back. DO $p$ DECLARE v_uid uuid := gen_ran
-04:56:03 | 207 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:03 | 208 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:03 | 201 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:03 | 202 |  | background writer |  | Activity:BgwriterMain | 
-04:56:03 | 204 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+05:46:48 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_types text; v_md5 text; v_door_md5 text; v_acl text; v_oid oid; v_core oid; v_src text; 
+05:46:48 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:48 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:48 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:48 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:48 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 3
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -273,43 +341,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:59.54239+00, 2026-11-03 04:55:59.54239+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:59 | 275 | @effect/sql-pg | client backend | active | : | -- Proof (INC-980): its own scratch e2e-n1b2 seller (v_u) only, the legacy mixed-case alias shape included (INC-986); ro
-04:55:59 | 432 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:55:59 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:59 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:59 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:59 | 204 |  | background writer |  | Activity:BgwriterMain | 
-04:55:59 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+05:46:59 | 274 | @effect/sql-pg | client backend | active | : | -- ===== C — proofs ===== DO $proof$ DECLARE v_fp text; v_vol "char"; v_def boolean; v_cfg text; v_n integer; v_err text
+05:46:59 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:59 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:59 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:59 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:59 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 4
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -320,43 +405,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:03.291554+00, 2026-11-03 04:56:03.291554+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:00 | 274 | @effect/sql-pg | client backend | active | : | -- 9. Proofs. Behaviour on listings is proven by e2e/feed-index.spec.ts (a proof cannot create a listing: -- listings.se
-04:56:00 | 378 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:56:00 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:00 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:00 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:00 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:00 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+05:46:49 | 273 | @effect/sql-pg | client backend | active | : | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
+05:46:49 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:49 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:49 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:49 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:49 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 5
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -367,43 +469,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:53.855059+00, 2026-11-03 04:55:53.855059+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:51 | 274 | @effect/sql-pg | client backend | active | IO:WalSync | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
-04:55:51 | 376 | PostgREST 16.4 | client backend | idle in transaction | Client:ClientRead | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:55:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:55:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+05:46:53 | 430 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:46:53 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:53 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:53 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:53 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:53 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 6
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -414,43 +533,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:08.459621+00, 2026-11-03 04:56:08.459621+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:04 | 403 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:56:04 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:04 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:04 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:04 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:04 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+05:47:00 | 275 | @effect/sql-pg | client backend | active | : | -- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27). -- (a) the resolver's heade
+05:47:00 | 412 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:47:00 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:47:00 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:47:00 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:47:00 | 204 |  | background writer |  | Activity:BgwriterMain | 
+05:47:00 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 7
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -461,43 +597,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:52.834748+00, 2026-11-03 04:55:52.834748+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:51 | 275 | @effect/sql-pg | client backend | active | : | UPDATE public.protected_names n SET country_code = c.code FROM public.countries c WHERE n.country <> 'International' AND
-04:55:51 | 388 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:55:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:55:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+05:46:55 | 275 | @effect/sql-pg | client backend | active | : | -- PROOF (INC-793): scratch rows only, rolled back by the sentinel. DO $proof$ DECLARE v_uid uuid := gen_random_uuid(); 
+05:46:55 | 428 | PostgREST 16.4 | client backend | active | : | with all_relations as ( select reltype from pg_class where relkind in ('v','r','m','f','p') union select oid from pg_typ
+05:46:55 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:55 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:55 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:55 | 204 |  | background writer |  | Activity:BgwriterMain | 
+05:46:55 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 8
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -508,43 +661,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:57.751868+00, 2026-11-03 04:55:57.751868+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:53 | 274 | @effect/sql-pg | client backend | active | : | -- Proof: the rebuild runs under safe-update (as the API connection does), returns -- rows above zero, and writes one ne
-04:55:53 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:53 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:53 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:53 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:55:53 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+05:46:50 | 273 | @effect/sql-pg | client backend | active | : | -- ── 10. After: the same timings on the new rules ─────────────────────── DO $t$ DECLARE v_name text; i int; t0 timesta
+05:46:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 9
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -555,43 +725,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql...
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:58:35.316469+00, 2026-11-03 04:58:35.316469+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:58:33 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:58:33 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:58:33 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:58:33 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:58:33 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+05:47:08 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (NCQ-9…12): its own scratch users only; the queue is read through the core scoped to them -- (the door's allow 
+05:47:08 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:47:08 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:47:08 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:47:08 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:47:08 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 10
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -602,43 +789,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql...
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:54.448822+00, 2026-11-03 04:55:54.448822+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:51 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:51 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:51 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:51 | 204 |  | background writer |  | Activity:BgwriterMain | 
-04:55:51 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+05:46:08 | 274 | @effect/sql-pg | client backend | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
+05:46:08 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:08 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:08 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:08 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:08 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 11
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -649,43 +853,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:55.424408+00, 2026-11-03 04:55:55.424408+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:55 | 411 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:55:55 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:55 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:55 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:55 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:55:55 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+05:46:47 | 274 | @effect/sql-pg | client backend | active | : | REVOKE ALL ON FUNCTION public.require_recent_password(interval) FROM PUBLIC, anon, authenticated
+05:46:47 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:47 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:47 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:47 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:47 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 12
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -696,43 +917,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:51.241681+00, 2026-11-03 04:55:51.241681+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:55:48 | 274 | @effect/sql-pg | client backend | active | : | -- ===== C — proofs (catalogue reads, and calls with no session or a scratch identity that holds nothing) ===== DO $proo
-04:55:48 | 379 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:55:48 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:55:48 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:55:48 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:55:48 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:55:48 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+05:48:41 | 275 | @effect/sql-pg | client backend | active | : | -- PROOF (T1 M1): scratch rows only, rolled back by the sentinel. -- (a) the header: VOLATILE, SECURITY DEFINER, search_
+05:48:41 | 438 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:48:41 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:48:41 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:48:41 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:48:41 | 204 |  | background writer |  | Activity:BgwriterMain | 
+05:48:41 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 13
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -743,43 +981,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:24.890848+00, 2026-11-03 04:56:24.890848+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:23 | 274 | @effect/sql-pg | client backend | active | : | CREATE OR REPLACE FUNCTION public.listing_counts(p_listing_id uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFIN
-04:56:23 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:23 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:23 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:23 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:23 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+05:46:52 | 274 | @effect/sql-pg | client backend | active | : | CREATE TABLE public.ai_calls_prune_runs ( id bigserial PRIMARY KEY, ran_at timestamptz NOT NULL DEFAULT now(), deleted i
+05:46:52 | 433 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:46:52 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:52 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:52 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:52 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:52 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 14
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -790,43 +1045,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:58:06.570198+00, 2026-11-03 04:58:06.570198+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    EXCEPTION WHEN OTHERS THEN v_state := SQLSTATE;
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:58:05 | 274 | @effect/sql-pg | client backend | active | : | RESET ALL
-04:58:05 | 426 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:58:05 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:58:05 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:58:05 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:58:05 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:58:05 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+05:48:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:48:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:48:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:48:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:48:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 15
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -837,43 +1109,60 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql...
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:09.610058+00, 2026-11-03 04:56:09.610058+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:10 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:10 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:10 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:10 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:10 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+05:46:32 | 274 | @effect/sql-pg | client backend | active | : | SELECT public.name_folds_rebuild()
+05:46:32 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:32 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:32 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:32 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:32 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 16
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -884,38 +1173,55 @@ Step backend: outcome failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
 ```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 Statement:
 ```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+At statement: 40
+-- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27).
+--   (a) the resolver's header and grants (STABLE, INVOKER, search_path public; anon, authenticated,
+--       service_role); the three doors' (VOLATILE, DEFINER; closed to PUBLIC and anon, open to
+--       authenticated and service_role); the old save signature gone; the browser roles read the
+--       new columns of listing_packages and every column of level_overrides but created_by and
+--       updated_by, hold no write, tier and label_key are gone; row security on; the three levels
+--       carry their names and perks, the old keys are gone.
+--   (b) a price row follows a renamed key (the foreign key cascades).
+--   (c) the resolver, per column, on a scratch level over a scratch root → leaf → leaf2 and
+--       another root, in a scratch market XZ: the level's values; (root, any) days; (any, XZ)
+(366 lines omitted)
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:26.393992+00, 2026-11-03 04:56:26.393992+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
+    END;
+    RESET ROLE;
+    IF v_state IS DISTINCT FROM '42501' THEN RAISE EXCEPTION 'P-1b M-a proof (i): anon read created_by (%)', coalesce(v_state, 'no error'); END IF;
+
+    RAISE EXCEPTION 'p1b-ma-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    IF SQLERRM <> 'p1b-ma-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:56:23 | 274 | @effect/sql-pg | client backend | active | : | -- ===== E6 — proofs (scratch rows only; no auth.users row; claims are a random id) ===== DO $proof$ DECLARE v_key text 
-04:56:23 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:56:23 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:56:23 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:56:23 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:56:23 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+05:46:30 | 391 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+05:46:30 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+05:46:30 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+05:46:30 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+05:46:30 | 203 |  | background writer |  | Activity:BgwriterMain | 
+05:46:30 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 40; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.

@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41579268496
-- Commit: `fa42235995c3136370ebc6e58761f694386cf31d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41585603042
+- Commit: `f95f3c00ad1ea92452718d8aafc12b67f4ca7945`
 - Attempt: 1
-- Written (UTC): 2026-11-03T04:59:02.513Z
+- Written (UTC): 2026-11-03T05:49:11.230Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -21,7 +21,7 @@ The temporary backend never came up, so these sources have neither results nor a
 
 ```text
 migration: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+ERROR: function public.admin_save_listing_package(text, unknown, unknown, integer, boolean, boolean, boolean, unknown, integer, unknown, boolean, integer) does not exist (SQLSTATE 42883)
 ```
 
 ## Server errors — census (DEC-083, non-gating)
