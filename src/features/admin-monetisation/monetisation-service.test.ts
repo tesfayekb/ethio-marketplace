@@ -414,7 +414,7 @@ describe("the monetisation console's seam (P-1b)", () => {
     );
   });
 
-  it("MNS-6 every message the seven doors and the reader RAISE, and every caps id, has a key of its own — but the cleared override's `not found`, the one named departure; the step-up state and the fallback too", () => {
+  it("MNS-6 every message the seven doors and the reader RAISE, and every caps id, has a key of its own — the cleared override's `not found` included; the step-up state and the fallback too", () => {
     const raised = new Set<string>();
     for (const [file, doors] of Object.entries(MIGRATIONS)) {
       const sql = readFileSync(file, "utf8");
@@ -429,16 +429,14 @@ describe("the monetisation console's seam (P-1b)", () => {
     }
     expect(raised.size).toBeGreaterThanOrEqual(30);
     expect(raised.has("not found")).toBe(true);
-    raised.delete("not found");
     for (const message of [...raised, ...CAPS_IDS]) {
       const { key, raw } = monetisationErrorKey(message);
       expect(key, message).not.toBe("admin.packages.error.unknown");
       expect(raw).toBeNull();
     }
-    // The departure: the cleared override's `not found` shows the door's own words.
     expect(monetisationErrorKey("not found")).toEqual({
-      key: "admin.packages.error.unknown",
-      raw: "not found",
+      key: "admin.monetisation.error.overrideNotFound",
+      raw: null,
     });
     expect(monetisationErrorKey("", "P0009")).toEqual({
       key: "admin.packages.error.stepUp",
