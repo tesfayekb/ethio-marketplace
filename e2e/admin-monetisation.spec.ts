@@ -1661,20 +1661,23 @@ test.describe("P-1b Admin › Monetisation", () => {
     // The detail names the first such product and market: one of the pairs the rows hold.
     const detail = await step.getByTestId("monetisation-order-prices-detail").textContent();
     const namedPairs = await Promise.all(
-      pairs.map(async (pair) => ({ pair, name: (await readProduct(pair.key))?.name_en ?? "" })),
+      pairs.map(async (pair) => {
+        const product = await readProduct(pair.key);
+        return { pair, name: product?.name_en ?? "", kind: product?.kind ?? "" };
+      }),
     );
     const named = namedPairs.find(({ name }) => name !== "" && (detail ?? "").includes(name));
     expect(named, `MON-16 the detail "${detail}" names no unpriced product`).toBeTruthy();
-    // The link opens that product's row on its prices table.
+    const namedKey = named?.pair.key as string;
+    // The link opens that product's row (on the drawn twin) on its prices table.
     await step.click();
-    await expect(page).toHaveURL(new RegExp(`#product-${named?.pair.key}-prices$`));
-    await expect(productFrame(page, named?.pair.key as string, "prices")).toBeVisible({
-      timeout: 20000,
-    });
-    await expect(page.getByTestId(`product-${named?.pair.key}-open`)).toHaveAttribute(
-      "aria-expanded",
-      "true",
-    );
+    await expect(page).toHaveURL(new RegExp(`#product-${namedKey}-prices$`));
+    await expect(productFrame(page, namedKey, "prices")).toBeVisible({ timeout: 20000 });
+    await expect(
+      productRow(page, named?.kind === "reach" ? "reach" : "levels", namedKey).getByTestId(
+        `product-${namedKey}-open`,
+      ),
+    ).toHaveAttribute("aria-expanded", "true");
     // Markets names the switched-on market; Products is Set (the real level and reach rows).
     await expect(page.getByTestId("monetisation-order-markets-detail")).toContainText(
       market.anchor.name_en as string,
