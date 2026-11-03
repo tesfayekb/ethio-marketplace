@@ -50,9 +50,11 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 vi.mock("@/features/admin/admin-context", () => ({
   useAdminShell: () => ({ permissions: state.permissions, accessDenied: false }),
+  useAdminShellIfAny: () => ({ permissions: state.permissions, accessDenied: false }),
 }));
 
 const { BlockGuide } = await import("./block-guide");
+const { PageGuide } = await import("./page-guide");
 
 const SPEC = {
   prefix: "admin.monetisation.markets",
@@ -140,5 +142,33 @@ describe("BlockGuide (D313)", () => {
     expect(screen.getByTestId("admin-monetisation-markets-guide-next").getAttribute("href")).toBe(
       "/admin",
     );
+  });
+
+  it("BG-6 (D315) the table's tile and the page's button share one accessible name, one icon and one dialog contract", () => {
+    render(
+      <>
+        <BlockGuide spec={SPEC} title="Markets" columns={COLUMNS} />
+        <PageGuide
+          spec={{ prefix: "adPage", next: { to: "/post" } }}
+          title="An ad"
+          parts={[{ key: "photos", label: "Photos" }]}
+        />
+      </>,
+    );
+    const tile = screen.getByTestId("admin-monetisation-markets-guide");
+    const button = screen.getByTestId("adPage-guide");
+    const name = (control: HTMLElement) =>
+      [...control.querySelectorAll("span")]
+        .filter((span) => span.getAttribute("aria-hidden") !== "true")
+        .map((span) => span.textContent)
+        .join("") || control.textContent;
+    expect(name(tile)).toBe("prim.guide.open");
+    expect(name(button)).toBe("prim.guide.open");
+    for (const control of [tile, button]) {
+      expect(control.tagName).toBe("BUTTON");
+      expect(control.getAttribute("aria-haspopup")).toBe("dialog");
+      expect(control.getAttribute("aria-expanded")).toBe("false");
+      expect(control.querySelectorAll("svg.lucide-book-open").length).toBe(1);
+    }
   });
 });

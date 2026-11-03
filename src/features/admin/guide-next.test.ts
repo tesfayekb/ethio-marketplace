@@ -26,4 +26,22 @@ describe("resolveGuideNext (D313)", () => {
       allowed: false,
     });
   });
+
+  it("GN-3 (D315) a route form resolves to its route and hash with no permission asked; a section form outside the admin shell leads to the landing", () => {
+    expect(resolveGuideNext({ to: "/post" }, null)).toEqual({
+      to: "/post",
+      hash: undefined,
+      allowed: true,
+    });
+    expect(resolveGuideNext({ to: "/my-listings", hash: "my-listings-page" }, [])).toEqual({
+      to: "/my-listings",
+      hash: "my-listings-page",
+      allowed: true,
+    });
+    expect(resolveGuideNext({ section: "monetisation" }, null)).toEqual({
+      to: "/admin",
+      hash: undefined,
+      allowed: false,
+    });
+  });
 });

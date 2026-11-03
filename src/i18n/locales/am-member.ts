@@ -147,6 +147,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "prim.guide.open": "መመሪያ",
   "prim.guide.what": "ይህ ምንድን ነው",
   "prim.guide.columns": "እያንዳንዱ ዓምድ",
+  "prim.guide.parts": "እያንዳንዱ ክፍል",
   "prim.guide.how": "እንዴት እንደሚጨመር፣ እንደሚቀየር ወይም እንደሚወገድ",
   "prim.guide.next": "ቀጥሎ ምን ይደረግ",
   "prim.table.selectRow": "ረድፍ ምረጥ",

@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 669,
+  "scanned": 671,
   "dynamicCallSites": 438,
   "keys": {
     "account.deactivatedBanner": [
@@ -8692,6 +8692,25 @@
       "/my-listings"
     ],
     "prim.guide.open": [
+      "/admin/ai",
+      "/admin/attributes",
+      "/admin/audit",
+      "/admin/categories",
+      "/admin/countries",
+      "/admin/impersonation/$sessionId",
+      "/admin/listings",
+      "/admin/monetisation",
+      "/admin/places",
+      "/admin/roles",
+      "/admin/screening",
+      "/admin/translations",
+      "/admin/translations/$lang",
+      "/admin/users",
+      "/dev/primitives",
+      "/dev/style",
+      "/my-listings"
+    ],
+    "prim.guide.parts": [
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",

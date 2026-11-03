@@ -149,6 +149,7 @@ export const enMember = {
   "prim.guide.open": "Guide",
   "prim.guide.what": "What this is",
   "prim.guide.columns": "Each column",
+  "prim.guide.parts": "Each part",
   "prim.guide.how": "How to add, change or remove",
   "prim.guide.next": "What to do next",
   "prim.table.selectRow": "Select row",
