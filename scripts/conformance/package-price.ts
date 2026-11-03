@@ -4,21 +4,24 @@ import { join, relative } from "node:path";
 import { codeOf, walkFiles } from "./kit";
 
 /**
- * P-1 (CF-PRICE-1) — ONE PRICE RESOLVER. An ad's package price is only ever the
- * SQL `package_price_for(listing, package)`; the browser never reads the price
- * rows to pick one and never computes a price. The census, over `src/`,
- * `e2e/helpers/` and `scripts/` (specs are the harness's own reads, excepted by
- * rule; tests beside a file are not consumers):
+ * P-1 (CF-PRICE-1), extended by P-1b — ONE PRICE RESOLVER. A product's price
+ * is only ever the SQL core `product_price_for(product, category, market)` (or
+ * its listing wrapper `package_price_for(listing, package)`); the browser never
+ * reads the price rows to pick one and never computes a price or a credit
+ * cost. The census, over `src/`, `e2e/helpers/` and `scripts/` (specs are the
+ * harness's own reads, excepted by rule; tests beside a file are not consumers):
  *
- *  - `reader`: a `package_prices` table read (`.from("package_prices")`) or a
- *    `package_price_for` call anywhere but the one admin reader
- *    (`src/features/admin-packages/packages-service.ts`, which lists a package's
- *    rows for the console and picks none);
+ *  - `reader`: a `package_prices` table read (`.from("package_prices")`), a
+ *    `package_price_for` / `product_price_for` call, or the staff console's
+ *    `admin_list_monetisation` rpc anywhere but the one admin reader
+ *    (`src/features/admin-monetisation/monetisation-service.ts`, which lists
+ *    the rows for the console and picks none);
  *  - `arithmetic`: in a file that handles package prices (it names
- *    `package_prices`, `package_price_for`, `PriceRow` or the packages seam),
- *    `amount` as an operand of `+ - * / %` (prettier's spacing) — a screen shows
- *    the stored amount as data; a computed price is the resolver's alone. An
- *    ad's own asking price (`listings.amount`) is another concern and not read.
+ *    `package_prices`, `package_price_for`, `product_price_for`, `PriceRow` or
+ *    the monetisation seam), `amount` or `credit_cost` / `creditCost` as an
+ *    operand of `+ - * / %` (prettier's spacing) — a screen shows the stored
+ *    values as data; a computed price is the resolver's alone. An ad's own
+ *    asking price (`listings.amount`) is another concern and not read.
  *
  * The generated client types (src/integrations/supabase/**) name every function
  * and are not a consumer.
@@ -27,7 +30,7 @@ import { codeOf, walkFiles } from "./kit";
  */
 
 export const PRICE_READER_HOMES: readonly string[] = [
-  "src/features/admin-packages/packages-service.ts",
+  "src/features/admin-monetisation/monetisation-service.ts",
 ];
 
 export type PriceFinding = {
@@ -37,13 +40,25 @@ export type PriceFinding = {
   what: string;
 };
 
-const READ_FORMS = [/\.from\(\s*["'`]package_prices["'`]\s*\)/, /\bpackage_price_for\b/] as const;
+export const READ_FORMS = [
+  /\.from\(\s*["'`]package_prices["'`]\s*\)/,
+  /\bpackage_price_for\b/,
+  /\bproduct_price_for\b/,
+  /\badmin_list_monetisation\b/,
+] as const;
 
 /** A file that handles package prices: only there is `amount` a package price. */
-const TOUCHES_PACKAGE_PRICES = /package_prices|package_price_for|\bPriceRow\b|packages-service/;
+const TOUCHES_PACKAGE_PRICES =
+  /package_prices|package_price_for|product_price_for|\bPriceRow\b|monetisation-service/;
 
-/** `amount` (or `x.amount`) beside a spaced arithmetic operator (prettier's form). */
-const ARITHMETIC_FORMS = [/\bamount\b\s+[-+*/%]\s+/, /\s[-+*/%]\s+(?:\w+\.)?\bamount\b/] as const;
+/** A price operand: `amount`, `credit_cost` or `creditCost` (or `x.<operand>`). */
+const OPERAND = String.raw`\b(?:amount|credit_cost|creditCost)\b`;
+
+/** A price operand beside a spaced arithmetic operator (prettier's form). */
+const ARITHMETIC_FORMS = [
+  new RegExp(String.raw`${OPERAND}\s+[-+*/%]\s+`),
+  new RegExp(String.raw`\s[-+*/%]\s+(?:\w+\.)?${OPERAND}`),
+] as const;
 
 export function priceFindingsIn(root: string, file: string): PriceFinding[] {
   const rel = relative(root, file).split("\\").join("/");
@@ -58,7 +73,7 @@ export function priceFindingsIn(root: string, file: string): PriceFinding[] {
         file: rel,
         line,
         kind: "reader",
-        what: "reads package_prices or calls package_price_for outside the one reader",
+        what: "reads package_prices or calls a price resolver outside the one reader",
       });
     }
     if (handlesPrices && ARITHMETIC_FORMS.some((form) => form.test(text))) {
@@ -66,7 +81,7 @@ export function priceFindingsIn(root: string, file: string): PriceFinding[] {
         file: rel,
         line,
         kind: "arithmetic",
-        what: "computes with a price amount; a price is the resolver's alone",
+        what: "computes with a price amount or credit cost; a price is the resolver's alone",
       });
     }
   });

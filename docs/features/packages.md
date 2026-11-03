@@ -1,4 +1,13 @@
-# Packages console (Admin → Listings → Packages)
+# Packages console (Admin → Listings → Packages) — superseded by P-1b
+
+> **Turn P-1b folded this console into Admin › Monetisation**
+> (`docs/features/plans.md`): `/admin/packages` redirects to
+> `/admin/monetisation`; `src/features/admin-packages/` and
+> `e2e/admin-packages.spec.ts` are deleted (declared in
+> `docs/tracking/intentional-deletions.txt`); `listing_packages` lost `tier`
+> and `label_key` and gained `kind`, the names per language and the level perks;
+> `package_prices` gained `credit_cost` and `used_count`; the resolver is
+> `product_price_for`. What follows is P-1's record.
 
 The promotions a seller may apply to an ad — the tier each grants and for how
 many days — and their prices by market, category and window. Landed by turn

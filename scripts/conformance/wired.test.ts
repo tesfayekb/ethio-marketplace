@@ -118,6 +118,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",
     );
+    // plan-seam.test.ts CF-PLAN-1 PSM-1…3 (turn P-1b, INC-1034) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/plan-seam.test.ts"), "utf8")).toContain(
+      "PSM-3",
+    );
+    // listing-levels.test.ts CF-LEVEL-1 CFL-1…3 (turn P-1b, D290) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/listing-levels.test.ts"), "utf8"),
+    ).toContain("CFL-3");
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

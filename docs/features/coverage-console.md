@@ -1,4 +1,13 @@
-# Coverage console (Admin → Locations → Coverage)
+# Coverage console (Admin → Locations → Coverage) — superseded by P-1b
+
+> **Turn P-1b folded this console into Admin › Monetisation as the Posting caps
+> block** (`docs/features/plans.md`): `/admin/coverage` redirects to
+> `/admin/monetisation`; `src/features/admin-coverage/` and
+> `e2e/admin-coverage.spec.ts` are deleted (declared in
+> `docs/tracking/intentional-deletions.txt`); the editor lost its Label key
+> field (the stored `label_key` is kept by the door, MON-15); the Locations
+> overview lost its Plans tile. The door `admin_set_coverage_plan` is M1a's
+> live body, unchanged. What follows is L2b-C2's and P-1's record.
 
 How far a seller may reach on each plan: the most cities, regions and countries
 a listing's coverage may name, and whether the plan may reach everywhere at

@@ -8,8 +8,10 @@ import { readAllowlist, TREE_SCAN_MS } from "./kit";
 import { findingKey, priceFindings, PRICE_READER_HOMES } from "./package-price";
 
 /**
- * P-1 (CF-PRICE-1) — one price resolver: `package_price_for` in SQL and the one
- * admin reader of the price rows; no screen computes a price. Allowances
+ * P-1 (CF-PRICE-1), extended by P-1b — one price resolver: `product_price_for`
+ * (and its wrapper `package_price_for`) in SQL and the one admin reader of the
+ * price rows (`admin_list_monetisation` through the monetisation service); no
+ * screen computes a price or a credit cost. Allowances
  * (`reader:<file>` / `arithmetic:<file> | reason | until`) in
  * package-price-allowlist.txt; a stale or expired line fails.
  */
@@ -48,7 +50,7 @@ describe("one price resolver (CF-PRICE-1)", () => {
     TREE_SCAN_MS,
   );
 
-  it("CFP-2 a planted read of package_prices, a planted resolver call and a planted computation are each found; the one reader, a shown amount and an ad's own price are not", () => {
+  it("CFP-2 a planted read of package_prices, a planted call of either resolver or of the console rpc, and a planted computation on an amount or a credit cost are each found; the one reader, a shown amount, a shown credit cost and an ad's own price are not", () => {
     const root = tree({
       "src/features/promote/promote-service.ts": `
 export async function price(client: { from: (t: string) => unknown }) {
@@ -57,14 +59,19 @@ export async function price(client: { from: (t: string) => unknown }) {
 `,
       "src/features/promote/use-price.ts": `
 export const call = (rpc: (n: string) => unknown) => rpc("package_price_for");
+export const core = (rpc: (n: string) => unknown) => rpc("product_price_for");
+export const console = (rpc: (n: string) => unknown) => rpc("admin_list_monetisation");
 `,
       "src/features/promote/discount.ts": `
-import type { PriceRow } from "@/features/admin-packages/packages-service";
+import type { PriceRow } from "@/features/admin-monetisation/monetisation-service";
 export function discounted(row: PriceRow) {
   return row.amount * 0.9;
 }
 export function taxed(amount: number) {
   return 1.15 * amount;
+}
+export function doubled(row: PriceRow) {
+  return row.creditCost * 2;
 }
 `,
       "src/features/ad-page/asking.ts": `
@@ -73,14 +80,15 @@ export function asking(listing: { amount: number }) {
 }
 `,
       [PRICE_READER_HOMES[0] ?? ""]: `
-export async function listPackagePrices(client: { from: (t: string) => unknown }) {
-  // The console's list of a package's rows: shown as data, none picked.
-  return client.from("package_prices");
+export async function listMonetisation(rpc: (n: string) => unknown) {
+  // The console's one read: every row shown as data, none picked.
+  return rpc("admin_list_monetisation");
 }
 `,
       "src/features/promote/shown.tsx": `
-import type { PriceRow } from "@/features/admin-packages/packages-service";
+import type { PriceRow } from "@/features/admin-monetisation/monetisation-service";
 export const label = (row: PriceRow) => (row.amount === 0 ? "free" : String(row.amount));
+export const credits = (row: PriceRow) => String(row.creditCost);
 export const id = (row: PriceRow) => \`price-\${row.id}-amount\`;
 `,
     });
@@ -90,8 +98,11 @@ export const id = (row: PriceRow) => \`price-\${row.id}-amount\`;
     expect(found).toEqual([
       "arithmetic:src/features/promote/discount.ts:4",
       "arithmetic:src/features/promote/discount.ts:7",
+      "arithmetic:src/features/promote/discount.ts:10",
       "reader:src/features/promote/promote-service.ts:3",
       "reader:src/features/promote/use-price.ts:2",
+      "reader:src/features/promote/use-price.ts:3",
+      "reader:src/features/promote/use-price.ts:4",
     ]);
   });
 

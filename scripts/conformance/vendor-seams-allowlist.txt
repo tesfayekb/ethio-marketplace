@@ -9,7 +9,6 @@ src/features/admin-attributes/attributes-service.ts | direct vendor use before D
 src/features/admin-categories/categories-service.ts | direct vendor use before DEC-250 | INC-877
 src/features/admin-categories/category-images-service.ts | direct vendor use before DEC-250 | INC-877
 src/features/admin-countries/countries-service.ts | direct vendor use before DEC-250 | INC-877
-src/features/admin-coverage/coverage-service.ts | direct vendor use before DEC-250 | INC-877
 src/features/admin-listings/listing-settings.tsx | direct vendor use before DEC-250 | INC-877
 src/features/admin-listings/use-admin-listing.ts | direct vendor use before DEC-250 | INC-877
 src/features/admin-listings/use-admin-listings.ts | direct vendor use before DEC-250 | INC-877

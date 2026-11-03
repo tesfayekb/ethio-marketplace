@@ -36,8 +36,8 @@ export const ADMIN_GROUPS = {
   // (`admin-group-categories`) are unchanged.
   categories: { id: "categories", titleKey: "admin.nav.group.catalog" },
   // LOCATIONS ERA L2b-C1 — geography folds into ONE group the way Catalog did:
-  // Places (the tree), Countries (the markets) and Coverage (the plans). The
-  // The group owns the overview page; it still carries no permission of its
+  // Places (the tree) and Countries (the markets); the plans moved to
+  // Monetisation's Posting caps in P-1b. The group owns the overview page; it still carries no permission of its
   // own, and each child section keeps its gate (F3).
   locations: {
     id: "locations",
@@ -47,6 +47,10 @@ export const ADMIN_GROUPS = {
   // Bundle 11, the Listings console, L2 (D134) — All listings and the Screening
   // queue under one group, as Catalog holds Categories; no page of its own.
   listings: { id: "listings", titleKey: "admin.nav.group.listings" },
+  // P-1b (D290) — the credits model's products and console: one section today
+  // (Markets, Levels, Per-category perks, Reach, Prices, Posting caps), right
+  // after Listings in the menu. No page of its own; the section keeps its gate (F3).
+  monetisation: { id: "monetisation", titleKey: "admin.nav.group.monetisation" },
   // Bundle 13 turn 5 (D158, DEC-091) — the outside services the product pays
   // for; AI first. No page of its own; each section keeps its gate (F3).
   services: { id: "services", titleKey: "admin.nav.group.services" },
@@ -75,13 +79,16 @@ export const ADMIN_SECTIONS = [
     group: "listings",
   },
   {
-    // P-1 (D280): the promotions a seller may apply to an ad, and their prices.
-    id: "packages",
-    path: "/admin/packages",
+    // P-1b (D290, D303): the levels, the reach, their per-category perks and
+    // prices per market, the free baseline and the paid-levels switch per
+    // country, and (until P-2) the free plan's posting caps. /admin/packages
+    // and /admin/coverage redirect here.
+    id: "monetisation",
+    path: "/admin/monetisation",
     permission: "packages:view",
-    titleKey: "admin.section.packages.title",
-    bodyKey: "admin.section.packages.body",
-    group: "listings",
+    titleKey: "admin.section.monetisation.title",
+    bodyKey: "admin.section.monetisation.body",
+    group: "monetisation",
   },
   {
     id: "users",
@@ -118,15 +125,6 @@ export const ADMIN_SECTIONS = [
     permission: "countries:view",
     titleKey: "admin.section.countries.title",
     bodyKey: "admin.section.countries.body",
-    group: "locations",
-  },
-  {
-    id: "coverage",
-    path: "/admin/coverage",
-    permission: "coverage:view",
-    // P-1 (D279): the screen is Admin › Plans; the id, path and permission stay coverage.
-    titleKey: "admin.section.plans.title",
-    bodyKey: "admin.section.plans.body",
     group: "locations",
   },
   {

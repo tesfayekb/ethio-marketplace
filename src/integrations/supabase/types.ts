@@ -1735,6 +1735,87 @@ export type Database = {
           },
         ]
       }
+      level_overrides: {
+        Row: {
+          badge: boolean | null
+          category_id: string | null
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          days: number | null
+          id: string
+          level_key: string
+          max_photos: number | null
+          placement: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          badge?: boolean | null
+          category_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          days?: number | null
+          id?: string
+          level_key: string
+          max_photos?: number | null
+          placement?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          badge?: boolean | null
+          category_id?: string | null
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          days?: number | null
+          id?: string
+          level_key?: string
+          max_photos?: number | null
+          placement?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "level_overrides_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "level_overrides_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "level_overrides_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "level_overrides_level_key_fkey"
+            columns: ["level_key"]
+            isOneToOne: false
+            referencedRelation: "listing_packages"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "level_overrides_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       listing_certifications: {
         Row: {
           action: string
@@ -1916,45 +1997,67 @@ export type Database = {
       }
       listing_packages: {
         Row: {
+          badge: boolean
           created_at: string
+          created_by: string | null
           days: number
           enabled: boolean
           extends_lifetime: boolean
           key: string
-          label_key: string | null
+          kind: string
+          max_photos: number | null
+          name_am: string | null
+          name_en: string
+          placement: string | null
           self_serve: boolean
           sort: number
-          tier: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          badge?: boolean
           created_at?: string
+          created_by?: string | null
           days: number
           enabled?: boolean
           extends_lifetime?: boolean
           key: string
-          label_key?: string | null
+          kind: string
+          max_photos?: number | null
+          name_am?: string | null
+          name_en: string
+          placement?: string | null
           self_serve?: boolean
           sort?: number
-          tier: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          badge?: boolean
           created_at?: string
+          created_by?: string | null
           days?: number
           enabled?: boolean
           extends_lifetime?: boolean
           key?: string
-          label_key?: string | null
+          kind?: string
+          max_photos?: number | null
+          name_am?: string | null
+          name_en?: string
+          placement?: string | null
           self_serve?: boolean
           sort?: number
-          tier?: string
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "listing_packages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "listing_packages_updated_by_fkey"
             columns: ["updated_by"]
@@ -2633,6 +2736,80 @@ export type Database = {
           },
         ]
       }
+      market_settings: {
+        Row: {
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          free_regular_ads: number
+          id: string
+          included_reach: string
+          launch_credits: number | null
+          launch_days: number | null
+          paid_levels: boolean
+          paid_levels_since: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          free_regular_ads: number
+          id?: string
+          included_reach: string
+          launch_credits?: number | null
+          launch_days?: number | null
+          paid_levels?: boolean
+          paid_levels_since?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          country_code?: string | null
+          created_at?: string
+          created_by?: string | null
+          free_regular_ads?: number
+          id?: string
+          included_reach?: string
+          launch_credits?: number | null
+          launch_days?: number | null
+          paid_levels?: boolean
+          paid_levels_since?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_settings_country_code_fkey"
+            columns: ["country_code"]
+            isOneToOne: true
+            referencedRelation: "countries"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "market_settings_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "market_settings_included_reach_fkey"
+            columns: ["included_reach"]
+            isOneToOne: false
+            referencedRelation: "listing_packages"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "market_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       migration_marks: {
         Row: {
           marked_at: string
@@ -2755,11 +2932,14 @@ export type Database = {
           category_id: string | null
           country_code: string | null
           created_at: string
+          created_by: string | null
+          credit_cost: number
           currency: string
           id: string
           package_key: string
           updated_at: string
           updated_by: string | null
+          used_count: number
           valid_from: string
           valid_to: string | null
         }
@@ -2768,11 +2948,14 @@ export type Database = {
           category_id?: string | null
           country_code?: string | null
           created_at?: string
+          created_by?: string | null
+          credit_cost: number
           currency: string
           id?: string
           package_key: string
           updated_at?: string
           updated_by?: string | null
+          used_count?: number
           valid_from?: string
           valid_to?: string | null
         }
@@ -2781,11 +2964,14 @@ export type Database = {
           category_id?: string | null
           country_code?: string | null
           created_at?: string
+          created_by?: string | null
+          credit_cost?: number
           currency?: string
           id?: string
           package_key?: string
           updated_at?: string
           updated_by?: string | null
+          used_count?: number
           valid_from?: string
           valid_to?: string | null
         }
@@ -2803,6 +2989,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "countries"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "package_prices_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "package_prices_currency_fkey"
@@ -3967,6 +4160,7 @@ export type Database = {
           top_actions: Json
         }[]
       }
+      admin_clear_level_override: { Args: { p_id: string }; Returns: Json }
       admin_commit_attribute_import: {
         Args: {
           p_definitions: Json
@@ -4058,6 +4252,19 @@ export type Database = {
           p_listing_id: string
           p_note?: string
           p_reason: string
+        }
+        Returns: Json
+      }
+      admin_edit_package_price: {
+        Args: {
+          p_amount: number
+          p_category_id?: string
+          p_country_code?: string
+          p_credit_cost: number
+          p_currency: string
+          p_id: string
+          p_valid_from?: string
+          p_valid_to?: string
         }
         Returns: Json
       }
@@ -4482,6 +4689,7 @@ export type Database = {
           source: string
         }[]
       }
+      admin_list_monetisation: { Args: never; Returns: Json }
       admin_list_roles: {
         Args: never
         Returns: {
@@ -4734,16 +4942,43 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_save_level_override: {
+        Args: {
+          p_badge?: boolean
+          p_category_id?: string
+          p_country_code?: string
+          p_days?: number
+          p_level_key: string
+          p_max_photos?: number
+          p_placement?: string
+        }
+        Returns: Json
+      }
       admin_save_listing_package: {
         Args: {
+          p_badge?: boolean
           p_days: number
           p_enabled: boolean
           p_extends_lifetime: boolean
           p_key: string
-          p_label_key?: string
+          p_kind: string
+          p_max_photos?: number
+          p_name_am?: string
+          p_name_en: string
+          p_placement?: string
           p_self_serve: boolean
           p_sort?: number
-          p_tier: string
+        }
+        Returns: Json
+      }
+      admin_save_market_settings: {
+        Args: {
+          p_country_code?: string
+          p_free_regular_ads: number
+          p_included_reach: string
+          p_launch_credits?: number
+          p_launch_days?: number
+          p_paid_levels: boolean
         }
         Returns: Json
       }
@@ -4752,6 +4987,7 @@ export type Database = {
           p_amount: number
           p_category_id?: string
           p_country_code?: string
+          p_credit_cost: number
           p_currency: string
           p_package_key: string
           p_valid_from?: string
@@ -5633,6 +5869,14 @@ export type Database = {
         Args: { p_snapshot: Json; p_text: string }
         Returns: string
       }
+      level_perks_for: {
+        Args: {
+          p_category_id: string
+          p_country_code: string
+          p_level_key: string
+        }
+        Returns: Json
+      }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
@@ -5790,6 +6034,14 @@ export type Database = {
         }[]
       }
       price_unit_labels: { Args: never; Returns: Json }
+      product_price_for: {
+        Args: {
+          p_category_id: string
+          p_country_code: string
+          p_product_key: string
+        }
+        Returns: Json
+      }
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined

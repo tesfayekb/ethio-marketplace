@@ -410,11 +410,9 @@ export const enBase = {
   "admin.section.countries.title": "Countries",
   "admin.section.countries.body":
     "Every market: open or closed, units, currency and the order of its rail.",
-  "admin.section.plans.title": "Plans",
-  "admin.section.plans.body":
-    "What a seller may do on each plan: reach, photos, ad lifetime and how many ads.",
-  "admin.section.packages.title": "Packages",
-  "admin.section.packages.body": "The promotions a seller may apply to an ad, and their prices.",
+  "admin.section.monetisation.title": "Monetisation",
+  "admin.section.monetisation.body":
+    "Levels, reach and their prices per market; the free baseline and the paid-levels switch per country.",
   "admin.nav.group.catalog": "Catalog",
   "admin.nav.group.locations": "Locations",
   "admin.section.categories.title": "Categories",
@@ -467,6 +465,7 @@ export const enBase = {
   "admin.section.screening.body":
     "Ads waiting for review. Approve puts an ad on the site; Reject keeps it off.",
   "admin.nav.group.listings": "Listings",
+  "admin.nav.group.monetisation": "Monetisation",
   "admin.nav.group.services": "Services",
   "admin.section.ai.title": "AI",
   "admin.section.ai.body": "Each AI feature's switch, monthly budget and spend.",

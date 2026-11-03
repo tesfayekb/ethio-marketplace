@@ -20,3 +20,15 @@ it("gives the legal entry the legalReview alert and no other entry an alert", ()
 it("keeps the legal review mark under the admin legal query key", () => {
   expect(LEGAL_REVIEW_OVERDUE_KEY.slice(0, ADMIN_LEGAL_KEY.length)).toEqual([...ADMIN_LEGAL_KEY]);
 });
+
+it("places the Monetisation group right after Listings with its one entry and no alert (P-1b, D290)", () => {
+  const groups = ADMIN_NAV_ITEMS.map((item) => item.id);
+  const listings = groups.indexOf("ad-group-listings");
+  expect(listings).toBeGreaterThan(-1);
+  expect(groups[listings + 1]).toBe("ad-group-monetisation");
+  const group = ADMIN_NAV_ITEMS[listings + 1];
+  expect(group?.children?.map((child) => child.path)).toEqual(["/admin/monetisation"]);
+  expect(group?.children?.[0]?.alert).toBeUndefined();
+  expect(all(ADMIN_NAV_ITEMS).map((item) => item.path)).not.toContain("/admin/packages");
+  expect(all(ADMIN_NAV_ITEMS).map((item) => item.path)).not.toContain("/admin/coverage");
+});

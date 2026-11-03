@@ -87,11 +87,6 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-countries.spec.ts"],
   },
   {
-    name: "admin-coverage",
-    src: ["src/features/admin-coverage/**", "src/routes/api/admin/coverage/**"],
-    specs: ["e2e/admin-coverage.spec.ts"],
-  },
-  {
     name: "admin-users",
     src: ["src/features/admin/users/**", "src/routes/api/admin/users/**"],
     specs: ["e2e/admin-users.spec.ts"],
@@ -137,10 +132,16 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-screening.spec.ts", "e2e/name-check-queue.spec.ts"],
   },
   {
-    // P-1 — Admin › Packages: the packages, their prices, the roles matrix's new resource.
-    name: "admin-packages",
-    src: ["src/routes/admin.packages.tsx", "src/features/admin-packages/**"],
-    specs: ["e2e/admin-packages.spec.ts", "e2e/admin-roles.spec.ts"],
+    // P-1b — Admin › Monetisation: the products, their perks and prices, the
+    // markets and the posting caps; the two old addresses redirect here.
+    name: "admin-monetisation",
+    src: [
+      "src/routes/admin.monetisation.tsx",
+      "src/routes/admin.packages.tsx",
+      "src/routes/admin.coverage.tsx",
+      "src/features/admin-monetisation/**",
+    ],
+    specs: ["e2e/admin-monetisation.spec.ts", "e2e/admin-roles.spec.ts"],
   },
   {
     name: "admin-listings",

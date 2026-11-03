@@ -4,7 +4,6 @@ import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { useAdminCountries } from "@/features/admin-countries/use-countries";
-import { useCoveragePlans } from "@/features/admin-coverage/use-coverage";
 import { useAdminLocations } from "@/features/admin-locations/use-locations";
 import { useAdminShell } from "@/features/admin/admin-context";
 import { useI18n } from "@/i18n";
@@ -24,14 +23,8 @@ const LINKS = [
     titleKey: "admin.section.countries.title",
     bodyKey: "admin.section.countries.body",
   },
-  {
-    permission: "coverage:view",
-    path: "/admin/coverage",
-    key: "coverage",
-    // P-1 (D279): the section is Admin › Plans; its key, path and permission stay coverage.
-    titleKey: "admin.section.plans.title",
-    bodyKey: "admin.section.plans.body",
-  },
+  // P-1b (D290): the plans' tile left with Admin › Plans; the free plan's
+  // posting caps now sit in Admin › Monetisation.
 ] as const;
 
 export function LocationsOverview() {
@@ -39,10 +32,8 @@ export function LocationsOverview() {
   const { permissions } = useAdminShell();
   const maySeePlaces = permissions.includes("locations:view");
   const maySeeCountries = permissions.includes("countries:view");
-  const maySeeCoverage = permissions.includes("coverage:view");
   const countries = useAdminCountries({ enabled: maySeeCountries });
   const places = useAdminLocations("", { enabled: maySeePlaces });
-  const coverage = useCoveragePlans({ enabled: maySeeCoverage });
 
   const marketStats = useMemo(() => {
     const rows = countries.data ?? [];
@@ -64,8 +55,8 @@ export function LocationsOverview() {
     };
   }, [places.data]);
 
-  const loading = countries.isLoading || places.isLoading || coverage.isLoading;
-  const error = countries.error ?? places.error ?? coverage.error;
+  const loading = countries.isLoading || places.isLoading;
+  const error = countries.error ?? places.error;
 
   return (
     <div data-testid="admin-overview-locations" className="min-w-0 space-y-6">
@@ -86,7 +77,7 @@ export function LocationsOverview() {
       ) : null}
 
       <section
-        className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2"
         aria-label={t("admin.overview.stats")}
       >
         <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-markets">
@@ -106,14 +97,9 @@ export function LocationsOverview() {
               .join(" · ")}
           </p>
         </article>
-        <article className={cn(CARD_SURFACE, "p-4")} data-testid="overview-stat-plans">
-          <h2 className="text-sm font-semibold text-foreground">{t("admin.overview.plans")}</h2>
-          <p className="mt-2 text-2xl font-semibold tabular-nums">{coverage.data?.length ?? 0}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{t("admin.overview.plans.caption")}</p>
-        </article>
       </section>
 
-      <nav className="grid grid-cols-1 gap-3 sm:grid-cols-3" aria-label={t("admin.overview.links")}>
+      <nav className="grid grid-cols-1 gap-3 sm:grid-cols-2" aria-label={t("admin.overview.links")}>
         {LINKS.filter((item) => permissions.includes(item.permission)).map((item) => (
           <Link
             key={item.key}

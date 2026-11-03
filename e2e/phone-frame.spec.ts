@@ -77,7 +77,7 @@ test.describe("phone frame sweep", () => {
       "/admin/locations",
       "/admin/places",
       "/admin/countries",
-      "/admin/coverage",
+      "/admin/monetisation",
       "/admin/categories",
       "/admin/attributes",
       "/admin/images",
