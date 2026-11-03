@@ -1,0 +1,230 @@
+# Plans — the credits model's products and the Monetisation console
+
+The model v2 (the Project doc "Plans & packages — model v2 (credits)", D290 →
+D312; `docs/governance/plans-packages-spec-v1.md` is v1's record): an ad has a
+**level** (Regular, Featured, Premium — rows staff may rename, end or add to)
+whose perks — days, photos, placement, badge — may differ per main category and
+per market; it has a **reach** (City, Nationwide, Worldwide); every product has
+**prices** in credits (and money, for later checkout) by market, category and
+window; each **market** has a free baseline, an included reach and a "paid
+levels" switch with its launch bundle. Landed by turn P-1b (migrations M-a →
+M-d, the console, the strings, the guards). The ad's own columns, the seller's
+doors and the sweep are P-2's; credits P-3's; payments P-4's. Nothing of P-1b
+reaches a buyer's page.
+
+Until P-2 the posting wizard keeps reading the free plan's `max_photos` (10
+today) through `get_posting_schema`; the Posting caps block of the console is
+where that dial is edited (D304).
+
+## The data
+
+### Levels and reach — `public.listing_packages` (M-a `20261103040805`)
+
+One row per product: `key` (the identity, `^[a-z][a-z0-9_]{1,31}$`), `kind`
+(`level` | `reach`; a CHECK of two words — P-3 widens it to `bundle`), `name_en`
+and `name_am` (the names per language, D311: `catalogText` picks the catalogue's
+language and falls back to English), `days` (> 0), the level perks `max_photos`
+(0–30), `placement` (`standard` | `boost` | `top`), `badge` — NULL / false on a
+reach row, the door refuses `perks on reach` — `enabled`, `self_serve`,
+`extends_lifetime`, `sort`, `created_by` / `updated_by`, timestamps. Seeds:
+`regular` (7 days, 10 photos, standard), `featured` (30, 20, boost, badge),
+`premium` (60, 30, top, badge); `city`, `nationwide`, `worldwide` (M-c). The
+P-1 seeds `featured_45` / `premium_60` and the columns `tier` and `label_key`
+are gone. A product is switched off, never deleted.
+
+### The perks matrix — `public.level_overrides` (M-a)
+
+One row per (level, main category | any, market | any) naming the perks it
+overrides: `days`, `max_photos`, `placement`, `badge`, each nullable, at least
+one set (`empty override`); `UNIQUE NULLS NOT DISTINCT (level_key, category_id,
+country_code)`; `category_id` must be a root (`not a main category`).
+
+### The one resolver — `level_perks_for(level, category, market) RETURNS jsonb`
+
+STABLE, SECURITY INVOKER, granted to the browser roles (P-2's Promote and the ad
+page read it). `{"days", "max_photos", "placement", "badge", "season_until"}`,
+each perk by the same precedence per column: (main category, market) → (any,
+market) → (main category, any) → the level row. The main category is the root
+reached through `category_tree_pointers`. `days` is capped at the season's end
+(the nearest `categories.visible_until` up the chain; 0 when ended) and
+`season_until` names it. An unknown, disabled or reach key answers NULL. This
+is the ONLY place a level's effective perks are computed (CF-LEVEL-1).
+
+### Prices — `public.package_prices` (M-b `20261103040806`)
+
+One row per (product, market | any, category | any, window): `amount numeric ≥
+0` (0 = free) with `currency`, **`credit_cost integer ≥ 0`** (the price in
+credits, D301), `valid_from` / `valid_to`, **`used_count`** (0 until P-2's apply
+door counts a use), `created_by` / `updated_by`. Two windows of one scope never
+overlap. The resolver `product_price_for(listing_id, product_key)` is P-1's
+`package_price_for` under its new name (the most specific valid row wins; none →
+NULL, never free by default); a screen shows the stored rows as data and never
+computes a price (CF-PRICE-1).
+
+### Markets — `public.market_settings` (M-c `20261103040807`)
+
+One row per market (`country_code`; NULL = the default row every market without
+its own falls to): `free_regular_ads` (the free baseline, ≥ 0), `included_reach`
+(a reach key), `paid_levels` (the switch), `launch_credits` / `launch_days` (the
+bundle P-3 grants when the switch goes ON — required when ON: `launch bundle
+required`), `paid_levels_since` (set when the switch goes ON, cleared when OFF,
+kept while ON), `created_by` / `updated_by`. The browser roles read a market's
+dials (the wizard's free-slot rule at P-2), never its authors.
+
+### Grants
+
+The browser roles read each table's OWN columns — `created_by` / `updated_by`
+are never granted and `select("*")` is refused (MON-13) — behind the public
+policies: enabled products, prices inside their window, every override, every
+market. `packages:view` reads everything through the staff reader
+`admin_list_monetisation()` (`{markets, products, overrides, prices}` with
+`created_by_name` / `updated_by_name` from `profiles.display_name`; `denied`
+without the permission) — the console's ONE read.
+
+## The doors (config order: signed in → `packages:update` → step-up → the `staff_config` dial → the rules → the write → the audit row)
+
+| Door                                                                                                                                                                   | Refusals by name                                                                                                                                  | Audit                                         |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `admin_save_listing_package(key, kind, name_en, days, enabled, self_serve, extends, name_am?, max_photos?, placement?, badge?, sort?)`                                 | `bad key`, `unknown kind`, `bad name`, `bad days`, `kind change`, `bad photos`, `unknown placement`, `perks on reach`                             | `package.saved` (`listing_package`, key)      |
+| `admin_save_level_override(level, category?, country?, days?, max_photos?, placement?, badge?)`                                                                        | `unknown level`, `not a main category`, `unknown country`, `bad days`, `bad photos`, `unknown placement`, `empty override`                        | `level_override.saved` (`level_override`, id) |
+| `admin_clear_level_override(id)`                                                                                                                                       | `not found`                                                                                                                                       | `level_override.cleared`                      |
+| `admin_save_package_price(product, amount, currency, credit_cost, country?, category?, from?, to?)`                                                                    | `unknown package`, `bad amount`, `bad credit cost`, `unknown currency`, `unknown country`, `unknown category`, `bad window`, `overlapping window` | `package_price.saved` (`package_price`, id)   |
+| `admin_edit_package_price(id, amount, currency, credit_cost, country?, category?, from?, to?)` — while `used_count = 0` and live; a NULL `from` keeps the stored start | `price not found`, `price in use`, `price already ended`, then the save door's rules                                                              | `package_price.edited` (old → new)            |
+| `admin_end_package_price(id, to?)`                                                                                                                                     | `price not found`, `price already ended`                                                                                                          | `package_price.ended`                         |
+| `admin_save_market_settings(free_regular_ads, included_reach, paid_levels, country?, launch_credits?, launch_days?)`                                                   | `unknown country`, `bad free ads`, `unknown reach`, `launch bundle required`, `bad launch bundle`                                                 | `market.saved` (`market_settings`, id)        |
+| `admin_set_coverage_plan(…)` (M1a's live body, unchanged; `coverage:update`)                                                                                           | the P-1 plan refusals (`badPlan`, `belowMinimum`, `badMaxPhotos`, `badDefaultDays`, `badMaxActiveAds`)                                            | `coverage.plan.update`                        |
+
+Every refusal is a RAISE the console names by key (`monetisationErrorKey`,
+`admin.packages.error.*` and `admin.monetisation.error.*`; MNS-6 reads the three
+migrations and proves every message but `not found` has a key — `not found`
+falls to the fallback until the supervisor hands its Amharic). A refused attempt
+leaves no trace (MON-2, MON-12).
+
+## The console — Admin › Monetisation (`/admin/monetisation`)
+
+Section id `monetisation` (its own group `monetisation`, right after Listings;
+rail icon `Coins`, group icon `BadgeDollarSign`) · gate `packages:view` (the
+`/admin` layout owns it) · root testid `admin-section-monetisation` · h1
+`monetisation-header`. `/admin/packages` and `/admin/coverage` redirect here
+(`beforeLoad`, MON-3); the Locations overview lost its Plans tile.
+
+`src/features/admin-monetisation/` — `monetisation-page.tsx` (the `StepUpGate`,
+`useAdminShell().permissions`, `useSettling`), `use-monetisation.ts` (the one
+read and the door mutations), `monetisation-service.ts` (the seam: the Supabase
+door, `admin_list_monetisation`, the doors, `DOOR_MESSAGE_KEYS`),
+`monetisation-rows.ts` (the reader's rows, narrowed by shape — a malformed row
+is a `ReaderError`), `use-monetisation-names.ts` (a market's, a category's and
+a product's name in the catalogue's language), the sections and their dialogs,
+`monetisation-forms.ts` / `price-forms.ts` / `caps-forms.ts` (the forms judge
+the doors' own shapes first; a blank number is a refusal, never 0),
+`monetisation-dialogs.tsx` (`MonetisationErrorLine`, the verb bar,
+`NumberField`, `Toggle`, the placement and badge selects), `on-off.tsx`,
+`monetisation-columns.tsx` (`attributionColumns`: created by / updated by as
+staff NAMES, detail tier).
+
+Six blocks, each the agreed table shape (`DataTable` `cardUntil="lg"`,
+`TableToolbar` with `ColumnsButton` + `useHiddenColumns`, `DataTablePagination`
+
+- `useKeptPage`, `RowActions`, `card: "title"`; testids `monetisation-<id>`,
+  `-header`, `-help`, `-toolbar`, `-columns`, `-pagination`, `-empty`), in this
+  order:
+
+| Block (id)                                  | Rows (row testid)                                                                                                             | Header verb                                                               | Row verbs                                                                                |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------- |
+| Markets (`markets`)                         | `market-<code                                                                                                                 | default>`: name, free ads, included reach, paid levels, launch, since     | Add market (`monetisation-market-add`)                                                   | Edit (`market-actions-<code>-edit`) |
+| Levels (`levels`)                           | `product-<key>`: key, name, days, photos, placement, badge, enabled, self-serve, extends, sort                                | Add level (`monetisation-level-add`)                                      | Edit (`product-actions-<key>-edit`; the key shown, never typed)                          |
+| Per-category perks (`overrides`)            | `override-<id>`: level, category ("Every main category"), country ("Every country"), days, photos, placement, badge           | Add override (`monetisation-override-add`)                                | Edit, Clear (red; `override-actions-<id>-more-clear`)                                    |
+| Reach (`reach`)                             | `product-<key>`: key, name, days, enabled, self-serve, extends, sort                                                          | Add reach (`monetisation-reach-add`)                                      | Edit                                                                                     |
+| Prices (`prices`)                           | `price-<id>`: "<Product> · <Market> · <Category>" (`-title`), amount ("Free" at 0), credits, from, until ("Open-ended"), used | Add price (`monetisation-price-add`, always; the product is picked FIRST) | Edit while `used_count = 0` and live (`price-actions-<id>-edit`); End (red; `-more-end`) |
+| Posting caps (`caps`; with `coverage:view`) | `caps-<plan>`: plan, cities, regions, countries, photos, days, ads ("Unlimited"), everywhere, updated                         | —                                                                         | Edit with `coverage:update` (`caps-actions-<plan>-edit`); no Label key field             |
+
+Dialog prefixes: `monetisation-market-<create|edit>` (the market picked on
+create — the default row when none holds it, then the open markets; shown as
+text on edit), `monetisation-<level|reach>-<create|edit>` (key on create, EN and
+AM names, days, the level's photos / placement / badge, the three switches, the
+order), `monetisation-override-<create|edit|clear>` (level, main category,
+market, the four cells; the scope line `-scope` on edit and clear),
+`monetisation-price-<create|edit>` (product, market, category, amount, currency
+— the curated list's first is the default — credit cost, from, until),
+`monetisation-price-end` (a day; today = now), `monetisation-caps-edit`. Each
+has `-error` (role alert; the door's raw words under it as `-reason` when no
+key names them), `-cancel`, `-save` / `-confirm`. The Prices toolbar sieves by
+the row's title and currency (`monetisation-prices-search`).
+
+## Guards
+
+- **CF-PRICE-1** (`scripts/conformance/package-price.ts`, `.test.ts`,
+  `package-price-allowlist.txt`): outside the one reader
+  (`monetisation-service.ts`) no file under `src/`, `e2e/helpers/` or `scripts/`
+  reads `package_prices`, calls `product_price_for` / `package_price_for` or the
+  console rpc `admin_list_monetisation`; a file that handles prices never puts
+  `amount`, `credit_cost` or `creditCost` beside an arithmetic operator. CFP-2
+  plants a read, the three calls and a credit computation.
+- **CF-LEVEL-1** (`scripts/conformance/listing-levels.ts`, `.test.ts`,
+  `listing-levels-allowlist.txt`; wired): no file but the one reader reads
+  `listing_packages` or `level_overrides` or calls `level_perks_for`; no file
+  names a level by a quoted word (`'featured'`, `'premium'`, or `'regular'` on a
+  line naming `tier`). The P-1 tier consumers (ranking, card tier, the flag, the
+  admin listings' tier verbs, the style page, the bench, the ad-page helper) sit
+  in the allowlist until P-2 folds the ad's tier onto the level rows.
+- **CF-PLAN-1** (`scripts/conformance/plan-seam.*`; turn (a), INC-1034): a
+  seller's plan is read through the one seam (`seller_plan`, `plan_caps`,
+  `plan_photo_cap`), never by a literal plan name in SQL.
+- CF-PERM-1: the `packages` and `coverage` resources' `admin.roles.perm.*` keys.
+- `scripts/admin-tables.ts` judges the six tables (T1–T9; the search slot is on
+  Prices); `scripts/check-hardcoded-strings.sh` (key-typed props are `labelKey`
+  / `helpKey` / `titleKey`); the budget line `/admin/monetisation` in
+  `scripts/route-budgets.mjs` (DEC-296); `vendor-seams.test.ts` (the merged
+  service reads through the door; the P-1 coverage-service allowlist line is
+  gone).
+
+## Tests
+
+`e2e/admin-monetisation.spec.ts` (area `admin-monetisation` in
+`scripts/e2e-select.ts`) — MON-1 the entry and the six blocks on both twins, no
+overflow, the real rows read, Amharic headings · MON-2 a reviewer: no entry,
+the deep link refused, both doors refuse by name; a `packages:view`-only staff
+sees the blocks without a verb and no caps; nothing written · MON-3 the two
+redirects · MON-4 a level created with its perks and both names (the key
+lower-cased), the language switch, created by / updated by as names, edited
+(days, off), two `package.saved` rows old → new · MON-5 a reach row without
+perks; `perks on reach` by name · MON-6 overrides: `empty override` before the
+round trip; (root, any) days and (any, market) days + photos saved;
+`level_perks_for` through the service client answers per column by precedence
+for days AND max_photos; a cleared photos cell falls to the level; Clear falls
+to the root · MON-7 a season caps days and names `season_until`; ended → 0 ·
+MON-8 Add price product-first (`unknownPackage` before a pick), the row's
+"Product · Market · Category", Free, credits, the search · MON-9 Edit while
+unused: amount, credit cost, end; the start kept; `package_price.edited` old →
+new · MON-10 the service client marks a price used: Edit refused `priceInUse`,
+nothing changes, the verb gone after a refresh while End stays · MON-11 End
+price: the row stays, no verb, the public read no longer lists it · MON-12 a
+scratch market: ON without a bundle refused by name (dialog and door), ON with
+10/30 writes `paid_levels_since` and the audit row, OFF clears it · MON-13 anon
+and a plain user read the own columns of enabled products, valid prices and
+markets, never `created_by` / `updated_by`, never a disabled product or an
+ended price; the console rpc refuses them · MON-14 step-up before any write,
+the outcome reported after · MON-15 Posting caps: the free plan's editor opens
+on every stored dial (read only; no Label key field); a scratch plan's save
+round-trips every field and leaves `label_key` untouched.
+`e2e/admin-roles.spec.ts` RP-17 — the matrix's `packages` resource.
+`e2e/admin-locations.spec.ts` OV-1 — the overview has no Plans tile.
+
+Scratch products carry the `e2e_mon_` prefix (plans `e_probe_mon_`, letters
+only), namespaced run × worker × project × test, and are removed (overrides and
+prices first; a scratch market's or category's rows before the fixture) in
+`afterEach`; the real levels, reach rows and the default market are only READ.
+
+Unit: `monetisation-service.test.ts` MNS-1…6 (the reader's rows, a malformed
+row, the door calls, the message map against M-a / M-b / M-c);
+`monetisation-forms.test.ts` MNF-1…10 (the product, override, price, market and
+caps forms' judges and defaults); `rail-items.test.ts` (the group after
+Listings; the old paths gone).
+
+## Related
+
+- `docs/features/packages.md` — P-1's console (superseded; its history).
+- `docs/features/coverage-console.md` — the plan caps' P-1 console (its route
+  now redirects here).
+- `docs/features/admin-listings.md` — the ad's tier and staff's tier verb until
+  P-2 folds the tier onto the level rows.
