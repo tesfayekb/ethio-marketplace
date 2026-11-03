@@ -60,9 +60,14 @@ function isCardTwin(page: Page) {
   return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
 }
 
-/** The one table of a block: its rows on the table twin, its cards on the card twin. */
+/**
+ * The block's OWN table (the first in its frame: a product's open row holds inner
+ * tables, P-1c): its rows on the table twin, its cards on the card twin.
+ */
 function tableOf(block: Locator, page: Page): Locator {
-  return isCardTwin(page) ? block.getByTestId("data-table-cards") : block.getByRole("table");
+  return isCardTwin(page)
+    ? block.locator('[data-testid="data-table-cards"]:not([data-testid="data-table-cards"] *)')
+    : block.locator("table:not(table *)");
 }
 
 /** A row: the table row, or on the card twin the card's body. */
@@ -91,12 +96,25 @@ function productRow(page: Page, kind: "levels" | "reach", key: string): Locator 
   return rowOf(page, blockTable(page, kind), `product-${key}`);
 }
 
-function priceRow(page: Page, id: string): Locator {
-  return rowOf(page, blockTable(page, "prices"), `price-${id}`);
+/** P-1c (D313) — a product's inner frame (its per-category perks or its prices), once its row is open. */
+function productFrame(page: Page, key: string, part: "perks" | "prices"): Locator {
+  return page.getByTestId(`product-${key}-${part}`);
 }
 
-function overrideRow(page: Page, id: string): Locator {
-  return rowOf(page, blockTable(page, "overrides"), `override-${id}`);
+/** Opens a product's row by its name toggle (idempotent) and waits for its prices frame. */
+async function openProduct(page: Page, kind: "levels" | "reach", key: string) {
+  const toggle = productRow(page, kind, key).getByTestId(`product-${key}-open`);
+  if ((await toggle.getAttribute("aria-expanded")) !== "true") await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(productFrame(page, key, "prices")).toBeVisible();
+}
+
+function priceRow(page: Page, productKey: string, id: string): Locator {
+  return rowOf(page, tableOf(productFrame(page, productKey, "prices"), page), `price-${id}`);
+}
+
+function overrideRow(page: Page, levelKey: string, id: string): Locator {
+  return rowOf(page, tableOf(productFrame(page, levelKey, "perks"), page), `override-${id}`);
 }
 
 function marketRow(page: Page, code: string): Locator {
@@ -223,6 +241,49 @@ async function readMarket(code: string | null) {
   return data;
 }
 
+/**
+ * P-1c (D313) — the strip's Prices rule as the service client reads it: the
+ * (product, market) pairs a seller could buy but cannot pay for NOW. The page
+ * computes the same from its one read; the test's expectation comes from the
+ * rows, never from a guess about the backend's real products.
+ */
+async function unpricedPairs(
+  nowIso: string,
+): Promise<Array<{ key: string; market: string | null }>> {
+  const supabase = adminClient();
+  const markets = await supabase
+    .from("market_settings")
+    .select("country_code")
+    .eq("paid_levels", true);
+  if (markets.error) throw new Error(`${TAG} reading the markets on: ${markets.error.message}`);
+  const products = await supabase
+    .from("listing_packages")
+    .select("key")
+    .eq("enabled", true)
+    .eq("self_serve", true);
+  if (products.error)
+    throw new Error(`${TAG} reading the sellable products: ${products.error.message}`);
+  const prices = await supabase
+    .from("package_prices")
+    .select("package_key, country_code, valid_from, valid_to")
+    .lte("valid_from", nowIso);
+  if (prices.error) throw new Error(`${TAG} reading the prices: ${prices.error.message}`);
+  const pairs: Array<{ key: string; market: string | null }> = [];
+  for (const market of markets.data ?? []) {
+    for (const product of products.data ?? []) {
+      const priced = (prices.data ?? []).some(
+        (price) =>
+          price.package_key === product.key &&
+          (price.country_code === null || price.country_code === market.country_code) &&
+          (price.valid_to === null || price.valid_to > nowIso),
+      );
+      if (!priced)
+        pairs.push({ key: product.key as string, market: market.country_code as string | null });
+    }
+  }
+  return pairs;
+}
+
 /** DB truth (J4): a plan row with every stored field, the label key included. */
 async function readPlan(plan: string) {
   const { data, error } = await adminClient()
@@ -301,19 +362,24 @@ async function firstCurrency(): Promise<string> {
   return data.code as string;
 }
 
-/** The first enabled reach row (a REAL row, read only): the markets' included reach. */
-async function firstReach(): Promise<string> {
+/** The first enabled product of a kind (a REAL row, read only). */
+async function firstProduct(kind: "reach" | "level"): Promise<string> {
   const { data, error } = await adminClient()
     .from("listing_packages")
     .select("key")
-    .eq("kind", "reach")
+    .eq("kind", kind)
     .eq("enabled", true)
     .order("sort", { ascending: true })
     .limit(1)
     .maybeSingle();
-  if (error || !data) throw new Error(`${TAG} no reach row: ${error?.message ?? "none"}`);
+  if (error || !data) throw new Error(`${TAG} no ${kind} row: ${error?.message ?? "none"}`);
   return data.key as string;
 }
+
+/** The first enabled reach row: the markets' included reach. */
+const firstReach = () => firstProduct("reach");
+/** The first enabled level: the row a read-only test opens (P-1c). */
+const firstLevel = () => firstProduct("level");
 
 /** A door's refusal as the page's own client reads it (the UI entirely bypassed, F3). */
 async function doorError(page: Page, fn: string, args: Record<string, unknown>) {
@@ -397,6 +463,7 @@ test.describe("P-1b Admin › Monetisation", () => {
       maxPhotos?: number;
       placement?: string;
       badge?: boolean;
+      sort?: number;
     } = {},
   ) {
     await destroyProduct(key);
@@ -411,7 +478,7 @@ test.describe("P-1b Admin › Monetisation", () => {
         enabled: dials.enabled ?? true,
         self_serve: true,
         extends_lifetime: true,
-        sort: 90,
+        sort: dials.sort ?? 90,
         ...(kind === "level"
           ? {
               max_photos: dials.maxPhotos ?? 10,
@@ -532,7 +599,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(section(page)).toBeVisible({ timeout: 20000 });
   }
 
-  test("MON-1 the menu entry and the six blocks on both twins, no horizontal overflow; the real rows are read", async ({
+  test("MON-1 the menu entry, the order strip and the four blocks on both twins, no horizontal overflow; a level opens to its perks and prices; the real rows are read", async ({
     page,
   }) => {
     await useJobSuperAdmin(page);
@@ -541,14 +608,22 @@ test.describe("P-1b Admin › Monetisation", () => {
       timeout: 20000,
     });
     await openConsole(page);
-    for (const id of ["markets", "levels", "overrides", "reach", "prices", "caps"]) {
+    // P-1c (D313) — the strip first: four numbered steps, each a link into the page.
+    const strip = page.getByTestId("monetisation-order");
+    await expect(strip).toBeVisible();
+    for (const step of ["markets", "products", "prices", "caps"]) {
+      await expect(strip.getByTestId(`monetisation-order-${step}`)).toBeVisible();
+      await expect(strip.getByTestId(`monetisation-order-${step}-state`)).toBeVisible();
+    }
+    for (const id of ["markets", "levels", "reach", "caps"]) {
       await expect(block(page, id), `MON-1 the ${id} block`).toBeVisible();
       await expect(block(page, id).getByTestId(`monetisation-${id}-header`)).toBeVisible();
       await expect(block(page, id).getByTestId(`monetisation-${id}-columns`)).toBeVisible();
     }
-    // The agreed toolbar on the prices block: search, then Columns; the header holds Add price.
-    await expect(page.getByTestId("monetisation-prices-search")).toBeVisible();
-    await expect(page.getByTestId("monetisation-price-add")).toBeVisible();
+    // Regrouped by product: no page-wide perks or prices block; the page keeps one h1.
+    await expect(block(page, "overrides")).toHaveCount(0);
+    await expect(block(page, "prices")).toHaveCount(0);
+    await expect(section(page).locator("h1")).toHaveCount(1);
     // The real rows, read: a level's days and the default market's free ads.
     const { data: levels, error } = await adminClient()
       .from("listing_packages")
@@ -563,6 +638,15 @@ test.describe("P-1b Admin › Monetisation", () => {
     const row = productRow(page, "levels", String(level?.key));
     await expect(row).toBeVisible({ timeout: 20000 });
     await expect(row.getByTestId(`product-${level?.key}-days`)).toHaveText(String(level?.days));
+    // A level opens to its own perks table and prices table (each with Add, search on prices).
+    const levelKey = String(level?.key);
+    await openProduct(page, "levels", levelKey);
+    await expect(productFrame(page, levelKey, "perks")).toBeVisible();
+    await expect(page.getByTestId(`product-${levelKey}-override-add`)).toBeVisible();
+    await expect(page.getByTestId(`product-${levelKey}-price-add`)).toBeVisible();
+    await expect(page.getByTestId(`product-${levelKey}-prices-search`)).toBeVisible();
+    await expect(section(page).locator("h1")).toHaveCount(1);
+    await expectNoHorizontalOverflow(page);
     const stored = await readMarket(null);
     expect(stored, "MON-1 the default market row is missing").not.toBeNull();
     await expect(marketRow(page, "default").getByTestId("market-default-free-ads")).toHaveText(
@@ -616,16 +700,21 @@ test.describe("P-1b Admin › Monetisation", () => {
     ]);
     await signInViaSession(page, viewer.email, viewer.password);
     await openConsole(page);
-    for (const id of ["markets", "levels", "overrides", "reach", "prices"]) {
+    for (const id of ["markets", "levels", "reach"]) {
       await expect(block(page, id), `MON-2 the viewer's ${id} block`).toBeVisible();
     }
     await expect(block(page, "caps"), "MON-2 the viewer saw the caps").toHaveCount(0);
+    // The strip follows the caller's gates too: no caps step without coverage:view.
+    await expect(page.getByTestId("monetisation-order-caps")).toHaveCount(0);
+    // A product's open row shows its perks and prices without a verb either.
+    const viewed = await firstLevel();
+    await openProduct(page, "levels", viewed);
     for (const verb of [
       "monetisation-market-add",
       "monetisation-level-add",
       "monetisation-reach-add",
-      "monetisation-override-add",
-      "monetisation-price-add",
+      `product-${viewed}-override-add`,
+      `product-${viewed}-price-add`,
     ]) {
       await expect(page.getByTestId(verb), `MON-2 the viewer saw ${verb}`).toHaveCount(0);
     }
@@ -703,6 +792,16 @@ test.describe("P-1b Admin › Monetisation", () => {
     const row = productRow(page, "levels", key);
     await expect(row.getByTestId(`product-${key}-name`)).toHaveText(nameEn);
     await expect(row.getByTestId(`product-${key}-days`)).toHaveText("45");
+    // P-1c: the new level opens to its own (empty) perks and prices, and closes again.
+    await openProduct(page, "levels", key);
+    await expect(
+      productFrame(page, key, "perks").getByTestId(`product-${key}-perks-empty`),
+    ).toBeVisible();
+    await expect(
+      productFrame(page, key, "prices").getByTestId(`product-${key}-prices-empty`),
+    ).toBeVisible();
+    await row.getByTestId(`product-${key}-open`).click();
+    await expect(productFrame(page, key, "prices")).toHaveCount(0);
     await expect(row.getByTestId(`product-${key}-placement`)).toHaveText(
       en["admin.monetisation.placement.boost"],
     );
@@ -795,6 +894,10 @@ test.describe("P-1b Admin › Monetisation", () => {
       badge: false,
     });
     await expect(productRow(page, "levels", key)).toHaveCount(0);
+    // P-1c: a reach row opens to its prices only — no per-category perks table.
+    await openProduct(page, "reach", key);
+    await expect(productFrame(page, key, "perks")).toHaveCount(0);
+    await expect(page.getByTestId(`product-${key}-override-add`)).toHaveCount(0);
     // The door refuses perks on a reach row by name (the UI never offers them).
     expect(
       await doorError(page, "admin_save_listing_package", {
@@ -811,7 +914,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect((await readProduct(key))?.max_photos).toBeNull();
   });
 
-  test("MON-6 per-category perks: a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back", async ({
+  test("MON-6 per-category perks inside the level's row: Add override names the level; a root's days and a market's days-and-photos are saved through the door; level_perks_for answers by precedence for days AND max_photos; the cleared cell falls back", async ({
     page,
   }, testInfo) => {
     const { secret } = await useJobSuperAdmin(page);
@@ -827,15 +930,22 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await perksFor(key, leafId, market.code)).toMatchObject({ days: 7, maxPhotos: 10 });
 
     await openConsole(page);
+    await openProduct(page, "levels", key);
     const addOverride = async (
       scope: { category: string; country: string },
       cells: { days?: string; photos?: string },
       expectedRows: number,
     ) => {
-      await page.getByTestId("monetisation-override-add").click();
+      await page.getByTestId(`product-${key}-override-add`).click();
       const dialog = page.getByTestId("monetisation-override-create");
       await expect(dialog).toBeVisible({ timeout: 20000 });
-      await dialog.getByTestId("monetisation-override-create-level").selectOption(key);
+      // The level is given by the row: a line, never a pick (P-1c).
+      await expect(dialog.getByTestId("monetisation-override-create-level")).toHaveText(
+        (await readProduct(key))?.name_en as string,
+      );
+      await expect(
+        dialog.locator("select[data-testid='monetisation-override-create-level']"),
+      ).toHaveCount(0);
       await dialog
         .getByTestId("monetisation-override-create-category")
         .selectOption(scope.category);
@@ -855,10 +965,9 @@ test.describe("P-1b Admin › Monetisation", () => {
     };
 
     // An empty cell is refused before the round trip, by name.
-    await page.getByTestId("monetisation-override-add").click();
+    await page.getByTestId(`product-${key}-override-add`).click();
     const empty = page.getByTestId("monetisation-override-create");
     await expect(empty).toBeVisible({ timeout: 20000 });
-    await empty.getByTestId("monetisation-override-create-level").selectOption(key);
     await empty.getByTestId("monetisation-override-create-save").click();
     await expect(empty.getByTestId("monetisation-override-create-error")).toHaveText(
       en["admin.monetisation.error.emptyOverride"],
@@ -884,7 +993,7 @@ test.describe("P-1b Admin › Monetisation", () => {
       ).toHaveLength(1);
     }
     // The rows as data: the root's name and the "every country" word; a blank photos cell.
-    const rootRow = overrideRow(page, byRoot?.id as string);
+    const rootRow = overrideRow(page, key, byRoot?.id as string);
     await expect(rootRow).toBeVisible({ timeout: 20000 });
     await expect(rootRow.getByTestId(`override-${byRoot?.id}-days`)).toHaveText("45");
     await expect(rootRow.getByTestId(`override-${byRoot?.id}-photos`)).toHaveText("");
@@ -900,7 +1009,8 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await perksFor(key, rootId, null)).toMatchObject({ days: 45, maxPhotos: 10 });
 
     // Edit the market's cell: photos cleared (blank = the level's own), days kept.
-    await actionsOf(page, blockTable(page, "overrides"), `override-${byMarket?.id}`)
+    const perksTable = tableOf(productFrame(page, key, "perks"), page);
+    await actionsOf(page, perksTable, `override-${byMarket?.id}`)
       .getByTestId(`override-actions-${byMarket?.id}-edit`)
       .click();
     const edit = page.getByTestId("monetisation-override-edit");
@@ -916,7 +1026,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await perksFor(key, leafId, market.code)).toMatchObject({ days: 20, maxPhotos: 10 });
 
     // Clear the market's cell (a red verb, confirmed): the leaf in the market falls to the root's days.
-    await actionsOf(page, blockTable(page, "overrides"), `override-${byMarket?.id}`)
+    await actionsOf(page, perksTable, `override-${byMarket?.id}`)
       .getByTestId(`override-actions-${byMarket?.id}-more`)
       .click();
     await page.getByTestId(`override-actions-${byMarket?.id}-more-clear`).click();
@@ -928,7 +1038,7 @@ test.describe("P-1b Admin › Monetisation", () => {
       describe: `the market cell of ${key} cleared`,
     });
     await expect(clear).toHaveCount(0);
-    await expect(overrideRow(page, byMarket?.id as string)).toHaveCount(0);
+    await expect(overrideRow(page, key, byMarket?.id as string)).toHaveCount(0);
     expect(await perksFor(key, leafId, market.code)).toMatchObject({ days: 45, maxPhotos: 10 });
     expect(
       await audits("level_override", byMarket?.id as string, "level_override.cleared", since),
@@ -968,7 +1078,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await perksFor(key, leafId, null)).toMatchObject({ days: 0 });
   });
 
-  test("MON-8 Add price asks for the product first; the saved row reads Product · Market · Category with its credit cost; a price for every market and a narrower one", async ({
+  test("MON-8 Add price inside the product's row names the product; the saved row reads Market · Category with its credit cost; a price for every market and a narrower one; the row's search narrows", async ({
     page,
   }, testInfo) => {
     const { secret } = await useJobSuperAdmin(page);
@@ -977,7 +1087,9 @@ test.describe("P-1b Admin › Monetisation", () => {
     const currency = await firstCurrency();
     const since = new Date().toISOString();
     const { rootId } = await seedRoot();
+    const stored = await readProduct(key);
     await openConsole(page);
+    await openProduct(page, "levels", key);
 
     const addPrice = async (
       scope: { market: string; category: string },
@@ -985,20 +1097,16 @@ test.describe("P-1b Admin › Monetisation", () => {
       credits: string,
       expectedRows: number,
     ) => {
-      await page.getByTestId("monetisation-price-add").click();
+      await page.getByTestId(`product-${key}-price-add`).click();
       const dialog = page.getByTestId("monetisation-price-create");
       await expect(dialog).toBeVisible({ timeout: 20000 });
-      // The product first: blank until picked; Save refuses by name before the round trip.
-      await expect(dialog.getByTestId("monetisation-price-create-product")).toHaveValue("");
-      if (expectedRows === 1) {
-        await dialog.getByTestId("monetisation-price-create-amount").fill(amount);
-        await dialog.getByTestId("monetisation-price-create-credit-cost").fill(credits);
-        await dialog.getByTestId("monetisation-price-create-save").click();
-        await expect(dialog.getByTestId("monetisation-price-create-error")).toHaveText(
-          en["admin.packages.error.unknownPackage"],
-        );
-      }
-      await dialog.getByTestId("monetisation-price-create-product").selectOption(key);
+      // The product is given by the row (D287 "product first" → P-1c "product given"): a line, never a pick.
+      await expect(dialog.getByTestId("monetisation-price-create-product")).toHaveText(
+        stored?.name_en as string,
+      );
+      await expect(
+        dialog.locator("select[data-testid='monetisation-price-create-product']"),
+      ).toHaveCount(0);
       await dialog.getByTestId("monetisation-price-create-market").selectOption(scope.market);
       await dialog.getByTestId("monetisation-price-create-category").selectOption(scope.category);
       await dialog.getByTestId("monetisation-price-create-amount").fill(amount);
@@ -1027,28 +1135,30 @@ test.describe("P-1b Admin › Monetisation", () => {
       ).toHaveLength(1);
     }
 
-    // The rows as data: "<Product> · <Market> · <Category>", the free word, the credit cost.
-    const stored = await readProduct(key);
-    const freeRow = priceRow(page, free?.id as string);
+    // The rows as data: "<Market> · <Category>" (the product is the row's frame), the free word, the credit cost.
+    const freeRow = priceRow(page, key, free?.id as string);
     await expect(freeRow).toBeVisible({ timeout: 20000 });
     await expect(freeRow.getByTestId(`price-${free?.id}-title`)).toHaveText(
-      `${stored?.name_en} · ${en["admin.packages.prices.everyMarket"]} · ${en["admin.packages.prices.everyCategory"]}`,
+      `${en["admin.packages.prices.everyMarket"]} · ${en["admin.packages.prices.everyCategory"]}`,
     );
     await expect(freeRow.getByTestId(`price-${free?.id}-amount`)).toHaveText(
       en["admin.packages.prices.free"],
     );
     await expect(freeRow.getByTestId(`price-${free?.id}-credits`)).toHaveText("0");
-    const narrowRow = priceRow(page, byCategory?.id as string);
+    const narrowRow = priceRow(page, key, byCategory?.id as string);
     await expect(narrowRow.getByTestId(`price-${byCategory?.id}-amount`)).toContainText(currency);
     await expect(narrowRow.getByTestId(`price-${byCategory?.id}-credits`)).toHaveText("4");
     await expect(narrowRow.getByTestId(`price-${byCategory?.id}-to`)).toHaveText(
       en["admin.packages.prices.open"],
     );
-    // The search narrows the block to the product's rows.
-    await page.getByTestId("monetisation-prices-search").fill(stored?.name_en ?? key);
+    // The product's own search narrows its rows by market or category.
+    const search = page.getByTestId(`product-${key}-prices-search`);
+    await search.fill(en["admin.packages.prices.everyMarket"]);
     await expect(freeRow).toBeVisible();
-    await page.getByTestId("monetisation-prices-search").fill(`${key}-nothing`);
-    await expect(block(page, "prices").getByTestId("monetisation-prices-empty")).toBeVisible();
+    await search.fill(`${key}-nothing`);
+    await expect(
+      productFrame(page, key, "prices").getByTestId(`product-${key}-prices-empty`),
+    ).toBeVisible();
   });
 
   test("MON-9 Edit while unused: the amount, the credit cost and the end change through the door; the start is kept; the row and the audit follow", async ({
@@ -1062,15 +1172,19 @@ test.describe("P-1b Admin › Monetisation", () => {
     const from = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
     const priceId = await seedPrice(key, { amount: 5, currency, creditCost: 2, validFrom: from });
     await openConsole(page);
-    const row = priceRow(page, priceId);
+    await openProduct(page, "levels", key);
+    const pricesTable = tableOf(productFrame(page, key, "prices"), page);
+    const row = priceRow(page, key, priceId);
     await expect(row).toBeVisible({ timeout: 20000 });
 
-    await actionsOf(page, blockTable(page, "prices"), `price-${priceId}`)
+    await actionsOf(page, pricesTable, `price-${priceId}`)
       .getByTestId(`price-actions-${priceId}-edit`)
       .click();
     const edit = page.getByTestId("monetisation-price-edit");
     await expect(edit).toBeVisible({ timeout: 20000 });
-    await expect(edit.getByTestId("monetisation-price-edit-product")).toHaveValue(key);
+    await expect(edit.getByTestId("monetisation-price-edit-product")).toHaveText(
+      (await readProduct(key))?.name_en as string,
+    );
     await expect(edit.getByTestId("monetisation-price-edit-amount")).toHaveValue("5");
     await expect(edit.getByTestId("monetisation-price-edit-credit-cost")).toHaveValue("2");
     await edit.getByTestId("monetisation-price-edit-amount").fill("8");
@@ -1109,8 +1223,10 @@ test.describe("P-1b Admin › Monetisation", () => {
     const currency = await firstCurrency();
     const priceId = await seedPrice(key, { amount: 5, currency, creditCost: 2 });
     await openConsole(page);
-    await expect(priceRow(page, priceId)).toBeVisible({ timeout: 20000 });
-    const actions = actionsOf(page, blockTable(page, "prices"), `price-${priceId}`);
+    await openProduct(page, "levels", key);
+    await expect(priceRow(page, key, priceId)).toBeVisible({ timeout: 20000 });
+    const pricesTable = () => tableOf(productFrame(page, key, "prices"), page);
+    const actions = actionsOf(page, pricesTable(), `price-${priceId}`);
     await expect(actions.getByTestId(`price-actions-${priceId}-edit`)).toBeVisible();
 
     // The apply door of P-2 will do this; today the service client stands in for it.
@@ -1136,10 +1252,12 @@ test.describe("P-1b Admin › Monetisation", () => {
     await expect(edit).toHaveCount(0);
 
     await openConsole(page);
-    await expect(priceRow(page, priceId).getByTestId(`price-${priceId}-used`)).toHaveText("1", {
-      timeout: 20000,
-    });
-    const after = actionsOf(page, blockTable(page, "prices"), `price-${priceId}`);
+    await openProduct(page, "levels", key);
+    await expect(priceRow(page, key, priceId).getByTestId(`price-${priceId}-used`)).toHaveText(
+      "1",
+      { timeout: 20000 },
+    );
+    const after = actionsOf(page, pricesTable(), `price-${priceId}`);
     await expect(after.getByTestId(`price-actions-${priceId}-edit`)).toHaveCount(0);
     await expect(after.getByTestId(`price-actions-${priceId}-more`)).toBeVisible();
   });
@@ -1164,9 +1282,10 @@ test.describe("P-1b Admin › Monetisation", () => {
     expect(await publicRows()).toEqual([priceId]);
 
     await openConsole(page);
-    const row = priceRow(page, priceId);
+    await openProduct(page, "levels", key);
+    const row = priceRow(page, key, priceId);
     await expect(row).toBeVisible({ timeout: 20000 });
-    await actionsOf(page, blockTable(page, "prices"), `price-${priceId}`)
+    await actionsOf(page, tableOf(productFrame(page, key, "prices"), page), `price-${priceId}`)
       .getByTestId(`price-actions-${priceId}-more`)
       .click();
     await page.getByTestId(`price-actions-${priceId}-more-end`).click();
@@ -1499,5 +1618,122 @@ test.describe("P-1b Admin › Monetisation", () => {
       { timeout: 20000 },
     );
     await expect(planRow.getByTestId(`caps-${plan}-photos`)).toHaveText("6");
+  });
+
+  /** A scratch market with paid levels ON, written as a fixture (MON-12 proves the door). */
+  async function seedMarketOn(code: string) {
+    const { error } = await adminClient()
+      .from("market_settings")
+      .insert({
+        country_code: code,
+        free_regular_ads: 1,
+        included_reach: await firstReach(),
+        paid_levels: true,
+        launch_credits: 10,
+        launch_days: 30,
+        paid_levels_since: new Date().toISOString(),
+      });
+    if (error) throw new Error(`${TAG} seeding the market ${code} on failed: ${error.message}`);
+  }
+
+  test("MON-16 the order strip: a market switched on with a sellable product that has no price reads Needs a row, names a product and its market, and its link opens that product's prices", async ({
+    page,
+  }, testInfo) => {
+    await useJobSuperAdmin(page);
+    const key = scratchKey("strip", testInfo.project.name);
+    await seedProduct(key, { sort: 0 });
+    const market = await seedSingleOptionMarket();
+    countries.push(market.code);
+    await seedMarketOn(market.code);
+    await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
+    const pairs = await unpricedPairs(new Date().toISOString());
+    expect(pairs, "MON-16 the scratch pair is missing from the rows").toContainEqual({
+      key,
+      market: market.code,
+    });
+    await openConsole(page);
+
+    const step = page.getByTestId("monetisation-order-prices");
+    await expect(step).toHaveAttribute("data-state", "needsRow");
+    await expect(step.getByTestId("monetisation-order-prices-state")).toHaveText(
+      en["prim.orderStrip.needsRow"],
+    );
+    // The detail names the first such product and market: one of the pairs the rows hold.
+    const detail = await step.getByTestId("monetisation-order-prices-detail").textContent();
+    const namedPairs = await Promise.all(
+      pairs.map(async (pair) => ({ pair, name: (await readProduct(pair.key))?.name_en ?? "" })),
+    );
+    const named = namedPairs.find(({ name }) => name !== "" && (detail ?? "").includes(name));
+    expect(named, `MON-16 the detail "${detail}" names no unpriced product`).toBeTruthy();
+    // The link opens that product's row on its prices table.
+    await step.click();
+    await expect(page).toHaveURL(new RegExp(`#product-${named?.pair.key}-prices$`));
+    await expect(productFrame(page, named?.pair.key as string, "prices")).toBeVisible({
+      timeout: 20000,
+    });
+    await expect(page.getByTestId(`product-${named?.pair.key}-open`)).toHaveAttribute(
+      "aria-expanded",
+      "true",
+    );
+    // Markets names the switched-on market; Products is Set (the real level and reach rows).
+    await expect(page.getByTestId("monetisation-order-markets-detail")).toContainText(
+      market.anchor.name_en as string,
+    );
+    await expect(page.getByTestId("monetisation-order-products")).toHaveAttribute(
+      "data-state",
+      "set",
+    );
+  });
+
+  test("MON-17 the order strip: a price added for every market clears the product from Needs a row; the strip reads Set once no pair is left", async ({
+    page,
+  }, testInfo) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const key = scratchKey("set", testInfo.project.name);
+    await seedProduct(key, { sort: 0 });
+    const currency = await firstCurrency();
+    const market = await seedSingleOptionMarket();
+    countries.push(market.code);
+    await seedMarketOn(market.code);
+    await waitForOpenMarket(page, market.code, OPEN_MARKET_LS11_MS);
+    await openConsole(page);
+    const step = page.getByTestId("monetisation-order-prices");
+    await expect(step).toHaveAttribute("data-state", "needsRow");
+
+    // Add price inside the product's row, for every market and every category.
+    await openProduct(page, "levels", key);
+    await page.getByTestId(`product-${key}-price-add`).click();
+    const dialog = page.getByTestId("monetisation-price-create");
+    await expect(dialog).toBeVisible({ timeout: 20000 });
+    await dialog.getByTestId("monetisation-price-create-amount").fill("12");
+    await dialog.getByTestId("monetisation-price-create-credit-cost").fill("2");
+    await expect(dialog.getByTestId("monetisation-price-create-currency")).toHaveValue(currency);
+    await dialog.getByTestId("monetisation-price-create-save").click();
+    await awaitGuardedOutcome(page, secret, {
+      poll: async () => (await readPrices(key)).length === 1,
+      describe: `the price of ${key}`,
+    });
+    await expect(dialog).toHaveCount(0);
+
+    // The strip follows the page's read: the product is priced everywhere now.
+    const name = (await readProduct(key))?.name_en ?? key;
+    const left = await unpricedPairs(new Date().toISOString());
+    expect(left.some((pair) => pair.key === key)).toBe(false);
+    if (left.length === 0) {
+      await expect(step).toHaveAttribute("data-state", "set", { timeout: 20000 });
+      await expect(step.getByTestId("monetisation-order-prices-state")).toHaveText(
+        en["prim.orderStrip.set"],
+      );
+      await expect(step.getByTestId("monetisation-order-prices-detail")).toHaveCount(0);
+    } else {
+      // Another product of the backend's own rows is still unpriced: the row names it, never ours.
+      await expect(step).toHaveAttribute("data-state", "needsRow");
+      await expect(step.getByTestId("monetisation-order-prices-detail")).not.toContainText(name, {
+        timeout: 20000,
+      });
+    }
+    // Reloaded, the strip reads the same from the server's rows.
+    await openConsole(page);
+    await expect(step).toHaveAttribute("data-state", left.length === 0 ? "set" : "needsRow");
   });
 });

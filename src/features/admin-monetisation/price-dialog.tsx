@@ -35,10 +35,14 @@ import { useMonetisationNames } from "./use-monetisation-names";
  * Edit stands while the row is unused and live; the door refuses otherwise
  * (`price in use`, `price already ended`) and a window overlapping another
  * row of the same scope.
+ *
+ * P-1c (D313) — opened from inside a product's own prices table, the product is
+ * `fixedProduct`: named as a line, never picked.
  */
 export function PriceDialog({
   row,
   products,
+  fixedProduct,
   guard,
   openedBy,
   onClose,
@@ -46,6 +50,8 @@ export function PriceDialog({
   /** null = Add a price. */
   row: PriceRow | null;
   products: ProductRow[];
+  /** The product this price belongs to, when the dialog sits inside its table. */
+  fixedProduct?: string;
   guard: GuardFn;
   openedBy: string;
   onClose: () => void;
@@ -61,7 +67,9 @@ export function PriceDialog({
   const creating = row === null;
   const prefix = creating ? "monetisation-price-create" : "monetisation-price-edit";
   const [form, setForm] = useState<PriceFormValues>(() =>
-    row === null ? NEW_PRICE_FORM : priceFormOf(row),
+    row === null
+      ? { ...NEW_PRICE_FORM, packageKey: fixedProduct ?? NEW_PRICE_FORM.packageKey }
+      : priceFormOf(row),
   );
   const keptFromDay = row === null ? null : priceFormOf(row).validFrom;
   // The currency list arrives after the first paint: the first curated one is the default.
@@ -94,22 +102,33 @@ export function PriceDialog({
       title={t(creating ? "admin.monetisation.price.add" : "admin.monetisation.price.edit")}
       onClose={onClose}
     >
-      <FormField label={t("admin.monetisation.col.product")} htmlFor={`${prefix}-product`}>
-        <NativeSelect
-          id={`${prefix}-product`}
-          data-testid={`${prefix}-product`}
-          className="w-full"
-          value={form.packageKey}
-          onChange={(event) => change({ packageKey: event.target.value })}
-        >
-          {creating ? <option value="" /> : null}
-          {offered.map((product) => (
-            <option key={product.key} value={product.key}>
-              {productName(product.key)}
-            </option>
-          ))}
-        </NativeSelect>
-      </FormField>
+      {fixedProduct === undefined ? (
+        <FormField label={t("admin.monetisation.col.product")} htmlFor={`${prefix}-product`}>
+          <NativeSelect
+            id={`${prefix}-product`}
+            data-testid={`${prefix}-product`}
+            className="w-full"
+            value={form.packageKey}
+            onChange={(event) => change({ packageKey: event.target.value })}
+          >
+            {creating ? <option value="" /> : null}
+            {offered.map((product) => (
+              <option key={product.key} value={product.key}>
+                {productName(product.key)}
+              </option>
+            ))}
+          </NativeSelect>
+        </FormField>
+      ) : (
+        <div className="min-w-0 space-y-1">
+          <p className="text-sm font-medium text-foreground">
+            {t("admin.monetisation.col.product")}
+          </p>
+          <p className="min-w-0 break-words text-sm" data-testid={`${prefix}-product`}>
+            {productName(form.packageKey)}
+          </p>
+        </div>
+      )}
       <FormField label={t("admin.packages.prices.field.market")} htmlFor={`${prefix}-market`}>
         <NativeSelect
           id={`${prefix}-market`}
