@@ -1,48 +1,48 @@
 # CI Status (auto-generated — do not edit by hand)
 
-- Commit: `71107be62b0340efa3d7a7b924c1886fe0ec2d6c` (short `71107be`)
+- Commit: `fdb741f384e1c48be1524fc578902c40d686599c` (short `fdb741f`)
 - Conclusion: **SUCCESS**
-- Completed (UTC): 2026-11-03T15:38:09Z
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41662230025
+- Completed (UTC): 2026-11-03T19:05:01Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41695773109
 
 ## Jobs
 
 | Job | Conclusion |
 | --- | ---------- |
 | Gitleaks secrets scan | success |
-| Component tests | success |
-| Migration linter (with self-test) | success |
-| Hardcoded string scan (enforcing) | success |
-| Build, typecheck, lint | success |
-| Listing-write seam guard (with self-test) | success |
-| Marketplace weight guard (no heavy deps on the first-paint path) | success |
-| First-paint bundle budget (gzipped ceiling) | success |
-| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
-| E2E preflight (migration parity, staging) | success |
-| Import gate guard (with self-test) | success |
-| Semgrep (enforcing on ERROR) | success |
-| i18n used-on map is fresh (U4i ②) | success |
 | E2E lanes / Backend images (DEC-309) | success |
 | Dependency vulnerability audit (enforcing on high/critical) | success |
-| E2E lanes / Lane 6 on temporary Supabase | success |
-| E2E lanes / Lane 4 on temporary Supabase | success |
-| E2E lanes / Lane smoke on temporary Supabase | success |
-| E2E lanes / Lane email on temporary Supabase | success |
-| E2E lanes / Lane 2 on temporary Supabase | success |
-| E2E lanes / Lane 10 on temporary Supabase | success |
-| E2E lanes / Lane 5 on temporary Supabase | success |
-| E2E lanes / Lane repeat on temporary Supabase | success |
-| E2E lanes / Lane 3 on temporary Supabase | success |
+| Build, typecheck, lint | success |
+| Component tests | success |
+| Migration linter (with self-test) | success |
+| i18n used-on map is fresh (U4i ②) | success |
+| E2E preflight (migration parity, staging) | success |
+| Hardcoded string scan (enforcing) | success |
+| Semgrep (enforcing on ERROR) | success |
+| Listing-write seam guard (with self-test) | success |
+| Browse-path guard (no RBAC seam on the marketplace path, with self-test) | success |
+| Import gate guard (with self-test) | success |
+| First-paint bundle budget (gzipped ceiling) | success |
+| Marketplace weight guard (no heavy deps on the first-paint path) | success |
 | E2E lanes / Lane 1 on temporary Supabase | success |
-| E2E lanes / Lane 9 on temporary Supabase | success |
-| E2E lanes / Lane 8 on temporary Supabase | success |
-| E2E lanes / Lane 11 on temporary Supabase | success |
+| E2E lanes / Lane 6 on temporary Supabase | success |
+| E2E lanes / Lane email on temporary Supabase | success |
+| E2E lanes / Lane 10 on temporary Supabase | success |
 | E2E lanes / Lane 7 on temporary Supabase | success |
-| E2E lanes / Lane 13 on temporary Supabase | success |
+| E2E lanes / Lane 4 on temporary Supabase | success |
+| E2E lanes / Lane 11 on temporary Supabase | success |
 | E2E lanes / Lane 12 on temporary Supabase | success |
-| E2E lanes / Lane 15 on temporary Supabase | success |
-| E2E lanes / Lane 16 on temporary Supabase | success |
+| E2E lanes / Lane 8 on temporary Supabase | success |
 | E2E lanes / Lane 14 on temporary Supabase | success |
+| E2E lanes / Lane 3 on temporary Supabase | success |
+| E2E lanes / Lane smoke on temporary Supabase | success |
+| E2E lanes / Lane 13 on temporary Supabase | success |
+| E2E lanes / Lane 2 on temporary Supabase | success |
+| E2E lanes / Lane 5 on temporary Supabase | success |
+| E2E lanes / Lane 16 on temporary Supabase | success |
+| E2E lanes / Lane 15 on temporary Supabase | success |
+| E2E lanes / Lane 9 on temporary Supabase | success |
+| E2E lanes / Lane repeat on temporary Supabase | success |
 | E2E lanes / Summarize temporary backend lanes | success |
 | E2E (Playwright, ethio-staging) | success |
-| Promote to main (fast-forward on green) | success |
+| Promote to main (fast-forward on green) | skipped |
