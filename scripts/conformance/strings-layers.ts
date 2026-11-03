@@ -29,7 +29,7 @@ import { visitTs, walkFiles } from "./kit";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 /** DEC-258 — the layers in their order (src/i18n/compiled-catalog.ts STRINGS_LAYERS). */
-export const LAYERS = ["admin", "member"] as const;
+export const LAYERS = ["admin", "member", "guide"] as const;
 export type Layer = (typeof LAYERS)[number];
 export type Home = "base" | Layer;
 const EVERY_PAGE = "__root";

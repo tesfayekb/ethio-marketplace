@@ -17,6 +17,7 @@ import { useI18n } from "@/i18n";
 import { dateFormatter } from "@/lib/format";
 
 import { CapsEditorDialog } from "./caps-editor";
+import { MONETISATION_ANCHORS } from "./monetisation-order";
 import type { CoveragePlanRow } from "./monetisation-service";
 import { useCoveragePlans } from "./use-monetisation";
 
@@ -26,6 +27,7 @@ import { useCoveragePlans } from "./use-monetisation";
  * Plans roster and editor without the label key, carried here until P-2 moves
  * them to the levels and the reach. The block shows with `coverage:view`; its
  * one verb (Edit caps) with `coverage:update`; the door is M1a's, unchanged.
+ * P-1c (D313) — every column is a literal object (CF-GUIDE-1 reads the keys).
  */
 const LOCKED = ["plan"];
 
@@ -46,22 +48,6 @@ export function CapsSection({
   const idOf = (row: CoveragePlanRow) => `caps-${row.plan}`;
   const chosen = editing === null ? null : (rows.find((row) => row.plan === editing.plan) ?? null);
 
-  const count = (
-    key: string,
-    header: string,
-    read: (row: CoveragePlanRow) => number,
-  ): DataTableColumn<CoveragePlanRow> => ({
-    key,
-    header,
-    priority: "primary",
-    card: "meta",
-    cell: (row) => (
-      <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-${key}`}>
-        {read(row)}
-      </span>
-    ),
-  });
-
   const columns: DataTableColumn<CoveragePlanRow>[] = [
     {
       key: "plan",
@@ -74,11 +60,61 @@ export function CapsSection({
         </span>
       ),
     },
-    count("cities", t("admin.coverage.col.cities"), (row) => row.maxCities),
-    count("regions", t("admin.coverage.col.regions"), (row) => row.maxRegions),
-    count("countries", t("admin.coverage.col.countries"), (row) => row.maxCountries),
-    count("photos", t("admin.coverage.col.photos"), (row) => row.maxPhotos),
-    count("days", t("admin.coverage.col.days"), (row) => row.defaultDays),
+    {
+      key: "cities",
+      header: t("admin.coverage.col.cities"),
+      priority: "primary",
+      card: "meta",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-cities`}>
+          {row.maxCities}
+        </span>
+      ),
+    },
+    {
+      key: "regions",
+      header: t("admin.coverage.col.regions"),
+      priority: "primary",
+      card: "meta",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-regions`}>
+          {row.maxRegions}
+        </span>
+      ),
+    },
+    {
+      key: "countries",
+      header: t("admin.coverage.col.countries"),
+      priority: "primary",
+      card: "meta",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-countries`}>
+          {row.maxCountries}
+        </span>
+      ),
+    },
+    {
+      key: "photos",
+      header: t("admin.coverage.col.photos"),
+      priority: "primary",
+      card: "meta",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-photos`}>
+          {row.maxPhotos}
+        </span>
+      ),
+    },
+    {
+      key: "days",
+      header: t("admin.coverage.col.days"),
+      priority: "primary",
+      card: "meta",
+      cell: (row) => (
+        <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-days`}>
+          {row.defaultDays}
+        </span>
+      ),
+    },
     {
       key: "ads",
       header: t("admin.coverage.col.ads"),
@@ -131,6 +167,7 @@ export function CapsSection({
         <TableActions
           testid="monetisation-caps-header"
           title={t("admin.monetisation.caps.title")}
+          level="h2"
         />
         <p className="text-sm text-muted-foreground" data-testid="monetisation-caps-help">
           {t("admin.monetisation.caps.untilP2")}
@@ -142,6 +179,11 @@ export function CapsSection({
           rowTestId={idOf}
           caption={t("admin.monetisation.caps.title")}
           cardUntil="lg"
+          guide={{
+            prefix: "admin.monetisation.caps",
+            anchor: MONETISATION_ANCHORS.caps,
+            next: { section: "monetisation", block: MONETISATION_ANCHORS.markets },
+          }}
           loading={query.isLoading}
           loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
           error={query.error}

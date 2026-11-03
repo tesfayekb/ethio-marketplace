@@ -16,6 +16,10 @@ import type { ReactNode } from "react";
  * the Filters and Columns tiles; from md all of it is one row inside the
  * table's card. The search box and the scope keep the page's own control: this
  * component dresses them, it never replaces them.
+ *
+ * P-1c (D313) — `guide`: the block's Guide control (BlockGuide) sits last in the
+ * end group, after Columns. DataTable places it from its `guide` prop; a page
+ * never passes it here itself.
  */
 export function TableToolbar({
   testid,
@@ -23,6 +27,7 @@ export function TableToolbar({
   search,
   filters,
   columns,
+  guide,
   chips,
 }: {
   testid: string;
@@ -30,6 +35,7 @@ export function TableToolbar({
   search?: ReactNode;
   filters?: ReactNode;
   columns?: ReactNode;
+  guide?: ReactNode;
   chips?: ReactNode;
 }) {
   return (
@@ -49,10 +55,11 @@ export function TableToolbar({
             {search}
           </div>
         ) : null}
-        {filters || columns ? (
+        {filters || columns || guide ? (
           <div className="ms-auto flex items-center gap-2">
             {filters}
             {columns}
+            {guide}
           </div>
         ) : null}
       </div>

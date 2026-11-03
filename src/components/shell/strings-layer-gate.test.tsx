@@ -16,11 +16,12 @@ const state = vi.hoisted(() => ({
 const refreshed = vi.hoisted(() => vi.fn());
 vi.mock("@/lib/on-demand-failure", () => ({ refreshPage: refreshed }));
 vi.mock("@tanstack/react-router", () => ({
-  useMatches: ({ select }: { select: (matches: unknown[]) => unknown }) => select(state.matches),
+  useRouterState: ({ select }: { select: (routerState: { matches: unknown[] }) => unknown }) =>
+    select({ matches: state.matches }),
 }));
 vi.mock("@/i18n", () => ({
-  STRINGS_LAYERS: ["admin", "member"],
-  isStringsLayer: (value: string) => value === "admin" || value === "member",
+  STRINGS_LAYERS: ["admin", "member", "guide"],
+  isStringsLayer: (value: string) => ["admin", "member", "guide"].includes(value),
   useI18n: () => ({ t: (key: string) => key }),
   useStringsLayers: (layers: string[]) => {
     state.asked.push(layers);
@@ -78,5 +79,17 @@ describe("StringsLayerGate (DEC-258)", () => {
     draw();
     expect(screen.getByTestId("route")).toBeTruthy();
     expect(screen.queryByTestId("strings-layer-waiting")).toBeNull();
+  });
+
+  it("SLG-5 a piece that names its own layers (D313) asks for those, never the route's", () => {
+    state.matches = [{ staticData: { strings: ["admin"] } }];
+    render(
+      <StringsLayerGate layers={["guide"]}>
+        <p data-testid="piece">piece</p>
+      </StringsLayerGate>,
+    );
+    expect(screen.getByTestId("strings-layer-waiting")).toBeTruthy();
+    expect(screen.queryByTestId("piece")).toBeNull();
+    expect(state.asked).toEqual([["guide"]]);
   });
 });

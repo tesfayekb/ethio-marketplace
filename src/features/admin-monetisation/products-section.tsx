@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ColumnsButton } from "@/components/shell/columns-button";
 import { useHiddenColumns, visibleColumns } from "@/components/shell/columns-state";
@@ -19,8 +19,11 @@ import { dateFormatter } from "@/lib/format";
 import { attributionColumns } from "./monetisation-columns";
 import { OnOff } from "./on-off";
 import { PLACEMENT_LABEL } from "./monetisation-forms";
-import type { ProductKind, ProductRow } from "./monetisation-service";
+import { MONETISATION_ANCHORS } from "./monetisation-order";
+import type { OverrideRow, PriceRow, ProductKind, ProductRow } from "./monetisation-service";
+import { ProductDetails } from "./product-details";
 import { ProductEditorDialog } from "./product-editor";
+import { ProductNameToggle } from "./product-name-toggle";
 import { useMonetisationNames } from "./use-monetisation-names";
 
 /**
@@ -29,6 +32,12 @@ import { useMonetisationNames } from "./use-monetisation-names";
  * an ad is seen; days only). One block shape, the kind choosing the title, the
  * perk columns and the editor's fields. The row's one verb is Edit; the header
  * adds a product of this kind. A product is switched off, never removed.
+ *
+ * P-1c (D313) — a product's name opens its row: a level's per-category perks
+ * and its prices, a reach's prices (product-details.tsx), each from the page's
+ * one read. The page's hash names a product (`product-<key>`, or one of its
+ * inner frames) and that row opens on arrival. Each block carries its Guide
+ * (markets → levels → reach → the product's prices → caps).
  */
 const LOCKED = ["name"];
 
@@ -40,6 +49,9 @@ type Dialog =
 export function ProductsSection({
   kind,
   products,
+  overrides,
+  prices,
+  hash,
   loading,
   error,
   mayUpdate,
@@ -49,6 +61,10 @@ export function ProductsSection({
   kind: ProductKind;
   /** Every product; the section keeps its own kind. */
   products: ProductRow[];
+  overrides: OverrideRow[];
+  prices: PriceRow[];
+  /** The page's location hash (without `#`): a product it names opens. */
+  hash: string;
   loading: boolean;
   error: unknown;
   mayUpdate: boolean;
@@ -64,6 +80,28 @@ export function ProductsSection({
   const editing =
     dialog.kind === "edit" ? (rows.find((row) => row.key === dialog.key) ?? null) : null;
   const isLevel = kind === "level";
+
+  // The open rows; the hash's product (its row or one of its inner frames) joins them on arrival.
+  const [open, setOpen] = useState<string[]>([]);
+  const hashed = rows.find((row) => hash === idOf(row) || hash.startsWith(`${idOf(row)}-`));
+  const hashedKey = hashed?.key ?? null;
+  useEffect(() => {
+    if (hashedKey === null) return;
+    setOpen((current) => (current.includes(hashedKey) ? current : [...current, hashedKey]));
+  }, [hashedKey]);
+  const hashedOpen = hashedKey !== null && open.includes(hashedKey);
+  useEffect(() => {
+    // The frame the hash names exists only once its row is open: land on it then.
+    if (!hashedOpen) return;
+    const frame = document.getElementById(hash);
+    if (frame === null) return;
+    frame.scrollIntoView({ block: "start" });
+    frame.focus({ preventScroll: true });
+  }, [hash, hashedOpen]);
+  const toggle = (key: string) =>
+    setOpen((current) =>
+      current.includes(key) ? current.filter((one) => one !== key) : [...current, key],
+    );
 
   const perkColumns: DataTableColumn<ProductRow>[] = isLevel
     ? [
@@ -106,9 +144,12 @@ export function ProductsSection({
       priority: "primary",
       card: "title",
       cell: (row) => (
-        <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-name`}>
-          {productName(row.key)}
-        </span>
+        <ProductNameToggle
+          id={idOf(row)}
+          name={productName(row.key)}
+          open={open.includes(row.key)}
+          onToggle={() => toggle(row.key)}
+        />
       ),
     },
     {
@@ -170,6 +211,7 @@ export function ProductsSection({
   ];
 
   const blockId = isLevel ? "levels" : "reach";
+  const anchor = isLevel ? MONETISATION_ANCHORS.level : MONETISATION_ANCHORS.reach;
   const [hidden, toggleColumn] = useHiddenColumns(`admin-monetisation-${blockId}`);
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
     `ethio.admin.monetisation.${blockId}.pageSize`,
@@ -182,6 +224,7 @@ export function ProductsSection({
         <TableActions
           testid={`monetisation-${blockId}-header`}
           title={t(isLevel ? "admin.monetisation.levels.title" : "admin.monetisation.reach.title")}
+          level="h2"
         >
           {mayUpdate ? (
             <TableActionButton
@@ -203,6 +246,27 @@ export function ProductsSection({
             isLevel ? "admin.monetisation.levels.title" : "admin.monetisation.reach.title",
           )}
           cardUntil="lg"
+          guide={{
+            prefix: isLevel ? "admin.monetisation.level" : "admin.monetisation.reach",
+            anchor,
+            next: {
+              section: "monetisation",
+              block: isLevel ? MONETISATION_ANCHORS.reach : MONETISATION_ANCHORS.level,
+            },
+          }}
+          expandedRow={(row) =>
+            open.includes(row.key) ? (
+              <ProductDetails
+                product={row}
+                overrides={overrides}
+                prices={prices}
+                products={products}
+                mayUpdate={mayUpdate}
+                settling={settling}
+                guard={guard}
+              />
+            ) : null
+          }
           loading={loading}
           loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
           error={error}

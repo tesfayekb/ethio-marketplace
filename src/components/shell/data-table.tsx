@@ -10,8 +10,11 @@ import { Toolbar } from "@/components/layout/toolbar";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
+import { BlockGuide, guideAnchor, type BlockGuideSpec } from "./block-guide";
 import { pageWindow } from "./page-window";
 import { RowActions, type RowActionsProps } from "./row-actions";
+import { TableToolbar } from "./table-toolbar";
+import { useDrawnTwin } from "./use-drawn-twin";
 
 /**
  * U1b/U1c — THE DATATABLE PRIMITIVE (shell law).
@@ -137,6 +140,16 @@ export interface DataTableProps<T> {
   errorState?: ReactNode;
   /** Search + filter controls rendered above the list. */
   toolbar?: ReactNode;
+  /**
+   * P-1c (D313) — THE BLOCK'S GUIDE (block-guide.tsx). Every admin table names
+   * its key prefix and its next step; the primitive draws the Guide control last
+   * in the toolbar's end group (inside the page's TableToolbar, or on a toolbar
+   * of its own when the page passes another node), gives the frame the anchor's
+   * id (a next-link's hash lands on it), and hands the sheet the visible columns
+   * in order. CF-GUIDE-1 (scripts/conformance/admin-guides.ts) judges that every
+   * admin table passes one and every visible column has its guide line.
+   */
+  guide?: BlockGuideSpec;
   /** Per-row controls: inline in the 360 card, trailing column at md. */
   rowActions?: (row: T) => ReactNode;
   /**
@@ -171,6 +184,10 @@ export interface DataTableProps<T> {
    * row's box: in the card, under the facts and above the footer, in the
    * name's column; in the table, the row and its expansion are one band (no
    * line between them, the expansion's cell starting at the row's bottom).
+   *
+   * P-1c (D313) — it mounts in the DRAWN twin only (use-drawn-twin.ts): an
+   * expansion may hold regions with an identity (a product's inner tables,
+   * their `id` and controls), and a hidden copy doubled them.
    */
   expandedRow?: (row: T) => ReactNode;
   /** Optional bulk-select support. */
@@ -457,6 +474,7 @@ export function DataTable<T>({
   error,
   errorState,
   toolbar,
+  guide,
   rowActions,
   actionsWidth = "w-24",
   cardLead,
@@ -483,6 +501,12 @@ export function DataTable<T>({
     !keyset && pageSize && pageSize > 0
       ? allRows.slice((page ?? 0) * pageSize, (page ?? 0) * pageSize + pageSize)
       : allRows;
+  // P-1c (D313) — a row's expansion mounts in the drawn twin only (use-drawn-twin.ts).
+  const { drawn, refs: twinRefs } = useDrawnTwin();
+  const expansionOf = (row: T, twin: "cards" | "table") =>
+    expandedRow === undefined || (drawn !== "both" && drawn !== twin)
+      ? undefined
+      : expandedRow(row);
   const cardsHiddenClass =
     cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "tbl-md:hidden";
   const tableShownClass =
@@ -504,11 +528,37 @@ export function DataTable<T>({
 
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
 
-  const toolbarBlock = toolbar ? (
+  /**
+   * P-1c (D313) — the Guide control joins the toolbar's end group: cloned into
+   * the page's TableToolbar when that is what the page passed; otherwise it
+   * takes a TableToolbar of its own under the page's node.
+   */
+  const guideControl = guide ? (
+    <BlockGuide
+      spec={guide}
+      title={caption}
+      columns={columns.map((column) => ({ key: column.key, label: column.header }))}
+    />
+  ) : null;
+  const toolbarWithGuide =
+    guideControl === null
+      ? toolbar
+      : isValidElement<{ guide?: ReactNode }>(toolbar) && toolbar.type === TableToolbar
+        ? cloneElement(toolbar, { guide: guideControl })
+        : [
+            toolbar ?? null,
+            <TableToolbar
+              key="data-table-guide-toolbar"
+              testid="data-table-guide-toolbar"
+              guide={guideControl}
+            />,
+          ];
+  const toolbarBlock = toolbarWithGuide ? (
     <div data-testid="data-table-toolbar" className={cn("min-w-0", TOOLBAR_AT[cardUntil])}>
-      <Toolbar>{toolbar}</Toolbar>
+      <Toolbar>{toolbarWithGuide}</Toolbar>
     </div>
   ) : null;
+  const anchor = guide ? guideAnchor(guide) : undefined;
 
   /**
    * INC-132 — THE SCROLLER CHAIN. `overflow-x-auto` only engages when every
@@ -520,7 +570,19 @@ export function DataTable<T>({
    * consumer never adds a width hack (C7).
    */
   const frame = (body: ReactNode) => (
-    <div className={cn("min-w-0 max-w-full space-y-3", FRAME_AT[cardUntil], className)}>
+    <div
+      id={anchor}
+      // D313 — a guided frame is a landing place: a next-link's hash scrolls to
+      // it and the sheet's close hands it the focus (no ring of its own; it is
+      // a region, not a control).
+      tabIndex={anchor === undefined ? undefined : -1}
+      className={cn(
+        "min-w-0 max-w-full space-y-3",
+        anchor !== undefined && "scroll-mt-20 outline-none",
+        FRAME_AT[cardUntil],
+        className,
+      )}
+    >
       {toolbarBlock}
       {body}
     </div>
@@ -634,6 +696,7 @@ export function DataTable<T>({
           footer with a note and Edit / Delete.
         */}
         <ul
+          ref={twinRefs.cards}
           data-testid="data-table-cards"
           aria-label={caption}
           className={cn(
@@ -650,7 +713,7 @@ export function DataTable<T>({
               ? splitRowActions(rowActions(row))
               : { top: null, foot: null };
             const lead = cardLead?.(row);
-            const expansion = expandedRow?.(row);
+            const expansion = expansionOf(row, "cards");
             const label = (column: DataTableColumn<T>) =>
               column.cardLabel !== false &&
               typeof column.header === "string" &&
@@ -823,6 +886,7 @@ export function DataTable<T>({
 
         {/* At `cardUntil`: a real table. overflow-x-auto is the last resort, never the plan. */}
         <div
+          ref={twinRefs.table}
           data-testid="data-table-scroller"
           className={cn("hidden min-w-0 max-w-full overflow-x-auto", tableShownClass)}
         >
@@ -899,7 +963,7 @@ export function DataTable<T>({
                 const go = () => {
                   if (href) void navigate(href as never);
                 };
-                const expansion = expandedRow?.(row);
+                const expansion = expansionOf(row, "table");
                 return (
                   <Fragment key={key}>
                     <tr

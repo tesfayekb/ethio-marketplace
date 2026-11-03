@@ -18,20 +18,22 @@ import { useI18n } from "@/i18n";
 import { dateFormatter, numberFormatter } from "@/lib/format";
 
 import { attributionColumns } from "./monetisation-columns";
+import { productAnchor } from "./monetisation-order";
 import type { PriceRow, ProductRow } from "./monetisation-service";
 import { PriceDialog } from "./price-dialog";
 import { PriceEndDialog } from "./price-end-dialog";
 import { useMonetisationNames } from "./use-monetisation-names";
 
 /**
- * P-1b (D288, D304) — PRICES of every product in one table: a row reads
- * "<Product> · <Market> · <Category>" with its amount, its credit cost and its
- * window. Add price is always in the header (the product is picked first in
- * the dialog); a row offers Edit while unused (`used_count = 0`) and live, and
- * End (red) while live. Every cell is the stored row shown as data — nothing
- * here computes a price (CF-PRICE-1).
+ * P-1c (D313; P-1b's D288, D304 rows) — ONE PRODUCT'S PRICES, inside the
+ * product's expanded row: a row reads "<Market> · <Category>" with its amount,
+ * its credit cost and its window. Add price is in the header (the product is
+ * this one, fixed in the dialog); a row offers Edit while unused
+ * (`used_count = 0`) and live, and End (red) while live. The search sieves by
+ * market, category and currency. Every cell is the stored row shown as data —
+ * nothing here computes a price (CF-PRICE-1). Frame id `product-<key>-prices`.
  */
-const LOCKED = ["title", "amount"];
+const LOCKED = ["scope", "amount"];
 
 type Dialog =
   | { kind: "none" }
@@ -39,39 +41,39 @@ type Dialog =
   | { kind: "edit"; id: string; openedBy: string }
   | { kind: "end"; id: string; openedBy: string };
 
-export function PricesSection({
+export function ProductPricesTable({
+  product,
   rows,
   products,
-  loading,
-  error,
   mayUpdate,
   settling,
   guard,
 }: {
+  product: ProductRow;
+  /** This product's rows only (the page filters the one read). */
   rows: PriceRow[];
   products: ProductRow[];
-  loading: boolean;
-  error: unknown;
   mayUpdate: boolean;
   settling: boolean;
   guard: GuardFn;
 }) {
   const { t, language } = useI18n();
-  const { marketName, categoryName, productName } = useMonetisationNames(products);
+  const { marketName, categoryName } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [search, setSearch] = useState("");
   const date = dateFormatter("day", language);
   const number = numberFormatter("exact", language);
   const nowIso = new Date().toISOString();
+  const anchor = productAnchor(product.key, "prices");
   const idOf = (row: PriceRow) => `price-${row.id}`;
   const live = (row: PriceRow) => row.validTo === null || row.validTo > nowIso;
-  const titleOf = (row: PriceRow) =>
-    `${productName(row.packageKey)} · ${marketName(row.countryCode, "everyMarket")} · ${categoryName(row.categoryId, "everyCategory")}`;
+  const scopeOf = (row: PriceRow) =>
+    `${marketName(row.countryCode, "everyMarket")} · ${categoryName(row.categoryId, "everyCategory")}`;
   const needle = search.trim().toLowerCase();
   const found =
     needle === ""
       ? rows
-      : rows.filter((row) => `${titleOf(row)} ${row.currency}`.toLowerCase().includes(needle));
+      : rows.filter((row) => `${scopeOf(row)} ${row.currency}`.toLowerCase().includes(needle));
   const chosen =
     dialog.kind === "edit" || dialog.kind === "end"
       ? (rows.find((row) => row.id === dialog.id) ?? null)
@@ -79,13 +81,13 @@ export function PricesSection({
 
   const columns: DataTableColumn<PriceRow>[] = [
     {
-      key: "title",
-      header: t("admin.monetisation.col.product"),
+      key: "scope",
+      header: t("admin.monetisation.col.scope"),
       priority: "primary",
       card: "title",
       cell: (row) => (
         <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-title`}>
-          {titleOf(row)}
+          {scopeOf(row)}
         </span>
       ),
     },
@@ -151,23 +153,24 @@ export function PricesSection({
     ...attributionColumns<PriceRow>(t, (iso) => date.format(new Date(iso)), idOf),
   ];
 
-  const [hidden, toggleColumn] = useHiddenColumns("admin-monetisation-prices");
+  const [hidden, toggleColumn] = useHiddenColumns("admin-monetisation-product-prices");
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
-    "ethio.admin.monetisation.prices.pageSize",
+    "ethio.admin.monetisation.productPrices.pageSize",
   );
   const shown = visibleColumns(columns, hidden, LOCKED);
 
   return (
     <>
-      <section data-testid="monetisation-prices" className="min-w-0 space-y-3">
+      <section data-testid={anchor} className="min-w-0 space-y-3">
         <TableActions
-          testid="monetisation-prices-header"
+          testid={`${anchor}-header`}
           title={t("admin.monetisation.prices.title")}
+          level="h2"
         >
           {mayUpdate ? (
             <TableActionButton
               variant="default"
-              data-testid="monetisation-price-add"
+              data-testid={`product-${product.key}-price-add`}
               disabled={settling}
               onClick={() => setDialog({ kind: "create", openedBy: "header" })}
               icon={<Plus />}
@@ -182,26 +185,23 @@ export function PricesSection({
           rowTestId={idOf}
           caption={t("admin.monetisation.prices.title")}
           cardUntil="lg"
-          loading={loading}
-          loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
-          error={error}
-          errorState={
-            <p role="alert" className="text-sm text-destructive">
-              {t("admin.monetisation.error")}
-            </p>
-          }
+          guide={{
+            prefix: "admin.monetisation.productPrices",
+            anchor,
+            next: { section: "monetisation", block: "admin-monetisation-caps" },
+          }}
           emptyState={
-            <p className="text-sm text-muted-foreground" data-testid="monetisation-prices-empty">
+            <p className="text-sm text-muted-foreground" data-testid={`${anchor}-empty`}>
               {t("admin.monetisation.empty.prices")}
             </p>
           }
           toolbar={
             <TableToolbar
-              testid="monetisation-prices-toolbar"
+              testid={`${anchor}-toolbar`}
               search={
                 <Input
-                  data-testid="monetisation-prices-search"
-                  aria-label={t("admin.monetisation.col.product")}
+                  data-testid={`${anchor}-search`}
+                  aria-label={t("admin.monetisation.prices.searchLabel")}
                   value={search}
                   onChange={(event) => {
                     setSearch(event.target.value);
@@ -211,7 +211,7 @@ export function PricesSection({
               }
               columns={
                 <ColumnsButton
-                  testid="monetisation-prices-columns"
+                  testid={`${anchor}-columns`}
                   columns={columns.map((column) => ({
                     key: column.key,
                     label: String(column.header),
@@ -227,7 +227,7 @@ export function PricesSection({
             mayUpdate && live(row) ? (
               <RowActions
                 testid={`price-actions-${row.id}`}
-                name={titleOf(row)}
+                name={scopeOf(row)}
                 edit={
                   row.usedCount === 0
                     ? {
@@ -255,7 +255,7 @@ export function PricesSection({
           pageSize={pageSize}
           pagination={
             <DataTablePagination
-              testid="monetisation-prices-pagination"
+              testid={`${anchor}-pagination`}
               offset={page * pageSize}
               pageSize={pageSize}
               total={found.length}
@@ -272,6 +272,7 @@ export function PricesSection({
         <PriceDialog
           row={null}
           products={products}
+          fixedProduct={product.key}
           guard={guard}
           openedBy={dialog.openedBy}
           onClose={() => setDialog({ kind: "none" })}
@@ -282,6 +283,7 @@ export function PricesSection({
           key={chosen.id}
           row={chosen}
           products={products}
+          fixedProduct={product.key}
           guard={guard}
           openedBy={dialog.openedBy}
           onClose={() => setDialog({ kind: "none" })}
@@ -299,3 +301,5 @@ export function PricesSection({
     </>
   );
 }
+
+export default ProductPricesTable;

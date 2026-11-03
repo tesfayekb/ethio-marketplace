@@ -31,11 +31,16 @@ import { useMonetisationNames } from "./use-monetisation-names";
  * on that scope), Edit (the scope fixed, the four cells), Clear (a destructive
  * verb, red: the row goes and the level's own values speak again). A blank
  * cell is the level's own value; every cell blank is refused by name.
+ *
+ * P-1c (D313) — opened from inside a level's own perks table, the level is
+ * `fixedLevel`: named as a line, never picked; the help line it used to carry
+ * is the table's Guide ("What this is").
  */
 export function OverrideDialog({
   mode,
   row,
   products,
+  fixedLevel,
   guard,
   openedBy,
   onClose,
@@ -43,6 +48,8 @@ export function OverrideDialog({
   mode: "create" | "edit" | "clear";
   row: OverrideRow | null;
   products: ProductRow[];
+  /** The level these perks belong to, when the dialog sits inside its table. */
+  fixedLevel?: string;
   guard: GuardFn;
   openedBy: string;
   onClose: () => void;
@@ -55,7 +62,9 @@ export function OverrideDialog({
   const levels = products.filter((product) => product.kind === "level");
   const prefix = `monetisation-override-${mode}`;
   const [form, setForm] = useState<OverrideFormValues>(() =>
-    row === null ? { ...NEW_OVERRIDE_FORM, levelKey: levels[0]?.key ?? "" } : overrideFormOf(row),
+    row === null
+      ? { ...NEW_OVERRIDE_FORM, levelKey: fixedLevel ?? levels[0]?.key ?? "" }
+      : overrideFormOf(row),
   );
   const change = (next: Partial<OverrideFormValues>) => setForm((prev) => ({ ...prev, ...next }));
 
@@ -105,21 +114,32 @@ export function OverrideDialog({
     <CategoryModal testid={prefix} openedBy={openedBy} title={t(title)} onClose={onClose}>
       {mode === "create" ? (
         <>
-          <FormField label={t("admin.monetisation.col.level")} htmlFor={`${prefix}-level`}>
-            <NativeSelect
-              id={`${prefix}-level`}
-              data-testid={`${prefix}-level`}
-              className="w-full"
-              value={form.levelKey}
-              onChange={(event) => change({ levelKey: event.target.value })}
-            >
-              {levels.map((level) => (
-                <option key={level.key} value={level.key}>
-                  {productName(level.key)}
-                </option>
-              ))}
-            </NativeSelect>
-          </FormField>
+          {fixedLevel === undefined ? (
+            <FormField label={t("admin.monetisation.col.level")} htmlFor={`${prefix}-level`}>
+              <NativeSelect
+                id={`${prefix}-level`}
+                data-testid={`${prefix}-level`}
+                className="w-full"
+                value={form.levelKey}
+                onChange={(event) => change({ levelKey: event.target.value })}
+              >
+                {levels.map((level) => (
+                  <option key={level.key} value={level.key}>
+                    {productName(level.key)}
+                  </option>
+                ))}
+              </NativeSelect>
+            </FormField>
+          ) : (
+            <div className="min-w-0 space-y-1">
+              <p className="text-sm font-medium text-foreground">
+                {t("admin.monetisation.col.level")}
+              </p>
+              <p className="min-w-0 break-words text-sm" data-testid={`${prefix}-level`}>
+                {productName(form.levelKey)}
+              </p>
+            </div>
+          )}
           <FormField label={t("admin.monetisation.col.category")} htmlFor={`${prefix}-category`}>
             <NativeSelect
               id={`${prefix}-category`}
@@ -182,7 +202,6 @@ export function OverrideDialog({
             value={form.badge}
             onChange={(next) => change({ badge: next })}
           />
-          <p className="text-sm text-muted-foreground">{t("admin.monetisation.help.overrides")}</p>
         </>
       )}
       <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />

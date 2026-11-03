@@ -11,3 +11,4 @@ src/features/posting/preview/listing-detail.tsx#MapLarge | the large map opens i
 src/features/posting/step-where.tsx#MapPinDropper | the pin map opens as a fixed full-screen sheet over the step; the one line it shows while it downloads is covered as the sheet opens | 2027-04-27
 src/routes/c.$slug.tsx#Feed | the category feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945
 src/routes/index.tsx#Feed | the home feed's place while its first page streams is a spinner, not the cards' shape — the QueryState mechanism's work | INC-945
+src/components/shell/block-guide.tsx#BlockGuideSheet | the Guide sheet draws in a portal on the top layer, out of the page's flow (D313): while its body downloads, or when it cannot, the page has no box of it to keep | 2027-05-01

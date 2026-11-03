@@ -35,6 +35,11 @@
  *   rows (`selectionActions`; D128).
  * - T9 a row that opens its own page (`rowHref`) and carries a three-dots menu
  *   offers Open in it (`key: "open"`; D142, turn C4).
+ * - T10 (D313, turn P-1c) an admin block carries its Guide: `guide=` on the
+ *   DataTable (src/components/shell/block-guide.tsx). CF-GUIDE-1
+ *   (scripts/conformance/admin-guides.ts) judges the guide's keys; a table whose
+ *   Guide a later turn owes sits in ITS allowlist, which `check` reads
+ *   (`guideOwed`). A seller's table (My listings) is not an admin block.
  *
  * The baseline of existing screens reached zero in this turn, so there is
  * none: a new table is built on the blocks or the check refuses it.
@@ -46,7 +51,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { walkFiles } from "./conformance/kit";
 
-export type Rule = "T1" | "T2" | "T2b" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9";
+export type Rule = "T1" | "T2" | "T2b" | "T3" | "T4" | "T5" | "T6" | "T7" | "T8" | "T9" | "T10";
 
 export const RULES: Record<Rule, string> = {
   T1: "the page's heading in the header (TableActions)",
@@ -59,7 +64,13 @@ export const RULES: Record<Rule, string> = {
   T7: 'a phone card with a title (a column with card: "title")',
   T8: "tick-boxes only with a bulk action (selection with selectionActions)",
   T9: 'a row that opens its page offers Open in its three-dots menu (key: "open")',
+  T10: "the Guide: guide= on the DataTable (an admin block; CF-GUIDE-1 judges its keys)",
 };
+
+/** T10 asks the admin's tables only: a seller's table (My listings) is not an admin block (D313). */
+export function isAdminBlock(file: string): boolean {
+  return file.startsWith("src/features/admin");
+}
 
 /** Tables drawn inside another page: the section's file → its host page's file. */
 export const SECTIONS: Record<string, string> = {
@@ -160,6 +171,7 @@ export function breaches(file: string, text: string): Rule[] {
   ) {
     out.push("T9");
   }
+  if (isAdminBlock(file) && !/\bguide=\{/.test(code)) out.push("T10");
   return out;
 }
 
@@ -175,13 +187,22 @@ export function readTableSources(root = ROOT): Source[] {
     .sort((a, b) => a.file.localeCompare(b.file));
 }
 
-/** The refusals over a set of sources: "<file>: <rule> — <what is missing>". */
-export function check(sources: Source[]): { tables: string[]; refusals: string[] } {
+/**
+ * The refusals over a set of sources: "<file>: <rule> — <what is missing>".
+ * `guideOwed` (D313) names the admin tables whose Guide a later turn owes — the
+ * files of CF-GUIDE-1's allowlist (scripts/conformance/admin-guides-allowlist.txt),
+ * the ONE place such an allowance lives; T10 is not asked of them.
+ */
+export function check(
+  sources: Source[],
+  guideOwed: ReadonlySet<string> = new Set(),
+): { tables: string[]; refusals: string[] } {
   const byFile = new Map(sources.map((source) => [source.file, source.text]));
   const tables = sources.filter((source) => drawsTable(source.text)).map((source) => source.file);
   const refusals: string[] = [];
   for (const file of tables) {
     for (const rule of breaches(file, byFile.get(file) ?? "")) {
+      if (rule === "T10" && guideOwed.has(file)) continue;
       refusals.push(`${file}: ${rule} — ${RULES[rule]}`);
     }
   }

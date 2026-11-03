@@ -1,6 +1,22 @@
 import { describe, expect, it } from "vitest";
 
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { breaches, check, drawsTable, readTableSources, SECTIONS } from "./admin-tables";
+import { readAllowlist } from "./conformance/kit";
+
+/** D313 — the admin tables whose Guide a later turn owes (CF-GUIDE-1's allowlist, the one place). */
+const GUIDES_OWED = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "conformance",
+  "admin-guides-allowlist.txt",
+);
+function guideOwed(tablesFound: string[]): ReadonlySet<string> {
+  // The census's found tables are the allowlist's keys (CF-KIT-7).
+  const found = new Set(tablesFound);
+  return new Set(readAllowlist(GUIDES_OWED, found).keys());
+}
 
 /**
  * Bundle 11, Part C (turn C1) — the agreed tables' check, proven on planted
@@ -17,6 +33,7 @@ export function Page() {
       <TableActions testid="x-header" />
       <DataTable
         toolbar={<TableToolbar><FiltersButton /><ColumnsButton /><FilterChips /></TableToolbar>}
+        guide={{ prefix: "admin.x", next: { section: "users" } }}
         rowActions={(row) => <RowActions testid={row.id} name="x" />}
         pagination={<DataTablePagination />}
       />
@@ -58,6 +75,9 @@ describe("the agreed tables' check — planted files", () => {
     expect(
       breaches(f, GOOD.replace("pagination={", "selection={picked}\n        pagination={")),
     ).toEqual(["T8"]);
+    expect(
+      breaches(f, without(GOOD, 'guide={{ prefix: "admin.x", next: { section: "users" } }}')),
+    ).toEqual(["T10"]);
     expect(
       breaches(
         f,
@@ -129,10 +149,30 @@ describe("the agreed tables' check — planted files", () => {
 
 describe("the agreed tables' check — the real tree", () => {
   it("TBL-4 every table passes every rule", () => {
-    const result = check(readTableSources());
+    const sources = readTableSources();
+    const tables = check(sources).tables;
+    const result = check(sources, guideOwed(tables));
     // The scan finds the tables (a check that reads nothing proves nothing).
     expect(result.tables.length).toBeGreaterThanOrEqual(15);
     expect(result.refusals).toEqual([]);
+  });
+
+  it("TBL-6 T10 asks the admin's tables only, and not one whose Guide is owed (D313)", () => {
+    const sources = readTableSources();
+    const tables = check(sources).tables;
+    const owed = guideOwed(tables);
+    expect(owed.size).toBeGreaterThan(0);
+    const bare = check(sources).refusals.filter((line) => line.includes(": T10 "));
+    expect(bare.length).toBe(owed.size);
+    for (const line of bare) expect(owed.has(line.split(":")[0] as string)).toBe(true);
+    // A seller's table is never asked for a Guide.
+    expect(breaches("src/features/my-listings/my-listings-page.tsx", GOOD)).toEqual([]);
+    expect(
+      breaches(
+        "src/features/my-listings/my-listings-page.tsx",
+        without(GOOD, 'guide={{ prefix: "admin.x", next: { section: "users" } }}'),
+      ),
+    ).toEqual([]);
   });
 
   it("TBL-5 the check reads the user's tables too, not only the admin's (INC-630)", () => {

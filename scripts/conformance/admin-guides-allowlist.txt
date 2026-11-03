@@ -1,0 +1,17 @@
+# P-1c (D313), CF-GUIDE-1: an admin table without its Guide (scripts/conformance/admin-guides.ts; DataTable's `guide` prop, src/components/shell/block-guide.tsx). <file> | <reason> | <until>
+src/features/admin-ai/ai-calls.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-ai/ai-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-attributes/attributes-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-categories/categories-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-countries/countries-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-listings/listings-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-locations/locations-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-screening/name-checks.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin-screening/screening-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/audit/audit-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/impersonation/impersonation-view.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/roles/roles-list.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/translations/data-scope.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/translations/languages-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/translations/strings-page.tsx | guide owed in turn (b) | 2026-11-10
+src/features/admin/users/users-list.tsx | guide owed in turn (b) | 2026-11-10

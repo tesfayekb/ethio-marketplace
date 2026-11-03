@@ -105,3 +105,5 @@ src/features/admin-packages/price-create-dialog.tsx
 src/features/admin-packages/price-end-dialog.tsx
 src/features/admin-packages/use-packages-error.ts
 src/features/admin-packages/use-packages.ts
+src/features/admin-monetisation/prices-section.tsx
+src/features/admin-monetisation/overrides-section.tsx

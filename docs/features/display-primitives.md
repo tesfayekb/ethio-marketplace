@@ -395,6 +395,13 @@ categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.
   may be confusing … place it back in the box it belongs". Every table with an
   expansion follows (Attributes' options, Strings' and Data scope's editors,
   Audit's detail). Test: HS-25.
+  **It mounts in the drawn twin only** (P-1c, D313; `use-drawn-twin.ts`): the
+  hook reads both twins' computed `display` (a ResizeObserver tells it when the
+  breakpoint, or the rail for `tbl-md`, flips one hidden) and the expansion is
+  built for the shown one — for both while neither is known hidden (the first
+  paint; a unit render without the stylesheet). A product's inner tables carry
+  an `id` and their own controls; the hidden copy answered `getElementById`
+  first and doubled every test id. Test: HS-28.
 - **A panel's primary waits for a change (D133).** `ToolbarPanel` takes `state` (the
   panel's choices as one string), keeps the string it opened with, and hands
   `footer` a `changed` flag that is true only while the two differ — a choice
@@ -432,6 +439,8 @@ Every admin table is built on the blocks above. One rule per element; `scripts/a
 - **T6 — the footer:** `DataTablePagination` — the range, rows per page and the pages — with the page size kept in this browser by one hook, `useKeptPage`. A table whose door pages differently names its own sizes (`useKeptPage(key, default, sizes)`; Screening: 25, 50, 100). No page keeps its size its own way.
 - **T7 — cards:** below its breakpoint a table is one card per row; one column is the card's title (`card: "title"`), the others take the card's places (sub, meta, badge, foot).
 - **T8 — tick-boxes:** only where a bulk action acts on the ticked rows (`selection` with `selectionActions`; D128 — today Screening and All listings).
+- **T9 — Open in the menu:** a row that opens its own page (`rowHref`) and carries a three-dots menu offers Open in it (`key: "open"`; D142, turn C4).
+- **T10 — the Guide (D313, turn P-1c):** an admin block's `DataTable` carries `guide={{ prefix, next }}` — the control on its toolbar, the sheet of four parts, the keys CF-GUIDE-1 judges (`docs/features/admin-guide.md`). A seller's table (My listings) is not an admin block and is not asked; a table whose Guide a later turn owes sits in CF-GUIDE-1's allowlist (`scripts/conformance/admin-guides-allowlist.txt`), the one place, which `check(sources, guideOwed)` reads (TBL-6). A block drawn under a page's own h1 passes `TableActions level="h2"`, so the page keeps one h1.
 
 **Every table, not only the admin's (bundle 16 turn R1, INC-630).** The check read the admin's folders alone, so the first table a user sees — My listings — was built without the toolbar, Columns or the row's actions and nothing refused it. It now reads every file under src/features that draws a `DataTable` (TBL-5; on the tree before the turn it refused My listings under T1, T2, T3 and T5). Two `DataTable` options came with it, each off unless asked: `cardLeadKind: "picture"` draws a card's lead as the row's own picture, 80 px and untinted, instead of the 36 px icon tile (a seller's ad and its photo); `selectionFrom: "md"` keeps the cards' tick-boxes from tablet width up, so a phone acts one row at a time (HS-26, HS-27).
 

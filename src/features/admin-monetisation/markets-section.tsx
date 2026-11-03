@@ -18,6 +18,7 @@ import { dateFormatter } from "@/lib/format";
 
 import { MarketDialog } from "./market-dialog";
 import { attributionColumns } from "./monetisation-columns";
+import { MONETISATION_ANCHORS } from "./monetisation-order";
 import { OnOff } from "./on-off";
 import type { MarketRow, ProductRow } from "./monetisation-service";
 import { useMonetisationNames } from "./use-monetisation-names";
@@ -142,6 +143,7 @@ export function MarketsSection({
         <TableActions
           testid="monetisation-markets-header"
           title={t("admin.monetisation.markets.title")}
+          level="h2"
         >
           {mayUpdate ? (
             <TableActionButton
@@ -161,6 +163,11 @@ export function MarketsSection({
           rowTestId={idOf}
           caption={t("admin.monetisation.markets.title")}
           cardUntil="lg"
+          guide={{
+            prefix: "admin.monetisation.markets",
+            anchor: MONETISATION_ANCHORS.markets,
+            next: { section: "monetisation", block: MONETISATION_ANCHORS.level },
+          }}
           loading={loading}
           loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
           error={error}

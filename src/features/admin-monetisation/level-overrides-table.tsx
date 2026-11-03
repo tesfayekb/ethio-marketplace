@@ -18,18 +18,20 @@ import { dateFormatter } from "@/lib/format";
 
 import { attributionColumns } from "./monetisation-columns";
 import { PLACEMENT_LABEL } from "./monetisation-forms";
+import { productAnchor } from "./monetisation-order";
 import type { OverrideRow, ProductRow } from "./monetisation-service";
 import { OverrideDialog } from "./override-dialog";
 import { useMonetisationNames } from "./use-monetisation-names";
 
 /**
- * P-1b (D295) — PER-CATEGORY PERKS: a level's row per main category and
- * country, each cell a perk the row sets (days, photos, placement, badge); a
- * blank cell is the level's own value, a subcategory inherits its main
- * category's row. Verbs: Add override (header), Edit, Clear (red) on the row.
- * The level's own values are the Levels table's, never a row here.
+ * P-1c (D313; P-1b's D295 rows) — ONE LEVEL'S PER-CATEGORY PERKS, inside the
+ * level's expanded row: a row per main category and country, each cell a perk
+ * the row sets (days, photos, placement, badge); a blank cell is the level's
+ * own value, a subcategory inherits its main category's row. Verbs: Add
+ * override (the level fixed), Edit, Clear (red). Frame id
+ * `product-<key>-perks` (the Guides' and the strip's landing).
  */
-const LOCKED = ["level"];
+const LOCKED = ["category"];
 
 type Dialog =
   | { kind: "none" }
@@ -37,19 +39,18 @@ type Dialog =
   | { kind: "edit"; id: string; openedBy: string }
   | { kind: "clear"; id: string; openedBy: string };
 
-export function OverridesSection({
+export function LevelOverridesTable({
+  level,
   rows,
   products,
-  loading,
-  error,
   mayUpdate,
   settling,
   guard,
 }: {
+  level: ProductRow;
+  /** This level's rows only (the page filters the one read). */
   rows: OverrideRow[];
   products: ProductRow[];
-  loading: boolean;
-  error: unknown;
   mayUpdate: boolean;
   settling: boolean;
   guard: GuardFn;
@@ -58,6 +59,7 @@ export function OverridesSection({
   const { marketName, categoryName, productName } = useMonetisationNames(products);
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const date = dateFormatter("day", language);
+  const anchor = productAnchor(level.key, "perks");
   const idOf = (row: OverrideRow) => `override-${row.id}`;
   const chosen =
     dialog.kind === "edit" || dialog.kind === "clear"
@@ -66,23 +68,12 @@ export function OverridesSection({
 
   const columns: DataTableColumn<OverrideRow>[] = [
     {
-      key: "level",
-      header: t("admin.monetisation.col.level"),
-      priority: "primary",
-      card: "title",
-      cell: (row) => (
-        <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-level`}>
-          {productName(row.levelKey)}
-        </span>
-      ),
-    },
-    {
       key: "category",
       header: t("admin.monetisation.col.category"),
       priority: "primary",
-      card: "sub",
+      card: "title",
       cell: (row) => (
-        <span className="min-w-0 break-words text-sm" data-testid={`${idOf(row)}-category`}>
+        <span className="min-w-0 break-words font-medium" data-testid={`${idOf(row)}-category`}>
           {categoryName(row.categoryId, "mainCategoryAny")}
         </span>
       ),
@@ -147,23 +138,24 @@ export function OverridesSection({
     ...attributionColumns<OverrideRow>(t, (iso) => date.format(new Date(iso)), idOf),
   ];
 
-  const [hidden, toggleColumn] = useHiddenColumns("admin-monetisation-overrides");
+  const [hidden, toggleColumn] = useHiddenColumns("admin-monetisation-level-overrides");
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
-    "ethio.admin.monetisation.overrides.pageSize",
+    "ethio.admin.monetisation.levelOverrides.pageSize",
   );
   const shown = visibleColumns(columns, hidden, LOCKED);
 
   return (
     <>
-      <section data-testid="monetisation-overrides" className="min-w-0 space-y-3">
+      <section data-testid={anchor} className="min-w-0 space-y-3">
         <TableActions
-          testid="monetisation-overrides-header"
+          testid={`${anchor}-header`}
           title={t("admin.monetisation.overrides.title")}
+          level="h2"
         >
           {mayUpdate ? (
             <TableActionButton
               variant="default"
-              data-testid="monetisation-override-add"
+              data-testid={`product-${level.key}-override-add`}
               disabled={settling}
               onClick={() => setDialog({ kind: "create", openedBy: "header" })}
               icon={<Plus />}
@@ -171,9 +163,6 @@ export function OverridesSection({
             />
           ) : null}
         </TableActions>
-        <p className="text-sm text-muted-foreground" data-testid="monetisation-overrides-help">
-          {t("admin.monetisation.help.overrides")}
-        </p>
         <DataTable<OverrideRow>
           columns={shown}
           rows={rows}
@@ -181,25 +170,22 @@ export function OverridesSection({
           rowTestId={idOf}
           caption={t("admin.monetisation.overrides.title")}
           cardUntil="lg"
-          loading={loading}
-          loadingState={<p className="text-sm">{t("admin.monetisation.loading")}</p>}
-          error={error}
-          errorState={
-            <p role="alert" className="text-sm text-destructive">
-              {t("admin.monetisation.error")}
-            </p>
-          }
+          guide={{
+            prefix: "admin.monetisation.levelOverrides",
+            anchor,
+            next: { section: "monetisation", block: productAnchor(level.key, "prices") },
+          }}
           emptyState={
-            <p className="text-sm text-muted-foreground" data-testid="monetisation-overrides-empty">
+            <p className="text-sm text-muted-foreground" data-testid={`${anchor}-empty`}>
               {t("admin.monetisation.empty.overrides")}
             </p>
           }
           toolbar={
             <TableToolbar
-              testid="monetisation-overrides-toolbar"
+              testid={`${anchor}-toolbar`}
               columns={
                 <ColumnsButton
-                  testid="monetisation-overrides-columns"
+                  testid={`${anchor}-columns`}
                   columns={columns.map((column) => ({
                     key: column.key,
                     label: String(column.header),
@@ -238,7 +224,7 @@ export function OverridesSection({
           pageSize={pageSize}
           pagination={
             <DataTablePagination
-              testid="monetisation-overrides-pagination"
+              testid={`${anchor}-pagination`}
               offset={page * pageSize}
               pageSize={pageSize}
               total={rows.length}
@@ -256,6 +242,7 @@ export function OverridesSection({
           mode="create"
           row={null}
           products={products}
+          fixedLevel={level.key}
           guard={guard}
           openedBy={dialog.openedBy}
           onClose={() => setDialog({ kind: "none" })}
@@ -267,6 +254,7 @@ export function OverridesSection({
           mode={dialog.kind}
           row={chosen}
           products={products}
+          fixedLevel={level.key}
           guard={guard}
           openedBy={dialog.openedBy}
           onClose={() => setDialog({ kind: "none" })}
@@ -275,3 +263,5 @@ export function OverridesSection({
     </>
   );
 }
+
+export default LevelOverridesTable;
