@@ -1,6 +1,6 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 660,
+  "scanned": 659,
   "dynamicCallSites": 432,
   "keys": {
     "account.deactivatedBanner": [
@@ -2477,6 +2477,9 @@
     "admin.coverage.col.updated": [
       "/admin/monetisation"
     ],
+    "admin.coverage.empty": [
+      "/admin/monetisation"
+    ],
     "admin.coverage.error.reason": [
       "/admin/monetisation"
     ],
@@ -3483,6 +3486,9 @@
     "admin.monetisation.caps.edit": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.caps.title": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.caps.untilP2": [
       "/admin/monetisation"
     ],
@@ -3549,6 +3555,15 @@
     "admin.monetisation.defaultMarket": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.empty.markets": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.empty.overrides": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.empty.prices": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.error": [
       "/admin/monetisation"
     ],
@@ -3567,6 +3582,9 @@
     "admin.monetisation.market.edit": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.markets.title": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.override.add": [
       "/admin/monetisation"
     ],
@@ -3576,6 +3594,9 @@
     "admin.monetisation.override.edit": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.overrides.title": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.price.add": [
       "/admin/monetisation"
     ],
@@ -3583,6 +3604,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.price.end": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.prices.title": [
       "/admin/monetisation"
     ],
     "admin.monetisation.product.add": [
