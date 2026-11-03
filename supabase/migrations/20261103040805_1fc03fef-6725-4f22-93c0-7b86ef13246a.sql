@@ -631,7 +631,7 @@ BEGIN
                         'amr', json_build_array(json_build_object('method', 'totp')))::text, true);
     DELETE FROM public.package_prices WHERE id = v_price;
     DELETE FROM public.listing_packages WHERE key IN (v_lv, v_rc);
-    v_answer := public.admin_save_listing_package(v_lv, 'level', ' E2E level ', 60, true, true, true, 'e2e am', 5, 'boost', false, 99);
+    v_answer := public.admin_save_listing_package(v_lv, 'level', ' E2E level ', 60, true, true, true, 'e2e am', 5::smallint, 'boost', false, 99);
     IF v_answer IS DISTINCT FROM jsonb_build_object('ok', true, 'key', v_lv, 'created', true)
        OR NOT EXISTS (SELECT 1 FROM public.listing_packages
                        WHERE key = v_lv AND kind = 'level' AND name_en = 'E2E level' AND name_am = 'e2e am' AND days = 60
@@ -670,7 +670,7 @@ BEGIN
     END IF;
     -- an override saved, saved again on the same scope, read by the resolver, cleared.
     v_o1 := (public.admin_save_level_override(v_lv, v_root, v_code, 12)->>'id')::uuid;
-    v_answer := public.admin_save_level_override(v_lv, v_root, v_code, 11, 3);
+    v_answer := public.admin_save_level_override(v_lv, v_root, v_code, 11, 3::smallint);
     v_o2 := (v_answer->>'id')::uuid;
     IF v_o2 <> v_o1 OR (v_answer->>'created')::boolean
        OR (SELECT count(*) FROM public.level_overrides WHERE level_key = v_lv) <> 1
@@ -700,20 +700,20 @@ BEGIN
       v_msg := NULL;
       BEGIN
         CASE v_case
-          WHEN 'bad key' THEN PERFORM public.admin_save_listing_package('1_bad', 'level', 'x', 7, true, true, true, NULL, 1, 'top');
+          WHEN 'bad key' THEN PERFORM public.admin_save_listing_package('1_bad', 'level', 'x', 7, true, true, true, NULL, 1::smallint, 'top');
           WHEN 'unknown kind' THEN PERFORM public.admin_save_listing_package(v_lv, 'bundle', 'x', 7, true, true, true);
           WHEN 'kind change' THEN PERFORM public.admin_save_listing_package(v_lv, 'reach', 'x', 7, true, true, false);
           WHEN 'bad name' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', '  ', 7, true, true, true);
           WHEN 'bad days' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 0, true, true, true);
-          WHEN 'bad photos' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 7, true, true, true, NULL, 31);
-          WHEN 'unknown placement' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 7, true, true, true, NULL, 1, 'side');
-          WHEN 'perks on reach' THEN PERFORM public.admin_save_listing_package(v_rc, 'reach', 'x', 7, true, true, false, NULL, 1);
+          WHEN 'bad photos' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 7, true, true, true, NULL, 31::smallint);
+          WHEN 'unknown placement' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 7, true, true, true, NULL, 1::smallint, 'side');
+          WHEN 'perks on reach' THEN PERFORM public.admin_save_listing_package(v_rc, 'reach', 'x', 7, true, true, false, NULL, 1::smallint);
           WHEN 'unknown level' THEN PERFORM public.admin_save_level_override(v_rc, NULL, NULL, 5);
           WHEN 'not a main category' THEN PERFORM public.admin_save_level_override(v_lv, v_leaf, NULL, 5);
           -- 'XQ' is no market: a scratch code the countries table never holds (K4 exception, as 'XZ').
           WHEN 'unknown country' THEN PERFORM public.admin_save_level_override(v_lv, NULL, 'XQ', 5);
           WHEN 'ov bad days' THEN PERFORM public.admin_save_level_override(v_lv, v_root, NULL, 0);
-          WHEN 'ov bad photos' THEN PERFORM public.admin_save_level_override(v_lv, v_root, NULL, NULL, 31);
+          WHEN 'ov bad photos' THEN PERFORM public.admin_save_level_override(v_lv, v_root, NULL, NULL, 31::smallint);
           WHEN 'ov unknown placement' THEN PERFORM public.admin_save_level_override(v_lv, v_root, NULL, NULL, NULL, 'side');
           WHEN 'empty override' THEN PERFORM public.admin_save_level_override(v_lv, v_root, NULL);
           WHEN 'not found' THEN PERFORM public.admin_clear_level_override(gen_random_uuid());
