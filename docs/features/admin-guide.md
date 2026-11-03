@@ -11,8 +11,9 @@
 
 - **`src/components/shell/block-guide.tsx`** — `BlockGuide({ spec, title, columns })`:
   the control (`TableActionButton`, `BookOpen`, label `prim.guide.open`,
-  `max-md:sr-only`, `aria-haspopup="dialog"`, `aria-expanded`; testid
-  `<anchor>-guide`) and the `Sheet` (`side="end"`, testid `<anchor>-guide-sheet`,
+  `max-md:sr-only`, inside `SheetTrigger asChild` — the facade's trigger states
+  `aria-haspopup="dialog"` / `aria-expanded` and the sheet's close hands the
+  focus back to it; testid `<anchor>-guide`) and the `Sheet` (`side="end"`, testid `<anchor>-guide-sheet`,
   close `<anchor>-guide-close`, title = the table's caption). The sheet's body is
   on demand: `resilientLazy(() => import("./block-guide-sheet"), …, { inPlace: true })`
   under `Suspense`, inside `<StringsLayerGate layers={["guide"]}>` (the layer

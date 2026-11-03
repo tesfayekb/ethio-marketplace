@@ -14,6 +14,7 @@ import { BlockGuide, guideAnchor, type BlockGuideSpec } from "./block-guide";
 import { pageWindow } from "./page-window";
 import { RowActions, type RowActionsProps } from "./row-actions";
 import { TableToolbar } from "./table-toolbar";
+import { useDrawnTwin } from "./use-drawn-twin";
 
 /**
  * U1b/U1c — THE DATATABLE PRIMITIVE (shell law).
@@ -183,6 +184,10 @@ export interface DataTableProps<T> {
    * row's box: in the card, under the facts and above the footer, in the
    * name's column; in the table, the row and its expansion are one band (no
    * line between them, the expansion's cell starting at the row's bottom).
+   *
+   * P-1c (D313) — it mounts in the DRAWN twin only (use-drawn-twin.ts): an
+   * expansion may hold regions with an identity (a product's inner tables,
+   * their `id` and controls), and a hidden copy doubled them.
    */
   expandedRow?: (row: T) => ReactNode;
   /** Optional bulk-select support. */
@@ -496,6 +501,12 @@ export function DataTable<T>({
     !keyset && pageSize && pageSize > 0
       ? allRows.slice((page ?? 0) * pageSize, (page ?? 0) * pageSize + pageSize)
       : allRows;
+  // P-1c (D313) — a row's expansion mounts in the drawn twin only (use-drawn-twin.ts).
+  const { drawn, refs: twinRefs } = useDrawnTwin();
+  const expansionOf = (row: T, twin: "cards" | "table") =>
+    expandedRow === undefined || (drawn !== "both" && drawn !== twin)
+      ? undefined
+      : expandedRow(row);
   const cardsHiddenClass =
     cardUntil === "xl" ? "xl:hidden" : cardUntil === "lg" ? "lg:hidden" : "tbl-md:hidden";
   const tableShownClass =
@@ -685,6 +696,7 @@ export function DataTable<T>({
           footer with a note and Edit / Delete.
         */}
         <ul
+          ref={twinRefs.cards}
           data-testid="data-table-cards"
           aria-label={caption}
           className={cn(
@@ -701,7 +713,7 @@ export function DataTable<T>({
               ? splitRowActions(rowActions(row))
               : { top: null, foot: null };
             const lead = cardLead?.(row);
-            const expansion = expandedRow?.(row);
+            const expansion = expansionOf(row, "cards");
             const label = (column: DataTableColumn<T>) =>
               column.cardLabel !== false &&
               typeof column.header === "string" &&
@@ -874,6 +886,7 @@ export function DataTable<T>({
 
         {/* At `cardUntil`: a real table. overflow-x-auto is the last resort, never the plan. */}
         <div
+          ref={twinRefs.table}
           data-testid="data-table-scroller"
           className={cn("hidden min-w-0 max-w-full overflow-x-auto", tableShownClass)}
         >
@@ -950,7 +963,7 @@ export function DataTable<T>({
                 const go = () => {
                   if (href) void navigate(href as never);
                 };
-                const expansion = expandedRow?.(row);
+                const expansion = expansionOf(row, "table");
                 return (
                   <Fragment key={key}>
                     <tr

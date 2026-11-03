@@ -39,6 +39,34 @@ const HIDDEN_COLUMN = "since";
 /** The guide layer and the sheet's own code, however the server names them. */
 const GUIDE_CHUNK = /(?:en|am)-guide|block-guide-sheet/;
 
+/**
+ * A section's frame: `admin-section-<id>` (section-page.tsx and the pages that
+ * copy it), except two that draw their own — Audit's `admin-audit`
+ * (audit-page.tsx; admin-shell.spec.ts reads the same one) and Legal's
+ * `legal-page` (legal-admin.spec.ts) — a K2 finding of turn (a), not this
+ * spec's to change.
+ */
+const OWN_FRAMES = new Map([
+  ["audit", "admin-audit"],
+  ["legal", "legal-page"],
+]);
+function sectionFrame(id: string): string {
+  return OWN_FRAMES.get(id) ?? `admin-section-${id}`;
+}
+
+/** Monetisation's tables keep cards through `lg` (cardUntil, TBS-1): the twin this width draws. */
+const TWIN_BOUNDARY = 1024;
+function isCardTwin(page: Page) {
+  return (page.viewportSize()?.width ?? TWIN_BOUNDARY) < TWIN_BOUNDARY;
+}
+
+/** A product's name toggle on the drawn twin (the card's body, or the table row). */
+function productToggle(page: Page, key: string): Locator {
+  return page
+    .getByTestId(isCardTwin(page) ? `product-${key}-card` : `product-${key}`)
+    .getByTestId(`product-${key}-open`);
+}
+
 /** The first enabled level (a REAL row, read only): the product AG-1 opens. */
 async function firstLevel(): Promise<string> {
   const { data, error } = await adminClient()
@@ -95,7 +123,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
     for (const section of ADMIN_SECTIONS) {
       await gotoReady(page, section.path);
       await expect(
-        page.getByTestId(`admin-section-${section.id}`),
+        page.getByTestId(sectionFrame(section.id)),
         `${TAG} AG-1 ${section.path} did not draw`,
       ).toBeVisible({ timeout: 20000 });
       const toolbars = page.getByTestId("data-table-toolbar");
@@ -122,7 +150,7 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
     // Monetisation: four Guides on the page; a product's open row brings its two inner tables' Guides.
     await openConsole(page);
     await expect(guideControls(page)).toHaveCount(4);
-    const level = page.getByTestId(`product-${await firstLevel()}-open`);
+    const level = productToggle(page, await firstLevel());
     await level.click();
     await expect(level).toHaveAttribute("aria-expanded", "true");
     await expect(guideControls(page)).toHaveCount(6);

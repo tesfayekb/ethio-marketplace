@@ -2,7 +2,7 @@ import { BookOpen } from "lucide-react";
 import { Suspense, useRef, useState, type ReactNode } from "react";
 
 import { Spinner } from "@/components/brand/spinner";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { GuideNext } from "@/features/admin/guide-next";
 import { useI18n } from "@/i18n";
 import { resilientLazy } from "@/lib/resilient-lazy";
@@ -16,7 +16,8 @@ import { TableActionButton } from "./table-actions";
  *
  * Every admin table (DataTable's `guide` prop) carries one Guide control at the
  * end of its toolbar: a tile with the book, its word "Guide" from md and for
- * screen readers below it (`prim.guide.open`), `aria-haspopup="dialog"`. It
+ * screen readers below it (`prim.guide.open`), the sheet's trigger (asChild:
+ * `aria-haspopup="dialog"`, `aria-expanded`, and the focus back on close). It
  * opens a side sheet (the dialog surface, DEC-260's facade) whose four parts
  * never vary — What this is · Each column · How to add, change or remove ·
  * What to do next, with ONE link — and whose texts are the block's own keys
@@ -83,14 +84,12 @@ export function BlockGuide({
   const label = t("prim.guide.open");
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <TableActionButton
-        icon={<BookOpen />}
-        label={label}
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        data-testid={`${anchor}-guide`}
-        onClick={() => setOpen(true)}
-      />
+      {/* The facade's trigger (asChild, DEC-260): it states the dialog's
+          aria-haspopup / aria-expanded / aria-controls and the sheet's close
+          hands the focus back to it (AG-4) — a bare onClick gave neither. */}
+      <SheetTrigger asChild>
+        <TableActionButton icon={<BookOpen />} label={label} data-testid={`${anchor}-guide`} />
+      </SheetTrigger>
       <SheetContent
         side="end"
         data-testid={`${anchor}-guide-sheet`}

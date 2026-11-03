@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { DataTable, DataTablePagination, type DataTableColumn } from "./data-table";
@@ -561,5 +561,41 @@ describe("DataTable V2 card and frame (D132)", () => {
     unmount();
     renderPlaces({ selection, selectionActions: <button type="button">Bulk</button> });
     expect(screen.getByTestId("place-p1-select").className).not.toContain("max-md:hidden");
+  });
+
+  it("HS-28 a row's expansion mounts in the drawn twin only: both while neither is known hidden, then the one the stylesheet shows (P-1c, D313)", () => {
+    // A ResizeObserver whose callback the test fires, as a breakpoint flip would.
+    const callbacks: Array<() => void> = [];
+    const Real = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = class {
+      constructor(callback: () => void) {
+        callbacks.push(callback);
+      }
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    } as unknown as typeof ResizeObserver;
+    try {
+      renderPlaces({
+        expandedRow: (r) => (r.id === "p1" ? <p data-testid={`opts-${r.id}`}>Options</p> : null),
+      });
+      // Without the stylesheet neither twin is hidden: both carry the expansion.
+      expect(screen.getAllByTestId("place-p1-expanded")).toHaveLength(2);
+      // The cards twin hidden (from cardUntil up): the table's copy alone remains.
+      screen.getByTestId("data-table-cards").style.display = "none";
+      act(() => callbacks.forEach((callback) => callback()));
+      const table = screen.getAllByTestId("place-p1-expanded");
+      expect(table).toHaveLength(1);
+      expect(table[0]?.tagName).toBe("TD");
+      // The table twin hidden instead (a phone): the card's copy alone.
+      screen.getByTestId("data-table-cards").style.display = "";
+      screen.getByTestId("data-table-scroller").style.display = "none";
+      act(() => callbacks.forEach((callback) => callback()));
+      const cards = screen.getAllByTestId("place-p1-expanded");
+      expect(cards).toHaveLength(1);
+      expect(cards[0]?.tagName).toBe("DIV");
+    } finally {
+      globalThis.ResizeObserver = Real;
+    }
   });
 });

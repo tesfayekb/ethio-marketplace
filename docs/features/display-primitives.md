@@ -395,6 +395,13 @@ categories". Test: HS-21 in `src/components/shell/data-table.test.tsx`.
   may be confusing … place it back in the box it belongs". Every table with an
   expansion follows (Attributes' options, Strings' and Data scope's editors,
   Audit's detail). Test: HS-25.
+  **It mounts in the drawn twin only** (P-1c, D313; `use-drawn-twin.ts`): the
+  hook reads both twins' computed `display` (a ResizeObserver tells it when the
+  breakpoint, or the rail for `tbl-md`, flips one hidden) and the expansion is
+  built for the shown one — for both while neither is known hidden (the first
+  paint; a unit render without the stylesheet). A product's inner tables carry
+  an `id` and their own controls; the hidden copy answered `getElementById`
+  first and doubled every test id. Test: HS-28.
 - **A panel's primary waits for a change (D133).** `ToolbarPanel` takes `state` (the
   panel's choices as one string), keeps the string it opened with, and hands
   `footer` a `changed` flag that is true only while the two differ — a choice
