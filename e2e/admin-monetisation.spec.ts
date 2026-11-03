@@ -52,6 +52,8 @@ import { adminClient, leaseUser } from "./helpers/users";
 
 const TWIN_BOUNDARY = 1024;
 const SCRATCH_PREFIX = "e2e_mon_";
+/** A plan name holds no digit: the plans' own letters-only prefix. */
+const PLAN_PREFIX = "e_probe_mon_";
 const TAG = "[e2e:mon]";
 
 function isCardTwin(page: Page) {
@@ -147,6 +149,24 @@ function scratchKey(tag: string, project: string): string {
   const worker = clean(process.env["TEST_WORKER_INDEX"] ?? "0");
   const twin = clean(project).slice(0, 1) || "x";
   return `${SCRATCH_PREFIX}${tag}_${run}_${worker}_${twin}`.replace(/_+$/, "").slice(0, 32);
+}
+
+/**
+ * A plan's name is LETTERS ONLY (`^[a-z_]{2,32}$`): every axis is spelled out,
+ * digits as letters, so each twin and worker keeps its own scratch plan.
+ */
+function scratchPlan(tag: string, project: string): string {
+  const letters = (value: string) =>
+    value
+      .toLowerCase()
+      .split("")
+      .map((char) => (/[0-9]/.test(char) ? "abcdefghij"[Number(char)] : char))
+      .filter((char) => /[a-z]/.test(char))
+      .join("");
+  const run = letters(process.env["E2E_SHARD"] ?? "local");
+  const worker = letters(process.env["TEST_WORKER_INDEX"] ?? "0");
+  const twin = letters(project).slice(0, 1) || "x";
+  return `${PLAN_PREFIX}${tag}_${run}_${worker}_${twin}`.slice(0, 32);
 }
 
 function token(): string {
@@ -263,7 +283,7 @@ async function destroyScoped(column: "country_code" | "category_id", value: stri
 }
 
 async function destroyPlan(plan: string) {
-  if (!plan.startsWith(SCRATCH_PREFIX)) throw new Error(`${TAG} refusing to delete ${plan}`);
+  if (!plan.startsWith(PLAN_PREFIX)) throw new Error(`${TAG} refusing to delete ${plan}`);
   const { error } = await adminClient().from("coverage_plans").delete().eq("plan", plan);
   if (error) throw new Error(`${TAG} plan reap failed: ${error.message}`);
 }
@@ -1386,7 +1406,7 @@ test.describe("P-1b Admin › Monetisation", () => {
     page,
   }, testInfo) => {
     const { secret } = await useJobSuperAdmin(page);
-    const plan = scratchKey("caps", testInfo.project.name);
+    const plan = scratchPlan("caps", testInfo.project.name);
     await seedPlan(plan);
     await openConsole(page);
     const caps = block(page, "caps");
