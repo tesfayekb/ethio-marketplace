@@ -1959,6 +1959,7 @@ export const enAdmin = {
   "admin.monetisation.error.unknownLevel": "Unknown level.",
   "admin.monetisation.error.notMainCategory": "Pick a main category.",
   "admin.monetisation.error.emptyOverride": "Set at least one value.",
+  "admin.monetisation.error.overrideNotFound": "That override no longer exists.",
   "admin.monetisation.error.badCreditCost": "Credit cost is a whole number, 0 or more.",
   "admin.monetisation.error.priceInUse": "This price has been used; end it and add a new one.",
   "admin.monetisation.error.unknownReach": "Unknown reach product.",

@@ -96,8 +96,8 @@ without the permission) — the console's ONE read.
 
 Every refusal is a RAISE the console names by key (`monetisationErrorKey`,
 `admin.packages.error.*` and `admin.monetisation.error.*`; MNS-6 reads the three
-migrations and proves every message but `not found` has a key — `not found`
-falls to the fallback until the supervisor hands its Amharic). A refused attempt
+migrations and proves every message has a key — the cleared override's `not found`
+is `admin.monetisation.error.overrideNotFound`, records turn R11). A refused attempt
 leaves no trace (MON-2, MON-12).
 
 ## The console — Admin › Monetisation (`/admin/monetisation`)

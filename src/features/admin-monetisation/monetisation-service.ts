@@ -339,6 +339,7 @@ const DOOR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   "not a main category": "admin.monetisation.error.notMainCategory",
   "unknown country": "admin.packages.error.unknownCountry",
   "empty override": "admin.monetisation.error.emptyOverride",
+  "not found": "admin.monetisation.error.overrideNotFound",
   // admin_save_package_price / admin_edit_package_price / admin_end_package_price
   "unknown package": "admin.packages.error.unknownPackage",
   "bad amount": "admin.packages.error.badAmount",

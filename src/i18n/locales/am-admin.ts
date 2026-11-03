@@ -1864,6 +1864,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.monetisation.error.unknownLevel": "ያልታወቀ ደረጃ።",
   "admin.monetisation.error.notMainCategory": "ዋና ምድብ ይምረጡ።",
   "admin.monetisation.error.emptyOverride": "ቢያንስ አንድ እሴት ያስቀምጡ።",
+  "admin.monetisation.error.overrideNotFound": "ያ የምድብ ጥቅም ከእንግዲህ የለም።",
   "admin.monetisation.error.badCreditCost": "የክሬዲት ዋጋ 0 ወይም ከዚያ በላይ የሆነ ሙሉ ቁጥር ነው።",
   "admin.monetisation.error.priceInUse": "ይህ ዋጋ ጥቅም ላይ ውሏል፤ ያብቁትና አዲስ ይጨምሩ።",
   "admin.monetisation.error.unknownReach": "ያልታወቀ የተደራሽነት ምርት።",
