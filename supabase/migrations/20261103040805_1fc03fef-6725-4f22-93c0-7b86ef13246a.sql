@@ -72,13 +72,13 @@ ALTER TABLE public.package_prices
   FOREIGN KEY (package_key) REFERENCES public.listing_packages(key) ON UPDATE CASCADE;
 UPDATE public.listing_packages SET key = 'featured' WHERE key = 'featured_45';
 UPDATE public.listing_packages SET key = 'premium' WHERE key = 'premium_60';
+ALTER TABLE public.listing_packages DROP COLUMN tier, DROP COLUMN label_key;
 
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
 VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
 ON CONFLICT (key) DO NOTHING;
 
-ALTER TABLE public.listing_packages DROP COLUMN tier, DROP COLUMN label_key;
 ALTER TABLE public.listing_packages
   ALTER COLUMN name_en SET NOT NULL,
   ADD CONSTRAINT listing_packages_perks_by_kind_check CHECK (
@@ -236,6 +236,10 @@ BEGIN
   END IF;
 
   SELECT * INTO v_old FROM public.listing_packages WHERE key = p_key FOR UPDATE;
+  -- A product's kind never changes once the row exists (ruling 2).
+  IF v_old.key IS NOT NULL AND v_old.kind <> p_kind THEN
+    RAISE EXCEPTION 'kind change';
+  END IF;
   -- A NULL Amharic name keeps the stored one; a blank clears it.
   v_am := CASE WHEN p_name_am IS NULL THEN v_old.name_am ELSE nullif(btrim(p_name_am), '') END;
   IF p_kind = 'level' THEN
@@ -690,7 +694,7 @@ BEGIN
     v_o3 := (public.admin_save_level_override(v_lv, NULL, v_code, NULL, NULL, NULL, true)->>'id')::uuid;
 
     -- (e) each refusal with its own words; nothing written after them.
-    FOR v_case IN VALUES ('bad key'), ('unknown kind'), ('bad name'), ('bad days'), ('bad photos'), ('unknown placement'),
+    FOR v_case IN VALUES ('bad key'), ('unknown kind'), ('kind change'), ('bad name'), ('bad days'), ('bad photos'), ('unknown placement'),
                          ('perks on reach'), ('unknown level'), ('not a main category'), ('unknown country'),
                          ('ov bad days'), ('ov bad photos'), ('ov unknown placement'), ('empty override'), ('not found') LOOP
       v_msg := NULL;
@@ -698,6 +702,7 @@ BEGIN
         CASE v_case
           WHEN 'bad key' THEN PERFORM public.admin_save_listing_package('1_bad', 'level', 'x', 7, true, true, true, NULL, 1, 'top');
           WHEN 'unknown kind' THEN PERFORM public.admin_save_listing_package(v_lv, 'bundle', 'x', 7, true, true, true);
+          WHEN 'kind change' THEN PERFORM public.admin_save_listing_package(v_lv, 'reach', 'x', 7, true, true, false);
           WHEN 'bad name' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', '  ', 7, true, true, true);
           WHEN 'bad days' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 0, true, true, true);
           WHEN 'bad photos' THEN PERFORM public.admin_save_listing_package(v_lv, 'level', 'x', 7, true, true, true, NULL, 31);
@@ -758,6 +763,9 @@ BEGIN
     IF v_n <> 1 THEN RAISE EXCEPTION 'P-1b M-a proof (e-h): override rows % expected 1', v_n; END IF;
     SELECT days INTO v_n FROM public.listing_packages WHERE key = v_lv;
     IF v_n IS DISTINCT FROM 60 THEN RAISE EXCEPTION 'P-1b M-a proof (e-h): days % expected 60', v_n; END IF;
+    IF (SELECT kind FROM public.listing_packages WHERE key = v_lv) IS DISTINCT FROM 'level' THEN
+      RAISE EXCEPTION 'P-1b M-a proof (e-h): the scratch level''s kind changed';
+    END IF;
     SELECT count(*) INTO v_n FROM public.audit_log WHERE action = 'package.saved' AND entity_id IN (v_lv, v_rc);
     IF v_n <> 4 THEN RAISE EXCEPTION 'P-1b M-a proof (e-h): package.saved rows % expected 4', v_n; END IF;
     SELECT count(*) INTO v_n FROM public.audit_log WHERE action LIKE 'level_override.%' AND entity_id IN (v_o1::text, v_o3::text);
