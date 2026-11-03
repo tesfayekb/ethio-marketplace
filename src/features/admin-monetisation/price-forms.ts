@@ -1,4 +1,3 @@
-import { wholeNumber } from "@/features/admin-coverage/coverage-forms";
 import {
   childrenOf,
   rootsOf,
@@ -7,106 +6,25 @@ import {
 } from "@/features/categories/category-tree";
 import type { MessageKey } from "@/i18n";
 
-import {
-  PACKAGE_KEY_PATTERN,
-  PACKAGE_LABEL_KEY_PATTERN,
-  isPackageTier,
-  type PackageRow,
-  type SavePackageInput,
-  type SavePriceInput,
-} from "./packages-service";
+import { wholeNumber } from "./monetisation-forms";
+import type { PriceRow, SavePriceInput } from "./monetisation-service";
 
 /**
- * P-1 — the packages forms' judges: the doors' own rules mirrored so a surface
- * refuses before the round trip (the door remains the authority, F3), every
- * number read through the plans console's typed parse (ruling 1 answer 10: a
- * blank or non-numeric field is a refusal, never 0).
+ * P-1b — the price form's judge (Add and Edit share it), the day boundaries
+ * the door reads, and the category tree flattened for a select. The amount
+ * is typed and sent as data: nothing here computes a price (CF-PRICE-1).
  */
 
-/* ------------------------------- the package ------------------------------ */
-
-export interface PackageFormValues {
-  key: string;
-  tier: string;
-  days: string;
-  enabled: boolean;
-  selfServe: boolean;
-  extendsLifetime: boolean;
-  labelKey: string;
-  /** Digits only (the field filters its input); blank keeps the stored order. */
-  sort: string;
-}
-
-export const NEW_PACKAGE_FORM: PackageFormValues = {
-  key: "",
-  tier: "featured",
-  days: "",
-  enabled: true,
-  selfServe: true,
-  extendsLifetime: true,
-  labelKey: "",
-  sort: "",
-};
-
-/** The form as a stored row shows it (the editor's opening values). */
-export function packageFormOf(row: PackageRow): PackageFormValues {
-  return {
-    key: row.key,
-    tier: row.tier,
-    days: String(row.days),
-    enabled: row.enabled,
-    selfServe: row.selfServe,
-    extendsLifetime: row.extendsLifetime,
-    labelKey: row.labelKey ?? "",
-    sort: String(row.sort),
-  };
-}
-
-/** Ruling 1 (6) — the label key proposed for a new package until it is typed. */
-export function defaultPackageLabelKey(key: string): string {
-  return `package.${key.trim()}`;
-}
-
-export type PackageFormOutcome =
-  | { ok: true; input: SavePackageInput }
-  | { ok: false; key: MessageKey };
-
-export function packageFormInput(values: PackageFormValues): PackageFormOutcome {
-  const key = values.key.trim();
-  if (!PACKAGE_KEY_PATTERN.test(key)) return { ok: false, key: "admin.packages.error.badKey" };
-  if (!isPackageTier(values.tier)) return { ok: false, key: "admin.packages.error.unknownTier" };
-  const days = wholeNumber(values.days);
-  if (days === null || days < 1) return { ok: false, key: "admin.packages.error.badDays" };
-  const label = values.labelKey.trim();
-  if (!PACKAGE_LABEL_KEY_PATTERN.test(label)) {
-    return { ok: false, key: "admin.packages.error.badLabelKey" };
-  }
-  // The field admits digits only, so a non-blank sort is always a whole number.
-  const sort = values.sort.trim() === "" ? null : wholeNumber(values.sort);
-  return {
-    ok: true,
-    input: {
-      key,
-      tier: values.tier,
-      days,
-      enabled: values.enabled,
-      selfServe: values.selfServe,
-      extendsLifetime: values.extendsLifetime,
-      labelKey: label,
-      sort,
-    },
-  };
-}
-
-/* -------------------------------- the price ------------------------------- */
-
 export interface PriceFormValues {
+  /** The product, picked first; "" until picked. */
+  packageKey: string;
   /** "" = every market. */
   countryCode: string;
   /** "" = every category. */
   categoryId: string;
   amount: string;
   currency: string;
+  creditCost: string;
   /** A day (YYYY-MM-DD) or "" = now. */
   validFrom: string;
   /** A day (YYYY-MM-DD) or "" = open-ended. */
@@ -114,13 +32,45 @@ export interface PriceFormValues {
 }
 
 export const NEW_PRICE_FORM: PriceFormValues = {
+  packageKey: "",
   countryCode: "",
   categoryId: "",
   amount: "0",
   currency: "",
+  creditCost: "0",
   validFrom: "",
   validTo: "",
 };
+
+/** A day as the local clock spells an instant (the editor's opening values). */
+function dayOf(iso: string): string {
+  const date = new Date(iso);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/**
+ * The form as a stored row shows it. The end instant is the start of the day
+ * after the last day (`dayEnd`), so the field shows that last day.
+ */
+export function priceFormOf(row: PriceRow): PriceFormValues {
+  let validTo = "";
+  if (row.validTo !== null) {
+    const lastDay = new Date(row.validTo);
+    lastDay.setDate(lastDay.getDate() - 1);
+    validTo = dayOf(lastDay.toISOString());
+  }
+  return {
+    packageKey: row.packageKey,
+    countryCode: row.countryCode ?? "",
+    categoryId: row.categoryId ?? "",
+    amount: String(row.amount),
+    currency: row.currency,
+    creditCost: String(row.creditCost),
+    validFrom: dayOf(row.validFrom),
+    validTo,
+  };
+}
 
 /** A money amount as typed: digits with up to two decimals; nothing else. */
 export const AMOUNT_PATTERN = /^\d{1,10}(\.\d{1,2})?$/;
@@ -145,31 +95,44 @@ export function dayEnd(day: string): string | null {
 
 export type PriceFormOutcome = { ok: true; input: SavePriceInput } | { ok: false; key: MessageKey };
 
+/**
+ * The judge. On an edit the stored start may lie in the past: `keptFromDay` is
+ * the row's own opening day; left on it, the start is not sent and the door
+ * keeps the stored instant (`coalesce(p_valid_from, old.valid_from)`).
+ */
 export function priceFormInput(
-  packageKey: string,
   values: PriceFormValues,
   today: string,
+  keptFromDay: string | null = null,
 ): PriceFormOutcome {
+  if (values.packageKey === "") return { ok: false, key: "admin.packages.error.unknownPackage" };
   const amount = values.amount.trim();
   if (!AMOUNT_PATTERN.test(amount)) return { ok: false, key: "admin.packages.error.badAmount" };
+  const creditCost = wholeNumber(values.creditCost);
+  if (creditCost === null || creditCost < 0) {
+    return { ok: false, key: "admin.monetisation.error.badCreditCost" };
+  }
   if (values.currency.trim() === "") {
     return { ok: false, key: "admin.packages.error.unknownCurrency" };
   }
-  const from = dayStart(values.validFrom, today);
+  const kept = keptFromDay !== null && values.validFrom === keptFromDay;
+  const from = kept ? null : dayStart(values.validFrom, today);
   const to = values.validTo === "" ? null : dayEnd(values.validTo);
   if (values.validTo !== "" && to === null)
     return { ok: false, key: "admin.packages.error.badWindow" };
-  if (to !== null && to <= (from ?? new Date().toISOString())) {
+  // A kept start may lie in the past; the door judges that window against it.
+  if (!kept && to !== null && to <= (from ?? new Date().toISOString())) {
     return { ok: false, key: "admin.packages.error.badWindow" };
   }
   return {
     ok: true,
     input: {
-      packageKey,
+      packageKey: values.packageKey,
       countryCode: values.countryCode === "" ? null : values.countryCode,
       categoryId: values.categoryId === "" ? null : values.categoryId,
       amount: Number(amount),
       currency: values.currency,
+      creditCost,
       validFrom: from,
       validTo: to,
     },

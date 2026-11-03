@@ -1,16 +1,15 @@
 import type { MessageKey } from "@/i18n";
 
-import { COVERAGE_LABEL_KEY_PATTERN, type SetCoveragePlanInput } from "./coverage-service";
+import { wholeNumber } from "./monetisation-forms";
+import type { CoveragePlanRow, SetCoveragePlanInput } from "./monetisation-service";
 
 /**
- * P-1 — THE PLANS FORM'S JUDGE (no component here, so the dialogs' file keeps
- * fast refresh): the form's values, the stored row as the editor opens it, the
- * typed number parse and the one judge the editor and Add share. The door
- * remains the authority (F3); this mirrors its rules so the surface refuses
- * before the round trip. The packages forms read `wholeNumber` from here.
+ * P-1b — THE POSTING CAPS JUDGE: the P-1 plans form without its label key
+ * (the door keeps the stored one). The door remains the authority (F3); this
+ * mirrors its rules so the surface refuses before the round trip.
  */
 
-export interface CoverageFormValues {
+export interface CapsFormValues {
   maxCities: string;
   maxRegions: string;
   maxCountries: string;
@@ -22,21 +21,10 @@ export interface CoverageFormValues {
   /** P-1 — live ads at most, as typed; read only while `adsUnlimited` is off. */
   maxActiveAds: string;
   adsUnlimited: boolean;
-  /** P-1 — the plan's label key, as typed. */
-  labelKey: string;
 }
 
 /** The form as a stored row shows it (the editor's opening values). */
-export function coverageFormOf(row: {
-  maxCities: number;
-  maxRegions: number;
-  maxCountries: number;
-  maxPhotos: number;
-  allowEverywhere: boolean;
-  defaultDays: number;
-  maxActiveAds: number | null;
-  labelKey: string | null;
-}): CoverageFormValues {
+export function capsFormOf(row: CoveragePlanRow): CapsFormValues {
   return {
     maxCities: String(row.maxCities),
     maxRegions: String(row.maxRegions),
@@ -46,31 +34,14 @@ export function coverageFormOf(row: {
     defaultDays: String(row.defaultDays),
     maxActiveAds: row.maxActiveAds === null ? "" : String(row.maxActiveAds),
     adsUnlimited: row.maxActiveAds === null,
-    labelKey: row.labelKey ?? "",
   };
 }
 
-/**
- * Ruling 1 (answer 10) — a typed number parse: a whole number, or null when the
- * field is blank or not a number. Never a sentinel 0 (the old `numberOrZero`
- * read a blank field as 0 and let "below minimum" speak for "not a number").
- */
-export function wholeNumber(raw: string): number | null {
-  const text = raw.trim();
-  if (!/^-?\d+$/.test(text)) return null;
-  return Number(text);
-}
-
-export type CoverageFormOutcome =
+export type CapsFormOutcome =
   | { ok: true; input: Omit<SetCoveragePlanInput, "plan"> }
   | { ok: false; key: MessageKey };
 
-/**
- * The form's values as the door takes them, or the first rule they break — the
- * door's own rules mirrored so the surface refuses before the round trip; the
- * door remains the authority (F3). One judge for the editor and for Add.
- */
-export function coverageFormInput(values: CoverageFormValues): CoverageFormOutcome {
+export function capsFormInput(values: CapsFormValues): CapsFormOutcome {
   const cities = wholeNumber(values.maxCities);
   const regions = wholeNumber(values.maxRegions);
   const countries = wholeNumber(values.maxCountries);
@@ -96,10 +67,6 @@ export function coverageFormInput(values: CoverageFormValues): CoverageFormOutco
     ads = wholeNumber(values.maxActiveAds);
     if (ads === null || ads < 1) return { ok: false, key: "admin.coverage.error.badMaxActiveAds" };
   }
-  const label = values.labelKey.trim();
-  if (!COVERAGE_LABEL_KEY_PATTERN.test(label)) {
-    return { ok: false, key: "admin.coverage.error.badLabelKey" };
-  }
   return {
     ok: true,
     input: {
@@ -110,7 +77,6 @@ export function coverageFormInput(values: CoverageFormValues): CoverageFormOutco
       allowEverywhere: values.allowEverywhere,
       defaultDays: days,
       maxActiveAds: ads,
-      labelKey: label,
     },
   };
 }

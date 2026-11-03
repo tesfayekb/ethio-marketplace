@@ -1,5 +1,7 @@
 import {
+  BadgeDollarSign,
   ClipboardCheck,
+  Coins,
   Flag,
   FolderTree,
   Globe2,
@@ -8,7 +10,6 @@ import {
   LibraryBig,
   List,
   MapPin,
-  Package,
   Plug,
   Sparkles,
   Store,
@@ -16,7 +17,6 @@ import {
   Scale,
   ShieldCheck,
   SlidersHorizontal,
-  Target,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -49,14 +49,14 @@ const SECTION_ICONS: Record<AdminSectionId, LucideIcon> = {
   audit: ScrollText,
   locations: MapPin,
   countries: Flag,
-  coverage: Target,
   categories: FolderTree,
   attributes: SlidersHorizontal,
   images: Image,
   translations: Languages,
   legal: Scale,
   screening: ClipboardCheck,
-  packages: Package,
+  // P-1b (D290) — the console's glyph; the group's is the money badge.
+  monetisation: Coins,
   listings: List,
   ai: Sparkles,
 };
@@ -70,6 +70,7 @@ const GROUP_ICONS: Record<AdminGroupId, LucideIcon> = {
   categories: LibraryBig,
   locations: Globe2,
   listings: Store,
+  monetisation: BadgeDollarSign,
   services: Plug,
 };
 

@@ -7,17 +7,18 @@ import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 
-import { PackagesDialogActions, PackagesErrorLine } from "./packages-dialogs";
-import { usePackagesError } from "./use-packages-error";
-import { dayEnd } from "./packages-forms";
-import type { PriceRow } from "./packages-service";
-import { useEndPrice } from "./use-packages";
+import { MonetisationDialogActions, MonetisationErrorLine } from "./monetisation-dialogs";
+import type { PriceRow } from "./monetisation-service";
+import { dayEnd } from "./price-forms";
+import { useEndPrice } from "./use-monetisation";
+import { useMonetisationError } from "./use-monetisation-error";
 
 /**
- * P-1 (D280) — END A PRICE: the row keeps its history and gains a `valid_to`.
- * Today (the default) ends it now; a later day ends it at the end of that day.
- * The door refuses a row already ended, an end before its start, and an end
- * that would overlap another window of the same scope. A destructive verb (red).
+ * P-1 (D280), carried — END A PRICE: the row keeps its history and gains a
+ * `valid_to`. Today (the default) ends it now; a later day ends it at the end
+ * of that day. The door refuses a row already ended, an end before its start,
+ * and an end that would overlap another window of the same scope. A
+ * destructive verb (red).
  */
 export function PriceEndDialog({
   row,
@@ -32,10 +33,10 @@ export function PriceEndDialog({
 }) {
   const { t } = useI18n();
   const end = useEndPrice();
-  const { refusal, clear, fail } = usePackagesError();
+  const { refusal, clear, fail } = useMonetisationError();
   const today = todayIso();
   const [day, setDay] = useState(today);
-  const prefix = "packages-price-end";
+  const prefix = "monetisation-price-end";
 
   const submit = () => {
     clear();
@@ -69,14 +70,14 @@ export function PriceEndDialog({
           onChange={setDay}
         />
       </FormField>
-      <PackagesErrorLine refusal={refusal} testid={`${prefix}-error`} />
-      <PackagesDialogActions
+      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}
         busy={end.isPending}
         cancelTestId={`${prefix}-cancel`}
         submitTestId={`${prefix}-confirm`}
-        submitLabel={t("admin.packages.prices.action.end")}
+        submitLabel={t("admin.monetisation.price.end")}
         destructive
       />
     </CategoryModal>

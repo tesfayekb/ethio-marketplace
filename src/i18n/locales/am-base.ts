@@ -388,11 +388,9 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.places.body": "በየገበያው ውስጥ ያሉ ክልሎች፣ ከተሞች እና ክፍለ ከተሞች።",
   "admin.section.countries.title": "አገሮች",
   "admin.section.countries.body": "እያንዳንዱ ገበያ፦ ክፍት ወይም ዝግ፣ መለኪያ፣ ገንዘብ እና የሐዲዱ ቅደም ተከተል።",
-  "admin.section.plans.title": "ዕቅዶች",
-  "admin.section.plans.body":
-    "በእያንዳንዱ ዕቅድ ሻጭ ምን ማድረግ እንደሚችል፦ ሽፋን፣ ፎቶዎች፣ የማስታወቂያ ቆይታ እና የማስታወቂያዎች ብዛት።",
-  "admin.section.packages.title": "ጥቅሎች",
-  "admin.section.packages.body": "ሻጭ በማስታወቂያ ላይ ሊጠቀምባቸው የሚችላቸው ማስተዋወቂያዎች እና ዋጋዎቻቸው።",
+  "admin.section.monetisation.title": "ገቢ ማስገኛ",
+  "admin.section.monetisation.body":
+    "ደረጃዎች፣ ተደራሽነት እና ዋጋዎቻቸው በየገበያው፤ ነጻው መሠረት እና የሚከፈልባቸው ደረጃዎች ማብሪያ በየሀገሩ።",
   "admin.nav.group.catalog": "ካታሎግ",
   "admin.nav.group.locations": "አካባቢዎች",
   "admin.section.categories.title": "ምድቦች",
@@ -441,6 +439,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.screening.body":
     "ግምገማ የሚጠብቁ ማስታወቂያዎች። 'አጽድቅ' ማስታወቂያውን በገጹ ላይ ይጭናል፤ 'ውድቅ አድርግ' ደግሞ ከገጹ ውጪ ያደርገዋል።",
   "admin.nav.group.listings": "ማስታወቂያዎች",
+  "admin.nav.group.monetisation": "ገቢ ማስገኛ",
   "admin.nav.group.services": "አገልግሎቶች",
   "admin.section.ai.title": "ሰው ሰራሽ አስተውሎት",
   "admin.section.ai.body": "የእያንዳንዱ የሰው ሰራሽ አስተውሎት አገልግሎት ሁኔታ፣ ወርሃዊ በጀት እና ወጪ።",

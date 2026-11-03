@@ -32,6 +32,7 @@ import { Route as AdminImagesRouteImport } from './routes/admin.images'
 import { Route as AdminLegalRouteImport } from './routes/admin.legal'
 import { Route as AdminListingsRouteImport } from './routes/admin.listings'
 import { Route as AdminLocationsRouteImport } from './routes/admin.locations'
+import { Route as AdminMonetisationRouteImport } from './routes/admin.monetisation'
 import { Route as AdminPackagesRouteImport } from './routes/admin.packages'
 import { Route as AdminPlacesRouteImport } from './routes/admin.places'
 import { Route as AdminRolesRouteImport } from './routes/admin.roles'
@@ -211,6 +212,11 @@ const AdminListingsRoute = AdminListingsRouteImport.update({
 const AdminLocationsRoute = AdminLocationsRouteImport.update({
   id: '/locations',
   path: '/locations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMonetisationRoute = AdminMonetisationRouteImport.update({
+  id: '/monetisation',
+  path: '/monetisation',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPackagesRoute = AdminPackagesRouteImport.update({
@@ -571,6 +577,7 @@ export interface FileRoutesByFullPath {
   '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
+  '/admin/monetisation': typeof AdminMonetisationRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -660,6 +667,7 @@ export interface FileRoutesByTo {
   '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
+  '/admin/monetisation': typeof AdminMonetisationRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -751,6 +759,7 @@ export interface FileRoutesById {
   '/admin/legal': typeof AdminLegalRoute
   '/admin/listings': typeof AdminListingsRoute
   '/admin/locations': typeof AdminLocationsRoute
+  '/admin/monetisation': typeof AdminMonetisationRoute
   '/admin/packages': typeof AdminPackagesRoute
   '/admin/places': typeof AdminPlacesRoute
   '/admin/roles': typeof AdminRolesRoute
@@ -843,6 +852,7 @@ export interface FileRouteTypes {
     | '/admin/legal'
     | '/admin/listings'
     | '/admin/locations'
+    | '/admin/monetisation'
     | '/admin/packages'
     | '/admin/places'
     | '/admin/roles'
@@ -932,6 +942,7 @@ export interface FileRouteTypes {
     | '/admin/legal'
     | '/admin/listings'
     | '/admin/locations'
+    | '/admin/monetisation'
     | '/admin/packages'
     | '/admin/places'
     | '/admin/roles'
@@ -1022,6 +1033,7 @@ export interface FileRouteTypes {
     | '/admin/legal'
     | '/admin/listings'
     | '/admin/locations'
+    | '/admin/monetisation'
     | '/admin/packages'
     | '/admin/places'
     | '/admin/roles'
@@ -1313,6 +1325,13 @@ declare module '@tanstack/react-router' {
       path: '/locations'
       fullPath: '/admin/locations'
       preLoaderRoute: typeof AdminLocationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/monetisation': {
+      id: '/admin/monetisation'
+      path: '/monetisation'
+      fullPath: '/admin/monetisation'
+      preLoaderRoute: typeof AdminMonetisationRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/packages': {
@@ -1784,6 +1803,7 @@ interface AdminRouteChildren {
   AdminLegalRoute: typeof AdminLegalRoute
   AdminListingsRoute: typeof AdminListingsRoute
   AdminLocationsRoute: typeof AdminLocationsRoute
+  AdminMonetisationRoute: typeof AdminMonetisationRoute
   AdminPackagesRoute: typeof AdminPackagesRoute
   AdminPlacesRoute: typeof AdminPlacesRoute
   AdminRolesRoute: typeof AdminRolesRoute
@@ -1812,6 +1832,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLegalRoute: AdminLegalRoute,
   AdminListingsRoute: AdminListingsRoute,
   AdminLocationsRoute: AdminLocationsRoute,
+  AdminMonetisationRoute: AdminMonetisationRoute,
   AdminPackagesRoute: AdminPackagesRoute,
   AdminPlacesRoute: AdminPlacesRoute,
   AdminRolesRoute: AdminRolesRoute,

@@ -1257,14 +1257,14 @@ test.describe("L2a locations console", () => {
     await useJobSuperAdmin(page);
     await gotoReady(page, "/admin/locations");
     await expect(page.getByTestId("admin-overview-locations")).toBeVisible({ timeout: 20000 });
-    for (const id of ["markets", "places", "plans"]) {
+    // P-1b (D290): the Plans tile left with Admin › Plans; two tiles remain.
+    for (const id of ["markets", "places"]) {
       await expect(page.getByTestId(`overview-stat-${id}`)).toContainText(/\d/);
       await expect(
-        page.getByTestId(
-          `overview-link-${id === "markets" ? "countries" : id === "plans" ? "coverage" : "locations"}`,
-        ),
+        page.getByTestId(`overview-link-${id === "markets" ? "countries" : "locations"}`),
       ).toBeVisible();
     }
+    await expect(page.getByTestId("overview-stat-plans")).toHaveCount(0);
     await expect(page.getByTestId("breadcrumb-admin-group")).not.toHaveAttribute("href");
 
     await page.getByTestId("overview-link-locations").click();

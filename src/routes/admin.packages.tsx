@@ -1,32 +1,11 @@
-import { pageHead } from "@/lib/page-head";
-import { createFileRoute } from "@tanstack/react-router";
-
-import { AdminPackagesPage } from "@/features/admin-packages/packages-page";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 /**
- * P-1 (D280, D283) — Admin › Listings › Packages. The /admin layout owns the
- * `packages:view` gate; the three writes re-check `packages:update` and step-up
- * inside their doors (F3).
+ * P-1b — Admin › Packages folded into Admin › Monetisation (D290): the old
+ * address sends its reader on, with nothing of its own to draw.
  */
 export const Route = createFileRoute("/admin/packages")({
-  head: () => ({
-    meta: [
-      ...pageHead(
-        "head.admin.pattern.title",
-        "head.admin.pattern.description",
-        "admin.section.packages.title",
-        null,
-        "Packages — ethio.com Admin",
-        "Packages in the ethio.com staff panel.",
-      ).meta,
-      { name: "robots", content: "noindex" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
-  component: AdminPackagesRoute,
+  beforeLoad: () => {
+    throw redirect({ to: "/admin/monetisation", replace: true });
+  },
 });
-
-function AdminPackagesRoute() {
-  return <AdminPackagesPage />;
-}

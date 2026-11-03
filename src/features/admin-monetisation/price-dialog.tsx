@@ -3,76 +3,83 @@ import { useState } from "react";
 import { DateField } from "@/components/shell/date-field";
 import { todayIso } from "@/components/shell/date-day";
 import { FormField } from "@/components/shell/form-section";
-import { useOpenMarkets } from "@/components/shell/location-data";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { useCategoryTree, type CategoryNode } from "@/features/categories/category-tree";
 import { currencyText, orderCurrencies, useCurrencies } from "@/features/posting/pricing-data";
 import { useI18n } from "@/i18n";
-import { entityName } from "@/i18n/entity";
 
-import { PackagesDialogActions, PackagesErrorLine } from "./packages-dialogs";
-import { usePackagesError } from "./use-packages-error";
+import {
+  MonetisationDialogActions,
+  MonetisationErrorLine,
+  NumberField,
+} from "./monetisation-dialogs";
+import type { PriceRow, ProductRow } from "./monetisation-service";
 import {
   NEW_PRICE_FORM,
   flattenTree,
   priceFormInput,
+  priceFormOf,
   type PriceFormValues,
-} from "./packages-forms";
-import { useSavePrice } from "./use-packages";
+} from "./price-forms";
+import { useEditPrice, useSavePrice } from "./use-monetisation";
+import { useMonetisationError } from "./use-monetisation-error";
+import { useMonetisationNames } from "./use-monetisation-names";
 
 /**
- * P-1 (D280) — ADD A PRICE to the chosen package: the market (or every market),
- * the category (a root or any branch beneath it; or every category), the
- * amount (0 = free) with its currency, and the window. The door inserts only —
- * a saved price is never edited, it ends (`PriceEndDialog`) and a new one is
- * added; the door refuses a window overlapping another row of the same scope.
+ * P-1b (D288, D304) — A PRICE, one surface for Add and Edit. The product is
+ * picked FIRST (any enabled product of either kind), then the market (or every
+ * market), the category (a root or any branch beneath it; or every category),
+ * the amount (0 = free) with its currency, the credit cost and the window.
+ * Edit stands while the row is unused and live; the door refuses otherwise
+ * (`price in use`, `price already ended`) and a window overlapping another
+ * row of the same scope.
  */
-
-export function PriceCreateDialog({
-  packageKey,
+export function PriceDialog({
+  row,
+  products,
   guard,
   openedBy,
   onClose,
 }: {
-  packageKey: string;
+  /** null = Add a price. */
+  row: PriceRow | null;
+  products: ProductRow[];
   guard: GuardFn;
   openedBy: string;
   onClose: () => void;
 }) {
-  const { t, entities } = useI18n();
+  const { t } = useI18n();
   const save = useSavePrice();
-  const { refusal, clear, fail, render } = usePackagesError();
-  const markets = useOpenMarkets();
-  const { tree } = useCategoryTree();
+  const edit = useEditPrice();
+  const { refusal, clear, fail, render } = useMonetisationError();
+  const { marketName, categoryName, productName, markets, tree } = useMonetisationNames(products);
   const { currencies } = useCurrencies();
   const ordered = orderCurrencies(currencies, null);
   const today = todayIso();
-  const [form, setForm] = useState<PriceFormValues>(NEW_PRICE_FORM);
+  const creating = row === null;
+  const prefix = creating ? "monetisation-price-create" : "monetisation-price-edit";
+  const [form, setForm] = useState<PriceFormValues>(() =>
+    row === null ? NEW_PRICE_FORM : priceFormOf(row),
+  );
+  const keptFromDay = row === null ? null : priceFormOf(row).validFrom;
   // The currency list arrives after the first paint: the first curated one is the default.
   const currency = form.currency === "" ? (ordered[0]?.code ?? "") : form.currency;
   const change = (next: Partial<PriceFormValues>) => setForm((prev) => ({ ...prev, ...next }));
-  const prefix = "packages-price-create";
-
-  const marketName = (code: string, nameEn: string, anchorId: string | null) =>
-    anchorId === null
-      ? nameEn
-      : entityName("location", { id: anchorId, nameEn, nameAm: null }, entities);
-  const categoryName = (node: CategoryNode) =>
-    entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities);
+  const offered = products.filter((product) => product.enabled || product.key === form.packageKey);
 
   const submit = () => {
     clear();
-    const judged = priceFormInput(packageKey, { ...form, currency }, today);
+    const judged = priceFormInput({ ...form, currency }, today, keptFromDay);
     if (!judged.ok) {
       render(judged.key);
       return;
     }
     void guard(async () => {
       try {
-        await save.mutateAsync(judged.input);
+        if (row === null) await save.mutateAsync(judged.input);
+        else await edit.mutateAsync({ id: row.id, price: judged.input });
         onClose();
       } catch (error) {
         fail(error);
@@ -84,12 +91,25 @@ export function PriceCreateDialog({
     <CategoryModal
       testid={prefix}
       openedBy={openedBy}
-      title={t("admin.packages.prices.create.title")}
+      title={t(creating ? "admin.monetisation.price.add" : "admin.monetisation.price.edit")}
       onClose={onClose}
     >
-      <p className="min-w-0 break-all text-sm" data-testid={`${prefix}-package`}>
-        {packageKey}
-      </p>
+      <FormField label={t("admin.monetisation.col.product")} htmlFor={`${prefix}-product`}>
+        <NativeSelect
+          id={`${prefix}-product`}
+          data-testid={`${prefix}-product`}
+          className="w-full"
+          value={form.packageKey}
+          onChange={(event) => change({ packageKey: event.target.value })}
+        >
+          {creating ? <option value="" /> : null}
+          {offered.map((product) => (
+            <option key={product.key} value={product.key}>
+              {productName(product.key)}
+            </option>
+          ))}
+        </NativeSelect>
+      </FormField>
       <FormField label={t("admin.packages.prices.field.market")} htmlFor={`${prefix}-market`}>
         <NativeSelect
           id={`${prefix}-market`}
@@ -99,9 +119,9 @@ export function PriceCreateDialog({
           onChange={(event) => change({ countryCode: event.target.value })}
         >
           <option value="">{t("admin.packages.prices.everyMarket")}</option>
-          {markets.markets.map((market) => (
+          {markets.map((market) => (
             <option key={market.code} value={market.code}>
-              {marketName(market.code, market.nameEn, market.anchorId)}
+              {marketName(market.code, "everyMarket")}
             </option>
           ))}
         </NativeSelect>
@@ -117,7 +137,7 @@ export function PriceCreateDialog({
           <option value="">{t("admin.packages.prices.everyCategory")}</option>
           {flattenTree(tree).map(({ node, depth }) => (
             <option key={node.id} value={node.id}>
-              {`${"\u00a0\u00a0".repeat(depth)}${categoryName(node)}`}
+              {`${"\u00a0\u00a0".repeat(depth)}${categoryName(node.id, "everyCategory")}`}
             </option>
           ))}
         </NativeSelect>
@@ -143,19 +163,25 @@ export function PriceCreateDialog({
           value={currency}
           onChange={(event) => change({ currency: event.target.value })}
         >
-          {ordered.map((row) => (
-            <option key={row.code} value={row.code}>
-              {currencyText(row)}
+          {ordered.map((entry) => (
+            <option key={entry.code} value={entry.code}>
+              {currencyText(entry)}
             </option>
           ))}
         </NativeSelect>
       </FormField>
+      <NumberField
+        id={`${prefix}-credit-cost`}
+        labelKey="admin.monetisation.field.creditCost"
+        value={form.creditCost}
+        onChange={(next) => change({ creditCost: next })}
+      />
       <FormField label={t("admin.packages.prices.field.from")} htmlFor={`${prefix}-from`}>
         <DateField
           id={`${prefix}-from`}
           testid={`${prefix}-from`}
           value={form.validFrom}
-          min={today}
+          min={keptFromDay !== null && keptFromDay < today ? keptFromDay : today}
           max={form.validTo === "" ? undefined : form.validTo}
           onChange={(next) => change({ validFrom: next })}
         />
@@ -173,11 +199,11 @@ export function PriceCreateDialog({
           onChange={(next) => change({ validTo: next })}
         />
       </FormField>
-      <PackagesErrorLine refusal={refusal} testid={`${prefix}-error`} />
-      <PackagesDialogActions
+      <MonetisationErrorLine refusal={refusal} testid={`${prefix}-error`} />
+      <MonetisationDialogActions
         onCancel={onClose}
         onSubmit={submit}
-        busy={save.isPending}
+        busy={save.isPending || edit.isPending}
         cancelTestId={`${prefix}-cancel`}
         submitTestId={`${prefix}-save`}
         submitLabel={t("common.save")}
@@ -186,4 +212,4 @@ export function PriceCreateDialog({
   );
 }
 
-export default PriceCreateDialog;
+export default PriceDialog;
