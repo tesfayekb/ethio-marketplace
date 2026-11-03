@@ -176,6 +176,7 @@ FINDINGS (in the imported records; unchanged in the files, as step 5 says):
   rows 100 → 103 cite D290 on row 101 and D289 on row 103 where my P-1b draft cited D290 on row 103: the ledger's D289
   is "track who created, who updated" and D290 "the label key is machine-generated", so the supervisor's citations are
   the right ones.
+- ruling 1 (2026-11-03): the six time labels corrected — S519
 
 ## 11. CI
 
