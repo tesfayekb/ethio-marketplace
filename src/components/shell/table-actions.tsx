@@ -20,27 +20,40 @@ import { PressLabel } from "./press-label";
  * page's one heading) at its start, so the name and the actions share a line.
  * On a phone each action is a 44 px icon tile (`TableActionButton`): its words
  * stay for screen readers and show under the tile while a finger holds it.
+ *
+ * P-1c (D313) — `level`: the title is the page's one `<h1>` by default; a block
+ * inside a page that already has its heading (Monetisation's six tables) passes
+ * "h2", so a page keeps exactly one h1.
  */
 export function TableActions({
   testid,
   title,
+  level = "h1",
   children,
 }: {
   testid: string;
   /** The page's heading, drawn at the row's start. */
   title?: ReactNode;
+  /** The heading's level: the page's one h1 (default), or h2 for a block inside a page. */
+  level?: "h1" | "h2";
   children?: ReactNode;
 }) {
   const hasActions = !(children === null || children === undefined || children === false);
   if (!title && !hasActions) return null;
+  const Heading = level;
   return (
     <div data-testid={testid} className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
       {/* The name keeps its whole width; actions that do not fit beside it
           move under it, at the end. */}
       {title ? (
-        <h1 className="me-auto min-w-0 max-w-full truncate text-xl font-bold leading-7 text-foreground md:text-2xl md:leading-8">
+        <Heading
+          className={cn(
+            "me-auto min-w-0 max-w-full truncate font-bold text-foreground",
+            level === "h1" ? "text-xl leading-7 md:text-2xl md:leading-8" : "text-lg leading-7",
+          )}
+        >
           {title}
-        </h1>
+        </Heading>
       ) : null}
       {hasActions ? (
         <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5 md:gap-2 [&>div]:justify-end">

@@ -1,4 +1,4 @@
-import { useMatches } from "@tanstack/react-router";
+import { useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 import { Spinner } from "@/components/brand/spinner";
@@ -17,14 +17,27 @@ import { declaredLayers } from "./strings-layers";
  * the layers are code fetched on demand, and the browser keeps a failed download
  * for the page's life, so the error line offers to refresh the page (the one
  * cure, src/lib/on-demand-failure.ts) in the words the shell's notice uses.
+ *
+ * P-1c (D313) — `layers`: a piece that shows a layer no route declares (the
+ * Guide sheet, the `guide` layer) names the layers itself, and the route's
+ * declaration is not consulted for it. The route's matches are read through
+ * `useRouterState` (what `useMatches` is made of), so this module — which
+ * every page carries — shares no chunk with `useMatches`' module when a
+ * page-level piece imports it (1.5 KiB on every page otherwise, measured).
  */
-export function StringsLayerGate({ children }: { children: ReactNode }) {
-  const { t } = useI18n();
+export function StringsLayerGate({
+  children,
+  layers: own,
+}: {
+  children: ReactNode;
+  layers?: readonly StringsLayer[];
+}) {
   // One string for the declared layers, so a new match list of the same layers re-renders nothing.
-  const declared = useMatches({
-    select: (matches) => declaredLayers(matches.map((match) => match.staticData)).join(","),
+  const declared = useRouterState({
+    select: (state) => declaredLayers(state.matches.map((match) => match.staticData)).join(","),
   });
-  const layers: StringsLayer[] = declared.split(",").filter(isStringsLayer);
+  const layers: readonly StringsLayer[] = own ?? declared.split(",").filter(isStringsLayer);
+  const { t } = useI18n();
   const strings = useStringsLayers(layers);
   if (strings.state === "failed") {
     return (

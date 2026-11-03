@@ -31,20 +31,28 @@ const loaders: Partial<Record<string, () => Promise<Partial<Messages>>>> = {
  * has none to load. The order is the census's preference: a key every one of
  * whose pages loads both layers lives in the first
  * (scripts/conformance/strings-layers.ts).
+ *
+ * P-1c (D313) — `guide`: the admin blocks' Guide texts (`<block>.guide.*`),
+ * asked for by the Guide sheet itself on its first open (BlockGuide through
+ * StringsLayerGate's `layers`), never by a route, so they ride no page's first
+ * download; CF-GUIDE-1 (scripts/conformance/admin-guides.ts) judges its keys.
  */
-export const STRINGS_LAYERS = ["admin", "member"] as const;
+export const STRINGS_LAYERS = ["admin", "member", "guide"] as const;
 export type StringsLayer = (typeof STRINGS_LAYERS)[number];
 
 const EN_ADMIN = loadOnce(() => import("./locales/en-admin").then((m) => m.enAdmin));
 const AM_ADMIN = loadOnce(() => import("./locales/am-admin").then((m) => m.amAdmin));
 const EN_MEMBER = loadOnce(() => import("./locales/en-member").then((m) => m.enMember));
 const AM_MEMBER = loadOnce(() => import("./locales/am-member").then((m) => m.amMember));
+const EN_GUIDE = loadOnce(() => import("./locales/en-guide").then((m) => m.enGuide));
+const AM_GUIDE = loadOnce(() => import("./locales/am-guide").then((m) => m.amGuide));
 const layerLoaders: Record<
   StringsLayer,
   Partial<Record<string, () => Promise<Partial<Messages>>>>
 > = {
   admin: { en: () => EN_ADMIN.load(), am: () => AM_ADMIN.load() },
   member: { en: () => EN_MEMBER.load(), am: () => AM_MEMBER.load() },
+  guide: { en: () => EN_GUIDE.load(), am: () => AM_GUIDE.load() },
 };
 
 /** A layer name read from outside (a route's declaration joined into a key). */

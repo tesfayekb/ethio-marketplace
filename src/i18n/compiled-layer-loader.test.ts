@@ -18,10 +18,11 @@ describe("compiledLayerLoader (DEC-258)", () => {
     }
   });
 
-  it("CLL-2 the layers are admin then member; only their names are layers", () => {
-    expect(STRINGS_LAYERS).toEqual(["admin", "member"]);
+  it("CLL-2 the layers are admin, member then guide (D313); only their names are layers", () => {
+    expect(STRINGS_LAYERS).toEqual(["admin", "member", "guide"]);
     expect(isStringsLayer("member")).toBe(true);
     expect(isStringsLayer("admin")).toBe(true);
+    expect(isStringsLayer("guide")).toBe(true);
     expect(isStringsLayer("base")).toBe(false);
     expect(isStringsLayer("")).toBe(false);
   });

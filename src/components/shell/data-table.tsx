@@ -10,8 +10,10 @@ import { Toolbar } from "@/components/layout/toolbar";
 import { useI18n } from "@/i18n";
 import { cn } from "@/lib/utils";
 
+import { BlockGuide, guideAnchor, type BlockGuideSpec } from "./block-guide";
 import { pageWindow } from "./page-window";
 import { RowActions, type RowActionsProps } from "./row-actions";
+import { TableToolbar } from "./table-toolbar";
 
 /**
  * U1b/U1c — THE DATATABLE PRIMITIVE (shell law).
@@ -137,6 +139,16 @@ export interface DataTableProps<T> {
   errorState?: ReactNode;
   /** Search + filter controls rendered above the list. */
   toolbar?: ReactNode;
+  /**
+   * P-1c (D313) — THE BLOCK'S GUIDE (block-guide.tsx). Every admin table names
+   * its key prefix and its next step; the primitive draws the Guide control last
+   * in the toolbar's end group (inside the page's TableToolbar, or on a toolbar
+   * of its own when the page passes another node), gives the frame the anchor's
+   * id (a next-link's hash lands on it), and hands the sheet the visible columns
+   * in order. CF-GUIDE-1 (scripts/conformance/admin-guides.ts) judges that every
+   * admin table passes one and every visible column has its guide line.
+   */
+  guide?: BlockGuideSpec;
   /** Per-row controls: inline in the 360 card, trailing column at md. */
   rowActions?: (row: T) => ReactNode;
   /**
@@ -457,6 +469,7 @@ export function DataTable<T>({
   error,
   errorState,
   toolbar,
+  guide,
   rowActions,
   actionsWidth = "w-24",
   cardLead,
@@ -504,11 +517,37 @@ export function DataTable<T>({
 
   const linkColumnKey = columns.find((column) => column.priority === "primary")?.key;
 
-  const toolbarBlock = toolbar ? (
+  /**
+   * P-1c (D313) — the Guide control joins the toolbar's end group: cloned into
+   * the page's TableToolbar when that is what the page passed; otherwise it
+   * takes a TableToolbar of its own under the page's node.
+   */
+  const guideControl = guide ? (
+    <BlockGuide
+      spec={guide}
+      title={caption}
+      columns={columns.map((column) => ({ key: column.key, label: column.header }))}
+    />
+  ) : null;
+  const toolbarWithGuide =
+    guideControl === null
+      ? toolbar
+      : isValidElement<{ guide?: ReactNode }>(toolbar) && toolbar.type === TableToolbar
+        ? cloneElement(toolbar, { guide: guideControl })
+        : [
+            toolbar ?? null,
+            <TableToolbar
+              key="data-table-guide-toolbar"
+              testid="data-table-guide-toolbar"
+              guide={guideControl}
+            />,
+          ];
+  const toolbarBlock = toolbarWithGuide ? (
     <div data-testid="data-table-toolbar" className={cn("min-w-0", TOOLBAR_AT[cardUntil])}>
-      <Toolbar>{toolbar}</Toolbar>
+      <Toolbar>{toolbarWithGuide}</Toolbar>
     </div>
   ) : null;
+  const anchor = guide ? guideAnchor(guide) : undefined;
 
   /**
    * INC-132 — THE SCROLLER CHAIN. `overflow-x-auto` only engages when every
@@ -520,7 +559,19 @@ export function DataTable<T>({
    * consumer never adds a width hack (C7).
    */
   const frame = (body: ReactNode) => (
-    <div className={cn("min-w-0 max-w-full space-y-3", FRAME_AT[cardUntil], className)}>
+    <div
+      id={anchor}
+      // D313 — a guided frame is a landing place: a next-link's hash scrolls to
+      // it and the sheet's close hands it the focus (no ring of its own; it is
+      // a region, not a control).
+      tabIndex={anchor === undefined ? undefined : -1}
+      className={cn(
+        "min-w-0 max-w-full space-y-3",
+        anchor !== undefined && "scroll-mt-20 outline-none",
+        FRAME_AT[cardUntil],
+        className,
+      )}
+    >
       {toolbarBlock}
       {body}
     </div>
