@@ -214,7 +214,7 @@ export function OverridesSection({
           rowActions={(row) =>
             mayUpdate ? (
               <RowActions
-                testid={`${idOf(row)}-actions`}
+                testid={`override-actions-${row.id}`}
                 name={productName(row.levelKey)}
                 edit={{
                   label: t("admin.monetisation.override.edit"),

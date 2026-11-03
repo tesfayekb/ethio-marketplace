@@ -238,7 +238,7 @@ export function ProductsSection({
           }
           rowActions={(row) => (
             <RowActions
-              testid={`${idOf(row)}-actions`}
+              testid={`product-actions-${row.key}`}
               name={productName(row.key)}
               edit={
                 mayUpdate

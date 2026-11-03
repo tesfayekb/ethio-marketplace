@@ -174,7 +174,7 @@ export function CapsSection({
           }
           rowActions={(row) => (
             <RowActions
-              testid={`${idOf(row)}-actions`}
+              testid={`caps-actions-${row.plan}`}
               name={row.plan}
               edit={
                 mayUpdate

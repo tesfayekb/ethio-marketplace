@@ -226,7 +226,7 @@ export function PricesSection({
           rowActions={(row) =>
             mayUpdate && live(row) ? (
               <RowActions
-                testid={`${idOf(row)}-actions`}
+                testid={`price-actions-${row.id}`}
                 name={titleOf(row)}
                 edit={
                   row.usedCount === 0

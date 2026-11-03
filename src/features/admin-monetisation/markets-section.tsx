@@ -193,7 +193,7 @@ export function MarketsSection({
           }
           rowActions={(row) => (
             <RowActions
-              testid={`${idOf(row)}-actions`}
+              testid={`market-actions-${row.countryCode ?? "default"}`}
               name={row.countryCode ?? t("admin.monetisation.defaultMarket")}
               edit={
                 mayUpdate
