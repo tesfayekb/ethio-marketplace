@@ -126,6 +126,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(
       readFileSync(join(ROOT, "scripts/conformance/listing-levels.test.ts"), "utf8"),
     ).toContain("CFL-3");
+    // admin-guides.test.ts CF-GUIDE-1 CFG-1…3 (turn P-1c, D313) is discovered by test:unit's
+    // scripts/**/*.test.ts; admin-tables.test.ts TBL-4/TBL-6 read its allowlist for T10.
+    expect(readFileSync(join(ROOT, "scripts/conformance/admin-guides.test.ts"), "utf8")).toContain(
+      "CFG-3",
+    );
+    expect(readFileSync(join(ROOT, "scripts/admin-tables.test.ts"), "utf8")).toContain(
+      "admin-guides-allowlist.txt",
+    );
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

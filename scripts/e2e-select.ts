@@ -173,6 +173,17 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-shell.spec.ts", "e2e/one-line-slots-admin.spec.ts"],
   },
   {
+    // P-1c (D313) — the Guide on every admin block and the guide strings layer.
+    name: "admin-guides",
+    src: [
+      "src/components/shell/block-guide*.tsx",
+      "src/components/shell/order-strip.tsx",
+      "src/features/admin/guide-next.ts",
+      "src/i18n/locales/*-guide.ts",
+    ],
+    specs: ["e2e/admin-guides.spec.ts"],
+  },
+  {
     name: "auth",
     src: ["src/features/auth/**", "src/routes/auth.tsx", "src/routes/api/auth/**"],
     specs: [
@@ -201,6 +212,7 @@ export const AREAS: Area[] = [
       "e2e/viewing-place.spec.ts",
       "e2e/rail-first-paint.spec.ts",
       "e2e/one-line-slots.spec.ts",
+      "e2e/admin-guides.spec.ts",
     ],
   },
   {
