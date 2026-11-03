@@ -1,35 +1,35 @@
 # Local backend proof (non-gating)
 
-- Commit: `67e66c0633a385d35a2a1b77bd317469008aaf20`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41579242447
+- Commit: `fa42235995c3136370ebc6e58761f694386cf31d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41579268496
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| email | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 1 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 2 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 3 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 4 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 5 | not run | 48 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 6 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 7 | not run | 67 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 8 | not run | 64 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 9 | not run | 70 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 10 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 11 | not run | 58 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 12 | not run | 68 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 13 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 14 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| smoke | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| email | not run | 76 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 1 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 2 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 3 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 4 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 5 | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 6 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 7 | not run | 58 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 8 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 9 | not run | 58 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 10 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 11 | not run | 68 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 12 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 13 | not run | 59 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 14 | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | 15 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 16 | not run | 61 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 16 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
 | TOTAL | — | — | — | 0 | 0 | 0 | 0 | 0 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
 - Slowest lane: none 0 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 9, email 6, 1 9, 2 9, 3 6, 4 9, 5 4, 6 9, 7 8, 8 7, 9 8, 10 9, 11 6, 12 8, 13 9, 14 9, 15 9, 16 6, repeat not run
+- Database session samples during each start (INC-944): smoke 6, email 9, 1 9, 2 6, 3 9, 4 6, 5 6, 6 8, 7 6, 8 8, 9 6, 10 6, 11 8, 12 6, 13 6, 14 9, 15 9, 16 8, repeat not run
 - Teardown:
   - smoke: not found
   - email: not found
@@ -74,7 +74,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 
 ## Lane smoke
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -97,13 +97,12 @@ ON CONFLICT (key) DO NOTHING
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql...
 Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
 Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:37.889222+00, 2026-11-03 04:40:37.889222+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:53.238941+00, 2026-11-03 04:55:53.238941+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -111,17 +110,18 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:38 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:38 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:38 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:38 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:38 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+04:55:51 | 274 | @effect/sql-pg | client backend | active | : | -- ===== B — admin_set_ai_feature, whole ===== CREATE OR REPLACE FUNCTION public.admin_set_ai_feature( p_feature text, p
+04:55:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:55:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane email
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -149,7 +149,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:34.933207+00, 2026-11-03 04:40:34.933207+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:06.459061+00, 2026-11-03 04:56:06.459061+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -157,63 +157,16 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:32 | 274 | @effect/sql-pg | client backend | active | : | -- ===== D — proofs (catalogue reads, and calls with no session or a scratch identity that holds nothing) ===== DO $proo
-04:40:32 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:32 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:32 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:32 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:32 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+04:56:04 | 427 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:56:04 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:04 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:04 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:04 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:04 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 1
-- Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 1
-## Migration/start failure
-Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-Cause:
-```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-```
-Statement:
-```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-```
-Last 20 lines:
-```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:41:10.70395+00, 2026-11-03 04:41:10.70395+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:41:10 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_old text; v_new text; v_svc boolean; v_oid oid; v_src text; v_gate text; v_uid uuid := g
-04:41:10 | 429 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:41:10 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:41:10 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:41:10 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:41:10 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:41:10 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-```
-
-## Lane 2
 - Step failure:
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
@@ -221,7 +174,7 @@ Step backend: outcome failure
   ::add-mask::[masked]
 - No JSON results; smoke skipped
 
-## Lane 2
+## Lane 1
 ## Migration/start failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
@@ -244,7 +197,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:37.992296+00, 2026-11-03 04:40:37.992296+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:59.506159+00, 2026-11-03 04:55:59.506159+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -252,17 +205,64 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:38 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:38 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:38 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:38 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:38 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+04:56:00 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:00 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:00 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:00 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:00 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+```
+
+## Lane 2
+- Step failure:
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 2
+## Migration/start failure
+Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+Cause:
+```text
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+```
+Statement:
+```text
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+```
+Last 20 lines:
+```text
+Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
+Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
+Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
+Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:06.0342+00, 2026-11-03 04:56:06.0342+00, level, Regular, መደበኛ, 4, standard, f, null).
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+04:56:03 | 272 | @effect/sql-pg | client backend | active | : | -- Proofs — a scratch admin and scratch rows inside a block that always rolls back. DO $p$ DECLARE v_uid uuid := gen_ran
+04:56:03 | 207 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:03 | 208 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:03 | 201 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:03 | 202 |  | background writer |  | Activity:BgwriterMain | 
+04:56:03 | 204 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 3
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -285,12 +285,11 @@ ON CONFLICT (key) DO NOTHING
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
 Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:34.468545+00, 2026-11-03 04:40:34.468545+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:59.54239+00, 2026-11-03 04:55:59.54239+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -298,13 +297,14 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:31 | 274 | @effect/sql-pg | client backend | active | : | -- Proof: the rebuild runs under safe-update (as the API connection does), returns -- rows above zero, and writes one ne
-04:40:31 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:31 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:31 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:31 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:31 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+04:55:59 | 275 | @effect/sql-pg | client backend | active | : | -- Proof (INC-980): its own scratch e2e-n1b2 seller (v_u) only, the legacy mixed-case alias shape included (INC-986); ro
+04:55:59 | 432 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:55:59 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:59 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:59 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:59 | 204 |  | background writer |  | Activity:BgwriterMain | 
+04:55:59 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 4
@@ -336,7 +336,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:51.877035+00, 2026-11-03 04:40:51.877035+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:03.291554+00, 2026-11-03 04:56:03.291554+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -344,19 +344,19 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:52 | 274 | @effect/sql-pg | client backend | active | : | -- ------------------------------------------------------------ 2. THE PRICES CREATE TABLE public.package_prices ( id uu
-04:40:52 | 429 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:40:52 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:52 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:52 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:52 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:52 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+04:56:00 | 274 | @effect/sql-pg | client backend | active | : | -- 9. Proofs. Behaviour on listings is proven by e2e/feed-index.spec.ts (a proof cannot create a listing: -- listings.se
+04:56:00 | 378 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:56:00 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:00 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:00 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:00 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:00 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 5
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -379,12 +379,11 @@ ON CONFLICT (key) DO NOTHING
 ```
 Last 20 lines:
 ```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
 Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:55.458517+00, 2026-11-03 04:40:55.458517+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:53.855059+00, 2026-11-03 04:55:53.855059+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -392,18 +391,19 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:53 | 274 | @effect/sql-pg | client backend | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-04:40:53 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:53 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:53 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:53 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:53 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+04:55:51 | 274 | @effect/sql-pg | client backend | active | IO:WalSync | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
+04:55:51 | 376 | PostgREST 16.4 | client backend | idle in transaction | Client:ClientRead | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:55:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:55:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 6
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -426,11 +426,12 @@ ON CONFLICT (key) DO NOTHING
 ```
 Last 20 lines:
 ```text
+Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
 Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:42:47.616736+00, 2026-11-03 04:42:47.616736+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:08.459621+00, 2026-11-03 04:56:08.459621+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -438,17 +439,63 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:42:47 | 274 | @effect/sql-pg | client backend | active | : | CREATE OR REPLACE FUNCTION public.public_listing_json(l listings, p_viewer uuid) RETURNS jsonb LANGUAGE plpgsql STABLE S
-04:42:47 | 430 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:42:47 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:42:47 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:42:47 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:42:47 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:42:47 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+04:56:04 | 403 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:56:04 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:04 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:04 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:04 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:04 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 7
+- Step failure:
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 7
+## Migration/start failure
+Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+Cause:
+```text
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+```
+Statement:
+```text
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+```
+Last 20 lines:
+```text
+Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
+Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
+Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:52.834748+00, 2026-11-03 04:55:52.834748+00, level, Regular, መደበኛ, 4, standard, f, null).
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+04:55:51 | 275 | @effect/sql-pg | client backend | active | : | UPDATE public.protected_names n SET country_code = c.code FROM public.countries c WHERE n.country <> 'International' AND
+04:55:51 | 388 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:55:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:55:51 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+```
+
+## Lane 8
 - Step failure:
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
@@ -456,7 +503,7 @@ Step backend: outcome failure
   ::add-mask::[masked]
 - No JSON results; smoke skipped
 
-## Lane 7
+## Lane 8
 ## Migration/start failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
@@ -478,7 +525,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:43:26.486565+00, 2026-11-03 04:43:26.486565+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:57.751868+00, 2026-11-03 04:55:57.751868+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -486,65 +533,18 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:43:26 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (NCAP-1…7): its own scratch seller and scratch staff only, rolled back whole, raising on failure. DO $proof$ DE
-04:43:26 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:43:26 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:43:26 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:43:26 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:43:26 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+04:55:53 | 274 | @effect/sql-pg | client backend | active | : | -- Proof: the rebuild runs under safe-update (as the API connection does), returns -- rows above zero, and writes one ne
+04:55:53 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:53 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:53 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:53 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:55:53 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
-```
-
-## Lane 8
-- Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 8
-## Migration/start failure
-Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-Cause:
-```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-```
-Statement:
-```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-```
-Last 20 lines:
-```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:41:16.902372+00, 2026-11-03 04:41:16.902372+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:41:15 | 275 | @effect/sql-pg | client backend | active | : | GRANT EXECUTE ON FUNCTION public.admin_set_legal_settings(jsonb) TO authenticated
-04:41:15 | 400 | PostgREST 16.4 | client backend | idle in transaction | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:41:15 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:41:15 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:41:15 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:41:15 | 204 |  | background writer |  | Activity:BgwriterMain | 
-04:41:15 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 9
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -567,12 +567,13 @@ ON CONFLICT (key) DO NOTHING
 ```
 Last 20 lines:
 ```text
+Applying migration 20261102052535_4fb5d636-3ae7-42f3-8737-290ae63e7237.sql...
 Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
 Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:41:10.946233+00, 2026-11-03 04:41:10.946233+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:58:35.316469+00, 2026-11-03 04:58:35.316469+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -580,13 +581,12 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:41:10 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_id uuid := gen_random_uuid(); v_key text := 'e2e-m18-' || left(replace(v_id::text, '-', ''), 8); v_
-04:41:10 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:41:10 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:41:10 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:41:10 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:41:10 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+04:58:33 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:58:33 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:58:33 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:58:33 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:58:33 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 10
@@ -620,7 +620,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:33.860256+00, 2026-11-03 04:40:33.860256+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:54.448822+00, 2026-11-03 04:55:54.448822+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -628,17 +628,17 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:34 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:34 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:34 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:34 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:34 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+04:55:51 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:51 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:51 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:51 | 204 |  | background writer |  | Activity:BgwriterMain | 
+04:55:51 | 206 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 11
 - Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -661,11 +661,12 @@ ON CONFLICT (key) DO NOTHING
 ```
 Last 20 lines:
 ```text
+Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
 Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:41:52.284492+00, 2026-11-03 04:41:52.284492+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:55.424408+00, 2026-11-03 04:55:55.424408+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -673,17 +674,157 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:41:50 | 274 | @effect/sql-pg | client backend | active | : | -- Bundle 19 turn 9c (2026-10-17). Tier A. D201 §4 — M2 PART c1 OF EIGHT: attr_import_plan's TEXT, CHUNK 1 OF 4. -- e2e-
-04:41:50 | 378 | PostgREST 16.4 | client backend | idle in transaction | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:41:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:41:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:41:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:41:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:41:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+04:55:55 | 411 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:55:55 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:55 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:55 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:55 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:55:55 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 12
+- Step failure:
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 12
+## Migration/start failure
+Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+Cause:
+```text
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+```
+Statement:
+```text
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+```
+Last 20 lines:
+```text
+Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
+Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
+Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:55:51.241681+00, 2026-11-03 04:55:51.241681+00, level, Regular, መደበኛ, 4, standard, f, null).
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+04:55:48 | 274 | @effect/sql-pg | client backend | active | : | -- ===== C — proofs (catalogue reads, and calls with no session or a scratch identity that holds nothing) ===== DO $proo
+04:55:48 | 379 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:55:48 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:55:48 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:55:48 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:55:48 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:55:48 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+```
+
+## Lane 13
+- Step failure:
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 13
+## Migration/start failure
+Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+Cause:
+```text
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+```
+Statement:
+```text
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+```
+Last 20 lines:
+```text
+Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
+Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
+Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
+Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:24.890848+00, 2026-11-03 04:56:24.890848+00, level, Regular, መደበኛ, 4, standard, f, null).
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+04:56:23 | 274 | @effect/sql-pg | client backend | active | : | CREATE OR REPLACE FUNCTION public.listing_counts(p_listing_id uuid) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFIN
+04:56:23 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:23 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:23 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:23 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:23 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+```
+
+## Lane 14
+- Step failure:
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 14
+## Migration/start failure
+Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+Cause:
+```text
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+```
+Statement:
+```text
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+```
+Last 20 lines:
+```text
+Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
+Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
+Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
+ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:58:06.570198+00, 2026-11-03 04:58:06.570198+00, level, Regular, መደበኛ, 4, standard, f, null).
+At statement: 12
+INSERT INTO public.listing_packages
+  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
+ON CONFLICT (key) DO NOTHING
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+04:58:05 | 274 | @effect/sql-pg | client backend | active | : | RESET ALL
+04:58:05 | 426 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+04:58:05 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:58:05 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:58:05 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:58:05 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:58:05 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+```
+
+## Lane 15
 - Step failure:
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
@@ -691,7 +832,7 @@ Step backend: outcome failure
   ::add-mask::[masked]
 - No JSON results; smoke skipped
 
-## Lane 12
+## Lane 15
 ## Migration/start failure
 Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 Cause:
@@ -714,7 +855,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:38.258082+00, 2026-11-03 04:40:38.258082+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:09.610058+00, 2026-11-03 04:56:09.610058+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -722,155 +863,14 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:38 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:38 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:38 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:38 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:38 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+04:56:10 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:10 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:10 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:10 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:10 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 ```
 
-## Lane 13
-- Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 13
-## Migration/start failure
-Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-Cause:
-```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-```
-Statement:
-```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-```
-Last 20 lines:
-```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:41:17.253146+00, 2026-11-03 04:41:17.253146+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:41:17 | 275 | @effect/sql-pg | client backend | active | : | -- Proof (INC-970): scratch e2e-n1 users only; every row it reads it creates; the sentinel rolls it all back. DO $proof$
-04:41:17 | 430 | PostgREST 16.4 | client backend | active | : | WITH pks_uniques_cols AS ( SELECT conrelid, array_agg(key order by key) as cols FROM pg_constraint, LATERAL unnest(conke
-04:41:17 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:41:17 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:41:17 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:41:17 | 204 |  | background writer |  | Activity:BgwriterMain | 
-04:41:17 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-```
-
-## Lane 14
-- Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 14
-## Migration/start failure
-Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-Cause:
-```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-```
-Statement:
-```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-```
-Last 20 lines:
-```text
-Applying migration 20261102081500_ecdb5eab-5fad-4802-aa10-5ecefb0d8cf6.sql...
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:45.248578+00, 2026-11-03 04:40:45.248578+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:45 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (JLOST-1…3): the close step's own predicate on scratch job_runs rows (negative ts, never a real -- run's), roll
-04:40:45 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:45 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:45 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:45 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:45 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
-```
-
-## Lane 15
-- Step failure:
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 15
-## Migration/start failure
-Last migration line: Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-Cause:
-```text
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-```
-Statement:
-```text
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-```
-Last 20 lines:
-```text
-Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
-Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
-Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
-ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:41:09.796649+00, 2026-11-03 04:41:09.796649+00, level, Regular, መደበኛ, 4, standard, f, null).
-At statement: 12
-INSERT INTO public.listing_packages
-  (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
-VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false, true, true, true, 0)
-ON CONFLICT (key) DO NOTHING
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:41:09 | 274 | @effect/sql-pg | client backend | active | : | -- Proof (INC-970): scratch e2e-n1 users only; every row it reads it creates; the sentinel rolls it all back. DO $proof$
-04:41:09 | 431 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-04:41:09 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:41:09 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:41:09 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:41:09 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:41:09 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-```
-
 ## Lane 16
 - Step failure:
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
@@ -901,7 +901,7 @@ Applying migration 20261102081600_502ee113-368f-4016-9c4c-2ed447989599.sql...
 Applying migration 20261102081700_ac5b1435-aeda-47be-a0a0-30c39b54bb97.sql...
 Applying migration 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql...
 ERROR: null value in column "tier" of relation "listing_packages" violates not-null constraint (SQLSTATE 23502)
-Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:40:48.437346+00, 2026-11-03 04:40:48.437346+00, level, Regular, መደበኛ, 4, standard, f, null).
+Failing row contains (regular, null, 30, t, t, t, null, 0, null, 2026-11-03 04:56:26.393992+00, 2026-11-03 04:56:26.393992+00, level, Regular, መደበኛ, 4, standard, f, null).
 At statement: 12
 INSERT INTO public.listing_packages
   (key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
@@ -909,12 +909,12 @@ VALUES ('regular', 'level', 'Regular', 'መደበኛ', 30, 4, 'standard', false,
 ON CONFLICT (key) DO NOTHING
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-04:40:46 | 273 | @effect/sql-pg | client backend | active | : | -- Bundle 12 (the tidy-up round), turn T7 (2026-10-13). Tier A. DEC-144 rule 2 (parent first) on a pointer change. -- e2
-04:40:46 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-04:40:46 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-04:40:46 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-04:40:46 | 203 |  | background writer |  | Activity:BgwriterMain | 
-04:40:46 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+04:56:23 | 274 | @effect/sql-pg | client backend | active | : | -- ===== E6 — proofs (scratch rows only; no auth.users row; claims are a random id) ===== DO $proof$ DECLARE v_key text 
+04:56:23 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+04:56:23 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+04:56:23 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+04:56:23 | 203 |  | background writer |  | Activity:BgwriterMain | 
+04:56:23 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a stmt 12; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
