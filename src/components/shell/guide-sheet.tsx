@@ -1,4 +1,4 @@
-import { Suspense, useRef, type ReactNode } from "react";
+import { Suspense, useRef, type ReactNode, type RefObject } from "react";
 
 import { Spinner } from "@/components/brand/spinner";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -53,6 +53,12 @@ export type GuideSheetProps = {
   partsKind: PartsKind;
   /** The part the person is on (a wizard's step), marked `aria-current="step"`. */
   current?: string;
+  /**
+   * The control the focus returns to on close when no next-link landed it elsewhere.
+   * The page form has no SheetTrigger (the sheet mounts on the first tap), so the
+   * dialog knows no trigger of its own; the table form leaves this unset.
+   */
+  returnFocusTo?: RefObject<HTMLElement | null>;
 };
 
 export function GuideSheetContent({
@@ -61,6 +67,7 @@ export function GuideSheetContent({
   parts,
   partsKind,
   current,
+  returnFocusTo,
   onOpenChange,
 }: GuideSheetProps & { onOpenChange: (open: boolean) => void }) {
   const { t } = useI18n();
@@ -78,9 +85,10 @@ export function GuideSheetContent({
         const hash = landing.current;
         landing.current = null;
         const frame = hash === null ? null : document.getElementById(hash);
-        if (frame === null) return;
+        const target = frame ?? returnFocusTo?.current ?? null;
+        if (target === null) return;
         event.preventDefault();
-        frame.focus({ preventScroll: true });
+        target.focus({ preventScroll: true });
       }}
     >
       <SheetHeader>

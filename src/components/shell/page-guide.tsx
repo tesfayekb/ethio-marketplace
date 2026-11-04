@@ -1,5 +1,5 @@
 import { BookOpen } from "lucide-react";
-import { Suspense, useState, type ReactNode } from "react";
+import { Suspense, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { GuideNext } from "@/features/admin/guide-next";
@@ -101,10 +101,12 @@ export function PageGuide({
   const { t } = useI18n();
   // never: nothing but the control exists; the first tap mounts the sheet for good.
   const [state, setState] = useState<"never" | "open" | "shut">("never");
+  const control = useRef<HTMLButtonElement>(null);
   const anchor = guideAnchor(spec);
   return (
     <>
       <Button
+        ref={control}
         type="button"
         variant="ghost"
         size="touch"
@@ -127,6 +129,7 @@ export function PageGuide({
             parts={parts}
             partsKind="parts"
             current={current}
+            returnFocusTo={control}
           />
         </Suspense>
       )}

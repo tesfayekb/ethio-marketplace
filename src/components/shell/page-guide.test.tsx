@@ -134,7 +134,7 @@ describe("PageGuide (D315)", () => {
     );
   });
 
-  it("PG-3 the next link is the route form, resolved with no admin shell; pressing it closes the sheet, which stays mounted shut", async () => {
+  it("PG-3 the next link is the route form, resolved with no admin shell; pressing it closes the sheet, which stays mounted shut, and the focus returns to the control", async () => {
     draw();
     const body = await open();
     expect(body.querySelectorAll("a").length).toBe(1);
@@ -145,6 +145,8 @@ describe("PageGuide (D315)", () => {
     fireEvent.click(next);
     await waitFor(() => expect(screen.queryByTestId("post-edit-guide-body")).toBeNull());
     expect(screen.getByTestId("post-edit-guide").getAttribute("aria-expanded")).toBe("false");
+    // No SheetTrigger exists, so the sheet hands the focus back to the control itself.
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId("post-edit-guide")));
     // Shut, not gone: the sheet module drew again with open=false (no second fetch, no "never").
     expect(state.sheetDraws).toBeGreaterThan(drawsAtOpen);
     await open();
