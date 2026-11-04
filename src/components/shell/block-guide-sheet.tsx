@@ -16,8 +16,8 @@ import type { BlockGuideSpec, GuidePart, PartsKind } from "./guide-spec";
  * label as the term) · How to add, change or remove · What to do next, ONE
  * link. The texts are the block's or page's keys under its prefix in the
  * `guide` layer, which the sheet asks for around this body (StringsLayerGate's
- * `layers`); the part names are the shell's (`prim.guide.*`, in the same
- * layer). The link resolves through resolveGuideNext — an admin section under
+ * `layers`); the part names are the shell's (`prim.guide.*`, in the base
+ * layer, where CF-SL-1 places them: public pages draw this sheet). The link resolves through resolveGuideNext — an admin section under
  * the caller's permissions (the admin shell's carrier, read nullable: a page
  * outside it has none), or a route of this site's register — so it never names
  * a path of its own.
