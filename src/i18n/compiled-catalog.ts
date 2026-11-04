@@ -1,6 +1,7 @@
 import { errorText } from "@/lib/error-text";
 import { loadOnce } from "@/lib/load-once";
 
+import { enBase } from "./locales/en-base";
 import type { Messages } from "./types";
 
 /**
@@ -54,6 +55,47 @@ const layerLoaders: Record<
   member: { en: () => EN_MEMBER.load(), am: () => AM_MEMBER.load() },
   guide: { en: () => EN_GUIDE.load(), am: () => AM_GUIDE.load() },
 };
+
+/**
+ * P-1c turn (d) (roadmap line 7's debt, CF-LOC-1) — THE SHIPPED CATALOGUES, ON
+ * DEMAND. A screen that needs the whole shipped text of both languages at once
+ * (the Translations console's Sync keys) asks here, on the click, and never
+ * imports a locale module into its first download. The joins are built from
+ * the very loaders above — the first paint (en-base, the provider's own
+ * import), the language's base and each layer in STRINGS_LAYERS order, the
+ * same composition as src/i18n/locales/en.ts and am.ts (compiled-layer-loader
+ * CLL-4 proves them equal) — so no new chunk exists and no page carries a byte
+ * before the click (importing en.ts here would make the bundler split en-base
+ * out of the entry's provider chunk: +0.1 KiB on every page, measured).
+ * A failed download rejects; the caller answers it through the on-demand
+ * mechanism (reportOnDemandFailure) and its own error line.
+ */
+const NONE: Partial<Messages> = {};
+async function shippedJoin(code: string): Promise<Readonly<Record<string, string>>> {
+  const base: Partial<Messages> =
+    code === "en" ? enBase : await (compiledCatalogLoader(code)?.() ?? Promise.resolve(NONE));
+  const layers = await Promise.all(
+    STRINGS_LAYERS.map((layer) => compiledLayerLoader(layer, code)?.() ?? Promise.resolve(NONE)),
+  );
+  const whole: Record<string, string> = {};
+  for (const part of [base, ...layers]) {
+    for (const [key, text] of Object.entries(part)) {
+      if (typeof text === "string") whole[key] = text;
+    }
+  }
+  return whole;
+}
+const SHIPPED = loadOnce(async (): Promise<ShippedCatalogues> => {
+  const [en, am] = await Promise.all([shippedJoin("en"), shippedJoin("am")]);
+  return { en, am };
+});
+export type ShippedCatalogues = {
+  en: Readonly<Record<string, string>>;
+  am: Readonly<Record<string, string>>;
+};
+export function shippedCatalogues(): Promise<ShippedCatalogues> {
+  return SHIPPED.load();
+}
 
 /** A layer name read from outside (a route's declaration joined into a key). */
 export function isStringsLayer(value: string): value is StringsLayer {

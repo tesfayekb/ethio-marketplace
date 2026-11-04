@@ -1,6 +1,7 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { enBase } from "./locales/en-base";
 import { enMember } from "./locales/en-member";
 import type { MessageKey } from "./types";
 
@@ -13,6 +14,8 @@ import type { MessageKey } from "./types";
 
 const KEY = Object.keys(enMember)[0] as MessageKey;
 const TEXT = (enMember as Record<string, string>)[KEY];
+/** A first-paint key, there before any layer (P-1c turn (d), `has`). */
+const BASE_KEY = Object.keys(enBase)[0] as string;
 
 const loaders = vi.hoisted(() => ({
   calls: [] as string[],
@@ -56,10 +59,15 @@ vi.mock("./compiled-catalog", async (importOriginal) => {
 const { I18nProvider, useI18n, useStringsLayers } = await import("./provider");
 
 function Probe({ ask }: { ask: boolean }) {
-  const { t } = useI18n();
+  const { t, has } = useI18n();
+  // P-1c turn (d): `has` on a layer key, a first-paint key, an inherited name and a stranger.
+  const asked = [KEY, BASE_KEY, "constructor", "no.such.key"].map((key) =>
+    has(key) ? "yes" : "no",
+  );
   return (
     <div>
       <p data-testid="text">{t(KEY) ?? ""}</p>
+      <p data-testid="has">{asked.join(",")}</p>
       {ask ? <Asker /> : null}
     </div>
   );
@@ -145,5 +153,24 @@ describe("strings layers in the provider (DEC-258)", () => {
     await act(async () => undefined);
     expect(screen.getByTestId("state").textContent).toBe("ready");
     expect(loaders.calls).toEqual(["member"]);
+  });
+
+  it("PSL-5 `has` answers false for a layer no screen asked for, true for the first paint, never throws (P-1c d)", async () => {
+    mount(false);
+    await act(async () => undefined);
+    expect(loaders.calls).toEqual([]);
+    expect(screen.getByTestId("has").textContent).toBe("no,yes,no,no");
+  });
+
+  it("PSL-6 `has` turns true for a layer's key once the layer is in — the same sources as `t`", async () => {
+    mount(true);
+    await waitFor(() => expect(loaders.pending.has("member")).toBe(true));
+    expect(screen.getByTestId("has").textContent).toBe("no,yes,no,no");
+    await act(async () => {
+      loaders.pending.get("member")?.resolve({ [KEY]: TEXT });
+    });
+    await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("ready"));
+    expect(screen.getByTestId("has").textContent).toBe("yes,yes,no,no");
+    expect(screen.getByTestId("text").textContent).toBe(TEXT);
   });
 });

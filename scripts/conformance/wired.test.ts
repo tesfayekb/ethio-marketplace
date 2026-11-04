@@ -134,6 +134,11 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/admin-tables.test.ts"), "utf8")).toContain(
       "admin-guides-allowlist.txt",
     );
+    // locale-imports.test.ts CF-LOC-1 CFLI-1…4 (turn P-1c (d), roadmap line 7's fold) is discovered
+    // by test:unit's scripts/**/*.test.ts; its census is locale-imports.ts.
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/locale-imports.test.ts"), "utf8"),
+    ).toContain("CFLI-4");
   });
 
   it("CF-WIRED-2 a basename no caller names is reported", () => {

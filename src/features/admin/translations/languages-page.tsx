@@ -1,3 +1,4 @@
+import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { compareCodes } from "@/lib/reader-locale";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowDown, ArrowUp, Languages } from "lucide-react";
@@ -24,9 +25,7 @@ import { useAdminShell } from "@/features/admin/admin-context";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
-import { useI18n } from "@/i18n";
-import { am } from "@/i18n/locales/am";
-import { en } from "@/i18n/locales/en";
+import { shippedCatalogues, useI18n } from "@/i18n";
 import type { MessageKey } from "@/i18n/types";
 
 import { DeleteLanguageDialog } from "./delete-language-dialog";
@@ -706,11 +705,17 @@ function SyncKeysCard({ guard }: { guard: GuardFn }) {
               // after step-up too — the result box that used to carry the
               // counts out of the closure is gone (INC-166: it was still empty
               // when the old guard resolved on the modal opening).
+              // P-1c turn (d): the shipped catalogues arrive on this click
+              // (src/i18n/compiled-catalog.ts, loadOnce), never in the page's
+              // first download; a failed download is said by the shell's one
+              // notice (INC-911) and by this section's own error line.
               void guard(() =>
-                sync.mutateAsync({
-                  en: en as unknown as Record<string, string>,
-                  am: am as unknown as Record<string, string>,
-                }),
+                shippedCatalogues()
+                  .catch((reason: unknown) => {
+                    reportOnDemandFailure("the shipped strings", reason);
+                    throw reason;
+                  })
+                  .then(({ en, am }) => sync.mutateAsync({ en, am })),
               )
                 .then((result: SyncResult) => {
                   setDone(

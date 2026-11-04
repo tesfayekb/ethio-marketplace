@@ -408,6 +408,30 @@ export async function leaseUser(): Promise<TestUser> {
 }
 
 /**
+ * INC-1049 (P-1c turn d) — THE ONE ROLE GRANT for a scratch or leased user,
+ * via the service role: a plain INSERT into user_roles. Its UNIQUE is
+ * (user_id, role_id, scope_type, scope_country), so an onConflict list that
+ * omits scope_country is not a valid conflict target; every fixture user is
+ * freshly minted or reaped at lease, so a plain insert never collides. The
+ * spec-local copies fold onto this one a few files a turn (roadmap, INC-1049).
+ */
+export async function grantRole(userId: string, roleName: string) {
+  const supabase = adminClient();
+  const { data: role, error: roleError } = await supabase
+    .from("roles")
+    .select("id")
+    .eq("name", roleName)
+    .single();
+  if (roleError || !role) {
+    throw new Error(`[e2e:users] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
+  }
+  const { error } = await supabase
+    .from("user_roles")
+    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
+  if (error) throw new Error(`[e2e:users] granting ${roleName} failed: ${error.message}`);
+}
+
+/**
  * INC-428 — a fixture that uses a fixed slot clears its own stale leftovers
  * first. A cancelled run's scratch user can still hold a reserved handle
  * (teardown never ran; the nightly sweep waits 24h). This releases `alias`

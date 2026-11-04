@@ -18,6 +18,7 @@ const pageHeadClient = loadOnce(() => import("@/lib/page-head-client"));
 
 import { errorText } from "@/lib/error-text";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
+import { ownValue } from "@/lib/own-key";
 import { onAuthChange, projectEnv } from "@/lib/supabase-door";
 
 import { fetchEntityBundle, fetchUiBundle, overlayBundle } from "./bundle";
@@ -217,6 +218,14 @@ async function fetchPublicLanguages(): Promise<PublicLanguage[] | null> {
 type I18nValue = {
   language: Language;
   t: (key: MessageKey) => string;
+  /**
+   * P-1c turn (d) (roadmap line 7's debt) — does this key exist in the text the
+   * page holds: the applied catalog (the loaded layers and the database's rows
+   * included) or the English first paint — the same two sources `t` reads, so
+   * the two never disagree. A key of a layer no route has asked for answers
+   * false, never throws. A screen asks this, never a locale module (CF-LOC-1).
+   */
+  has: (key: string) => boolean;
   /** U4d — approved entity names for the active language (overlay, never a replacement). */
   entities: EntityBundle;
   /** U4f — the publication gate's own list; the switcher renders exactly this. */
@@ -765,6 +774,8 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     () => ({
       language,
       t: (key: MessageKey) => messages[key] ?? enFirstPaint[key],
+      has: (key: string) =>
+        ownValue(messages, key) !== undefined || ownValue(enFirstPaint, key) !== undefined,
       entities,
       publicLanguages,
       star,

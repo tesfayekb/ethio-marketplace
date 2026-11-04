@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
-import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n/types";
 import { useState } from "react";
 
@@ -20,13 +19,14 @@ import { useSetRolePermission } from "./use-admin-roles";
  * makes any fallback red rather than letting raw English leak.
  */
 function useVocabulary() {
-  const { t } = useI18n();
+  const { t, has } = useI18n();
 
   return (kind: "action" | "resource", value: string) => {
     const key = `admin.roles.perm.${kind}.${value}` as MessageKey;
-    // `en` is the complete key set (am.ts is type-checked against it), so it is
-    // the authority on whether a vocabulary key exists at all.
-    if (key in en) return t(key);
+    // P-1c turn (d): whether a vocabulary key exists is the i18n mechanism's
+    // answer (`has`: the applied catalog or the English first paint — the admin
+    // layer is loaded before this route draws), never an imported catalogue.
+    if (has(key)) return t(key);
     if (import.meta.env.DEV) {
       console.warn(`[roles] missing matrix ${kind} translation for "${value}" (key: ${key})`);
     }

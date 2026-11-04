@@ -271,22 +271,6 @@ export function serializeRevisions(rows: RevisionDumpRow[]): string {
     .join("\n");
 }
 
-export async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:u4b] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:u4b] granting ${roleName} failed: ${error.message}`);
-}
-
 /**
  * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
  * enrol a TOTP factor on every call; it now delegates to the job-scoped pooled

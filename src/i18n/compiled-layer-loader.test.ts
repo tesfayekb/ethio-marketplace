@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { STRINGS_LAYERS, compiledLayerLoader, isStringsLayer } from "./compiled-catalog";
+import {
+  STRINGS_LAYERS,
+  compiledLayerLoader,
+  isStringsLayer,
+  shippedCatalogues,
+} from "./compiled-catalog";
+import { am } from "./locales/am";
+import { en } from "./locales/en";
 
 /**
  * DEC-258 (DEC-231's admin loader, generalised) — each strings layer's loader
@@ -34,5 +41,16 @@ describe("compiledLayerLoader (DEC-258)", () => {
       expect(Object.keys(en ?? {}).length).toBeGreaterThan(0);
       expect(Object.keys(am ?? {}).sort()).toEqual(Object.keys(en ?? {}).sort());
     }
+  });
+
+  // P-1c turn (d) (roadmap line 7's debt) — the whole shipped catalogues on demand, once.
+  it("CLL-4 shippedCatalogues answers both joins, whole, and the same object on a second ask (loadOnce)", async () => {
+    const first = await shippedCatalogues();
+    expect(Object.keys(first.en).length).toBe(Object.keys(en).length);
+    expect(Object.keys(first.am).length).toBe(Object.keys(am).length);
+    expect(first.en).toEqual(en);
+    expect(first.am).toEqual(am);
+    const second = await shippedCatalogues();
+    expect(second).toBe(first);
   });
 });

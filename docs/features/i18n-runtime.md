@@ -89,7 +89,17 @@ DEC-231's admin layer is now one of the named `STRINGS_LAYERS`: admin and member
 
 The root's `StringsLayerGate` asks through `useStringsLayers` and draws the route once every declared layer is ready. It shows a spinner while loading, or an error line with the shared Button's Try again action on failure. Each English part is kept under a failed language part (INC-816), so translated-layer failure leaves English text, never blank text. `useAdminStrings` is retired; the admin permission gate remains the authority for its screens.
 
-`scripts/conformance/strings-layers.ts` decides each key's file from the pages that reach its readers and those pages' declarations. Keys no page shows stay where they are (INC-903). `en.ts` and `am.ts` join every part for tests, scripts and the strings console; the first paint reads only the base part.
+`scripts/conformance/strings-layers.ts` decides each key's file from the pages that reach its readers and those pages' declarations. Keys no page shows stay where they are (INC-903). `en.ts` and `am.ts` join every part for tests and scripts; the first paint reads only the base part.
+
+## No screen imports a locale module (turn P-1c (d), CF-LOC-1)
+
+Three admin screens used to import `en.ts` or `am.ts` whole — one to ask whether a reason's key exists, one for the matrix's labels, one to hand the strings console's Sync every shipped text — so every layer rode their first download (roadmap line 7's debt). The mechanism now answers both questions, and no file outside `src/i18n/` imports a locale module:
+
+- `useI18n().has(key)` — whether the text in hand knows the key: the loaded chain (`messages`, the DB overlay's written rows included) or the first paint, read through `ownValue` so an inherited name ("constructor") is never a key. It never throws; a key of a layer no route has asked for answers `false`, exactly as `t` would fall back. `provider-layers.test.tsx` PSL-5 / PSL-6; `history.ts`'s `reasonLabel` takes it as a predicate, `permission-matrix.tsx` asks it before `t`.
+- `shippedCatalogues()` (`src/i18n/compiled-catalog.ts`, exported from `src/i18n`) — the two whole joins `{ en, am }` on demand, behind `loadOnce`, built from the very layer loaders (the first paint, the language's base, each `STRINGS_LAYERS` part in order — equal to `en.ts` / `am.ts`, `compiled-layer-loader.test.ts` CLL-4) so no new chunk exists and no page carries a byte before the click. The strings console's Sync asks it inside its step-up guard; a failed download reports through `reportOnDemandFailure` and the section's own error line.
+- **CF-LOC-1** (`scripts/conformance/locale-imports.ts`, `locale-imports.test.ts` CFLI-1…4, `locale-imports-allowlist.txt`, empty): a census of `src/**` outside `src/i18n/` and tests for any static import, re-export or dynamic `import()` landing in `src/i18n/locales/` (`@/` and relative paths resolved; type-only imports are weightless and pass). Its one standing exemption, named in the rule itself: `en-base` — `src/lib/page-head.ts` reads the first paint's text, which every page carries anyway. Proven on a planted static import and a planted dynamic import.
+
+The three pages' ceilings came down by the measured drop (DEC-296's ratchet form): `/admin/listings_/$listingId` 400.2 → 351.6 KiB, `/admin/roles_/$roleId` 326.8 → 278.2, `/admin/translations` 431.7 → 308.7 (local). The bytes a visitor actually saves there are the guide layer and the join: the admin and member layers are fetched by the admin layout's gate before the page draws.
 
 ## Formatter intents (INC-985, Foundations turn L-1)
 
@@ -127,4 +137,4 @@ and locale-independent CutText grapheme counting have the added reviewed excepti
 
 The database bundle arrives in two parts, `get_ui_bundle_parts(lang)` → `{ written, copied }`: a row is written when a person or machine translation wrote it (a 'save' or 'machine' revision, `ui_text_written`), otherwise copied (a sync or an approval alone). The provider merges them through `overlayBundle(base, parts, shipped)` (src/i18n/bundle.ts) only: a written row always wins; a copied row applies only where the build ships no text for that key; a language the build does not ship shows its copied rows. A flat or malformed answer keeps the compiled text (D3). The route `/api/i18n/:lang` serves the parts; its ETag carries the shape (`"parts1.<lang>.<version>"`), so a cached flat answer from before is never read as the new shape. The console's read joins the two parts (written over copied).
 
-The console's **Sync keys** is still needed to create keys for translators and for the approval count; it is no longer needed for the live site to show a new build's text.
+The console's **Sync keys** is still needed to create keys for translators and for the approval count; it is no longer needed for the live site to show a new build's text. Its texts arrive on the click through `shippedCatalogues()` (turn P-1c (d)), never in the page's first download.

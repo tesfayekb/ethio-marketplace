@@ -41,7 +41,11 @@ export const DEFINERS: Record<string, readonly string[]> = {
   "src/lib/supabase-door.ts": ["getSupabase"],
   "src/features/posting/map/leaflet.ts": ["loadLeaflet"],
   "src/features/posting/phone-parse.ts": ["loadPhoneLib"],
-  "src/i18n/compiled-catalog.ts": ["compiledCatalogLoader", "compiledLayerLoader"],
+  "src/i18n/compiled-catalog.ts": [
+    "compiledCatalogLoader",
+    "compiledLayerLoader",
+    "shippedCatalogues",
+  ],
 };
 /** Loaders that return the loader to call rather than a promise. */
 const FACTORIES = new Set(["compiledCatalogLoader", "compiledLayerLoader"]);

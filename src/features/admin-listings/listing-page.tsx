@@ -25,8 +25,6 @@ import { tierOf } from "@/components/marketplace/card-tier";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 
-import en from "@/i18n/locales/en";
-
 import {
   changesOf,
   GROUP_LABEL,
@@ -126,7 +124,7 @@ function Fact({ label, value, testid }: { label: string; value: ReactNode; testi
 }
 
 export function AdminListingPage({ listingId }: { listingId: string }) {
-  const { t, language, entities } = useI18n();
+  const { t, has, language, entities } = useI18n();
   const { permissions } = useAdminShell();
   const mayEnforce = permissions.includes("listings:enforce");
   const mayViewAs = permissions.includes("impersonation:use");
@@ -765,7 +763,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                             >
                               {t("admin.listings.history.reason").replace(
                                 "{reason}",
-                                reasonLabel(entry.reason, t, en),
+                                reasonLabel(entry.reason, t, has),
                               )}
                             </p>
                           ) : null}
