@@ -1,9 +1,20 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
-import { dirname, join, relative, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { basename, dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
-import { ADMIN_SECTIONS } from "../../src/features/admin/sections";
+import {
+  attributeOf,
+  elementsNamed,
+  hasProperty,
+  importedFrom,
+  literalsOf,
+  propertyNamed,
+  reachableFrom,
+  readGuide,
+  readParts,
+  sourceOf,
+} from "./admin-guides-read";
 import { walkFiles } from "./kit";
 import { catalogueKeys } from "./strings-layers";
 
@@ -31,77 +42,63 @@ import { catalogueKeys } from "./strings-layers";
  * and a `cell` — plus those a spread's callee returns, when the callee is a function of this file
  * or of a relatively imported one (`...attributionColumns(...)`). A file's keys count for every
  * guided table in it. Amharic mirrors English file by file under CF-SL-2.
+ *
+ * P-1c turn (b) (D315) — EVERY PAGE PEOPLE USE EXPLAINS ITSELF. A second census, over the
+ * route files (src/routes/*.tsx) minus the structural exclusions written in ROUTES_WITHOUT_GUIDE
+ * with their reasons: each remaining route reaches, through its value imports, at least one
+ * Guide — a `<PageGuide spec= parts=` (src/components/shell/page-guide.tsx) or a
+ * `<DataTable guide=` — else `no guide` (allowable like a table's). A page Guide's `spec` is an
+ * object literal, or a constant of its file or of a relatively imported one; its `parts` an
+ * array literal of `{ key: "<literal>" }`, likewise; its lines are
+ * `<partsPrefix ?? prefix>.guide.part.<key>`. A `next` is `{ section }` (an admin section) or
+ * `{ to: "<a route path of this tree>" }` — never a path the tree does not know.
  */
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const EXTENSIONS = ["", ".ts", ".tsx", "/index.ts", "/index.tsx"];
-const SECTION_IDS = new Set<string>(ADMIN_SECTIONS.map((section) => section.id));
 
 export type GuideKind = "no guide" | "shape" | "key" | "missing" | "astray" | "unclaimed";
 export type GuideFinding = { file: string; line: number; kind: GuideKind; what: string };
 
 export type GuidedTable = { file: string; line: number; prefixes: string[]; columns: string[] };
+/** A page's Guide: where it is drawn, its prefix, the prefix of its part lines, its parts. */
+export type GuidedPage = {
+  file: string;
+  line: number;
+  prefix: string;
+  partsPrefix: string;
+  parts: string[];
+};
 
 export type GuideCensus = {
   /** Every admin table that carries a Guide. */
   tables: GuidedTable[];
   /** Every admin table (guided or not), as root-relative files. */
   files: string[];
+  /** Every page Guide (`<PageGuide`) a covered route reaches. */
+  pages: GuidedPage[];
+  /** Every covered route (stem → root-relative file). */
+  routes: string[];
   findings: GuideFinding[];
 };
 
-function sourceOf(file: string): ts.SourceFile {
-  return ts.createSourceFile(
-    file,
-    readFileSync(file, "utf8"),
-    ts.ScriptTarget.Latest,
-    true,
-    file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
-  );
-}
+/**
+ * D315 — the routes that carry no Guide, each with its reason (the census covers every other
+ * page route). A screen is excluded for its shape, never for want of a text.
+ */
+export const ROUTES_WITHOUT_GUIDE: readonly { stem: RegExp; reason: string }[] = [
+  { stem: /^admin(?:\.|$)/, reason: "admin screens: each block's table carries its own Guide" },
+  { stem: /^dev\./, reason: "developer screens, not pages people use" },
+  { stem: /^auth_\.callback$/, reason: "a transit screen: it only finishes a sign-in" },
+  { stem: /^auth_\.reset$/, reason: "one field and one button" },
+  { stem: /^account_\.legal(?:_|$)/, reason: "legal texts drawn by LegalText, not a page to work" },
+  { stem: /^legal\./, reason: "legal texts drawn by LegalText, not a page to work" },
+  { stem: /^(?:privacy|terms)$/, reason: "legal texts drawn by LegalText, not a page to work" },
+];
 
-function resolveRelative(spec: string, fromFile: string): string | null {
-  if (!spec.startsWith(".")) return null;
-  const base = resolve(dirname(fromFile), spec);
-  for (const ext of EXTENSIONS) {
-    const candidate = `${base}${ext}`;
-    if (existsSync(candidate) && statSync(candidate).isFile()) return candidate;
-  }
-  return null;
+/** The route path a route file's stem names (`index` → `/`, `account_.saved` → `/account/saved`). */
+export function routePathOf(stem: string): string {
+  if (stem === "index") return "/";
+  return `/${stem.split(/_?\./).join("/")}`;
 }
-
-function propertyNamed(object: ts.ObjectLiteralExpression, name: string): ts.Expression | null {
-  for (const property of object.properties) {
-    if (ts.isPropertyAssignment(property) && property.name.getText() === name)
-      return property.initializer;
-    if (ts.isShorthandPropertyAssignment(property) && property.name.text === name)
-      return property.name;
-  }
-  return null;
-}
-
-function hasProperty(object: ts.ObjectLiteralExpression, name: string): boolean {
-  return object.properties.some(
-    (property) =>
-      (ts.isPropertyAssignment(property) ||
-        ts.isShorthandPropertyAssignment(property) ||
-        ts.isMethodDeclaration(property)) &&
-      property.name !== undefined &&
-      property.name.getText() === name,
-  );
-}
-
-/** The string literals an expression can be: a literal, or a conditional of such. */
-function literalsOf(expression: ts.Expression): string[] | null {
-  const bare = ts.isParenthesizedExpression(expression) ? expression.expression : expression;
-  if (ts.isStringLiteral(bare) || ts.isNoSubstitutionTemplateLiteral(bare)) return [bare.text];
-  if (ts.isConditionalExpression(bare)) {
-    const yes = literalsOf(bare.whenTrue);
-    const no = literalsOf(bare.whenFalse);
-    return yes !== null && no !== null ? [...yes, ...no] : null;
-  }
-  return null;
-}
-
 type ColumnScan = { keys: string[]; loose: { line: number }[]; spreads: string[] };
 
 /** The column objects (string `key` + `cell`) of a source, and the callees its spreads name. */
@@ -150,21 +147,6 @@ function declaresFunction(source: ts.SourceFile, name: string): boolean {
   walk(source);
   return found;
 }
-
-/** The relatively imported module that names `name` among its imports, resolved. */
-function importedFrom(source: ts.SourceFile, name: string): string | null {
-  for (const statement of source.statements) {
-    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier))
-      continue;
-    const bindings = statement.importClause?.namedBindings;
-    if (bindings === undefined || !ts.isNamedImports(bindings)) continue;
-    if (bindings.elements.some((element) => element.name.text === name))
-      return resolveRelative(statement.moduleSpecifier.text, source.fileName);
-  }
-  return null;
-}
-
-/** A file's column keys: its own, plus those of every spread callee it declares or imports relatively. */
 export function columnKeysOf(
   file: string,
   seen = new Set<string>(),
@@ -184,37 +166,6 @@ export function columnKeysOf(
   }
   return { keys, loose };
 }
-
-type GuideProp = { prefixes: string[]; shapeErrors: string[] };
-
-/** The `guide` prop's shape: literal prefix(es), a literal next.section among the sections, a literal block. */
-function readGuide(value: ts.Expression): GuideProp {
-  const errors: string[] = [];
-  const bare = ts.isParenthesizedExpression(value) ? value.expression : value;
-  if (!ts.isObjectLiteralExpression(bare)) {
-    return { prefixes: [], shapeErrors: ["guide is not an object literal"] };
-  }
-  const prefix = propertyNamed(bare, "prefix");
-  const prefixes = prefix === null ? null : literalsOf(prefix);
-  if (prefixes === null) errors.push("guide.prefix is not a string literal");
-  const next = propertyNamed(bare, "next");
-  if (next === null || !ts.isObjectLiteralExpression(next)) {
-    errors.push("guide.next is not an object literal { section, block? }");
-  } else {
-    const section = propertyNamed(next, "section");
-    const sections = section === null ? null : literalsOf(section);
-    if (sections === null) errors.push("guide.next.section is not a string literal");
-    else {
-      for (const id of sections) {
-        if (!SECTION_IDS.has(id)) errors.push(`guide.next.section "${id}" is not an admin section`);
-      }
-    }
-    // `block` is a frame id the page composes (a constant, a helper's answer): the
-    // type holds it to a string; the census judges the section only.
-  }
-  return { prefixes: prefixes ?? [], shapeErrors: errors };
-}
-
 /** The guide keys a block needs, from its prefix and its column keys. */
 export function neededKeys(prefix: string, columns: readonly string[]): string[] {
   return [
@@ -225,86 +176,187 @@ export function neededKeys(prefix: string, columns: readonly string[]): string[]
   ];
 }
 
+/** The guide keys a page needs: its what / how / next, and one part line per part. */
+export function neededPageKeys(
+  prefix: string,
+  partsPrefix: string,
+  parts: readonly string[],
+): string[] {
+  return [
+    `${prefix}.guide.what`,
+    ...parts.map((key) => `${partsPrefix}.guide.part.${key}`),
+    `${prefix}.guide.how`,
+    `${prefix}.guide.next`,
+  ];
+}
+
 export const CATALOGUE_FILES_OUTSIDE_GUIDE = ["en-base.ts", "en-admin.ts", "en-member.ts"];
-/** The sheet's own part names (`prim.guide.open`, `.what`, `.columns`, `.how`, `.next`): the shell's, not a block's. */
+/** The sheet's own words (`prim.guide.open`, `.what`, `.columns`, `.parts`, `.how`, `.next`): the shell's, not a block's. */
 export const SHELL_GUIDE_PREFIX = "prim.guide.";
+type Claim = (file: string, line: number, keys: string[]) => void;
+
+/**
+ * One file's guided tables: every `<DataTable` with a `guide=` is read and its keys claimed;
+ * `bare` is told of each `<DataTable` without one (the admin census makes that a finding).
+ */
+function readTables(
+  root: string,
+  file: string,
+  routePaths: ReadonlySet<string>,
+  findings: GuideFinding[],
+  claim: Claim,
+  bare: (line: number) => void,
+): GuidedTable[] {
+  const rel = relative(root, file).split("\\").join("/");
+  const source = sourceOf(file);
+  const tables: GuidedTable[] = [];
+  let columns: { keys: string[]; loose: { file: string; line: number }[] } | null = null;
+  for (const table of elementsNamed(source, "DataTable")) {
+    const line = source.getLineAndCharacterOfPosition(table.getStart(source)).line + 1;
+    const value = attributeOf(table, "guide", source);
+    if (value === undefined) {
+      bare(line);
+      continue;
+    }
+    const read = readGuide(source, value, routePaths);
+    for (const error of read.shapeErrors)
+      findings.push({ file: rel, line, kind: "shape", what: error });
+    if (read.specs.length === 0) continue;
+    columns ??= columnKeysOf(file);
+    for (const hit of columns.loose) {
+      findings.push({
+        file: relative(root, hit.file).split("\\").join("/"),
+        line: hit.line,
+        kind: "key",
+        what: "a column whose key is not a string literal (its guide line cannot be named)",
+      });
+    }
+    const keys = [...new Set(columns.keys)];
+    const prefixes = read.specs.map((spec) => spec.prefix);
+    tables.push({ file: rel, line, prefixes, columns: keys });
+    for (const prefix of prefixes) claim(rel, line, neededKeys(prefix, keys));
+  }
+  return tables;
+}
+
+/** One file's page Guides (`<PageGuide spec= parts=`): each read and its keys claimed. */
+function readPageGuides(
+  root: string,
+  file: string,
+  routePaths: ReadonlySet<string>,
+  findings: GuideFinding[],
+  claim: Claim,
+): GuidedPage[] {
+  const rel = relative(root, file).split("\\").join("/");
+  const source = sourceOf(file);
+  const pages: GuidedPage[] = [];
+  for (const element of elementsNamed(source, "PageGuide")) {
+    const line = source.getLineAndCharacterOfPosition(element.getStart(source)).line + 1;
+    const spec = attributeOf(element, "spec", source);
+    if (spec === undefined) {
+      findings.push({ file: rel, line, kind: "shape", what: "a PageGuide without its spec=" });
+      continue;
+    }
+    const read = readGuide(source, spec, routePaths);
+    for (const error of read.shapeErrors)
+      findings.push({ file: rel, line, kind: "shape", what: error });
+    const partsValue = attributeOf(element, "parts", source);
+    const parts = partsValue === undefined ? null : readParts(source, partsValue);
+    if (parts === null) {
+      findings.push({
+        file: rel,
+        line,
+        kind: "key",
+        what: 'a PageGuide whose parts are not an array literal of { key: "<literal>" } (inline or a constant)',
+      });
+    }
+    if (parts === null) continue;
+    for (const spec of read.specs) {
+      const partsPrefix = spec.partsPrefix ?? spec.prefix;
+      pages.push({ file: rel, line, prefix: spec.prefix, partsPrefix, parts });
+      claim(rel, line, neededPageKeys(spec.prefix, partsPrefix, parts));
+    }
+  }
+  return pages;
+}
 
 export function guideCensus(root = ROOT): GuideCensus {
   const featureRoot = join(root, "src", "features");
-  const files = walkFiles([featureRoot], {
-    ext: ["tsx"],
-    skipTests: true,
-    skip: /\/(?:test|__tests__)\//,
-  }).filter((file) => relative(featureRoot, file).startsWith("admin"));
+  const routesRoot = join(root, "src", "routes");
   const rel = (file: string) => relative(root, file).split("\\").join("/");
   const guideKeys = new Set(catalogueKeys(root, "en-guide.ts"));
-  const tables: GuidedTable[] = [];
-  const tableFiles: string[] = [];
   const findings: GuideFinding[] = [];
   const claimed = new Set<string>();
+  // A key is claimed by every Guide that needs it, and reported missing once.
+  const claim: Claim = (file, line, keys) => {
+    for (const key of keys) {
+      if (claimed.has(key)) continue;
+      claimed.add(key);
+      if (!guideKeys.has(key))
+        findings.push({ file, line, kind: "missing", what: `en-guide.ts lacks "${key}"` });
+    }
+  };
 
-  for (const file of files) {
-    const source = sourceOf(file);
-    const dataTables: (ts.JsxOpeningElement | ts.JsxSelfClosingElement)[] = [];
-    const walk = (node: ts.Node) => {
-      if (
-        (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) &&
-        node.tagName.getText(source) === "DataTable"
+  // The routes: every page route file, less the exclusions; their paths are the `to` register.
+  const routeFiles = existsSync(routesRoot)
+    ? walkFiles([routesRoot], { ext: ["tsx"], skipTests: true }).filter(
+        (file) => dirname(file) === routesRoot && !basename(file).startsWith("__"),
       )
-        dataTables.push(node);
-      ts.forEachChild(node, walk);
-    };
-    walk(source);
-    if (dataTables.length === 0) continue;
-    tableFiles.push(rel(file));
-    let columns: { keys: string[]; loose: { file: string; line: number }[] } | null = null;
-    for (const table of dataTables) {
-      const line = source.getLineAndCharacterOfPosition(table.getStart(source)).line + 1;
-      const guide = table.attributes.properties.find(
-        (property): property is ts.JsxAttribute =>
-          ts.isJsxAttribute(property) && property.name.getText(source) === "guide",
-      );
-      const value =
-        guide?.initializer !== undefined && ts.isJsxExpression(guide.initializer)
-          ? guide.initializer.expression
-          : undefined;
-      if (value === undefined) {
-        findings.push({
-          file: rel(file),
-          line,
-          kind: "no guide",
-          what: "a DataTable without its Guide (guide= on the DataTable)",
-        });
-        continue;
+    : [];
+  const stemOf = (file: string) => basename(file).replace(/\.tsx$/, "");
+  const routePaths = new Set(routeFiles.map((file) => routePathOf(stemOf(file))));
+  const covered = routeFiles.filter(
+    (file) => !ROUTES_WITHOUT_GUIDE.some((exclusion) => exclusion.stem.test(stemOf(file))),
+  );
+
+  // The admin tables: every one carries a Guide, or is a `no guide` finding.
+  const adminFiles = existsSync(featureRoot)
+    ? walkFiles([featureRoot], {
+        ext: ["tsx"],
+        skipTests: true,
+        skip: /\/(?:test|__tests__)\//,
+      }).filter((file) => relative(featureRoot, file).startsWith("admin"))
+    : [];
+  const tables: GuidedTable[] = [];
+  const tableFiles: string[] = [];
+  for (const file of adminFiles) {
+    let any = false;
+    const found = readTables(root, file, routePaths, findings, claim, (line) => {
+      any = true;
+      findings.push({
+        file: rel(file),
+        line,
+        kind: "no guide",
+        what: "a DataTable without its Guide (guide= on the DataTable)",
+      });
+    });
+    if (found.length > 0 || any) tableFiles.push(rel(file));
+    tables.push(...found);
+  }
+
+  // The pages: every covered route reaches a Guide, or is a `no guide` finding.
+  const pages: GuidedPage[] = [];
+  const readFiles = new Set<string>(adminFiles);
+  for (const routeFile of covered) {
+    let guided = 0;
+    for (const file of reachableFrom(root, routeFile)) {
+      const isAdmin = readFiles.has(file);
+      if (!isAdmin) {
+        readFiles.add(file);
+        const found = readTables(root, file, routePaths, findings, claim, () => undefined);
+        tables.push(...found);
+        pages.push(...readPageGuides(root, file, routePaths, findings, claim));
       }
-      const read = readGuide(value);
-      for (const error of read.shapeErrors)
-        findings.push({ file: rel(file), line, kind: "shape", what: error });
-      if (read.prefixes.length === 0) continue;
-      columns ??= columnKeysOf(file);
-      for (const hit of columns.loose) {
-        findings.push({
-          file: rel(hit.file),
-          line: hit.line,
-          kind: "key",
-          what: "a column whose key is not a string literal (its guide line cannot be named)",
-        });
-      }
-      const keys = [...new Set(columns.keys)];
-      tables.push({ file: rel(file), line, prefixes: read.prefixes, columns: keys });
-      for (const prefix of read.prefixes) {
-        for (const key of neededKeys(prefix, keys)) {
-          claimed.add(key);
-          if (!guideKeys.has(key)) {
-            findings.push({
-              file: rel(file),
-              line,
-              kind: "missing",
-              what: `en-guide.ts lacks "${key}"`,
-            });
-          }
-        }
-      }
+      guided += tables.filter((table) => table.file === rel(file)).length;
+      guided += pages.filter((page) => page.file === rel(file)).length;
+    }
+    if (guided === 0) {
+      findings.push({
+        file: rel(routeFile),
+        line: 1,
+        kind: "no guide",
+        what: "a page route that reaches no Guide (a PageGuide, or guide= on its DataTable)",
+      });
     }
   }
 
@@ -326,12 +378,12 @@ export function guideCensus(root = ROOT): GuideCensus {
         file: "src/i18n/locales/en-guide.ts",
         line: 0,
         kind: "unclaimed",
-        what: `"${key}" is needed by no admin block`,
+        what: `"${key}" is needed by no block or page`,
       });
     }
   });
 
-  return { tables, files: tableFiles, findings };
+  return { tables, files: tableFiles, pages, routes: covered.map(rel), findings };
 }
 
 // `bun run scripts/conformance/admin-guides.ts --print-guides` — the guided tables and the findings.
