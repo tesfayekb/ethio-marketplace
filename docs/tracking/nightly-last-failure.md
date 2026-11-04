@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41675873379
-- Commit: `71107be62b0340efa3d7a7b924c1886fe0ec2d6c`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41868892390
+- Commit: `7c89b1f60a95caa2832d85252cedbd081f274884`
 - Attempt: 1
-- Written (UTC): 2026-11-03T22:37:06.071Z
+- Written (UTC): 2026-11-04T22:37:04.607Z
 - Passed: 0 · Skipped: 0 · Failed: 1
 - Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -19,7 +19,7 @@ None: no results file lists one and no log's summary names one (1 of 2 results f
 
 Logs read: nightly, full · unavailable: none
 
-62 line(s), 27 message(s): 0 off the allowlist, 27 allowlisted.
+63 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
@@ -50,10 +50,20 @@ Logs read: nightly, full · unavailable: none
 | `strings tooManyRows` (quiet) | 2 | full |
 | `strings unknownColumn` (quiet) | 2 | full |
 | `strings wrongFile` (quiet) | 2 | full |
+| `listing not found` | 1 | full |
 
 Quiet (allowlisted): categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
 
-Off the allowlist: none.
+Off the allowlist:
+
+### listing not found
+
+- Count: 1 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) ×1 · PP-28 a refused edit keeps the editor open with its reason and the photo as it w ×1
+
+```text
+[WebServer] [ssr-error] /api/upload/photo listing not found
+```
 
 ## Accessibility (DEC-084, gating)
 
@@ -67,7 +77,7 @@ Results read: nightly · unavailable: full
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-03T16:37:15.702Z | 0.7 min |
+| nightly | 2026-11-04T16:37:08.347Z | 0.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
@@ -77,7 +87,7 @@ Results read: nightly · unavailable: full
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.2 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.0 s |
 
 ## Post-test errors: nightly
 
@@ -86,7 +96,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 41675873379-nightly
+[e2e:teardown] deleted 3 user(s) owned by process 41868892390-nightly
 ```
 
 ## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
@@ -129,7 +139,7 @@ Call log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/nightly/auth-resend-exhaustion.spec.ts:50:76
 ```
 
-Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 2 context file(s); of the same spec: none
+Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 6 context file(s); of the same spec: none
 
 ## Server errors: nightly
 
@@ -169,35 +179,36 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 
 ## Client errors: full
 
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 400 POST /rest/v1/rpc/user_set_preferred_language ({"code":"P0001","details":null,"hint":null,"message":"account is deactivated"})
-[client-error] HTTP 403 POST /auth/v1/logout ({"code":"session_not_found","message":"Session from session_id claim in JWT does not exist"})
-```
+No `[client-error]` lines in the `full` log (or no log was uploaded).
 
 ## full: no results file
 
 full: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
---- error lines (5) ---
-  ✘  1740 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.2m)
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] console.error: [client-error] legal landing read failed
-  ✘  1775 [desktop-1280] › e2e/auth-signout.spec.ts:658:3 › D189 deactivated session › SO-9 a deactivated account's password sign-in never shows the signed-in screen (INC-661) (20.1s)
+--- error lines (12) ---
+  ✘   302 [mobile-360] › e2e/admin-roles.spec.ts:376:3 › U2 roles console › RP-8 Amharic + no horizontal overflow (23.8s)
+  ✘   444 [mobile-360] › e2e/category-image-routes.spec.ts:176:3 › C5a — category AI foundation routes › CI-4b stored truth: generate, accept, and the reader returns assets + stamp (1.0m)
+  ✘   507 [mobile-360] › e2e/dialogs.spec.ts:452:3 › the full-screen surfaces on the one primitive (turn S6-4) › DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected (1.2m)
+  ✘   649 [mobile-360] › e2e/legal-certify.spec.ts:1048:3 › Legal certification › LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo (1.3m)
+  ✘   789 [mobile-360] › e2e/photo-pipeline.spec.ts:1438:3 › PHOTO PIPELINE › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) (3.2m)
+  ✘   791 [mobile-360] › e2e/photo-pipeline.spec.ts:1579:3 › PHOTO PIPELINE › PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) (1.8m)
+  ✘   794 [mobile-360] › e2e/photo-pipeline.spec.ts:1810:3 › PHOTO PIPELINE › PP-30 Remove background is on the cover only; the preview lies on the house background; Keep stores it as the cover (D159) (1.0m)
+  ✘   796 [mobile-360] › e2e/photo-pipeline.spec.ts:1952:3 › PHOTO PIPELINE › PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183) (1.2m)
+  ✘   842 [mobile-360] › e2e/post-wizard-category.spec.ts:724:3 › POSTING WIZARD › PW-54 the wizard walks category, specifications, photos, details and resumes at the first unfinished step (1.1m)
+  ✘  1244 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (10.5s)
+  ✘  1685 [desktop-1280] › e2e/admin-roles.spec.ts:376:3 › U2 roles console › RP-8 Amharic + no horizontal overflow (23.8s)
+  ✘  1767 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.1m)
 --- final 10 lines ---
-✓  2348 [desktop-1280] › e2e/posting-routes.spec.ts:98:3 › POSTING ROUTES › PR-1 the draft route sets the observed residency from the edge exactly once (6.9s)
-[WebServer] [upstream] ssr language gate 200 63ms
-[WebServer] [upstream] ssr language gate 200 58ms
-  ✓  2349 [desktop-1280] › e2e/posting-routes.spec.ts:128:3 › POSTING ROUTES › PR-2 an incomplete step is the door's own refusal, at status 200 (6.3s)
-[WebServer] [upstream] ssr language gate 200 76ms
-[WebServer] [upstream] ssr language gate 200 64ms
-  ✓  2350 [desktop-1280] › e2e/posting-routes.spec.ts:156:3 › POSTING ROUTES › PR-10 a pricing basis is the door's own refusal by name, at status 200 (DEC-079) (7.9s)
-[WebServer] [upstream] ssr language gate 200 62ms
-[WebServer] [upstream] ssr language gate 200 63ms
+[WebServer] [upstream] ssr language gate 200 95ms
+  ✓  2134 [desktop-1280] › e2e/photo-pipeline.spec.ts:249:3 › PHOTO PIPELINE › PP-5 the policy pass refuses the cover and stores nothing (9.4s)
+[WebServer] [upstream] ssr language gate 200 95ms
+[WebServer] [upstream] ssr language gate 200 90ms
+[WebServer] [upstream] ssr language gate 200 84ms
+[WebServer] [upstream] ssr language gate 200 95ms
+  ✓  2135 [desktop-1280] › e2e/photo-pipeline.spec.ts:265:3 › PHOTO PIPELINE › PP-6 another seller's listing is a 403 (13.7s)
+[WebServer] [upstream] ssr language gate 200 103ms
+[WebServer] [upstream] ssr language gate 200 109ms
 ```
 
 ```text
@@ -221,12 +232,4 @@ full: no results file — the process failed outside test results (setup/teardow
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-```
-
-```text
-[client-error] console.error: Failed to load resource: the server responded with a status of 400 ()
-[client-error] console.error: Failed to load resource: the server responded with a status of 403 ()
-[client-error] console.error: [client-error] legal landing read failed
-[client-error] HTTP 400 POST /rest/v1/rpc/user_set_preferred_language ({"code":"P0001","details":null,"hint":null,"message":"account is deactivated"})
-[client-error] HTTP 403 POST /auth/v1/logout ({"code":"session_not_found","message":"Session from session_id claim in JWT does not exist"})
 ```
