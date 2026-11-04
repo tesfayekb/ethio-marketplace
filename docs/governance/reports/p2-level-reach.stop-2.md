@@ -1,0 +1,61 @@
+MIGRATION — p2-level-reach part A: M-1a — the designation columns, the baseline flag, the promote dial, the pause (two files, one stop)
+DONE: phase 1 (the plan; stop-1); phase 2 ruling 1 saved, the rebase onto 7c89b1f60, roadmap line 3; part A = M-1a written as two files (split by concern for size, rule 30), proofs in-file, `bash scripts/check-migrations.sh` green, the laws run
+LEFT: M-1b (stop 3), M-1c (stop 4), the app minimum, CF-TIER-5, the tests (LVD, SWP, FSL), docs, THE CHECKS, the self-review, the report, PR ready, every check green
+CI: the base 7c89b1f60 — `gh run list --branch dev --workflow ci.yml`: completed SUCCESS (run 41820752903, 2026-11-04T11:25:34Z); ci-evidence's ci-status.md head names f1bf0ef (a side branch, cursor/f1-doors-plan; SUCCESS, 2026-11-04T13:18:15Z) — STALE for the base by the two-step read:
+# CI Status (auto-generated — do not edit by hand)
+
+- Commit: `f1bf0efd7cf57cc60020b68f4319bdd5b28dcd50` (short `f1bf0ef`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-11-04T13:18:15Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41832056503
+FILES: (git diff --name-only 7c89b1f60)
+docs/governance/briefs/p2-level-reach-plan.md
+docs/governance/briefs/p2-level-reach-ruling-1.md
+docs/governance/briefs/p2-level-reach.md
+docs/governance/reports/p2-level-reach.stop-1.md
+docs/governance/reports/p2-level-reach.stop-2.md
+roadmap.md
+scripts/public-surface-allowlist.txt
+supabase/migrations/20261104124957_71cb9d01-2d90-4d9a-8462-ba9de37f34ee.sql
+supabase/migrations/20261104124958_c072fd66-6ee4-46cd-a459-3e6fd577cff3.sql
+
+## File 1 — supabase/migrations/20261104124957_71cb9d01-2d90-4d9a-8462-ba9de37f34ee.sql (18,347 bytes)
+
+- sha256: 43760a7b2c0ddf9b517f47f69ebe49c6ef974e941aada26d353194deedbd0273
+- mark: 20261104200000 (ledger's newest before it: 20261103190000)
+- `-- e2e-areas: my-listings, admin-listings, ad-page, feed, posting, admin-monetisation`
+- Creates / alters:
+  - `public.listings`: columns `tier_until timestamptz NULL`, `tier_source text NULL` (CHECK money | credits | staff | launch), `reach text NULL REFERENCES listing_packages(key) ON UPDATE CASCADE`, `reach_until timestamptz NULL`, `reach_source text NULL` (same CHECK); constraints `listings_tier_fkey` (tier → listing_packages(key) ON UPDATE CASCADE), `listings_tier_end_has_source_check`, `listings_tier_source_has_end_check`, `listings_reach_with_source_check`, `listings_reach_end_has_source_check`, `listings_reach_source_has_end_check`; indexes `listings_tier_until_idx` and `listings_reach_until_idx` (partial, `IS NOT NULL`); COMMENTs on the six columns.
+  - DROPS `listings_tier_check` (the P-1 literal CHECK premium | featured | regular, 20260804213701) — the foreign key replaces it; see finding 1.
+  - `public.listing_packages`: column `is_baseline boolean NOT NULL DEFAULT false`, partial unique index `listing_packages_one_baseline_idx` (`WHERE kind = 'level' AND is_baseline`), the seed `UPDATE … SET is_baseline = true WHERE key = 'regular' AND kind = 'level'` with an in-file check that exactly one row carries it; the browser roles' column GRANT restated with `is_baseline` (allowlist line `listing_packages` reworded, same object and roles).
+  - `public.baseline_level_key() RETURNS text` — plpgsql, STABLE, SECURITY INVOKER, `SET search_path TO 'public'`; raises `baselineMissing` when no level row is flagged; REVOKE FROM PUBLIC, anon, authenticated; GRANT ALL TO service_role (restated in the closers).
+  - `public.rate_dials` row `('promote', 10, 3600)` ON CONFLICT DO NOTHING.
+- Proofs (one DO block; scratch rows rolled back by the sentinel `p2-m1a-proof-ok`): (a) the five columns with their types and nullability, the six constraints, the literal check gone, both foreign keys ON UPDATE CASCADE, the two partial indexes, the baseline flag one row under a unique index, `baseline_level_key()` answering the flagged row, anon/authenticated reading every listing_packages column but created_by/updated_by (is_baseline included) and holding no write and no EXECUTE on the function, the function's header (STABLE, invoker, search_path) and no PUBLIC grant, the dial row; (b) on a scratch market XZ, seller, category and a scratch reach row (`e2e_mig_rc_…`): an end without a source, a bought source without an end, a reach without its source and a tier that is no level row are refused (check_violation ×3, foreign_key_violation); a staff level with an end beside a staff reach is accepted and the reach follows the renamed key.
+- Guard lines: Born-closed guard OK (floor 20261007143529). Definer guard OK. Self-marking guard OK (floor 20260817054246). Public-surface guard OK (floor 20261003215043). Real-row proof guard OK (floor 20261007000000). Migration guard OK.
+- apply 71cb9d01 → expect mark 20261104200000
+
+## File 2 — supabase/migrations/20261104124958_c072fd66-6ee4-46cd-a459-3e6fd577cff3.sql (29,638 bytes)
+
+- sha256: 23a2255b1c840b641e5b8b1c020e6155488cf843973e5ca4a5be47416cd25d0c
+- mark: 20261104201000 (above file 1's)
+- `-- e2e-areas: my-listings, admin-listings, ad-page, feed, posting`
+- Requires file 1 (a `$pre$` block raises unless `baseline_level_key()` and `listings.reach_source` exist).
+- Creates / alters:
+  - `listings_status_check` redeclared with `'paused'` (DROP CONSTRAINT IF EXISTS + ADD, the 20261014194317 way).
+  - `public.transition_listing(uuid, text)` redeclared whole from 20261102052535 (CREATE OR REPLACE; VOLATILE, SECURITY DEFINER, `SET search_path TO 'public'`; REVOKE FROM PUBLIC, anon; GRANT EXECUTE TO authenticated; GRANT ALL TO service_role — restated in the closers) with these changes and nothing else: the status list takes `paused`; `active|reduced → paused` service-only (`'service only: % -> paused'`), keeping the clock as `closed` does (clock_kept, kept_remaining, resume_status); `paused → active|reduced` owner-only through the widened closed-reopen branch (its refusal now names the status it refuses from: `'owner only: % -> %'`), to `resume_status`, with `now() + kept_remaining`; `paused → sold` owner-only as `closed → sold`; the owner's delete and the shared last UPDATE set `tier = public.baseline_level_key()` and clear `tier_until, tier_source, reach, reach_until, reach_source` on `removed` (no literal `'regular'` remains in the body). `paused → screening | expired | closed` are not transitions (as for `closed`).
+- Proofs (one DO block; scratch rows rolled back by the sentinel `p2-m1a2-proof-ok`): (a) the status check takes paused; the header and the grants; (b) the body with the ten new fragments put back to their live text has md5 `20a5644eef70395f27730ecc9ddd160a` — the live body's, computed from 20261102052535 by the same extraction that reproduces that file's own recorded md5 `f2b4a89c…` once its two insertions are stripped; (c) on a scratch market XZ, a scratch seller holding every published acceptance (the owner's resume is a step up the acceptance guard would hold), a scratch category and reach row, four active Premium ads: the owner's pause is refused with no trace (status, no revision); the service pauses — paused, clock_kept, kept_remaining within [27 d 23 h, 28 d], resume_status active, tier and source kept, one state revision {active → paused}, out of feed_index; the service's resume is refused (`owner only: paused -> active`); `expired` on a paused ad is `illegal transition`; the owner's resume to `reduced` is `illegal transition`; the owner's resume to `active` gives `expires_at = now() + kept`, clears the clock fields, two revisions, back in feed_index at rank 2; (d) the owner sells a paused ad: `sold:premium:staff`; (e) the service removes an ad holding a staff Premium with an end and a staff reach with an end: removed, tier = baseline, the five columns NULL, out of the feed; the owner deletes another such ad: removed, deleted_at set, the same clearing.
+- Guard lines: as file 1 (the same `bash scripts/check-migrations.sh` run judges both).
+- apply c072fd66 → expect mark 20261104201000
+
+Pairing, both: apply 71cb9d01 → expect mark 20261104200000; then apply c072fd66 → expect mark 20261104201000. Neither file drops a function (the only DROPs are two constraints: `listings_tier_check` and `listings_status_check` for its redeclaration), so both fit the connector path the ruling names for M-1a. The pull request's e2e-preflight reports "STAGING BEHIND: apply …" until staging holds both marks — expected.
+
+## Findings from the census while writing (for the ruling before `continue`)
+
+1. `listings_tier_check` (20260804213701, CHECK tier IN premium | featured | regular) was not in the plan. With the foreign key it is a second, literal, declaration of "which levels exist", and it would refuse any level staff add in the console (admin_save_listing_package, M-a) and every scratch `e2e_mig_` level key the M-1b proofs set on a listing (a CHECK fires before a foreign key, so the file 1 proof's foreign-key refusal would not even be reachable). File 1 drops it and the proof asserts it is gone. If the ruling wants it kept, file 1 is rewritten (append-only: nothing is applied yet).
+2. `feed_tier_rank(text)` (20261009052418: IMMUTABLE, a literal CASE premium 2 / featured 1 / regular 0, RAISE on anything else) is called by `feed_index_refresh` for every live ad (20261019223105 :74, :126, :130). The plan put its fold onto the level row's `sort` in Part 6 (turn (c)); Q9 fixed its form (rank = sort: regular 0 < featured 10 < premium 20). Consequence for M-1b: `set_listing_level` on a live ad with a scratch level key (the proofs' way: "the doors are proven against those, never the real seeds") RAISEs inside the feed trigger. Options for the ruling: (i) M-1b redeclares `feed_tier_rank` as STABLE reading `listing_packages.sort` (Q9's form, pulled forward from (c)) — this changes the stored ranks 2/1/0 → 20/10/0 on refresh, and `e2e/feed-index.spec.ts` FE-8 (:285–293: expects 2/1/0) and e2e/admin-listings.spec.ts's `feedRanks` expectations (:2379 `[2]`, :2393 `[0]`) must follow in this turn, which widens the e2e scope; (ii) M-1b's proofs set the live `featured`/`premium` keys on the live-ad cases and keep scratch keys for the refusal cases — the catalogue read the plan allowed once more; (iii) a scratch level under a scratch `feed_tier_rank`… no (one mechanism). I lean to (i) with the FE-8 expectation updated to the rows' sorts, but it is the supervisor's call.
+3. The edit doors' own status lists do not name `paused`: the save/edit door's `IF v_row.status NOT IN ('draft','active','reduced','closed','rejected','held','expired')` (20261028223430 :33; earlier 20261016150556 :35, 20261015130915 :259) and `submit_listing`'s `v_prev.status NOT IN ('active','reduced','closed','rejected')` (20261015130915 :74) with its clock_kept CASE (:187). In (a) a seller cannot edit a paused ad (the door answers its own refusal); `resume_listing` (M-1b) and a bought level (Q3) are the ways out. Plan §1 said "paused → screening by edit_my_listing (as closed)" — that needs those two doors redeclared (M-1c, or (b) with My listings' Resume). Not done here; the file's header says so.
+4. Rule 30's size law: M-1a came to 42.9 KB in one file, so it is two files by concern (the columns / baseline / dial; the pause). File 2 is 29.6 KB — one concern (a status, its one writer, its proofs), not splittable without parting the function from its proofs. Named here rather than silently exceeded.
+5. The laws (`bunx vitest run scripts --maxWorkers=2`): 454 passed, 1 failed — `scripts/ci/nightly-hour.test.ts` NH-6 (a TZDIR-emptied machine must error): on this Mac the BSD libc ignores TZDIR, so the script finds New York's zone and answers 0. Environment (the operator's machine is Ubuntu; CI is Linux), no path this turn touched; not fixed, named.
+6. Not run here: `scripts/check-acceptance-doors.ts` and `scripts/check-caller-gates.ts` need the backend's catalogue TSV (CI's job); `transition_listing(uuid,text)`'s acceptance-doors line is unchanged (same signature, class `guarded`). No local database was used (rule 30: the file is written, never applied).
+
+The next step after `continue`: M-1b (set_listing_level, set_listing_reach, resume_listing, admin_set_listing_tier DROP+CREATE with p_days, seller_regular_live, publish_listing redeclared), shaped by the ruling on findings 2 and 3.
