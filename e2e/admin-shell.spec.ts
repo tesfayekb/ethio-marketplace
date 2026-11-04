@@ -19,7 +19,7 @@ import {
   switchUser,
   waitForHydration,
 } from "./helpers/ui";
-import { adminClient, leaseUser } from "./helpers/users";
+import { adminClient, grantRole, leaseUser } from "./helpers/users";
 
 /**
  * Phase U0 — admin shell & navigation.
@@ -27,33 +27,9 @@ import { adminClient, leaseUser } from "./helpers/users";
  * Law F3 restated for tests: these assertions cover what the UI RENDERS. The
  * server-side proofs (RLS, has_permission) live in the migration suite; green
  * here is NOT an authorization proof.
- */
-
-/**
- * Grants a named role via the service role — the staff fixture.
  *
- * Same shape as e2e/rbac.spec.ts: a plain INSERT. The user_roles UNIQUE is
- * (user_id, role_id, scope_type, scope_country), so an onConflict list that
- * omits scope_country is not a valid conflict target. Every fixture user here
- * is freshly minted, so a plain insert can never collide.
+ * The staff fixture's role grant is the one in helpers/users.ts (INC-1049).
  */
-async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(
-      `[e2e:admin-shell] role ${roleName} not found: ${roleError?.message ?? "none"}`,
-    );
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:admin-shell] granting ${roleName} failed: ${error.message}`);
-}
 
 /**
  * The permission slugs a seeded role actually holds. The expected section set

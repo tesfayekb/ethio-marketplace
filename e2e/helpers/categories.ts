@@ -237,21 +237,8 @@ export async function openEditor(page: Page, slug: string) {
   await settled(page);
 }
 
-export async function grantRole(userId: string, roleName: string) {
-  const supabase = adminClient();
-  const { data: role, error: roleError } = await supabase
-    .from("roles")
-    .select("id")
-    .eq("name", roleName)
-    .single();
-  if (roleError || !role) {
-    throw new Error(`[e2e:c2] role ${roleName} not found: ${roleError?.message ?? "no row"}`);
-  }
-  const { error } = await supabase
-    .from("user_roles")
-    .insert({ user_id: userId, role_id: role.id, scope_type: "global" });
-  if (error) throw new Error(`[e2e:c2] granting ${roleName} failed: ${error.message}`);
-}
+// INC-1049 (P-1c turn d): the one grant lives beside leaseUser; its eleven importers keep this name.
+export { grantRole } from "./users";
 
 /**
  * L4 (DEC-038) — THE JOB POOL. This helper used to mint a fresh super admin and
