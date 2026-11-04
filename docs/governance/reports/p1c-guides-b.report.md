@@ -1,11 +1,12 @@
 # P-1c turn (b) — the Guide on the pages people use (D315) — report
-Base: eb72f3bdf · Final commit: 081a8f7fa · Brief: docs/governance/briefs/p1c-guides-b.md (no sha256 given; rulings: p1c-guides-b-ruling-1.md, p1c-guides-b-ruling-2.md)
-Review: NOT READY · 1 BLOCKER · 0 MAJOR · 2 MINOR · on 081a8f7fa
+Base: eb72f3bdf · Final commit: ab99116c4 · Brief: docs/governance/briefs/p1c-guides-b.md (no sha256 given; rulings: p1c-guides-b-ruling-1.md, -2.md, -3.md)
+Review: READY · 0 BLOCKER · 0 MAJOR · 1 MINOR · on ab99116c4
 
-The BLOCKER is outside SCOPE and is this report's stop (§10, §12): `e2e/user-guides.spec.ts` is
-reachable from no area of `scripts/e2e-select.ts`, so CI's "e2e selector self-test" step and the
-two vitest copies of it (`scripts/e2e-select.test.ts`, in the laws and the component tests) are
-red on every commit of this branch. The fix is one area line in a file the plan did not name.
+The first review (on `081a8f7fa`) read `NOT READY · 1 BLOCKER · 0 MAJOR · 2 MINOR`: one MINOR
+fixed in that commit, the BLOCKER — `e2e/user-guides.spec.ts` reachable from no area of
+`scripts/e2e-select.ts`, a file outside SCOPE — stop 2 (§10). Ruling 3 extended SCOPE by that
+file for one change (`ab99116c4`); the review re-read on it stands as above, the one MINOR left
+being the `PageHeader` wrapper (§10).
 
 ## 1. Done / not done, by part and step
 
@@ -41,13 +42,21 @@ The build ran on ruling 1 (plan approved, eight answers) and ruling 2 (the four 
   `ceilingForLocal`, each line with its cause (§3, the measured table).
 - **Docs** (commit `979a92c09`): DONE. `docs/features/admin-guide.md` (the mechanism rewritten
   for both forms, §Turn (b)), register row 107 (row 104 grown), the changelog line, roadmap line 3.
-- **The checks, the browser check, the self-review** (§5, §10): run; one BLOCKER outside SCOPE.
-- NOT DONE: the pull request marked ready and its CI green — blocked on the `e2e-select.ts`
-  area (§12). The pull request stays a draft.
+- **The checks, the browser check, the self-review** (§5, §10): run; one BLOCKER outside SCOPE
+  → stop 2 (`85f7453f6`).
+- **Ruling 3** (commit `ab99116c4`): DONE. `scripts/e2e-select.ts`'s area renamed `guides` and
+  widened (`page-guide.tsx`, `guide-sheet.tsx`, `guide-spec.ts`, `wizard-guide.ts`; specs
+  `admin-guides.spec.ts` + `user-guides.spec.ts`); the census of the old name (`rg admin-guides`
+  over the tree, the spec/guard file names aside): the area line itself and one mention in
+  `docs/features/admin-guide.md`, both renamed; no `-- e2e-areas:` header names it; the
+  selector's tests name no area. `bun scripts/e2e-select.ts --self-test`: "OK: every spec is
+  reachable; every area glob matches"; `scripts/e2e-select.test.ts`: 19 passed.
+- The pull request's CI: §11.
 
 ## 2. Files changed
 
-`git diff --name-only eb72f3bdf` — 48 paths (the brief, the two rulings and stop 1 included):
+`git diff --name-only eb72f3bdf` — 52 paths (the brief, the three rulings, the two stop reports
+and this report included):
 
 ```
 docs/_changelog.md
@@ -55,9 +64,12 @@ docs/features/admin-guide.md
 docs/generated/i18n-usage.json
 docs/governance/briefs/p1c-guides-b-ruling-1.md          (A)
 docs/governance/briefs/p1c-guides-b-ruling-2.md          (A)
+docs/governance/briefs/p1c-guides-b-ruling-3.md          (A)
 docs/governance/briefs/p1c-guides-b.md                   (A)
 docs/governance/mechanisms.md
+docs/governance/reports/p1c-guides-b.report.md           (A)
 docs/governance/reports/p1c-guides-b.stop-1.md           (A)
+docs/governance/reports/p1c-guides-b.stop-2.md           (A)
 e2e/user-guides.spec.ts                                  (A)
 public/i18n-usage.json
 roadmap.md
@@ -67,6 +79,7 @@ scripts/conformance/admin-guides-read.ts                 (A)
 scripts/conformance/admin-guides.test.ts
 scripts/conformance/admin-guides.ts
 scripts/conformance/holds-its-box-allowlist.txt
+scripts/e2e-select.ts                                    (ruling 3: the one area)
 scripts/route-budgets.mjs
 src/components/layout/page-header.tsx
 src/components/marketplace/feed.tsx
@@ -100,10 +113,10 @@ src/routes/l.$slug.tsx
 src/routes/settings.tsx
 ```
 
-Every (A) path answers `git ls-files --error-unmatch` (run on the twelve new files). Every path
-is in plan §8's SCOPE, the standing allowance, or named by ruling 2 (`guide-spec.ts`,
-`admin-context.tsx`). `src/features/admin/guide-next.ts` was listed as "(+test)" and is one
-module with its test. No file was deleted.
+Every (A) path answers `git ls-files --error-unmatch` (run on the new files). Every path is in
+plan §8's SCOPE, the standing allowance, or named by a ruling (ruling 2: `guide-spec.ts`,
+`admin-context.tsx`; ruling 3: `scripts/e2e-select.ts`). `src/features/admin/guide-next.ts` was
+listed as "(+test)" and is one module with its test. No file was deleted.
 
 ## 3. Behaviour contract — before → after
 
@@ -169,7 +182,7 @@ importers (the same K2 cause ruling 2 §1c carries for `/admin/translations`); c
 - My listings' columns (`my-listings-page.tsx`, the `columns` array): photo, title, price, state, posted, expires — six; `open`, `share`, `copy`, `category` are row verbs or facts, not columns (ruling 2 §3).
 - `.guide.` keys named outside the layer (CF-GUIDE-1's `astray`): none — the consumers' hits (`rg "\.guide\." src --glob '!src/i18n/**'`) are comments naming the prefix.
 - The usage map: `scanned` 672 → 673 (`guide-spec.ts`); every `prim.guide.*` call is a literal (`t("prim.guide.open" satisfies GuideOpenKey)`), so its surfaces stay attributed.
-- `e2e-select.ts` areas naming guide files (`rg guide scripts/e2e-select.ts`): `admin-guides` (`block-guide*.tsx`, `order-strip.tsx`, `guide-next.ts`, `*-guide.ts` → `admin-guides.spec.ts`); nothing names `page-guide.tsx`, `guide-sheet.tsx`, `guide-spec.ts`, `wizard-guide.ts` or `e2e/user-guides.spec.ts` — the BLOCKER (§12).
+- `e2e-select.ts` areas naming guide files (`rg guide scripts/e2e-select.ts`, at stop 2): `admin-guides` (`block-guide*.tsx`, `order-strip.tsx`, `guide-next.ts`, `*-guide.ts` → `admin-guides.spec.ts`); nothing named `page-guide.tsx`, `guide-sheet.tsx`, `guide-spec.ts`, `wizard-guide.ts` or `e2e/user-guides.spec.ts` — stop 2; ruling 3's area `guides` names them all. The old name elsewhere (`rg admin-guides`, file names aside): `docs/features/admin-guide.md:167` only — renamed; no migration header, no test names an area.
 
 ## 5. Tests
 
@@ -187,30 +200,31 @@ CFG-3 counts 7 table prefixes, 10 page prefixes, 13 routes. The stub seams are t
 (`vi.mock` of the admin context, the strings gate and the layer loader); no real row.
 
 Unit, the touched files (`bunx vitest run` on page-guide, block-guide, guide-next, wizard-guide,
-admin-guides, holds-its-box, strings-layers, wired, admin-tables): 9 files, 43 passed. The laws
-(`bunx vitest run scripts --maxWorkers=2`, inside THE CHECKS): 89 files — 87 passed, 2 failed:
-NH-6 (macOS, pre-existing, §12) and `e2e-select.test.ts › every spec is reachable` (the
-BLOCKER). Component tests (inside THE CHECKS): 436 files, 2710 tests — 2708 passed, the same 2
-failed. `bun run typecheck`: clean. `bun run lint`: 0 errors, 46 warnings (the pre-existing
-class). `bun run format:check`: clean.
+admin-guides, holds-its-box, strings-layers, wired, admin-tables): 9 files, 43 passed;
+`scripts/e2e-select.test.ts`: 19 passed. The laws (`bunx vitest run scripts --maxWorkers=2`,
+inside THE CHECKS on the final tree): 89 files — 88 passed, 1 failed: NH-6 (macOS, pre-existing,
+§12). Component tests (inside THE CHECKS): 436 files, 2710 tests — 2709 passed, NH-6 the one
+failure. `bun run typecheck`: clean. `bun run lint`: 0 errors, 46 warnings (the pre-existing
+class). `bun run format:check`: clean. `bun scripts/e2e-select.ts --self-test`: OK.
 
-THE CHECKS (`bun run checks`, once, on `0cf2df2a9`'s code tree — the later commit changes one
-comment): fast line `FAIL laws-first › scripts/ tests first (INC-1030) (54s)`; last line
-`checks: 23 PASS · 5 FAIL · 30 NOT RUN · 303s`. The five FAILs, each read in its log: `laws-first`
-(NH-6 + e2e-select, above); `build-and-check › Workflow lint (actionlint, pinned)` — the pinned
-Linux binary on macOS (no workflow changed); `component-tests` (the same two); `secrets-scan
-(gitleaks, pinned)` — the pinned Linux binary (before each commit I read `git diff --cached` for
-key-, secret-, token- and password-shaped text and found none); `i18n-usage-map › Assert no
-drift` — the maps regenerated (`scanned` 673), committed in `0cf2df2a9`, so this one is fixed.
-`bundle-budget › Check the first-paint budget` PASS; `the NEAR band (R4)` PASS ("0 NEAR, none
-grew"); migration-lint, string-scan, import-gate, listing-write-seam, browse-path-guard,
-marketplace-weight, semgrep (self-test and scan) PASS. The 30 NOT RUN: 8 behind the two Mac reds
-(typecheck, format, lint, root route names, build, bundle report — each run by hand on this tree
-and clean; the e2e selector self-test — run by hand, RED, the BLOCKER; `changed folders' unit
-tests` and `Semgrep ERROR` — the unit tests run by hand above), 3 installs the runner skips, 2
-dependency-audit (the advisory service unreachable from the sandbox), 4 e2e-preflight (staging
-credentials the script never holds), 6 e2e merges (GitHub artifacts), 4 promote (only CI
-promotes), 2 semgrep uploads (GitHub only), 1 bundle-budget install.
+THE CHECKS (`bun run checks`, whole, on the final code tree `ab99116c4`; an earlier whole run on
+`0cf2df2a9` had two more FAILs — the usage-map drift, fixed in that commit, and the selector
+self-test in the laws and the component tests, fixed by ruling 3): fast line `FAIL laws-first ›
+scripts/ tests first (INC-1030) (56s)`; last line `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 305s`.
+The four FAILs, each read in its log: `laws-first › scripts/ tests first` — NH-6 only (450
+passed, 1 failed); `build-and-check › Workflow lint (actionlint, pinned)` — the pinned Linux
+binary on macOS (no workflow changed); `component-tests › Component tests` — NH-6 only (2709
+passed, 1 failed); `secrets-scan › Secrets scan (gitleaks, pinned)` — the pinned Linux binary
+(before each commit I read `git diff --cached` for key-, secret-, token- and password-shaped text
+and found none). `i18n-usage-map › Assert no drift` PASS; `bundle-budget › Check the first-paint
+budget` PASS; `the NEAR band (R4)` PASS ("0 NEAR, none grew"); migration-lint, string-scan,
+import-gate, listing-write-seam, browse-path-guard, marketplace-weight, semgrep (self-test and
+scan) PASS. The 30 NOT RUN: 8 behind the two Mac reds (typecheck, format, lint, the e2e selector
+self-test, root route names, build, bundle report — each run by hand on this tree and clean;
+`changed folders' unit tests` and `Semgrep ERROR` — the unit tests run by hand above), 3 installs
+the runner skips, 2 dependency-audit (the advisory service unreachable from the sandbox), 4
+e2e-preflight (staging credentials the script never holds), 6 e2e merges (GitHub artifacts), 4
+promote (only CI promotes), 2 semgrep uploads (GitHub only), 1 bundle-budget install.
 
 THE BROWSER CHECK (`bun run e2e:local`, ethio-staging, both projects, 2 workers, 0 retries):
 (i) before stop 1, `e2e/user-guides.spec.ts` whole: 18 passed (9 × 2). (ii) After ruling 2, on
@@ -245,10 +259,9 @@ guide chunk's absence on the first paint is asserted on a `page.on("request")` l
   `src/features/admin/translations/languages-page.tsx:28–29` — carry `en-guide` (and `am-guide`)
   in their first download, +2.3 KiB per catalogue this turn and more with every guide turn
   (ruling 2 §1c: carried with the cause; the fold is roadmap line 7). Outside SCOPE; not touched.
-- `scripts/e2e-select.ts:176–184` — the `admin-guides` area names `block-guide*.tsx` only; the
-  page form, the sheet, the contract and the wizard guide match no area (so the selector says
-  ALL for them, which over-selects safely) and `e2e/user-guides.spec.ts` is in no area's `specs`
-  (which the self-test refuses). Outside SCOPE; the BLOCKER.
+- `scripts/e2e-select.ts:176–184` (at stop 2) — the `admin-guides` area named `block-guide*.tsx`
+  only; the page form, the sheet, the contract and the wizard guide matched no area and
+  `e2e/user-guides.spec.ts` was in no area's `specs`. Fixed by ruling 3 (the area `guides`).
 - The admin's edit wizard (`wizard.tsx`, `edit.actor === "admin"`) draws no Guide: the admin
   listing console's own guide is turn (c)'s (`admin-guides-allowlist.txt`).
 - Greps run: `rg "shell/(page-guide|block-guide|guide-sheet|block-guide-sheet|guide-spec)"`,
@@ -403,6 +416,13 @@ none (FLAG `no-migration`; `git diff --name-only eb72f3bdf -- supabase/` is empt
   here `git show origin/ci-evidence:…` (§11 was read that way).
 - `e2e/admin-guides.spec.ts`'s `GUIDE_CHUNK` still names `block-guide-sheet` — the body's chunk,
   which still exists under that name; not changed.
+- **Stop 2** (`85f7453f6`, `docs/governance/reports/p1c-guides-b.stop-2.md`): the new spec
+  was reachable from no area of `scripts/e2e-select.ts` (outside SCOPE), so CI's selector
+  self-test and its two vitest copies were red on every commit up to `745646e92`. My census
+  miss: the laws' second failure sat beside NH-6 and I read only NH-6 until THE CHECKS.
+  Ruling 3: SCOPE + `scripts/e2e-select.ts` for one change — the area renamed `guides` (one area
+  for the one concern) and widened exactly as the stop report proposed; the docs mention
+  followed. Commit `ab99116c4`; the self-test green is the proof.
 - Self-review MINOR, fixed (`081a8f7fa`): the sheet body's comment named the guide layer for
   `prim.guide.*`. MINOR, left: `PageHeader` renders its end-column wrapper on mobile when only
   `actions` is passed (an empty flex box of zero width); no layout change observed.
@@ -429,21 +449,18 @@ This pull request's own run on the stop-1 commit `724fc819c` (run 41756986789, r
 `ci-status.md`, `guards-last-failure.md`, `e2e-last-failure.md` and `gh pr checks 16`): FAILURE.
 Three red jobs, class (e): `First-paint bundle budget` (43 pages over — the budget lines, moved
 in `b0e6e8ed6`); `Build, typecheck, lint` and `Component tests` — both the e2e selector self-test
-(`spec not reachable from any area: e2e/user-guides.spec.ts`), the BLOCKER outside SCOPE. Every
-other job green: all 16 E2E lanes, the smoke, repeat and email lanes, the E2E verdict ("last E2E
-run 41756986789 passed", 0 flaky, no errors outside a test), CodeQL, the browse-path guard, the
-dependency audit. No re-run. The final "every check green" line cannot be written until the
-selector's area exists.
+(`spec not reachable from any area: e2e/user-guides.spec.ts`), stop 2, fixed by ruling 3 in
+`ab99116c4`. Every other job green: all 16 E2E lanes, the smoke, repeat and email lanes, the E2E
+verdict ("last E2E run 41756986789 passed", 0 flaky, no errors outside a test), CodeQL, the
+browse-path guard, the dependency audit. No re-run. The runs on the commits between (`9fbdb0f0e`
+… `85f7453f6`) were superseded by the next push and are not read as verdicts (class (d)). The
+final run is the one on this report's own commit (the last of the branch): read with
+`gh pr checks 16 --watch`; its verdict is the pull request's comment `Every check green on <sha>`
+(rule 00 step 10). Had a red of that run needed a fix, this section would carry the red's class,
+cause and fixing commit, updated in that same commit.
 
 ## 12. Limits
 
-- **The BLOCKER:** `scripts/e2e-select.ts` is outside SCOPE (plan §8, rulings 1 and 2). The new
-  spec needs an area line — the `admin-guides` area widened to `"src/components/shell/*guide*.ts*"`,
-  `"src/features/posting/wizard-guide.ts"` and `specs: [..., "e2e/user-guides.spec.ts"]`, or a
-  `user-guides` area of its own — about six lines. Until the supervisor extends SCOPE by that
-  file, CI's `Build, typecheck, lint` and `Component tests` jobs stay red on every commit of this
-  branch, and the pull request stays a draft. This is stop 2's question
-  (`docs/governance/reports/p1c-guides-b.stop-2.md`).
 - NH-6 (`scripts/ci/nightly-hour.test.ts`): red on macOS (the zone resolution), red on the base
   tree too; CI on Linux judges it.
 - actionlint and gitleaks: the pinned Linux binaries do not run on macOS; CI judges both. The
@@ -452,8 +469,8 @@ selector's area exists.
   promote job: CI only.
 - The browser check ran 20 of the 69 specs the selector names (the two guide specs and every
   changed screen's own); the rest are CI's lanes, green on `724fc819c`; the later commits change
-  the module graph (`guide-spec.ts`), the budgets, docs and one comment — the pull request's
-  next run judges them.
+  the module graph (`guide-spec.ts`), the budgets, the selector's area table, docs and one
+  comment — the pull request's final run judges them (§11).
 - Rendered-output acceptance (the control's place in each title row at 360 / 768 / 1024 / 1280,
   the ad page's tier ink) is the operator's walk: thirteen routes, each with the Guide opened,
   Escape, and the next link; the wizard at two steps; My listings' tile; Amharic on the ad page.
