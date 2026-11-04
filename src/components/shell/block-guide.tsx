@@ -4,10 +4,16 @@ import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { useI18n } from "@/i18n";
 
 import { GuideSheetContent } from "./guide-sheet";
-import { GuideIcon, guideAnchor, type BlockGuideSpec, type GuideColumn } from "./page-guide";
+import {
+  GuideIcon,
+  guideAnchor,
+  type BlockGuideSpec,
+  type GuideColumn,
+  type GuideOpenKey,
+} from "./guide-spec";
 import { TableActionButton } from "./table-actions";
 
-export { guideAnchor, type BlockGuideSpec, type GuideColumn } from "./page-guide";
+export { guideAnchor, type BlockGuideSpec, type GuideColumn } from "./guide-spec";
 
 /**
  * P-1c (D313) — THE GUIDE OF AN ADMIN BLOCK, one mechanism for every block.
@@ -27,7 +33,8 @@ export { guideAnchor, type BlockGuideSpec, type GuideColumn } from "./page-guide
  *
  * P-1c turn (b) (D315) — this is the TABLE form; a page without a table carries
  * the page form (page-guide.tsx). Both share the icon, the label and the
- * dialog contract, and open the same sheet.
+ * dialog contract through guide-spec.ts (ruling 2: neither form imports the
+ * other), and open the same sheet.
  */
 export function BlockGuide({
   spec,
@@ -51,7 +58,7 @@ export function BlockGuide({
       <SheetTrigger asChild>
         <TableActionButton
           icon={<GuideIcon />}
-          label={t("prim.guide.open")}
+          label={t("prim.guide.open" satisfies GuideOpenKey)}
           data-testid={`${anchor}-guide`}
         />
       </SheetTrigger>

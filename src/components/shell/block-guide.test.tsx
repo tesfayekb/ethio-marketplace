@@ -1,4 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -169,6 +172,22 @@ describe("BlockGuide (D313)", () => {
       expect(control.getAttribute("aria-haspopup")).toBe("dialog");
       expect(control.getAttribute("aria-expanded")).toBe("false");
       expect(control.querySelectorAll("svg.lucide-book-open").length).toBe(1);
+    }
+  });
+
+  it("BG-7 (ruling 2) the contract lives in guide-spec.ts: neither form imports the other, both import it", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const source = (stem: string) => readFileSync(join(here, stem), "utf8");
+    const imports = (text: string) =>
+      [...text.matchAll(/from\s+"(\.[^"]+)"/g)].map((match) => match[1]);
+    const table = imports(source("block-guide.tsx"));
+    const page = imports(source("page-guide.tsx"));
+    expect(table).not.toContain("./page-guide");
+    expect(page).not.toContain("./block-guide");
+    expect(table).toContain("./guide-spec");
+    expect(page).toContain("./guide-spec");
+    for (const stem of ["guide-sheet.tsx", "block-guide-sheet.tsx"]) {
+      expect(imports(source(stem))).not.toContain("./page-guide");
     }
   });
 });

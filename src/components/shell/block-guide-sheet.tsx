@@ -6,7 +6,7 @@ import { resolveGuideNext } from "@/features/admin/guide-next";
 import { useI18n, type MessageKey } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import type { BlockGuideSpec, GuidePart, PartsKind } from "./page-guide";
+import type { BlockGuideSpec, GuidePart, PartsKind } from "./guide-spec";
 
 /**
  * P-1c (D313) — THE GUIDE SHEET'S BODY, fetched on the first open (guide-sheet.tsx).

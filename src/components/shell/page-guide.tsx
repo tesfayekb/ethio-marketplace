@@ -1,10 +1,18 @@
-import { BookOpen } from "lucide-react";
 import { Suspense, useRef, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { GuideNext } from "@/features/admin/guide-next";
-import { useI18n, type MessageKey } from "@/i18n";
+import { useI18n } from "@/i18n";
 import { resilientLazy } from "@/lib/resilient-lazy";
+
+import {
+  GuideIcon,
+  guideAnchor,
+  type BlockGuideSpec,
+  type GuideOpenKey,
+  type GuidePart,
+} from "./guide-spec";
+
+export type { BlockGuideSpec, GuidePart } from "./guide-spec";
 
 /**
  * P-1c turn (b) (D315) — THE GUIDE OF A PAGE, the form every seller's and
@@ -24,58 +32,12 @@ import { resilientLazy } from "@/lib/resilient-lazy";
  * dialog's own return). A failed download reports through resilientLazy to the
  * shell's one notice (INC-911).
  *
- * The spec types and `guideAnchor` live here so that every other Guide module
- * imports from the lightest one and the first-paint control carries nothing of
- * theirs. CF-GUIDE-1 (scripts/conformance/admin-guides.ts) judges that every
- * user-facing route draws exactly one Guide and every part has its line.
+ * The spec types, `guideAnchor`, the icon and the name key live in guide-spec.ts,
+ * the contract both forms import (ruling 2: neither form imports the other, so
+ * a DataTable page never carries this chunk). CF-GUIDE-1
+ * (scripts/conformance/admin-guides.ts) judges that every user-facing route
+ * draws exactly one Guide and every part has its line.
  */
-export type BlockGuideSpec = {
-  /** The block's or page's key prefix, e.g. `admin.monetisation.markets` or `adPage`; its guide keys hang under it. */
-  readonly prefix: string;
-  /** Where "What to do next" leads: an admin section (and a block's anchor), or a route of this site. */
-  readonly next: GuideNext;
-  /** The frame's id (an anchor other Guides may lead to); the prefix with dashes by default. */
-  readonly anchor?: string;
-  /**
-   * The prefix the part lines hang under when they are another page's (the edit
-   * wizard reads the posting wizard's eight step lines): `<partsPrefix>.guide.part.<key>`.
-   */
-  readonly partsPrefix?: string;
-};
-
-/**
- * One part the sheet explains: its key (the guide line's key) and, when the page
- * names the part itself, that name as the term — a drawn node (`label`, a
- * column's header) or the key of the page's own string (`labelKey`, a wizard
- * step's name, read by the sheet). A page's parts carry terms all or none:
- * named, the sheet draws a term list; unnamed, a plain list of lines in the
- * page's order.
- */
-export type GuidePart = {
-  readonly key: string;
-  readonly label?: ReactNode;
-  readonly labelKey?: MessageKey;
-};
-/** A table's column, explained as a part: its header is the term. */
-export type GuideColumn = { readonly key: string; readonly label: ReactNode };
-
-/**
- * Which grammar the parts follow: a table's columns (`Each column`,
- * `<prefix>.guide.col.<key>`) or a page's parts (`Each part`,
- * `<prefix>.guide.part.<key>`) — one primitive, one parameter, never a fork.
- */
-export type PartsKind = "columns" | "parts";
-
-/** The frame id (and the hash a next-link lands on) of a guided block or page. */
-export function guideAnchor(spec: BlockGuideSpec): string {
-  return spec.anchor ?? spec.prefix.replace(/\./g, "-");
-}
-
-/** The Guide's one icon, in both forms. */
-export function GuideIcon({ className }: { className?: string }) {
-  return <BookOpen aria-hidden="true" className={className} />;
-}
-
 const PageGuideSheet = resilientLazy(
   () => import("./guide-sheet").then((module) => module.PageGuideSheet),
   "the page guide",
@@ -117,7 +79,7 @@ export function PageGuide({
         onClick={() => setState("open")}
       >
         <GuideIcon />
-        {t("prim.guide.open")}
+        {t("prim.guide.open" satisfies GuideOpenKey)}
       </Button>
       {state === "never" ? null : (
         <Suspense fallback={null}>

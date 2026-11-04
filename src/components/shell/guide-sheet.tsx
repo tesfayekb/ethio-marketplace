@@ -6,7 +6,7 @@ import { useI18n } from "@/i18n";
 import { resilientLazy } from "@/lib/resilient-lazy";
 
 import { LoadFailedHere } from "./on-demand-notice";
-import { guideAnchor, type BlockGuideSpec, type GuidePart, type PartsKind } from "./page-guide";
+import { guideAnchor, type BlockGuideSpec, type GuidePart, type PartsKind } from "./guide-spec";
 import { StringsLayerGate } from "./strings-layer-gate";
 
 /**
