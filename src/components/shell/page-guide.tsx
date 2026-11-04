@@ -3,7 +3,7 @@ import { Suspense, useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { GuideNext } from "@/features/admin/guide-next";
-import { useI18n } from "@/i18n";
+import { useI18n, type MessageKey } from "@/i18n";
 import { resilientLazy } from "@/lib/resilient-lazy";
 
 /**
@@ -43,10 +43,21 @@ export type BlockGuideSpec = {
   readonly partsPrefix?: string;
 };
 
-/** One part the sheet explains: its key (the guide line's key) and its visible label. */
-export type GuidePart = { readonly key: string; readonly label: ReactNode };
-/** A table's column, explained as a part. */
-export type GuideColumn = GuidePart;
+/**
+ * One part the sheet explains: its key (the guide line's key) and, when the page
+ * names the part itself, that name as the term — a drawn node (`label`, a
+ * column's header) or the key of the page's own string (`labelKey`, a wizard
+ * step's name, read by the sheet). A page's parts carry terms all or none:
+ * named, the sheet draws a term list; unnamed, a plain list of lines in the
+ * page's order.
+ */
+export type GuidePart = {
+  readonly key: string;
+  readonly label?: ReactNode;
+  readonly labelKey?: MessageKey;
+};
+/** A table's column, explained as a part: its header is the term. */
+export type GuideColumn = { readonly key: string; readonly label: ReactNode };
 
 /**
  * Which grammar the parts follow: a table's columns (`Each column`,

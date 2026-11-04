@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useAdminShellIfAny } from "@/features/admin/admin-context";
 import { resolveGuideNext } from "@/features/admin/guide-next";
 import { useI18n, type MessageKey } from "@/i18n";
+import { cn } from "@/lib/utils";
 
 import type { BlockGuideSpec, GuidePart, PartsKind } from "./page-guide";
 
@@ -25,8 +26,12 @@ import type { BlockGuideSpec, GuidePart, PartsKind } from "./page-guide";
  * columns read `<prefix>.guide.col.<key>` under "Each column"; a page's parts
  * read `<partsPrefix ?? prefix>.guide.part.<key>` under "Each part". The part
  * the person is on (`current`, a wizard's step) is marked `aria-current="step"`.
+ * Parts the page names (`label` on every one) draw as a term list; parts it
+ * does not draw as a plain list of lines in the page's order (GuidePart).
  */
 const PART_TITLE = "text-xs font-semibold uppercase tracking-wide text-muted-foreground";
+/** The part the person is on. */
+const CURRENT = "border-s-2 border-primary ps-2";
 
 export function BlockGuideSheet({
   anchor,
@@ -52,6 +57,8 @@ export function BlockGuideSheet({
   const partWord = partsKind === "columns" ? "col" : "part";
   const partKey = (part: string) => `${partsHome}.guide.${partWord}.${part}` as MessageKey;
   const target = resolveGuideNext(spec.next, shell?.permissions ?? null);
+  const term = (part: GuidePart) => (part.labelKey !== undefined ? t(part.labelKey) : part.label);
+  const named = parts.every((part) => term(part) !== undefined);
   return (
     <div data-testid={`${anchor}-guide-body`} className="flex flex-col gap-5 text-sm">
       <section className="flex flex-col gap-1.5">
@@ -62,19 +69,34 @@ export function BlockGuideSheet({
         <h3 className={PART_TITLE}>
           {partsKind === "columns" ? t("prim.guide.columns") : t("prim.guide.parts")}
         </h3>
-        <dl className="flex flex-col gap-2">
-          {parts.map((part) => (
-            <div
-              key={part.key}
-              data-testid={`${anchor}-guide-${partWord}-${part.key}`}
-              aria-current={current === part.key ? "step" : undefined}
-              className={current === part.key ? "border-s-2 border-primary ps-2" : undefined}
-            >
-              <dt className="font-semibold text-foreground">{part.label}</dt>
-              <dd className="text-muted-foreground">{t(partKey(part.key))}</dd>
-            </div>
-          ))}
-        </dl>
+        {named ? (
+          <dl className="flex flex-col gap-2">
+            {parts.map((part) => (
+              <div
+                key={part.key}
+                data-testid={`${anchor}-guide-${partWord}-${part.key}`}
+                aria-current={current === part.key ? "step" : undefined}
+                className={current === part.key ? CURRENT : undefined}
+              >
+                <dt className="font-semibold text-foreground">{term(part)}</dt>
+                <dd className="text-muted-foreground">{t(partKey(part.key))}</dd>
+              </div>
+            ))}
+          </dl>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {parts.map((part) => (
+              <li
+                key={part.key}
+                data-testid={`${anchor}-guide-${partWord}-${part.key}`}
+                aria-current={current === part.key ? "step" : undefined}
+                className={cn("text-foreground", current === part.key ? CURRENT : undefined)}
+              >
+                {t(partKey(part.key))}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
       <section className="flex flex-col gap-1.5">
         <h3 className={PART_TITLE}>{t("prim.guide.how")}</h3>

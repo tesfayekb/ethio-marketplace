@@ -9,6 +9,7 @@ import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { PageHeader } from "@/components/layout/page-header";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageCard } from "@/components/shell/page-card";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -170,6 +171,20 @@ function Mark({ testid, children }: { testid: string; children: ReactNode }) {
     </span>
   );
 }
+
+/**
+ * P-1c turn (b) (D315) — the page's Guide: its parts in reading order (the
+ * actions, the status card's state and dates, the problem line, the history),
+ * its texts under `myListing.guide.*` in the guide layer; next: My listings.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "myListing", next: { to: "/my-listings" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "actions" },
+  { key: "state" },
+  { key: "dates" },
+  { key: "problem" },
+  { key: "history" },
+];
 
 export function MyListingPage({ listingId }: { listingId: string }) {
   const { t, language } = useI18n();
@@ -424,6 +439,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
       <PageHeader
         className="mt-2"
         title={<span className="break-words">{row.title ?? t("myListings.untitled")}</span>}
+        guide={
+          <PageGuide
+            spec={GUIDE}
+            title={row.title ?? t("myListings.untitled")}
+            parts={GUIDE_PARTS}
+          />
+        }
       />
       <div data-testid="my-listing-actions" className="mt-3 min-w-0 space-y-2">
         {typeof row.publicId === "string" && (row.status === "active" || row.status === "sold") ? (

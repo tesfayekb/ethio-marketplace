@@ -61,15 +61,18 @@ vi.mock("./guide-sheet", async () => {
 });
 
 const { PageGuide } = await import("./page-guide");
+type GuidePart = import("./page-guide").GuidePart;
 
 const SPEC = { prefix: "post.edit", partsPrefix: "post", next: { to: "/my-listings" as const } };
 const PARTS = [
-  { key: "category", label: "Category" },
+  { key: "category", labelKey: "post.step.category" as const },
   { key: "photos", label: "Photos" },
 ];
+/** A page that does not name its parts: lines only. */
+const UNNAMED = [{ key: "category" }, { key: "photos" }];
 
-function draw(current?: string) {
-  render(<PageGuide spec={SPEC} title="Change a live ad" parts={PARTS} current={current} />);
+function draw(current?: string, parts: readonly GuidePart[] = PARTS) {
+  render(<PageGuide spec={SPEC} title="Change a live ad" parts={parts} current={current} />);
 }
 
 async function open() {
@@ -108,6 +111,8 @@ describe("PageGuide (D315)", () => {
     ]);
     expect(body.textContent).toContain("post.edit.guide.what");
     expect(body.textContent).toContain("post.edit.guide.how");
+    const terms = [...body.querySelectorAll("dt")].map((term) => term.textContent);
+    expect(terms).toEqual(["post.step.category", "Photos"]);
     const lines = [...body.querySelectorAll("dd")].map((line) => line.textContent);
     expect(lines).toEqual(["post.guide.part.category", "post.guide.part.photos"]);
     expect(screen.getByTestId("post-edit-guide-part-photos").getAttribute("aria-current")).toBe(
@@ -116,6 +121,17 @@ describe("PageGuide (D315)", () => {
     expect(
       screen.getByTestId("post-edit-guide-part-category").getAttribute("aria-current"),
     ).toBeNull();
+  });
+
+  it("PG-4 parts the page does not name draw as a plain list of lines, the current one marked", async () => {
+    draw("category", UNNAMED);
+    const body = await open();
+    expect(body.querySelector("dl")).toBeNull();
+    const lines = [...body.querySelectorAll("ul > li")].map((line) => line.textContent);
+    expect(lines).toEqual(["post.guide.part.category", "post.guide.part.photos"]);
+    expect(screen.getByTestId("post-edit-guide-part-category").getAttribute("aria-current")).toBe(
+      "step",
+    );
   });
 
   it("PG-3 the next link is the route form, resolved with no admin shell; pressing it closes the sheet, which stays mounted shut", async () => {

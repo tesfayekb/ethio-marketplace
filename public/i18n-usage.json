@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 671,
-  "dynamicCallSites": 438,
+  "scanned": 672,
+  "dynamicCallSites": 440,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -5003,6 +5003,7 @@
     ],
     "common.close": [
       "(every page)",
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -5034,7 +5035,8 @@
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
-      "/post/$listingId"
+      "/post/$listingId",
+      "/settings"
     ],
     "common.dismiss": [
       "(every page)"
@@ -5052,6 +5054,7 @@
     ],
     "common.loadFailed": [
       "(every page)",
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -5078,7 +5081,8 @@
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
-      "/post/$listingId"
+      "/post/$listingId",
+      "/settings"
     ],
     "common.loading": [
       "(every page)",
@@ -5118,6 +5122,7 @@
     ],
     "common.refreshPage": [
       "(every page)",
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -5144,7 +5149,8 @@
       "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
-      "/post/$listingId"
+      "/post/$listingId",
+      "/settings"
     ],
     "common.retry": [
       "/",
@@ -8635,6 +8641,7 @@
       "/post/$listingId"
     ],
     "prim.guide.columns": [
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -8642,6 +8649,7 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
@@ -8651,9 +8659,15 @@
       "/admin/users",
       "/dev/primitives",
       "/dev/style",
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "prim.guide.how": [
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -8661,6 +8675,7 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
@@ -8670,9 +8685,15 @@
       "/admin/users",
       "/dev/primitives",
       "/dev/style",
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "prim.guide.next": [
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -8680,6 +8701,7 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
@@ -8689,9 +8711,15 @@
       "/admin/users",
       "/dev/primitives",
       "/dev/style",
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "prim.guide.open": [
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -8699,6 +8727,7 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
@@ -8708,9 +8737,15 @@
       "/admin/users",
       "/dev/primitives",
       "/dev/style",
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "prim.guide.parts": [
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -8718,6 +8753,7 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
@@ -8727,9 +8763,15 @@
       "/admin/users",
       "/dev/primitives",
       "/dev/style",
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "prim.guide.what": [
+      "/account",
       "/admin/ai",
       "/admin/attributes",
       "/admin/audit",
@@ -8737,6 +8779,7 @@
       "/admin/countries",
       "/admin/impersonation/$sessionId",
       "/admin/listings",
+      "/admin/listings/$listingId/edit",
       "/admin/monetisation",
       "/admin/places",
       "/admin/roles",
@@ -8746,7 +8789,12 @@
       "/admin/users",
       "/dev/primitives",
       "/dev/style",
-      "/my-listings"
+      "/my-listings",
+      "/my-listings/$listingId",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId",
+      "/settings"
     ],
     "prim.orderStrip.label": [
       "/admin/monetisation"

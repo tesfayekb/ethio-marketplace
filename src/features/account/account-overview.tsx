@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 import { ContentGrid } from "@/components/layout/content-grid";
 import { PageHeader } from "@/components/layout/page-header";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,19 @@ const initialState: State = {
 };
 
 /** The signed-in Account overview, composed only from existing owner reads. */
+/**
+ * P-1c turn (b) (D315) — the page's Guide: the profile card, the contact
+ * channels, the listing counts and the legal card, in reading order; texts under
+ * `account.guide.*` in the guide layer; next: Settings.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "account", next: { to: "/settings" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "profile" },
+  { key: "channels" },
+  { key: "counts" },
+  { key: "legal" },
+];
+
 export function AccountOverview() {
   const { t, language } = useI18n();
   const { user } = useAuth();
@@ -109,7 +123,10 @@ export function AccountOverview() {
 
   return (
     <PageShell as="main" width="wide" data-testid="account-page-shell">
-      <PageHeader title={t("account.overview.title")} />
+      <PageHeader
+        title={t("account.overview.title")}
+        guide={<PageGuide spec={GUIDE} title={t("account.overview.title")} parts={GUIDE_PARTS} />}
+      />
       {loading ? <p className="mt-4 text-sm text-muted-foreground">{t("common.loading")}</p> : null}
       {state.error ? (
         <p role="alert" className="mt-4 text-sm text-destructive">
