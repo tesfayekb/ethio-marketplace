@@ -163,9 +163,13 @@ a block, never a search parameter, so no next points at the Data scope. "Tier"
 stays the Listings word. Weight (measured against base `484b6bb3f`, local):
 each of the sixteen guided pages grows by its guide spec only — 0.0 KiB gz
 measured on every one; the three whole-catalogue importers (roadmap line 7's
-debt) carry the 138 new texts in their first download (`en-guide.js` +5.5 on
+debt) carried the 138 new texts in their first download (`en-guide.js` +5.5 on
 `/admin/listings_/$listingId` and `/admin/roles_/$roleId`; `en-guide.js` +5.5
-and `am-guide.js` +7.0 on `/admin/translations`).
+and `am-guide.js` +7.0 on `/admin/translations`) until turn (d) folded the
+imports onto `useI18n().has` and `shippedCatalogues()` (CF-LOC-1,
+`docs/features/i18n-runtime.md`): measured against base `cfecc476f`, local,
+`/admin/listings_/$listingId` −48.6 KiB, `/admin/roles_/$roleId` −48.6,
+`/admin/translations` −123.0; no guide text rides any page's first download.
 
 ## Turn (b) — the pages people use (D315)
 
@@ -184,8 +188,9 @@ preload list for the on-demand sheet — a bundler-wide setting, its own DEC;
 `guide-spec.js` 0.2); the DataTable pages +1.9…2.0 (the one sheet now shared
 by both forms split out of `data-table.js`); the three whole-catalogue
 importers (`/admin/translations`, `/admin/roles_/$roleId`,
-`/admin/listings_/$listingId`) +2.3 per guide catalogue (K2, the roadmap line).
-Every ceiling moved by DEC-296's form with that cause on its line.
+`/admin/listings_/$listingId`) +2.3 per guide catalogue (K2, the roadmap line;
+folded in turn (d), §Turn (c)'s weight note). Every ceiling moved by DEC-296's
+form with that cause on its line.
 
 ## Turn (a) — Monetisation
 
