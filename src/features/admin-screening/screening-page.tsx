@@ -495,6 +495,10 @@ export function AdminScreeningPage({
             />
 
             <DataTable<ScreeningRow>
+              guide={{
+                prefix: "admin.screening",
+                next: { section: "screening", block: "admin-screening-names" },
+              }}
               columns={columns}
               rows={rows}
               rowKey={(row) => row.id}

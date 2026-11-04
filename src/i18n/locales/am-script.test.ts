@@ -6,6 +6,8 @@
  */
 import { describe, expect, it } from "vitest";
 import { am } from "./am";
+import { amGuide } from "./am-guide";
+import { enGuide } from "./en-guide";
 
 describe("am.ts script guard (INC-431)", () => {
   const entries = Object.entries(am as Record<string, string>);
@@ -29,5 +31,18 @@ describe("am.ts script guard (INC-431)", () => {
           `${key}: ${[...value.matchAll(foreign)].map((m) => `U+${m[0].codePointAt(0)!.toString(16).toUpperCase()}`).join(",")}`,
       );
     expect(bad).toEqual([]);
+  });
+
+  // P-1c turn (c) (ruling 1, 3) — a `{…}` is a template slot everywhere else in the catalogue
+  // (the strings guards, `fill`, the database's placeholder validator), so a Guide text, which
+  // is prose and never filled, carries no brace in either language.
+  it("no guide value, English or Amharic, carries a brace", () => {
+    const braced = (layer: Record<string, string>) =>
+      Object.entries(layer)
+        .filter(([, value]) => /[{}]/.test(value))
+        .map(([key]) => key);
+    expect(braced(enGuide)).toEqual([]);
+    expect(braced(amGuide)).toEqual([]);
+    expect(braced({ planted: "a {count} slot" })).toEqual(["planted"]);
   });
 });

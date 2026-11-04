@@ -316,6 +316,7 @@ export function AdminCountriesPage() {
           </TableActions>
 
           <DataTable<CountryRow>
+            guide={{ prefix: "admin.countries", next: { section: "locations" } }}
             columns={columns}
             rows={rows}
             rowKey={(row) => row.code}

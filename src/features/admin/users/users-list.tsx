@@ -222,6 +222,7 @@ export function AdminUsersList() {
       <TableActions testid="users-header" title={t("admin.users.title")} />
 
       <DataTable<AdminUserRow>
+        guide={{ prefix: "admin.users", next: { section: "roles" } }}
         columns={columns}
         rows={users}
         rowKey={(user) => user.userId}

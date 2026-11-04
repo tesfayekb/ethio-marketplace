@@ -216,6 +216,7 @@ export function ImpersonationView({ sessionId }: { sessionId: string }) {
       />
 
       <DataTable<ImpersonatedListing>
+        guide={{ prefix: "impersonation.listings", next: { section: "users" } }}
         columns={visible}
         rows={listings.data?.rows ?? []}
         pagination={

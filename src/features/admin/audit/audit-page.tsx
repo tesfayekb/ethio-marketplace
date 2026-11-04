@@ -307,6 +307,7 @@ export function AdminAuditPage() {
       </ChartFrame>
 
       <DataTable<AuditRow>
+        guide={{ prefix: "admin.audit", next: { section: "roles" } }}
         columns={columns}
         rows={rows}
         rowKey={(row) => row.id}

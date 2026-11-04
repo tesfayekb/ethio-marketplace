@@ -315,14 +315,32 @@ describe("CF-GUIDE-1 — every admin block explains itself (D313)", () => {
       );
       expect(report(open)).toBe("");
       // Turn (a): Monetisation's six guides (two prefixes share the products file); turn (b):
-      // My listings' table and the ten page Guides (the wizard's two share one draw).
+      // My listings' table and the ten page Guides (the wizard's two share one draw); turn (c):
+      // the sixteen remaining admin tables, and the allowlist holds no line.
+      expect(allowances.size).toBe(0);
       expect(census.tables.flatMap((table) => table.prefixes).sort()).toEqual([
+        "admin.ai.features",
+        "admin.ai.log",
+        "admin.attributes",
+        "admin.audit",
+        "admin.categories",
+        "admin.countries",
+        "admin.listings",
+        "admin.locations",
         "admin.monetisation.caps",
         "admin.monetisation.level",
         "admin.monetisation.levelOverrides",
         "admin.monetisation.markets",
         "admin.monetisation.productPrices",
         "admin.monetisation.reach",
+        "admin.roles",
+        "admin.screening",
+        "admin.screening.names",
+        "admin.translations.data",
+        "admin.translations.languages",
+        "admin.translations.strings",
+        "admin.users",
+        "impersonation.listings",
         "myListings",
       ]);
       expect(census.pages.map((page) => page.prefix).sort()).toEqual([

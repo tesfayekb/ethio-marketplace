@@ -550,6 +550,7 @@ function LanguagesTable({
   return (
     <>
       <DataTable
+        guide={{ prefix: "admin.translations.languages", next: { section: "legal" } }}
         columns={columns}
         rows={ordered}
         rowKey={(row) => row.code}

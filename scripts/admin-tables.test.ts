@@ -157,14 +157,21 @@ describe("the agreed tables' check — the real tree", () => {
     expect(result.refusals).toEqual([]);
   });
 
-  it("TBL-6 T10 asks the admin's tables only, and not one whose Guide is owed (D313)", () => {
+  it("TBL-6 T10 asks the admin's tables only; since turn (c) no Guide is owed and every admin table carries one (D313)", () => {
     const sources = readTableSources();
     const tables = check(sources).tables;
     const owed = guideOwed(tables);
-    expect(owed.size).toBeGreaterThan(0);
+    expect(owed.size).toBe(0);
     const bare = check(sources).refusals.filter((line) => line.includes(": T10 "));
-    expect(bare.length).toBe(owed.size);
-    for (const line of bare) expect(owed.has(line.split(":")[0] as string)).toBe(true);
+    expect(bare).toEqual([]);
+    // T10 still bites: an admin table whose guide= is removed is refused.
+    const admin = tables.find((file) => file.startsWith("src/features/admin"));
+    expect(admin).toBeDefined();
+    const source = sources.find((entry) => entry.file === admin);
+    expect(source).toBeDefined();
+    const stripped = (source?.text ?? "").replace(/^\s*guide=\{\{[\s\S]*?\}\}\n/m, "");
+    expect(stripped).not.toBe(source?.text);
+    expect(breaches(admin as string, stripped)).toContain("T10");
     // A seller's table is never asked for a Guide.
     expect(breaches("src/features/my-listings/my-listings-page.tsx", GOOD)).toEqual([]);
     expect(
