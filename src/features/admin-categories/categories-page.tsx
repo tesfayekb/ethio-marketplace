@@ -1049,6 +1049,7 @@ export function AdminCategoriesPage() {
           ) : null}
 
           <DataTable<CategoryNode>
+            guide={{ prefix: "admin.categories", next: { section: "attributes" } }}
             columns={columns}
             rows={filtered}
             page={page}

@@ -418,6 +418,7 @@ export function AdminLocationsPage() {
           </TableActions>
 
           <DataTable<LocationNode>
+            guide={{ prefix: "admin.locations", next: { section: "countries" } }}
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}

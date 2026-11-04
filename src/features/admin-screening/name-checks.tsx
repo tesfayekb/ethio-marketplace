@@ -203,6 +203,7 @@ export function NameChecks({
       <SectionNotice notice={notice} testid="admin-name-checks-notice" />
       {mayList ? (
         <DataTable
+          guide={{ prefix: "admin.screening.names", next: { section: "users" } }}
           columns={visibleColumns(columns, hidden, LOCKED)}
           rows={query.data?.rows ?? []}
           rowKey={(row) => `${row.profileId}:${row.subject}`}

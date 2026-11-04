@@ -236,6 +236,7 @@ export function AdminAiPage() {
             {t("admin.ai.note")}
           </p>
           <DataTable<AiFeatureRow>
+            guide={{ prefix: "admin.ai.features", next: { section: "ai", block: "admin-ai-log" } }}
             columns={columns}
             rows={rows}
             rowKey={(row) => row.feature}

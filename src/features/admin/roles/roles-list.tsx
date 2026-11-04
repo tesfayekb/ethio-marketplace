@@ -172,6 +172,7 @@ export function AdminRolesList() {
       {mayCreate && creating ? <CreateRoleForm onClose={() => setCreating(false)} /> : null}
 
       <DataTable<RoleSummary>
+        guide={{ prefix: "admin.roles", next: { section: "users" } }}
         columns={columns}
         rows={roster}
         rowKey={(role) => role.id}

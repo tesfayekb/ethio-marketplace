@@ -238,4 +238,212 @@ export const enGuide = {
   "post.edit.guide.how":
     "Change any step, then save from Review. A changed text, photo or price is checked again before it shows.",
   "post.edit.guide.next": "Back to My listings",
+  // P-1c turn (c) (ruling 1) — the sixteen remaining admin blocks, in the consoles' order.
+  "admin.ai.features.guide.what":
+    "Every outside AI service the site uses — photo checking, writing help, the seller-name check, category pictures and icons, machine translation, background removal — with its switch, its monthly budget and what it has cost this month.",
+  "admin.ai.features.guide.col.feature":
+    "The service and, under it, what it does and which provider answers.",
+  "admin.ai.features.guide.col.state":
+    "On, or Off with the reason: switched off by staff, or its monthly budget reached. A feature off by budget comes back next month or when the budget is raised.",
+  "admin.ai.features.guide.col.spend":
+    "What this feature has cost this month against its budget; a warning shows at 80 % of the budget and when it is reached.",
+  "admin.ai.features.guide.col.calls":
+    "How many calls this month and today; for machine translation, the characters too.",
+  "admin.ai.features.guide.col.price":
+    "What one call costs — or, for machine translation, a million characters. Staff set it; the provider's bill is the final figure.",
+  "admin.ai.features.guide.col.updated": "The day the switch, budget or price last changed.",
+  "admin.ai.features.guide.how":
+    "Edit changes the switch, the budget in dollars (empty means no budget) and the price; it asks for your second factor. At its budget a feature switches itself off. While photo checking is off, a new ad's photos are held for staff and approving the ad approves them; a live ad cannot take new photos. A feature cannot be switched on while its spend is over its budget — raise the budget first.",
+  "admin.ai.features.guide.next": "See the recent calls and how each one ended.",
+  "admin.ai.log.guide.what":
+    "Every AI call of the last 90 days, newest first — which service asked, which model answered and how it ended. Prompts, photos and answers are never kept.",
+  "admin.ai.log.guide.col.time": "When the call was made.",
+  "admin.ai.log.guide.col.feature": "The service that made the call.",
+  "admin.ai.log.guide.col.model": "The provider's model that answered.",
+  "admin.ai.log.guide.col.outcome":
+    "Answered, or why not: switched off, over budget, unavailable, timed out, a provider error or an unusable answer.",
+  "admin.ai.log.guide.col.latency": "How long the provider took to answer, in milliseconds.",
+  "admin.ai.log.guide.col.person":
+    "Who the call was for — a person's name, System for the site's own jobs, or Hidden when you may not see people's names.",
+  "admin.ai.log.guide.how":
+    "Filter by service or outcome from the toolbar. Nothing here can be changed; rows older than 90 days are removed on their own. Many failed calls in a row point to the provider or to a switched-off service — check the table above.",
+  "admin.ai.log.guide.next": "Budget alerts and switch-offs are also written in the audit log.",
+  "admin.attributes.guide.what":
+    "The library of facts an ad can carry — size, brand, year, condition. Each attribute is defined once and attached to the categories that ask it, so every ad in those categories asks the same question.",
+  "admin.attributes.guide.col.name":
+    "The question as sellers see it, with its fixed key under it. Inherited from … marks a question a parent category passes down.",
+  "admin.attributes.guide.col.type":
+    "The kind of answer: text, a number, one choice, several choices, yes or no, a date or a range.",
+  "admin.attributes.guide.col.options":
+    "How many answers a choice question offers; a dash for other types. Open the row to read them.",
+  "admin.attributes.guide.col.coverage":
+    "How many of the options have an Amharic label; amber while some are missing.",
+  "admin.attributes.guide.col.usage": "The categories that ask this question.",
+  "admin.attributes.guide.how":
+    "New attribute defines a question; Edit changes its words, help and options — a text question takes only the site's preset checks. Assign to category attaches it; Remove from category detaches it. Delete (red) is refused while any category still uses it. Merge joins two attributes into one. Import and Export carry the library as a file; Export follows the category you filtered to. An option sellers should no longer pick is switched off, not deleted.",
+  "admin.attributes.guide.next":
+    "Attach questions to a category and choose which show on its cards.",
+  "admin.categories.guide.what":
+    "The tree people browse and post into: main categories, their subcategories and, where needed, a catch-all. Sellers post only into a category with nothing under it.",
+  "admin.categories.guide.col.name":
+    "The category's icon and English name, with its address slug; indented by its depth in the tree.",
+  "admin.categories.guide.col.parent":
+    "The category it sits under; Also in names other places it is shown. A main category has none.",
+  "admin.categories.guide.col.status": "Active, Scheduled (shown from a future day) or Retired.",
+  "admin.categories.guide.col.flags":
+    "Catch-all; whether it accepts ads, asks a price or has a show window; amber warnings for a missing picture or icon and for fewer than two card attributes.",
+  "admin.categories.guide.col.order": "Its place among its siblings.",
+  "admin.categories.guide.col.listings": "How many ads it holds.",
+  "admin.categories.guide.col.exclusions": "In how many countries it is hidden.",
+  "admin.categories.guide.how":
+    "Create category adds a node. The row opens the editor: Edit changes its name, icon, listing lifetime and whether it accepts ads and asks a price; Visibility sets the days it is shown; Image generates and accepts its picture; Add pointer shows it under another parent too; Countries hides it in chosen countries; Attributes picks the questions its ads ask. Move up and down reorder siblings. Retire takes a category out of use — if it holds live ads you choose where they go; Reactivate brings it back; Delete (red) removes a retired one only. Generate missing asks the AI for the pictures the shown rows lack; Import and Export carry the tree as a file. Changes ask for your second factor.",
+  "admin.categories.guide.next": "Define the questions categories ask.",
+  "admin.countries.guide.what":
+    "Every country the site can serve, open or closed. A row sets its units and currency, its own order of main categories and whether people there can post and browse.",
+  "admin.countries.guide.col.name": "The country's English name and its two-letter code.",
+  "admin.countries.guide.col.status":
+    "Open — people can post and browse here — or Closed, not offered until an admin opens it.",
+  "admin.countries.guide.col.places": "Active places here, out of all the places on record.",
+  "admin.countries.guide.col.units": "Metric or imperial, and the currency ads are priced in.",
+  "admin.countries.guide.col.rail":
+    "How many main categories this market orders for itself; 0 follows the global order.",
+  "admin.countries.guide.col.roles": "How many staff role grants are limited to this country.",
+  "admin.countries.guide.col.updated": "When the row last changed.",
+  "admin.countries.guide.how":
+    "Edit sets the name, the units and the currency; Rail order sets this market's order of main categories. Open and Close switch the market — opening it also activates its anchor place; both ask for your second factor. Closing a country with staff roles limited to it asks you to confirm; the grants are kept. Countries are added by importing the markets file, never one by one; Download countries gives you that file.",
+  "admin.countries.guide.next": "Build and activate the country's places before opening it.",
+  "admin.listings.guide.what":
+    "Every ad on the site except drafts — live, waiting, ended or removed — newest first. Open an ad to see its history and act on it.",
+  "admin.listings.guide.col.title":
+    "The ad's name; a line under it warns when a photo may not fit the ad. Open it to reach the ad's page.",
+  "admin.listings.guide.col.seller":
+    "The seller's public name — a business's name when they post as one — and their e-mail when you may see it.",
+  "admin.listings.guide.col.place": "The city the ad is in and its country.",
+  "admin.listings.guide.col.category": "The category it was posted in.",
+  "admin.listings.guide.col.price": "The asking price with its unit.",
+  "admin.listings.guide.col.status":
+    "Live, Reduced reach, Waiting for review, Held, Expired, Sold, Rejected, Closed or Removed; the ad's tier when it has one; its open reports, when you review ads.",
+  "admin.listings.guide.col.posted": "When it first went live.",
+  "admin.listings.guide.col.expires": "When it ends.",
+  "admin.listings.guide.how":
+    "The pills switch between All, Live, Waiting, Ended and Removed; search by a title's words or an ad's id; filter by country, category, seller, date and tier. The row's menu offers Open, Send back to review, Restore, Set tier, View as seller and Remove (red); each move asks for a reason, a note for the seller and your second factor, and the seller is told. Tick several ads to remove or restore them together. Editing an ad and removing a photo happen on the ad's page. Settings sets whether sellers may renew an expired ad and for how many days. Your own ads cannot be moved or edited here.",
+  "admin.listings.guide.next": "Review the ads waiting for approval.",
+  "admin.locations.guide.what":
+    "Every place people can post and browse in — regions, cities and sub-cities under their country. A place's path is its fixed address on the site.",
+  "admin.locations.guide.col.name": "The place's English name and its level.",
+  "admin.locations.guide.col.path": "Where it sits: country, region, city.",
+  "admin.locations.guide.col.status":
+    "Active or Retired. A new place is born retired until you activate it.",
+  "admin.locations.guide.col.counts":
+    "Listings posted here · seller coverage rows · profiles defaulting here.",
+  "admin.locations.guide.col.order": "Its place among its siblings.",
+  "admin.locations.guide.col.aliases":
+    "How many other names and spellings find this place in search.",
+  "admin.locations.guide.col.iso": "Its ISO 3166-2 code, when it has one.",
+  "admin.locations.guide.how":
+    "Add place adds a child inside a chosen place — it is born retired; Edit changes its name, aliases, code and centre; Activate and Retire switch it — a place is activated only after its parent; Move puts it under another parent; Reorder siblings changes its order. Delete (red) is permanent, asks you to type the place's address, and is refused while something still points at it — children, listings, coverage rows or profiles. Import and Export carry the markets and places files, scoped to the country you filtered to. Moves and deletes ask for your second factor.",
+  "admin.locations.guide.next": "Open the country once its places are active.",
+  "admin.screening.guide.what":
+    "Ads waiting for a decision, oldest first. No buyer sees an ad until you approve it.",
+  "admin.screening.guide.col.title":
+    "The ad's name; a line under it warns when a photo may not fit the ad.",
+  "admin.screening.guide.col.category": "The category the seller chose.",
+  "admin.screening.guide.col.place": "The city the ad is in.",
+  "admin.screening.guide.col.sent": "When the seller sent it for review.",
+  "admin.screening.guide.how":
+    "Preview as buyer shows the ad as buyers will see it, with the seller's public name and contact methods; Show number reveals a number and writes an audit row. Approve publishes the ad; Reject (red) refuses it; both ask you to confirm and for your second factor. Tick several ads to decide them together. From the preview, Edit opens the ad in the wizard; Done brings you back to the preview. Below the queue sit the photos held for review, the seller names held for review and the photo changes on live ads.",
+  "admin.screening.guide.next": "Decide on the seller names the AI holds.",
+  "admin.screening.names.guide.what":
+    "Seller names the AI check says may imitate a well-known company, brand or person. A held name is hidden from buyers until you decide; a name the AI could not check stays visible.",
+  "admin.screening.names.guide.col.name":
+    "The name and what the AI said it imitates. Name hidden means you may not see people's names.",
+  "admin.screening.names.guide.col.since": "When the name was held.",
+  "admin.screening.names.guide.col.attempts": "How many times the AI check ran on this name.",
+  "admin.screening.names.guide.col.owner": "The account the name belongs to; opens its user page.",
+  "admin.screening.names.guide.how":
+    "Allow this name shows it to buyers again, with an optional reason kept in the audit log; it asks for your second factor. Rename opens the owner's user page, where its profile editor changes the name. If the name changed after the list loaded, nothing is written — reload. The line above says when the re-check last ran and lets you resume it when it is paused.",
+  "admin.screening.names.guide.next": "Find the seller's account to rename it.",
+  "admin.audit.guide.what":
+    "Every staff action and security event, newest first — who did what, to which record, and when. The figures and the 14-day chart above count the same rows.",
+  "admin.audit.guide.col.time": "When it happened.",
+  "admin.audit.guide.col.actor": "Who did it; System for the site's own jobs.",
+  "admin.audit.guide.col.action": "What was done, as the system names it.",
+  "admin.audit.guide.col.entity": "The kind of record it touched and the start of its id.",
+  "admin.audit.guide.col.meta":
+    "The details recorded with it — values before and after, a reason, a count. Open a row to read every pair.",
+  "admin.audit.guide.how":
+    "Search, filter by action, entity type and dates, and page through. Nothing here can be changed or deleted.",
+  "admin.audit.guide.next": "See who holds which role.",
+  "impersonation.listings.guide.what":
+    "The ads of the account you are viewing, read-only. You see their data; you are not acting as them, and nothing here changes it.",
+  "impersonation.listings.guide.col.title": "The ad's name.",
+  "impersonation.listings.guide.col.status":
+    "Where the ad stands: draft, waiting, live, ended or removed.",
+  "impersonation.listings.guide.col.price": "The asking price.",
+  "impersonation.listings.guide.col.created": "When the seller created it.",
+  "impersonation.listings.guide.how":
+    "The session ends on its own after 15 minutes, or with End now. Its start and end are written in the audit log with both names.",
+  "impersonation.listings.guide.next": "Back to the person's account.",
+  "admin.roles.guide.what":
+    "The staff roles and what each may do. A system role is fixed by the site; a custom role is yours to shape.",
+  "admin.roles.guide.col.name": "The role's fixed key.",
+  "admin.roles.guide.col.display": "The name staff see.",
+  "admin.roles.guide.col.kind": "System — fixed by the site — or Custom.",
+  "admin.roles.guide.col.members": "How many people hold it.",
+  "admin.roles.guide.col.permissions": "How many permissions it grants.",
+  "admin.roles.guide.how":
+    "Create role adds a custom role; it asks for your second factor. Open a row to grant or revoke its permissions, see its members or delete it — a role with members cannot be deleted, and a system role cannot be changed. Some permissions are reserved for system roles and cannot be granted to a custom one. View members opens the Users list filtered to the role.",
+  "admin.roles.guide.next": "Give a person a role from their user page.",
+  "admin.translations.data.guide.what":
+    "The names of categories, places, attributes and answer options in this language. A name with no approved translation shows its English.",
+  "admin.translations.data.guide.col.entity": "The thing being named, with its key under it.",
+  "admin.translations.data.guide.col.type": "Category, Location, Attribute or Answer option.",
+  "admin.translations.data.guide.col.source": "The English name.",
+  "admin.translations.data.guide.col.value": "The translation, or a dash while there is none.",
+  "admin.translations.data.guide.col.status":
+    "Untranslated, Machine, Edited or Approved. Only an approved name reaches the site.",
+  "admin.translations.data.guide.how":
+    "Edit opens a row to write, AI-translate, approve or clear it. AI bulk translates every untranslated row; Approve all approves every machine or edited row; each asks for your second factor. These names are a meter only — they do not decide whether the language can go public.",
+  "admin.translations.data.guide.next": "Switch the language on for staff or the public.",
+  "admin.translations.languages.guide.what":
+    "Every language the site can speak, with how much of it is translated and where it is shown.",
+  "admin.translations.languages.guide.col.language":
+    "The language in its own script, its code, and Base or RTL when it applies.",
+  "admin.translations.languages.guide.col.nameEn": "Its English name.",
+  "admin.translations.languages.guide.col.coverage":
+    "Approved interface strings out of the base language's total. This decides whether the language can go public.",
+  "admin.translations.languages.guide.col.coverageData":
+    "Approved data names — categories, places, attributes — out of all of them. A meter only.",
+  "admin.translations.languages.guide.col.admin":
+    "On shows the language in staff tools and previews; the base language is always on.",
+  "admin.translations.languages.guide.col.public":
+    "On offers the language to visitors. It stays off until every interface string is approved.",
+  "admin.translations.languages.guide.how":
+    "Open strings takes you to the language's translations. Add language adds one; Sync keys brings the app's new strings in; Move up and down order the rows; Delete (red) is refused for the base language and while the language is public — unpublish it first. Every change asks for your second factor.",
+  "admin.translations.languages.guide.next":
+    "Legal texts have their own English and Amharic bodies on the Legal page.",
+  "admin.translations.strings.guide.what":
+    "Every word the app shows — menus, buttons, messages — in this language, one key at a time. An approved string reaches the site; an untranslated one falls back to English.",
+  "admin.translations.strings.guide.col.key": "The string's fixed key in the app.",
+  "admin.translations.strings.guide.col.source": "The English text.",
+  "admin.translations.strings.guide.col.value": "The translation, or a dash while there is none.",
+  "admin.translations.strings.guide.col.status":
+    "Untranslated, Machine, Edited or Approved; Flagged (red) when a placeholder the English carries is missing.",
+  "admin.translations.strings.guide.col.provenance":
+    "Who or what wrote it — a person or the machine — and who approved it.",
+  "admin.translations.strings.guide.how":
+    "Edit opens a row to write, AI-translate, approve, clear or read its history. A flagged string cannot be approved until its placeholders are restored. AI bulk translates every untranslated row; Approve all approves every machine or edited row; Export (CSV or XLIFF) and Import carry the strings as a file. Each change asks for your second factor. The Data pill switches to the names of categories, places and options.",
+  "admin.translations.strings.guide.next": "Back to the languages to switch this one on.",
+  "admin.users.guide.what":
+    "Everyone with an account — their state, their roles and when they joined. Open a row for the person's page.",
+  "admin.users.guide.col.name": "The person's display name.",
+  "admin.users.guide.col.email": "Their sign-in e-mail.",
+  "admin.users.guide.col.country": "Their home country's code.",
+  "admin.users.guide.col.status":
+    "Active, or Deactivated — a deactivated account is refused at every door and signed out.",
+  "admin.users.guide.col.roles": "The staff roles they hold, if any.",
+  "admin.users.guide.col.joined": "When the account was made.",
+  "admin.users.guide.how":
+    "Search, filter by status and role, and page through. The row opens the person's page, where staff change the status with a reason, give or remove roles, edit the profile and start a read-only View as session — each asks for your second factor. You cannot deactivate yourself or a super admin.",
+  "admin.users.guide.next": "See what each role allows.",
 } as const;

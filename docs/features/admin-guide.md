@@ -1,4 +1,4 @@
-# The Guide (D313 turn P-1c (a) — the admin blocks; D315 turn P-1c (b) — the pages people use)
+# The Guide (D313 turn P-1c (a) — the admin blocks; D315 turn P-1c (b) — the pages people use; turn P-1c (c) — the sixteen remaining admin blocks)
 
 > **LAW:** every admin block, and every page a seller or a buyer uses, explains
 > itself in its own place. One control opens one sheet of four fixed parts —
@@ -98,7 +98,15 @@ superseded); the strip's words `prim.orderStrip.*` sit in the admin layer
 (CF-SL-1: only admin pages show them). Turn (b)'s page keys: `myListings`
 (six columns), `myListing`, `post` (eight part lines, shared by `post.edit`
 through `partsPrefix`), `account`, `settings`, `saved`, `adPage`, `feed`,
-`sellerPage`, `auth` — 84 keys EN + AM.
+`sellerPage`, `auth` — 84 keys EN + AM. Turn (c)'s block keys: the sixteen
+prefixes below — 138 keys EN + AM (48 what/how/next + 90 column lines), the
+Amharic copied byte for byte from the supervisor's vetted file.
+
+**No braces in a guide text** (ruling 1 of turn (c)): a `{…}` is a template
+slot everywhere else in the catalogue (the strings guards, `fill`, the
+database's placeholder validator), so no guide value, English or Amharic, may
+carry `{` or `}`; a column that names a slot says it in words. `am-script.test.ts`
+("no guide value, English or Amharic, carries a brace") judges both files.
 
 ## Guards
 
@@ -121,17 +129,43 @@ guide=` ("no guide" / "two guides"); a page spec is `{ prefix: <literal>,
 next: { to: <route> } | { section } }` (or a conditional of such constants —
   the wizard's `POST_GUIDE` / `EDIT_GUIDE`); its parts' keys are literals and
   the layer holds `what`, `how`, `next` and `part.<key>` (under `partsPrefix`
-  when set). The allowlist's lines `file | guide owed in turn (c) | 2026-11-24`
-  name the sixteen admin tables turn (c) guides.
+  when set). Since turn (c) the allowlist `admin-guides-allowlist.txt` is EMPTY
+  (its header only): every admin table is guided, and CFG-3 asserts no
+  allowance and the twenty-three guided prefixes by name. A new admin table
+  lands with its guide or does not land.
 - **T10** (`scripts/admin-tables.ts`, TBL-1/TBL-4/TBL-6): an admin block's
   DataTable carries `guide=`; a seller's table (My listings) is not asked; a
-  table in CF-GUIDE-1's allowlist is not asked yet (`check(sources, guideOwed)`
-  reads that ONE allowlist).
+  table in CF-GUIDE-1's allowlist would not be asked (`check(sources,
+guideOwed)` reads that ONE allowlist) — none is since turn (c); TBL-6 proves
+  the refusal on a planted strip of one table's `guide=`.
 - `holds-its-box` (INC-940): `guide-sheet.tsx#BlockGuideSheet` and
   `page-guide.tsx#PageGuideSheet` are allowlisted — the sheet draws in a portal
   on the top layer; the page has no box of it.
 - `block-guide.test.tsx` BG-6/BG-7: the two forms share one accessible name,
   icon and dialog contract, and neither imports the other (`guide-spec.ts`).
+
+## Turn (c) — the sixteen remaining admin blocks
+
+Every admin table now carries the tile; the prefixes and the next each sheet
+names, in the consoles' order: `admin.ai.features` (`ai-page.tsx`, → the AI
+log on the same page, `admin-ai-log`), `admin.ai.log` (`ai-calls.tsx`, →
+Audit), `admin.attributes` (→ Categories), `admin.categories` (→ Attributes),
+`admin.countries` (→ Locations), `admin.listings` (→ Screening),
+`admin.locations` (→ Countries), `admin.screening` (`screening-page.tsx`, → the
+Name checks on the same page, `admin-screening-names`),
+`admin.screening.names` (`name-checks.tsx`, → Users), `admin.audit` (→ Roles),
+`impersonation.listings` (`impersonation-view.tsx`, → Users), `admin.roles` (→
+Users), `admin.translations.data` (`data-scope.tsx`, → Translations),
+`admin.translations.languages` (`languages-page.tsx`, → Legal),
+`admin.translations.strings` (`strings-page.tsx`, → Translations),
+`admin.users` (`users-list.tsx`, → Roles). A `GuideNext` carries a section and
+a block, never a search parameter, so no next points at the Data scope. "Tier"
+stays the Listings word. Weight (measured against base `484b6bb3f`, local):
+each of the sixteen guided pages grows by its guide spec only — 0.0 KiB gz
+measured on every one; the three whole-catalogue importers (roadmap line 7's
+debt) carry the 138 new texts in their first download (`en-guide.js` +5.5 on
+`/admin/listings_/$listingId` and `/admin/roles_/$roleId`; `en-guide.js` +5.5
+and `am-guide.js` +7.0 on `/admin/translations`).
 
 ## Turn (b) — the pages people use (D315)
 
@@ -166,14 +200,20 @@ page keeps one h1; its blocks and inner tables pass `level="h2"`.
 
 `e2e/admin-guides.spec.ts` (area `guides` — one area for both forms, renamed from
 `admin-guides` by ruling 3 of turn (b); also in the shell area) —
-AG-1 every section draws; in a guided section every table's toolbar holds one
+AG-1 every section draws; since turn (c) it asks EVERY section (no
+`GUIDED_SECTIONS` list): a tableless section (Images, Legal) has no table
+toolbar, every other section's every `data-table-toolbar` holds exactly one
 Guide and its frame; Monetisation's four, six once a level is open · AG-2 the
 four parts; the column lines are the shown columns in order; a hidden column
 loses its line · AG-3 the next link closes the sheet and lands on the named
 block (hash, in view, focused) · AG-4 Escape returns the focus to the control ·
-AG-5 the Amharic texts · AG-7 the guide layer and the sheet's code are fetched
-on the first open, never before, and once. AG-6 (a cross-section next without
-the permission → `/admin`) is turn (b)'s, with AG-1 widened to every section.
+AG-5 the Amharic texts · AG-6 (turn (c)) a next whose target section the
+signed-in account may not open — a pooled user granted `moderator`
+(`listings:view`, never Screening's permission) opens Listings' guide, whose
+next names Screening — carries `/admin` as its href and lands on the admin
+landing: no access notice, no alert, Listings in the section list, Screening
+not · AG-7 the guide layer and the sheet's code are fetched on the first open,
+never before, and once.
 `e2e/user-guides.spec.ts` (turn (b); area `guides`) — UG-1 the ad page signed out: one
 control in the actions row, the four parts in order, eight part lines, next to
 Post · UG-2 the sheet's words are the catalogue's, nothing of the ad or of a

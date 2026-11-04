@@ -208,6 +208,7 @@ export function DataScope({
       </div>
 
       <DataTable
+        guide={{ prefix: "admin.translations.data", next: { section: "translations" } }}
         columns={visibleColumns(allColumns, hidden, ["entity"])}
         rows={rows}
         rowKey={(row) => row.key}

@@ -382,6 +382,7 @@ export function AdminTranslationsStringsPage({
               ) : null}
 
               <DataTable
+                guide={{ prefix: "admin.translations.strings", next: { section: "translations" } }}
                 columns={visibleColumns(allStringColumns, hidden, ["key"])}
                 rows={rows}
                 rowKey={(row) => row.key}

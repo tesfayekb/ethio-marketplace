@@ -109,6 +109,7 @@ export function AiCalls() {
         <p className="text-xs text-muted-foreground">{t("admin.ai.log.hint")}</p>
       </div>
       <DataTable
+        guide={{ prefix: "admin.ai.log", next: { section: "audit" } }}
         columns={visibleColumns(columns, hidden, ["time", "feature", "outcome"])}
         rows={query.data?.rows ?? []}
         rowKey={(row) => row.id}

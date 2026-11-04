@@ -534,6 +534,7 @@ export function AdminAttributesPage() {
           ) : null}
 
           <DataTable<AttributeRow>
+            guide={{ prefix: "admin.attributes", next: { section: "categories" } }}
             columns={columns}
             rows={filtered}
             page={page}

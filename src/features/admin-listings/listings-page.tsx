@@ -617,6 +617,7 @@ export function AdminListingsPage() {
           />
 
           <DataTable<AdminListingRow>
+            guide={{ prefix: "admin.listings", next: { section: "screening" } }}
             columns={columns}
             rows={rows}
             rowKey={(row) => row.id}
