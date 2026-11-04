@@ -4,14 +4,16 @@ import { ADMIN_SECTIONS } from "../src/features/admin/sections";
 import { am } from "../src/i18n/locales/am";
 import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
+import { grantRole } from "./helpers/categories";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
   settled,
+  signIn,
   switchLanguage,
   useJobSuperAdmin,
 } from "./helpers/ui";
-import { adminClient } from "./helpers/users";
+import { adminClient, leaseUser } from "./helpers/users";
 
 /**
  * P-1c (D313) — THE GUIDE ON EVERY ADMIN BLOCK (AG-1..AG-7): one control in
@@ -19,20 +21,27 @@ import { adminClient } from "./helpers/users";
  * column · How to add, change or remove · What to do next — whose texts live
  * in the `guide` strings layer, fetched on the first open and never before.
  *
- * Turn (a) guides Monetisation's blocks; the other consoles' Guides are owed
- * in turn (b) (scripts/conformance/admin-guides-allowlist.txt), which deletes
- * GUIDED_SECTIONS and asks AG-1 of every section, and adds AG-6 (a
- * cross-section next without the permission → /admin).
+ * Turn (a) guided Monetisation's blocks; turn (c) (ruling 1) the sixteen
+ * remaining admin tables, so AG-1 asks every section and the allowlist
+ * (scripts/conformance/admin-guides-allowlist.txt) holds no line. AG-6 (turn
+ * (c)): a next whose section the signed-in person may not open leads to the
+ * admin landing — resolved by the Guide itself (guide-next.ts), so no refusal
+ * notice and no error is shown.
  *
- * Identity: the pooled job super admin (J9), who sees every section. Nothing
- * is written: the Guides are read, a column is hidden in this browser only.
- * Anchors: structure and testids (J5); a word is read from the catalogues.
+ * Identity: the pooled job super admin (J9), who sees every section; AG-6 a
+ * pooled account granted the system role `moderator` (listings:view and
+ * audit_logs:view, never listings:review — the role census A-7 holds), which
+ * the next lease strips again (J1). Nothing else is written: the Guides are
+ * read, a column is hidden in this browser only. Anchors: structure and
+ * testids (J5); a word is read from the catalogues.
  */
 
 const TAG = "[e2e:ag]";
-/** The sections whose every table carries its Guide after turn (a). */
-const GUIDED_SECTIONS = new Set<string>(["monetisation"]);
+/** The sections that draw no DataTable (Images is a tool page; Legal draws versions and texts). */
+const TABLELESS_SECTIONS = new Set<string>(["images", "legal"]);
 const MARKETS = "admin-monetisation-markets";
+/** AG-6: the Listings table's next is the Screening queue (listings:review). */
+const LISTINGS = "admin-listings";
 const LEVEL = "admin-monetisation-level";
 /** A Markets column that is not locked, hidden in AG-2. */
 const HIDDEN_COLUMN = "since";
@@ -116,7 +125,7 @@ async function shownColumnLabels(page: Page, columnsTestid: string): Promise<str
 }
 
 test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
-  test("AG-1 every admin section draws; in a guided section every table's toolbar holds exactly one Guide whose frame carries the anchor; no Guide points at a frame the page has not", async ({
+  test("AG-1 every admin section draws; every table's toolbar holds exactly one Guide whose frame carries the anchor; no Guide points at a frame the page has not", async ({
     page,
   }) => {
     await useJobSuperAdmin(page);
@@ -128,7 +137,9 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
       ).toBeVisible({ timeout: 20000 });
       const toolbars = page.getByTestId("data-table-toolbar");
       const guides = guideControls(page);
-      if (GUIDED_SECTIONS.has(section.id)) {
+      if (TABLELESS_SECTIONS.has(section.id)) {
+        await expect(toolbars, `${TAG} AG-1 ${section.path} grew a table`).toHaveCount(0);
+      } else {
         await expect(guides, `${TAG} AG-1 ${section.path} has no Guide`).not.toHaveCount(0, {
           timeout: 20000,
         });
@@ -263,6 +274,31 @@ test.describe("Admin › the Guide on every block (P-1c, D313)", () => {
     );
     await page.getByTestId(`${MARKETS}-guide-close`).click();
     await switchLanguage(page, "en");
+  });
+
+  test("AG-6 a next whose section the signed-in person may not open leads to the admin landing: no refusal notice, no error, nothing written", async ({
+    page,
+  }) => {
+    // A moderator reads All listings (listings:view) and never the Screening
+    // queue (listings:review), which is the Listings table's next.
+    const moderator = await leaseUser();
+    await grantRole(moderator.id, "moderator");
+    await signIn(page, moderator.email, moderator.password);
+    await gotoReady(page, "/admin/listings");
+    await expect(page.getByTestId(sectionFrame("listings"))).toBeVisible({ timeout: 20000 });
+    const sheet = await openGuide(page, LISTINGS);
+    const next = sheet.getByTestId(`${LISTINGS}-guide-next`);
+    await expect(next).toHaveText(en["admin.listings.guide.next"]);
+    // The Guide resolves the refused section to the landing itself: no hash, no section path.
+    await expect(next).toHaveAttribute("href", /\/admin$/);
+    await next.click();
+    await expect(sheet).toHaveCount(0);
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByTestId("admin-landing")).toBeVisible({ timeout: 20000 });
+    await expect(page.getByTestId("admin-access-notice")).toHaveCount(0);
+    await expect(page.getByRole("alert")).toHaveCount(0);
+    await expect(page.getByTestId("admin-section-link-listings")).toBeVisible();
+    await expect(page.getByTestId("admin-section-link-screening")).toHaveCount(0);
   });
 
   test("AG-7 the guide layer and the sheet's code are not downloaded before the first open; once opened, a second Guide asks for nothing more", async ({
