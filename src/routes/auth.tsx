@@ -18,6 +18,7 @@ import { errorText } from "@/lib/error-text";
 import { safeReturnPath } from "@/lib/return-path";
 import { getSupabase, onAuthChange } from "@/lib/supabase-door";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { PageCard } from "@/components/shell/page-card";
 
 import { useI18n } from "@/i18n";
@@ -88,6 +89,20 @@ const primaryButtonClass =
 const secondaryButtonClass =
   "min-h-11 w-full rounded-md border border-input px-4 text-sm font-medium text-foreground " +
   "hover:bg-accent disabled:opacity-60";
+
+/**
+ * P-1c turn (b) (D315) — the sign-in page's Guide: the e-mail, the password,
+ * the sign-in / create-account switch, Forgot password and Google, in reading
+ * order; texts under `auth.guide.*` in the guide layer; next: all listings.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "auth", next: { to: "/" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "email" },
+  { key: "password" },
+  { key: "toggle" },
+  { key: "forgot" },
+  { key: "google" },
+];
 
 function AuthScreen() {
   const { t, language } = useI18n();
@@ -578,9 +593,18 @@ function AuthScreen() {
   return (
     <PageShell as="main" width="narrow">
       <PageCard>
-        <h1 className="text-xl font-semibold text-foreground">
-          {isSignIn ? t("auth.signIn") : t("auth.createAccount")}
-        </h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="text-xl font-semibold text-foreground">
+            {isSignIn ? t("auth.signIn") : t("auth.createAccount")}
+          </h1>
+          {/* D315 — the page's Guide closes the row that carries the page's name. */}
+          <PageGuide
+            spec={GUIDE}
+            title={isSignIn ? t("auth.signIn") : t("auth.createAccount")}
+            parts={GUIDE_PARTS}
+            className="-me-2 -mt-1 shrink-0"
+          />
+        </div>
 
         {/* Bundle 16 turn S3 (D189) — the account was deactivated and its session ended. */}
         {reason === "deactivated" ? (

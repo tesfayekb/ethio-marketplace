@@ -2,6 +2,7 @@ import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/r
 import { useState } from "react";
 import { PageShell } from "@/components/layout/page-shell";
 import { PageHeader } from "@/components/layout/page-header";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { Button } from "@/components/ui/button";
 import { mySaved, unsaveListing } from "@/features/ad-page/save";
@@ -10,6 +11,18 @@ import { useI18n } from "@/i18n";
 
 type SavedPageData = Awaited<ReturnType<typeof mySaved>>;
 const KEY = ["my-saved-listings"] as const;
+
+/**
+ * P-1c turn (b) (D315) — the Saved page's Guide: one saved ad, Remove and the
+ * unavailable mark; texts under `saved.guide.*` in the guide layer; next: all
+ * listings.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "saved", next: { to: "/" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "item" },
+  { key: "remove" },
+  { key: "unavailable" },
+];
 
 export function SavedPage() {
   const { t } = useI18n();
@@ -65,7 +78,10 @@ export function SavedPage() {
   };
   return (
     <PageShell as="main" width="wide" data-testid="saved-page">
-      <PageHeader title={t("nav.saved")} />
+      <PageHeader
+        title={t("nav.saved")}
+        guide={<PageGuide spec={GUIDE} title={t("nav.saved")} parts={GUIDE_PARTS} />}
+      />
       {query.isPending && (
         <p role="status" className="mt-4 text-sm text-muted-foreground">
           {t("common.loading")}
