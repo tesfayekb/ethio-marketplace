@@ -1,6 +1,6 @@
 # Roadmap
 
-The brief in force: docs/governance/briefs/p1c-guides-b.md (turn P-1c (b) — D315: the Guide on the pages people use, seller and buyer; plan first; the build runs on ruling 1, docs/governance/briefs/p1c-guides-b-ruling-1.md, and ruling 2 (the four questions of stop 1), docs/governance/briefs/p1c-guides-b-ruling-2.md; the fifteen remaining admin blocks move to turn (c)). Previous: docs/governance/briefs/p1c-admin-guide.md.
+The brief in force: docs/governance/briefs/p1c-guides-c.md (turn P-1c (c) — the fifteen remaining admin blocks' guides, then (d) if the chat holds; phase 1 the texts, phase 2 the build). Previous: docs/governance/briefs/p1c-guides-b.md.
 
 - [x] Records turn R10 — block S85 (DEC-304 → DEC-321, D261 → D312), INC-1019 → INC-1043, S499 → S514, system-state, the handoff of 2026-11-02, the register rows 93 → 99 — this turn (ticked after its CI)
 - [ ] Records turn R11 — block S86 (DEC-322 → DEC-327, D313), INC-1044, INC-1045 and the later words of INC-1034, INC-1040, INC-1042, S515 → S518, system-state, the handoff of 2026-11-03, the register rows 100 → 103, the `overrideNotFound` key in both languages — this turn (ticked after its CI)
