@@ -705,4 +705,12 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "admin.section.legal.body":
     "ውሎች፣ ግላዊነት እና የማስታወቂያ ማረጋገጫ ቃል በስም በተሰየሙ ስሪቶች — ከታተሙ በኋላ አይለወጡም — እና የሚጠቅሷቸው መረጃዎች።",
   "admin.translations.ai.rateLimited": "ባለፈው ሰዓት ውስጥ ብዙ የማሽን ትርጉሞች ተደርገዋል። ቆይተው እንደገና ይሞክሩ።",
+  // P-1c turn (b) (D315) — the Guide's own words: its control's label and its four part names
+  // (CF-SL-1 places them here: public pages draw the sheet).
+  "prim.guide.open": "መመሪያ",
+  "prim.guide.what": "ይህ ምንድን ነው",
+  "prim.guide.columns": "እያንዳንዱ ዓምድ",
+  "prim.guide.parts": "እያንዳንዱ ክፍል",
+  "prim.guide.how": "እንዴት እንደሚጨመር፣ እንደሚቀየር ወይም እንደሚወገድ",
+  "prim.guide.next": "ቀጥሎ ምን ይደረግ",
 };

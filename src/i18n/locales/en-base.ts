@@ -763,4 +763,12 @@ export const enBase = {
     "Terms, Privacy and the publishing statement in named versions, final once published, and the facts they quote.",
   "admin.translations.ai.rateLimited":
     "Too many machine translations in the last hour. Try again later.",
+  // P-1c turn (b) (D315) — the Guide's own words: its control's label and its four part names
+  // (CF-SL-1 places them here: public pages draw the sheet).
+  "prim.guide.open": "Guide",
+  "prim.guide.what": "What this is",
+  "prim.guide.columns": "Each column",
+  "prim.guide.parts": "Each part",
+  "prim.guide.how": "How to add, change or remove",
+  "prim.guide.next": "What to do next",
 } as const;

@@ -300,6 +300,9 @@ export interface ListingDetailView {
   report?: ReactNode;
   // Bundle 19 turn 14 (D201 §10) — the share control, passed by the public ad page only
   share?: ReactNode;
+  // P-1c turn (b) (D315) — the page's Guide control, the actions row's last item, passed by
+  // the public ad page only (the preview has none).
+  guide?: ReactNode;
   publicCounts?: { views: number; shares: number };
   // Bundle 19 turn 16 (D201 §12) — the public seller key, passed by the public ad page only
   sellerAdsKey?: string | null;
@@ -896,7 +899,9 @@ export function ListingDetail(view: ListingDetailView) {
                 )}
               {/* DEC-192 (bundle 19 turn 22) — Save and Share are text links at the
             title box's foot, at every width; the count sits at the row's end. */}
-              {(view.save !== undefined || view.share !== undefined) && (
+              {(view.save !== undefined ||
+                view.share !== undefined ||
+                view.guide !== undefined) && (
                 <div
                   data-testid="listing-detail-actions"
                   className={cn(
@@ -966,6 +971,7 @@ export function ListingDetail(view: ListingDetailView) {
                       {fill(t("adPage.save.count"), { count: view.save.count })}
                     </span>
                   )}
+                  {view.guide}
                 </div>
               )}
             </section>

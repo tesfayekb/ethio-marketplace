@@ -20,6 +20,7 @@ import { useCardPhotos } from "@/features/feed/use-card-photos";
 import type { HeldFirstPage } from "@/features/feed/held-first-page";
 import { useFeed, useHeldFirstPage } from "@/features/feed/use-feed";
 import { useI18n } from "@/i18n";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { entityName } from "@/i18n/entity";
 
 /** Today's in-panel error block (Law F4: a soft failure stays VISIBLE). */
@@ -71,6 +72,20 @@ function InviteFirst({ invite, at }: { invite: Invite; at: InviteSpot }) {
  * and each wider place is headed "in" that place by name (D127, which replaced
  * D125's "near"); the next page loads when the end of the list comes into view.
  */
+/**
+ * P-1c turn (b) (D315) — the feed's Guide: the heading, the favourite star, the
+ * bands, one card and Show more, in reading order; texts under `feed.guide.*`
+ * in the guide layer; next: Post an ad.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "feed", next: { to: "/post" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "heading" },
+  { key: "favourite" },
+  { key: "sections" },
+  { key: "card" },
+  { key: "more" },
+];
+
 export function Feed() {
   const { t, entities } = useI18n();
   const favourite = useFavouriteCategory();
@@ -333,6 +348,23 @@ export function Feed() {
             </span>
           </div>
         ) : null}
+        {/* D315 — the page's Guide closes the row that carries the page's name. */}
+        <PageGuide
+          spec={GUIDE}
+          title={
+            shownPlace ? (
+              <OneLineSlot
+                sentence={t("feed.headingIn")}
+                slot="{location}"
+                text={nameOf(shownPlace)}
+              />
+            ) : (
+              <OneLineSlot sentence={t("nav.allListings")} slot="{location}" text="" />
+            )
+          }
+          parts={GUIDE_PARTS}
+          className="ms-auto"
+        />
       </div>
 
       <div className="mt-4">{body}</div>

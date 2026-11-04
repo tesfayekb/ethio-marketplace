@@ -678,6 +678,7 @@ export function MyListingsPage() {
           rowTestId={(row) => `my-listing-${row.id}`}
           cardUntil="xl"
           caption={t("nav.myListings")}
+          guide={{ prefix: "myListings", next: { to: "/post" } }}
           cardLead={(row) => picture(row)}
           cardLeadKind="picture"
           loading={query.isLoading}

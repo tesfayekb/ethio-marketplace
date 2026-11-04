@@ -8,6 +8,7 @@ import { useCallback, useEffect, useState, useSyncExternalStore, type FormEvent 
 import { ContentGrid } from "@/components/layout/content-grid";
 import { ActionMessage } from "@/components/ui/action-message";
 import { PageHeader } from "@/components/layout/page-header";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
 import { PageShell } from "@/components/layout/page-shell";
 import { Section } from "@/components/layout/section";
 import { Switch } from "@/components/ui/switch";
@@ -103,6 +104,20 @@ const secondaryButtonClass =
 function providerLabelKey(provider: string): MessageKey {
   return provider === "google" ? "settings.providerGoogle" : "settings.providerEmail";
 }
+
+/**
+ * P-1c turn (b) (D315) — the page's Guide: identity, sign-in methods, the
+ * second factor, security and this device, in reading order; texts under
+ * `settings.guide.*` in the guide layer; next: the account overview.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "settings", next: { to: "/account" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "identity" },
+  { key: "methods" },
+  { key: "mfa" },
+  { key: "security" },
+  { key: "device" },
+];
 
 function SettingsScreen() {
   const { t, language, star, publicLanguages } = useI18n();
@@ -376,7 +391,10 @@ function SettingsScreen() {
 
   return (
     <PageShell as="main" width="wide" data-testid="settings-page-shell">
-      <PageHeader title={t("settings.title")} />
+      <PageHeader
+        title={t("settings.title")}
+        guide={<PageGuide spec={GUIDE} title={t("settings.title")} parts={GUIDE_PARTS} />}
+      />
 
       {accountDeactivated ? (
         <Section className="mt-4 border-destructive" testid="account-deactivated-banner">

@@ -1,40 +1,71 @@
-# The admin Guide (D313, turn P-1c)
+# The Guide (D313 turn P-1c (a) — the admin blocks; D315 turn P-1c (b) — the pages people use)
 
-> **LAW:** every admin block explains itself in its own place. One control on the
-> block's toolbar opens one sheet of four fixed parts — _What this is · Each
-> column · How to add, change or remove · What to do next_ — whose every text is
-> a translation key under the block's prefix, in a strings layer no page downloads
-> before the first open. A block without its Guide does not land (CF-GUIDE-1,
-> T10).
+> **LAW:** every admin block, and every page a seller or a buyer uses, explains
+> itself in its own place. One control opens one sheet of four fixed parts —
+> _What this is · Each column_ (a table) or _Each part_ (a page) _· How · What
+> to do next_ — whose every text is a translation key under the block's or the
+> page's prefix, in a strings layer no page downloads before the first open. A
+> block or a page route without its Guide does not land (CF-GUIDE-1, T10).
 
 ## The mechanism
 
-- **`src/components/shell/block-guide.tsx`** — `BlockGuide({ spec, title, columns })`:
-  the control (`TableActionButton`, `BookOpen`, label `prim.guide.open`,
+- **`src/components/shell/guide-spec.ts`** — the contract both forms import and
+  neither form imports the other (ruling 2 of turn (b): a DataTable page never
+  carries the page form's chunk): `BlockGuideSpec = { prefix, next: GuideNext,
+anchor?, partsPrefix? }`, `GuidePart = { key, label?, labelKey? }`,
+  `GuideColumn`, `PartsKind = "columns" | "parts"`, `GuideOpenKey`
+  (`"prim.guide.open"`, written as a literal in each form under `satisfies`, so
+  the usage map attributes it), `guideAnchor(spec)` = `anchor ??
+prefix.replace(/\./g, "-")`, `GuideIcon` (`BookOpen`).
+- **`src/components/shell/block-guide.tsx`** — the TABLE form, `BlockGuide({ spec, title, columns })`:
+  the control (`TableActionButton`, `GuideIcon`, label `prim.guide.open`,
   `max-md:sr-only`, inside `SheetTrigger asChild` — the facade's trigger states
   `aria-haspopup="dialog"` / `aria-expanded` and the sheet's close hands the
-  focus back to it; testid `<anchor>-guide`) and the `Sheet` (`side="end"`, testid `<anchor>-guide-sheet`,
-  close `<anchor>-guide-close`, title = the table's caption). The sheet's body is
-  on demand: `resilientLazy(() => import("./block-guide-sheet"), …, { inPlace: true })`
-  under `Suspense`, inside `<StringsLayerGate layers={["guide"]}>` (the layer
-  and the body download together on the first open; the gate sits in the
-  control's chunk, so the on-demand body shares no module with the entry —
-  measured: the other way split `useMatches`' module out of the entry, +1.5 KiB
-  on every page); a failed download says so in place (`<anchor>-guide-failed`,
-  INC-911). `BlockGuideSpec = { prefix, next: GuideNext, anchor? }`;
-  `guideAnchor(spec)` = `anchor ?? prefix.replace(/\./g, "-")`. On close after a
-  next-link the focus is handed to the landing frame (`onCloseAutoFocus`, by its
-  id, `preventScroll`); on Escape it returns to the control (Radix).
+  focus back to it; testid `<anchor>-guide`) and the one sheet's content
+  (`GuideSheetContent`, `partsKind="columns"`, title = the table's caption).
+- **`src/components/shell/page-guide.tsx`** — the PAGE form, `PageGuide({ spec, title, parts, current?, className? })`:
+  a `Button` (`variant="ghost" size="touch"`, `GuideIcon`, `prim.guide.open`,
+  `aria-haspopup="dialog"` / `aria-expanded`, testid `<anchor>-guide`) and
+  nothing else until the first tap; the tap fetches `guide-sheet.tsx` through
+  `resilientLazy` (a failed download → the shell's one notice, INC-911), mounts
+  `PageGuideSheet` (`partsKind="parts"`, `returnFocusTo={control}` — the sheet
+  has no trigger, so its close hands the focus back to the button itself) and
+  keeps it mounted shut, so a second open is instant. The page's control sits
+  in the title row: `PageHeader`'s `guide` slot (My listings' listing page,
+  Account, Settings, Saved, the seller page), the wizard's header row, the
+  feed's heading row, the ad page's actions row (`listing-detail.tsx`'s `guide`
+  slot, ink by tier), sign-in's heading row. A wizard passes
+  `current={stepPartKey(current.nameKey)}` (`wizard-guide.ts`: `POST_GUIDE`,
+  `EDIT_GUIDE` with `partsPrefix: "post"`, `WIZARD_GUIDE_PARTS` = the eight
+  steps with `labelKey: "post.step.<key>"`); the admin's edit (`edit.actor ===
+"admin"`) draws no guide.
+- **`src/components/shell/guide-sheet.tsx`** — the ONE sheet: `GuideSheetContent`
+  (`Sheet` `side="end"`, testid `<anchor>-guide-sheet`, close
+  `<anchor>-guide-close`; the body on demand: `resilientLazy(() =>
+import("./block-guide-sheet"), …, { inPlace: true })` under `Suspense`, inside
+  `<StringsLayerGate layers={["guide"]}>` — the layer and the body download
+  together on the first open; a failed download says so in place,
+  `<anchor>-guide-failed`; on close after a next-link the focus is handed to
+  the landing frame by its id, else to `returnFocusTo`, else Radix's trigger)
+  and `PageGuideSheet` (the controlled, trigger-less `Sheet` the page form
+  mounts).
 - **`src/components/shell/block-guide-sheet.tsx`** — the four parts: `<h3>` `prim.guide.what` /
-  `.columns` / `.how` / `.next`; the column lines as a `<dl>` (`<anchor>-guide-col-<key>`:
-  `<dt>` the column's header, `<dd>` `<prefix>.guide.col.<key>`), for the
-  columns the table SHOWS (a hidden column loses its line); one `Link`
-  (`<anchor>-guide-next`) to `resolveGuideNext(spec.next, permissions)`.
-- **`src/features/admin/guide-next.ts`** — `GuideNext = { section: AdminSectionId; block?: string }`
-  resolved through `ADMIN_SECTIONS`: the section's path with the block as the
-  hash; a section the caller's permissions do not hold → `/admin`
-  (`allowed: false`). Only the sheet imports `sections.ts` by value: the control
-  stays off the seller's My listings path.
+  `.columns` or `.parts` / `.how` / `.next`; the part lines for the columns the
+  table SHOWS or the page's parts in reading order — named (every part carries
+  `label` or `labelKey`) as a `<dl>` (`<anchor>-guide-<col|part>-<key>`: `<dt>`
+  the term, `<dd>` `<prefix>.guide.<col|part>.<key>`, or
+  `<partsPrefix>.guide.part.<key>`), unnamed as a `<ul>` of the lines; the
+  current part `aria-current="step"` with a start border; one `Link`
+  (`<anchor>-guide-next`) to `resolveGuideNext(spec.next, permissions)`, the
+  permissions from `useAdminShellIfAny()` (`admin-context.tsx`: the one
+  context read without throwing — `null` outside the admin shell).
+- **`src/features/admin/guide-next.ts`** — `GuideNext = { section: AdminSectionId; block?: string } | { to: GuideRoute; hash? }`:
+  a section resolved through `ADMIN_SECTIONS` (the section's path with the
+  block as the hash; a section the caller's permissions do not hold → `/admin`,
+  `allowed: false`), or a route of this site (`GuideRoute`: the router's
+  static full paths, no `$` segment, no `/api/`), allowed for everyone. Only the
+  sheet imports `sections.ts` by value: the control stays off every public
+  path.
 - **`DataTable` (`src/components/shell/data-table.tsx`)** — the one entry:
   `guide?: BlockGuideSpec`. The control joins the toolbar's end group
   (`TableToolbar`'s new `guide` slot, after Filters and Columns; cloned into the
@@ -58,10 +89,16 @@ into `en.ts` / `am.ts`). No route declares the layer: `StringsLayerGate`'s new
 `layers` prop asks for it when the sheet first opens (`useStringsLayers`), so
 no page's first download carries a guide text (AG-7); the gate reads the
 route's declaration through `useRouterState`. The keys' grammar:
-`<prefix>.guide.what`, `.col.<columnKey>` for every column, `.how`, `.next`;
-the shell's own four headings and the control are `prim.guide.*` (member layer);
-the strip's words `prim.orderStrip.*` sit in the admin layer (CF-SL-1: only
-admin pages show them).
+`<prefix>.guide.what`, `.col.<columnKey>` for every column (a table) or
+`.part.<key>` for every part (a page), `.how`, `.next`; the shell's own
+headings and the control's name are `prim.guide.*` — in the BASE layer since
+turn (b), where CF-SL-1 places them once public pages draw the sheet (ruling
+2 of turn (b); the plan's §2 note that put them in the guide layer is
+superseded); the strip's words `prim.orderStrip.*` sit in the admin layer
+(CF-SL-1: only admin pages show them). Turn (b)'s page keys: `myListings`
+(six columns), `myListing`, `post` (eight part lines, shared by `post.edit`
+through `partsPrefix`), `account`, `settings`, `saved`, `adPage`, `feed`,
+`sellerPage`, `auth` — 84 keys EN + AM.
 
 ## Guards
 
@@ -74,15 +111,47 @@ admin pages show them).
   module a `...spread` names (`attributionColumns`) — are literals ("key"); the
   guide layer holds `what`, `how`, `next` and `col.<key>` for each prefix
   ("missing"); no `.guide.` key sits outside the layer ("astray"; `prim.guide.*`
-  excepted) and the layer holds nothing no table claims ("unclaimed"). The
-  allowlist's lines `file | guide owed in turn (b) | 2026-11-10` name the
-  sixteen admin tables turn (b) guides.
+  excepted) and the layer holds nothing no table or page claims ("unclaimed").
+  Turn (b) widened it over the ROUTES (`admin-guides-read.ts` reads the trees;
+  CFG-4…7): every `src/routes/*.tsx` not in `ROUTES_WITHOUT_GUIDE` (admin,
+  `dev.`, the auth callback and reset, the account's legal pages, the legal
+  texts — each with its reason) reaches, through value imports
+  (`reachableFrom`), exactly one `<PageGuide spec= parts=` or one `DataTable
+guide=` ("no guide" / "two guides"); a page spec is `{ prefix: <literal>,
+next: { to: <route> } | { section } }` (or a conditional of such constants —
+  the wizard's `POST_GUIDE` / `EDIT_GUIDE`); its parts' keys are literals and
+  the layer holds `what`, `how`, `next` and `part.<key>` (under `partsPrefix`
+  when set). The allowlist's lines `file | guide owed in turn (c) | 2026-11-24`
+  name the sixteen admin tables turn (c) guides.
 - **T10** (`scripts/admin-tables.ts`, TBL-1/TBL-4/TBL-6): an admin block's
   DataTable carries `guide=`; a seller's table (My listings) is not asked; a
   table in CF-GUIDE-1's allowlist is not asked yet (`check(sources, guideOwed)`
   reads that ONE allowlist).
-- `holds-its-box` (INC-940): `block-guide.tsx#BlockGuideSheet` is allowlisted —
-  the sheet draws in a portal on the top layer; the page has no box of it.
+- `holds-its-box` (INC-940): `guide-sheet.tsx#BlockGuideSheet` and
+  `page-guide.tsx#PageGuideSheet` are allowlisted — the sheet draws in a portal
+  on the top layer; the page has no box of it.
+- `block-guide.test.tsx` BG-6/BG-7: the two forms share one accessible name,
+  icon and dialog contract, and neither imports the other (`guide-spec.ts`).
+
+## Turn (b) — the pages people use (D315)
+
+Thirteen routes draw the page form or the table's tile: `/` and `/c/$slug`
+(the feed, `feed`), `/l/$slug` (`adPage`, next → `/post` in both sign-in
+states), `/$name` (`sellerPage`), `/auth` (`auth`), `/account` (`account` →
+`/settings`), `/settings` (`settings` → `/account`), `/account_/saved`
+(`saved`), `/my-listings` (the table, `myListings` → `/post`),
+`/my-listings_/$listingId` (`myListing`), `/post`, `/post_/$listingId` and
+`/my-listings_/$listingId_/edit` (the wizards: `post`, `post.edit` → `/my-listings`,
+the current step marked). Weight (measured against base `eb72f3bd`, local):
+the +0.9 KiB artefact on every page (the sheet's strings gate referenced from a
+route chunk splits `spinner` and `on-demand-notice` out of the entry); the page
+form's pages +2.4…2.9 (the control's chunk, 1.5, is mostly the bundler's
+preload list for the on-demand sheet — a bundler-wide setting, its own DEC;
+`guide-spec.js` 0.2); the DataTable pages +1.9…2.0 (the one sheet now shared
+by both forms split out of `data-table.js`); the three whole-catalogue
+importers (`/admin/translations`, `/admin/roles_/$roleId`,
+`/admin/listings_/$listingId`) +2.3 per guide catalogue (K2, the roadmap line).
+Every ceiling moved by DEC-296's form with that cause on its line.
 
 ## Turn (a) — Monetisation
 
@@ -95,7 +164,8 @@ page keeps one h1; its blocks and inner tables pass `level="h2"`.
 
 ## Tests
 
-`e2e/admin-guides.spec.ts` (area `admin-guides`; also in the shell area) —
+`e2e/admin-guides.spec.ts` (area `guides` — one area for both forms, renamed from
+`admin-guides` by ruling 3 of turn (b); also in the shell area) —
 AG-1 every section draws; in a guided section every table's toolbar holds one
 Guide and its frame; Monetisation's four, six once a level is open · AG-2 the
 four parts; the column lines are the shown columns in order; a hidden column
@@ -104,8 +174,19 @@ block (hash, in view, focused) · AG-4 Escape returns the focus to the control �
 AG-5 the Amharic texts · AG-7 the guide layer and the sheet's code are fetched
 on the first open, never before, and once. AG-6 (a cross-section next without
 the permission → `/admin`) is turn (b)'s, with AG-1 widened to every section.
-Unit: `block-guide.test.tsx` BG-1…5, `order-strip.test.tsx` OS-1…3,
-`guide-next.test.ts` GN-1…2, `monetisation-order.test.ts` MNO-1…4,
+`e2e/user-guides.spec.ts` (turn (b); area `guides`) — UG-1 the ad page signed out: one
+control in the actions row, the four parts in order, eight part lines, next to
+Post · UG-2 the sheet's words are the catalogue's, nothing of the ad or of a
+person in them · UG-3 My listings signed in: the tile in its toolbar, one line
+per shown column, next to Post · UG-4 the posting wizard's first step: the
+eight steps as the parts, each named by its step, Category marked current ·
+UG-5 the Amharic texts · UG-6 Escape hands the focus back to the control; a
+second open is at once · UG-7 the first paint carries nothing but the control ·
+UG-8 / UG-9 every covered public (signed out) and member (signed in) route
+draws exactly one Guide.
+Unit: `block-guide.test.tsx` BG-1…7, `page-guide.test.tsx` PG-1…4,
+`order-strip.test.tsx` OS-1…3, `guide-next.test.ts` GN-1…3,
+`wizard-guide.test.ts` WG-1…2, `monetisation-order.test.ts` MNO-1…4,
 `monetisation-page.test.tsx` MNP-1, `strings-layer-gate.test.tsx` SLG-5.
 
 ## Related

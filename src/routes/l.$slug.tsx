@@ -4,6 +4,8 @@ import { rememberRevealIntent, takeRevealIntent } from "@/features/ad-page/revea
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { SimilarAds } from "@/features/ad-page/similar-ads";
 import { ReportAd } from "@/features/ad-page/report-ad";
+import { PageGuide, type BlockGuideSpec, type GuidePart } from "@/components/shell/page-guide";
+import { cn } from "@/lib/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { adJsonLd } from "@/features/ad-page/json-ld";
 import { listingSaved, saveListing, unsaveListing } from "@/features/ad-page/save";
@@ -101,6 +103,24 @@ function GonePage() {
     </PageShell>
   );
 }
+
+/**
+ * P-1c turn (b) (D315) — the ad page's Guide: its parts in reading order (the
+ * photos, the title box, the facts, the description, the seller, the place,
+ * Save and Share, Report), texts under `adPage.guide.*` in the guide layer;
+ * next: Post an ad, in both sign-in states.
+ */
+const GUIDE: BlockGuideSpec = { prefix: "adPage", next: { to: "/post" } };
+const GUIDE_PARTS: readonly GuidePart[] = [
+  { key: "photos" },
+  { key: "title" },
+  { key: "facts" },
+  { key: "description" },
+  { key: "seller" },
+  { key: "location" },
+  { key: "save" },
+  { key: "report" },
+];
 
 function AdPage() {
   const navigate = useNavigate();
@@ -235,6 +255,17 @@ function AdPage() {
             title={doc.title}
             priceText={sharePrice}
             ink={adPageLookOf(view.tier ?? null).ink}
+          />
+        }
+        guide={
+          <PageGuide
+            spec={GUIDE}
+            title={doc.title}
+            parts={GUIDE_PARTS}
+            className={cn(
+              "h-auto min-h-11 gap-2 px-0 font-semibold hover:bg-transparent",
+              adPageLookOf(view.tier ?? null).ink,
+            )}
           />
         }
         publicCounts={{ views: doc.counts.views, shares: doc.counts.shares }}

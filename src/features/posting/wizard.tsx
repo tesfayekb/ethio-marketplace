@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { FormLayout } from "@/components/layout/form-layout";
 import { PageShell } from "@/components/layout/page-shell";
+import { PageGuide } from "@/components/shell/page-guide";
 import { Section } from "@/components/layout/section";
 import { SplitLayout } from "@/components/layout/split-layout";
 import { readAreaCookie, useOpenMarkets } from "@/components/shell/location-data";
@@ -103,6 +104,7 @@ import {
   type CategoryFacts,
   type Refusal,
 } from "./types";
+import { EDIT_GUIDE, POST_GUIDE, WIZARD_GUIDE_PARTS, stepPartKey } from "./wizard-guide";
 
 /** D39 — the rails walk the seller's order; each entry keeps its door number. */
 const WALK = SEQUENCE.map((step) => STEPS[step - 1]);
@@ -716,6 +718,12 @@ function WizardShell({
   /** W6b-2 B1 — the map pin is offered only where the category allows it. */
 
   const current = STEPS[draft.step - 1] ?? STEPS[0];
+  const wizardTitle =
+    edit === null
+      ? t("post.title")
+      : edit.actor === "admin"
+        ? t("admin.listings.edit.title")
+        : t("post.edit.title");
   const chosenCategory =
     draft.values.categoryId === null ? null : (tree.byId.get(draft.values.categoryId) ?? null);
 
@@ -1044,13 +1052,19 @@ function WizardShell({
             <div className="mx-auto min-w-0 max-w-3xl">
               <Section className="space-y-4 p-3 md:p-6">
                 <header className="space-y-2">
-                  <h1 className="text-lg font-semibold text-foreground">
-                    {edit === null
-                      ? t("post.title")
-                      : edit.actor === "admin"
-                        ? t("admin.listings.edit.title")
-                        : t("post.edit.title")}
-                  </h1>
+                  <div className="flex items-start justify-between gap-2">
+                    <h1 className="text-lg font-semibold text-foreground">{wizardTitle}</h1>
+                    {/* D315 — the seller's one Guide: the steps as its parts, this one current. */}
+                    {edit !== null && edit.actor === "admin" ? null : (
+                      <PageGuide
+                        spec={edit === null ? POST_GUIDE : EDIT_GUIDE}
+                        title={wizardTitle}
+                        parts={WIZARD_GUIDE_PARTS}
+                        current={stepPartKey(current.nameKey)}
+                        className="-me-2 -mt-1 shrink-0"
+                      />
+                    )}
+                  </div>
                   <p className="text-sm text-muted-foreground" data-testid="post-step-header">
                     {fill(t("post.stepOf"), {
                       step: positionOf(draft.step),

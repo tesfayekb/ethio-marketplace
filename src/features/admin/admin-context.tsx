@@ -34,3 +34,13 @@ export function useAdminShell(): AdminShellValue {
   if (!ctx) throw new Error("useAdminShell must be used within <AdminShellProvider>");
   return ctx;
 }
+
+/**
+ * P-1c turn (b) (D315) — the same carrier, read by a piece that also draws
+ * outside the admin shell (the Guide sheet's body on a seller's or buyer's
+ * page): null there, the value inside. Nothing else reads it this way; a
+ * piece that only ever draws in the admin uses `useAdminShell`.
+ */
+export function useAdminShellIfAny(): AdminShellValue | null {
+  return useContext(AdminShellContext);
+}

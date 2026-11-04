@@ -3,18 +3,27 @@ import type { ReactNode } from "react";
 import { Z_ACTION_BAR } from "./layers";
 import { cn } from "@/lib/utils";
 
-/** The title, context, and primary actions shared by page families. */
+/**
+ * The title, context, and primary actions shared by page families.
+ *
+ * P-1c turn (b) (D315) — `guide`: the page's Guide control (PageGuide,
+ * src/components/shell/page-guide.tsx), the last item of the row that carries
+ * the page's name at every width; it never joins the sticky mobile actions bar,
+ * which holds the page's verbs.
+ */
 export function PageHeader({
   title,
   description,
   breadcrumb,
   actions,
+  guide,
   className,
 }: {
   title: ReactNode;
   description?: ReactNode;
   breadcrumb?: ReactNode;
   actions?: ReactNode;
+  guide?: ReactNode;
   className?: string;
 }) {
   return (
@@ -27,7 +36,12 @@ export function PageHeader({
         <h1 className="text-xl font-semibold text-foreground">{title}</h1>
         {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}
       </div>
-      {actions ? <div className="hidden shrink-0 items-start gap-2 md:flex">{actions}</div> : null}
+      {actions || guide ? (
+        <div className="flex shrink-0 items-start gap-2">
+          {actions ? <div className="hidden items-start gap-2 md:flex">{actions}</div> : null}
+          {guide}
+        </div>
+      ) : null}
       {actions ? (
         <div
           className={`sticky [inset-block-end:var(--bottom-bar)] ${Z_ACTION_BAR} col-span-full flex min-h-11 items-center gap-2 border-t border-border bg-background py-2 pb-[max(calc(0.5rem+var(--bar-rise)),env(safe-area-inset-bottom))] md:hidden`}
