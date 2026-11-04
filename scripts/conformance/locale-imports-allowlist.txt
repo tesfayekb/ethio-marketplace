@@ -1,0 +1,1 @@
+# CF-LOC-1 (scripts/conformance/locale-imports.test.ts): a recorded exception to the rule that no file outside src/i18n/ imports a locale module — key "<file>:<line>" | reason | until. Empty by design: the one standing exemption (en-base, the first paint) lives in the rule itself.

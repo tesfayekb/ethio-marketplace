@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import type { MessageKey } from "@/i18n";
+import { ownValue } from "@/lib/own-key";
 
 import am from "@/i18n/locales/am";
 import en from "@/i18n/locales/en";
@@ -9,6 +10,8 @@ import en from "@/i18n/locales/en";
 import { changesOf, groupOf, groupsOf, reasonLabel, summarize } from "./history";
 
 const labelT = (key: MessageKey): string => en[key];
+// P-1c turn (d): the predicate a screen gets from useI18n's `has`; a test may read the catalogue.
+const hasEn = (key: string): boolean => ownValue(en, key) !== undefined;
 import { detailOf, type AdminListingHistoryEntry } from "./use-admin-listing";
 
 /** The newest declaration of listings_status_check (B3 census, turn 15f). */
@@ -108,15 +111,15 @@ describe("listing history (turn L3)", () => {
   });
 
   it("INC-799 a known reason reads its label", () => {
-    expect(reasonLabel("duplicate", labelT, en)).toBe("Duplicate ad");
+    expect(reasonLabel("duplicate", labelT, hasEn)).toBe("Duplicate ad");
   });
 
   it("INC-799 an unknown reason reads its code, never undefined", () => {
-    expect(reasonLabel("a_reason_no_door_has_yet", labelT, en)).toBe("a_reason_no_door_has_yet");
+    expect(reasonLabel("a_reason_no_door_has_yet", labelT, hasEn)).toBe("a_reason_no_door_has_yet");
   });
 
   it("INC-799 an inherited name is not a key", () => {
-    expect(reasonLabel("constructor", labelT, en)).toBe("constructor");
+    expect(reasonLabel("constructor", labelT, hasEn)).toBe("constructor");
   });
 
   it("INC-795 every listing status has its staff label in English and Amharic", () => {

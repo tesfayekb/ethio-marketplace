@@ -9,7 +9,13 @@ export {
   readDeviceStar,
 } from "./provider";
 export type { LayerState, PublicLanguage } from "./provider";
-export { STRINGS_LAYERS, isStringsLayer, type StringsLayer } from "./compiled-catalog";
+export {
+  STRINGS_LAYERS,
+  isStringsLayer,
+  shippedCatalogues,
+  type ShippedCatalogues,
+  type StringsLayer,
+} from "./compiled-catalog";
 
 export { SUPPORTED_LANGUAGES } from "./types";
 export { catalogText, entityName, EMPTY_ENTITY_BUNDLE } from "./entity";

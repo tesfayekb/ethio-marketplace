@@ -1,5 +1,4 @@
 import type { MessageKey } from "@/i18n";
-import { ownValue } from "@/lib/own-key";
 
 import type { AdminListingHistoryEntry } from "./use-admin-listing";
 
@@ -124,15 +123,16 @@ export function summarize(entry: AdminListingHistoryEntry): EntrySummary {
  * INC-799 (INC-795's class) — a history reason's label. Every reason a door
  * stores today has its key, but a reason a door adds later must never read
  * "undefined": the stored code itself is shown, so staff still learn which
- * reason the door stored.
+ * reason the door stored. P-1c turn (d): whether the key exists is asked of
+ * the i18n mechanism (`has` of useI18n), never of an imported catalogue.
  */
 export function reasonLabel(
   reason: string,
   t: (key: MessageKey) => string,
-  catalogue: Readonly<Record<string, string>>,
+  has: (key: string) => boolean,
 ): string {
   const key = `admin.listings.reason.${reason}`;
-  if (ownValue(catalogue, key) !== undefined) return t(key as MessageKey);
+  if (has(key)) return t(key as MessageKey);
   return reason;
 }
 
