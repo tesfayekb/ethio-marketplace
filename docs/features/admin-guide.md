@@ -164,7 +164,8 @@ page keeps one h1; its blocks and inner tables pass `level="h2"`.
 
 ## Tests
 
-`e2e/admin-guides.spec.ts` (area `admin-guides`; also in the shell area) —
+`e2e/admin-guides.spec.ts` (area `guides` — one area for both forms, renamed from
+`admin-guides` by ruling 3 of turn (b); also in the shell area) —
 AG-1 every section draws; in a guided section every table's toolbar holds one
 Guide and its frame; Monetisation's four, six once a level is open · AG-2 the
 four parts; the column lines are the shown columns in order; a hidden column
@@ -173,7 +174,7 @@ block (hash, in view, focused) · AG-4 Escape returns the focus to the control �
 AG-5 the Amharic texts · AG-7 the guide layer and the sheet's code are fetched
 on the first open, never before, and once. AG-6 (a cross-section next without
 the permission → `/admin`) is turn (b)'s, with AG-1 widened to every section.
-`e2e/user-guides.spec.ts` (turn (b)) — UG-1 the ad page signed out: one
+`e2e/user-guides.spec.ts` (turn (b); area `guides`) — UG-1 the ad page signed out: one
 control in the actions row, the four parts in order, eight part lines, next to
 Post · UG-2 the sheet's words are the catalogue's, nothing of the ad or of a
 person in them · UG-3 My listings signed in: the tile in its toolbar, one line

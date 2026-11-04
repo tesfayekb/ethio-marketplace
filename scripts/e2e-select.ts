@@ -173,15 +173,21 @@ export const AREAS: Area[] = [
     specs: ["e2e/admin-shell.spec.ts", "e2e/one-line-slots-admin.spec.ts"],
   },
   {
-    // P-1c (D313) — the Guide on every admin block and the guide strings layer.
-    name: "admin-guides",
+    // P-1c (D313, D315) — the Guide: the admin blocks' table form, the people's pages' page
+    // form, the one sheet, their contract, the route next and the guide strings layer
+    // (one area for the one concern; renamed from admin-guides by ruling 3 of turn (b)).
+    name: "guides",
     src: [
       "src/components/shell/block-guide*.tsx",
+      "src/components/shell/page-guide.tsx",
+      "src/components/shell/guide-sheet.tsx",
+      "src/components/shell/guide-spec.ts",
       "src/components/shell/order-strip.tsx",
       "src/features/admin/guide-next.ts",
+      "src/features/posting/wizard-guide.ts",
       "src/i18n/locales/*-guide.ts",
     ],
-    specs: ["e2e/admin-guides.spec.ts"],
+    specs: ["e2e/admin-guides.spec.ts", "e2e/user-guides.spec.ts"],
   },
   {
     name: "auth",
