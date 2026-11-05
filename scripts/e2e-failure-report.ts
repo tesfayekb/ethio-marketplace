@@ -2505,15 +2505,21 @@ async function main() {
       );
       // INC-973 — a lane whose backend never started uploads its redacted
       // start-failure lines; the report quotes them instead of a bare gap.
+      // DEC-340 — the REAL local-backend-start-failure.txt of run 41966759770
+      // (lane smoke, the planted failure; redacted as captured, never retyped):
+      // the server's record with its PL/pgSQL CONTEXT frames follows the
+      // Cause lines, and the report must show the frames.
+      const startFailureLines = (
+        await Bun.file("scripts/fixtures/local-backend-start-failure.dec340.txt").text()
+      )
+        .split("\n")
+        .filter((line) => line.trim() !== "");
       const startFailed: Source = {
         label: "shard 7",
         json: null,
         logTail: null,
         logRead: false,
-        startFailure: [
-          "migration: Applying migration 20261028230748_23f4ae4e-f7bc-4a94-a8ef-24cbddcb47a6.sql",
-          "ERROR:  P0001: INC-951 3a proof: two versions in force are needed",
-        ],
+        startFailure: startFailureLines,
       };
       const startRed = renderSources([startFailed, noLog], meta, new Map(), []);
       const startQuiet = renderSources([noLog], meta, new Map(), []);
@@ -2521,9 +2527,18 @@ async function main() {
         [
           "INC-973 a failed start's lines reach the report",
           startRed.includes("## Backend start failure (INC-973)") &&
-            startRed.includes("Applying migration 20261028230748") &&
-            startRed.includes("two versions in force are needed") &&
+            startRed.includes("Applying migration 20261105041444") &&
+            startRed.includes("DEC-340 planted failure: the server record must show this stack") &&
             startRed.includes("`shard 7`"),
+        ],
+        [
+          "DEC-340 the server record's CONTEXT frames reach the INC-973 section",
+          startRed.includes("Server record (DEC-340, stream):") &&
+            startRed.includes(
+              "CONTEXT:  PL/pgSQL function dec340_planted_raise() line 3 at RAISE",
+            ) &&
+            startRed.includes('\tSQL statement "SELECT public.dec340_planted_raise()"') &&
+            startRed.includes("\tPL/pgSQL function inline_code_block line 3 at PERFORM"),
         ],
         [
           "INC-973 no start-failure file keeps the bare gap",

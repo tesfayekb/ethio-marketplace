@@ -12,14 +12,43 @@ import { ECHO_LINES, startFailureExcerpt, TAIL_LINES } from "./start-failure-exc
  * class guard over every workflow.
  */
 
-type Excerpt = { section: string[]; failure: string[] };
-const excerpt = startFailureExcerpt as (text: string) => Excerpt;
+type Excerpt = { section: string[]; failure: string[]; server: string[] };
+const excerpt = startFailureExcerpt as (text: string, captureDir?: string | null) => Excerpt;
 
 /** The fixture without its "# " header (shape from source; see the file). */
 const LOG = readFileSync("scripts/ci/fixtures/start-failure-cli.log", "utf8")
   .split("\n")
   .filter((line) => !line.startsWith("# "))
   .join("\n");
+
+/**
+ * DEC-340 (INC-1051) — the REAL `local-backend-db-error.txt` of run 41966759770 (lane smoke, the
+ * planted failure; ci-evidence e6a15b73b, local-backend-proof.md :90–:100), copied by script with
+ * its sha256 (c769adbc…), redacted as captured, never retyped. The raw stream is by design never
+ * kept, so the record's own server lines — between the mechanism's two fences, before its
+ * "(N statement lines dropped)" note — are the captured server log the tests feed back in.
+ */
+const DB_ERROR = readFileSync("scripts/ci/fixtures/start-failure-db-error.txt", "utf8")
+  .split("\n")
+  .filter((line) => line !== "");
+const SERVER_LINES = DB_ERROR.slice(
+  DB_ERROR.indexOf("```text") + 1,
+  DB_ERROR.lastIndexOf("```"),
+).filter((line) => !/^\(\d+ statement lines dropped\)$/.test(line));
+const ERROR_LINE = SERVER_LINES[0] ?? "";
+const CONTEXT_LINE = SERVER_LINES.find((line) => line.includes(" CONTEXT:  ")) ?? "";
+const FRAME_LINES = SERVER_LINES.filter((line) => line.startsWith("\t"));
+const STATEMENT_LINES = SERVER_LINES.filter((line) => line.includes(" STATEMENT:  "));
+
+/** A capture directory holding the given stream lines (no meta.txt, as a lane that wrote none). */
+function captureDir(streamLines: string[]): string {
+  const dir = mkdtempSync(join(tmpdir(), "sxc-capture-"));
+  writeFileSync(
+    join(dir, "stream.log"),
+    streamLines.length === 0 ? "" : streamLines.join("\n") + "\n",
+  );
+  return dir;
+}
 
 /** Inline excerpts of a failure log a workflow may not cut by itself (INC-984, INC-992, INC-999). */
 const INLINE_CUT = /splitlines\(\)\s*\[\s*-\s*\d+\s*:\s*\]|\btail\s+-n\s*\+?\d+/;
@@ -94,6 +123,61 @@ describe("a failed backend start names its cause (INC-999)", () => {
       "migration: no migration reached",
       "no ERROR/SQLSTATE line in the log",
     ]);
+  });
+
+  it("SXC-5 the real server record keeps the ERROR line, the CONTEXT stack and one cut STATEMENT line, in every consumer (DEC-340)", () => {
+    expect(ERROR_LINE).toContain(" ERROR:  DEC-340 planted failure");
+    expect(CONTEXT_LINE).toContain("PL/pgSQL function dec340_planted_raise() line 3 at RAISE");
+    expect(FRAME_LINES.length).toBe(2);
+    const dir = captureDir(SERVER_LINES);
+    try {
+      const { section, failure, server } = excerpt(LOG, dir);
+      expect(server[0]).toBe("Server record (DEC-340, stream):");
+      for (const consumer of [section, failure, server]) {
+        expect(consumer).toContain("Server record (DEC-340, stream):");
+        expect(consumer).toContain(ERROR_LINE);
+        expect(consumer).toContain(CONTEXT_LINE);
+        for (const frame of FRAME_LINES) expect(consumer).toContain(frame);
+        const statements = consumer.filter((line) => line.includes(" STATEMENT:  "));
+        expect(statements.length).toBe(1);
+        expect(statements[0]?.length).toBeLessThanOrEqual(201);
+      }
+      // The planted DO block's body never reaches the record (the capture dropped it after the
+      // STATEMENT line); the section's own "Statement:" echo is the CLI's and is judged by SXC-1.
+      for (const body of ["BEGIN", "  PERFORM public.dec340_planted_raise();", "END;"]) {
+        expect(server).not.toContain(body);
+        expect(failure).not.toContain(body);
+      }
+      expect(STATEMENT_LINES.length).toBe(1);
+      expect(server.length).toBeLessThanOrEqual(83);
+      // The record sits after the Cause block and before the Statement echo, in the section.
+      const at = section.indexOf("Server record (DEC-340, stream):");
+      expect(at).toBeGreaterThan(section.indexOf("Cause:"));
+      expect(at).toBeLessThan(section.indexOf("Statement:"));
+      // SXC-1's one-argument form is untouched: the same log without a capture carries no record.
+      expect(excerpt(LOG).section).not.toContain("Server record (DEC-340, stream):");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("SXC-6 a log without its last record says so with its counts; no capture says not captured (DEC-340)", () => {
+    const dir = captureDir(SERVER_LINES.slice(0, SERVER_LINES.indexOf(ERROR_LINE)));
+    try {
+      const { section, failure, server } = excerpt(LOG, dir);
+      expect(server).toEqual([
+        "Server record (DEC-340, none): no ERROR record in the database log (0 lines read since not reported; channels: stream not reported; file not reported)",
+      ]);
+      expect(section).toContain(server[0]);
+      expect(failure).toContain(server[0]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    const none = excerpt(LOG, null);
+    expect(none.server).toEqual([
+      "Server record (DEC-340): not captured (the apply did not begin)",
+    ]);
+    expect(none.failure).toContain(none.server[0]);
   });
 
   it("SXC-4 no workflow cuts a failure log inline, and a planted cut is caught", () => {

@@ -107,3 +107,4 @@ src/features/admin-packages/use-packages-error.ts
 src/features/admin-packages/use-packages.ts
 src/features/admin-monetisation/prices-section.tsx
 src/features/admin-monetisation/overrides-section.tsx
+supabase/migrations/20261105041444_94668649-35fb-405f-91a2-473d6329690e.sql
