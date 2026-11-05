@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41966759770
-- Commit: `6c398a79981bc11bf16fc9f9594739135ceb82ce`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41969678989
+- Commit: `ae30c327d615da521c8e42140bc7abd73d821814`
 - Attempt: 1
-- Written (UTC): 2026-11-05T04:33:00.024Z
+- Written (UTC): 2026-11-05T04:50:12.144Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -20,17 +20,8 @@ None: no results file lists one and no log's summary names one (0 of 18 results 
 The temporary backend never came up, so these sources have neither results nor a lane log: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16. The start log's error lines, redacted, from `smoke` (one lane's lines stand for every lane that failed the same way):
 
 ```text
-migration: Applying migration 20261105041444_94668649-35fb-405f-91a2-473d6329690e.sql...
-ERROR: DEC-340 planted failure: the server record must show this stack (SQLSTATE P0001)
-Server record (DEC-340, stream):
-172.18.0.1 2026-11-05 04:30:21.987 UTC [275] postgres@postgres ERROR:  DEC-340 planted failure: the server record must show this stack
-172.18.0.1 2026-11-05 04:30:21.987 UTC [275] postgres@postgres DETAIL:  dec340_planted_raise() raised on purpose
-172.18.0.1 2026-11-05 04:30:21.987 UTC [275] postgres@postgres HINT:  commit 2 of the ci-db-error-record lane removes this file
-172.18.0.1 2026-11-05 04:30:21.987 UTC [275] postgres@postgres CONTEXT:  PL/pgSQL function dec340_planted_raise() line 3 at RAISE
-	SQL statement "SELECT public.dec340_planted_raise()"
-	PL/pgSQL function inline_code_block line 3 at PERFORM
-172.18.0.1 2026-11-05 04:30:21.987 UTC [275] postgres@postgres STATEMENT:  DO $$
-(4 statement lines dropped)
+migration: Applying migration 20261104153313_f5c8063d-3369-43fe-acd2-20a1b6e5b7dd.sql...
+ERROR: P-2 rank proof (a): the trigger differs (CREATE TRIGGER listing_packages_level_ranks AFTER INSERT OR DELETE OR UPDATE OF sort, key, kind ON public.listing_packages FOR EACH STATEMENT EXECUTE FUNCTION level_ranks_rebuild()) (SQLSTATE P0001)
 ```
 
 ## Server errors — census (DEC-083, non-gating)
