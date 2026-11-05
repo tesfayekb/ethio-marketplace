@@ -63,6 +63,8 @@ export type Declaration = {
   body: string;
   line: number;
   offset: number;
+  /** The 1-based line the body's text starts on (the CREATE's line when there is no body). */
+  bodyLine: number;
 };
 
 /** Every function declaration of a file (comments and DO blocks removed), in order, with its body. */
@@ -85,6 +87,7 @@ export function declarationsOf(sql: string): Declaration[] {
     }
     // The body: the first `AS $tag$` after the arguments, to its closing tag.
     let body = "";
+    let bodyFrom = start;
     let header = code.slice(start, at + 1);
     for (let probe = at + 1; probe < code.length; probe += 1) {
       BODY_OPENER.lastIndex = probe;
@@ -95,12 +98,14 @@ export function declarationsOf(sql: string): Declaration[] {
         const to = code.indexOf(tag, from);
         header = code.slice(start, probe);
         body = code.slice(from, to === -1 ? code.length : to);
+        bodyFrom = from;
         break;
       }
       if (code[probe] === ";") break;
     }
     const line = code.slice(0, start).split("\n").length;
-    found.push({ fn, header, body, line, offset: start });
+    const bodyLine = code.slice(0, bodyFrom).split("\n").length;
+    found.push({ fn, header, body, line, offset: start, bodyLine });
   }
   return found;
 }

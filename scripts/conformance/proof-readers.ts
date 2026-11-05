@@ -118,9 +118,20 @@ export function deparseLikesOf(body: string): number[] {
       /^\s*INTO\s+(?:STRICT\s+)?([A-Za-z_][A-Za-z0-9_]*)/i.exec(after)?.[1] ??
       /([A-Za-z_][A-Za-z0-9_]*)\s*:=\s*$/.exec(body.slice(0, at))?.[1];
     if (variable === undefined) continue;
-    if (new RegExp(`\\b${variable}\\s+(?:NOT\\s+)?LIKE\\b`, "i").test(after)) hits.push(at);
+    if (variableLikeMatched(tokensOf(after), variable)) hits.push(at);
   }
   return hits;
+}
+
+/** Whether the tokens hold `<variable> [NOT] LIKE` (a token scan: nothing is compiled from the text). */
+function variableLikeMatched(tokens: readonly Token[], variable: string): boolean {
+  const wanted = variable.toLowerCase();
+  return tokens.some((token, index) => {
+    if (token.text.toLowerCase() !== wanted) return false;
+    const next = (tokens[index + 1]?.text ?? "").toUpperCase();
+    const after = (tokens[index + 2]?.text ?? "").toUpperCase();
+    return next === "LIKE" || (next === "NOT" && after === "LIKE");
+  });
 }
 
 /** Whether a migration file's 14-digit stamp is at or past `DEPARSE_FLOOR`. */
@@ -256,9 +267,10 @@ export function doBlocksOf(sql: string): DoBlock[] {
   return blocks;
 }
 
-type Token = { text: string; at: number };
+export type Token = { text: string; at: number };
 
-function tokensOf(text: string): Token[] {
+/** The SQL tokens of a (blanked) text: words, `:=`, comparison pairs, punctuation, other single characters. */
+export function tokensOf(text: string): Token[] {
   return Array.from(text.matchAll(TOKEN), (match) => ({
     text: match[0],
     at: match.index ?? 0,

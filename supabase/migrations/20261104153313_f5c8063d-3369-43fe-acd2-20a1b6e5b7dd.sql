@@ -1,25 +1,23 @@
 -- e2e-areas: feed, admin-listings, ad-page
--- P-2 (a) — the feed's rank becomes data (ruling 4, DEC-341; INC-1051, INC-1052). The first fold
--- made feed_tier_rank(text) a STABLE reader of listing_packages that RAISEs on an unknown key, and
--- the pull request's backend fell at 20261104153958's proof: a STABLE function with constant
--- arguments beside a column in a WHERE is pre-evaluated by the planner for its selectivity
--- estimate under the DO statement's snapshot, taken before the scratch level existed, so it raised
--- (the CONTEXT is quoted in docs/governance/reports/p2-level-reach.stop-4.md). Now:
+-- P-2 (a) — the feed's rank becomes data (ruling 4, DEC-341; INC-1051, INC-1052, INC-1055). The
+-- first fold made feed_tier_rank(text) a STABLE reader of listing_packages that RAISEs on an unknown
+-- key, and the pull request's backend fell at 20261104153958's proof: a STABLE function with constant
+-- arguments beside a column in a WHERE is pre-evaluated by the planner under the DO statement's
+-- snapshot, taken before the scratch level existed (docs/governance/reports/p2-level-reach.stop-4.md). Now:
 --   A. public.level_ranks (key → listing_packages ON UPDATE/DELETE CASCADE, feed_rank): the level's
 --      0-based position by (sort, key) among every row of kind 'level', enabled or not; internal,
 --      as feed_reindex_queue (no browser grant; service_role).
 --   B. ONE WRITER — level_ranks_rebuild(), AFTER INSERT OR UPDATE OF sort, key, kind OR DELETE on
---      listing_packages FOR EACH STATEMENT: the old ranks captured, DELETE + INSERT the new, every
---      live ad (active or sold) whose level's rank moved queued through the new
---      feed_reindex_enqueue_listings(uuid[]) (the siblings' shape). A rebuild that moves nothing
---      queues nothing. This migration seeds the table once by a plain INSERT (regular 0, featured 1,
---      premium 2 — the numbers feed_tier_rank gave: no live feed row changes, nothing is queued).
+--      listing_packages FOR EACH STATEMENT: a differential rewrite (update, insert, delete, each with
+--      a WHERE — G39), every live ad (active or sold) whose level's rank moved queued through the
+--      new feed_reindex_enqueue_listings(uuid[]) (the siblings' shape). A rebuild that moves nothing
+--      queues nothing. The table is seeded once by a plain INSERT (regular 0, featured 1, premium 2:
+--      the numbers feed_tier_rank gave, so no live feed row changes, nothing is queued).
 --   C. feed_index_refresh and feed_index_check redeclared WHOLE from 20261019223105 (:45–84,
 --      :85–140), the rank read by a join on level_ranks: refresh reads it into a variable with the
 --      status and RAISEs 'feed_index_refresh: no rank for level %' for a live ad with none; check
---      (LANGUAGE sql STABLE, it cannot raise) compares the joined rank in its EXCEPT pairs — a
---      missing row is NULL, never equal to the stored rank, and the ad is counted under
---      listings_with_wrong_rows: the detector's signal.
+--      (LANGUAGE sql STABLE, it cannot raise) compares the joined rank in its EXCEPT pairs; a
+--      missing row is NULL, never equal to the stored rank: counted under listings_with_wrong_rows.
 --   D. public.feed_tier_rank(text) is DROPPED (its grants and comment with it).
 -- The laws (docs/governance/migrations.md 11, 12; CF-PROOF-1, CF-PROOF-2): a proof reads a STABLE
 -- reader INTO a variable and compares the variable; it asserts catalog facts from catalog columns.
@@ -31,7 +29,7 @@ CREATE TABLE public.level_ranks (
   CONSTRAINT level_ranks_pkey PRIMARY KEY (key)
 );
 COMMENT ON TABLE public.level_ranks IS
-  'The feed rank of every level row of listing_packages: its 0-based position by (sort, key) among every row of kind level, enabled or not (P-2 (a), DEC-341). Written only by level_ranks_rebuild (the statement trigger on listing_packages), read by feed_index_refresh and feed_index_check.';
+  'The feed rank of every level of listing_packages: its 0-based position by (sort, key), enabled or not (P-2 (a), DEC-341). Written only by level_ranks_rebuild; read by feed_index_refresh and feed_index_check.';
 REVOKE ALL ON TABLE public.level_ranks FROM PUBLIC, anon, authenticated;
 GRANT ALL ON TABLE public.level_ranks TO service_role;
 ALTER TABLE public.level_ranks ENABLE ROW LEVEL SECURITY;
@@ -72,22 +70,28 @@ SECURITY DEFINER
 SET search_path TO 'public'
 AS $fn$
 DECLARE
-  v_old   jsonb;
   v_moved text[];
 BEGIN
-  -- The old ranks first; then the derived table is written again (one row per level); a key whose
-  -- rank is not what it was moves its live ads onto the queue.
-  SELECT jsonb_object_agg(o.key, o.feed_rank) INTO v_old FROM public.level_ranks o;
-  DELETE FROM public.level_ranks;
+  -- Differential, every statement with a WHERE (G39, INC-1055: the app's connection runs
+  -- pg-safeupdate): ranks that changed are updated, new levels inserted, a key no longer a level
+  -- deleted (a deleted level is gone by the cascade); updated and inserted keys queue their live ads.
   WITH ranked AS (
-    INSERT INTO public.level_ranks (key, feed_rank)
-    SELECT k.key, (row_number() OVER (ORDER BY k.sort, k.key) - 1)::smallint
+    SELECT k.key, (row_number() OVER (ORDER BY k.sort, k.key) - 1)::smallint AS pos
       FROM public.listing_packages k
-     WHERE k.kind = 'level'
-    RETURNING key, feed_rank)
-  SELECT array_agg(n.key) INTO v_moved
-    FROM ranked n
-   WHERE (v_old ->> n.key)::smallint IS DISTINCT FROM n.feed_rank;
+     WHERE k.kind = 'level'),
+  changed AS (
+    UPDATE public.level_ranks r SET feed_rank = n.pos FROM ranked n
+     WHERE n.key = r.key AND r.feed_rank <> n.pos
+    RETURNING r.key),
+  added AS (
+    INSERT INTO public.level_ranks (key, feed_rank)
+    SELECT n.key, n.pos FROM ranked n
+     WHERE NOT EXISTS (SELECT 1 FROM public.level_ranks r WHERE r.key = n.key)
+    RETURNING key)
+  SELECT array_agg(m.key) INTO v_moved
+    FROM (SELECT key FROM changed UNION SELECT key FROM added) m;
+  DELETE FROM public.level_ranks r
+   WHERE NOT EXISTS (SELECT 1 FROM public.listing_packages k WHERE k.key = r.key AND k.kind = 'level');
   IF v_moved IS NOT NULL THEN
     PERFORM public.feed_reindex_enqueue_listings(ARRAY(
       SELECT l.id FROM public.listings l
@@ -96,7 +100,7 @@ BEGIN
   RETURN NULL;
 END $fn$;
 COMMENT ON FUNCTION public.level_ranks_rebuild() IS
-  'The one writer of level_ranks: after any insert, delete or change of sort, key or kind on listing_packages it rewrites every rank and queues the live ads of every level whose rank moved (P-2 (a), DEC-341).';
+  'The one writer of level_ranks: after any insert, delete or change of sort, key or kind on listing_packages it rewrites the ranks that moved and queues their levels'' live ads (P-2 (a), DEC-341).';
 REVOKE ALL ON FUNCTION public.level_ranks_rebuild() FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.level_ranks_rebuild() TO service_role;
 
@@ -158,9 +162,7 @@ END $fn$;
 REVOKE ALL ON FUNCTION public.feed_index_refresh(uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.feed_index_refresh(uuid) TO service_role;
 
--- P-2 (a), DEC-341 — the expected rank joins level_ranks. This is LANGUAGE sql STABLE and cannot
--- raise: a level with no rank row gives NULL, which never equals the stored rank, so the ad is
--- counted under listings_with_wrong_rows — the detector's signal for a missing rank.
+-- P-2 (a), DEC-341 — the expected rank joins level_ranks (header C: a missing row is a wrong row).
 CREATE OR REPLACE FUNCTION public.feed_index_check(p_listing_id uuid DEFAULT NULL)
 RETURNS jsonb
 LANGUAGE sql
@@ -223,7 +225,7 @@ GRANT EXECUTE ON FUNCTION public.feed_index_check(uuid) TO service_role;
 DROP FUNCTION public.feed_tier_rank(text);
 
 COMMENT ON COLUMN public.feed_index.tier_rank IS
-  'The listing''s level as a rank: the level row''s feed_rank in level_ranks (its 0-based position among every level by sort, then key; today regular 0, featured 1, premium 2); a sold ad -1, read after every live one (bundle 16 turn 3c). A higher rank is read first; newest first inside a rank.';
+  'The listing''s level as a rank: its feed_rank in level_ranks (0-based by sort, then key; today regular 0, featured 1, premium 2); a sold ad -1, read after every live one (bundle 16 turn 3c). A higher rank is read first; newest first inside a rank.';
 
 -- PROOF: (a) the table (RLS, no browser privilege, service_role, the one policy, the cascading key),
 -- the trigger (pg_trigger's columns: after; statement; insert, delete, update of exactly sort, key,
