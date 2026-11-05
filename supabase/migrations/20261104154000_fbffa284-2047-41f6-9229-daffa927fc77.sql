@@ -138,7 +138,11 @@ DECLARE
   v_snap    text;
   v_snap2   text;
   v_fx      boolean := (SELECT extends_lifetime FROM public.listing_packages WHERE key = 'featured' AND kind = 'level');
+  v_base    text;
+  v_rank    smallint;
 BEGIN
+  -- DEC-341: a STABLE reader that raises is read into a variable, never named beside a column in a WHERE.
+  v_base := public.baseline_level_key();
   -- (a)
   IF to_regprocedure('public.admin_set_listing_tier(uuid,text,text,text)') IS NOT NULL THEN
     RAISE EXCEPTION 'P-2 M-1b part 4 proof (a): the old staff signature is still there';
@@ -254,6 +258,7 @@ BEGIN
     -- featured for 30 days.
     v_answer := public.admin_set_listing_tier(v_live, 'featured', 'promotion', NULL, 30);
     SELECT * INTO v_row FROM public.listings WHERE id = v_live;
+    SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = 'featured';
     IF (v_answer->>'ok')::boolean IS NOT TRUE OR v_answer->>'from' <> public.baseline_level_key() OR v_answer->>'to' <> 'featured'
        OR v_answer->>'source' <> 'staff' OR (v_answer->>'until')::timestamptz IS DISTINCT FROM v_row.tier_until
        OR v_row.tier <> 'featured' OR v_row.tier_source <> 'staff'
@@ -263,15 +268,15 @@ BEGIN
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_live) <> 1
        OR NOT EXISTS (SELECT 1 FROM public.listing_revisions
                        WHERE listing_id = v_live AND kind = 'edit' AND actor = v_admin AND seller_id = v_seller
-                         AND before->>'tier' = public.baseline_level_key() AND before->>'tier_until' IS NULL AND before->>'tier_source' IS NULL
+                         AND before->>'tier' = v_base AND before->>'tier_until' IS NULL AND before->>'tier_source' IS NULL
                          AND after->>'tier' = 'featured' AND after->>'tier_source' = 'staff'
                          AND (after->>'tier_until')::timestamptz = v_row.tier_until)
        OR (SELECT count(*) FROM public.audit_log WHERE entity_id = v_live::text) <> 1
        OR NOT EXISTS (SELECT 1 FROM public.audit_log
                        WHERE entity_id = v_live::text AND actor_id = v_admin AND action = 'listing.admin_tier' AND entity_type = 'listing'
-                         AND meta->>'from' = public.baseline_level_key() AND meta->>'to' = 'featured' AND meta->>'reason' = 'promotion'
+                         AND meta->>'from' = v_base AND meta->>'to' = 'featured' AND meta->>'reason' = 'promotion'
                          AND meta->>'source' = 'staff' AND (meta->>'until')::timestamptz = v_row.tier_until AND NOT (meta ? 'note'))
-       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_live AND tier_rank = public.feed_tier_rank('featured')) THEN
+       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_live AND tier_rank = v_rank) THEN
       RAISE EXCEPTION 'P-2 M-1b part 4 proof (c): featured for 30 days differs (% / until % expires %)', v_answer, v_row.tier_until, v_row.expires_at;
     END IF;
 
@@ -311,28 +316,30 @@ BEGIN
     -- back to the baseline: until and source cleared, the clock as it was pushed.
     v_answer := public.admin_set_listing_tier(v_live, public.baseline_level_key(), 'promotion_ended');
     SELECT * INTO v_row FROM public.listings WHERE id = v_live;
+    SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = v_base;
     IF v_answer->>'to' <> public.baseline_level_key() OR v_answer->'until' IS DISTINCT FROM 'null'::jsonb
        OR v_row.tier <> public.baseline_level_key() OR v_row.tier_until IS NOT NULL OR v_row.tier_source IS NOT NULL
        OR NOT EXISTS (SELECT 1 FROM public.listing_revisions
                        WHERE listing_id = v_live AND kind = 'edit' AND before->>'tier' = 'featured' AND before->>'tier_source' = 'staff'
-                         AND after->>'tier' = public.baseline_level_key() AND after->>'tier_until' IS NULL AND after->>'tier_source' IS NULL)
+                         AND after->>'tier' = v_base AND after->>'tier_until' IS NULL AND after->>'tier_source' IS NULL)
        OR NOT EXISTS (SELECT 1 FROM public.audit_log
-                       WHERE entity_id = v_live::text AND meta->>'to' = public.baseline_level_key() AND meta->>'reason' = 'promotion_ended'
+                       WHERE entity_id = v_live::text AND meta->>'to' = v_base AND meta->>'reason' = 'promotion_ended'
                          AND NOT (meta ? 'until') AND NOT (meta ? 'source'))
-       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_live AND tier_rank = public.feed_tier_rank(public.baseline_level_key())) THEN
+       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_live AND tier_rank = v_rank) THEN
       RAISE EXCEPTION 'P-2 M-1b part 4 proof (c): the baseline did not clear until and source (% / % %)', v_answer, v_row.tier_until, v_row.tier_source;
     END IF;
 
     -- premium with no days: open-ended.
     v_answer := public.admin_set_listing_tier(v_live, 'premium', 'promotion');
     SELECT * INTO v_row FROM public.listings WHERE id = v_live;
+    SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = 'premium';
     IF v_answer->>'to' <> 'premium' OR v_answer->>'source' <> 'staff' OR v_answer->'until' IS DISTINCT FROM 'null'::jsonb
        OR v_row.tier <> 'premium' OR v_row.tier_until IS NOT NULL OR v_row.tier_source <> 'staff'
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_live) <> 3
        OR (SELECT count(*) FROM public.audit_log WHERE entity_id = v_live::text) <> 3
        OR NOT EXISTS (SELECT 1 FROM public.audit_log
                        WHERE entity_id = v_live::text AND meta->>'to' = 'premium' AND meta->>'source' = 'staff' AND NOT (meta ? 'until'))
-       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_live AND tier_rank = public.feed_tier_rank('premium')) THEN
+       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_live AND tier_rank = v_rank) THEN
       RAISE EXCEPTION 'P-2 M-1b part 4 proof (c): the open-ended staff mark differs (% / until % source %)', v_answer, v_row.tier_until, v_row.tier_source;
     END IF;
 

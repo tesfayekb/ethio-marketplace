@@ -451,7 +451,13 @@ test.describe("FEED INDEX", () => {
       process.env["E2E_SUPABASE_PUBLISHABLE_KEY"]!,
       { auth: { persistSession: false } },
     );
-    for (const table of ["feed_reindex_queue", "feed_reindex_runs", "feed_index_check_runs"]) {
+    // P-2 (a), DEC-341: the levels' feed ranks are rows of level_ranks, internal as the queue is.
+    for (const table of [
+      "feed_reindex_queue",
+      "feed_reindex_runs",
+      "feed_index_check_runs",
+      "level_ranks",
+    ]) {
       const read = await anon.from(table).select("*").limit(1);
       expect(read.error, table).not.toBeNull();
     }
@@ -459,8 +465,6 @@ test.describe("FEED INDEX", () => {
     expect(swept.error).not.toBeNull();
     const checked = await anon.rpc("feed_index_check_sweep");
     expect(checked.error).not.toBeNull();
-    const ranked = await anon.rpc("feed_tier_rank", { p_tier: "regular" });
-    expect(ranked.error).not.toBeNull();
   });
 
   test("FE-15 a sold ad keeps its rows for 30 days at rank -1; a relist or a deletion takes them away; the check counts it", async () => {

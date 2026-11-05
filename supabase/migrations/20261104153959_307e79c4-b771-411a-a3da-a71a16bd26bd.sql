@@ -176,7 +176,11 @@ DECLARE
   v_msg     text;
   v_detail  text;
   v_fn      regprocedure;
+  v_base    text;
+  v_rank    smallint;
 BEGIN
+  -- DEC-341: a STABLE reader that raises is read into a variable, never named beside a column in a WHERE.
+  v_base := public.baseline_level_key();
   -- (a)
   FOREACH v_fn IN ARRAY ARRAY[v_rd, v_rs] LOOP
     IF (SELECT NOT prosecdef OR provolatile <> 'v' OR proconfig::text <> '{search_path=public}' FROM pg_proc WHERE oid = v_fn)
@@ -349,12 +353,13 @@ BEGIN
     PERFORM public.transition_listing(v_a, 'sold');
     v_answer := public.resume_listing(v_b);
     SELECT * INTO v_row FROM public.listings WHERE id = v_b;
+    SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = v_base;
     IF v_answer->>'status' <> 'active' OR v_row.status <> 'active' OR v_row.clock_kept OR v_row.kept_remaining IS NOT NULL
        OR v_row.resume_status IS NOT NULL
        OR v_row.expires_at IS NULL OR v_row.expires_at > now() + v_was.kept_remaining OR v_row.expires_at < now() + v_was.kept_remaining - interval '1 minute'
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_b AND kind = 'state'
              AND before = '{"status": "paused"}'::jsonb AND after = '{"status": "active"}'::jsonb) <> 1
-       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_b AND tier_rank = public.feed_tier_rank(public.baseline_level_key())) THEN
+       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_b AND tier_rank = v_rank) THEN
       RAISE EXCEPTION 'P-2 M-1b part 3 proof (d): the resume did not give the time back (status % expires % kept %)',
         v_row.status, v_row.expires_at, v_was.kept_remaining;
     END IF;

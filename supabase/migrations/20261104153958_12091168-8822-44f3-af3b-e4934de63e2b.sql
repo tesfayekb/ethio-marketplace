@@ -154,7 +154,11 @@ DECLARE
   v_msg     text;
   v_detail  text;
   v_n       integer;
+  v_base    text;
+  v_rank    smallint;
 BEGIN
+  -- DEC-341: a STABLE reader that raises is read into a variable, never named beside a column in a WHERE.
+  v_base := public.baseline_level_key();
   -- (a)
   IF (SELECT NOT prosecdef OR provolatile <> 'v' OR proconfig::text <> '{search_path=public}' FROM pg_proc WHERE oid = v_door)
      OR EXISTS (SELECT 1 FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid = v_door)) a WHERE a.grantee = 0)
@@ -222,6 +226,7 @@ BEGIN
     PERFORM set_config('request.jwt.claims', json_build_object('sub', v_seller::text, 'role', 'authenticated')::text, true);
     v_answer := public.set_listing_level(v_a, v_l1);
     SELECT * INTO v_row FROM public.listings WHERE id = v_a;
+    SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = v_l1;
     IF (v_answer->>'ok')::boolean IS NOT TRUE OR v_answer->>'level' <> v_l1 OR v_answer->>'source' <> 'launch'
        OR v_answer->>'status' <> 'active'
        OR v_row.tier <> v_l1 OR v_row.tier_source <> 'launch'
@@ -231,19 +236,19 @@ BEGIN
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_a) <> 1
        OR NOT EXISTS (SELECT 1 FROM public.listing_revisions
                        WHERE listing_id = v_a AND kind = 'edit' AND actor = v_seller AND seller_id = v_seller
-                         AND before->>'tier' = public.baseline_level_key() AND before->>'tier_until' IS NULL
+                         AND before->>'tier' = v_base AND before->>'tier_until' IS NULL
                          AND after->>'tier' = v_l1 AND after->>'tier_source' = 'launch'
                          AND (after->>'tier_until')::timestamptz = v_row.tier_until
                          AND (after->>'expires_at')::timestamptz = v_row.expires_at)
        OR (SELECT count(*) FROM public.audit_log WHERE entity_id = v_a::text) <> 1
        OR NOT EXISTS (SELECT 1 FROM public.audit_log
                        WHERE entity_id = v_a::text AND actor_id = v_seller AND action = 'listing.level_set' AND entity_type = 'listing'
-                         AND meta->>'from' = public.baseline_level_key() AND meta->>'to' = v_l1 AND meta->>'source' = 'launch'
+                         AND meta->>'from' = v_base AND meta->>'to' = v_l1 AND meta->>'source' = 'launch'
                          AND (meta->>'until')::timestamptz = v_row.tier_until
                          AND (meta->>'price_id')::uuid = v_p1 AND (meta->>'amount')::numeric = 0
                          AND meta->>'currency' = v_cur AND (meta->>'credit_cost')::integer = 0)
        OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_a)
-       OR EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_a AND tier_rank <> public.feed_tier_rank(v_l1)) THEN
+       OR EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_a AND tier_rank <> v_rank) THEN
       RAISE EXCEPTION 'P-2 M-1b part 2 proof (b): the set, its revision, its audit row or the feed differ (% / tier % until % expires %)',
         v_answer, v_row.tier, v_row.tier_until, v_row.expires_at;
     END IF;
@@ -316,6 +321,7 @@ BEGIN
     -- (d) the paused b takes l1 and resumes: active, its kept 10 days pushed to the level's 20, the feed row back.
     v_answer := public.set_listing_level(v_b, v_l1);
     SELECT * INTO v_row FROM public.listings WHERE id = v_b;
+    SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = v_l1;
     IF v_answer->>'status' <> 'active' OR v_row.status <> 'active' OR v_row.tier <> v_l1 OR v_row.clock_kept
        OR v_row.kept_remaining IS NOT NULL OR v_row.resume_status IS NOT NULL
        OR v_row.expires_at IS NULL OR v_row.expires_at < v_row.tier_until - interval '1 minute' OR v_row.expires_at > v_row.tier_until + interval '1 minute'
@@ -323,7 +329,7 @@ BEGIN
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_b AND kind = 'state'
              AND before = '{"status": "paused"}'::jsonb AND after = '{"status": "active"}'::jsonb) <> 1
        OR (SELECT used_count FROM public.package_prices WHERE id = v_p1) <> 2
-       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_b AND tier_rank = public.feed_tier_rank(v_l1)) THEN
+       OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_b AND tier_rank = v_rank) THEN
       RAISE EXCEPTION 'P-2 M-1b part 2 proof (d): the paused ad did not resume with its clock (status % expires % until %)',
         v_row.status, v_row.expires_at, v_row.tier_until;
     END IF;
