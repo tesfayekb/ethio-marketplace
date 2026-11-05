@@ -10,6 +10,7 @@
 -- and their ids answered in the seller's saved order, for the caller's revision row. Nothing else of the ad is touched; the caller
 -- (the sweep, part 3) writes the revision, the audit row and the feed queue. Law 11: seller_plan() is
 -- read into a variable. Proofs on scratch rows, rolled back by the sentinel.
+-- Ruling 15 (INC-1067): the proof holds for any caps — proof text only; no schema statement, mark or grant changed.
 
 DO $pre$
 BEGIN
@@ -93,15 +94,17 @@ DECLARE
   v_code    char(2) := 'XZ';
   v_anc     uuid;
   v_regA    uuid;
-  v_regB    uuid;
-  v_c1      uuid;
-  v_c2      uuid;
-  v_c3      uuid;
+  v_city    uuid[] := ARRAY[]::uuid[];
+  v_id      uuid;
+  v_prim    uuid;
   v_cat     uuid;
   v_a       uuid;
   v_b       uuid;
   v_plan    public.coverage_plans%ROWTYPE;
   v_planname text;
+  v_cmax    integer;
+  v_rmax    integer;
+  v_lmax    integer;
   v_removed uuid[];
   v_snap    text;
   v_snap2   text;
@@ -126,53 +129,62 @@ BEGIN
     UPDATE public.locations SET is_active = true WHERE id = v_anc AND name_en = 'e2e-mig-p2-m1c2';
     INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id)
     VALUES ('region', v_code, 'E2E P2 M1c2 Region A', v_tag || '-ra', true, v_anc) RETURNING id INTO v_regA;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id)
-    VALUES ('region', v_code, 'E2E P2 M1c2 Region B', v_tag || '-rb', true, v_anc) RETURNING id INTO v_regB;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
-    VALUES ('city', v_code, 'E2E P2 M1c2 City 1', v_tag || '-c1', true, v_regA, 9.03, 38.74) RETURNING id INTO v_c1;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
-    VALUES ('city', v_code, 'E2E P2 M1c2 City 2', v_tag || '-c2', true, v_regA, 9.05, 38.76) RETURNING id INTO v_c2;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
-    VALUES ('city', v_code, 'E2E P2 M1c2 City 3', v_tag || '-c3', true, v_regB, 9.07, 38.78) RETURNING id INTO v_c3;
     INSERT INTO auth.users (id, email, raw_user_meta_data, aud, role, created_at, updated_at)
     VALUES (v_seller, v_tag || '-seller@example.invalid', '{}'::jsonb, 'authenticated', 'authenticated', now(), now());
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E P2 M1c2 Leaf', v_tag, true, true, true, 9999) RETURNING id INTO v_cat;
-    -- The caps the proof expects are the judge's own for this seller: 1 city, 1 region, 1 country.
+    -- The caps are the judge's own for this seller, whatever the database holds (law 11: read into
+    -- variables first); the scenario follows from C = max_cities and holds for every cap of 1 or more.
     v_planname := public.seller_plan(v_seller);
     SELECT * INTO v_plan FROM public.coverage_plans cp WHERE cp.plan = v_planname;
-    IF NOT FOUND OR v_plan.max_cities <> 1 OR v_plan.max_regions <> 1 OR v_plan.max_countries <> 1 THEN
-      RAISE EXCEPTION 'P-2 M-1c part 2 proof: the seller''s plan % is not the 1/1/1 free plan this proof expects', v_planname;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'P-2 M-1c part 2 proof: no coverage plan % for the seller', v_planname;
     END IF;
-    -- a: the primary c1 saved LAST (position 3), c2 and c3 before it; b: one place, within the caps.
+    v_cmax := v_plan.max_cities;
+    v_rmax := v_plan.max_regions;
+    v_lmax := v_plan.max_countries;
+    IF coalesce(v_cmax, 0) < 1 OR coalesce(v_rmax, 0) < 1 OR coalesce(v_lmax, 0) < 1 THEN
+      RAISE EXCEPTION 'P-2 M-1c part 2 proof: the plan % has a cap below 1 (% / % / %)', v_planname, v_cmax, v_rmax, v_lmax;
+    END IF;
+    -- C + 1 scratch cities in the one scratch region (one region and one country never bind).
+    FOR i IN 1..v_cmax + 1 LOOP
+      INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
+      VALUES ('city', v_code, 'E2E P2 M1c2 City ' || i, v_tag || '-c' || i, true, v_regA, 9.0 + i * 0.001, 38.7 + i * 0.001)
+      RETURNING id INTO v_id;
+      v_city := v_city || v_id;
+    END LOOP;
+    v_prim := v_city[v_cmax + 1];
+    -- a: the primary saved LAST (position C + 1), the C others before it in the city order (positions 1 … C);
+    -- b: one place, within the caps.
     INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code,
                                  status, published_at, published_first_at, expires_at)
-    VALUES (v_seller, v_cat, v_c1, 'E2E P2 M1c2 a', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days')
+    VALUES (v_seller, v_cat, v_prim, 'E2E P2 M1c2 a', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days')
     RETURNING id INTO v_a;
-    INSERT INTO public.listing_locations (listing_id, location_id, position) VALUES
-      (v_a, v_c2, 1), (v_a, v_c3, 2), (v_a, v_c1, 3);
+    INSERT INTO public.listing_locations (listing_id, location_id, position)
+    SELECT v_a, o.id, o.n FROM unnest(v_city) WITH ORDINALITY AS o(id, n);
     INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code,
                                  status, published_at, published_first_at, expires_at)
-    VALUES (v_seller, v_cat, v_c2, 'E2E P2 M1c2 b', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days')
+    VALUES (v_seller, v_cat, v_city[1], 'E2E P2 M1c2 b', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days')
     RETURNING id INTO v_b;
-    INSERT INTO public.listing_locations (listing_id, location_id, position) VALUES (v_b, v_c2, 1);
+    INSERT INTO public.listing_locations (listing_id, location_id, position) VALUES (v_b, v_city[1], 1);
     SELECT string_agg(id::text || ':' || status || ':' || location_id::text || ':' || updated_at::text, ',' ORDER BY id)
       INTO v_snap FROM public.listings WHERE id IN (v_a, v_b);
 
-    -- (b)
+    -- (b) the primary kept; the first C − 1 others kept in saved order; exactly the last other removed and answered.
     v_removed := public.listing_places_trim(v_a);
-    IF v_removed IS DISTINCT FROM ARRAY[v_c2, v_c3]
-       OR (SELECT array_agg(ll.location_id ORDER BY ll.position) FROM public.listing_locations ll WHERE ll.listing_id = v_a) IS DISTINCT FROM ARRAY[v_c1] THEN
-      RAISE EXCEPTION 'P-2 M-1c part 2 proof (b): the trim did not keep the primary alone (removed %)', v_removed;
+    IF v_removed IS DISTINCT FROM ARRAY[v_city[v_cmax]]
+       OR (SELECT array_agg(ll.location_id ORDER BY ll.position) FROM public.listing_locations ll WHERE ll.listing_id = v_a)
+          IS DISTINCT FROM (v_city[1:v_cmax - 1] || v_prim) THEN
+      RAISE EXCEPTION 'P-2 M-1c part 2 proof (b): the trim did not keep the primary and the first % others (removed %)', v_cmax - 1, v_removed;
     END IF;
     v_removed := public.listing_places_trim(v_a);
     IF v_removed IS DISTINCT FROM ARRAY[]::uuid[]
-       OR (SELECT count(*) FROM public.listing_locations ll WHERE ll.listing_id = v_a) <> 1 THEN
+       OR (SELECT count(*) FROM public.listing_locations ll WHERE ll.listing_id = v_a) <> v_cmax THEN
       RAISE EXCEPTION 'P-2 M-1c part 2 proof (b): a second trim moved something (%)', v_removed;
     END IF;
     v_removed := public.listing_places_trim(v_b);
     IF v_removed IS DISTINCT FROM ARRAY[]::uuid[]
-       OR (SELECT array_agg(ll.location_id) FROM public.listing_locations ll WHERE ll.listing_id = v_b) IS DISTINCT FROM ARRAY[v_c2] THEN
+       OR (SELECT array_agg(ll.location_id) FROM public.listing_locations ll WHERE ll.listing_id = v_b) IS DISTINCT FROM ARRAY[v_city[1]] THEN
       RAISE EXCEPTION 'P-2 M-1c part 2 proof (b): an ad within the caps was trimmed (%)', v_removed;
     END IF;
     SELECT string_agg(id::text || ':' || status || ':' || location_id::text || ':' || updated_at::text, ',' ORDER BY id)
