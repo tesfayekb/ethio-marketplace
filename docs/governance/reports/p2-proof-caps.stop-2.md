@@ -1,7 +1,7 @@
 STOP — p2-proof-caps amendment 1 E: waiting until cursor/db-proof-2 is merged into dev; the operator sends "continue".
-DONE: brief (6a27fe546); item 1 (7e1edad2d); amendment 1 A (the draft pull request: `gh pr create --draft` failed — "GraphQL: Something went wrong while executing your query", the fourth GitHub API failure today; the operator opens it from the web), B (5d1ab9c4d — part 2's proof comment describes the any-caps scenario; file 11's comment above its proof says "places trimmed" only and is not stale, so unchanged), C (the census below), E (the amendment saved)
+DONE: brief (6a27fe546); item 1 (7e1edad2d); amendment 1 A (the draft pull request: `gh pr create --draft` failed — "GraphQL: Something went wrong while executing your query", the fourth GitHub API failure today; the retry after this stop's first push opened it: draft PR #25), B (5d1ab9c4d — part 2's proof comment describes the any-caps scenario; file 11's comment above its proof says "places trimmed" only and is not stale, so unchanged), C (the census below), E (the amendment saved)
 LEFT: F (cursor/p2-proof-caps-2 from dev, the copied files, the two `bun run db:proof --fresh` runs), item 5 (checks, report with its Records section, PR ready)
-CI: no run on this branch yet (no pull request); the last completed run read is 592cdf4ac (PR #19), SUCCESS, run 42053107981
+CI: draft PR #25 opened at c3dd434aa, its run not read (amendment A: do not wait); the last completed run read is 592cdf4ac (PR #19), SUCCESS, run 42053107981
 FILES:
 docs/governance/briefs/p2-proof-caps-amendment-1.md
 docs/governance/briefs/p2-proof-caps.md
