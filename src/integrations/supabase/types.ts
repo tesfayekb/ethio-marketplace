@@ -1949,17 +1949,29 @@ export type Database = {
         Row: {
           expired: number
           id: number
+          level_ended: number
+          level_paused: number
           ran_at: string
+          reach_ended: number
+          reminded: number
         }
         Insert: {
           expired: number
           id?: number
+          level_ended?: number
+          level_paused?: number
           ran_at?: string
+          reach_ended?: number
+          reminded?: number
         }
         Update: {
           expired?: number
           id?: number
+          level_ended?: number
+          level_paused?: number
           ran_at?: string
+          reach_ended?: number
+          reminded?: number
         }
         Relationships: []
       }
@@ -2468,6 +2480,7 @@ export type Database = {
           status: string
           street_address: string | null
           tier: string
+          tier_reminded_for: string | null
           tier_source: string | null
           tier_until: string | null
           title: string
@@ -2528,6 +2541,7 @@ export type Database = {
           status?: string
           street_address?: string | null
           tier?: string
+          tier_reminded_for?: string | null
           tier_source?: string | null
           tier_until?: string | null
           title: string
@@ -2588,6 +2602,7 @@ export type Database = {
           status?: string
           street_address?: string | null
           tier?: string
+          tier_reminded_for?: string | null
           tier_source?: string | null
           tier_until?: string | null
           title?: string
@@ -3695,7 +3710,7 @@ export type Database = {
           listing_id: string
           note: string | null
           read_at: string | null
-          reason: string
+          reason: string | null
           seller_id: string
         }
         Insert: {
@@ -3707,7 +3722,7 @@ export type Database = {
           listing_id: string
           note?: string | null
           read_at?: string | null
-          reason: string
+          reason?: string | null
           seller_id: string
         }
         Update: {
@@ -3719,7 +3734,7 @@ export type Database = {
           listing_id?: string
           note?: string | null
           read_at?: string | null
-          reason?: string
+          reason?: string | null
           seller_id?: string
         }
         Relationships: [
@@ -5594,6 +5609,16 @@ export type Database = {
       }
       deal_keys: { Args: { p_category_id: string }; Returns: string[] }
       delete_draft: { Args: { p_listing_id: string }; Returns: Json }
+      designation_sweep_core: {
+        Args: { p_only?: string[] }
+        Returns: {
+          n_expired: number
+          n_level_ended: number
+          n_level_paused: number
+          n_reach_ended: number
+          n_reminded: number
+        }[]
+      }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       edit_listing: {
         Args: {
@@ -5939,11 +5964,13 @@ export type Database = {
       }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
+      listing_group_of: { Args: { p_status: string }; Returns: string }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
       listing_photo_review_label: {
         Args: { p_review: Json; p_unscreened: boolean }
         Returns: string
       }
+      listing_places_trim: { Args: { p_listing_id: string }; Returns: string[] }
       listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
       listing_saved: { Args: { p_public_id: string }; Returns: boolean }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
@@ -6252,10 +6279,19 @@ export type Database = {
         Args: { p_profile: string }
         Returns: string
       }
-      seller_regular_live: {
-        Args: { p_country_code: string; p_seller: string }
-        Returns: number
-      }
+      seller_regular_live:
+        | {
+            Args: { p_country_code: string; p_seller: string }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_country_code: string
+              p_exclude: string
+              p_seller: string
+            }
+            Returns: number
+          }
       set_cover_photo: {
         Args: { p_listing_id: string; p_photo_id: string }
         Returns: Json
