@@ -56,7 +56,14 @@ export function functionCodeOf(sql: string): string {
   return sqlCodeOf(sql).replace(DO_BLOCK, blank);
 }
 
-export type Declaration = { fn: string; body: string; line: number; offset: number };
+export type Declaration = {
+  fn: string;
+  /** From `CREATE` to the body's opener: the arguments, RETURNS, LANGUAGE, volatility, SECURITY, SET. */
+  header: string;
+  body: string;
+  line: number;
+  offset: number;
+};
 
 /** Every function declaration of a file (comments and DO blocks removed), in order, with its body. */
 export function declarationsOf(sql: string): Declaration[] {
@@ -78,6 +85,7 @@ export function declarationsOf(sql: string): Declaration[] {
     }
     // The body: the first `AS $tag$` after the arguments, to its closing tag.
     let body = "";
+    let header = code.slice(start, at + 1);
     for (let probe = at + 1; probe < code.length; probe += 1) {
       BODY_OPENER.lastIndex = probe;
       const opener = BODY_OPENER.exec(code);
@@ -85,13 +93,14 @@ export function declarationsOf(sql: string): Declaration[] {
         const tag = opener[1] ?? "$$";
         const from = probe + opener[0].length;
         const to = code.indexOf(tag, from);
+        header = code.slice(start, probe);
         body = code.slice(from, to === -1 ? code.length : to);
         break;
       }
       if (code[probe] === ";") break;
     }
     const line = code.slice(0, start).split("\n").length;
-    found.push({ fn, body, line, offset: start });
+    found.push({ fn, header, body, line, offset: start });
   }
   return found;
 }
