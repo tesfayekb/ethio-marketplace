@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41996927177
-- Commit: `bc0ce8ac156a9d0f400b5d88345ac9815c115e00`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42000937962
+- Commit: `98434757b6e35b9ffac8cd749340404105dc5d50`
 - Attempt: 1
-- Written (UTC): 2026-11-05T09:00:01.334Z
+- Written (UTC): 2026-11-05T09:30:29.742Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -67,7 +67,80 @@ STAGING BEHIND: apply 20261105080110_25cc301c-987b-4e65-a3d8-170d15b2a1bc.sql to
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/eaa1ae1f-bd28-47f6-bc3d-0744949a1c99' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/e32701d2-e395-459f-bf5c-8543677f4aa3' before making global git config changes
+Adding repository directory to the temporary git global config as a safe directory
+[command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
+[command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+http.https://github.com/.extraheader
+[command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+[command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+Cleaning up orphan processes
+
+```
+
+## i18n used-on map is fresh (U4i ②) — failure
+
+### Evidence lines
+
+```text
+##[error]Error: Unexpected HTTP response: 504
+```
+
+### Tail (last 60 lines)
+
+```text
+##[group]Fetching the repository
+[command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129:refs/remotes/pull/19/merge
+From https://github.com/tesfayekb/ethio-marketplace
+ * [new ref]         51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129 -> pull/19/merge
+##[endgroup]
+##[group]Determining the checkout info
+##[endgroup]
+[command]/usr/bin/git sparse-checkout disable
+[command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+##[group]Checking out the ref
+[command]/usr/bin/git checkout --progress --force refs/remotes/pull/19/merge
+Note: switching to 'refs/remotes/pull/19/merge'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+HEAD is now at 51fe8c2 Merge 98434757b6e35b9ffac8cd749340404105dc5d50 into c89271ca29a83e76e5f18dfccfdd0284289ad8a9
+##[endgroup]
+[command]/usr/bin/git log -1 --format=%H
+51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129
+##[group]Run oven-sh/setup-bun@v2
+with:
+  bun-version: latest
+  no-cache: false
+  token: ***
+##[endgroup]
+Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip
+Unexpected HTTP response: 504
+Waiting 15 seconds before trying again
+Unexpected HTTP response: 504
+Waiting 11 seconds before trying again
+##[error]Error: Unexpected HTTP response: 504
+Post job cleanup.
+[command]/usr/bin/git version
+git version 2.56.0
+Temporarily overriding HOME='/home/runner/work/_temp/bb518351-3373-410a-bc34-4931c53bdec6' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -112,7 +185,7 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41996927177
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42000937962
   E2E_HEAD_COMMIT_MESSAGE: 
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -146,7 +219,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/75c1bae7-51a7-4ea6-b050-88cc6e677885' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/c489e455-b33e-420d-9aef-3c594006f4b6' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
