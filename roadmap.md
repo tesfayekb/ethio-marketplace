@@ -2,6 +2,8 @@
 
 The brief in force: docs/governance/briefs/p1c-fold-d.md (turn P-1c (d) — the whole-catalogue fold, INC-1048, INC-1049; phase 2 the build on ruling 1, docs/governance/briefs/p1c-fold-d-ruling-1.md). Previous: docs/governance/briefs/p1c-guides-c.md.
 
+Lane C (plan): docs/governance/briefs/f2-forms.md
+
 - [x] Records turn R10 — block S85 (DEC-304 → DEC-321, D261 → D312), INC-1019 → INC-1043, S499 → S514, system-state, the handoff of 2026-11-02, the register rows 93 → 99 — this turn (ticked after its CI)
 - [ ] Records turn R11 — block S86 (DEC-322 → DEC-327, D313), INC-1044, INC-1045 and the later words of INC-1034, INC-1040, INC-1042, S515 → S518, system-state, the handoff of 2026-11-03, the register rows 100 → 103, the `overrideNotFound` key in both languages — this turn (ticked after its CI)
 - [ ] P-1c debts (filed with turn (a)): the three whole-catalogue imports folded in turn (d) onto `useI18n().has` and `shippedCatalogues()` (CF-LOC-1; measured drop, local against `cfecc476f`: `/admin/listings_/$listingId` −48.6 KiB, `/admin/roles_/$roleId` −48.6, `/admin/translations` −123.0; the three ceilings came down to 353 / 279 / 310); still open: the Translations console's set-up order strip (`OrderStrip`; P-1c finding 4); the entry's ceiling in `scripts/check-bundle-size.mjs` for the `guide` layer's registration (+0.13 KiB on every page) — P-1c stop 1
