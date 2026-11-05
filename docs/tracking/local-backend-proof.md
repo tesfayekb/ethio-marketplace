@@ -1,54 +1,54 @@
 # Local backend proof (non-gating)
 
-- Commit: `a13bd4abd3347d4988e0e2dc70036def56b3471e`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41860540220
+- Commit: `29f8006042c1234b78b9af819efdf77ea0806b78`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41965714852
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 1042 | 72 | applied 392/392 | 206 | 0 | 0 | 70 | 276 |
-| email | 207 | 72 | applied 392/392 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 998 | 61 | applied 392/392 | 168 | 0 | 0 | 6 | 174 |
-| 2 | 979 | 49 | applied 392/392 | 168 | 0 | 0 | 1 | 169 |
-| 3 | 809 | 53 | applied 392/392 | 145 | 0 | 0 | 24 | 169 |
-| 4 | 831 | 69 | applied 392/392 | 169 | 0 | 0 | 2 | 171 |
-| 5 | 906 | 72 | applied 392/392 | 160 | 0 | 0 | 7 | 167 |
-| 6 | 1046 | 72 | applied 392/392 | 187 | 0 | 0 | 1 | 188 |
-| 7 | 361 | 50 | applied 392/392 | 91 | 0 | 0 | 68 | 159 |
-| 8 | 720 | 72 | applied 392/392 | 113 | 0 | 0 | 50 | 163 |
-| 9 | 973 | 58 | applied 392/392 | 168 | 0 | 0 | 14 | 182 |
-| 10 | 1042 | 58 | applied 392/392 | 162 | 0 | 0 | 1 | 163 |
-| 11 | 761 | 50 | applied 392/392 | 138 | 0 | 0 | 36 | 174 |
-| 12 | 854 | 60 | applied 392/392 | 173 | 0 | 0 | 5 | 178 |
-| 13 | 742 | 68 | applied 392/392 | 136 | 0 | 0 | 17 | 153 |
-| 14 | 963 | 72 | applied 392/392 | 182 | 0 | 0 | 2 | 184 |
-| 15 | 430 | 67 | applied 392/392 | 96 | 0 | 0 | 62 | 158 |
-| 16 | 582 | 49 | applied 392/392 | 132 | 0 | 0 | 36 | 168 |
+| smoke | 1032 | 72 | applied 392/392 | 206 | 0 | 0 | 70 | 276 |
+| email | 266 | 67 | applied 392/392 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 1122 | 73 | applied 392/392 | 168 | 0 | 0 | 6 | 174 |
+| 2 | 1143 | 64 | applied 392/392 | 168 | 0 | 0 | 1 | 169 |
+| 3 | 876 | 60 | applied 392/392 | 145 | 0 | 0 | 24 | 169 |
+| 4 | 700 | 51 | applied 392/392 | 169 | 0 | 0 | 2 | 171 |
+| 5 | 726 | 59 | applied 392/392 | 160 | 0 | 0 | 7 | 167 |
+| 6 | 955 | 73 | applied 392/392 | 187 | 0 | 0 | 1 | 188 |
+| 7 | 469 | 72 | applied 392/392 | 91 | 0 | 0 | 68 | 159 |
+| 8 | 627 | 51 | applied 392/392 | 113 | 0 | 0 | 50 | 163 |
+| 9 | 954 | 58 | applied 392/392 | 168 | 0 | 0 | 14 | 182 |
+| 10 | 1162 | 68 | applied 392/392 | 162 | 0 | 0 | 1 | 163 |
+| 11 | 958 | 76 | applied 392/392 | 138 | 0 | 0 | 36 | 174 |
+| 12 | 948 | 74 | applied 392/392 | 173 | 0 | 0 | 5 | 178 |
+| 13 | 609 | 51 | applied 392/392 | 136 | 0 | 0 | 17 | 153 |
+| 14 | 1015 | 74 | applied 392/392 | 182 | 0 | 0 | 2 | 184 |
+| 15 | 473 | 73 | applied 392/392 | 96 | 0 | 0 | 62 | 158 |
+| 16 | 603 | 51 | applied 392/392 | 132 | 0 | 0 | 36 | 168 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
 | TOTAL | — | — | — | 2600 | 0 | 0 | 402 | 3002 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 6 1046 s
+- Slowest lane: 10 1162 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 9, email 9, 1 6, 2 4, 3 5, 4 8, 5 9, 6 9, 7 4, 8 8, 9 6, 10 6, 11 4, 12 6, 13 8, 14 9, 15 8, 16 4, repeat not run
+- Database session samples during each start (INC-944): smoke 9, email 8, 1 8, 2 7, 3 6, 4 5, 5 5, 6 9, 7 8, 8 5, 9 6, 10 8, 11 9, 12 9, 13 5, 14 9, 15 9, 16 5, repeat not run
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41860540220-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 41860540220-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41860540220-local-1
-  - 2: [e2e:teardown] deleted 4 user(s) owned by process 41860540220-local-2
-  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41860540220-local-3
-  - 4: [e2e:teardown] deleted 34 user(s) owned by process 41860540220-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 41860540220-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41860540220-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41860540220-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41860540220-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41860540220-local-9
-  - 10: [e2e:teardown] deleted 4 user(s) owned by process 41860540220-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41860540220-local-11
-  - 12: [e2e:teardown] deleted 34 user(s) owned by process 41860540220-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 41860540220-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41860540220-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41860540220-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41860540220-local-16
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 41965714852-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 41965714852-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 41965714852-local-1
+  - 2: [e2e:teardown] deleted 4 user(s) owned by process 41965714852-local-2
+  - 3: [e2e:teardown] deleted 20 user(s) owned by process 41965714852-local-3
+  - 4: [e2e:teardown] deleted 34 user(s) owned by process 41965714852-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 41965714852-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 41965714852-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 41965714852-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 41965714852-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 41965714852-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 41965714852-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 41965714852-local-11
+  - 12: [e2e:teardown] deleted 34 user(s) owned by process 41965714852-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 41965714852-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 41965714852-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 41965714852-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 41965714852-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
