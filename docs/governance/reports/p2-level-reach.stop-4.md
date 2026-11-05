@@ -1,10 +1,17 @@
-MIGRATION — p2-level-reach part A (rulings 4 to 12): the feed rank becomes data (DEC-341) — the fold rewritten in place, the fourteen proof sites read into variables, CF-PROOF-1; proof (a) reads the catalog's columns (INC-1054), CF-PROOF-2; the rank trigger's rewrite is differential with a WHERE on every statement (INC-1055), CF-SQL-1; the History groups, ATR-1 / ATR-6, LG-33; the revision keeps its nulls and dev merged in (§8); the types, INC-1056 and law 13, M-1c PLAN FIRST (§9); M-1c built — seven files, none applied (§10); INC-1059's proof rows fixed and INC-1058's slot census (§11); the free slot at the table — M-1c parts 8 and 9 written, none applied, a census hit in the browser tests' seeders (§12)
-DONE: phase 1 (stop-1); ruling 1 and the rebase; part A = M-1a (stop-2); the feed-rank fold and part B = M-1b (stop-3); ruling 3 (the hunt — stopped without a guess); rulings 4 and 5 saved (9f39da541, 436323254); the fold `20261104153313` rewritten under its stamp and mark (c76f79734, 440e8565e); the six rank sites and the eight baseline sites in 153958 / 153959 / 154000 (c76f79734); FE-14; CF-PROOF-1 (28a371734); the records (89ae46922); ruling 6 saved and built (§6 below: the fold's proof (a) on pg_trigger's columns, the two census-hit sites, law 12, CF-PROOF-2, the DEC-340 corrections); ruling 7 saved and built (§7 below: INC-1055 and CF-SQL-1, groupOf and the reach group, the ATR meta shape, LG-33, the token scan); ruling 8 saved and built (§8 below: the revision shape answered at the four lines, origin/dev merged in); ruling 9 §1–§3 (§9 below: the types, the three proofs normalised, law 13) — §4a M-1c is PLAN FIRST (§9 H1–H9); ruling 10 saved (c55ecadfe) and built (§10 below: M-1c in seven files, CF-STATUS-1, the docs) — written, pushed, NOT applied; ruling 11 saved (0316f11c4) and done (§11 below: the three scratch level rows carry their perks, the scratch-row census of the seven files, the slot law's census — no code); ruling 12 saved (93e9643dd) and built (§12 below: `listings_free_slot_guard` and the 3-argument `seller_regular_live`, `resume_listing` whole, `admin_set_listing_tier` whole with the pause, part 3's pause in ONE UPDATE, register row 113, the docs) — written, pushed, NOT applied; the e2e seeders' census hit is a STOP for the supervisor (§12 item 2)
-LEFT: M-1c's apply on staging after a green backend start (the supervisor, through the connector; the seven pairing lines in §10 and the two in §12 stand), the ruling on the browser tests' seeders that the guard now refuses (§12 item 2 — a spec change no ruling enumerated, rule 20), the app minimum (`myListings.error.noFreeSlot` in `actionErrorKey`, EN + AM), CF-TIER-5, the tests (SWP, FSL, the level-door spec under a free prefix), docs, THE CHECKS whole on the final tree of the turn, the self-review, the report, PR ready, every check green
-CI: the last completed run of this branch is 3fb2b57d4 — run 41974149932, conclusion CANCELLED (the preflight's timeout, INC-1053 — not a verdict); every lane applied 400/400, the first green backend start since the fold; red lanes 2 (ATR-1, ATR-6), 10 (MON-2…17: `[e2e:mon] product reap failed: DELETE requires a WHERE clause`) and smoke (the acceptance-doors guard: three allowances without an LG id) — each classified by ruling 7 and answered in §7. Before it: f6e1f6b1f FAILURE (run 41969678989, the fold's proof (a); §6) and ca191c2f5 FAILURE (run 41863913123, the planner's pre-evaluation; rulings 4 and 5). f9db30818 (ruling 7) was pushed; its CI run had not been listed when ruling 8 arrived (CodeQL run 41980115042 green), so no later verdict was read. This push (ruling 8) is the one run that judges the merged tree. Ruling 10: the last completed run of this branch is 5e7f263d6 (ruling 9 §1–§3) — run 41990340858, conclusion SUCCESS, completed 2026-11-05T08:13:49Z (ci-status.md read at the raw ci-evidence address; `gh pr checks 19` lists every job pass). This push (ruling 10) is judged by the run that follows it. Ruling 11: the last completed run of this branch is bc0ce8ac1 — run 41996927177, conclusion FAILURE, completed 2026-11-05T08:59:48Z: every lane's backend start failed at `20261105080106_42c3a28d` statement 5 (`local-backend-proof.md`: `new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"`, the scratch level row) — INC-1059, fixed in §11; this push is judged by the run that follows it. Ruling 12: the last completed run of this branch is still bc0ce8ac1 (run 41996927177, FAILURE, INC-1059); 98434757b (ruling 11) was pushed and its run had not completed when ruling 12 arrived — not read as a verdict; this push (ruling 12) is judged by the run that follows it.
+MIGRATION — p2-level-reach part A (rulings 4 to 13): the feed rank becomes data (DEC-341) — the fold rewritten in place, the fourteen proof sites read into variables, CF-PROOF-1; proof (a) reads the catalog's columns (INC-1054), CF-PROOF-2; the rank trigger's rewrite is differential with a WHERE on every statement (INC-1055), CF-SQL-1; the History groups, ATR-1 / ATR-6, LG-33; the revision keeps its nulls and dev merged in (§8); the types, INC-1056 and law 13, M-1c PLAN FIRST (§9); M-1c built — seven files, none applied (§10); INC-1059's proof rows fixed and INC-1058's slot census (§11); the free slot at the table — M-1c parts 8 and 9 written, none applied, a census hit in the browser tests' seeders (§12)
+DONE: phase 1 (stop-1); ruling 1 and the rebase; part A = M-1a (stop-2); the feed-rank fold and part B = M-1b (stop-3); ruling 3 (the hunt — stopped without a guess); rulings 4 and 5 saved (9f39da541, 436323254); the fold `20261104153313` rewritten under its stamp and mark (c76f79734, 440e8565e); the six rank sites and the eight baseline sites in 153958 / 153959 / 154000 (c76f79734); FE-14; CF-PROOF-1 (28a371734); the records (89ae46922); ruling 6 saved and built (§6 below: the fold's proof (a) on pg_trigger's columns, the two census-hit sites, law 12, CF-PROOF-2, the DEC-340 corrections); ruling 7 saved and built (§7 below: INC-1055 and CF-SQL-1, groupOf and the reach group, the ATR meta shape, LG-33, the token scan); ruling 8 saved and built (§8 below: the revision shape answered at the four lines, origin/dev merged in); ruling 9 §1–§3 (§9 below: the types, the three proofs normalised, law 13) — §4a M-1c is PLAN FIRST (§9 H1–H9); ruling 10 saved (c55ecadfe) and built (§10 below: M-1c in seven files, CF-STATUS-1, the docs) — written, pushed, NOT applied; ruling 11 saved (0316f11c4) and done (§11 below: the three scratch level rows carry their perks, the scratch-row census of the seven files, the slot law's census — no code); ruling 12 saved (93e9643dd) and built (§12 below: `listings_free_slot_guard` and the 3-argument `seller_regular_live`, `resume_listing` whole, `admin_set_listing_tier` whole with the pause, part 3's pause in ONE UPDATE, register row 113, the docs) — written, pushed, NOT applied; the e2e seeders' census hit is a STOP for the supervisor (§12 item 2); ruling 13 saved (113706258) and built (§13 below: part 5's proof reaches its gate — law 14, the census of parts 1–9; `e2e/helpers/listing-seed.ts` the one seeder under the free-slot law, CF-SEED-1, the nineteen INSERT sites in seventeen files folded, the four named specs and three more answered; the staff refusals recorded) — written, pushed, NOT applied
+LEFT: M-1c's apply on staging after a green backend start (the supervisor, through the connector; the nine pairing lines in §13), the app minimum (`myListings.error.noFreeSlot` in `actionErrorKey`, EN + AM), CF-TIER-5, the tests (SWP, FSL, the level-door spec under a free prefix), docs, THE CHECKS whole on the final tree of the turn, the self-review, the report, PR ready, every check green
+CI: the last completed run of this branch is 3fb2b57d4 — run 41974149932, conclusion CANCELLED (the preflight's timeout, INC-1053 — not a verdict); every lane applied 400/400, the first green backend start since the fold; red lanes 2 (ATR-1, ATR-6), 10 (MON-2…17: `[e2e:mon] product reap failed: DELETE requires a WHERE clause`) and smoke (the acceptance-doors guard: three allowances without an LG id) — each classified by ruling 7 and answered in §7. Before it: f6e1f6b1f FAILURE (run 41969678989, the fold's proof (a); §6) and ca191c2f5 FAILURE (run 41863913123, the planner's pre-evaluation; rulings 4 and 5). f9db30818 (ruling 7) was pushed; its CI run had not been listed when ruling 8 arrived (CodeQL run 41980115042 green), so no later verdict was read. This push (ruling 8) is the one run that judges the merged tree. Ruling 10: the last completed run of this branch is 5e7f263d6 (ruling 9 §1–§3) — run 41990340858, conclusion SUCCESS, completed 2026-11-05T08:13:49Z (ci-status.md read at the raw ci-evidence address; `gh pr checks 19` lists every job pass). This push (ruling 10) is judged by the run that follows it. Ruling 11: the last completed run of this branch is bc0ce8ac1 — run 41996927177, conclusion FAILURE, completed 2026-11-05T08:59:48Z: every lane's backend start failed at `20261105080106_42c3a28d` statement 5 (`local-backend-proof.md`: `new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"`, the scratch level row) — INC-1059, fixed in §11; this push is judged by the run that follows it. Ruling 12: the last completed run of this branch is still bc0ce8ac1 (run 41996927177, FAILURE, INC-1059); 98434757b (ruling 11) was pushed and its run had not completed when ruling 12 arrived — not read as a verdict; this push (ruling 12) is judged by the run that follows it. Ruling 13: the last completed run of this branch is c28c45c6d (ruling 12) — run 42006437766, conclusion FAILURE, completed 2026-11-05T10:10:22Z: every lane's backend start failed at `20261105080108_d9040574` statement 16, part 5's proof (b) (`nothing to change` before the gate) — INC-1060, fixed in §13; this push is judged by the run that follows it.
 FILES: (git diff --name-only ca191c2f5; ruling 6 added its brief, 20261104124958 and 20261104153957; ruling 7 adds its brief, sql-writes.ts / .test.ts / -allowlist.txt, history.ts / .test.ts, en-member.ts / am-member.ts, admin-listings.spec.ts, legal-certify.spec.ts, acceptance-doors-allowlist.txt; ruling 8 adds its brief and the merge of origin/dev c89271ca2 — its 15 files are dev's, not this turn's; ruling 10 adds its brief, the seven M-1c files 20261105080104…20261105080110, status-map.ts / .test.ts / -allowlist.txt, wired.test.ts, my-listings.md; ruling 12 adds its brief, parts 8 and 9 — 20261105080111, 20261105080112 — and plans.md — listed below with the rest)
 docs/_changelog.md
+docs/features/e2e-harness.md
 docs/features/feed-engine.md
+docs/features/my-listings.md
+docs/features/plans.md
+docs/governance/briefs/p2-level-reach-ruling-10.md
+docs/governance/briefs/p2-level-reach-ruling-11.md
+docs/governance/briefs/p2-level-reach-ruling-12.md
+docs/governance/briefs/p2-level-reach-ruling-13.md
 docs/governance/briefs/p2-level-reach-ruling-3.md
 docs/governance/briefs/p2-level-reach-ruling-4.md
 docs/governance/briefs/p2-level-reach-ruling-5.md
@@ -13,11 +20,30 @@ docs/governance/briefs/p2-level-reach-ruling-7.md
 docs/governance/mechanisms.md
 docs/governance/migrations.md
 docs/governance/reports/p2-level-reach.stop-4.md
+e2e/admin-audit.spec.ts
 e2e/admin-listings.spec.ts
+e2e/admin-screening.spec.ts
+e2e/breadcrumbs.spec.ts
 e2e/feed-index.spec.ts
+e2e/feed-route.spec.ts
+e2e/feed-screens.spec.ts
+e2e/helpers/ad-page.ts
+e2e/helpers/categories.ts
+e2e/helpers/listing-seed.ts
 e2e/legal-certify.spec.ts
+e2e/locale-format.spec.ts
+e2e/my-listings-ad.spec.ts
+e2e/my-listings-doors.spec.ts
+e2e/my-listings-page.spec.ts
+e2e/photo-pipeline.spec.ts
+e2e/post-wizard-recent.spec.ts
+e2e/posting-routes-catalog.spec.ts
+e2e/posting-routes.spec.ts
 roadmap.md
 scripts/acceptance-doors-allowlist.txt
+scripts/conformance/listing-levels-allowlist.txt
+scripts/conformance/listing-seed-allowlist.txt
+scripts/conformance/listing-seed.test.ts
 scripts/conformance/plan-seam.ts
 scripts/conformance/proof-readers-allowlist.txt
 scripts/conformance/proof-readers.test.ts
@@ -25,6 +51,9 @@ scripts/conformance/proof-readers.ts
 scripts/conformance/sql-writes-allowlist.txt
 scripts/conformance/sql-writes.test.ts
 scripts/conformance/sql-writes.ts
+scripts/conformance/status-map-allowlist.txt
+scripts/conformance/status-map.test.ts
+scripts/conformance/status-map.ts
 scripts/conformance/wired.test.ts
 src/features/admin-listings/history.test.ts
 src/features/admin-listings/history.ts
@@ -36,12 +65,6 @@ supabase/migrations/20261104153957_8816b4c0-d9ac-4624-bd16-3ff4b778ebae.sql
 supabase/migrations/20261104153958_12091168-8822-44f3-af3b-e4934de63e2b.sql
 supabase/migrations/20261104153959_307e79c4-b771-411a-a3da-a71a16bd26bd.sql
 supabase/migrations/20261104154000_fbffa284-2047-41f6-9229-daffa927fc77.sql
-docs/governance/briefs/p2-level-reach-ruling-10.md
-docs/features/my-listings.md
-scripts/conformance/status-map-allowlist.txt
-scripts/conformance/status-map.test.ts
-scripts/conformance/status-map.ts
-scripts/conformance/wired.test.ts
 supabase/migrations/20261105080104_4e04fad3-ed1f-4713-a310-4d46ea70501f.sql
 supabase/migrations/20261105080105_8797b9c8-6a43-4d2c-9558-6b11a881aefe.sql
 supabase/migrations/20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql
@@ -49,9 +72,6 @@ supabase/migrations/20261105080107_8108db2c-002f-4aa5-bb84-9aecfdef6562.sql
 supabase/migrations/20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql
 supabase/migrations/20261105080109_cef94b0d-43de-406a-8a52-787b326f6435.sql
 supabase/migrations/20261105080110_25cc301c-987b-4e65-a3d8-170d15b2a1bc.sql
-docs/governance/briefs/p2-level-reach-ruling-11.md
-docs/governance/briefs/p2-level-reach-ruling-12.md
-docs/features/plans.md
 supabase/migrations/20261105080111_811e9980-bd23-4b73-bb84-b1d8eeb5a3d4.sql
 supabase/migrations/20261105080112_4bb8208e-a951-4014-9c42-93d005a2f289.sql
 
@@ -283,6 +303,87 @@ What the files cannot prove, said plainly: `publish_listing`'s envelope and `edi
 - apply `20261105080112_4bb8208e-a951-4014-9c42-93d005a2f289.sql` → expect mark `20261105100900` (after 20261105100800; `admin_set_listing_tier` md5 `93aad2bb17b61bbdac3f3ba886d81861`)
 
 The seven lines of §10 stand (part 3's text changed again under its unchanged mark — applied nowhere). Before the apply on staging, item 2's STOP (the seeders) wants the supervisor's ruling: applied as is, four specs seed into a refusal.
+
+## §13 — Ruling 13: part 5's proof reaches the gate it tests (INC-1060, law 14); the seeders under the free-slot law (D318)
+
+CI read for this ruling: the last completed run of this branch is c28c45c6d (ruling 12) — run 42006437766, conclusion FAILURE, completed 2026-11-05T10:10:22Z (`ci-status.md` at the raw ci-evidence address); `local-backend-proof.md` :85–:93: every lane's backend start failed in `20261105080108_d9040574` statement 16 — `P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)`, `inline_code_block line 109`. The cause is the ruling's: the proof sent `'{}'`, which `edit_my_listing` refuses as `nothing to change` (20261019115951 :124) before the status gate (:150–:152). Parts 5–9 have never run to their end in CI (run 41996927177 stopped at part 3, INC-1059; this one at part 5). This push is judged by the run that follows it. 113706258 (the brief) was committed and not pushed before this work.
+
+### Item 1 — part 5's proof (text only; mark `20261105100500` unchanged; header says so)
+
+`supabase/migrations/20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql` — 24,985 bytes (was 24,993), sha256 `ee41722c2d69cbaf4700b7ae82a0886b286781c76879ec9683c66b4dae42ad25`. The four bodies did not move: `set_listing_pin` md5 `34c6bdd95f57c63dae9003dbc2cb9b7a`, `set_listing_photos_soon` `c5d2c31b7448076f78448f0cf7e22b1b`, `mark_sold` `b48bcfcfacfc144842eca514ee438521`, `edit_my_listing`'s insertion `27060dfa…` → `12c05d47758d54fe541961e7f5c8ce2d` (the proof's (a) list, unchanged). The header's last line names the change ("Ruling 13 (INC-1060, law 14): every edit_my_listing call passes a title change, so the answer asserted is the rule under test's"); the section rulers and proof comments were shortened to keep the file under the 25,000-byte split line.
+
+The door's refusal order (20261019115951 :121–:152), and what clears each: `not authenticated` (the claims are set) → `nothing to change` (a title: `jsonb_build_object('title', v_title)`) → `not editable: %` (title is an editable key) → `account is deactivated` (a scratch account, active) → `rateLimited` (`revise`, 120/3600 — three calls) → `listing not found` (q / p exist) → `not your listing` (the seller owns them; the stranger does not — that IS (c)'s rule) → `a draft is written in the posting form` (not drafts) → `an ad in review is edited once its review is done` (not screening/held) → `an expired listing is renewed before it is edited` (ten days left) → **`this listing is not edited`** (status NOT IN active, reduced, closed, rejected, paused — part 5's fragment 1). Three calls, each asserting the EXACT answer:
+
+- (b) the sold ad q: `v_msg IS DISTINCT FROM 'this listing is not edited'` → the proof fails naming `coalesce(v_msg, 'success')`. Before: `'{}'` → `nothing to change`, asserted as "anything but the gate's words" — the proof passed for the wrong reason until CI's clean backend showed it (INC-1060).
+- (c) the stranger on the paused ad p: the same title change; `not your listing` is now the rule the call meets (before: `'{}'` → `nothing to change`, asserted as `not your listing` → it would have failed there too). The trace check after (c) still asserts p paused, photos_soon, the pin and the revision count.
+- (d) NEW — the paused ad p past the gate, in the door's order, each step's argument chosen from its code: the judge `validate_listing_draft(v_uid, 5, …)` — p and q are inserted with `price_mode 'free'` so step 4 passes with a NULL amount (`price_amount required` otherwise), the title is 21 characters (≤ 120), no contact-like text, the scratch category is a postable leaf; `legal_certify(v_uid, p, 'edit', p_certified, p_language)` — `p_certified` = `legal_publishing_set(p)`'s version ids (the door sorts both sides), `p_language` = the first `enabled_public` language (`badLanguage` otherwise; when the set is empty the door returns before either is read); then the UPDATE — asserted: the answer `{ok true, status screening, review true}`, the row `status = 'screening'`, `title = v_title`, `clock_kept` (fragment 2's CASE with `paused`), `kept_remaining` unchanged (recomputed only for active | reduced), `resume_status` NULL, and exactly one `edit` revision by the seller with `before.status = 'paused'`, `after.status = 'screening'`, `after.title = v_title`. Part 8's guard is not applied when part 5's proof runs (file order), so the move into screening meets no slot check — said in the (d) comment.
+
+Scratch rows only (`'XZ'`, `e2e-mig-p2-m1c5-…`), rolled back by the sentinel `p2-m1c5-proof-ok`. `bash scripts/check-migrations.sh` → `Migration guard OK.`
+
+### Item 2 — LAW 14 and the census of parts 1–9
+
+`docs/governance/migrations.md` law 14 (bold): a refusal proof reads the door's refusal order and supplies arguments that pass every earlier check, so the answer it asserts can only come from the rule under test; names the rule, the checks before it and the argument that clears each; asserts the exact answer or, past the gate, what the door then does in the file's order; never a negation; the same for a trigger under test.
+
+Every proof site in parts 1–9 that asserts a refusal, read against its door's order:
+
+| Part | Site | The rule asserted | The checks before it, and whether the arguments pass them | Verdict |
+|---|---|---|---|---|
+| 1 | `20261105080104` :137 | `seller_notices`' CHECK refuses a kind / fields shape | the CHECK is the only rule on the INSERT (RLS is the service's) | clean |
+| 2 | `20261105080105` | no refusal asserted (counts and a second trim) | — | — |
+| 3 | `20261105080106` | no refusal asserted | — | — |
+| 4 | `20261105080107` | no refusal asserted (md5, the heartbeat row) | — | — |
+| 5 | `20261105080108` :378 (b), :396 (c, four doors) | `this listing is not edited`; `not your listing` | the three `edit_my_listing` sites sent `'{}'` and met `nothing to change` first — **the shape; fixed** (item 1). `set_listing_pin` / `set_listing_photos_soon` / `mark_sold` as a stranger: `not authenticated` → found → owner — clean | fixed |
+| 6 | `20261105080109` :335, :401, :405 | `listing_group_of` raises on an unmapped status; `my_listings` / `my_listing` as a stranger | the mapper's one rule; `my_listing` :13 `not authenticated` then the ownership read (`WHERE id = … AND seller_id = v_uid` → `not your listing`); `my_listings` lists the caller's own rows (a stranger's page carries none) | clean |
+| 7 | `20261105080110` :370, :378 | `permission denied` as a seller | `not signed in` → `has_permission(v_uid, 'listings', 'view')` → the refusal | clean |
+| 8 | `20261105080111` :254 (three refusals) | `noFreeSlot` DETAIL `1` from the guard | `resume_listing(p)`: `notSignedIn` → `assert_caller_active` → found as owner → `notPaused` (p is paused) → `transition_listing`'s owner path → the UPDATE → the guard; the direct INSERT / UPDATE as the service meet no earlier check (the trigger is first) | clean |
+| 9 | `20261105080112` :289 (c) | `noFreeSlot` DETAIL `1` for w in screening | signed in with the permission, not deactivated, the dial's override, the level found, the row found, not a draft, not own, not removed, the tier differs, the reason valid, no note, days NULL, step-up → the UPDATE → the guard | clean |
+
+Three sites were the shape, all in part 5, all fixed; no other site supplies an argument an earlier check refuses.
+
+### Item 4 (addendum) — the seeders and the free-slot law (D318)
+
+Searched before building: `rg "from\(\"listings\"\)" e2e` (every service-role INSERT: 21 sites in 19 files), `e2e/helpers/*` for a listing seeder (none shared beyond `ad-page.ts`'s `seed` and `categories.ts`'s `seedActiveListing`), and the guard's readers (`baseline_level_key`, `market_settings_for(character)`, `seller_regular_live(uuid, character)` — each `GRANT … TO service_role`, each applied on staging).
+
+**The mechanism** — `e2e/helpers/listing-seed.ts` (register row 114): `seedListingRow(row, { tag, select?, beyondFreeSlots? })` and `seedListingRows(rows, …)`, the ONE service-role INSERT into `listings` in e2e. Before the write it reads the seller's room in the row's market through the guard's own readers (the location's country → `market_settings_for(country).free_regular_ads`; `seller_regular_live(seller, country)`; a batch counts its own rows), so a spec's rows are the same whether or not the guard is applied where it runs (staging today: not yet; CI's temporary backend: yes). A counted baseline row (status screening | held | active | reduced, tier the baseline or omitted, a `location_id`) beyond the free slots is seeded at the first enabled level above the baseline (`listing_packages` kind `level`, `enabled`, not `is_baseline`, by `sort` — `beyondFreeSlots: "level"`) or refused at the seeding line with the law's words (the default). Drafts, unplaced rows and non-counted statuses pass through. No test-only switch touches the guard (§7).
+
+**The guard (K3)** — `scripts/conformance/listing-seed.test.ts` CF-SEED-1 (CFS-1 the census of every `from("listings").insert(` in `e2e/` outside the helper, allowlist `listing-seed-allowlist.txt` `<file>:<line> | reason | until`; CFS-2 proven on a planted INSERT beside a read, an UPDATE and another table's INSERT; CFS-3 the helper is in the domain and the only file left out), named in `wired.test.ts`. The allowlist holds the two AP-15 INSERTs (`e2e/ad-page-doors.spec.ts` :450, :455) that assert the table's own refusal (a public id of the wrong shape, a duplicate) on drafts without a place.
+
+**The four specs §12 named, and what the census found beyond them** — §12 named four sites; the census of every seeder found three more in `feed-screens.spec.ts` that §12 missed (FS-2, FS-15, FS-17 — a correction to §12), listed here with the rest:
+
+- `e2e/my-listings-doors.spec.ts` ML-11 (was :917–:920; X, Y, Z, W active + C closed + R rejected): **the level way.** The doors under test read status and ownership, never the level. X and Y hold two slots; Z and W are seeded at the level above the baseline (`levelAboveBaseline()`, the spec's `tier` option — their title / text / video edits go to review exactly as before, the guard lets a non-baseline row through); R's return from rejected to screening (`priced(70)` → `{ok, screening, review}`) takes the third slot — with Z or W at the baseline that edit would now meet `noFreeSlot` (§12 item 5), so the two are levelled explicitly rather than left to the helper's fourth-row rule. The file's `seed` goes through the helper with `beyondFreeSlots: "level"`.
+- `e2e/my-listings-page.spec.ts` MLP-1 / MLP-2 (`seedBoth`, was :236–:242) and MLP-5: **the level way.** The page groups by STATUS; the groups and counts asserted (`live 2, review 2, attention 2, closed 2, sold 1, drafts 1`) do not read the level. In `seedBoth`, X, R, C take the three slots, C is closed (two counted), S takes the third, H is seeded at the level; in MLP-5 X1–X3 take the slots and X4 (sold straight after) is seeded at the level. The file's `seed` goes through the helper with `beyondFreeSlots: "level"`.
+- `e2e/feed-screens.spec.ts`: **more scratch sellers** — the feed's subject is the cards' order and place, never who posted them, and the helper's default refuses a fourth counted baseline ad on one seller at the seeding line. FS-3 (was :270–:274; five regular): the chosen place's two stay the fixture seller's, the wider place's three are a second leased seller's (`sectionIds` per place unchanged). FS-9 (was :451; four regular in one place): the fourth is a second leased seller's. FS-17 (:649–:652; six regular — not in §12): the chosen place's fourth and the wider place's two are a second leased seller's. FS-15 (:707–:710; four regular, one sold after — not in §12): the fourth (`s`) is a second leased seller's. FS-2 (:164–:172; 25 rows in one INSERT: 2 premium, 3 featured, **20 regular** for one user — not in §12): the premium and featured rows stay the leased seller's; the twenty regular rows are spread three to a poster over six FRESH accounts (`createUser({ confirmed: true })`, their ids pushed onto `sellers` so `destroyListingsOf` reaps their rows, the accounts deleted at teardown) — not six more pooled leases, which DEC-174's `e2e-leases` law (EL-4: at most two pooled leases per test, `scripts/e2e-leases.ts`) refused on the first attempt; one `seedListingRows` keeps the single INSERT and the title → id map. Every other FS test seeds three or fewer regular ads per seller. FS-2's expected order (tier first, then newest) names no seller.
+- `e2e/feed-route.spec.ts` FR-4 (was :172–:179; `seedCityFive`'s two regular + three more): **more scratch sellers** — `addListing` gains a `seller` option; the three are a second leased seller's (`anotherSeller()`); `ordered()` ranks by tier and minutes only, so the eight ids and "does not widen" are unchanged. Every other FR test seeds two or fewer regular ads for `seed.seller`.
+
+**The census of every other seeder (service-role INSERTs into `listings`), each folded onto the helper** (default `beyondFreeSlots: "refuse"` — their tests seed one or two counted baseline ads per seller, checked by a per-test count of `seed(` calls; a fourth would now fail at its seeding line with the law's words, never with the trigger's): `e2e/helpers/ad-page.ts` `seed` (ad-page.spec, ad-page-doors.spec; `"level"`, the shape of my-listings-doors' seed; at most three counted per test — AP-24/25/27/35/39/41/49/53 seed exactly three), `e2e/helpers/categories.ts` `seedActiveListing` (one), `e2e/admin-audit.spec.ts` :245 (one, screening), `e2e/admin-listings.spec.ts` `seed` (AL-2 seeds two counted baseline rows — the newer is featured), `e2e/admin-screening.spec.ts` `seedListing`, `e2e/breadcrumbs.spec.ts` `seed`, `e2e/feed-index.spec.ts` `seedListing`, `e2e/locale-format.spec.ts` (one), `e2e/my-listings-ad.spec.ts` `seed`, `e2e/photo-pipeline.spec.ts` PP-34 and PP-21 (one each), `e2e/posting-routes.spec.ts` PR-50 (one, screening), and the two draft seeders `e2e/post-wizard-recent.spec.ts` `seed` and `e2e/posting-routes-catalog.spec.ts` `seed` (drafts without a place — never counted, folded so the helper is total). `e2e/global-setup.ts` :861 is the reaper's comment, not a seeder. The moves that could newly meet the guard inside a test were read too: ML-6 (f closed → edited → screening with one other counted), AL-8 (restore with one other), MLP's service `.update({ status })` sites (:536 to sold, :839 screening → active for a counted row) — none puts a fourth counted baseline row on a seller; the one that did (ML-11's R) is answered above.
+
+Each spec's assertion keeps its intent; no assertion text changed. Typecheck and lint clean on every touched file; `bunx vitest run scripts --maxWorkers=2` → 94 files: 93 passed, 1 failed — `scripts/ci/nightly-hour.test.ts` NH-6, the macOS TZDIR machine red named under every ruling's Limits (two reds this change caused on the first run — EL-4 above, and CF-LEVEL-1 CFL-1 on the helper's `listing_packages` read — are answered: FS-2's fresh accounts; a `reader:e2e/helpers/listing-seed.ts` line in `listing-levels-allowlist.txt`, keys only, no perks, until DEC-342).
+
+### Item 5 (addendum) — the staff refusals stand; the client arm is owed
+
+Recorded, not built: `edit_listing` retires in F1-1; the admin restore (`admin_move_listing_core`, removed → screening) and the lowering of a screening or held ad (`admin_set_listing_tier`) answer `noFreeSlot` from the guard and stay so. Owed to the app minimum (P-2 (b)'s screens): `actionErrorKey` (`src/features/my-listings/my-listing.ts` :245–:265) gains `noFreeSlot` → `myListings.error.noFreeSlot`; the console's refusal reader reads the same key; the EN text ships with the arm, the Amharic is the supervisor's. Nothing in `src/` changed in this ruling.
+
+### The docs
+
+`docs/governance/migrations.md` law 14; `docs/governance/mechanisms.md` row 114; `docs/features/e2e-harness.md` §Seeding an ad under the free-slot law; `docs/_changelog.md` one line; `roadmap.md` line 3 names ruling 13's brief (committed with it).
+
+### Limits (ruling 13)
+
+- THE BROWSER CHECK could not run here: the E2E values are set, the browser is installed, but `bun run e2e:local` stops in its migration preflight — `STAGING BEHIND: apply 20261105080112… to ethio-staging before E2E can pass` (the nine M-1c files are applied nowhere, by the supervisor's pairing). I apply no migration; CI's temporary backend (every migration applied, the guard live) is the proof of the seventeen touched e2e files, and the first run with parts 5–9 past their proofs.
+- `scripts/check-acceptance-doors.ts` / `check-caller-gates.ts` need a live catalogue TSV — NOT RUN here (CI's smoke lane). NH-6 is the machine red.
+- The per-seller counts above come from reading the specs (`seed(` calls per test and the moves after them), not from running them; a count the reading missed fails at its seeding line with `[e2e:<tag>] … the seller's N free slot(s) in <country> are taken (D318)`, naming its own fix.
+
+### The nine pairing lines (parts 1–9, applied nowhere; each after the one before it)
+
+- apply `20261105080104_4e04fad3-ed1f-4713-a310-4d46ea70501f.sql` → expect mark `20261105100100`
+- apply `20261105080105_8797b9c8-6a43-4d2c-9558-6b11a881aefe.sql` → expect mark `20261105100200`
+- apply `20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql` → expect mark `20261105100300`
+- apply `20261105080107_8108db2c-002f-4aa5-bb84-9aecfdef6562.sql` → expect mark `20261105100400`
+- apply `20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql` → expect mark `20261105100500` (this ruling's text; sha256 `ee41722c…`)
+- apply `20261105080109_cef94b0d-43de-406a-8a52-787b326f6435.sql` → expect mark `20261105100600`
+- apply `20261105080110_25cc301c-987b-4e65-a3d8-170d15b2a1bc.sql` → expect mark `20261105100700`
+- apply `20261105080111_811e9980-bd23-4b73-bb84-b1d8eeb5a3d4.sql` → expect mark `20261105100800` (`listings_free_slot_guard` on `public.listings`; `resume_listing` md5 `858701a05407750f0d68bfcbd584e43d`)
+- apply `20261105080112_4bb8208e-a951-4014-9c42-93d005a2f289.sql` → expect mark `20261105100900` (`admin_set_listing_tier` md5 `93aad2bb17b61bbdac3f3ba886d81861`)
 
 ## Findings outside scope (K2; reported, not touched)
 
