@@ -12,6 +12,7 @@
 -- Every write carries its WHERE (CF-SQL-1); law 11: baseline_level_key() into a variable.
 -- Ruling 11 (INC-1059): the scratch level row carries its perks; ruling 12 (DEC-342): the pause in one
 -- UPDATE — this file was applied nowhere before either change; its mark is unchanged.
+-- Ruling 15 (INC-1067): the proof holds for any caps — proof text only; no schema statement, mark or grant changed.
 
 DO $pre$
 BEGIN
@@ -182,10 +183,14 @@ DECLARE
   v_code    char(2) := 'XZ';
   v_anc     uuid;
   v_regA    uuid;
-  v_regB    uuid;
-  v_c1      uuid;
-  v_c2      uuid;
-  v_c3      uuid;
+  v_city    uuid[] := ARRAY[]::uuid[];
+  v_id      uuid;
+  v_prim    uuid;
+  v_plan    public.coverage_plans%ROWTYPE;
+  v_planname text;
+  v_cmax    integer;
+  v_rmax    integer;
+  v_lmax    integer;
   v_cat     uuid;
   v_a       uuid := gen_random_uuid();
   v_b       uuid := gen_random_uuid();
@@ -223,16 +228,30 @@ BEGIN
     UPDATE public.locations SET is_active = true WHERE id = v_anc AND name_en = 'e2e-mig-p2-m1c3';
     INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id)
     VALUES ('region', v_code, 'E2E P2 M1c3 Region A', v_tag || '-ra', true, v_anc) RETURNING id INTO v_regA;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id)
-    VALUES ('region', v_code, 'E2E P2 M1c3 Region B', v_tag || '-rb', true, v_anc) RETURNING id INTO v_regB;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
-    VALUES ('city', v_code, 'E2E P2 M1c3 City 1', v_tag || '-c1', true, v_regA, 9.03, 38.74) RETURNING id INTO v_c1;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
-    VALUES ('city', v_code, 'E2E P2 M1c3 City 2', v_tag || '-c2', true, v_regA, 9.05, 38.76) RETURNING id INTO v_c2;
-    INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
-    VALUES ('city', v_code, 'E2E P2 M1c3 City 3', v_tag || '-c3', true, v_regB, 9.07, 38.78) RETURNING id INTO v_c3;
     INSERT INTO auth.users (id, email, raw_user_meta_data, aud, role, created_at, updated_at)
     VALUES (v_seller, v_tag || '-seller@example.invalid', '{}'::jsonb, 'authenticated', 'authenticated', now(), now());
+    -- The caps are the judge's own for this seller, whatever the database holds (law 11: read into
+    -- variables first); c's places follow from C = max_cities and hold for every cap of 1 or more.
+    v_planname := public.seller_plan(v_seller);
+    SELECT * INTO v_plan FROM public.coverage_plans cp WHERE cp.plan = v_planname;
+    IF NOT FOUND THEN
+      RAISE EXCEPTION 'P-2 M-1c part 3 proof: no coverage plan % for the seller', v_planname;
+    END IF;
+    v_cmax := v_plan.max_cities;
+    v_rmax := v_plan.max_regions;
+    v_lmax := v_plan.max_countries;
+    IF coalesce(v_cmax, 0) < 1 OR coalesce(v_rmax, 0) < 1 OR coalesce(v_lmax, 0) < 1 THEN
+      RAISE EXCEPTION 'P-2 M-1c part 3 proof: the plan % has a cap below 1 (% / % / %)', v_planname, v_cmax, v_rmax, v_lmax;
+    END IF;
+    -- C + 1 scratch cities in the one scratch region (one region and one country never bind); the last is
+    -- every ad's primary place.
+    FOR i IN 1..v_cmax + 1 LOOP
+      INSERT INTO public.locations (level, country_code, name_en, slug, is_active, parent_id, center_lat, center_lng)
+      VALUES ('city', v_code, 'E2E P2 M1c3 City ' || i, v_tag || '-c' || i, true, v_regA, 9.0 + i * 0.001, 38.7 + i * 0.001)
+      RETURNING id INTO v_id;
+      v_city := v_city || v_id;
+    END LOOP;
+    v_prim := v_city[v_cmax + 1];
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E P2 M1c3 Leaf', v_tag, true, true, true, 9999) RETURNING id INTO v_cat;
     INSERT INTO public.listing_packages (key, kind, name_en, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort) VALUES
@@ -242,12 +261,12 @@ BEGIN
     -- N = 2: c is live at the baseline, so a takes the second slot and b finds none.
     INSERT INTO public.market_settings (country_code, free_regular_ads, included_reach, paid_levels)
     VALUES (v_code, 2, v_r0, false);
-    -- a, b: level ended (a first); c: reach ended, three places; d: level ending in two days; e: expired;
+    -- a, b: level ended (a first); c: reach ended, C + 1 places; d: level ending in two days; e: expired;
     -- g: level ended, outside the scope.
     INSERT INTO public.listings (id, seller_id, category_id, location_id, title, description, home_country_code, status,
                                  published_at, published_first_at, expires_at, tier, tier_until, tier_source,
                                  reach, reach_until, reach_source)
-    SELECT x.id, v_seller, v_cat, v_c1, 'E2E P2 M1c3 ' || x.nm, 'scratch', v_code, 'active', now(), now(), x.exp,
+    SELECT x.id, v_seller, v_cat, v_prim, 'E2E P2 M1c3 ' || x.nm, 'scratch', v_code, 'active', now(), now(), x.exp,
            coalesce(x.lv, v_base), x.lu, x.ls, x.rc, x.ru, x.rs
       FROM (VALUES
         (v_a, 'a', now() + interval '10 days', v_lv, now() - interval '2 hours', 'launch', NULL, NULL, NULL),
@@ -257,8 +276,9 @@ BEGIN
         (v_e, 'e', now() - interval '1 hour', NULL, NULL, NULL, NULL, NULL, NULL),
         (v_g, 'g', now() + interval '10 days', v_lv, now() - interval '1 hour', 'launch', NULL, NULL, NULL))
         AS x(id, nm, exp, lv, lu, ls, rc, ru, rs);
-    INSERT INTO public.listing_locations (listing_id, location_id, position) VALUES
-      (v_c, v_c1, 0), (v_c, v_c2, 1), (v_c, v_c3, 2);
+    -- c: the primary saved LAST (position C + 1), the C others before it in the city order (positions 1 … C).
+    INSERT INTO public.listing_locations (listing_id, location_id, position)
+    SELECT v_c, o.id, o.n FROM unnest(v_city) WITH ORDINALITY AS o(id, n);
     PERFORM set_config('request.jwt.claims', '{}', true);
 
     -- (b) one scoped run.
@@ -304,23 +324,25 @@ BEGIN
        OR EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_b) THEN
       RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): b not paused at the baseline with its notice (% % %)', v_row.status, v_row.tier, v_row.kept_remaining;
     END IF;
-    -- c: reach ended — columns NULL, the primary kept, two places removed (plan 1/1/1), revision, audit, queue.
+    -- c: reach ended — columns NULL; the primary and the first C − 1 others kept in saved order, exactly the
+    -- last other removed; the revision's coverage before and after in saved order, the removed id; audit; queue.
     SELECT * INTO v_row FROM public.listings WHERE id = v_c;
     IF v_row.status <> 'active' OR v_row.reach IS NOT NULL OR v_row.reach_until IS NOT NULL OR v_row.reach_source IS NOT NULL
-       OR v_row.location_id <> v_c1
-       OR (SELECT array_agg(ll.location_id ORDER BY ll.position) FROM public.listing_locations ll WHERE ll.listing_id = v_c) <> ARRAY[v_c1]
+       OR v_row.location_id <> v_prim
+       OR (SELECT array_agg(ll.location_id ORDER BY ll.position) FROM public.listing_locations ll WHERE ll.listing_id = v_c)
+          IS DISTINCT FROM (v_city[1:v_cmax - 1] || v_prim)
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_c) <> 1
        OR NOT EXISTS (SELECT 1 FROM public.listing_revisions
                        WHERE listing_id = v_c AND kind = 'edit' AND actor IS NULL
                          AND before->>'reach' = v_r1 AND before->>'reach_source' = 'launch'
-                         AND before->'coverage' = to_jsonb(ARRAY[v_c1, v_c2, v_c3])
+                         AND before->'coverage' = to_jsonb(v_city)
                          AND after ? 'reach' AND after->>'reach' IS NULL
-                         AND after->'coverage' = to_jsonb(ARRAY[v_c1])
-                         AND after->'removed' = to_jsonb(ARRAY[v_c2, v_c3]))
+                         AND after->'coverage' = to_jsonb(v_city[1:v_cmax - 1] || v_prim)
+                         AND after->'removed' = to_jsonb(ARRAY[v_city[v_cmax]]))
        OR (SELECT count(*) FROM public.audit_log WHERE entity_id = v_c::text) <> 1
        OR NOT EXISTS (SELECT 1 FROM public.audit_log
                        WHERE entity_id = v_c::text AND actor_id IS NULL AND action = 'listing.reach_ended'
-                         AND meta->>'from' = v_r1 AND meta->>'source' = 'launch' AND (meta->>'removed')::integer = 2)
+                         AND meta->>'from' = v_r1 AND meta->>'source' = 'launch' AND (meta->>'removed')::integer = 1)
        OR NOT EXISTS (SELECT 1 FROM public.feed_reindex_queue q WHERE q.listing_id = v_c) THEN
       RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): c''s reach end did not trim (reach % places %)',
         v_row.reach, (SELECT count(*) FROM public.listing_locations ll WHERE ll.listing_id = v_c);
