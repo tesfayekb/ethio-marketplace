@@ -8,7 +8,8 @@ alwaysApply: false
 
 Schema truth is `supabase/migrations/` (append-only). You WRITE migration files and end the part
 with a MIGRATION stop. You never apply a migration — not on ethio-staging, not on ethio-prod, not
-through an MCP server, the `supabase` CLI, `psql`, a SQL editor or any other path. The supervisor
+through an MCP server, the `supabase` CLI, `psql`, a SQL editor or any other path. Applying to the
+throwaway local stack `bun run db:proof` starts (rule 50, DEC-343) is a proof, not an apply. The supervisor
 reviews the file and applies it on ethio-staging (where its proofs run on a real schema) and reads
 back its mark; production is applied behind the operator's own approval. Then the supervisor sends
 `continue`.
@@ -74,6 +75,9 @@ after `continue`. Never an empty or placeholder migration.
 - CLOSERS in-file, last: the REVOKE / GRANT lines, then the mark.
 - Run `bash scripts/check-migrations.sh` and paste its guard lines ("Self-marking guard OK" among
   them) before you commit.
+- Before the push, run `bun run db:proof` on the final tree and paste its last line in the stop
+  report and the report; a FAIL is fixed before the push. When Docker is not available, paste its
+  one line; CI is then the proof (DEC-343).
 
 ## The MIGRATION stop report (then push and stop)
 
