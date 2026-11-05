@@ -1,11 +1,11 @@
 # shellcheck shell=bash
 # DEC-343, INC-1063 — THE STACK IS REACHABLE ONLY FROM THIS COMPUTER. Sourced by scripts/db-proof.sh.
-# The pinned CLI publishes every service port with no host address, so Docker binds it on the address
-# its engine's "ip" setting names (every interface when unset). db:proof reads what Docker published
-# for the project's containers after every start and before any migration applies; one mapping on
-# anything but 127.0.0.1 or ::1 refuses the run. db:proof never edits Docker's settings.
+# scripts/db-proof-docker.sh gives every mapping of the stack's start an explicit 127.0.0.1; this
+# check proves it: after every start and before any migration applies, db:proof reads what Docker
+# published for the project's containers, and one mapping on anything but 127.0.0.1 or ::1 refuses
+# the run.
 
-PORTS_OPEN_REFUSAL="the stack's ports are open beyond this computer: set Docker Desktop → Settings → Docker Engine \"ip\": \"127.0.0.1\", then run db:proof again"
+PORTS_OPEN_REFUSAL="the stack's ports are open beyond this computer — the docker wrapper did not reach every mapping (has the pinned CLI's argument form changed?); nothing applied"
 
 # Every published port of the project's containers, from Docker itself: one line per container,
 # "<name> <port>/<proto>=<host address>:<host port> …" (names and ports only).

@@ -1,5 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { report, walkFiles } from "./kit";
 import { readWorkflow } from "./workflow-reader";
@@ -20,6 +22,10 @@ import { readWorkflow } from "./workflow-reader";
  *   4. INC-1063: on every start kind (cold, restart, warm), after the start and before the holds and
  *      `migration up`, db:proof reads the stack's published ports from Docker (scripts/db-proof-ports.sh)
  *      and refuses — the stack stopped with --no-backup — when any binds beyond 127.0.0.1 or ::1.
+ *   5. INC-1063: the CLI's start (the one call that creates containers) runs with
+ *      scripts/db-proof-docker.sh first on PATH as `docker`; it gives each `-p` / `--publish` value
+ *      without an address 127.0.0.1 and runs the real docker by the absolute path db:proof resolved
+ *      before, never through PATH.
  */
 
 const WORKFLOW = ".github/workflows/local-backend-proof.yml";
@@ -28,7 +34,8 @@ const LIBRARY = "scripts/ci/local-backend-db.sh";
 const DB_PROOF = "scripts/db-proof.sh";
 const PORTS = "scripts/db-proof-ports.sh";
 const PORTS_REFUSAL =
-  'the stack\'s ports are open beyond this computer: set Docker Desktop → Settings → Docker Engine "ip": "127.0.0.1", then run db:proof again';
+  "the stack's ports are open beyond this computer — the docker wrapper did not reach every mapping (has the pinned CLI's argument form changed?); nothing applied";
+const WRAPPER = "scripts/db-proof-docker.sh";
 const PREPARE_STEP = "Prepare temporary working copy";
 const START_STEP = "Start backend and apply all migrations";
 /** Text only the working copy's fixtures and patches carry. */
@@ -175,6 +182,41 @@ export function portCheckFindings(dbProof: Source): Finding[] {
   return findings;
 }
 
+/**
+ * Rule 5 over db-proof.sh and the wrapper: the real docker is resolved by absolute path before the
+ * start, the start alone runs with the wrapper first on PATH, and the wrapper runs only that path.
+ */
+export function wrapperFindings(dbProof: Source, wrapper: Source): Finding[] {
+  const findings: Finding[] = [];
+  const lines = dbProof.text.split("\n");
+  const resolved = lines.findIndex((l) => /^REAL_DOCKER=\$\(command -v docker\)$/.test(l));
+  const linked = lines.findIndex((l) =>
+    l.includes(`ln -sf "$PWD/${WRAPPER}" "$DOCKER_WRAPPER_BIN/docker"`),
+  );
+  const starts = lines.map((l, i) => ({ l, i })).filter(({ l }) => /"\$cli" start /.test(l));
+  const add = (file: string, what: string) => findings.push({ file, line: 0, what });
+  if (resolved < 0) add(dbProof.file, "the real docker is not resolved by `command -v docker`");
+  if (linked < 0) add(dbProof.file, `${WRAPPER} is not linked as docker`);
+  if (starts.length === 0) add(dbProof.file, "no start of the pinned CLI");
+  for (const { i } of starts) {
+    const call = `${lines[i - 1] ?? ""}\n${lines[i] ?? ""}`;
+    if (!call.includes('PATH="$DOCKER_WRAPPER_BIN:$PATH" DB_PROOF_REAL_DOCKER="$REAL_DOCKER"'))
+      add(dbProof.file, "the start runs without the wrapper first on PATH");
+    if (resolved > i || linked > i)
+      add(dbProof.file, "the real docker or the wrapper is set up after the start");
+  }
+  if (lines.some((l) => /^\s*(?:export\s+)?PATH=\S*\s*$/.test(l)))
+    add(dbProof.file, "PATH is changed for more than the start");
+  const commands = commandLines(wrapper.text).map((c) => c.text);
+  if (!commands.some((c) => /^real="\$\{DB_PROOF_REAL_DOCKER:-\}"$/.test(c)))
+    add(wrapper.file, "the wrapper does not take the real docker from DB_PROOF_REAL_DOCKER");
+  if (commands.some((c) => /\bcommand -v\b|\bwhich\b|\bexec docker\b|^\s*docker\s/.test(c)))
+    add(wrapper.file, "the wrapper resolves docker through PATH");
+  if (commands.some((c) => /\bexec\b/.test(c) && !/\bexec "\$real"/.test(c)))
+    add(wrapper.file, "the wrapper runs something other than the real docker");
+  return findings;
+}
+
 const read = (file: string): Source => ({ file, text: readFileSync(file, "utf8") });
 const others = [
   ...walkFiles([".github/workflows"], { ext: ["yml"] }).filter((f) => f !== WORKFLOW),
@@ -281,5 +323,99 @@ describe("one preparation and one set of database steps for CI and db:proof (DEC
     expect([open.status, open.stdout.trim()]).toEqual([0, PORTS_REFUSAL]);
     const local = parse("/saas-adminer 8080/tcp=127.0.0.1:8080 8080/tcp=::1:8080\n");
     expect([local.status, local.stdout]).toEqual([0, ""]);
+  });
+
+  it("CF-DBP-7 the wrapper gives every unaddressed mapping 127.0.0.1, and only the start runs it (INC-1063)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "db-proof-wrapper-"));
+    try {
+      const echo = join(dir, "real-docker");
+      writeFileSync(echo, '#!/bin/sh\nprintf "%s\\n" "$@"\n');
+      chmodSync(echo, 0o755);
+      const wrap = (args: string[], real = echo) =>
+        spawnSync("bash", [WRAPPER, ...args], {
+          encoding: "utf8",
+          env: { ...process.env, DB_PROOF_REAL_DOCKER: real },
+        });
+      const run = wrap([
+        "run",
+        "-p",
+        "31322:5432",
+        "-p",
+        "31321:8443/tcp",
+        "-p=31324:8025",
+        "--publish",
+        "31324:8025",
+        "--publish=1:2",
+        "-p",
+        "127.0.0.1:1:2",
+        "-p",
+        "[::1]:1:2",
+        "-e",
+        "X=1:2",
+        "image",
+      ]);
+      expect([run.status, run.stdout.trim().split("\n")]).toEqual([
+        0,
+        [
+          "run",
+          "-p",
+          "127.0.0.1:31322:5432",
+          "-p",
+          "127.0.0.1:31321:8443/tcp",
+          "-p=127.0.0.1:31324:8025",
+          "--publish",
+          "127.0.0.1:31324:8025",
+          "--publish=127.0.0.1:1:2",
+          "-p",
+          "127.0.0.1:1:2",
+          "-p",
+          "[::1]:1:2",
+          "-e",
+          "X=1:2",
+          "image",
+        ],
+      ]);
+      const other = wrap(["exec", "c", "psql", "-p", "31322:5432"]);
+      expect(other.stdout.trim().split("\n")).toEqual(["exec", "c", "psql", "-p", "31322:5432"]);
+      const missing = wrap(["ps"], "");
+      expect([missing.status, missing.stdout, missing.stderr.trim().split("\n").length]).toEqual([
+        127,
+        "",
+        1,
+      ]);
+      expect(wrap(["ps"], join(process.cwd(), WRAPPER)).status).toBe(127);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+    const dbProof = read(DB_PROOF);
+    const wrapper = read(WRAPPER);
+    expect(report(wrapperFindings(dbProof, wrapper))).toBe("");
+    const bare = {
+      file: DB_PROOF,
+      text: dbProof.text.replace(
+        'PATH="$DOCKER_WRAPPER_BIN:$PATH" DB_PROOF_REAL_DOCKER="$REAL_DOCKER" \\\n',
+        "",
+      ),
+    };
+    expect(wrapperFindings(bare, wrapper).map((f) => f.what)).toEqual([
+      "the start runs without the wrapper first on PATH",
+    ]);
+    const throughPath = {
+      file: WRAPPER,
+      text: wrapper.text.replace('exec "$real" ${args[@]+"${args[@]}"}', 'exec docker "$@"'),
+    };
+    expect(wrapperFindings(dbProof, throughPath).map((f) => f.what)).toEqual([
+      "the wrapper resolves docker through PATH",
+      "the wrapper runs something other than the real docker",
+    ]);
+    const late = {
+      file: DB_PROOF,
+      text: dbProof.text
+        .replace("REAL_DOCKER=$(command -v docker)\n", "")
+        .replace("record_applied\necho", "record_applied\nREAL_DOCKER=$(command -v docker)\necho"),
+    };
+    expect(wrapperFindings(late, wrapper).map((f) => f.what)).toEqual([
+      "the real docker or the wrapper is set up after the start",
+    ]);
   });
 });

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 # DEC-343 — THE LOCAL DATABASE FOR PROOFS. `bun run db:proof [--fresh | --stop]`
-# Every migration is applied to a throwaway stack on this computer's Docker before it is pushed; the
-# stack is 127.0.0.1-only because every start is followed by the INC-1063 check
-# (scripts/db-proof-ports.sh: any published port beyond 127.0.0.1 or ::1 stops it, NOT RUN, before
-# any migration applies). It applies them the way CI's lanes do: the working copy from
-# scripts/ci/prepare-local-backend.sh, the CLI version and the services CI pins (read from
-# local-backend-proof.yml, fetched once by checksum, run by its own path), DEC-313's start with no migrations, and the holds, the DEC-340
-# capture, the restore and the ledger check from scripts/ci/local-backend-db.sh. A failed apply prints
+# Every migration is applied to a throwaway stack on this computer's Docker before it is pushed. The
+# stack is 127.0.0.1-only (INC-1063): its start runs with scripts/db-proof-docker.sh as `docker`,
+# which gives every port mapping an explicit 127.0.0.1 (the one form this engine honours, by probe),
+# and the port check (scripts/db-proof-ports.sh) proves it after every start — any published port
+# beyond 127.0.0.1 or ::1 stops the stack, NOT RUN, before any migration applies. It applies them the
+# way CI's lanes do: the working copy from scripts/ci/prepare-local-backend.sh, the CLI version and
+# the services CI pins (read from local-backend-proof.yml, fetched once by checksum, run by its own
+# path), DEC-313's start with no migrations, and the holds, the DEC-340 capture, the restore and the ledger check from scripts/ci/local-backend-db.sh. A failed apply prints
 # scripts/ci/start-failure-excerpt.mjs's excerpt (the server's error record included).
 # The stack stays up: a re-run applies only files newer than the last applied one; anything else
 # (an applied file changed or gone, a file sorting before the last applied, a changed config) runs
@@ -77,6 +78,9 @@ for tool in docker python3 node openssl tar curl lsof timeout; do
   command -v "$tool" > /dev/null || not_run "$tool is not installed (timeout: GNU coreutils)"
 done
 sha256() { if command -v sha256sum > /dev/null; then sha256sum "$@"; else shasum -a 256 "$@"; fi; }
+# INC-1063: the real docker, by its absolute path, resolved before any PATH carries the wrapper.
+REAL_DOCKER=$(command -v docker)
+case "$REAL_DOCKER" in /*) ;; *) not_run "docker is not an executable on PATH" ;; esac
 timeout 15 docker info > /dev/null 2>&1 || not_run "Docker is not running: start Docker Desktop, then run db:proof again"
 mkdir -p "$STATE"
 if ! mkdir "$STATE/lock" 2> /dev/null; then
@@ -206,11 +210,17 @@ if [ "$start_kind" != warm ]; then
     holder=$(lsof -nP -iTCP:"$port" -sTCP:LISTEN -Fc 2> /dev/null | sed -n 's/^c//p' | head -n 1)
     [ -z "$holder" ] || not_run "port $port is in use by $holder; stop it, then run db:proof again"
   done
+  # INC-1063: the start (the one CLI call that creates containers) finds scripts/db-proof-docker.sh
+  # as `docker`, which gives every mapping 127.0.0.1 and runs $REAL_DOCKER.
+  DOCKER_WRAPPER_BIN="$STATE/bin"
+  mkdir -p "$DOCKER_WRAPPER_BIN"
+  ln -sf "$PWD/scripts/db-proof-docker.sh" "$DOCKER_WRAPPER_BIN/docker"
   held="$STATE/held-migrations"
   rm -rf "$held"
   mv "$WC/supabase/migrations" "$held"
   mkdir -p "$WC/supabase/migrations"
-  timeout --kill-after=15 "$START_SECONDS_MAX" "$cli" start --workdir "$WC" -x "$excludes" > "$STATE/start.log" 2>&1
+  PATH="$DOCKER_WRAPPER_BIN:$PATH" DB_PROOF_REAL_DOCKER="$REAL_DOCKER" \
+    timeout --kill-after=15 "$START_SECONDS_MAX" "$cli" start --workdir "$WC" -x "$excludes" > "$STATE/start.log" 2>&1
   result=$?
   rmdir "$WC/supabase/migrations"
   mv "$held" "$WC/supabase/migrations"
