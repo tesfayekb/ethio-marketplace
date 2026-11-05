@@ -1816,6 +1816,29 @@ export type Database = {
           },
         ]
       }
+      level_ranks: {
+        Row: {
+          feed_rank: number
+          key: string
+        }
+        Insert: {
+          feed_rank: number
+          key: string
+        }
+        Update: {
+          feed_rank?: number
+          key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "level_ranks_key_fkey"
+            columns: ["key"]
+            isOneToOne: true
+            referencedRelation: "listing_packages"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       listing_certifications: {
         Row: {
           action: string
@@ -1926,17 +1949,29 @@ export type Database = {
         Row: {
           expired: number
           id: number
+          level_ended: number
+          level_paused: number
           ran_at: string
+          reach_ended: number
+          reminded: number
         }
         Insert: {
           expired: number
           id?: number
+          level_ended?: number
+          level_paused?: number
           ran_at?: string
+          reach_ended?: number
+          reminded?: number
         }
         Update: {
           expired?: number
           id?: number
+          level_ended?: number
+          level_paused?: number
           ran_at?: string
+          reach_ended?: number
+          reminded?: number
         }
         Relationships: []
       }
@@ -2003,6 +2038,7 @@ export type Database = {
           days: number
           enabled: boolean
           extends_lifetime: boolean
+          is_baseline: boolean
           key: string
           kind: string
           max_photos: number | null
@@ -2021,6 +2057,7 @@ export type Database = {
           days: number
           enabled?: boolean
           extends_lifetime?: boolean
+          is_baseline?: boolean
           key: string
           kind: string
           max_photos?: number | null
@@ -2039,6 +2076,7 @@ export type Database = {
           days?: number
           enabled?: boolean
           extends_lifetime?: boolean
+          is_baseline?: boolean
           key?: string
           kind?: string
           max_photos?: number | null
@@ -2428,6 +2466,9 @@ export type Database = {
           public_id: string
           published_at: string | null
           published_first_at: string | null
+          reach: string | null
+          reach_source: string | null
+          reach_until: string | null
           renewed_at: string | null
           renewed_count: number
           reserved_at: string | null
@@ -2439,6 +2480,9 @@ export type Database = {
           status: string
           street_address: string | null
           tier: string
+          tier_reminded_for: string | null
+          tier_source: string | null
+          tier_until: string | null
           title: string
           updated_at: string
           video_url: string | null
@@ -2483,6 +2527,9 @@ export type Database = {
           public_id?: string
           published_at?: string | null
           published_first_at?: string | null
+          reach?: string | null
+          reach_source?: string | null
+          reach_until?: string | null
           renewed_at?: string | null
           renewed_count?: number
           reserved_at?: string | null
@@ -2494,6 +2541,9 @@ export type Database = {
           status?: string
           street_address?: string | null
           tier?: string
+          tier_reminded_for?: string | null
+          tier_source?: string | null
+          tier_until?: string | null
           title: string
           updated_at?: string
           video_url?: string | null
@@ -2538,6 +2588,9 @@ export type Database = {
           public_id?: string
           published_at?: string | null
           published_first_at?: string | null
+          reach?: string | null
+          reach_source?: string | null
+          reach_until?: string | null
           renewed_at?: string | null
           renewed_count?: number
           reserved_at?: string | null
@@ -2549,6 +2602,9 @@ export type Database = {
           status?: string
           street_address?: string | null
           tier?: string
+          tier_reminded_for?: string | null
+          tier_source?: string | null
+          tier_until?: string | null
           title?: string
           updated_at?: string
           video_url?: string | null
@@ -2581,6 +2637,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "shown_locations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "listings_reach_fkey"
+            columns: ["reach"]
+            isOneToOne: false
+            referencedRelation: "listing_packages"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "listings_tier_fkey"
+            columns: ["tier"]
+            isOneToOne: false
+            referencedRelation: "listing_packages"
+            referencedColumns: ["key"]
           },
         ]
       }
@@ -3640,7 +3710,7 @@ export type Database = {
           listing_id: string
           note: string | null
           read_at: string | null
-          reason: string
+          reason: string | null
           seller_id: string
         }
         Insert: {
@@ -3652,7 +3722,7 @@ export type Database = {
           listing_id: string
           note?: string | null
           read_at?: string | null
-          reason: string
+          reason?: string | null
           seller_id: string
         }
         Update: {
@@ -3664,7 +3734,7 @@ export type Database = {
           listing_id?: string
           note?: string | null
           read_at?: string | null
-          reason?: string
+          reason?: string | null
           seller_id?: string
         }
         Relationships: [
@@ -5107,6 +5177,7 @@ export type Database = {
       }
       admin_set_listing_tier: {
         Args: {
+          p_days?: number
           p_listing_id: string
           p_note?: string
           p_reason: string
@@ -5419,6 +5490,7 @@ export type Database = {
         Args: { p_attribute_id: string; p_link_id?: string; p_value?: string }
         Returns: number
       }
+      baseline_level_key: { Args: never; Returns: string }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
         Returns: {
@@ -5537,6 +5609,16 @@ export type Database = {
       }
       deal_keys: { Args: { p_category_id: string }; Returns: string[] }
       delete_draft: { Args: { p_listing_id: string }; Returns: Json }
+      designation_sweep_core: {
+        Args: { p_only?: string[] }
+        Returns: {
+          n_expired: number
+          n_level_ended: number
+          n_level_paused: number
+          n_reach_ended: number
+          n_reminded: number
+        }[]
+      }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       edit_listing: {
         Args: {
@@ -5620,13 +5702,16 @@ export type Database = {
         Args: { p_category_ids: string[] }
         Returns: number
       }
+      feed_reindex_enqueue_listings: {
+        Args: { p_listing_ids: string[] }
+        Returns: number
+      }
       feed_reindex_enqueue_places: {
         Args: { p_location_ids: string[] }
         Returns: number
       }
       feed_reindex_sweep: { Args: { p_limit?: number }; Returns: number }
       feed_reindex_wake: { Args: never; Returns: undefined }
-      feed_tier_rank: { Args: { p_tier: string }; Returns: number }
       geo_distance_km: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
@@ -5879,11 +5964,13 @@ export type Database = {
       }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
+      listing_group_of: { Args: { p_status: string }; Returns: string }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
       listing_photo_review_label: {
         Args: { p_review: Json; p_unscreened: boolean }
         Returns: string
       }
+      listing_places_trim: { Args: { p_listing_id: string }; Returns: string[] }
       listing_reveal_count: { Args: { p_listing_id: string }; Returns: number }
       listing_saved: { Args: { p_public_id: string }; Returns: boolean }
       loc_export_row: { Args: { p_id: string }; Returns: Json }
@@ -5925,6 +6012,29 @@ export type Database = {
         Returns: number
       }
       mark_sold: { Args: { p_listing_id: string }; Returns: Json }
+      market_settings_for: {
+        Args: { p_country_code: string }
+        Returns: {
+          country_code: string | null
+          created_at: string
+          created_by: string | null
+          free_regular_ads: number
+          id: string
+          included_reach: string
+          launch_credits: number | null
+          launch_days: number | null
+          paid_levels: boolean
+          paid_levels_since: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "market_settings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       merge_attributes_impl: {
         Args: { p_sources: string[]; p_target: string }
         Returns: Json
@@ -6134,6 +6244,7 @@ export type Database = {
         Args: { p_request_country: string; p_user_id: string }
         Returns: string
       }
+      resume_listing: { Args: { p_listing_id: string }; Returns: Json }
       reveal_listing_contact: { Args: { p_public_id: string }; Returns: Json }
       revoke_role: {
         Args: { p_role_name: string; p_target_user: string }
@@ -6168,6 +6279,19 @@ export type Database = {
         Args: { p_profile: string }
         Returns: string
       }
+      seller_regular_live:
+        | {
+            Args: { p_country_code: string; p_seller: string }
+            Returns: number
+          }
+        | {
+            Args: {
+              p_country_code: string
+              p_exclude: string
+              p_seller: string
+            }
+            Returns: number
+          }
       set_cover_photo: {
         Args: { p_listing_id: string; p_photo_id: string }
         Returns: Json
@@ -6175,6 +6299,10 @@ export type Database = {
       set_language_order_impl: {
         Args: { p_codes: string[] }
         Returns: undefined
+      }
+      set_listing_level: {
+        Args: { p_level_key: string; p_listing_id: string }
+        Returns: Json
       }
       set_listing_photos_soon: {
         Args: { p_listing_id: string; p_on: boolean }
@@ -6202,6 +6330,10 @@ export type Database = {
           p_price_negotiable?: boolean
           p_price_period: string
         }
+        Returns: Json
+      }
+      set_listing_reach: {
+        Args: { p_listing_id: string; p_reach_key: string }
         Returns: Json
       }
       set_listing_reserved: {

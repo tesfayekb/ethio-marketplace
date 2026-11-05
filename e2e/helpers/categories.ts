@@ -10,6 +10,7 @@ import {
 } from "./ui";
 
 import { adminClient } from "./users";
+import { seedListingRow } from "./listing-seed";
 import { errorText } from "../../src/lib/error-text";
 
 /**
@@ -287,9 +288,9 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
   if (locationError || !location) {
     throw new Error(`[e2e:c2] no active location: ${locationError?.message ?? "no row"}`);
   }
-  const { data, error } = await supabase
-    .from("listings")
-    .insert({
+  // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+  const data = await seedListingRow(
+    {
       category_id: categoryId,
       seller_id: sellerId,
       location_id: location.id,
@@ -299,12 +300,9 @@ export async function seedActiveListing(categoryId: string, sellerId: string): P
       title: `e2e-cat-listing-${RUN}-${rand()}`,
       description: "e2e scratch listing for the retire walk",
       status: "active",
-    })
-    .select("id")
-    .single();
-  if (error || !data) {
-    throw new Error(`[e2e:c2] seeding the listing failed: ${error?.message ?? "no row"}`);
-  }
+    },
+    { tag: "c2" },
+  );
   return data.id;
 }
 

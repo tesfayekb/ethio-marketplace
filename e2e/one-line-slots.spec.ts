@@ -20,6 +20,7 @@ import {
   watchAccountLanguage,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 
 /**
  * INC-957 — one line at 360, in every public language and both themes.
@@ -162,11 +163,7 @@ test("OLS-5 an ad's section tabs, and its ribbon and tier tag when drawn, fit", 
   try {
     const seller = await fixtures.scratchSeller();
     const row = await fixtures.seed(seller, "active", { pin: true });
-    const marked = await adminClient()
-      .from("listings")
-      .update({ tier: "premium" })
-      .eq("id", row.id);
-    if (marked.error) throw new Error(`[e2e:ols] marking premium failed: ${marked.error.message}`);
+    await updateListingRow(row.id, { tier: "premium" }, { tag: "ols" });
     const path = listingPath(row.title, await fixtures.publicIdOf(row.id));
     await gotoReady(page, path);
     await expect(page.getByTestId("listing-section-nav")).toBeVisible({ timeout: 15000 });

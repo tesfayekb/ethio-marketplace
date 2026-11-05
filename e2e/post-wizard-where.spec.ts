@@ -9,6 +9,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 import {
   leaseSeller,
   bearerOf,
@@ -333,16 +334,15 @@ test.describe("POSTING WIZARD — where the ad is shown (W6b-1)", () => {
       objects.push({ userId: user.id, listingId });
       // Scratch row only (G27): made ACTIVE so RLS shows it to seller A.
       const now = new Date();
-      const { error } = await adminClient()
-        .from("listings")
-        .update({
+      await updateListingRow(
+        listingId,
+        {
           status: "active",
           published_at: now.toISOString(),
           expires_at: new Date(now.getTime() + 7 * 86_400_000).toISOString(),
-        })
-        .eq("id", listingId);
-      if (error)
-        throw new Error(`PW-84: activating the other seller's listing failed: ${error.message}`);
+        },
+        { tag: "pw84" },
+      );
     } finally {
       await stopPageBeforePurge(other);
       await context.close();

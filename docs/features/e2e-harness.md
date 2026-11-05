@@ -110,6 +110,48 @@ One user per run, created and destroyed in the same run; `profiles` and `user_di
 cascade from `auth.users`. No shared long-lived fixture user; tests mutate nothing they
 did not create.
 
+### Seeding an ad under the free-slot law (D318, register row 114)
+
+The free-slot law lives at the table (`listings_free_slot_guard`, CF-SLOT-1, register row 113):
+a seller's counted baseline ads (screening, held, active, reduced at the baseline level) in a
+market never exceed `market_settings_for(country).free_regular_ads` — three by default — and a
+browser test's service-role INSERT is a writer like any other; no test-only switch bypasses the
+guard. Every `from("listings").insert(…)` in `e2e/` therefore goes through
+`e2e/helpers/listing-seed.ts` (`seedListingRow` / `seedListingRows`; CF-SEED-1,
+`scripts/conformance/listing-seed.test.ts`). The helper reads the seller's room BEFORE the write,
+through the guard's own readers (`baseline_level_key`, `market_settings_for`,
+`seller_regular_live`), so a spec's rows are the same whether or not the guard is applied where
+it runs. An ad beyond the free slots takes one of three ways, chosen by the spec's subject:
+`beyondFreeSlots: "level"` seeds it at the first enabled level above the baseline (the
+my-listings specs, whose doors read status and ownership — a seller with more live ads than free
+slots holds levels, the realistic state); a status that does not count (closed, sold, expired,
+draft) where the subject allows; or, where the subject is the feed (the cards' order and place,
+never who posted them), more scratch sellers — the helper's default refuses a fourth counted
+baseline ad on one seller at the seeding line with the law's words. Drafts and unplaced rows pass
+through. The two INSERTs that assert the table's own refusal (AP-15) hold allowlist lines.
+
+The law fires on UPDATE OF status, tier as well (ruling 14, INC-1061): a service-role write that
+moves an existing ad INTO the counted baseline set is a writer too. Every service-role
+`.update(…)` of `listings` in `e2e/` whose payload names `status` or `tier` (or cannot be read as
+a literal) goes through `updateListingRow(id, patch, { tag, select?, where?, beyondFreeSlots? })`
+in the same file: it reads the row and the seller's room (the row itself left out) and applies
+the same rule — refused at the line by default, moved to the level above the baseline with
+`"level"`; a write into a status that does not count, or one that leaves the row where it was,
+passes as given. An ad that must be live beyond the seller's free slots takes its level while
+it is still a draft, so the seller's own door publishes it (LG-29). CF-SEED-1 (CFS-1…4) judges
+both writers.
+
+### Reading a door's answer (INC-1062, register row 115)
+
+A door that refuses in its body answers `{ ok: false, refusals }` with a null transport error, so
+`expect(x.error).toBeNull()` alone takes a refusal for a success. A test reads an envelope door's
+answer through `e2e/helpers/door-answer.ts`: `doorAnswer(result, what)` returns the payload only
+when the error is null and `ok` is true, otherwise it fails naming the refusals;
+`doorRefusal(result, reason, what)` asserts the named refusal. CF-DOOR-1
+(`scripts/conformance/door-answers.test.ts`) derives the envelope doors from the migrations'
+last declarations and fails every e2e call of one whose answer is neither handed to the helpers
+nor read for its `ok` (a raised refusal the test asserts passes).
+
 ## Prerequisite: staging schema
 
 The staging database must carry the same schema as ethio-prod (`countries`, `user_directory`,

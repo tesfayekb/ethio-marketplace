@@ -18,6 +18,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -243,9 +244,9 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed", "closed"].includes(status);
     const ago = options.publishedAgoMs ?? 20 * DAY;
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -264,11 +265,10 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
         published_at: live ? at(-ago) : null,
         published_first_at: live ? at(-ago) : null,
         expires_at: live ? at(options.expiresInMs ?? 10 * DAY - HOUR) : null,
-      })
-      .select("id")
-      .single();
-    if (error || !data) throw new Error(`[e2e:mla] seeding failed: ${error?.message ?? "no row"}`);
-    const id = data.id as string;
+      },
+      { tag: "mla" },
+    );
+    const id = data.id;
     listingIds.push(id);
     const located = await adminClient()
       .from("listing_locations")

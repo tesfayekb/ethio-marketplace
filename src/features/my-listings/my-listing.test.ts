@@ -26,9 +26,10 @@ import {
   parseMyListing,
   sellerLines,
   STATUS_WORD,
+  EDITABLE_STATUSES,
   type MyListing,
 } from "./my-listing";
-import { REASON_WORD, REMOVAL_REASON, SOLD_ON } from "./state-line";
+import { REASON_WORD, REMOVAL_REASON, SOLD_ON, stateLine } from "./state-line";
 
 /** Bundle 16 turn 3 — one ad's answer, its history and its actions. */
 const row = {
@@ -60,6 +61,11 @@ const row = {
   createdAt: "2026-09-30T08:00:00+00:00",
   updatedAt: "2026-10-14T08:00:00+00:00",
   removedReason: null,
+  level: "regular",
+  levelUntil: null,
+  levelSource: null,
+  reach: null,
+  reachUntil: null,
 };
 const answer = {
   listing: row,
@@ -296,4 +302,37 @@ it("ML-U22 listing_counts parses four non-negative integers; a missing or negati
     { ...counts, saves: -1 },
   ])
     expect(parseListingCounts(value)).toBeNull();
+});
+
+it("ML-U24 the free-slot law's refusal (resume, renew, reopen, the edit into review) is said in the wizard's words", () => {
+  expect(actionErrorKey("noFreeSlot")).toBe("post.refusal.noFreeSlot");
+});
+
+it("ML-U25 a paused ad offers Resume first, Mark as sold and Delete, and is edited; its line is the pause with its kept days", () => {
+  const base = ad({ status: "paused" }, { group: "attention", resumeStatus: "active" });
+  const paused = { ...base, listing: { ...base.listing, daysKept: 10 } };
+  expect(actionsFor(paused)).toEqual(["resume", "sell", "delete"]);
+  expect(primaryAction(actionsFor(paused))).toBe("resume");
+  expect(rowActionsFor(paused.listing, true)).toEqual(["resume", "sell", "delete"]);
+  expect(EDITABLE_STATUSES.has("paused")).toBe(true);
+  expect(ACTION_KEY.resume).toBe("myListings.ad.resume");
+  expect(STATUS_WORD["paused"]).toBe("myListings.paused");
+  const t = (key: keyof typeof en) => en[key];
+  expect(stateLine(paused.listing, t, () => "")).toBe(`${en["myListings.paused"]} · Days kept: 10`);
+  expect(stateLine({ ...paused.listing, daysKept: null }, t, () => "")).toBe(
+    en["myListings.paused"],
+  );
+  expect(actionErrorKey("notPaused")).toBe("myListings.error.changed");
+  expect(actionErrorKey("listingNotFound")).toBe("myListings.error.notYours");
+});
+
+it("ML-U26 a live ad whose level has an end says when it ends, through the date it is given", () => {
+  const t = (key: keyof typeof en) => en[key];
+  const day = (iso: string | null) => (iso === null ? "" : `day(${iso})`);
+  const live = {
+    ...ad({ status: "active", daysLeft: 5 }).listing,
+    levelUntil: "2026-12-01T00:00:00Z",
+  };
+  expect(stateLine(live, t, day)).toBe("Days left: 5 · Level ends day(2026-12-01T00:00:00Z)");
+  expect(stateLine({ ...live, levelUntil: null }, t, day)).toBe("Days left: 5");
 });

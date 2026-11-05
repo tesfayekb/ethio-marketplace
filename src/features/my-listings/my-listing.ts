@@ -177,6 +177,7 @@ export type ListingAction =
   | "close"
   | "reopen"
   | "renew"
+  | "resume"
   | "delete";
 
 /**
@@ -190,6 +191,11 @@ export type ListingAction =
  * Bundle 16 turn R1 (D181) — ONE rule for the ad's page (`actionsFor`, from
  * `my_listing`) and for each row of My listings (`rowActionsFor`, from
  * `my_listings`), so the two never offer different things.
+ *
+ * P-2 (a) ruling 14 (DEC-328) — a paused ad (its level ended and every free ad
+ * of the seller's in its country is in use): Resume first (`resume_listing`, the
+ * time it had left), Mark as sold, Delete; it is edited too (EDITABLE_STATUSES —
+ * the edit, the pin and photos-soon doors accept it).
  */
 export function offerFor(
   status: string,
@@ -203,6 +209,8 @@ export function offerFor(
       return [reserved ? "unreserve" : "reserve", "sell", "close", "delete"];
     case "closed":
       return canReopen ? ["reopen", "sell", "delete"] : ["sell", "delete"];
+    case "paused":
+      return ["resume", "sell", "delete"];
     case "expired":
       return renewAllowed ? ["renew", "delete"] : ["delete"];
     case "removed":
@@ -230,9 +238,9 @@ export function rowActionsFor(row: MyListingRow, renewAllowed: boolean): Listing
   return offerFor(row.status, row.reserved, true, renewAllowed);
 }
 
-/** Turn R1 — the ad's main next step, drawn filled on its page: Reopen, Renew, then Mark as sold. */
+/** Turn R1 — the ad's main next step, drawn filled on its page: Resume, Reopen, Renew, then Mark as sold. */
 export function primaryAction(actions: ListingAction[]): ListingAction | null {
-  for (const action of ["reopen", "renew", "sell"] as const) {
+  for (const action of ["resume", "reopen", "renew", "sell"] as const) {
     if (actions.includes(action)) return action;
   }
   return null;
@@ -249,16 +257,22 @@ export function actionErrorKey(message: string): MessageKey {
     return "myListings.editBox.nothing";
   if (message.includes("an ad in review is edited")) return "myListings.ad.waiting";
   if (message.includes("residencyUnknown")) return "post.refusal.residencyUnknown";
+  if (message.includes("noFreeSlot")) return "post.refusal.noFreeSlot";
   if (message.includes("account is deactivated")) return "myListings.error.deactivated";
   if (message.includes("renewOff")) return "myListings.renewOff";
   if (message.includes("removed by enforcement only")) return "myListings.error.severe";
-  if (message.includes("not your listing") || message.includes("listing not found"))
+  if (
+    message.includes("not your listing") ||
+    message.includes("listing not found") ||
+    message.includes("listingNotFound")
+  )
     return "myListings.error.notYours";
   if (
     message.includes("illegal transition") ||
     message.includes("only a live listing") ||
     message.includes("owner only") ||
-    message.includes("renewNeedsExpired")
+    message.includes("renewNeedsExpired") ||
+    message.includes("notPaused")
   )
     return "myListings.error.changed";
   return "myListings.error.failed";
@@ -311,6 +325,10 @@ export async function runAction(
         p_listing_id: id,
         ...certificationArgs(certification),
       });
+      break;
+    case "resume":
+      // P-2 (a) — out of the pause, to the status it was paused from; the free-slot law answers noFreeSlot.
+      result = await supabase.rpc("resume_listing", { p_listing_id: id });
       break;
     case "delete":
       // Turn 3b (call F) — deleted by its owner: it leaves My listings; the record stays.
@@ -396,6 +414,8 @@ export const DONE_KEY: Record<Exclude<ListingAction, "delete">, MessageKey> = {
   close: "myListings.done.close",
   reopen: "myListings.done.reopen",
   renew: "myListings.done.renew",
+  // P-2 (a) ruling 14 — no resume line of its own yet: the ad is live again, as a reopened one is.
+  resume: "myListings.done.reopen",
 };
 
 /** Turn R1 — what the list says once an ad is deleted from it. */
@@ -409,6 +429,7 @@ export const ACTION_KEY: Record<ListingAction, MessageKey> = {
   close: "myListings.action.close",
   reopen: "myListings.action.reopen",
   renew: "myListings.action.renew",
+  resume: "myListings.ad.resume",
   delete: "myListings.action.delete",
 };
 
@@ -507,6 +528,7 @@ export const STATUS_WORD: Record<string, MessageKey> = {
   closed: "myListings.closedLine",
   expired: "admin.listings.status.expired",
   sold: "myListings.group.sold",
+  paused: "myListings.paused",
 };
 
 /**
@@ -525,7 +547,7 @@ export function sellerLines(lines: HistoryLine[]): HistoryLine[] {
 
 /**
  * Bundle 16 turn R2 (D172, D177) — THE SELLER'S EDIT IN BOXES. The statuses an ad
- * is edited in: live (with full or reduced reach), closed and refused. An ad in
+ * is edited in: live (with full or reduced reach), closed, paused and refused. An ad in
  * review waits for its answer (call G), an expired ad is renewed first, a draft
  * continues in the posting form, a sold or removed ad is not edited. The door
  * (`edit_my_listing`) holds the same rule.
@@ -534,6 +556,7 @@ export const EDITABLE_STATUSES: ReadonlySet<string> = new Set([
   "active",
   "reduced",
   "closed",
+  "paused",
   "rejected",
 ]);
 

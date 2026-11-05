@@ -27,6 +27,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10);
@@ -216,9 +217,9 @@ test.describe("ADMIN SCREENING", () => {
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
     const title = options.title ?? `e2e-screen-${RUN}-${rand()}`;
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+    const data = await seedListingRow(
+      {
         category_id: leaf.id,
         seller_id: seller.id,
         location_id: chain.city.id,
@@ -232,10 +233,9 @@ test.describe("ADMIN SCREENING", () => {
           : {}),
         ...(options.contactPref === undefined ? {} : { contact_pref: options.contactPref }),
         ...(options.tier === undefined ? {} : { tier: options.tier }),
-      })
-      .select("id")
-      .single();
-    if (error || !data) throw new Error(`[e2e:sc] seeding failed: ${error?.message ?? "no row"}`);
+      },
+      { tag: "sc" },
+    );
     return {
       id: data.id as string,
       sellerId: seller.id,
@@ -1299,12 +1299,7 @@ test.describe("ADMIN SCREENING", () => {
 
     // A draft of the test's own, with a failed photo: never listed.
     const drafted = await seedWaiting();
-    const toDraft = await adminClient()
-      .from("listings")
-      .update({ status: "draft" })
-      .eq("id", drafted.id);
-    if (toDraft.error)
-      throw new Error(`[e2e:sc] making the draft failed: ${toDraft.error.message}`);
+    await updateListingRow(drafted.id, { status: "draft" }, { tag: "sc" });
     await register(drafted.id, "draft-failed", true, failReview);
 
     const { user, secret } = await useJobSuperAdmin(page);

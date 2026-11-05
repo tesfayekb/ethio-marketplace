@@ -26,6 +26,7 @@ import {
   useJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser, createUser } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -252,9 +253,10 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     } = {},
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed"].includes(status);
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): a fourth counted baseline ad on one seller
+    // is refused at this line, before the table's guard.
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -272,16 +274,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         published_at: live ? (options.publishedAt ?? new Date().toISOString()) : null,
         published_first_at: live ? (options.publishedAt ?? new Date().toISOString()) : null,
         ...(options.screening === undefined ? {} : { screening: options.screening }),
-      })
-      .select("id,title")
-      .single();
-    if (error || !data) throw new Error(`[e2e:al] seeding failed: ${error?.message ?? "no row"}`);
+      },
+      { tag: "al", select: "title" },
+    );
     const located = await adminClient()
       .from("listing_locations")
       .insert({ listing_id: data.id, location_id: seller.cityId, position: 1 });
     if (located.error) throw new Error(`[e2e:al] coverage failed: ${located.error.message}`);
-    if (options.own === true) listingIds.push(data.id as string);
-    return { id: data.id as string, title: data.title as string };
+    if (options.own === true) listingIds.push(data.id);
+    return { id: data.id, title: data["title"] as string };
   }
 
   /** A pooled account holding exactly the named permissions through a scratch role. */
@@ -2371,11 +2372,27 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const audits = await tierAudits(ad.id);
     expect(audits).toHaveLength(1);
     expect(audits[0]?.["actor_id"]).toBe(admin.user.id);
-    expect(audits[0]?.["meta"]).toEqual({ from: "regular", to: "premium", reason: "promotion" });
+    // M-1b part 4's shape (P-2 (a), ruling 7 §3): the source is written; no days, so no until.
+    expect(audits[0]?.["meta"]).toEqual({
+      from: "regular",
+      to: "premium",
+      reason: "promotion",
+      source: "staff",
+    });
     const revisions = await revisionRows(ad.id, "edit");
     expect(revisions).toHaveLength(1);
-    expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
-    expect(revisions[0]?.["after"]).toEqual({ tier: "premium" });
+    // The revision keeps its nulls (P-2 (a), ruling 8 §1): the door's three columns, an explicit
+    // null meaning "no end was set" — unlike the audit meta, a flat summary that strips them.
+    expect(revisions[0]?.["before"]).toEqual({
+      tier: "regular",
+      tier_until: null,
+      tier_source: null,
+    });
+    expect(revisions[0]?.["after"]).toEqual({
+      tier: "premium",
+      tier_until: null,
+      tier_source: "staff",
+    });
     expect(await feedRanks(ad.id)).toEqual([2]);
     // No seller notice (ruling 1, answer 5).
     expect(await noticeRows(ad.id)).toHaveLength(0);
@@ -2572,11 +2589,27 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const audits = await tierAudits(ad.id);
     expect(audits).toHaveLength(1);
     expect(audits[0]?.["actor_id"]).toBe(admin.user.id);
-    expect(audits[0]?.["meta"]).toEqual({ from: "regular", to: "premium", reason: "promotion" });
+    // M-1b part 4's shape (P-2 (a), ruling 7 §3): the source is written; no days, so no until.
+    expect(audits[0]?.["meta"]).toEqual({
+      from: "regular",
+      to: "premium",
+      reason: "promotion",
+      source: "staff",
+    });
     const revisions = await revisionRows(ad.id, "edit");
     expect(revisions).toHaveLength(1);
-    expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
-    expect(revisions[0]?.["after"]).toEqual({ tier: "premium" });
+    // The revision keeps its nulls (P-2 (a), ruling 8 §1): the door's three columns, an explicit
+    // null meaning "no end was set" — unlike the audit meta, a flat summary that strips them.
+    expect(revisions[0]?.["before"]).toEqual({
+      tier: "regular",
+      tier_until: null,
+      tier_source: null,
+    });
+    expect(revisions[0]?.["after"]).toEqual({
+      tier: "premium",
+      tier_until: null,
+      tier_source: "staff",
+    });
 
     // The admin's own ad and a removed ad: Open in the menu, no Set tier (the ad page's gate).
     await page.getByTestId("listings-chips-clear").click();

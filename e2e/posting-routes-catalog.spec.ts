@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   bearerOf,
@@ -642,18 +643,21 @@ test.describe("POSTING ROUTES — catalogue changes", () => {
     const [x, y, draftOnly, closed, inactive, foreign, tied, older] = cats;
     const time = "2026-10-06T12:00:00Z";
     const seed = async (categoryId: string, sellerId: string, published: string | null) => {
-      const result = await adminClient().from("listings").insert({
-        seller_id: sellerId,
-        category_id: categoryId,
-        title: "e2e recent category",
-        description: "e2e scratch ad",
-        status: "draft",
-        location_id: null,
-        attributes: {},
-        published_first_at: published,
-        home_country_code: "ET",
-      });
-      expect(result.error).toBeNull();
+      // D318 — the one seeder (listing-seed.ts); a draft without a place is never counted.
+      await seedListingRow(
+        {
+          seller_id: sellerId,
+          category_id: categoryId,
+          title: "e2e recent category",
+          description: "e2e scratch ad",
+          status: "draft",
+          location_id: null,
+          attributes: {},
+          published_first_at: published,
+          home_country_code: "ET",
+        },
+        { tag: "prc" },
+      );
     };
     await seed(x!.id, user.id, time);
     await seed(x!.id, user.id, time);

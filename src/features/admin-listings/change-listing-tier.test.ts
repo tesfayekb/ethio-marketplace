@@ -19,9 +19,19 @@ const passThrough: GuardFn = (action) => Promise.resolve(action());
 
 describe("changeListingTier (P-1 W4)", () => {
   it("CLT-1 a door that answers is done, and was asked with the listing, the tier, the reason", async () => {
-    rpc.mockResolvedValueOnce({ data: null, error: null });
+    rpc.mockResolvedValueOnce({
+      data: {
+        ok: true,
+        from: "regular",
+        to: "premium",
+        until: null,
+        source: "staff",
+        status: "active",
+      },
+      error: null,
+    });
     const outcome = await changeListingTier(passThrough, "ad-1", "premium", "promotion", "  ");
-    expect(outcome).toEqual({ ok: true });
+    expect(outcome).toEqual({ ok: true, status: "active" });
     expect(rpc).toHaveBeenCalledWith("admin_set_listing_tier", {
       p_listing_id: "ad-1",
       p_tier: "premium",
@@ -53,6 +63,36 @@ describe("changeListingTier (P-1 W4)", () => {
       ok: false,
       cancelled: false,
       refusal: "admin.listings.tier.error.removed",
+    });
+  });
+
+  it("CLT-4 the door's status comes back (paused when the baseline found no free slot); a malformed answer is the common error, never a done", async () => {
+    rpc.mockResolvedValueOnce({
+      data: {
+        ok: true,
+        from: "featured",
+        to: "regular",
+        until: null,
+        source: null,
+        status: "paused",
+      },
+      error: null,
+    });
+    expect(await changeListingTier(passThrough, "ad-1", "regular", "promotion_ended", "")).toEqual({
+      ok: true,
+      status: "paused",
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: null });
+    expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "")).toEqual({
+      ok: false,
+      cancelled: false,
+      refusal: "common.error",
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "noFreeSlot" } });
+    expect(await changeListingTier(passThrough, "ad-1", "regular", "promotion_ended", "")).toEqual({
+      ok: false,
+      cancelled: false,
+      refusal: "admin.listings.error.noFreeSlot",
     });
   });
 });

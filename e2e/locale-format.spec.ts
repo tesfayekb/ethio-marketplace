@@ -9,6 +9,7 @@ import {
 } from "./helpers/posting";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 
 /**
  * Foundations turn L-1, B5 — LF-E1 (INC-985): an Amharic reader's dates carry the month's full
@@ -61,9 +62,9 @@ test("LF-E1 an Amharic account sees the full Amharic month on My listings", asyn
     .eq("user_id", seller.id);
   if (language.error) throw new Error(`[e2e:lf] seeding preference: ${language.error.message}`);
 
-  const { data, error } = await adminClient()
-    .from("listings")
-    .insert({
+  // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+  const data = await seedListingRow(
+    {
       category_id: leaf.id as string,
       seller_id: seller.id,
       location_id: chain.city.id as string,
@@ -82,11 +83,10 @@ test("LF-E1 an Amharic account sees the full Amharic month on My listings", asyn
       published_at: FIRST_POSTED,
       published_first_at: FIRST_POSTED,
       expires_at: new Date(Date.now() + 10 * 86_400_000).toISOString(),
-    })
-    .select("id")
-    .single();
-  if (error || !data) throw new Error(`[e2e:lf] seeding failed: ${error?.message ?? "no row"}`);
-  const id = data.id as string;
+    },
+    { tag: "lf" },
+  );
+  const id = data.id;
   const located = await adminClient()
     .from("listing_locations")
     .insert({ listing_id: id, location_id: chain.city.id as string, position: 1 });

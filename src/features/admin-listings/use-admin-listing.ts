@@ -35,6 +35,12 @@ export interface AdminListingDetail {
     description: string;
     status: string;
     tier: string;
+    /** P-2 (a) M-1c (DEC-328, DEC-330) — the level's and the reach's clocks; null when absent. */
+    tierUntil: string | null;
+    tierSource: string | null;
+    reach: string | null;
+    reachUntil: string | null;
+    reachSource: string | null;
     severe: boolean;
     categoryId: string | null;
     categoryNameEn: string | null;
@@ -113,6 +119,11 @@ export function detailOf(data: unknown): AdminListingDetail {
       description: String(l["description"] ?? ""),
       status: String(l["status"] ?? ""),
       tier: String(l["tier"] ?? "regular"),
+      tierUntil: text(l["tier_until"]),
+      tierSource: text(l["tier_source"]),
+      reach: text(l["reach"]),
+      reachUntil: text(l["reach_until"]),
+      reachSource: text(l["reach_source"]),
       severe: l["severe"] === true,
       categoryId: text(l["category_id"]),
       categoryNameEn: text(l["category_name_en"]),
@@ -253,20 +264,30 @@ export async function undoAdminListingEdit(
  * `admin_set_listing_tier` (listings:enforce with a fresh second factor; the
  * door writes the tier, a revision and an audit row; no seller notice). The
  * door's error is thrown as it came, so the step-up guard can read it.
+ *
+ * P-2 (a) M-1c — the door takes the level's days (`p_days`; null is open-ended)
+ * and answers the ad's status after the change: `paused` when a move to the
+ * baseline found no free slot. A malformed answer is an error, never a done.
  */
 export async function setAdminListingTier(
   listingId: string,
   tier: string,
   reason: string,
   note: string,
-): Promise<void> {
-  const { error } = await supabase.rpc("admin_set_listing_tier", {
+  days: number | null,
+): Promise<{ status: string }> {
+  const { data, error } = await supabase.rpc("admin_set_listing_tier", {
     p_listing_id: listingId,
     p_tier: tier,
     p_reason: reason,
     ...(note.trim() === "" ? {} : { p_note: note.trim() }),
+    ...(days === null ? {} : { p_days: days }),
   });
   if (error) throw error;
+  const answer = object(data);
+  if (answer["ok"] !== true || typeof answer["status"] !== "string")
+    throw new Error("admin_set_listing_tier: malformed answer");
+  return { status: answer["status"] };
 }
 
 export function useAdminListing(listingId: string) {

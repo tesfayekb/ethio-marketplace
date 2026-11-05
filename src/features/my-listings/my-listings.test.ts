@@ -46,6 +46,11 @@ const row = {
   createdAt: "2026-09-30T08:00:00+00:00",
   updatedAt: "2026-10-14T08:00:00+00:00",
   removedReason: null,
+  level: "regular",
+  levelUntil: null,
+  levelSource: null,
+  reach: null,
+  reachUntil: null,
 };
 
 /** Turn R1 — the answer carries the admin's renew setting. */
@@ -85,6 +90,36 @@ describe("my_listings answer", () => {
     expect(answer([{ ...row, soldWord: "leased" }])).toBeNull();
     const { removedReason: _reason, ...without } = row;
     expect(answer([without])).toBeNull();
+  });
+
+  it("ML-U27 the level and the reach are read as they came: a level key, its end and source, the reach and its end; a missing or mistyped one refuses the row", () => {
+    const answer = (rows: unknown[]) => parseMyListings({ counts, rows, ...renew });
+    const leveled = {
+      ...row,
+      level: "featured",
+      levelUntil: "2026-12-01T00:00:00Z",
+      levelSource: "staff",
+      reach: "country",
+      reachUntil: "2026-12-02T00:00:00Z",
+    };
+    expect(answer([leveled])?.rows[0]).toMatchObject({
+      level: "featured",
+      levelUntil: "2026-12-01T00:00:00Z",
+      levelSource: "staff",
+      reach: "country",
+      reachUntil: "2026-12-02T00:00:00Z",
+    });
+    expect(answer([row])?.rows[0]).toMatchObject({
+      level: "regular",
+      levelUntil: null,
+      reach: null,
+    });
+    for (const key of ["level", "levelUntil", "levelSource", "reach", "reachUntil"] as const) {
+      const { [key]: _gone, ...missing } = leveled;
+      expect(answer([missing]), key).toBeNull();
+      expect(answer([{ ...leveled, [key]: 7 }]), key).toBeNull();
+    }
+    expect(answer([{ ...leveled, level: null }])).toBeNull();
   });
 
   it("ML-U12 the renew setting is read with the answer, and a broken one refuses it (turn R1)", () => {

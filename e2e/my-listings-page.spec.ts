@@ -21,6 +21,7 @@ import {
   signInViaSession,
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -194,9 +195,11 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     options: { expiresInMs?: number; title?: string } = {},
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed", "closed"].includes(status);
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 (ruling 13) — the page groups by STATUS, so an ad beyond the seller's three
+    // free slots is seeded at the level above the baseline (seedBoth's S and H, MLP-5's
+    // fourth): the groups and counts it asserts are unchanged; the realistic state.
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -215,11 +218,10 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
         published_at: live ? at(-20 * DAY) : null,
         published_first_at: live ? at(-20 * DAY) : null,
         expires_at: live ? at(options.expiresInMs ?? 10 * DAY - HOUR) : null,
-      })
-      .select("id")
-      .single();
-    if (error || !data) throw new Error(`[e2e:mlp] seeding failed: ${error?.message ?? "no row"}`);
-    const id = data.id as string;
+      },
+      { tag: "mlp", beyondFreeSlots: "level" },
+    );
+    const id = data.id;
     listingIds.push(id);
     const located = await adminClient()
       .from("listing_locations")
@@ -533,8 +535,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await dropPrice(X3);
     const X4 = await seed(sellerA, "active", { title: "Old phone" });
     await dropPrice(X4);
-    const sold = await adminClient().from("listings").update({ status: "sold" }).eq("id", X4);
-    if (sold.error) throw new Error(`[e2e:mlp] selling X4 failed: ${sold.error.message}`);
+    await updateListingRow(X4, { status: "sold" }, { tag: "mlp" });
     const sellerB = await scratchSeller();
     const B1 = await seed(sellerB, "active", { title: "Red phone" });
     const b = await asPerson(sellerB);
@@ -835,18 +836,17 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     const X = await seed(seller, "screening");
     const R = await seed(seller, "screening");
     // Live the PS-1 way: this test's own scratch ad only, by id, seller and status.
-    const live = await adminClient()
-      .from("listings")
-      .update({
+    const live = await updateListingRow(
+      X,
+      {
         status: "active",
         published_at: at(-HOUR),
         published_first_at: at(-HOUR),
         expires_at: at(10 * DAY),
-      })
-      .eq("id", X)
-      .eq("seller_id", seller.id)
-      .eq("status", "screening");
-    if (live.error) throw new Error(`[e2e:mlp] making X live failed: ${live.error.message}`);
+      },
+      { tag: "mlp", where: { seller_id: seller.id, status: "screening" } },
+    );
+    if (!live) throw new Error("[e2e:mlp] making X live: no screening row of this seller");
     const truth = await adminClient()
       .from("listings")
       .select("status,public_id")

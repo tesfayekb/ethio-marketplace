@@ -3,7 +3,8 @@ import type { Locator, Page } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
-import { adminClient } from "./helpers/users";
+import { adminClient, createUser } from "./helpers/users";
+import { seedListingRow, seedListingRows, updateListingRow } from "./helpers/listing-seed";
 import {
   anchorOf,
   destroyLocation,
@@ -112,13 +113,13 @@ test.describe("FEED SCREENS", () => {
     tier: Tier,
     minutesAgo: number,
   ): Promise<string> {
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert(row(categoryId, sellerId, placeId, tier, minutesAgo))
-      .select("id")
-      .single();
-    if (error || !data) throw new Error(`[e2e:fs] seeding a listing failed: ${error?.message}`);
-    return data.id as string;
+    // D318 (ruling 13) — the feed's subject is the cards' order and place, never who posted
+    // them: a regular ad beyond a seller's free slots belongs to another scratch seller
+    // (FS-2, FS-3, FS-9, FS-15, FS-17); the seeder refuses a fourth on one seller here.
+    const data = await seedListingRow(row(categoryId, sellerId, placeId, tier, minutesAgo), {
+      tag: "fs",
+    });
+    return data.id;
   }
 
   async function cardIds(page: Page): Promise<string[]> {
@@ -167,11 +168,22 @@ test.describe("FEED SCREENS", () => {
     const tiers: Tier[] = Array.from({ length: 25 }, (_, i) =>
       i < 2 ? "premium" : i < 5 ? "featured" : "regular",
     );
+    // D318 — the twenty regular ads are spread three to a seller (the market's free
+    // slots); the premium and featured ones are the leased seller's, the rest belong to
+    // six fresh accounts (DEC-174: a test leases at most two pooled accounts; a fresh
+    // account is minted, its listings destroyed with the others', itself at teardown).
+    const posters = [user];
+    for (let i = 0; i < 6; i += 1) {
+      const fresh = await createUser({ confirmed: true });
+      sellers.push(fresh.id);
+      posters.push(fresh);
+    }
     // Built in the expected order: tier first (premium, featured, regular), then newest.
-    const rows = tiers.map((tier, i) => row(leaf.id, user.id, c.city.id, tier, i + 1));
-    const { data, error } = await adminClient().from("listings").insert(rows).select("id, title");
-    if (error || !data) throw new Error(`[e2e:fs] seeding 25 listings failed: ${error?.message}`);
-    const idOf = new Map(data.map((r) => [r.title as string, r.id as string]));
+    const rows = tiers.map((tier, i) =>
+      row(leaf.id, posters[i < 5 ? 0 : Math.floor((i - 5) / 3)]?.id ?? "", c.city.id, tier, i + 1),
+    );
+    const data = await seedListingRows(rows, { tag: "fs", select: "title" });
+    const idOf = new Map(data.map((r) => [r["title"] as string, r.id]));
     const expected = rows.map((r) => idOf.get(r.title) ?? "");
 
     const calls = watchFeed(page);
@@ -267,11 +279,14 @@ test.describe("FEED SCREENS", () => {
     baseURL,
   }) => {
     const fx = await areaFixture(page);
+    // D318 — the chosen place's two are the fixture seller's; the wider place's three
+    // are another scratch seller's (five regular ads exceed one seller's free slots).
+    const wider = await seller();
     const a1 = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 1);
     const a2 = await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", 2);
-    const b3 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 3);
-    const b4 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 4);
-    const b5 = await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", 5);
+    const b3 = await addListing(fx.leaf.id, wider.id, fx.b.city.id, "regular", 3);
+    const b4 = await addListing(fx.leaf.id, wider.id, fx.b.city.id, "regular", 4);
+    const b5 = await addListing(fx.leaf.id, wider.id, fx.b.city.id, "regular", 5);
     await openArea(page, fx, baseURL!);
 
     // D125/D127 — the chosen place's own listings are "in" it; the wider ones "in" the country.
@@ -447,8 +462,16 @@ test.describe("FEED SCREENS", () => {
     baseURL,
   }) => {
     const fx = await areaFixture(page);
+    // D318 — four regular ads in one place: three the fixture seller's, the fourth another's.
+    const fourth = await seller();
     for (const minutes of [1, 2, 3, 4])
-      await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", minutes);
+      await addListing(
+        fx.leaf.id,
+        minutes < 4 ? fx.user.id : fourth.id,
+        fx.a.city.id,
+        "regular",
+        minutes,
+      );
     await openArea(page, fx, baseURL!);
 
     await expect
@@ -646,10 +669,19 @@ test.describe("FEED SCREENS", () => {
     baseURL,
   }) => {
     const fx = await areaFixture(page);
+    // D318 — six regular ads: the chosen place's first three are the fixture seller's,
+    // its fourth and the wider place's two another scratch seller's.
+    const more = await seller();
     for (const minutes of [1, 2, 3, 4])
-      await addListing(fx.leaf.id, fx.user.id, fx.a.city.id, "regular", minutes);
+      await addListing(
+        fx.leaf.id,
+        minutes < 4 ? fx.user.id : more.id,
+        fx.a.city.id,
+        "regular",
+        minutes,
+      );
     for (const minutes of [5, 6])
-      await addListing(fx.leaf.id, fx.user.id, fx.b.city.id, "regular", minutes);
+      await addListing(fx.leaf.id, more.id, fx.b.city.id, "regular", minutes);
     await openArea(page, fx, baseURL!);
 
     await expect
@@ -707,10 +739,10 @@ test.describe("FEED SCREENS", () => {
     const n = await addListing(leaf.id, user.id, c.city.id, "regular", 5);
     const r = await addListing(leaf.id, user.id, c.city.id, "regular", 10);
     const p = await addListing(leaf.id, user.id, c.city.id, "regular", 15);
-    const s = await addListing(leaf.id, user.id, c.city.id, "regular", 20);
+    // D318 — the fourth regular ad (sold below) is another scratch seller's.
+    const s = await addListing(leaf.id, (await seller()).id, c.city.id, "regular", 20);
     const update = async (id: string, patch: Record<string, unknown>) => {
-      const { error } = await adminClient().from("listings").update(patch).eq("id", id);
-      if (error) throw new Error(`[e2e:fs] updating a listing failed: ${error.message}`);
+      await updateListingRow(id, patch, { tag: "fs" });
     };
     await update(r, { reserved_at: new Date().toISOString() });
     await update(p, { price_mode: "fixed", price_amount: 900, price_currency: "ETB" });

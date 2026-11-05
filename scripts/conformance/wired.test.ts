@@ -122,6 +122,32 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/plan-seam.test.ts"), "utf8")).toContain(
       "PSM-3",
     );
+    // proof-readers.test.ts CF-PROOF-1 PRF-1…4 and CF-PROOF-2 PRF-5 (turn P-2 (a), INC-1052, DEC-341, INC-1054) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/proof-readers.test.ts"), "utf8")).toContain(
+      "PRF-5",
+    );
+    // sql-writes.test.ts CF-SQL-1 SQW-1…3 (turn P-2 (a), INC-1055) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/sql-writes.test.ts"), "utf8")).toContain(
+      "SQW-3",
+    );
+    // status-map.test.ts CF-STATUS-1 STM-1…3 (turn P-2 (a), INC-1057) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/status-map.test.ts"), "utf8")).toContain(
+      "STM-3",
+    );
+    // listing-seed.test.ts CF-SEED-1 CFS-1…4 (turn P-2 (a), rulings 13 and 14, D318, INC-1061) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/listing-seed.test.ts"), "utf8")).toContain(
+      "CFS-4",
+    );
+    // door-answers.test.ts CF-DOOR-1 CFD-1…3 (turn P-2 (a), ruling 14, INC-1062) runs door-answers.ts's census;
+    // it is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/door-answers.test.ts"), "utf8")).toContain(
+      "CFD-3",
+    );
+    // listing-designation.test.ts CF-TIER-5 DSG-1…3 (turn P-2 (a), ruling 14) runs listing-designation.ts's census;
+    // it is discovered by test:unit's scripts/**/*.test.ts.
+    expect(
+      readFileSync(join(ROOT, "scripts/conformance/listing-designation.test.ts"), "utf8"),
+    ).toContain("DSG-3");
     // listing-levels.test.ts CF-LEVEL-1 CFL-1…3 (turn P-1b, D290) is discovered by test:unit's scripts/**/*.test.ts.
     expect(
       readFileSync(join(ROOT, "scripts/conformance/listing-levels.test.ts"), "utf8"),

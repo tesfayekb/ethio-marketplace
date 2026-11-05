@@ -19,7 +19,9 @@ import {
 import { anonRpc, passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
+import { doorAnswer } from "./helpers/door-answer";
 
 /**
  * Bundle 22 (Stage 1), turn 4 — THE PUBLISHING STATEMENT AND ITS CERTIFICATION (LG-15..LG-18, LGC-1..LGC-3).
@@ -89,6 +91,8 @@ type Scratch = {
   versions: string[];
   reveals: { viewerId: string; listingId: string }[];
   photoListings: { sellerId: string; listingId: string }[];
+  /** Scratch package_prices rows (LG-33): removed before the listings they priced. */
+  prices: string[];
 };
 function scratch(): Scratch {
   return {
@@ -98,6 +102,7 @@ function scratch(): Scratch {
     documents: [],
     versions: [],
     reveals: [],
+    prices: [],
     photoListings: [],
   };
 }
@@ -128,6 +133,8 @@ async function destroy(s: Scratch) {
     }
     if (keys.length) step("photo objects removed", (await bucket.remove(keys)).error);
   }
+  if (s.prices.length > 0)
+    step("prices", (await supabase.from("package_prices").delete().in("id", s.prices)).error);
   if (s.listings.length > 0)
     step(
       "certifications",
@@ -259,23 +266,21 @@ async function certificationsOf(listingId: string): Promise<Row[]> {
 /** The service client moves a listing to a state the seller doors start from (J3: its own rows only). */
 async function makeState(listingId: string, status: "active" | "expired") {
   const day = 24 * 60 * 60 * 1000;
-  const { error } = await adminClient()
-    .from("listings")
-    .update(
-      status === "active"
-        ? {
-            status,
-            published_at: new Date(Date.now() - day).toISOString(),
-            expires_at: new Date(Date.now() + 10 * day).toISOString(),
-          }
-        : {
-            status,
-            published_at: new Date(Date.now() - 40 * day).toISOString(),
-            expires_at: new Date(Date.now() - day).toISOString(),
-          },
-    )
-    .eq("id", listingId);
-  if (error) throw new Error(`[e2e:certify] making ${status}: ${error.message}`);
+  await updateListingRow(
+    listingId,
+    status === "active"
+      ? {
+          status,
+          published_at: new Date(Date.now() - day).toISOString(),
+          expires_at: new Date(Date.now() + 10 * day).toISOString(),
+        }
+      : {
+          status,
+          published_at: new Date(Date.now() - 40 * day).toISOString(),
+          expires_at: new Date(Date.now() - day).toISOString(),
+        },
+    { tag: "certify" },
+  );
 }
 
 async function renewAllowed(): Promise<void> {
@@ -309,6 +314,90 @@ async function guardedTruth(listingId: string) {
       `[e2e:certify] guarded truth: ${listing.error?.message ?? photos.error?.message ?? revisions.error?.message}`,
     );
   return { listing: listing.data, photos: photos.data ?? [], revisions: revisions.data ?? [] };
+}
+
+/** The levels' rank table and the feed queue's rows for one ad (P-2 (a): a refused door leaves both as they were). */
+async function rankTruth(listingId: string) {
+  const client = adminClient();
+  const ranks = await client.from("level_ranks").select("key, feed_rank").order("key");
+  const queued = await client
+    .from("feed_reindex_queue")
+    .select("listing_id")
+    .eq("listing_id", listingId);
+  if (ranks.error || queued.error)
+    throw new Error(`[e2e:certify] rank truth: ${ranks.error?.message ?? queued.error?.message}`);
+  return { ranks: ranks.data ?? [], queued: queued.data ?? [] };
+}
+
+/**
+ * LG-33's prices: the seeded self-serve level above the ad's level and the seeded self-serve reach
+ * above the ad's market's included reach, each priced for the ad's country by a scratch
+ * package_prices row (J3; removed in afterEach), so set_listing_level / set_listing_reach pass
+ * every check before their write. Real catalogue rows are read, never changed.
+ */
+async function offeredAbove(s: Scratch, listingId: string) {
+  const client = adminClient();
+  const ad = await client
+    .from("listings")
+    .select("tier, price_currency, locations!inner(country_code)")
+    .eq("id", listingId)
+    .single();
+  if (ad.error || !ad.data) throw new Error(`[e2e:certify] ad read: ${ad.error?.message}`);
+  const row = ad.data as unknown as {
+    tier: string;
+    price_currency: string;
+    locations: { country_code: string };
+  };
+  const country = row.locations.country_code;
+  const market = await client
+    .from("market_settings")
+    .select("country_code, included_reach")
+    .or(`country_code.eq.${country},country_code.is.null`);
+  if (market.error) throw new Error(`[e2e:certify] market read: ${market.error.message}`);
+  const included =
+    (market.data ?? []).find((m) => m["country_code"] === country)?.["included_reach"] ??
+    (market.data ?? []).find((m) => m["country_code"] === null)?.["included_reach"];
+  if (typeof included !== "string") throw new Error("[e2e:certify] no market row");
+  const sortOf = async (key: string) => {
+    const { data, error } = await client
+      .from("listing_packages")
+      .select("sort")
+      .eq("key", key)
+      .single();
+    if (error || !data) throw new Error(`[e2e:certify] package ${key}: ${error?.message}`);
+    return data["sort"] as number;
+  };
+  const above = async (kind: "level" | "reach", sort: number) => {
+    const { data, error } = await client
+      .from("listing_packages")
+      .select("key")
+      .eq("kind", kind)
+      .eq("enabled", true)
+      .eq("self_serve", true)
+      .gt("sort", sort)
+      .order("sort")
+      .limit(1);
+    if (error || !data?.[0]) throw new Error(`[e2e:certify] no ${kind} above ${sort}`);
+    return data[0]["key"] as string;
+  };
+  const level = await above("level", await sortOf(row.tier));
+  const reach = await above("reach", await sortOf(included));
+  const priced = await client
+    .from("package_prices")
+    .insert(
+      [level, reach].map((key) => ({
+        package_key: key,
+        country_code: country,
+        amount: 0,
+        currency: row.price_currency,
+        credit_cost: 0,
+        valid_from: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      })),
+    )
+    .select("id");
+  if (priced.error) throw new Error(`[e2e:certify] price seed: ${priced.error.message}`);
+  for (const price of priced.data ?? []) s.prices.push(price["id"] as string);
+  return { level, reach };
 }
 
 /** Photos are uploaded while draft; all storage objects remain tracked after a row is removed. */
@@ -408,8 +497,7 @@ test.describe("Legal certification", () => {
       p_certified: [et.id, global.id],
       p_language: "en",
     });
-    expect(ok.error, JSON.stringify(ok)).toBeNull();
-    expect((ok.data as Row)["status"]).toBe("screening");
+    expect(doorAnswer(ok, "publish_listing")["status"]).toBe("screening");
     const rows = await certificationsOf(listingId);
     expect(rows).toHaveLength(1);
     expect(rows[0]?.["action"]).toBe("publish");
@@ -452,7 +540,7 @@ test.describe("Legal certification", () => {
     });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
     const ok = await me.rpc("publish_listing", args);
-    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    doorAnswer(ok, "publish_listing");
     expect(await statusOf(listingId)).toBe("screening");
   });
 
@@ -600,7 +688,7 @@ test.describe("Legal certification", () => {
       p_certified: [statement.id],
       p_language: "en",
     });
-    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    doorAnswer(ok, "publish_listing");
     const token = await bearerOf(page);
     const second = await postRoute(page, PUBLISH, { listingId: plain }, { token, country: "ET" });
     expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
@@ -814,22 +902,18 @@ test.describe("Legal certification", () => {
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     await makeState(listingId, "active");
-    const sold = await adminClient()
-      .from("listings")
-      .update({
-        status: "sold",
-        sold_at: new Date(Date.now() - (days - 1) * 86_400_000).toISOString(),
-      })
-      .eq("id", listingId)
-      .select("public_id")
-      .single();
-    if (sold.error || !sold.data)
-      throw new Error(`[e2e:certify] sold row seed: ${sold.error?.message}`);
-    const args = { p_public_id: sold.data.public_id };
+    const sold = await updateListingRow(
+      listingId,
+      { status: "sold", sold_at: new Date(Date.now() - (days - 1) * 86_400_000).toISOString() },
+      { tag: "certify", select: "public_id" },
+    );
+    if (!sold) throw new Error("[e2e:certify] sold row seed: no row");
+    const soldPublicId = String(sold["public_id"]);
+    const args = { p_public_id: soldPublicId };
     const visible = await anonRead("public_listing", args);
     expect(visible.error).toBeNull();
     expect(visible.data).not.toBeNull();
-    expect((visible.data as Row)["public_id"]).toBe(sold.data.public_id);
+    expect((visible.data as Row)["public_id"]).toBe(soldPublicId);
     const older = await adminClient()
       .from("listings")
       .update({ sold_at: new Date(Date.now() - (days + 1) * 86_400_000).toISOString() })
@@ -956,7 +1040,7 @@ test.describe("Legal certification", () => {
     const live = await draftOf(page, s, categoryId, cityId);
     const photos = await twoPhotos(page, s, seller.id, live);
     const publish = await me.rpc("publish_listing", { p_listing_id: live });
-    expect(publish.error, JSON.stringify(publish)).toBeNull();
+    doorAnswer(publish, "publish_listing");
     await makeState(live, "active");
     const owed = await seedDocument(s, `e2e-acc-${hex(live)}`, null, "Terms to accept");
     const before = await guardedTruth(live);
@@ -1001,13 +1085,13 @@ test.describe("Legal certification", () => {
     }
     const sold = await draftOf(page, s, categoryId, cityId);
     const soldPublish = await me.rpc("publish_listing", { p_listing_id: sold });
-    expect(soldPublish.error, JSON.stringify(soldPublish)).toBeNull();
+    doorAnswer(soldPublish, "publish_listing");
     await makeState(sold, "active");
-    const soldSeed = await adminClient()
-      .from("listings")
-      .update({ status: "sold", sold_at: new Date().toISOString() })
-      .eq("id", sold);
-    if (soldSeed.error) throw new Error(`[e2e:certify] sold seed: ${soldSeed.error.message}`);
+    await updateListingRow(
+      sold,
+      { status: "sold", sold_at: new Date().toISOString() },
+      { tag: "certify" },
+    );
     await seedDocument(s, `e2e-acc-${hex(sold)}`, null, "Terms to accept");
     const soldBefore = await guardedTruth(sold);
     const relist = await me.rpc("relist_listing", { p_listing_id: sold });
@@ -1017,7 +1101,7 @@ test.describe("Legal certification", () => {
 
     const closed = await draftOf(page, s, categoryId, cityId);
     const closedPublish = await me.rpc("publish_listing", { p_listing_id: closed });
-    expect(closedPublish.error, JSON.stringify(closedPublish)).toBeNull();
+    doorAnswer(closedPublish, "publish_listing");
     await makeState(closed, "active");
     const close = await me.rpc("transition_listing", {
       p_listing_id: closed,
@@ -1045,6 +1129,60 @@ test.describe("Legal certification", () => {
     expect((await guardedTruth(live)).listing.price_amount).toBe(90);
   });
 
+  test("LG-33 while an acceptance is owed, the level, reach and resume doors reach their write and the table guard refuses it; nothing is written, the feed's rank and queue untouched", async ({
+    page,
+  }) => {
+    const { seller, categoryId, cityId } = await sellerOnPage(page, s);
+    const me = await asPerson(seller);
+    const live = await draftOf(page, s, categoryId, cityId);
+    const publish = await me.rpc("publish_listing", { p_listing_id: live });
+    doorAnswer(publish, "publish_listing");
+    await makeState(live, "active");
+    await seedDocument(s, `e2e-acc-${hex(live)}`, null, "Terms to accept");
+    // Each door passes notOffered only with a price in the ad's market: one scratch row for the
+    // seeded level above the ad's and one for the seeded reach above the market's included reach,
+    // written by the service client (J3) so the door reaches its UPDATE and the guard answers there.
+    const offered = await offeredAbove(s, live);
+    const before = await guardedTruth(live);
+    const feedBefore = await rankTruth(live);
+    const level = await me.rpc("set_listing_level", {
+      p_listing_id: live,
+      p_level_key: offered.level,
+    });
+    expect(level.error, `set_listing_level: ${JSON.stringify(level)}`).toContain(
+      "acceptanceRequired",
+    );
+    expect(await guardedTruth(live), "set_listing_level").toEqual(before);
+    const reach = await me.rpc("set_listing_reach", {
+      p_listing_id: live,
+      p_reach_key: offered.reach,
+    });
+    expect(reach.error, `set_listing_reach: ${JSON.stringify(reach)}`).toContain(
+      "acceptanceRequired",
+    );
+    expect(await guardedTruth(live), "set_listing_reach").toEqual(before);
+    // Paused by the service client as the sweep pauses (DEC-328): the time it had left kept; the
+    // owner's resume is a step up from paused to live, held while the acceptance is owed.
+    await updateListingRow(
+      live,
+      {
+        status: "paused",
+        resume_status: "active",
+        clock_kept: true,
+        kept_remaining: "5 days",
+      },
+      { tag: "certify" },
+    );
+    const pausedBefore = await guardedTruth(live);
+    const resume = await me.rpc("resume_listing", { p_listing_id: live });
+    expect(resume.error, `resume_listing: ${JSON.stringify(resume)}`).toContain(
+      "acceptanceRequired",
+    );
+    expect(await guardedTruth(live), "resume_listing").toEqual(pausedBefore);
+    expect(await statusOf(live)).toBe("paused");
+    expect(await rankTruth(live)).toEqual(feedBefore);
+  });
+
   test("LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo", async ({
     page,
   }) => {
@@ -1058,8 +1196,13 @@ test.describe("Legal certification", () => {
         const pair = await twoPhotos(page, s, seller.id, id);
         if (i === 3) photoPair = pair;
       }
+      // D318 (INC-1061) — the seller holds three free slots; the fourth ad carries the
+      // level above the baseline while it is still a draft (a draft is not counted), so
+      // the seller's own door publishes it.
+      if (i === 3)
+        await updateListingRow(id, { tier: await levelAboveBaseline() }, { tag: "certify" });
       const published = await me.rpc("publish_listing", { p_listing_id: id });
-      expect(published.error, JSON.stringify(published)).toBeNull();
+      doorAnswer(published, "publish_listing");
       await makeState(id, "active");
       const owed = await seedDocument(s, `e2e-acc-${hex(id)}`, null, "Terms to accept");
       ads.push({ id, version: owed.id });

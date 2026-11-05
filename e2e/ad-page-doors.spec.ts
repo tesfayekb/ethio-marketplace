@@ -3,8 +3,10 @@ import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { errorText } from "../src/lib/error-text";
+import { doorAnswer, doorRefusal } from "./helpers/door-answer";
 
 /**
  * Bundle 19, turn 4 (M1) — THE AD PAGE'S DOORS (AP-3..AP-8).
@@ -511,8 +513,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     // The owner always reaches his own ad's channels and leaves no row, no count.
     const owner = await asPerson(seller);
     const own = await owner.rpc("reveal_listing_contact", { p_public_id: publicId });
-    expect(own.error).toBeNull();
-    const ownChannels = (own.data as Row)["channels"] as Row;
+    const ownChannels = doorAnswer(own, "reveal_listing_contact")["channels"] as Row;
     expect((ownChannels["phone"] as Row)["value"]).toBe("+251911000001");
     expect((ownChannels["telegram"] as Row)["value"]).toBe("@scratch_seller");
     expect(ownChannels["phone2"]).toBeUndefined();
@@ -587,14 +588,14 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     });
     expect(override.error).toBeNull();
     try {
-      expect(
-        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) }))
-          .error,
-      ).toBeNull();
-      expect(
-        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) }))
-          .error,
-      ).toBeNull();
+      doorAnswer(
+        await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) }),
+        "reveal_listing_contact",
+      );
+      doorAnswer(
+        await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) }),
+        "reveal_listing_contact",
+      );
       const capped = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
       });
@@ -627,7 +628,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       const again = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
       });
-      expect((again.data as Row)["reason"]).toBe("sellersCapReached");
+      doorRefusal(again, "sellersCapReached", "reveal_listing_contact");
       expect((await flags())[0]!["hits"]).toBe(2);
       // A seller already reached never counts against the cap.
       const backToA = await buyer.rpc("reveal_listing_contact", {
@@ -762,11 +763,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(cards2[0]!["publicId"]).toBe(idA);
     expect((page2.data as Row)["next"]).toBeNull();
 
-    const removed = await adminClient()
-      .from("listings")
-      .update({ status: "removed" })
-      .eq("id", adB.id);
-    expect(removed.error).toBeNull();
+    await updateListingRow(adB.id, { status: "removed" }, { tag: "ap" });
     const grey = await buyer.rpc("my_saved_listings", { p_after: null, p_size: 50 });
     expect(grey.error).toBeNull();
     const greyCard = ((grey.data as Row)["cards"] as Row[]).find(
@@ -784,11 +781,11 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       ((afterUnsave.data as Row)["cards"] as Row[]).some((card) => card["publicId"] === idB),
     ).toBe(false);
 
-    const sold = await adminClient()
-      .from("listings")
-      .update({ status: "sold", sold_at: new Date().toISOString() })
-      .eq("id", adA.id);
-    expect(sold.error).toBeNull();
+    await updateListingRow(
+      adA.id,
+      { status: "sold", sold_at: new Date().toISOString() },
+      { tag: "ap" },
+    );
     const saveSold = await buyer.rpc("save_listing", { p_public_id: idA });
     expect(saveSold.error).toBeNull();
     expect(saveSold.data).toMatchObject({ ok: true, saved: true });
@@ -959,11 +956,11 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       const longNote = await report(idC, "other", "x".repeat(501));
       expect(longNote.error).toBeNull();
       expect(longNote.data).toEqual({ ok: false, reason: "noteTooLong" });
-      const sold = await adminClient()
-        .from("listings")
-        .update({ status: "sold", sold_at: new Date().toISOString() })
-        .eq("id", adB.id);
-      expect(sold.error).toBeNull();
+      await updateListingRow(
+        adB.id,
+        { status: "sold", sold_at: new Date().toISOString() },
+        { tag: "ap" },
+      );
       const soldReport = await report(idB, "alreadySold");
       expect(soldReport.error).toBeNull();
       expect(soldReport.data).toEqual({ ok: true });

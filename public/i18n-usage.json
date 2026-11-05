@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 673,
-  "dynamicCallSites": 440,
+  "dynamicCallSites": 441,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -6087,6 +6087,10 @@
       "/my-listings",
       "/my-listings/$listingId"
     ],
+    "myListings.levelEnding": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
     "myListings.loadError": [
       "/my-listings"
     ],
@@ -6100,6 +6104,13 @@
     ],
     "myListings.open": [
       "/my-listings"
+    ],
+    "myListings.paused": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.pausedHelp": [
+      "/my-listings/$listingId"
     ],
     "myListings.priceReduced": [
       "/my-listings",

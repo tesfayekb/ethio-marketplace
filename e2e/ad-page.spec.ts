@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import { seedAttribute, destroyAttribute } from "./helpers/admin-attributes";
 import { adminClient, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 import { fill } from "../src/features/posting/refusal-text";
 import { createClient } from "@supabase/supabase-js";
 import { passwordGrant } from "./helpers/session";
@@ -751,11 +752,11 @@ test.describe("AD PAGE — the buyer's page (bundle 19 turn 5)", () => {
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("href") ?? ""));
     expect(hrefs).toHaveLength(4);
     expect(hrefs.every((href) => !href.includes(publicId))).toBe(true);
-    const marked = await adminClient()
-      .from("listings")
-      .update({ status: "sold", sold_at: new Date().toISOString() })
-      .eq("id", X.id);
-    expect(marked.error).toBeNull();
+    await updateListingRow(
+      X.id,
+      { status: "sold", sold_at: new Date().toISOString() },
+      { tag: "ap" },
+    );
     await page.reload();
     await expect(page.getByTestId("listing-detail-title")).toHaveText(X.title);
     // A sold ad mounts no similar-ads section at all: not even its anchor.

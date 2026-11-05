@@ -4,6 +4,7 @@ import { purgeListingObjects } from "./helpers/photos";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { destroyLocation, seedScratchChain, waitForTreeSlug } from "./helpers/locations";
 import { adminClient } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 import { en } from "../src/i18n/locales/en";
 import { seedActiveListing } from "./helpers/categories";
 import {
@@ -990,24 +991,24 @@ test.describe("POSTING WIZARD — bundle 2 place and contact", () => {
     // Same service-client active-row shape as adPageFixtures().seed; update only
     // this test's published scratch ad, never insert a substitute or touch a real row.
     const now = new Date().toISOString();
-    const { data, error } = await adminClient()
-      .from("listings")
-      .update({
+    const data = await updateListingRow(
+      listingId,
+      {
         status: "active",
         published_at: now,
         published_first_at: now,
         expires_at: new Date(Date.now() + 28 * 86_400_000).toISOString(),
-      })
-      .eq("id", listingId)
-      .eq("seller_id", user.id)
-      .eq("status", "screening")
-      .select("id,status,public_id")
-      .single();
-    if (error || !data)
-      throw new Error(`[e2e:ps1] making scratch ad live failed: ${error?.message ?? "no row"}`);
+      },
+      {
+        tag: "ps1",
+        select: "status,public_id",
+        where: { seller_id: user.id, status: "screening" },
+      },
+    );
+    if (!data) throw new Error("[e2e:ps1] making scratch ad live: no screening row of this seller");
     expect(data.id).toBe(listingId);
-    expect(data.status).toBe("active");
-    expect(typeof data.public_id).toBe("string");
+    expect(data["status"]).toBe("active");
+    expect(typeof data["public_id"]).toBe("string");
     const deadline = Date.now() + 15_000;
     await expect(page.getByTestId("listing-share-open")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("listing-share-open")).toBeEnabled();

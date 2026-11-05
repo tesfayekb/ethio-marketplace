@@ -1,4 +1,5 @@
 import { adminClient } from "./users";
+import { seedListingRow } from "./listing-seed";
 import { destroyLocation, seedScratchChain, waitForServedTree } from "./locations";
 import {
   destroyCategoryBranch,
@@ -101,9 +102,9 @@ export function adPageFixtures() {
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed", "closed"].includes(status);
     const published = options.publishedAt ?? -2;
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — a counted baseline ad beyond the seller's free slots takes a level (listing-seed.ts).
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -134,11 +135,10 @@ export function adPageFixtures() {
               street_address: "E2E street",
             }
           : {}),
-      })
-      .select("id,title,status")
-      .single();
-    if (error || !data) throw new Error(`[e2e:ap] seeding failed: ${error?.message ?? "no row"}`);
-    const row = data as unknown as Row & { id: string; title: string };
+      },
+      { tag: "ap", select: "title,status", beyondFreeSlots: "level" },
+    );
+    const row = { ...data, title: data["title"] as string };
     listingIds.push(row.id);
     const located = await adminClient()
       .from("listing_locations")

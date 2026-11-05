@@ -71,6 +71,16 @@ export interface MyListingRow {
   updatedAt: string | null;
   /** A removed ad's latest staff reason (an `admin.listings.reason.*` word); else null. */
   removedReason: string | null;
+  /** P-2 (a) M-1c (DEC-328) — the ad's level (a level key; the baseline when none was bought). */
+  level: string;
+  /** When the level ends; null when it does not (the baseline, or open-ended). */
+  levelUntil: string | null;
+  /** Who set the level (`launch`, `staff`, …); null at the baseline. */
+  levelSource: string | null;
+  /** DEC-330 — the ad's reach (a reach key); null when it has the included reach. */
+  reach: string | null;
+  /** When the reach ends; null when it does not. */
+  reachUntil: string | null;
 }
 
 /** Turn 3b (call H) — the words a sold ad may take. */
@@ -153,6 +163,8 @@ export function parseRow(value: unknown): MyListingRow | null {
   const soldWord = SOLD_WORDS.find((word) => word === v.soldWord);
   if (soldWord === undefined) return null;
   if (!isStrOrNull(v.removedReason)) return null;
+  if (!isStr(v.level) || !isStrOrNull(v.levelUntil) || !isStrOrNull(v.levelSource)) return null;
+  if (!isStrOrNull(v.reach) || !isStrOrNull(v.reachUntil)) return null;
   return {
     id: v.id,
     publicId,
@@ -182,6 +194,11 @@ export function parseRow(value: unknown): MyListingRow | null {
     createdAt: v.createdAt,
     updatedAt: v.updatedAt,
     removedReason: v.removedReason,
+    level: v.level,
+    levelUntil: v.levelUntil,
+    levelSource: v.levelSource,
+    reach: v.reach,
+    reachUntil: v.reachUntil,
   };
 }
 
