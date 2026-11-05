@@ -2380,8 +2380,18 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     const revisions = await revisionRows(ad.id, "edit");
     expect(revisions).toHaveLength(1);
-    expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
-    expect(revisions[0]?.["after"]).toEqual({ tier: "premium" });
+    // The revision keeps its nulls (P-2 (a), ruling 8 §1): the door's three columns, an explicit
+    // null meaning "no end was set" — unlike the audit meta, a flat summary that strips them.
+    expect(revisions[0]?.["before"]).toEqual({
+      tier: "regular",
+      tier_until: null,
+      tier_source: null,
+    });
+    expect(revisions[0]?.["after"]).toEqual({
+      tier: "premium",
+      tier_until: null,
+      tier_source: "staff",
+    });
     expect(await feedRanks(ad.id)).toEqual([2]);
     // No seller notice (ruling 1, answer 5).
     expect(await noticeRows(ad.id)).toHaveLength(0);
@@ -2587,8 +2597,18 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     });
     const revisions = await revisionRows(ad.id, "edit");
     expect(revisions).toHaveLength(1);
-    expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
-    expect(revisions[0]?.["after"]).toEqual({ tier: "premium" });
+    // The revision keeps its nulls (P-2 (a), ruling 8 §1): the door's three columns, an explicit
+    // null meaning "no end was set" — unlike the audit meta, a flat summary that strips them.
+    expect(revisions[0]?.["before"]).toEqual({
+      tier: "regular",
+      tier_until: null,
+      tier_source: null,
+    });
+    expect(revisions[0]?.["after"]).toEqual({
+      tier: "premium",
+      tier_until: null,
+      tier_source: "staff",
+    });
 
     // The admin's own ad and a removed ad: Open in the menu, no Set tier (the ad page's gate).
     await page.getByTestId("listings-chips-clear").click();
