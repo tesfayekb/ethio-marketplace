@@ -2,13 +2,14 @@
 -- P-2 (a) M-1c, part 6 of 7 — My listings knows a paused ad (plan §3; ruling 9 H4; ruling 10; D317).
 -- ONE mapper, public.listing_group_of(p_status text) RETURNS text (IMMUTABLE, born closed): a status to
 -- its My-listings group — paused joins rejected and removed under "needs attention" (D317; the operator may
--- override before (b)); the rest map as before; an unknown status RAISEs 'my_listings: unmapped status %'
--- (INC-1057: the old CASE had no ELSE and would have hidden a new status). my_listings (counts and page) and
--- my_listing ('group') are redeclared WHOLE from 20261017060602 (:200, :338; live md5s checked first), the
--- three CASE copies replaced by the mapper; 'daysKept' counts a paused ad's kept time as a closed one's; the
--- card and the ad gain 'level', 'levelUntil', 'levelSource', 'reach', 'reachUntil' (DEC-328 / DEC-330).
+-- override before (b)); the rest as before; an unknown status RAISEs 'my_listings: unmapped status %'
+-- (INC-1057: the old CASE had no ELSE). my_listings and my_listing are redeclared WHOLE from
+-- 20261017060602 (:200, :338; live md5s checked first), the three CASE copies replaced by the mapper;
+-- 'daysKept' counts a paused ad's kept time as a closed one's; the card and the ad gain 'level',
+-- 'levelUntil', 'levelSource', 'reach', 'reachUntil' (DEC-328 / DEC-330).
 -- CF-STATUS-1 (scripts/conformance/status-map.ts) holds every status to the mapper and to part 7's views.
 -- Headers and closers restated; every other byte as before.
+-- Ruling 11 (INC-1059): the scratch level row carries its perks (perks_by_kind_check); proof text only, mark unchanged.
 
 DO $pre$
 DECLARE
@@ -279,12 +280,11 @@ GRANT EXECUTE ON FUNCTION public.my_listing(uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.my_listing(uuid) TO service_role;
 
 -- ------------------------------------------------------------ 4. PROOFS
--- (a) the two readers' bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants
--- (catalog facts: the mapper closed to the browser roles, the readers as before). (b) the mapper: paused →
--- attention; an unknown status raises its own words. (c) scratch rows: a seller with a live ad on a level, a
--- paused ad (the state machine, as the service) and a closed ad; as the seller, my_listings counts the paused
--- ad under attention and lists it there with its kept days and the level fields; my_listing says 'attention';
--- a stranger is refused. Rolled back by the sentinel.
+-- (a) the readers' bodies are the texts above (md5, CR-stripped — law 13); headers and grants (catalog
+-- facts). (b) the mapper: paused → attention; an unknown status raises. (c) scratch rows: a seller with a
+-- live ad on a level, a paused ad (the state machine, as the service) and a closed ad; my_listings counts the
+-- paused ad under attention and lists it with its kept days and the level fields; my_listing says
+-- 'attention'; a stranger is refused. Rolled back by the sentinel.
 DO $proof$
 DECLARE
   v_map    regprocedure := 'public.listing_group_of(text)'::regprocedure;
@@ -349,8 +349,8 @@ BEGIN
       (v_other,  v_tag || '-other@example.invalid',  '{}'::jsonb, 'authenticated', 'authenticated', now(), now());
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E P2 M1c6 Leaf', v_tag, true, true, true, 9999) RETURNING id INTO v_cat;
-    INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort)
-    VALUES (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000);
+    INSERT INTO public.listing_packages (key, kind, name_en, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+    VALUES (v_lv, 'level', 'E2E P2 level', 10, 6, 'boost', false, true, true, false, 9000);
     INSERT INTO public.listings (id, seller_id, category_id, location_id, title, description, home_country_code, status,
                                  published_at, published_first_at, expires_at, tier, tier_until, tier_source)
     SELECT x.id, v_seller, v_cat, v_anc, 'E2E P2 M1c6 ' || x.nm, 'scratch', v_code, 'active', now(), now(),

@@ -10,6 +10,7 @@
 --     values (v_keep) where before it only named them.
 -- Headers and closers restated; every other byte as before. Proofs on scratch rows (a scratch admin, a
 -- paused scratch ad), rolled back by the sentinel.
+-- Ruling 11 (INC-1059): the scratch level row carries its perks (perks_by_kind_check); proof text only, mark unchanged.
 
 DO $pre$
 DECLARE
@@ -318,8 +319,8 @@ BEGIN
     SELECT v_admin, r.id, 'global' FROM public.roles r WHERE r.name = 'super_admin';
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E P2 M1c7 Leaf', v_tag, true, true, true, 9999) RETURNING id INTO v_cat;
-    INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort)
-    VALUES (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000);
+    INSERT INTO public.listing_packages (key, kind, name_en, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort)
+    VALUES (v_lv, 'level', 'E2E P2 level', 10, 6, 'boost', false, true, true, false, 9000);
     INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code,
                                  status, published_at, published_first_at, expires_at, tier, tier_until, tier_source)
     VALUES (v_seller, v_cat, v_anc, 'E2E P2 M1c7 live', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days',
