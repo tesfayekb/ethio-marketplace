@@ -25,6 +25,7 @@
     "test:e2e:install": "playwright install --with-deps chromium",
     "test:unit": "vitest run",
     "checks": "bash scripts/ci/turn-checks.sh",
+    "db:proof": "bash scripts/db-proof.sh",
     "i18n:usage": "bun run scripts/i18n-usage-map.ts",
     "i18n:map-guard": "bun run scripts/i18n-map-guard.ts"
   },
