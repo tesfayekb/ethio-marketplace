@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41868892390
-- Commit: `7c89b1f60a95caa2832d85252cedbd081f274884`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42066056950
+- Commit: `d40ab0c260363f2f52cc5894352f2c2474f9fd5e`
 - Attempt: 1
-- Written (UTC): 2026-11-04T22:37:04.607Z
+- Written (UTC): 2026-11-05T22:40:21.053Z
 - Passed: 0 · Skipped: 0 · Failed: 1
 - Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -19,51 +19,41 @@ None: no results file lists one and no log's summary names one (1 of 2 results f
 
 Logs read: nightly, full · unavailable: none
 
-63 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
+35 line(s), 27 message(s): 0 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
-| `categories badHeader` (quiet) | 4 | full |
-| `categories wrongFile` (quiet) | 4 | full |
-| `definitions badHeader` (quiet) | 4 | full |
-| `definitions wrongFile` (quiet) | 4 | full |
-| `categories file too large` (quiet) | 2 | full |
-| `categories nulByte` (quiet) | 2 | full |
-| `categories unknownColumn` (quiet) | 2 | full |
-| `countries badHeader` (quiet) | 2 | full |
-| `countries nulByte` (quiet) | 2 | full |
-| `countries tooManyRows` (quiet) | 2 | full |
-| `countries unknownColumn` (quiet) | 2 | full |
-| `countries wrongFile` (quiet) | 2 | full |
-| `definitions nulByte` (quiet) | 2 | full |
-| `definitions tooManyRows` (quiet) | 2 | full |
-| `definitions unknownColumn` (quiet) | 2 | full |
-| `links unknownColumn` (quiet) | 2 | full |
-| `locations badHeader` (quiet) | 2 | full |
-| `locations file too large` (quiet) | 2 | full |
-| `locations nulByte` (quiet) | 2 | full |
-| `locations unknownColumn` (quiet) | 2 | full |
-| `locations wrongFile` (quiet) | 2 | full |
-| `strings badHeader` (quiet) | 2 | full |
-| `strings emptyFile` (quiet) | 2 | full |
-| `strings nulByte` (quiet) | 2 | full |
-| `strings tooManyRows` (quiet) | 2 | full |
-| `strings unknownColumn` (quiet) | 2 | full |
-| `strings wrongFile` (quiet) | 2 | full |
-| `listing not found` | 1 | full |
+| `categories badHeader` (quiet) | 3 | full |
+| `categories wrongFile` (quiet) | 3 | full |
+| `definitions badHeader` (quiet) | 3 | full |
+| `definitions wrongFile` (quiet) | 3 | full |
+| `categories file too large` (quiet) | 1 | full |
+| `categories nulByte` (quiet) | 1 | full |
+| `categories unknownColumn` (quiet) | 1 | full |
+| `countries badHeader` (quiet) | 1 | full |
+| `countries nulByte` (quiet) | 1 | full |
+| `countries tooManyRows` (quiet) | 1 | full |
+| `countries unknownColumn` (quiet) | 1 | full |
+| `countries wrongFile` (quiet) | 1 | full |
+| `definitions nulByte` (quiet) | 1 | full |
+| `definitions tooManyRows` (quiet) | 1 | full |
+| `definitions unknownColumn` (quiet) | 1 | full |
+| `links unknownColumn` (quiet) | 1 | full |
+| `locations badHeader` (quiet) | 1 | full |
+| `locations file too large` (quiet) | 1 | full |
+| `locations nulByte` (quiet) | 1 | full |
+| `locations unknownColumn` (quiet) | 1 | full |
+| `locations wrongFile` (quiet) | 1 | full |
+| `strings badHeader` (quiet) | 1 | full |
+| `strings emptyFile` (quiet) | 1 | full |
+| `strings nulByte` (quiet) | 1 | full |
+| `strings tooManyRows` (quiet) | 1 | full |
+| `strings unknownColumn` (quiet) | 1 | full |
+| `strings wrongFile` (quiet) | 1 | full |
 
-Quiet (allowlisted): categories badHeader ×4 · categories wrongFile ×4 · definitions badHeader ×4 · definitions wrongFile ×4 · categories file too large ×2 · categories nulByte ×2 · categories unknownColumn ×2 · countries badHeader ×2 · countries nulByte ×2 · countries tooManyRows ×2 · countries unknownColumn ×2 · countries wrongFile ×2 · definitions nulByte ×2 · definitions tooManyRows ×2 · definitions unknownColumn ×2 · links unknownColumn ×2 · locations badHeader ×2 · locations file too large ×2 · locations nulByte ×2 · locations unknownColumn ×2 · locations wrongFile ×2 · strings badHeader ×2 · strings emptyFile ×2 · strings nulByte ×2 · strings tooManyRows ×2 · strings unknownColumn ×2 · strings wrongFile ×2
+Quiet (allowlisted): categories badHeader ×3 · categories wrongFile ×3 · definitions badHeader ×3 · definitions wrongFile ×3 · categories file too large ×1 · categories nulByte ×1 · categories unknownColumn ×1 · countries badHeader ×1 · countries nulByte ×1 · countries tooManyRows ×1 · countries unknownColumn ×1 · countries wrongFile ×1 · definitions nulByte ×1 · definitions tooManyRows ×1 · definitions unknownColumn ×1 · links unknownColumn ×1 · locations badHeader ×1 · locations file too large ×1 · locations nulByte ×1 · locations unknownColumn ×1 · locations wrongFile ×1 · strings badHeader ×1 · strings emptyFile ×1 · strings nulByte ×1 · strings tooManyRows ×1 · strings unknownColumn ×1 · strings wrongFile ×1
 
-Off the allowlist:
-
-### listing not found
-
-- Count: 1 · Sources: full
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) ×1 · PP-28 a refused edit keeps the editor open with its reason and the photo as it w ×1
-
-```text
-[WebServer] [ssr-error] /api/upload/photo listing not found
-```
+Off the allowlist: none.
 
 ## Accessibility (DEC-084, gating)
 
@@ -77,7 +67,7 @@ Results read: nightly · unavailable: full
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-04T16:37:08.347Z | 0.7 min |
+| nightly | 2026-11-05T17:31:52.862Z | 0.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
@@ -87,7 +77,7 @@ Results read: nightly · unavailable: full
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.0 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.3 s |
 
 ## Post-test errors: nightly
 
@@ -96,7 +86,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 41868892390-nightly
+[e2e:teardown] deleted 3 user(s) owned by process 42066056950-nightly
 ```
 
 ## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
@@ -139,7 +129,7 @@ Call log:
     at /home/runner/work/ethio-marketplace/ethio-marketplace/e2e/nightly/auth-resend-exhaustion.spec.ts:50:76
 ```
 
-Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 6 context file(s); of the same spec: none
+Context: context file not found for `auth-resend-exhaustion-A-3-three-resends-exhaust-the-per-visit-limit-nightly-mobile-360` — Playwright's name `auth-resend-exhaustion-A-3-52f91-exhaust-the-per-visit-limit-nightly-mobile-360`; this run carried 2 context file(s); of the same spec: none
 
 ## Server errors: nightly
 
@@ -155,10 +145,6 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 ## Server errors: full
 
 ```text
-[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
-[WebServer] [ssr-error] /api/admin/categories/import categories file too large
-[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
-[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
 [WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
 [WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
@@ -175,6 +161,10 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
 ```
 
 ## Client errors: full
@@ -186,36 +176,22 @@ No `[client-error]` lines in the `full` log (or no log was uploaded).
 full: no results file — the process failed outside test results (setup/teardown/preflight).
 
 ```text
---- error lines (12) ---
-  ✘   302 [mobile-360] › e2e/admin-roles.spec.ts:376:3 › U2 roles console › RP-8 Amharic + no horizontal overflow (23.8s)
-  ✘   444 [mobile-360] › e2e/category-image-routes.spec.ts:176:3 › C5a — category AI foundation routes › CI-4b stored truth: generate, accept, and the reader returns assets + stamp (1.0m)
-  ✘   507 [mobile-360] › e2e/dialogs.spec.ts:452:3 › the full-screen surfaces on the one primitive (turn S6-4) › DLG-E8 the photo viewer, the preview and the pin map: Escape closes the top layer only, the focus returns to the opener, the page does not move, reduced motion is respected (1.2m)
-  ✘   649 [mobile-360] › e2e/legal-certify.spec.ts:1048:3 › Legal certification › LG-29 taking an ad down is never held: while an acceptance is owed the seller marks one ad sold, closes one, removes one, and removes a photo (1.3m)
-  ✘   789 [mobile-360] › e2e/photo-pipeline.spec.ts:1438:3 › PHOTO PIPELINE › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) (3.2m)
-  ✘   791 [mobile-360] › e2e/photo-pipeline.spec.ts:1579:3 › PHOTO PIPELINE › PP-27 Edit turns a photo and crops the cover, each saved in its place (D154 B2) (1.8m)
-  ✘   794 [mobile-360] › e2e/photo-pipeline.spec.ts:1810:3 › PHOTO PIPELINE › PP-30 Remove background is on the cover only; the preview lies on the house background; Keep stores it as the cover (D159) (1.0m)
-  ✘   796 [mobile-360] › e2e/photo-pipeline.spec.ts:1952:3 › PHOTO PIPELINE › PP-32 a failed or unsure photo is kept hidden with its review; nudity is refused and stored nowhere (D178, D183) (1.2m)
-  ✘   842 [mobile-360] › e2e/post-wizard-category.spec.ts:724:3 › POSTING WIZARD › PW-54 the wizard walks category, specifications, photos, details and resumes at the first unfinished step (1.1m)
-  ✘  1244 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (10.5s)
-  ✘  1685 [desktop-1280] › e2e/admin-roles.spec.ts:376:3 › U2 roles console › RP-8 Amharic + no horizontal overflow (23.8s)
-  ✘  1767 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.1m)
+--- error lines (2) ---
+  ✘  1258 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (11.0s)
+  ✘  1781 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.2m)
 --- final 10 lines ---
-[WebServer] [upstream] ssr language gate 200 95ms
-  ✓  2134 [desktop-1280] › e2e/photo-pipeline.spec.ts:249:3 › PHOTO PIPELINE › PP-5 the policy pass refuses the cover and stores nothing (9.4s)
-[WebServer] [upstream] ssr language gate 200 95ms
+[WebServer] [upstream] ssr language gate 200 102ms
+  ✓  1788 [desktop-1280] › e2e/admin-users.spec.ts:339:3 › U1 admin users › AU-5 seam: a deactivated account cannot write a listing (15.4s)
+[WebServer] [upstream] ssr language gate 200 121ms
+[WebServer] [upstream] ssr language gate 200 93ms
+[WebServer] [upstream] ssr language gate 200 102ms
+  ✓  1789 [desktop-1280] › e2e/admin-users.spec.ts:381:3 › U1 admin users › AU-6 negative: a base user cannot call the status RPC (8.3s)
+[WebServer] [upstream] ssr language gate 200 102ms
+[WebServer] [upstream] ssr language gate 200 106ms
 [WebServer] [upstream] ssr language gate 200 90ms
-[WebServer] [upstream] ssr language gate 200 84ms
-[WebServer] [upstream] ssr language gate 200 95ms
-  ✓  2135 [desktop-1280] › e2e/photo-pipeline.spec.ts:265:3 › PHOTO PIPELINE › PP-6 another seller's listing is a 403 (13.7s)
-[WebServer] [upstream] ssr language gate 200 103ms
-[WebServer] [upstream] ssr language gate 200 109ms
 ```
 
 ```text
-[WebServer] [ssr-error] /api/admin/categories/import categories unknownColumn
-[WebServer] [ssr-error] /api/admin/categories/import categories file too large
-[WebServer] [ssr-error] /api/admin/categories/import categories nulByte
-[WebServer] [ssr-error] /api/admin/translations/import strings badHeader
 [WebServer] [ssr-error] /api/admin/translations/import strings wrongFile
 [WebServer] [ssr-error] /api/admin/translations/import strings unknownColumn
 [WebServer] [ssr-error] /api/admin/translations/import strings tooManyRows
@@ -232,4 +208,8 @@ full: no results file — the process failed outside test results (setup/teardow
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
+[WebServer] [ssr-error] /api/admin/attributes/import definitions badHeader
+[WebServer] [ssr-error] /api/admin/attributes/import definitions wrongFile
+[WebServer] [ssr-error] /api/admin/categories/import categories badHeader
+[WebServer] [ssr-error] /api/admin/categories/import categories wrongFile
 ```
