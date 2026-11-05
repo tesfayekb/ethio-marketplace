@@ -47,6 +47,14 @@ describe("listing history (turn L3)", () => {
     expect(groupOf("street_address")).toBe("pin");
     expect(groupOf("contact_pref")).toBe("contact");
     expect(groupOf("poster_expires_at")).toBe("sellerEnd");
+    // P-2 (a), ruling 7: a level or a reach set by its door changes three columns, one group each.
+    expect(groupOf("tier")).toBe("tier");
+    expect(groupOf("tier_until")).toBe("tier");
+    expect(groupOf("tier_source")).toBe("tier");
+    expect(groupOf("reach")).toBe("reach");
+    expect(groupOf("reach_until")).toBe("reach");
+    expect(groupOf("reach_source")).toBe("reach");
+    expect(groupsOf(["tier_source", "tier", "tier_until"])).toEqual(["tier"]);
     expect(groupOf("something_new")).toBe("other");
     expect(
       groupsOf(["street_address", "price_amount", "title", "pin_lat", "price_currency", "zzz"]),

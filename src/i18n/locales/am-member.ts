@@ -233,6 +233,7 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "admin.listings.history.field.video": "ቪዲዮ",
   "admin.listings.history.field.renewals": "እድሳቶች",
   "admin.listings.history.field.other": "ሌሎች ዝርዝሮች",
+  "admin.listings.history.field.reach": "ተደራሽነት",
   "admin.listings.edit.title": "ይህን ማስታወቂያ ያርትዑ",
   "admin.listings.edit.nothing": "ምንም አልተቀየረም።",
   "admin.listings.edit.error.removed": "የተወገደ ማስታወቂያ አይታረምም። መጀመሪያ ይመልሱት።",

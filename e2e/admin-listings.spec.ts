@@ -2371,7 +2371,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const audits = await tierAudits(ad.id);
     expect(audits).toHaveLength(1);
     expect(audits[0]?.["actor_id"]).toBe(admin.user.id);
-    expect(audits[0]?.["meta"]).toEqual({ from: "regular", to: "premium", reason: "promotion" });
+    // M-1b part 4's shape (P-2 (a), ruling 7 §3): the source is written; no days, so no until.
+    expect(audits[0]?.["meta"]).toEqual({
+      from: "regular",
+      to: "premium",
+      reason: "promotion",
+      source: "staff",
+    });
     const revisions = await revisionRows(ad.id, "edit");
     expect(revisions).toHaveLength(1);
     expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });
@@ -2572,7 +2578,13 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     const audits = await tierAudits(ad.id);
     expect(audits).toHaveLength(1);
     expect(audits[0]?.["actor_id"]).toBe(admin.user.id);
-    expect(audits[0]?.["meta"]).toEqual({ from: "regular", to: "premium", reason: "promotion" });
+    // M-1b part 4's shape (P-2 (a), ruling 7 §3): the source is written; no days, so no until.
+    expect(audits[0]?.["meta"]).toEqual({
+      from: "regular",
+      to: "premium",
+      reason: "promotion",
+      source: "staff",
+    });
     const revisions = await revisionRows(ad.id, "edit");
     expect(revisions).toHaveLength(1);
     expect(revisions[0]?.["before"]).toEqual({ tier: "regular" });

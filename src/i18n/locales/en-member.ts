@@ -238,6 +238,7 @@ export const enMember = {
   "admin.listings.history.field.video": "Video",
   "admin.listings.history.field.renewals": "Renewals",
   "admin.listings.history.field.other": "Other details",
+  "admin.listings.history.field.reach": "Reach",
   "admin.listings.edit.title": "Edit this listing",
   "admin.listings.edit.nothing": "Nothing has changed.",
   "admin.listings.edit.error.removed": "A removed listing is not edited. Restore it first.",

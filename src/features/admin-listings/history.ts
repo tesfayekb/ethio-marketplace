@@ -23,6 +23,7 @@ export type FieldGroup =
   | "contact"
   | "video"
   | "tier"
+  | "reach"
   | "ends"
   | "sellerEnd"
   | "renewals"
@@ -42,6 +43,7 @@ const ORDER: FieldGroup[] = [
   "contact",
   "video",
   "tier",
+  "reach",
   "ends",
   "sellerEnd",
   "renewals",
@@ -62,6 +64,7 @@ export const GROUP_LABEL: Record<FieldGroup, MessageKey> = {
   contact: "admin.listings.history.field.contact",
   video: "admin.listings.history.field.video",
   tier: "admin.listings.filter.tier",
+  reach: "admin.listings.history.field.reach",
   ends: "admin.listings.col.expires",
   sellerEnd: "admin.listings.detail.sellerEnd",
   renewals: "admin.listings.history.field.renewals",
@@ -80,7 +83,9 @@ export function groupOf(column: string): FieldGroup {
     return "photos";
   }
   if (column === "status") return "status";
-  if (column === "tier") return "tier";
+  // P-2 (a), ruling 7: a level and a reach each change as three columns (the key, its end, its source).
+  if (column === "tier" || column === "tier_until" || column === "tier_source") return "tier";
+  if (column === "reach" || column === "reach_until" || column === "reach_source") return "reach";
   if (column === "location_id" || column === "home_country_code") return "place";
   if (column === "expires_at") return "ends";
   if (column === "poster_expires_at") return "sellerEnd";
