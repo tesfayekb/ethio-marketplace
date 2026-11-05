@@ -17,6 +17,8 @@
 -- paused ad leaves the feed, a resumed one returns. Not here: the edit doors' own status lists do
 -- not name 'paused' yet (named in the stop report). paused → screening, expired or closed is not a
 -- transition. Proofs at the end.
+-- Ruling 9 (INC-1056): proof (b) normalises line endings on both sides — proof text only; no schema
+-- statement, mark or grant changed.
 
 DO $pre$
 BEGIN
@@ -244,6 +246,8 @@ DECLARE
   v_fn     regprocedure := 'public.transition_listing(uuid,text)'::regprocedure;
   v_src    text;
   v_md5    text;
+  v_pairs  text[][];
+  v_pair   text[];
   v_seller uuid := gen_random_uuid();
   v_tag    text := 'e2e-mig-p2-m1a2-' || substr(gen_random_uuid()::text, 1, 8);
   v_rc     text := 'e2e_mig_rc_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8);
@@ -279,26 +283,28 @@ BEGIN
 
   -- (b)
   SELECT replace(p.prosrc, chr(13), '') INTO v_src FROM pg_proc p WHERE p.oid = v_fn;
-  v_src := replace(v_src, '''sold'',''removed'',''closed'',''paused'')', '''sold'',''removed'',''closed'')');
-  v_src := replace(v_src, '  -- P-2 (a), DEC-328 — a paused ad (its level ended with no free slot at the baseline) resumes the same way.
-', '');
-  v_src := replace(v_src, 'IF v_row.status IN (''closed'',''paused'') AND p_new_status IN (''active'',''reduced'') THEN',
-                          'IF v_row.status = ''closed'' AND p_new_status IN (''active'',''reduced'') THEN');
-  v_src := replace(v_src, 'RAISE EXCEPTION ''owner only: % -> %'', v_row.status, p_new_status;',
-                          'RAISE EXCEPTION ''owner only: closed -> %'', p_new_status;');
-  v_src := replace(v_src, '(p_new_status = ''sold'' AND v_row.status IN (''closed'',''paused''))',
-                          '(p_new_status = ''sold'' AND v_row.status = ''closed'')');
-  v_src := replace(v_src, '  ELSIF p_new_status = ''paused'' THEN
+  -- Both sides without chr(13) (INC-1056, law 13): prosrc, and each literal — a pasted file is CRLF.
+  v_pairs := ARRAY[
+    ['''sold'',''removed'',''closed'',''paused'')', '''sold'',''removed'',''closed'')'],
+    ['  -- P-2 (a), DEC-328 — a paused ad (its level ended with no free slot at the baseline) resumes the same way.
+', ''],
+    ['IF v_row.status IN (''closed'',''paused'') AND p_new_status IN (''active'',''reduced'') THEN',
+                          'IF v_row.status = ''closed'' AND p_new_status IN (''active'',''reduced'') THEN'],
+    ['RAISE EXCEPTION ''owner only: % -> %'', v_row.status, p_new_status;',
+                          'RAISE EXCEPTION ''owner only: closed -> %'', p_new_status;'],
+    ['(p_new_status = ''sold'' AND v_row.status IN (''closed'',''paused''))',
+                          '(p_new_status = ''sold'' AND v_row.status = ''closed'')'],
+    ['  ELSIF p_new_status = ''paused'' THEN
     -- P-2 (a), D306 / DEC-328 — the sweep pauses a live ad whose level ended with no free slot at the baseline;
     -- the time it had left is kept, as a close keeps it. Service only: no owner''s or staff hand pauses an ad.
     IF NOT v_service THEN
       RAISE EXCEPTION ''service only: % -> paused'', v_row.status;
     END IF;
     v_ok := v_row.status IN (''active'',''reduced'');
-', '');
-  v_src := replace(v_src, 'IF p_new_status IN (''active'',''reduced'') AND v_row.status IN (''closed'',''paused'') THEN',
-                          'IF p_new_status IN (''active'',''reduced'') AND v_row.status = ''closed'' THEN');
-  v_src := replace(v_src, '  ELSIF p_new_status = ''paused'' THEN
+', ''],
+    ['IF p_new_status IN (''active'',''reduced'') AND v_row.status IN (''closed'',''paused'') THEN',
+                          'IF p_new_status IN (''active'',''reduced'') AND v_row.status = ''closed'' THEN'],
+    ['  ELSIF p_new_status = ''paused'' THEN
     -- P-2 (a), DEC-328 — paused by the sweep: the time it had left and the live status it resumes to are kept.
     UPDATE public.listings SET
       status = ''paused'',
@@ -308,11 +314,14 @@ BEGIN
       resume_status = v_row.status,
       updated_at = now()
     WHERE id = p_listing_id;
-', '');
-  v_src := replace(v_src, 'tier = public.baseline_level_key(), tier_until = NULL, tier_source = NULL, reach = NULL, reach_until = NULL, reach_source = NULL, deleted_at = now()',
-                          'tier = ''regular'', deleted_at = now()');
-  v_src := replace(v_src, 'tier = CASE WHEN p_new_status = ''removed'' THEN public.baseline_level_key() ELSE tier END, tier_until = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE tier_until END, tier_source = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE tier_source END, reach = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE reach END, reach_until = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE reach_until END, reach_source = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE reach_source END, updated_at',
-                          'tier = CASE WHEN p_new_status = ''removed'' THEN ''regular'' ELSE tier END, updated_at');
+', ''],
+    ['tier = public.baseline_level_key(), tier_until = NULL, tier_source = NULL, reach = NULL, reach_until = NULL, reach_source = NULL, deleted_at = now()',
+                          'tier = ''regular'', deleted_at = now()'],
+    ['tier = CASE WHEN p_new_status = ''removed'' THEN public.baseline_level_key() ELSE tier END, tier_until = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE tier_until END, tier_source = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE tier_source END, reach = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE reach END, reach_until = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE reach_until END, reach_source = CASE WHEN p_new_status = ''removed'' THEN NULL ELSE reach_source END, updated_at',
+                          'tier = CASE WHEN p_new_status = ''removed'' THEN ''regular'' ELSE tier END, updated_at']];
+  FOREACH v_pair SLICE 1 IN ARRAY v_pairs LOOP
+    v_src := replace(v_src, replace(v_pair[1], chr(13), ''), replace(v_pair[2], chr(13), ''));
+  END LOOP;
   v_md5 := md5(v_src);
   IF v_md5 IS DISTINCT FROM '20a5644eef70395f27730ecc9ddd160a' THEN
     RAISE EXCEPTION 'P-2 M-1a part 2 proof (b): transition_listing differs from its live body beyond this file''s changes (%)', v_md5;

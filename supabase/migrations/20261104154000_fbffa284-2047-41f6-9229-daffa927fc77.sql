@@ -8,6 +8,8 @@
 -- clears both; a level with extends_lifetime pushes the ad's clock to the end date (expires_at on a
 -- live ad, kept_remaining on a paused one); the revision and the audit row carry until and source;
 -- the answer too. Every refusal unchanged in its words.
+-- Ruling 9 (INC-1056): proof (b) normalises line endings on both sides — proof text only; no schema
+-- statement, mark or grant changed.
 
 DO $pre$
 BEGIN
@@ -121,6 +123,8 @@ DECLARE
   v_src     text;
   v_len     integer;
   v_frag    text;
+  v_pairs   text[][];
+  v_pair    text[];
   v_admin   uuid := gen_random_uuid();
   v_seller  uuid := gen_random_uuid();
   v_session uuid := gen_random_uuid();
@@ -156,20 +160,21 @@ BEGIN
   END IF;
   IF v_fx IS NULL THEN RAISE EXCEPTION 'P-2 M-1b part 4 proof: no featured level row'; END IF;
 
-  -- (b) the staff door: seven fragments, each once, reverted to T1 M1's body.
+  -- (b) the staff door: seven fragments, each once, reverted to T1 M1's body. Both sides are read
+  -- without chr(13) (INC-1056, law 13): prosrc, and each literal — a file carried by paste is CRLF.
   SELECT replace(p.prosrc, chr(13), '') INTO v_src FROM pg_proc p WHERE p.oid = v_fn;
-  FOREACH v_frag IN ARRAY ARRAY[
-    '  v_level  public.listing_packages%ROWTYPE;
+  v_pairs := ARRAY[
+    ['  v_level  public.listing_packages%ROWTYPE;
   v_until  timestamptz;
   v_source text;
-',
-    '  SELECT * INTO v_level FROM public.listing_packages WHERE key = p_tier AND kind = ''level'' AND enabled FOR SHARE;
-  IF NOT FOUND THEN',
-    '  IF p_days IS NOT NULL AND (p_days < 1 OR p_days > 3650 OR v_level.is_baseline) THEN
+', ''],
+    ['  SELECT * INTO v_level FROM public.listing_packages WHERE key = p_tier AND kind = ''level'' AND enabled FOR SHARE;
+  IF NOT FOUND THEN', '  IF p_tier IS NULL OR p_tier NOT IN (''premium'',''featured'',''regular'') THEN'],
+    ['  IF p_days IS NOT NULL AND (p_days < 1 OR p_days > 3650 OR v_level.is_baseline) THEN
     RAISE EXCEPTION ''badDays'';
   END IF;
-',
-    '  v_source := CASE WHEN v_level.is_baseline THEN NULL ELSE ''staff'' END;
+', ''],
+    ['  v_source := CASE WHEN v_level.is_baseline THEN NULL ELSE ''staff'' END;
   v_until  := CASE WHEN v_level.is_baseline OR p_days IS NULL THEN NULL ELSE now() + make_interval(days => p_days) END;
   UPDATE public.listings SET
     tier = p_tier,
@@ -179,42 +184,22 @@ BEGIN
                        AND expires_at IS NOT NULL AND expires_at < v_until THEN v_until ELSE expires_at END,
     kept_remaining = CASE WHEN v_level.extends_lifetime AND v_until IS NOT NULL AND status = ''paused''
                            AND kept_remaining IS NOT NULL AND kept_remaining < v_until - now() THEN v_until - now() ELSE kept_remaining END
-  WHERE id = p_listing_id;',
-    'jsonb_build_object(''tier'', v_row.tier, ''tier_until'', v_row.tier_until, ''tier_source'', v_row.tier_source),
+  WHERE id = p_listing_id;', '  UPDATE public.listings SET tier = p_tier WHERE id = p_listing_id;'],
+    ['jsonb_build_object(''tier'', v_row.tier, ''tier_until'', v_row.tier_until, ''tier_source'', v_row.tier_source),
             jsonb_build_object(''tier'', p_tier, ''tier_until'', v_until, ''tier_source'', v_source), v_uid);',
-    '''note'', v_note, ''until'', v_until, ''source'', v_source)));',
-    '''to'', p_tier, ''until'', v_until, ''source'', v_source);'] LOOP
+     'jsonb_build_object(''tier'', v_row.tier), jsonb_build_object(''tier'', p_tier), v_uid);'],
+    ['''note'', v_note, ''until'', v_until, ''source'', v_source)));', '''note'', v_note)));'],
+    ['''to'', p_tier, ''until'', v_until, ''source'', v_source);', '''to'', p_tier);']];
+  FOREACH v_pair SLICE 1 IN ARRAY v_pairs LOOP
+    v_frag := replace(v_pair[1], chr(13), '');
     v_len := (length(v_src) - length(replace(v_src, v_frag, ''))) / length(v_frag);
     IF v_len <> 1 THEN
       RAISE EXCEPTION 'P-2 M-1b part 4 proof (b): a staff-door fragment occurs % times: %', v_len, left(v_frag, 60);
     END IF;
   END LOOP;
-  v_src := replace(v_src, '  v_level  public.listing_packages%ROWTYPE;
-  v_until  timestamptz;
-  v_source text;
-', '');
-  v_src := replace(v_src, '  SELECT * INTO v_level FROM public.listing_packages WHERE key = p_tier AND kind = ''level'' AND enabled FOR SHARE;
-  IF NOT FOUND THEN', '  IF p_tier IS NULL OR p_tier NOT IN (''premium'',''featured'',''regular'') THEN');
-  v_src := replace(v_src, '  IF p_days IS NOT NULL AND (p_days < 1 OR p_days > 3650 OR v_level.is_baseline) THEN
-    RAISE EXCEPTION ''badDays'';
-  END IF;
-', '');
-  v_src := replace(v_src, '  v_source := CASE WHEN v_level.is_baseline THEN NULL ELSE ''staff'' END;
-  v_until  := CASE WHEN v_level.is_baseline OR p_days IS NULL THEN NULL ELSE now() + make_interval(days => p_days) END;
-  UPDATE public.listings SET
-    tier = p_tier,
-    tier_until = v_until,
-    tier_source = v_source,
-    expires_at = CASE WHEN v_level.extends_lifetime AND v_until IS NOT NULL AND status <> ''paused''
-                       AND expires_at IS NOT NULL AND expires_at < v_until THEN v_until ELSE expires_at END,
-    kept_remaining = CASE WHEN v_level.extends_lifetime AND v_until IS NOT NULL AND status = ''paused''
-                           AND kept_remaining IS NOT NULL AND kept_remaining < v_until - now() THEN v_until - now() ELSE kept_remaining END
-  WHERE id = p_listing_id;', '  UPDATE public.listings SET tier = p_tier WHERE id = p_listing_id;');
-  v_src := replace(v_src, 'jsonb_build_object(''tier'', v_row.tier, ''tier_until'', v_row.tier_until, ''tier_source'', v_row.tier_source),
-            jsonb_build_object(''tier'', p_tier, ''tier_until'', v_until, ''tier_source'', v_source), v_uid);',
-                          'jsonb_build_object(''tier'', v_row.tier), jsonb_build_object(''tier'', p_tier), v_uid);');
-  v_src := replace(v_src, '''note'', v_note, ''until'', v_until, ''source'', v_source)));', '''note'', v_note)));');
-  v_src := replace(v_src, '''to'', p_tier, ''until'', v_until, ''source'', v_source);', '''to'', p_tier);');
+  FOREACH v_pair SLICE 1 IN ARRAY v_pairs LOOP
+    v_src := replace(v_src, replace(v_pair[1], chr(13), ''), replace(v_pair[2], chr(13), ''));
+  END LOOP;
   IF md5(v_src) IS DISTINCT FROM '8df90fb1fca33f2a16cad265ee8f80e1' THEN
     RAISE EXCEPTION 'P-2 M-1b part 4 proof (b): admin_set_listing_tier differs from its live body beyond this file''s changes (%)', md5(v_src);
   END IF;

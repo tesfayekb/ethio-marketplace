@@ -8,6 +8,8 @@
 -- the baseline needs no slot. Its proof reverts the insertion and asserts the live body's md5; the
 -- refusal itself is the helpers' behaviour (parts 1 and 3) and the browser tests' (FSL-1…3) — a
 -- judge-passing scratch draft is theirs.
+-- Ruling 9 (INC-1056): proof (b) normalises line endings on both sides — proof text only; no schema
+-- statement, mark or grant changed.
 
 DO $pre$
 BEGIN
@@ -141,6 +143,7 @@ BEGIN
   END IF;
 
 '] LOOP
+    v_frag := replace(v_frag, chr(13), '');  -- INC-1056, law 13: both sides without CR (a pasted file is CRLF)
     v_len := (length(v_src) - length(replace(v_src, v_frag, ''))) / length(v_frag);
     IF v_len <> 1 THEN
       RAISE EXCEPTION 'P-2 M-1b part 5 proof (b): a publish-door fragment occurs % times: %', v_len, left(v_frag, 60);
