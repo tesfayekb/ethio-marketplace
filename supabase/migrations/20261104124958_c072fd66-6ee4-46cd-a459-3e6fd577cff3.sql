@@ -261,10 +261,12 @@ DECLARE
   v_kept   interval;
   v_msg    text;
 BEGIN
-  -- (a)
-  IF (SELECT pg_get_constraintdef(c.oid) FROM pg_constraint c
-       WHERE c.conrelid = 'public.listings'::regclass AND c.conname = 'listings_status_check') NOT LIKE '%''paused''%' THEN
-    RAISE EXCEPTION 'P-2 M-1a part 2 proof (a): the status check does not take paused';
+  -- (a) — catalog columns, never pg_get_constraintdef's text (law 12, INC-1054): the status check is
+  -- a validated CHECK on listings; that it takes 'paused' is proved by (c), which moves an ad there.
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint c
+                  WHERE c.conrelid = 'public.listings'::regclass AND c.conname = 'listings_status_check'
+                    AND c.contype = 'c' AND c.convalidated) THEN
+    RAISE EXCEPTION 'P-2 M-1a part 2 proof (a): the status check is missing or not validated';
   END IF;
   IF (SELECT NOT prosecdef OR provolatile <> 'v' OR proconfig::text <> '{search_path=public}'
         FROM pg_proc WHERE oid = v_fn)

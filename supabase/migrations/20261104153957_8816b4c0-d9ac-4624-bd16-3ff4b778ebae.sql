@@ -13,8 +13,8 @@ DO $pre$
 BEGIN
   IF to_regprocedure('public.baseline_level_key()') IS NULL
      OR NOT EXISTS (SELECT 1 FROM public.rate_dials WHERE action = 'promote')
-     OR NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid = 'public.listings'::regclass AND conname = 'listings_status_check'
-                     AND pg_get_constraintdef(oid) LIKE '%''paused''%') THEN
+     -- M-1a part 2's mark is the ledger (law 9), never a LIKE on a deparsed definition (law 12).
+     OR NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261104201000') THEN
     RAISE EXCEPTION 'P-2 M-1b part 1: M-1a (71cb9d01 and c072fd66) must be applied first';
   END IF;
 END $pre$;

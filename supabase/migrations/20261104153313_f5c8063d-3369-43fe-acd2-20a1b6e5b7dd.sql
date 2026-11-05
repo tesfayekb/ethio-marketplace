@@ -3,9 +3,8 @@
 -- made feed_tier_rank(text) a STABLE reader of listing_packages that RAISEs on an unknown key, and
 -- the pull request's backend fell at 20261104153958's proof: a STABLE function with constant
 -- arguments beside a column in a WHERE is pre-evaluated by the planner for its selectivity
--- estimate under the DO statement's snapshot — taken before the scratch level existed — so it saw
--- no row and raised (CONTEXT: "PL/pgSQL function feed_tier_rank(text) line 5 at RAISE … SQL
--- expression … tier_rank <> public.feed_tier_rank(v_l1) … inline_code_block … at IF"). Now:
+-- estimate under the DO statement's snapshot, taken before the scratch level existed, so it raised
+-- (the CONTEXT is quoted in docs/governance/reports/p2-level-reach.stop-4.md). Now:
 --   A. public.level_ranks (key → listing_packages ON UPDATE/DELETE CASCADE, feed_rank): the level's
 --      0-based position by (sort, key) among every row of kind 'level', enabled or not; internal,
 --      as feed_reindex_queue (no browser grant; service_role).
@@ -22,9 +21,8 @@
 --      missing row is NULL, never equal to the stored rank, and the ad is counted under
 --      listings_with_wrong_rows: the detector's signal.
 --   D. public.feed_tier_rank(text) is DROPPED (its grants and comment with it).
--- The law (docs/governance/migrations.md 11): a proof reads a STABLE reader's answer INTO a variable
--- first and the WHERE compares the variable; a STABLE function that RAISEs is never named beside a
--- column inside a WHERE clause of a DO block (CF-PROOF-1 judges).
+-- The laws (docs/governance/migrations.md 11, 12; CF-PROOF-1, CF-PROOF-2): a proof reads a STABLE
+-- reader INTO a variable and compares the variable; it asserts catalog facts from catalog columns.
 
 -- ===== A — the table =====
 CREATE TABLE public.level_ranks (
@@ -106,8 +104,8 @@ CREATE TRIGGER listing_packages_level_ranks
   AFTER INSERT OR UPDATE OF sort, key, kind OR DELETE ON public.listing_packages
   FOR EACH STATEMENT EXECUTE FUNCTION public.level_ranks_rebuild();
 
--- The seed, once (the trigger owns every later write): sorts 0, 10, 20 give 0, 1, 2 — what
--- feed_tier_rank answered — so no row of feed_index changes and nothing is queued.
+-- The seed, once (the trigger owns every later write): sorts 0, 10, 20 give 0, 1, 2, what
+-- feed_tier_rank answered, so no feed_index row changes and nothing is queued.
 INSERT INTO public.level_ranks (key, feed_rank)
 SELECT k.key, (row_number() OVER (ORDER BY k.sort, k.key) - 1)::smallint
   FROM public.listing_packages k
@@ -228,16 +226,16 @@ COMMENT ON COLUMN public.feed_index.tier_rank IS
   'The listing''s level as a rank: the level row''s feed_rank in level_ranks (its 0-based position among every level by sort, then key; today regular 0, featured 1, premium 2); a sold ad -1, read after every live one (bundle 16 turn 3c). A higher rank is read first; newest first inside a rank.';
 
 -- PROOF: (a) the table (RLS, no browser privilege, service_role, the one policy, the cascading key),
--- the trigger (after insert, delete, update of sort, key, kind; per statement), the headers and
--- grants of the four functions (refresh volatile, check stable sql), feed_tier_rank gone; (b) the
--- seeded ranks regular 0, featured 1, premium 2, one row per level — feed_tier_rank's numbers, so no
--- live feed row changed (a plain INSERT seeds: nothing queued or refreshed); (c) scratch rows (an XZ
--- market, a seller, a leaf, a premium ad and a baseline ad, both live): a level sorted between
--- featured and premium takes 2 and premium 3 — read into variables, never beside a column — the
--- premium ad is queued, the baseline ad not, and after feed_reindex_sweep(500) the premium ad's feed
--- row carries 3; (d) a sort change that moves no rank queues nothing; (e) a disabled level keeps its
--- rank; deleting it puts premium back at 2 and queues the premium ad again. Everything, the
--- cron.schedule row feed_reindex_wake writes included, rolls back with the sentinel.
+-- the trigger (pg_trigger's columns: after; statement; insert, delete, update of exactly sort, key,
+-- kind; the function; enabled), the four functions' headers and grants, feed_tier_rank gone; (b) the
+-- seeded ranks 0, 1, 2 and one row per level — feed_tier_rank's numbers, so no live feed row changed
+-- (a plain INSERT seeds: nothing queued or refreshed); (c) scratch rows (an XZ market, a seller, a
+-- leaf, a premium ad and a baseline ad, both live): a level between featured and premium takes 2 and
+-- premium 3 — read into variables, never beside a column — the premium ad is queued, the baseline ad
+-- not, and after feed_reindex_sweep(500) the premium ad's row carries 3; (d) a no-move sort change
+-- queues nothing; (e) a disabled level keeps its rank; deleting it puts premium back at 2 and queues
+-- the premium ad again. All of it, the cron.schedule row feed_reindex_wake writes included, rolls
+-- back with the sentinel.
 DO $proof$
 DECLARE
   v_tbl     regclass := 'public.level_ranks'::regclass;
@@ -284,13 +282,19 @@ BEGIN
                       AND c.confrelid = 'public.listing_packages'::regclass AND c.confupdtype = 'c' AND c.confdeltype = 'c') THEN
     RAISE EXCEPTION 'P-2 rank proof (a): level_ranks is not born closed as the queue is, or its key does not follow the level';
   END IF;
-  SELECT pg_get_triggerdef(t.oid) INTO v_trg FROM pg_trigger t
-   WHERE t.tgrelid = 'public.listing_packages'::regclass AND t.tgname = 'listing_packages_level_ranks' AND NOT t.tgisinternal;
-  IF v_trg IS NULL
-     OR v_trg NOT LIKE '%AFTER INSERT OR DELETE OR UPDATE OF %'
-     OR v_trg NOT LIKE '%sort%' OR v_trg NOT LIKE '%key%' OR v_trg NOT LIKE '%kind%'
-     OR v_trg NOT LIKE '%FOR EACH STATEMENT EXECUTE FUNCTION public.level_ranks_rebuild()%' THEN
-    RAISE EXCEPTION 'P-2 rank proof (a): the trigger differs (%)', coalesce(v_trg, 'missing');
+  -- Catalog columns, never pg_get_triggerdef's text (INC-1054: its spelling follows search_path).
+  SELECT 'ok' INTO v_trg
+    FROM pg_trigger t
+   WHERE t.tgrelid = 'public.listing_packages'::regclass AND t.tgname = 'listing_packages_level_ranks' AND NOT t.tgisinternal
+     AND t.tgfoid = 'public.level_ranks_rebuild()'::regprocedure
+     AND t.tgenabled = 'O'
+     AND (t.tgtype & 1) = 0 AND (t.tgtype & 2) = 0
+     AND (t.tgtype & 4) <> 0 AND (t.tgtype & 8) <> 0 AND (t.tgtype & 16) <> 0
+     AND (SELECT array_agg(a.attname::text ORDER BY a.attname)
+            FROM unnest(t.tgattr) AS n(attnum)
+            JOIN pg_attribute a ON a.attrelid = t.tgrelid AND a.attnum = n.attnum) = ARRAY['key', 'kind', 'sort'];
+  IF v_trg IS NULL THEN
+    RAISE EXCEPTION 'P-2 rank proof (a): the trigger is missing or differs (events, columns, function, enabled)';
   END IF;
   FOREACH v_fn IN ARRAY ARRAY[v_rb, v_eq, v_rf, v_ck] LOOP
     IF (SELECT NOT prosecdef OR proconfig::text <> '{search_path=public}' FROM pg_proc WHERE oid = v_fn)
