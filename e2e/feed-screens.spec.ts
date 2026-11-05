@@ -4,7 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { adminClient, createUser } from "./helpers/users";
-import { seedListingRow, seedListingRows } from "./helpers/listing-seed";
+import { seedListingRow, seedListingRows, updateListingRow } from "./helpers/listing-seed";
 import {
   anchorOf,
   destroyLocation,
@@ -742,8 +742,7 @@ test.describe("FEED SCREENS", () => {
     // D318 — the fourth regular ad (sold below) is another scratch seller's.
     const s = await addListing(leaf.id, (await seller()).id, c.city.id, "regular", 20);
     const update = async (id: string, patch: Record<string, unknown>) => {
-      const { error } = await adminClient().from("listings").update(patch).eq("id", id);
-      if (error) throw new Error(`[e2e:fs] updating a listing failed: ${error.message}`);
+      await updateListingRow(id, patch, { tag: "fs" });
     };
     await update(r, { reserved_at: new Date().toISOString() });
     await update(p, { price_mode: "fixed", price_amount: 900, price_currency: "ETB" });

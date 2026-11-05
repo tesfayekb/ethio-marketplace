@@ -3,6 +3,7 @@ import { RUN } from "./helpers/posting";
 import { adPageFixtures, token } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { errorText } from "../src/lib/error-text";
 
@@ -762,11 +763,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     expect(cards2[0]!["publicId"]).toBe(idA);
     expect((page2.data as Row)["next"]).toBeNull();
 
-    const removed = await adminClient()
-      .from("listings")
-      .update({ status: "removed" })
-      .eq("id", adB.id);
-    expect(removed.error).toBeNull();
+    await updateListingRow(adB.id, { status: "removed" }, { tag: "ap" });
     const grey = await buyer.rpc("my_saved_listings", { p_after: null, p_size: 50 });
     expect(grey.error).toBeNull();
     const greyCard = ((grey.data as Row)["cards"] as Row[]).find(
@@ -784,11 +781,11 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       ((afterUnsave.data as Row)["cards"] as Row[]).some((card) => card["publicId"] === idB),
     ).toBe(false);
 
-    const sold = await adminClient()
-      .from("listings")
-      .update({ status: "sold", sold_at: new Date().toISOString() })
-      .eq("id", adA.id);
-    expect(sold.error).toBeNull();
+    await updateListingRow(
+      adA.id,
+      { status: "sold", sold_at: new Date().toISOString() },
+      { tag: "ap" },
+    );
     const saveSold = await buyer.rpc("save_listing", { p_public_id: idA });
     expect(saveSold.error).toBeNull();
     expect(saveSold.data).toMatchObject({ ok: true, saved: true });
@@ -959,11 +956,11 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       const longNote = await report(idC, "other", "x".repeat(501));
       expect(longNote.error).toBeNull();
       expect(longNote.data).toEqual({ ok: false, reason: "noteTooLong" });
-      const sold = await adminClient()
-        .from("listings")
-        .update({ status: "sold", sold_at: new Date().toISOString() })
-        .eq("id", adB.id);
-      expect(sold.error).toBeNull();
+      await updateListingRow(
+        adB.id,
+        { status: "sold", sold_at: new Date().toISOString() },
+        { tag: "ap" },
+      );
       const soldReport = await report(idB, "alreadySold");
       expect(soldReport.error).toBeNull();
       expect(soldReport.data).toEqual({ ok: true });

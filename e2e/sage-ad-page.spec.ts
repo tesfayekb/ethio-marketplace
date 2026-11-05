@@ -22,6 +22,7 @@ import {
   useJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 
 /**
  * Turn SAGE-S5 (spec §12, §7, §8, §13; ruling 1) — the buyer's ad page in the Sage look by
@@ -103,12 +104,11 @@ for (const width of WIDTHS) {
             pin: true,
             contactPref: { phone: { show: true, value: "+251911000001" } },
           });
-          const marked = await adminClient()
-            .from("listings")
-            .update({ tier, reserved_at: new Date().toISOString() })
-            .eq("id", row.id);
-          if (marked.error)
-            throw new Error(`[e2e:sap] marking ${tier} failed: ${marked.error.message}`);
+          await updateListingRow(
+            row.id,
+            { tier, reserved_at: new Date().toISOString() },
+            { tag: "sap" },
+          );
           await fixtures.seedPhotos(row.id);
           paths[tier] = listingPath(row.title, await fixtures.publicIdOf(row.id));
         }
@@ -316,8 +316,7 @@ test.describe("The tier on every view of an ad (turn T1)", () => {
   });
 
   async function marked(id: string, tier: Tier) {
-    const done = await adminClient().from("listings").update({ tier }).eq("id", id);
-    if (done.error) throw new Error(`[e2e:sap] marking ${tier} failed: ${done.error.message}`);
+    await updateListingRow(id, { tier }, { tag: "sap" });
   }
 
   async function expectTierLook(view: Locator, tier: Tier) {

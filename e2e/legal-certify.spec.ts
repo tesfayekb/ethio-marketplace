@@ -19,6 +19,7 @@ import {
 import { anonRpc, passwordGrant } from "./helpers/session";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -264,23 +265,21 @@ async function certificationsOf(listingId: string): Promise<Row[]> {
 /** The service client moves a listing to a state the seller doors start from (J3: its own rows only). */
 async function makeState(listingId: string, status: "active" | "expired") {
   const day = 24 * 60 * 60 * 1000;
-  const { error } = await adminClient()
-    .from("listings")
-    .update(
-      status === "active"
-        ? {
-            status,
-            published_at: new Date(Date.now() - day).toISOString(),
-            expires_at: new Date(Date.now() + 10 * day).toISOString(),
-          }
-        : {
-            status,
-            published_at: new Date(Date.now() - 40 * day).toISOString(),
-            expires_at: new Date(Date.now() - day).toISOString(),
-          },
-    )
-    .eq("id", listingId);
-  if (error) throw new Error(`[e2e:certify] making ${status}: ${error.message}`);
+  await updateListingRow(
+    listingId,
+    status === "active"
+      ? {
+          status,
+          published_at: new Date(Date.now() - day).toISOString(),
+          expires_at: new Date(Date.now() + 10 * day).toISOString(),
+        }
+      : {
+          status,
+          published_at: new Date(Date.now() - 40 * day).toISOString(),
+          expires_at: new Date(Date.now() - day).toISOString(),
+        },
+    { tag: "certify" },
+  );
 }
 
 async function renewAllowed(): Promise<void> {
@@ -903,22 +902,18 @@ test.describe("Legal certification", () => {
     const published = await postRoute(page, PUBLISH, { listingId }, { token, country: "ET" });
     expect(published.payload["status"], JSON.stringify(published.payload)).toBe("screening");
     await makeState(listingId, "active");
-    const sold = await adminClient()
-      .from("listings")
-      .update({
-        status: "sold",
-        sold_at: new Date(Date.now() - (days - 1) * 86_400_000).toISOString(),
-      })
-      .eq("id", listingId)
-      .select("public_id")
-      .single();
-    if (sold.error || !sold.data)
-      throw new Error(`[e2e:certify] sold row seed: ${sold.error?.message}`);
-    const args = { p_public_id: sold.data.public_id };
+    const sold = await updateListingRow(
+      listingId,
+      { status: "sold", sold_at: new Date(Date.now() - (days - 1) * 86_400_000).toISOString() },
+      { tag: "certify", select: "public_id" },
+    );
+    if (!sold) throw new Error("[e2e:certify] sold row seed: no row");
+    const soldPublicId = String(sold["public_id"]);
+    const args = { p_public_id: soldPublicId };
     const visible = await anonRead("public_listing", args);
     expect(visible.error).toBeNull();
     expect(visible.data).not.toBeNull();
-    expect((visible.data as Row)["public_id"]).toBe(sold.data.public_id);
+    expect((visible.data as Row)["public_id"]).toBe(soldPublicId);
     const older = await adminClient()
       .from("listings")
       .update({ sold_at: new Date(Date.now() - (days + 1) * 86_400_000).toISOString() })
@@ -1092,11 +1087,11 @@ test.describe("Legal certification", () => {
     const soldPublish = await me.rpc("publish_listing", { p_listing_id: sold });
     expect(soldPublish.error, JSON.stringify(soldPublish)).toBeNull();
     await makeState(sold, "active");
-    const soldSeed = await adminClient()
-      .from("listings")
-      .update({ status: "sold", sold_at: new Date().toISOString() })
-      .eq("id", sold);
-    if (soldSeed.error) throw new Error(`[e2e:certify] sold seed: ${soldSeed.error.message}`);
+    await updateListingRow(
+      sold,
+      { status: "sold", sold_at: new Date().toISOString() },
+      { tag: "certify" },
+    );
     await seedDocument(s, `e2e-acc-${hex(sold)}`, null, "Terms to accept");
     const soldBefore = await guardedTruth(sold);
     const relist = await me.rpc("relist_listing", { p_listing_id: sold });
@@ -1168,16 +1163,16 @@ test.describe("Legal certification", () => {
     expect(await guardedTruth(live), "set_listing_reach").toEqual(before);
     // Paused by the service client as the sweep pauses (DEC-328): the time it had left kept; the
     // owner's resume is a step up from paused to live, held while the acceptance is owed.
-    const paused = await adminClient()
-      .from("listings")
-      .update({
+    await updateListingRow(
+      live,
+      {
         status: "paused",
         resume_status: "active",
         clock_kept: true,
         kept_remaining: "5 days",
-      })
-      .eq("id", live);
-    if (paused.error) throw new Error(`[e2e:certify] pause seed: ${paused.error.message}`);
+      },
+      { tag: "certify" },
+    );
     const pausedBefore = await guardedTruth(live);
     const resume = await me.rpc("resume_listing", { p_listing_id: live });
     expect(resume.error, `resume_listing: ${JSON.stringify(resume)}`).toContain(
@@ -1201,8 +1196,14 @@ test.describe("Legal certification", () => {
         const pair = await twoPhotos(page, s, seller.id, id);
         if (i === 3) photoPair = pair;
       }
+      // D318 (INC-1061) — the seller holds three free slots; the fourth ad carries the
+      // level above the baseline while it is still a draft (a draft is not counted), so
+      // the seller's own door publishes it.
+      if (i === 3)
+        await updateListingRow(id, { tier: await levelAboveBaseline() }, { tag: "certify" });
       const published = await me.rpc("publish_listing", { p_listing_id: id });
       expect(published.error, JSON.stringify(published)).toBeNull();
+      expect((published.data as Row | null)?.["ok"], JSON.stringify(published.data)).toBe(true);
       await makeState(id, "active");
       const owed = await seedDocument(s, `e2e-acc-${hex(id)}`, null, "Terms to accept");
       ads.push({ id, version: owed.id });

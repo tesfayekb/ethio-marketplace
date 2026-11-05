@@ -1,6 +1,7 @@
-# CF-SEED-1 (scripts/conformance/listing-seed.test.ts, P-2 (a) ruling 13, D318) — a `from("listings").insert(…)` in e2e/
-# outside e2e/helpers/listing-seed.ts, the one seeder that reads the seller's free slots before the write.
+# CF-SEED-1 (scripts/conformance/listing-seed.test.ts, P-2 (a) ruling 13, D318; widened by ruling 14, INC-1061) — a
+# `from("listings").insert(…)`, or an `.update(…)` / `.upsert(…)` naming status or tier, in e2e/ outside
+# e2e/helpers/listing-seed.ts, the one seeder and updater that reads the seller's free slots before the write.
 # Grammar: <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
 # Held: drafts without a place (never counted by the free-slot law) and tests of the table's own refusal.
-e2e/ad-page-doors.spec.ts:450 | AP-15 asserts the table refuses a public id of the wrong shape: the INSERT is the subject, a draft without a place | DEC-342
-e2e/ad-page-doors.spec.ts:455 | AP-15 asserts the table refuses a duplicate public id: the INSERT is the subject, a draft without a place | DEC-342
+e2e/ad-page-doors.spec.ts:451 | AP-15 asserts the table refuses a public id of the wrong shape: the INSERT is the subject, a draft without a place | DEC-342
+e2e/ad-page-doors.spec.ts:456 | AP-15 asserts the table refuses a duplicate public id: the INSERT is the subject, a draft without a place | DEC-342

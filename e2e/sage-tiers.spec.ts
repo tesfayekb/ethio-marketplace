@@ -16,6 +16,7 @@ import {
   switchLanguage,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 
 /**
  * Turn SAGE-S4 (spec §7, §8, §9; rulings 1–6) — the Premium and Featured cards, the satin
@@ -394,12 +395,11 @@ for (const width of WIDTHS) {
         const ids: Record<Tier, string> = { regular: "", premium: "", featured: "" };
         for (const tier of TIERS) {
           const row = await feed.seed(seller);
-          const marked = await adminClient()
-            .from("listings")
-            .update({ tier, reserved_at: new Date().toISOString() })
-            .eq("id", row.id);
-          if (marked.error)
-            throw new Error(`[e2e:stg] marking ${tier} failed: ${marked.error.message}`);
+          await updateListingRow(
+            row.id,
+            { tier, reserved_at: new Date().toISOString() },
+            { tag: "stg" },
+          );
           ids[tier] = row.id;
         }
         await page.goto("/");
@@ -578,9 +578,7 @@ test.describe("The Amharic tier word at 390 (§7)", () => {
     const ids: string[] = [];
     for (const tier of ["premium", "featured"] as const) {
       const row = await feed.seed(seller);
-      const marked = await adminClient().from("listings").update({ tier }).eq("id", row.id);
-      if (marked.error)
-        throw new Error(`[e2e:stg] marking ${tier} failed: ${marked.error.message}`);
+      await updateListingRow(row.id, { tier }, { tag: "stg" });
       ids.push(row.id);
     }
     // Signed out: the pick is this device's alone, and no account's stored language moves (D239).
@@ -634,12 +632,11 @@ test.describe("The same Premium card on every card surface (§7)", () => {
     const shown = await feed.seed(seller);
     const other = await feed.seed(seller);
     for (const id of [shown.id, other.id]) {
-      const marked = await adminClient()
-        .from("listings")
-        .update({ tier: "premium", reserved_at: new Date().toISOString() })
-        .eq("id", id);
-      if (marked.error)
-        throw new Error(`[e2e:stg] marking premium failed: ${marked.error.message}`);
+      await updateListingRow(
+        id,
+        { tier: "premium", reserved_at: new Date().toISOString() },
+        { tag: "stg" },
+      );
     }
     const buyer = await leaseUser();
     const added = await adminClient()

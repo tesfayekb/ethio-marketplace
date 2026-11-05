@@ -3,7 +3,7 @@ import type { APIRequestContext } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { adminClient } from "./helpers/users";
-import { seedListingRow } from "./helpers/listing-seed";
+import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { destroyLocation, scratchSlug, seedScratchChain } from "./helpers/locations";
 import {
   leaseSeller,
@@ -301,8 +301,7 @@ test.describe("FEED ROUTE", () => {
   }
 
   async function update(id: string, patch: Record<string, unknown>) {
-    const { error } = await adminClient().from("listings").update(patch).eq("id", id);
-    if (error) throw new Error(`[e2e:fr] updating the listing failed: ${error.message}`);
+    await updateListingRow(id, patch, { tag: "fr" });
   }
 
   const ago = (ms: number) => new Date(Date.now() - ms).toISOString();

@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
 import { adminClient } from "./helpers/users";
-import { seedListingRow } from "./helpers/listing-seed";
+import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { destroyLocation, scratchSlug, seedScratchChain } from "./helpers/locations";
 import {
   leaseSeller,
@@ -153,8 +153,7 @@ test.describe("FEED INDEX", () => {
   }
 
   async function setListing(listingId: string, patch: Record<string, unknown>): Promise<void> {
-    const { error } = await adminClient().from("listings").update(patch).eq("id", listingId);
-    expect(error).toBeNull();
+    await updateListingRow(listingId, patch, { tag: "fe" });
   }
 
   function pairs(categories: string[], places: string[]): string[] {

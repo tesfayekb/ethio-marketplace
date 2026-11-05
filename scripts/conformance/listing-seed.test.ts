@@ -13,6 +13,12 @@ import { readAllowlist, report, TREE_SCAN_MS, visitTs, walkFiles } from "./kit";
  * seeds an ad beyond the free slots at a level above the baseline or refuses at the
  * seeding line. A site that stays outside — a draft without a place, or a test of the
  * table's own refusal — holds its allowlist line `<file>:<line> | reason | until`.
+ *
+ * Ruling 14 item 1 (INC-1061): the law fires on INSERT OR UPDATE OF status, tier, so
+ * the census reads the law's definition, not the statement: a `from("listings")
+ * .update(…)` (or `.upsert(…)`) whose payload names `status` or `tier` — or whose
+ * payload the census cannot read (a variable, a conditional, a spread) — goes
+ * through `updateListingRow` in the same helper.
  */
 
 type Finding = { file: string; line: number; what: string };
@@ -31,7 +37,26 @@ function isFromListings(node: ts.Node): boolean {
   );
 }
 
-/** Every `from("listings").insert(…)` in the files, by file and line. */
+/** The columns the free-slot law fires on (`BEFORE INSERT OR UPDATE OF status, tier`). */
+const LAW_COLUMNS = new Set(["status", "tier"]);
+
+/** Whether an UPDATE's payload names a law column, or cannot be read as a plain object. */
+function writesTheLaw(payload: ts.Expression | undefined): boolean {
+  if (payload === undefined) return false;
+  if (!ts.isObjectLiteralExpression(payload)) return true;
+  return payload.properties.some((property) => {
+    if (ts.isSpreadAssignment(property)) return true;
+    const name = property.name;
+    if (name === undefined) return true;
+    if (ts.isIdentifier(name) || ts.isStringLiteral(name)) return LAW_COLUMNS.has(name.text);
+    return true;
+  });
+}
+
+/**
+ * Every `from("listings").insert(…)`, and every `.update(…)` / `.upsert(…)` that writes
+ * a law column, in the files, by file and line.
+ */
 export function listingInserts(files: string[]): Finding[] {
   const sites: Finding[] = [];
   for (const file of files) {
@@ -40,15 +65,24 @@ export function listingInserts(files: string[]): Finding[] {
       if (
         !ts.isCallExpression(node) ||
         !ts.isPropertyAccessExpression(node.expression) ||
-        node.expression.name.text !== "insert" ||
         !isFromListings(node.expression.expression)
       )
         return;
-      sites.push({
-        file,
-        line: source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1,
-        what: "a listings INSERT outside e2e/helpers/listing-seed.ts (seedListingRow, D318)",
-      });
+      const verb = node.expression.name.text;
+      const line = source.getLineAndCharacterOfPosition(node.getStart(source)).line + 1;
+      if (verb === "insert") {
+        sites.push({
+          file,
+          line,
+          what: "a listings INSERT outside e2e/helpers/listing-seed.ts (seedListingRow, D318)",
+        });
+      } else if ((verb === "update" || verb === "upsert") && writesTheLaw(node.arguments[0])) {
+        sites.push({
+          file,
+          line,
+          what: `a listings ${verb.toUpperCase()} of status or tier outside e2e/helpers/listing-seed.ts (updateListingRow, INC-1061)`,
+        });
+      }
     });
   }
   return sites;
@@ -75,7 +109,7 @@ describe("the one seeder of listing rows (D318, CF-SEED-1)", () => {
     TREE_SCAN_MS,
   );
 
-  it("CFS-2 the census names a planted INSERT and passes a read, an UPDATE and another table's INSERT", () => {
+  it("CFS-2 the census names a planted INSERT and passes a read, an UPDATE of other columns and another table's INSERT", () => {
     const dir = "node_modules/.cache/listing-seed";
     mkdirSync(dir, { recursive: true });
     const file = `${dir}/seed-planted.ts`;
@@ -86,12 +120,38 @@ describe("the one seeder of listing rows (D318, CF-SEED-1)", () => {
           "declare const db: { from(table: string): Record<string, (...a: unknown[]) => unknown> };",
           'export const a = db.from("listings").insert({ status: "active" });',
           'export const b = db.from("listings").select("id");',
-          'export const c = db.from("listings").update({ status: "sold" });',
+          'export const c = db.from("listings").update({ title: "sold" });',
           'export const d = db.from("listing_locations").insert({ position: 1 });',
           "",
         ].join("\n"),
       );
       expect(listingInserts([file]).map((site) => site.line)).toEqual([2]);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("CFS-4 the census names makeState's UPDATE shape (a conditional payload), a named status or tier, a spread and a variable, and passes an UPDATE of other columns", () => {
+    const dir = "node_modules/.cache/listing-seed-update";
+    mkdirSync(dir, { recursive: true });
+    const file = `${dir}/update-planted.ts`;
+    try {
+      writeFileSync(
+        file,
+        [
+          "declare const db: { from(table: string): Record<string, (...a: unknown[]) => unknown> };",
+          "declare const live: boolean;",
+          "declare const patch: Record<string, unknown>;",
+          'export const a = db.from("listings").update(live ? { status: "active" } : { status: "expired" });',
+          'export const b = db.from("listings").update({ tier: "premium" });',
+          'export const c = db.from("listings").update({ ...patch, title: "x" });',
+          'export const d = db.from("listings").update(patch);',
+          'export const e = db.from("listings").update({ reserved_at: "now", price_amount: 9 });',
+          'export const f = db.from("listings").upsert({ "status": "sold" });',
+          "",
+        ].join("\n"),
+      );
+      expect(listingInserts([file]).map((site) => site.line)).toEqual([4, 5, 6, 7, 9]);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

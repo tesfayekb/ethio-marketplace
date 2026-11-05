@@ -21,7 +21,7 @@ import {
   signInViaSession,
 } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
-import { seedListingRow } from "./helpers/listing-seed";
+import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -535,8 +535,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     await dropPrice(X3);
     const X4 = await seed(sellerA, "active", { title: "Old phone" });
     await dropPrice(X4);
-    const sold = await adminClient().from("listings").update({ status: "sold" }).eq("id", X4);
-    if (sold.error) throw new Error(`[e2e:mlp] selling X4 failed: ${sold.error.message}`);
+    await updateListingRow(X4, { status: "sold" }, { tag: "mlp" });
     const sellerB = await scratchSeller();
     const B1 = await seed(sellerB, "active", { title: "Red phone" });
     const b = await asPerson(sellerB);
@@ -837,18 +836,17 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     const X = await seed(seller, "screening");
     const R = await seed(seller, "screening");
     // Live the PS-1 way: this test's own scratch ad only, by id, seller and status.
-    const live = await adminClient()
-      .from("listings")
-      .update({
+    const live = await updateListingRow(
+      X,
+      {
         status: "active",
         published_at: at(-HOUR),
         published_first_at: at(-HOUR),
         expires_at: at(10 * DAY),
-      })
-      .eq("id", X)
-      .eq("seller_id", seller.id)
-      .eq("status", "screening");
-    if (live.error) throw new Error(`[e2e:mlp] making X live failed: ${live.error.message}`);
+      },
+      { tag: "mlp", where: { seller_id: seller.id, status: "screening" } },
+    );
+    if (!live) throw new Error("[e2e:mlp] making X live: no screening row of this seller");
     const truth = await adminClient()
       .from("listings")
       .select("status,public_id")

@@ -14,7 +14,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
-import { levelAboveBaseline, seedListingRow } from "./helpers/listing-seed";
+import { levelAboveBaseline, seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -1242,8 +1242,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       clock_kept: true,
     });
 
-    const back = await service.from("listings").update({ status: "active" }).eq("id", X.id);
-    if (back.error) throw new Error(`[e2e:ml] status reset failed: ${back.error.message}`);
+    await updateListingRow(X.id, { status: "active" }, { tag: "ml" });
     const street = await edit({ street_address: "call 0911223344" });
     expect(street.error).toBe("contactInNote");
   });

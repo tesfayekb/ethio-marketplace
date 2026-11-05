@@ -19,6 +19,15 @@ import { adminClient } from "./users";
  *
  * Every service-role INSERT into `listings` in e2e goes through `seedListingRow`
  * or `seedListingRows`; a spec never writes the table's INSERT itself.
+ *
+ * Ruling 14 item 1 (INC-1061) — the law fires on INSERT OR UPDATE OF status, tier,
+ * so the same holds for a write on an existing row: `updateListingRow` is the ONE
+ * service-role UPDATE of `listings` in e2e. It reads the row first; a patch that
+ * brings it INTO the counted baseline set beyond the seller's free slots is
+ * refused at the line or moved to the level above the baseline, by the same rule;
+ * a patch into a status that does not count, or one that leaves the row where it
+ * was, is written as given. CF-SEED-1 (scripts/conformance/listing-seed.test.ts)
+ * judges both writers.
  */
 
 /** The statuses the free-slot law counts (listings_free_slot_guard). */
@@ -96,6 +105,7 @@ export async function freeSlotRoom(
   sellerId: string,
   countryCode: string,
   tag: string,
+  exclude?: string,
 ): Promise<{ free: number; used: number }> {
   const supabase = adminClient();
   const market = await supabase.rpc("market_settings_for", { p_country_code: countryCode });
@@ -105,10 +115,12 @@ export async function freeSlotRoom(
       `[e2e:${tag}] market_settings_for failed: ${market.error?.message ?? "no row"}`,
     );
   }
-  const live = await supabase.rpc("seller_regular_live", {
-    p_seller: sellerId,
-    p_country_code: countryCode,
-  });
+  const live = await supabase.rpc(
+    "seller_regular_live",
+    exclude === undefined
+      ? { p_seller: sellerId, p_country_code: countryCode }
+      : { p_seller: sellerId, p_country_code: countryCode, p_exclude: exclude },
+  );
   if (live.error || typeof live.data !== "number") {
     throw new Error(`[e2e:${tag}] seller_regular_live failed: ${live.error?.message ?? "no row"}`);
   }
@@ -117,6 +129,19 @@ export async function freeSlotRoom(
 
 function text(value: unknown): string | null {
   return typeof value === "string" && value !== "" ? value : null;
+}
+
+/** A row read back: an object with a string `id` and `tier` (a shape guard, never a cast). */
+function seededOf(value: unknown, tag: string): SeededListing {
+  if (typeof value !== "object" || value === null) {
+    throw new Error(`[e2e:${tag}] the listing read back is not a row`);
+  }
+  const row: Row = { ...value };
+  const id = text(row["id"]);
+  const tier = text(row["tier"]);
+  if (id === null || tier === null)
+    throw new Error(`[e2e:${tag}] the listing read back has no id or tier`);
+  return { ...row, id, tier };
 }
 
 /**
@@ -169,7 +194,7 @@ export async function seedListingRows(
       `[e2e:${options.tag}] seeding ${placed.length} listing(s) failed: ${error?.message ?? "no row"}`,
     );
   }
-  return data as unknown as SeededListing[];
+  return data.map((row) => seededOf(row, options.tag));
 }
 
 /** One row through `seedListingRows`. */
@@ -180,4 +205,73 @@ export async function seedListingRow(
   const [seeded] = await seedListingRows([row], options);
   if (!seeded) throw new Error(`[e2e:${options.tag}] seeding a listing returned no row`);
   return seeded;
+}
+
+export type UpdateListingOptions = SeedListingOptions & {
+  /** Further column filters the row must match (`.eq(column, value)` each). */
+  where?: Record<string, string>;
+};
+
+/** The market a placed row counts in: its `location_id`, else its first coverage place. */
+async function marketOf(listingId: string, locationId: string | null, tag: string) {
+  if (locationId !== null) return countryOf(locationId, tag);
+  const { data, error } = await adminClient()
+    .from("listing_locations")
+    .select("location_id")
+    .eq("listing_id", listingId)
+    .order("position")
+    .order("location_id")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`[e2e:${tag}] the listing's places: ${error.message}`);
+  const place = text(data?.location_id);
+  return place === null ? null : countryOf(place, tag);
+}
+
+/**
+ * Writes `patch` to one listing (by id, and `where` when given) under the free-slot
+ * law; answers the row as written, or null when no row matched.
+ */
+export async function updateListingRow(
+  listingId: string,
+  patch: Row,
+  options: UpdateListingOptions,
+): Promise<SeededListing | null> {
+  const baseline = await baselineLevelKey();
+  const where = Object.entries(options.where ?? {});
+  let read = adminClient()
+    .from("listings")
+    .select("id,seller_id,status,tier,location_id")
+    .eq("id", listingId);
+  for (const [column, value] of where) read = read.eq(column, value);
+  const current = await read.maybeSingle();
+  if (current.error) {
+    throw new Error(`[e2e:${options.tag}] reading the listing: ${current.error.message}`);
+  }
+  if (!current.data) return null;
+  const was = current.data;
+  const status = text(patch["status"]) ?? was.status;
+  const tier = text(patch["tier"]) ?? was.tier;
+  const counted = (s: string, t: string) => COUNTED_STATUSES.includes(s) && t === baseline;
+  const written: Row = { ...patch };
+  if (counted(status, tier) && !counted(was.status, was.tier)) {
+    const country = await marketOf(listingId, text(was.location_id), options.tag);
+    if (country !== null) {
+      const room = await freeSlotRoom(was.seller_id, country, options.tag, listingId);
+      if (room.used >= room.free) {
+        if ((options.beyondFreeSlots ?? "refuse") === "refuse") {
+          throw new Error(
+            `[e2e:${options.tag}] moving a ${was.status} ad to ${status} ${tier}: the seller's ${room.free} free slot(s) in ${country} are taken (D318) — give it a level first, move it to a status that does not count, or use another scratch seller`,
+          );
+        }
+        written["tier"] = await levelAboveBaseline();
+      }
+    }
+  }
+  let write = adminClient().from("listings").update(written).eq("id", listingId);
+  for (const [column, value] of where) write = write.eq(column, value);
+  const columns = options.select ? `id,tier,${options.select}` : "id,tier";
+  const { data, error } = await write.select(columns).maybeSingle();
+  if (error) throw new Error(`[e2e:${options.tag}] updating the listing failed: ${error.message}`);
+  return data === null ? null : seededOf(data, options.tag);
 }

@@ -3,6 +3,7 @@ import { expect, test } from "./fixtures";
 import { adPageFixtures } from "./helpers/ad-page";
 import { passwordGrant } from "./helpers/session";
 import { adminClient, leaseUser } from "./helpers/users";
+import { updateListingRow } from "./helpers/listing-seed";
 import {
   expectNoHorizontalOverflow,
   gotoReady,
@@ -43,16 +44,12 @@ test.describe("Account saved", () => {
     }
     const [aId, bId, cId] = ids;
     if (!aId || !bId || !cId) throw new Error("AS-1 missing seeded public ids");
-    const sold = await adminClient()
-      .from("listings")
-      .update({ status: "sold", sold_at: new Date().toISOString() })
-      .eq("id", B.id);
-    if (sold.error) throw new Error(`AS-1 sold: ${sold.error.message}`);
-    const removed = await adminClient()
-      .from("listings")
-      .update({ status: "removed" })
-      .eq("id", C.id);
-    if (removed.error) throw new Error(`AS-1 removed: ${removed.error.message}`);
+    await updateListingRow(
+      B.id,
+      { status: "sold", sold_at: new Date().toISOString() },
+      { tag: "as" },
+    );
+    await updateListingRow(C.id, { status: "removed" }, { tag: "as" });
     await signInViaSession(page, buyer.email, buyer.password);
     await gotoReady(page, "/account/saved");
     const items = page.getByTestId("saved-item");
