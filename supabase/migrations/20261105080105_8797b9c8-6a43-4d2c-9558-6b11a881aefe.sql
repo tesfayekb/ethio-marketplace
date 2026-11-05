@@ -82,10 +82,11 @@ REVOKE ALL ON FUNCTION public.listing_places_trim(uuid) FROM PUBLIC, anon, authe
 GRANT ALL ON FUNCTION public.listing_places_trim(uuid) TO service_role;
 
 -- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) a scratch ad with three places in two regions under
--- the free plan (1 city, 1 region, 1 country): the primary is kept though saved last, the two others
--- answered in saved order and gone; a second call answers nothing and removes nothing; an ad within the
--- caps is untouched; nothing else of either ad changes. Rolled back by the sentinel.
+-- (a) the header and the grants (catalog facts); (b) under the seller's plan as the database holds it
+-- (C = max_cities, every cap 1 or more), a scratch ad with C + 1 scratch cities in one scratch region, the
+-- primary saved last: the primary and the first C − 1 others are kept in saved order, exactly the last
+-- other is answered and gone; a second call answers nothing and removes nothing; an ad within the caps is
+-- untouched; nothing else of either ad changes. Rolled back by the sentinel.
 DO $proof$
 DECLARE
   v_fn      regprocedure := 'public.listing_places_trim(uuid)'::regprocedure;
