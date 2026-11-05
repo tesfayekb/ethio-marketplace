@@ -492,21 +492,24 @@ jobs:
       # INC-074: staging must carry the newest local migration, or the suite
       # fails with N cryptic reds instead of one named file.
       # DEC-171: a migration turn's run WAITS for the operator's staging apply
-      # (every 30 s, up to 25 minutes) instead of failing at once and needing
+      # (every 30 s, up to 14 minutes) instead of failing at once and needing
       # "Re-run failed jobs". Only "STAGING BEHIND" waits; any other failure
-      # fails at once, and a run that is still behind after 25 minutes fails
+      # fails at once, and a run that is still behind after 14 minutes fails
       # exactly as before.
+      # INC-1053: the loop is sized under the job's 15-minute deadline (28 × 30 s),
+      # so a behind staging ends as the named STAGING BEHIND failure, never as a
+      # job cancelled by its timeout (run 41969678989, attempt 30 of 50).
       - name: Migration parity preflight (staging)
         run: |
           set -o pipefail
-          for attempt in $(seq 1 50); do
+          for attempt in $(seq 1 28); do
             if bun scripts/e2e-migration-preflight.ts 2>&1 | tee preflight.log; then
               exit 0
             fi
             if ! grep -q "STAGING BEHIND" preflight.log; then
               exit 1
             fi
-            echo "[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt ${attempt} of 50)"
+            echo "[e2e:preflight] staging is behind; waiting 30 s for the operator's apply (attempt ${attempt} of 28)"
             sleep 30
           done
           exit 1
