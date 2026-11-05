@@ -1,0 +1,15 @@
+# P-2 (a) — ruling 13 (saved verbatim; base: cursor/p2-plan at c28c45c6d)
+
+````
+RULING — P-2 (a), ruling 13: part 5's proof reaches the gate it tests. Base: cursor/p2-plan c28c45c6d. Save as docs/governance/briefs/p2-level-reach-ruling-13.md.
+**MODEL — Claude Opus 5.5 (High)**
+
+Run 42006437766: every backend start failed at 20261105080108_d9040574 (part 5) proof (b): "edit_my_listing let a sold ad through (nothing to change)". The server record shows the cause: the proof calls edit_my_listing(…, '{}'), and the door refuses an EMPTY change set ('nothing to change', 20261019115951 :124) before its status gate (:150–:152, 'this listing is not edited'). The proof never reaches the gate it tests; the paused-ad call above it passes only because 'nothing to change' is not the gate's words. INC-1060.
+
+1. FIX part 5's proof (proof text only; marks unchanged; header line): both calls pass ONE editable change that clears every earlier refusal (read the door's refusal order from 20261019115951 :121–:152 — e.g. a new title within the judge's limits). Then assert the EXACT outcome, read from the door's code: the sold ad → 'this listing is not edited'; the paused ad → passes the gate — state precisely what the door then does with it in this file's order (part 8's guard is not yet applied when part 5's proof runs) and assert that, never "anything but the gate's words".
+2. LAW 14 in docs/governance/migrations.md (bold): a refusal proof reads the door's refusal order and supplies arguments that pass every earlier check, so the answer it asserts can only come from the rule under test. Census the proofs of parts 1–9 for the same shape (a refusal asserted after an argument an earlier check refuses) and fix every one; list them.
+3. check-migrations, conformance, push ONCE, END THE TURN with the nine pairing lines. I apply all nine on staging after a green backend start. ADDENDUM to ruling 13 — the seeders and the free-slot law (D318). Save it inside p2-level-reach-ruling-13.md.
+
+4. The four specs your §12 named (my-listings-doors :917–:920, my-listings-page :236–:242, feed-screens :270–:274 and :451, feed-route FR-4 :172–:179) follow the law; nothing bypasses it — no test-only switch on the guard (§7 bans a stand-in on a production path). One seeder helper in e2e/helpers does it for all four: ads beyond the market's free slots are seeded at a level ABOVE the baseline (a seller with more live ads than free slots holds levels — the realistic state) or in a status that does not count (closed, sold, expired, draft) where the spec's subject allows, or spread over more scratch sellers where the subject is the feed. Each spec keeps its assertion's intent; say per spec which way it went and why. Census every other e2e seeder of counted baseline ads (service-role inserts into listings) and fold it onto the helper.
+5. The staff refusals your §12 named stand as the law for now: edit_listing retires in F1-1; the admin restore and lowering a screening/held ad answer noFreeSlot — the client arm (actionErrorKey + the console's refusal reader) and its EN text go in the app minimum, the Amharic is mine. Recorded for P-2 (b)'s screens.
+````
