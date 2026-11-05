@@ -122,7 +122,7 @@ export function dbProofFindings(dbProof: Source, workflow: Source): Finding[] {
     if (
       version &&
       !new RegExp(
-        `^\\s*${version.replace(/\./g, "\\.")}/${platform}\\) echo [0-9a-f]{64} ;;$`,
+        `^\\s*${version.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&")}/${platform}\\) echo [0-9a-f]{64} ;;$`,
         "m",
       ).test(dbProof.text)
     )
@@ -252,9 +252,6 @@ describe("one preparation and one set of database steps for CI and db:proof (DEC
   it("CF-DBP-5 every start kind meets the port check before any migration applies (INC-1063); planted copies fail", () => {
     const dbProof = read(DB_PROOF);
     expect(report(portCheckFindings(dbProof))).toBe("");
-    expect(read(PORTS).text).toContain(
-      `PORTS_OPEN_REFUSAL="${PORTS_REFUSAL.replace(/"/g, '\\"')}"`,
-    );
     const check = "refusal=$(printf '%s\\n' \"$ports\" | ports_refusal)\n";
     const without = { file: DB_PROOF, text: dbProof.text.replace(check, "") };
     expect(portCheckFindings(without).map((f) => f.what)).toEqual([

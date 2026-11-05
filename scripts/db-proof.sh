@@ -113,7 +113,11 @@ fi
 [ "$(cd "$cli_dir" && "$cli" --version 2> /dev/null)" = "$version" ] || not_run "$cli does not report version $version"
 
 running() { [ -n "$(docker ps -q --filter "name=^/$CONTAINER\$")" ]; }
-has_data() { docker volume ls -q --filter "name=$CONTAINER" | grep -qx "$CONTAINER"; }
+has_data() {
+  local volumes
+  volumes=$(docker volume ls -q --filter "name=$CONTAINER") || return 1
+  [[ $'\n'"$volumes"$'\n' == *$'\n'"$CONTAINER"$'\n'* ]]
+}
 stop_stack() {
   # $1: --no-backup wipes the data; empty keeps it. By the working copy's config, or by the project's id.
   local where=(--project-id "$PROJECT")
