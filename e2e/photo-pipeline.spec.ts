@@ -39,6 +39,7 @@ import { signInAsSuperAdmin } from "./helpers/categories";
 import { destroyLocation, rand, RUN, seedScratchChain } from "./helpers/locations";
 import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { inOneWindow } from "./helpers/rate-window";
 
 /**
@@ -350,9 +351,9 @@ test.describe("PHOTO PIPELINE", () => {
     categories.push(leaf.slug);
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
-    const { data: seeded, error: seedError } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+    const seeded = await seedListingRow(
+      {
         category_id: leaf.id,
         seller_id: user.id,
         location_id: chain.city.id,
@@ -361,13 +362,10 @@ test.describe("PHOTO PIPELINE", () => {
         description: "e2e scratch listing for PP-34",
         status: "active",
         published_at: new Date(Date.now() - 60_000).toISOString(),
-      })
-      .select("id")
-      .single();
-    if (seedError || !seeded) {
-      throw new Error(`[e2e:pp34] active listing seed failed: ${seedError?.message ?? "no row"}`);
-    }
-    const listingId = String(seeded.id);
+      },
+      { tag: "pp34" },
+    );
+    const listingId = seeded.id;
     objects.push({ userId: user.id, listingId });
     const uploaded = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
     expect(uploaded.status, JSON.stringify(uploaded.payload)).toBe(200);
@@ -1111,9 +1109,9 @@ test.describe("PHOTO PIPELINE", () => {
     // scratch city in Ethiopia (as the feed-screen specs seed theirs).
     const chain = await seedScratchChain("ET");
     regions.push(chain.region.slug);
-    const { data: seeded, error: seedError } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+    const seeded = await seedListingRow(
+      {
         category_id: leaf.id,
         seller_id: user.id,
         location_id: chain.city.id,
@@ -1122,15 +1120,10 @@ test.describe("PHOTO PIPELINE", () => {
         description: "e2e scratch listing for PP-21",
         status: "active",
         published_at: new Date(Date.now() - 60_000).toISOString(),
-      })
-      .select("id")
-      .single();
-    if (seedError || !seeded) {
-      throw new Error(
-        `[e2e:pp] seeding the active listing failed: ${seedError?.message ?? "no row"}`,
-      );
-    }
-    const listingId = String(seeded.id);
+      },
+      { tag: "pp" },
+    );
+    const listingId = seeded.id;
     objects.push({ userId: user.id, listingId });
     const shown = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
     expect(shown.status, JSON.stringify(shown.payload)).toBe(200);

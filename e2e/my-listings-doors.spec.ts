@@ -14,6 +14,7 @@ import {
 import { passwordGrant } from "./helpers/session";
 import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { levelAboveBaseline, seedListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -261,9 +262,10 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed", "closed"].includes(status);
     const published = options.publishedAt ?? -20;
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 (ruling 13) — an ad beyond the seller's free slots takes the level above the
+    // baseline (listing-seed.ts); the doors under test read status and ownership, not level.
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -282,11 +284,10 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
         published_at: live ? days(published) : null,
         published_first_at: live ? days(options.publishedFirstAt ?? published) : null,
         expires_at: options.expiresAt === null ? null : live ? days(options.expiresAt ?? 10) : null,
-      })
-      .select(`id,${TRUTH}`)
-      .single();
-    if (error || !data) throw new Error(`[e2e:ml] seeding failed: ${error?.message ?? "no row"}`);
-    const row = data as unknown as Row;
+      },
+      { tag: "ml", select: TRUTH, beyondFreeSlots: "level" },
+    );
+    const row = data as Row;
     listingIds.push(row["id"] as string);
     const located = await adminClient()
       .from("listing_locations")
@@ -914,10 +915,14 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       const text = spec.text.attrKey;
       const select = spec.select.attrKey;
       const first = { [text]: "first words", [select]: spec.optionValues[0] };
+      // D318 — three free slots: X and Y hold two, Z and W live at the level above the
+      // baseline (their edits go to review the same way), and R's return from rejected
+      // takes the third.
+      const level = await levelAboveBaseline();
       const X = await seed(seller);
       const Y = await seed(seller);
-      const Z = await seed(seller);
-      const W = await seed(seller);
+      const Z = await seed(seller, "active", { tier: level });
+      const W = await seed(seller, "active", { tier: level });
       const C = await seed(seller, "closed");
       const R = await seed(seller, "rejected");
       for (const ad of [X, Y, Z, W, C, R]) {

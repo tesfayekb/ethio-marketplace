@@ -26,6 +26,7 @@ import {
   useJobSuperAdmin,
 } from "./helpers/ui";
 import { adminClient, leaseUser, createUser } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
 
 /**
@@ -252,9 +253,10 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     } = {},
   ) {
     const live = ["active", "reduced", "expired", "sold", "removed"].includes(status);
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): a fourth counted baseline ad on one seller
+    // is refused at this line, before the table's guard.
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -272,16 +274,15 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
         published_at: live ? (options.publishedAt ?? new Date().toISOString()) : null,
         published_first_at: live ? (options.publishedAt ?? new Date().toISOString()) : null,
         ...(options.screening === undefined ? {} : { screening: options.screening }),
-      })
-      .select("id,title")
-      .single();
-    if (error || !data) throw new Error(`[e2e:al] seeding failed: ${error?.message ?? "no row"}`);
+      },
+      { tag: "al", select: "title" },
+    );
     const located = await adminClient()
       .from("listing_locations")
       .insert({ listing_id: data.id, location_id: seller.cityId, position: 1 });
     if (located.error) throw new Error(`[e2e:al] coverage failed: ${located.error.message}`);
-    if (options.own === true) listingIds.push(data.id as string);
-    return { id: data.id as string, title: data.title as string };
+    if (options.own === true) listingIds.push(data.id);
+    return { id: data.id, title: data["title"] as string };
   }
 
   /** A pooled account holding exactly the named permissions through a scratch role. */

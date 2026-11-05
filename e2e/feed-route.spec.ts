@@ -3,6 +3,7 @@ import type { APIRequestContext } from "@playwright/test";
 
 import { expect, test } from "./fixtures";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLocation, scratchSlug, seedScratchChain } from "./helpers/locations";
 import {
   leaseSeller,
@@ -81,15 +82,29 @@ test.describe("FEED ROUTE", () => {
 
   type Seed = Awaited<ReturnType<typeof seedPage>>;
 
+  /** D318 — another scratch seller for a feed's regular ads beyond one seller's free slots. */
+  async function anotherSeller() {
+    const seller = await leaseSeller();
+    sellers.push(seller.id);
+    return seller;
+  }
+
   async function addListing(
     seed: Seed,
-    { place, tier, minutesAgo }: { place: string; tier: Tier; minutesAgo: number },
+    {
+      place,
+      tier,
+      minutesAgo,
+      seller = seed.seller,
+    }: { place: string; tier: Tier; minutesAgo: number; seller?: { id: string } },
   ): Promise<Seeded> {
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 (ruling 13) — the feed's subject is the ORDER of the cards, never who posted
+    // them, so a regular ad beyond a seller's free slots belongs to another scratch
+    // seller (FR-4's three); the seeder refuses a fourth on one seller at this line.
+    const data = await seedListingRow(
+      {
         category_id: seed.leaf.id,
-        seller_id: seed.seller.id,
+        seller_id: seller.id,
         location_id: place,
         home_country_code: "ET",
         title: `e2e-feed-${RUN}-${rand()}`,
@@ -97,13 +112,10 @@ test.describe("FEED ROUTE", () => {
         status: "active",
         tier,
         published_at: new Date(Date.now() - minutesAgo * 60_000).toISOString(),
-      })
-      .select("id")
-      .single();
-    if (error || !data) {
-      throw new Error(`[e2e:fr] seeding the listing failed: ${error?.message ?? "no row"}`);
-    }
-    return { id: data.id as string, tier, minutesAgo };
+      },
+      { tag: "fr" },
+    );
+    return { id: data.id, tier, minutesAgo };
   }
 
   async function getFeed(
@@ -174,9 +186,14 @@ test.describe("FEED ROUTE", () => {
     const city = seed.chain.city.id;
     const five = await seedCityFive(seed);
     const far = await addListing(seed, { place: seed.c2.id, tier: "premium", minutesAgo: 30 });
+    // D318 — the city's five hold two of the seller's three regular slots; the three more
+    // regular ads are another scratch seller's: the place still has 8 and does not widen.
+    const other = await anotherSeller();
     const three: Seeded[] = [];
     for (const minutesAgo of [120, 180, 240]) {
-      three.push(await addListing(seed, { place: city, tier: "regular", minutesAgo }));
+      three.push(
+        await addListing(seed, { place: city, tier: "regular", minutesAgo, seller: other }),
+      );
     }
     const r = await getFeed(request, { category: seed.leaf.id, place: city });
     expect(r.status).toBe(200);

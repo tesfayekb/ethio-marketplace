@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { expect, test } from "./fixtures";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLocation, scratchSlug, seedScratchChain } from "./helpers/locations";
 import {
   leaseSeller,
@@ -46,9 +47,9 @@ test.describe("FEED INDEX", () => {
     status: string,
     publishedAt: string | null,
   ): Promise<string> {
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+    const data = await seedListingRow(
+      {
         category_id: categoryId,
         seller_id: sellerId,
         location_id: locationId,
@@ -57,12 +58,9 @@ test.describe("FEED INDEX", () => {
         description: "e2e scratch listing for the feed index",
         status,
         published_at: publishedAt,
-      })
-      .select("id")
-      .single();
-    if (error || !data) {
-      throw new Error(`[e2e:fe] seeding the listing failed: ${error?.message ?? "no row"}`);
-    }
+      },
+      { tag: "fe" },
+    );
     return data.id;
   }
 

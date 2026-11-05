@@ -13,6 +13,7 @@ import {
   waitForHydration,
 } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { destroyLocation, seedScratchChain } from "./helpers/locations";
 import {
   destroyCategoryBranch,
@@ -242,9 +243,8 @@ test.describe("U3 audit & security", () => {
       const { parent, leaf } = await seedCategoryBranch();
       const chain = await seedScratchChain("ET");
       try {
-        const seeded = await adminClient()
-          .from("listings")
-          .insert({
+        const seeded = await seedListingRow(
+          {
             category_id: leaf.id,
             seller_id: target.id,
             location_id: chain.city.id,
@@ -252,13 +252,10 @@ test.describe("U3 audit & security", () => {
             title: `e2e-imp-${RUN}-${rand()}`,
             description: "e2e scratch listing for the impersonation view",
             status: "screening",
-          })
-          .select("id")
-          .single();
-        if (seeded.error || !seeded.data) {
-          throw new Error(`[e2e:imp] seeding failed: ${seeded.error?.message ?? "no row"}`);
-        }
-        const listingId = seeded.data.id as string;
+          },
+          { tag: "imp" },
+        );
+        const listingId = seeded.id;
 
         await gotoReady(page, `/admin/users/${target.id}`);
         await expect(page.getByTestId("impersonation-starter")).toBeVisible();

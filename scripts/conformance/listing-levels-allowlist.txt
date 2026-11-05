@@ -12,3 +12,4 @@ tier:src/features/admin-listings/listings-page.tsx | the admin roster's P-1 tier
 tier:src/routes/dev.style.tsx | the style page's fixture cards per P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:scripts/feed-bench.ts | the feed bench's seeded P-1 tiers; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:e2e/helpers/ad-page.ts | the ad-page helper's seeded P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
+reader:e2e/helpers/listing-seed.ts | the one e2e seeder reads the first enabled level above the baseline (keys only, no perks) for a scratch ad beyond the free slots (D318, register row 114) | DEC-342

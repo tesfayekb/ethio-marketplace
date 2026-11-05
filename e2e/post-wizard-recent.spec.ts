@@ -3,6 +3,7 @@ import { en } from "../src/i18n/locales/en";
 import { expect, test } from "./fixtures";
 import { expectCutFloor, gotoReady, signInViaSession } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import {
   destroyListingsOf,
   stopPageBeforePurge,
@@ -28,18 +29,21 @@ test.describe("POSTING WIZARD — USED BEFORE", () => {
   });
 
   async function seed(categoryId: string, sellerId: string, published: string | null) {
-    const result = await adminClient().from("listings").insert({
-      seller_id: sellerId,
-      category_id: categoryId,
-      title: "e2e recent chip",
-      description: "e2e scratch ad",
-      status: "draft",
-      location_id: null,
-      attributes: {},
-      published_first_at: published,
-      home_country_code: "ET",
-    });
-    expect(result.error).toBeNull();
+    // D318 — the one seeder (listing-seed.ts); a draft without a place is never counted.
+    await seedListingRow(
+      {
+        seller_id: sellerId,
+        category_id: categoryId,
+        title: "e2e recent chip",
+        description: "e2e scratch ad",
+        status: "draft",
+        location_id: null,
+        attributes: {},
+        published_first_at: published,
+        home_country_code: "ET",
+      },
+      { tag: "recent" },
+    );
   }
   async function asEdge(page: Page) {
     for (const glob of ["**/api/listings/**", "**/api/geo"]) {

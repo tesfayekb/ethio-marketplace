@@ -1,20 +1,16 @@
 -- e2e-areas: my-listings, posting, ad-page
 -- P-2 (a) M-1c, part 5 of 7 — the seller's doors accept a paused ad (plan §3; ruling 9 H3; ruling 10).
--- A paused ad (D306: a level ended with no free slot; the clock kept) is the seller's to pin, tick, edit
--- and mark sold, as a closed ad is (INC-631's rule, bundle 16 turn E2a). Four doors, one change each — the
--- literal 'paused' beside 'closed' in the status list the door accepts:
---   set_listing_pin           — whole, from 20261028223430 :7   (live md5 4fe67a1f8ea575516e256a5da78a2365);
---   set_listing_photos_soon   — whole, from 20261016150556 :13  (live md5 f33736b4003123d83aeb52c5f765bb88);
---   mark_sold                 — whole, from 20261014194317 :433 (live md5 98a822b8fd9e1a1c66380dceba55242e);
---   edit_my_listing           — 11.7 KB, so by computed insertion guarded by md5 (rule 30; the method of
---     20261029022748): the live body read, CR-normalised (law 13), checked against its md5
---     27060dfa53f8abbeefd0a2421682d662, two unique fragments replaced (the status gate; the clock_kept CASE,
---     where 'closed' already stands), checked against the new md5 12c05d47758d54fe541961e7f5c8ce2d, applied
---     with the live header, asserted post-apply.
--- edit_listing and set_listing_price are left as they are (ruling 10 H3: DEC-335 retires them in F1-1).
--- Headers and closers restated from each last declaration; every body byte for byte apart from the one
--- literal. Proofs on scratch rows (a paused ad through each door; a stranger refused and nothing written;
--- a sold ad still refused by edit_my_listing), rolled back by the sentinel.
+-- A paused ad (D306) is the seller's to pin, tick, edit and mark sold, as a closed ad is (INC-631's rule).
+-- Four doors, one change each — 'paused' beside 'closed':
+--   set_listing_pin (whole, 20261028223430 :7, live md5 4fe67a1f8ea575516e256a5da78a2365);
+--   set_listing_photos_soon (whole, 20261016150556 :13, f33736b4003123d83aeb52c5f765bb88);
+--   mark_sold (whole, 20261014194317 :433, 98a822b8fd9e1a1c66380dceba55242e);
+--   edit_my_listing (11.7 KB: computed insertion guarded by md5, rule 30 / 20261029022748 — the live body
+--     CR-normalised (law 13), md5 27060dfa53f8abbeefd0a2421682d662, two unique fragments replaced (the status
+--     gate; the clock_kept CASE), new md5 12c05d47758d54fe541961e7f5c8ce2d, applied with the live header).
+-- edit_listing and set_listing_price stay (ruling 10 H3: DEC-335 retires them in F1-1). Headers and closers
+-- from each last declaration; every body byte for byte apart from the one literal. Ruling 13 (INC-1060, law
+-- 14): every edit_my_listing call passes a title change, so the answer asserted is the rule under test's.
 
 DO $pre$
 DECLARE
@@ -46,7 +42,7 @@ BEGIN
   END IF;
 END $pre$;
 
--- ------------------------------------------------------------ 1. set_listing_pin (whole from 20261028223430 :7)
+-- 1. set_listing_pin (whole from 20261028223430 :7)
 CREATE OR REPLACE FUNCTION public.set_listing_pin(p_listing_id uuid, p_lat numeric DEFAULT NULL::numeric, p_lng numeric DEFAULT NULL::numeric, p_precision text DEFAULT NULL::text, p_street text DEFAULT NULL::text, p_zoom smallint DEFAULT NULL::smallint, p_directions text DEFAULT NULL::text)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -154,7 +150,7 @@ END $function$;
 REVOKE ALL ON FUNCTION public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text) TO authenticated, service_role;
 
--- ------------------------------------------------------------ 2. set_listing_photos_soon (whole from 20261016150556 :13)
+-- 2. set_listing_photos_soon (whole from 20261016150556 :13)
 CREATE OR REPLACE FUNCTION public.set_listing_photos_soon(p_listing_id uuid, p_on boolean)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -193,7 +189,7 @@ REVOKE ALL ON FUNCTION public.set_listing_photos_soon(uuid, boolean) FROM PUBLIC
 GRANT EXECUTE ON FUNCTION public.set_listing_photos_soon(uuid, boolean) TO authenticated;
 GRANT ALL ON FUNCTION public.set_listing_photos_soon(uuid, boolean) TO service_role;
 
--- ------------------------------------------------------------ 3. mark_sold (whole from 20261014194317 :433)
+-- 3. mark_sold (whole from 20261014194317 :433)
 CREATE OR REPLACE FUNCTION public.mark_sold(p_listing_id uuid)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -226,7 +222,7 @@ REVOKE ALL ON FUNCTION public.mark_sold(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.mark_sold(uuid) TO authenticated;
 GRANT ALL ON FUNCTION public.mark_sold(uuid) TO service_role;
 
--- ------------------------------------------------------------ 4. edit_my_listing (computed insertion, md5-guarded)
+-- 4. edit_my_listing (computed insertion, md5-guarded)
 DO $ins$
 DECLARE
   v_src text; v_norm text; v_new text;
@@ -272,13 +268,10 @@ REVOKE ALL ON FUNCTION public.edit_my_listing(uuid, jsonb, uuid[], text) FROM PU
 GRANT EXECUTE ON FUNCTION public.edit_my_listing(uuid, jsonb, uuid[], text) TO authenticated;
 GRANT ALL ON FUNCTION public.edit_my_listing(uuid, jsonb, uuid[], text) TO service_role;
 
--- ------------------------------------------------------------ 5. PROOFS
--- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
--- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
--- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
--- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
--- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
--- listing' and writes nothing. Rolled back by the sentinel.
+-- 5. PROOFS
+-- (a) the four bodies (md5, law 13), headers, grants. (b) two free-priced ads paused as the service; pin, tick,
+-- mark_sold land on a paused ad; edit_my_listing (a title, law 14) refuses the sold one with the gate's words.
+-- (c) a stranger: 'not your listing', nothing written. (d) the paused ad's title change goes to review.
 DO $proof$
 DECLARE
   v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
@@ -300,6 +293,10 @@ DECLARE
   v_revs   integer;
   v_ans    jsonb;
   v_msg    text;
+  v_cert   uuid[];
+  v_pub    text := (SELECT code FROM public.languages WHERE enabled_public ORDER BY code LIMIT 1);
+  v_kept   interval;
+  v_title  text := 'E2E P2 M1c5 p edited';
 BEGIN
   -- (a)
   FOR v_fn, v_want IN
@@ -317,7 +314,7 @@ BEGIN
   END LOOP;
 
   BEGIN
-    -- The scratch market: a published ad needs a place (listings_place_unless_draft); the anchor serves.
+    -- A published ad needs a place (listings_place_unless_draft): the scratch anchor serves.
     IF EXISTS (SELECT 1 FROM public.countries WHERE code = v_code) THEN
       RAISE EXCEPTION 'P-2 M-1c part 5 proof: scratch code % already exists', v_code;
     END IF;
@@ -334,12 +331,12 @@ BEGIN
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E P2 M1c5 Leaf', v_tag, true, true, true, 9999) RETURNING id INTO v_cat;
     INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code,
-                                 status, published_at, published_first_at, expires_at)
-    VALUES (v_seller, v_cat, v_anc, 'E2E P2 M1c5 p', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days')
+                                 status, published_at, published_first_at, expires_at, price_mode)
+    VALUES (v_seller, v_cat, v_anc, 'E2E P2 M1c5 p', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days', 'free')
     RETURNING id INTO v_p;
     INSERT INTO public.listings (seller_id, category_id, location_id, title, description, home_country_code,
-                                 status, published_at, published_first_at, expires_at)
-    VALUES (v_seller, v_cat, v_anc, 'E2E P2 M1c5 q', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days')
+                                 status, published_at, published_first_at, expires_at, price_mode)
+    VALUES (v_seller, v_cat, v_anc, 'E2E P2 M1c5 q', 'scratch', v_code, 'active', now(), now(), now() + interval '10 days', 'free')
     RETURNING id INTO v_q;
     PERFORM set_config('request.jwt.claims', '{}', true);
     PERFORM public.transition_listing(v_p, 'paused');
@@ -363,17 +360,6 @@ BEGIN
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_p AND kind = 'edit' AND actor = v_seller AND after ? 'photos_soon') <> 1 THEN
       RAISE EXCEPTION 'P-2 M-1c part 5 proof (b): the tick did not land on the paused ad';
     END IF;
-    -- Beyond the gate the door answers the judge's refusals as a value (ok:false) or raises a later rule
-    -- ('nothing changed'); the gate's own words are the one answer a paused ad must not get.
-    v_msg := NULL; v_ans := NULL;
-    BEGIN
-      v_ans := public.edit_my_listing(v_p, '{}'::jsonb);
-    EXCEPTION WHEN OTHERS THEN v_msg := SQLERRM;
-    END;
-    IF (v_ans IS NULL AND v_msg IS NULL) OR v_msg = 'this listing is not edited'
-       OR coalesce((v_ans->>'ok')::boolean, false) THEN
-      RAISE EXCEPTION 'P-2 M-1c part 5 proof (b): edit_my_listing on the paused ad answered % / %', v_ans, coalesce(v_msg, 'success');
-    END IF;
     PERFORM public.mark_sold(v_q);
     SELECT * INTO v_row FROM public.listings WHERE id = v_q;
     IF v_row.status <> 'sold' OR v_row.clock_kept OR v_row.kept_remaining IS NOT NULL OR v_row.resume_status IS NOT NULL
@@ -381,9 +367,11 @@ BEGIN
                          AND before = '{"status": "paused"}'::jsonb AND after = '{"status": "sold"}'::jsonb) THEN
       RAISE EXCEPTION 'P-2 M-1c part 5 proof (b): mark_sold did not take the paused ad (%)', v_row.status;
     END IF;
+    -- Law 14: the title clears 'nothing to change' / 'not editable'; the caller is active, within the dial; q is
+    -- his, not a draft, not in review, not expired — the status gate is the first rule the call meets.
     v_msg := NULL;
     BEGIN
-      v_ans := public.edit_my_listing(v_q, '{}'::jsonb);
+      v_ans := public.edit_my_listing(v_q, jsonb_build_object('title', v_title));
     EXCEPTION WHEN OTHERS THEN v_msg := SQLERRM;
     END;
     IF v_msg IS DISTINCT FROM 'this listing is not edited' THEN
@@ -400,7 +388,7 @@ BEGIN
           WHEN 'pin'    THEN PERFORM public.set_listing_pin(v_p, 9.03, 38.74, 'exact');
           WHEN 'photos' THEN PERFORM public.set_listing_photos_soon(v_p, false);
           WHEN 'sold'   THEN PERFORM public.mark_sold(v_p);
-          ELSE               v_ans := public.edit_my_listing(v_p, '{}'::jsonb);
+          ELSE               v_ans := public.edit_my_listing(v_p, jsonb_build_object('title', v_title));
         END CASE;
       EXCEPTION WHEN OTHERS THEN v_msg := SQLERRM;
       END;
@@ -412,6 +400,22 @@ BEGIN
     IF v_row.status <> 'paused' OR NOT v_row.photos_soon OR v_row.pin_precision IS DISTINCT FROM 'approx'
        OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id IN (v_p, v_q)) <> v_revs THEN
       RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
+    END IF;
+
+    -- (d) past the gate, in the door's order: the judge through step 5 (free price, title within 120, no contact),
+    -- legal_certify (the publishing set passed back), the UPDATE — typed text goes to review (fragment 2 keeps the clock).
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_seller::text, 'role', 'authenticated')::text, true);
+    SELECT array_agg((e->>'version_id')::uuid) INTO v_cert FROM jsonb_array_elements(public.legal_publishing_set(v_p)) e;
+    SELECT kept_remaining INTO v_kept FROM public.listings WHERE id = v_p;
+    v_ans := public.edit_my_listing(v_p, jsonb_build_object('title', v_title), v_cert, v_pub);
+    SELECT * INTO v_row FROM public.listings WHERE id = v_p;
+    IF (v_ans->>'ok')::boolean IS NOT TRUE OR v_ans->>'status' <> 'screening' OR (v_ans->>'review')::boolean IS NOT TRUE
+       OR v_row.status <> 'screening' OR v_row.title <> v_title OR NOT v_row.clock_kept
+       OR v_row.kept_remaining IS DISTINCT FROM v_kept OR v_row.resume_status IS NOT NULL
+       OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id = v_p AND kind = 'edit' AND actor = v_seller
+             AND before->>'status' = 'paused' AND after->>'status' = 'screening' AND after->>'title' = v_title) <> 1 THEN
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (d): the paused ad''s edit did not go to review (% / % % %)',
+        v_ans, v_row.status, v_row.clock_kept, v_row.kept_remaining;
     END IF;
     PERFORM set_config('request.jwt.claims', '{}', true);
     RAISE EXCEPTION 'p2-m1c5-proof-ok';

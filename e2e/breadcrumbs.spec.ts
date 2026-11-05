@@ -10,6 +10,7 @@ import {
 } from "./helpers/posting";
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 
 /**
  * Bundle 18 turn 1 (D198) — the seller's and the account's pages carry a
@@ -75,9 +76,9 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
     const ago = 20 * DAY;
     const at = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
     const title = `E2E breadcrumbs ad ${RUN.replace(/[0-9]/g, "x")} ${token()}`;
-    const { data, error } = await adminClient()
-      .from("listings")
-      .insert({
+    // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+    const data = await seedListingRow(
+      {
         category_id: seller.leafId,
         seller_id: seller.id,
         location_id: seller.cityId,
@@ -96,11 +97,10 @@ test.describe("breadcrumbs — the seller's and the account's pages (D198)", () 
         published_at: live ? at(-ago) : null,
         published_first_at: live ? at(-ago) : null,
         expires_at: live ? at(10 * DAY - 3_600_000) : null,
-      })
-      .select("id")
-      .single();
-    if (error || !data) throw new Error(`[e2e:bc] seeding failed: ${error?.message ?? "no row"}`);
-    const id = data.id as string;
+      },
+      { tag: "bc" },
+    );
+    const id = data.id;
     listingIds.push(id);
     const located = await adminClient()
       .from("listing_locations")

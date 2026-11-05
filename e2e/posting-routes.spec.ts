@@ -4,6 +4,7 @@ import { expect, test } from "./fixtures";
 
 import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
+import { seedListingRow } from "./helpers/listing-seed";
 import { passwordGrant } from "./helpers/session";
 import { inOneWindow, withinPreviewBudget } from "./helpers/rate-window";
 import { purgeListingObjects, reasons, uploadPhoto } from "./helpers/photos";
@@ -1357,17 +1358,20 @@ test.describe("POSTING ROUTES", () => {
 
       const chain = await seedScratchChain("ET");
       places.push(chain.region.slug);
-      const submitted = await admin.from("listings").insert({
-        seller_id: user.id,
-        category_id: cat.id,
-        location_id: chain.city.id,
-        title: `e2e pr50 ${rand()}`,
-        description: "e2e pr50 submitted ad",
-        home_country_code: "ET",
-        status: "screening",
-        published_first_at: new Date().toISOString(),
-      });
-      expect(submitted.error, "PR-50: the submitted ad could not be seeded").toBeNull();
+      // D318 — the one seeder (listing-seed.ts): the seller's free slots are read first.
+      await seedListingRow(
+        {
+          seller_id: user.id,
+          category_id: cat.id,
+          location_id: chain.city.id,
+          title: `e2e pr50 ${rand()}`,
+          description: "e2e pr50 submitted ad",
+          home_country_code: "ET",
+          status: "screening",
+          published_first_at: new Date().toISOString(),
+        },
+        { tag: "pr50" },
+      );
 
       const stored = await uploadPhoto(page, { listingId, token, cover: { name: "gps.jpg" } });
       expect(

@@ -110,6 +110,26 @@ One user per run, created and destroyed in the same run; `profiles` and `user_di
 cascade from `auth.users`. No shared long-lived fixture user; tests mutate nothing they
 did not create.
 
+### Seeding an ad under the free-slot law (D318, register row 114)
+
+The free-slot law lives at the table (`listings_free_slot_guard`, CF-SLOT-1, register row 113):
+a seller's counted baseline ads (screening, held, active, reduced at the baseline level) in a
+market never exceed `market_settings_for(country).free_regular_ads` — three by default — and a
+browser test's service-role INSERT is a writer like any other; no test-only switch bypasses the
+guard. Every `from("listings").insert(…)` in `e2e/` therefore goes through
+`e2e/helpers/listing-seed.ts` (`seedListingRow` / `seedListingRows`; CF-SEED-1,
+`scripts/conformance/listing-seed.test.ts`). The helper reads the seller's room BEFORE the write,
+through the guard's own readers (`baseline_level_key`, `market_settings_for`,
+`seller_regular_live`), so a spec's rows are the same whether or not the guard is applied where
+it runs. An ad beyond the free slots takes one of three ways, chosen by the spec's subject:
+`beyondFreeSlots: "level"` seeds it at the first enabled level above the baseline (the
+my-listings specs, whose doors read status and ownership — a seller with more live ads than free
+slots holds levels, the realistic state); a status that does not count (closed, sold, expired,
+draft) where the subject allows; or, where the subject is the feed (the cards' order and place,
+never who posted them), more scratch sellers — the helper's default refuses a fourth counted
+baseline ad on one seller at the seeding line with the law's words. Drafts and unplaced rows pass
+through. The two INSERTs that assert the table's own refusal (AP-15) hold allowlist lines.
+
 ## Prerequisite: staging schema
 
 The staging database must carry the same schema as ethio-prod (`countries`, `user_directory`,
