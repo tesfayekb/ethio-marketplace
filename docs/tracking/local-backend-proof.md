@@ -1,35 +1,35 @@
 # Local backend proof (non-gating)
 
-- Commit: `51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42000937962
+- Commit: `a0ad85da4300d2c9015d41321e6ddad124614e1b`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42006437766
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | not run | 77 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| email | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 1 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 2 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 3 | not run | 49 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 4 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 5 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 6 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 7 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 8 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 9 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 10 | not run | 56 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 11 | not run | 65 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 12 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 13 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 14 | not run | 50 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 15 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 16 | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| repeat | not run | 66 | not confirmed; backend failure | 0 | 0 | 0 | 75 | 75 |
+| smoke | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| email | not run | 66 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 1 | not run | 67 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 2 | not run | 50 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 3 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 4 | not run | 61 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 5 | not run | 63 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 6 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 7 | not run | 65 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 8 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 9 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 10 | not run | 69 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 11 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 12 | not run | 48 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 13 | not run | 52 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 14 | not run | 65 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 15 | not run | 57 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 16 | not run | 70 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| repeat | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 75 | 75 |
 | TOTAL | — | — | — | 0 | 0 | 0 | 75 | 75 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
 - Slowest lane: none 0 s
 - Repeat lane (DEC-283): Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/legal-certify.spec.ts (22 tests); Repeat: each 2 on both projects; 75 tests selected, 38 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 3 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 9, email 9, 1 9, 2 9, 3 4, 4 6, 5 6, 6 9, 7 9, 8 9, 9 9, 10 5, 11 7, 12 9, 13 9, 14 5, 15 9, 16 9, repeat 7
+- Database session samples during each start (INC-944): smoke 9, email 7, 1 7, 2 4, 3 9, 4 6, 5 7, 6 9, 7 6, 8 9, 9 9, 10 8, 11 9, 12 4, 13 5, 14 6, 15 5, 16 8, repeat 9
 - Teardown:
   - smoke: not found
   - email: not found
@@ -74,7 +74,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 
 ## Lane smoke
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -89,9 +89,80 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:59:21.214 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:21.214 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:21.214 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
+```
+Statement:
+```text
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
+DO $proof$
+DECLARE
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+```
+Last 20 lines:
+```text
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+09:59:20 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_types text; v_md5 text; v_door_md5 text; v_acl text; v_oid oid; v_core oid; v_src text; 
+09:59:20 | 429 | PostgREST 16.4 | client backend | active | : | with all_relations as ( select reltype from pg_class where relkind in ('v','r','m','f','p') union select oid from pg_typ
+09:59:20 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:59:20 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:59:20 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:59:20 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:59:20 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+```
+
+## Lane email
+- Step failure:
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane email
+## Migration/start failure
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
+Cause:
+```text
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
+```
+Server record (DEC-340, stream):
+```text
+172.18.0.1 2026-11-05 09:58:46.220 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:46.220 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:46.220 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -134,89 +205,18 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:54 | 274 | @effect/sql-pg | client backend | active | : | -- ===== F — proofs ===== DO $proof$ DECLARE v_n integer; v_i integer; v_id text; v_ids text[] := ARRAY[]::text[]; v_rol
-09:18:54 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:54 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:54 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:54 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:54 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:58:43 | 274 | @effect/sql-pg | client backend | active | : | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
+09:58:43 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:43 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:43 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:43 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:43 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
-## Lane email
-- Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane email
-## Migration/start failure
-Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
-Cause:
-```text
-ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
-```
-Server record (DEC-340, stream):
-```text
-172.18.0.1 2026-11-05 09:20:31.525 UTC [275] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:20:31.525 UTC [275] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:20:31.525 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
-(149 statement lines dropped)
-```
-Statement:
-```text
-At statement: 16
--- ------------------------------------------------------------ 5. PROOFS
--- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
--- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
--- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
--- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
--- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
--- listing' and writes nothing. Rolled back by the sentinel.
-DO $proof$
-DECLARE
-  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
-(130 lines omitted)
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-```
-Last 20 lines:
-```text
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:20:30 | 275 | @effect/sql-pg | client backend | active | : | -- Foundations turn N1b-1, M2 (INC-977, INC-981): the database's one outside call, signed, never carrying the secret. --
-09:20:30 | 430 | PostgREST 16.4 | client backend | active | : | with all_relations as ( select reltype from pg_class where relkind in ('v','r','m','f','p') union select oid from pg_typ
-09:20:30 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:20:30 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:20:30 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:20:30 | 204 |  | background writer |  | Activity:BgwriterMain | 
-09:20:30 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-```
-
 ## Lane 1
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -231,9 +231,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:50.992 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:50.992 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:50.992 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:42.201 UTC [273] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:42.201 UTC [273] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:42.201 UTC [273] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -276,13 +276,13 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:50 | 427 | PostgREST 16.4 | client backend | active | : | with recursive pks_fks as ( -- pk + fk referencing col select contype::text as contype, conname, array_length(conkey, 1)
-09:18:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+09:58:38 | 273 | @effect/sql-pg | client backend | active | : | -- ===== E6 — proofs (scratch rows only; no auth.users row; claims are a random id) ===== DO $proof$ DECLARE v_key text 
+09:58:38 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:38 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:38 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:38 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:38 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 2
@@ -302,9 +302,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:50.297 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:50.297 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:50.297 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:17.156 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:17.156 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:17.156 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -347,12 +347,12 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:49 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_old text; v_new text; v_oid oid; v_src text; v_gate text := E' -- INC-951 3c (D1 M6b-leg
-09:18:49 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:49 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:49 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:49 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:49 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:58:13 | 274 | @effect/sql-pg | client backend | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
+09:58:13 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:13 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:13 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:13 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:13 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
@@ -373,9 +373,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:20:41.368 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:20:41.368 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:20:41.368 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 10:01:09.596 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 10:01:09.596 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 10:01:09.596 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -418,18 +418,18 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:20:38 | 274 | @effect/sql-pg | client backend | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
-09:20:38 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:20:38 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:20:38 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:20:38 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:20:38 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+10:01:09 | 274 | @effect/sql-pg | client backend | active | : | -- ------------------------------------------------------------ 2. PROOFS -- (a) the header and the grants; the old sign
+10:01:09 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+10:01:09 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+10:01:09 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+10:01:09 | 203 |  | background writer |  | Activity:BgwriterMain | 
+10:01:09 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 4
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -444,9 +444,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:19:19.224 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:19:19.224 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:19:19.224 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:31.785 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:31.785 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:31.785 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -476,7 +476,6 @@ $proof$
 ```
 Last 20 lines:
 ```text
-      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
     PERFORM set_config('request.jwt.claims', '{}', true);
     RAISE EXCEPTION 'p2-m1c5-proof-ok';
@@ -489,13 +488,14 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:19:16 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_cat uuid; v_k text := 'e2e_mig_m13_' || substr(md5(random()::text), 1, 8); v_c text; v_p text; v_q 
-09:19:16 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:19:16 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:19:16 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:19:16 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:19:16 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:58:28 | 274 | @effect/sql-pg | client backend | active | : | -- ===== E6 — proofs (scratch rows only; no auth.users row; claims are a random id) ===== DO $proof$ DECLARE v_key text 
+09:58:28 | 379 | PostgREST 16.4 | client backend | active | Lock:relation | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:58:28 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:28 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:28 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:28 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:28 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 5
@@ -515,9 +515,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:19:02.869 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:19:02.869 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:19:02.869 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:59:07.589 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:07.589 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:07.589 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -559,19 +559,19 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:19:01 | 274 | @effect/sql-pg | client backend | active | : | SELECT count(*) = 3 AS provisioned FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid = a.attrelid WHERE
-09:19:01 | 387 | PostgREST 16.4 | client backend | active | : | with role_setting as ( select r.rolname, unnest(r.rolconfig) as setting from pg_auth_members m join pg_roles r on r.oid 
-09:19:01 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:19:01 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:19:01 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:19:01 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:19:01 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:59:07 | 415 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:59:07 | 274 | @effect/sql-pg | client backend | active | IO:WalSync | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
+09:59:07 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:59:07 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:59:07 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:59:07 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:59:07 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 6
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -586,9 +586,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:50.448 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:50.448 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:50.448 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:43.900 UTC [276] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:43.900 UTC [276] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:43.900 UTC [276] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -618,6 +618,7 @@ $proof$
 ```
 Last 20 lines:
 ```text
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
     PERFORM set_config('request.jwt.claims', '{}', true);
     RAISE EXCEPTION 'p2-m1c5-proof-ok';
@@ -630,19 +631,18 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:50 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (P-1b M-b): scratch rows only, rolled back by the sentinel; no real row read (G27; the -- currency is a scratch
-09:18:50 | 432 | PostgREST 16.4 | client backend | active | Lock:relation | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-09:18:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+09:58:43 | 276 | @effect/sql-pg | client backend | active | : | -- PROOF (NCQ-9…12): its own scratch users only; the queue is read through the core scoped to them -- (the door's allow 
+09:58:43 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:43 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:43 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:43 | 204 |  | background writer |  | Activity:BgwriterMain | 
+09:58:43 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 7
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -657,9 +657,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:19:23.335 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:19:23.335 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:19:23.335 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:59:21.624 UTC [275] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:21.624 UTC [275] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:21.624 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -689,6 +689,7 @@ $proof$
 ```
 Last 20 lines:
 ```text
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
     PERFORM set_config('request.jwt.claims', '{}', true);
     RAISE EXCEPTION 'p2-m1c5-proof-ok';
@@ -701,14 +702,13 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:19:23 | 274 | @effect/sql-pg | client backend | active | : | -- PROOFS: scratch rows only, rolled back by the sentinel. -- (a) the status check takes paused; the header and the gran
-09:19:23 | 438 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-09:19:23 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:19:23 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:19:23 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:19:23 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:19:23 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+09:59:18 | 275 | @effect/sql-pg | client backend | active | : | GRANT ALL ON FUNCTION public.get_posting_schema(uuid) TO service_role
+09:59:18 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:59:18 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:59:18 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:59:18 | 204 |  | background writer |  | Activity:BgwriterMain | 
+09:59:18 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 8
@@ -728,9 +728,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:56.932 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:56.932 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:56.932 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:46.574 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:46.574 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:46.574 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -773,18 +773,18 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:55 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_types text; v_md5 text; v_door_md5 text; v_acl text; v_oid oid; v_core oid; v_src text; 
-09:18:55 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:55 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:55 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:55 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:55 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:58:46 | 274 | @effect/sql-pg | client backend | active | : | -- PROOFS: scratch rows only, rolled back by the sentinel. -- (a) the status check takes paused; the header and the gran
+09:58:46 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:46 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:46 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:46 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:46 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 9
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -799,80 +799,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:21:03.720 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:21:03.720 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:21:03.720 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
-(149 statement lines dropped)
-```
-Statement:
-```text
-At statement: 16
--- ------------------------------------------------------------ 5. PROOFS
--- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
--- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
--- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
--- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
--- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
--- listing' and writes nothing. Rolled back by the sentinel.
-DO $proof$
-DECLARE
-  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
-(130 lines omitted)
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-```
-Last 20 lines:
-```text
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:21:03 | 274 | @effect/sql-pg | client backend | active | : | GRANT ALL ON FUNCTION public.admin_name_check_clear(uuid, text, text, text) TO service_role
-09:21:03 | 439 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-09:21:03 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:21:03 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:21:03 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:21:03 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:21:03 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-```
-
-## Lane 10
-- Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 10
-## Migration/start failure
-Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
-Cause:
-```text
-ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
-```
-Server record (DEC-340, stream):
-```text
-172.18.0.1 2026-11-05 09:18:51.592 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:51.592 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:51.592 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:59:07.322 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:07.322 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:07.322 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -915,13 +844,84 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:48 | 274 | @effect/sql-pg | client backend | active | : | GRANT EXECUTE ON FUNCTION public.publish_listing(uuid) TO authenticated
-09:18:48 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:48 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:48 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:48 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:48 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:59:06 | 274 | @effect/sql-pg | client backend | active | : | GRANT EXECUTE ON FUNCTION public.name_check_mark(uuid, text, text, text) TO service_role
+09:59:06 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:59:06 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:59:06 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:59:06 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:59:06 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+```
+
+## Lane 10
+- Step failure:
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 10
+## Migration/start failure
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
+Cause:
+```text
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
+```
+Server record (DEC-340, stream):
+```text
+172.18.0.1 2026-11-05 10:01:01.558 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 10:01:01.558 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 10:01:01.558 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
+```
+Statement:
+```text
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
+DO $proof$
+DECLARE
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+```
+Last 20 lines:
+```text
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+10:01:00 | 274 | @effect/sql-pg | client backend | active | : | CREATE OR REPLACE FUNCTION public.public_listing_json(l listings, p_viewer uuid) RETURNS jsonb LANGUAGE plpgsql STABLE S
+10:01:00 | 408 | PostgREST 16.4 | client backend | active | : | with recursive pks_fks as ( -- pk + fk referencing col select contype::text as contype, conname, array_length(conkey, 1)
+10:01:00 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+10:01:00 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+10:01:00 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+10:01:00 | 203 |  | background writer |  | Activity:BgwriterMain | 
+10:01:00 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 11
@@ -941,9 +941,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:48.743 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:48.743 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:48.743 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:59:57.223 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:57.223 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:57.223 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -986,87 +986,16 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:46 | 274 | @effect/sql-pg | client backend | active | : | SELECT public.name_folds_rebuild()
-09:18:46 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:46 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:46 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:46 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:46 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:59:57 | 274 | @effect/sql-pg | client backend | active | : | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
+09:59:57 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:59:57 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:59:57 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:59:57 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:59:57 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 12
-- Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 12
-## Migration/start failure
-Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
-Cause:
-```text
-ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
-```
-Server record (DEC-340, stream):
-```text
-172.18.0.1 2026-11-05 09:19:09.080 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:19:09.080 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:19:09.080 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
-(149 statement lines dropped)
-```
-Statement:
-```text
-At statement: 16
--- ------------------------------------------------------------ 5. PROOFS
--- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
--- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
--- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
--- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
--- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
--- listing' and writes nothing. Rolled back by the sentinel.
-DO $proof$
-DECLARE
-  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
-(130 lines omitted)
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-```
-Last 20 lines:
-```text
-      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:19:08 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_uid uuid := gen_random_uuid(); v_role uuid := gen_random_uuid(); v_feature text := 'e2e-a2-' || sub
-09:19:08 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:19:08 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:19:08 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:19:08 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:19:08 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
-```
-
-## Lane 13
 - Step failure:
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
@@ -1074,6 +1003,77 @@ Step backend: outcome failure
   ::add-mask::[masked]
 - No JSON results; smoke skipped
 
+## Lane 12
+## Migration/start failure
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
+Cause:
+```text
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
+```
+Server record (DEC-340, stream):
+```text
+172.18.0.1 2026-11-05 09:58:11.988 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:11.988 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:11.988 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
+```
+Statement:
+```text
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
+DO $proof$
+DECLARE
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+```
+Last 20 lines:
+```text
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+09:58:09 | 274 | @effect/sql-pg | client backend | active | : | -- Proofs — scratch rows inside a block that always rolls back. DO $p$ DECLARE v_s text := 'm8b-proof-' || substr(md5(ra
+09:58:09 | 352 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:58:09 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:09 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:09 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:09 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:09 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+```
+
+## Lane 13
+- Step failure:
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
 ## Lane 13
 ## Migration/start failure
 Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
@@ -1083,151 +1083,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:55.015 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:55.015 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:55.015 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
-(149 statement lines dropped)
-```
-Statement:
-```text
-At statement: 16
--- ------------------------------------------------------------ 5. PROOFS
--- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
--- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
--- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
--- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
--- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
--- listing' and writes nothing. Rolled back by the sentinel.
-DO $proof$
-DECLARE
-  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
-(130 lines omitted)
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-```
-Last 20 lines:
-```text
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:55 | 440 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-09:18:55 | 274 | @effect/sql-pg | client backend | active | : | GRANT EXECUTE ON FUNCTION public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text) TO authenticated, s
-09:18:55 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:55 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:55 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:55 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:55 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
-```
-
-## Lane 14
-- Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 14
-## Migration/start failure
-Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
-Cause:
-```text
-ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
-```
-Server record (DEC-340, stream):
-```text
-172.18.0.1 2026-11-05 09:18:18.092 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:18.092 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:18.092 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
-(149 statement lines dropped)
-```
-Statement:
-```text
-At statement: 16
--- ------------------------------------------------------------ 5. PROOFS
--- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
--- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
--- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
--- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
--- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
--- listing' and writes nothing. Rolled back by the sentinel.
-DO $proof$
-DECLARE
-  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
-(130 lines omitted)
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-```
-Last 20 lines:
-```text
-       OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id IN (v_p, v_q)) <> v_revs THEN
-      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
-    END IF;
-    PERFORM set_config('request.jwt.claims', '{}', true);
-    RAISE EXCEPTION 'p2-m1c5-proof-ok';
-  EXCEPTION WHEN raise_exception THEN
-    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
-  END;
-  PERFORM set_config('request.jwt.claims', '{}', true);
-END;
-$proof$
-Try rerunning the command with --debug to troubleshoot the error.
-Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:18 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:18 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:18 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:18 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:18 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
-```
-
-## Lane 15
-- Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
-Step backend: outcome failure
-  ::add-mask::[masked]
-  ::add-mask::[masked]
-- No JSON results; smoke skipped
-
-## Lane 15
-## Migration/start failure
-Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
-Cause:
-```text
-ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
-```
-Server record (DEC-340, stream):
-```text
-172.18.0.1 2026-11-05 09:20:06.476 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:20:06.476 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:20:06.476 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:29.838 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:29.838 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:29.838 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -1270,13 +1128,155 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:20:06 | 439 | PostgREST 16.4 | client backend | active | : | with role_setting as ( select r.rolname, unnest(r.rolconfig) as setting from pg_auth_members m join pg_roles r on r.oid 
-09:20:06 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:20:06 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:20:06 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:20:06 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:20:06 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+09:58:29 | 369 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:58:29 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:29 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:29 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:29 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:29 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+```
+
+## Lane 14
+- Step failure:
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 14
+## Migration/start failure
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
+Cause:
+```text
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
+```
+Server record (DEC-340, stream):
+```text
+172.18.0.1 2026-11-05 09:59:06.146 UTC [276] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:06.146 UTC [276] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:06.146 UTC [276] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
+```
+Statement:
+```text
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
+DO $proof$
+DECLARE
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+```
+Last 20 lines:
+```text
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+09:59:02 | 276 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_cat uuid; v_k text := 'e2e_mig_m13_' || substr(md5(random()::text), 1, 8); v_c text; v_p text; v_q 
+09:59:02 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:59:02 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:59:02 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:59:02 | 204 |  | background writer |  | Activity:BgwriterMain | 
+09:59:02 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+```
+
+## Lane 15
+- Step failure:
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane 15
+## Migration/start failure
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
+Cause:
+```text
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
+```
+Server record (DEC-340, stream):
+```text
+172.18.0.1 2026-11-05 09:58:37.082 UTC [275] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:37.082 UTC [275] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:37.082 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
+```
+Statement:
+```text
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
+DO $proof$
+DECLARE
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+```
+Last 20 lines:
+```text
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
+    END IF;
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+09:58:33 | 275 | @effect/sql-pg | client backend | active | : | -- Proof: the rebuild runs under safe-update (as the API connection does), returns -- rows above zero, and writes one ne
+09:58:33 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:33 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:33 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:33 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:33 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 16
@@ -1296,9 +1296,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:58.121 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:58.121 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:58.121 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 10:00:35.585 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 10:00:35.585 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 10:00:35.585 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -1341,18 +1341,18 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:56 | 274 | @effect/sql-pg | client backend | active | : | -- Proofs, with no caller (G39): the policies and the functions read the window from the setting and carry no typed 30 -
-09:18:56 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:56 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:56 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:56 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:56 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+10:00:34 | 274 | @effect/sql-pg | client backend | active | : | INSERT INTO public.migration_marks (version) VALUES ('20261024180000') ON CONFLICT DO NOTHING
+10:00:34 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+10:00:34 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+10:00:34 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+10:00:34 | 203 |  | background writer |  | Activity:BgwriterMain | 
+10:00:34 | 205 |  | walwriter |  | Activity:WalWriterMain | 
 start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane repeat
 - Step failure:
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -1366,9 +1366,9 @@ ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 09:18:30.688 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:30.688 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:30.688 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:58:53.313 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:58:53.313 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:58:53.313 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 Statement:
@@ -1398,7 +1398,6 @@ $proof$
 ```
 Last 20 lines:
 ```text
-      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
     PERFORM set_config('request.jwt.claims', '{}', true);
     RAISE EXCEPTION 'p2-m1c5-proof-ok';
@@ -1411,13 +1410,14 @@ END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-09:18:26 | 274 | @effect/sql-pg | client backend | active | : | -- ── 10. After: the same timings on the new rules ─────────────────────── DO $t$ DECLARE v_name text; i int; t0 timesta
-09:18:26 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-09:18:26 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-09:18:26 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-09:18:26 | 203 |  | background writer |  | Activity:BgwriterMain | 
-09:18:26 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:58:51 | 274 | @effect/sql-pg | client backend | active | : | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
+09:58:51 | 425 | PostgREST 16.4 | client backend | active | Client:ClientRead | SELECT c.castsource::regtype::text, c.casttarget::regtype::text, c.castfunc::regproc::text FROM pg_catalog.pg_cast c JOI
+09:58:51 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:58:51 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:58:51 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:58:51 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:58:51 | 205 |  | walwriter |  | IO:WalSync | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
