@@ -1,35 +1,35 @@
 # Local backend proof (non-gating)
 
-- Commit: `5ac4f8b528586435fb11fc5c2ca22b7b0e793397`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41996927177
+- Commit: `51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42000937962
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | not run | 65 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| email | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 1 | not run | 61 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 2 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 3 | not run | 61 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 4 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 5 | not run | 69 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 6 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| smoke | not run | 77 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| email | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 1 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 2 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 3 | not run | 49 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 4 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 5 | not run | 60 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 6 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | 7 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 8 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 9 | not run | 52 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 10 | not run | 62 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 11 | not run | 61 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 12 | not run | 51 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 8 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 9 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 10 | not run | 56 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 11 | not run | 65 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 12 | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | 13 | not run | 73 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 14 | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| 14 | not run | 50 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
 | 15 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| 16 | not run | 72 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
-| repeat | not run | 74 | not confirmed; backend failure | 0 | 0 | 0 | 75 | 75 |
+| 16 | not run | 75 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| repeat | not run | 66 | not confirmed; backend failure | 0 | 0 | 0 | 75 | 75 |
 | TOTAL | — | — | — | 0 | 0 | 0 | 75 | 75 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
 - Slowest lane: none 0 s
 - Repeat lane (DEC-283): Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/legal-certify.spec.ts (22 tests); Repeat: each 2 on both projects; 75 tests selected, 38 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 3 repeated; importers of a changed helper: 0 of 0
-- Database session samples during each start (INC-944): smoke 7, email 9, 1 6, 2 6, 3 6, 4 9, 5 8, 6 9, 7 9, 8 9, 9 5, 10 6, 11 6, 12 5, 13 9, 14 9, 15 9, 16 9, repeat 9
+- Database session samples during each start (INC-944): smoke 9, email 9, 1 9, 2 9, 3 4, 4 6, 5 6, 6 9, 7 9, 8 9, 9 9, 10 5, 11 7, 12 9, 13 9, 14 5, 15 9, 16 9, repeat 7
 - Teardown:
   - smoke: not found
   - email: not found
@@ -74,7 +74,7 @@ pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 
 ## Lane smoke
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -82,43 +82,38 @@ Step backend: outcome failure
 
 ## Lane smoke
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_affc9152, 10, t, t, f, 9000, null, 2026-11-05 08:49:50.732445+00, 2026-11-05 08:49:50.732445+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -126,31 +121,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:49:50 | 275 | @effect/sql-pg | client backend | active | IO:WalSync | INSERT INTO supabase_migrations.schema_migrations(version, name, statements) VALUES($1, $2, $3)
-08:49:50 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:49:50 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:49:50 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:49:50 | 204 |  | background writer |  | Activity:BgwriterMain | 
-08:49:50 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:54 | 274 | @effect/sql-pg | client backend | active | : | -- ===== F — proofs ===== DO $proof$ DECLARE v_n integer; v_i integer; v_id text; v_ids text[] := ARRAY[]::text[]; v_rol
+09:18:54 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:54 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:54 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:54 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:54 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane email
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -158,43 +153,38 @@ Step backend: outcome failure
 
 ## Lane email
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:38.896 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:38.896 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_b772060e, 10, t, t, f, 9000, null, 2026-11-05 08:48:38.889985+00, 2026-11-05 08:48:38.889985+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:38.896 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:38.896 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:20:31.525 UTC [275] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:20:31.525 UTC [275] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:20:31.525 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -202,31 +192,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:39 | 274 | @effect/sql-pg | client backend | active | : | -- ------------------------------------------------------------ 2. PROOFS -- (a) the header and the grants (catalog fact
-08:48:39 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:39 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:39 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:39 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:39 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:20:30 | 275 | @effect/sql-pg | client backend | active | : | -- Foundations turn N1b-1, M2 (INC-977, INC-981): the database's one outside call, signed, never carrying the secret. --
+09:20:30 | 430 | PostgREST 16.4 | client backend | active | : | with all_relations as ( select reltype from pg_class where relkind in ('v','r','m','f','p') union select oid from pg_typ
+09:20:30 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:20:30 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:20:30 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:20:30 | 204 |  | background writer |  | Activity:BgwriterMain | 
+09:20:30 | 206 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 1
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -234,43 +224,38 @@ Step backend: outcome failure
 
 ## Lane 1
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:48.987 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:48.987 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_50f641c0, 10, t, t, f, 9000, null, 2026-11-05 08:48:48.980339+00, 2026-11-05 08:48:48.980339+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:48.987 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:48.987 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:50.992 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:50.992 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:50.992 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -278,31 +263,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:45 | 274 | @effect/sql-pg | client backend | active | : | -- ===== C — proofs ===== DO $proof$ DECLARE v_fp text; v_vol "char"; v_def boolean; v_cfg text; v_n integer; v_err text
-08:48:45 | 380 | PostgREST 16.4 | client backend | active | : | WITH pks_uniques_cols AS ( SELECT conrelid, array_agg(key order by key) as cols FROM pg_constraint, LATERAL unnest(conke
-08:48:45 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:45 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:45 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:45 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:45 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+09:18:50 | 427 | PostgREST 16.4 | client backend | active | : | with recursive pks_fks as ( -- pk + fk referencing col select contype::text as contype, conname, array_length(conkey, 1)
+09:18:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 2
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -310,43 +295,38 @@ Step backend: outcome failure
 
 ## Lane 2
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:08.273 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:08.273 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_b3c7e58d, 10, t, t, f, 9000, null, 2026-11-05 08:48:08.267614+00, 2026-11-05 08:48:08.267614+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:08.273 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:08.273 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:50.297 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:50.297 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:50.297 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -354,31 +334,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:05 | 274 | @effect/sql-pg | client backend | active | : | RESET ALL
-08:48:05 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:05 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:05 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:05 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:05 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:49 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_old text; v_new text; v_oid oid; v_src text; v_gate text := E' -- INC-951 3c (D1 M6b-leg
+09:18:49 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:49 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:49 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:49 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:49 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 3
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -386,43 +366,38 @@ Step backend: outcome failure
 
 ## Lane 3
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:11.943 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:11.943 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_2d7f8ef1, 10, t, t, f, 9000, null, 2026-11-05 08:48:11.939035+00, 2026-11-05 08:48:11.939035+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:11.943 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:11.943 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:20:41.368 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:20:41.368 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:20:41.368 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -430,31 +405,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    END LOOP;
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:09 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:09 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:09 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:09 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:09 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+09:20:38 | 274 | @effect/sql-pg | client backend | active | : | -- The verdicts of the live rules for every name the proofs of M2, M4, M4b -- and M5 use; after the rewrite each must be
+09:20:38 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:20:38 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:20:38 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:20:38 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:20:38 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 4
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -462,43 +437,38 @@ Step backend: outcome failure
 
 ## Lane 4
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:51.588 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:51.588 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_f5b85725, 10, t, t, f, 9000, null, 2026-11-05 08:48:51.582457+00, 2026-11-05 08:48:51.582457+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:51.588 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:51.588 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:19:19.224 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:19:19.224 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:19:19.224 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -506,31 +476,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    END LOOP;
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+09:19:16 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_cat uuid; v_k text := 'e2e_mig_m13_' || substr(md5(random()::text), 1, 8); v_c text; v_p text; v_q 
+09:19:16 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:19:16 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:19:16 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:19:16 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:19:16 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 5
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -538,43 +508,38 @@ Step backend: outcome failure
 
 ## Lane 5
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:49:34.221 UTC [273] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:49:34.221 UTC [273] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_21fa6d0d, 10, t, t, f, 9000, null, 2026-11-05 08:49:34.214361+00, 2026-11-05 08:49:34.214361+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:49:34.221 UTC [273] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:49:34.221 UTC [273] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:19:02.869 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:19:02.869 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:19:02.869 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -582,31 +547,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:49:32 | 273 | @effect/sql-pg | client backend | active | : | -- B8 ───────────────────────────────────────────────────────────────────────────────────────────────────────── DO $proo
-08:49:32 | 419 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-08:49:32 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:49:32 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:49:32 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:49:32 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:49:32 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
+09:19:01 | 274 | @effect/sql-pg | client backend | active | : | SELECT count(*) = 3 AS provisioned FROM pg_catalog.pg_attribute a JOIN pg_catalog.pg_class c ON c.oid = a.attrelid WHERE
+09:19:01 | 387 | PostgREST 16.4 | client backend | active | : | with role_setting as ( select r.rolname, unnest(r.rolconfig) as setting from pg_auth_members m join pg_roles r on r.oid 
+09:19:01 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:19:01 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:19:01 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:19:01 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:19:01 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 6
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -614,43 +579,38 @@ Step backend: outcome failure
 
 ## Lane 6
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:21.834 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:21.834 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_a5b464a1, 10, t, t, f, 9000, null, 2026-11-05 08:48:21.829299+00, 2026-11-05 08:48:21.829299+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:21.834 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:21.834 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:50.448 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:50.448 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:50.448 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -658,31 +618,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    END LOOP;
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:22 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:22 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:22 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:22 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:22 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+09:18:50 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (P-1b M-b): scratch rows only, rolled back by the sentinel; no real row read (G27; the -- currency is a scratch
+09:18:50 | 432 | PostgREST 16.4 | client backend | active | Lock:relation | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:18:50 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:50 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:50 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:50 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:50 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 7
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -690,43 +650,38 @@ Step backend: outcome failure
 
 ## Lane 7
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:50:42.965 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:50:42.965 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_af36f302, 10, t, t, f, 9000, null, 2026-11-05 08:50:42.958974+00, 2026-11-05 08:50:42.958974+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:50:42.965 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:50:42.965 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:19:23.335 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:19:23.335 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:19:23.335 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -734,31 +689,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    END LOOP;
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:50:43 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:50:43 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:50:43 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:50:43 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:50:43 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+09:19:23 | 274 | @effect/sql-pg | client backend | active | : | -- PROOFS: scratch rows only, rolled back by the sentinel. -- (a) the status check takes paused; the header and the gran
+09:19:23 | 438 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:19:23 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:19:23 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:19:23 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:19:23 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:19:23 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 8
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -766,43 +721,38 @@ Step backend: outcome failure
 
 ## Lane 8
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:32.421 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:32.421 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_870be97a, 10, t, t, f, 9000, null, 2026-11-05 08:48:32.415822+00, 2026-11-05 08:48:32.415822+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:32.421 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:32.421 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:56.932 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:56.932 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:56.932 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -810,31 +760,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:32 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (P-1b M-a): scratch rows only, rolled back by the sentinel; no real row read (G27). -- (a) the resolver's heade
-08:48:32 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:32 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:32 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:32 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:32 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:55 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_fn text; v_types text; v_md5 text; v_door_md5 text; v_acl text; v_oid oid; v_core oid; v_src text; 
+09:18:55 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:55 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:55 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:55 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:55 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 9
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -842,43 +792,38 @@ Step backend: outcome failure
 
 ## Lane 9
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:47:57.370 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:47:57.370 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_70275064, 10, t, t, f, 9000, null, 2026-11-05 08:47:57.366558+00, 2026-11-05 08:47:57.366558+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:47:57.370 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:47:57.370 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:21:03.720 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:21:03.720 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:21:03.720 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -886,31 +831,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:47:57 | 274 | @effect/sql-pg | client backend | active | : | -- PROOF (T1 M1): scratch rows only, rolled back by the sentinel. -- (a) the header: VOLATILE, SECURITY DEFINER, search_
-08:47:57 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:47:57 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:47:57 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:47:57 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:47:57 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:21:03 | 274 | @effect/sql-pg | client backend | active | : | GRANT ALL ON FUNCTION public.admin_name_check_clear(uuid, text, text, text) TO service_role
+09:21:03 | 439 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:21:03 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:21:03 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:21:03 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:21:03 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:21:03 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 10
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -918,43 +863,38 @@ Step backend: outcome failure
 
 ## Lane 10
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:09.847 UTC [273] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:09.847 UTC [273] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_b0e85e5f, 10, t, t, f, 9000, null, 2026-11-05 08:48:09.842568+00, 2026-11-05 08:48:09.842568+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:09.847 UTC [273] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:09.847 UTC [273] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:51.592 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:51.592 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:51.592 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -962,31 +902,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:06 | 273 | @effect/sql-pg | client backend | active | : | -- Proof: the rebuild runs under safe-update (as the API connection does), returns -- rows above zero, and writes one ne
-08:48:06 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:06 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:06 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:06 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:06 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:48 | 274 | @effect/sql-pg | client backend | active | : | GRANT EXECUTE ON FUNCTION public.publish_listing(uuid) TO authenticated
+09:18:48 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:48 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:48 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:48 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:48 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 11
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -994,43 +934,38 @@ Step backend: outcome failure
 
 ## Lane 11
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:20.312 UTC [275] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:20.312 UTC [275] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_4a055854, 10, t, t, f, 9000, null, 2026-11-05 08:48:20.30845+00, 2026-11-05 08:48:20.30845+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:20.312 UTC [275] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:20.312 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:48.743 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:48.743 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:48.743 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1038,31 +973,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:16 | 275 | @effect/sql-pg | client backend | active | : | -- ── 9. Proofs (behaviour only; every scratch row is rolled back) ──────── DO $proof$ DECLARE r text[]; v_user uuid; v_
-08:48:16 | 209 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:16 | 210 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:16 | 203 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:16 | 204 |  | background writer |  | Activity:BgwriterMain | 
-08:48:16 | 206 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:46 | 274 | @effect/sql-pg | client backend | active | : | SELECT public.name_folds_rebuild()
+09:18:46 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:46 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:46 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:46 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:46 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 12
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -1070,43 +1005,38 @@ Step backend: outcome failure
 
 ## Lane 12
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:47:51.895 UTC [273] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:47:51.895 UTC [273] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_ea807205, 10, t, t, f, 9000, null, 2026-11-05 08:47:51.89166+00, 2026-11-05 08:47:51.89166+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:47:51.895 UTC [273] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:47:51.895 UTC [273] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:19:09.080 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:19:09.080 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:19:09.080 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1114,31 +1044,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:47:52 | 376 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-08:47:52 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:47:52 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:47:52 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:47:52 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:47:52 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+09:19:08 | 274 | @effect/sql-pg | client backend | active | : | DO $proof$ DECLARE v_uid uuid := gen_random_uuid(); v_role uuid := gen_random_uuid(); v_feature text := 'e2e-a2-' || sub
+09:19:08 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:19:08 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:19:08 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:19:08 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:19:08 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 13
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -1146,43 +1076,38 @@ Step backend: outcome failure
 
 ## Lane 13
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:18.134 UTC [275] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:18.134 UTC [275] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_50f5a3c2, 10, t, t, f, 9000, null, 2026-11-05 08:48:18.128668+00, 2026-11-05 08:48:18.128668+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:18.134 UTC [275] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:18.134 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:55.015 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:55.015 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:55.015 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1190,31 +1115,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:18 | 275 | @effect/sql-pg | client backend | active | : | -- ------------------------------------------------------------ 2. THE MARKETS CREATE TABLE public.market_settings ( id 
-08:48:18 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:18 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:18 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:18 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:18 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:55 | 440 | PostgREST 16.4 | client backend | active | : | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
+09:18:55 | 274 | @effect/sql-pg | client backend | active | : | GRANT EXECUTE ON FUNCTION public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text) TO authenticated, s
+09:18:55 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:55 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:55 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:55 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:55 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 14
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -1222,43 +1147,38 @@ Step backend: outcome failure
 
 ## Lane 14
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:31.893 UTC [273] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:31.893 UTC [273] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_fd7af386, 10, t, t, f, 9000, null, 2026-11-05 08:48:31.886282+00, 2026-11-05 08:48:31.886282+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:31.893 UTC [273] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:31.893 UTC [273] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:18.092 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:18.092 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:18.092 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1266,31 +1186,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    END LOOP;
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+       OR (SELECT count(*) FROM public.listing_revisions WHERE listing_id IN (v_p, v_q)) <> v_revs THEN
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:31 | 207 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:31 | 208 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:31 | 201 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:31 | 202 |  | background writer |  | Activity:BgwriterMain | 
-08:48:31 | 204 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+09:18:18 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:18 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:18 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:18 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:18 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane 15
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -1298,43 +1218,38 @@ Step backend: outcome failure
 
 ## Lane 15
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:50:25.236 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:50:25.236 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_c757c4ad, 10, t, t, f, 9000, null, 2026-11-05 08:50:25.230829+00, 2026-11-05 08:50:25.230829+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:50:25.236 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:50:25.236 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:20:06.476 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:20:06.476 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:20:06.476 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1342,31 +1257,31 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:50:25 | 432 | PostgREST 16.4 | client backend | idle in transaction | Client:ClientRead | WITH base_types AS ( SELECT t.oid, bt.typnamespace AS base_namespace, bt.oid AS base_type FROM pg_type t JOIN pg_type bt
-08:50:25 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:50:25 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:50:25 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:50:25 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:50:25 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
+09:20:06 | 439 | PostgREST 16.4 | client backend | active | : | with role_setting as ( select r.rolname, unnest(r.rolconfig) as setting from pg_auth_members m join pg_roles r on r.oid 
+09:20:06 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:20:06 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:20:06 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:20:06 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:20:06 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 1
 ```
 
 ## Lane 16
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
@@ -1374,43 +1289,38 @@ Step backend: outcome failure
 
 ## Lane 16
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:36.750 UTC [275] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:36.750 UTC [275] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_6f520b76, 10, t, t, f, 9000, null, 2026-11-05 08:48:36.743484+00, 2026-11-05 08:48:36.743484+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:36.750 UTC [275] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:36.750 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:58.121 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:58.121 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:58.121 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1418,74 +1328,69 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    END LOOP;
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:37 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:37 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:37 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:37 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:37 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 0; autovacuum: 0; other sessions: 0
+09:18:56 | 274 | @effect/sql-pg | client backend | active | : | -- Proofs, with no caller (G39): the policies and the functions read the window from the setting and carry no typed 30 -
+09:18:56 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:56 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:56 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:56 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:56 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 ## Lane repeat
 - Step failure:
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 Step backend: outcome failure
   ::add-mask::[masked]
   ::add-mask::[masked]
 
 ## Lane repeat
 ## Migration/start failure
-Last migration line: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
+Last migration line: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 Cause:
 ```text
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 ```
 Server record (DEC-340, stream):
 ```text
-172.18.0.1 2026-11-05 08:48:24.474 UTC [274] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:48:24.474 UTC [274] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_57848d17, 10, t, t, f, 9000, null, 2026-11-05 08:48:24.467338+00, 2026-11-05 08:48:24.467338+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:48:24.474 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:48:24.474 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:30.688 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:30.688 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:30.688 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 Statement:
 ```text
-At statement: 5
--- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+At statement: 16
+-- ------------------------------------------------------------ 5. PROOFS
+-- (a) the four bodies are the texts above (md5, CR-stripped both sides — law 13); headers and grants as
+-- before (catalog facts). (b) scratch rows: a seller with his acceptances, two live ads paused by the state
+-- machine as the service; as the seller, a pin, a tick and mark_sold land on a paused ad (each its revision);
+-- edit_my_listing's status gate lets a paused ad through (its answer is a later refusal, never the gate's
+-- 'this listing is not edited') and still refuses the sold one; as a stranger every door answers 'not your
+-- listing' and writes nothing. Rolled back by the sentinel.
 DO $proof$
 DECLARE
-  v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
-(191 lines omitted)
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+  v_pin   regprocedure := 'public.set_listing_pin(uuid, numeric, numeric, text, text, smallint, text)'::regprocedure;
+(130 lines omitted)
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
@@ -1493,26 +1398,26 @@ $proof$
 ```
 Last 20 lines:
 ```text
-    IF v_n.n_expired + v_n.n_level_ended + v_n.n_level_paused + v_n.n_reach_ended + v_n.n_reminded <> 0 OR v_snap2 IS DISTINCT FROM v_snap THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): the second run moved something (% -> %)', v_snap, v_snap2;
+      RAISE EXCEPTION 'P-2 M-1c part 5 proof (c): a stranger''s refused call left a trace';
     END IF;
-    RAISE EXCEPTION 'p2-m1c3-proof-ok';
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'p2-m1c5-proof-ok';
   EXCEPTION WHEN raise_exception THEN
     GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
-    IF v_msg <> 'p2-m1c3-proof-ok' THEN RAISE; END IF;
+    IF v_msg <> 'p2-m1c5-proof-ok' THEN RAISE; END IF;
   END;
   PERFORM set_config('request.jwt.claims', '{}', true);
 END;
 $proof$
 Try rerunning the command with --debug to troubleshoot the error.
 Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
-08:48:22 | 274 | @effect/sql-pg | client backend | active | : | RESET ALL
-08:48:22 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
-08:48:22 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
-08:48:22 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
-08:48:22 | 203 |  | background writer |  | Activity:BgwriterMain | 
-08:48:22 | 205 |  | walwriter |  | Activity:WalWriterMain | 
-start failed in 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb stmt 5; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+09:18:26 | 274 | @effect/sql-pg | client backend | active | : | -- ── 10. After: the same timings on the new rules ─────────────────────── DO $t$ DECLARE v_name text; i int; t0 timesta
+09:18:26 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+09:18:26 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+09:18:26 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+09:18:26 | 203 |  | background writer |  | Activity:BgwriterMain | 
+09:18:26 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076 stmt 16; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
 ```
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
