@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { report, walkFiles } from "./kit";
@@ -16,12 +17,18 @@ import { readWorkflow } from "./workflow-reader";
  *      VITE_* and E2E_* names, runs no `link`, `login`, `db push`, `status -o env` or `--db-url`,
  *      names no address but the CLI's release download, and carries a pinned checksum of the
  *      workflow's CLI version for every platform it runs on.
+ *   4. INC-1063: on every start kind (cold, restart, warm), after the start and before the holds and
+ *      `migration up`, db:proof reads the stack's published ports from Docker (scripts/db-proof-ports.sh)
+ *      and refuses — the stack stopped with --no-backup — when any binds beyond 127.0.0.1 or ::1.
  */
 
 const WORKFLOW = ".github/workflows/local-backend-proof.yml";
 const PREPARE = "scripts/ci/prepare-local-backend.sh";
 const LIBRARY = "scripts/ci/local-backend-db.sh";
 const DB_PROOF = "scripts/db-proof.sh";
+const PORTS = "scripts/db-proof-ports.sh";
+const PORTS_REFUSAL =
+  'the stack\'s ports are open beyond this computer: set Docker Desktop → Settings → Docker Engine "ip": "127.0.0.1", then run db:proof again';
 const PREPARE_STEP = "Prepare temporary working copy";
 const START_STEP = "Start backend and apply all migrations";
 /** Text only the working copy's fixtures and patches carry. */
@@ -140,6 +147,34 @@ export function dbProofFindings(dbProof: Source, workflow: Source): Finding[] {
   return findings;
 }
 
+/** Rule 4 over db-proof.sh: the port check, at the top level, between the start and the holds. */
+export function portCheckFindings(dbProof: Source): Finding[] {
+  const findings: Finding[] = [];
+  const add = (what: string) => findings.push({ file: dbProof.file, line: 0, what });
+  const lines = dbProof.text.split("\n");
+  const at = (pattern: RegExp) => lines.findIndex((l) => pattern.test(l));
+  const lastStart = lines.reduce((last, l, i) => (/"\$cli" start /.test(l) ? i : last), -1);
+  const check = at(/^refusal=\$\(printf '%s\\n' "\$ports" \| ports_refusal\)$/);
+  const hold = at(/^hold_background_work /);
+  const apply = at(/"\$cli" migration up --local/);
+  if (!dbProof.text.includes(`source ${PORTS}\n`)) add(`${PORTS} is not sourced`);
+  if (!/^ports=\$\(stack_ports "\$PROJECT"\) \|\| \{$/m.test(dbProof.text))
+    add("the published ports are not read from Docker by stack_ports");
+  if (check < 0) add("no top-level port check (refusal=$(… | ports_refusal)) on every start kind");
+  else {
+    if (check < lastStart) add("the port check runs before the stack's start");
+    if (hold < 0 || apply < 0 || check > hold || check > apply)
+      add("the port check runs after the holds or `migration up`");
+    if (
+      !/^ {2}stop_stack --no-backup\n(?: {2}.*\n)* {2}not_run "\$refusal"$/m.test(
+        lines.slice(check).join("\n"),
+      )
+    )
+      add("a refused port check does not stop the stack with --no-backup and answer NOT RUN");
+  }
+  return findings;
+}
+
 const read = (file: string): Source => ({ file, text: readFileSync(file, "utf8") });
 const others = [
   ...walkFiles([".github/workflows"], { ext: ["yml"] }).filter((f) => f !== WORKFLOW),
@@ -212,5 +247,42 @@ describe("one preparation and one set of database steps for CI and db:proof (DEC
     expect(dbProofFindings(dbProof, bumped).map((f) => f.what)).toEqual(
       PLATFORMS.map((p) => `no pinned checksum for CLI 9.9.9 on ${p}`),
     );
+  });
+
+  it("CF-DBP-5 every start kind meets the port check before any migration applies (INC-1063); planted copies fail", () => {
+    const dbProof = read(DB_PROOF);
+    expect(report(portCheckFindings(dbProof))).toBe("");
+    expect(read(PORTS).text).toContain(
+      `PORTS_OPEN_REFUSAL="${PORTS_REFUSAL.replace(/"/g, '\\"')}"`,
+    );
+    const check = "refusal=$(printf '%s\\n' \"$ports\" | ports_refusal)\n";
+    const without = { file: DB_PROOF, text: dbProof.text.replace(check, "") };
+    expect(portCheckFindings(without).map((f) => f.what)).toEqual([
+      "no top-level port check (refusal=$(… | ports_refusal)) on every start kind",
+    ]);
+    const late = {
+      file: DB_PROOF,
+      text: dbProof.text
+        .replace(check, "")
+        .replace("record_applied\necho", `record_applied\n${check}echo`),
+    };
+    expect(portCheckFindings(late).map((f) => f.what)).toEqual([
+      "the port check runs after the holds or `migration up`",
+      "a refused port check does not stop the stack with --no-backup and answer NOT RUN",
+    ]);
+    const coldOnly = { file: DB_PROOF, text: dbProof.text.replace(check, `  ${check}`) };
+    expect(portCheckFindings(coldOnly).map((f) => f.what)).toEqual([
+      "no top-level port check (refusal=$(… | ports_refusal)) on every start kind",
+    ]);
+  });
+
+  it("CF-DBP-6 the check's parser refuses a mapping on every interface and passes 127.0.0.1 and ::1", () => {
+    const parse = (input: string) =>
+      spawnSync("bash", ["-c", `source ${PORTS} && ports_refusal`], { input, encoding: "utf8" });
+    // `docker inspect` in stack_ports' format, captured from a container published with no host address.
+    const open = parse("/saas-adminer 8080/tcp=0.0.0.0:8080 8080/tcp=:::8080\n");
+    expect([open.status, open.stdout.trim()]).toEqual([0, PORTS_REFUSAL]);
+    const local = parse("/saas-adminer 8080/tcp=127.0.0.1:8080 8080/tcp=::1:8080\n");
+    expect([local.status, local.stdout]).toEqual([0, ""]);
   });
 });

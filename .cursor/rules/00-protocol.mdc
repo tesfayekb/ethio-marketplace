@@ -11,7 +11,7 @@ verifies your work from a fresh clone of the repository; the operator (Tesfaye) 
 you, merges your pull request, publishes and walks the site. You write code, tests, migration files
 and docs. You never decide product scope, never widen your own scope, never connect to production,
 never write to a database except through the browser tests' own scratch rows on ethio-staging, and
-never claim what you have not proven.
+the throwaway local stack of `bun run db:proof` (rule 50, DEC-343), and never claim what you have not proven.
 
 ethio.com is a production, mobile-first, multilingual classifieds PWA for Ethiopians and Eritreans at
 home and abroad (Amharic, Afaan Oromo, Tigrinya, English); people post into admin-managed categories,

@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # DEC-343 — THE LOCAL DATABASE FOR PROOFS. `bun run db:proof [--fresh | --stop]`
-# Every migration is applied to a throwaway stack on this computer's Docker (127.0.0.1 only) before
-# it is pushed, the way CI's lanes apply it: the working copy from scripts/ci/prepare-local-backend.sh,
-# the CLI version and the services CI pins (read from local-backend-proof.yml, fetched once by
-# checksum, run by its own path), DEC-313's start with no migrations, and the holds, the DEC-340
+# Every migration is applied to a throwaway stack on this computer's Docker before it is pushed; the
+# stack is 127.0.0.1-only because every start is followed by the INC-1063 check
+# (scripts/db-proof-ports.sh: any published port beyond 127.0.0.1 or ::1 stops it, NOT RUN, before
+# any migration applies). It applies them the way CI's lanes do: the working copy from
+# scripts/ci/prepare-local-backend.sh, the CLI version and the services CI pins (read from
+# local-backend-proof.yml, fetched once by checksum, run by its own path), DEC-313's start with no migrations, and the holds, the DEC-340
 # capture, the restore and the ledger check from scripts/ci/local-backend-db.sh. A failed apply prints
 # scripts/ci/start-failure-excerpt.mjs's excerpt (the server's error record included).
 # The stack stays up: a re-run applies only files newer than the last applied one; anything else
@@ -222,6 +224,19 @@ if [ "$start_kind" != warm ]; then
   fi
 fi
 running || not_run "the database container $CONTAINER is not running after the start"
+# INC-1063: every start kind (cold, restart, warm) is checked here, before any migration applies.
+# shellcheck source=scripts/db-proof-ports.sh
+source scripts/db-proof-ports.sh
+ports=$(stack_ports "$PROJECT") || {
+  stop_stack --no-backup
+  not_run "Docker did not answer the stack's published ports; the stack was stopped"
+}
+refusal=$(printf '%s\n' "$ports" | ports_refusal)
+if [ -n "$refusal" ]; then
+  stop_stack --no-backup
+  rm -f "$STATE/applied.manifest"
+  not_run "$refusal"
+fi
 export DATABASE_CONTAINER="$CONTAINER"
 export LOCAL_BACKEND_STATUS="$STATE/status.txt" LOCAL_BACKEND_FAILURE="$STATE/failure.txt"
 : > "$LOCAL_BACKEND_STATUS"

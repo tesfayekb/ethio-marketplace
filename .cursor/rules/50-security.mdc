@@ -38,7 +38,10 @@ writes — is a STOP.
 **The local proof database (DEC-343).** You may run `bun run db:proof` (and its `--stop` / `--fresh`):
 the one command that starts or talks to a database. It starts a throwaway stack on this computer's
 Docker, at 127.0.0.1 only, from a prepared copy of the repository's migrations, with the CLI version
-CI pins, fetched by checksum. Nothing else starts or talks to a database: never `supabase` by name
+CI pins, fetched by checksum. "127.0.0.1 only" is made true by its port check (INC-1063): after every
+start and before any migration applies, it reads the stack's published ports from Docker, and any
+bound beyond 127.0.0.1 or ::1 stops the stack and answers NOT RUN (Docker Engine's `"ip":
+"127.0.0.1"` setting is the operator's; db:proof never edits it). Nothing else starts or talks to a database: never `supabase` by name
 (`link`, `login`, `db push`, `start`, `status` or any subcommand), `psql`, `docker exec` into its
 containers, a database URL, or any address other than 127.0.0.1 or localhost. No staging or
 production credential is ever given to it (it clears every `SUPABASE_*`, `VITE_*` and `E2E_*` name
