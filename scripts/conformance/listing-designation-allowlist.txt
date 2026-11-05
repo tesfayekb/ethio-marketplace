@@ -1,0 +1,3 @@
+# CF-TIER-5 (scripts/conformance/listing-designation.test.ts, P-2 (a) ruling 14) — a write of a designation column
+# (tier_until, tier_source, reach, reach_until, reach_source) by a body outside the five admitted, or by src/ through the data API.
+# Grammar: <fn>:<file>:<line> or <file>:<line> | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
