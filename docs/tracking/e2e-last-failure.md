@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/41996927177
-- Commit: `5ac4f8b528586435fb11fc5c2ca22b7b0e793397`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42000937962
+- Commit: `51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129`
 - Attempt: 1
-- Written (UTC): 2026-11-05T08:51:23.328Z
+- Written (UTC): 2026-11-05T09:21:42.254Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -20,18 +20,13 @@ None: no results file lists one and no log's summary names one (0 of 18 results 
 The temporary backend never came up, so these sources have neither results nor a lane log: smoke, email, shard 1, shard 2, shard 3, shard 4, shard 5, shard 6, shard 7, shard 8, shard 9, shard 10, shard 11, shard 12, shard 13, shard 14, shard 15, shard 16. The start log's error lines, redacted, from `smoke` (one lane's lines stand for every lane that failed the same way):
 
 ```text
-migration: Applying migration 20261105080106_42c3a28d-f534-41c9-b85a-aeeefcba3ebb.sql...
-ERROR: new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check" (SQLSTATE 23514)
+migration: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
+ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 Server record (DEC-340, stream):
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres ERROR:  new row for relation "listing_packages" violates check constraint "listing_packages_perks_by_kind_check"
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres DETAIL:  Failing row contains (e2e_mig_lv_affc9152, 10, t, t, f, 9000, null, 2026-11-05 08:49:50.732445+00, 2026-11-05 08:49:50.732445+00, level, E2E P2 level, null, null, null, f, null, f).
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort) VALUES
-	      (v_lv, 'level', 'E2E P2 level', 10, true, true, false, 9000),
-	      (v_r0, 'reach', 'E2E P2 reach 0', 30, true, true, false, 9001),
-	      (v_r1, 'reach', 'E2E P2 reach 1', 15, true, true, false, 9002)"
-	PL/pgSQL function inline_code_block line 66 at SQL statement
-172.18.0.1 2026-11-05 08:49:50.738 UTC [275] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 2. PROOFS
-(210 statement lines dropped)
+172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+(149 statement lines dropped)
 ```
 
 ## Server errors — census (DEC-083, non-gating)
