@@ -670,6 +670,9 @@ jobs:
             done
           ) > /dev/null 2>&1 &
           sampler=$!
+          # DEC-340 — the apply's start, in the form `docker logs --since` reads, so a failed apply's
+          # capture holds only the database's records written while the migrations ran.
+          apply_began=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           set +e
           supabase migration up --local --workdir .ci-local >> local-backend-start.log 2>&1
           result=$?
@@ -677,6 +680,42 @@ jobs:
           kill "$sampler" 2>/dev/null || true
           echo "START_SECONDS=$(( $(date +%s) - begin ))" >> "$GITHUB_ENV"
           echo "START_SAMPLES=$(cat "$samples/count" 2>/dev/null || echo 0)" >> "$GITHUB_ENV"
+          # DEC-340 (INC-1051) — the database server's own error record. The CLI prints pgconn's one
+          # line (and DETAIL when set); HINT, CONTEXT (the PL/pgSQL stack) and STATEMENT reach only the
+          # server's log, which this image writes to the container's stderr (logging_collector off).
+          # This function only CAPTURES, raw, under $RUNNER_TEMP: the evidence step redacts every file
+          # and scripts/ci/start-failure-excerpt.mjs cuts the one record (the boundary rule lives there).
+          # Two channels, both labelled in meta.txt: the stream (`docker logs`), and the log file the
+          # server's live settings name, when it writes one.
+          db_error_capture() {
+            local dir="$RUNNER_TEMP/db-error-capture" settings collector log_dir data_dir newest
+            mkdir -p "$dir"
+            {
+              echo "began=$apply_began"
+              echo "container=$DATABASE_CONTAINER"
+            } > "$dir/meta.txt"
+            timeout 60 docker logs --since "$apply_began" --tail 20000 "$DATABASE_CONTAINER" > "$dir/stream.log" 2>&1
+            echo "stream=exit $?, $(wc -l < "$dir/stream.log" | tr -d ' ') lines (docker logs --since $apply_began --tail 20000)" >> "$dir/meta.txt"
+            settings=$(timeout 30 docker exec "$DATABASE_CONTAINER" psql -U supabase_admin -d postgres -AtF '|' -c "select current_setting('logging_collector'), current_setting('log_directory'), current_setting('data_directory')" 2>&1)
+            if [ $? -ne 0 ]; then
+              echo "file=the server did not answer: $(printf '%s' "$settings" | head -c 300 | tr '\n' ' ')" >> "$dir/meta.txt"
+              return 0
+            fi
+            IFS='|' read -r collector log_dir data_dir <<< "$settings"
+            case "$log_dir" in /*) ;; *) log_dir="$data_dir/$log_dir" ;; esac
+            if [ "$collector" != "on" ]; then
+              echo "file=not written (logging_collector $collector; $log_dir)" >> "$dir/meta.txt"
+              return 0
+            fi
+            newest=$(timeout 30 docker exec "$DATABASE_CONTAINER" sh -c "ls -t '$log_dir'/* 2>/dev/null | head -n 1")
+            if [ -z "$newest" ]; then
+              echo "file=no log file in $log_dir (collector on)" >> "$dir/meta.txt"
+              return 0
+            fi
+            timeout 60 docker exec "$DATABASE_CONTAINER" tail -c 4194304 "$newest" > "$dir/file.log" 2>&1
+            echo "file=exit $?, $(wc -l < "$dir/file.log" | tr -d ' ') lines ($newest, last 4 MiB)" >> "$dir/meta.txt"
+            return 0
+          }
           if [ "$result" -ne 0 ]; then
             {
               echo "Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):"
@@ -684,6 +723,8 @@ jobs:
             } >> local-backend-start.log 2>&1
             # CF-CI-START-1: one line naming who else was active when the apply failed.
             bun scripts/ci/classify-start-failure.ts local-backend-start.log "$samples/last" | tee -a local-backend-start.log >> local-backend-failure.txt || true
+            # DEC-340: the capture can never fail the step; a failure of its own is one line of evidence.
+            db_error_capture || echo "db-error-capture: exit $? (DEC-340)" >> local-backend-failure.txt
             exit "$result"
           fi
           admin_sql "alter system reset cron.launch_active_jobs" > /dev/null
@@ -1011,11 +1052,25 @@ jobs:
               # keeps the last migration line, the cause lines whole, the cut statement echo and the tail.
               redacted_log = Path(os.environ.get('RUNNER_TEMP', '.')) / 'local-backend-start.redacted.log'
               redacted_log.write_text(redact(start_log.read_text(errors='replace')))
+              # DEC-340: the database server's own record, captured raw by the backend step; every file
+              # is redacted here, file by file, before the excerpt reads any of it. The raw copy is never read again.
+              capture = Path(os.environ.get('RUNNER_TEMP', '.')) / 'db-error-capture'
+              excerpt_args = ['node', 'scripts/ci/start-failure-excerpt.mjs', str(redacted_log)]
+              if capture.is_dir():
+                  redacted_capture = Path(os.environ.get('RUNNER_TEMP', '.')) / 'db-error-capture.redacted'
+                  redacted_capture.mkdir(exist_ok=True)
+                  for name in ('meta.txt', 'stream.log', 'file.log'):
+                      if (capture / name).exists():
+                          (redacted_capture / name).write_text(redact((capture / name).read_text(errors='replace')))
+                  excerpt_args.append(str(redacted_capture))
               import subprocess
-              excerpt = json.loads(subprocess.run(['node', 'scripts/ci/start-failure-excerpt.mjs', str(redacted_log)], capture_output=True, text=True, check=True).stdout)
+              excerpt = json.loads(subprocess.run(excerpt_args, capture_output=True, text=True, check=True).stdout)
               lines += ['', '## Migration/start failure', *excerpt['section']]
-              # INC-973: the merged failure report reads no fragment; it gets the same excerpt's migration and cause lines.
+              # INC-973: the merged failure report reads no fragment; it gets the same excerpt's migration and cause lines
+              # (and, DEC-340, the server record's lines after them).
               Path('local-backend-start-failure.txt').write_text('\n'.join(excerpt['failure']) + '\n')
+              # DEC-340: the record alone, for the e2e-log-<lane> artifact.
+              Path('local-backend-db-error.txt').write_text('\n'.join(excerpt['server']) + '\n')
           counts = {'passed': 0, 'failed': 0, 'flaky': 0, 'skipped': 0}
           failures = []
           results = Path('test-results/results.json')
@@ -1109,6 +1164,7 @@ jobs:
           path: |
             ${{ matrix.lane }}.log
             local-backend-start-failure.txt
+            local-backend-db-error.txt
           overwrite: true
           if-no-files-found: warn
           retention-days: 7
