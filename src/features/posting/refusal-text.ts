@@ -42,6 +42,8 @@ const DRAFT_REASONS: Record<string, MessageKey> = {
   doorError: "post.refusal.doorError",
   categoryNotPostable: "post.refusal.categoryNotPostable",
   residencyUnknown: "post.refusal.residencyUnknown",
+  // P-2 (a) M-1b (D305) — the seller's free baseline ads in the market are all in use.
+  noFreeSlot: "post.refusal.noFreeSlot",
   coverageExceedsPlan: "post.refusal.coverageExceedsPlan",
   rateLimited: "post.refusal.rateLimited",
   messagesRequired: "post.refusal.messagesRequired",

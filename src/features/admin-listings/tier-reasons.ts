@@ -57,6 +57,7 @@ export function tierErrorKey(message: string): MessageKey {
   if (message === "a removed listing takes no tier") return "admin.listings.tier.error.removed";
   if (message === "nothing changed") return "admin.listings.tier.error.same";
   if (message === "unknown tier") return "admin.listings.tier.error.unknown";
+  if (message === "noFreeSlot") return "admin.listings.error.noFreeSlot";
   if (message === "unknown reason") return "admin.listings.move.pickReason";
   if (message === "rateLimited") return "admin.listings.move.error.rateLimited";
   if (message === "permission denied") return "admin.listings.move.error.denied";

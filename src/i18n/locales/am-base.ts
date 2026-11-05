@@ -106,6 +106,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "myListings.closedLine": "ከእንግዲህ አይገኝም",
   "myListings.notApproved": "አልጸደቀም",
   "myListings.ad.waiting": "ግምገማ በመጠበቅ ላይ ነው። ግምገማው ሲጠናቀቅ መቀየር ይችላሉ።",
+  "myListings.ad.resume": "ማስታወቂያውን ቀጥል",
   "myListings.renewOff": "ማደስ ለጊዜው ተዘግቷል።",
   "myListings.action.reserve": "እንደተያዘ ምልክት አድርግ",
   "myListings.action.unreserve": "የተያዘ ምልክቱን አንሳ",
@@ -158,6 +159,7 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "myListings.bulk.done": "የተቀየሩ፦ {count}።",
   "myListings.bulk.refused": "ያልተቀየሩ፦ {count}። {reason}",
   "myListings.bulk.needsStatement": "ያልታደሱ፦ {titles}። እያንዳንዱ ማረጋገጫዎን ይፈልጋል፤ ለብቻው ያድሱት።",
+  "myListings.paused": "ቆሟል፦ ነጻ ቦታ የለም",
 
   // Bundle 19 turn 5 — the gone ad page.
   "listing.safety.header": "ተገናኙ፣ ይመርምሩ፣ ከዚያ ይክፈሉ — ቅድመ ክፍያ፣ የክፍያ ሊንክ ወይም ኮድ የለም",
@@ -649,6 +651,8 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "post.where.detailsLabel": "የቦታ ዝርዝር",
   // W6 (INC-337, R1/R4) — new keys.
   "post.refusal.cityRequired": "ከተማ ይምረጡ።",
+  "post.refusal.noFreeSlot":
+    "በዚህ አገር ያሉ ነጻ ማስታወቂያዎችዎ ሁሉም በአገልግሎት ላይ ናቸው። አንዱን እንደተሸጠ ወይም ከእንግዲህ እንደማይገኝ ምልክት ያድርጉ፣ ወይም አንዱ እስኪያበቃ ይጠብቁ፤ ከዚያ እንደገና ይሞክሩ።",
   "post.preview.detailsLabel": "ዝርዝሮች",
   "post.preview.descriptionLabel": "መግለጫ",
   "post.preview.sellerLabel": "ሻጭ",

@@ -116,6 +116,7 @@ export const enBase = {
   "myListings.closedLine": "No longer available",
   "myListings.notApproved": "Not approved",
   "myListings.ad.waiting": "It is waiting for review. You can change it once the review is done.",
+  "myListings.ad.resume": "Resume ad",
   "myListings.renewOff": "Renewing is switched off for now.",
   "myListings.action.reserve": "Mark as reserved",
   "myListings.action.unreserve": "Remove the reserved mark",
@@ -175,6 +176,7 @@ export const enBase = {
   "myListings.bulk.refused": "Not changed: {count}. {reason}",
   "myListings.bulk.needsStatement":
     "Not renewed: {titles}. Each one needs your statement: renew it on its own.",
+  "myListings.paused": "Paused: no free slot",
 
   // Bundle 19 turn 5 — the gone ad page.
   "listing.safety.header": "Meet, inspect, then pay — no deposit, no payment link, no code",
@@ -703,6 +705,8 @@ export const enBase = {
   "post.where.detailsLabel": "Location details",
   // W6 (INC-337, R1/R4) — new keys.
   "post.refusal.cityRequired": "Choose a city.",
+  "post.refusal.noFreeSlot":
+    "All your free ads in this country are in use. Mark one as sold or no longer available, or wait for one to end, then try again.",
   "post.preview.detailsLabel": "Details",
   "post.preview.descriptionLabel": "Description",
   "post.preview.sellerLabel": "Seller",

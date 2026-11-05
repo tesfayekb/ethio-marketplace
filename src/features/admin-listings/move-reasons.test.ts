@@ -61,4 +61,8 @@ describe("the listing moves (turn L2b)", () => {
     expect(moveErrorKey("permission denied")).toBe("admin.listings.move.error.denied");
     expect(moveErrorKey("something else")).toBe("common.error");
   });
+
+  it("MR-5 a restore the free-slot law refuses (noFreeSlot) reads as the seller's slots being in use", () => {
+    expect(moveErrorKey("noFreeSlot")).toBe("admin.listings.error.noFreeSlot");
+  });
 });

@@ -67,10 +67,18 @@ export function stateLine(
 ): string {
   switch (row.status) {
     case "active":
-    case "reduced":
-      if (row.daysLeft === null) return t("myListings.noEnd");
-      if (row.daysLeft === 0) return t("myListings.endsToday");
-      return fill(t("myListings.daysLeft"), { count: String(row.daysLeft) });
+    case "reduced": {
+      const left =
+        row.daysLeft === null
+          ? t("myListings.noEnd")
+          : row.daysLeft === 0
+            ? t("myListings.endsToday")
+            : fill(t("myListings.daysLeft"), { count: String(row.daysLeft) });
+      // P-2 (a) ruling 14 — a level with an end says when it ends.
+      return row.levelUntil === null
+        ? left
+        : `${left} · ${fill(t("myListings.levelEnding"), { date: day(row.levelUntil) })}`;
+    }
     case "screening":
     case "held":
       return t("myListings.inReview");
@@ -87,6 +95,11 @@ export function stateLine(
       return row.daysKept === null
         ? t("myListings.closedLine")
         : `${t("myListings.closedLine")} · ${fill(t("myListings.daysKept"), { count: String(row.daysKept) })}`;
+    case "paused":
+      // P-2 (a) ruling 14 (DEC-328) — paused for want of a free slot; it keeps the time it had left.
+      return row.daysKept === null
+        ? t("myListings.paused")
+        : `${t("myListings.paused")} · ${fill(t("myListings.daysKept"), { count: String(row.daysKept) })}`;
     case "expired":
       return fill(t("myListings.expiredOn"), { date: day(row.expiresAt) });
     case "sold":

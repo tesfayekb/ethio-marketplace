@@ -118,6 +118,9 @@ export const enMember = {
   "myListings.searchPlaceholder": "Search your ads by title",
   "myListings.filter.mark": "Marks",
   "myListings.bulk.title": "{count} ads selected",
+  "myListings.levelEnding": "Level ends {date}",
+  "myListings.pausedHelp":
+    "Your level ended and all your free ads are in use. Resume this ad when one of them ends, or after you mark one as sold or no longer available.",
   "settings.passwordMethod": "Password",
   "settings.passwordMethodPresent": "You can sign in with a password",
   "settings.passwordMethodAbsent": "No password set",
@@ -194,6 +197,9 @@ export const enMember = {
   "admin.listings.action.sendBack": "Send back to review",
   "admin.listings.action.remove": "Remove",
   "admin.listings.action.restore": "Restore",
+  "admin.listings.action.levelEnded": "Level ended",
+  "admin.listings.action.levelPaused": "Paused: no slot",
+  "admin.listings.action.reachEnded": "Reach ended",
   "admin.listings.move.reason": "Reason",
   "admin.listings.move.note": "Note for the seller",
   "admin.listings.move.noteHint": "Required when the reason is Other; at most 500 characters.",
@@ -243,6 +249,8 @@ export const enMember = {
   "admin.listings.edit.nothing": "Nothing has changed.",
   "admin.listings.edit.error.removed": "A removed listing is not edited. Restore it first.",
   "admin.listings.reason.undo": "Undo",
+  "admin.listings.error.noFreeSlot":
+    "The seller's free ads in this country are all in use, so this ad cannot be shown at the free level.",
   "admin.screening.approve": "Approve",
   "admin.screening.reject": "Reject",
   "admin.locations.filter.country": "Country",

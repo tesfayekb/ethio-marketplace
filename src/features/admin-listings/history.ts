@@ -105,16 +105,46 @@ export function groupsOf(columns: string[]): FieldGroup[] {
   return ORDER.filter((group) => present.has(group));
 }
 
+/** P-2 (a) M-1c — what the designation sweep (designation_sweep_core) did to the ad. */
+export type SweepEvent = "levelEnded" | "levelPaused" | "reachEnded";
+
+export const SWEEP_LABEL: Record<SweepEvent, MessageKey> = {
+  levelEnded: "admin.listings.action.levelEnded",
+  levelPaused: "admin.listings.action.levelPaused",
+  reachEnded: "admin.listings.action.reachEnded",
+};
+
 export type EntrySummary =
   | { type: "created" }
   | { type: "renewed" }
   | { type: "status"; from: string | null; to: string }
-  | { type: "edited"; groups: FieldGroup[] };
+  | { type: "edited"; groups: FieldGroup[] }
+  | { type: "swept"; event: SweepEvent };
 
 const statusOf = (side: Record<string, unknown>): string | null =>
   typeof side["status"] === "string" ? side["status"] : null;
 
+/** Whether the revision took away a dated `column` (it had an end before, none after). */
+const ended = (entry: AdminListingHistoryEntry, column: string): boolean =>
+  typeof entry.before[column] === "string" && column in entry.after && entry.after[column] === null;
+
+/**
+ * The sweep's own revisions (no actor): a level's end (the tier's three columns
+ * back to the baseline), the pause that follows when no free slot is left (a state
+ * revision to `paused`), and a reach's end (the reach's three columns cleared).
+ */
+function sweepEventOf(entry: AdminListingHistoryEntry): SweepEvent | null {
+  if (entry.by !== "system") return null;
+  if (entry.kind === "state" && statusOf(entry.after) === "paused") return "levelPaused";
+  if (entry.kind !== "edit") return null;
+  if (ended(entry, "tier_until")) return "levelEnded";
+  if (ended(entry, "reach_until")) return "reachEnded";
+  return null;
+}
+
 export function summarize(entry: AdminListingHistoryEntry): EntrySummary {
+  const swept = sweepEventOf(entry);
+  if (swept !== null) return { type: "swept", event: swept };
   if (entry.kind === "create") return { type: "created" };
   if (entry.kind === "state" && "renewed_count" in entry.after) return { type: "renewed" };
   const to = statusOf(entry.after);

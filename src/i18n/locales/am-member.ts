@@ -118,6 +118,9 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "myListings.searchPlaceholder": "ማስታወቂያዎችዎን በአርዕስት ይፈልጉ",
   "myListings.filter.mark": "ምልክቶች",
   "myListings.bulk.title": "{count} ማስታወቂያዎች ተመርጠዋል",
+  "myListings.levelEnding": "ደረጃው የሚያበቃው፦ {date}",
+  "myListings.pausedHelp":
+    "ደረጃዎ አብቅቷል፤ ነጻ ማስታወቂያዎችዎም ሁሉም በአገልግሎት ላይ ናቸው። ከእነሱ አንዱ ሲያበቃ፣ ወይም አንዱን እንደተሸጠ ወይም ከእንግዲህ እንደማይገኝ ምልክት ሲያደርጉ፣ ይህን ማስታወቂያ ይቀጥሉ።",
   "settings.passwordMethod": "የይለፍ ቃል",
   "settings.passwordMethodPresent": "በይለፍ ቃል መግባት ይችላሉ",
   "settings.passwordMethodAbsent": "የይለፍ ቃል አልተዘጋጀም",
@@ -191,6 +194,9 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "admin.listings.action.sendBack": "ለግምገማ መልስ",
   "admin.listings.action.remove": "አስወግድ",
   "admin.listings.action.restore": "ወደነበረበት መልስ",
+  "admin.listings.action.levelEnded": "ደረጃው አብቅቷል",
+  "admin.listings.action.levelPaused": "ቆሟል፦ ቦታ የለም",
+  "admin.listings.action.reachEnded": "ተደራሽነቱ አብቅቷል",
   "admin.listings.move.reason": "ምክንያት",
   "admin.listings.move.note": "ለሻጩ ማስታወሻ",
   "admin.listings.move.noteHint": "ምክንያቱ ሌላ ከሆነ ግዴታ ነው፤ ቢበዛ 500 ፊደላት።",
@@ -238,6 +244,8 @@ export const amMember: { [K in keyof typeof enMember]: string } = {
   "admin.listings.edit.nothing": "ምንም አልተቀየረም።",
   "admin.listings.edit.error.removed": "የተወገደ ማስታወቂያ አይታረምም። መጀመሪያ ይመልሱት።",
   "admin.listings.reason.undo": "ቀልበስ",
+  "admin.listings.error.noFreeSlot":
+    "የሻጩ ነጻ ማስታወቂያዎች በዚህ አገር ሁሉም በአገልግሎት ላይ ናቸው፤ ስለዚህ ይህ ማስታወቂያ በነጻው ደረጃ ሊታይ አይችልም።",
   "admin.screening.approve": "አጽድቅ",
   "admin.screening.reject": "ውድቅ አድርግ",
   "admin.locations.filter.country": "አገር",

@@ -63,5 +63,6 @@ export function moveErrorKey(message: string): MessageKey {
   if (message === "permission denied") return "admin.listings.move.error.denied";
   if (message === "a note is required") return "admin.listings.move.noteRequired";
   if (message === "the note is too long") return "admin.listings.move.noteTooLong";
+  if (message === "noFreeSlot") return "admin.listings.error.noFreeSlot";
   return "common.error";
 }

@@ -7,7 +7,7 @@ import { ownValue } from "@/lib/own-key";
 import am from "@/i18n/locales/am";
 import en from "@/i18n/locales/en";
 
-import { changesOf, groupOf, groupsOf, reasonLabel, summarize } from "./history";
+import { changesOf, groupOf, groupsOf, reasonLabel, summarize, SWEEP_LABEL } from "./history";
 
 const labelT = (key: MessageKey): string => en[key];
 // P-1c turn (d): the predicate a screen gets from useI18n's `has`; a test may read the catalogue.
@@ -116,6 +116,76 @@ describe("listing history (turn L3)", () => {
     });
     expect(detail.history[0]).toMatchObject({ by: "system", byName: null, reason: null });
     expect(detail.historyTotal).toBe(1);
+    // P-2 (a) M-1c — the level's and the reach's clocks: absent is null, never a default.
+    expect(detail.listing).toMatchObject({
+      tierUntil: null,
+      tierSource: null,
+      reach: null,
+      reachUntil: null,
+      reachSource: null,
+    });
+    const clocks = detailOf({
+      listing: {
+        id: "l2",
+        tier: "featured",
+        tier_until: "2026-12-01T00:00:00Z",
+        tier_source: "staff",
+        reach: "country",
+        reach_until: "2026-12-02T00:00:00Z",
+        reach_source: "launch",
+      },
+    });
+    expect(clocks.listing).toMatchObject({
+      tier: "featured",
+      tierUntil: "2026-12-01T00:00:00Z",
+      tierSource: "staff",
+      reach: "country",
+      reachUntil: "2026-12-02T00:00:00Z",
+      reachSource: "launch",
+    });
+  });
+
+  it("LH-5 the sweep's own revisions read as a level ended, paused for want of a slot, or a reach ended; a person's are not the sweep's", () => {
+    const levelEnd = {
+      kind: "edit",
+      by: "system" as const,
+      before: { tier: "featured", tier_until: "2026-11-01T00:00:00Z", tier_source: "launch" },
+      after: { tier: "regular", tier_until: null, tier_source: null },
+    };
+    expect(summarize(entry(levelEnd))).toEqual({ type: "swept", event: "levelEnded" });
+    expect(
+      summarize(
+        entry({
+          kind: "state",
+          by: "system",
+          before: { status: "active" },
+          after: { status: "paused" },
+        }),
+      ),
+    ).toEqual({ type: "swept", event: "levelPaused" });
+    expect(
+      summarize(
+        entry({
+          kind: "edit",
+          by: "system",
+          before: {
+            reach: "country",
+            reach_until: "2026-11-01T00:00:00Z",
+            reach_source: "launch",
+            coverage: [],
+          },
+          after: { reach: null, reach_until: null, reach_source: null, coverage: [], removed: [] },
+        }),
+      ),
+    ).toEqual({ type: "swept", event: "reachEnded" });
+    expect(summarize(entry({ ...levelEnd, by: "staff", fields: ["tier"] }))).toEqual({
+      type: "edited",
+      groups: ["tier"],
+    });
+    for (const label of Object.values(SWEEP_LABEL)) {
+      expect(en[label], label).toBeTruthy();
+      expect(am[label], label).toBeTruthy();
+    }
   });
 
   it("INC-799 a known reason reads its label", () => {

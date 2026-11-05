@@ -85,6 +85,10 @@ describe("the listing tier (turn T1)", () => {
     expect(tierErrorKey("step-up required: listings:enforce")).toBe("common.error");
   });
 
+  it("TIR-6 a move to the baseline the free-slot law refuses (noFreeSlot) reads as the seller's slots being in use", () => {
+    expect(tierErrorKey("noFreeSlot")).toBe("admin.listings.error.noFreeSlot");
+  });
+
   it("TIR-5 the door's messages in M1 are the ones this file knows", () => {
     const sql = readFileSync(M1, "utf8");
     const body = sql.slice(sql.indexOf("AS $function$"), sql.indexOf("$function$;"));

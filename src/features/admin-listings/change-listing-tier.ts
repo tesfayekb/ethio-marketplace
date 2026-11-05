@@ -13,7 +13,7 @@ import { setAdminListingTier } from "./use-admin-listing";
  * and the tier words must not.
  */
 export type TierOutcome =
-  | { ok: true }
+  | { ok: true; status: string }
   | { ok: false; cancelled: true }
   | { ok: false; cancelled: false; refusal: MessageKey };
 
@@ -26,11 +26,12 @@ export async function changeListingTier(
   note: string,
 ): Promise<TierOutcome> {
   try {
-    await guard(() => setAdminListingTier(listingId, tier, reason, note));
+    // P-2 (a) M-1c — the level's days have no control yet: open-ended.
+    const { status } = await guard(() => setAdminListingTier(listingId, tier, reason, note, null));
+    return { ok: true, status };
   } catch (error) {
     const abort = stepUpAbortKey(error);
     if (abort === null) return { ok: false, cancelled: true };
     return { ok: false, cancelled: false, refusal: abort ?? tierErrorKey(errorText(error)) };
   }
-  return { ok: true };
 }

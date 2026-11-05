@@ -31,6 +31,7 @@ import {
   groupOf,
   reasonLabel,
   summarize,
+  SWEEP_LABEL,
   type FieldGroup,
 } from "./history";
 import { ListingPhotos } from "./listing-photos";
@@ -300,6 +301,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     const summary = summarize(entry);
     if (summary.type === "created") return t("admin.listings.history.created");
     if (summary.type === "renewed") return t("admin.listings.history.renewed");
+    if (summary.type === "swept") return t(SWEEP_LABEL[summary.event]);
     if (summary.type === "status") {
       return summary.from === null || summary.from === summary.to
         ? `${t("admin.listings.col.status")}: ${statusLabel(summary.to)}`

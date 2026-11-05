@@ -580,6 +580,11 @@ export function MyListingPage({ listingId }: { listingId: string }) {
           <p data-testid="my-listing-state" className="text-sm text-muted-foreground">
             {stateLine(row, t, day)}
           </p>
+          {row.status === "paused" ? (
+            <p data-testid="my-listing-paused-help" className="text-sm text-muted-foreground">
+              {t("myListings.pausedHelp")}
+            </p>
+          ) : null}
           {seen !== null ? (
             <p
               data-testid="my-listing-visibility"
