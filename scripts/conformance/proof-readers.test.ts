@@ -8,18 +8,26 @@ import { readAllowlist, TREE_SCAN_MS } from "./kit";
 import { lastDeclarations } from "./plan-seam";
 import {
   blankLiterals,
+  DEPARSE_FLOOR,
+  deparseFindingKey,
+  deparseLikeFindings,
+  deparseLikesOf,
   doBlocksOf,
   findingKey,
+  pastDeparseFloor,
   proofReaderFindings,
   stableRaisers,
   whereCallsOf,
 } from "./proof-readers";
 
 /**
- * P-2 (a) (CF-PROOF-1, INC-1052, DEC-340) — a proof reads a STABLE RAISE-ing
+ * P-2 (a) (CF-PROOF-1, INC-1052, DEC-341) — a proof reads a STABLE RAISE-ing
  * reader into a variable, never beside a column in a WHERE clause of a DO
  * block. Allowances (`<fn>:<file>:<line> | reason | until`) in
  * proof-readers-allowlist.txt; a stale or expired line fails.
+ * CF-PROOF-2 (INC-1054, ruling 6; PRF-5) — a proof asserts catalog facts from
+ * catalog columns, never by LIKE on a `pg_get_*def` text, in every migration
+ * stamped `DEPARSE_FLOOR` or later; no allowance exists for it.
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -152,4 +160,68 @@ END $proof$;
       whereCallsOf("SELECT 1 FROM t WHERE a = f(1) AND b = g(2)", ["g"]).map((c) => c.fn),
     ).toEqual(["g"]);
   });
+
+  it(
+    "PRF-5 no DO block of a migration at or past the floor asserts a pg_get_*def text by LIKE; a planted one is found, an older one and a catalog read are not",
+    () => {
+      // The tree: nothing at or past the floor; the two older sites are applied history below it.
+      expect(DEPARSE_FLOOR).toBe("20261104000000");
+      expect(
+        deparseLikeFindings(ROOT).map(
+          (finding) =>
+            `${finding.file}:${finding.line} asserts a deparsed definition by LIKE; read the catalog's columns`,
+        ),
+      ).toEqual([]);
+      expect(pastDeparseFloor("20261104000000_a.sql")).toBe(true);
+      expect(pastDeparseFloor("20261103235959_a.sql")).toBe(false);
+      // Planted: the fold's own shape (INTO a variable, then NOT LIKE on it), a trigger, an index,
+      // a constraint by LIKE / NOT LIKE and M-1a part 2's shape (a scalar subquery, then NOT LIKE);
+      // a catalog read, a function def md5, a variable read INTO but never LIKE-matched, a literal
+      // and a comment are not findings; the same text below the floor is history.
+      const proof = `DO $proof$
+DECLARE
+  v_trg text;
+  v_idx text;
+BEGIN
+  SELECT pg_get_triggerdef(t.oid) INTO v_trg FROM pg_trigger t WHERE t.tgname = 'x';
+  IF v_trg NOT LIKE '%EXECUTE FUNCTION public.f()%' THEN RAISE EXCEPTION 'into-then-like'; END IF;
+  SELECT pg_get_indexdef(i.indexrelid) INTO v_idx FROM pg_index i WHERE i.indexrelid = 1;
+  RAISE NOTICE 'the index: %', v_idx;
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger t WHERE pg_get_triggerdef(t.oid) LIKE '%AFTER UPDATE%') THEN RAISE EXCEPTION 'trigger'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_index i WHERE pg_get_indexdef( i.indexrelid ) NOT LIKE '%UNIQUE%') THEN RAISE EXCEPTION 'index'; END IF;
+  IF EXISTS (SELECT 1 FROM pg_constraint c WHERE pg_get_constraintdef(c.oid, true)
+       like '%CHECK%') THEN RAISE EXCEPTION 'constraint'; END IF;
+  IF (SELECT pg_get_constraintdef(c.oid) FROM pg_constraint c
+       WHERE c.conname = 'x') NOT LIKE '%''paused''%' THEN RAISE EXCEPTION 'subquery'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger t WHERE t.tgfoid = 'public.f()'::regprocedure AND (t.tgtype & 2) = 0) THEN RAISE EXCEPTION 'columns'; END IF;
+  IF md5(pg_get_functiondef('public.f()'::regprocedure)) <> md5(pg_get_functiondef('public.g()'::regprocedure)) THEN NULL; END IF;
+  IF 'pg_get_triggerdef(t.oid) LIKE' = v_trg THEN NULL; END IF;
+  -- pg_get_triggerdef(t.oid) LIKE '%x%' in a comment
+END $proof$;
+`;
+      const planted = tree({
+        "20261104000001_a.sql": proof,
+        "20261103000000_b.sql": proof,
+      });
+      expect(deparseLikeFindings(planted).map(deparseFindingKey)).toEqual(
+        [
+          lineOf(proof, "INTO v_trg"),
+          lineOf(proof, "'trigger'"),
+          lineOf(proof, "'index'"),
+          lineOf(proof, "pg_get_constraintdef(c.oid, true)"),
+          lineOf(proof, "SELECT pg_get_constraintdef(c.oid) FROM"),
+        ]
+          .sort((a, b) => a - b)
+          .map((line) => `20261104000001_a.sql:${line}`),
+      );
+      // The assigned form, and the fold's failing check as it was (INC-1054).
+      expect(deparseLikesOf("x := pg_get_triggerdef(1); IF x LIKE 'z' THEN NULL; END IF;")).toEqual(
+        [5],
+      );
+      expect(deparseLikesOf("x := pg_get_triggerdef(1); IF y LIKE 'z' THEN NULL; END IF;")).toEqual(
+        [],
+      );
+    },
+    TREE_SCAN_MS,
+  );
 });
