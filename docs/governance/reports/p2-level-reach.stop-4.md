@@ -1,0 +1,90 @@
+MIGRATION — p2-level-reach part A (rulings 4 and 5): the feed rank becomes data (DEC-341) — the fold rewritten in place, the fourteen proof sites read into variables, CF-PROOF-1
+DONE: phase 1 (stop-1); ruling 1 and the rebase; part A = M-1a (stop-2); the feed-rank fold and part B = M-1b (stop-3); ruling 3 (the hunt — stopped without a guess); rulings 4 and 5 saved (9f39da541, 436323254); the fold `20261104153313` rewritten under its stamp and mark (c76f79734, 440e8565e); the six rank sites and the eight baseline sites in 153958 / 153959 / 154000 (c76f79734); FE-14; CF-PROOF-1 (28a371734); the records (89ae46922)
+LEFT: M-1c (with ruling 2 §4's edit doors), the app minimum, CF-TIER-5, the tests (SWP, FSL, the level-door spec under a free prefix), docs, THE CHECKS whole on the final tree of the turn, the self-review, the report, PR ready, every check green
+CI: the last completed run of this branch is ca191c2f5 — FAILURE (run 41863913123, all 16 lanes: the temporary backend fell at `20261104153958` statement 6, `ERROR: feed_tier_rank: unknown tier e2e_mig_l1_<stem> (SQLSTATE P0001)`); nothing pushed since; this push is the one run that judges the commit (ruling 5). The base of the task, 7c89b1f60 — completed SUCCESS (run 41820752903).
+FILES: (git diff --name-only ca191c2f5)
+docs/_changelog.md
+docs/features/feed-engine.md
+docs/governance/briefs/p2-level-reach-ruling-3.md
+docs/governance/briefs/p2-level-reach-ruling-4.md
+docs/governance/briefs/p2-level-reach-ruling-5.md
+docs/governance/mechanisms.md
+docs/governance/migrations.md
+docs/governance/reports/p2-level-reach.stop-4.md
+e2e/feed-index.spec.ts
+roadmap.md
+scripts/conformance/plan-seam.ts
+scripts/conformance/proof-readers-allowlist.txt
+scripts/conformance/proof-readers.test.ts
+scripts/conformance/proof-readers.ts
+scripts/conformance/wired.test.ts
+supabase/migrations/20261104153313_f5c8063d-3369-43fe-acd2-20a1b6e5b7dd.sql
+supabase/migrations/20261104153958_12091168-8822-44f3-af3b-e4934de63e2b.sql
+supabase/migrations/20261104153959_307e79c4-b771-411a-a3da-a71a16bd26bd.sql
+supabase/migrations/20261104154000_fbffa284-2047-41f6-9229-daffa927fc77.sql
+
+## The cause (ruling 4, reproduced by the supervisor; INC-1052)
+
+The write path was sound. The raise was the proof's own direct call at `20261104153958` :246 (and :326):
+`EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_a AND tier_rank <> public.feed_tier_rank(v_l1))`. CONTEXT (which the CLI never prints):
+
+```
+PL/pgSQL function feed_tier_rank(text) line 5 at RAISE
+SQL expression "… tier_rank <> public.feed_tier_rank(v_l1) …"
+PL/pgSQL function inline_code_block … at IF
+```
+
+A STABLE function with constant arguments compared to a column inside a WHERE clause is pre-evaluated by the planner for its selectivity estimate, and inside a DO block that planning runs under the DO statement's snapshot — taken before the proof's scratch level existed (SPI plans before it pushes the fresh snapshot). The function saw no row and raised. The same class, silent only because the baseline row predates every proof: `baseline_level_key()` at eight WHERE sites in the same three files.
+
+## What changed and why
+
+1. **The rank is data** (DEC-341). `public.level_ranks (key → listing_packages ON UPDATE CASCADE ON DELETE CASCADE, feed_rank smallint)`: a level row's 0-based position by (sort, key) among every `kind = 'level'` row, enabled or not. Internal as `feed_reindex_queue` (20261009052418 :221–225): REVOKE ALL FROM PUBLIC, anon, authenticated; GRANT ALL TO service_role; RLS on; one policy `level_ranks_no_client_access FOR ALL TO anon, authenticated USING (false) WITH CHECK (false)`. No browser grant, so no `public-surface-allowlist` line; no user column, so no `pool-reset-map` line.
+2. **One writer.** `level_ranks_rebuild()` (plpgsql, SECURITY DEFINER, `SET search_path TO 'public'`, as the feed's own trigger functions `feed_index_on_listing_*`) on `CREATE TRIGGER listing_packages_level_ranks AFTER INSERT OR UPDATE OF sort, key, kind OR DELETE ON public.listing_packages FOR EACH STATEMENT`: the old ranks captured (`jsonb_object_agg`), `DELETE` + `INSERT … RETURNING`, the keys whose rank is not what it was collected, and their live ads (status active or sold) queued through the new **`feed_reindex_enqueue_listings(p_listing_ids uuid[])`** — the exact shape of `feed_reindex_enqueue_categories` / `_places` (live ads only, `ON CONFLICT DO NOTHING`, `GET DIAGNOSTICS`, `feed_reindex_wake()` when n > 0, service_role only). A rebuild that moves nothing queues nothing. The migration seeds the table once by a plain INSERT of the same expression (regular 0, featured 1, premium 2 — the numbers `feed_tier_rank` gave, so no live feed row changes and nothing is queued).
+3. **The readers, redeclared WHOLE from 20261019223105** (:45–84, :85–140; both bodies under 10 KB, so `CREATE OR REPLACE` with the full text, no md5 insertion). `feed_index_refresh`: `LEFT JOIN public.level_ranks r ON r.key = l.tier … FOR UPDATE OF l`, the rank into `v_rank` with the status; the early `RETURN 0` first; then `IF v_rank IS NULL THEN RAISE EXCEPTION 'feed_index_refresh: no rank for level %', v_tier`; the INSERT's `CASE … ELSE v_rank END`. `feed_index_check` stays LANGUAGE sql STABLE: the `live` CTE joins `level_ranks`, the EXCEPT pairs compare `CASE WHEN v.status = 'sold' THEN -1 ELSE v.feed_rank END`; a missing row is NULL, never equal to the stored rank, and the ad is counted under `listings_with_wrong_rows` — said in its comment (ruling 5 §2).
+4. **`public.feed_tier_rank(text)` DROPPED** (its REVOKE/GRANT/COMMENT with it); the `feed_index.tier_rank` comment names `level_ranks`.
+5. **Proofs (a)–(e)** in the fold (one DO block, sentinel rollback): (a) the table born closed as the queue is, the one policy, the cascading key, the trigger's definition (`pg_get_triggerdef`: AFTER INSERT OR DELETE OR UPDATE OF …, the three columns, FOR EACH STATEMENT, the function), the four functions' headers and grants (refresh `v`, enqueue `v`, check `s` and `sql`), `feed_tier_rank` gone; (b) `regular:0,featured:1,premium:2` and one rank row per level; (c) scratch rows (an XZ market, a seller, a leaf, a premium ad and a baseline ad, both live — their first feed rows carry their levels' ranks): a scratch level at `featured.sort + 1` takes 2 and premium 3 — every rank `SELECT … INTO STRICT` a variable, never beside a column — the premium ad is on the queue, the baseline ad is not, and after `feed_reindex_sweep(500)` the premium ad's rows carry 3 and the queue has let it go; (d) `sort = featured.sort + 2` (asserted still below premium) moves no rank and queues nothing; (e) `enabled = false` keeps the rank (not a trigger column; the rank would not move anyway); `DELETE` of the scratch level puts premium back at 2, removes its rank row by the cascade, and queues the premium ad again. The comment names that the `cron.schedule` row `feed_reindex_wake` writes rolls back with the sentinel.
+6. **The fourteen sites** (ruling 5 §1, amending ruling 4 e): in 153958 / 153959 / 154000 each proof declares `v_base text; v_rank smallint;`, reads `v_base := public.baseline_level_key();` once at the top of its BEGIN (a simple expression), and before each feed assertion reads `SELECT feed_rank INTO STRICT v_rank FROM public.level_ranks WHERE key = <v_l1 | v_base | 'featured' | 'premium'>;` — the WHERE compares `tier_rank <> v_rank` / `= v_rank` and `… = v_base`. The eight `baseline_level_key()` WHERE sites (153958 :234, :241; 153959 :357 nested; 154000 :266, :272, :318, :320, :322) compare `v_base`. Nothing else in those files changed (the IF-level comparisons and the door arguments that name `public.baseline_level_key()` outside a WHERE stand, as ruled).
+7. **FE-14** (`e2e/feed-index.spec.ts` :455): `level_ranks` joins the refused tables; the two `feed_tier_rank` rpc lines are gone.
+8. **CF-PROOF-1** — `scripts/conformance/proof-readers.ts` + `proof-readers.test.ts` + `proof-readers-allowlist.txt` (empty, by design), beside plan-seam. The watched names come from plan-seam's `lastDeclarations` (its `Declaration` gains `header`, the text from `CREATE` to the body opener, so volatility is read from the shared parser): header `STABLE` and body `RAISE EXCEPTION` — 89 functions at landing. Every `DO $tag$ … $tag$;` block of every migration is scanned with comments (`sqlCodeOf`) and `'…'` literals (token by token, `''` and newlines included) blanked; a call of a watched name is walked back over balanced parentheses to the nearest clause keyword; `WHERE` is the finding `<fn>:<file>:<line>` (`IS [NOT] DISTINCT FROM` is not the FROM clause). PRF-1 the tree and the allowlist's grammar (and that `baseline_level_key` is watched, `feed_tier_rank` no longer); PRF-2 the planted red — a call in a WHERE, nested in another call, unqualified — and the negatives `SELECT … INTO`, `:=`, `PERFORM`, `IF fn() <> 1`, a scalar `(SELECT fn())`, a `regprocedure` literal, a comment, a quiet STABLE and a volatile raiser; PRF-3 the last declaration rules (redeclared VOLATILE or dropped is no longer watched; a function body is not a proof); PRF-4 the blanker and the DO-block finder. On the base tree ca191c2f5 (a scratch copy, outside the repository) the guard lists exactly the 14 sites (6 `feed_tier_rank`, 8 `baseline_level_key`); on this tree, none. Wired in `wired.test.ts` as plan-seam is.
+9. **Records**: `docs/features/feed-engine.md` (the readers, §The rank, the queue's third entry point), `docs/governance/mechanisms.md` rows 109 (`level_ranks`) and 110 (CF-PROOF-1), `docs/governance/migrations.md` law 11 (bold), `docs/_changelog.md` one line; roadmap line 3 names rulings 3, 4 and 5; the three rulings saved verbatim under `docs/governance/briefs/`.
+
+## The files (sizes per ruling 5 §6; none over 26 KB, so none split)
+
+- `20261104153313_f5c8063d-3369-43fe-acd2-20a1b6e5b7dd.sql` — 25,924 bytes — sha256 `555d090e5fcc3af9760a37d588875e1ee214af6ba7f4069ae6ba68ed8f9e485b` — mark 20261104202000 (unchanged) — `-- e2e-areas: feed, admin-listings, ad-page` — creates `level_ranks`, `feed_reindex_enqueue_listings(uuid[])`, `level_ranks_rebuild()`, the trigger; seeds the table; redeclares `feed_index_refresh(uuid)`, `feed_index_check(uuid)`; drops `feed_tier_rank(text)`; proofs (a)–(e).
+- `20261104153958_12091168-8822-44f3-af3b-e4934de63e2b.sql` — 24,871 bytes — sha256 `dfa3b07c8207823804c1f39a71fcb688ac290ba1a0952305c198fbfc9d7dfd42` — mark 20261104210000 — two rank sites and two baseline sites read into variables; nothing else.
+- `20261104153959_307e79c4-b771-411a-a3da-a71a16bd26bd.sql` — 25,054 bytes — sha256 `0a3002ce14643ee562b984f6f51b93483f4c90f0be534fc25ec15129fb59dcd5` — mark 20261104211000 — the nested site reads the baseline's rank by `v_base`; nothing else.
+- `20261104154000_fbffa284-2047-41f6-9229-daffa927fc77.sql` — 23,571 bytes — sha256 `39bf90034a837f3c63580f47e4c3a0584a1ffc7d561485aaebdabe29ec234182` — mark 20261104212000 — three rank sites and five baseline sites; nothing else. It stays the operator's staging paste (DEC-323).
+- Unchanged since stop-3: `20261104124957` (mark 20261104200000), `20261104124958` (20261104201000), `20261104153957` (20261104205000), `20261104154001` (20261104213000).
+
+Pairing, in order, restated from stop-2 and stop-3 (every mark stands): apply 71cb9d01 → expect mark 20261104200000; apply c072fd66 → 20261104201000; apply f5c8063d → 20261104202000; apply 8816b4c0 → 20261104205000; apply 12091168 → 20261104210000; apply 307e79c4 → 20261104211000; apply fbffa284 → 20261104212000; apply 0ce62d98 → 20261104213000. Nothing was applied anywhere; no database was touched.
+
+## Guards and checks run (this machine)
+
+- `bash scripts/check-migrations.sh` on the final tree: Born-closed guard OK (floor 20261007143529). Definer guard OK. Self-marking guard OK (floor 20260817054246). Public-surface guard OK (floor 20261003215043). Real-row proof guard OK (floor 20261007000000). Migration guard OK.
+- `bunx vitest run scripts --maxWorkers=2`: 458 passed, 1 failed — NH-6 (red on the base tree too on this Mac; accepted by ruling 2 §6). `scripts/conformance/proof-readers.test.ts` PRF-1…4 and `plan-seam.test.ts` PSM-1…3 green.
+- `bun run typecheck`: 0 errors. `bun run lint`: 0 errors, 46 warnings, none in a touched file. `bun run format:check`: clean. `bun run scripts/e2e-select.ts --self-test`: OK. `bun run scripts/check-root-routes.ts --self-test` and plain: OK.
+- `bun run checks`, run WHOLE twice, the second on the final code tree (440e8565e; the first ran before the fold's two comment lines were shortened):
+  fast line: `checks (fast): 17 PASS · 4 FAIL · 256s — laws-first, build-and-check, component-tests, secrets-scan, migration-lint, i18n-usage-map, string-scan, import-gate, listing-write-seam, browse-path-guard, marketplace-weight, dependency-audit, e2e-preflight, e2e, promote; slow steps follow (build, budget, semgrep)`
+  last line: `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 312s`
+  The 4 FAIL, each read in its log: laws-first and component-tests — the same NH-6 (`scripts/ci/nightly-hour.test.ts`; 458/459 and 2721/2722 otherwise green); secrets-scan — the runner's pinned `gitleaks_8.24.3_linux_x64` cannot execute on this arm64 Mac (`Exec format error` in its own log; no finding was produced); build-and-check › Workflow lint — the pinned `actionlint_1.7.7_linux_amd64` the same ("the bad fixture failed for another reason"). The steps the actionlint FAIL cascaded into NOT RUN (Typecheck, Format check, Lint, e2e selector self-test, Root route names, Build, Bundle report) I ran by hand above except Build/Bundle report — `bundle-budget › Build` PASS reused a build of this tree and `Check the first-paint budget` PASS, `the NEAR band (R4)` PASS (0 NEAR, none grew). The other NOT RUN: `Install dependencies` ×4 (installed), dependency-audit ×2 (the advisory service is not reachable from the sandbox), e2e-preflight ×4 (staging credentials the script never holds), e2e ×6 and promote ×4 (GitHub-only), semgrep Upload SARIF ×2 (GitHub-only), laws-first's two follow-ups (cascaded from NH-6; semgrep's full scan PASS covers the changed files). CI's own gitleaks, actionlint and the Ubuntu NH-6 judge again on the push.
+- My own sweep of every staged diff for key-, secret-, token- or password-shaped text: nothing.
+
+## Limits
+
+- No database: rule 50 forbids `supabase`, `psql` and any database URL, so the SQL is proven by reading and by CI's temporary backend; the supervisor's local model reproduced the cause. The E2E values are not in this environment: no browser test ran here; FE-8 / FE-14 / FE-15, ATR-1 / ATR-5 (`feedRanks`), the packages console specs and the backend-start step are CI's.
+- `src/integrations/supabase/types.ts` is the supervisor's: it still names `feed_tier_rank` (:5629) and not `level_ranks`; the FE-14 edit uses the untyped `anon` client, so nothing here depends on it.
+
+## Departures and decisions
+
+1. The proofs' rank reads are `SELECT feed_rank INTO STRICT v_rank` (ruling 4 e wrote `INTO v_rank`): with a plain INTO a missing rank row would leave `v_rank` NULL and `EXISTS (… tier_rank <> NULL)` would pass silently; STRICT makes a missing row the loud failure the proof means.
+2. `level_ranks_rebuild()` issues `DELETE FROM public.level_ranks;` with no WHERE — rule 30's "no app-reachable function issues a DELETE without a WHERE" against ruling 5 §4's explicit "rebuild by DELETE + INSERT" on a derived, whole-by-definition table; the ruling is followed and this line names it.
+3. `level_ranks_rebuild()` is SECURITY DEFINER (ruling 5 §4; the feed's own trigger functions are), against `docs/governance/migrations.md` 10's default of INVOKER for trigger helpers — ruled.
+4. The fold's seed is a plain INSERT of the rank expression (the trigger owns every later write) rather than a no-op UPDATE that fires the trigger: the trigger's first fill would see no old ranks and queue every live ad for a rewrite to identical rows.
+5. The fold's "baseline ad" takes `v_base := public.baseline_level_key()` as its tier (ruling 4 d said "regular ad"): the seeded baseline key, read the way the law asks.
+6. `plan-seam.ts`'s `Declaration` gained a `header` field (K1: the shared parser extended by a field rather than re-parsed beside it); plan-seam's tests are unchanged and green.
+
+## Findings outside scope (K2; reported, not touched)
+
+- Records that still name `feed_tier_rank` as a function: `docs/_changelog.md` :753 (history), `docs/spec/spec-ledger.md` :3030, `docs/governance/plans-packages-spec-v1.md` :15, `docs/governance/handoffs/2026-10-09-bundle10-running-record.md` :50 — ratified records; the supervisor's records turn.
+- `src/integrations/supabase/types.ts` :5629 — regenerated by the platform after the apply.
+- The guard's census watches 89 STABLE RAISE-ing functions; none other than the 14 fixed sites was named in a WHERE of a DO block today.
