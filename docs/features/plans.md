@@ -71,6 +71,30 @@ required`), `paid_levels_since` (set when the switch goes ON, cleared when OFF,
 kept while ON), `created_by` / `updated_by`. The browser roles read a market's
 dials (the wizard's free-slot rule at P-2), never its authors.
 
+The free slot is the table's law (CF-SLOT-1, DEC-342; `20261105080111`, M-1c
+part 8): `listings_free_slot_guard()`, a BEFORE INSERT OR UPDATE OF status, tier
+row trigger on `listings`, fires only when a row ENTERS the counted baseline
+set — status screening, held, active or reduced at `baseline_level_key()`, the
+OLD row not there. The ad's primary place (`location_id`, else its first
+`listing_locations` row) names the market; an unplaced ad is not checked (the
+judge refuses it already). Under an advisory lock per seller and market it
+counts the seller's OTHER counted baseline ads there
+(`seller_regular_live(uuid, character, uuid)`, the count leaving this ad out)
+and refuses `noFreeSlot` with the market's `free_regular_ads` as DETAIL when
+they already fill it. Counted → counted (the reviewer's approve, a reduce)
+never fires, so no one is locked out of an ad already in. The doors over it:
+`publish_listing` keeps its envelope pre-check (the friendly refusal before
+`legal_certify`); `resume_listing` lets the guard answer inside
+`transition_listing`'s UPDATE (same key, same DETAIL, nothing written);
+`edit_my_listing`'s write into screening meets it; `admin_set_listing_tier`
+lowering a LIVE ad to the baseline with no slot pauses it in the same UPDATE
+(part 9, `20261105080112`: clock kept, `resume_status` the live status, a
+'state' revision, audit `listing.level_paused`, one `level_paused` notice) and
+is never refused for a live ad — a screening or held ad it lowers with no slot
+is refused by the guard, since such an ad cannot pause
+(`listings_resume_status_check`); the sweep's level end without a slot writes
+the fall and the pause in ONE UPDATE (part 3), so the guard stays quiet.
+
 ### Grants
 
 The browser roles read each table's OWN columns — `created_by` / `updated_by`

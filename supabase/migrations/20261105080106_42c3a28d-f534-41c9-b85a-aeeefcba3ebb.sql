@@ -1,22 +1,17 @@
 -- e2e-areas: my-listings, admin-listings, ad-page, feed, posting
--- P-2 (a) M-1c, part 3 of 7 — the sweep's core (plan §3; ruling 1; ruling 9 H2/H5/H7; ruling 10).
+-- P-2 (a) M-1c, part 3 of 8 — the sweep's core (plan §3; rulings 1, 9 H2/H5/H7, 10, 12).
 -- ONE service-only core, designation_sweep_core(p_only uuid[]), applies an ad's three clocks in one pass
--- (rule 30: a whole-table statement is proven through a core on scratch ids; part 4 makes
--- expire_stale_listings, the cron's door, its wrapper):
---   expiry — as before: active|reduced AND expires_at < now() → transition_listing(id, 'expired');
---   a level end — tier_until < now() on a live ad: the slot counted BEFORE the fall (seller_regular_live
---     against market_settings_for's free_regular_ads); the tier falls to the baseline (tier_until,
---     tier_source, tier_reminded_for NULL) in both branches, revision 'edit', audit listing.level_ended
---     (actor NULL); no slot → paused through transition_listing (service), audit listing.level_paused,
---     one seller_notices row kind level_paused (D306, DEC-328);
---   a reach end — reach_until < now() on ANY status (H7): the three reach columns NULL, the places trimmed
---     by listing_places_trim (part 2, DEC-330), the removed ids in the revision, audit listing.reach_ended,
---     the feed re-queued; nothing else of the ad touched;
---   the reminder — a live ad whose tier_until is within 3 days, not yet reminded for THAT end
---     (tier_reminded_for IS DISTINCT FROM tier_until): one seller_notices row kind level_ending (H5).
--- Every write is a WHERE'd UPDATE or transition_listing (CF-SQL-1). Law 11: baseline_level_key() into a
--- variable. Proofs on scratch rows, rolled back by the sentinel.
--- Ruling 11 (INC-1059): the scratch level row carries its perks (perks_by_kind_check); proof text only, mark unchanged.
+-- (rule 30: a whole-table statement is proven through a core on scratch ids; part 4 wraps it as
+-- expire_stale_listings, the cron's door): expiry as before (transition_listing 'expired'); a level end on a
+-- live ad — the slot counted BEFORE the fall, the tier to the baseline in both branches, revision 'edit',
+-- audit listing.level_ended (actor NULL); no slot → the fall and the pause in ONE UPDATE (DEC-342: a paused
+-- row never enters the counted set, so part 8's free-slot guard stays quiet), revision 'state', audit
+-- listing.level_paused, one seller_notices row level_paused (D306); a reach end on ANY status (H7) — the
+-- three reach columns NULL, the places trimmed by listing_places_trim (part 2), the removed ids in the
+-- revision, audit listing.reach_ended, the feed re-queued; the reminder — once per end (level_ending, H5).
+-- Every write carries its WHERE (CF-SQL-1); law 11: baseline_level_key() into a variable.
+-- Ruling 11 (INC-1059): the scratch level row carries its perks; ruling 12 (DEC-342): the pause in one
+-- UPDATE — this file was applied nowhere before either change; its mark is unchanged.
 
 DO $pre$
 BEGIN
@@ -45,6 +40,7 @@ DECLARE
   v_country  char(2);
   v_market   public.market_settings%ROWTYPE;
   v_live     integer;
+  v_pause    boolean;
   v_before   uuid[];
   v_after_pl uuid[];
   v_removed  uuid[];
@@ -63,7 +59,7 @@ BEGIN
     n_expired := n_expired + 1;
   END LOOP;
 
-  -- 2. A level's end: the slot counted before the fall; the fall in both branches; the pause without a slot.
+  -- 2. A level's end: the slot counted before the fall; the pause without a slot.
   FOR v_row IN
     SELECT l.* FROM public.listings l
      WHERE l.tier_until IS NOT NULL AND l.tier_until < now() AND l.status IN ('active','reduced')
@@ -77,8 +73,17 @@ BEGIN
                                WHERE ll.listing_id = v_row.id ORDER BY ll.position, ll.location_id LIMIT 1));
     v_market := public.market_settings_for(v_country);
     v_live   := public.seller_regular_live(v_row.seller_id, v_country);
+    v_pause  := v_live >= v_market.free_regular_ads;
+    -- DEC-342: fall and pause in ONE UPDATE (a paused row never enters part 8's counted set).
     UPDATE public.listings
-       SET tier = v_base, tier_until = NULL, tier_source = NULL, tier_reminded_for = NULL, updated_at = now()
+       SET tier = v_base, tier_until = NULL, tier_source = NULL, tier_reminded_for = NULL,
+           status = CASE WHEN v_pause THEN 'paused' ELSE status END,
+           clock_kept = CASE WHEN v_pause THEN true ELSE clock_kept END,
+           kept_remaining = CASE WHEN v_pause THEN (CASE WHEN expires_at IS NULL THEN NULL
+                                                        ELSE greatest(expires_at - now(), interval '0') END)
+                                 ELSE kept_remaining END,
+           resume_status = CASE WHEN v_pause THEN status ELSE resume_status END,
+           updated_at = now()
      WHERE id = v_row.id
      RETURNING * INTO v_after;
     INSERT INTO public.listing_revisions (listing_id, seller_id, kind, before, after, actor)
@@ -91,8 +96,10 @@ BEGIN
               jsonb_strip_nulls(jsonb_build_object('from', v_row.tier, 'to', v_base, 'until', v_row.tier_until,
                                                    'source', v_row.tier_source)));
     n_level_ended := n_level_ended + 1;
-    IF v_live >= v_market.free_regular_ads THEN
-      PERFORM public.transition_listing(v_row.id, 'paused');
+    IF v_pause THEN
+      INSERT INTO public.listing_revisions (listing_id, seller_id, kind, before, after, actor)
+      VALUES (v_row.id, v_row.seller_id, 'state', jsonb_build_object('status', v_row.status),
+              jsonb_build_object('status', 'paused'), NULL);
       INSERT INTO public.audit_log (actor_id, action, entity_type, entity_id, meta)
         VALUES (NULL, 'listing.level_paused', 'listing', v_row.id::text,
                 jsonb_build_object('from', v_row.tier, 'live', v_live, 'slots', v_market.free_regular_ads));
@@ -101,7 +108,7 @@ BEGIN
     END IF;
   END LOOP;
 
-  -- 3. A reach's end, on any status: back to the included reach; the places trimmed (part 2, DEC-330).
+  -- 3. A reach's end, on any status: the places trimmed (part 2, DEC-330).
   FOR v_row IN
     SELECT l.* FROM public.listings l
      WHERE l.reach_until IS NOT NULL AND l.reach_until < now()
@@ -153,17 +160,16 @@ BEGIN
   RETURN;
 END $fn$;
 COMMENT ON FUNCTION public.designation_sweep_core(uuid[]) IS
-  'The hourly sweep''s work over an ad''s clocks (P-2 M-1c): expiry, a level''s end (the fall to the baseline, the pause without a slot — D306), a reach''s end (the included reach, the places trimmed — DEC-330), the level_ending reminder; p_only scopes it (the proofs), NULL is everything. Service only.';
+  'The hourly sweep''s work over an ad''s clocks (P-2 M-1c): expiry, a level''s end (the fall to the baseline; the pause without a slot in the same UPDATE — D306, DEC-342), a reach''s end (the places trimmed — DEC-330), the level_ending reminder; p_only scopes it (the proofs), NULL is everything. Service only.';
 REVOKE ALL ON FUNCTION public.designation_sweep_core(uuid[]) FROM PUBLIC, anon, authenticated;
 GRANT ALL ON FUNCTION public.designation_sweep_core(uuid[]) TO service_role;
 
 -- ------------------------------------------------------------ 2. PROOFS
--- (a) the header and the grants (catalog facts); (b) the core on scratch ads, scoped by p_only: a level ended with a
--- slot → the baseline, live, its revision and audit row; a second level ended without a slot → the baseline,
--- paused through the state machine (clock kept), audit level_paused, one notice; a reach ended → the three
--- columns NULL, the places trimmed (the primary kept; part 2 proves the walk), the removed ids in the
--- revision, the audit row, the feed queue; a level ending in two days → one level_ending notice, the end
--- remembered; an expired ad → expired; an ad outside the scope untouched; a second run moves nothing.
+-- (a) header and grants; (b) the core on scratch ads, scoped by p_only: a level ended with a slot → baseline,
+-- live, revision, audit; without a slot → baseline, paused (clock kept), audit level_paused, one notice; a
+-- reach ended → columns NULL, places trimmed, removed ids in the revision, audit, the feed queue; a level
+-- ending in two days → one level_ending notice; expired → expired; outside the scope untouched; a second
+-- run moves nothing.
 DO $proof$
 DECLARE
   v_core    regprocedure := 'public.designation_sweep_core(uuid[])'::regprocedure;
@@ -233,11 +239,11 @@ BEGIN
       (v_lv, 'level', 'E2E P2 level', 10, 6, 'boost', false, true, true, false, 9000),
       (v_r0, 'reach', 'E2E P2 reach 0', 30, NULL, NULL, false, true, true, false, 9001),
       (v_r1, 'reach', 'E2E P2 reach 1', 15, NULL, NULL, false, true, true, false, 9002);
-    -- N = 2: c is a live baseline ad in the market, so a takes the second slot and b finds none.
+    -- N = 2: c is live at the baseline, so a takes the second slot and b finds none.
     INSERT INTO public.market_settings (country_code, free_regular_ads, included_reach, paid_levels)
     VALUES (v_code, 2, v_r0, false);
-    -- a, b: the level ended (a an hour before b); c: the reach ended, three places; d: the level ending in
-    -- two days; e: expired; g: the level ended, outside the scope.
+    -- a, b: level ended (a first); c: reach ended, three places; d: level ending in two days; e: expired;
+    -- g: level ended, outside the scope.
     INSERT INTO public.listings (id, seller_id, category_id, location_id, title, description, home_country_code, status,
                                  published_at, published_first_at, expires_at, tier, tier_until, tier_source,
                                  reach, reach_until, reach_source)
@@ -276,9 +282,9 @@ BEGIN
                          AND meta->>'from' = v_lv AND meta->>'to' = v_base AND meta->>'source' = 'launch' AND meta ? 'until')
        OR NOT EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_a AND tier_rank = v_rank)
        OR EXISTS (SELECT 1 FROM public.seller_notices WHERE listing_id = v_a) THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): a did not fall to the baseline and stay live (% % %)', v_row.status, v_row.tier, v_row.tier_until;
+      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): a did not fall to the baseline, live (% % %)', v_row.status, v_row.tier, v_row.tier_until;
     END IF;
-    -- b: c and a hold the two free slots — the baseline, paused with its clock kept, the notice.
+    -- b: no slot left — the baseline, paused with its clock kept, the notice.
     SELECT * INTO v_row FROM public.listings WHERE id = v_b;
     IF v_row.status <> 'paused' OR v_row.tier <> v_base OR v_row.tier_until IS NOT NULL OR v_row.tier_source IS NOT NULL
        OR NOT v_row.clock_kept OR v_row.resume_status <> 'active'
@@ -296,10 +302,9 @@ BEGIN
        OR NOT EXISTS (SELECT 1 FROM public.seller_notices WHERE listing_id = v_b AND seller_id = v_seller
                          AND kind = 'level_paused' AND reason IS NULL AND read_at IS NULL)
        OR EXISTS (SELECT 1 FROM public.feed_index WHERE listing_id = v_b) THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): b was not paused at the baseline with its notice (% % kept %)', v_row.status, v_row.tier, v_row.kept_remaining;
+      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): b not paused at the baseline with its notice (% % %)', v_row.status, v_row.tier, v_row.kept_remaining;
     END IF;
-    -- c: the reach ended — the columns NULL, the primary kept, two places removed (the free plan's 1/1/1),
-    -- the revision with the removed ids, the audit row, the queue.
+    -- c: reach ended — columns NULL, the primary kept, two places removed (plan 1/1/1), revision, audit, queue.
     SELECT * INTO v_row FROM public.listings WHERE id = v_c;
     IF v_row.status <> 'active' OR v_row.reach IS NOT NULL OR v_row.reach_until IS NOT NULL OR v_row.reach_source IS NOT NULL
        OR v_row.location_id <> v_c1
@@ -317,7 +322,7 @@ BEGIN
                        WHERE entity_id = v_c::text AND actor_id IS NULL AND action = 'listing.reach_ended'
                          AND meta->>'from' = v_r1 AND meta->>'source' = 'launch' AND (meta->>'removed')::integer = 2)
        OR NOT EXISTS (SELECT 1 FROM public.feed_reindex_queue q WHERE q.listing_id = v_c) THEN
-      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): c''s reach end did not trim as DEC-330 says (reach % places %)',
+      RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): c''s reach end did not trim (reach % places %)',
         v_row.reach, (SELECT count(*) FROM public.listing_locations ll WHERE ll.listing_id = v_c);
     END IF;
     -- d: the reminder, once, the end remembered; nothing else of d changed.
@@ -330,7 +335,7 @@ BEGIN
       RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): d''s reminder was not written once (notices %)',
         (SELECT count(*) FROM public.seller_notices WHERE listing_id = v_d);
     END IF;
-    -- e: expired through the state machine; g: outside the scope, untouched.
+    -- e: expired; g: untouched.
     IF (SELECT status FROM public.listings WHERE id = v_e) <> 'expired'
        OR NOT EXISTS (SELECT 1 FROM public.listing_revisions WHERE listing_id = v_e AND kind = 'state' AND after->>'status' = 'expired') THEN
       RAISE EXCEPTION 'P-2 M-1c part 3 proof (b): e did not expire';
