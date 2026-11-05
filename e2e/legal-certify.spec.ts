@@ -21,6 +21,7 @@ import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
+import { doorAnswer } from "./helpers/door-answer";
 
 /**
  * Bundle 22 (Stage 1), turn 4 — THE PUBLISHING STATEMENT AND ITS CERTIFICATION (LG-15..LG-18, LGC-1..LGC-3).
@@ -496,8 +497,7 @@ test.describe("Legal certification", () => {
       p_certified: [et.id, global.id],
       p_language: "en",
     });
-    expect(ok.error, JSON.stringify(ok)).toBeNull();
-    expect((ok.data as Row)["status"]).toBe("screening");
+    expect(doorAnswer(ok, "publish_listing")["status"]).toBe("screening");
     const rows = await certificationsOf(listingId);
     expect(rows).toHaveLength(1);
     expect(rows[0]?.["action"]).toBe("publish");
@@ -540,7 +540,7 @@ test.describe("Legal certification", () => {
     });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
     const ok = await me.rpc("publish_listing", args);
-    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    doorAnswer(ok, "publish_listing");
     expect(await statusOf(listingId)).toBe("screening");
   });
 
@@ -688,7 +688,7 @@ test.describe("Legal certification", () => {
       p_certified: [statement.id],
       p_language: "en",
     });
-    expect(ok.error, JSON.stringify(ok)).toBeNull();
+    doorAnswer(ok, "publish_listing");
     const token = await bearerOf(page);
     const second = await postRoute(page, PUBLISH, { listingId: plain }, { token, country: "ET" });
     expect(second.payload["status"], JSON.stringify(second.payload)).toBe("screening");
@@ -1040,7 +1040,7 @@ test.describe("Legal certification", () => {
     const live = await draftOf(page, s, categoryId, cityId);
     const photos = await twoPhotos(page, s, seller.id, live);
     const publish = await me.rpc("publish_listing", { p_listing_id: live });
-    expect(publish.error, JSON.stringify(publish)).toBeNull();
+    doorAnswer(publish, "publish_listing");
     await makeState(live, "active");
     const owed = await seedDocument(s, `e2e-acc-${hex(live)}`, null, "Terms to accept");
     const before = await guardedTruth(live);
@@ -1085,7 +1085,7 @@ test.describe("Legal certification", () => {
     }
     const sold = await draftOf(page, s, categoryId, cityId);
     const soldPublish = await me.rpc("publish_listing", { p_listing_id: sold });
-    expect(soldPublish.error, JSON.stringify(soldPublish)).toBeNull();
+    doorAnswer(soldPublish, "publish_listing");
     await makeState(sold, "active");
     await updateListingRow(
       sold,
@@ -1101,7 +1101,7 @@ test.describe("Legal certification", () => {
 
     const closed = await draftOf(page, s, categoryId, cityId);
     const closedPublish = await me.rpc("publish_listing", { p_listing_id: closed });
-    expect(closedPublish.error, JSON.stringify(closedPublish)).toBeNull();
+    doorAnswer(closedPublish, "publish_listing");
     await makeState(closed, "active");
     const close = await me.rpc("transition_listing", {
       p_listing_id: closed,
@@ -1136,7 +1136,7 @@ test.describe("Legal certification", () => {
     const me = await asPerson(seller);
     const live = await draftOf(page, s, categoryId, cityId);
     const publish = await me.rpc("publish_listing", { p_listing_id: live });
-    expect(publish.error, JSON.stringify(publish)).toBeNull();
+    doorAnswer(publish, "publish_listing");
     await makeState(live, "active");
     await seedDocument(s, `e2e-acc-${hex(live)}`, null, "Terms to accept");
     // Each door passes notOffered only with a price in the ad's market: one scratch row for the
@@ -1202,8 +1202,7 @@ test.describe("Legal certification", () => {
       if (i === 3)
         await updateListingRow(id, { tier: await levelAboveBaseline() }, { tag: "certify" });
       const published = await me.rpc("publish_listing", { p_listing_id: id });
-      expect(published.error, JSON.stringify(published)).toBeNull();
-      expect((published.data as Row | null)?.["ok"], JSON.stringify(published.data)).toBe(true);
+      doorAnswer(published, "publish_listing");
       await makeState(id, "active");
       const owed = await seedDocument(s, `e2e-acc-${hex(id)}`, null, "Terms to accept");
       ads.push({ id, version: owed.id });

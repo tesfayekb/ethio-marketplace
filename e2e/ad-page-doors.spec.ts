@@ -6,6 +6,7 @@ import { adminClient, createUser, leaseUser } from "./helpers/users";
 import { updateListingRow } from "./helpers/listing-seed";
 import { gotoReady, signInViaSession } from "./helpers/ui";
 import { errorText } from "../src/lib/error-text";
+import { doorAnswer, doorRefusal } from "./helpers/door-answer";
 
 /**
  * Bundle 19, turn 4 (M1) — THE AD PAGE'S DOORS (AP-3..AP-8).
@@ -512,8 +513,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     // The owner always reaches his own ad's channels and leaves no row, no count.
     const owner = await asPerson(seller);
     const own = await owner.rpc("reveal_listing_contact", { p_public_id: publicId });
-    expect(own.error).toBeNull();
-    const ownChannels = (own.data as Row)["channels"] as Row;
+    const ownChannels = doorAnswer(own, "reveal_listing_contact")["channels"] as Row;
     expect((ownChannels["phone"] as Row)["value"]).toBe("+251911000001");
     expect((ownChannels["telegram"] as Row)["value"]).toBe("@scratch_seller");
     expect(ownChannels["phone2"]).toBeUndefined();
@@ -588,14 +588,14 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
     });
     expect(override.error).toBeNull();
     try {
-      expect(
-        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) }))
-          .error,
-      ).toBeNull();
-      expect(
-        (await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) }))
-          .error,
-      ).toBeNull();
+      doorAnswer(
+        await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adA.id) }),
+        "reveal_listing_contact",
+      );
+      doorAnswer(
+        await buyer.rpc("reveal_listing_contact", { p_public_id: await publicIdOf(adB.id) }),
+        "reveal_listing_contact",
+      );
       const capped = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
       });
@@ -628,7 +628,7 @@ test.describe("AD PAGE DOORS — M1 (bundle 19 turn 4)", () => {
       const again = await buyer.rpc("reveal_listing_contact", {
         p_public_id: await publicIdOf(adC.id),
       });
-      expect((again.data as Row)["reason"]).toBe("sellersCapReached");
+      doorRefusal(again, "sellersCapReached", "reveal_listing_contact");
       expect((await flags())[0]!["hits"]).toBe(2);
       // A seller already reached never counts against the cap.
       const backToA = await buyer.rpc("reveal_listing_contact", {

@@ -16,6 +16,7 @@ import { useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { levelAboveBaseline, seedListingRow, updateListingRow } from "./helpers/listing-seed";
 import { errorText } from "../src/lib/error-text";
+import { doorRefusal } from "./helpers/door-answer";
 
 /**
  * Bundle 16 (My listings), turn 1 — THE SELLER'S DOORS (ML-1..ML-10).
@@ -713,8 +714,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const live = await seed(seller);
     const liveBefore = await snapshot(live.id);
     const refused = await me.rpc("renew_listing", { p_listing_id: live.id });
-    expect(refused.error).toBeNull();
-    expect(refused.data).toEqual(needsExpired);
+    expect(doorRefusal(refused, "renewNeedsExpired", "renew_listing")).toEqual(needsExpired);
     expect(await snapshot(live.id)).toEqual(liveBefore);
 
     const x = await seed(seller, "expired", { expiresAt: -10, publishedAt: -40 });
@@ -730,7 +730,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect(row["renewed_count"]).toBe(1);
 
     const twice = await me.rpc("renew_listing", { p_listing_id: x.id });
-    expect(twice.data).toEqual(needsExpired);
+    expect(doorRefusal(twice, "renewNeedsExpired", "renew_listing")).toEqual(needsExpired);
   });
 
   test("ML-8 The expiry sweep expires full and reduced reach through the state machine, with the system's revision (INC-470, INC-626)", async () => {

@@ -94,7 +94,7 @@ const domain = walkFiles(["e2e"], { ext: ["ts"] });
 
 describe("the one seeder of listing rows (D318, CF-SEED-1)", () => {
   it(
-    "CFS-1 every listings INSERT in e2e/ goes through listing-seed.ts, or its line holds it",
+    "CFS-1 every listings INSERT, and every UPDATE of status or tier, in e2e/ goes through listing-seed.ts, or its line holds it",
     () => {
       const sites = listingInserts(domain);
       const keys = sites.map((site) => `${site.file}:${site.line}`);
