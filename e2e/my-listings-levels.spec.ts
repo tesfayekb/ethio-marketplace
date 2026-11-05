@@ -792,7 +792,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     const before = await trace(paused);
     await page.getByTestId("my-listing-action-resume").click();
     await expect(page.getByTestId("my-listing-problem")).toHaveText(en["post.refusal.noFreeSlot"], {
-      timeout: 20000,
+      timeout: 15000,
     });
     expect(await trace(paused)).toEqual(before);
 
@@ -800,7 +800,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     await openPaused(page, paused);
     await page.getByTestId("my-listing-action-resume").click();
     await expect(page.getByTestId("my-listing-notice")).toHaveText(en["myListings.done.reopen"], {
-      timeout: 20000,
+      timeout: 15000,
     });
     const row = await truth(paused);
     expect(row).toMatchObject({ status: "active", clock_kept: false, kept_remaining: null });
@@ -839,7 +839,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
         const settled = where.locator(
           '[data-testid="my-listing-notice"][data-shown="true"], [data-testid="my-listing-problem"]',
         );
-        await expect(settled).toHaveCount(1, { timeout: 20000 });
+        await expect(settled).toHaveCount(1, { timeout: 15000 });
         const problem = where.getByTestId("my-listing-problem");
         if ((await problem.count()) > 0) return await problem.textContent();
         await expect(where.getByTestId("my-listing-notice")).toHaveText(
