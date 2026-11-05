@@ -43,6 +43,8 @@ Rules of the report:
   CHANGEs. Anything else that differs was a STOP.
 - Section 5 includes THE CHECKS' last line (`checks: N PASS · N FAIL · N NOT RUN · Ns`) with every
   NOT RUN named, and `bun run typecheck`'s result.
+- Section 9 of a migration turn pastes `bun run db:proof`'s LAST line from the final tree (DEC-343;
+  rules 30 and 50), never its excerpt; when Docker was not available, its NOT RUN line.
 - Section 6 is never empty by omission: list the greps you ran.
 - Section 8 lists every new or changed Amharic string key by key with its English, so the
   supervisor reads each before it ships.
