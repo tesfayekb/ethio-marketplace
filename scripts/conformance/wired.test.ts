@@ -130,6 +130,10 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/sql-writes.test.ts"), "utf8")).toContain(
       "SQW-3",
     );
+    // status-map.test.ts CF-STATUS-1 STM-1…3 (turn P-2 (a), INC-1057) is discovered by test:unit's scripts/**/*.test.ts.
+    expect(readFileSync(join(ROOT, "scripts/conformance/status-map.test.ts"), "utf8")).toContain(
+      "STM-3",
+    );
     // listing-levels.test.ts CF-LEVEL-1 CFL-1…3 (turn P-1b, D290) is discovered by test:unit's scripts/**/*.test.ts.
     expect(
       readFileSync(join(ROOT, "scripts/conformance/listing-levels.test.ts"), "utf8"),

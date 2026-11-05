@@ -1,0 +1,5 @@
+# CF-STATUS-1 (scripts/conformance/status-map.test.ts) — a status of listings_status_check with no WHEN in
+# listing_group_of (My listings' one mapper) or no place in admin_list_listings' view arrays (unless the
+# body excludes it by name, as it does the draft), or a literal in either that is no status (INC-1057).
+# Grammar: key | reason | until (a date or an INC-/DEC- number); stale or expired lines fail.
+# Empty at landing (P-2 (a), ruling 10): the census found no legitimate gap.
