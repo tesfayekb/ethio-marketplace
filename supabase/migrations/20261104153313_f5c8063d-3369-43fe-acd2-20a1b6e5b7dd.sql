@@ -77,8 +77,8 @@ DECLARE
   v_old   jsonb;
   v_moved text[];
 BEGIN
-  -- The old ranks first; then the whole derived table is written again (it is small: one row per
-  -- level); a key whose rank is not what it was moves its live ads onto the queue.
+  -- The old ranks first; then the derived table is written again (one row per level); a key whose
+  -- rank is not what it was moves its live ads onto the queue.
   SELECT jsonb_object_agg(o.key, o.feed_rank) INTO v_old FROM public.level_ranks o;
   DELETE FROM public.level_ranks;
   WITH ranked AS (
@@ -106,9 +106,8 @@ CREATE TRIGGER listing_packages_level_ranks
   AFTER INSERT OR UPDATE OF sort, key, kind OR DELETE ON public.listing_packages
   FOR EACH STATEMENT EXECUTE FUNCTION public.level_ranks_rebuild();
 
--- The seed: the same expression, once, by this migration (the trigger owns every later write). The
--- seeded sorts (regular 0, featured 10, premium 20) give 0, 1, 2 — what feed_tier_rank answered —
--- so no row of feed_index changes and nothing is queued.
+-- The seed, once (the trigger owns every later write): sorts 0, 10, 20 give 0, 1, 2 — what
+-- feed_tier_rank answered — so no row of feed_index changes and nothing is queued.
 INSERT INTO public.level_ranks (key, feed_rank)
 SELECT k.key, (row_number() OVER (ORDER BY k.sort, k.key) - 1)::smallint
   FROM public.listing_packages k
