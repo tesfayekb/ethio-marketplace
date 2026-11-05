@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42000937962
-- Commit: `51fe8c2d9570ce9cbbc6dfc039170b30cdc4f129`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42006437766
+- Commit: `a0ad85da4300d2c9015d41321e6ddad124614e1b`
 - Attempt: 1
-- Written (UTC): 2026-11-05T09:21:42.254Z
+- Written (UTC): 2026-11-05T10:01:54.889Z
 - Passed: 0 · Skipped: 0 · Failed: 0
 - Gating failures: 0 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -23,9 +23,9 @@ The temporary backend never came up, so these sources have neither results nor a
 migration: Applying migration 20261105080108_d9040574-ba15-4faf-af69-7ef8f94e7076.sql...
 ERROR: P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change) (SQLSTATE P0001)
 Server record (DEC-340, stream):
-172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
-172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
-172.18.0.1 2026-11-05 09:18:57.600 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
+172.18.0.1 2026-11-05 09:59:21.214 UTC [274] postgres@postgres ERROR:  P-2 M-1c part 5 proof (b): edit_my_listing let a sold ad through (nothing to change)
+172.18.0.1 2026-11-05 09:59:21.214 UTC [274] postgres@postgres CONTEXT:  PL/pgSQL function inline_code_block line 109 at RAISE
+172.18.0.1 2026-11-05 09:59:21.214 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 5. PROOFS
 (149 statement lines dropped)
 ```
 
