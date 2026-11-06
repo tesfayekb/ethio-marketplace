@@ -197,10 +197,14 @@ test("DRF-4 a refusal the shell returns counts the dial and door_refusals; the c
   const twice = await caller.rpc("remove_own_password");
   expect(twice.error?.message).toBe("lastSignInMethod");
   expect(await dialCount(user.id, "password_remove"), "every refusal counts").toBe(2);
+  // door_refusals has no person column (one row per door, code and day), so another
+  // worker's refusal of the same door — the other project running this very test —
+  // moves it too; it only ever grows, so the proof is "at least our two". The exact
+  // once-per-refusal count is the per-user dial above.
   expect(
     (await refusalCount("remove_own_password", "lastSignInMethod")) - refusalsBefore,
-    "door_refusals moved by the two refusals",
-  ).toBe(2);
+    "door_refusals moved by at least the two refusals",
+  ).toBeGreaterThanOrEqual(2);
   expect(
     (await passwordGrant(user.email, user.password, { fresh: true })).user?.["id"],
     "the password still signs in",
