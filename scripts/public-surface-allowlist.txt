@@ -16,7 +16,7 @@ save_seller_place | authenticated | restated grant (not a new surface); caller-o
 clear_seller_place | authenticated | caller-only; deletes the caller's own row (M5)
 my_seller_place | authenticated | caller-only read keyed by auth.uid() (M5)
 submit_listing | authenticated | restated grant (not a new surface); seller draft door, ownership and rate gate inside (M10)
-edit_listing | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller; the line stays because the migration guard still reads the grant restated in 20261014194317
+edit_listing | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller; the line stays because the migration guard still reads the grant restated in 20261014194317 — until F1-7 (DEC-347: the guards learn a retirement there and the body is dropped)
 get_posting_schema | authenticated | the posting form's schema read, restated by M5; rate-gated schema_read
 get_attribute_options | authenticated | restated grant (not a new surface); posting option read, rate-gated options_read (M10)
 transition_listing | authenticated | the status door, restated by M5; owner, reviewer and enforcer checks inside
@@ -36,7 +36,7 @@ admin_undo_attribute_import | authenticated | admin import undo door, restated g
 admin_upsert_attribute | authenticated | admin editor door, re-created with unit_am (same surface); gates on has_permission categories.update + step-up inside (M8c)
 admin_list_attributes | authenticated | admin list read, re-created with unit_am (same surface); gates on has_permission categories.view inside (M8c)
 mark_sold | authenticated | seller door (owner check in body); EXECUTE to authenticated restated by M9b (bundle 6, INC-444) — the browser calls it on the seller's own listing
-relist_listing | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller (copy_my_listing posts an item again); the line stays because the migration guard still reads the grant restated in 20261014194317
+relist_listing | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller (copy_my_listing posts an item again); the line stays because the migration guard still reads the grant restated in 20261014194317 — until F1-7 (DEC-347: the guards learn a retirement there and the body is dropped)
 save_posting_identity | authenticated | the seller's identity save; gates on auth.uid() + rate_gate('identity') inside (M2, granted in its format() loop; INC-443)
 admin_update_profile | authenticated | the console's profile edit; gates on has_permission(profiles.update) inside (M2, granted in its format() loop; INC-443)
 my_recent_categories | authenticated | caller-only read keyed by auth.uid(); ids and counts of the caller's own published ads (M10)
@@ -73,7 +73,7 @@ admin_allow_listing_photo | authenticated | admin door, bundle 16 turn 4a (D178)
 admin_ai_spend_days | authenticated | admin door, bundle 13 turn 14: services:view checked inside; reads each AI feature's calls and cost per UTC day for the last 1 to 92 days, scratch e2e- features left out; read only
 listing_policy | authenticated | Bundle 16 turn 1 (D174 3, D175 2): signed-in users read renew_allowed and renew_days only (column grant; RLS read policy); no browser role writes
 set_listing_reserved | authenticated | Bundle 16 turn 1 (D173 1): owner-only door on auth.uid(); a live ad only; rate-gated revise; one revision
-set_listing_price | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller (edit_my_listing carries the price); the line stays because the migration guard still reads the grant restated in 20261014194317
+set_listing_price | authenticated | RETIRED (DEC-335, F1-1 M-F1a part 6, 20261106052000): browser EXECUTE revoked, no caller (edit_my_listing carries the price); the line stays because the migration guard still reads the grant restated in 20261014194317 — until F1-7 (DEC-347: the guards learn a retirement there and the body is dropped)
 listing_history | authenticated | Bundle 16 turn 1, restated in turn 3 (a Reserved change carries its new value): owner-only read; one answer for not yours and not there; no staff identity in the answer
 admin_set_listing_policy | authenticated | Bundle 16 turn 1 (D174 3): listings:enforce with a fresh second factor; days 1 to 365; audited listing.policy_set
 my_listings | authenticated | Bundle 16 turn 2 (D138): owner-only read on auth.uid() (both reads keyed by it, proof P1b); six groups with their counts; at most 100 rows a page; read only. Turn R1 (D181): the seller's search (at most 100 characters) and filters (a category with its descendants, Reserved, Price reduced) narrow both reads, still keyed by auth.uid(); the answer adds the admin's renew setting (as my_listing gives it)
