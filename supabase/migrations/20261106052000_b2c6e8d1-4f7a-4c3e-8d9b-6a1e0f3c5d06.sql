@@ -21,7 +21,7 @@ DECLARE
   v_md5  text;
   i      integer;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261106060500') THEN
+  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261106120500') THEN
     RAISE EXCEPTION 'F1-1 M-F1a part 6: part 5 (a9d4c7e2) must be applied first';
   END IF;
   FOR i IN 1..array_length(v_pairs, 1) LOOP
@@ -69,4 +69,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261106060600') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261106120600') ON CONFLICT DO NOTHING;

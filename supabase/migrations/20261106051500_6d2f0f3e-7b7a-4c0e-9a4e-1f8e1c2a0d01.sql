@@ -262,4 +262,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261106060100') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261106120100') ON CONFLICT DO NOTHING;

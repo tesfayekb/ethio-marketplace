@@ -22,7 +22,7 @@ DECLARE
   v_md5  text;
   i      integer;
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261106060400')
+  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261106120400')
      OR NOT EXISTS (SELECT 1 FROM public.rate_dials WHERE action = 'account_pref') THEN
     RAISE EXCEPTION 'F1-1 M-F1a part 5: part 4 (f3b8d2a1) must be applied first';
   END IF;
@@ -373,4 +373,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261106060500') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261106120500') ON CONFLICT DO NOTHING;

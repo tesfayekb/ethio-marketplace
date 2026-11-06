@@ -15,7 +15,7 @@
 
 DO $pre$
 BEGIN
-  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261106060100')
+  IF NOT EXISTS (SELECT 1 FROM public.migration_marks WHERE version = '20261106120100')
      OR to_regprocedure('public.door_refuse(text,text)') IS NULL
      OR to_regtype('public.door_ctx') IS NULL THEN
     RAISE EXCEPTION 'F1-1 M-F1a part 2: part 1 (6d2f0f3e) must be applied first';
@@ -430,4 +430,4 @@ BEGIN
 END;
 $proof$;
 
-INSERT INTO public.migration_marks (version) VALUES ('20261106060200') ON CONFLICT DO NOTHING;
+INSERT INTO public.migration_marks (version) VALUES ('20261106120200') ON CONFLICT DO NOTHING;
