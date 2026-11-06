@@ -118,6 +118,17 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",
     );
+    // check-doors.test.ts CF-DOORS DOORS-1…4 (F1-1, DEC-333) is discovered by test:unit's scripts/**/*.test.ts;
+    // check-doors.ts itself runs in ci.yml (self-test + static) and local-backend-proof.yml (--live, DEC-334).
+    expect(readFileSync(join(ROOT, "scripts/doors/check-doors.test.ts"), "utf8")).toContain(
+      "DOORS-4",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
+      "bun scripts/doors/check-doors.ts",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "check-doors.ts --live",
+    );
     // plan-seam.test.ts CF-PLAN-1 PSM-1…3 (turn P-1b, INC-1034) is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/plan-seam.test.ts"), "utf8")).toContain(
       "PSM-3",

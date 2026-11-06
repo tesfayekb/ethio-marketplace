@@ -80,8 +80,10 @@ jobs:
       # DEC-215 / D227: prove an unchecked door and stale allowance are refused.
       - name: Acceptance-doors guard self-test (DEC-215)
         run: SELF_TEST=1 bun scripts/check-acceptance-doors.ts
-      - name: Caller-gates guard self-test (DEC-241)
-        run: SELF_TEST=1 bun scripts/check-caller-gates.ts
+      # DEC-333 / DEC-334 (F1-1): the door guard proves its seven finding kinds on planted fixtures
+      # (it replaced the caller-gates guard, DEC-241), then judges the migrations' catalogue.
+      - name: Door guard self-test and static check (DEC-333)
+        run: bun scripts/doors/check-doors.ts
       - name: Outbound-calls guard self-test (INC-981)
         run: SELF_TEST=1 bun scripts/check-outbound-calls.ts
       # INC-457 / DEC-140: a workflow file GitHub rejects starts no job and

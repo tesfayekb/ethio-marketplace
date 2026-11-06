@@ -4,7 +4,7 @@
 -- is redeclared WHOLE from 20261023100132 :78 (live md5 checked, G39) with ONE new first branch (INC-409): asked
 -- about another person by an authenticated caller who is not a super admin, it answers false — false, never a
 -- RAISE, because a policy expression cannot raise; the grant stays (229 policies read it). base_languages()
--- (INC-850): a STABLE staff reader behind door_context('staff-reader', 'legal', 'edit') answering the enabled admin
+-- (INC-850): a STABLE staff reader behind door_context('staff-reader', 'legal', 'edit', global scope) answering the enabled admin
 -- languages a legal draft may take beyond the base pair and the hidden pseudo tag, so the legal editor leaves
 -- admin_list_languages (translations:view). The two grants no browser caller needs are revoked: the trigger
 -- function languages_country_codes_valid() and require_step_up_if_needed(text,text), both granted to
@@ -82,7 +82,7 @@ CREATE FUNCTION public.base_languages()
  SET search_path = public
 AS $$
 BEGIN
-  PERFORM public.door_context('staff-reader', 'legal', 'edit');
+  PERFORM public.door_context('staff-reader', 'legal', 'edit', NULL, NULL, 'global');
   RETURN (SELECT coalesce(jsonb_agg(jsonb_build_object('code', l.code, 'name_en', l.name_en, 'name_native', l.name_native)
                                     ORDER BY l.sort, l.code), '[]'::jsonb)
             FROM public.languages l

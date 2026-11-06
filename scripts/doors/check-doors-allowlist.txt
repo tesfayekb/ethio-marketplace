@@ -1,0 +1,15 @@
+# check-doors allowances (DEC-333): `<kind> <key> | reason | until` — kit grammar; stale or expired lines fail.
+# F1-1 census (plan §1.2): browser grants nothing in the tree calls by name — src/e2e code literal, policy, CHECK or
+# another body. Each is revoked, or its caller found, in its family's turn (plan §5); the line goes with it.
+grant-without-caller attr_option_norm_v2(jsonb) | census F1-1: an attribute helper no code, policy or body names; family F1-4a (categories · attributes) revokes or names its caller | 2026-12-31
+grant-without-caller import_is_slug(text) | census F1-1: an import helper no code, policy or body names; family F1-4a (imports) revokes or names its caller | 2026-12-31
+grant-without-caller import_norm_bool(text) | census F1-1: an import helper no code, policy or body names; family F1-4a (imports) revokes or names its caller | 2026-12-31
+grant-without-caller import_norm_date(text) | census F1-1: an import helper no code, policy or body names; family F1-4a (imports) revokes or names its caller | 2026-12-31
+grant-without-caller import_norm_pipe(text) | census F1-1: an import helper no code, policy or body names; family F1-4a (imports) revokes or names its caller | 2026-12-31
+grant-without-caller get_browse_tree(text) | census F1-1: a public reader no code names; family F1-7 (the public readers) revokes or names its caller | 2026-12-31
+grant-without-caller get_category_attributes(uuid,boolean) | census F1-1: a public reader no code names; family F1-7 (the public readers) revokes or names its caller | 2026-12-31
+grant-without-caller listing_reveal_count(uuid) | census F1-1: a counter reader no code, policy or body names; family F1-5b (the buyer's doors and counters) revokes or names its caller | 2026-12-31
+grant-without-caller package_price_for(uuid,text) | census F1-1: a monetisation reader no code names (scripts/conformance/package-price.ts reads its SQL, not the door); family F1-6 revokes or names its caller | 2026-12-31
+grant-without-caller user_has_translation_permission(uuid) | census F1-1: a translations reader no code, policy or body names; family F1-3 (translations) revokes or names its caller | 2026-12-31
+# F1-1 stop 1 only: the legal editor's call of base_languages lands after the supervisor's types patch (ruling 1 §11); this line goes in the same pull request, on continue.
+grant-without-caller base_languages() | F1-1: its caller (the legal editor, src/features/admin/legal) lands after the regenerated types at the migration stop; removed on continue | 2026-11-30
