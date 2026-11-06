@@ -1,9 +1,9 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42207489602
-- Commit: `144dd273ae778aec7c5acd631b8dd9bd931d3f41`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42213335985
+- Commit: `992a9f8193a4203e5fe6adb8dd40d8283097e934`
 - Attempt: 1
-- Written (UTC): 2026-11-06T11:30:06.280Z
+- Written (UTC): 2026-11-06T12:19:51.718Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
@@ -15,7 +15,7 @@ No warning step ran in this run.
 
 ```text
 [90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
-     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 915[2mms[22m[39m
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 1031[2mms[22m[39m
 [90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
 [90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mRFL-2 a flag read-back that fails answers flagged null with flagRead failed, logged — never 0, the writes reported
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
@@ -39,30 +39,33 @@ No warning step ran in this run.
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
 [90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
-     [33m[2m✓[22m[39m OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu [33m 312[2mms[22m[39m
+     [33m[2m✓[22m[39m OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu [33m 372[2mms[22m[39m
 [90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
 [90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
 [22m[39m[session-reads] currentSession() calls: 19; without failed: 0
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1966[2mms[22m[39m
 [90mstdout[2m | src/routes/api/listings/identity.test.ts[2m > [22m[2mPOST /api/listings/identity on defineRoute (D1)[2m > [22m[2mAIV-1 an imitation verdict whose audit row failed is not acted on
-     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1508[2mms[22m[39m
+ [31m❯[39m scripts/doors/check-doors.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 11018[2mms[22m[39m
 [90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
 [22m[39m[feed-links] /api/feed signing failed
-[22m[39m[ssr-error] /api/feed [incident 1d00a671-21a4-4237-943d-814a2976dbb6] ReaderError: feed_page: marker-text-that-must-not-travel
+[22m[39m[ssr-error] /api/feed [incident a7c89237-8e7b-48f0-8afe-1b51af664e34] ReaderError: feed_page: marker-text-that-must-not-travel
 [22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
 Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
 [22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
- [31m❯[39m scripts/conformance/auth-answers.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1422[2mms[22m[39m
+ [31m❯[39m scripts/conformance/auth-answers.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 2079[2mms[22m[39m
 [90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
- [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 357[2mms[22m[39m
+ [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 367[2mms[22m[39m
 [22m[39m[save-error] unsave_listing Error: transport
 [22m[39m[save-error] listing_saved Error: transport
-     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 307[2mms[22m[39m
- [31m❯[39m scripts/conformance/vendor-seams.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 14[2mms[22m[39m
+     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 305[2mms[22m[39m
+ [31m❯[39m scripts/conformance/vendor-seams.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 20[2mms[22m[39m
 [90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
+[41m[1m FAIL [22m[49m scripts/doors/check-doors.test.ts[2m > [22mcheck-doors (CF-DOORS)[2m > [22mDOORS-6 the live mode judges the tree census too: the tree's own catalogue as a live TSV reconciles under the same allowlist (INC-1072)
 [41m[1m FAIL [22m[49m scripts/conformance/auth-answers.test.ts[2m > [22man auth action's answer is read where it is called (INC-915)[2m > [22mAAN-1 no call under src/ discards an auth action's answer
 [41m[1m FAIL [22m[49m scripts/conformance/vendor-seams.test.ts[2m > [22mvendor seams conformance[2m > [22mVS-1 no file outside the four seams reaches Supabase directly without an allowlist line
-[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m446 passed[39m[22m[90m (448)[39m
-[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2779 passed[39m[22m[90m (2781)[39m
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m445 passed[39m[22m[90m (448)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2778 passed[39m[22m[90m (2781)[39m
+##[error]Error: Test timed out in 5000ms.
 ##[error]Error: /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/conformance/auth-answers-allowlist.txt:2 stale allowance: src/features/auth/use-auth.ts:signOut | a deactivated account's sign-out (D189): the user is cleared whatever it answers, the stored session goes with it on this device whatever the server answers (DEC-268: auth-service's signOut removes it itself), and every door refuses the account (F3) | DEC-268
 ##[error]AssertionError: expected [ { …(3) } ] to deeply equal []
 ##[error]Process completed with exit code 1.
@@ -71,21 +74,21 @@ Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
 ### Tail (last 60 lines)
 
 ```text
-[36m [2m❯[22m scripts/conformance/vendor-seams.test.ts:[2m32:7[22m[39m
-    [90m 30|[39m     [34mexpect[39m(
-    [90m 31|[39m       rows.filter((row) => row.supabase && !seamExempt(row.file) && !a…
-    [90m 32|[39m     )[33m.[39m[34mtoEqual[39m([])[33m;[39m
-    [90m   |[39m       [31m^[39m
-    [90m 33|[39m   })[33m;[39m
     [90m 34|[39m   it("VS-2 no file names a Lovable package, identifier or host without…
 
-[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯[22m[39m
 
 
-[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m446 passed[39m[22m[90m (448)[39m
-[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2779 passed[39m[22m[90m (2781)[39m
-[2m   Start at [22m 11:05:00
-[2m   Duration [22m 281.05s[2m (transform 10.41s, setup 188.46s, import 70.08s, tests 165.70s, environment 345.42s)[22m
+[2m Test Files [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m445 passed[39m[22m[90m (448)[39m
+[2m      Tests [22m [1m[31m3 failed[39m[22m[2m | [22m[1m[32m2778 passed[39m[22m[90m (2781)[39m
+[2m   Start at [22m 11:52:01
+[2m   Duration [22m 367.10s[2m (transform 12.43s, setup 246.55s, import 90.67s, tests 215.68s, environment 453.01s)[22m
+
+
+##[error]Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ scripts/doors/check-doors.test.ts:86:3
+
 
 
 ##[error]Error: /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/conformance/auth-answers-allowlist.txt:2 stale allowance: src/features/auth/use-auth.ts:signOut | a deactivated account's sign-out (D189): the user is cleared whatever it answers, the stored session goes with it on this device whatever the server answers (DEC-268: auth-service's signOut removes it itself), and every door refuses the account (F3) | DEC-268
@@ -118,7 +121,7 @@ error: script "test:unit" exited with code 1
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/fb94f84e-7fce-4add-8d1d-3cd7ad327168' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/8684dae6-0ebd-4ce1-94cd-64ccb06cf9a6' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -193,7 +196,7 @@ scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/5971d810-57fd-4c8f-8dfe-dca02adf1f1a' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/ed436f97-7582-4255-aad1-0e330c4854c5' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -238,7 +241,7 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42207489602
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42213335985
   E2E_HEAD_COMMIT_MESSAGE: 
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -272,7 +275,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/b1ba8c56-b305-4b79-a3b7-022ce53de80e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/6c27eb52-9278-4b77-b2a9-078f2589fa33' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
