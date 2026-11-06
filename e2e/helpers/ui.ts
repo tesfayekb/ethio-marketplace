@@ -1006,8 +1006,30 @@ async function freshAal2Session(pool: E2ESuperAdmin): Promise<PersistedSession> 
  * (J5 — fixtures are table operations, not product doors; the product door
  * `user_set_preferred_language` cannot express "unset"). What was cleared is
  * logged so a surprising inheritance is visible in the run log.
+ *
+ * INC-1071 (F1-1) — THE SLOT'S COUNTERS ARE PART OF THE BASELINE. A leased
+ * pool account's `rate_limits` rows are deleted when it is reaped
+ * (reapPoolAccount: "a shared identity's counters belong to the previous
+ * borrower"); the job super admin is never reaped, so its rows outlived every
+ * borrower and one lane's borrowers counted on one key (the `account_pref`
+ * dial, spent once per borrower by the first page load's language save). The
+ * same reset deletes the slot's rows (key = the user id) before each borrower,
+ * logged like the language clear. The dial itself stays 60 per hour.
  */
 async function resetLanguageBaseline(pool: E2ESuperAdmin): Promise<void> {
+  const meters = await adminClient()
+    .from("rate_limits")
+    .delete({ count: "exact" })
+    .eq("key", pool.id);
+  if (meters.error) {
+    throw new Error(`[e2e:pool] counter baseline clear failed: ${meters.error.message}`);
+  }
+  if ((meters.count ?? 0) > 0) {
+    console.log(
+      `[e2e:pool] slot ${pool.slot} counter baseline cleared ${meters.count} rate_limits row(s) (INC-1071)`,
+    );
+  }
+
   const { data, error } = await adminClient()
     .from("profiles")
     .select("preferred_language")
