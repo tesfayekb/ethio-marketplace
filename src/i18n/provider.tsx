@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/auth-service";
+import { fetchPreferredLanguage, savePreferredLanguage } from "@/features/auth/preferred-language";
 import { isE2E } from "@/lib/env-flags";
 
 import { loadOnce } from "@/lib/load-once";

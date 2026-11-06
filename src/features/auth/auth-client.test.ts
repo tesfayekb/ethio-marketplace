@@ -3,14 +3,15 @@ import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { errorText } from "@/lib/error-text";
-import { ReaderError } from "@/lib/reader-failure";
 
 /**
  * INC-915 (Foundations turn 34, ruling 2) — A FAILED DOWNLOAD OF THE SUPABASE CLIENT IS A
  * FAILED ACTION, NEVER A REJECTION. Every exported action of auth-service.ts is enumerated
  * from the module's own exports, so a new action is covered by itself: with the door's
  * `getSupabase()` rejecting, each resolves to its failure answer. A function that needs no
- * client is listed by name.
+ * client is listed by name. The account-sync pair (fetchPreferredLanguage,
+ * savePreferredLanguage) lives in preferred-language.ts since F1-1 (INC-1069) and is
+ * covered by preferred-language.test.ts (PRL-1).
  */
 const door = vi.hoisted(() => ({
   getSupabase: vi.fn(),
@@ -56,12 +57,6 @@ const ANSWERS: Record<string, unknown> = {
   removeOwnPassword: LOAD_FAILED,
   requestPasswordReset: LOAD_FAILED,
   completePasswordReset: LOAD_FAILED,
-  fetchPreferredLanguage: {
-    ok: false,
-    signedOut: false,
-    error: new ReaderError({ class: "network", message: "the client did not load" }),
-  },
-  savePreferredLanguage: { ok: false, reason: "the client did not load" },
 };
 
 /** Exports that never reach the client. */
@@ -84,7 +79,6 @@ const ARGS: Record<string, unknown[]> = {
   removeOwnPassword: ["old-password-1"],
   requestPasswordReset: ["nobody@example.test"],
   completePasswordReset: ["new-password-1"],
-  savePreferredLanguage: [null],
 };
 
 /** Every function the module exports, by name. */
@@ -219,9 +213,16 @@ describe("a failed client download is a failed action (INC-915)", () => {
     expect(await service.completeEmailVerification()).toEqual({ ok: false, hadError: false });
   });
 
-  it("ASC-2 auth-service.ts asks the door for the client in one place", () => {
-    const text = readFileSync("src/features/auth/auth-service.ts", "utf8");
-    expect(text.match(/getSupabase\(\)/g) ?? []).toHaveLength(1);
+  it("ASC-2 the auth feature asks the door for the client in one place (auth-client.ts)", () => {
+    // INC-1069: the one call moved to the leaf auth-client.ts; the service and the account-sync
+    // pair both import authClient from it and never call getSupabase themselves.
+    const client = readFileSync("src/features/auth/auth-client.ts", "utf8");
+    expect(client.match(/getSupabase\(\)/g) ?? []).toHaveLength(1);
+    for (const file of ["auth-service.ts", "preferred-language.ts"]) {
+      const text = readFileSync(`src/features/auth/${file}`, "utf8");
+      expect(text, file).not.toContain("getSupabase");
+      expect(text, file).toContain("import { authClient");
+    }
   });
 });
 
