@@ -11,7 +11,9 @@ import { ReaderError } from "@/lib/reader-failure";
  * reaches the door and auth-client.ts only — never auth-service.ts — so the provider chunk
  * carries no sign-up, OAuth, password or identity code (PRL-2). The pair keeps INC-915's
  * answers carried out of ASC-1: a client that did not load is a failure answer, never a
- * rejection (PRL-1).
+ * rejection (PRL-1). DEC-348 (ruling 5) applies the same rule one level up: the shell's hook
+ * owns the session and sign-out through the leaf sign-out.ts, and no entry-path module
+ * imports the auth service or door-codes (PRL-3).
  */
 const door = vi.hoisted(() => ({
   getSupabase: vi.fn(),
@@ -78,5 +80,31 @@ describe("the account-sync leaf (INC-1069)", () => {
       expect(text, file).not.toMatch(/from ["'][^"']*auth-service["']/);
       expect(text, file).not.toMatch(/from ["']@\/i18n/);
     }
+  });
+
+  it("PRL-3 the entry closure imports no auth service: the shell's hook owns the session and sign-out through the leaf (DEC-348)", () => {
+    const root = join(__dirname, "..", "..");
+    const entryPath = [
+      "routes/__root.tsx",
+      "components/app-shell.tsx",
+      "features/auth/use-auth.ts",
+      "i18n/provider.tsx",
+    ];
+    for (const file of entryPath) {
+      const text = readFileSync(join(root, file), "utf8");
+      expect(text, file).not.toMatch(/from ["'][^"']*auth-service["']/);
+      expect(text, file).not.toMatch(/from ["']@\/lib\/door-codes["']/);
+    }
+    const hook = readFileSync(join(__dirname, "use-auth.ts"), "utf8");
+    expect(hook).toContain('from "./sign-out"');
+    // The leaves the hook reaches import nothing of the service.
+    for (const file of ["sign-out.ts", "auth-result.ts", "auth-client.ts"]) {
+      const text = readFileSync(join(__dirname, file), "utf8");
+      expect(text, file).not.toMatch(/from ["'][^"']*auth-service["']/);
+    }
+    // The sign-in family is the auth route's own import from the service.
+    const route = readFileSync(join(root, "routes", "auth.tsx"), "utf8");
+    expect(route).toMatch(/signInWithPassword,[\s\S]*?from "@\/features\/auth\/auth-service"/);
+    expect(route).not.toContain("use-auth");
   });
 });

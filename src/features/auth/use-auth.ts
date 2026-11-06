@@ -4,8 +4,8 @@ import { clearSessionClocks } from "@/features/session/session-policy";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { currentSession, getSupabase, onAuthChange } from "@/lib/supabase-door";
 
-import * as authService from "./auth-service";
 import { markDeactivatedSignOut } from "./deactivated";
+import { signOut as endSession } from "./sign-out";
 import type { AuthUser } from "./types";
 
 type AuthState = {
@@ -15,9 +15,15 @@ type AuthState = {
 };
 
 /**
- * Session + auth actions. Self-contained: it subscribes to Supabase's auth
+ * Session state + sign-out. Self-contained: it subscribes to Supabase's auth
  * state through the client's door (src/lib/supabase-door.ts, DEC-261), so no
  * extra React provider is needed in __root.tsx.
+ *
+ * DEC-348 (F1-1, ruling 5) — the shell's hook owns the session and sign-out,
+ * nothing else: sign-out comes from the leaf sign-out.ts, and the sign-in
+ * family (signUp, signInWithPassword, resendConfirmation) is the auth route's
+ * own import from auth-service.ts, so the service rides no page's first
+ * download.
  */
 export function useAuth() {
   const [state, setState] = useState<AuthState>({ user: null, loading: true });
@@ -89,7 +95,7 @@ export function useAuth() {
         // user through this same hook once the session is gone; the fallback
         // below is for a sign-out that raised no event.
         markDeactivatedSignOut();
-        await authService.signOut();
+        await endSession();
         // INC-656 — the policy clocks go with the session, as the manual
         // sign-out clears them (app-shell hardReset); left behind, the next
         // sign-in on this browser would read a previous session's marker.
@@ -130,15 +136,12 @@ export function useAuth() {
     };
   }, []);
 
-  const signOut = useCallback(() => authService.signOut(), []);
+  const signOut = useCallback(() => endSession(), []);
 
   return {
     user: state.user,
     loading: state.loading,
     hadSession,
-    signUp: authService.signUp,
-    signIn: authService.signInWithPassword,
-    resendConfirmation: authService.resendConfirmation,
     signOut,
   };
 }

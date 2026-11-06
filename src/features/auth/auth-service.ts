@@ -15,7 +15,8 @@ import {
 } from "@/lib/supabase-door";
 
 import { authClient, type Client } from "./auth-client";
-import { isEmailNotConfirmed, toErrorKey, type AuthErrorLike } from "./auth-error-key";
+import { toErrorKey } from "./auth-error-key";
+import { CLIENT_FAILED, failure } from "./auth-result";
 
 import type {
   AuthResult,
@@ -27,13 +28,6 @@ import type {
 
 /** DEC-261 — supabase-js itself, for the current-password verifier only; fetched once on demand. */
 const supabaseJs = loadOnce(() => import("@supabase/supabase-js"));
-/** The answer of an action whose client did not load (INC-915). */
-const CLIENT_FAILED: { ok: false; errorKey: "common.loadFailed" } = {
-  ok: false,
-  // INC-911 — the words every on-demand failure uses: the page needs a refresh (src/lib/on-demand-failure.ts).
-  errorKey: "common.loadFailed",
-};
-
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
   return `${window.location.origin}/auth/callback`;
@@ -53,14 +47,6 @@ export function oauthRedirectUrl(returnPath?: string): string {
   const base = emailRedirectUrl();
   const safe = safeReturnPath(returnPath);
   return safe === "/" ? base : `${base}?return=${encodeURIComponent(safe)}`;
-}
-
-function failure(error: AuthErrorLike): AuthResult {
-  return {
-    ok: false,
-    errorKey: toErrorKey(error),
-    emailNotConfirmed: isEmailNotConfirmed(error.message ?? "", error.code),
-  };
 }
 
 /**
@@ -266,22 +252,9 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
   return { ok: true };
 }
 
-export async function signOut(): Promise<AuthResult> {
-  const supabase = await authClient();
-  // DEC-268 (Foundations turn 34b-1) — the session ends on this device whatever the answer: a
-  // sign-out that could not reach the server, or whose client did not load, removes the stored
-  // session itself, and answers its failure so the shell reloads to read that.
-  if (supabase === null) {
-    forgetStoredSession();
-    return CLIENT_FAILED;
-  }
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    forgetStoredSession();
-    return failure(error);
-  }
-  return { ok: true };
-}
+// DEC-348 (F1-1, ruling 5) — sign-out is the leaf sign-out.ts (DEC-268's law); the shell's hook
+// imports the leaf, and the service re-exports it for its neighbours and tests.
+export { signOut } from "./sign-out";
 
 /**
  * Ends every OTHER session for this user; this browser stays signed in.

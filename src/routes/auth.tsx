@@ -8,9 +8,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   hasSessionRehydrating,
   requestPasswordReset,
+  resendConfirmation,
   signInWithGoogle,
+  signInWithPassword,
+  signUp,
 } from "@/features/auth/auth-service";
-import { useAuth } from "@/features/auth/use-auth";
 import { AgreeToDocument } from "@/features/legal/agree-to-document";
 import { legalInForceIds } from "@/features/legal/legal-reader";
 import { currentGateKinds, landAfterSignIn } from "@/features/legal/use-legal-gate";
@@ -111,7 +113,6 @@ function AuthScreen() {
   const { view, return: returnParam, reason } = Route.useSearch();
   /** Where a successful sign-in of ANY door lands (D20); `/` when unset or unsafe. */
   const afterSignIn = safeReturnPath(returnParam);
-  const { signIn, signUp, resendConfirmation } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -286,10 +287,10 @@ function AuthScreen() {
     const address = email.trim();
     setBusy(true);
     // INC-915 — busy ends in a finally: no throw leaves the form disabled.
-    let result: Awaited<ReturnType<typeof signIn>>;
+    let result: Awaited<ReturnType<typeof signInWithPassword>>;
     try {
       result = isSignIn
-        ? await signIn({ email: address, password })
+        ? await signInWithPassword({ email: address, password })
         : await signUp(
             { email: address, password },
             inForce.data && inForce.data.length > 0

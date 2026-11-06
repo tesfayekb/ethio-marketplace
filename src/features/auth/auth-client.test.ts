@@ -275,15 +275,18 @@ describe("a sign-out ends the session on this device whatever the server answers
   });
 
   it("ASC-5 every call that ends this device's session forgets the stored session when the library keeps it", () => {
-    const text = readFileSync("src/features/auth/auth-service.ts", "utf8");
-    // Each top-level function's text, from its declaration to the next one.
+    // DEC-348: sign-out is the leaf sign-out.ts; the service keeps the other two. Both files
+    // are read, each top-level function's text from its declaration to the next one.
+    const text = ["auth-service.ts", "sign-out.ts"]
+      .map((file) => readFileSync(`src/features/auth/${file}`, "utf8"))
+      .join("\n");
     const functions = text.split(/\n(?=(?:export )?(?:async )?function )/);
     // A sign-out of "others" ends no session on this device; every other one does.
     const ending = functions.filter((body) =>
       /\.auth\.signOut\((?!\{ scope: "others" \})/.test(body),
     );
     const names = ending.map((body) => /function (\w+)/.exec(body)?.[1] ?? "?");
-    expect(names).toEqual(["evictExpiredSession", "signOut", "currentPasswordProof"]);
+    expect(names).toEqual(["evictExpiredSession", "currentPasswordProof", "signOut"]);
     // The one exception: the password check's second client keeps no session on this device
     // (no storage, persistSession false) — its sign-out ends the check, not the person's session.
     const NO_STORED_SESSION = ["currentPasswordProof"];
