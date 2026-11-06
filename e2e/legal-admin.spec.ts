@@ -1171,11 +1171,17 @@ test.describe("Admin Legal", () => {
       if (roleError || !role)
         throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
       roles.add(role.id);
-      const rows = (perms ?? []).filter((p) =>
-        names.includes(
-          `${(p as unknown as { resources: { name: string } }).resources.name}:${p.action}`,
-        ),
-      );
+      // The joined resource's name, read by shape (the client types the inner join loosely).
+      const resourceName = (row: { resources: unknown }): string => {
+        const joined = row.resources;
+        return joined !== null &&
+          typeof joined === "object" &&
+          "name" in joined &&
+          typeof joined.name === "string"
+          ? joined.name
+          : "";
+      };
+      const rows = (perms ?? []).filter((p) => names.includes(`${resourceName(p)}:${p.action}`));
       expect(rows.length, `LGA-22 expected ${names.join(" + ")}`).toBe(names.length);
       fail(
         (
