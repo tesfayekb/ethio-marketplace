@@ -5,7 +5,8 @@ import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { currentSession, getSupabase, onAuthChange } from "@/lib/supabase-door";
 
 import { markDeactivatedSignOut } from "./deactivated";
-import { signOut as endSession } from "./sign-out";
+// The leaf by its namespace so the call keeps the action's name (auth-answers census, INC-915).
+import * as session from "./sign-out";
 import type { AuthUser } from "./types";
 
 type AuthState = {
@@ -95,7 +96,7 @@ export function useAuth() {
         // user through this same hook once the session is gone; the fallback
         // below is for a sign-out that raised no event.
         markDeactivatedSignOut();
-        await endSession();
+        await session.signOut();
         // INC-656 — the policy clocks go with the session, as the manual
         // sign-out clears them (app-shell hardReset); left behind, the next
         // sign-in on this browser would read a previous session's marker.
@@ -136,7 +137,7 @@ export function useAuth() {
     };
   }, []);
 
-  const signOut = useCallback(() => endSession(), []);
+  const signOut = useCallback(() => session.signOut(), []);
 
   return {
     user: state.user,

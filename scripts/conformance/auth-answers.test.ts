@@ -18,6 +18,9 @@ import { codeOf, readAllowlist, report, visitTs, walkFiles } from "./kit";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const SERVICE = join(ROOT, "src", "features", "auth", "auth-service.ts");
+// DEC-348: the sign-out action lives in its own leaf beside the service; both define actions.
+const SIGN_OUT_LEAF = join(ROOT, "src", "features", "auth", "sign-out.ts");
+const ACTION_FILES = [SERVICE, SIGN_OUT_LEAF];
 const ALLOWLIST = join(dirname(fileURLToPath(import.meta.url)), "auth-answers-allowlist.txt");
 
 type Finding = { file: string; line: number; what: string };
@@ -45,7 +48,7 @@ export function census(
 ): { scanned: number; findings: Finding[] } {
   const names = new Set(actions);
   const files = walkFiles(roots, { ext: ["ts", "tsx"], skipTests: true }).filter(
-    (file) => file !== SERVICE,
+    (file) => !ACTION_FILES.includes(file),
   );
   const findings: Finding[] = [];
   for (const file of files) {
@@ -75,7 +78,10 @@ afterEach(() => {
 
 describe("an auth action's answer is read where it is called (INC-915)", () => {
   it("AAN-1 no call under src/ discards an auth action's answer", () => {
-    const actions = authActions(readFileSync(SERVICE, "utf8"));
+    const actions = ACTION_FILES.flatMap((file) => authActions(readFileSync(file, "utf8")));
+    expect(actions, "the leaf's sign-out is an action the census knows (DEC-348)").toContain(
+      "signOut",
+    );
     expect(actions.length).toBeGreaterThanOrEqual(15);
     const { scanned, findings } = census([join(ROOT, "src")], actions);
     expect(scanned).toBeGreaterThanOrEqual(100);

@@ -47,3 +47,4 @@ src/integrations/supabase/previewAuthStorage.ts | direct vendor use before DEC-2
 src/lib/lovable-error-reporting.ts | direct vendor use before DEC-250; exit vendor-exit.md#error-reporting | INC-877
 src/routes/__root.tsx | direct vendor use before DEC-250; exit vendor-exit.md#error-reporting | INC-877
 vite.config.ts | direct vendor use before DEC-250; exit vendor-exit.md#build-wrapper | INC-877
+src/features/auth/sign-out.ts | DEC-268's sign-out body, moved verbatim out of auth-service.ts (DEC-348); the same direct vendor use before DEC-250 | INC-877
