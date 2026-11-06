@@ -10,7 +10,8 @@
 -- named audit call over log_audit. Proofs on scratch rows under a sentinel rollback: the premise (STEP 2, SQL
 -- side) on a planted scratch door the block creates and drops — a returned refusal commits its count and its
 -- refusal row and leaves the door's table unchanged; the gates refuse in the law's order; the service role passes;
--- the cost per class (1,000 calls, clock_timestamp, the median as a NOTICE; over 10 ms fails). Law 11, law 12,
+-- the cost per class (1,000 calls, clock_timestamp, the median as a NOTICE; over 1 ms fails — ruling 5 §2, ten
+-- times the task's 0.1 ms tolerance, headroom for a cold runner; the proof is the cost's record, DEC-345). Law 11, law 12,
 -- CF-SQL-1.
 
 DO $pre$
@@ -201,7 +202,8 @@ GRANT ALL ON FUNCTION public.door_audit(public.door_ctx, text, text, text, jsonb
 --     country it passes with countries = {it}; a permission that requires step-up still raises P0009 for a
 --     staff door and not for a staff reader (a read owes its permission, not a second factor); the service
 --     role passes without a count.
--- (d) the cost: 1,000 calls per class, the median per call as a NOTICE; over 10 ms fails.
+-- (d) the cost: 1,000 calls per class, the median per call as a NOTICE; over 1 ms fails (ruling 5 §2: the bar is
+--     ten times the 0.1 ms tolerance; the apply's success is the record until a measurement channel exists).
 DO $proof$
 DECLARE
   v_tag      text := 'e2e-mig-f1a2-' || substr(gen_random_uuid()::text, 1, 8);
@@ -413,8 +415,8 @@ BEGIN
       END LOOP;
       SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY s) INTO v_median FROM unnest(v_samples) AS s;
       RAISE NOTICE 'door_context cost: class % median % ms per call (1000 calls)', v_cls, round(v_median::numeric, 4);
-      IF v_median > 10 THEN
-        RAISE EXCEPTION 'F1-1 M-F1a part 2 proof (d): door_context(%) costs % ms per call', v_cls, round(v_median::numeric, 3);
+      IF v_median > 1 THEN
+        RAISE EXCEPTION 'F1-1 M-F1a part 2 proof (d): door_context(%) costs % ms per call (the bar is 1 ms, ruling 5 §2)', v_cls, round(v_median::numeric, 3);
       END IF;
     END LOOP;
 
