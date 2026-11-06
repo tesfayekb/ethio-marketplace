@@ -88,14 +88,12 @@ change_home_country(character) | account | Updates the caller’s declared home 
 check_seller_alias(text) | helper | Writes only the alias_check rate meter and returns alias_verdict; does not assign an alias or alter public identity
 clear_seller_place() | account | Deletes only the caller’s seller_places reusable posting preset, read solely by my_seller_place for that caller; no public listing is changed
 copy_my_listing(uuid) | draft | Inserts a new caller-owned draft with copied content and coverage plus a create revision; explicitly inserts status draft and does not publish the copy
-edit_listing(uuid,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | guarded | Updates a posted listing’s content, price, contact choice, coverage and screening status through acceptance_guard before its edit revision — DEC-216, LG-28
 end_impersonation(uuid) | account | Ends only an impersonation_sessions row whose actor_id is auth.uid() and audits the end; caller’s own security-session exit stays open
 get_attribute_options(uuid) | helper | Writes only the options_read rate meter and returns attribute options/version; no catalogue content is changed
 get_posting_schema(uuid) | helper | Writes only the schema_read rate meter and returns posting schema and plan caps; no listing or schema content is changed
 mark_sold(uuid) | takedown | Sets the caller’s posted listing to sold, clears kept-clock fields and inserts a state revision; taking down passes acceptance_guard — DEC-216, LG-29
 move_listing_photo(uuid,uuid,integer) | guarded | Reorders listing_photos and replaces cover_photo_id; photo row writes pass acceptance_guard — DEC-216, LG-28
 public_listing(text) | helper | Writes only the listing_read rate meter and returns the existing public listing projection; does not change the ad or reveal an extra contact
-relist_listing(uuid) | guarded | Changes the caller’s sold listing to screening through acceptance_guard before inserting a state revision — DEC-216, LG-28
 remove_listing_photo(uuid,uuid) | takedown | Deletes a listing photo, replaces its cover and records live-photo removal for review; removal and its cover/stamp changes pass acceptance_guard — DEC-216, LG-29
 remove_own_password() | account | Clears only auth.uid()’s encrypted_password after verifying another sign-in provider exists; own sign-in/security remains available
 report_listing(text,text,text) | signal | Inserts the caller’s private listing_reports safety report after validation and rate limiting; D227 explicitly keeps report open
@@ -108,7 +106,6 @@ set_cover_photo(uuid,uuid) | guarded | Reorders listing_photos and updates the o
 set_listing_photos_soon(uuid,boolean) | guarded | Updates photos_soon through acceptance_guard before inserting an edit revision — DEC-216, LG-28
 set_listing_level(uuid,text) | guarded | Updates the owned listing's tier, tier_until, tier_source and clock through acceptance_guard before an edit revision and an audit row — DEC-216, LG-33 (P-2 (a))
 set_listing_pin(uuid,numeric,numeric,text,text,smallint,text) | guarded | Updates pin, coordinates, zoom, street and directions through acceptance_guard before an edit revision — DEC-216, LG-28
-set_listing_price(uuid,text,numeric,character,text,integer,boolean) | guarded | Updates price fields and price-drop presentation through acceptance_guard — DEC-216, LG-28
 set_listing_reach(uuid,text) | guarded | Updates the owned listing's reach, reach_until and reach_source through acceptance_guard before an edit revision and an audit row — DEC-216, LG-33 (P-2 (a))
 set_listing_reserved(uuid,boolean) | guarded | Changes reserved_at on active/reduced listings through acceptance_guard before a state revision — DEC-216, LG-28
 submit_listing(uuid,smallint,uuid,text,text,text,jsonb,text,numeric,character,text,timestamp with time zone,uuid[],jsonb,integer,boolean) | draft | Creates or updates an ownership-checked status-draft listing, coverage and revisions; rejects existing non-drafts and never publishes even at step 8
