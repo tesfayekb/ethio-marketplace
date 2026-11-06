@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `09e893285bce060f59f9ce2b37068ab492db79ab`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42164369112
+- Commit: `15f6c6c156b89c8c241db4ce412a8a6f3822b17e`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42185001386
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 1603 | 73 | applied 409/409 | 206 | 0 | 0 | 70 | 276 |
-| email | 208 | 73 | applied 409/409 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 1066 | 72 | applied 409/409 | 168 | 0 | 0 | 6 | 174 |
-| 2 | 1118 | 53 | applied 409/409 | 190 | 0 | 0 | 1 | 191 |
-| 3 | 787 | 75 | applied 409/409 | 134 | 0 | 0 | 24 | 158 |
-| 4 | 765 | 51 | applied 409/409 | 177 | 0 | 0 | 2 | 179 |
-| 5 | 1330 | 62 | applied 409/409 | 151 | 0 | 0 | 7 | 158 |
-| 6 | 896 | 67 | applied 409/409 | 191 | 0 | 0 | 1 | 192 |
-| 7 | 1009 | 52 | applied 409/409 | 91 | 0 | 0 | 68 | 159 |
-| 8 | 690 | 62 | applied 409/409 | 115 | 0 | 0 | 51 | 166 |
-| 9 | 865 | 48 | applied 409/409 | 166 | 0 | 0 | 13 | 179 |
-| 10 | 1152 | 68 | applied 409/409 | 167 | 0 | 0 | 1 | 168 |
-| 11 | 767 | 49 | applied 409/409 | 133 | 0 | 0 | 36 | 169 |
-| 12 | 736 | 49 | applied 409/409 | 174 | 0 | 0 | 5 | 179 |
-| 13 | 695 | 60 | applied 409/409 | 149 | 0 | 0 | 17 | 166 |
-| 14 | 754 | 49 | applied 409/409 | 182 | 0 | 0 | 2 | 184 |
-| 15 | 452 | 73 | applied 409/409 | 96 | 0 | 0 | 62 | 158 |
-| 16 | 728 | 76 | applied 409/409 | 132 | 0 | 0 | 36 | 168 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2628 | 0 | 0 | 402 | 3030 |
+| smoke | not run | 64 | applied 415/415 | 0 | 0 | 0 | 0 | 0 |
+| email | 220 | 76 | applied 415/415 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 941 | 60 | applied 415/415 | 168 | 0 | 0 | 6 | 174 |
+| 2 | 1219 | 60 | applied 415/415 | 189 | 0 | 1 | 1 | 191 |
+| 3 | 667 | 55 | applied 415/415 | 140 | 0 | 0 | 24 | 164 |
+| 4 | 897 | 66 | applied 415/415 | 178 | 0 | 0 | 2 | 180 |
+| 5 | 806 | 74 | applied 415/415 | 151 | 0 | 0 | 7 | 158 |
+| 6 | 849 | 61 | applied 415/415 | 189 | 0 | 0 | 1 | 190 |
+| 7 | 460 | 67 | applied 415/415 | 91 | 0 | 0 | 68 | 159 |
+| 8 | 723 | 76 | applied 415/415 | 115 | 0 | 0 | 51 | 166 |
+| 9 | 899 | 52 | applied 415/415 | 166 | 0 | 0 | 13 | 179 |
+| 10 | 1301 | 81 | applied 415/415 | 167 | 0 | 0 | 1 | 168 |
+| 11 | 1364 | 65 | applied 415/415 | 139 | 0 | 0 | 36 | 175 |
+| 12 | 1006 | 74 | applied 415/415 | 175 | 0 | 0 | 5 | 180 |
+| 13 | 547 | 49 | applied 415/415 | 141 | 0 | 0 | 17 | 158 |
+| 14 | 802 | 52 | applied 415/415 | 188 | 0 | 0 | 2 | 190 |
+| 15 | 409 | 66 | applied 415/415 | 96 | 0 | 0 | 62 | 158 |
+| 16 | 710 | 76 | applied 415/415 | 132 | 0 | 0 | 36 | 168 |
+| repeat | 815 | 75 | applied 415/415 | 152 | 0 | 0 | 0 | 152 |
+| TOTAL | — | — | — | 2583 | 0 | 1 | 332 | 2916 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: smoke 1603 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 9, email 9, 1 9, 2 5, 3 9, 4 5, 5 7, 6 8, 7 5, 8 7, 9 4, 10 8, 11 4, 12 4, 13 6, 14 4, 15 9, 16 9, repeat not run
+- Slowest lane: 11 1364 s
+- Repeat lane (DEC-283): Not repeated: e2e/auth-caller-gates.spec.ts (4 tests); Not repeated: e2e/door-refusals.spec.ts (6 tests); Not repeated: e2e/legal-admin.spec.ts (22 tests); Not repeated: e2e/legal-certify.spec.ts (22 tests); Not repeated: e2e/my-listings-doors.spec.ts (14 tests); Not repeated: e2e/my-listings-page.spec.ts (8 tests); Not repeated: e2e/posting-routes-dials.spec.ts (7 tests); Not repeated: e2e/account-saved.spec.ts (2 tests); Not repeated: e2e/ad-page-doors.spec.ts (15 tests); Not repeated: e2e/ad-page-layout.spec.ts (1 tests); Not repeated: e2e/ad-page.spec.ts (39 tests); Not repeated: e2e/admin-ai-calls.spec.ts (1 tests); Not repeated: e2e/admin-attributes-editor.spec.ts (18 tests); Not repeated: e2e/admin-attributes-import.spec.ts (20 tests); Not repeated: e2e/admin-attributes-library.spec.ts (21 tests); Not repeated: e2e/admin-attributes-links.spec.ts (17 tests); Not repeated: e2e/admin-attributes-safety.spec.ts (9 tests); Not repeated: e2e/admin-audit.spec.ts (7 tests); Not repeated: e2e/admin-categories-console.spec.ts (17 tests); Not repeated: e2e/admin-categories-home.spec.ts (5 tests); Not repeated: e2e/admin-categories-images.spec.ts (1 tests); Not repeated: e2e/admin-categories-lifecycle.spec.ts (26 tests); Not repeated: e2e/admin-countries.spec.ts (9 tests); Not repeated: e2e/admin-guides.spec.ts (7 tests); Not repeated: e2e/admin-locations.spec.ts (19 tests); Not repeated: e2e/admin-monetisation.spec.ts (17 tests); Not repeated: e2e/admin-roles.spec.ts (14 tests); Not repeated: e2e/admin-screening.spec.ts (27 tests); Not repeated: e2e/admin-services.spec.ts (5 tests); Not repeated: e2e/admin-shell.spec.ts (6 tests); Not repeated: e2e/admin-translations-console.spec.ts (22 tests); Not repeated: e2e/admin-translations-data.spec.ts (5 tests); Not repeated: e2e/admin-translations-governance.spec.ts (4 tests); Not repeated: e2e/admin-users.spec.ts (14 tests); Not repeated: e2e/auth-callback.spec.ts (4 tests); Not repeated: e2e/auth-google.spec.ts (2 tests); Not repeated: e2e/auth-reset.spec.ts (6 tests); Not repeated: e2e/auth-signin-errors.spec.ts (5 tests); Not repeated: e2e/auth-signout.spec.ts (18 tests); Not repeated: e2e/breadcrumbs.spec.ts (3 tests); Not repeated: e2e/category-nav.spec.ts (5 tests); Not repeated: e2e/choice-lists.spec.ts (48 tests); Not repeated: e2e/dark-cards.spec.ts (2 tests); Not repeated: e2e/dialogs.spec.ts (7 tests); Not repeated: e2e/feed-index.spec.ts (15 tests); Not repeated: e2e/feed-route.spec.ts (11 tests); Not repeated: e2e/feed-screens.spec.ts (18 tests); Not repeated: e2e/fonts.spec.ts (1 tests); Not repeated: e2e/house-style.spec.ts (6 tests); Not repeated: e2e/i18n-bundle.spec.ts (3 tests); Not repeated: e2e/i18n-coverage.spec.ts (7 tests); Not repeated: e2e/i18n-layers.spec.ts (3 tests); Not repeated: e2e/i18n-sign-in-language.spec.ts (6 tests); Not repeated: e2e/import-security.spec.ts (18 tests); Not repeated: e2e/layout.spec.ts (5 tests); Not repeated: e2e/legal-accept.spec.ts (6 tests); Not repeated: e2e/legal-doors.spec.ts (17 tests); Not repeated: e2e/legal-history.spec.ts (3 tests); Not repeated: e2e/legal-pages.spec.ts (5 tests); Not repeated: e2e/locale-format.spec.ts (1 tests); Not repeated: e2e/menu-rows.spec.ts (3 tests); Not repeated: e2e/mfa-stepup.spec.ts (10 tests); Not repeated: e2e/my-listings-ad.spec.ts (18 tests); Not repeated: e2e/my-listings-levels.spec.ts (13 tests); Not repeated: e2e/name-check-queue.spec.ts (4 tests); Not repeated: e2e/on-demand-failure.spec.ts (1 tests); Not repeated: e2e/one-line-slots-admin.spec.ts (5 tests); Not repeated: e2e/one-line-slots.spec.ts (5 tests); Not repeated: e2e/overlay-shift.spec.ts (3 tests); Not repeated: e2e/overlays.spec.ts (4 tests); Not repeated: e2e/page-head.spec.ts (2 tests); Not repeated: e2e/phone-frame.spec.ts (9 tests); Not repeated: e2e/photo-pipeline.spec.ts (34 tests); Not repeated: e2e/post-wizard-bundle2.spec.ts (35 tests); Not repeated: e2e/post-wizard-category.spec.ts (24 tests); Not repeated: e2e/post-wizard-details.spec.ts (4 tests); Not repeated: e2e/post-wizard-finder.spec.ts (4 tests); Not repeated: e2e/post-wizard-place.spec.ts (19 tests); Not repeated: e2e/post-wizard-pricing.spec.ts (26 tests); Not repeated: e2e/post-wizard-recent.spec.ts (1 tests); Not repeated: e2e/post-wizard-removed.spec.ts (2 tests); Not repeated: e2e/post-wizard-resets.spec.ts (17 tests); Not repeated: e2e/post-wizard-specs.spec.ts (41 tests); Not repeated: e2e/post-wizard-units.spec.ts (2 tests); Not repeated: e2e/post-wizard-where.spec.ts (16 tests); Not repeated: e2e/posting-routes-catalog.spec.ts (9 tests); Not repeated: e2e/posting-routes-identity.spec.ts (2 tests); Not repeated: e2e/posting-routes.spec.ts (40 tests); Not repeated: e2e/press.spec.ts (11 tests); Not repeated: e2e/primitives-law.spec.ts (12 tests); Not repeated: e2e/rail-first-paint.spec.ts (2 tests); Not repeated: e2e/rbac.spec.ts (3 tests); Not repeated: e2e/sage-ad-page.spec.ts (9 tests); Not repeated: e2e/sage-bands.spec.ts (38 tests); Not repeated: e2e/sage-cards.spec.ts (14 tests); Not repeated: e2e/sage-shell.spec.ts (40 tests); Not repeated: e2e/sage-tiers.spec.ts (20 tests); Not repeated: e2e/seller-name-hidden.spec.ts (1 tests); Not repeated: e2e/settings.spec.ts (9 tests); Not repeated: e2e/shell-bands.spec.ts (8 tests); Not repeated: e2e/shell-table-law.spec.ts (1 tests); Not repeated: e2e/shell.spec.ts (117 tests); Not repeated: e2e/smoke-auth-i18n.spec.ts (1 tests); Not repeated: e2e/submenu-look.spec.ts (6 tests); Not repeated: e2e/submenu-touch.spec.ts (4 tests); Not repeated: e2e/submenu.spec.ts (7 tests); Not repeated: e2e/supabase-door.spec.ts (6 tests); Not repeated: e2e/user-guides.spec.ts (9 tests); Not repeated: e2e/viewing-place.spec.ts (11 tests); Repeat: each 2 on both projects; 1376 tests selected, 38 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 8 repeated; importers of a changed helper: 0 of 102
+- Database session samples during each start (INC-944): smoke 7, email 9, 1 6, 2 6, 3 5, 4 7, 5 9, 6 6, 7 8, 8 9, 9 5, 10 10, 11 7, 12 9, 13 4, 14 5, 15 7, 16 9, repeat 9
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 42164369112-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 42164369112-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 42164369112-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 42164369112-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 42164369112-local-3
-  - 4: [e2e:teardown] deleted 40 user(s) owned by process 42164369112-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 42164369112-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 42164369112-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 42164369112-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 42164369112-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 42164369112-local-9
-  - 10: [e2e:teardown] deleted 4 user(s) owned by process 42164369112-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 42164369112-local-11
-  - 12: [e2e:teardown] deleted 40 user(s) owned by process 42164369112-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 42164369112-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 42164369112-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 42164369112-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 42164369112-local-16
-  - repeat: not found
+  - smoke: not found
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 42185001386-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 42185001386-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 42185001386-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 42185001386-local-3
+  - 4: [e2e:teardown] deleted 40 user(s) owned by process 42185001386-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 42185001386-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 42185001386-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 42185001386-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 42185001386-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 42185001386-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 42185001386-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 42185001386-local-11
+  - 12: [e2e:teardown] deleted 40 user(s) owned by process 42185001386-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 42185001386-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 42185001386-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 42185001386-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 42185001386-local-16
+  - repeat: [e2e:teardown] deleted 6 user(s) owned by process 42185001386-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -63,7 +63,7 @@
 - fixture 20260927045939: home country ET for the three plain accounts
 - fixture 20260929201600: the sub-city Bole under Addis Ababa
 - Parity:
-RLS on 90 of 90 public tables
+RLS on 91 of 91 public tables
 Default grants in public: postgres | f | {postgres=X/postgres}; postgres | r | {postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}; postgres | S | {postgres=rwU/postgres,service_role=rwU/postgres}; supabase_admin | f | {postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}; supabase_admin | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}; supabase_admin | S | {postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}
 - Status:
 certutil: present
@@ -74,5 +74,16 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
+
+## Lane smoke
+- Step failure:
+Step door-guard: outcome failure
+  ERROR:  syntax error at or near "p"
+  LINE 1: ...', ' ', 'g'), '\s+', ' ', 'g')from pg_proc pwhere p.pronames...
+                                                               ^
+- No JSON results; smoke skipped
+
+## Lane 2
+- admin-monetisation.spec.ts / P-1b Admin › Monetisation / MON-9 Edit while unused: the amount, the credit cost and the end change through the door; the start is kept; the row and the audit follow / mobile-360 — [31mTest timeout of 60000ms exceeded.[39m
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
