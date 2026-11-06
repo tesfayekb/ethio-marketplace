@@ -717,4 +717,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "prim.guide.parts": "እያንዳንዱ ክፍል",
   "prim.guide.how": "እንዴት እንደሚጨመር፣ እንደሚቀየር ወይም እንደሚወገድ",
   "prim.guide.next": "ቀጥሎ ምን ይደረግ",
+  // DEC-333 (F1-1) — English until the supervisor's Amharic file replaces it (the task's stop 2: the executor writes no Amharic).
+  "door.refused": "This request was refused. Please try again; if it keeps happening, tell us.",
 };

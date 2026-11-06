@@ -775,4 +775,6 @@ export const enBase = {
   "prim.guide.parts": "Each part",
   "prim.guide.how": "How to add, change or remove",
   "prim.guide.next": "What to do next",
+  // DEC-333 (F1-1) — the one generic refusal a screen renders for a door code it has no words of its own for (src/lib/door-codes.ts).
+  "door.refused": "This request was refused. Please try again; if it keeps happening, tell us.",
 } as const;

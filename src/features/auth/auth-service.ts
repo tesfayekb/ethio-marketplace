@@ -2,6 +2,7 @@ import type { EmailOtpType, UserIdentity } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
+import { doorCode } from "@/lib/door-codes";
 import { errorText } from "@/lib/error-text";
 import type { ReaderError } from "@/lib/reader-failure";
 import { loadOnce } from "@/lib/load-once";
@@ -634,7 +635,8 @@ export async function hasPassword(): Promise<PasswordStateResult> {
 
 /**
  * Removes the CURRENT user's password. The server refuses when no non-email
- * identity remains; that refusal is surfaced as `auth.errorLastMethod`.
+ * identity remains — the door code `lastSignInMethod` (DEC-333, F1-1; the
+ * shell answers it as the error's message) — surfaced as `auth.errorLastMethod`.
  */
 export async function removeOwnPassword(currentPassword: string): Promise<AuthResult> {
   const supabase = await authClient();
@@ -651,7 +653,7 @@ export async function removeOwnPassword(currentPassword: string): Promise<AuthRe
       if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
       return { ok: true };
     }
-    if (/last sign-in method/i.test(error.message ?? ""))
+    if (doorCode(error).code === "lastSignInMethod")
       return { ok: false, errorKey: "auth.errorLastMethod" };
     return failure(error);
   } finally {
