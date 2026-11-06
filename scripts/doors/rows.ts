@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { codeOf, walkFiles } from "../conformance/kit";
 import { callableBy, readCatalogue, type UnseenGrant } from "./catalogue";
@@ -55,22 +56,13 @@ export function staticRows(root: string): { rows: DoorRow[]; unseen: UnseenGrant
 
 /**
  * The one query the smoke lane runs (DEC-310's form: live names stay in
- * RUNNER_TEMP). Columns: key, provolatile, prosecdef, anon, authenticated,
+ * RUNNER_TEMP) is the file `scripts/doors/live-query.sql`, read verbatim and
+ * printed as it is by `--live-query` — never a string code assembles
+ * (INC-1070). Columns: key, provolatile, prosecdef, anon, authenticated,
  * trigger, definition (comments stripped, whitespace folded to one space).
  */
-export const LIVE_QUERY = [
-  "select p.oid::regprocedure::text,",
-  " p.provolatile,",
-  " case when p.prosecdef then 't' else 'f' end,",
-  " case when has_function_privilege('anon', p.oid, 'EXECUTE') then 't' else 'f' end,",
-  " case when has_function_privilege('authenticated', p.oid, 'EXECUTE') then 't' else 'f' end,",
-  " case when p.prorettype in ('trigger'::regtype, 'event_trigger'::regtype) then 't' else 'f' end,",
-  " regexp_replace(regexp_replace(regexp_replace(pg_get_functiondef(p.oid), '/\\*.*?\\*/', ' ', 'g'), '--[^' || chr(10) || ']*', ' ', 'g'), '\\s+', ' ', 'g')",
-  "from pg_proc p",
-  "where p.pronamespace = 'public'::regnamespace and p.prokind = 'f'",
-  " and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e')",
-  "order by 1;",
-].join("");
+export const LIVE_QUERY_FILE = join(dirname(fileURLToPath(import.meta.url)), "live-query.sql");
+export const LIVE_QUERY = readFileSync(LIVE_QUERY_FILE, "utf8");
 
 /** The rows of a LIVE_QUERY answer; a malformed row is an error, never a skipped door. */
 export function liveRows(tsv: string): DoorRow[] {

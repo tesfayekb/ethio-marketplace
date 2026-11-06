@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,7 +7,7 @@ import { describe, expect, it } from "vitest";
 import { allow, plantedCases, selfTest, staticFindings } from "./check-doors";
 import { FINDING_KINDS, doorContextCall, judge } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
-import { LIVE_QUERY, browserCallable, liveRows, staticRows } from "./rows";
+import { LIVE_QUERY, LIVE_QUERY_FILE, browserCallable, liveRows, staticRows } from "./rows";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
@@ -15,7 +16,8 @@ import { LIVE_QUERY, browserCallable, liveRows, staticRows } from "./rows";
  * (DOORS-2); the live reader answers the same rows the judge reads and refuses
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
  * every browser-callable function has its line and every line its door, under
- * the allowlist's census lines only (DOORS-4).
+ * the allowlist's census lines only (DOORS-4); the live query is a file the
+ * script prints verbatim, its clauses on their own lines (DOORS-5, INC-1070).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -77,6 +79,24 @@ describe("check-doors (CF-DOORS)", () => {
     expect(() => liveRows("")).toThrow(/empty/);
     expect(LIVE_QUERY).toContain("has_function_privilege('anon'");
     expect(LIVE_QUERY).toContain("pg_get_functiondef");
+  });
+
+  it("DOORS-5 --live-query prints scripts/doors/live-query.sql as it is: whitespace-separated clauses ending in ; (INC-1070)", () => {
+    const printed = execFileSync("bun", ["scripts/doors/check-doors.ts", "--live-query"], {
+      cwd: ROOT,
+      encoding: "utf8",
+    });
+    expect(printed).toBe(readFileSync(LIVE_QUERY_FILE, "utf8"));
+    expect(printed).toBe(LIVE_QUERY);
+    expect(printed).toContain("\nfrom pg_proc p\n");
+    expect(printed).toContain("\nwhere p.pronamespace = 'public'::regnamespace");
+    expect(printed.trimEnd().endsWith(";")).toBe(true);
+    // One statement: the clauses never run together once the comment lines are gone.
+    const statement = printed
+      .split("\n")
+      .filter((line) => !line.startsWith("--"))
+      .join("\n");
+    expect(statement).toMatch(/^select [\s\S]*\nfrom pg_proc p\nwhere [\s\S]*\norder by 1;\n$/);
   });
 
   it("DOORS-4 the repository's tree reconciles: every browser-callable function has its line, every line its door", () => {

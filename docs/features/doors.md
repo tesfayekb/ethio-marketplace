@@ -57,10 +57,12 @@ acceptance | codes | reason`. `manifest.ts` is the grammar; `catalogue.ts` + `id
   `grant-unseen`, `grant-without-caller`, `scope-mode-missing` — each must fire, a clean pair
   must fire nothing; `SELF_TEST=1` runs it alone). Static mode (the guards job of `ci.yml`)
   judges the tree; `--live <tsv>` (the smoke lane of `local-backend-proof.yml`, the TSV from
-  `--live-query` through psql) judges the backend's catalogue. `judge.ts` holds the kinds; a
+  `--live-query` through psql) judges the backend's catalogue. The live query is the file
+  `scripts/doors/live-query.sql`, printed verbatim — never a string code assembles (INC-1070: the
+  first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a
   legacy body (no `door_context`) is judged by the old caller-gates rule, a shell body by the
   literals its manifest line promises. Allowances in `check-doors-allowlist.txt` (`<kind> <key>
-| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…4, named in
+| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…5 (DOORS-5: the printed query's clauses), named in
   `scripts/conformance/wired.test.ts`.
 - `scripts/check-caller-gates.ts` and its allowlist and fixture are retired (DEC-334's frozen
   rule: the new step gates only after it has failed on its planted fixtures in the same run).

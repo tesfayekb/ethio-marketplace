@@ -13,7 +13,7 @@ import { LIVE_QUERY, liveRows, staticRows, treeCallers, type DoorRow } from "./r
  *
  *   bun scripts/doors/check-doors.ts                 static: the migrations' catalogue + the tree's callers
  *   bun scripts/doors/check-doors.ts --live <tsv>    live: the smoke lane's catalogue (LIVE_QUERY's answer)
- *   bun scripts/doors/check-doors.ts --live-query    prints LIVE_QUERY for the workflow's psql
+ *   bun scripts/doors/check-doors.ts --live-query    prints scripts/doors/live-query.sql verbatim for the workflow's psql
  *   SELF_TEST=1 bun scripts/doors/check-doors.ts     the planted fixtures only
  *
  * DEC-334's frozen rule: every mode runs the self-test FIRST, in the same
@@ -197,7 +197,8 @@ function print(label: string, findings: Finding[]): void {
 if (process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1]) {
   const [mode, path] = process.argv.slice(2);
   if (mode === "--live-query") {
-    console.log(LIVE_QUERY);
+    // INC-1070: the file's bytes as they are — the workflow hands them to psql.
+    process.stdout.write(LIVE_QUERY);
     process.exit(0);
   }
   const proof = selfTest();

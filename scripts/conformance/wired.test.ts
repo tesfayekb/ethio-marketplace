@@ -118,11 +118,12 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, "scripts/conformance/vendor-seams.test.ts"), "utf8")).toContain(
       "VS-3",
     );
-    // check-doors.test.ts CF-DOORS DOORS-1…4 (F1-1, DEC-333) is discovered by test:unit's scripts/**/*.test.ts;
-    // check-doors.ts itself runs in ci.yml (self-test + static) and local-backend-proof.yml (--live, DEC-334).
-    expect(readFileSync(join(ROOT, "scripts/doors/check-doors.test.ts"), "utf8")).toContain(
-      "DOORS-4",
-    );
+    // check-doors.test.ts CF-DOORS DOORS-1…5 (F1-1, DEC-333; DOORS-5 INC-1070) is discovered by
+    // test:unit's scripts/**/*.test.ts; check-doors.ts itself runs in ci.yml (self-test + static)
+    // and local-backend-proof.yml (--live, DEC-334) with the query of scripts/doors/live-query.sql.
+    const doorsTests = readFileSync(join(ROOT, "scripts/doors/check-doors.test.ts"), "utf8");
+    expect(doorsTests).toContain("DOORS-4");
+    expect(doorsTests).toContain("DOORS-5");
     expect(readFileSync(join(ROOT, ".github/workflows/ci.yml"), "utf8")).toContain(
       "bun scripts/doors/check-doors.ts",
     );
