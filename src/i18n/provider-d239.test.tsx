@@ -24,7 +24,7 @@ vi.mock("@/lib/supabase-door", () => ({
   },
   projectEnv: () => ({ url: "https://abcdefghijklmnop.supabase.co", key: "publishable" }),
 }));
-vi.mock("@/features/auth/auth-service", () => ({
+vi.mock("@/features/auth/preferred-language", () => ({
   fetchPreferredLanguage: () => auth.fetchPreferredLanguage(),
   savePreferredLanguage: (code: string | null) => auth.savePreferredLanguage(code),
 }));
@@ -205,7 +205,7 @@ describe("D239 R4 — every open tab follows the star", () => {
     act(() => screen.getByRole("button", { name: "am" }).click());
     await waitFor(() => expect(languageShown()).toBe("am"));
     // The pick hands the code to the seam, whose own session check refuses it
-    // (auth-service: no session → no RPC); the rule never reads the account.
+    // (preferred-language.ts: no session → no RPC); the rule never reads the account.
     expect(auth.fetchPreferredLanguage).not.toHaveBeenCalled();
     expect(console.warn).not.toHaveBeenCalledWith(
       expect.stringContaining("account language sync failed"),

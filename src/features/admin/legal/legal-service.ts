@@ -182,6 +182,26 @@ export async function listLegalDocuments(): Promise<LegalDocument[]> {
   }
   return data as unknown as LegalDocument[];
 }
+export type BaseLanguage = { code: string; name_en: string; name_native: string };
+function isBaseLanguage(item: unknown): item is BaseLanguage {
+  if (item === null || typeof item !== "object" || Array.isArray(item)) return false;
+  const row = item as Record<string, unknown>;
+  return (
+    typeof row.code === "string" &&
+    typeof row.name_en === "string" &&
+    typeof row.name_native === "string"
+  );
+}
+/** F1-1 (INC-850, DEC-333): the enabled admin languages a legal draft may take beyond the base
+ *  pair — the door's own list behind door_context(staff-reader, legal, edit), never the whole
+ *  languages console. */
+export async function listBaseLanguages(): Promise<BaseLanguage[]> {
+  const { data, error } = await supabase.rpc("base_languages");
+  if (error) throw error;
+  if (!Array.isArray(data) || !data.every(isBaseLanguage))
+    throw new Error("base_languages: invalid answer");
+  return data;
+}
 export async function getLegalSettings(): Promise<LegalSettings> {
   const { data, error } = await supabase.rpc("admin_legal_settings");
   if (error) throw error;

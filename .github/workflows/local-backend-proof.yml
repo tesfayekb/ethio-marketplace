@@ -650,12 +650,17 @@ jobs:
           surface_query=$(bun scripts/security-lints.ts --surface-query)
           docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$surface_query" > "$RUNNER_TEMP/public-surface.tsv"
           bun scripts/security-lints.ts --tsv "$RUNNER_TEMP/security-lints.tsv" "$RUNNER_TEMP/public-surface.tsv"
-      - name: Caller-gates guard (DEC-241)
-        id: caller-gates-guard
+      # DEC-333 / DEC-334 (F1-1): the door guard, live. It replaced the caller-gates guard (DEC-241)
+      # under G22's frozen rule: the step gates only after its self-test has fired every finding kind
+      # on its planted fixture in this same run (the script runs the self-test first and judges nothing
+      # until it passes). Live names stay in RUNNER_TEMP (DEC-310's form).
+      - name: Door guard, live (DEC-333)
+        id: door-guard
         if: matrix.lane == 'smoke' && (matrix.lane != 'repeat' || env.REPEAT_SPECS != '')
         run: |
-          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "select p.oid::regprocedure::text as fn, p.provolatile, pg_get_functiondef(p.oid) ~ 'assert_caller_active\(|rate_gate\(|has_permission\(|is_super_admin\(' as gated from pg_proc p where p.pronamespace = 'public'::regnamespace and p.prokind = 'f' and p.prorettype not in ('trigger'::regtype, 'event_trigger'::regtype) and not exists (select 1 from pg_depend d where d.classid = 'pg_proc'::regclass and d.objid = p.oid and d.deptype = 'e') and has_function_privilege('authenticated', p.oid, 'EXECUTE') order by 1;" > "$RUNNER_TEMP/caller-gates.tsv"
-          bun scripts/check-caller-gates.ts "$RUNNER_TEMP/caller-gates.tsv"
+          doors_query=$(bun scripts/doors/check-doors.ts --live-query)
+          docker exec "$DATABASE_CONTAINER" psql -U postgres -d postgres -At -F $'\t' -c "$doors_query" > "$RUNNER_TEMP/doors.tsv"
+          bun scripts/doors/check-doors.ts --live "$RUNNER_TEMP/doors.tsv"
       # N1b-1 (INC-977/INC-981, S4 + S5): only public.job_call calls net.*, and net is not exposed.
       - name: Outbound-calls guard (INC-981)
         id: outbound-calls-guard

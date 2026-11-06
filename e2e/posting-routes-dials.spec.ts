@@ -26,6 +26,9 @@ import {
  * J-laws: a leased seller and a scratch category; cleanup in afterEach (J3).
  *
  * Bundle 16 turn 1 — PR-45, PR-46: the two new seller doors count against the same dial before they read the listing.
+ *
+ * F1-1 (DEC-335) — edit_listing, relist_listing and set_listing_price are retired: PR-27 now
+ * proves edit_my_listing; PR-32 and PR-46 are withdrawn with their doors.
  */
 
 const DRAFT = "/api/listings/draft";
@@ -130,23 +133,16 @@ test.describe("POSTING DOOR DIALS", () => {
     expect(isRateRefusal(second), `second ${fn}: ${JSON.stringify(second)}`).toBe(true);
   }
 
-  test("PR-27 edit_listing counts against the revise dial", async ({ page }) => {
-    const { user, listingId, categoryId } = await sellerWithDraft(page);
+  // F1-1 (DEC-335, INC-836 part 2): edit_listing, relist_listing and set_listing_price are
+  // retired — PR-27 moves onto edit_my_listing, the seller's one edit door (its dial is read
+  // before the ad, so a draft still proves the count); PR-32 and PR-46 are withdrawn with
+  // their doors (edit_my_listing's price keys are the same door PR-27 proves).
+  test("PR-27 edit_my_listing counts against the revise dial", async ({ page }) => {
+    const { user, listingId } = await sellerWithDraft(page);
     try {
-      await twice(page, "edit_listing", {
+      await twice(page, "edit_my_listing", {
         p_listing_id: listingId,
-        p_category_id: categoryId,
-        p_title: "e2e dials title",
-        p_description: "e2e dials body",
-        p_video_url: null,
-        p_attributes: {},
-        p_price_mode: "fixed",
-        p_price_amount: null,
-        p_price_currency: "ETB",
-        p_price_period: "once",
-        p_poster_expires_at: null,
-        p_coverage: [],
-        p_contact_pref: { messages: true },
+        p_changes: { title: "e2e dials title" },
       });
     } finally {
       await removeOverride(user.id, "PR-27");
@@ -192,36 +188,12 @@ test.describe("POSTING DOOR DIALS", () => {
     }
   });
 
-  test("PR-32 relist_listing counts against the revise dial", async ({ page }) => {
-    const { user, listingId } = await sellerWithDraft(page);
-    try {
-      await twice(page, "relist_listing", { p_listing_id: listingId });
-    } finally {
-      await removeOverride(user.id, "PR-32");
-    }
-  });
-
   test("PR-45 set_listing_reserved counts against the revise dial", async ({ page }) => {
     const { user, listingId } = await sellerWithDraft(page);
     try {
       await twice(page, "set_listing_reserved", { p_listing_id: listingId, p_reserved: true });
     } finally {
       await removeOverride(user.id, "PR-45");
-    }
-  });
-
-  test("PR-46 set_listing_price counts against the revise dial", async ({ page }) => {
-    const { user, listingId } = await sellerWithDraft(page);
-    try {
-      await twice(page, "set_listing_price", {
-        p_listing_id: listingId,
-        p_price_mode: "fixed",
-        p_price_amount: 100,
-        p_price_currency: "ETB",
-        p_price_period: "once",
-      });
-    } finally {
-      await removeOverride(user.id, "PR-46");
     }
   });
 

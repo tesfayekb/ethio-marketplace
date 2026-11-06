@@ -7,6 +7,7 @@ import {
   getLegalSettings,
   getLegalVersion,
   getUserLegalHistory,
+  listBaseLanguages,
   listLegalDocuments,
   markLegalReviewed,
   publishLegalVersion,
@@ -16,6 +17,10 @@ import {
 export const ADMIN_LEGAL_KEY = [AUTH_DERIVED_ROOT, "admin", "legal"] as const;
 export function useLegalDocuments() {
   return useQuery({ queryKey: [...ADMIN_LEGAL_KEY, "documents"], queryFn: listLegalDocuments });
+}
+/** The legal editor's extra languages — base_languages (F1-1), a staff reader behind legal:edit. */
+export function useBaseLanguages() {
+  return useQuery({ queryKey: [...ADMIN_LEGAL_KEY, "languages"], queryFn: listBaseLanguages });
 }
 export function useLegalSettings() {
   return useQuery({ queryKey: [...ADMIN_LEGAL_KEY, "facts"], queryFn: getLegalSettings });

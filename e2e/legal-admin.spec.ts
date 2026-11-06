@@ -3,7 +3,7 @@ import { type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { authErrorText } from "./global-setup";
 import { grantRole } from "./helpers/categories";
-import { passwordGrant } from "./helpers/session";
+import { bearerClient, passwordGrant } from "./helpers/session";
 import { ensureFenceLanguage } from "./helpers/translations";
 import { gotoReady, openRailScope, useJobSuperAdmin, switchUser } from "./helpers/ui";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
@@ -1135,5 +1135,103 @@ test.describe("Admin Legal", () => {
         roles.delete(roleId);
       }
     }
+  });
+
+  /**
+   * F1-1 (DEC-333, INC-850) — `base_languages()`: the enabled admin languages a legal draft
+   * may take beyond the base pair and the hidden tag, behind door_context(staff-reader,
+   * legal, edit). A legal-only editor (no translations:view) reads it; a legal:view holder is
+   * refused by code; a disabled language is absent. The editor form draws this list once the
+   * platform's types carry the door.
+   */
+  test("LGA-22 base_languages answers a legal editor the extra languages by code and refuses a viewer", async () => {
+    const on = `${scratch("bl-on")}-lang`;
+    const off = `${scratch("bl-off")}-lang`;
+    languages.add(on);
+    languages.add(off);
+    await ensureFenceLanguage(on);
+    await ensureFenceLanguage(off);
+    const supabase = adminClient();
+    fail(
+      (await supabase.from("languages").update({ enabled_admin: false }).eq("code", off)).error,
+      "disable the off language",
+    );
+    const { data: perms, error: permsError } = await supabase
+      .from("permissions")
+      .select("id, action, resources!inner(name)")
+      .in("resources.name", ["admin_panel", "legal"]);
+    fail(permsError, "permissions read");
+    const makeRole = async (tag: string, names: string[]) => {
+      const roleName = `${RUN_TAG}-role-${tag}`;
+      const { data: role, error: roleError } = await supabase
+        .from("roles")
+        .insert({ name: roleName, display_name: roleName, priority: 1 })
+        .select("id")
+        .single();
+      if (roleError || !role)
+        throw new Error(`[e2e:legal-admin] scratch role: ${roleError?.message}`);
+      roles.add(role.id);
+      // The joined resource's name, read by shape (the client types the inner join loosely).
+      const resourceName = (row: { resources: unknown }): string => {
+        const joined = row.resources;
+        return joined !== null &&
+          typeof joined === "object" &&
+          "name" in joined &&
+          typeof joined.name === "string"
+          ? joined.name
+          : "";
+      };
+      const rows = (perms ?? []).filter((p) => names.includes(`${resourceName(p)}:${p.action}`));
+      expect(rows.length, `LGA-22 expected ${names.join(" + ")}`).toBe(names.length);
+      fail(
+        (
+          await supabase
+            .from("role_permissions")
+            .insert(rows.map((p) => ({ role_id: role.id, permission_id: p.id })))
+        ).error,
+        "role permissions grant",
+      );
+      return role.id;
+    };
+    const editorRole = await makeRole("bl-edit", ["admin_panel:access", "legal:edit"]);
+    const viewerRole = await makeRole("bl-view", ["admin_panel:access", "legal:view"]);
+    const editor = await leaseUser();
+    const viewer = await leaseUser();
+    for (const [user, roleId] of [
+      [editor, editorRole],
+      [viewer, viewerRole],
+    ] as const) {
+      fail(
+        (
+          await supabase
+            .from("user_roles")
+            .insert({ user_id: user.id, role_id: roleId, scope_type: "global" })
+        ).error,
+        "scratch role grant",
+      );
+    }
+    const asEditor = bearerClient(
+      (await passwordGrant(editor.email, editor.password)).access_token,
+    );
+    const read = await asEditor.rpc("base_languages");
+    expect(read.error).toBeNull();
+    const rows = read.data as Array<{ code: string; name_en: string; name_native: string }>;
+    expect(Array.isArray(rows)).toBe(true);
+    const codes = rows.map((row) => row.code);
+    expect(codes).toContain(on);
+    expect(codes).not.toContain(off);
+    for (const base of ["en", "am", PSEUDO_LANG]) expect(codes).not.toContain(base);
+    expect(rows.find((row) => row.code === on)).toEqual({
+      code: on,
+      name_en: `E2E Fence ${on}`,
+      name_native: "E2E",
+    });
+
+    const asViewer = bearerClient(
+      (await passwordGrant(viewer.email, viewer.password)).access_token,
+    );
+    const refused = await asViewer.rpc("base_languages");
+    expect(refused.error?.code, "a reader's refusal is door_refuse's RAISE").toBe("P0D01");
+    expect(refused.error?.message, "the code, never a sentence").toBe("permissionDenied");
   });
 });

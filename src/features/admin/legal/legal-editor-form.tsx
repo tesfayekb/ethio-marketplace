@@ -13,8 +13,6 @@ import {
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { useAdminShell } from "@/features/admin/admin-context";
-import { useLanguages } from "@/features/admin/translations/use-translations";
-import { PSEUDO_LANG } from "@/features/admin/translations/pseudo";
 import { useCountries } from "@/features/admin/users/use-admin-users";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { useI18n, type MessageKey } from "@/i18n";
@@ -29,7 +27,7 @@ import {
   type LegalVersionDetail,
 } from "./legal-service";
 import { LegalPublishDialog } from "./legal-publish-dialog";
-import { useLegalWrites } from "./use-legal";
+import { useBaseLanguages, useLegalWrites } from "./use-legal";
 
 export function LegalEditorForm({
   kind,
@@ -49,11 +47,10 @@ export function LegalEditorForm({
   const { t } = useI18n();
   const { permissions } = useAdminShell();
   const countries = useCountries();
-  const languages = useLanguages();
-  const extraLanguages =
-    languages.data?.filter(
-      (l) => l.enabledAdmin && l.code !== "en" && l.code !== "am" && l.code !== PSEUDO_LANG,
-    ) ?? [];
+  // F1-1 (INC-850): the door answers the extra languages already filtered — the base pair and the
+  // pseudo tag never come back, so the editor keeps no language list of its own.
+  const languages = useBaseLanguages();
+  const extraLanguages = languages.data ?? [];
   const languageCodes = ["en", "am", ...extraLanguages.map((l) => l.code)];
   const navigate = useNavigate();
   const writes = useLegalWrites();
@@ -151,7 +148,7 @@ export function LegalEditorForm({
               >
                 {l === "en" || l === "am"
                   ? t(`admin.legal.lang.${l}`)
-                  : (extraLanguages.find((language) => language.code === l)?.nameEn ?? l)}
+                  : (extraLanguages.find((language) => language.code === l)?.name_en ?? l)}
               </Button>
             ))}
             <span className="grow" />
@@ -176,7 +173,7 @@ export function LegalEditorForm({
                       ? t(l === "en" ? "admin.legal.field.bodyEn" : "admin.legal.field.bodyAm")
                       : t("admin.legal.field.textOptional").replace(
                           "{language}",
-                          extraLanguages.find((language) => language.code === l)?.nameEn ?? l,
+                          extraLanguages.find((language) => language.code === l)?.name_en ?? l,
                         )}
                   </label>
                   <Textarea

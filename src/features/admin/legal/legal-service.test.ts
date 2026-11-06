@@ -9,6 +9,7 @@ import {
   getLegalVersion,
   listLegalDocuments,
   legalErrorKey,
+  listBaseLanguages,
   legalErrorName,
   legalFileName,
   lineDiff,
@@ -153,6 +154,43 @@ it.each(
     error: null,
   });
   expect((await getLegalVersion("e2e-version")).missing_languages).toEqual(missing_languages);
+});
+/** The mocked client takes the test's rpc without a double cast (rule 10, TypeScript). */
+function mockRpc(rpc: unknown) {
+  Object.assign(supabase, { rpc });
+}
+it("LBL-1 listBaseLanguages reads base_languages and keeps the door's rows as they come (F1-1)", async () => {
+  const rpc = vi.fn();
+  mockRpc(rpc);
+  const rows = [
+    { code: "e2e-one", name_en: "Scratch one", name_native: "One" },
+    { code: "e2e-two", name_en: "Scratch two", name_native: "Two" },
+  ];
+  rpc.mockResolvedValue({ data: rows, error: null });
+  expect(await listBaseLanguages()).toEqual(rows);
+  expect(rpc).toHaveBeenCalledWith("base_languages");
+  rpc.mockResolvedValue({ data: [], error: null });
+  expect(await listBaseLanguages()).toEqual([]);
+});
+it.each(
+  [
+    undefined,
+    null,
+    "e2e-x",
+    {},
+    [42],
+    [{ code: "e2e-x" }],
+    [{ code: "e2e-x", name_en: "Scratch" }],
+    [{ code: 1, name_en: "Scratch", name_native: "Scratch native" }],
+  ].map((data) => ({ data })),
+)("LBL-2 listBaseLanguages refuses a malformed answer %j", async ({ data }) => {
+  mockRpc(vi.fn().mockResolvedValue({ data, error: null }));
+  await expect(listBaseLanguages()).rejects.toThrow("base_languages: invalid answer");
+});
+it("LBL-3 listBaseLanguages surfaces the door's refusal, never an empty list", async () => {
+  const error = { code: "P0D01", message: "permissionDenied" };
+  mockRpc(vi.fn().mockResolvedValue({ data: null, error }));
+  await expect(listBaseLanguages()).rejects.toBe(error);
 });
 it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([

@@ -717,4 +717,6 @@ export const amBase: { [K in keyof typeof enBase]: string } = {
   "prim.guide.parts": "እያንዳንዱ ክፍል",
   "prim.guide.how": "እንዴት እንደሚጨመር፣ እንደሚቀየር ወይም እንደሚወገድ",
   "prim.guide.next": "ቀጥሎ ምን ይደረግ",
+  // DEC-333 (F1-1) — the one generic refusal a screen renders for a door code it has no key for (door-codes.ts).
+  "door.refused": "ይህ ጥያቄ ተቀባይነት አላገኘም። እባክዎ እንደገና ይሞክሩ፤ ችግሩ ከቀጠለ ያሳውቁን።",
 };

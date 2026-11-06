@@ -31,7 +31,7 @@ vi.mock("@/lib/supabase-door", () => ({
   // Turn 34c-2 — the language list reads the project through the door (its fetch never answers here).
   projectEnv: () => ({ url: "https://abcdefghijklmnop.supabase.co", key: "publishable" }),
 }));
-vi.mock("@/features/auth/auth-service", () => ({
+vi.mock("@/features/auth/preferred-language", () => ({
   fetchPreferredLanguage: () => new Promise(() => undefined),
   savePreferredLanguage: () => Promise.resolve({ ok: true }),
 }));

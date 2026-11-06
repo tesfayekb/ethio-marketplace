@@ -2,21 +2,21 @@ import type { EmailOtpType, UserIdentity } from "@supabase/supabase-js";
 
 import type { Database } from "@/integrations/supabase/types";
 import { clearSessionClocks } from "@/features/session/session-policy";
+import { doorCode } from "@/lib/door-codes";
 import { errorText } from "@/lib/error-text";
-import type { ReaderError } from "@/lib/reader-failure";
 import { loadOnce } from "@/lib/load-once";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { safeReturnPath } from "@/lib/return-path";
 import {
   currentSession,
   forgetStoredSession,
-  getSupabase,
   neverReachedTheServer,
   projectEnv,
   storedSessionKey,
 } from "@/lib/supabase-door";
 
-import { isEmailNotConfirmed, toErrorKey, type AuthErrorLike } from "./auth-error-key";
+import { authClient, type Client } from "./auth-client";
+import { toErrorKey } from "./auth-error-key";
+import { CLIENT_FAILED, failure } from "./auth-result";
 
 import type {
   AuthResult,
@@ -28,45 +28,6 @@ import type {
 
 /** DEC-261 — supabase-js itself, for the current-password verifier only; fetched once on demand. */
 const supabaseJs = loadOnce(() => import("@supabase/supabase-js"));
-// INC-864 — reader-failure stays off the first paint: it loads only when a read failed.
-const readerFailureModule = loadOnce(() => import("@/lib/reader-failure"));
-async function typedReadError(
-  failure: { class: "auth" | "network"; message: string } | { error: unknown },
-): Promise<ReaderError> {
-  let mod: typeof import("@/lib/reader-failure");
-  try {
-    mod = await readerFailureModule.load();
-  } catch (error) {
-    // INC-911 — the shell's one notice offers Refresh; the caller keeps the device's choice.
-    reportOnDemandFailure("reader-failure", error);
-    throw error;
-  }
-  return new mod.ReaderError("error" in failure ? mod.readerFailure(failure.error) : failure);
-}
-
-type Client = Awaited<ReturnType<typeof getSupabase>>;
-
-/** The answer of an action whose client did not load (INC-915). */
-const CLIENT_FAILED: { ok: false; errorKey: "common.loadFailed" } = {
-  ok: false,
-  // INC-911 — the words every on-demand failure uses: the page needs a refresh (src/lib/on-demand-failure.ts).
-  errorKey: "common.loadFailed",
-};
-
-/**
- * INC-915 (Foundations turn 34, ruling 2) — THE ONE PLACE THIS FILE ASKS THE DOOR FOR THE
- * CLIENT. A failed download is a failed action: logged here, answered as null, and each
- * action returns its own failure answer — never a rejection that leaves a screen busy.
- */
-async function authClient(): Promise<Client | null> {
-  try {
-    return await getSupabase();
-  } catch (error) {
-    console.error("[client-error] the sign-in code did not load:", errorText(error));
-    return null;
-  }
-}
-
 /** Where Supabase sends the user after they click the confirmation link. */
 export function emailRedirectUrl(): string {
   return `${window.location.origin}/auth/callback`;
@@ -86,14 +47,6 @@ export function oauthRedirectUrl(returnPath?: string): string {
   const base = emailRedirectUrl();
   const safe = safeReturnPath(returnPath);
   return safe === "/" ? base : `${base}?return=${encodeURIComponent(safe)}`;
-}
-
-function failure(error: AuthErrorLike): AuthResult {
-  return {
-    ok: false,
-    errorKey: toErrorKey(error),
-    emailNotConfirmed: isEmailNotConfirmed(error.message ?? "", error.code),
-  };
 }
 
 /**
@@ -299,22 +252,9 @@ export async function resendConfirmation(email: string): Promise<AuthResult> {
   return { ok: true };
 }
 
-export async function signOut(): Promise<AuthResult> {
-  const supabase = await authClient();
-  // DEC-268 (Foundations turn 34b-1) — the session ends on this device whatever the answer: a
-  // sign-out that could not reach the server, or whose client did not load, removes the stored
-  // session itself, and answers its failure so the shell reloads to read that.
-  if (supabase === null) {
-    forgetStoredSession();
-    return CLIENT_FAILED;
-  }
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    forgetStoredSession();
-    return failure(error);
-  }
-  return { ok: true };
-}
+// DEC-348 (F1-1, ruling 5) — sign-out is the leaf sign-out.ts (DEC-268's law); the shell's hook
+// imports the leaf, and the service re-exports it for its neighbours and tests.
+export { signOut } from "./sign-out";
 
 /**
  * Ends every OTHER session for this user; this browser stays signed in.
@@ -634,7 +574,8 @@ export async function hasPassword(): Promise<PasswordStateResult> {
 
 /**
  * Removes the CURRENT user's password. The server refuses when no non-email
- * identity remains; that refusal is surfaced as `auth.errorLastMethod`.
+ * identity remains — the door code `lastSignInMethod` (DEC-333, F1-1; the
+ * shell answers it as the error's message) — surfaced as `auth.errorLastMethod`.
  */
 export async function removeOwnPassword(currentPassword: string): Promise<AuthResult> {
   const supabase = await authClient();
@@ -651,7 +592,7 @@ export async function removeOwnPassword(currentPassword: string): Promise<AuthRe
       if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
       return { ok: true };
     }
-    if (/last sign-in method/i.test(error.message ?? ""))
+    if (doorCode(error).code === "lastSignInMethod")
       return { ok: false, errorKey: "auth.errorLastMethod" };
     return failure(error);
   } finally {
@@ -710,72 +651,5 @@ export async function completePasswordReset(newPassword: string): Promise<AuthRe
   // device's session (the recovery may itself be an account takeover recovery).
   const { error: othersError } = await supabase.auth.signOut({ scope: "others" });
   if (othersError) console.warn("[auth] sign-out of other devices failed", othersError.message);
-  return { ok: true };
-}
-
-/**
- * D239 — THE ACCOUNT-SYNC SEAM (amends U4h).
- *
- * The account's `preferred_language` decides at session start when it is
- * published; an account with none receives the device's language. The
- * provider's account rule owns that precedence; these two calls are the only
- * DB seam it uses.
- *
- * Law F4 — never a silent swallow: a failed read is a typed `ReaderError`,
- * and signed out is its own answer, never a failure and never "no language".
- */
-export type PreferredLanguageRead =
-  | { ok: true; code: string | null }
-  | { ok: false; signedOut: true }
-  | { ok: false; signedOut: false; error: ReaderError };
-
-export async function fetchPreferredLanguage(): Promise<PreferredLanguageRead> {
-  // DEC-261 — the session through the door: a signed-out device fetches no client.
-  const read = await currentSession();
-  // INC-914 — a session that could not be read is not "no session".
-  if (read.failed) {
-    return {
-      ok: false,
-      signedOut: false,
-      error: await typedReadError({ class: "auth", message: "the session could not be read" }),
-    };
-  }
-  const userId = read.session?.user?.id;
-  if (!userId) return { ok: false, signedOut: true };
-  const supabase = await authClient();
-  if (supabase === null) {
-    return {
-      ok: false,
-      signedOut: false,
-      error: await typedReadError({ class: "network", message: "the client did not load" }),
-    };
-  }
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("preferred_language")
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) return { ok: false, signedOut: false, error: await typedReadError({ error }) };
-  return { ok: true, code: data?.preferred_language ?? null };
-}
-
-/**
- * Pushes the device ★ up to the account. Own-row only and publication-gated in
- * the database (`user_set_preferred_language`); the client never decides.
- */
-export async function savePreferredLanguage(
-  code: string | null,
-): Promise<{ ok: true } | { ok: false; reason: string }> {
-  // DEC-261 — a signed-out device's star is the ordinary case: no client is fetched for it.
-  const read = await currentSession();
-  // INC-914 — a session that could not be read is not "no session".
-  if (read.failed) return { ok: false, reason: "the session could not be read" };
-  if (!read.session) return { ok: false, reason: "no session" };
-  const supabase = await authClient();
-  if (supabase === null) return { ok: false, reason: "the client did not load" };
-
-  const { error } = await supabase.rpc("user_set_preferred_language", { p_code: code as string });
-  if (error) return { ok: false, reason: error.message };
   return { ok: true };
 }

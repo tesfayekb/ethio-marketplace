@@ -970,6 +970,33 @@ export type Database = {
         }
         Relationships: []
       }
+      door_refusals: {
+        Row: {
+          code: string
+          count: number
+          created_at: string
+          day: string
+          door: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          count?: number
+          created_at?: string
+          day?: string
+          door: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          count?: number
+          created_at?: string
+          day?: string
+          door?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       entity_translations: {
         Row: {
           approved_at: string | null
@@ -5490,6 +5517,7 @@ export type Database = {
         Args: { p_attribute_id: string; p_link_id?: string; p_value?: string }
         Returns: number
       }
+      base_languages: { Args: never; Returns: Json }
       baseline_level_key: { Args: never; Returns: string }
       begin_impersonation: {
         Args: { p_reason: string; p_target: string }
@@ -5618,6 +5646,42 @@ export type Database = {
           n_reach_ended: number
           n_reminded: number
         }[]
+      }
+      door_audit: {
+        Args: {
+          p_action: string
+          p_ctx: Database["public"]["CompositeTypes"]["door_ctx"]
+          p_entity_id: string
+          p_entity_type: string
+          p_new?: Json
+          p_old?: Json
+        }
+        Returns: undefined
+      }
+      door_context: {
+        Args: {
+          p_action?: string
+          p_class: string
+          p_country?: string
+          p_dial?: string
+          p_resource?: string
+          p_scope_mode?: string
+        }
+        Returns: Database["public"]["CompositeTypes"]["door_ctx"]
+        SetofOptions: {
+          from: "*"
+          to: "door_ctx"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      door_refuse: {
+        Args: { p_code: string; p_detail?: string }
+        Returns: undefined
+      }
+      door_refused: {
+        Args: { p_dial: string; p_door: string; p_message: string }
+        Returns: Json
       }
       e2e_migration_ledger: { Args: never; Returns: string[] }
       edit_listing: {
@@ -5820,6 +5884,20 @@ export type Database = {
       has_permission: {
         Args: { p_action: string; p_resource: string; p_user_id: string }
         Returns: boolean
+      }
+      has_permission_scoped: {
+        Args: {
+          p_action: string
+          p_country?: string
+          p_mode?: string
+          p_resource: string
+          p_user_id: string
+        }
+        Returns: {
+          allowed: boolean
+          countries: string[]
+          detail: string
+        }[]
       }
       hook_before_user_created: { Args: { event: Json }; Returns: Json }
       impersonated_get_profile: {
@@ -6205,7 +6283,7 @@ export type Database = {
         Args: { p_listing_id: string; p_photo_id: string }
         Returns: Json
       }
-      remove_own_password: { Args: never; Returns: undefined }
+      remove_own_password: { Args: never; Returns: Json }
       renew_listing: {
         Args: {
           p_certified?: string[]
@@ -6394,7 +6472,7 @@ export type Database = {
         Args: { p_target: string }
         Returns: boolean
       }
-      user_set_preferred_language: { Args: { p_code: string }; Returns: string }
+      user_set_preferred_language: { Args: { p_code: string }; Returns: Json }
       user_set_viewing_location: { Args: { p_location: string }; Returns: Json }
       validate_listing_attributes: {
         Args: {
@@ -6432,7 +6510,13 @@ export type Database = {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      door_ctx: {
+        uid: string | null
+        role: string | null
+        countries: string[] | null
+        dial_remaining: number | null
+        resets_at: string | null
+      }
     }
   }
 }
