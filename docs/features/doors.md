@@ -62,7 +62,9 @@ acceptance | codes | reason`. `manifest.ts` is the grammar; `catalogue.ts` + `id
   first build joined its clauses without their boundaries and the lane's psql refused it). `judge.ts` holds the kinds; a
   legacy body (no `door_context`) is judged by the old caller-gates rule, a shell body by the
   literals its manifest line promises. Allowances in `check-doors-allowlist.txt` (`<kind> <key>
-| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…5 (DOORS-5: the printed query's clauses), named in
+| reason | until`, the kit's grammar). `check-doors.test.ts` DOORS-1…6 (DOORS-5: the printed query's clauses; DOORS-6: the live mode
+  judges the tree census too — INC-1072: a `grant-without-caller` allowance the live mode never
+  judged read as stale and killed the smoke lane's first live run), named in
   `scripts/conformance/wired.test.ts`.
 - `scripts/check-caller-gates.ts` and its allowlist and fixture are retired (DEC-334's frozen
   rule: the new step gates only after it has failed on its planted fixtures in the same run).

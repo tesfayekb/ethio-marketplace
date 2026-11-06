@@ -184,7 +184,11 @@ export function liveFindings(tsv: string, root = ROOT): Finding[] {
   const manifest = parseManifest(
     readFileSync(join(root, "scripts", "doors", "manifest.txt"), "utf8"),
   );
-  return judge(liveRows(tsv), manifest);
+  // INC-1072: the live judgement reads the same tree census as the static one, so both modes
+  // fire the same kinds and one allowlist serves both (a `grant-without-caller` line the live
+  // mode never judged read as stale and killed the smoke lane's first live run).
+  const rows = liveRows(tsv);
+  return judge(rows, manifest, { callers: treeCallers(root, rows) });
 }
 
 function print(label: string, findings: Finding[]): void {

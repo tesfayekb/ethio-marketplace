@@ -4,7 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-import { allow, plantedCases, selfTest, staticFindings } from "./check-doors";
+import { allow, liveFindings, plantedCases, selfTest, staticFindings } from "./check-doors";
 import { FINDING_KINDS, doorContextCall, judge } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
 import { LIVE_QUERY, LIVE_QUERY_FILE, browserCallable, liveRows, staticRows } from "./rows";
@@ -17,7 +17,9 @@ import { LIVE_QUERY, LIVE_QUERY_FILE, browserCallable, liveRows, staticRows } fr
  * a malformed catalogue (DOORS-3); the repository's own tree reconciles —
  * every browser-callable function has its line and every line its door, under
  * the allowlist's census lines only (DOORS-4); the live query is a file the
- * script prints verbatim, its clauses on their own lines (DOORS-5, INC-1070).
+ * script prints verbatim, its clauses on their own lines (DOORS-5, INC-1070);
+ * the live judgement reads the same tree census as the static one, so the one
+ * allowlist serves both modes (DOORS-6, INC-1072).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -79,6 +81,38 @@ describe("check-doors (CF-DOORS)", () => {
     expect(() => liveRows("")).toThrow(/empty/);
     expect(LIVE_QUERY).toContain("has_function_privilege('anon'");
     expect(LIVE_QUERY).toContain("pg_get_functiondef");
+  });
+
+  it("DOORS-6 the live mode judges the tree census too: the tree's own catalogue as a live TSV reconciles under the same allowlist (INC-1072)", () => {
+    // The repository's catalogue, spelt as psql -At -F tab would print it.
+    const { rows } = staticRows(ROOT);
+    const tsv = rows
+      .map((row) =>
+        [
+          row.key,
+          row.volatility,
+          row.definer ? "t" : "f",
+          row.anon ? "t" : "f",
+          row.authenticated ? "t" : "f",
+          row.trigger ? "t" : "f",
+          row.body.replace(/[\t\r\n]+/g, " "),
+        ].join("\t"),
+      )
+      .join("\n");
+    const live = liveFindings(`${tsv}\n`);
+    // Every census allowance is a live finding too — none reads as stale, and nothing else fires.
+    expect(live.filter((finding) => finding.kind === "grant-without-caller").length).toBe(
+      staticFindings(ROOT).filter((finding) => finding.kind === "grant-without-caller").length,
+    );
+    expect(allow(live).map((finding) => `${finding.kind} ${finding.key}`)).toEqual([]);
+    // A browser grant nothing calls fires in live mode as it does in static mode.
+    const stray =
+      "e2e_planted_stray(uuid)\tv\tt\tf\tt\tf\tCREATE OR REPLACE FUNCTION public.e2e_planted_stray(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN PERFORM public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$\n";
+    expect(
+      liveFindings(`${tsv}\n${stray}`)
+        .filter((finding) => finding.key === "e2e_planted_stray(uuid)")
+        .map((finding) => finding.kind),
+    ).toContain("grant-without-caller");
   });
 
   it("DOORS-5 --live-query prints scripts/doors/live-query.sql as it is: whitespace-separated clauses ending in ; (INC-1070)", () => {
