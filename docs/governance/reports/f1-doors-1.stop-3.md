@@ -1,6 +1,6 @@
 STOP — f1-doors-1 ruling 5 §1: the entry closure is clean and 46 pages fall 1.6–1.7 KiB; the four pages that USE the auth service (`/auth`, `/auth_/callback`, `/auth_/reset`, `/settings`) rise 1.1 KiB, `/auth` over its ceiling — the ruling said "no ceiling rises", rule 10 says raise now every page left inside the band: a ruling-against-rule conflict, so a question, not a guess
 DONE: ruling 5 saved (`docs/governance/briefs/f1-doors-ruling-5.md`); §1 built (part J `5f7723042`: `sign-out.ts` — DEC-268's body unchanged — and `auth-result.ts` (`CLIENT_FAILED`, `failure()`), the service re-exports `signOut`, `use-auth.ts` imports the leaf and returns `signOut` only, `routes/auth.tsx` imports `signInWithPassword`, `signUp`, `resendConfirmation` from the service beside its two; ASC-2 and ASC-5 follow the moves; PRL-3 judges the entry closure); §2 (i) read, (ii) built (part A `f46d29151`: the bar at 1 ms, schema text proven byte-identical, `db:proof PASS — applied 415/415, CLI 2.120.0, cold, 49 s`); CI's reds on 5bec35586 read and the two of mine fixed (part K `8a5662d61` INC-1072 below; the i18n usage map `3638600f3`).
-LEFT: the ruling on the four ceilings (below) → the browser check of every touched spec (started after this push; its results go to the report) → THE CHECKS whole → the self-review → the report with its Records → the pull request ready and its CI.
+LEFT: the ruling on the four ceilings (below; the browser check is done — its table below) → THE CHECKS whole → the self-review → the report with its Records → the pull request ready and its CI.
 CI: run 42200467397 on 5bec35586 — FAILURE: `First-paint bundle budget` (expected, stop 2), `i18n used-on map is fresh` (mine: scanned 674 → 676, the two leaf files; regenerated, now 678), `E2E lanes / Lane smoke` (mine: the door guard's live mode — INC-1072 below; the live query ITSELF ran: psql produced the TSV, so INC-1070's fix held), `E2E (Playwright, ethio-staging)` (lanes=failure from the smoke lane; `e2e-last-failure.md`: Passed 2583 · Failed 0 · Flaky 1 — `choice-lists.spec.ts` CL-E4 at 1440 dark on shard 11, not a path this turn touched; **no `rateLimited` / `user_set_preferred_language` line in any lane's client errors** — INC-1071's fix held). Every lane's start `applied 415/415`; the preflight green (staging holds the marks).
 FILES: `git diff --name-only 596345a4c..HEAD` = 78 files: the 72 of stop 2 plus
 docs/governance/briefs/f1-doors-ruling-5.md
@@ -48,8 +48,40 @@ The alternative the ruling might prefer: lower the 46 pages' ceilings by the sav
 
 The smoke lane's first live run (5bec35586) died in `allow()`: `check-doors-allowlist.txt:4 stale allowance: grant-without-caller attr_option_norm_v2(jsonb)`. `liveFindings` called `judge(liveRows(tsv), manifest)` with no `callers`, so `grant-without-caller` never fired in live mode and the kit read every census line as stale — a finding kind the static mode judges and the live mode did not, under one allowlist. Fix (part K): the live judgement reads the same tree census (`treeCallers(root, rows)` on the live rows — the tree is checked out on the lane), so both modes fire the same kinds; DOORS-6 spells the repository's own catalogue as a live TSV and proves it reconciles under the one allowlist, that the census allowances fire in both modes alike, and that a planted uncalled browser grant fires live; proven red on the old `liveFindings`. Class: a guard with two modes must judge the same finding kinds in both, or the one allowlist is stale in one of them. The lane proves it on the next push.
 
+## The browser check (ruling 5 §4, run while this question waits — it does not depend on the answer)
+
+`bun run e2e:local -- e2e/<spec>.spec.ts`, each spec alone, both projects, `E2E_RETRIES=0`, against ethio-staging (the E2E names set; the local build served; `applied` marks present). The ten touched specs and the seven that exercise the auth route, sign-out and settings (`rg` for `/auth`, `/settings`, `signOut` over `e2e/*.spec.ts`):
+
+| spec | result |
+|---|---|
+| door-refusals | 2 failed 10 passed → fixed below → **12 passed** |
+| auth-caller-gates | 8 passed |
+| posting-routes-dials | 14 passed |
+| my-listings-doors | 28 passed |
+| my-listings-page | 2 failed (MLP-6 × 2) 14 passed — local artifact, below |
+| admin-listings | 6 failed (AL-20, AL-23, AL-30 × 2) 70 passed — local artifact, below |
+| legal-certify | 1 skipped 43 passed |
+| legal-admin | 1 failed (LGA-21 mobile) 43 passed — pre-existing class, below |
+| auth-signin-errors | 5 passed |
+| auth-signup | 3 skipped 3 passed |
+| auth-reset | 6 passed |
+| auth-callback | 4 passed |
+| auth-google | 2 passed |
+| auth-signout | 1 skipped 35 passed |
+| settings | 9 passed |
+| smoke-auth-i18n | 2 passed |
+| i18n-sign-in-language | 12 passed |
+
+(logs `/tmp/f1-e2e-<spec>.log`, summary `/tmp/f1-e2e-summary.txt`.)
+
+**DRF-4 (mine, fixed — `586971226`).** `door_refusals` has no person column (one row per door, code and day — DEC-333's design); the spec asserted the row moved by exactly 2, but the other project's worker runs the same test at the same time and moves the same row (Received 4). CI's lanes passed it by timing. Now: moved by at least the two (the row only grows); the exact once-per-refusal count stays on the per-user dial (`password_remove` 1 → 2). Re-run alone: 12 passed.
+
+**MLP-6, AL-20, AL-23, AL-30 — a macOS-only artifact, not a path this turn changed.** Each clears a field with `page.keyboard.press("Control+A")` then types; on macOS Chromium Control+A is line-start, not select-all, so the typed text is prepended (`Corrected listing ftltuhtg` + `E2E admin listing local esyfcytf`; AL-30's `0` becomes `030`, a valid number, so the save goes to the door and the pooled staff caller's step-up answers). CI runs on Linux, where every one passed on 5bec35586. Siblings (K2, reported, untouched): 11 `"Control+A"` presses in `e2e/` (`rg -n '"Control\+A"' e2e`) against 3 `ControlOrMeta+A` (`post-wizard-place`, `post-wizard-bundle2`, `my-listings-ad`). A tracked item for the harness: `ControlOrMeta+A` everywhere, or a `clearField` helper.
+
+**LGA-21 (pre-existing, cross-worker class, not a path this turn changed).** Its afterEach could not delete the worker's scratch language: `legal_version_texts_language_fkey`. The test inserts a text for EVERY `enabled_admin` language into its own version — including the OTHER project's scratch language (`ensureFenceLanguage` enables it), which that worker then cannot delete while this version holds a text in it. Passed in CI by timing (the lanes run the two projects on 2 workers too). A tracked item: exclude the harness's scratch codes from `extra`.
+
 ## Also since stop 2
 
 - The i18n usage map's `scanned` count follows the file count, not only `t(` keys (the job's drift was the two leaf files); regenerated after the four new auth modules (678). Rule 10's "after touching any `t(` key" is the narrower reading — a process note for the report.
 - `src/features/auth/auth-service.ts`'s `auth-client.test.ts` ASC-5 now reads both `auth-service.ts` and `sign-out.ts` (the order of the three ending calls follows the files' order).
-- Test ids added: DOORS-6, PRL-3. None retired.
+- Test ids added: DOORS-6, PRL-3. None retired. DRF-4 amended (above).
