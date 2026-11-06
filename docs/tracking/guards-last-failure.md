@@ -1,75 +1,124 @@
 # Guards & build — last failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42200467397
-- Commit: `5bec35586ec69bfdb0b0aa4838ddddf8cd8da71d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42207489602
+- Commit: `144dd273ae778aec7c5acd631b8dd9bd931d3f41`
 - Attempt: 1
-- Written (UTC): 2026-11-06T10:37:11.479Z
+- Written (UTC): 2026-11-06T11:30:06.280Z
 
 ## Warnings (non-gating steps that ran, INC-492)
 
 No warning step ran in this run.
 
-## First-paint bundle budget (gzipped ceiling) — failure
+## Component tests — failure
 
 ### Evidence lines
 
 ```text
-[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
-NEAR band failed (DEC-296):
+[90mstdout[2m | scripts/conformance/on-demand-failure.test.ts[2m > [22m[2ma piece fetched on demand that fails to download tells the person (INC-911)[2m > [22m[2mODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure)
+     [33m[2m✓[22m[39m ODC-7 one log line for a failure: no console.error starts `[client-error]` and says `failed to load` outside on-demand-failure.ts (logOnDemandFailure) [33m 915[2mms[22m[39m
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mTRR-5 a failed chunk marks only its keys providerUnavailable, writes nothing for them and writes the other chunk
+[90mstdout[2m | src/routes/api/translate.route.test.ts[2m > [22m[2mPOST /api/translate on defineRoute and aiCall (Foundations turn 19)[2m > [22m[2mRFL-2 a flag read-back that fails answers flagged null with flagRead failed, logged — never 0, the writes reported
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[22m[39m[seller-place] read failed Error: [vitest] No "readSellerPlace" export is defined on the "./posting-service" mock. Did you forget to return it from "vi.mock"?
+[90mstderr[2m | src/components/ui/overlay-facade-failure.test.tsx[2m > [22m[2mthe overlay facades when the module fails to arrive (DEC-259, DEC-260)[2m > [22m[2mOVF-16 a failed download keeps the closed dialog; the next click asks again and opens it
+     [33m[2m✓[22m[39m OVF-9 a failed download keeps the closed trigger; the next press asks again and opens the menu [33m 312[2mms[22m[39m
+[90mstderr[2m | src/server/first-screen.test.ts[2m > [22m[2mreadFirstFeedPage (D234 S5)[2m > [22m[2mFSP-5 a refused or failed feed read: no first page (the browser reads as before)
+[90mstdout[2m | scripts/conformance/session-reads.test.ts[2m > [22m[2ma session that could not be read is unknown, never signed out (INC-914)[2m > [22m[2mCF-SESSION-1 every reader of currentSession() reads its `failed`
+[22m[39m[session-reads] currentSession() calls: 19; without failed: 0
+[90mstdout[2m | src/routes/api/listings/identity.test.ts[2m > [22m[2mPOST /api/listings/identity on defineRoute (D1)[2m > [22m[2mAIV-1 an imitation verdict whose audit row failed is not acted on
+     [33m[2m✓[22m[39m CF-SESSION-1 every reader of currentSession() reads its `failed` [33m 1508[2mms[22m[39m
+[90mstderr[2m | scripts/ci/repeat-cap.test.ts[2m > [22m[2mthe repeat lane's cap reader (INC-966)[2m > [22m[2mRCAP-8 an absent or unreadable report file is failed; the command line exits 1 then, 0 when capped
+[22m[39m[feed-links] /api/feed signing failed
+[22m[39m[ssr-error] /api/feed [incident 1d00a671-21a4-4237-943d-814a2976dbb6] ReaderError: feed_page: marker-text-that-must-not-travel
+[22m[39m[ssr-error] /api/example Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}     at Module.normalizeCatastrophicSsrResponse (/home/runner/work/ethio-marketplace/ethio-marketplace/src/server.ts:70:47)
+Error: h3 swallowed SSR error: {"unhandled":true,"message":"HTTPError"}
+[22m[39m[screening] review of a photo change failed { message: [32m'changeGone'[39m }
+ [31m❯[39m scripts/conformance/auth-answers.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 1422[2mms[22m[39m
+[90mstderr[2m | src/features/ad-page/report-ad.test.tsx[2m > [22m[2mRD-5 Report dialog[2m > [22m[2mshows failed and preserves the required form
+ [32m✓[39m src/features/posting/preview/listing-detail-map-failed.test.tsx [2m([22m[2m1 test[22m[2m)[22m[33m 357[2mms[22m[39m
+[22m[39m[save-error] unsave_listing Error: transport
+[22m[39m[save-error] listing_saved Error: transport
+     [33m[2m✓[22m[39m RLZ-2 a failed download renders the fallback and reports once to the shell's notice — never the error boundary [33m 307[2mms[22m[39m
+ [31m❯[39m scripts/conformance/vendor-seams.test.ts [2m([22m[2m5 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 14[2mms[22m[39m
+[90mstderr[2m | src/features/ad-page/report.test.ts[2m > [22m[2mreportListing[2m > [22m[2mRD-4 an error is failed
+[41m[1m FAIL [22m[49m scripts/conformance/auth-answers.test.ts[2m > [22man auth action's answer is read where it is called (INC-915)[2m > [22mAAN-1 no call under src/ discards an auth action's answer
+[41m[1m FAIL [22m[49m scripts/conformance/vendor-seams.test.ts[2m > [22mvendor seams conformance[2m > [22mVS-1 no file outside the four seams reaches Supabase directly without an allowlist line
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m446 passed[39m[22m[90m (448)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2779 passed[39m[22m[90m (2781)[39m
+##[error]Error: /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/conformance/auth-answers-allowlist.txt:2 stale allowance: src/features/auth/use-auth.ts:signOut | a deactivated account's sign-out (D189): the user is cleared whatever it answers, the stored session goes with it on this device whatever the server answers (DEC-268: auth-service's signOut removes it itself), and every door refuses the account (F3) | DEC-268
+##[error]AssertionError: expected [ { …(3) } ] to deeply equal []
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-    413.4 / 414 KiB  /admin/listings_/$listingId_/edit
-    275.7 / 276 KiB  /admin/locations
-    340.6 / 341 KiB  /admin/monetisation
-    332.8 / 333 KiB  /admin/places
-    298.3 / 299 KiB  /admin/roles
-    278.7 / 279 KiB  /admin/roles_/$roleId
-    372.3 / 373 KiB  /admin/screening
-    309.2 / 310 KiB  /admin/translations
-    312.7 / 313 KiB  /admin/translations_/$lang
-    298.0 / 299 KiB  /admin/users
-    293.3 / 294 KiB  /admin/users_/$userId
-    228.7 / 229 KiB  /auth
-    215.1 / 216 KiB  /auth_/callback
-    217.0 / 218 KiB  /auth_/reset
-    234.1 / 235 KiB  /c/$slug
-    235.5 / 236 KiB  /dev/primitives
-    255.0 / 256 KiB  /dev/style
-    214.3 / 215 KiB  /dev/tall
-    264.0 / 265 KiB  /l/$slug
-    218.6 / 219 KiB  /legal/$kind
-    225.7 / 226 KiB  /legal/accept
-    219.4 / 220 KiB  /legal/publishing
-    321.4 / 322 KiB  /my-listings
-    328.3 / 329 KiB  /my-listings_/$listingId
-    407.9 / 408 KiB  /my-listings_/$listingId_/edit
-    407.9 / 408 KiB  /post
-    407.8 / 408 KiB  /post_/$listingId
-    218.6 / 219 KiB  /privacy
-    282.2 / 283 KiB  /settings
-    218.6 / 219 KiB  /terms
-Tier flag: card pages only (CF-TIER-3) — ok
+[36m [2m❯[22m scripts/conformance/vendor-seams.test.ts:[2m32:7[22m[39m
+    [90m 30|[39m     [34mexpect[39m(
+    [90m 31|[39m       rows.filter((row) => row.supabase && !seamExempt(row.file) && !a…
+    [90m 32|[39m     )[33m.[39m[34mtoEqual[39m([])[33m;[39m
+    [90m   |[39m       [31m^[39m
+    [90m 33|[39m   })[33m;[39m
+    [90m 34|[39m   it("VS-2 no file names a Lovable package, identifier or host without…
 
-NEAR band failed (DEC-296):
-  /admin/: 215.8 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 216 KiB — DEC-296: set it to ceilingFor(size) = 217
-  /admin/attributes: 341.8 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 342 KiB — DEC-296: set it to ceilingFor(size) = 343
-  /admin/categories: 349.8 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 350 KiB — DEC-296: set it to ceilingFor(size) = 351
-  /admin/listings: 351.0 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 351 KiB — DEC-296: set it to ceilingFor(size) = 352
-  /admin/locations: 275.7 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 276 KiB — DEC-296: set it to ceilingFor(size) = 277
-  /admin/places: 332.8 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 333 KiB — DEC-296: set it to ceilingFor(size) = 334
-  /admin/translations_/$lang: 312.7 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 313 KiB — DEC-296: set it to ceilingFor(size) = 314
-  /my-listings_/$listingId_/edit: 407.9 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 408 KiB — DEC-296: set it to ceilingFor(size) = 409
-  /post: 407.9 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 408 KiB — DEC-296: set it to ceilingFor(size) = 409
-  /post_/$listingId: 407.8 KiB sits within the NEAR band (0.3 KiB) of its ceiling of 408 KiB — DEC-296: set it to ceilingFor(size) = 409
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m446 passed[39m[22m[90m (448)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m2779 passed[39m[22m[90m (2781)[39m
+[2m   Start at [22m 11:05:00
+[2m   Duration [22m 281.05s[2m (transform 10.41s, setup 188.46s, import 70.08s, tests 165.70s, environment 345.42s)[22m
+
+
+##[error]Error: /home/runner/work/ethio-marketplace/ethio-marketplace/scripts/conformance/auth-answers-allowlist.txt:2 stale allowance: src/features/auth/use-auth.ts:signOut | a deactivated account's sign-out (D189): the user is cleared whatever it answers, the stored session goes with it on this device whatever the server answers (DEC-268: auth-service's signOut removes it itself), and every door refuses the account (F3) | DEC-268
+ ❯ fail scripts/conformance/kit.ts:61:15
+ ❯ scripts/conformance/kit.ts:72:27
+ ❯ readAllowlist scripts/conformance/kit.ts:56:6
+ ❯ scripts/conformance/auth-answers.test.ts:82:24
+
+
+
+##[error]AssertionError: expected [ { …(3) } ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   {
++     "file": "src/features/auth/sign-out.ts",
++     "lovable": false,
++     "supabase": true,
++   },
++ ]
+
+ ❯ scripts/conformance/vendor-seams.test.ts:32:7
+
+
+error: script "test:unit" exited with code 1
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/2fe73fea-9356-40e3-81b9-901a45626755' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/fb94f84e-7fce-4add-8d1d-3cd7ad327168' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -84,65 +133,67 @@ Cleaning up orphan processes
 
 ```
 
-## i18n used-on map is fresh (U4i ②) — failure
+## First-paint bundle budget (gzipped ceiling) — failure
 
 ### Evidence lines
 
 ```text
+[warn] `inlineDynamicImports` option is ignored because the `codeSplitting` option is specified.
+Per-page budget failed (D234):
 ##[error]Process completed with exit code 1.
 ```
 
 ### Tail (last 60 lines)
 
 ```text
-with:
-  bun-version: latest
-  no-cache: false
-  token: ***
-##[endgroup]
-Downloading a new version of Bun: https://github.com/oven-sh/bun/releases/download/bun-v1.4.4/bun-linux-x64.zip
-[command]/usr/bin/unzip -o -q /home/runner/work/_temp/d746ef02-c7f6-4a3e-8a74-7f944b068010.zip
-[command]/home/runner/.bun/bin/bun --revision
-1.4.4+38afee6c8
-##[group]Run bun run i18n:usage
-[36;1mbun run i18n:usage[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-$ bun run scripts/i18n-usage-map.ts
-i18n usage map: 1859 keys across 676 files (441 dynamic call sites)
-##[group]Run git diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json
-[36;1mgit diff --exit-code -- docs/generated/i18n-usage.json public/i18n-usage.json[0m
-shell: /usr/bin/bash -e {0}
-##[endgroup]
-diff --git a/docs/generated/i18n-usage.json b/docs/generated/i18n-usage.json
-index 9f00e62..96e190c 100644
---- a/docs/generated/i18n-usage.json
-+++ b/docs/generated/i18n-usage.json
-@@ -1,6 +1,6 @@
- {
-   "generator": "scripts/i18n-usage-map.ts",
--  "scanned": 674,
-+  "scanned": 676,
-   "dynamicCallSites": 441,
-   "keys": {
-     "account.deactivatedBanner": [
-diff --git a/public/i18n-usage.json b/public/i18n-usage.json
-index 9f00e62..96e190c 100644
---- a/public/i18n-usage.json
-+++ b/public/i18n-usage.json
-@@ -1,6 +1,6 @@
- {
-   "generator": "scripts/i18n-usage-map.ts",
--  "scanned": 674,
-+  "scanned": 676,
-   "dynamicCallSites": 441,
-   "keys": {
-     "account.deactivatedBanner": [
+    294.1 / 298 KiB  /admin/impersonation_/$sessionId
+    285.0 / 288 KiB  /admin/legal
+    282.3 / 285 KiB  /admin/legal_/$versionId
+    284.0 / 292 KiB  /admin/legal_/edit
+    348.9 / 351 KiB  /admin/listings
+    350.3 / 353 KiB  /admin/listings_/$listingId
+    411.3 / 414 KiB  /admin/listings_/$listingId_/edit
+    273.6 / 276 KiB  /admin/locations
+    338.5 / 341 KiB  /admin/monetisation
+    330.7 / 333 KiB  /admin/places
+    296.2 / 299 KiB  /admin/roles
+    276.6 / 279 KiB  /admin/roles_/$roleId
+    370.2 / 373 KiB  /admin/screening
+    307.1 / 310 KiB  /admin/translations
+    310.6 / 313 KiB  /admin/translations_/$lang
+    295.9 / 299 KiB  /admin/users
+    291.2 / 294 KiB  /admin/users_/$userId
+    229.4 / 229 KiB  /auth
+    215.8 / 216 KiB  /auth_/callback
+    217.8 / 218 KiB  /auth_/reset
+    232.1 / 235 KiB  /c/$slug
+    233.5 / 236 KiB  /dev/primitives
+    253.0 / 256 KiB  /dev/style
+    212.2 / 215 KiB  /dev/tall
+    261.9 / 265 KiB  /l/$slug
+    216.6 / 219 KiB  /legal/$kind
+    223.6 / 226 KiB  /legal/accept
+    217.3 / 220 KiB  /legal/publishing
+    319.4 / 322 KiB  /my-listings
+    326.2 / 329 KiB  /my-listings_/$listingId
+    405.9 / 408 KiB  /my-listings_/$listingId_/edit
+    405.8 / 408 KiB  /post
+    405.8 / 408 KiB  /post_/$listingId
+    216.6 / 219 KiB  /privacy
+    282.9 / 283 KiB  /settings
+    216.6 / 219 KiB  /terms
+Tier flag: card pages only (CF-TIER-3) — ok
+
+Per-page budget failed (D234):
+  /auth: 229.4 KiB, over its ceiling of 229 KiB
+
+Code-split the addition behind a dynamic import, or change the page's line in
+scripts/route-budgets.mjs in a commit that states why (a saving lowers it).
 ##[error]Process completed with exit code 1.
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/ff9b2670-a08b-4489-bfbb-0193954f113e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/5971d810-57fd-4c8f-8dfe-dca02adf1f1a' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
@@ -174,6 +225,9 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 ### Tail (last 60 lines)
 
 ```text
+[36;1mfi[0m
+[36;1mif [ "$reporter" -ne 0 ]; then[0m
+[36;1m  echo "::error::E2E failure reporter crashed (exit ${reporter}) — see docs/tracking/e2e-last-failure.md"[0m
 [36;1m  exit "$reporter"[0m
 [36;1mfi[0m
 [36;1mexit 0[0m
@@ -184,7 +238,7 @@ env:
   E2E_CONTEXT_DIR: shard-contexts
   E2E_EXPECTED_SOURCES: smoke,email,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,repeat?
   E2E_GREEN: 0
-  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42200467397
+  E2E_RUN_URL: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42207489602
   E2E_HEAD_COMMIT_MESSAGE: 
 ##[endgroup]
   layout OK — per-artifact subdir: 1 context file(s), report rendered.
@@ -201,10 +255,7 @@ Self-test OK: DEC-087 timing census (real local capture: wall time, per-file sum
 context download: 0 context files found.
   glob: shard-contexts/**/error-context.md
   searched: shard-contexts (unreadable or absent)
-Wrote docs/tracking/e2e-last-failure.md (18/19 source(s) with usable results, 0 context file(s) found).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
-Flake ledger: appended 0 line(s) to docs/tracking/flake-ledger.md; 1 already there for this run (INC-495).
-Flake ledger: appended 1 line(s) to docs/tracking/flake-ledger.md; 0 already there for this run (INC-495).
+Wrote docs/tracking/e2e-last-failure.md (9/19 source(s) with usable results, 0 context file(s) found).
 publish-evidence: published docs/tracking/e2e-last-failure.md docs/tracking/flake-ledger.md to ci-evidence.
 ##[group]Run echo "lanes=failure"
 [36;1mecho "lanes=failure"[0m
@@ -221,7 +272,7 @@ lanes=failure
 Post job cleanup.
 [command]/usr/bin/git version
 git version 2.56.0
-Temporarily overriding HOME='/home/runner/work/_temp/c97af4d2-3f01-4c7f-9466-d7296a0bb94e' before making global git config changes
+Temporarily overriding HOME='/home/runner/work/_temp/b1ba8c56-b305-4b79-a3b7-022ce53de80e' before making global git config changes
 Adding repository directory to the temporary git global config as a safe directory
 [command]/usr/bin/git config --global --add safe.directory /home/runner/work/ethio-marketplace/ethio-marketplace
 [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
