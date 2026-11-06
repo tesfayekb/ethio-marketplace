@@ -36,7 +36,9 @@ detail}]}` — supabase-js surfaces it as `error.message` = the code. A RAISE th
 - `door_audit(ctx, action, entity_type, entity_id, old, new)` — one `log_audit` row with
   `jsonb_strip_nulls({old, new})`.
 - `base_languages()` — the enabled admin languages beyond the base pair and the hidden tag, for
-  the legal editor (INC-850), behind `door_context('staff-reader', 'legal', 'edit', …, 'global')`.
+  the legal editor (INC-850), behind `door_context('staff-reader', 'legal', 'edit', …, 'global')`;
+  read by `listBaseLanguages` (`src/features/admin/legal/legal-service.ts`, a shape guard, LBL-1…3)
+  through `useBaseLanguages`; the editor keeps no language filter of its own.
 - The account doors on the shell whole: `has_password`, `get_my_permissions`,
   `get_my_translator_languages` (readers), `remove_own_password` and
   `user_set_preferred_language` (now `RETURNS jsonb`), `change_home_country` (its envelope
@@ -76,5 +78,5 @@ for `lastSignInMethod`) and shows the generic line otherwise.
 count-on-refusal through the shell, scope `match`, scope `global` / `filter`);
 `e2e/auth-caller-gates.spec.ts` CG-2 (six retired doors), CG-4 (the code);
 `e2e/legal-admin.spec.ts` LGA-22 (`base_languages`); the twelve tests of the retired doors
-moved onto `edit_my_listing` (PR-27; ML-2, ML-4, ML-5, ML-6, ML-9; MLP-1, MLP-5; AL-5, AL-29;
+moved onto `edit_my_listing` (PR-27; ML-2, ML-4, ML-5, ML-6, ML-7; MLP-1, MLP-5; AL-5, AL-29;
 LG-28) or withdrawn with their doors (PR-32, PR-46).

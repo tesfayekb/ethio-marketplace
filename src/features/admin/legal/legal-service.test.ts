@@ -9,6 +9,7 @@ import {
   getLegalVersion,
   listLegalDocuments,
   legalErrorKey,
+  listBaseLanguages,
   legalErrorName,
   legalFileName,
   lineDiff,
@@ -153,6 +154,39 @@ it.each(
     error: null,
   });
   expect((await getLegalVersion("e2e-version")).missing_languages).toEqual(missing_languages);
+});
+it("LBL-1 listBaseLanguages reads base_languages and keeps the door's rows as they come (F1-1)", async () => {
+  const rpc = vi.fn();
+  (supabase as unknown as { rpc: unknown }).rpc = rpc;
+  const rows = [
+    { code: "e2e-one", name_en: "Scratch one", name_native: "One" },
+    { code: "e2e-two", name_en: "Scratch two", name_native: "Two" },
+  ];
+  rpc.mockResolvedValue({ data: rows, error: null });
+  expect(await listBaseLanguages()).toEqual(rows);
+  expect(rpc).toHaveBeenCalledWith("base_languages");
+  rpc.mockResolvedValue({ data: [], error: null });
+  expect(await listBaseLanguages()).toEqual([]);
+});
+it.each(
+  [
+    undefined,
+    null,
+    "om",
+    {},
+    [42],
+    [{ code: "om" }],
+    [{ code: "om", name_en: "Oromo" }],
+    [{ code: 1, name_en: "Oromo", name_native: "Oromoo" }],
+  ].map((data) => ({ data })),
+)("LBL-2 listBaseLanguages refuses a malformed answer %j", async ({ data }) => {
+  (supabase as unknown as { rpc: unknown }).rpc = vi.fn().mockResolvedValue({ data, error: null });
+  await expect(listBaseLanguages()).rejects.toThrow("base_languages: invalid answer");
+});
+it("LBL-3 listBaseLanguages surfaces the door's refusal, never an empty list", async () => {
+  const error = { code: "P0D01", message: "permissionDenied" };
+  (supabase as unknown as { rpc: unknown }).rpc = vi.fn().mockResolvedValue({ data: null, error });
+  await expect(listBaseLanguages()).rejects.toBe(error);
 });
 it("lists the 24 facts in order, without providers", () => {
   expect(FACT_KEYS).toEqual([
