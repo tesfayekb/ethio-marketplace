@@ -257,12 +257,15 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     if (notice.error) throw new Error(`[e2e:mlp] notice failed: ${notice.error.message}`);
     const reserved = await a.rpc("set_listing_reserved", { p_listing_id: X, p_reserved: true });
     expect(reserved.error, "[e2e:mlp] reserving X").toBeNull();
-    const priced = await a.rpc("set_listing_price", {
+    // F1-1 (DEC-335): set_listing_price is retired; the price changes through edit_my_listing.
+    const priced = await a.rpc("edit_my_listing", {
       p_listing_id: X,
-      p_price_mode: "fixed",
-      p_price_amount: 90,
-      p_price_currency: "ETB",
-      p_price_period: "once",
+      p_changes: {
+        price_mode: "fixed",
+        price_amount: 90,
+        price_currency: "ETB",
+        price_period: "once",
+      },
     });
     expect(priced.error, "[e2e:mlp] pricing X").toBeNull();
     const truth = await listingTruth(X);
@@ -518,12 +521,15 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
     const onSecond = { ...sellerA, leafId: second.leaf.id as string };
     const a = await asPerson(sellerA);
     const dropPrice = async (id: string) => {
-      const priced = await a.rpc("set_listing_price", {
+      // F1-1 (DEC-335): set_listing_price is retired; the price changes through edit_my_listing.
+      const priced = await a.rpc("edit_my_listing", {
         p_listing_id: id,
-        p_price_mode: "fixed",
-        p_price_amount: 90,
-        p_price_currency: "ETB",
-        p_price_period: "once",
+        p_changes: {
+          price_mode: "fixed",
+          price_amount: 90,
+          price_currency: "ETB",
+          price_period: "once",
+        },
       });
       expect(priced.error, `[e2e:mlp] pricing ${id}`).toBeNull();
     };

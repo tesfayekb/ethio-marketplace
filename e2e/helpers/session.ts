@@ -33,6 +33,7 @@
  *           user: {...} }.
  */
 import type { Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 import { authStorageKey, keyBeside, SUPABASE_PREFIX } from "../../src/lib/session-key";
 
@@ -212,6 +213,21 @@ export async function anonRpc(
     body: JSON.stringify(args),
   });
   return { status: response.status, body: (await response.json()) as unknown };
+}
+
+/**
+ * F1-1 (DEC-333) — THE ONE BEARER CLIENT: a supabase-js client that speaks with
+ * one account's own access token and no browser session, for a spec that
+ * drives a door directly and reads its refusal the way the app's client does
+ * (`error.message` carries the door's code). The spec-local copies in
+ * e2e/auth-caller-gates.spec.ts and e2e/admin-users.spec.ts fold onto this one
+ * as their files are touched (K1).
+ */
+export function bearerClient(token: string) {
+  return createClient(supabaseUrl(), publishableKey(), {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 }
 
 /**

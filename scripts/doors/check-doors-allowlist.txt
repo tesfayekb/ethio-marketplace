@@ -11,5 +11,3 @@ grant-without-caller get_category_attributes(uuid,boolean) | census F1-1: a publ
 grant-without-caller listing_reveal_count(uuid) | census F1-1: a counter reader no code, policy or body names; family F1-5b (the buyer's doors and counters) revokes or names its caller | 2026-12-31
 grant-without-caller package_price_for(uuid,text) | census F1-1: a monetisation reader no code names (scripts/conformance/package-price.ts reads its SQL, not the door); family F1-6 revokes or names its caller | 2026-12-31
 grant-without-caller user_has_translation_permission(uuid) | census F1-1: a translations reader no code, policy or body names; family F1-3 (translations) revokes or names its caller | 2026-12-31
-# F1-1 stop 1 only: the legal editor's call of base_languages lands after the supervisor's types patch (ruling 1 §11); this line goes in the same pull request, on continue.
-grant-without-caller base_languages() | F1-1: its caller (the legal editor, src/features/admin/legal) lands after the regenerated types at the migration stop; removed on continue | 2026-11-30

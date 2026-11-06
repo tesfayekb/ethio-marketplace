@@ -23,8 +23,9 @@ import { doorRefusal } from "./helpers/door-answer";
  *
  * Proves, as signed-in people call them, the doors the My listings page needs:
  * close and reopen with the days kept (D174), Reserved on a live ad (D173), sold
- * with its contact closed and the seller's choice kept, relist of a sold ad only
- * (D175), the price at once with the "Price reduced" record (D173, D174, D177),
+ * with its contact closed and the seller's choice kept (D175; relist left with
+ * its retired door, DEC-335), the price at once with the "Price reduced" record
+ * through edit_my_listing's price keys (D173, D174, D177),
  * an edit's review giving back the ad's time and an expired ad renewed before it
  * is edited, renewal live at once under the admin's setting (D174, D175, D176),
  * the expiry sweep through the state machine for full and reduced reach
@@ -350,31 +351,25 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     person.rpc("transition_listing", { p_listing_id: id, p_new_status: to });
   const reserve = (person: Person, id: string, on: boolean) =>
     person.rpc("set_listing_reserved", { p_listing_id: id, p_reserved: on });
+  // F1-1 (DEC-335, INC-836 part 2): set_listing_price and edit_listing are retired; the
+  // seller's price and words change through edit_my_listing's keys (its answer is
+  // `{ ok, status, review }`; the price marks are read from the row).
   const price = (person: Person, id: string, amount: number) =>
-    person.rpc("set_listing_price", {
+    person.rpc("edit_my_listing", {
       p_listing_id: id,
-      p_price_mode: "fixed",
-      p_price_amount: amount,
-      p_price_currency: "ETB",
-      p_price_period: "once",
+      p_changes: {
+        price_mode: "fixed",
+        price_amount: amount,
+        price_currency: "ETB",
+        price_period: "once",
+      },
     });
 
-  /** The seller's edit with every field as the ad stands but a new letters-only title. */
-  const editTitle = (person: Person, seller: Seller, id: string) =>
-    person.rpc("edit_listing", {
+  /** The seller's edit of the title alone: new letters-only words, so the ad goes to review. */
+  const editTitle = (person: Person, id: string) =>
+    person.rpc("edit_my_listing", {
       p_listing_id: id,
-      p_category_id: seller.leafId,
-      p_title: `E2E edited listing ${token()}`,
-      p_description: "e2e scratch listing for the seller's doors",
-      p_video_url: null,
-      p_attributes: {},
-      p_price_mode: "fixed",
-      p_price_amount: 100,
-      p_price_currency: "ETB",
-      p_price_period: "once",
-      p_poster_expires_at: null,
-      p_coverage: [seller.cityId],
-      p_contact_pref: { messages: true },
+      p_changes: { title: `E2E edited listing ${token()}` },
     });
 
   async function policyTruth() {
@@ -469,7 +464,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     expect((await close(a, y.id)).error).toBe("illegal transition: screening -> closed");
     expect((await price(a, y.id, 90)).error).toBe(
-      "the price of this listing is changed through its edit",
+      "an ad in review is edited once its review is done",
     );
     expect((await reserve(a, y.id, true)).error).toBe("only a live listing is reserved");
 
@@ -538,7 +533,9 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect(await snapshot(review.id)).toEqual(before);
   });
 
-  test("ML-4 Sold from live and from closed: the contact closes to others, the seller's choice is kept; relist takes a sold ad only (D175)", async () => {
+  // F1-1 (DEC-335): relist_listing is retired; its three calls leave ML-4 (relist returns as a
+  // specified seller door with its own spec).
+  test("ML-4 Sold from live and from closed: the contact closes to others, the seller's choice is kept (D175)", async () => {
     const seller = await scratchSeller();
     const me = await asPerson(seller);
     const contact = { messages: true, phone: { show: true } };
@@ -578,20 +575,6 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
       resume_status: null,
     });
     expect(qRow["sold_at"]).not.toBeNull();
-
-    const live = await seed(seller);
-    expect((await me.rpc("relist_listing", { p_listing_id: live.id })).error).toBe(
-      "illegal transition: active -> screening",
-    );
-    const expired = await seed(seller, "expired", { expiresAt: -10, publishedAt: -40 });
-    expect((await me.rpc("relist_listing", { p_listing_id: expired.id })).error).toBe(
-      "illegal transition: expired -> screening",
-    );
-
-    const relisted = await me.rpc("relist_listing", { p_listing_id: p.id });
-    expect(relisted.error).toBeNull();
-    expect(relisted.data).toEqual({ ok: true, status: "screening" });
-    expect(await listingTruth(p.id)).toMatchObject({ status: "screening", sold_at: null });
   });
 
   test("ML-5 The price applies at once; Price reduced only for a real drop on a price that stood (D173, D174, D177)", async () => {
@@ -601,11 +584,10 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const a = await seed(seller, "active", { priceAmount: 1000 });
     const first = await price(me, a.id, 900);
     expect(first.error).toBeNull();
-    const firstData = first.data as Row;
-    expect(firstData).toMatchObject({ ok: true, status: "active", price_was: 1000 });
-    expectAboutNow(firstData["price_drop_at"], "ML-5 price_drop_at");
+    expect(first.data).toEqual({ ok: true, status: "active", review: false });
     const aRow = await listingTruth(a.id);
     expect(aRow).toMatchObject({ price_amount: 900, price_was: 1000, status: "active" });
+    expectAboutNow(aRow["price_drop_at"], "ML-5 price_drop_at");
     expect(ms(aRow["expires_at"])).toBe(ms(a["expires_at"]));
     const edits = await revisionRows(a.id, "edit");
     expect(edits).toHaveLength(1);
@@ -627,12 +609,14 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     });
     const young = await price(me, b.id, 400);
     expect(young.error).toBeNull();
-    expect(young.data).toMatchObject({ ok: true, price_was: null });
+    expect(young.data).toMatchObject({ ok: true });
+    expect(await listingTruth(b.id)).toMatchObject({ price_amount: 400, price_was: null });
 
     const c = await seed(seller, "active", { priceAmount: 1000 });
     const small = await price(me, c.id, 980);
     expect(small.error).toBeNull();
-    expect(small.data).toMatchObject({ ok: true, price_was: null });
+    expect(small.data).toMatchObject({ ok: true });
+    expect(await listingTruth(c.id)).toMatchObject({ price_amount: 980, price_was: null });
 
     const bBefore = await snapshot(b.id);
     const zero = await price(me, b.id, 0);
@@ -648,7 +632,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     expect((await close(me, c.id)).error).toBeNull();
     const closedPrice = await price(me, c.id, 900);
     expect(closedPrice.error).toBeNull();
-    expect(closedPrice.data).toMatchObject({ ok: true, status: "closed" });
+    expect(closedPrice.data).toEqual({ ok: true, status: "closed", review: false });
     expect(await listingTruth(c.id)).toMatchObject({
       status: "closed",
       price_amount: 900,
@@ -662,9 +646,9 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
     const service = adminClient();
 
     const e = await seed(seller);
-    const edited = await editTitle(me, seller, e.id);
+    const edited = await editTitle(me, e.id);
     expect(edited.error).toBeNull();
-    expect(edited.data).toEqual({ ok: true, status: "screening" });
+    expect(edited.data).toEqual({ ok: true, status: "screening", review: true });
     expect(await listingTruth(e.id)).toMatchObject({ status: "screening", clock_kept: true });
     const moved = await service.rpc("transition_listing", {
       p_listing_id: e.id,
@@ -679,8 +663,8 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const f = await seed(seller);
     expect((await close(me, f.id)).error).toBeNull();
-    const fEdited = await editTitle(me, seller, f.id);
-    expect(fEdited.data).toEqual({ ok: true, status: "screening" });
+    const fEdited = await editTitle(me, f.id);
+    expect(fEdited.data).toEqual({ ok: true, status: "screening", review: true });
     const fMoved = await service.rpc("transition_listing", {
       p_listing_id: f.id,
       p_new_status: "active",
@@ -692,7 +676,7 @@ test.describe("MY LISTINGS — the seller's doors (bundle 16 turn 1)", () => {
 
     const g = await seed(seller, "expired", { expiresAt: -10, publishedAt: -40 });
     const gBefore = await snapshot(g.id);
-    expect((await editTitle(me, seller, g.id)).error).toBe(
+    expect((await editTitle(me, g.id)).error).toBe(
       "an expired listing is renewed before it is edited",
     );
     expect(await snapshot(g.id)).toEqual(gBefore);

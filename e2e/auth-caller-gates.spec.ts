@@ -1,9 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import { expect, test } from "./fixtures";
 import { en } from "../src/i18n/locales/en";
 import { adPageFixtures } from "./helpers/ad-page";
 import { grantRole } from "./helpers/categories";
-import { passwordGrant } from "./helpers/session";
+import { bearerClient, passwordGrant } from "./helpers/session";
 import { stopPageBeforePurge } from "./helpers/posting";
 import { adminClient, createUser, leaseUser } from "./helpers/users";
 import {
@@ -21,16 +20,6 @@ const freshIds: string[] = [];
 const consumerIds: string[] = [];
 const staffIds: string[] = [];
 const legalDocIds: string[] = [];
-
-function bearerClient(token: string) {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_PUBLISHABLE_KEY"];
-  if (!url || !key) throw new Error("[CG] staging client configuration missing");
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-}
 
 async function fresh() {
   const user = await createUser({ confirmed: true });
@@ -211,7 +200,10 @@ test(
   },
 );
 
-test("CG-2 the three retired doors are closed to a signed-in account", async () => {
+// INC-836 part 1 closed delete_draft, confirm_home_country and promote_to_super_admin; part 2
+// (F1-1, DEC-335) closes edit_listing, relist_listing and set_listing_price the same way: the
+// browser roles' EXECUTE revoked, so the catalogue refuses before any body runs.
+test("CG-2 the six retired doors are closed to a signed-in account", async () => {
   const user = await leaseUser();
   consumerIds.push(user.id);
   const scaffold = await fixtures.scratchSeller();
@@ -219,21 +211,52 @@ test("CG-2 the three retired doors are closed to a signed-in account", async () 
     { id: user.id, leafId: scaffold.leafId, cityId: scaffold.cityId },
     "draft",
   );
+  const before = await adminClient()
+    .from("listings")
+    .select("id, title, price_amount, status")
+    .eq("id", draft.id)
+    .single();
+  if (before.error || !before.data) throw new Error(`[CG] draft read: ${before.error?.message}`);
   const session = await passwordGrant(user.email, user.password);
   const caller = bearerClient(session.access_token);
+  const priceOf = { p_price_mode: "fixed", p_price_currency: "ETB", p_price_period: "once" };
   for (const [fn, args] of [
     ["delete_draft", { p_listing_id: draft.id }],
     ["confirm_home_country", { p_country: "ET" }],
     ["promote_to_super_admin", { p_target_user: user.id }],
+    ["relist_listing", { p_listing_id: draft.id }],
+    ["set_listing_price", { p_listing_id: draft.id, p_price_amount: 90, ...priceOf }],
+    [
+      "edit_listing",
+      {
+        p_listing_id: draft.id,
+        p_category_id: scaffold.leafId,
+        p_title: "CG-2 retired door",
+        p_description: "CG-2 retired door",
+        p_video_url: null,
+        p_attributes: {},
+        p_price_amount: 90,
+        ...priceOf,
+        p_poster_expires_at: null,
+        p_coverage: [scaffold.cityId],
+        p_contact_pref: { messages: true },
+      },
+    ],
   ] as const) {
     const { error } = await caller.rpc(fn, args);
-    expect(error?.code).toBe("42501");
-    expect(error?.message).toContain("permission denied for function");
-    expect(error?.message).not.toMatch(/only a super admin|not your listing|not authenticated/);
+    expect(error?.code, fn).toBe("42501");
+    expect(error?.message, fn).toContain("permission denied for function");
+    expect(error?.message, fn).not.toMatch(
+      /only a super admin|not your listing|not authenticated|illegal transition/,
+    );
   }
-  const still = await adminClient().from("listings").select("id").eq("id", draft.id).single();
+  const still = await adminClient()
+    .from("listings")
+    .select("id, title, price_amount, status")
+    .eq("id", draft.id)
+    .single();
   expect(still.error).toBeNull();
-  expect(still.data?.id).toBe(draft.id);
+  expect(still.data, "nothing was written through a retired door").toEqual(before.data);
 });
 
 test(
@@ -258,7 +281,9 @@ test(
     const first = await passwordGrant(user.email, user.password, { fresh: true });
     await passwordGrant(user.email, user.password, { fresh: true });
     const result = await bearerClient(first.access_token).rpc("remove_own_password");
-    expect(result.error?.message).toMatch(/last sign-in method/i);
+    // F1-1 (DEC-333): the door answers its code through the shell, never a sentence.
+    expect(result.error?.message).toBe("lastSignInMethod");
+    expect(result.error?.code).toBe("P0D01");
     expect((await passwordGrant(user.email, user.password, { fresh: true })).user?.id).toBe(
       user.id,
     );

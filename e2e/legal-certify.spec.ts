@@ -416,12 +416,15 @@ async function twoPhotos(page: Page, s: Scratch, sellerId: string, listingId: st
   return { first: first.id, second: second.id };
 }
 
+// F1-1 (DEC-335): set_listing_price is retired; a price changes through edit_my_listing's keys.
 const priceArgs = (listingId: string, amount: number) => ({
   p_listing_id: listingId,
-  p_price_mode: "fixed",
-  p_price_amount: amount,
-  p_price_currency: "ETB",
-  p_price_period: "once",
+  p_changes: {
+    price_mode: "fixed",
+    price_amount: amount,
+    price_currency: "ETB",
+    price_period: "once",
+  },
 });
 const pinArgs = (listingId: string) => ({
   p_listing_id: listingId,
@@ -1045,7 +1048,7 @@ test.describe("Legal certification", () => {
     const owed = await seedDocument(s, `e2e-acc-${hex(live)}`, null, "Terms to accept");
     const before = await guardedTruth(live);
     const calls: { fn: string; args: Record<string, unknown> }[] = [
-      { fn: "set_listing_price", args: priceArgs(live, 90) },
+      { fn: "edit_my_listing", args: priceArgs(live, 90) },
       { fn: "set_listing_pin", args: pinArgs(live) },
       { fn: "set_listing_reserved", args: { p_listing_id: live, p_reserved: true } },
       {
@@ -1058,21 +1061,11 @@ test.describe("Legal certification", () => {
         args: { p_listing_id: live, p_photo_id: photos.second, p_position: 0 },
       },
       {
-        fn: "edit_listing",
+        // F1-1 (DEC-335): edit_listing is retired; the words change through the same door.
+        fn: "edit_my_listing",
         args: {
           p_listing_id: live,
-          p_category_id: categoryId,
-          p_title: `E2E edited listing ${rand().replace(/[0-9]/g, "q")}`,
-          p_description: "e2e scratch listing for the seller's doors",
-          p_video_url: null,
-          p_attributes: {},
-          p_price_mode: "fixed",
-          p_price_amount: 100,
-          p_price_currency: "ETB",
-          p_price_period: "once",
-          p_poster_expires_at: null,
-          p_coverage: [cityId],
-          p_contact_pref: { messages: true },
+          p_changes: { title: `E2E edited listing ${rand().replace(/[0-9]/g, "q")}` },
         },
       },
     ];
@@ -1083,22 +1076,7 @@ test.describe("Legal certification", () => {
       );
       expect(await guardedTruth(live), call.fn).toEqual(before);
     }
-    const sold = await draftOf(page, s, categoryId, cityId);
-    const soldPublish = await me.rpc("publish_listing", { p_listing_id: sold });
-    doorAnswer(soldPublish, "publish_listing");
-    await makeState(sold, "active");
-    await updateListingRow(
-      sold,
-      { status: "sold", sold_at: new Date().toISOString() },
-      { tag: "certify" },
-    );
-    await seedDocument(s, `e2e-acc-${hex(sold)}`, null, "Terms to accept");
-    const soldBefore = await guardedTruth(sold);
-    const relist = await me.rpc("relist_listing", { p_listing_id: sold });
-    expect(relist.error, JSON.stringify(relist)).toContain("acceptanceRequired");
-    expect(await guardedTruth(sold)).toEqual(soldBefore);
-    expect(await statusOf(sold)).toBe("sold");
-
+    // F1-1 (DEC-335): relist_listing is retired; the sold ad's relist case leaves with it.
     const closed = await draftOf(page, s, categoryId, cityId);
     const closedPublish = await me.rpc("publish_listing", { p_listing_id: closed });
     doorAnswer(closedPublish, "publish_listing");
@@ -1124,7 +1102,7 @@ test.describe("Legal certification", () => {
       p_adult: true,
     });
     expect(accepted.error, JSON.stringify(accepted)).toBeNull();
-    const changed = await me.rpc("set_listing_price", priceArgs(live, 90));
+    const changed = await me.rpc("edit_my_listing", priceArgs(live, 90));
     expect(changed.error, JSON.stringify(changed)).toBeNull();
     expect((await guardedTruth(live)).listing.price_amount).toBe(90);
   });
