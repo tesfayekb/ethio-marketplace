@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { codeOf, walkFiles } from "../conformance/kit";
+import { sqlCodeOf } from "../conformance/perm-vocabulary";
 import { callableBy, readCatalogue, type UnseenGrant } from "./catalogue";
 
 /**
@@ -97,9 +98,27 @@ export function liveRows(tsv: string): DoorRow[] {
 }
 
 /**
+ * A function body the migrations hand over in pieces — `INSERT INTO
+ * public.migration_text_parts (fn, seq, body) VALUES ('<fn>', n, $tag$…$tag$)`,
+ * assembled and EXECUTEd by the last part (bundle 19 turn 9c) — reaches the
+ * live catalogue whole but the static one as a single chunk; the chunks are
+ * read as bodies of their `fn` so both censuses see the same calls (INC-1072).
+ */
+const CHUNK_INSERT =
+  /\bINSERT\s+INTO\s+public\.migration_text_parts\s*\(\s*fn\s*,\s*seq\s*,\s*body\s*\)\s*VALUES\s*\(\s*'([a-z_][a-z0-9_]*)'\s*,\s*\d+\s*,\s*(\$[A-Za-z0-9_]*\$)([\s\S]*?)\2/g;
+
+export function chunkBodiesOf(sql: string): Array<{ name: string; body: string }> {
+  return [...sql.matchAll(CHUNK_INSERT)].map((match) => ({
+    name: match[1] ?? "",
+    body: sqlCodeOf(match[3] ?? ""),
+  }));
+}
+
+/**
  * The tree's evidence that something calls a function by name: a string
  * literal in src/ or e2e/ code (comments stripped; the generated types aside),
- * a policy or CHECK naming it, or another function of public calling it.
+ * a policy or CHECK naming it, or another function of public calling it (its
+ * catalogue body, or a chunk of a body the migrations assemble at apply).
  */
 export function treeCallers(root: string, rows: DoorRow[]): (name: string) => boolean {
   const code = walkFiles([join(root, "src"), join(root, "e2e")], { ext: ["ts", "tsx"] })
@@ -113,11 +132,12 @@ export function treeCallers(root: string, rows: DoorRow[]): (name: string) => bo
     ...[...sql.matchAll(/\bCREATE\s+POLICY[\s\S]*?;/gi)].map((match) => match[0]),
     ...[...sql.matchAll(/\bCHECK\s*\([^;]*/gi)].map((match) => match[0]),
   ].join("\n");
+  const bodies = [...rows, ...chunkBodiesOf(sql)];
   return (name: string) => {
     const quoted = new RegExp(`["']${name}["']`);
     if (quoted.test(code)) return true;
     const called = new RegExp(`\\b${name}\\s*\\(`);
     if (called.test(policies)) return true;
-    return rows.some((row) => row.name !== name && called.test(row.body));
+    return bodies.some((body) => body.name !== name && called.test(body.body));
   };
 }

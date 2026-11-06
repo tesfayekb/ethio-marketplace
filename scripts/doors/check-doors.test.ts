@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -7,7 +8,15 @@ import { describe, expect, it } from "vitest";
 import { allow, liveFindings, plantedCases, selfTest, staticFindings } from "./check-doors";
 import { FINDING_KINDS, doorContextCall, judge } from "./judge";
 import { DOOR_CLASSES, lineRuleErrors, parseManifest, scopeModeOf } from "./manifest";
-import { LIVE_QUERY, LIVE_QUERY_FILE, browserCallable, liveRows, staticRows } from "./rows";
+import {
+  LIVE_QUERY,
+  LIVE_QUERY_FILE,
+  browserCallable,
+  chunkBodiesOf,
+  liveRows,
+  staticRows,
+  treeCallers,
+} from "./rows";
 
 /**
  * CF-DOORS (DEC-333 / DEC-334) — the door guard proves itself, then the tree:
@@ -19,7 +28,8 @@ import { LIVE_QUERY, LIVE_QUERY_FILE, browserCallable, liveRows, staticRows } fr
  * the allowlist's census lines only (DOORS-4); the live query is a file the
  * script prints verbatim, its clauses on their own lines (DOORS-5, INC-1070);
  * the live judgement reads the same tree census as the static one, so the one
- * allowlist serves both modes (DOORS-6, INC-1072).
+ * allowlist serves both modes (DOORS-6, INC-1072), and a body the migrations
+ * hand over in chunks counts as a caller in both (DOORS-7, INC-1072).
  */
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -99,20 +109,61 @@ describe("check-doors (CF-DOORS)", () => {
         ].join("\t"),
       )
       .join("\n");
-    const live = liveFindings(`${tsv}\n`);
-    // Every census allowance is a live finding too — none reads as stale, and nothing else fires.
-    expect(live.filter((finding) => finding.kind === "grant-without-caller").length).toBe(
-      staticFindings(ROOT).filter((finding) => finding.kind === "grant-without-caller").length,
-    );
-    expect(allow(live).map((finding) => `${finding.kind} ${finding.key}`)).toEqual([]);
-    // A browser grant nothing calls fires in live mode as it does in static mode.
+    // One live pass over the tree's rows plus a planted browser grant nothing calls (ruling 7 §3:
+    // the tree census is walked once; on CI's runner two passes took 5841 ms).
     const stray =
       "e2e_planted_stray(uuid)\tv\tt\tf\tt\tf\tCREATE OR REPLACE FUNCTION public.e2e_planted_stray(p_id uuid) RETURNS jsonb LANGUAGE plpgsql AS $function$ BEGIN PERFORM public.door_context('owner', NULL, NULL, 'draft'); RETURN '{}'::jsonb; EXCEPTION WHEN SQLSTATE 'P0D01' THEN RETURN public.door_refused('x', 'draft', SQLERRM); END $function$\n";
+    const live = liveFindings(`${tsv}\n${stray}`);
+    const isStray = (finding: { key: string }) => finding.key === "e2e_planted_stray(uuid)";
+    // The stray fires in live mode as it does in static mode.
+    expect(live.filter(isStray).map((finding) => finding.kind)).toContain("grant-without-caller");
+    // Every census allowance is a live finding too — none reads as stale (the kit throws), and
+    // nothing else fires; DOORS-4 proves the same of the static mode, so the two agree.
     expect(
-      liveFindings(`${tsv}\n${stray}`)
-        .filter((finding) => finding.key === "e2e_planted_stray(uuid)")
-        .map((finding) => finding.kind),
-    ).toContain("grant-without-caller");
+      allow(live.filter((finding) => !isStray(finding))).map(
+        (finding) => `${finding.kind} ${finding.key}`,
+      ),
+    ).toEqual([]);
+  });
+
+  it("DOORS-7 a body the migrations hand over in chunks (migration_text_parts) counts as a caller in the static census, as the live catalogue's assembled body does (INC-1072)", () => {
+    // The tree: attr_import_plan's chunk 2 calls attr_option_norm_v2 — a caller the static
+    // catalogue's single-chunk row never showed (the smoke lane's live mode read census line 4
+    // as stale on dc3a7162e).
+    const { rows } = staticRows(ROOT);
+    const callers = treeCallers(ROOT, rows);
+    expect(callers("attr_option_norm_v2")).toBe(true);
+    expect(
+      rows.some(
+        (row) => row.name !== "attr_option_norm_v2" && /\battr_option_norm_v2\s*\(/.test(row.body),
+      ),
+    ).toBe(false);
+    // Planted: a chunk whose code calls a function; a chunk that only names it in a comment.
+    const root = mkdtempSync(join(tmpdir(), "doors-chunk-"));
+    try {
+      for (const dir of ["src", "e2e", join("supabase", "migrations")])
+        mkdirSync(join(root, dir), { recursive: true });
+      writeFileSync(
+        join(root, "supabase", "migrations", "20990101000000_planted.sql"),
+        [
+          "INSERT INTO public.migration_text_parts (fn, seq, body) VALUES ('e2e_planted_assembled', 2, $chunk$",
+          "    -- e2e_planted_commented(x) is only named here",
+          "    v_out := public.e2e_planted_callee(v_in);",
+          "$chunk$);",
+        ].join("\n"),
+      );
+      const planted = treeCallers(root, []);
+      expect(planted("e2e_planted_callee")).toBe(true);
+      expect(planted("e2e_planted_commented")).toBe(false);
+      expect(planted("e2e_planted_assembled")).toBe(false);
+      expect(
+        chunkBodiesOf(
+          readFileSync(join(root, "supabase", "migrations", "20990101000000_planted.sql"), "utf8"),
+        ).map((chunk) => chunk.name),
+      ).toEqual(["e2e_planted_assembled"]);
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
   });
 
   it("DOORS-5 --live-query prints scripts/doors/live-query.sql as it is: whitespace-separated clauses ending in ; (INC-1070)", () => {
