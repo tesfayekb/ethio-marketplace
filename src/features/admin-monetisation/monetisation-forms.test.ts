@@ -9,7 +9,6 @@ import {
   overrideFormOf,
   productFormInput,
   productFormOf,
-  wholeNumber,
   type MarketFormValues,
   type OverrideFormValues,
   type ProductFormValues,
@@ -81,14 +80,6 @@ const GOOD_CAPS: CapsFormValues = {
 };
 
 describe("the monetisation forms' judges (P-1b)", () => {
-  it("MNF-1 a whole number is read as typed; a blank, a decimal or a word is an absence, never 0", () => {
-    expect(wholeNumber(" 12 ")).toBe(12);
-    expect(wholeNumber("0")).toBe(0);
-    expect(wholeNumber("")).toBeNull();
-    expect(wholeNumber("1.5")).toBeNull();
-    expect(wholeNumber("ten")).toBeNull();
-  });
-
   it("MNF-2 a level's form answers the door's input with its perks; a reach product sends none; the names are trimmed and a blank Amharic is sent blank so the door clears it", () => {
     const level = productFormInput("level", GOOD_LEVEL);
     expect(level).toEqual({

@@ -1,6 +1,6 @@
 import type { MessageKey } from "@/i18n";
+import { wholeNumber } from "@/lib/whole-number";
 
-import { wholeNumber } from "./monetisation-forms";
 import type { CoveragePlanRow, SetCoveragePlanInput } from "./monetisation-service";
 
 /**

@@ -282,8 +282,9 @@ prices first; a scratch market's or category's rows before the fixture) in
 
 Unit: `monetisation-service.test.ts` MNS-1…6 (the reader's rows, a malformed
 row, the door calls, the message map against M-a / M-b / M-c);
-`monetisation-forms.test.ts` MNF-1…10 (the product, override, price, market and
-caps forms' judges and defaults); `rail-items.test.ts` (the group after
+`monetisation-forms.test.ts` MNF-2…10 (the product, override, price, market and
+caps forms' judges and defaults; MNF-1's whole-number read moved with
+`wholeNumber` to `src/lib/whole-number.test.ts` WN-1 in P-2 (b)); `rail-items.test.ts` (the group after
 Listings; the old paths gone); `monetisation-order.test.ts` MNO-1…4 (the
 strip's states on fixtures: an on market without a price → _Needs a row_ naming
 the product; a null-market price counts; an ended price does not; no caps step

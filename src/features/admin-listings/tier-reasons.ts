@@ -1,5 +1,5 @@
-import { wholeNumber } from "@/features/admin-monetisation/monetisation-forms";
 import type { MessageKey } from "@/i18n";
+import { wholeNumber } from "@/lib/whole-number";
 
 import { NOTE_MAX } from "./move-reasons";
 

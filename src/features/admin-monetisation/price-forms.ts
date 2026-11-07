@@ -5,8 +5,8 @@ import {
   type CategoryTree,
 } from "@/features/categories/category-tree";
 import type { MessageKey } from "@/i18n";
+import { wholeNumber } from "@/lib/whole-number";
 
-import { wholeNumber } from "./monetisation-forms";
 import type { PriceRow, SavePriceInput } from "./monetisation-service";
 
 /**
