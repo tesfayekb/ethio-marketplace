@@ -73,7 +73,7 @@ export function PromoteSheet({
           <LevelList
             listingId={listingId}
             options={query.data}
-            onRefused={() => void query.refetch()}
+            onRefused={async () => (await query.refetch()).data}
             onDone={(until) => {
               onDone(until);
               onOpenChange(false);
@@ -93,29 +93,32 @@ function LevelList({
 }: {
   listingId: string;
   options: PromoteOptions;
-  onRefused: () => void;
+  /** Reads the door again after a refusal; the fresh answer, when it came. */
+  onRefused: () => Promise<PromoteOptions | undefined>;
   onDone: (until: string) => void;
 }) {
   const { t, language } = useI18n();
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const day = (value: string) => formatDate("day", value, language);
-  const refusalText = (key: MessageKey) => {
+  /** sameLevel names the ad's end as the fresh read gives it; without one it is the plain refusal. */
+  const refusalText = (key: MessageKey, fresh: PromoteOptions | undefined) => {
     if (key !== "myListings.promote.error.sameLevel") return t(key);
-    const until = options.level.until;
+    const until = fresh?.level.until ?? null;
     return until === null ? t("door.refused") : fill(t(key), { date: day(until) });
   };
   const choose = async (level: PromoteLevel) => {
     setBusy(true);
     setProblem(null);
     const outcome = await setListingLevel(listingId, level.key);
-    setBusy(false);
     if (outcome.ok) {
+      setBusy(false);
       onDone(outcome.until);
       return;
     }
-    setProblem(refusalText(outcome.key));
-    onRefused();
+    const fresh = await onRefused();
+    setBusy(false);
+    setProblem(refusalText(outcome.key, fresh));
   };
   const offer = (level: PromoteLevel) =>
     [

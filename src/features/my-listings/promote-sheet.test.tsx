@@ -127,8 +127,12 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
     ]);
   });
 
-  it("PMS-5 a refusal is named by its code (sameLevel with its date), a sentence is door.refused, and the sheet reads again", async () => {
-    answers.promote_options = [{ data: options(), error: null }];
+  it("PMS-5 a refusal is named by its code (sameLevel with the end the fresh read gives), a sentence is door.refused", async () => {
+    const LATER = "2026-12-09T10:00:00+00:00";
+    answers.promote_options = [
+      { data: options(), error: null },
+      { data: options({ level: { key: "lvl-a", until: LATER, source: "launch" } }), error: null },
+    ];
     answers.set_listing_level = [
       { data: null, error: { message: "sameLevel", code: "P0001" } },
       { data: null, error: { message: "account is deactivated", code: "P0001" } },
@@ -136,11 +140,9 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
     const { onDone } = mount();
     fireEvent.click(await screen.findByTestId("promote-choose-lvl-b"));
     expect(await screen.findByTestId("promote-problem")).toHaveTextContent(
-      `This ad already has this level until ${day(UNTIL)}.`,
+      `This ad already has this level until ${day(LATER)}.`,
     );
-    await waitFor(() =>
-      expect(calls.filter((call) => call.name === "promote_options")).toHaveLength(2),
-    );
+    expect(calls.filter((call) => call.name === "promote_options")).toHaveLength(2);
     fireEvent.click(screen.getByTestId("promote-choose-lvl-b"));
     await waitFor(() =>
       expect(screen.getByTestId("promote-problem")).toHaveTextContent("This request was refused."),
