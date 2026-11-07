@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { TableActionButton, TableActions } from "@/components/shell/table-actions";
 import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
-import { dateFormatter, numberFormatter } from "@/lib/format";
+import { dateFormatter, moneyText } from "@/lib/format";
 
 import { attributionColumns } from "./monetisation-columns";
 import { productAnchor } from "./monetisation-order";
@@ -62,7 +62,6 @@ export function ProductPricesTable({
   const [dialog, setDialog] = useState<Dialog>({ kind: "none" });
   const [search, setSearch] = useState("");
   const date = dateFormatter("day", language);
-  const number = numberFormatter("exact", language);
   const nowIso = new Date().toISOString();
   const anchor = productAnchor(product.key, "prices");
   const idOf = (row: PriceRow) => `price-${row.id}`;
@@ -100,7 +99,7 @@ export function ProductPricesTable({
         <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-amount`}>
           {row.amount === 0
             ? t("admin.packages.prices.free")
-            : `${number.format(row.amount)} ${row.currency}`}
+            : moneyText(row.amount, row.currency, language, "exact")}
         </span>
       ),
     },

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { en } from "@/i18n/locales/en";
 import type { MessageKey } from "@/i18n";
+import { moneyText } from "@/lib/format";
 import { priceLine, storedUnitNoun, type PriceLineInput } from "./price-line";
 
 const t = (key: MessageKey) => (en as Record<string, string>)[key] ?? key;
@@ -35,6 +36,12 @@ describe("bundle 4 step 10 — the one price line", () => {
       expect(priceLine({ ...base, ...patch }, t, "—")).toBe(expected);
     });
   }
+  it("the amount alone is the one money formatter's text in every language (DEC-349)", () => {
+    for (const language of ["en", "am"]) {
+      expect(priceLine(base, t, "—", language)).toBe(moneyText(4100, "ETB", language));
+    }
+    expect(priceLine({ ...base, currency: null }, t, "—")).toBe("4,100");
+  });
 });
 
 describe("bundle 4 step 10 — the stored unit's noun", () => {

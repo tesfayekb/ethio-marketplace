@@ -243,6 +243,7 @@ package_price_for(uuid,text) | public-reader | anon,authenticated | - | - | - | 
 price_shape_for_basis(text) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
 price_unit_labels() | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
 product_price_for(text,uuid,character) | public-reader | anon,authenticated | - | - | - | - | - | - | - | -
+promote_options(uuid) | signed-in-reader | authenticated | - | - | - | - | - | - | listingNotFound,listingNotPlaced,marketNotSet | P-2 (b) M-2a (DEC-349): the seller's Promote sheet in one read — every candidate level's availability by set_listing_level's own reads and country rule
 public_listing(text) | public-door | anon,authenticated | - | - | listing_read | - | - | helper | - | -
 publish_listing(uuid,uuid[],text) | owner | authenticated | - | - | post | - | - | checks | - | -
 remove_listing_photo(uuid,uuid) | owner | authenticated | - | - | photo_remove | - | - | takedown | - | -

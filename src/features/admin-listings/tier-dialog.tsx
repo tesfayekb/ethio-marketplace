@@ -1,13 +1,15 @@
 import { useState } from "react";
 
 import { FilterChoices } from "@/components/shell/filter-choices";
+import { FormField } from "@/components/shell/form-section";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { ReasonNote } from "./reason-note";
-import { TIER_LABEL, TIER_REASONS, TIERS, tierProblem } from "./tier-reasons";
+import { TIER_LABEL, TIER_REASONS, TIERS, tierDays, tierProblem } from "./tier-reasons";
 
 /**
  * Turn T1 part B (D242, D276) — the dialog of staff's "Set tier": Premium,
@@ -15,29 +17,40 @@ import { TIER_LABEL, TIER_REASONS, TIERS, tierProblem } from "./tier-reasons";
  * note (required when the reason is Other, at most 500 characters — the shared
  * block `ReasonNote`). It says what a tier does and how long it lasts. The door
  * decides (F3); its refusal is shown here and nothing closes on it (F4).
+ * P-2 (b): the level's Days (blank = until staff change it; 1…3650; none on the
+ * baseline), sent as the door's `p_days`.
  *
  * Testids: the dialog `listings-tier-dialog`, the tiers `listings-tier-pick`
  * (`listings-tier-pick-<tier>`), the reasons `listings-tier-reason-<reason>`,
- * the note `listings-tier-note`, the problem line `listings-tier-problem`,
+ * the note `listings-tier-note`, the days `listings-tier-days` (its field
+ * `listings-tier-days-field`), the problem line `listings-tier-problem`,
  * Cancel `listings-tier-cancel`, the change `listings-tier-confirm`.
  */
 
 export interface TierDialogProps {
-  /** The listing's tier now; the dialog opens on it and refuses to send it unchanged. */
-  current: string;
+  /** The listing's tier now (null when the door answered none); the dialog refuses to send it unchanged. */
+  current: string | null;
   busy: boolean;
   /** The door's refusal, already translated; null when there is none. */
   refusal: string | null;
   onCancel: () => void;
-  onConfirm: (tier: string, reason: string, note: string) => void;
+  /** `days` null is open-ended. */
+  onConfirm: (tier: string, reason: string, note: string, days: number | null) => void;
 }
+
+const DAYS_PROBLEMS: ReadonlySet<MessageKey> = new Set([
+  "admin.listings.level.error.days",
+  "admin.listings.level.error.baselineDays",
+]);
 
 export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: TierDialogProps) {
   const { t } = useI18n();
-  const [tier, setTier] = useState(current);
+  const [tier, setTier] = useState(current ?? "");
   const [reason, setReason] = useState("");
   const [note, setNote] = useState("");
+  const [days, setDays] = useState("");
   const [problem, setProblem] = useState<MessageKey | null>(null);
+  const daysRefused = problem !== null && DAYS_PROBLEMS.has(problem);
 
   return (
     <CategoryModal
@@ -49,7 +62,7 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
       }}
     >
       <div className="min-w-0 space-y-3">
-        <p className="text-sm text-muted-foreground">{t("admin.listings.tier.hint")}</p>
+        <p className="text-sm text-muted-foreground">{t("admin.listings.level.hint")}</p>
         <FilterChoices
           testid="listings-tier-pick"
           label={t("admin.listings.filter.tier")}
@@ -60,6 +73,26 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
           }}
           options={TIERS.map((value) => ({ value, label: t(TIER_LABEL[value]) }))}
         />
+        <FormField
+          label={t("admin.listings.level.days")}
+          htmlFor="listings-tier-days"
+          help={t("admin.listings.level.daysHelp")}
+          testid="listings-tier-days-field"
+        >
+          <Input
+            id="listings-tier-days"
+            data-testid="listings-tier-days"
+            inputMode="numeric"
+            value={days}
+            maxLength={4}
+            aria-invalid={daysRefused ? true : undefined}
+            aria-describedby={daysRefused ? "listings-tier-problem" : undefined}
+            onChange={(event) => {
+              setDays(event.target.value);
+              setProblem(null);
+            }}
+          />
+        </FormField>
         <ReasonNote
           testid="listings-tier"
           reasons={TIER_REASONS}
@@ -75,7 +108,12 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
           }}
         />
         {problem !== null || refusal !== null ? (
-          <p role="alert" data-testid="listings-tier-problem" className="text-sm text-destructive">
+          <p
+            role="alert"
+            id="listings-tier-problem"
+            data-testid="listings-tier-problem"
+            className="text-sm text-destructive"
+          >
             {problem !== null ? t(problem) : refusal}
           </p>
         ) : null}
@@ -96,12 +134,13 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
             data-testid="listings-tier-confirm"
             disabled={busy}
             onClick={() => {
-              const missing = tierProblem(tier, current, reason, note);
-              if (missing !== null) {
-                setProblem(missing);
+              const missing = tierProblem(tier, current, reason, note, days);
+              const parsed = tierDays(days);
+              if (missing !== null || parsed === undefined) {
+                setProblem(missing ?? "admin.listings.level.error.days");
                 return;
               }
-              onConfirm(tier, reason, note.trim());
+              onConfirm(tier, reason, note.trim(), parsed);
             }}
           >
             {t("admin.listings.action.tier")}

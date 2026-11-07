@@ -357,8 +357,6 @@ export const enAdmin = {
   "admin.listings.tier.regular": "Regular",
   "admin.listings.action.tier": "Set tier",
   "admin.listings.tier.title": "Set the tier",
-  "admin.listings.tier.hint":
-    "Premium ads lead the feed and Featured ads follow; Regular is the free look. The tier stays until staff change it or the ad is removed.",
   "admin.listings.tier.done": "Tier set to {tier}.",
   "admin.listings.tier.error.same": "The ad already has this tier.",
   "admin.listings.tier.error.removed": "A removed ad takes no tier.",
@@ -2177,4 +2175,17 @@ export const enAdmin = {
   "impersonation.profile.country": "Country",
   "impersonation.profile.status": "Status",
   "impersonation.profile.joined": "Joined",
+  "admin.listings.level.days": "Days",
+  "admin.listings.level.daysHelp": "Leave blank to keep the level until staff change it.",
+  "admin.listings.level.hint":
+    "The ad moves to this level for the days you set, or until staff change it.",
+  "admin.listings.level.error.days": "Days must be a whole number from 1 to 3650.",
+  "admin.listings.level.error.baselineDays": "The baseline level takes no days.",
+  "admin.listings.level.until": "Until {date}",
+  "admin.listings.level.noEnd": "No end",
+  "admin.listings.level.source.launch": "Launch offer",
+  "admin.listings.level.source.staff": "Set by staff",
+  "admin.listings.level.source.money": "Paid",
+  "admin.listings.level.source.credits": "Credits",
+  "admin.listings.level.unknown": "Level not known",
 } as const;

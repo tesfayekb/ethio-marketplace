@@ -32,7 +32,8 @@ export interface AdminListingRow {
   id: string;
   title: string;
   status: string;
-  tier: string;
+  /** P-2 (b) — the ad's level as the door answered it; null when it answered none. */
+  tier: string | null;
   severe: boolean;
   sellerId: string;
   sellerAlias: string | null;
@@ -85,7 +86,7 @@ export async function listAdminListings(
     id: String(row["id"]),
     title: String(row["title"] ?? ""),
     status: String(row["status"]),
-    tier: String(row["tier"] ?? "regular"),
+    tier: text(row["tier"]),
     severe: row["severe"] === true,
     sellerId: String(row["seller_id"]),
     sellerAlias: text(row["seller_alias"]),

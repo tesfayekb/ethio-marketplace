@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DOOR_CODES, DOOR_REFUSED_KEY, doorCode } from "./door-codes";
 
-/** DRC-1…5 (DEC-333): the one reader of door refusal codes. */
+/** DRC-1…6 (DEC-333): the one reader of door refusal codes. */
 describe("doorCode", () => {
   it("DRC-1 reads a bare code and a code with its detail from a RAISE's message", () => {
     expect(doorCode("notSignedIn")).toEqual({ code: "notSignedIn", detail: null });
@@ -46,6 +46,33 @@ describe("doorCode", () => {
     ]);
     for (const code of DOOR_CODES) expect(code).toMatch(/^[a-z][A-Za-z]*$/);
     expect(new Set(DOOR_CODES).size).toBe(DOOR_CODES.length);
+  });
+
+  it("DRC-6 P-2's family codes are on the list and read from a plain RAISE's message (DEC-349)", () => {
+    const family = [
+      "listingNotFound",
+      "notLive",
+      "notPaused",
+      "unknownLevel",
+      "sameLevel",
+      "lowerLevel",
+      "listingNotPlaced",
+      "levelNotAvailable",
+      "seasonEnded",
+      "notOffered",
+      "marketNotSet",
+      "creditsNotAvailable",
+      "noFreeSlot",
+    ];
+    for (const code of family) {
+      expect(DOOR_CODES).toContain(code);
+      expect(doorCode({ message: code, code: "P0001" })).toEqual({ code, detail: null });
+    }
+    expect(doorCode({ message: "noFreeSlot", details: "3" })).toEqual({
+      code: "noFreeSlot",
+      detail: null,
+    });
+    expect(doorCode("account is deactivated")).toEqual({ code: null, detail: null });
   });
 
   it("DRC-5 a detail with colons stays whole", () => {

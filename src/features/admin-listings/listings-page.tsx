@@ -348,11 +348,17 @@ export function AdminListingsPage() {
   };
 
   /** P-1 W4 — one ad's tier from its row, through the ad page's runner (no second mapper). */
-  const runTier = async (guard: GuardFn, tier: string, reason: string, note: string) => {
+  const runTier = async (
+    guard: GuardFn,
+    tier: string,
+    reason: string,
+    note: string,
+    days: number | null,
+  ) => {
     if (tiering === null) return;
     setBusy(true);
     setRefusal(null);
-    const outcome = await changeListingTier(guard, tiering.id, tier, reason, note);
+    const outcome = await changeListingTier(guard, tiering.id, tier, reason, note, days);
     setBusy(false);
     // A cancelled second factor leaves the dialog open, as it was.
     if (!outcome.ok) {
@@ -890,7 +896,9 @@ export function AdminListingsPage() {
                 setTiering(null);
                 setRefusal(null);
               }}
-              onConfirm={(tier, reason, note) => void runTier(guard, tier, reason, note)}
+              onConfirm={(tier, reason, note, days) =>
+                void runTier(guard, tier, reason, note, days)
+              }
             />
           ) : null}
           {viewAs !== null ? (

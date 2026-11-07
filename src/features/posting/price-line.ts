@@ -3,7 +3,7 @@ import { basisNoun, formatCommission } from "./price-basis";
 import { fill } from "./refusal-text";
 import { ownValue } from "@/lib/own-key";
 import { catalogText } from "@/i18n/entity";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, moneyText } from "@/lib/format";
 import { FALLBACK_LANGUAGE } from "@/lib/locale";
 
 /**
@@ -61,9 +61,7 @@ export function priceLine(
   if (periodNoun !== null) {
     return fill(t("post.review.pricePer"), { amount, currency, basis: periodNoun });
   }
-  return fill(t("post.review.priceLine"), { amount, currency, period: "" })
-    .replace(/\s+/g, " ")
-    .trim();
+  return moneyText(input.amount, currency, language ?? FALLBACK_LANGUAGE);
 }
 
 export type PriceUnitLabels = Record<string, { en?: string | null; am?: string | null }>;

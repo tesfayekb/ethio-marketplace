@@ -1,8 +1,8 @@
 import { readerFailure } from "@/lib/reader-failure";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, Copy, Eye, EyeOff, Pencil } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { ArrowLeft, Copy, Eye, EyeOff, Pencil, TrendingUp } from "lucide-react";
+import { Suspense, useState, type ReactNode } from "react";
 
 import { canonicalSegment, listingPath } from "@/features/ad-page/address";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
@@ -56,6 +56,7 @@ import {
   EDITABLE_STATUSES,
   editMyListing,
   primaryAction,
+  promotable,
   readHistory,
   readListingCounts,
   readMyListing,
@@ -68,6 +69,7 @@ import {
   type MyListing,
 } from "./my-listing";
 import { GROUP_LABEL, shareable } from "./my-listings";
+import { LazyPromoteSheet } from "./promote-sheet-lazy";
 import { REASON_WORD, SOLD_ON, SOLD_SHOWN_DAYS, stateLine, visibilityOf } from "./state-line";
 import { dateFormatter } from "@/lib/format";
 
@@ -202,6 +204,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   const [confirming, setConfirming] = useState<"sell" | "delete" | null>(null);
   // Bundle 22 turn 4 — Renew passes through the publishing statement's confirmation (CertifyConfirm).
   const [renewing, setRenewing] = useState(false);
+  // P-2 (b) — the Promote sheet, mounted on the first tap (its code arrives then).
+  const [promoting, setPromoting] = useState(false);
   const navigate = useNavigate();
 
   const soldDaysQuery = useQuery({
@@ -317,6 +321,13 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     }
   };
 
+  /** P-2 (b) — the sheet set a level: its end in the done line, the ad read again. */
+  const promoted = async (until: string) => {
+    setProblem(null);
+    setNotice(fill(t("myListings.promote.done"), { date: day(until) }));
+    await reload();
+  };
+
   /** D182 4 — Post a similar ad: a new draft with this ad's details, opened in the posting form. */
   const runCopy = async () => {
     if (busy) return;
@@ -378,6 +389,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
   // Turn R2 — Edit on a live, closed or refused ad; Post a similar ad on any but a draft, a removed or a refused one.
   const mayEdit = EDITABLE_STATUSES.has(row.status);
   const mayCopy = copyable(row.status);
+  const mayPromote = promotable(row.status);
   const steps = actions.filter((action) => action !== "delete");
   const mayDelete = actions.includes("delete");
   const live = row.status === "active" || row.status === "reduced";
@@ -467,7 +479,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             {info}
           </p>
         ) : null}
-        {actions.length === 0 && !mayEdit && !mayCopy && row.status !== "draft" ? (
+        {actions.length === 0 && !mayEdit && !mayCopy && !mayPromote && row.status !== "draft" ? (
           <p data-testid="my-listing-no-action" className="text-sm text-muted-foreground">
             {t("myListings.ad.none")}
           </p>
@@ -522,6 +534,20 @@ export function MyListingPage({ listingId }: { listingId: string }) {
                   : t(actionKey(action, row.soldWord))}
               </Button>
             ))}
+            {/* P-2 (b) — the level sheet, the list's row menu's own (`promotable`). */}
+            {mayPromote ? (
+              <Button
+                type="button"
+                size="touch"
+                variant="outline"
+                data-testid="my-listing-promote"
+                disabled={busy}
+                onClick={() => setPromoting(true)}
+              >
+                <TrendingUp aria-hidden="true" />
+                {t("myListings.action.promote")}
+              </Button>
+            ) : null}
             {/* D182 4 — a new draft with this ad's details; Delete stays last. */}
             {mayCopy ? (
               <Button
@@ -817,6 +843,16 @@ export function MyListingPage({ listingId }: { listingId: string }) {
             void act("renew", certification);
           }}
         />
+      ) : null}
+      {promoting ? (
+        <Suspense fallback={null}>
+          <LazyPromoteSheet
+            listingId={listingId}
+            open
+            onOpenChange={setPromoting}
+            onDone={(until) => void promoted(until)}
+          />
+        </Suspense>
       ) : null}
     </PageShell>
   );

@@ -696,6 +696,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       `my-listing-${X}-more-reserve`,
       `my-listing-${X}-more-sell`,
       `my-listing-${X}-more-close`,
+      `my-listing-${X}-more-promote`,
       `my-listing-${X}-more-copy`,
     ]);
     await page.getByTestId(`my-listing-${X}-more-reserve`).click();

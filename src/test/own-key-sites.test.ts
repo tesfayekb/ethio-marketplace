@@ -49,6 +49,6 @@ describe("own-key lookups (Part H1)", () => {
       t as never,
       "-",
     );
-    expect(line).toBe("t:post.review.priceLine");
+    expect(line).toBe("5 ETB");
   });
 });

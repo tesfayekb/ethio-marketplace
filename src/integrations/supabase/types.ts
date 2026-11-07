@@ -6230,6 +6230,7 @@ export type Database = {
         }
         Returns: Json
       }
+      promote_options: { Args: { p_listing_id: string }; Returns: Json }
       promote_to_super_admin: {
         Args: { p_target_user: string }
         Returns: undefined

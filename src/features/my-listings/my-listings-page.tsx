@@ -2,7 +2,7 @@ import { readerFailure } from "@/lib/reader-failure";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { PageShell } from "@/components/layout/page-shell";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
@@ -66,6 +66,7 @@ import {
   DELETED_KEY,
   doneKey,
   EDITABLE_STATUSES,
+  promotable,
   rowActionsFor,
   runListAction,
   soldWordsOf,
@@ -89,6 +90,7 @@ import { dateFormatter } from "@/lib/format";
 import { listingPath } from "@/features/ad-page/address";
 import { ShareAd, sharePriceText } from "@/features/ad-page/share-ad";
 import { stateLine } from "./state-line";
+import { LazyPromoteSheet } from "./promote-sheet-lazy";
 import { catalogText, entityName } from "@/i18n/entity";
 
 /**
@@ -114,7 +116,8 @@ import { catalogText, entityName } from "@/i18n/entity";
  *   turn 2, D194: `/my-listings/<id>/edit`, opened on its Review) — a red Delete
  *   on every ad that can be
  *   deleted, and the three-dots with Open, what this ad offers — the same rule as
- *   its own page (`rowActionsFor` / `actionsFor`) — and, last, Post a similar ad
+ *   its own page (`rowActionsFor` / `actionsFor`), on a live or paused ad Promote
+ *   (P-2 (b): the level sheet, `promotable`) — and, last, Post a similar ad
  *   (D182 4; `-more-copy`: a new draft with the ad's details, opened in the posting
  *   form). Mark as sold and Delete ask first. Each action reads the ad again before
  *   it runs (`runListAction`), and the list is read again whatever the answer (F4);
@@ -168,6 +171,8 @@ export function MyListingsPage() {
   const [notice, setNotice] = useState<Notice>(null);
   // D224 — the row whose Share sheet is open; one ShareAd serves the whole list.
   const [sharing, setSharing] = useState<MyListingRow | null>(null);
+  // P-2 (b) — the row whose Promote sheet is open; one sheet serves the whole list.
+  const [promoting, setPromoting] = useState<MyListingRow | null>(null);
   const debouncedSearch = useDebounced(search);
   const filters: MyListingsFilters = { search: debouncedSearch, category, mark };
 
@@ -426,6 +431,13 @@ export function MyListingsPage() {
     setBusy(false);
   };
 
+  /** P-2 (b) — the sheet set a level: its end in the notice, the list read again. */
+  const promoted = async (until: string) => {
+    setNotice({ text: fill(t("myListings.promote.done"), { date: day(until) }), tone: "done" });
+    await refreshAfterWrite(queryClient, { queryKey: authKey("my-listings") });
+    await refreshAfterWrite(queryClient, { queryKey: authKey("my-listing") });
+  };
+
   /** Mark as sold and Delete ask first, and every action on ticked ads asks with their count. */
   const take = (action: ListingAction, targets: MyListingRow[], bulk: boolean) => {
     if (bulk || ASKS_FIRST.has(action)) setAsking({ action, rows: targets, bulk });
@@ -500,6 +512,16 @@ export function MyListingsPage() {
                     disabled: busy,
                     onSelect: () => take(action, [row], false),
                   })),
+                ...(promotable(row.status)
+                  ? [
+                      {
+                        key: "promote",
+                        label: t("myListings.action.promote"),
+                        disabled: busy,
+                        onSelect: () => setPromoting(row),
+                      },
+                    ]
+                  : []),
                 ...(copyable(row.status)
                   ? [
                       {
@@ -915,6 +937,18 @@ export function MyListingsPage() {
             language,
           )}
         />
+      ) : null}
+      {promoting !== null ? (
+        <Suspense fallback={null}>
+          <LazyPromoteSheet
+            listingId={promoting.id}
+            open
+            onOpenChange={(next) => {
+              if (!next) setPromoting(null);
+            }}
+            onDone={(until) => void promoted(until)}
+          />
+        </Suspense>
       ) : null}
     </PageShell>
   );

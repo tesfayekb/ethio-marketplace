@@ -30,7 +30,14 @@ describe("changeListingTier (P-1 W4)", () => {
       },
       error: null,
     });
-    const outcome = await changeListingTier(passThrough, "ad-1", "premium", "promotion", "  ");
+    const outcome = await changeListingTier(
+      passThrough,
+      "ad-1",
+      "premium",
+      "promotion",
+      "  ",
+      null,
+    );
     expect(outcome).toEqual({ ok: true, status: "active" });
     expect(rpc).toHaveBeenCalledWith("admin_set_listing_tier", {
       p_listing_id: "ad-1",
@@ -41,7 +48,7 @@ describe("changeListingTier (P-1 W4)", () => {
 
   it("CLT-2 a cancelled second factor is reported as cancelled, never as a refusal", async () => {
     const cancelling: GuardFn = () => Promise.reject(new StepUpCancelled());
-    expect(await changeListingTier(cancelling, "ad-1", "premium", "promotion", "")).toEqual({
+    expect(await changeListingTier(cancelling, "ad-1", "premium", "promotion", "", null)).toEqual({
       ok: false,
       cancelled: true,
     });
@@ -49,7 +56,7 @@ describe("changeListingTier (P-1 W4)", () => {
 
   it("CLT-3 no verified factor reads as the step-up hint; the door's refusal reads through the one mapper", async () => {
     const unavailable: GuardFn = () => Promise.reject(new StepUpUnavailable());
-    expect(await changeListingTier(unavailable, "ad-1", "premium", "promotion", "")).toEqual({
+    expect(await changeListingTier(unavailable, "ad-1", "premium", "promotion", "", null)).toEqual({
       ok: false,
       cancelled: false,
       refusal: "mfa.stepUpUnavailableHint",
@@ -59,7 +66,7 @@ describe("changeListingTier (P-1 W4)", () => {
       data: null,
       error: { message: "a removed listing takes no tier" },
     });
-    expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "")).toEqual({
+    expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "", null)).toEqual({
       ok: false,
       cancelled: false,
       refusal: "admin.listings.tier.error.removed",
@@ -78,21 +85,52 @@ describe("changeListingTier (P-1 W4)", () => {
       },
       error: null,
     });
-    expect(await changeListingTier(passThrough, "ad-1", "regular", "promotion_ended", "")).toEqual({
+    expect(
+      await changeListingTier(passThrough, "ad-1", "regular", "promotion_ended", "", null),
+    ).toEqual({
       ok: true,
       status: "paused",
     });
     rpc.mockResolvedValueOnce({ data: null, error: null });
-    expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "")).toEqual({
+    expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "", null)).toEqual({
       ok: false,
       cancelled: false,
       refusal: "common.error",
     });
     rpc.mockResolvedValueOnce({ data: null, error: { message: "noFreeSlot" } });
-    expect(await changeListingTier(passThrough, "ad-1", "regular", "promotion_ended", "")).toEqual({
+    expect(
+      await changeListingTier(passThrough, "ad-1", "regular", "promotion_ended", "", null),
+    ).toEqual({
       ok: false,
       cancelled: false,
       refusal: "admin.listings.error.noFreeSlot",
+    });
+  });
+
+  it("CLT-5 the dialog's Days reach the door as p_days; the door's badDays reads as the days rule (P-2 (b))", async () => {
+    rpc.mockResolvedValueOnce({
+      data: {
+        ok: true,
+        from: "regular",
+        to: "premium",
+        until: null,
+        source: "staff",
+        status: "active",
+      },
+      error: null,
+    });
+    await changeListingTier(passThrough, "ad-1", "premium", "promotion", "", 14);
+    expect(rpc).toHaveBeenLastCalledWith("admin_set_listing_tier", {
+      p_listing_id: "ad-1",
+      p_tier: "premium",
+      p_reason: "promotion",
+      p_days: 14,
+    });
+    rpc.mockResolvedValueOnce({ data: null, error: { message: "badDays" } });
+    expect(await changeListingTier(passThrough, "ad-1", "premium", "promotion", "", 14)).toEqual({
+      ok: false,
+      cancelled: false,
+      refusal: "admin.listings.level.error.days",
     });
   });
 });

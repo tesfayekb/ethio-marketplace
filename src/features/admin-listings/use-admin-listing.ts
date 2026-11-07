@@ -34,7 +34,8 @@ export interface AdminListingDetail {
     title: string;
     description: string;
     status: string;
-    tier: string;
+    /** P-2 (b) — the ad's level as the door answered it; null when it answered none (the screen names it). */
+    tier: string | null;
     /** P-2 (a) M-1c (DEC-328, DEC-330) — the level's and the reach's clocks; null when absent. */
     tierUntil: string | null;
     tierSource: string | null;
@@ -118,7 +119,7 @@ export function detailOf(data: unknown): AdminListingDetail {
       title: String(l["title"] ?? ""),
       description: String(l["description"] ?? ""),
       status: String(l["status"] ?? ""),
-      tier: String(l["tier"] ?? "regular"),
+      tier: text(l["tier"]),
       tierUntil: text(l["tier_until"]),
       tierSource: text(l["tier_source"]),
       reach: text(l["reach"]),

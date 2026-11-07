@@ -1,4 +1,5 @@
 import type { MessageKey } from "@/i18n";
+import { wholeNumber } from "@/lib/whole-number";
 
 import {
   PLACEMENTS,
@@ -27,16 +28,6 @@ export const PLACEMENT_LABEL: Readonly<Record<(typeof PLACEMENTS)[number], Messa
   boost: "admin.monetisation.placement.boost",
   top: "admin.monetisation.placement.top",
 };
-
-/**
- * A typed number parse: a whole number, or null when the field is blank or not
- * a number. Never a sentinel 0.
- */
-export function wholeNumber(raw: string): number | null {
-  const text = raw.trim();
-  if (!/^-?\d+$/.test(text)) return null;
-  return Number(text);
-}
 
 function isPlacement(value: string): value is (typeof PLACEMENTS)[number] {
   return (PLACEMENTS as readonly string[]).includes(value);

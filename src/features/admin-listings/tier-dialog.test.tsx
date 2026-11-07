@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { TierDialog } from "./tier-dialog";
@@ -18,7 +18,7 @@ vi.mock("@/i18n", () => ({
   }),
 }));
 
-function open(current: string, onConfirm = vi.fn(), refusal: string | null = null) {
+function open(current: string | null, onConfirm = vi.fn(), refusal: string | null = null) {
   render(
     <TierDialog
       current={current}
@@ -82,6 +82,7 @@ describe("TierDialog (turn T1)", () => {
       "premium",
       "other",
       "A week on the front, agreed with the seller.",
+      null,
     );
   });
 
@@ -90,5 +91,54 @@ describe("TierDialog (turn T1)", () => {
     expect(screen.getByTestId("listings-tier-problem").textContent).toBe(
       "A removed ad takes no tier.",
     );
+  });
+
+  it("TD-6 Days: blank sends open-ended, a whole number sends its days, a bad value or days on the baseline is refused at the field (P-2 (b))", () => {
+    const onConfirm = open("regular");
+    fireEvent.click(screen.getByTestId("listings-tier-pick-premium"));
+    fireEvent.click(screen.getByTestId("listings-tier-reason-promotion"));
+    const days = screen.getByTestId("listings-tier-days");
+    fireEvent.change(days, { target: { value: "0" } });
+    fireEvent.click(screen.getByTestId("listings-tier-confirm"));
+    expect(onConfirm).not.toHaveBeenCalled();
+    expect(screen.getByTestId("listings-tier-problem").textContent).toBe(
+      "admin.listings.level.error.days",
+    );
+    expect(days.getAttribute("aria-invalid")).toBe("true");
+    expect(days.getAttribute("aria-describedby")).toBe("listings-tier-problem");
+    fireEvent.change(days, { target: { value: "14" } });
+    expect(days.getAttribute("aria-invalid")).toBeNull();
+    fireEvent.click(screen.getByTestId("listings-tier-confirm"));
+    expect(onConfirm).toHaveBeenLastCalledWith("premium", "promotion", "", 14);
+    cleanup();
+
+    const toBaseline = open("premium");
+    fireEvent.click(screen.getByTestId("listings-tier-pick-regular"));
+    fireEvent.click(screen.getByTestId("listings-tier-reason-promotion_ended"));
+    fireEvent.change(screen.getByTestId("listings-tier-days"), { target: { value: "7" } });
+    fireEvent.click(screen.getByTestId("listings-tier-confirm"));
+    expect(toBaseline).not.toHaveBeenCalled();
+    expect(screen.getByTestId("listings-tier-problem").textContent).toBe(
+      "admin.listings.level.error.baselineDays",
+    );
+    fireEvent.change(screen.getByTestId("listings-tier-days"), { target: { value: "" } });
+    fireEvent.click(screen.getByTestId("listings-tier-confirm"));
+    expect(toBaseline).toHaveBeenCalledWith("regular", "promotion_ended", "", null);
+  });
+
+  it("TD-7 a listing whose level the door did not answer opens with none pressed and takes any level", () => {
+    const onConfirm = open(null);
+    for (const tier of TIERS)
+      expect(screen.getByTestId(`listings-tier-pick-${tier}`).getAttribute("aria-pressed")).toBe(
+        "false",
+      );
+    fireEvent.click(screen.getByTestId("listings-tier-confirm"));
+    expect(screen.getByTestId("listings-tier-problem").textContent).toBe(
+      "admin.listings.tier.error.unknown",
+    );
+    fireEvent.click(screen.getByTestId("listings-tier-pick-regular"));
+    fireEvent.click(screen.getByTestId("listings-tier-reason-promotion"));
+    fireEvent.click(screen.getByTestId("listings-tier-confirm"));
+    expect(onConfirm).toHaveBeenCalledWith("regular", "promotion", "", null);
   });
 });

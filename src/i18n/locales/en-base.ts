@@ -651,7 +651,6 @@ export const enBase = {
   "post.who.countryHint": "Where you live. This is asked once.",
   "post.review.noTitle": "No title yet",
   "post.review.noPrice": "No price yet",
-  "post.review.priceLine": "{amount} {currency} {period}",
   "post.review.sizeLine": "One {unit}: {values}",
   "post.review.pricePer": "{amount} {currency} per {basis}",
   "post.review.myListings": "Go to My listings",

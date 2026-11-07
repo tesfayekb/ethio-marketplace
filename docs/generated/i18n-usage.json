@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 678,
-  "dynamicCallSites": 441,
+  "scanned": 682,
+  "dynamicCallSites": 446,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2961,6 +2961,27 @@
     "admin.listings.history.undo": [
       "/admin/listings/$listingId"
     ],
+    "admin.listings.level.days": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.daysHelp": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.hint": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.noEnd": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.unknown": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.until": [
+      "/admin/listings/$listingId"
+    ],
     "admin.listings.move.done.send_back": [
       "/admin/listings",
       "/admin/listings/$listingId"
@@ -3085,10 +3106,6 @@
       "/admin/listings"
     ],
     "admin.listings.tier.done": [
-      "/admin/listings",
-      "/admin/listings/$listingId"
-    ],
-    "admin.listings.tier.hint": [
       "/admin/listings",
       "/admin/listings/$listingId"
     ],
@@ -5211,6 +5228,10 @@
       "/post",
       "/post/$listingId"
     ],
+    "door.refused": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
     "error.pageFailed": [
       "(every page)"
     ],
@@ -5925,6 +5946,10 @@
       "/dev/style",
       "/my-listings"
     ],
+    "myListings.action.promote": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
     "myListings.ad.ends": [
       "/my-listings/$listingId"
     ],
@@ -6113,6 +6138,42 @@
       "/my-listings/$listingId"
     ],
     "myListings.priceReduced": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.choose": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.current": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.days": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.done": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.empty": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.freeLaunch": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.hint": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.title": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.until": [
       "/my-listings",
       "/my-listings/$listingId"
     ],
@@ -7476,26 +7537,6 @@
     ],
     "post.review.previewAsBuyer": [
       "/admin/listings/$listingId/edit",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
-    "post.review.priceLine": [
-      "(every page)",
-      "/",
-      "/$name",
-      "/account/saved",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/c/$slug",
-      "/dev/style",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings",
-      "/my-listings/$listingId",
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
