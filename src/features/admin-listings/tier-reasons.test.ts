@@ -4,8 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   TIER_LABEL,
   TIER_REASONS,
+  TIER_DAYS_MAX,
   TIERS,
   mayTier,
+  tierDays,
   tierErrorKey,
   tierProblem,
 } from "./tier-reasons";
@@ -17,6 +19,8 @@ import {
  * file does not follow is a red here, not a refusal in front of an admin.
  */
 const M1 = "supabase/migrations/20261102045918_cf2b45c5-71eb-40b1-80e1-3012befdfe99.sql";
+/** P-2 M-1c part 9 — the door's last declaration, with `p_days`. */
+const LAST = "supabase/migrations/20261105080112_4bb8208e-a951-4014-9c42-93d005a2f289.sql";
 
 function doorList(sql: string, column: string): string[] {
   const match = new RegExp(`${column} NOT IN \\(([^)]*)\\)`).exec(sql);
@@ -50,21 +54,21 @@ describe("the listing tier (turn T1)", () => {
   });
 
   it("TIR-3 the tier must change; a reason is required; Other needs a note; 500 characters at most", () => {
-    expect(tierProblem("gold", "regular", "promotion", "")).toBe(
+    expect(tierProblem("gold", "regular", "promotion", "", "")).toBe(
       "admin.listings.tier.error.unknown",
     );
-    expect(tierProblem("regular", "regular", "promotion", "")).toBe(
+    expect(tierProblem("regular", "regular", "promotion", "", "")).toBe(
       "admin.listings.tier.error.same",
     );
-    expect(tierProblem("premium", "regular", "", "")).toBe("admin.listings.move.pickReason");
-    expect(tierProblem("premium", "regular", "other", "  ")).toBe(
+    expect(tierProblem("premium", "regular", "", "", "")).toBe("admin.listings.move.pickReason");
+    expect(tierProblem("premium", "regular", "other", "  ", "")).toBe(
       "admin.listings.move.noteRequired",
     );
-    expect(tierProblem("premium", "regular", "promotion", "x".repeat(501))).toBe(
+    expect(tierProblem("premium", "regular", "promotion", "x".repeat(501), "")).toBe(
       "admin.listings.move.noteTooLong",
     );
-    expect(tierProblem("premium", "regular", "promotion", "")).toBeNull();
-    expect(tierProblem("regular", "premium", "promotion_ended", "")).toBeNull();
+    expect(tierProblem("premium", "regular", "promotion", "", "")).toBeNull();
+    expect(tierProblem("regular", "premium", "promotion_ended", "", "")).toBeNull();
   });
 
   it("TIR-4 each refusal of the door has its own words; an unknown one is the common error", () => {
@@ -99,5 +103,32 @@ describe("the listing tier (turn T1)", () => {
       (message) => message !== "not signed in" && message !== "account is deactivated",
     );
     for (const message of known) expect(tierErrorKey(message)).not.toBe("common.error");
+  });
+
+  it("TIR-7 Days: blank is open-ended, 1…3650 whole days, none on the baseline; the door's last declaration raises nothing this file does not know (P-2 (b))", () => {
+    expect(tierDays("")).toBeNull();
+    expect(tierDays("  ")).toBeNull();
+    expect(tierDays("30")).toBe(30);
+    expect(tierDays(String(TIER_DAYS_MAX))).toBe(TIER_DAYS_MAX);
+    for (const raw of ["0", "-3", "3651", "1.5", "ten"]) expect(tierDays(raw), raw).toBeUndefined();
+    expect(tierProblem("premium", "regular", "promotion", "", "30")).toBeNull();
+    expect(tierProblem("premium", "regular", "promotion", "", "0")).toBe(
+      "admin.listings.level.error.days",
+    );
+    expect(tierProblem("regular", "premium", "promotion_ended", "", "30")).toBe(
+      "admin.listings.level.error.baselineDays",
+    );
+    expect(tierProblem("premium", null, "promotion", "", "")).toBeNull();
+    const sql = readFileSync(LAST, "utf8");
+    expect(sql).toContain(`p_days > ${TIER_DAYS_MAX}`);
+    const body = sql.slice(sql.indexOf("AS $function$"), sql.indexOf("$function$;"));
+    const raised = [...body.matchAll(/RAISE EXCEPTION '((?:[^']|'')*)'/g)].map((m) =>
+      (m[1] ?? "").replace(/''/g, "'"),
+    );
+    expect(raised).toContain("badDays");
+    const known = raised.filter(
+      (message) => message !== "not signed in" && message !== "account is deactivated",
+    );
+    for (const message of known) expect(tierErrorKey(message), message).not.toBe("common.error");
   });
 });

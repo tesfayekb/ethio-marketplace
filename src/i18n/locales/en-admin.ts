@@ -357,8 +357,6 @@ export const enAdmin = {
   "admin.listings.tier.regular": "Regular",
   "admin.listings.action.tier": "Set tier",
   "admin.listings.tier.title": "Set the tier",
-  "admin.listings.tier.hint":
-    "Premium ads lead the feed and Featured ads follow; Regular is the free look. The tier stays until staff change it or the ad is removed.",
   "admin.listings.tier.done": "Tier set to {tier}.",
   "admin.listings.tier.error.same": "The ad already has this tier.",
   "admin.listings.tier.error.removed": "A removed ad takes no tier.",

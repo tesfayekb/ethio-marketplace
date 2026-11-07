@@ -6,7 +6,6 @@ tier:src/components/marketplace/tier-flag.tsx | the card's tier flag word per P-
 tier:src/features/feed/feed-page.ts | the feed page's P-1 tier order; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:src/features/admin-listings/use-admin-listings.ts | the admin roster's P-1 tier list and default; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:src/features/admin-listings/tier-reasons.ts | the Set tier dialog's P-1 tiers; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/features/admin-listings/use-admin-listing.ts | the admin listing page's P-1 tier default; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:src/features/admin-listings/listing-page.tsx | the admin listing page's P-1 tier flag; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:src/features/admin-listings/listings-page.tsx | the admin roster's P-1 tier word; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:src/routes/dev.style.tsx | the style page's fixture cards per P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31

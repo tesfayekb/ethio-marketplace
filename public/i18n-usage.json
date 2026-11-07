@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 680,
-  "dynamicCallSites": 445,
+  "scanned": 681,
+  "dynamicCallSites": 446,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -2961,6 +2961,27 @@
     "admin.listings.history.undo": [
       "/admin/listings/$listingId"
     ],
+    "admin.listings.level.days": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.daysHelp": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.hint": [
+      "/admin/listings",
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.noEnd": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.unknown": [
+      "/admin/listings/$listingId"
+    ],
+    "admin.listings.level.until": [
+      "/admin/listings/$listingId"
+    ],
     "admin.listings.move.done.send_back": [
       "/admin/listings",
       "/admin/listings/$listingId"
@@ -3085,10 +3106,6 @@
       "/admin/listings"
     ],
     "admin.listings.tier.done": [
-      "/admin/listings",
-      "/admin/listings/$listingId"
-    ],
-    "admin.listings.tier.hint": [
       "/admin/listings",
       "/admin/listings/$listingId"
     ],
@@ -5133,8 +5150,7 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId",
-      "/settings",
-      "component: promote-sheet"
+      "/settings"
     ],
     "common.refreshPage": [
       "(every page)",
@@ -5213,7 +5229,8 @@
       "/post/$listingId"
     ],
     "door.refused": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "error.pageFailed": [
       "(every page)"
@@ -5929,6 +5946,10 @@
       "/dev/style",
       "/my-listings"
     ],
+    "myListings.action.promote": [
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
     "myListings.ad.ends": [
       "/my-listings/$listingId"
     ],
@@ -6121,28 +6142,40 @@
       "/my-listings/$listingId"
     ],
     "myListings.promote.choose": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.current": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.days": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
+    ],
+    "myListings.promote.done": [
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.empty": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.freeLaunch": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.hint": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.title": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.promote.until": [
-      "component: promote-sheet"
+      "/my-listings",
+      "/my-listings/$listingId"
     ],
     "myListings.removed": [
       "/my-listings",

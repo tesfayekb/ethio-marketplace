@@ -24,10 +24,11 @@ export async function changeListingTier(
   tier: string,
   reason: string,
   note: string,
+  /** P-2 (b) — the dialog's Days; null is open-ended. */
+  days: number | null,
 ): Promise<TierOutcome> {
   try {
-    // P-2 (a) M-1c — the level's days have no control yet: open-ended.
-    const { status } = await guard(() => setAdminListingTier(listingId, tier, reason, note, null));
+    const { status } = await guard(() => setAdminListingTier(listingId, tier, reason, note, days));
     return { ok: true, status };
   } catch (error) {
     const abort = stepUpAbortKey(error);

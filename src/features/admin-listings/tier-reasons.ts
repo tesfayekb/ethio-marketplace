@@ -1,3 +1,4 @@
+import { wholeNumber } from "@/features/admin-monetisation/monetisation-forms";
 import type { MessageKey } from "@/i18n";
 
 import { NOTE_MAX } from "./move-reasons";
@@ -12,6 +13,7 @@ import { NOTE_MAX } from "./move-reasons";
  * reason from its list, a note for Other (at most 500 characters — the move
  * door's note rules). The lists below mirror the door's so the dialog offers
  * only what it accepts; `tier-reasons.test.ts` reads them back from M1.
+ * P-2 (b): the level's days (blank open-ended, 1…3650, none on the baseline).
  */
 
 export const TIERS = ["premium", "featured", "regular"] as const;
@@ -26,6 +28,14 @@ export const TIER_LABEL: Record<TierValue, MessageKey> = {
   regular: "admin.listings.tier.regular",
 };
 
+/** P-2 (b) — where the ad's level came from (`listings.tier_source`), in words. */
+export const LEVEL_SOURCE_LABEL: Readonly<Record<string, MessageKey>> = {
+  launch: "admin.listings.level.source.launch",
+  staff: "admin.listings.level.source.staff",
+  money: "admin.listings.level.source.money",
+  credits: "admin.listings.level.source.credits",
+};
+
 export function isTierValue(value: string): value is TierValue {
   return (TIERS as readonly string[]).includes(value);
 }
@@ -35,18 +45,37 @@ export function mayTier(status: string): boolean {
   return status !== "removed" && status !== "draft";
 }
 
+/** P-2 (b) — the door's bound on a level's days (`admin_set_listing_tier`, badDays). */
+export const TIER_DAYS_MAX = 3650;
+/** The P-1 tier the door's baseline level is: it takes no days. */
+const BASELINE_TIER: TierValue = "regular";
+
+/**
+ * P-2 (b) — the Days field: blank is open-ended (null); a whole number from 1
+ * to 3650 is that many days; anything else is undefined (refused, never a default).
+ */
+export function tierDays(raw: string): number | null | undefined {
+  if (raw.trim() === "") return null;
+  const days = wholeNumber(raw);
+  return days !== null && days >= 1 && days <= TIER_DAYS_MAX ? days : undefined;
+}
+
 /** What is still missing before the change can be sent; null when nothing is. */
 export function tierProblem(
   tier: string,
-  current: string,
+  current: string | null,
   reason: string,
   note: string,
+  days: string,
 ): MessageKey | null {
   if (!isTierValue(tier)) return "admin.listings.tier.error.unknown";
   if (tier === current) return "admin.listings.tier.error.same";
   if (reason === "") return "admin.listings.move.pickReason";
   if (reason === "other" && note.trim() === "") return "admin.listings.move.noteRequired";
   if (note.trim().length > NOTE_MAX) return "admin.listings.move.noteTooLong";
+  const parsed = tierDays(days);
+  if (parsed === undefined) return "admin.listings.level.error.days";
+  if (parsed !== null && tier === BASELINE_TIER) return "admin.listings.level.error.baselineDays";
   return null;
 }
 
@@ -63,5 +92,6 @@ export function tierErrorKey(message: string): MessageKey {
   if (message === "permission denied") return "admin.listings.move.error.denied";
   if (message === "a note is required") return "admin.listings.move.noteRequired";
   if (message === "the note is too long") return "admin.listings.move.noteTooLong";
+  if (message === "badDays") return "admin.listings.level.error.days";
   return "common.error";
 }

@@ -39,7 +39,7 @@ import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
 import { changeListingTier } from "./change-listing-tier";
 import { TierDialog } from "./tier-dialog";
-import { TIER_LABEL, isTierValue, mayTier } from "./tier-reasons";
+import { LEVEL_SOURCE_LABEL, TIER_LABEL, isTierValue, mayTier } from "./tier-reasons";
 import { UndoDialog } from "./undo-dialog";
 import { mayUndo, undoErrorKey, undoRefusalGroups } from "./undo-edit";
 import {
@@ -54,6 +54,7 @@ import { errorText } from "@/lib/error-text";
 import { catalogText, entityName } from "@/i18n/entity";
 import { languageRowName } from "@/lib/format-locale";
 import { dateFormatter } from "@/lib/format";
+import { ownValue } from "@/lib/own-key";
 
 /**
  * Bundle 11, the Listings console, turn L3 (D134, D138, D139) — ONE LISTING'S
@@ -171,8 +172,27 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   const both = (en: string | null, am: string | null) =>
     en === null ? "—" : catalogText(en, am, language);
   const statusLabel = (status: string) => t(`admin.listings.status.${status}` as MessageKey);
-  const tierLabel = (tier: string) =>
-    isTierValue(tier) ? t(TIER_LABEL[tier]) : t("admin.listings.tier.regular");
+  // P-2 (b) — a level the door did not answer is named as such, never a default.
+  const tierLabel = (tier: string | null) =>
+    tier === null
+      ? t("admin.listings.level.unknown")
+      : isTierValue(tier)
+        ? t(TIER_LABEL[tier])
+        : t("admin.listings.tier.regular");
+  /** P-2 (b) — the level line: the level, then where it came from and when it ends (none on the baseline). */
+  const levelLine = (tier: string | null, source: string | null, until: string | null) => {
+    if (tier === null || source === null) return tierLabel(tier);
+    const sourceKey = ownValue(LEVEL_SOURCE_LABEL, source);
+    return [
+      tierLabel(tier),
+      sourceKey === undefined ? null : t(sourceKey),
+      until === null
+        ? t("admin.listings.level.noEnd")
+        : t("admin.listings.level.until").replace("{date}", day(until)),
+    ]
+      .filter((part) => part !== null)
+      .join(" · ");
+  };
   const categoryName = (id: unknown) => {
     if (typeof id !== "string") return "—";
     const node = tree.byId.get(id);
@@ -351,10 +371,16 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
-  const runTier = async (guard: GuardFn, tier: string, reason: string, note: string) => {
+  const runTier = async (
+    guard: GuardFn,
+    tier: string,
+    reason: string,
+    note: string,
+    days: number | null,
+  ) => {
     setBusy(true);
     setRefusal(null);
-    const outcome = await changeListingTier(guard, listingId, tier, reason, note);
+    const outcome = await changeListingTier(guard, listingId, tier, reason, note, days);
     setBusy(false);
     // A cancelled second factor leaves the dialog open, as it was.
     if (!outcome.ok) {
@@ -438,7 +464,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               >
                 {statusLabel(listing.status)}
               </Badge>
-              {listing.tier !== "regular" ? (
+              {listing.tier !== null && listing.tier !== "regular" ? (
                 <Badge variant="info" data-testid="listing-tier">
                   {tierLabel(listing.tier)}
                 </Badge>
@@ -708,7 +734,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                   <Fact
                     testid="listing-fact-tier"
                     label={t("admin.listings.filter.tier")}
-                    value={tierLabel(listing.tier)}
+                    value={levelLine(listing.tier, listing.tierSource, listing.tierUntil)}
                   />
                   <Fact
                     testid="listing-fact-created"
@@ -877,7 +903,9 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                 setTiering(false);
                 setRefusal(null);
               }}
-              onConfirm={(tier, reason, note) => void runTier(guard, tier, reason, note)}
+              onConfirm={(tier, reason, note, days) =>
+                void runTier(guard, tier, reason, note, days)
+              }
             />
           ) : null}
           {undoing !== null ? (

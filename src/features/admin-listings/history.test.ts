@@ -105,7 +105,8 @@ describe("listing history (turn L3)", () => {
       id: "l1",
       status: "active",
       photoCount: 2,
-      tier: "regular",
+      // P-2 (b) — an absent level is absent (the screen names it), never "regular".
+      tier: null,
     });
     expect(detail.seller).toMatchObject({ id: "s1", alias: "selam", email: null });
     expect(detail.channels).toEqual({

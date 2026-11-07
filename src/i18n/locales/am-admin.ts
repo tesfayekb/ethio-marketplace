@@ -348,8 +348,6 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.listings.tier.regular": "መደበኛ",
   "admin.listings.action.tier": "ደረጃ አስቀምጥ",
   "admin.listings.tier.title": "የማስታወቂያውን ደረጃ አስቀምጥ",
-  "admin.listings.tier.hint":
-    "ፕሪሚየም ማስታወቂያዎች በዝርዝሩ መጀመሪያ ይታያሉ፣ የተለዩ ማስታወቂያዎች ይከተላሉ፤ መደበኛ ነጻው መልክ ነው። ደረጃው ሠራተኞች እስኪቀይሩት ወይም ማስታወቂያው እስኪወገድ ድረስ ይቆያል።",
   "admin.listings.tier.done": "ደረጃው ወደ {tier} ተቀይሯል።",
   "admin.listings.tier.error.same": "ማስታወቂያው አስቀድሞ ይህ ደረጃ አለው።",
   "admin.listings.tier.error.removed": "የተወገደ ማስታወቂያ ደረጃ አይቀበልም።",
