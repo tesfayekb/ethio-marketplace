@@ -339,6 +339,53 @@ free plan. `my-listings-doors.spec.ts:1194`'s over-plan edit is still refused
 `coverageExceedsPlan:city`. PW-82 reads `coverage_plans`' free row, which is unchanged. Any other
 red is a STOP into the chat.
 
+## CI on this push (ffcadd393, run 42385875615) — a STOP
+
+`ci-status.md` (two-step read: the commit is ffcadd3, this stop's):
+```
+- Commit: `ffcadd393a21de2b32ffbc1fff8523b4be25f91d` (short `ffcadd3`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-11-07T15:41:15Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42385875615
+```
+`gh pr checks 30`: every check passes except five.
+
+| Check | Red | Kind |
+| --- | --- | --- |
+| E2E preflight | "STAGING BEHIND: apply 20261107125401_0d1cd555-…sql to ethio-staging" | expected |
+| E2E (Playwright, ethio-staging) | the aggregate | expected |
+| Lane 5 | PP-7, PP-25, PW-29 on mobile-360 (applied 424/424, 151 passed, 3 failed, 1 flaky) | expected |
+| Lane 13 | PP-7, PP-25, PW-29 on desktop-1280 (applied 424/424, 142 passed, 3 failed) | expected |
+| Lane 11 | its backend never started | NOT expected: a STOP |
+
+Lane 11's red, from `local-backend-proof.md`:
+- `start failed in 20261106051700_c4e9a6d7-… stmt 15`
+- `duplicate key value violates unique constraint "languages_pkey"`
+- `Key (code)=(qc9) already exists`, at that file's proof INSERT of its two scratch languages
+  (its line 209).
+
+The cause is in the file's own proof:
+- Its two codes are independent draws of two hex digits,
+  `'q' || substr(…uuid…, 1, 2)` and `'q' || substr(…uuid…, 9, 2)` (lines 129–130). They are
+  equal one time in 256.
+- 20261106051900 (lines 212–213) draws its pair the same way.
+- Each run applies every migration on nineteen backends. A run therefore meets a collision about
+  one time in seven (1 − (255/256)^38).
+
+No migration of this turn is involved. The fifteen other lanes applied all 424, M-3b's six
+included. This turn's two scratch languages (parts 2 and 4) are one draw each, so they cannot
+collide with a twin.
+
+Rule 40 allows a re-run only for infrastructure, (b), or a cancelled run, (d); this red is a
+defect in a migration's proof, (e). Both files are applied migrations outside this turn's scope.
+I re-ran nothing and changed neither file. The supervisor's ruling decides the fix (and whether
+it is a migration-file edit or a later file's matter).
+
+Also read: the flake ledger has one line for OLS-1 (`one-line-slots.spec.ts`, mobile-360,
+"the switcher lists the public languages"), on this run, shard 5. It passed on retry. One line is
+below rule 40's three-in-seven-days threshold; I name it here because it reads the language list.
+This turn's proofs insert their scratch public language inside their rolled-back blocks only.
+
 ## The pairing lines (in order)
 
 apply a2a45734 → expect mark 20261107140000
