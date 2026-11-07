@@ -1,54 +1,54 @@
 # Local backend proof (non-gating)
 
-- Commit: `ba4f8cf7fcc168cdeee788f3d88b7bf0e920c5da`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42368715222
+- Commit: `9995901e2ead3e4b5260906e554bec2430aff892`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42372372981
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 972 | 63 | applied 418/418 | 206 | 0 | 0 | 70 | 276 |
-| email | 206 | 74 | applied 418/418 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 1089 | 75 | applied 418/418 | 168 | 0 | 0 | 6 | 174 |
-| 2 | 1296 | 75 | applied 418/418 | 190 | 0 | 0 | 1 | 191 |
-| 3 | 794 | 76 | applied 418/418 | 140 | 0 | 0 | 24 | 164 |
-| 4 | 931 | 76 | applied 418/418 | 178 | 0 | 0 | 2 | 180 |
-| 5 | 754 | 60 | applied 418/418 | 152 | 3 | 0 | 7 | 162 |
-| 6 | 896 | 65 | applied 418/418 | 189 | 0 | 0 | 1 | 190 |
-| 7 | 434 | 70 | applied 418/418 | 82 | 0 | 0 | 68 | 150 |
-| 8 | 738 | 75 | applied 418/418 | 124 | 0 | 0 | 51 | 175 |
-| 9 | 877 | 51 | applied 418/418 | 166 | 0 | 0 | 13 | 179 |
-| 10 | 1090 | 66 | applied 418/418 | 167 | 0 | 0 | 1 | 168 |
-| 11 | 950 | 77 | applied 418/418 | 139 | 0 | 0 | 36 | 175 |
-| 12 | 947 | 77 | applied 418/418 | 175 | 0 | 0 | 5 | 180 |
-| 13 | 835 | 74 | applied 418/418 | 142 | 3 | 0 | 17 | 162 |
-| 14 | 855 | 60 | applied 418/418 | 188 | 0 | 0 | 2 | 190 |
-| 15 | 403 | 62 | applied 418/418 | 96 | 0 | 0 | 62 | 158 |
-| 16 | 675 | 63 | applied 418/418 | 132 | 0 | 0 | 36 | 168 |
+| smoke | not run | 68 | not confirmed; backend failure | 0 | 0 | 0 | 0 | 0 |
+| email | 213 | 65 | applied 418/418 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 979 | 62 | applied 418/418 | 168 | 0 | 0 | 6 | 174 |
+| 2 | 1274 | 75 | applied 418/418 | 190 | 0 | 0 | 1 | 191 |
+| 3 | 694 | 61 | applied 418/418 | 140 | 0 | 0 | 24 | 164 |
+| 4 | 972 | 75 | applied 418/418 | 178 | 0 | 0 | 2 | 180 |
+| 5 | 883 | 75 | applied 418/418 | 152 | 3 | 0 | 7 | 162 |
+| 6 | 954 | 74 | applied 418/418 | 189 | 0 | 0 | 1 | 190 |
+| 7 | 450 | 74 | applied 418/418 | 82 | 0 | 0 | 68 | 150 |
+| 8 | 690 | 64 | applied 418/418 | 124 | 0 | 0 | 51 | 175 |
+| 9 | 968 | 61 | applied 418/418 | 166 | 0 | 0 | 13 | 179 |
+| 10 | 1228 | 78 | applied 418/418 | 167 | 0 | 0 | 1 | 168 |
+| 11 | 755 | 50 | applied 418/418 | 139 | 0 | 0 | 36 | 175 |
+| 12 | 883 | 60 | applied 418/418 | 175 | 0 | 0 | 5 | 180 |
+| 13 | 806 | 70 | applied 418/418 | 142 | 3 | 0 | 17 | 162 |
+| 14 | 984 | 75 | applied 418/418 | 188 | 0 | 0 | 2 | 190 |
+| 15 | 464 | 75 | applied 418/418 | 96 | 0 | 0 | 62 | 158 |
+| 16 | 662 | 61 | applied 418/418 | 132 | 0 | 0 | 36 | 168 |
 | repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2640 | 6 | 0 | 402 | 3048 |
+| TOTAL | — | — | — | 2434 | 6 | 0 | 332 | 2772 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 2 1296 s
+- Slowest lane: 2 1274 s
 - Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 7, email 9, 1 9, 2 9, 3 9, 4 9, 5 6, 6 7, 7 8, 8 9, 9 5, 10 7, 11 9, 12 9, 13 9, 14 6, 15 7, 16 7, repeat not run
+- Database session samples during each start (INC-944): smoke 8, email 7, 1 6, 2 9, 3 6, 4 9, 5 9, 6 9, 7 9, 8 7, 9 6, 10 9, 11 5, 12 6, 13 8, 14 9, 15 9, 16 7, repeat not run
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 42368715222-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 42368715222-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 42368715222-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 42368715222-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 42368715222-local-3
-  - 4: [e2e:teardown] deleted 40 user(s) owned by process 42368715222-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 42368715222-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 42368715222-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 42368715222-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 42368715222-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 42368715222-local-9
-  - 10: [e2e:teardown] deleted 4 user(s) owned by process 42368715222-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 42368715222-local-11
-  - 12: [e2e:teardown] deleted 40 user(s) owned by process 42368715222-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 42368715222-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 42368715222-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 42368715222-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 42368715222-local-16
+  - smoke: not found
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 42372372981-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 42372372981-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 42372372981-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 42372372981-local-3
+  - 4: [e2e:teardown] deleted 40 user(s) owned by process 42372372981-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 42372372981-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 42372372981-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 42372372981-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 42372372981-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 42372372981-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 42372372981-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 42372372981-local-11
+  - 12: [e2e:teardown] deleted 40 user(s) owned by process 42372372981-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 42372372981-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 42372372981-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 42372372981-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 42372372981-local-16
   - repeat: not found
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
@@ -63,8 +63,7 @@
 - fixture 20260927045939: home country ET for the three plain accounts
 - fixture 20260929201600: the sub-city Bole under Addis Ababa
 - Parity:
-RLS on 91 of 91 public tables
-Default grants in public: postgres | f | {postgres=X/postgres}; postgres | r | {postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}; postgres | S | {postgres=rwU/postgres,service_role=rwU/postgres}; supabase_admin | f | {postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}; supabase_admin | r | {postgres=arwdDxtm/supabase_admin,anon=arwdDxtm/supabase_admin,authenticated=arwdDxtm/supabase_admin,service_role=arwdDxtm/supabase_admin}; supabase_admin | S | {postgres=rwU/supabase_admin,anon=rwU/supabase_admin,authenticated=rwU/supabase_admin,service_role=rwU/supabase_admin}
+not written
 - Status:
 certutil: present
 Status variables: ANON_KEY, API_URL, DB_URL, GRAPHQL_URL, INBUCKET_URL, JWT_SECRET, MAILPIT_URL, PUBLISHABLE_KEY, REST_URL, S3_PROTOCOL_ACCESS_KEY_ID, S3_PROTOCOL_ACCESS_KEY_SECRET, S3_PROTOCOL_REGION, SECRET_KEY, SERVICE_ROLE_KEY, STORAGE_S3_URL
@@ -72,8 +71,80 @@ Keys used: ANON_KEY, SERVICE_ROLE_KEY
 API: https://127.0.0.1:31321 (per-run certificate authority)
 Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
-Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
-Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
+
+## Lane smoke
+- Step failure:
+start failed in 20261106051900_a9d4c7e2-1b8f-4e3a-b6d5-0c7f9e1a3b05 stmt 18; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+Step backend: outcome failure
+  ::add-mask::[masked]
+  ::add-mask::[masked]
+- No JSON results; smoke skipped
+
+## Lane smoke
+## Migration/start failure
+Last migration line: Applying migration 20261106051900_a9d4c7e2-1b8f-4e3a-b6d5-0c7f9e1a3b05.sql...
+Cause:
+```text
+ERROR: duplicate key value violates unique constraint "languages_pkey" (SQLSTATE 23505)
+```
+Server record (DEC-340, stream):
+```text
+172.18.0.1 2026-11-07 12:27:36.261 UTC [274] postgres@postgres ERROR:  duplicate key value violates unique constraint "languages_pkey"
+172.18.0.1 2026-11-07 12:27:36.261 UTC [274] postgres@postgres DETAIL:  Key (code)=(q95) already exists.
+172.18.0.1 2026-11-07 12:27:36.261 UTC [274] postgres@postgres CONTEXT:  SQL statement "INSERT INTO public.languages (code, name_en, name_native, enabled_admin, enabled_public, sort)
+	    VALUES (v_lang_on, v_tag || ' on', v_tag, true, true, 9001), (v_lang_off, v_tag || ' off', v_tag, true, false, 9002)"
+	PL/pgSQL function inline_code_block line 57 at SQL statement
+172.18.0.1 2026-11-07 12:27:36.261 UTC [274] postgres@postgres STATEMENT:  -- ------------------------------------------------------------ 4. PROOFS
+(189 statement lines dropped)
+```
+Statement:
+```text
+At statement: 18
+-- ------------------------------------------------------------ 4. PROOFS
+-- (a) catalog facts: the three headers (VOLATILE, definer, search_path), their grants as restated (authenticated
+--     EXECUTE, service_role, never anon or PUBLIC), the new bodies' md5s, the two return types now jsonb.
+-- (b) user_set_preferred_language: a published scratch language is set ({ok:true, language}, the profile and an
+--     audit row {new}, the dial counted once); an unpublished one is refused languageNotPublished at 400 with
+--     the profile unchanged, the dial counted (INC-844) and a door_refusals row; a deactivated caller is refused
+--     accountDeactivated at 403 with no count.
+-- (c) remove_own_password: without a fresh proof → P0009 (recent sign-in required) propagates unchanged and, being
+--     a RAISE, leaves no count; a scratch user with only the email identity → lastSignInMethod at 400, the
+--     password kept, the dial counted, a door_refusals row; a scratch user with a password, a non-email identity
+(170 lines omitted)
+
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'f1a5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'f1a5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+```
+Last 20 lines:
+```text
+    END IF;
+
+    PERFORM set_config('request.jwt.claims', '{}', true);
+    RAISE EXCEPTION 'f1a5-proof-ok';
+  EXCEPTION WHEN raise_exception THEN
+    GET STACKED DIAGNOSTICS v_msg = MESSAGE_TEXT;
+    IF v_msg <> 'f1a5-proof-ok' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('request.jwt.claims', '{}', true);
+END;
+$proof$
+Try rerunning the command with --debug to troubleshoot the error.
+Database sessions at the last sample (INC-944; time | pid | application | backend | state | wait | query):
+12:27:35 | 274 | @effect/sql-pg | client backend | active | : | -- ------------------------------------------------------------ 5. PROOFS -- (a) catalog facts: three functions VOLATILE
+12:27:35 | 208 | pg_cron scheduler | pg_cron launcher |  | Extension:Extension | 
+12:27:35 | 209 |  | logical replication launcher |  | Activity:LogicalLauncherMain | 
+12:27:35 | 202 |  | checkpointer |  | Activity:CheckpointerMain | 
+12:27:35 | 203 |  | background writer |  | Activity:BgwriterMain | 
+12:27:35 | 205 |  | walwriter |  | Activity:WalWriterMain | 
+start failed in 20261106051900_a9d4c7e2-1b8f-4e3a-b6d5-0c7f9e1a3b05 stmt 18; cron jobs: 0 (scheduler present); appliers: 1; autovacuum: 0; other sessions: 0
+```
 
 ## Lane 5
 - Step failure:
