@@ -7541,26 +7541,6 @@
       "/post",
       "/post/$listingId"
     ],
-    "post.review.priceLine": [
-      "(every page)",
-      "/",
-      "/$name",
-      "/account/saved",
-      "/admin/impersonation/$sessionId",
-      "/admin/listings",
-      "/admin/listings/$listingId",
-      "/admin/listings/$listingId/edit",
-      "/admin/screening",
-      "/c/$slug",
-      "/dev/style",
-      "/l/$id/photo[/]jpg",
-      "/l/$slug",
-      "/my-listings",
-      "/my-listings/$listingId",
-      "/my-listings/$listingId/edit",
-      "/post",
-      "/post/$listingId"
-    ],
     "post.review.pricePer": [
       "(every page)",
       "/",
