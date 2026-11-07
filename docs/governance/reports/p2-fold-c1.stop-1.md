@@ -92,8 +92,10 @@ catalogue's levels and reach rows.
 
 ## Part 2 — an ad's photo cap
 
-- Name: `supabase/migrations/20261107111341_76d13245-a10b-406d-adaa-568460f6c1a2.sql` (18 698 bytes)
-- sha256: `92b9e9c729bf037904a2d24a9829a27de17de94ef424156588621ee49879524b`
+- Name: `supabase/migrations/20261107111341_76d13245-a10b-406d-adaa-568460f6c1a2.sql` (18 638 bytes; 18 698
+  before ruling 2)
+- sha256: `a8dc7f3e8d65a474f229d11ff3ff9f64716a6d225249b39ccb2e38c5f39b73e3` (before ruling 2:
+  `92b9e9c729bf037904a2d24a9829a27de17de94ef424156588621ee49879524b`)
 - Mark: `20261107120100` (above part 1's, later than the file's stamp)
 - Pre-check: the mark `20261107120000` (part 1).
 - Creates: `public.listing_photo_cap(p_listing uuid) RETURNS integer`: sql, STABLE, INVOKER,
@@ -127,8 +129,8 @@ catalogue's levels and reach rows.
 - (c) the cap, on a scratch level (3 photos) with an XZ override (2):
   - an ad at that level with no place: 3 (the level row);
   - one placed in an XZ city: 2 (the override);
-  - an ad inserted without a tier: the baseline, which equals `level_perks_for`, the baseline
-    row's `max_photos`, and 4 (D311);
+  - an ad inserted without a tier: the baseline, which equals `level_perks_for` and the baseline
+    row's `max_photos` (D311; the real row's number is not named, ruling 2);
   - an unknown ad: NULL;
   - the scratch level switched off: NULL.
 - (d) the door, as the photo route calls it (no caller): three photos are taken under a cap of 3;
@@ -154,10 +156,10 @@ catalogue's levels and reach rows.
 - The md5 reverts were also checked outside the database: a script on each file put the fragment
   back and hashed the body. Each fragment occurs once, and both answered MD5 OK.
 - `bun run db:proof --fresh` (last line, final tree): `db:proof PASS — applied 418/418, CLI
-  2.120.0, cold, 53 s`.
-- A positive control (not committed): with part 2's D311 expectation changed to 5, `db:proof
-  --fresh` failed in that proof with "a baseline ad's cap is not the baseline row's 4 (D311): 4".
-  The file was put back (sha256 matched the copy) and the run above is on the restored files.
+  2.120.0, cold, 50 s` (after ruling 2; the run before it, 53 s, was on the earlier text).
+- A positive control (not committed), before ruling 2: with part 2's literal expectation changed
+  to 5, `db:proof --fresh` failed in that proof, which showed the block runs. Ruling 2 removed
+  that clause.
 - `bunx vitest run scripts --maxWorkers=2`: 491 passed, 1 failed — NH-6
   (`scripts/ci/nightly-hour.test.ts`), the known macOS limit (BSD `date` ignores `TZDIR`; p2-level-
   reach ruling 2 §6). It reads none of this turn's files; CI's Linux runners pass it.
@@ -221,14 +223,40 @@ expected.
 
 ## Risk at the apply
 
-Part 2's proof expects the baseline row's cap to be 4 (D311). If ethio-staging's baseline level
-row, or a global override for it, has been edited away from 4, the apply stops in that proof and
-says so. That is a finding; the file needs no change.
+Dissolved by ruling 2: part 2's proof no longer names the real baseline row's number (see the
+addendum).
 
 ## Finding
 
 - NH-6 (`scripts/ci/nightly-hour.test.ts:99`) cannot pass on macOS; pre-existing, outside scope,
   already ruled.
+
+## Addendum — ruling 2 (part 2's proof (c), one clause out)
+
+Part 2's proof (c) named a real row's value as an expectation (`OR public.listing_photo_cap(v_c)
+IS DISTINCT FROM 4`), which G27 bans. That clause is removed. The two clauses above it remain: the
+baseline ad's cap equals `level_perks_for(v_base, v_cat, NULL)` and the baseline row's
+`max_photos`. The message now reads "a baseline ad's cap is not the baseline row's max_photos: %".
+One comment in the proof's header, at line 131, also lost its "D311: 4" so that it describes what
+the proof checks. Part 1 is unchanged.
+
+The schema statements are byte-identical. The diff is empty, exit 0:
+
+```
+$ diff <(sed '/^DO \$proof\$/,/^\$proof\$;/d; /^--/d' /tmp/p2c1/part2.before.sql) \
+       <(sed '/^DO \$proof\$/,/^\$proof\$;/d; /^--/d' supabase/migrations/20261107111341_76d13245-a10b-406d-adaa-568460f6c1a2.sql)
+$ echo $?
+0
+```
+
+(`/tmp/p2c1/part2.before.sql` is the file at ff0786cc0.) The whole-file diff is the comment line
+(131) and the clause with its message (249–251 → 249–250). After the edit:
+- the md5 revert still answers MD5 OK, and the fragment occurs once;
+- `bash scripts/check-migrations.sh`: all six guard lines are OK, as above;
+- `bun run db:proof --fresh`: `db:proof PASS — applied 418/418, CLI 2.120.0, cold, 50 s`.
+
+The expected reds on the next run are unchanged: the preflight (STAGING BEHIND), and PP-7, PP-25
+and PW-29 on both projects. Any other red is a STOP into the chat.
 
 ## The pairing lines (in order)
 
