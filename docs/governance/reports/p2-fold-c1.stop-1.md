@@ -195,6 +195,30 @@ in step 3, after the types patch:
 A suggestion: after M-3a's types patch, moving `photo.ts` and PP-7 / PP-25 / PW-29 before M-3b
 would shorten the time these tests stay red.
 
+## CI on the push (d59139c30, run 42368715222)
+
+ci-evidence `ci-status.md`: commit `d59139c30d7684ad7485fbb09c71463fdafa7ab4`, **FAILURE**, completed
+2026-11-07T12:00:36Z. Jobs: 32 success, 1 skipped, 4 failure. The four reds are exactly the ones
+expected above. Their server record names `/api/upload/photo`, a route this turn has not changed;
+their cause is this turn's part 2, as predicted, and the turn is already at this stop.
+- E2E preflight (migration parity, staging): "STAGING BEHIND: apply
+  20261107111341_76d13245-a10b-406d-adaa-568460f6c1a2.sql to ethio-staging before E2E can pass".
+- Lane 5 and Lane 13 on temporary Supabase (the backend built from every migration, these two
+  included); `e2e-last-failure.md`: Passed 2640, Skipped 402, Failed 6, all gating, 0 flaky:
+  - PP-7, both projects: "upload 5: {"ok":false,"refusals":[{"field":"door","reason":"tooManyPhotos:4"}]}"
+    (`e2e/photo-pipeline.spec.ts:298`);
+  - PP-25, both projects: the same answer at upload 5 (`e2e/photo-pipeline.spec.ts:1486`);
+  - PW-29, both projects: the caption read "0 of 4" where the test expects coverage_plans' free
+    cap (`e2e/post-wizard-category.spec.ts:1295`).
+  The server census's one line off the allowlist is the same: `tooManyPhotos:<n>` ×8 (shards 5
+  and 13, `[ssr-error] /api/upload/photo tooManyPhotos:4`).
+- E2E (Playwright, ethio-staging): the aggregate, "E2E failed — see docs/tracking/e2e-last-failure.md".
+
+Every red shows the door answering D311's baseline cap of 4: the authority moved as built, and
+the route and the three tests still expect the free plan's 10. They move in step 3. This section
+is a commit of its own after the push, so its own push starts one more run, with the same reds
+expected.
+
 ## Risk at the apply
 
 Part 2's proof expects the baseline row's cap to be 4 (D311). If ethio-staging's baseline level
