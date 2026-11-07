@@ -1,7 +1,7 @@
 # P-2 — turn (b): Promote, the seller's level sheet and the staff Days field — report
 
-Base: 7acae2b4d · Final commit: 5e66f3398 · Brief: docs/governance/briefs/p2-promote.md (sha256 65d9bf40dabdeccf77e99d5a5b7737a88cbf9fddc29aa3d8a6eb3e00a10a0dec)
-Review: READY · 0 BLOCKER · 0 MAJOR · 3 MINOR · on 5e66f33
+Base: 7acae2b4d · Final commit: 68bec0dcd · Brief: docs/governance/briefs/p2-promote.md (sha256 65d9bf40dabdeccf77e99d5a5b7737a88cbf9fddc29aa3d8a6eb3e00a10a0dec)
+Review: READY · 0 BLOCKER · 0 MAJOR · 2 MINOR · on 68bec0d
 
 Rulings in force, each saved byte for byte (sha256 of the fenced text):
 `p2-promote-ruling-1.md` e8d5ae137f12b8d575effd4cdccf3139439e45c3f8d9d53c316a2ed392d5cd6a ·
@@ -32,8 +32,10 @@ ruling 2 (pasted in the chat; the migration stop closed, the types patch, the te
   - `wholeNumber` a leaf in `src/lib` (`391d008ef`, ruling 4 Q1); `/auth`'s ceiling by DEC-296's
     NEAR band (`5e9a14ebb`); the i18n maps after the new file (`29f688c26`);
   - at the self-review, LVP-3's seven days read from the door's own audit stamp instead of this
-    computer's clock (`5e66f3398`, INC-1075's class; FINDINGS).
-- THE CHECKS whole (twice; section 5), the browser check (section 5), the self-review (the line
+    computer's clock (`5e66f3398`, INC-1075's class; FINDINGS);
+  - ruling 5 (pasted in the chat, not saved — it widens no scope): `moneyText` keeps the digits'
+    own spaces, FMT-13 (`68bec0dcd`); its records below.
+- THE CHECKS whole (section 5), the browser check (section 5), the self-review (the line
   above), this report.
 - Not done: the brief's LVP-3 (Resume) and LVP-5 (the level line as its own test) — ruling 1 E12
   dropped LVP-3 (FSL-3 is the test) and renumbered LVP-1…4 contiguously; the level line is LVP-4.
@@ -140,9 +142,9 @@ i18n maps, the two `scripts/conformance/*-allowlist.txt` files).
 | `tierProblem(...)` | `(tier, current, reason, note)` | `(tier, current: string \| null, reason, note, days: string)` — the field's text, read by `wholeNumber` |
 | `use-admin-listing.ts` / `use-admin-listings.ts` | `tier: String(l["tier"] ?? "regular")` | `tier: string \| null` (the typed absence), with `tierSource`, `tierUntil` on the detail |
 | `DOOR_CODES` | F1's codes | plus the family's 13 (`listingNotFound … noFreeSlot`) |
-| `moneyText(amount, currency, language, intent?)` | absent | `src/lib/format.ts`: the amount by intent, a space, the currency (none when blank) |
-| `priceLine`, fixed price | `fill(t("post.review.priceLine"), {amount, currency, period: ""})` collapsed | `moneyText(amount, currency, language)` — byte-equal for every language (ruling 3 Q1) |
-| Product prices table, the amount cell | `` `${number.format(row.amount)} ${row.currency}` `` | `moneyText(row.amount, row.currency, language, "exact")` — equal in English and Amharic; a language whose number grouping uses a (narrow) no-break space now prints a plain space (MINOR, below) |
+| `moneyText(amount, currency, language, intent?)` | absent | `src/lib/format.ts`: the amount by intent with its own spaces kept, a plain space, the currency; trimmed, so a blank currency gives the amount alone |
+| `priceLine`, fixed price | `fill(t("post.review.priceLine"), {amount, currency, period: ""})` collapsed | `moneyText(amount, currency, language)` — byte-equal in English and Amharic (ruling 3 Q1); in a language whose grouping is a no-break or narrow no-break space, the number's own space is now kept where the template's collapse made it a breaking one (ruling 5, FMT-13) |
+| Product prices table, the amount cell | `` `${number.format(row.amount)} ${row.currency}` `` | `moneyText(row.amount, row.currency, language, "exact")` — byte-equal for every language: the number's own spaces (a no-break or narrow no-break group separator) are kept since ruling 5 |
 | `wholeNumber` | `monetisation-forms.ts:35-39` | `src/lib/whole-number.ts`, byte for byte; every caller imports it there |
 | The buyer's page `/l/$slug` | — | nothing new on screen; its first download +125 B (the turn's shared bytes, section "Budgets") |
 
@@ -174,6 +176,15 @@ Nothing else differs: the census for each row is in stops 1 and 3 and section 4.
 Added:
 - `promote-sheet.test.tsx` PMS-1…6; `promote-service.test.ts` PMV-1…6; `use-admin-listing.test.ts`
   ALV-1…2 (new file); `whole-number.test.ts` WN-1 (MNF-1's five expectations, moved — ruling 4).
+- FMT-13 (ruling 5): `moneyText(1500, "XTS", "fr")` equals `` `${formatNumber(1500, "fr")} XTS` ``
+  and contains U+202F (the narrow no-break space Intl prints for French grouping); `moneyText(1500,
+  "XTS", "en")` is still "1,500 XTS". Red-first on the old text (`bunx vitest run
+  src/lib/format.test.ts -t FMT-13` before the fix): `Expected: "1 500 XTS"`, `Received: "1 500
+  XTS"` (U+202F made a plain space), `Tests  1 failed | 9 skipped (10)`; after the fix
+  `format.test.ts`, `price-line.test.ts`, `own-key-sites.test.ts`, `promote-sheet.test.tsx` and the
+  admin-monetisation tests: `Test Files  8 passed (8)`, `Tests  59 passed (59)`. Census `rg -n
+  "moneyText\(" src e2e`: the three callers (`promote-sheet.tsx:132`, `price-line.ts:64`,
+  `product-prices-table.tsx:102`) pass the text through; none depends on the collapse.
 - CLT-5, TD-6, TD-7, TIR-7, ML-U28, DRC-6, FMT-12, and in `price-line.test.ts` "the amount alone is
   the one money formatter's text in every language (DEC-349)".
 - `e2e/my-listings-promote.spec.ts` LVP-1…4 (ruling 1 E12: the brief's LVP-3 dropped for FSL-3,
@@ -195,31 +206,32 @@ Changed shape (each listed):
   `now()`: `audit_log.created_at DEFAULT now()`, the door's `v_until := now() + make_interval(days =>
   p_days)`). A tighter assertion, no longer on this computer's clock.
 
-Red-first: none asked; no defect fixed by a test. Behaviour moves (`wholeNumber`) are proven by the
-moved test.
+Red-first: FMT-13 (above); no other defect fixed by a test. Behaviour moves (`wholeNumber`) are
+proven by the moved test.
 
-Unit totals (THE CHECKS' component tests, the whole tree): `Tests  1 failed | 2803 passed (2804)` —
+Unit totals (THE CHECKS' component tests, the whole tree): `Tests  1 failed | 2804 passed (2805)` —
 the one is NH-6 (section 12). The laws: `Tests  1 failed | 491 passed (492)` — NH-6.
 
 `bun run typecheck`: `tsc --noEmit`, exit 0.
 
-THE CHECKS (`bun run checks`, whole, on the final code tree 5e66f3398), fast line and last line:
+THE CHECKS (`bun run checks`, whole, on the final code tree 68bec0dcd), fast line and last line:
 
 ```
-checks (fast): 17 PASS · 4 FAIL · 292s — laws-first, build-and-check, component-tests, secrets-scan, migration-lint, i18n-usage-map, string-scan, import-gate, listing-write-seam, browse-path-guard, marketplace-weight, dependency-audit, e2e-preflight, e2e, promote; slow steps follow (build, budget, semgrep)
-checks: 24 PASS · 4 FAIL · 30 NOT RUN · 350s
+checks (fast): 17 PASS · 4 FAIL · 288s — laws-first, build-and-check, component-tests, secrets-scan, migration-lint, i18n-usage-map, string-scan, import-gate, listing-write-seam, browse-path-guard, marketplace-weight, dependency-audit, e2e-preflight, e2e, promote; slow steps follow (build, budget, semgrep)
+checks: 24 PASS · 4 FAIL · 30 NOT RUN · 354s
 ```
 
 Earlier whole runs: on 5e9a14ebb `checks: 23 PASS · 5 FAIL · 30 NOT RUN · 360s` — its fifth FAIL,
 the i18n map's drift (`"scanned": 681 → 682`, the new `whole-number.ts`), fixed in 29f688c26; on
-29f688c26 `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 346s`; then the self-review's spec fix
-(5e66f3398) and the run above. The four FAILs that stand are this computer's, each read in its log:
+29f688c26 `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 346s`; on 5e66f3398 (the self-review's spec
+fix) `checks: 24 PASS · 4 FAIL · 30 NOT RUN · 350s`; then ruling 5's fix (68bec0dcd) and the run
+above. The four FAILs that stand are this computer's, each read in its log:
 - laws-first › scripts/ tests first and component-tests — NH-6 alone (section 12);
 - build-and-check › Workflow lint and secrets-scan — the pinned actionlint and gitleaks are Linux
   x86-64 builds (`file` reads "ELF 64-bit LSB executable, x86-64"), which cannot execute on this
   arm64 Mac; CI judges both.
 
-Run by hand behind the actionlint FAIL, on 29f688c26 and again on 5e66f3398, all exit 0:
+Run by hand behind the actionlint FAIL, on 29f688c26, 5e66f3398 and 68bec0dcd, all exit 0:
 `bun run format:check` ("All matched files use
 Prettier code style!"); `bun run lint` (0 errors, 46 warnings, none in a file this turn changed);
 `bun run scripts/e2e-select.ts --self-test` ("every spec is reachable; every area glob matches");
@@ -291,6 +303,10 @@ Added by rulings 3 and 4:
   build.modulePreload.resolveDependencies + a closure-map plugin), judged on every page's first
   download (at or under its reading; DEC-296's ratchet where 8 KiB under) with the E2E suite green;
   second occurrence of the class after P-1c b's Guide sheet (route-budgets.mjs rows 28–33)".
+
+Added by ruling 5: "moneyText joins the amount and the currency with a plain space; CLDR's currency
+patterns use a no-break space — decide by a DEC in a strings turn (every money text at once; tests
+that read the text follow)".
 
 Found at the self-review: two number reads beside `wholeNumber` —
 `src/features/admin-countries/country-dialogs.tsx:172` `numberOrZero` (a sentinel 0) and
@@ -392,6 +408,9 @@ maps regenerated (`bun run i18n:usage`, 1874 keys, 682 files scanned).
   G5); the readings stand with their causes (section "Budgets").
 - `/auth`'s ceiling 230 → 231: inside DEC-296's NEAR band after ruling 4's fix, moved by
   `ceilingForLocal` with its cause as ruling 4 Q1 directs.
+- Ruling 5 (after the pull request's green run on 3207e3b5f): MINOR 1 fixed in the mechanism
+  (`moneyText` keeps the digits' own spaces, FMT-13); MINOR 2 recorded as INC-1077; INC-1076
+  recorded. Not saved to the repository (it widens no scope).
 - `docs/_changelog.md` and `docs/governance/mechanisms.md` are not edited (the brief's STEP 0,
   DEC-346): their lines are in Records.
 
@@ -411,6 +430,9 @@ maps regenerated (`bun run i18n:usage`, 1874 keys, 682 files scanned).
   - 016cfe272 — one red, the bundle budget (the same three pages; `391d008ef`, and `/auth`'s NEAR
     band in `5e9a14ebb`). Every E2E lane passed there, MLP-6 with its new list and MON-11 / MON-17
     included; e2e-last-failure.md: "last E2E run 42350853426 passed", flaky 0.
+  - 3207e3b5f — every check green (41 pass, promote-to-main skipping on a pull request); ci-status.md
+    "Commit: `3207e3b5fcd7eea8a45b6fa0db3118b3c4cde007` … Conclusion: **SUCCESS**", run
+    42355237856; "last E2E run 42355237856 passed", flaky 0. Ruling 5's commit follows it.
 - No re-run by me.
 
 ## 12. Limits
@@ -459,7 +481,7 @@ maps regenerated (`bun run i18n:usage`, 1874 keys, 682 files scanned).
   in `src/lib`. Retired keys: `admin.listings.tier.hint` (P2b-a) and `post.review.priceLine`."
 - **Register row — the money formatter**: concern "an amount of money shown to a person" →
   mechanism `moneyText` (`src/lib/format.ts`: the amount by intent through `formatNumber`, one
-  space, the currency) → guard: FMT-12 and the K1 rule → consumers: `product-prices-table.tsx`,
+  space, the currency) → guard: FMT-12, FMT-13 and the K1 rule → consumers: `product-prices-table.tsx`,
   `price-line.ts`, `promote-sheet.tsx` → "the order is a product constant in format.ts, per-language
   only in its digits; post.review.priceLine, the form's second home, retired in P-2 (b);
   post.review.pricePer still carries {amount} {currency} as separate placeholders — K2".
@@ -479,17 +501,37 @@ maps regenerated (`bun run i18n:usage`, 1874 keys, 682 files scanned).
   +1.4 KiB (the seller pages: the preload list ~1.1 of it); the 31 pages' +0.1–0.3 KiB = moneyText
   79 B + the entry's 38 B." The final tree's readings (section "Budgets"): +0.81 KiB, and +1.35 /
   +1.48 KiB on the seller pages; the entry's closure +47 B.
+- **INC-1076** (ruling 5 §3, in its words): "docs/governance/briefs/p2-promote-ruling-3.md and -4.md
+  hold the rulings' words exactly (verified by the supervisor) but not their Markdown — the
+  backticks around code names, the numbered-list and bullet marks and the blank lines are gone,
+  because the text was copied from the rendered chat. Class: a ruling that must be saved travels as
+  a FILE the operator attaches, and is copied from the file by script (as briefs are), never from
+  the chat; the supervisor sends them so from now on. Fix: the records turn R13 replaces both files
+  with the supervisor's byte-exact copies (sha256 10d25113… and 90d75eea…). Nothing for you to
+  change in this turn."
+- **INC-1077** (ruling 5 §2, in its words): "tier-reasons.ts:51 BASELINE_TIER = "regular" mirrors
+  the door's baseline rule on the client (the level row's is_baseline is the truth: migration
+  20261104124957); INC-1074's class (a client re-deriving a door's rule), second occurrence → the
+  class rule stands: a screen reads the baseline from the rows the door reads (is_baseline), never
+  from a literal. Fix: P-2 turn (c), with DEC-331's tier-word fold (the census of "regular" literals
+  in src — card-tier.ts, feed-page.ts, ranking.ts, tier-reasons.ts TIERS, use-admin-listings.ts
+  LISTING_TIERS, listings-page.tsx:220, listing-page.tsx:467, app-shell.tsx:754 — is that turn's)."
+- **K2 (ruling 5)**: "moneyText joins the amount and the currency with a plain space; CLDR's
+  currency patterns use a no-break space — decide by a DEC in a strings turn (every money text at
+  once; tests that read the text follow)".
 
 ## FINDINGS
 
-- The self-review's three MINORs:
-  1. `moneyText` collapses whitespace, so in a language staff add whose number grouping uses a
-     (narrow) no-break space the prices table now prints a plain space, which may wrap inside a
-     number (`src/lib/format.ts`, `moneyText`). English and Amharic are byte-equal. It is
-     `priceLine`'s existing behaviour, which ruling 1 E6 made the one form.
+- The self-review's MINORs (three found; two stand after ruling 5):
+  1. `moneyText` collapsed whitespace, so in a language staff add whose number grouping uses a
+     (narrow) no-break space the prices table printed a plain space, which may wrap inside a
+     number (`src/lib/format.ts`, `moneyText`). English and Amharic were byte-equal. It was
+     `priceLine`'s existing behaviour, which ruling 1 E6 made the one form. Fixed in 68bec0dcd
+     (ruling 5): the collapse is gone, FMT-13 proves the number's own space is kept.
   2. `tier-reasons.ts:51` `BASELINE_TIER = "regular"` mirrors the door's baseline rule on the client
      to refuse Days at the field (the door refuses too). It is INC-1074's class on the staff side:
-     a renamed baseline would make the field's refusal wrong while the door stays right.
+     a renamed baseline would make the field's refusal wrong while the door stays right. Recorded
+     as INC-1077 (ruling 5); fixed in P-2 turn (c).
   3. The PMS and PMV fixtures are authored from the migration's declared shape. Rule 10 says
      fixtures are captured; LVP-1…4 prove the real answer (section 12).
 - Fixed at the self-review (not counted above): LVP-3 compared the door's `tier_until` with this
@@ -597,6 +639,12 @@ The buyer's page `/l/$slug`: +125 B (`moneyText` and the entry's preload table; 
 **The base-layer drop** (ruling 3): `post.review.priceLine` leaving the English and Amharic base
 strings takes 11 B from `provider` on every page and 25 B from `use-price-unit-labels` on the pages
 that carry the price line; no page reads lower overall, because the growth above is larger.
+
+**After ruling 5** (`moneyText` one expression shorter): the repository's check on 68bec0dcd
+("Bundle budget OK", 0 NEAR) against its reading on the post-ruling-4 tree: ten pages 0.1 KiB
+lower (`/`, `/admin/ai`, `/admin/attributes`, `/admin/listings` 349.5, `/admin/roles_/$roleId`,
+`/c/$slug`, `/l/$slug` 262.0, `/legal/publishing`, `/post`, `/settings` 283.2), the rest
+unchanged, none higher.
 
 **Ceilings**: one moves — `/auth` 230 → 231 (`ceilingForLocal(229.7)`; DEC-296's NEAR band after
 ruling 4's fix; the cause on its line in `scripts/route-budgets.mjs`). No other ceiling moves.
