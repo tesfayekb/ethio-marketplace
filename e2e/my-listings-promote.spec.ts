@@ -54,10 +54,20 @@ function token(): string {
     .replace(/[0-9]/g, (digit) => "abcdefghij"[Number(digit)] ?? "x");
 }
 
-function expectAbout(value: unknown, expected: number, label: string) {
-  expect(value, label).not.toBeNull();
-  const diff = Math.abs(new Date(String(value)).getTime() - expected);
-  expect(diff, label).toBeLessThanOrEqual(2 * MINUTE);
+/** When the door's write ran, by the server's clock: its audit row's stamp (INC-1075). */
+async function tierWrittenAt(listingId: string): Promise<number> {
+  const { data, error } = await adminClient()
+    .from("audit_log")
+    .select("created_at")
+    .eq("entity_type", "listing")
+    .eq("entity_id", listingId)
+    .eq("action", "listing.admin_tier")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`${TAG} audit read failed: ${error.message}`);
+  if (!data) throw new Error(`${TAG} no listing.admin_tier audit row for ${listingId}`);
+  return new Date(data.created_at).getTime();
 }
 
 const DESIGNATION = "status,tier,tier_until,tier_source,expires_at";
@@ -441,7 +451,11 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     );
     const timedRow = await truth(timed);
     expect(timedRow).toMatchObject({ tier: level, tier_source: "staff" });
-    expectAbout(timedRow["tier_until"], Date.now() + 7 * DAY, "seven days");
+    expect(timedRow["tier_until"], "seven days").not.toBeNull();
+    expect(
+      new Date(String(timedRow["tier_until"])).getTime() - (await tierWrittenAt(timed)),
+      "seven days from the door's write",
+    ).toBe(7 * DAY);
 
     // The baseline takes no days: refused at the field, the door never asked.
     const before = await trace(timed);
