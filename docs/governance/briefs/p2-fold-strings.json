@@ -1,0 +1,158 @@
+[
+  {
+    "key": "admin.listings.filter.level",
+    "layer": "member",
+    "en": "Level",
+    "am": "ደረጃ"
+  },
+  {
+    "key": "admin.listings.action.level",
+    "layer": "admin",
+    "en": "Set level",
+    "am": "ደረጃ አስቀምጥ"
+  },
+  {
+    "key": "admin.listings.level.title",
+    "layer": "admin",
+    "en": "Set the level",
+    "am": "የማስታወቂያውን ደረጃ አስቀምጥ"
+  },
+  {
+    "key": "admin.listings.level.done",
+    "layer": "admin",
+    "en": "Level set to {level}.",
+    "am": "ደረጃው ወደ {level} ተቀይሯል።"
+  },
+  {
+    "key": "admin.listings.level.error.same",
+    "layer": "admin",
+    "en": "The ad already has this level.",
+    "am": "ማስታወቂያው አስቀድሞ ይህ ደረጃ አለው።"
+  },
+  {
+    "key": "admin.listings.level.error.removed",
+    "layer": "admin",
+    "en": "A removed ad takes no level.",
+    "am": "የተወገደ ማስታወቂያ ደረጃ አይቀበልም።"
+  },
+  {
+    "key": "admin.listings.level.error.unknown",
+    "layer": "admin",
+    "en": "Unknown level.",
+    "am": "ያልታወቀ ደረጃ።"
+  },
+  {
+    "key": "post.refusal.coverageExceedsReach",
+    "layer": "base",
+    "en": "That is more places than this ad's reach allows.",
+    "am": "ይህ የማስታወቂያው ተደራሽነት ከሚፈቅደው በላይ ቦታዎች ነው።"
+  },
+  {
+    "key": "post.where.reachCaption",
+    "layer": "member",
+    "en": "This ad's reach: {cities} city",
+    "am": "የማስታወቂያው ተደራሽነት፦ {cities} ከተማ"
+  },
+  {
+    "key": "myListings.promote.reach.title",
+    "layer": "member",
+    "en": "Reach",
+    "am": "ተደራሽነት"
+  },
+  {
+    "key": "myListings.promote.reach.hint",
+    "layer": "member",
+    "en": "A wider reach shows your ad in more places for a set number of days.",
+    "am": "ሰፊ ተደራሽነት ማስታወቂያዎን ለተወሰኑ ቀናት በብዙ ቦታዎች ያሳያል።"
+  },
+  {
+    "key": "myListings.promote.reach.current",
+    "layer": "member",
+    "en": "Current reach",
+    "am": "የአሁኑ ተደራሽነት"
+  },
+  {
+    "key": "myListings.promote.reach.included",
+    "layer": "member",
+    "en": "Included",
+    "am": "የተካተተ"
+  },
+  {
+    "key": "myListings.promote.reach.choose",
+    "layer": "member",
+    "en": "Choose reach",
+    "am": "ተደራሽነት ይምረጡ"
+  },
+  {
+    "key": "myListings.promote.reach.done",
+    "layer": "member",
+    "en": "Reach set until {date}.",
+    "am": "ተደራሽነቱ እስከ {date} ተቀምጧል።"
+  },
+  {
+    "key": "myListings.promote.reach.empty",
+    "layer": "member",
+    "en": "No wider reach is offered for this ad.",
+    "am": "ለዚህ ማስታወቂያ ሰፊ ተደራሽነት አይቀርብም።"
+  },
+  {
+    "key": "myListings.promote.error.sameReach",
+    "layer": "member",
+    "en": "This ad already has this reach until {date}.",
+    "am": "ይህ ማስታወቂያ እስከ {date} ድረስ ይህ ተደራሽነት አለው።"
+  },
+  {
+    "key": "myListings.promote.error.lowerReach",
+    "layer": "member",
+    "en": "Choose a reach wider than the current one.",
+    "am": "ከአሁኑ የሰፋ ተደራሽነት ይምረጡ።"
+  },
+  {
+    "key": "myListings.promote.error.unknownReach",
+    "layer": "member",
+    "en": "This reach is no longer offered.",
+    "am": "ይህ ተደራሽነት ከእንግዲህ አይቀርብም።"
+  },
+  {
+    "key": "myListings.promote.error.includedReach",
+    "layer": "member",
+    "en": "This reach is already included with the ad.",
+    "am": "ይህ ተደራሽነት ከማስታወቂያው ጋር አስቀድሞ ተካትቷል።"
+  },
+  {
+    "key": "myListings.promote.error.reachNotOffered",
+    "layer": "member",
+    "en": "This reach has no price here yet.",
+    "am": "ይህ ተደራሽነት እዚህ እስካሁን ዋጋ የለውም።"
+  },
+  {
+    "key": "admin.monetisation.reach.field.cities",
+    "layer": "admin",
+    "en": "Cities",
+    "am": "ከተሞች"
+  },
+  {
+    "key": "admin.monetisation.reach.field.regions",
+    "layer": "admin",
+    "en": "Regions",
+    "am": "ክልሎች"
+  },
+  {
+    "key": "admin.monetisation.reach.field.countries",
+    "layer": "admin",
+    "en": "Countries",
+    "am": "ሀገራት"
+  },
+  {
+    "key": "admin.monetisation.reach.field.unlimited",
+    "layer": "admin",
+    "en": "No limit",
+    "am": "ገደብ የለም"
+  },
+  {
+    "key": "admin.monetisation.reach.field.capsHint",
+    "layer": "admin",
+    "en": "Leave blank for no limit.",
+    "am": "ገደብ እንዳይኖር ባዶ ይተዉት።"
+  }
+]
