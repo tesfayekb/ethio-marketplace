@@ -27,6 +27,7 @@ import {
   sellerLines,
   STATUS_WORD,
   EDITABLE_STATUSES,
+  promotable,
   type MyListing,
 } from "./my-listing";
 import { REASON_WORD, REMOVAL_REASON, SOLD_ON, stateLine } from "./state-line";
@@ -335,4 +336,20 @@ it("ML-U26 a live ad whose level has an end says when it ends, through the date 
   };
   expect(stateLine(live, t, day)).toBe("Days left: 5 · Level ends day(2026-12-01T00:00:00Z)");
   expect(stateLine({ ...live, levelUntil: null }, t, day)).toBe("Days left: 5");
+});
+
+it("ML-U28 Promote is offered on a live or paused ad only, one rule for the row menu and the page (P-2 (b) E9)", () => {
+  const offered = ["active", "reduced", "paused"];
+  for (const status of [
+    ...offered,
+    "closed",
+    "expired",
+    "draft",
+    "screening",
+    "held",
+    "rejected",
+    "removed",
+    "sold",
+  ])
+    expect(promotable(status), status).toBe(offered.includes(status));
 });

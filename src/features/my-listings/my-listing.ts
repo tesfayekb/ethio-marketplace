@@ -569,6 +569,15 @@ export function copyable(status: string): boolean {
   return status !== "draft" && status !== "removed" && status !== "rejected";
 }
 
+/**
+ * P-2 (b) E9 — the ads Promote is offered on: a live ad and a paused one, the
+ * same rule for the row menu and the ad page. The door (`set_listing_level`,
+ * notLive) holds the same rule.
+ */
+export function promotable(status: string): boolean {
+  return status === "active" || status === "reduced" || status === "paused";
+}
+
 export type EditOutcome =
   | { ok: true; status: string; review: boolean }
   | { ok: false; refusals: Refusal[] }
