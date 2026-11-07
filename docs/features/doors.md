@@ -81,6 +81,15 @@ acceptance | codes | reason`. `manifest.ts` is the grammar; `catalogue.ts` + `id
 `door.refused`. A screen maps a code to its own key where it has one (`auth.errorLastMethod`
 for `lastSignInMethod`) and shows the generic line otherwise.
 
+A family's screens turn may add its doors' codes to `DOOR_CODES` ahead of the family's shell
+turn (DEC-349): P-2 (b) added the levels family's thirteen (`listingNotFound`, `notLive`,
+`notPaused`, `unknownLevel`, `sameLevel`, `lowerLevel`, `listingNotPlaced`,
+`levelNotAvailable`, `seasonEnded`, `notOffered`, `marketNotSet`, `creditsNotAvailable`,
+`noFreeSlot`) ahead of F1-5a, so the Promote sheet names `set_listing_level`'s and
+`promote_options`'s refusals by code (DRC-6). The reader door `promote_options(uuid)`
+(`signed-in-reader`, P-2 (b) M-2a) has its manifest line and its caller,
+src/features/my-listings/promote-service.ts.
+
 ## Tests
 
 `e2e/door-refusals.spec.ts` DRF-1…6 (INC-409 ×2, a reader's refusal by code with no dial spent,
