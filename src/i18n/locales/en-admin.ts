@@ -2177,4 +2177,17 @@ export const enAdmin = {
   "impersonation.profile.country": "Country",
   "impersonation.profile.status": "Status",
   "impersonation.profile.joined": "Joined",
+  "admin.listings.level.days": "Days",
+  "admin.listings.level.daysHelp": "Leave blank to keep the level until staff change it.",
+  "admin.listings.level.hint":
+    "The ad moves to this level for the days you set, or until staff change it.",
+  "admin.listings.level.error.days": "Days must be a whole number from 1 to 3650.",
+  "admin.listings.level.error.baselineDays": "The baseline level takes no days.",
+  "admin.listings.level.until": "Until {date}",
+  "admin.listings.level.noEnd": "No end",
+  "admin.listings.level.source.launch": "Launch offer",
+  "admin.listings.level.source.staff": "Set by staff",
+  "admin.listings.level.source.money": "Paid",
+  "admin.listings.level.source.credits": "Credits",
+  "admin.listings.level.unknown": "Level not known",
 } as const;

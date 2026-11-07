@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { dateFormatter, formatDate, formatNumber, formatRelative, numberFormatter } from "./format";
+import {
+  dateFormatter,
+  formatDate,
+  formatNumber,
+  formatRelative,
+  moneyText,
+  numberFormatter,
+} from "./format";
 
 /** INC-985 (Foundations turn L-1, B1/B5) — one formatter per intent, on formatLocale. */
 const OCTOBER = new Date("2026-10-29T10:05:00Z");
@@ -66,5 +73,12 @@ describe("formatters by intent (INC-985)", () => {
     expect(dateFormatter("day", "en")).not.toBe(dateFormatter("day", "am"));
     expect(dateFormatter("day", "en", "UTC")).not.toBe(dateFormatter("day", "en"));
     expect(numberFormatter("count", "am")).toBe(numberFormatter("count", "am"));
+  });
+
+  it("FMT-12 money: the amount by intent, then the currency, one space between (DEC-349)", () => {
+    expect(moneyText(1500, "XTS", "en")).toBe("1,500 XTS");
+    expect(moneyText(7.25, "XTS", "am")).toBe(`${formatNumber(7.25, "am")} XTS`);
+    expect(moneyText(1.23456789, "XTS", "en", "exact")).toBe("1.23456789 XTS");
+    expect(moneyText(5, "", "en")).toBe("5");
   });
 });

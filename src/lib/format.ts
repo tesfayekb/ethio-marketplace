@@ -135,6 +135,16 @@ export function formatNumber(value: number, language: string, intent: NumberInte
   return numberFormatter(intent, language).format(value);
 }
 
+/** The one money formatter (DEC-349): "{amount} {currency}", the price line's fixed form. */
+export function moneyText(
+  amount: number,
+  currency: string,
+  language: string,
+  intent: NumberIntent = "count",
+): string {
+  return `${formatNumber(amount, language, intent)} ${currency}`.replace(/\s+/g, " ").trim();
+}
+
 /** A relative time ("yesterday", "in 3 hours"), numeric "auto". */
 export function formatRelative(
   value: number,

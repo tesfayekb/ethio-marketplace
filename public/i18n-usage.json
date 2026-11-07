@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
-  "scanned": 678,
-  "dynamicCallSites": 441,
+  "scanned": 680,
+  "dynamicCallSites": 445,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -5133,7 +5133,8 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId",
-      "/settings"
+      "/settings",
+      "component: promote-sheet"
     ],
     "common.refreshPage": [
       "(every page)",
@@ -5210,6 +5211,9 @@
       "/my-listings/$listingId/edit",
       "/post",
       "/post/$listingId"
+    ],
+    "door.refused": [
+      "component: promote-sheet"
     ],
     "error.pageFailed": [
       "(every page)"
@@ -6115,6 +6119,30 @@
     "myListings.priceReduced": [
       "/my-listings",
       "/my-listings/$listingId"
+    ],
+    "myListings.promote.choose": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.current": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.days": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.empty": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.freeLaunch": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.hint": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.title": [
+      "component: promote-sheet"
+    ],
+    "myListings.promote.until": [
+      "component: promote-sheet"
     ],
     "myListings.removed": [
       "/my-listings",

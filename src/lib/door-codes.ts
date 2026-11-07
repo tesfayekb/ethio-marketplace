@@ -15,7 +15,8 @@
  * a screen names one word for it. An unknown or sentence-shaped message is
  * `null`: the screen renders the one generic key `door.refused`, never the raw
  * text. The list grows only by a family turn that folds a door's sentences to
- * codes (plan §5); the shared gate codes come first.
+ * codes (plan §5), or by a family's screens turn ahead of its shell turn
+ * (DEC-349); the shared gate codes come first.
  */
 
 export const DOOR_CODES = [
@@ -29,6 +30,20 @@ export const DOOR_CODES = [
   "lastSignInMethod",
   "languageNotPublished",
   "noProfile",
+  // P-2's family (levels and the pause), added by its screens turn ahead of its shell turn F1-5a (DEC-349)
+  "listingNotFound",
+  "notLive",
+  "notPaused",
+  "unknownLevel",
+  "sameLevel",
+  "lowerLevel",
+  "listingNotPlaced",
+  "levelNotAvailable",
+  "seasonEnded",
+  "notOffered",
+  "marketNotSet",
+  "creditsNotAvailable",
+  "noFreeSlot",
 ] as const;
 
 export type DoorCode = (typeof DOOR_CODES)[number];
