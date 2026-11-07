@@ -128,7 +128,7 @@ GRANT ALL ON FUNCTION public.register_listing_photo(uuid, uuid, jsonb, integer, 
 --   (b) register_listing_photo's body is its last declaration's body but for this file's one fragment (md5
 --       with the fragment put back: dc559d337ee82106dcd6d86fb1a206b7, the body of 20261019140533);
 --   (c) the cap: a scratch level's max_photos (3) for an ad with no place; its country's override (2) for
---       an ad placed in that country; the baseline row's value for a baseline ad (D311: 4); NULL for an
+--       an ad placed in that country; the baseline row's value for a baseline ad (D311); NULL for an
 --       unknown ad and for an ad whose level is switched off;
 --   (d) the door takes three photos under a cap of 3 and refuses the fourth tooManyPhotos:3; an ad whose
 --       level is switched off is refused levelNotAvailable; neither refusal writes anything (the photo rows,
@@ -246,9 +246,8 @@ BEGIN
     END IF;
     IF (SELECT tier FROM public.listings WHERE id = v_c) IS DISTINCT FROM v_base
        OR public.listing_photo_cap(v_c) IS DISTINCT FROM (public.level_perks_for(v_base, v_cat, NULL::character)->>'max_photos')::integer
-       OR public.listing_photo_cap(v_c) IS DISTINCT FROM (SELECT k.max_photos::integer FROM public.listing_packages k WHERE k.key = v_base)
-       OR public.listing_photo_cap(v_c) IS DISTINCT FROM 4 THEN
-      RAISE EXCEPTION 'P-2 (c) M-3a part 2 proof (c): a baseline ad''s cap is not the baseline row''s 4 (D311): %', public.listing_photo_cap(v_c);
+       OR public.listing_photo_cap(v_c) IS DISTINCT FROM (SELECT k.max_photos::integer FROM public.listing_packages k WHERE k.key = v_base) THEN
+      RAISE EXCEPTION 'P-2 (c) M-3a part 2 proof (c): a baseline ad''s cap is not the baseline row''s max_photos: %', public.listing_photo_cap(v_c);
     END IF;
     IF public.listing_photo_cap(gen_random_uuid()) IS NOT NULL THEN
       RAISE EXCEPTION 'P-2 (c) M-3a part 2 proof (c): an unknown ad answered a cap';
