@@ -209,8 +209,9 @@ DECLARE
   v_deact    uuid := gen_random_uuid();
   v_s1       uuid := gen_random_uuid();
   v_s2       uuid := gen_random_uuid();
-  v_lang_on  text := 'q' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 2);
-  v_lang_off text := 'q' || substr(replace(gen_random_uuid()::text, '-', ''), 9, 2);
+  v_h        text := substr(replace(gen_random_uuid()::text, '-', ''), 1, 2);
+  v_lang_on  text := 'q' || v_h;
+  v_lang_off text := 'q' || translate(v_h, '0123456789abcdef', '123456789abcdef0');
   v_pairs    text[][] := ARRAY[
     ['public.remove_own_password()', 'dba262364769cf5c085c021f7a235206'],
     ['public.user_set_preferred_language(text)', '864c44ac6a9021e8a3f6c1d44401a250'],

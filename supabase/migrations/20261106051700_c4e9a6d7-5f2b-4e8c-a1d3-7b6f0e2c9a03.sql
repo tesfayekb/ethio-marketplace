@@ -126,8 +126,9 @@ DECLARE
   v_perm     uuid;
   v_perm_ed  uuid;
   v_res_name text := 'e2e_mig_res_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 8);
-  v_lang_on  text := 'q' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 2);
-  v_lang_off text := 'q' || substr(replace(gen_random_uuid()::text, '-', ''), 9, 2);
+  v_h        text := substr(replace(gen_random_uuid()::text, '-', ''), 1, 2);
+  v_lang_on  text := 'q' || v_h;
+  v_lang_off text := 'q' || translate(v_h, '0123456789abcdef', '123456789abcdef0');
   v_fn       regprocedure := 'public.has_permission(uuid,text,text)'::regprocedure;
   v_bl       regprocedure := 'public.base_languages()'::regprocedure;
   v_answer   jsonb;
