@@ -142,7 +142,7 @@ export function moneyText(
   language: string,
   intent: NumberIntent = "count",
 ): string {
-  return `${formatNumber(amount, language, intent)} ${currency}`.replace(/\s+/g, " ").trim();
+  return `${formatNumber(amount, language, intent)} ${currency}`.trim();
 }
 
 /** A relative time ("yesterday", "in 3 hours"), numeric "auto". */

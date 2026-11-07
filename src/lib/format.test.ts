@@ -81,4 +81,11 @@ describe("formatters by intent (INC-985)", () => {
     expect(moneyText(1.23456789, "XTS", "en", "exact")).toBe("1.23456789 XTS");
     expect(moneyText(5, "", "en")).toBe("5");
   });
+
+  it("FMT-13 money keeps the digits' own spaces: a narrow no-break space never becomes a breaking one", () => {
+    const french = moneyText(1500, "XTS", "fr");
+    expect(french).toBe(`${formatNumber(1500, "fr")} XTS`);
+    expect(french).toContain("\u202F");
+    expect(moneyText(1500, "XTS", "en")).toBe("1,500 XTS");
+  });
 });
