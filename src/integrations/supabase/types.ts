@@ -2068,7 +2068,10 @@ export type Database = {
           is_baseline: boolean
           key: string
           kind: string
+          max_cities: number | null
+          max_countries: number | null
           max_photos: number | null
+          max_regions: number | null
           name_am: string | null
           name_en: string
           placement: string | null
@@ -2087,7 +2090,10 @@ export type Database = {
           is_baseline?: boolean
           key: string
           kind: string
+          max_cities?: number | null
+          max_countries?: number | null
           max_photos?: number | null
+          max_regions?: number | null
           name_am?: string | null
           name_en: string
           placement?: string | null
@@ -2106,7 +2112,10 @@ export type Database = {
           is_baseline?: boolean
           key?: string
           kind?: string
+          max_cities?: number | null
+          max_countries?: number | null
           max_photos?: number | null
+          max_regions?: number | null
           name_am?: string | null
           name_en?: string
           placement?: string | null
@@ -6044,6 +6053,7 @@ export type Database = {
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
       listing_group_of: { Args: { p_status: string }; Returns: string }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
+      listing_photo_cap: { Args: { p_listing: string }; Returns: number }
       listing_photo_review_label: {
         Args: { p_review: Json; p_unscreened: boolean }
         Returns: string
