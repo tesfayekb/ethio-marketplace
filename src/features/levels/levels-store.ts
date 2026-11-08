@@ -12,10 +12,10 @@ import { isBoolOrNull, isRec, isStrOrNull, type LevelLook } from "@/features/lev
  * reads the enabled rows once, with their base look. Nothing is written to the
  * store during a server render, so one request's rows never reach another's.
  * The pure fields (the look, the card's and the ad document's level, the one
- * name chooser `levelNameOf`) live in level-fields.ts; the table read and the
- * hooks that start it (`useLevelRows`, `useLevelLook`) in use-level-rows.ts, so
- * a page that only seeds or parses (the card pages, the ad page) carries no
- * reader and no database client.
+ * name chooser `levelNameOf`) live in level-fields.ts; the hooks that start
+ * the table read (`useLevelRows`, `useLevelLook`) in use-level-rows.ts, and the
+ * read itself in level-table-read.ts, fetched on demand (DEC-355), so no page's
+ * first download carries the reader.
  */
 
 export interface LevelRow {

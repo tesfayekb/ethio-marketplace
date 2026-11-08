@@ -2,68 +2,39 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 import type { LevelLook } from "@/features/levels/level-fields";
 import {
-  holdTableRows,
   levelLook,
   oneTableRead,
-  parseLevelRows,
   servedRows,
   subscribeLevelRows,
   type LevelRow,
 } from "@/features/levels/levels-store";
+import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
-import { readAllPages } from "@/lib/read-all-pages";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { getSupabase } from "@/lib/supabase-door";
 
 /**
- * P-2 (c) c2a (DEC-351 §8) — THE LEVEL ROWS' TABLE READ, for a screen with no
- * card answer (the admin console, screening, the owner's and the wizard's
+ * P-2 (c) c2a (DEC-351 §8, DEC-355) — THE LEVEL ROWS' HOOKS, for a screen with
+ * no card answer (the admin console, screening, the owner's and the wizard's
  * previews). Its own module beside the store (levels-store.ts), so the card
- * pages and the ad page, which only seed and parse, carry no reader and no
- * database client in their first download.
+ * pages and the ad page, which only seed and parse, carry no reader; the read
+ * itself (level-table-read.ts) arrives on demand, so no page's first download
+ * carries it.
  */
 
-type TableRow = {
-  key: string;
-  sort: number;
-  name_en: string;
-  name_am: string | null;
-  is_baseline: boolean;
-  placement: string | null;
-  badge: boolean;
-};
+const TABLE_READ = loadOnce(() =>
+  import("@/features/levels/level-table-read").then((module) => module.readLevelTable),
+);
 
-/** The database client, fetched on demand; a failed download is the shell's one notice. */
-async function levelClient() {
+/** The table read, its module fetched once; a failed download is the shell's one notice. */
+async function readTableOnDemand(): Promise<void> {
+  let read: () => Promise<void>;
   try {
-    return await getSupabase();
+    read = await TABLE_READ.load();
   } catch (error) {
     reportOnDemandFailure("the level rows' reader", error);
     throw new ReaderError({ class: "network", message: "the level rows' reader did not load" });
   }
-}
-
-/** The one table read: the enabled level rows browser roles see (RLS), keyset by key. */
-async function readLevelTable(): Promise<void> {
-  const client = await levelClient();
-  const rows = await readAllPages<TableRow>(
-    (after, limit) => {
-      const query = client
-        .from("listing_packages")
-        .select("key, sort, name_en, name_am, is_baseline, placement, badge")
-        .eq("kind", "level")
-        .eq("enabled", true)
-        .order("key")
-        .limit(limit);
-      return after === null ? query : query.gt("key", after);
-    },
-    (row) => row.key,
-  );
-  const parsed = parseLevelRows(rows);
-  if (parsed === null) {
-    throw new ReaderError({ class: "malformed", message: "listing_packages: a level row" });
-  }
-  holdTableRows(parsed);
+  await read();
 }
 
 export interface UseLevelRowsResult {
@@ -98,7 +69,7 @@ export function useLevelRows(options: { looks?: boolean } = {}): UseLevelRowsRes
     }
     setIsLoading(true);
     setError(null);
-    oneTableRead(readLevelTable).then(
+    oneTableRead(readTableOnDemand).then(
       () => {
         if (!cancelled) setIsLoading(false);
       },

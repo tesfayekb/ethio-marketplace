@@ -43,12 +43,16 @@ false })` serves the seeded names without a read; `useLevelLook(key)` is a previ
 - A failed table read is a typed `ReaderError` and is logged (`[levels] the level rows read
 failed`); a failed download of the database client goes through `reportOnDemandFailure`
   (INC-911). On a failed read the previews draw the plain look and the filters offer only All.
-- CF-LEVEL-1 (`scripts/conformance/listing-levels.ts`) names the store as one of the two homes
+- The table read lives in `src/features/levels/level-table-read.ts`, which `useLevelRows`
+  (`src/features/levels/use-level-rows.ts`) fetches through `loadOnce` when a screen first needs
+  the rows (DEC-355): no page's first download carries the read, its pager or its query. A failed
+  download of that module is reported through `reportOnDemandFailure` and is the screen's error.
+- CF-LEVEL-1 (`scripts/conformance/listing-levels.ts`) names the table read as one of the two homes
   allowed to read `listing_packages` (`LEVEL_READER_HOMES`); DEC-331 emptied its `tier:` lines.
 
 ## Tests
 
-Unit: `levels-store.test.ts` LVS-1…9; `card-tier.test.ts` CTR-1…5; `tier-flag.test.tsx`;
+Unit: `levels-store.test.ts` LVS-1…9, `use-level-rows.test.ts` LVS-10; `card-tier.test.ts` CTR-1…5; `tier-flag.test.tsx`;
 `listing-card.test.tsx` LC-11; `public-listing.test.ts` AV-11, AV-12 (the ad page's word); `feed-page.test.ts` FP-1, FP-3 (a fourth key keeps its card);
 `feed.test.ts` FD-5 and `seller.test.ts` SLR-5 (the dictionary rides the body); `tier-reasons.test.ts`
 TIR-1…8; `tier-dialog.test.tsx` TD-1…8. E2E: `sage-tiers.spec.ts`, `sage-ad-page.spec.ts`,
