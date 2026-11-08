@@ -286,7 +286,11 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
       .limit(1)
       .single();
     if (top.error || !top.data) throw new Error(`${TAG} reach sort: ${top.error?.message}`);
-    const stem = `${REACH_PREFIX}${token()}`;
+    // J1 — run × worker × project × the test's draw, inside the key check's 32 characters.
+    const clean = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const worker = clean(process.env["TEST_WORKER_INDEX"] ?? "0").slice(0, 2);
+    const twin = clean(test.info().project.name).slice(0, 1) || "x";
+    const stem = `${REACH_PREFIX}_${clean(RUN).slice(0, 6)}_${worker}_${twin}_${token().slice(0, 6)}`;
     const sort = Number(top.data.sort) + 100;
     const rows = {
       low: { key: `${stem}_lo`, sort, days: 10 },
