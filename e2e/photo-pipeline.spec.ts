@@ -40,6 +40,7 @@ import { destroyLocation, rand, RUN, seedScratchChain } from "./helpers/location
 import { gotoReady, isMobile, signInViaSession } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { seedListingRow } from "./helpers/listing-seed";
+import { destroyLevelOverride, seedBaselinePhotoCap } from "./helpers/level-overrides";
 import { inOneWindow } from "./helpers/rate-window";
 
 /**
@@ -92,6 +93,8 @@ test.describe("PHOTO PIPELINE", () => {
   const sellers: string[] = [];
   const regions: string[] = [];
   const objects: { userId: string; listingId: string }[] = [];
+  /** P-2 (c) — scratch photo caps (level_overrides ids), removed before their category. */
+  const overrides: string[] = [];
 
   test.afterEach(async ({ page }) => {
     // INC-323 / INC-398 — stop the page first: wait out a save in flight, then
@@ -104,6 +107,7 @@ test.describe("PHOTO PIPELINE", () => {
       await clearUploadCounter(sellerId);
       await destroyListingsOf(sellerId);
     }
+    for (const id of overrides.splice(0)) await destroyLevelOverride(id);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
     // After the listings: a scratch place is removed once nothing points at it.
     for (const slug of regions.splice(0)) await destroyLocation(slug);
@@ -123,6 +127,29 @@ test.describe("PHOTO PIPELINE", () => {
     token: string,
     userId: string,
   ): Promise<string> {
+    return (await draftWithCategory(page, token, userId)).listingId;
+  }
+
+  /**
+   * P-2 (c) (D311) — a scratch draft whose photo cap is its scratch category's
+   * override for the baseline level: the cap the test counts against is the row's.
+   */
+  async function cappedDraft(
+    page: import("@playwright/test").Page,
+    token: string,
+    userId: string,
+  ): Promise<{ listingId: string; cap: number }> {
+    const { listingId, categoryId } = await draftWithCategory(page, token, userId);
+    const override = await seedBaselinePhotoCap(categoryId);
+    overrides.push(override.id);
+    return { listingId, cap: override.maxPhotos };
+  }
+
+  async function draftWithCategory(
+    page: import("@playwright/test").Page,
+    token: string,
+    userId: string,
+  ): Promise<{ listingId: string; categoryId: string }> {
     const row = await seedPostableCategory();
     categories.push(row.slug);
     const answer = await postRoute(
@@ -147,7 +174,7 @@ test.describe("PHOTO PIPELINE", () => {
       .eq("id", listingId)
       .eq("seller_id", userId);
     if (error) throw new Error(`[e2e:pp] seeding draft_step failed: ${error.message}`);
-    return listingId;
+    return { listingId, categoryId: row.id };
   }
 
   test("PP-1 a JPEG carrying GPS, XMP and ICC is stored as image data only (REQ-036)", async ({
@@ -287,24 +314,26 @@ test.describe("PHOTO PIPELINE", () => {
     }
   });
 
-  test("PP-7 the eleventh photo is refused tooManyPhotos", async ({ page }) => {
+  test("PP-7 the photo past the ad's level cap is refused tooManyPhotos", async ({ page }) => {
     test.setTimeout(180_000);
     const { user, token } = await seller(page);
-    const listingId = await draft(page, token, user.id);
+    const { listingId, cap } = await cappedDraft(page, token, user.id);
 
-    for (let index = 0; index < 10; index += 1) {
+    for (let index = 0; index < cap; index += 1) {
       const answer = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
       expect(answer.status, `upload ${index + 1}: ${JSON.stringify(answer.payload)}`).toBe(200);
       expect(answer.payload["ok"], `upload ${index + 1}: ${JSON.stringify(answer.payload)}`).toBe(
         true,
       );
     }
-    expect(await photoRowsOf(listingId), "PP-7: the cap is counted from DB truth").toHaveLength(10);
+    expect(await photoRowsOf(listingId), "PP-7: the cap is counted from DB truth").toHaveLength(
+      cap,
+    );
 
-    const eleventh = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
-    expect(eleventh.status, JSON.stringify(eleventh.payload)).toBe(200);
-    expect(reasons(eleventh.payload)).toEqual([{ field: "photos", reason: "tooManyPhotos" }]);
-    expect(await photoRowsOf(listingId), "PP-7: the cap held").toHaveLength(10);
+    const past = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(past.status, JSON.stringify(past.payload)).toBe(200);
+    expect(reasons(past.payload)).toEqual([{ field: "photos", reason: "tooManyPhotos" }]);
+    expect(await photoRowsOf(listingId), "PP-7: the cap held").toHaveLength(cap);
   });
 
   test("PP-8 DELETE removes the row and the objects; POST makes a photo the cover", async ({
@@ -1426,14 +1455,15 @@ test.describe("PHOTO PIPELINE", () => {
   /**
    * PP-25 — D154 B2: an upload that `replaces` a stored photo takes its place in
    * the order, the old row and its objects go, and the cover follows the order;
-   * at the plan's cap an edit is still taken, because it adds no photo.
+   * at the ad's level cap (its scratch category's override, P-2 (c)) an edit is
+   * still taken, because it adds no photo.
    */
   test("PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2)", async ({
     page,
   }) => {
     test.setTimeout(180_000);
     const { user, token } = await seller(page);
-    const listingId = await draft(page, token, user.id);
+    const { listingId, cap } = await cappedDraft(page, token, user.id);
     for (const name of ["meta.png", "meta.webp"] as const) {
       const uploaded = await uploadPhoto(page, { listingId, token, cover: { name } });
       expect(uploaded.payload["ok"], JSON.stringify(uploaded.payload)).toBe(true);
@@ -1481,26 +1511,28 @@ test.describe("PHOTO PIPELINE", () => {
     expect(await coverOf(listingId), "PP-25: the edited cover is not the cover").toBe(coverId);
 
     // At the cap: a new photo is refused, an edit is taken.
-    for (let index = 2; index < 10; index += 1) {
+    for (let index = 2; index < cap; index += 1) {
       const answer = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
       expect(answer.payload["ok"], `upload ${index + 1}: ${JSON.stringify(answer.payload)}`).toBe(
         true,
       );
     }
     const full = await photoRowsOf(listingId);
-    expect(full, "PP-25: the listing is at its cap").toHaveLength(10);
-    const eleventh = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
-    expect(reasons(eleventh.payload)).toEqual([{ field: "photos", reason: "tooManyPhotos" }]);
+    expect(full, "PP-25: the listing is at its cap").toHaveLength(cap);
+    const past = await uploadPhoto(page, { listingId, token, cover: { name: "meta.png" } });
+    expect(reasons(past.payload)).toEqual([{ field: "photos", reason: "tooManyPhotos" }]);
+    const lastBefore = full.at(-1);
+    if (lastBefore === undefined) throw new Error("PP-25: the full listing has no photo");
     const atCap = await uploadPhoto(page, {
       listingId,
       token,
       cover: { name: "meta.png" },
-      replaces: full[9]!.id,
+      replaces: lastBefore.id,
     });
     expect(atCap.payload["ok"], JSON.stringify(atCap.payload)).toBe(true);
     const last = await photoRowsOf(listingId);
-    expect(last, "PP-25: an edit at the cap changed the count").toHaveLength(10);
-    expect(last[9]!.id).toBe(String(atCap.payload["photoId"]));
+    expect(last, "PP-25: an edit at the cap changed the count").toHaveLength(cap);
+    expect(last.at(-1)?.id).toBe(String(atCap.payload["photoId"]));
   });
 
   /**

@@ -20,6 +20,7 @@ import {
   waitForTreeSlug,
 } from "./helpers/locations";
 import { adminClient, createUser } from "./helpers/users";
+import { destroyLevelOverride, seedBaselinePhotoCap } from "./helpers/level-overrides";
 import {
   leaseSeller,
   pickCity,
@@ -76,6 +77,8 @@ test.describe("POSTING WIZARD", () => {
   const objects: { userId: string; listingId: string }[] = [];
   /** L4b scratch geography (region → city → sub-city); destroyed child-first. */
   const places: string[] = [];
+  /** P-2 (c) — scratch photo caps (level_overrides ids), removed before their category. */
+  const overrides: string[] = [];
 
   /**
    * R-EVID STEP 1 — TIMINGS THAT SURVIVE A HARD TEST TIMEOUT. A full-walk test's
@@ -105,6 +108,7 @@ test.describe("POSTING WIZARD", () => {
     for (const sellerId of sellers.splice(0)) await destroyListingsOf(sellerId);
     // Links first: a category cannot be deleted while a definition link points at it.
     await destroySpecSet(specs.splice(0));
+    for (const id of overrides.splice(0)) await destroyLevelOverride(id);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
     const branchSlugs = branches.splice(0);
     if (branchSlugs.length > 0) await destroyCategoryBranch(branchSlugs);
@@ -1266,14 +1270,17 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * D22 — THE PHOTO CAP IS THE PLAN'S. Plans are NOT per-seller yet (there is no
-   * seller→plan column), so `seller_plan()` hands every seller the same row: this
-   * test asserts the caption FOLLOWS THE DOCUMENT, reading the same cap from the
-   * plans table it was served from.
+   * D22, D311 (P-2 (c)) — THE PHOTO CAP IS THE LEVEL'S. A new ad's cap is the
+   * baseline level's `max_photos` for its category (the schema's `plan` block):
+   * this test seeds its scratch category's override for the baseline level and
+   * asserts the caption FOLLOWS THE DOCUMENT, reading the cap from that row.
    */
   test("PW-29 the photos caption counts against the plan's cap", async ({ page }) => {
     const user = await seller(page);
     const category = await leaf();
+    // J7 — seeded before the schema is read.
+    const override = await seedBaselinePhotoCap(category.id);
+    overrides.push(override.id);
     await gotoReady(page, "/post");
     await chooseBySearch(page, category.slug, category.id);
     const [draft] = await draftsOf(user.id);
@@ -1282,15 +1289,7 @@ test.describe("POSTING WIZARD", () => {
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-2")).toBeVisible({ timeout: 20_000 });
 
-    const { data, error } = await adminClient()
-      .from("coverage_plans")
-      .select("plan, max_photos")
-      .eq("plan", "free")
-      .maybeSingle();
-    if (error) throw new Error(`[e2e:r3b2] reading the plan failed: ${error.message}`);
-    const cap = Number(data?.max_photos ?? 0);
-    expect(cap, "PW-29: the plan served no photo cap").toBeGreaterThan(0);
-
+    const cap = override.maxPhotos;
     const caption = page.getByTestId("post-photos-count");
     await expect(caption, "PW-29: the caption never rendered the plan's cap").toContainText(
       String(cap),

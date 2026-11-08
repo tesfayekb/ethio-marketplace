@@ -12,3 +12,4 @@ tier:src/routes/dev.style.tsx | the style page's fixture cards per P-1 tier; P-2
 tier:scripts/feed-bench.ts | the feed bench's seeded P-1 tiers; P-2 folds the ad's tier onto the level rows | 2027-03-31
 tier:e2e/helpers/ad-page.ts | the ad-page helper's seeded P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
 reader:e2e/helpers/listing-seed.ts | the one e2e seeder reads the first enabled level above the baseline (keys only, no perks) for a scratch ad beyond the free slots (D318, register row 114) | DEC-342
+reader:e2e/helpers/level-overrides.ts | the one e2e seeder of a scratch category's override for the baseline level (P-2 (c), D311): reads the baseline row's max_photos only to pick a different scratch cap, writes and removes its own level_overrides row (PP-7, PP-25, PW-29; G27, J3) | DEC-351
