@@ -1,5 +1,28 @@
+import { catalogText } from "../../src/i18n/entity";
 import { baselineLevelKey } from "./listing-seed";
 import { adminClient } from "./users";
+
+/**
+ * P-2 (c) c2a (ruling 6 §5; docs/features/e2e-harness.md §Authoring laws) — A LEVEL'S NAME.
+ * The one read a spec makes for a level's word: the `listing_packages` level row of `key`,
+ * through the service client, named in `language` by the app's own rule (`catalogText`: the
+ * Amharic name where the row has one, else the English). Throws when the row is missing or
+ * names nothing — never a fallback word.
+ */
+export async function levelNameFor(key: string, language: string): Promise<string> {
+  const { data, error } = await adminClient()
+    .from("listing_packages")
+    .select("name_en, name_am")
+    .eq("kind", "level")
+    .eq("key", key)
+    .single();
+  if (error || !data) {
+    throw new Error(`[e2e:level] the level ${key}'s names: ${error?.message ?? "no row"}`);
+  }
+  const name = catalogText(data.name_en, data.name_am, language);
+  if (name === "") throw new Error(`[e2e:level] the level ${key} has no name in ${language}`);
+  return name;
+}
 
 /**
  * P-2 (c) (D311, ruling 1 §2, ruling 2 point 2; G27, J3) — A SCRATCH PHOTO CAP.

@@ -28,6 +28,7 @@ import { passwordGrant } from "./helpers/session";
 import { gotoReady, stepUpIfPrompted, switchUser, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient, leaseUser } from "./helpers/users";
 import { seedListingRow, updateListingRow } from "./helpers/listing-seed";
+import { levelNameFor } from "./helpers/level-overrides";
 
 /**
  * Bundle 10 E3a — ADMIN › SCREENING (SC-1..SC-6); bundle 11 A1 — the preview's doors (SC-7..SC-10);
@@ -92,18 +93,6 @@ async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) 
  * P-2 (c) c2a — a level row's English name, which the console's picks, notices and badge draw
  * (the row's, never a catalog key); the spec's own read of the row it seeded by key.
  */
-async function levelName(key: string): Promise<string> {
-  const { data, error } = await adminClient()
-    .from("listing_packages")
-    .select("name_en")
-    .eq("key", key)
-    .single();
-  if (error || !data || typeof data.name_en !== "string") {
-    throw new Error(`[e2e:sc] the level ${key}'s name: ${error?.message ?? "no row"}`);
-  }
-  return data.name_en;
-}
-
 /** Bundle 11 A1 — the audit rows a reveal wrote for one listing (audit_log is append-only). */
 async function revealRows(id: string) {
   const { data, error } = await adminClient()
@@ -1535,13 +1524,13 @@ test.describe("ADMIN SCREENING", () => {
         .getByTestId("admin-screening-filters-panel")
         .getByRole("group", { name: en["admin.listings.filter.level"] }),
     ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
-    await expect(tier("premium")).toHaveText(await levelName("premium"));
-    await expect(tier("regular")).toHaveText(await levelName("regular"));
+    await expect(tier("premium")).toHaveText(await levelNameFor("premium", "en"));
+    await expect(tier("regular")).toHaveText(await levelNameFor("regular", "en"));
     await tier("premium").click();
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
     await expect(page.getByTestId("admin-screening-chips-chip-tier")).toContainText(
-      await levelName("premium"),
+      await levelNameFor("premium", "en"),
     );
     await expect(
       rowOf(page, regular.id),
