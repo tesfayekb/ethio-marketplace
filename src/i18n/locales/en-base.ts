@@ -398,8 +398,6 @@ export const enBase = {
   "price.negotiable": "Negotiable",
   "price.contact": "Contact for price",
   "price.commission": "{percent}% commission",
-  "tier.premium": "Premium",
-  "tier.featured": "Featured",
   "admin.nav.alert.legalReview": "Review due",
   "admin.section.users.title": "Users",
   "admin.section.users.body": "User management arrives in U1.",
@@ -575,7 +573,7 @@ export const enBase = {
     "You cannot post into this category. Choose a more precise one.",
   "post.refusal.residencyUnknown":
     "We could not tell which country you are posting from. Please try again.",
-  "post.refusal.coverageExceedsPlan": "That is more places than your plan allows.",
+  "post.refusal.coverageExceedsReach": "That is more places than this ad's reach allows.",
   "post.refusal.rateLimited": "You have saved many times in a short while. Please wait a little.",
   "post.refusal.messagesRequired": "Buyers must be able to message you.",
   "post.refusal.notYourListing": "This listing belongs to another account.",
@@ -608,7 +606,6 @@ export const enBase = {
   "post.price.expiryLabel": "Take it down on (optional)",
   "post.price.expiryHint":
     "Leave it empty to use the normal window. At most {days} days from today.",
-  "post.where.planFull": "Your plan covers one city. Remove a place before adding another.",
   "post.where.chosenLabel": "Where this listing shows",
   "post.where.addPlace": "Add this place",
   "post.pin.close": "Hide the map",

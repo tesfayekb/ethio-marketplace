@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import { CARD_SURFACE } from "@/components/layout/surface";
+import { LIST_ROW_CURRENT } from "@/components/shell/menu-row";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,6 +18,7 @@ import { doorCode } from "@/lib/door-codes";
 import { formatDate, formatNumber, moneyText } from "@/lib/format";
 import { authKey } from "@/lib/query-keys";
 import { readerFailure } from "@/lib/reader-failure";
+import { cn } from "@/lib/utils";
 
 import {
   availabilityKey,
@@ -149,7 +151,12 @@ function LevelList({
             key={level.key}
             data-testid={`promote-level-${level.key}`}
             data-current={level.current ? "true" : undefined}
-            className={`${CARD_SURFACE} flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3`}
+            className={cn(
+              CARD_SURFACE,
+              "flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3",
+              // P-2 (c) c2a (W1) — the current level row takes the shell's one selected look.
+              level.current && LIST_ROW_CURRENT,
+            )}
           >
             <div className="flex min-w-0 flex-col">
               <span className="font-semibold">

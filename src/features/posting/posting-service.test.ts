@@ -226,7 +226,7 @@ describe("photo upload certification (bundle 22 turn 6)", () => {
 });
 
 describe("the owner's draft read (turn T1)", () => {
-  it("PSV-7 readDraft selects the tier and reads it through tierOf: a known tier as it is, anything else null", async () => {
+  it("PSV-7 readDraft selects the tier and reads it through tierOf: any level key as it is (P-2 (c) c2a), none null", async () => {
     const row = (tier: unknown) => ({
       id: "psv-7",
       category_id: null,
@@ -254,10 +254,10 @@ describe("the owner's draft read (turn T1)", () => {
     tables.selects.length = 0;
     try {
       for (const [stored, read] of [
-        ["premium", "premium"],
-        ["featured", "featured"],
-        ["regular", "regular"],
-        ["gold", null],
+        ["lvl-base", "lvl-base"],
+        ["lvl-fourth", "lvl-fourth"],
+        ["", null],
+        [7, null],
         [null, null],
       ] as const) {
         tables.rows["listings"] = row(stored);

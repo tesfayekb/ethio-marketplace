@@ -5,6 +5,7 @@ import type { ListingDetailView } from "@/features/posting/preview/listing-detai
 import { ribbonOf, type FeedSoldWord } from "@/features/feed/feed-page";
 import { catalogText } from "@/i18n/entity";
 import { tierOf } from "@/components/marketplace/card-tier";
+import { parseCardLevel } from "@/features/levels/levels-store";
 
 type PublicValue =
   | string
@@ -29,6 +30,8 @@ export interface PublicListingDoc {
   expires_at: string | null;
   renewed_at: string | null;
   tier: string;
+  /** P-2 (c) c2a (DEC-351 §8) — the ad's level look, resolved by `level_perks_for`; absent in an answer cached before it. */
+  level?: { key: string; placement: string | null; badge: boolean | null };
   photos_soon: boolean;
   video_url: string | null;
   country: string | null;
@@ -108,9 +111,12 @@ export function adPageView(doc: PublicListingDoc, language: string): ListingDeta
     doc.price.unit === "other"
       ? doc.price.unit_text
       : catalogText(label?.en, label?.am, language) || null;
+  const tier = tierOf(doc.tier);
+  const level = parseCardLevel(doc.level);
   return {
     actor: "buyer",
-    tier: tierOf(doc.tier),
+    tier,
+    look: level !== null && level.key === tier ? level.look : null,
     title: doc.title,
     postedAt: doc.published_at,
     description: doc.description,

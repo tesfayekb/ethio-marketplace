@@ -87,6 +87,7 @@ async function handler(
 
   const page = data as {
     cards?: unknown;
+    levels?: unknown;
     ladder?: unknown;
     steps?: unknown;
     next?: unknown;
@@ -97,13 +98,16 @@ async function handler(
     page === null ||
     typeof page !== "object" ||
     !Array.isArray(page.cards) ||
+    !Array.isArray(page.levels) ||
     !Array.isArray(page.ladder) ||
     !Array.isArray(page.steps)
   ) {
     return serverError(PATH, new Error("feed_page returned no page"));
   }
+  // P-2 (c) c2a — the level rows' dictionary rides the answer once (DEC-351 §8).
   const body: Record<string, unknown> = {
     cards: page.cards,
+    levels: page.levels,
     ladder: page.ladder,
     steps: page.steps,
     next: page.next === null || page.next === undefined ? null : encodeCursor(page.next),

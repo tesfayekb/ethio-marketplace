@@ -11,6 +11,7 @@ import { ribbonOf } from "@/features/feed/feed-page";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { cardLookOf } from "@/components/marketplace/card-tier";
 import { TierFlag, TierWord } from "@/components/marketplace/tier-flag";
+import { levelName } from "@/features/levels/levels-store";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -94,20 +95,25 @@ export function ListingCard({
    * no size difference between the different cards in all screens") — ONE CARD
    * SHAPE. Every card fills its grid cell (`h-full`; the feed's rows are equal,
    * `auto-rows-fr`) and lays out the same slots in the same places: the picture
-   * with the tier's flag on its corner; the title on one line; the price slot
+   * with the level's flag on its corner; the title on one line; the price slot
    * sized for its longest common case (a compact card: two lines of price and
    * the Negotiable pill — 58 px; a wider one: 44 px), so cards in different
    * sections match too (a rarer, longer price still shows whole and its row
    * grows with it); the place on the last line, kept even when the card has
-   * none, with the tier word beside it — on a compact card under it, and every
+   * none, with the level's word beside it — on a compact card under it, and every
    * compact card keeps that second line (S4 ruling 3).
    *
-   * Sage S4 (spec §7, §8) — the tier's look (fill and frame, divider, flag, word, ribbon
+   * Sage S4 (spec §7, §8) — the level's look (fill and frame, divider, flag, word, ribbon
    * palette) comes from card-tier.ts; the card no longer clips, so the flag's fold and the
    * ribbon's caps show past its edges, and the picture keeps the card's top corners itself.
+   * P-2 (c) c2a — the look is the card's own (`listing.look`); the word is its dictionary
+   * row's name, so a badge whose key the dictionary does not hold draws no flag.
    */
-  const look = cardLookOf(listing.tier);
-  const paid = look.paid;
+  const look = cardLookOf(listing.look);
+  const badge =
+    look.badge === null || listing.levelRow === null
+      ? null
+      : { look: look.badge, name: levelName(listing.levelRow, language) };
 
   const content = (
     <>
@@ -130,7 +136,7 @@ export function ListingCard({
           crop
           priority={priority}
         />
-        {paid ? <TierFlag tier={paid.tier} look={paid.look} /> : null}
+        {badge ? <TierFlag levelKey={listing.tier} name={badge.name} look={badge.look} /> : null}
       </div>
 
       {/* D123 — below 11rem (three or four a row) the card is compact. */}
@@ -171,10 +177,10 @@ export function ListingCard({
               <CutText text={locationName} />
             </span>
           ) : null}
-          {paid ? (
+          {badge ? (
             <TierWord
-              tier={paid.tier}
-              look={paid.look}
+              name={badge.name}
+              look={badge.look}
               className="basis-full @min-[11rem]:ms-auto @min-[11rem]:basis-auto"
             />
           ) : null}

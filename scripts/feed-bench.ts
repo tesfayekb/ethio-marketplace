@@ -141,6 +141,33 @@ function randomPassword(): string {
   return `Pw-${randomBytes(18).toString("base64url")}`;
 }
 
+/**
+ * P-2 (c) c2a (DEC-351 §8) — the bench's level mix, from a feed answer's `levels` dictionary (the
+ * enabled level rows: key, sort, is_baseline), never a level by name: one ad in a hundred takes
+ * the highest level, one in twenty-five the next (the highest again when it is alone), the rest
+ * the baseline. A dictionary without a baseline row, or a malformed one, is refused.
+ */
+export function levelMix(levels: unknown): (g: number) => string {
+  if (!Array.isArray(levels)) throw new Error("feed_page: no levels dictionary");
+  const rows = levels.map((row: unknown) => {
+    if (row === null || typeof row !== "object")
+      throw new Error("feed_page: a malformed level row");
+    const key: unknown = Reflect.get(row, "key");
+    const sort: unknown = Reflect.get(row, "sort");
+    const is_baseline: unknown = Reflect.get(row, "is_baseline");
+    if (typeof key !== "string" || typeof sort !== "number" || typeof is_baseline !== "boolean") {
+      throw new Error("feed_page: a malformed level row");
+    }
+    return { key, sort, isBaseline: is_baseline };
+  });
+  const baseline = rows.find((row) => row.isBaseline);
+  if (baseline === undefined) throw new Error("feed_page: no baseline level");
+  const above = rows.filter((row) => !row.isBaseline).sort((a, b) => b.sort - a.sort);
+  const top = above[0]?.key ?? baseline.key;
+  const next = above[1]?.key ?? top;
+  return (g) => (g % 100 === 0 ? top : g % 25 === 0 ? next : baseline.key);
+}
+
 function must<T>(res: { data: T; error: { message: string } | null }, what: string): T {
   if (res.error) throw new Error(`${what}: ${res.error.message}`);
   return res.data;
@@ -460,14 +487,26 @@ async function main(): Promise<number> {
       seeded += batch.length;
       batch = [];
     };
+    const mix = levelMix(
+      (
+        must(
+          await db.rpc("feed_page", {
+            p_category_id: null,
+            p_location_id: null,
+            p_after: null,
+            p_size: 1,
+          }),
+          "the level dictionary",
+        ) as { levels?: unknown }
+      ).levels,
+    );
     for (let g = 1; g <= LISTINGS; g++) {
-      const tier = g % 100 === 0 ? "premium" : g % 25 === 0 ? "featured" : "regular";
-      batch.push(row(g, leaves[(g * 7919) % 156]!, cities[(g * 104729) % 100]!, tier, g % 86400));
+      batch.push(row(g, leaves[(g * 7919) % 156]!, cities[(g * 104729) % 100]!, mix(g), g % 86400));
       if (batch.length === BATCH) await flush();
     }
     await flush();
     for (let g = 1; g <= HOT; g++) {
-      batch.push(row(LISTINGS + g, leaves[0]!, cities[0]!, "regular", g));
+      batch.push(row(LISTINGS + g, leaves[0]!, cities[0]!, mix(1), g));
       if (batch.length === BATCH) await flush();
     }
     await flush();

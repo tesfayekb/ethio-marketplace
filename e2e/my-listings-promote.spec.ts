@@ -2,7 +2,6 @@ import { type Page } from "@playwright/test";
 
 import { en } from "../src/i18n/locales/en";
 import { formatDate } from "../src/lib/format";
-import { ownValue } from "../src/lib/own-key";
 import { expect, test } from "./fixtures";
 import { destroyCountry } from "./helpers/countries";
 import { baselineLevelKey, seedListingRow, updateListingRow } from "./helpers/listing-seed";
@@ -109,11 +108,13 @@ async function trace(listingId: string) {
   };
 }
 
-/** The enabled levels in the catalog's own order (keys and sort only; the spec's read). */
-async function levelLadder(): Promise<Array<{ key: string; sort: number; selfServe: boolean }>> {
+/** The enabled levels in the catalog's own order (keys, sort and English names; the spec's read). */
+async function levelLadder(): Promise<
+  Array<{ key: string; sort: number; selfServe: boolean; nameEn: string }>
+> {
   const { data, error } = await adminClient()
     .from("listing_packages")
-    .select("key,sort,self_serve")
+    .select("key,sort,self_serve,name_en")
     .eq("kind", "level")
     .eq("enabled", true)
     .order("sort", { ascending: true });
@@ -122,6 +123,7 @@ async function levelLadder(): Promise<Array<{ key: string; sort: number; selfSer
     key: String(row.key),
     sort: Number(row.sort),
     selfServe: row.self_serve === true,
+    nameEn: String(row.name_en),
   }));
 }
 
@@ -137,16 +139,11 @@ async function levelsAbove(): Promise<{ baseline: string; level: string; higher:
   return { baseline, level: level.key, higher: higher?.key ?? null };
 }
 
-/** The P-1 tier word the staff dialog draws for a level key (its pick testid and its label). */
-const TIER_WORD: Record<string, string> = {
-  premium: en["tier.premium"],
-  featured: en["tier.featured"],
-  regular: en["admin.listings.tier.regular"],
-};
-function tierWord(key: string): string {
-  const word = ownValue(TIER_WORD, key);
-  if (word === undefined) throw new Error(`${TAG} the staff dialog draws no pick for ${key}`);
-  return word;
+/** P-2 (c) c2a — the level row's English name the staff console draws for a level key. */
+async function levelWord(key: string): Promise<string> {
+  const row = (await levelLadder()).find((entry) => entry.key === key);
+  if (row === undefined) throw new Error(`${TAG} no enabled level ${key}`);
+  return row.nameEn;
 }
 
 /** The visible twin of a My listings row: the table row from 1280 px, the card below it. */
@@ -446,7 +443,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     );
     await setTier(page, admin.secret, level, "promotion", "7");
     await expect(page.getByTestId("listing-notice")).toHaveText(
-      en["admin.listings.tier.done"].replace("{tier}", tierWord(level)),
+      en["admin.listings.level.done"].replace("{level}", await levelWord(level)),
       { timeout: 20000 },
     );
     const timedRow = await truth(timed);
@@ -490,7 +487,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     await page.getByTestId(`listing-actions-${open}-more-tier`).click();
     await setTier(page, admin.secret, level, "promotion", null);
     await expect(page.getByTestId("listings-notice")).toHaveText(
-      en["admin.listings.tier.done"].replace("{tier}", tierWord(level)),
+      en["admin.listings.level.done"].replace("{level}", await levelWord(level)),
       { timeout: 20000 },
     );
     const openRow = await truth(open);
@@ -511,7 +508,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
       await expect(line()).toHaveText(expected, { timeout: 20000 });
     };
 
-    await show(tierWord(baseline));
+    await show(await levelWord(baseline));
 
     const until = at(9 * DAY);
     expect(
@@ -524,7 +521,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     const staffUntil = (await truth(ad))["tier_until"];
     await show(
       [
-        tierWord(level),
+        await levelWord(level),
         en["admin.listings.level.source.staff"],
         en["admin.listings.level.until"].replace("{date}", day(staffUntil)),
       ].join(" · "),
@@ -535,7 +532,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     ).not.toBeNull();
     await show(
       [
-        tierWord(level),
+        await levelWord(level),
         en["admin.listings.level.source.staff"],
         en["admin.listings.level.noEnd"],
       ].join(" · "),
@@ -547,7 +544,7 @@ test.describe("MY LISTINGS — Promote: the level sheet and the staff Days field
     const launchUntil = (await truth(ad))["tier_until"];
     await show(
       [
-        tierWord(level),
+        await levelWord(level),
         en["admin.listings.level.source.launch"],
         en["admin.listings.level.until"].replace("{date}", day(launchUntil)),
       ].join(" · "),

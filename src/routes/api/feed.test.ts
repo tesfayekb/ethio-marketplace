@@ -92,7 +92,7 @@ beforeEach(() => {
   state.links = {};
   state.signThrows = false;
   state.signedWith = null;
-  state.rpcData = { cards: [], ladder: ["step"], steps: [1], next: null };
+  state.rpcData = { cards: [], levels: [], ladder: ["step"], steps: [1], next: null };
   process.env.SUPABASE_URL = "https://staging.example";
   process.env.SUPABASE_PUBLISHABLE_KEY = "publishable-key";
 });
@@ -101,6 +101,7 @@ describe("/api/feed — the cover links (DEC-195)", () => {
   it("FD-4 a page with three covers answers coverLinks for the three, at card and thumb sizes", async () => {
     state.rpcData = {
       cards: [card(CARD_A, "p1"), card(CARD_B, "p2"), card(CARD_C, "p3")],
+      levels: [],
       ladder: ["step"],
       steps: [1],
       next: null,
@@ -122,6 +123,7 @@ describe("/api/feed — the cover links (DEC-195)", () => {
   it("FD-4b a page whose signing throws answers 200 with its cards and no coverLinks", async () => {
     state.rpcData = {
       cards: [card(CARD_A, "p1")],
+      levels: [],
       ladder: ["step"],
       steps: [1],
       next: null,
@@ -138,6 +140,7 @@ describe("/api/feed — the cover links (DEC-195)", () => {
   it("FD-4c a page with no covers answers no coverLinks and makes no signing call", async () => {
     state.rpcData = {
       cards: [card(CARD_A, null)],
+      levels: [],
       ladder: ["step"],
       steps: [1],
       next: null,
@@ -180,6 +183,18 @@ describe("/api/feed — the cover links (DEC-195)", () => {
     const response = await get("?unknown=value");
     expect(response.status).toBe(200);
     expect(state.rpcCalls).toBe(1);
+  });
+
+  it("FD-5 the answer's level dictionary rides the body as it came; an answer without one is a server error (P-2 (c) c2a)", async () => {
+    const levels = [
+      { key: "lvl-base", sort: 0, name_en: "Base", name_am: null, is_baseline: true },
+    ];
+    state.rpcData = { cards: [], levels, ladder: ["step"], steps: [1], next: null };
+    const response = await get();
+    expect(response.status).toBe(200);
+    expect(((await response.json()) as Record<string, unknown>).levels).toEqual(levels);
+    state.rpcData = { cards: [], ladder: ["step"], steps: [1], next: null };
+    expect((await get()).status).toBe(500);
   });
 
   it("INC-804 a known refusal keeps its code", async () => {

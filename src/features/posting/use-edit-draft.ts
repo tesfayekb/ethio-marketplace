@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { tierOf } from "@/components/marketplace/card-tier";
-import type { ListingTier } from "@/features/feed/ranking";
 
 import { editErrorKey } from "@/features/admin-listings/edit-listing";
 import { editAdminListing, readAdminListing } from "@/features/admin-listings/use-admin-listing";
@@ -185,7 +184,7 @@ export function useEditDraft(
   const [photoNonce, setPhotoNonce] = useState(0);
   const [pin, setPin] = useState<DraftPin | null>(null);
   const [photosSoon, setPhotosSoon] = useState(false);
-  const [tier, setTier] = useState<ListingTier | null>(null);
+  const [tier, setTier] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [reason, setReasonState] = useState({ reason: "", note: "" });
   const reasonRef = useRef(reason);

@@ -22,6 +22,7 @@ import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/c
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { tierOf } from "@/components/marketplace/card-tier";
+import { exactLevel, useLevelLook, useLevelRows } from "@/features/levels/levels-store";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 
@@ -39,7 +40,7 @@ import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
 import { changeListingTier } from "./change-listing-tier";
 import { TierDialog } from "./tier-dialog";
-import { LEVEL_SOURCE_LABEL, TIER_LABEL, isTierValue, mayTier } from "./tier-reasons";
+import { LEVEL_SOURCE_LABEL, levelLabel, mayTier } from "./tier-reasons";
 import { UndoDialog } from "./undo-dialog";
 import { mayUndo, undoErrorKey, undoRefusalGroups } from "./undo-edit";
 import {
@@ -155,6 +156,9 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
   // D169 — the ad as buyers see it is on the page, so its photos and its schema load with it.
   const photos = useScreeningPhotos(listingId);
   const schema = useScreeningSchema(detail?.listing.categoryId ?? null);
+  // P-2 (c) c2a — the preview's level look: the level row's base look, from the store.
+  const previewLook = useLevelLook(tierOf(detail?.listing.tier));
+  const levels = useLevelRows({ looks: false });
   // INC-553 — the unit words load only when this listing or a revision holds a unit.
   const unitLabels = usePriceUnitLabels(
     detail !== null &&
@@ -173,12 +177,9 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
     en === null ? "—" : catalogText(en, am, language);
   const statusLabel = (status: string) => t(`admin.listings.status.${status}` as MessageKey);
   // P-2 (b) — a level the door did not answer is named as such, never a default.
+  // P-2 (c) c2a (INC-1077) — and so is a key no enabled level row holds.
   const tierLabel = (tier: string | null) =>
-    tier === null
-      ? t("admin.listings.level.unknown")
-      : isTierValue(tier)
-        ? t(TIER_LABEL[tier])
-        : t("admin.listings.tier.regular");
+    levelLabel(levels.rows, tier, language) ?? t("admin.listings.level.unknown");
   /** P-2 (b) — the level line: the level, then where it came from and when it ends (none on the baseline). */
   const levelLine = (tier: string | null, source: string | null, until: string | null) => {
     if (tier === null || source === null) return tierLabel(tier);
@@ -388,7 +389,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
       return;
     }
     setTiering(false);
-    setNotice(t("admin.listings.tier.done").replace("{tier}", tierLabel(tier)));
+    setNotice(t("admin.listings.level.done").replace("{level}", tierLabel(tier)));
     await refreshAfterWrite(queryClient, { queryKey: ADMIN_LISTINGS_KEY });
   };
 
@@ -464,7 +465,10 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               >
                 {statusLabel(listing.status)}
               </Badge>
-              {listing.tier !== null && listing.tier !== "regular" ? (
+              {/* P-2 (c) c2a (INC-1077) — every level but the baseline row is badged. */}
+              {listing.tier !== null &&
+              !levels.isLoading &&
+              exactLevel(levels.rows, listing.tier)?.isBaseline !== true ? (
                 <Badge variant="info" data-testid="listing-tier">
                   {tierLabel(listing.tier)}
                 </Badge>
@@ -522,7 +526,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                     setTiering(true);
                   }}
                 >
-                  {t("admin.listings.action.tier")}
+                  {t("admin.listings.action.level")}
                 </Button>
               ) : null}
               {mayViewAs && !own ? (
@@ -556,6 +560,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
               <ListingDetail
                 actor="staff"
                 tier={tierOf(listing.tier)}
+                look={previewLook}
                 title={listing.title}
                 description={listing.description}
                 priceMode={listing.priceMode}
@@ -733,7 +738,7 @@ export function AdminListingPage({ listingId }: { listingId: string }) {
                   />
                   <Fact
                     testid="listing-fact-tier"
-                    label={t("admin.listings.filter.tier")}
+                    label={t("admin.listings.filter.level")}
                     value={levelLine(listing.tier, listing.tierSource, listing.tierUntil)}
                   />
                   <Fact

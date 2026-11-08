@@ -88,6 +88,22 @@ async function rpcResult(page: Page, fn: string, args: Record<string, unknown>) 
   );
 }
 
+/**
+ * P-2 (c) c2a — a level row's English name, which the console's picks, notices and badge draw
+ * (the row's, never a catalog key); the spec's own read of the row it seeded by key.
+ */
+async function levelName(key: string): Promise<string> {
+  const { data, error } = await adminClient()
+    .from("listing_packages")
+    .select("name_en")
+    .eq("key", key)
+    .single();
+  if (error || !data || typeof data.name_en !== "string") {
+    throw new Error(`[e2e:sc] the level ${key}'s name: ${error?.message ?? "no row"}`);
+  }
+  return data.name_en;
+}
+
 /** Bundle 11 A1 — the audit rows a reveal wrote for one listing (audit_log is append-only). */
 async function revealRows(id: string) {
   const { data, error } = await adminClient()
@@ -1517,15 +1533,15 @@ test.describe("ADMIN SCREENING", () => {
     await expect(
       page
         .getByTestId("admin-screening-filters-panel")
-        .getByRole("group", { name: en["admin.listings.filter.tier"] }),
+        .getByRole("group", { name: en["admin.listings.filter.level"] }),
     ).toHaveAttribute("data-testid", "admin-screening-filter-tier");
-    await expect(tier("premium")).toHaveText(en["tier.premium"]);
-    await expect(tier("regular")).toHaveText(en["admin.listings.tier.regular"]);
+    await expect(tier("premium")).toHaveText(await levelName("premium"));
+    await expect(tier("regular")).toHaveText(await levelName("regular"));
     await tier("premium").click();
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("admin-screening-filters-count")).toHaveText("1");
     await expect(page.getByTestId("admin-screening-chips-chip-tier")).toContainText(
-      en["tier.premium"],
+      await levelName("premium"),
     );
     await expect(
       rowOf(page, regular.id),

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { PLAIN_LOOK } from "@/features/levels/levels-store";
+
 import {
   EVERYWHERE,
   feedPath,
@@ -17,7 +19,7 @@ function card(id: string, step: number, extra: Record<string, unknown> = {}) {
     id,
     publicId: null,
     title: `t-${id}`,
-    tier: "regular",
+    tier: "lvl-base",
     priceAmount: 100,
     priceCurrency: "ETB",
     priceMode: "fixed",
@@ -45,11 +47,45 @@ function page(cards: unknown[], ladder: unknown = ["A", EVERYWHERE], next: unkno
   return { cards, ladder, steps: [], next };
 }
 
+/** P-2 (c) c2a — the answer's one dictionary of level rows (fixture keys). */
+const LEVELS = [
+  { key: "lvl-base", sort: 0, name_en: "Base", name_am: null, is_baseline: true },
+  { key: "lvl-top", sort: 2, name_en: "Top", name_am: null, is_baseline: false },
+];
+const BASE_ROW = {
+  key: "lvl-base",
+  sort: 0,
+  nameEn: "Base",
+  nameAm: null,
+  isBaseline: true,
+  look: null,
+};
+const TOP_ROW = {
+  key: "lvl-top",
+  sort: 2,
+  nameEn: "Top",
+  nameAm: null,
+  isBaseline: false,
+  look: null,
+};
+const TOP_LEVEL = { key: "lvl-top", placement: "top", badge: true };
+
 describe("parseFeedPage", () => {
-  it("FP-1 parses a valid page to the same values", () => {
-    const raw = page([card("1", 1), card("2", 2)]);
+  it("FP-1 parses a valid page to the same values, each card with its look and its dictionary row", () => {
+    const raw = {
+      ...page([card("1", 1), card("2", 2, { tier: "lvl-top", level: TOP_LEVEL })]),
+      levels: LEVELS,
+    };
     expect(parseFeedPage(raw)).toEqual({
-      cards: [card("1", 1), card("2", 2)],
+      cards: [
+        { ...card("1", 1), look: PLAIN_LOOK, levelRow: BASE_ROW },
+        {
+          ...card("2", 2, { tier: "lvl-top" }),
+          look: { placement: "top", badge: true },
+          levelRow: TOP_ROW,
+        },
+      ],
+      levels: [BASE_ROW, TOP_ROW],
       ladder: ["A", EVERYWHERE],
       next: "abc",
     });
@@ -117,8 +153,31 @@ describe("parseFeedPage", () => {
     expect(parseFeedPage(page([], []))).toBeNull();
   });
 
-  it("FP-3 refuses a card with a wrong tier, step or price", () => {
-    expect(parseFeedPage(page([card("1", 1, { tier: "gold" })]))).toBeNull();
+  it("FP-3 a fourth level key keeps its card and its own look, with no dictionary row (INC-1079); a wrong level, step or price is refused", () => {
+    const fourth = parseFeedPage({
+      ...page([card("1", 1, { tier: "lvl-fourth", level: { ...TOP_LEVEL, key: "lvl-fourth" } })]),
+      levels: LEVELS,
+    });
+    expect(fourth?.cards[0]).toMatchObject({
+      tier: "lvl-fourth",
+      look: { placement: "top", badge: true },
+      levelRow: null,
+    });
+    // An answer cached from before the look rode the card: its key, the plain look.
+    expect(parseFeedPage(page([card("1", 1, { tier: "lvl-fourth" })]))?.cards[0]).toMatchObject({
+      tier: "lvl-fourth",
+      look: PLAIN_LOOK,
+      levelRow: null,
+    });
+    expect(parseFeedPage(page([card("1", 1, { tier: "" })]))).toBeNull();
+    expect(parseFeedPage(page([card("1", 1, { tier: 7 })]))).toBeNull();
+    expect(parseFeedPage(page([card("1", 1, { level: TOP_LEVEL })]))).toBeNull();
+    expect(
+      parseFeedPage(
+        page([card("1", 1, { tier: "lvl-top", level: { ...TOP_LEVEL, placement: 7 } })]),
+      ),
+    ).toBeNull();
+    expect(parseFeedPage({ ...page([card("1", 1)]), levels: [{ key: "lvl-base" }] })).toBeNull();
     expect(parseFeedPage(page([card("1", 0)]))).toBeNull();
     expect(parseFeedPage(page([card("1", 3)]))).toBeNull();
     expect(parseFeedPage(page([card("1", 1, { priceAmount: "5" })]))).toBeNull();

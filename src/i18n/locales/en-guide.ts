@@ -322,11 +322,11 @@ export const enGuide = {
   "admin.listings.guide.col.category": "The category it was posted in.",
   "admin.listings.guide.col.price": "The asking price with its unit.",
   "admin.listings.guide.col.status":
-    "Live, Reduced reach, Waiting for review, Held, Expired, Sold, Rejected, Closed or Removed; the ad's tier when it has one; its open reports, when you review ads.",
+    "Live, Reduced reach, Waiting for review, Held, Expired, Sold, Rejected, Closed or Removed; the ad's level when it has one; its open reports, when you review ads.",
   "admin.listings.guide.col.posted": "When it first went live.",
   "admin.listings.guide.col.expires": "When it ends.",
   "admin.listings.guide.how":
-    "The pills switch between All, Live, Waiting, Ended and Removed; search by a title's words or an ad's id; filter by country, category, seller, date and tier. The row's menu offers Open, Send back to review, Restore, Set tier, View as seller and Remove (red); each move asks for a reason, a note for the seller and your second factor, and the seller is told. Tick several ads to remove or restore them together. Editing an ad and removing a photo happen on the ad's page. Settings sets whether sellers may renew an expired ad and for how many days. Your own ads cannot be moved or edited here.",
+    "The pills switch between All, Live, Waiting, Ended and Removed; search by a title's words or an ad's id; filter by country, category, seller, date and level. The row's menu offers Open, Send back to review, Restore, Set level, View as seller and Remove (red); each move asks for a reason, a note for the seller and your second factor, and the seller is told. Tick several ads to remove or restore them together. Editing an ad and removing a photo happen on the ad's page. Settings sets whether sellers may renew an expired ad and for how many days. Your own ads cannot be moved or edited here.",
   "admin.listings.guide.next": "Review the ads waiting for approval.",
   "admin.locations.guide.what":
     "Every place people can post and browse in — regions, cities and sub-cities under their country. A place's path is its fixed address on the site.",

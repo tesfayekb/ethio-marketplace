@@ -1,15 +1,4 @@
-# P-1b (scripts/conformance/listing-levels.test.ts, CF-LEVEL-1): a read of listing_packages or level_overrides or a call of level_perks_for outside the one admin reader (src/features/admin-monetisation/monetisation-service.ts), or a level named by a literal tier word ('regular' beside tier, 'featured', 'premium'). Levels are rows staff edit, never a type; an allowance is a dated exception.
+# P-1b (scripts/conformance/listing-levels.test.ts, CF-LEVEL-1): a read of listing_packages or level_overrides or a call of level_perks_for outside the one admin reader (src/features/admin-monetisation/monetisation-service.ts), or a level named by a literal tier word ('regular' beside tier, 'featured', 'premium'). Levels are rows staff edit, never a type; an allowance is a dated exception. DEC-331 (P-2 (c) c2a): the tier-word fold emptied the tier: lines; the column stays `tier`.
 # key "reader:<file>" or "tier:<file>" | reason | until (YYYY-MM-DD, INC-n or DEC-n)
-tier:src/features/feed/ranking.ts | the P-1 ListingTier type the feed ranks by; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/components/marketplace/card-tier.ts | the card's look per P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/components/marketplace/tier-flag.tsx | the card's tier flag word per P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/features/feed/feed-page.ts | the feed page's P-1 tier order; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/features/admin-listings/use-admin-listings.ts | the admin roster's P-1 tier list and default; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/features/admin-listings/tier-reasons.ts | the Set tier dialog's P-1 tiers; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/features/admin-listings/listing-page.tsx | the admin listing page's P-1 tier flag; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/features/admin-listings/listings-page.tsx | the admin roster's P-1 tier word; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:src/routes/dev.style.tsx | the style page's fixture cards per P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:scripts/feed-bench.ts | the feed bench's seeded P-1 tiers; P-2 folds the ad's tier onto the level rows | 2027-03-31
-tier:e2e/helpers/ad-page.ts | the ad-page helper's seeded P-1 tier; P-2 folds the ad's tier onto the level rows | 2027-03-31
 reader:e2e/helpers/listing-seed.ts | the one e2e seeder reads the first enabled level above the baseline (keys only, no perks) for a scratch ad beyond the free slots (D318, register row 114) | DEC-342
 reader:e2e/helpers/level-overrides.ts | the one e2e seeder of a scratch category's override for the baseline level (P-2 (c), D311): reads the baseline row's max_photos only to pick a different scratch cap, writes and removes its own level_overrides row (PP-7, PP-25, PW-29; G27, J3) | DEC-351

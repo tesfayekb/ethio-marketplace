@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { callRoute } from "@/lib/route-client";
-import { parseCard, type FeedListing } from "@/features/feed/feed-page";
+import { levelsOf, parseCard, type FeedListing } from "@/features/feed/feed-page";
+import { seedLevelRows, type LevelRow } from "@/features/levels/levels-store";
 
 /**
  * Bundle 19 turn 17 (DEC-108) — the seller page's read: /api/seller, one
@@ -23,6 +24,8 @@ export interface SellerInfo {
 interface SellerPage {
   seller: SellerInfo;
   cards: FeedListing[];
+  /** P-2 (c) c2a — the enabled level rows, once per answer. */
+  levels: LevelRow[];
   next: string | null;
 }
 
@@ -34,6 +37,8 @@ function isStrOrNull(value: unknown): value is string | null {
 function parseSellerPage(value: unknown): SellerPage | null {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return null;
   const { seller, cards, next } = value as Record<string, unknown>;
+  const levels = levelsOf((value as Record<string, unknown>).levels);
+  if (levels === null) return null;
   if (seller === null || typeof seller !== "object" || Array.isArray(seller)) return null;
   const s = seller as Record<string, unknown>;
   if (!isStrOrNull(s.alias) || !isStrOrNull(s.businessName) || !isStrOrNull(s.memberSince)) {
@@ -49,13 +54,14 @@ function parseSellerPage(value: unknown): SellerPage | null {
   }
   const parsed: FeedListing[] = [];
   for (const card of cards) {
-    const one = parseCard(card, maxStep);
+    const one = parseCard(card, maxStep, levels);
     if (one === null) return null;
     parsed.push(one);
   }
   return {
     seller: { alias: s.alias, businessName: s.businessName, memberSince: s.memberSince },
     cards: parsed,
+    levels,
     next,
   };
 }
@@ -77,7 +83,9 @@ async function readPage(key: string, after: string | null): Promise<SellerFeedRe
   if (answer.status === 404) return { kind: "notFound" };
   if (answer.status !== 200) return { kind: "error" };
   const page = parseSellerPage(answer.payload);
-  return page === null ? { kind: "error" } : { kind: "ok", page };
+  if (page === null) return { kind: "error" };
+  seedLevelRows(page.levels);
+  return { kind: "ok", page };
 }
 
 export interface UseSellerFeed {

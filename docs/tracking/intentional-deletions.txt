@@ -112,3 +112,4 @@ supabase/migrations/20261105041444_94668649-35fb-405f-91a2-473d6329690e.sql
 scripts/check-caller-gates.ts
 scripts/caller-gates-allowlist.txt
 scripts/fixtures/caller-gates-bad.tsv
+src/features/feed/ranking.ts

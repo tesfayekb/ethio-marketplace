@@ -10,7 +10,8 @@ import { gotoReady } from "./helpers/ui";
  */
 
 const CANDIDATES = ["a", "b", "c"] as const;
-const CARDS = ["plain", "premium", "featured", "no-photo"] as const;
+// P-2 (c) c2a — the board's cards are named by their look (card-tier.ts), never a level.
+const CARDS = ["standard", "top-badge", "boost-badge", "no-photo"] as const;
 
 type Measured = { surface: number; edge: number; text: number };
 
@@ -81,7 +82,7 @@ test.describe("dark-card choice", () => {
           `[dark-cards] ${test.info().project.name} ${candidate}/${kind} surface ${m.surface} edge ${m.edge} text ${m.text}`,
         );
         expect(m.surface, `${candidate}/${kind} surface`).toBeGreaterThanOrEqual(1.25);
-        if (kind === "plain" || kind === "no-photo")
+        if (kind === "standard" || kind === "no-photo")
           expect(m.edge, `${candidate}/${kind} edge`).toBeGreaterThanOrEqual(1.8);
         expect(m.text, `${candidate}/${kind} text`).toBeGreaterThanOrEqual(4.5);
       }

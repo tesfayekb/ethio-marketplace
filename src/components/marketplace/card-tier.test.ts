@@ -5,11 +5,12 @@ import { describe, expect, it } from "vitest";
 
 import { MODE_FREE_TOKENS, MODED_TOKENS } from "@/lib/schemas/theme";
 
-import { adPageLookOf, CARD_TIERS, cardLookOf, tierOf } from "./card-tier";
+import { adPageLookOf, CARD_LOOKS, cardLookOf, placementOf, tierOf } from "./card-tier";
 
 /**
- * Sage S4 (spec §7, §8) — the tier mechanism's data: one look per tier, every class a utility
- * the stylesheet maps to a theme token and every reference a theme token.
+ * Sage S4 (spec §7, §8) — the look mechanism's data: one look per placement and badge, every
+ * class a utility the stylesheet maps to a theme token and every reference a theme token.
+ * P-2 (c) c2a (DEC-351 §8) — the look is the level's two axes; no level is named.
  */
 const css = readFileSync(resolve(__dirname, "../../styles.css"), "utf8");
 const themeBlock = css.slice(
@@ -27,44 +28,85 @@ function tokenOf(utility: string): string | undefined {
   return mapped?.[1];
 }
 
-describe("card-tier — one look per tier", () => {
-  it("CTR-1 the ribbon's palette follows the tier: regular pearl, Premium gold, Featured sage", () => {
-    expect(CARD_TIERS.map((tier) => cardLookOf(tier).palette)).toEqual(["pearl", "gold", "sage"]);
-    expect(cardLookOf("regular").paid).toBeNull();
-    expect(cardLookOf("premium").paid?.tier).toBe("premium");
-    expect(cardLookOf("featured").paid?.tier).toBe("featured");
+const look = (placement: string | null, badge: boolean | null) => ({ placement, badge });
+
+describe("card-tier — one look per placement and badge", () => {
+  it("CTR-1 placement picks the frame and its ribbon palette; the badge alone adds the flag (all six)", () => {
+    expect(CARD_LOOKS.map(({ id }) => id)).toEqual([
+      "standard",
+      "standard-badge",
+      "boost",
+      "boost-badge",
+      "top",
+      "top-badge",
+    ]);
+    expect(CARD_LOOKS.map(({ look: l }) => cardLookOf(l).palette)).toEqual([
+      "pearl",
+      "pearl",
+      "sage",
+      "sage",
+      "gold",
+      "gold",
+    ]);
+    expect(CARD_LOOKS.map(({ look: l }) => cardLookOf(l).badge !== null)).toEqual([
+      false,
+      true,
+      false,
+      true,
+      false,
+      true,
+    ]);
+    // The frame does not depend on the badge, nor the badge's colours on anything but the frame.
+    for (const placement of ["standard", "boost", "top"]) {
+      const { badge: _plain, ...frame } = cardLookOf(look(placement, false));
+      const { badge, ...same } = cardLookOf(look(placement, true));
+      expect(same).toEqual(frame);
+      expect(badge).not.toBeNull();
+    }
+    expect(cardLookOf(look("standard", true)).badge).toEqual(cardLookOf(look("boost", true)).badge);
+  });
+
+  it("CTR-1b a NULL or unknown placement is the plain frame; a NULL badge is no flag", () => {
+    const plain = cardLookOf(look("standard", false));
+    expect(cardLookOf(look(null, null))).toEqual(plain);
+    expect(cardLookOf(look("spotlight", false))).toEqual(plain);
+    expect(cardLookOf(look("top", null)).badge).toBeNull();
+    expect(placementOf(look("Top", null))).toBe("standard");
   });
 
   it("CTR-2 every class reads a theme token and every reference is one", () => {
-    for (const tier of CARD_TIERS) {
-      const look = cardLookOf(tier);
-      const classes = [look.surface, look.place, look.paid?.look.word, look.paid?.look.star]
+    for (const { id, look: l } of CARD_LOOKS) {
+      const card = cardLookOf(l);
+      const classes = [card.surface, card.place, card.badge?.word, card.badge?.star]
         .join(" ")
         .split(" ")
         .filter(Boolean);
       for (const utility of classes) {
         const token = tokenOf(utility);
-        expect(token, `${tier}: ${utility}`).toBeDefined();
-        expect(tokens.has(token ?? ""), `${tier}: ${utility} → --${token}`).toBe(true);
+        expect(token, `${id}: ${utility}`).toBeDefined();
+        expect(tokens.has(token ?? ""), `${id}: ${utility} → --${token}`).toBe(true);
       }
-      const flag = look.paid?.look.flag;
+      const flag = card.badge?.flag;
       for (const ref of flag === undefined ? [] : [flag.frame, flag.fold, ...flag.stops]) {
         const name = /^var\(--([\w-]+)\)$/.exec(ref)?.[1] ?? "";
-        expect(tokens.has(name), `${tier}: ${ref}`).toBe(true);
+        expect(tokens.has(name), `${id}: ${ref}`).toBe(true);
       }
     }
   });
 
-  it("CTR-3 spec §7: Premium flies a 64-unit flag with two stars, Featured a 44-unit flag with one", () => {
-    expect(cardLookOf("premium").paid?.look.flag.length).toBe(64);
-    expect(cardLookOf("premium").paid?.look.stars).toBe(2);
-    expect(cardLookOf("featured").paid?.look.flag.length).toBe(44);
-    expect(cardLookOf("featured").paid?.look.stars).toBe(1);
+  it("CTR-3 spec §7: the gold frame flies a 64-unit flag with two stars, the others a 44-unit flag with one", () => {
+    expect(cardLookOf(look("top", true)).badge?.flag.length).toBe(64);
+    expect(cardLookOf(look("top", true)).badge?.stars).toBe(2);
+    for (const placement of ["boost", "standard"]) {
+      expect(cardLookOf(look(placement, true)).badge?.flag.length).toBe(44);
+      expect(cardLookOf(look(placement, true)).badge?.stars).toBe(1);
+    }
   });
 
-  it("CTR-5 the ad page's look: free and unknown alike; Premium gold accents; Featured the site green; every colour a token (S5)", () => {
-    expect(adPageLookOf(null)).toEqual(adPageLookOf("regular"));
-    const free = adPageLookOf("regular");
+  it("CTR-5 the ad page's look: free and unknown alike; the gold frame gold accents; the green the site green; every colour a token (S5)", () => {
+    expect(adPageLookOf(null)).toEqual(adPageLookOf(look("standard", false)));
+    expect(adPageLookOf(look(null, null))).toEqual(adPageLookOf(null));
+    const free = adPageLookOf(null);
     expect([free.titleBox, free.box, free.tab, free.contact, free.negotiable]).toEqual([
       "",
       "",
@@ -73,36 +115,37 @@ describe("card-tier — one look per tier", () => {
       "",
     ]);
     expect(free.ink).toBe("text-primary");
-    const premium = adPageLookOf("premium");
-    expect(premium.titleBox).toBe(cardLookOf("premium").surface);
-    expect(premium.box).toBe("shadow-premium");
-    expect(premium.contact).toContain("bg-gold text-gold-foreground shadow-contact-premium");
-    expect(premium.ink).toBe("text-tier-premium-ink");
-    const featured = adPageLookOf("featured");
-    expect(featured.titleBox).toBe(cardLookOf("featured").surface);
-    expect(featured.box).toBe("shadow-featured");
-    expect([featured.ink, featured.contact, featured.tab]).toEqual([free.ink, "", ""]);
-    for (const tier of CARD_TIERS) {
-      const look = adPageLookOf(tier);
-      expect(look.palette).toBe(cardLookOf(tier).palette);
-      const classes = Object.entries(look)
+    const top = adPageLookOf(look("top", true));
+    expect(top).toEqual(adPageLookOf(look("top", false)));
+    expect(top.titleBox).toBe(cardLookOf(look("top", true)).surface);
+    expect(top.box).toBe("shadow-premium");
+    expect(top.contact).toContain("bg-gold text-gold-foreground shadow-contact-premium");
+    expect(top.ink).toBe("text-tier-premium-ink");
+    const boost = adPageLookOf(look("boost", true));
+    expect(boost.titleBox).toBe(cardLookOf(look("boost", true)).surface);
+    expect(boost.box).toBe("shadow-featured");
+    expect([boost.ink, boost.contact, boost.tab]).toEqual([free.ink, "", ""]);
+    for (const { id, look: l } of CARD_LOOKS) {
+      const page = adPageLookOf(l);
+      expect(page.palette).toBe(cardLookOf(l).palette);
+      const classes = Object.entries(page)
         .filter(([key]) => key !== "palette")
         .flatMap(([, value]) => String(value).split(" "))
         .filter((utility) => utility !== "" && !/^ring-(?:1|inset)$/.test(utility))
         .map((utility) => utility.replace(/^hover:/, "").replace(/\/\d+$/, ""));
       for (const utility of classes) {
         const token = tokenOf(utility);
-        expect(token, `${tier}: ${utility}`).toBeDefined();
-        expect(tokens.has(token ?? ""), `${tier}: ${utility} → --${token}`).toBe(true);
+        expect(token, `${id}: ${utility}`).toBeDefined();
+        expect(tokens.has(token ?? ""), `${id}: ${utility} → --${token}`).toBe(true);
       }
     }
-    const tag = CARD_TIERS.flatMap((tier) => cardLookOf(tier).paid?.look.ring ?? []);
-    expect(tag).toEqual(["ring-tier-premium-ring", "ring-tier-featured-ring"]);
+    const rings = ["boost", "top"].map((p) => cardLookOf(look(p, true)).badge?.ring);
+    expect(rings).toEqual(["ring-tier-featured-ring", "ring-tier-premium-ring"]);
   });
 
-  it("CTR-4 tierOf takes the three tiers and answers null for anything else (S5 ruling 1, answer 1)", () => {
-    for (const tier of CARD_TIERS) expect(tierOf(tier)).toBe(tier);
-    for (const other of ["", "Premium", "gold", null, undefined, 1, {}]) {
+  it("CTR-4 tierOf takes any level key and answers null for anything that is not one (S5 ruling 1; c2a: levels are rows)", () => {
+    for (const key of ["lvl-a", "spotlight", "Top"]) expect(tierOf(key)).toBe(key);
+    for (const other of ["", null, undefined, 1, {}]) {
       expect(tierOf(other), String(other)).toBeNull();
     }
   });

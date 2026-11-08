@@ -1726,7 +1726,7 @@ export function StepWhere({
             <div className="space-y-1" data-testid="post-where-plan-details">
               {maxCities !== null && (
                 <p className="text-xs text-muted-foreground" data-testid="post-where-plan">
-                  {fill(t("post.where.planCaption"), { cities: maxCities })}
+                  {fill(t("post.where.reachCaption"), { cities: maxCities })}
                 </p>
               )}
               <p className="text-xs text-muted-foreground" data-testid="post-where-plan-levels">

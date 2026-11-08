@@ -4,6 +4,7 @@ import {
   BATCH,
   GATE_WAIT_MINUTES,
   isStatementTimeout,
+  levelMix,
   nearestRank,
   renderStatus,
   summarise,
@@ -101,5 +102,18 @@ describe("feed-bench", () => {
     ).toContain("Verdict: YIELDED (CI run 2 (queued, abcdef01) started)");
     expect(renderStatus({ ...base, outcome: "PASS" })).toContain("Verdict: PASS");
     expect(GATE_WAIT_MINUTES).toBe(40);
+  });
+
+  it("FB-7 the level mix comes from the answer's dictionary, never a level by name", () => {
+    const row = (key: string, sort: number, is_baseline = false) => ({ key, sort, is_baseline });
+    const mix = levelMix([row("lvl-c", 30), row("lvl-base", 0, true), row("lvl-b", 20)]);
+    expect([mix(1), mix(25), mix(100)]).toEqual(["lvl-base", "lvl-b", "lvl-c"]);
+    const alone = levelMix([row("lvl-base", 0, true), row("lvl-a", 10)]);
+    expect([alone(1), alone(25), alone(100)]).toEqual(["lvl-base", "lvl-a", "lvl-a"]);
+    const flat = levelMix([row("lvl-base", 0, true)]);
+    expect([flat(25), flat(100)]).toEqual(["lvl-base", "lvl-base"]);
+    expect(() => levelMix([row("lvl-a", 10)])).toThrow("no baseline level");
+    expect(() => levelMix([{ key: "lvl-a" }])).toThrow("malformed");
+    expect(() => levelMix(undefined)).toThrow("no levels dictionary");
   });
 });

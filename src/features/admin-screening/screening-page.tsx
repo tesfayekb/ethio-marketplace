@@ -33,12 +33,8 @@ import { sectionById } from "@/features/admin/sections";
 import { StepUpGate } from "@/features/auth/mfa/step-up-gate";
 import { stepUpAbortKey } from "@/features/auth/mfa/use-step-up";
 import { ListingPhotos } from "@/features/admin-listings/listing-photos";
-import {
-  TIERS,
-  TIER_LABEL,
-  isTierValue,
-  type TierValue,
-} from "@/features/admin-listings/tier-reasons";
+import { levelLabel } from "@/features/admin-listings/tier-reasons";
+import { exactLevel, useLevelRows } from "@/features/levels/levels-store";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { heldWithAd } from "@/features/posting/posting-service";
 import { PreviewSheet } from "@/features/posting/preview/preview-sheet";
@@ -136,8 +132,11 @@ export function AdminScreeningPage({
 
   const [search, setSearch] = useState("");
   const [country, setCountry] = useState<string | null>(null);
-  // P-1 W4 — the tier filter, as Admin › Listings has it.
-  const [tier, setTier] = useState<TierValue | null>(null);
+  // P-1 W4 — the tier filter, as Admin › Listings has it (P-2 (c) c2a: the enabled level rows).
+  const [tier, setTier] = useState<string | null>(null);
+  const levels = useLevelRows({ looks: false });
+  const tierLabel = (value: string) =>
+    levelLabel(levels.rows, value, language) ?? t("admin.listings.level.unknown");
   // Bundle 11 C1 — the page and its size kept in this browser, one hook for every table.
   const { page, setPage, pageSize, setPageSize, pageSizeOptions } = useKeptPage(
     "ethio.admin.screening.pageSize",
@@ -418,7 +417,7 @@ export function AdminScreeningPage({
       : [
           {
             key: "tier",
-            label: t(TIER_LABEL[tier]),
+            label: tierLabel(tier),
             onRemove: () => {
               setTier(null);
               resetPaging();
@@ -575,15 +574,18 @@ export function AdminScreeningPage({
                       {/* P-1 W4 — the listings table's tier filter, the same words. */}
                       <FilterChoices
                         testid="admin-screening-filter-tier"
-                        label={t("admin.listings.filter.tier")}
+                        label={t("admin.listings.filter.level")}
                         value={tier ?? ""}
                         onChange={(value) => {
-                          setTier(isTierValue(value) ? value : null);
+                          setTier(exactLevel(levels.rows, value) === null ? null : value);
                           resetPaging();
                         }}
                         options={[
                           { value: "", label: t("prim.table.all") },
-                          ...TIERS.map((value) => ({ value, label: t(TIER_LABEL[value]) })),
+                          ...levels.rows.map((row) => ({
+                            value: row.key,
+                            label: tierLabel(row.key),
+                          })),
                         ]}
                       />
                     </FiltersButton>

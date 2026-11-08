@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { PinPrecision } from "./map/pin";
 import { readDraft, saveDraft, type DraftBody, type DraftPhotoRow } from "./posting-service";
-import type { ListingTier } from "@/features/feed/ranking";
 import {
   IMPLEMENTED_THROUGH,
   firstUnfinished,
@@ -143,8 +142,8 @@ export interface UseDraft {
   /** Bundle 4 step 15 — "Photos coming soon" as the door holds it. */
   photosSoon: boolean;
   setPhotosSoon: (on: boolean) => void;
-  /** Turn T1 — the ad's tier as read (staff set it), for the preview's tier look; null = not known. */
-  tier: ListingTier | null;
+  /** Turn T1 — the ad's level key as read (staff set it), for the preview's level look; null = not known. */
+  tier: string | null;
   loading: boolean;
   /** A resume that cannot be honoured says why, in words. */
   loadError: "notFound" | "failed" | null;
@@ -170,7 +169,7 @@ export function useDraft(initialListingId: string | null): UseDraft {
   const [pin, setPin] = useState<DraftPin | null>(null);
   const [directions, setDirections] = useState<string | null>(null);
   const [photosSoon, setPhotosSoon] = useState(false);
-  const [tier, setTier] = useState<ListingTier | null>(null);
+  const [tier, setTier] = useState<string | null>(null);
 
   // Refs, not state: the save machinery must not re-run an effect to work, and
   // the latest values must be readable from inside a timer (I3).

@@ -11,7 +11,6 @@ import {
 } from "@/features/posting/posting-service";
 import { supabase } from "@/integrations/supabase/client";
 import { tierOf } from "@/components/marketplace/card-tier";
-import type { ListingTier } from "@/features/feed/ranking";
 import { AUTH_DERIVED_ROOT } from "@/lib/query-keys";
 import { ReaderError } from "@/lib/reader-failure";
 
@@ -65,8 +64,8 @@ export interface ScreeningRow {
   priceUnitText: string | null;
   attributes: Record<string, unknown>;
   photosSoon: boolean;
-  /** Turn T1 — the ad's tier, for the preview's tier look; null = not known. */
-  tier: ListingTier | null;
+  /** Turn T1 — the ad's level key, for the preview's level look; null = not known. */
+  tier: string | null;
   updatedAt: string;
   category: Named;
   place: Named;

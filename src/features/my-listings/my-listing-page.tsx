@@ -36,6 +36,7 @@ import {
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
+import { useLevelLook } from "@/features/levels/levels-store";
 import { fill } from "@/features/posting/refusal-text";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { CertifyConfirm } from "@/features/legal/certify-confirm";
@@ -230,6 +231,8 @@ export function MyListingPage({ listingId }: { listingId: string }) {
     queryFn: () => readDraft(listingId),
     enabled: ad !== null,
   });
+  // P-2 (c) c2a — the preview's level look: the level row's base look, from the store.
+  const previewLook = useLevelLook(content.data?.draft.tier ?? null);
   const categoryId = row?.categoryId ?? null;
   const schema = useQuery({
     queryKey: ["my-listing-schema", categoryId],
@@ -678,6 +681,7 @@ export function MyListingPage({ listingId }: { listingId: string }) {
               actor="owner"
               soldBadge={sold && soldKey !== undefined ? t(soldKey) : null}
               tier={draft.draft.tier}
+              look={previewLook}
               counts={
                 row.publishedFirstAt === null
                   ? undefined

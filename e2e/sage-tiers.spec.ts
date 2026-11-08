@@ -59,6 +59,23 @@ const RIBBON_KEYS = [
   "feed.priceReduced",
 ] as const;
 
+/**
+ * P-2 (c) c2a — a level row's names, which the card's flag and word draw (the row's, never a
+ * catalog key); the spec's own read of the row it seeded by key.
+ */
+async function levelNames(key: string): Promise<{ en: string; am: string }> {
+  const { data, error } = await adminClient()
+    .from("listing_packages")
+    .select("name_en,name_am")
+    .eq("key", key)
+    .single();
+  if (error || !data || typeof data.name_en !== "string") {
+    throw new Error(`[e2e:stg] the level ${key}'s names: ${error?.message ?? "no row"}`);
+  }
+  const amName = typeof data.name_am === "string" && data.name_am !== "" ? data.name_am : null;
+  return { en: data.name_en, am: amName ?? data.name_en };
+}
+
 /** A value as the page resolves it inside `scope` (the body unless named): a probe's computed style. */
 async function resolvedIn(scope: Locator, property: string, value: string) {
   return scope.evaluate(
@@ -483,7 +500,7 @@ for (const width of WIDTHS) {
             await expect(c.getByTestId("listing-card-tier-word")).toHaveCount(0);
             continue;
           }
-          const name = en[tier === "premium" ? "tier.premium" : "tier.featured"];
+          const name = (await levelNames(tier)).en;
           const flag = c.getByRole("img", { name });
           await expect(flag).toHaveCount(1);
           await expect(flag.locator("path")).toHaveCount(tier === "premium" ? 4 : 3);
@@ -589,7 +606,7 @@ test.describe("The Amharic tier word at 390 (§7)", () => {
       for (const [index, id] of ids.entries()) {
         const card = page.locator(`[data-testid="listing-card"][data-listing="${id}"]`);
         const word = card.getByTestId("listing-card-tier-word");
-        await expect(word).toHaveText(am[index === 0 ? "tier.premium" : "tier.featured"]);
+        await expect(word).toHaveText((await levelNames(index === 0 ? "premium" : "featured")).am);
         expect(parseFloat(await style(word, "font-size"))).toBeGreaterThanOrEqual(9);
         const fit = await word.evaluate((el) => ({
           whole: el.scrollWidth <= el.clientWidth + 0.5,
@@ -646,11 +663,12 @@ test.describe("The same Premium card on every card surface (§7)", () => {
     saved.push({ user: buyer.id, listing: shown.id });
     const otherPath = listingPath(other.title, await feed.publicIdOf(other.id));
 
+    const premiumName = (await levelNames("premium")).en;
     const look = async (card: Locator) => ({
       fill: await style(card, "background-color"),
       shadow: await style(card, "box-shadow"),
       rule: await style(card.getByTestId("listing-card-place"), "border-top-color"),
-      flag: await card.getByRole("img", { name: en["tier.premium"] }).count(),
+      flag: await card.getByRole("img", { name: premiumName }).count(),
       word: (await card.getByTestId("listing-card-tier-word").textContent()) ?? "",
       ribbon: await card.getByTestId("listing-ribbon").getAttribute("data-ribbon"),
     });
@@ -661,7 +679,7 @@ test.describe("The same Premium card on every card surface (§7)", () => {
       shadow: await liftOf(page, "lift-premium"),
       rule: await tokenStyle(page, "light", "tier-premium-rule", "border-top-color"),
       flag: 1,
-      word: en["tier.premium"],
+      word: premiumName,
       ribbon: "gold",
     };
 

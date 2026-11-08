@@ -183,15 +183,19 @@ it("AV-7 the buyer's mapping says buyer and carries no value", () => {
   expect(Object.values(view.contactPref)).toEqual([{ show: true }, { show: true }]);
 });
 
-it("AV-11 the document's tier travels into the view; a word it does not know is null (Sage S5)", () => {
+it("AV-11 the document's level key travels into the view, any key (P-2 (c) c2a); its look only when the level object names that key", () => {
   const doc = document();
-  expect(adPageView(doc, "en").tier).toBe("regular");
-  doc.tier = "premium";
-  expect(adPageView(doc, "en").tier).toBe("premium");
-  doc.tier = "featured";
-  expect(adPageView(doc, "en").tier).toBe("featured");
-  doc.tier = "platinum";
+  expect(adPageView(doc, "en").tier).toBe(doc.tier);
+  expect(adPageView(doc, "en").look).toBeNull();
+  doc.tier = "lvl-fourth";
+  expect(adPageView(doc, "en").tier).toBe("lvl-fourth");
+  doc.level = { key: "lvl-fourth", placement: "top", badge: true };
+  expect(adPageView(doc, "en").look).toEqual({ placement: "top", badge: true });
+  doc.level = { key: "lvl-other", placement: "top", badge: true };
+  expect(adPageView(doc, "en").look).toBeNull();
+  doc.tier = "";
   expect(adPageView(doc, "en").tier).toBeNull();
+  expect(adPageView(doc, "en").look).toBeNull();
 });
 
 it("AV-9 the coverage places' names travel into the view in the document's order (INC-940)", () => {

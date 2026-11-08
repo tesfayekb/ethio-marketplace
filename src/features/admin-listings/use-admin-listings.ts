@@ -13,8 +13,6 @@ export const ADMIN_LISTINGS_KEY = ["admin", "listings"] as const;
 export const LISTING_VIEWS = ["all", "live", "waiting", "ended", "removed"] as const;
 export type ListingView = (typeof LISTING_VIEWS)[number];
 
-export const LISTING_TIERS = ["premium", "featured", "regular"] as const;
-
 export interface AdminListingFilters {
   view: ListingView;
   search: string;
