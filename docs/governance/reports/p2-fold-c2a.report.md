@@ -1,6 +1,6 @@
 # P-2 (c) — The fold, build turn c2a — report
 
-Base: 5bd54705d (cursor/p2-fold, c1's last commit; the brief's base is dev af50ca802, unmoved at every read) · Final commit: 8d55cde5c · Brief: docs/governance/briefs/p2-fold.md, with rulings c2a-1 … c2a-9 (`docs/governance/briefs/p2-fold-c2a-ruling-<n>.md`; ruling 9's sha256 `1721388db71f4ad267f6164fa7bcdab1a86520ba3406e06237292751cc622f9e`, equal to the attachment's)
+Base: 5bd54705d (cursor/p2-fold, c1's last commit; the brief's base is dev af50ca802, unmoved at every read) · Final code commit: 8d55cde5c · CI: f103ca885 SUCCESS (run 42534773334) · Brief: docs/governance/briefs/p2-fold.md, with rulings c2a-1 … c2a-9 (`docs/governance/briefs/p2-fold-c2a-ruling-<n>.md`; ruling 9's sha256 `1721388db71f4ad267f6164fa7bcdab1a86520ba3406e06237292751cc622f9e`, equal to the attachment's)
 Review: READY · 0 BLOCKER · 0 MAJOR · 4 MINOR · on 8d55cde
 
 ## 1. Done / not done, by part and step
@@ -547,7 +547,18 @@ This pull request's runs in c2a:
 
 No re-run was asked. The run on this report's commit:
 
-Not yet run: this report's own commit is the last code tree's; the first six lines of `ci-status.md` for it are added in the next commit, once its run completes.
+Run 42534773334 on f103ca885 (the report's commit; its code tree is 8d55cde5c's), read from `ci-status.md` on ci-evidence (two-step check: the commit it names is f103ca885):
+
+```
+# CI Status (auto-generated — do not edit by hand)
+
+- Commit: `f103ca885bc2a09c8961c6658725c8667df783c4` (short `f103ca8`)
+- Conclusion: **SUCCESS**
+- Completed (UTC): 2026-11-08T23:45:19Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42534773334
+```
+
+`gh pr checks 30`: 41 pass, 1 skipping (Promote to main, which does not run on a pull request). The bundle budget passes in CI.
 
 ## 12. Limits
 
