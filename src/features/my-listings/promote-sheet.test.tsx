@@ -185,11 +185,12 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
     expect(screen.queryByRole("button", { name: "Choose level" })).toBeNull();
   });
 
-  it("PMS-7 the current level row takes the shell's one selected look; the others keep the card's", async () => {
+  it("PMS-7 the current level row takes the shell's one selected look and is heard as current; the others keep the card's", async () => {
     answers.promote_options = [{ data: options(), error: null }];
     mount();
     const current = await screen.findByTestId("promote-level-lvl-a");
     for (const name of LIST_ROW_CURRENT.split(" ")) expect(current).toHaveClass(name);
+    expect([...document.querySelectorAll('[aria-current="true"]')]).toEqual([current]);
     for (const key of ["lvl-base", "lvl-b", "lvl-c", "lvl-d"]) {
       const row = screen.getByTestId(`promote-level-${key}`);
       for (const name of LIST_ROW_CURRENT.split(" ")) expect(row).not.toHaveClass(name);

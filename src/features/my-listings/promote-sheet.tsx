@@ -151,10 +151,12 @@ function LevelList({
             key={level.key}
             data-testid={`promote-level-${level.key}`}
             data-current={level.current ? "true" : undefined}
+            aria-current={level.current ? "true" : undefined}
             className={cn(
               CARD_SURFACE,
               "flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3",
-              // P-2 (c) c2a (W1) — the current level row takes the shell's one selected look.
+              // P-2 (c) c2a (W1, ruling 8) — the current level row takes the shell's one selected look,
+              // heard through aria-current above.
               level.current && LIST_ROW_CURRENT,
             )}
           >

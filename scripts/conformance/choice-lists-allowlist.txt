@@ -1,3 +1,2 @@
 # CF-LIST-1 (D264, turn F) exceptions: key = file#part | reason | until
 src/components/shell/location-selector.tsx#DropdownMenuContent | permanent: a height is not a row or panel class; the location list caps its height and scrolls | permanent
-src/features/my-listings/promote-sheet.tsx#current | permanent: the Promote sheet's level rows are cards with their own buttons, not a list of choices; the current row says so in words (myListings.promote.current), so it is heard as well as seen, and W1 (P-2 (c) c2a) gives it the shell's one current look | permanent
