@@ -1141,17 +1141,31 @@ test.describe("POSTING WIZARD", () => {
   });
 
   /**
-   * PW-82 — R5. The add buttons follow the plan, read from the DB (the 'free'
-   * row is read, never written — G27): each shows only while its level has room.
+   * PW-82 — R5, P-2 (c) (ruling 1 §6). A new ad's step 6 draws the caps of the
+   * DEFAULT market's included reach (the schema's `plan` block). The test reads,
+   * at test time, the row the schema reads — the default market row's
+   * `included_reach`, then that reach row's cells — and compares (INC-437's form:
+   * read, never written, never a literal — G27). Each add button shows only while
+   * its level has room; a NULL cap is the screen's "not known" (no button, no count).
    */
-  test("PW-82 the add buttons follow the plan's own limits", async ({ page }) => {
+  test("PW-82 step 6's caps are the default market's included reach's, as stored", async ({
+    page,
+  }) => {
+    const market = await adminClient()
+      .from("market_settings")
+      .select("included_reach")
+      .is("country_code", null)
+      .single();
+    if (market.error || !market.data)
+      throw new Error(`PW-82: the default market could not be read: ${market.error?.message}`);
     const { data: plan, error } = await adminClient()
-      .from("coverage_plans")
+      .from("listing_packages")
       .select("max_cities, max_regions, max_countries")
-      .eq("plan", "free")
+      .eq("key", market.data.included_reach)
+      .eq("kind", "reach")
       .single();
     if (error || !plan)
-      throw new Error(`PW-82: the free plan could not be read: ${error?.message}`);
+      throw new Error(`PW-82: the included reach could not be read: ${error?.message}`);
     const user = await seller(page);
     const category = await leaf();
     const chain = await seedScratchChain("ET");
@@ -1172,16 +1186,20 @@ test.describe("POSTING WIZARD", () => {
     await region.selectOption(chain.region.id);
     await page.getByTestId("post-where-city").selectOption(chain.city.id);
     await expect(placeBox(page)).toHaveAttribute("data-empty", "0");
-    const cityRoom = plan.max_cities > 1;
-    const regionRoom = cityRoom && plan.max_regions > 1;
-    const countryRoom = regionRoom && plan.max_countries > 1;
+    const cityRoom = plan.max_cities !== null && plan.max_cities > 1;
+    const regionRoom = cityRoom && plan.max_regions !== null && plan.max_regions > 1;
+    const countryRoom = regionRoom && plan.max_countries !== null && plan.max_countries > 1;
     await expect(page.getByTestId("post-where-add-city")).toHaveCount(cityRoom ? 1 : 0);
     await expect(page.getByTestId("post-where-add-region")).toHaveCount(regionRoom ? 1 : 0);
     await expect(page.getByTestId("post-where-add-country")).toHaveCount(countryRoom ? 1 : 0);
-    await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute(
-      "data-max",
-      String(plan.max_cities),
-    );
+    if (plan.max_cities === null) {
+      await expect(page.getByTestId("post-where-plan-count")).toHaveCount(0);
+    } else {
+      await expect(page.getByTestId("post-where-plan-count")).toHaveAttribute(
+        "data-max",
+        String(plan.max_cities),
+      );
+    }
   });
 
   /* ======================= U6-C1-R3b-4 — THE MAP PIN ======================= */

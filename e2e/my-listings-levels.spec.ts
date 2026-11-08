@@ -32,7 +32,7 @@ import { gotoReady, signInViaSession, useJobSuperAdmin } from "./helpers/ui";
 import { adminClient } from "./helpers/users";
 
 /**
- * P-2 (a) ruling 14 item 5 — AN AD'S LEVEL AND ITS CLOCKS (LDR-1…6, SWP-1…4, FSL-1…3).
+ * P-2 (a) ruling 14 item 5 — AN AD'S LEVEL AND ITS CLOCKS (LDR-1…7, SWP-1…4, FSL-1…3).
  *
  * The level doors as signed-in people call them — the seller's set_listing_level
  * (the launch season sets it free with source launch; every refusal by name with
@@ -51,14 +51,18 @@ import { adminClient } from "./helpers/users";
  * test writes and removes, so the free slots and the paid switch are the test's;
  * a level is priced there by a scratch package_prices row. The publish tests run
  * in ET as every posting spec does, the seller's ads beyond the drafts placed in a
- * scratch chain. Real level, reach and market rows are read, never written. Every
- * row is removed in afterEach (prices, listings, markets, places, categories).
+ * scratch chain. Real level, reach and market rows are read, never written; LDR-7's
+ * reach rows are its own scratch rows (P-2 (c)), named by its market as its included
+ * reach. Every row is removed in afterEach (prices, listings, markets, reach rows,
+ * places, categories).
  * Truth through the service client (J4); anchors are test ids, words by key (J5).
  */
 
 type Row = Record<string, unknown>;
 
 const TAG = "[e2e:lvl]";
+/** The scratch reach rows' key prefix (letters first, the key check's form). */
+const REACH_PREFIX = "e2e_lvl_r";
 const DAY = 86_400_000;
 const MINUTE = 60_000;
 const at = (offsetMs: number) => new Date(Date.now() + offsetMs).toISOString();
@@ -198,6 +202,8 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
   const regions: string[] = [];
   const branches: string[][] = [];
   const categories: string[] = [];
+  /** P-2 (c) — scratch reach rows (LDR-7), removed after the market that names one. */
+  const reachRows: string[] = [];
 
   test.afterEach(async () => {
     const supabase = adminClient();
@@ -219,6 +225,14 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
       );
       await destroyCountry(code);
     }
+    const reaches = reachRows.splice(0);
+    if (reaches.some((key) => !key.startsWith(REACH_PREFIX)))
+      failures.push(`reach rows: refusing to delete ${reaches.join(", ")}`);
+    else if (reaches.length > 0)
+      step(
+        "reach rows",
+        (await supabase.from("listing_packages").delete().in("key", reaches)).error,
+      );
     for (const slug of regions.splice(0)) await destroyLocation(slug);
     for (const branch of branches.splice(0)) await destroyCategoryBranch(branch);
     for (const slug of categories.splice(0)) await destroyPostableCategory(slug);
@@ -256,6 +270,50 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
   }
 
   type Market = Awaited<ReturnType<typeof scratchMarket>>;
+
+  /**
+   * P-2 (c) — three self-serve scratch reach rows above every real one, their keys
+   * from ONE draw (INC-1082), and the market's included reach set to the middle one:
+   * `low` sorts under it, `unpriced` over it with no price in the market.
+   */
+  async function scratchReaches(market: Market) {
+    const client = adminClient();
+    const top = await client
+      .from("listing_packages")
+      .select("sort")
+      .eq("kind", "reach")
+      .order("sort", { ascending: false })
+      .limit(1)
+      .single();
+    if (top.error || !top.data) throw new Error(`${TAG} reach sort: ${top.error?.message}`);
+    const stem = `${REACH_PREFIX}${token()}`;
+    const sort = Number(top.data.sort) + 100;
+    const rows = {
+      low: { key: `${stem}_lo`, sort, days: 10 },
+      included: { key: `${stem}_in`, sort: sort + 1, days: 30 },
+      unpriced: { key: `${stem}_up`, sort: sort + 2, days: 40 },
+    };
+    const inserted = await client.from("listing_packages").insert(
+      Object.values(rows).map((row) => ({
+        key: row.key,
+        kind: "reach",
+        name_en: `E2E reach ${row.key}`,
+        days: row.days,
+        enabled: true,
+        self_serve: true,
+        extends_lifetime: false,
+        sort: row.sort,
+      })),
+    );
+    if (inserted.error) throw new Error(`${TAG} reach rows seed: ${inserted.error.message}`);
+    reachRows.push(...Object.values(rows).map((row) => row.key));
+    const included = await client
+      .from("market_settings")
+      .update({ included_reach: rows.included.key })
+      .eq("country_code", market.code);
+    if (included.error) throw new Error(`${TAG} included reach: ${included.error.message}`);
+    return rows;
+  }
 
   /** A scratch seller of this file (a pooled lease, its ads removed in afterEach). */
   async function scratchSeller() {
@@ -335,7 +393,7 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     expires_at: null,
   };
 
-  // ─────────────── the level doors (LDR-1…5) ───────────────
+  // ─────────────── the level doors (LDR-1…5) and the Promote sheet's reach read (LDR-7) ───────────────
 
   test("LDR-1 while the paid switch is off the seller's level is set free: the level, its end, source launch, one revision, one audit row, the price's use counted", async ({
     page,
@@ -545,6 +603,61 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     });
   });
 
+  test("LDR-7 promote_options answers the ad's reach and each reach row by set_listing_reach's refusal: the included row includedReach, a lower row lowerReach, an unpriced row notOffered; nothing written", async ({
+    page,
+  }) => {
+    const market = await scratchMarket(1);
+    const rows = await scratchReaches(market);
+    const seller = await scratchSeller();
+    const ad = await seed(seller, market);
+    const before = await trace(ad);
+    await signInViaSession(page, seller.email, seller.password);
+
+    const answer = doorAnswer(
+      await door(page, "promote_options", { p_listing_id: ad }),
+      "promote_options",
+    );
+    expect(answer["reach"]).toEqual({
+      key: rows.included.key,
+      until: null,
+      source: null,
+      included: rows.included.key,
+    });
+    const listed = answer["reaches"];
+    if (!Array.isArray(listed))
+      throw new Error(`${TAG} promote_options: no reaches: ${JSON.stringify(answer)}`);
+    const keys = new Set(Object.values(rows).map((row) => row.key));
+    const mine = listed
+      .filter(
+        (row: unknown): row is Row =>
+          typeof row === "object" && row !== null && !Array.isArray(row),
+      )
+      .filter((row) => keys.has(String(row["key"])));
+    const expected = (
+      row: { key: string; sort: number; days: number },
+      current: boolean,
+      below: boolean,
+      availability: string,
+    ) => ({
+      key: row.key,
+      name_en: `E2E reach ${row.key}`,
+      name_am: null,
+      sort: row.sort,
+      current,
+      below,
+      days: row.days,
+      amount: null,
+      currency: null,
+      availability,
+    });
+    expect(mine, "LDR-7: the scratch reach rows in the catalog's order").toEqual([
+      expected(rows.low, false, true, "lowerReach"),
+      expected(rows.included, true, false, "includedReach"),
+      expected(rows.unpriced, false, false, "notOffered"),
+    ]);
+    expect(await trace(ad), "LDR-7: a read writes nothing").toEqual(before);
+  });
+
   // ─────────────── the sweep (SWP-1…4) ───────────────
 
   test("SWP-1 an ended level with a free slot falls to the baseline and stays live: one edit revision, listing.level_ended, no notice", async () => {
@@ -635,6 +748,19 @@ test.describe("MY LISTINGS — an ad's level and its clocks (P-2 (a))", () => {
     const rows = await audits(ad);
     expect(rows.map((r) => [r["action"], r["actor_id"]])).toEqual([["listing.reach_ended", null]]);
     expect(rows[0]?.["meta"]).toMatchObject({ from: reach, source: "launch" });
+    // P-2 (c) — with its reach column cleared, the ad resolves to its market's included reach.
+    const own = await adminClient()
+      .from("market_settings")
+      .select("included_reach")
+      .eq("country_code", market.code)
+      .single();
+    if (own.error || !own.data) throw new Error(`${TAG} scratch market: ${own.error?.message}`);
+    const resolved = await adminClient().rpc("listing_effective_reach", { p_listing: ad });
+    if (resolved.error)
+      throw new Error(`${TAG} listing_effective_reach: ${resolved.error.message}`);
+    expect(resolved.data, "SWP-3: the ad resolves to its market's included reach").toBe(
+      own.data.included_reach,
+    );
   });
 
   test("SWP-4 a level ending within three days reminds the seller once; a second sweep adds nothing", async () => {
