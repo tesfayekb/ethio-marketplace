@@ -6051,6 +6051,10 @@ export type Database = {
       }
       listing_contact_refusals: { Args: { p_pref: Json }; Returns: Json }
       listing_counts: { Args: { p_listing_id: string }; Returns: Json }
+      listing_effective_reach: {
+        Args: { p_country?: string; p_listing: string }
+        Returns: string
+      }
       listing_group_of: { Args: { p_status: string }; Returns: string }
       listing_history: { Args: { p_listing_id: string }; Returns: Json }
       listing_photo_cap: { Args: { p_listing: string }; Returns: number }
@@ -6501,6 +6505,7 @@ export type Database = {
           p_contact_pref: Json
           p_coverage: string[]
           p_description: string
+          p_listing_id?: string
           p_poster_expires_at: string
           p_price_amount: number
           p_price_bp?: number
