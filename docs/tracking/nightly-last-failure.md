@@ -1,9 +1,9 @@
 # Last E2E failure (auto-generated — do not edit by hand)
 
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42392046074
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42500630833
 - Commit: `af50ca802c2b44974d3abe4d7f3fb68340bc4eaa`
 - Attempt: 1
-- Written (UTC): 2026-11-07T22:35:45.900Z
+- Written (UTC): 2026-11-08T22:35:31.708Z
 - Passed: 0 · Skipped: 0 · Failed: 1
 - Gating failures: 1 · Quarantined (@global-state, INC-117, non-gating): 0
 - Flaky (passed on retry, DEC-030, non-gating): 0
@@ -19,7 +19,7 @@ None: no results file lists one and no log's summary names one (1 of 2 results f
 
 Logs read: nightly, full · unavailable: none
 
-66 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
+65 line(s), 28 message(s): 1 off the allowlist, 27 allowlisted.
 
 | Message | Count | Sources |
 | --- | --- | --- |
@@ -27,7 +27,7 @@ Logs read: nightly, full · unavailable: none
 | `categories wrongFile` (quiet) | 4 | full |
 | `definitions badHeader` (quiet) | 4 | full |
 | `definitions wrongFile` (quiet) | 4 | full |
-| `tooManyPhotos:<n>` | 4 | full |
+| `tooManyPhotos:<n>` | 3 | full |
 | `categories file too large` (quiet) | 2 | full |
 | `categories nulByte` (quiet) | 2 | full |
 | `categories unknownColumn` (quiet) | 2 | full |
@@ -58,8 +58,8 @@ Off the allowlist:
 
 ### tooManyPhotos:<n>
 
-- Count: 4 · Sources: full
-- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-25 an edited photo takes the old photo's place; its objects go; at the cap it ×2 · PP-26 a refused edit leaves the old photo as it was; a photo not on the listing  ×2 · PP-7 the eleventh photo is refused tooManyPhotos ×2 · PP-8 DELETE removes the row and the objects; POST makes a photo the cover ×2
+- Count: 3 · Sources: full
+- Tests that finished next in the same log (the one running when the line was written is among them; INC-398): PP-7 the eleventh photo is refused tooManyPhotos ×2 · PP-8 DELETE removes the row and the objects; POST makes a photo the cover ×2 · PP-25 an edited photo takes the old photo's place; its objects go; at the cap it ×1 · PP-26 a refused edit leaves the old photo as it was; a photo not on the listing  ×1
 
 ```text
 [WebServer] [ssr-error] /api/upload/photo tooManyPhotos:4
@@ -77,7 +77,7 @@ Results read: nightly · unavailable: full
 
 | Source | Started (UTC) | Wall time |
 | --- | --- | --- |
-| nightly | 2026-11-07T16:36:21.082Z | 0.7 min |
+| nightly | 2026-11-08T16:36:16.238Z | 0.7 min |
 
 | Spec file | Tests | Summed duration | Ran in |
 | --- | --- | --- | --- |
@@ -87,7 +87,7 @@ Results read: nightly · unavailable: full
 
 | Test | Project | Duration |
 | --- | --- | --- |
-| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 31.7 s |
+| `auth-resend-exhaustion.spec.ts` › A-3: three resends exhaust the per-visit limit | nightly-mobile-360 | 32.2 s |
 
 ## Post-test errors: nightly
 
@@ -96,7 +96,7 @@ nightly: every test's verdict stands — these lines were printed OUTSIDE any te
 ```text
 [e2e:teardown] accounts signed in this run: 2 (pool 0, fresh 2)
 [e2e:teardown] transport retries this run: 0 (by method: none; by code: none; ran out: 0)
-[e2e:teardown] deleted 3 user(s) owned by process 42392046074-nightly
+[e2e:teardown] deleted 3 user(s) owned by process 42500630833-nightly
 ```
 
 ## auth-resend-exhaustion.spec.ts › A-3: three resends exhaust the per-visit limit
@@ -174,7 +174,7 @@ No `[ssr-error]` lines in the `nightly` log (or no log was uploaded).
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/upload/photo tooManyPhotos:4 ×2
+[WebServer] [ssr-error] /api/upload/photo tooManyPhotos:4
 ```
 
 ## Client errors: full
@@ -187,24 +187,24 @@ full: no results file — the process failed outside test results (setup/teardow
 
 ```text
 --- error lines (8) ---
-  ✘   795 [mobile-360] › e2e/photo-pipeline.spec.ts:290:3 › PHOTO PIPELINE › PP-7 the eleventh photo is refused tooManyPhotos (17.8s)
-  ✘   814 [mobile-360] › e2e/photo-pipeline.spec.ts:1431:3 › PHOTO PIPELINE › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) (24.0s)
-  ✘   876 [mobile-360] › e2e/post-wizard-category.spec.ts:1274:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (26.6s)
-  ✘  1267 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (10.5s)
-  ✘  1790 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.1m)
-  ✘  2184 [desktop-1280] › e2e/photo-pipeline.spec.ts:290:3 › PHOTO PIPELINE › PP-7 the eleventh photo is refused tooManyPhotos (19.2s)
-  ✘  2203 [desktop-1280] › e2e/photo-pipeline.spec.ts:1431:3 › PHOTO PIPELINE › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) (24.0s)
-  ✘  2265 [desktop-1280] › e2e/post-wizard-category.spec.ts:1274:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (27.1s)
+  ✘   534 [mobile-360] › e2e/feed-route.spec.ts:228:3 › FEED ROUTE › FR-6 the answer is public and carries no seller (8.5s)
+  ✘   795 [mobile-360] › e2e/photo-pipeline.spec.ts:290:3 › PHOTO PIPELINE › PP-7 the eleventh photo is refused tooManyPhotos (23.4s)
+  ✘   814 [mobile-360] › e2e/photo-pipeline.spec.ts:1431:3 › PHOTO PIPELINE › PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) (29.0s)
+  ✘   876 [mobile-360] › e2e/post-wizard-category.spec.ts:1274:3 › POSTING WIZARD › PW-29 the photos caption counts against the plan's cap (29.4s)
+  ✘  1267 [mobile-360] › e2e/shell.spec.ts:1227:3 › mobile chrome › RM-1 a tap on the strip opens the menu; the row under the finger opens the category (10.9s)
+  ✘  1790 [desktop-1280] › e2e/admin-translations-governance.spec.ts:1266:3 › U4g bulk approval, order and orphans › TR-30 pseudo-localization fills zxa with stretched machine rows that can never be published @global-state (4.2m)
+  ✘  1923 [desktop-1280] › e2e/feed-route.spec.ts:228:3 › FEED ROUTE › FR-6 the answer is public and carries no seller (8.9s)
+  ✘  2184 [desktop-1280] › e2e/photo-pipeline.spec.ts:290:3 › PHOTO PIPELINE › PP-7 the eleventh photo is refused tooManyPhotos (22.9s)
 --- final 10 lines ---
-[WebServer] emit@node:events:97:22
-[WebServer] emitCloseNT@internal:http:47:79
-[WebServer] emit@node:events:118:23
-[WebServer] emitCloseNT@internal:streams/destroy:78:14
-[WebServer] processTicksAndRejections@
-[WebServer] [aborted] the client left; h3 logged the request as unhandled (status 500)
-[WebServer] [client-aborted] GET /api/categories/tree
-SGB-4 1440 light top: [{"x":256,"y":56,"width":1184,"height":40},{"x":256,"y":96,"width":1184,"height":40},{"x":256,"y":136,"width":1184,"height":40}]
-SGB-4 1440 light scrolled: [{"x":256,"y":56,"width":1184,"height":40},{"x":256,"y":96,"width":1184,"height":40}]
+[WebServer] [upstream] ssr language gate 200 88ms
+[WebServer] [upstream] ssr language gate 200 91ms
+  ✓  2198 [desktop-1280] › e2e/photo-pipeline.spec.ts:1034:3 › PHOTO PIPELINE › PP-20 a draft begun on /post takes its own address, and a reload opens it again (15.1s)
+[WebServer] [upstream] ssr language gate 200 93ms
+[WebServer] [upstream] ssr language gate 200 84ms
+[WebServer] [upstream] ssr language gate 200 88ms
+  ✓  2199 [desktop-1280] › e2e/photo-pipeline.spec.ts:1100:3 › PHOTO PIPELINE › PP-21 a published ad's cover photo reaches the feed card, signed for a visitor without a session (19.7s)
+[WebServer] [upstream] ssr language gate 200 87ms
+[WebServer] [upstream] ssr language gate 200 92ms
 ```
 
 ```text
@@ -227,5 +227,5 @@ SGB-4 1440 light scrolled: [{"x":256,"y":56,"width":1184,"height":40},{"x":256,"
 [WebServer] [ssr-error] /api/admin/locations/import locations file too large
 [WebServer] [ssr-error] /api/admin/locations/import locations nulByte
 [WebServer] [ssr-error] /api/admin/attributes/import links unknownColumn
-[WebServer] [ssr-error] /api/upload/photo tooManyPhotos:4 ×2
+[WebServer] [ssr-error] /api/upload/photo tooManyPhotos:4
 ```
