@@ -394,3 +394,153 @@ apply 704f04ac → expect mark 20261107140200
 apply ee072b49 → expect mark 20261107140300
 apply 19c38d6c → expect mark 20261107140400
 apply 0d1cd555 → expect mark 20261107140500
+
+## Addendum — ruling 4 (base cursor/p2-fold 91fe2eae0)
+
+`origin/dev` is still af50ca802 (no drift). CI on 91fe2eae0 (run 42387825000, completed
+2026-11-07T16:06:51Z, FAILURE) had only the expected reds:
+- the preflight (STAGING BEHIND);
+- the ethio-staging aggregate;
+- Lane 5 (PP-7, PP-25, PW-29 on mobile-360);
+- Lane 13 (the same three on desktop-1280).
+
+Lane 11 started there and applied 424/424 (139 passed, 0 failed).
+
+### INC-1082 — two scratch languages from one draw (DEC-345 proof-text edits), commit 4027c48bd
+
+**Census (G29).**
+`rg -n "substr\(replace\(gen_random_uuid\(\)::text, '-', ''\), (1|9), [1-3]\)" supabase/migrations`
+has seven hits:
+- **Two draws in one proof:** 20261106051700 (:129, :130) and 20261106051900 (:212, :213), the
+  same two files as the supervisor's run.
+- **One draw, no twin:**
+  - 20261106051800 :125 (`v_lang_on` only);
+  - this turn's part 2 :155 and part 4 :181 (`v_lang` only).
+
+  A single code meets only an existing `q` + two-hex language, and every proof rolls its own rows
+  back. None of these joins.
+
+**The edit, identical in both files.** Each file's two declarations become three:
+```
+  v_h        text := substr(replace(gen_random_uuid()::text, '-', ''), 1, 2);
+  v_lang_on  text := 'q' || v_h;
+  v_lang_off text := 'q' || translate(v_h, '0123456789abcdef', '123456789abcdef0');
+```
+Every hex digit shifts, so the two codes always differ.
+
+**Schema text byte-identical (DEC-345).** Each file was compared before and after:
+```
+$ diff <(sed '/^DO \$proof\$/,/^\$proof\$;/d; /^--/d' 051700.before.sql) <(sed '/^DO \$proof\$/,/^\$proof\$;/d; /^--/d' 20261106051700_c4e9a6d7-5f2b-4e8c-a1d3-7b6f0e2c9a03.sql)
+diff exit 0
+$ diff <(sed '/^DO \$proof\$/,/^\$proof\$;/d; /^--/d' 051900.before.sql) <(sed '/^DO \$proof\$/,/^\$proof\$;/d; /^--/d' 20261106051900_a9d4c7e2-1b8f-4e3a-b6d5-0c7f9e1a3b05.sql)
+diff exit 0
+```
+Both diffs are empty. The `.before.sql` files are the committed texts at 91fe2eae0, copied
+outside the tree.
+
+**Planted control (not committed).** With the shift removed from 20261106051700
+(`v_lang_off := 'q' || v_h`), `bun run db:proof` failed with Lane 11's error: `duplicate key value
+violates unique constraint "languages_pkey"`, `Key (code)=(q31) already exists`. The file was
+restored afterwards.
+
+**No guard pins either file.** `rg` of both stamps and both old sha256 values over `scripts/`,
+`.github/` and `docs/tracking/` (the findings log aside) found nothing.
+
+### The market of the call (ruling 4, question 2), commit 85cadf8f9
+
+**Part 1:**
+- The resolver is now `public.listing_effective_reach(p_listing uuid, p_country character DEFAULT
+  NULL::bpchar)`:
+  ```
+  coalesce(l.reach, (market_settings_for(coalesce(p_country, <the least country of the ad's
+  stored places>))).included_reach)
+  ```
+- Its COMMENT, REVOKE and GRANT name `(uuid, character)`, both at the declaration and in the
+  closers.
+- The trim is unchanged: it keeps the stored places' market (decision 4).
+- The header now says "part 1 of 6" and "parts 3–6" (it said 5; see the finding below).
+- Proof (a) checks `pronargs` 2 and `pronargdefaults` 1 beside the header and grants.
+- Proof (c) gains the call-market cases:
+  - the draft with no stored place asked with XZ answers XZ's included reach (`rinc`), not the
+    default row's (`rdef`);
+  - the ad stored in XZ asked with XY answers XY's included reach (`rxy`);
+  - the ad with a bought reach asked with XY still answers it (`rbig`).
+- XY's row is the parked real default (or a scratch row when there is none). Its included reach is
+  set to the scratch `rxy` inside the rolled-back block, so no real value is an expectation (G27).
+
+**Part 3:**
+- The judge's fragment reads `public.listing_effective_reach(p_listing_id, v_market)`.
+- `v_market` is the least country of the sent places (20261103040808 :376–382), computed just
+  before the read.
+- The new body's md5 is `491536378cd106df1bc9c04359c93847` (was `b85ca3d3…`). The insertion's
+  check, its post-apply check and proof (a) all read the new md5.
+
+**Unchanged:**
+- Part 2 calls `listing_effective_reach(p_listing_id)` with one argument, which resolves through
+  the DEFAULT; it does not name the arity, so its sha256 is unchanged.
+- Parts 4–6 are unchanged.
+
+**Planted control (not committed).** The resolver was planted to ignore its argument
+(`coalesce(NULL::bpchar, …)`). `bun run db:proof` stopped at part 1: "P-2 (c) M-3b part 1 proof
+(c): the market of the call did not decide (e2e_mig_rdef_… / e2e_mig_rinc_… / e2e_mig_rbig_…)".
+The file was restored, and it equals its assembled template (`cmp`).
+
+### The files, their new sha256 (the six parts and the two DEC-345 edits)
+
+| File | Bytes | sha256 |
+| --- | --- | --- |
+| `20261106051700_c4e9a6d7-5f2b-4e8c-a1d3-7b6f0e2c9a03.sql` | 16 681 | `fbe9a9f3c2d0a3ff3fe6d9ca14b51b592fb783630fed88c31e75477b4c697a0b` (was `cbcf33ba…`) |
+| `20261106051900_a9d4c7e2-1b8f-4e3a-b6d5-0c7f9e1a3b05.sql` | 24 238 | `4f4d2ff08e9400723cc35483ef7b2eff70c9e3bded2bbd2fe37c8f4de0f7e0af` (was `e3b3315a…`) |
+| part 1 `20261107125356_a2a45734-…` | 22 239 | `8555ceb0ef08cab28f587598eab778b9a3c3550da78beb1527f96b19eecdaf9f` (was `4dee6c60…`) |
+| part 2 `20261107125357_cf82e13d-…` | 22 959 | `f3a16b7c50ef7b144163bc511fadd5310483c2ba8a3668bae538f1a1e6540fc0` (unchanged) |
+| part 3 `20261107125358_704f04ac-…` | 18 948 | `8f7202cc6674bb8655c90cb9ab64968340e8c79613fe969f3dc84f5943e2546e` (was `06874d00…`) |
+| part 4 `20261107125359_ee072b49-…` | 21 748 | `ad8bd34495b165053af90bee990d35ac35871d570c098f0844337863715882c3` (unchanged) |
+| part 5 `20261107125400_19c38d6c-…` | 19 122 | `1a61564f8a381f4e8e1bb54ee76a1ff879c82910e9670b4078168f51766075f2` (unchanged) |
+| part 6 `20261107125401_0d1cd555-…` | 18 763 | `98064820ca8dfd9bd2d4497cf4d09a8b9517e8f4c82adbf9ca4e6010fb93fc26` (unchanged) |
+
+The two DEC-345 files are already applied on both databases and are not applied again. Their new
+text runs in CI's lanes and in each fresh history.
+
+### Guard lines (final tree, 85cadf8f9)
+
+- `bash scripts/check-migrations.sh`: "Real-row proof guard OK (floor 20261007000000)." and
+  "Migration guard OK."
+- `bun scripts/doors/check-doors.ts`: "check-doors self-test OK: 7 finding kinds fired on their
+  planted fixtures, the clean pair fired nothing" and "check-doors static OK: 266 manifest lines
+  reconcile with the migrations' catalogue".
+- `bunx vitest run scripts --maxWorkers=2` (outside the sandbox): 491 passed, 1 failed (NH-6, the
+  known macOS limit).
+- `bun run db:proof --fresh`, last line: `db:proof PASS — applied 424/424, CLI 2.120.0, cold, 50 s`.
+
+### Finding
+
+Part 2's header (`20261107125357_cf82e13d-…` :2) still says "part 2 of 5", from before the split
+into six. It is a comment line only. Ruling 4 opens part 2 only for the resolver's arity, so it is
+unchanged here; it is named for the supervisor (a comment-line edit is schema-identical under
+DEC-345's comparison).
+
+### Carried to c1's report (Records)
+
+- INC-1082, with the class rule as ruled: "scratch identifiers inside one proof come from ONE
+  draw and are made distinct by construction (a suffix or a shift), never from independent draws".
+- Question 1 (the usage counter on a refused edit): the proof stands; S552 is the supervisor's
+  record.
+- DEC-351 §4 continued: "the resolver judges by the market of the call, else of the stored places,
+  else the default row".
+- `unknownReach` as the fix of a phantom-success site (the old read of a missing plan row refused
+  nothing).
+- INC-1083 (the seller-names guard's `latestBodies` reader), for housekeeping turn c3.
+- OLS-1's retried pass, under Limits (one line in seven days, no incident).
+
+### The pairing lines (restated, unchanged)
+
+apply a2a45734 → expect mark 20261107140000
+apply cf82e13d → expect mark 20261107140100
+apply 704f04ac → expect mark 20261107140200
+apply ee072b49 → expect mark 20261107140300
+apply 19c38d6c → expect mark 20261107140400
+apply 0d1cd555 → expect mark 20261107140500
+
+### CI on this push
+
+Read after the push; written in its own commit below.
