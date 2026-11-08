@@ -1,55 +1,55 @@
 # Local backend proof (non-gating)
 
-- Commit: `16c7659c5a3cef99d67c4b787619775c912dcbad`
-- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42437089728
+- Commit: `2e4fcf307096a0597306c7e19ace8f26b206d22d`
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42442532732
 
 | Lane | Job seconds | Start seconds | Migrations | Passed | Failed | Flaky | Skipped | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| smoke | 1037 | 74 | applied 424/424 | 206 | 0 | 0 | 70 | 276 |
-| email | 192 | 61 | applied 424/424 | 6 | 0 | 0 | 0 | 6 |
-| 1 | 1045 | 67 | applied 424/424 | 168 | 0 | 0 | 6 | 174 |
-| 2 | 1313 | 74 | applied 424/424 | 190 | 0 | 0 | 1 | 191 |
-| 3 | 712 | 64 | applied 424/424 | 140 | 0 | 0 | 24 | 164 |
-| 4 | 923 | 71 | applied 424/424 | 178 | 0 | 0 | 2 | 180 |
-| 5 | 903 | 71 | applied 424/424 | 152 | 3 | 0 | 7 | 162 |
-| 6 | 976 | 72 | applied 424/424 | 189 | 0 | 0 | 1 | 190 |
-| 7 | 400 | 61 | applied 424/424 | 82 | 0 | 0 | 68 | 150 |
-| 8 | 718 | 67 | applied 424/424 | 124 | 0 | 0 | 51 | 175 |
-| 9 | 1085 | 75 | applied 424/424 | 166 | 0 | 0 | 13 | 179 |
-| 10 | 1037 | 60 | applied 424/424 | 167 | 0 | 0 | 1 | 168 |
-| 11 | 761 | 50 | applied 424/424 | 139 | 0 | 0 | 36 | 175 |
-| 12 | 856 | 63 | applied 424/424 | 175 | 0 | 0 | 5 | 180 |
-| 13 | 753 | 63 | applied 424/424 | 142 | 3 | 0 | 17 | 162 |
-| 14 | 844 | 61 | applied 424/424 | 188 | 0 | 0 | 2 | 190 |
-| 15 | 376 | 54 | applied 424/424 | 96 | 0 | 0 | 62 | 158 |
-| 16 | 694 | 74 | applied 424/424 | 132 | 0 | 0 | 36 | 168 |
-| repeat | not run | not run | not confirmed; backend skipped | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | — | — | — | 2640 | 6 | 0 | 402 | 3048 |
+| smoke | 1040 | 75 | applied 424/424 | 206 | 0 | 0 | 70 | 276 |
+| email | 221 | 77 | applied 424/424 | 6 | 0 | 0 | 0 | 6 |
+| 1 | 1035 | 70 | applied 424/424 | 168 | 0 | 0 | 6 | 174 |
+| 2 | 1249 | 68 | applied 424/424 | 190 | 0 | 0 | 1 | 191 |
+| 3 | 798 | 75 | applied 424/424 | 140 | 0 | 0 | 24 | 164 |
+| 4 | 922 | 74 | applied 424/424 | 178 | 0 | 0 | 2 | 180 |
+| 5 | 661 | 53 | applied 424/424 | 155 | 0 | 0 | 7 | 162 |
+| 6 | 767 | 52 | applied 424/424 | 189 | 0 | 0 | 1 | 190 |
+| 7 | 461 | 72 | applied 424/424 | 82 | 0 | 0 | 68 | 150 |
+| 8 | 733 | 76 | applied 424/424 | 124 | 0 | 0 | 51 | 175 |
+| 9 | 949 | 61 | applied 424/424 | 166 | 0 | 0 | 13 | 179 |
+| 10 | 1156 | 70 | applied 424/424 | 167 | 0 | 0 | 1 | 168 |
+| 11 | 914 | 68 | applied 424/424 | 139 | 0 | 0 | 36 | 175 |
+| 12 | 930 | 66 | applied 424/424 | 175 | 0 | 0 | 5 | 180 |
+| 13 | 668 | 61 | applied 424/424 | 145 | 0 | 0 | 17 | 162 |
+| 14 | 831 | 56 | applied 424/424 | 188 | 0 | 0 | 2 | 190 |
+| 15 | 382 | 54 | applied 424/424 | 96 | 0 | 0 | 62 | 158 |
+| 16 | 675 | 65 | applied 424/424 | 132 | 0 | 0 | 36 | 168 |
+| repeat | 599 | 63 | applied 424/424 | 134 | 0 | 0 | 2 | 136 |
+| TOTAL | — | — | — | 2780 | 0 | 0 | 404 | 3184 |
 - Full evidence: docs/tracking/local-backend-last-failure.md (CI's failure reporter over the nineteen lanes)
 
-- Slowest lane: 2 1313 s
-- Repeat lane (DEC-283): Repeat: nothing to repeat
-- Database session samples during each start (INC-944): smoke 9, email 6, 1 8, 2 9, 3 7, 4 8, 5 8, 6 8, 7 6, 8 8, 9 9, 10 6, 11 4, 12 7, 13 7, 14 6, 15 5, 16 9, repeat not run
+- Slowest lane: 2 1249 s
+- Repeat lane (DEC-283): Not repeated: e2e/post-wizard-category.spec.ts (24 tests); Repeat: each 2 on both projects; 58 tests selected, 34 repeated; budget 720 s at 4.7 s a test; directly changed: 1 of 2 repeated; importers of a changed helper: 0 of 0
+- Database session samples during each start (INC-944): smoke 9, email 9, 1 8, 2 8, 3 9, 4 9, 5 5, 6 5, 7 8, 8 9, 9 6, 10 8, 11 8, 12 7, 13 6, 14 6, 15 5, 16 7, repeat 7
 - Teardown:
-  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 42437089728-localproof
-  - email: [e2e:teardown] deleted 3 user(s) owned by process 42437089728-local-email
-  - 1: [e2e:teardown] deleted 9 user(s) owned by process 42437089728-local-1
-  - 2: [e2e:teardown] deleted 5 user(s) owned by process 42437089728-local-2
-  - 3: [e2e:teardown] deleted 19 user(s) owned by process 42437089728-local-3
-  - 4: [e2e:teardown] deleted 40 user(s) owned by process 42437089728-local-4
-  - 5: [e2e:teardown] deleted 3 user(s) owned by process 42437089728-local-5
-  - 6: [e2e:teardown] deleted 2 user(s) owned by process 42437089728-local-6
-  - 7: [e2e:teardown] deleted 2 user(s) owned by process 42437089728-local-7
-  - 8: [e2e:teardown] deleted 3 user(s) owned by process 42437089728-local-8
-  - 9: [e2e:teardown] deleted 9 user(s) owned by process 42437089728-local-9
-  - 10: [e2e:teardown] deleted 4 user(s) owned by process 42437089728-local-10
-  - 11: [e2e:teardown] deleted 13 user(s) owned by process 42437089728-local-11
-  - 12: [e2e:teardown] deleted 40 user(s) owned by process 42437089728-local-12
-  - 13: [e2e:teardown] deleted 3 user(s) owned by process 42437089728-local-13
-  - 14: [e2e:teardown] deleted 2 user(s) owned by process 42437089728-local-14
-  - 15: [e2e:teardown] deleted 2 user(s) owned by process 42437089728-local-15
-  - 16: [e2e:teardown] deleted 3 user(s) owned by process 42437089728-local-16
-  - repeat: not found
+  - smoke: [e2e:teardown] deleted 2 user(s) owned by process 42442532732-localproof
+  - email: [e2e:teardown] deleted 3 user(s) owned by process 42442532732-local-email
+  - 1: [e2e:teardown] deleted 9 user(s) owned by process 42442532732-local-1
+  - 2: [e2e:teardown] deleted 5 user(s) owned by process 42442532732-local-2
+  - 3: [e2e:teardown] deleted 19 user(s) owned by process 42442532732-local-3
+  - 4: [e2e:teardown] deleted 40 user(s) owned by process 42442532732-local-4
+  - 5: [e2e:teardown] deleted 3 user(s) owned by process 42442532732-local-5
+  - 6: [e2e:teardown] deleted 2 user(s) owned by process 42442532732-local-6
+  - 7: [e2e:teardown] deleted 2 user(s) owned by process 42442532732-local-7
+  - 8: [e2e:teardown] deleted 3 user(s) owned by process 42442532732-local-8
+  - 9: [e2e:teardown] deleted 9 user(s) owned by process 42442532732-local-9
+  - 10: [e2e:teardown] deleted 4 user(s) owned by process 42442532732-local-10
+  - 11: [e2e:teardown] deleted 13 user(s) owned by process 42442532732-local-11
+  - 12: [e2e:teardown] deleted 40 user(s) owned by process 42442532732-local-12
+  - 13: [e2e:teardown] deleted 3 user(s) owned by process 42442532732-local-13
+  - 14: [e2e:teardown] deleted 2 user(s) owned by process 42442532732-local-14
+  - 15: [e2e:teardown] deleted 2 user(s) owned by process 42442532732-local-15
+  - 16: [e2e:teardown] deleted 3 user(s) owned by process 42442532732-local-16
+  - repeat: [e2e:teardown] deleted 2 user(s) owned by process 42442532732-local-repeat
 - Working copy:
 - skipped 20260922120000: never applied on hosted (INC-266); 20260922121913 restates it
 - patched 20260830091427 (10d1e2493220 -> ec49d56298cd): the service_role proof checks each table by oid
@@ -74,21 +74,5 @@ Database container: supabase_db_ethio-ci-local
 pg_cron: available 1.6.4; cron.launch_active_jobs settings: 1
 Restored (cron.launch_active_jobs, autovacuum, scheduler sessions): on on 1
 Start proofs (DEC-313): PostgREST serves job_runs; the sign-up hook answered 200
-
-## Lane 5
-- Step failure:
-Step smoke: outcome failure
-  
-- photo-pipeline.spec.ts / PHOTO PIPELINE / PP-7 the eleventh photo is refused tooManyPhotos / mobile-360 — Error: upload 5: {"ok":false,"refusals":[{"field":"door","reason":"tooManyPhotos:4"}]}
-- photo-pipeline.spec.ts / PHOTO PIPELINE / PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) / mobile-360 — Error: upload 5: {"ok":false,"refusals":[{"field":"door","reason":"tooManyPhotos:4"}]}
-- post-wizard-category.spec.ts / POSTING WIZARD / PW-29 the photos caption counts against the plan's cap / mobile-360 — Error: PW-29: the caption never rendered the plan's cap
-
-## Lane 13
-- Step failure:
-Step smoke: outcome failure
-  
-- photo-pipeline.spec.ts / PHOTO PIPELINE / PP-7 the eleventh photo is refused tooManyPhotos / desktop-1280 — Error: upload 5: {"ok":false,"refusals":[{"field":"door","reason":"tooManyPhotos:4"}]}
-- photo-pipeline.spec.ts / PHOTO PIPELINE / PP-25 an edited photo takes the old photo's place; its objects go; at the cap it is still taken (D154 B2) / desktop-1280 — Error: upload 5: {"ok":false,"refusals":[{"field":"door","reason":"tooManyPhotos:4"}]}
-- post-wizard-category.spec.ts / POSTING WIZARD / PW-29 the photos caption counts against the plan's cap / desktop-1280 — Error: PW-29: the caption never rendered the plan's cap
 
 DEC-211, DEC-218, DEC-232: every gating browser test runs here — nineteen lanes (eighteen and the repeat lane, DEC-283), the email lane included; two consecutive full dev runs judge each change.
