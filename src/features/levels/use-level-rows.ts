@@ -2,8 +2,10 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 import type { LevelLook } from "@/features/levels/level-fields";
 import {
+  holdTableRows,
   levelLook,
   oneTableRead,
+  parseLevelRows,
   servedRows,
   subscribeLevelRows,
   type LevelRow,
@@ -11,6 +13,7 @@ import {
 import { loadOnce } from "@/lib/load-once";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
+import { getSupabase } from "@/lib/supabase-door";
 
 /**
  * P-2 (c) c2a (DEC-351 §8, DEC-355) — THE LEVEL ROWS' HOOKS, for a screen with
@@ -25,16 +28,23 @@ const TABLE_READ = loadOnce(() =>
   import("@/features/levels/level-table-read").then((module) => module.readLevelTable),
 );
 
-/** The table read, its module fetched once; a failed download is the shell's one notice. */
+type LevelTableRead = typeof import("@/features/levels/level-table-read").readLevelTable;
+
+/** The read's module and the database client, each fetched once; a failed download is the shell's one notice. */
 async function readTableOnDemand(): Promise<void> {
-  let read: () => Promise<void>;
+  let loaded: [LevelTableRead, Awaited<ReturnType<typeof getSupabase>>];
   try {
-    read = await TABLE_READ.load();
+    loaded = await Promise.all([TABLE_READ.load(), getSupabase()]);
   } catch (error) {
     reportOnDemandFailure("the level rows' reader", error);
     throw new ReaderError({ class: "network", message: "the level rows' reader did not load" });
   }
-  await read();
+  const [read, client] = loaded;
+  const parsed = parseLevelRows(await read(client));
+  if (parsed === null) {
+    throw new ReaderError({ class: "malformed", message: "listing_packages: a level row" });
+  }
+  holdTableRows(parsed);
 }
 
 export interface UseLevelRowsResult {
