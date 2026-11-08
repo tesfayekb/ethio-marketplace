@@ -541,6 +541,27 @@ apply ee072b49 → expect mark 20261107140300
 apply 19c38d6c → expect mark 20261107140400
 apply 0d1cd555 → expect mark 20261107140500
 
-### CI on this push
+### CI on this push (9fc7921cd, run 42435502423)
 
-Read after the push; written in its own commit below.
+`ci-status.md` (two-step read: the commit is 9fc7921, this addendum's):
+```
+- Commit: `9fc7921cda7f74b53d7abef450c4513ecdac7fbb` (short `9fc7921`)
+- Conclusion: **FAILURE**
+- Completed (UTC): 2026-11-08T02:05:12Z
+- Run: https://github.com/tesfayekb/ethio-marketplace/actions/runs/42435502423
+```
+`gh pr checks 30`: 37 pass, 1 skipping (Promote to main, which runs only on `dev`), and 4 fail,
+each expected. The repeat lane's check passes; its evidence row reads "not run" (no spec changed).
+
+| Check | What failed |
+| --- | --- |
+| E2E preflight | "STAGING BEHIND: apply 20261107125401_0d1cd555-1031-44eb-8922-f6ba4413daf7.sql" |
+| E2E (Playwright, ethio-staging) | the aggregate |
+| Lane 5 | PP-7, PP-25, PW-29 on mobile-360 (152 passed, 3 failed) |
+| Lane 13 | the same three on desktop-1280 (142 passed, 3 failed) |
+
+Every other lane is green. The smoke lane, the e-mail lane and lanes 1–16 each applied 424/424,
+**Lane 11 included** (139 passed, 0 failed). No other red. `origin/dev` is still af50ca802.
+
+The turn ends here. Next, the supervisor applies the six parts on ethio-staging in the pairing
+lines' order and returns the types patch with "continue" to step 3.
