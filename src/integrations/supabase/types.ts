@@ -1070,23 +1070,29 @@ export type Database = {
       }
       feed_index: {
         Row: {
+          badge: boolean | null
           category_key: string
           listing_id: string
           place_key: string
+          placement: string | null
           published_at: string
           tier_rank: number
         }
         Insert: {
+          badge?: boolean | null
           category_key: string
           listing_id: string
           place_key: string
+          placement?: string | null
           published_at: string
           tier_rank?: number
         }
         Update: {
+          badge?: boolean | null
           category_key?: string
           listing_id?: string
           place_key?: string
+          placement?: string | null
           published_at?: string
           tier_rank?: number
         }
