@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
-import { PLAIN_LOOK } from "@/features/levels/levels-store";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 import { InviteCard } from "./invite-card";
 import { ListingCard } from "./listing-card";

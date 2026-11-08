@@ -27,13 +27,12 @@ vi.mock("@/lib/supabase-door", () => ({
   },
 }));
 
+import { levelNameOf, parseCardLevel } from "./level-fields";
 import {
   exactLevel,
   heldLevelRows,
   levelLook,
-  levelName,
   levelOf,
-  parseCardLevel,
   parseLevelRows,
   resetLevelRows,
   seedLevelRows,
@@ -125,13 +124,13 @@ describe("P-2 (c) c2a — the level rows, one store (DEC-351 §8)", () => {
     expect(levelLook(noBaseline, "lvl-fourth")).toBeNull();
   });
 
-  it("LVS-4 the name is the row's, in the reader's language, English where Amharic is missing", () => {
+  it("LVS-4 a row's name comes through the one chooser, in the reader's language, English where Amharic is missing", () => {
     const [row] = parseLevelRows([{ ...entry("lvl-a", 1), name_am: "ደረጃ ሀ" }]) ?? [];
     const [bare] = parseLevelRows([entry("lvl-b", 2)]) ?? [];
     if (row === undefined || bare === undefined) throw new Error("rows did not parse");
-    expect(levelName(row, "am")).toBe("ደረጃ ሀ");
-    expect(levelName(row, "en")).toBe("Level lvl-a");
-    expect(levelName(bare, "am")).toBe("Level lvl-b");
+    expect(levelNameOf(row, "am")).toBe("ደረጃ ሀ");
+    expect(levelNameOf(row, "en")).toBe("Level lvl-a");
+    expect(levelNameOf(bare, "am")).toBe("Level lvl-b");
   });
 
   it("LVS-5 a card answer seeds the store once (equality-guarded) and serves a names-only screen with no read", async () => {

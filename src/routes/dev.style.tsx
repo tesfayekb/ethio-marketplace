@@ -6,7 +6,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { InviteCard, type Invite } from "@/components/marketplace/invite-card";
 import { ListingCard } from "@/components/marketplace/listing-card";
 import { CARD_LOOKS } from "@/components/marketplace/card-tier";
-import { PLAIN_LOOK } from "@/features/levels/levels-store";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 import { Section } from "@/components/layout/section";
 import { DataTablePagination } from "@/components/shell/data-table";
 import { FilterChips, FiltersButton } from "@/components/shell/filter-chips";

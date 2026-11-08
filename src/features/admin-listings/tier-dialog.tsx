@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { CategoryModal } from "@/features/admin-categories/category-dialogs";
-import { levelName, useLevelRows } from "@/features/levels/levels-store";
+import { levelNameOf } from "@/features/levels/level-fields";
+import { useLevelRows } from "@/features/levels/levels-store";
 import { useI18n, type MessageKey } from "@/i18n";
 
 import { ReasonNote } from "./reason-note";
@@ -76,7 +77,7 @@ export function TierDialog({ current, busy, refusal, onCancel, onConfirm }: Tier
           }}
           options={levels.rows.map((row) => ({
             value: row.key,
-            label: levelName(row, language),
+            label: levelNameOf(row, language) ?? t("admin.listings.level.unknown"),
           }))}
         />
         {levels.isLoading ? (

@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FeedListing } from "@/features/feed/feed-page";
 
 import { similarListings } from "./similar";
-import { PLAIN_LOOK } from "@/features/levels/levels-store";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 const card = (id: string, publicId: string | null): FeedListing => ({
   id,

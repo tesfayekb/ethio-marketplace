@@ -3,7 +3,11 @@
 An ad's level is a row of `listing_packages` (kind `level`): a key, a sort, two names, the
 baseline flag and the row's base look (`placement`, `badge`). Staff may rename, end or add a
 level; no screen names one by a word. The screens read the rows through ONE module,
-`src/features/levels/levels-store.ts`, a subscribed store like the category tree.
+`src/features/levels/levels-store.ts`, a subscribed store like the category tree. The pure
+fields an answer carries — the look (`LevelLook`, `PLAIN_LOOK`), a card's `level`
+(`parseCardLevel`), the ad document's `level` (`parseDocumentLevel`) and THE name chooser
+(`levelNameOf`, through `catalogText`) — live in `src/features/levels/level-fields.ts`, which
+holds no store and makes no read; the store's rows and the ad page both name a level through it.
 
 ## Where the rows come from
 
@@ -15,9 +19,11 @@ sort, name_en, name_am, is_baseline`; every enabled level row, in order) and, on
   The readers (`parseFeedPage`, `useSellerFeed`, `mySaved`, `similar.ts`, the held first page)
   seed the store with it (`seedLevelRows`, equality-guarded), so a card page makes no extra
   request and the server render draws every card from its own answer.
-- **The ad page** (`public_listing_json`) carries the ad's `level` object and no dictionary: its
-  look comes from its own answer (`adPageView` → `look`), its word from the store — seeded when
-  the visitor came from a card page, otherwise after the store's one table read.
+- **The ad page** (`public_listing_json`) carries the ad's `level` object with its row's names
+  (`level: {key, placement, badge, name_en, name_am}`, M-3c-a part 7) and no dictionary: its look
+  (`adPageView` → `look`) and its flag's word (`adPageLevelName`, through `levelNameOf`) come
+  from its own answer. The page does not touch the store, so a direct landing makes no read
+  (SBE-1, DEC-261); NULL names (the row is gone) draw no word and so no flag.
 - **A screen with no card answer** — the seller's own ad, the wizard's Review and Screening's
   previews, staff's listing page, the Set level dialog, the roster's and Screening's level filters
   — reads the rows once through the store's table read (`useLevelRows()`): the enabled level rows
@@ -28,8 +34,9 @@ false })` serves the seeded names without a read; `useLevelLook(key)` is a previ
 
 - `levelOf(rows, key)` — the row for a key; a key the rows do not hold reads as the BASELINE row,
   never dropped (INC-1079). `exactLevel` is the exact row only (the flag's word shows only when the
-  dictionary holds the card's key). `levelLook`, `levelName` (`catalogText`, both languages).
-- `parseCardLevel` reads a card's `level`; `cardLookOf` / `adPageLookOf`
+  dictionary holds the card's key). `levelLook`; a row's name is `levelNameOf(row, language)`
+  (both languages; null when the row has no name in either, never a fallback word).
+- `parseCardLevel` reads a card's `level`, `parseDocumentLevel` the ad's; `cardLookOf` / `adPageLookOf`
   (`src/components/marketplace/card-tier.ts`) draw from `{placement, badge}` as independent axes:
   placement picks the frame (standard plain, boost green, top gold), a true badge adds the flag
   (gold on top, green otherwise). An unknown placement is the plain frame.
@@ -42,7 +49,7 @@ failed`); a failed download of the database client goes through `reportOnDemandF
 ## Tests
 
 Unit: `levels-store.test.ts` LVS-1…9; `card-tier.test.ts` CTR-1…5; `tier-flag.test.tsx`;
-`listing-card.test.tsx` LC-11; `feed-page.test.ts` FP-1, FP-3 (a fourth key keeps its card);
+`listing-card.test.tsx` LC-11; `public-listing.test.ts` AV-11, AV-12 (the ad page's word); `feed-page.test.ts` FP-1, FP-3 (a fourth key keeps its card);
 `feed.test.ts` FD-5 and `seller.test.ts` SLR-5 (the dictionary rides the body); `tier-reasons.test.ts`
 TIR-1…8; `tier-dialog.test.tsx` TD-1…8. E2E: `sage-tiers.spec.ts`, `sage-ad-page.spec.ts`,
 `admin-listings.spec.ts` ATR-1…7, `admin-screening.spec.ts` SC-27, `my-listings-promote.spec.ts`,

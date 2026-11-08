@@ -11,7 +11,7 @@ import { ribbonOf } from "@/features/feed/feed-page";
 import { ListingPicture } from "@/components/marketplace/listing-picture";
 import { cardLookOf } from "@/components/marketplace/card-tier";
 import { TierFlag, TierWord } from "@/components/marketplace/tier-flag";
-import { levelName } from "@/features/levels/levels-store";
+import { levelNameOf } from "@/features/levels/level-fields";
 import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/category-tree";
 import { useI18n } from "@/i18n";
 import { entityName } from "@/i18n/entity";
@@ -110,10 +110,9 @@ export function ListingCard({
    * row's name, so a badge whose key the dictionary does not hold draws no flag.
    */
   const look = cardLookOf(listing.look);
+  const levelWord = listing.levelRow === null ? null : levelNameOf(listing.levelRow, language);
   const badge =
-    look.badge === null || listing.levelRow === null
-      ? null
-      : { look: look.badge, name: levelName(listing.levelRow, language) };
+    look.badge === null || levelWord === null ? null : { look: look.badge, name: levelWord };
 
   const content = (
     <>

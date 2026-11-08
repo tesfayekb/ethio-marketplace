@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
 import type { UseSellerFeed } from "./use-seller-feed";
-import { PLAIN_LOOK } from "@/features/levels/levels-store";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 /**
  * Bundle 19 turn 16 — SL-4: the title from the business name else the alias,

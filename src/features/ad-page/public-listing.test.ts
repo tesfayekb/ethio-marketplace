@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adPageView, type PublicListingDoc } from "./public-listing";
+import { adPageLevelName, adPageView, type PublicListingDoc } from "./public-listing";
 
 function document(): PublicListingDoc {
   return {
@@ -196,6 +196,24 @@ it("AV-11 the document's level key travels into the view, any key (P-2 (c) c2a);
   doc.tier = "";
   expect(adPageView(doc, "en").tier).toBeNull();
   expect(adPageView(doc, "en").look).toBeNull();
+});
+
+it("AV-12 the flag's word is the document's own level name, by the reader's language; NULL names answer no word (ruling 6 §3)", () => {
+  const doc = document();
+  doc.tier = "lvl-a";
+  expect(adPageLevelName(doc, "en")).toBeNull();
+  doc.level = { key: "lvl-a", placement: "top", badge: true, name_en: "Level A", name_am: "ደረጃ ሀ" };
+  expect(adPageLevelName(doc, "en")).toBe("Level A");
+  expect(adPageLevelName(doc, "am")).toBe("ደረጃ ሀ");
+  doc.level = { key: "lvl-a", placement: "top", badge: true, name_en: "Level A", name_am: null };
+  expect(adPageLevelName(doc, "am")).toBe("Level A");
+  doc.level = { key: "lvl-a", placement: "top", badge: true, name_en: null, name_am: null };
+  expect(adPageLevelName(doc, "en")).toBeNull();
+  expect(adPageLevelName(doc, "am")).toBeNull();
+  doc.level = { key: "lvl-a", placement: "top", badge: true };
+  expect(adPageLevelName(doc, "en")).toBeNull();
+  doc.level = { key: "lvl-other", placement: "top", badge: true, name_en: "Other", name_am: null };
+  expect(adPageLevelName(doc, "en")).toBeNull();
 });
 
 it("AV-9 the coverage places' names travel into the view in the document's order (INC-940)", () => {

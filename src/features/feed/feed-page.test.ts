@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PLAIN_LOOK } from "@/features/levels/levels-store";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 import {
   EVERYWHERE,

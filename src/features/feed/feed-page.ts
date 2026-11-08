@@ -1,14 +1,8 @@
 import type { MessageKey } from "@/i18n";
 import { linksOf, type PhotoLinks } from "@/features/posting/photo-links";
 import type { ShellLocationNode } from "@/components/shell/location-data";
-import {
-  exactLevel,
-  parseCardLevel,
-  parseLevelRows,
-  PLAIN_LOOK,
-  type LevelLook,
-  type LevelRow,
-} from "@/features/levels/levels-store";
+import { parseCardLevel, PLAIN_LOOK, type LevelLook } from "@/features/levels/level-fields";
+import { exactLevel, parseLevelRows, type LevelRow } from "@/features/levels/levels-store";
 
 /**
  * Bundle 10 E3b — THE ANSWER OF /api/feed AND ITS SECTIONS. Pure functions: no

@@ -7,7 +7,7 @@ import type { BadgeLook } from "./card-tier";
 /**
  * Sage S4 (spec §7; ruling 1) — THE MINI FLAG AND THE LEVEL'S WORD, drawn here only, from the
  * look's badge (card-tier.ts). P-2 (c) c2a — the word is the level row's name, given by the
- * caller from the answer's dictionary (levelName), and `data-tier` carries the level's key.
+ * caller from the answer's dictionary (levelNameOf), and `data-tier` carries the level's key.
  * The flag is a small SVG on the picture's top-start corner: a white body with a notched tail
  * framed in the frame's colour, its fold just past the card's edge, and its stars filled from
  * three token stops; it carries the level's word as its accessible name. Its

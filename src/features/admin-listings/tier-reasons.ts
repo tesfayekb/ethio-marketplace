@@ -1,4 +1,5 @@
-import { exactLevel, levelName, type LevelRow } from "@/features/levels/levels-store";
+import { levelNameOf } from "@/features/levels/level-fields";
+import { exactLevel, type LevelRow } from "@/features/levels/levels-store";
 import type { MessageKey } from "@/i18n";
 import { wholeNumber } from "@/lib/whole-number";
 
@@ -33,7 +34,7 @@ export function levelLabel(
   language: string,
 ): string | null {
   const row = exactLevel(levels, key);
-  return row === null ? null : levelName(row, language);
+  return row === null ? null : levelNameOf(row, language);
 }
 
 /** P-2 (b) — where the ad's level came from (`listings.tier_source`), in words. */

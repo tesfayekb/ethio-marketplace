@@ -50,7 +50,7 @@ import { MapFailedHere } from "../map/map-failed-here";
 import { MapFrame } from "../map/map-frame";
 import { useSteadyPin } from "../map/use-steady-pin";
 import type { Pin, PinPrecision } from "../map/pin";
-import type { LevelLook } from "@/features/levels/levels-store";
+import type { LevelLook } from "@/features/levels/level-fields";
 import { adPageLookOf } from "@/components/marketplace/card-tier";
 import { BAND_TAB, BAND_TAB_CURRENT, BAND_TAB_IDLE } from "@/components/shell/band-row";
 import { STILL_MAP_BOX } from "../map/still-map";

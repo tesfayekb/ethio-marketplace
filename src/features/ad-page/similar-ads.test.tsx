@@ -2,7 +2,7 @@ import { act, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { FeedListing } from "@/features/feed/feed-page";
-import { PLAIN_LOOK } from "@/features/levels/levels-store";
+import { PLAIN_LOOK } from "@/features/levels/level-fields";
 
 const similarListings =
   vi.fn<() => Promise<{ cards: FeedListing[]; coverLinks: Record<string, never> }>>();

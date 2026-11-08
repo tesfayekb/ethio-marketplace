@@ -1,4 +1,4 @@
-import type { LevelLook } from "@/features/levels/levels-store";
+import type { LevelLook } from "@/features/levels/level-fields";
 
 import type { RibbonPalette } from "./ribbon-geometry";
 

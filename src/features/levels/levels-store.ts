@@ -1,6 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-import { catalogText } from "@/i18n/entity";
+import { isBoolOrNull, isRec, isStrOrNull, type LevelLook } from "@/features/levels/level-fields";
 import { reportOnDemandFailure } from "@/lib/on-demand-failure";
 import { readAllPages } from "@/lib/read-all-pages";
 import { ReaderError, readerFailure } from "@/lib/reader-failure";
@@ -17,13 +17,9 @@ import { getSupabase } from "@/lib/supabase-door";
  * with no card answer (the admin console, screening, the owner's previews)
  * reads the enabled rows once, with their base look. Nothing is written to the
  * store during a server render, so one request's rows never reach another's.
+ * The pure fields (the look, the card's and the ad document's level, the one
+ * name chooser `levelNameOf`) live in level-fields.ts.
  */
-
-/** A level's look on two independent axes: placement picks the frame, badge adds the flag. */
-export interface LevelLook {
-  placement: string | null;
-  badge: boolean | null;
-}
 
 export interface LevelRow {
   key: string;
@@ -33,23 +29,6 @@ export interface LevelRow {
   isBaseline: boolean;
   /** The row's base look — only from the table read; a card answer's dictionary carries none. */
   look: LevelLook | null;
-}
-
-/** The look a card or an ad shows when its level answers none (NULL perks): the plain look. */
-export const PLAIN_LOOK: LevelLook = { placement: null, badge: null };
-
-type Rec = Record<string, unknown>;
-
-function isRec(value: unknown): value is Rec {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function isStrOrNull(value: unknown): value is string | null {
-  return value === null || typeof value === "string";
-}
-
-function isBoolOrNull(value: unknown): value is boolean | null {
-  return value === null || typeof value === "boolean";
 }
 
 /** One dictionary or table row, or null on any mismatch. */
@@ -86,14 +65,6 @@ export function parseLevelRows(value: unknown): LevelRow[] | null {
   return rows.sort((a, b) => a.sort - b.sort || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
 }
 
-/** A card's `level` object: its key and its resolved look, or null on a mismatch. */
-export function parseCardLevel(value: unknown): { key: string; look: LevelLook } | null {
-  if (!isRec(value)) return null;
-  const { key, placement, badge } = value;
-  if (typeof key !== "string" || !isStrOrNull(placement) || !isBoolOrNull(badge)) return null;
-  return { key, look: { placement, badge } };
-}
-
 /** The row of `key`, else the baseline row (INC-1079: an unknown key keeps its card); null without either. */
 export function levelOf(rows: readonly LevelRow[], key: string | null): LevelRow | null {
   const own = key === null ? undefined : rows.find((row) => row.key === key);
@@ -108,11 +79,6 @@ export function exactLevel(rows: readonly LevelRow[], key: string | null): Level
 /** The base look of `key` from the table's rows (its own row's, else the baseline's); null while not known. */
 export function levelLook(rows: readonly LevelRow[], key: string | null): LevelLook | null {
   return key === null ? null : (levelOf(rows, key)?.look ?? null);
-}
-
-/** The level's name in the reader's language. */
-export function levelName(row: LevelRow, language: string): string {
-  return catalogText(row.nameEn, row.nameAm, language);
 }
 
 type Source = "none" | "answer" | "table";

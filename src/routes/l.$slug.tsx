@@ -21,8 +21,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { adPageLookOf, cardLookOf } from "@/components/marketplace/card-tier";
 import { TierFlag, TierTag } from "@/components/marketplace/tier-flag";
-import { exactLevel, levelName, useLevelRows } from "@/features/levels/levels-store";
-import { adPageView } from "@/features/ad-page/public-listing";
+import { adPageLevelName, adPageView } from "@/features/ad-page/public-listing";
 import { ownValue } from "@/lib/own-key";
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { useI18n } from "@/i18n";
@@ -222,15 +221,14 @@ function AdPage() {
   // INC-958 — one view (and one pin) per document and language, so the map effects run once.
   const view = useMemo(() => adPageView(doc, language), [doc, language]);
   // Sage S5 (spec §12) — a badged ad's flag on its main photo and its tag above the title.
-  // P-2 (c) c2a (DEC-351 §8) — the look is the answer's own; the word is the level row's
-  // name from the store (the ad's answer carries no dictionary), drawn once it is known.
-  const { rows: levelRows } = useLevelRows({ looks: false });
+  // P-2 (c) c2a (DEC-351 §8, ruling 6 §3) — the look and the word are the document's own:
+  // no store and no read, so a direct landing draws its flag from the server's answer.
   const badgeLook = view.look === null ? null : cardLookOf(view.look).badge;
-  const levelRow = exactLevel(levelRows, view.tier);
+  const levelWord = adPageLevelName(doc, language);
   const badge =
-    badgeLook === null || levelRow === null
+    badgeLook === null || levelWord === null || view.tier === null
       ? null
-      : { levelKey: levelRow.key, name: levelName(levelRow, language), look: badgeLook };
+      : { levelKey: view.tier, name: levelWord, look: badgeLook };
   const sharePrice = sharePriceText(
     {
       mode: doc.price.mode,
