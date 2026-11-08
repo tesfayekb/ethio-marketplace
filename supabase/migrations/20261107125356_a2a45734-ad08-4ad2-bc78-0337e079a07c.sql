@@ -1,12 +1,13 @@
 -- e2e-areas: my-listings, feed, posting
--- P-2 turn (c) M-3b, part 1 of 5 — AN AD'S REACH AND ITS CAPS (docs/governance/briefs/p2-fold.md STEP 2;
--- ruling 1 of docs/governance/briefs/p2-fold-ruling-1.md §4; ruling 3 — DEC-351). Split by concern (rule 30:
--- about 25 KB a file): part 2 answers the reach in promote_options; parts 3–5 move the judge and its six
--- callers.
--- 1. public.listing_effective_reach(p_listing uuid) RETURNS text — THE one resolver of an ad's reach:
---    coalesce(l.reach, the included reach of the ad's market), the market by the judge's rule (the least
---    country of the ad's places; none = the default row, through market_settings_for). NULL for an unknown
---    ad. Service-only.
+-- P-2 turn (c) M-3b, part 1 of 6 — AN AD'S REACH AND ITS CAPS (docs/governance/briefs/p2-fold.md STEP 2;
+-- ruling 1 of docs/governance/briefs/p2-fold-ruling-1.md §4; rulings 3 and 4 — DEC-351). Split by concern
+-- (rule 30: about 25 KB a file): part 2 answers the reach in promote_options; parts 3–6 move the judge and its
+-- six callers.
+-- 1. public.listing_effective_reach(p_listing uuid, p_country character DEFAULT NULL) RETURNS text — THE one
+--    resolver of an ad's reach: coalesce(l.reach, the included reach of the ad's market), the market of the
+--    call (p_country: the judge passes the market its sent places give, ruling 4), else of the stored places
+--    by the judge's rule (their least country), else the default row (through market_settings_for). NULL for
+--    an unknown ad. Service-only.
 -- 2. public.listing_places_trim redeclared whole from 20261105080105 (its last declaration), header and
 --    grants unchanged: the caps are the ad's market's included reach's (the sweep trims before it clears the
 --    bought reach, so the trim never reads the resolver), and a NULL cap is no limit.
@@ -29,24 +30,25 @@ BEGIN
 END $pre$;
 
 -- ------------------------------------------------------------ 1. THE RESOLVER
-CREATE FUNCTION public.listing_effective_reach(p_listing uuid)
+CREATE FUNCTION public.listing_effective_reach(p_listing uuid, p_country character DEFAULT NULL::bpchar)
 RETURNS text
 LANGUAGE sql
 STABLE
 SET search_path TO 'public'
 AS $fn$
   SELECT coalesce(l.reach,
-                  (public.market_settings_for((SELECT min(loc.country_code)
-                                                 FROM public.listing_locations ll
-                                                 JOIN public.locations loc ON loc.id = ll.location_id
-                                                WHERE ll.listing_id = l.id))).included_reach)
+                  (public.market_settings_for(coalesce(p_country,
+                                                       (SELECT min(loc.country_code)
+                                                          FROM public.listing_locations ll
+                                                          JOIN public.locations loc ON loc.id = ll.location_id
+                                                         WHERE ll.listing_id = l.id)))).included_reach)
     FROM public.listings l
    WHERE l.id = p_listing;
 $fn$;
-COMMENT ON FUNCTION public.listing_effective_reach(uuid) IS
-  'An ad''s reach: the one it bought, else its market''s included reach — the market by the judge''s rule (the least country of its places; none = the default row). NULL for an unknown ad (P-2 (c) M-3b, DEC-351). Service-only.';
-REVOKE ALL ON FUNCTION public.listing_effective_reach(uuid) FROM PUBLIC, anon, authenticated;
-GRANT ALL ON FUNCTION public.listing_effective_reach(uuid) TO service_role;
+COMMENT ON FUNCTION public.listing_effective_reach(uuid, character) IS
+  'An ad''s reach: the one it bought, else its market''s included reach — the market of the call (p_country), else of its stored places by the judge''s rule (their least country), else the default row. NULL for an unknown ad (P-2 (c) M-3b, DEC-351, ruling 4). Service-only.';
+REVOKE ALL ON FUNCTION public.listing_effective_reach(uuid, character) FROM PUBLIC, anon, authenticated;
+GRANT ALL ON FUNCTION public.listing_effective_reach(uuid, character) TO service_role;
 
 -- ------------------------------------------------------------ 2. THE TRIM
 CREATE OR REPLACE FUNCTION public.listing_places_trim(p_listing_id uuid)
@@ -116,14 +118,16 @@ GRANT ALL ON FUNCTION public.listing_places_trim(uuid) TO service_role;
 --   (a) both functions' headers and grants;
 --   (b) the trim's body is its last declaration's but for this file's fragments (md5 with the fragments put
 --       back: 87161a988489cd5cc92dd4ac1c156601);
---   (c) the resolver: a bought reach; a market's included reach; an ad with no place reads the default
---       row's; an unknown ad answers NULL;
+--   (c) the resolver: a bought reach (asked with another market too); a market's included reach; an ad with
+--       no place reads the default row's; an unknown ad answers NULL; the market of the call wins (ruling 4):
+--       a draft with no stored place asked with XZ answers XZ's included reach, not the default row's; an ad
+--       stored in XZ asked with XY answers XY's;
 --   (d) the trim: an ad over its market's included caps (2 cities, regions uncapped, 1 country) keeps the
 --       primary and the next place and answers the third; a second trim removes nothing; an ad within the
 --       caps across two regions keeps both (a NULL cap is no limit); neither ad's row changes.
 DO $proof$
 DECLARE
-  v_res     regprocedure := 'public.listing_effective_reach(uuid)'::regprocedure;
+  v_res     regprocedure := 'public.listing_effective_reach(uuid,character)'::regprocedure;
   v_trim    regprocedure := 'public.listing_places_trim(uuid)'::regprocedure;
   v_seller  uuid := gen_random_uuid();
   v_tag     text := 'e2e-mig-p2c-m3b1-' || substr(gen_random_uuid()::text, 1, 8);
@@ -131,6 +135,7 @@ DECLARE
   v_rinc    text := 'e2e_mig_rinc_' || v_stem;
   v_rbig    text := 'e2e_mig_rbig_' || v_stem;
   v_rdef    text := 'e2e_mig_rdef_' || v_stem;
+  v_rxy     text := 'e2e_mig_rxy_' || v_stem;
   v_code    char(2) := 'XZ';
   v_code2   char(2) := 'XY';
   v_cur     char(3) := 'XTS';
@@ -158,7 +163,8 @@ DECLARE
   v_snap2   text;
 BEGIN
   -- (a)
-  IF (SELECT prosecdef OR provolatile <> 's' OR proconfig::text <> '{search_path=public}' FROM pg_proc WHERE oid = v_res)
+  IF (SELECT prosecdef OR provolatile <> 's' OR proconfig::text <> '{search_path=public}' OR pronargs <> 2
+             OR pronargdefaults <> 1 FROM pg_proc WHERE oid = v_res)
      OR EXISTS (SELECT 1 FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid = v_res)) a WHERE a.grantee = 0)
      OR has_function_privilege('anon', v_res, 'EXECUTE')
      OR has_function_privilege('authenticated', v_res, 'EXECUTE')
@@ -246,15 +252,23 @@ BEGIN
     INSERT INTO public.categories (name_en, slug, price_enabled, is_active, allow_listings, display_order)
     VALUES ('E2E P2c M3b1 Leaf', v_tag, true, true, true, 9999) RETURNING id INTO v_cat;
     -- Reach rows above every real one (sorts derived, never a real value): rinc XZ's included reach (2
-    -- cities, regions uncapped, 1 country); rbig bought and uncapped; rdef the scratch default's included.
+    -- cities, regions uncapped, 1 country); rbig bought and uncapped; rdef the scratch default's included; rxy
+    -- XY's included.
     INSERT INTO public.listing_packages (key, kind, name_en, days, enabled, self_serve, extends_lifetime, sort, max_cities, max_regions, max_countries) VALUES
       (v_rinc, 'reach', 'E2E P2c reach included', 30, true, false, false, v_s + 1, 2,    NULL, 1),
       (v_rbig, 'reach', 'E2E P2c reach bought',   40, true, true,  false, v_s + 2, NULL, NULL, NULL),
-      (v_rdef, 'reach', 'E2E P2c reach default',  30, true, false, false, v_s + 3, 1,    1,    1);
+      (v_rdef, 'reach', 'E2E P2c reach default',  30, true, false, false, v_s + 3, 1,    1,    1),
+      (v_rxy,  'reach', 'E2E P2c reach XY',       30, true, false, false, v_s + 4, 1,    1,    1);
     -- Five free slots: both live ads sit at the baseline level in XZ (CF-SLOT-1).
     INSERT INTO public.market_settings (country_code, free_regular_ads, included_reach, paid_levels)
     VALUES (v_code, 5, v_rinc, false);
+    -- The real default parked on XY, its included reach a scratch row (never a real value as an expectation).
     UPDATE public.market_settings SET country_code = v_code2 WHERE country_code IS NULL;
+    IF NOT FOUND THEN
+      INSERT INTO public.market_settings (country_code, free_regular_ads, included_reach, paid_levels)
+      VALUES (v_code2, 1, v_rxy, false);
+    END IF;
+    UPDATE public.market_settings SET included_reach = v_rxy WHERE country_code = v_code2;
     INSERT INTO public.market_settings (country_code, free_regular_ads, included_reach, paid_levels)
     VALUES (NULL, 1, v_rdef, false);
 
@@ -281,6 +295,13 @@ BEGIN
        OR public.listing_effective_reach(gen_random_uuid()) IS NOT NULL THEN
       RAISE EXCEPTION 'P-2 (c) M-3b part 1 proof (c): the resolver answered % / % / %',
         public.listing_effective_reach(v_a), public.listing_effective_reach(v_b), public.listing_effective_reach(v_u);
+    END IF;
+    IF public.listing_effective_reach(v_u, v_code) IS DISTINCT FROM v_rinc
+       OR public.listing_effective_reach(v_b, v_code2) IS DISTINCT FROM v_rxy
+       OR public.listing_effective_reach(v_a, v_code2) IS DISTINCT FROM v_rbig THEN
+      RAISE EXCEPTION 'P-2 (c) M-3b part 1 proof (c): the market of the call did not decide (% / % / %)',
+        public.listing_effective_reach(v_u, v_code), public.listing_effective_reach(v_b, v_code2),
+        public.listing_effective_reach(v_a, v_code2);
     END IF;
 
     -- (d)
@@ -319,8 +340,8 @@ END;
 $proof$;
 
 -- ------------------------------------------------------------ 4. CLOSERS
-REVOKE ALL ON FUNCTION public.listing_effective_reach(uuid) FROM PUBLIC, anon, authenticated;
-GRANT ALL ON FUNCTION public.listing_effective_reach(uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.listing_effective_reach(uuid, character) FROM PUBLIC, anon, authenticated;
+GRANT ALL ON FUNCTION public.listing_effective_reach(uuid, character) TO service_role;
 REVOKE ALL ON FUNCTION public.listing_places_trim(uuid) FROM PUBLIC, anon, authenticated;
 GRANT ALL ON FUNCTION public.listing_places_trim(uuid) TO service_role;
 

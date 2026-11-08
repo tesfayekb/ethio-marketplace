@@ -6,10 +6,11 @@
 --    list changes; a caller still sending seventeen arguments resolves to the new one, judged as a new ad).
 --    21.9 KB: computed insertion guarded by md5 (rule 30) — the live body CR-normalised (law 13), md5
 --    6fdcdbc38cac35a964253bf7a2098b74 (20261103040808 :22), two unique fragments replaced (the plan's row type;
---    the plan's read), new md5 b85ca3d36ed569bf8d6205b6b3c1fe8c, the live header and its arguments kept. The
---    caps are the ad's reach row's: listing_effective_reach(p_listing_id) (part 1); with no ad, the included
---    reach of the market the places give (the judge's v_market); no reach row raises unknownReach; a NULL cap
---    is no limit. Its grants restated (service-only).
+--    the plan's read), new md5 491536378cd106df1bc9c04359c93847, the live header and its arguments kept. The
+--    caps are the ad's reach row's: listing_effective_reach(p_listing_id, v_market) (part 1) — the market the
+--    sent places give, else the stored places' (ruling 4); with no ad, the included reach of the market the
+--    places give (the judge's v_market); no reach row raises unknownReach; a NULL cap is no limit. Its grants
+--    restated (service-only).
 -- Proofs at the end on scratch rows (markets XZ / XY, currency XTS, e2e_mig_ keys), rolled back by the
 -- sentinel.
 
@@ -42,10 +43,11 @@ DECLARE
   v_f2a text := '        SELECT * INTO v_plan FROM public.coverage_plans WHERE plan = public.seller_plan(p_uid);
 ';
   v_f2b text := '        -- P-2 (c) M-3b (DEC-351, ruling 1 §4): the caps are the ad''s reach row''s — its bought reach, else its
-        -- market''s included one (listing_effective_reach, the one resolver); with no ad yet, the included reach of
-        -- the market the places give. A NULL cap is no limit: its comparison below never refuses.
+        -- market''s included one (listing_effective_reach, the one resolver), the market the sent places give, else
+        -- the stored places''; with no ad yet, the included reach of the market the places give. A NULL cap is no
+        -- limit: its comparison below never refuses.
         v_reach := CASE WHEN p_listing_id IS NULL THEN (public.market_settings_for(v_market)).included_reach
-                        ELSE public.listing_effective_reach(p_listing_id) END;
+                        ELSE public.listing_effective_reach(p_listing_id, v_market) END;
         SELECT * INTO v_plan FROM public.listing_packages k WHERE k.key = v_reach AND k.kind = ''reach'';
         IF NOT FOUND THEN RAISE EXCEPTION ''unknownReach''; END IF;
 ';
@@ -64,7 +66,7 @@ BEGIN
     RAISE EXCEPTION 'P-2 (c) M-3b part 3: a fragment is not unique in validate_listing_draft';
   END IF;
   v_new := replace(replace(v_norm, v_f1a, v_f1b), v_f2a, v_f2b);
-  IF md5(v_new) <> 'b85ca3d36ed569bf8d6205b6b3c1fe8c' THEN
+  IF md5(v_new) <> '491536378cd106df1bc9c04359c93847' THEN
     RAISE EXCEPTION 'P-2 (c) M-3b part 3: new body md5 mismatch for validate_listing_draft: %', md5(v_new);
   END IF;
   IF v_config IS DISTINCT FROM ARRAY['search_path=public'] OR NOT v_secdef OR v_volatile <> 'v' THEN
@@ -79,7 +81,7 @@ BEGIN
    WHERE p.oid = 'public.validate_listing_draft(uuid, smallint, uuid, text, text, text, jsonb, text, numeric, character, text, timestamp with time zone, uuid[], jsonb, jsonb, integer, boolean, uuid)'::regprocedure
      AND p.prosecdef AND p.provolatile = 'v' AND p.proconfig = ARRAY['search_path=public']
      AND p.pronargs = 18 AND p.pronargdefaults = 3
-     AND md5(replace(p.prosrc, E'\r', '')) = 'b85ca3d36ed569bf8d6205b6b3c1fe8c';
+     AND md5(replace(p.prosrc, E'\r', '')) = '491536378cd106df1bc9c04359c93847';
   IF NOT FOUND THEN RAISE EXCEPTION 'P-2 (c) M-3b part 3: post-apply drift for validate_listing_draft'; END IF;
 END $ins$;
 REVOKE ALL ON FUNCTION public.validate_listing_draft(uuid, smallint, uuid, text, text, text, jsonb, text, numeric, character, text, timestamp with time zone, uuid[], jsonb, jsonb, integer, boolean, uuid) FROM PUBLIC, anon, authenticated;
@@ -123,7 +125,7 @@ DECLARE
   v_msg     text;
 BEGIN
   -- (a)
-  IF (SELECT md5(replace(p.prosrc, chr(13), '')) FROM pg_proc p WHERE p.oid = v_val_fn) IS DISTINCT FROM 'b85ca3d36ed569bf8d6205b6b3c1fe8c'
+  IF (SELECT md5(replace(p.prosrc, chr(13), '')) FROM pg_proc p WHERE p.oid = v_val_fn) IS DISTINCT FROM '491536378cd106df1bc9c04359c93847'
      OR (SELECT NOT prosecdef OR provolatile <> 'v' OR proconfig::text <> '{search_path=public}' OR pronargs <> 18 OR pronargdefaults <> 3
            FROM pg_proc WHERE oid = v_val_fn)
      OR EXISTS (SELECT 1 FROM aclexplode((SELECT proacl FROM pg_proc WHERE oid = v_val_fn)) a WHERE a.grantee = 0)
