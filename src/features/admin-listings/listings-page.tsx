@@ -47,7 +47,7 @@ import { MoveDialog } from "./move-dialog";
 import { MOVE_LABEL, MOVE_TARGET, moveErrorKey, movesFor, type MoveKind } from "./move-reasons";
 import { TierDialog } from "./tier-dialog";
 import { levelLabel, mayTier } from "./tier-reasons";
-import { useLevelRows } from "@/features/levels/levels-store";
+import { useLevelRows } from "@/features/levels/use-level-rows";
 import { changeListingTier } from "./change-listing-tier";
 import {
   ADMIN_LISTINGS_KEY,

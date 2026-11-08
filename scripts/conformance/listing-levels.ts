@@ -31,14 +31,15 @@ import { codeOf, walkFiles } from "./kit";
  * `tier:` line; the column keeps its name `tier`. The generated client types
  * (src/integrations/supabase/**) name every table and are not a consumer.
  *
- * The level rows' homes: the console's one reader, and the levels store
- * (DEC-351 §8), which reads the enabled rows' names, order and base look for a
- * screen that has no card answer — never an override, never the resolver.
+ * The level rows' homes: the console's one reader, and the levels store's
+ * table read (use-level-rows.ts, DEC-351 §8), which reads the enabled rows'
+ * names, order and base look for a screen that has no card answer — never an
+ * override, never the resolver.
  */
 
 export const LEVEL_READER_HOMES: readonly string[] = [
   "src/features/admin-monetisation/monetisation-service.ts",
-  "src/features/levels/levels-store.ts",
+  "src/features/levels/use-level-rows.ts",
 ];
 
 export type LevelFinding = {

@@ -22,7 +22,8 @@ import { nearestCategoryPicture, useCategoryTree } from "@/features/categories/c
 import { priceLine, storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
 import { tierOf } from "@/components/marketplace/card-tier";
-import { exactLevel, useLevelLook, useLevelRows } from "@/features/levels/levels-store";
+import { exactLevel } from "@/features/levels/levels-store";
+import { useLevelLook, useLevelRows } from "@/features/levels/use-level-rows";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { useI18n, type MessageKey } from "@/i18n";
 

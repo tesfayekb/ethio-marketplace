@@ -1,10 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
-
 import { isBoolOrNull, isRec, isStrOrNull, type LevelLook } from "@/features/levels/level-fields";
-import { reportOnDemandFailure } from "@/lib/on-demand-failure";
-import { readAllPages } from "@/lib/read-all-pages";
-import { ReaderError, readerFailure } from "@/lib/reader-failure";
-import { getSupabase } from "@/lib/supabase-door";
 
 /**
  * P-2 (c) c2a (DEC-351 §8, DEC-352) — THE LEVEL ROWS, ONE STORE. A level is a
@@ -18,7 +12,10 @@ import { getSupabase } from "@/lib/supabase-door";
  * reads the enabled rows once, with their base look. Nothing is written to the
  * store during a server render, so one request's rows never reach another's.
  * The pure fields (the look, the card's and the ad document's level, the one
- * name chooser `levelNameOf`) live in level-fields.ts.
+ * name chooser `levelNameOf`) live in level-fields.ts; the table read and the
+ * hooks that start it (`useLevelRows`, `useLevelLook`) in use-level-rows.ts, so
+ * a page that only seeds or parses (the card pages, the ad page) carries no
+ * reader and no database client.
  */
 
 export interface LevelRow {
@@ -87,7 +84,7 @@ let held: { rows: readonly LevelRow[]; source: Source } = { rows: [], source: "n
 const listeners = new Set<() => void>();
 let tableRead: Promise<void> | null = null;
 
-function subscribe(listener: () => void): () => void {
+export function subscribeLevelRows(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
@@ -128,52 +125,10 @@ export function seedLevelRows(rows: readonly LevelRow[]): void {
   hold(rows, "answer");
 }
 
-type TableRow = {
-  key: string;
-  sort: number;
-  name_en: string;
-  name_am: string | null;
-  is_baseline: boolean;
-  placement: string | null;
-  badge: boolean;
-};
-
-/** The database client, fetched on demand; a failed download is the shell's one notice. */
-async function levelClient() {
-  try {
-    return await getSupabase();
-  } catch (error) {
-    reportOnDemandFailure("the level rows' reader", error);
-    throw new ReaderError({ class: "network", message: "the level rows' reader did not load" });
-  }
-}
-
-/** The one table read: the enabled level rows browser roles see (RLS), keyset by key. */
-async function readLevelTable(): Promise<void> {
-  const client = await levelClient();
-  const rows = await readAllPages<TableRow>(
-    (after, limit) => {
-      const query = client
-        .from("listing_packages")
-        .select("key, sort, name_en, name_am, is_baseline, placement, badge")
-        .eq("kind", "level")
-        .eq("enabled", true)
-        .order("key")
-        .limit(limit);
-      return after === null ? query : query.gt("key", after);
-    },
-    (row) => row.key,
-  );
-  const parsed = parseLevelRows(rows);
-  if (parsed === null) {
-    throw new ReaderError({ class: "malformed", message: "listing_packages: a level row" });
-  }
-  hold(parsed, "table");
-}
-
-function loadLevelTable(): Promise<void> {
+/** The table read's one promise per page life: a failed read clears it, so the next screen tries again. */
+export function oneTableRead(start: () => Promise<void>): Promise<void> {
   if (tableRead === null) {
-    tableRead = readLevelTable().catch((error: unknown) => {
+    tableRead = start().catch((error: unknown) => {
       tableRead = null;
       throw error;
     });
@@ -181,69 +136,14 @@ function loadLevelTable(): Promise<void> {
   return tableRead;
 }
 
-export interface UseLevelRowsResult {
-  rows: readonly LevelRow[];
-  isLoading: boolean;
-  /** F4 — a failed read is the screen's error state, never an empty list. */
-  error: ReaderError | null;
+/** The table's rows, held over any dictionary (they carry each row's base look). */
+export function holdTableRows(rows: readonly LevelRow[]): void {
+  hold(rows, "table");
 }
 
-const NO_ROWS: readonly LevelRow[] = [];
-
-function served(looks: boolean): boolean {
-  return held.source === "table" || (!looks && held.source === "answer");
-}
-
-/**
- * The level rows for a screen with no card answer: read once per page life
- * from the table (with each row's base look), shared by every reader. A screen
- * that needs only names and keys (`looks: false`) is served by a dictionary a
- * card answer already seeded, with no read.
- */
-export function useLevelRows(options: { looks?: boolean } = {}): UseLevelRowsResult {
-  const looks = options.looks !== false;
-  const rows = useSyncExternalStore(
-    subscribe,
-    () => (served(looks) ? held.rows : NO_ROWS),
-    () => NO_ROWS,
-  );
-  const [isLoading, setIsLoading] = useState(!served(looks));
-  const [error, setError] = useState<ReaderError | null>(null);
-  useEffect(() => {
-    let cancelled = false;
-    if (served(looks)) {
-      setIsLoading(false);
-      return;
-    }
-    setIsLoading(true);
-    setError(null);
-    loadLevelTable().then(
-      () => {
-        if (!cancelled) setIsLoading(false);
-      },
-      (failure: unknown) => {
-        if (cancelled) return;
-        const read = readerFailure(failure);
-        console.error("[levels] the level rows read failed", read.message);
-        setError(new ReaderError(read));
-        setIsLoading(false);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [looks]);
-  return { rows, isLoading, error };
-}
-
-/**
- * The look a preview with no card answer draws (the owner's and staff's views of an ad): the
- * level row's base look from the table read; null (the free look) while not known or when the
- * read failed (the store logs the failure).
- */
-export function useLevelLook(key: string | null): LevelLook | null {
-  const { rows } = useLevelRows();
-  return levelLook(rows, key);
+/** Served without a read: a table read, or (names only) a card answer's dictionary. */
+export function servedRows(looks: boolean): readonly LevelRow[] | null {
+  return held.source === "table" || (!looks && held.source === "answer") ? held.rows : null;
 }
 
 /** The store's held rows and their source, for tests. */

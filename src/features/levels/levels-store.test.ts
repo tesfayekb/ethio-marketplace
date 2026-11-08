@@ -36,9 +36,8 @@ import {
   parseLevelRows,
   resetLevelRows,
   seedLevelRows,
-  useLevelLook,
-  useLevelRows,
 } from "./levels-store";
+import { useLevelLook, useLevelRows } from "./use-level-rows";
 
 /** A dictionary row as the card answers write it (key, sort, names, baseline flag). */
 const entry = (key: string, sort: number, is_baseline = false) => ({

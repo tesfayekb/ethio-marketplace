@@ -36,7 +36,7 @@ import {
 import { ribbonOf, SOLD_RIBBON } from "@/features/feed/feed-page";
 import { storedUnitNoun } from "@/features/posting/price-line";
 import { ListingDetail } from "@/features/posting/preview/listing-detail";
-import { useLevelLook } from "@/features/levels/levels-store";
+import { useLevelLook } from "@/features/levels/use-level-rows";
 import { fill } from "@/features/posting/refusal-text";
 import { usePriceUnitLabels } from "@/features/posting/use-price-unit-labels";
 import { CertifyConfirm } from "@/features/legal/certify-confirm";

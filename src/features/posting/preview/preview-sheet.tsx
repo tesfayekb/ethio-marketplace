@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useLevelLook } from "@/features/levels/levels-store";
+import { useLevelLook } from "@/features/levels/use-level-rows";
 import { useI18n } from "@/i18n";
 
 import { ListingDetail, type ListingDetailView } from "./listing-detail";
