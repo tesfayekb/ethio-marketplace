@@ -105,3 +105,13 @@ The index holds every SHOWN listing with a publish time: a live one, and a sold 
 Bundle 19 turn 27 — the card photos arrive sooner (DEC-195's quick fixes): the first six cards of a grid load at once with high fetch priority, the rest lazily; the page preconnects to the photo server's origin; /api/feed answers with `coverLinks` (card and thumb, signed for a visitor exactly as /api/media/photo-links signs them, one shared server function) so its cards ask no second request — an answer without links falls back to the request; the next step (one signed link per photo reused for its hour) is specified separately.
 
 Foundations turn 7 (INC-862 T3): the feed/seller/options boundary, cursor, cache and explicit answer changes are recorded in [routes.md](routes.md).
+
+## P-2 (c) c2a — each card carries its level; the answer carries the level rows (DEC-351 §8, DEC-352)
+
+Every card answers `level: {key, placement, badge}` beside `tier` (the column keeps its name),
+precomputed into `feed_index` (M-3c-a), and each answer of `feed_page`, `seller_feed_page` and
+`my_saved_listings` carries one `levels` dictionary of the enabled level rows. `parseCard` keeps a
+card whose level key the dictionary does not hold — its own look, no word (INC-1079; FP-3); a
+card's `level` that names another key is refused. `/api/feed` and `/api/seller` pass `levels` on
+and answer a server error without it (FD-5, SLR-5). The feed's order is the door's (`tier_rank`):
+`ranking.ts` is gone. The readers seed the levels store (docs/features/levels-store.md).
