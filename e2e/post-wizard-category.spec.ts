@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { expectAliasAccepted, scratchAlias } from "./helpers/alias-check";
 import { purgeListingObjects, photoRowsOf } from "./helpers/photos";
 import {
   authFields,
@@ -652,8 +653,7 @@ test.describe("POSTING WIZARD", () => {
     await chooseOneCity(page);
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-7")).toBeVisible({ timeout: 20_000 });
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible({ timeout: 20_000 });
     await page.getByTestId("post-preview-open").click();
@@ -1025,8 +1025,7 @@ test.describe("POSTING WIZARD", () => {
     const category = await seedPostableCategory();
     categories.push(category.slug);
     await reachStep7(page, user.id, category);
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
 
@@ -1579,8 +1578,7 @@ test.describe("POSTING WIZARD", () => {
     ).toBeEnabled({ timeout: 20_000 });
 
     const listingId = await reachStep7(page, user.id, other);
-    await page.getByTestId("post-who-alias").fill(`e2e_${rand()}`.slice(0, 30).toLowerCase());
-    await expect(page.getByTestId("post-who-alias-ok")).toBeVisible({ timeout: 20_000 });
+    await expectAliasAccepted(page, scratchAlias());
     await page.getByTestId("post-next").click();
     await expect(page.getByTestId("post-step-8")).toBeVisible();
     await page.getByTestId("post-publish").click();
