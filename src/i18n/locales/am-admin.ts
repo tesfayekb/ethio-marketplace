@@ -1794,6 +1794,8 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.monetisation.error.badPhotos": "ፎቶዎች ቢበዛ ከ0 እስከ 30 ያለ ሙሉ ቁጥር ነው።",
   "admin.monetisation.error.unknownPlacement": "ያልታወቀ አቀማመጥ።",
   "admin.monetisation.error.perksOnReach": "የተደራሽነት ምርት የደረጃ ጥቅሞች የሉትም።",
+  "admin.monetisation.error.capsOnLevel": "ደረጃ የቦታ ገደቦች የሉትም።",
+  "admin.monetisation.error.badCaps": "ገደብ 1 ወይም ከዚያ በላይ የሆነ ሙሉ ቁጥር ነው፤ ገደብ እንዳይኖር ባዶ ይተዉት።",
   "admin.monetisation.error.unknownLevel": "ያልታወቀ ደረጃ።",
   "admin.monetisation.error.notMainCategory": "ዋና ምድብ ይምረጡ።",
   "admin.monetisation.error.emptyOverride": "ቢያንስ አንድ እሴት ያስቀምጡ።",

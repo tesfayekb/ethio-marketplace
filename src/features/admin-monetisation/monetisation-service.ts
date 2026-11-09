@@ -96,8 +96,17 @@ export interface SaveProductInput {
   maxPhotos: number | null;
   placement: string | null;
   badge: boolean | null;
+  /** A reach product's place limits (a null cap = no limit); null for a level. */
+  caps: ReachCaps | null;
   /** null = the door keeps the stored order (0 for a new product). */
   sort: number | null;
+}
+
+/** A reach row's three place limits, each null for no limit (DEC-356). */
+export interface ReachCaps {
+  maxCities: number | null;
+  maxRegions: number | null;
+  maxCountries: number | null;
 }
 
 export async function saveProduct(input: SaveProductInput): Promise<void> {
@@ -244,6 +253,8 @@ const DOOR_MESSAGE_KEYS: Readonly<Record<string, MessageKey>> = {
   "bad photos": "admin.monetisation.error.badPhotos",
   "unknown placement": "admin.monetisation.error.unknownPlacement",
   "perks on reach": "admin.monetisation.error.perksOnReach",
+  "caps on level": "admin.monetisation.error.capsOnLevel",
+  "bad caps": "admin.monetisation.error.badCaps",
   // admin_save_level_override / admin_clear_level_override
   "unknown level": "admin.monetisation.error.unknownLevel",
   "not a main category": "admin.monetisation.error.notMainCategory",

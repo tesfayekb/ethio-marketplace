@@ -1912,6 +1912,8 @@ export const enAdmin = {
   "admin.monetisation.error.badPhotos": "Photos at most is a whole number from 0 to 30.",
   "admin.monetisation.error.unknownPlacement": "Unknown placement.",
   "admin.monetisation.error.perksOnReach": "A reach product carries no level perks.",
+  "admin.monetisation.error.capsOnLevel": "A level carries no place limits.",
+  "admin.monetisation.error.badCaps": "A limit is a whole number, 1 or more, or blank for no limit.",
   "admin.monetisation.error.unknownLevel": "Unknown level.",
   "admin.monetisation.error.notMainCategory": "Pick a main category.",
   "admin.monetisation.error.emptyOverride": "Set at least one value.",

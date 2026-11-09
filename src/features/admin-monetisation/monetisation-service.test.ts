@@ -201,6 +201,7 @@ describe("the monetisation console's seam (P-1b)", () => {
       maxPhotos: 12,
       placement: "boost",
       badge: true,
+      caps: null,
       sort: null,
     });
     expect(door.calls[0]).toEqual({
@@ -230,6 +231,7 @@ describe("the monetisation console's seam (P-1b)", () => {
       maxPhotos: null,
       placement: null,
       badge: null,
+      caps: null,
       sort: 5,
     });
     expect(door.calls[1]?.args).toEqual({
@@ -388,5 +390,37 @@ describe("the monetisation console's seam (P-1b)", () => {
       raw: "something new",
     });
     expect(monetisationErrorKey("")).toEqual({ key: "admin.packages.error.unknown", raw: null });
+  });
+
+  it("MNS-7 the product door's caps refusals have keys of their own; a reach row's caps are read, a null cap as no limit", async () => {
+    expect(monetisationErrorKey("bad caps")).toEqual({
+      key: "admin.monetisation.error.badCaps",
+      raw: null,
+    });
+    expect(monetisationErrorKey("caps on level")).toEqual({
+      key: "admin.monetisation.error.capsOnLevel",
+      raw: null,
+    });
+    const reach = {
+      ...CONSOLE.products[0],
+      key: "regional",
+      kind: "reach",
+      max_photos: null,
+      placement: null,
+      badge: false,
+      max_cities: null,
+      max_regions: 3,
+      max_countries: 1,
+    };
+    door.answer = { ...CONSOLE, products: [reach] };
+    const console = await listMonetisation();
+    expect(console.products[0]).toMatchObject({
+      kind: "reach",
+      maxCities: null,
+      maxRegions: 3,
+      maxCountries: 1,
+    });
+    door.answer = { ...CONSOLE, products: [{ ...reach, max_regions: "three" }] };
+    await expect(listMonetisation()).rejects.toMatchObject({ failure: { class: "malformed" } });
   });
 });

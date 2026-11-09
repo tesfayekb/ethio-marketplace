@@ -42,6 +42,10 @@ export interface ProductRow extends Attribution {
   maxPhotos: number | null;
   placement: Placement | null;
   badge: boolean;
+  /** A reach product's place limits, each null for no limit; a level carries none. */
+  maxCities: number | null;
+  maxRegions: number | null;
+  maxCountries: number | null;
   enabled: boolean;
   selfServe: boolean;
   extendsLifetime: boolean;
@@ -189,6 +193,9 @@ export function readProduct(value: unknown): ProductRow {
     maxPhotos: countOrNull(row, "max_photos"),
     placement: placementOrNull(row),
     badge: flag(row, "badge"),
+    maxCities: countOrNull(row, "max_cities"),
+    maxRegions: countOrNull(row, "max_regions"),
+    maxCountries: countOrNull(row, "max_countries"),
     enabled: flag(row, "enabled"),
     selfServe: flag(row, "self_serve"),
     extendsLifetime: flag(row, "extends_lifetime"),

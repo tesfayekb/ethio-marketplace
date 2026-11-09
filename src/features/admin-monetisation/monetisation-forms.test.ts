@@ -30,6 +30,9 @@ const GOOD_LEVEL: ProductFormValues = {
   maxPhotos: "12",
   placement: "boost",
   badge: true,
+  maxCities: "",
+  maxRegions: "",
+  maxCountries: "",
   enabled: true,
   selfServe: true,
   extendsLifetime: false,
@@ -84,13 +87,21 @@ describe("the monetisation forms' judges (P-1b)", () => {
         maxPhotos: 12,
         placement: "boost",
         badge: true,
+        caps: null,
         sort: null,
       },
     });
     const reach = productFormInput("reach", { ...GOOD_LEVEL, key: "city", sort: "5" });
     expect(reach).toMatchObject({
       ok: true,
-      input: { kind: "reach", maxPhotos: null, placement: null, badge: null, sort: 5 },
+      input: {
+        kind: "reach",
+        maxPhotos: null,
+        placement: null,
+        badge: null,
+        caps: { maxCities: null, maxRegions: null, maxCountries: null },
+        sort: 5,
+      },
     });
   });
 
@@ -126,6 +137,9 @@ describe("the monetisation forms' judges (P-1b)", () => {
       maxPhotos: null,
       placement: null,
       badge: false,
+      maxCities: null,
+      maxRegions: null,
+      maxCountries: null,
       enabled: false,
       selfServe: true,
       extendsLifetime: true,
@@ -140,11 +154,53 @@ describe("the monetisation forms' judges (P-1b)", () => {
       maxPhotos: "",
       placement: "standard",
       badge: false,
+      maxCities: "",
+      maxRegions: "",
+      maxCountries: "",
       enabled: false,
       selfServe: true,
       extendsLifetime: true,
       sort: "20",
     });
+  });
+
+  it('MNF-11 a reach product\'s three caps parse: blank is no limit, "0" is refused, "3" is 3; a level sends none; a stored reach row opens as stored', () => {
+    const reach = (caps: Partial<ProductFormValues>) =>
+      productFormInput("reach", { ...GOOD_LEVEL, key: "city", ...caps });
+    expect(reach({ maxCities: "", maxRegions: "3", maxCountries: " 1 " })).toMatchObject({
+      ok: true,
+      input: { caps: { maxCities: null, maxRegions: 3, maxCountries: 1 } },
+    });
+    for (const bad of ["0", "-2", "1.5", "x"]) {
+      expect(reach({ maxRegions: bad }), bad).toEqual({
+        ok: false,
+        key: "admin.monetisation.error.badCaps",
+      });
+    }
+    // A level's caps fields are never judged nor sent.
+    expect(productFormInput("level", { ...GOOD_LEVEL, maxCities: "0" })).toMatchObject({
+      ok: true,
+      input: { caps: null },
+    });
+    const row: ProductRow = {
+      key: "regional",
+      kind: "reach",
+      nameEn: "Regional",
+      nameAm: null,
+      days: 30,
+      maxPhotos: null,
+      placement: null,
+      badge: false,
+      maxCities: null,
+      maxRegions: 3,
+      maxCountries: 1,
+      enabled: true,
+      selfServe: true,
+      extendsLifetime: true,
+      sort: 10,
+      ...ATTRIBUTION,
+    };
+    expect(productFormOf(row)).toMatchObject({ maxCities: "", maxRegions: "3", maxCountries: "1" });
   });
 
   it("MNF-5 an override sends only the cells it sets (a blank = the level's own value); all blank is refused; a bad cell is refused by its own key", () => {
