@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { walkFiles } from "./kit";
+import { sqlCodeOf } from "./migration-reader";
 
 /**
  * P-1 (CF-PERM-1) — THE PERMISSION MATRIX'S VOCABULARY IS COMPLETE. The roles
@@ -32,14 +33,6 @@ export type VocabularyFinding = {
 };
 
 const LOCALES = ["src/i18n/locales/en-admin.ts", "src/i18n/locales/am-admin.ts"] as const;
-
-/** SQL text with every `--` and `/* … *\/` comment blanked (positions kept). */
-export function sqlCodeOf(text: string): string {
-  const blank = (s: string) => s.replace(/[^\n]/g, " ");
-  return text.replace(/\/\*[\s\S]*?\*\/|--[^\n]*|'(?:[^'\\\n]|'')*'/g, (match) =>
-    match.startsWith("'") ? match : blank(match),
-  );
-}
 
 /** Every `INSERT INTO public.<table> …;` statement of a file, as text. */
 export function insertStatements(sql: string, table: string): string[] {

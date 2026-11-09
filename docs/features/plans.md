@@ -221,9 +221,10 @@ currency (`product-<key>-prices-search`, label `admin.monetisation.prices.search
   line naming `tier`). The P-1 tier consumers (ranking, card tier, the flag, the
   admin listings' tier verbs, the style page, the bench, the ad-page helper) sit
   in the allowlist until P-2 folds the ad's tier onto the level rows.
-- **CF-PLAN-1** (`scripts/conformance/plan-seam.*`; turn (a), INC-1034): a
-  seller's plan is read through the one seam (`seller_plan`, `plan_caps`,
-  `plan_photo_cap`), never by a literal plan name in SQL.
+- CF-PLAN-1 retired in P-2 (c) c2b with the plan seam it guarded (an ad's caps
+  come from its level and reach rows through `listing_caps`). Its reader of the
+  migrations is `scripts/conformance/migration-reader.ts` (MGR-1…3), shared by
+  the SQL censuses and the door catalogue.
 - CF-PERM-1: the `packages` and `coverage` resources' `admin.roles.perm.*` keys.
 - `scripts/admin-tables.ts` judges the four blocks and the two inner tables
   (T1–T10; the search slot is on a product's prices); CF-GUIDE-1 their six

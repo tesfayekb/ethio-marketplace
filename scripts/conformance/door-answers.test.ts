@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { readAllowlist, report, TREE_SCAN_MS, walkFiles } from "./kit";
-import { lastDeclarations } from "./plan-seam";
+import { lastDeclarations } from "./migration-reader";
 import { doorAnswerFindings, envelopeDoors } from "./door-answers";
 
 /**

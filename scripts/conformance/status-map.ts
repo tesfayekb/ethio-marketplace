@@ -2,8 +2,7 @@ import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 
 import { walkFiles } from "./kit";
-import { sqlCodeOf } from "./perm-vocabulary";
-import { lastDeclarations, type LastDeclaration } from "./plan-seam";
+import { lastDeclarations, sqlCodeOf, type LastDeclaration } from "./migration-reader";
 
 /**
  * P-2 (a) (CF-STATUS-1, INC-1057, ruling 10 H4) — EVERY STATUS AN AD CAN HOLD
@@ -16,7 +15,7 @@ import { lastDeclarations, type LastDeclaration } from "./plan-seam";
  * silent until a person is hurt (INC-1057: 'paused' landed with neither).
  *
  * The census reads the migrations in order: the LAST `ADD CONSTRAINT
- * listings_status_check CHECK (status IN (…))` gives the statuses; plan-seam's
+ * listings_status_check CHECK (status IN (…))` gives the statuses; the migration reader's
  * last declarations give the two bodies (comments blanked, DO blocks removed).
  * Findings, keyed `<fn>:<status>`:
  *   - `listing_group_of:<status>` — a status with no `WHEN '<status>' THEN` in the

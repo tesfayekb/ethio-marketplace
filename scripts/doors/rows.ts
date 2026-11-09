@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { codeOf, walkFiles } from "../conformance/kit";
-import { sqlCodeOf } from "../conformance/perm-vocabulary";
+import { sqlCodeOf } from "../conformance/migration-reader";
 import { callableBy, readCatalogue, type UnseenGrant } from "./catalogue";
 
 /**

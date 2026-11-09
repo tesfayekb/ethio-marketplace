@@ -12,7 +12,7 @@ import {
   designationFindingsOf,
   srcDesignationWrites,
 } from "./listing-designation";
-import { lastDeclarations } from "./plan-seam";
+import { lastDeclarations } from "./migration-reader";
 
 /**
  * P-2 (a) ruling 14 item 4 (CF-TIER-5) — the five designation columns of

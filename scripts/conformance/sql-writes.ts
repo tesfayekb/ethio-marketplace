@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 
-import { lastDeclarations, type LastDeclaration } from "./plan-seam";
+import { lastDeclarations, type LastDeclaration } from "./migration-reader";
 import { blankLiterals, tokensOf, type Token } from "./proof-readers";
 
 /**
@@ -11,7 +11,7 @@ import { blankLiterals, tokensOf, type Token } from "./proof-readers";
  * levels' rank trigger fired under the monetisation console's write and its
  * `DELETE FROM public.level_ranks;` fell with "DELETE requires a WHERE clause",
  * and every MON test after it. The law is applied to the text, not the caller:
- * every function's LAST declaration (plan-seam's reader, minus the dropped),
+ * every function's LAST declaration (the migration reader, minus the dropped),
  * its body with comments and literals blanked (the DO-block tokenizer reused),
  * and every `DELETE FROM` or `UPDATE <table>` statement in it that reaches its
  * end — `;`, `LOOP`, or the parenthesis that closes a CTE it sits in — without a

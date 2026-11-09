@@ -117,3 +117,6 @@ src/features/feed/ranking.ts
 src/features/admin-monetisation/caps-editor.tsx
 src/features/admin-monetisation/caps-forms.ts
 src/features/admin-monetisation/caps-section.tsx
+# P-2 (c) c2b: CF-PLAN-1 retired with the plan seam; its reader moved to scripts/conformance/migration-reader.ts
+scripts/conformance/plan-seam.ts
+scripts/conformance/plan-seam.test.ts

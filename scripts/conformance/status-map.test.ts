@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { readAllowlist, TREE_SCAN_MS } from "./kit";
-import { lastDeclarations } from "./plan-seam";
+import { lastDeclarations } from "./migration-reader";
 import {
   describeFinding,
   findingKey,
