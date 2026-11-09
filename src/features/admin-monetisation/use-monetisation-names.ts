@@ -10,7 +10,9 @@ import type { ProductRow } from "./monetisation-service";
  * country's name (the open-markets store), a category by its tree node
  * (`entityName`, so a translated row wins), a product by its own two names
  * (`catalogText`: the Amharic where the catalogue is Amharic and the row has
- * one, else the English). Every "every …" word is the caller's key.
+ * one, else the English). Every "every …" word is the caller's key. A product
+ * or a category the read does not hold is named "not known", never by its key
+ * or its id (INC-1087).
  */
 export function useMonetisationNames(products: ProductRow[]) {
   const { t, language, entities } = useI18n();
@@ -47,12 +49,14 @@ export function useMonetisationNames(products: ProductRow[]) {
     const node = tree.byId.get(id);
     return node
       ? entityName("category", { id: node.id, nameEn: node.nameEn, nameAm: node.nameAm }, entities)
-      : id;
+      : t("admin.monetisation.category.unknown");
   };
 
   const productName = (key: string) => {
     const product = products.find((row) => row.key === key);
-    return product ? catalogText(product.nameEn, product.nameAm, language) : key;
+    return product
+      ? catalogText(product.nameEn, product.nameAm, language)
+      : t("admin.monetisation.product.unknown");
   };
 
   return { marketName, categoryName, productName, markets: markets.markets, tree };

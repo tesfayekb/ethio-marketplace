@@ -11,9 +11,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { levelNameOf } from "@/features/levels/level-fields";
 import { fill } from "@/features/posting/refusal-text";
 import { useI18n, type MessageKey } from "@/i18n";
-import { catalogText } from "@/i18n/entity";
 import { doorCode } from "@/lib/door-codes";
 import { formatDate, formatNumber, moneyText } from "@/lib/format";
 import { authKey } from "@/lib/query-keys";
@@ -146,34 +146,39 @@ function LevelList({
         </p>
       )}
       <ul className="flex min-w-0 flex-col gap-2">
-        {options.levels.map((level) => (
-          <li
-            key={level.key}
-            data-testid={`promote-level-${level.key}`}
-            data-current={level.current ? "true" : undefined}
-            aria-current={level.current ? "true" : undefined}
-            className={cn(
-              CARD_SURFACE,
-              "flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3",
-              // P-2 (c) c2a (W1, ruling 8) — the current level row takes the shell's one selected look,
-              // heard through aria-current above.
-              level.current && LIST_ROW_CURRENT,
-            )}
-          >
-            <div className="flex min-w-0 flex-col">
-              <span className="font-semibold">
-                {catalogText(level.nameEn, level.nameAm, language)}
-              </span>
-              <span className="text-sm text-muted-foreground">{offer(level)}</span>
-              {level.current && options.level.until !== null && (
-                <span data-testid="promote-until" className="text-sm text-muted-foreground">
-                  {fill(t("myListings.promote.until"), { date: day(options.level.until) })}
-                </span>
+        {options.levels.map((level) => {
+          const name = levelNameOf(level, language);
+          return (
+            <li
+              key={level.key}
+              data-testid={`promote-level-${level.key}`}
+              data-current={level.current ? "true" : undefined}
+              aria-current={level.current ? "true" : undefined}
+              className={cn(
+                CARD_SURFACE,
+                "flex min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3",
+                // P-2 (c) c2a (W1, ruling 8) — the current level row takes the shell's one selected look,
+                // heard through aria-current above.
+                level.current && LIST_ROW_CURRENT,
               )}
-            </div>
-            <LevelEnd level={level} busy={busy} onChoose={(chosen) => void choose(chosen)} />
-          </li>
-        ))}
+            >
+              <div className="flex min-w-0 flex-col">
+                {name !== null && (
+                  <span className="font-semibold" data-testid={`promote-name-${level.key}`}>
+                    {name}
+                  </span>
+                )}
+                <span className="text-sm text-muted-foreground">{offer(level)}</span>
+                {level.current && options.level.until !== null && (
+                  <span data-testid="promote-until" className="text-sm text-muted-foreground">
+                    {fill(t("myListings.promote.until"), { date: day(options.level.until) })}
+                  </span>
+                )}
+              </div>
+              <LevelEnd level={level} busy={busy} onChoose={(chosen) => void choose(chosen)} />
+            </li>
+          );
+        })}
       </ul>
       {problem !== null && (
         <p role="alert" data-testid="promote-problem" className="text-sm text-destructive">

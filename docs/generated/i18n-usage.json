@@ -3462,6 +3462,9 @@
     "admin.locations.transfer.scopeAll": [
       "/admin/places"
     ],
+    "admin.monetisation.category.unknown": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.col.badge": [
       "/admin/monetisation"
     ],
@@ -3583,6 +3586,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.product.add": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.product.unknown": [
       "/admin/monetisation"
     ],
     "admin.monetisation.reach.field.cities": [

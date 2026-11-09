@@ -19,8 +19,10 @@ vi.mock("@/lib/supabase-door", () => ({
     return next ?? { data: null, error: { message: "no answer queued" } };
   },
 }));
+/** The reader's language; the words stay English, so a name is the only thing it moves. */
+const reader = vi.hoisted(() => ({ language: "en" }));
 vi.mock("@/i18n", () => ({
-  useI18n: () => ({ t: (key: string) => ownValue(en, key) ?? key, language: "en" }),
+  useI18n: () => ({ t: (key: string) => ownValue(en, key) ?? key, language: reader.language }),
 }));
 
 import { PromoteSheet } from "./promote-sheet";
@@ -70,6 +72,7 @@ function mount() {
 const day = (value: string) => formatDate("day", value, "en");
 
 beforeEach(() => {
+  reader.language = "en";
   calls.length = 0;
   for (const key of Object.keys(answers)) delete answers[key];
 });
@@ -195,5 +198,28 @@ describe("P-2 (b) the promote sheet (DEC-349)", () => {
       const row = screen.getByTestId(`promote-level-${key}`);
       for (const name of LIST_ROW_CURRENT.split(" ")) expect(row).not.toHaveClass(name);
     }
+  });
+
+  it("PMS-8 a level's name is the one chooser's: the Amharic under am; a level with no name draws no name, never its key", async () => {
+    reader.language = "am";
+    answers.promote_options = [
+      {
+        data: options({
+          levels: [
+            level({ key: "lvl-a", name_en: "Level A", name_am: "ደረጃ", sort: 10, current: true }),
+            level({ key: "lvl-nameless", name_en: "", sort: 20, days: 20 }),
+          ],
+        }),
+        error: null,
+      },
+    ];
+    mount();
+    const named = await screen.findByTestId("promote-level-lvl-a");
+    expect(within(named).getByTestId("promote-name-lvl-a")).toHaveTextContent("ደረጃ");
+    expect(named).not.toHaveTextContent("Level A");
+    const nameless = screen.getByTestId("promote-level-lvl-nameless");
+    expect(within(nameless).queryByTestId("promote-name-lvl-nameless")).toBeNull();
+    expect(nameless).not.toHaveTextContent("lvl-nameless");
+    expect(nameless).toHaveTextContent("20 days");
   });
 });
