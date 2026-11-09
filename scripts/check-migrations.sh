@@ -631,7 +631,8 @@ if ! bun "$SCRIPT_DIR/public-surface.ts" --parse "$PUBLIC_SURFACE_ALLOWLIST" > /
 fi
 
 public_surface_offenders() {
-  bun "$SCRIPT_DIR/public-surface.ts" --migration "$PUBLIC_SURFACE_ALLOWLIST" "$1"
+  # $1 = file, $2 = the root whose supabase/migrations name the drops (DEC-357).
+  bun "$SCRIPT_DIR/public-surface.ts" --migration "$PUBLIC_SURFACE_ALLOWLIST" "$1" "${2:-$PWD}"
 }
 
 if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-example.sql")" ]; then
@@ -642,7 +643,29 @@ if [ -z "$(public_surface_offenders "$FIXTURE_DIR/bad-public-grant-format-exampl
   echo "Public-surface guard self-test FAILED: the format-grant loop fixture passed."
   exit 1
 fi
+# DEC-357: a grant whose object a later file drops is no offender; without the drop it is.
+PS_DROP_DIR="$(mktemp -d)"
+mkdir -p "$PS_DROP_DIR/supabase/migrations"
+cat > "$PS_DROP_DIR/supabase/migrations/29990101000000_grant.sql" <<'SQL'
+GRANT EXECUTE ON FUNCTION public.e2e_fixture_dropped_fn(uuid) TO authenticated;
+GRANT SELECT ON public.e2e_fixture_dropped_table TO anon;
+SQL
+ps_kept="$(public_surface_offenders "$PS_DROP_DIR/supabase/migrations/29990101000000_grant.sql" "$PS_DROP_DIR")"
+cat > "$PS_DROP_DIR/supabase/migrations/29990101000001_drop.sql" <<'SQL'
+DROP FUNCTION public.e2e_fixture_dropped_fn(uuid);
+DROP TABLE public.e2e_fixture_dropped_table;
+SQL
+ps_dropped="$(public_surface_offenders "$PS_DROP_DIR/supabase/migrations/29990101000000_grant.sql" "$PS_DROP_DIR")"
+rm -rf "$PS_DROP_DIR"
+if ! grep -q 'e2e_fixture_dropped_fn (authenticated)' <<<"$ps_kept" \
+  || ! grep -q 'e2e_fixture_dropped_table (anon)' <<<"$ps_kept" \
+  || [ -n "$ps_dropped" ]; then
+  echo "Public-surface guard self-test FAILED: a grant on a dropped object was judged as live, or the same grant without the drop passed."
+  exit 1
+fi
+echo "Public-surface guard self-test OK (a grant whose object a later file drops is no offender; without the drop it is)."
 
+MIGRATIONS_ROOT="$(cd "$MIGRATIONS_DIR/../.." && pwd)"
 surface_offenders=""
 while IFS= read -r -d '' file; do
   base="$(basename "$file")"
@@ -650,7 +673,7 @@ while IFS= read -r -d '' file; do
   if ! [[ "$stamp" =~ ^[0-9]{14}$ ]] || [[ "$stamp" < "$PUBLIC_SURFACE_FLOOR" ]]; then
     continue
   fi
-  surface_offenders+="$(public_surface_offenders "$file")"
+  surface_offenders+="$(public_surface_offenders "$file" "$MIGRATIONS_ROOT")"
 done < <(find "$MIGRATIONS_DIR" -type f -name '*.sql' -print0)
 
 if [ -n "$surface_offenders" ]; then

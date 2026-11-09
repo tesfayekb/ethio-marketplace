@@ -1,10 +1,11 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
   declarationsOf,
+  droppedObjects,
   dropsOf,
   lastDeclarations,
   spanningLiterals,
@@ -102,5 +103,31 @@ describe("a compared literal never spans a line break (INC-1089)", () => {
       "END $proof$;\n" +
       "COMMENT ON TABLE public.t IS $c$over\ntwo lines$c$;\n";
     expect(spanningLiterals(clean)).toEqual([]);
+  });
+});
+
+describe("the reader knows what the migrations dropped (DEC-357)", () => {
+  it("MGR-5 a dropped function or table is dropped; one re-created after its drop, or never dropped, is not", () => {
+    const root = tree({
+      "001_a.sql":
+        fn("gone", "  RETURN 'x';") +
+        fn("back", "  RETURN 'x';") +
+        fn("kept", "  RETURN 'x';") +
+        "CREATE TABLE public.gone_table (id uuid);\nCREATE TABLE IF NOT EXISTS public.back_table (id uuid);\n",
+      "002_b.sql":
+        "DROP FUNCTION public.gone(uuid);\nDROP FUNCTION IF EXISTS public.back(uuid);\n" +
+        "DROP TABLE public.gone_table, public.back_table CASCADE;\n" +
+        "-- DROP FUNCTION public.kept(uuid);\n" +
+        "DO $proof$ BEGIN DROP TABLE public.kept_scratch; END $proof$;\n",
+      "003_c.sql": fn("back", "  RETURN 'y';") + "CREATE TABLE public.back_table (id uuid);\n",
+    });
+    expect(dropsOf(readFileSync(join(root, "supabase/migrations/002_b.sql"), "utf8"))).toEqual([
+      { name: "gone", kind: "function", offset: 0 },
+      { name: "back", kind: "function", offset: 33 },
+      { name: "gone_table", kind: "table", offset: 76 },
+      { name: "back_table", kind: "table", offset: 76 },
+    ]);
+    expect([...droppedObjects(root)].sort()).toEqual(["gone", "gone_table"]);
+    expect([...lastDeclarations(root).keys()].sort()).toEqual(["back", "kept"]);
   });
 });

@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -35,6 +35,33 @@ describe("shared public-surface parser", () => {
       ).toContain("planted (public)");
     } finally {
       rmSync(dir, { recursive: true, force: true });
+    }
+  });
+  it("SLB-7 a grant whose object a later migration drops is no offender; the same grant without the drop is (DEC-357)", () => {
+    const root = mkdtempSync(join(tmpdir(), "surface-drops-"));
+    try {
+      const migrations = join(root, "supabase", "migrations");
+      mkdirSync(migrations, { recursive: true });
+      const allow = join(root, "allow.txt");
+      writeFileSync(allow, "listed | anon | planted\n");
+      const grant = join(migrations, "001_grant.sql");
+      writeFileSync(
+        grant,
+        "GRANT EXECUTE ON FUNCTION public.gone_fn(uuid) TO authenticated;\n" +
+          "GRANT SELECT ON public.gone_table TO anon;\n",
+      );
+      const judge = () =>
+        execFileSync("bun", ["scripts/public-surface.ts", "--migration", allow, grant, root], {
+          encoding: "utf8",
+        });
+      expect(judge()).toBe(`${grant}: gone_fn (authenticated)\n${grant}: gone_table (anon)\n`);
+      writeFileSync(
+        join(migrations, "002_drop.sql"),
+        "DROP FUNCTION public.gone_fn(uuid);\nDROP TABLE public.gone_table;\n",
+      );
+      expect(judge()).toBe("");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
     }
   });
   it("refuses malformed roles and the old two-field shape", () => {

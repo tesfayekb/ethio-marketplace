@@ -13,8 +13,9 @@ import { walkFiles } from "./kit";
  * the proofs — removed: they are append-only history, never a function's
  * body) and keeps each function's LAST declaration, forgetting a function a
  * later `DROP FUNCTION` removes without redeclaring. It also answers every
- * string literal that spans a line break (`spanningLiterals`, for the
- * migration guard, INC-1089).
+ * function or table whose last event is a drop (`droppedObjects`, for the
+ * public-surface judge, DEC-357) and every string literal that spans a line
+ * break (`spanningLiterals`, for the migration guard, INC-1089).
  *
  * What it cannot see (INC-1083): text a statement computes at run time — a
  * `format(…)` or an `EXECUTE` of a built string — is a literal to it, never a
@@ -61,6 +62,10 @@ const CREATE_FUNCTION =
 const DROP_FUNCTION =
   /\bDROP\s+FUNCTION\s+(?:IF\s+EXISTS\s+)?(?:public\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?\b/gi;
 const BODY_OPENER = /\bAS\s+(\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$)/iy;
+const CREATE_TABLE =
+  /\bCREATE\s+(?:UNLOGGED\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?(?![.\w])/gi;
+const DROP_TABLE = /\bDROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?([^;]*?)(?:\s+(?:CASCADE|RESTRICT))?\s*;/gi;
+const TABLE_NAME = /^(?:public\.)?"?([A-Za-z_][A-Za-z0-9_]*)"?$/i;
 
 /** SQL text with comments blanked and every `DO $tag$ … $tag$;` block blanked (positions kept). */
 export function functionCodeOf(sql: string): string {
@@ -122,13 +127,74 @@ export function declarationsOf(sql: string): Declaration[] {
   return found;
 }
 
-/** Every function name a file drops, in order, with the offset of the DROP. */
-export function dropsOf(sql: string): Array<{ fn: string; offset: number }> {
+export type ObjectKind = "function" | "table";
+export type Drop = { name: string; kind: ObjectKind; offset: number };
+
+/** Every function and table a file drops (outside DO blocks), with the offset of the DROP. */
+export function dropsOf(sql: string): Drop[] {
   const code = functionCodeOf(sql);
-  return Array.from(code.matchAll(DROP_FUNCTION), (match) => ({
-    fn: (match[1] ?? "").toLowerCase(),
+  const drops: Drop[] = Array.from(code.matchAll(DROP_FUNCTION), (match) => ({
+    name: (match[1] ?? "").toLowerCase(),
+    kind: "function",
     offset: match.index ?? 0,
   }));
+  for (const match of code.matchAll(DROP_TABLE))
+    for (const name of (match[1] ?? "").split(",")) {
+      const table = TABLE_NAME.exec(name.trim());
+      if (table?.[1])
+        drops.push({ name: table[1].toLowerCase(), kind: "table", offset: match.index ?? 0 });
+    }
+  return drops.sort((a, b) => a.offset - b.offset);
+}
+
+/** Every table a file creates (outside DO blocks), with the offset of the CREATE. */
+export function tableCreatesOf(sql: string): Array<{ name: string; offset: number }> {
+  return Array.from(functionCodeOf(sql).matchAll(CREATE_TABLE), (match) => ({
+    name: (match[1] ?? "").toLowerCase(),
+    offset: match.index ?? 0,
+  }));
+}
+
+/** The migrations' file paths, in file order. */
+function migrationFiles(root: string): string[] {
+  return walkFiles([join(root, "supabase", "migrations")], { ext: ["sql"] }).sort();
+}
+
+/**
+ * Every public function or table name whose last event across the migrations
+ * (file order) is a drop: no CREATE of the same kind after it, and no live
+ * object of the other kind by that name (DEC-357).
+ */
+export function droppedObjects(root: string): Set<string> {
+  const state = new Map<string, "live" | "dropped">();
+  for (const file of migrationFiles(root)) {
+    const sql = readFileSync(file, "utf8");
+    const events: Array<{ key: string; offset: number; to: "live" | "dropped" }> = [
+      ...declarationsOf(sql).map((d) => ({
+        key: `function:${d.fn}`,
+        offset: d.offset,
+        to: "live" as const,
+      })),
+      ...tableCreatesOf(sql).map((t) => ({
+        key: `table:${t.name}`,
+        offset: t.offset,
+        to: "live" as const,
+      })),
+      ...dropsOf(sql).map((d) => ({
+        key: `${d.kind}:${d.name}`,
+        offset: d.offset,
+        to: "dropped" as const,
+      })),
+    ];
+    events.sort((a, b) => a.offset - b.offset).forEach((event) => state.set(event.key, event.to));
+  }
+  const name = (key: string) => key.slice(key.indexOf(":") + 1);
+  const live = new Set([...state].filter(([, to]) => to === "live").map(([key]) => name(key)));
+  return new Set(
+    [...state]
+      .filter(([key, to]) => to === "dropped" && !live.has(name(key)))
+      .map(([key]) => name(key)),
+  );
 }
 
 export type LastDeclaration = Declaration & { file: string };
@@ -136,8 +202,7 @@ export type LastDeclaration = Declaration & { file: string };
 /** Each function's last declaration across the migrations (file order), minus the dropped. */
 export function lastDeclarations(root: string): Map<string, LastDeclaration> {
   const last = new Map<string, LastDeclaration>();
-  const files = walkFiles([join(root, "supabase", "migrations")], { ext: ["sql"] });
-  for (const file of files) {
+  for (const file of migrationFiles(root)) {
     const rel = file
       .slice(root.length + 1)
       .split("\\")
@@ -151,7 +216,8 @@ export function lastDeclarations(root: string): Map<string, LastDeclaration> {
       });
     }
     for (const drop of dropsOf(sql)) {
-      events.push({ offset: drop.offset, apply: () => last.delete(drop.fn) });
+      if (drop.kind === "function")
+        events.push({ offset: drop.offset, apply: () => last.delete(drop.name) });
     }
     events.sort((a, b) => a.offset - b.offset).forEach((event) => event.apply());
   }
