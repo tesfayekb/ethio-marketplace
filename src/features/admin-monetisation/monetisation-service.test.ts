@@ -236,7 +236,7 @@ describe("the monetisation console's seam (P-1b)", () => {
       maxPhotos: null,
       placement: null,
       badge: null,
-      caps: null,
+      caps: { maxCities: null, maxRegions: 3, maxCountries: 1 },
       sort: 5,
     });
     expect(door.calls[1]?.args).toEqual({
@@ -248,6 +248,8 @@ describe("the monetisation console's seam (P-1b)", () => {
       p_enabled: true,
       p_self_serve: true,
       p_extends_lifetime: true,
+      // A reach row's caps: exactly the three keys, a blank one a JSON null (DEC-356).
+      p_caps: { max_cities: null, max_regions: 3, max_countries: 1 },
       p_sort: 5,
     });
     await saveOverride({

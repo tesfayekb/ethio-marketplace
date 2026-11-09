@@ -175,7 +175,7 @@ async function readProduct(key: string) {
   const { data, error } = await adminClient()
     .from("listing_packages")
     .select(
-      "key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by",
+      "key, kind, name_en, name_am, days, max_photos, placement, badge, enabled, self_serve, extends_lifetime, sort, created_by, updated_by, max_cities, max_regions, max_countries",
     )
     .eq("key", key)
     .maybeSingle();
@@ -1575,5 +1575,49 @@ test.describe("P-1b Admin › Monetisation", () => {
     // Reloaded, the strip reads the same from the server's rows.
     await openConsole(page);
     await expect(step).toHaveAttribute("data-state", left.length === 0 ? "set" : "needsRow");
+  });
+
+  test("MON-18 a reach row's caps: cities left blank and regions 3 are saved as no limit and 3; the table reads No limit and 3; the editor reopens blank and 3", async ({
+    page,
+  }, testInfo) => {
+    const { secret } = await useJobSuperAdmin(page);
+    const key = scratchKey("caps", testInfo.project.name);
+    await destroyProduct(key);
+    products.push(key);
+    await openConsole(page);
+
+    await page.getByTestId("monetisation-reach-add").click();
+    const create = page.getByTestId("monetisation-reach-create");
+    await expect(create).toBeVisible({ timeout: 20000 });
+    const unlimited = en["admin.monetisation.reach.field.unlimited"];
+    // A blank cap says what it stands for.
+    await expect(create.getByTestId("monetisation-reach-create-cities")).toHaveAttribute(
+      "placeholder",
+      unlimited,
+    );
+    await create.getByTestId("monetisation-reach-create-key").fill(key);
+    await create.getByTestId("monetisation-reach-create-name-en").fill(`Scratch caps ${key}`);
+    await create.getByTestId("monetisation-reach-create-days").fill("30");
+    await create.getByTestId("monetisation-reach-create-regions").fill("3");
+    await create.getByTestId("monetisation-reach-create-save").click();
+    await awaitGuardedOutcome(page, secret, productRow(page, "reach", key));
+    await expect(create).toHaveCount(0);
+    expect(await readProduct(key)).toMatchObject({
+      key,
+      kind: "reach",
+      max_cities: null,
+      max_regions: 3,
+      max_countries: null,
+    });
+
+    const row = productRow(page, "reach", key);
+    await expect(row.getByTestId(`product-${key}-cities`)).toHaveText(unlimited);
+    await expect(row.getByTestId(`product-${key}-regions`)).toHaveText("3");
+    await expect(row.getByTestId(`product-${key}-countries`)).toHaveText(unlimited);
+
+    const editor = await openProductEditor(page, "reach", key);
+    await expect(editor.getByTestId("monetisation-reach-edit-cities")).toHaveValue("");
+    await expect(editor.getByTestId("monetisation-reach-edit-regions")).toHaveValue("3");
+    await expect(editor.getByTestId("monetisation-reach-edit-countries")).toHaveValue("");
   });
 });

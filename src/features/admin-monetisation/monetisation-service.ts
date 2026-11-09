@@ -96,7 +96,7 @@ export interface SaveProductInput {
   maxPhotos: number | null;
   placement: string | null;
   badge: boolean | null;
-  /** A reach product's place limits (a null cap = no limit); null for a level. */
+  /** A reach product's place limits (a null cap = no limit), always set for a reach; null for a level. */
   caps: ReachCaps | null;
   /** null = the door keeps the stored order (0 for a new product). */
   sort: number | null;
@@ -123,6 +123,16 @@ export async function saveProduct(input: SaveProductInput): Promise<void> {
     ...(input.maxPhotos === null ? {} : { p_max_photos: input.maxPhotos }),
     ...(input.placement === null ? {} : { p_placement: input.placement }),
     ...(input.badge === null ? {} : { p_badge: input.badge }),
+    // DEC-356 — a reach row always states its three caps (a JSON null = no limit); a level never.
+    ...(input.kind === "reach" && input.caps !== null
+      ? {
+          p_caps: {
+            max_cities: input.caps.maxCities,
+            max_regions: input.caps.maxRegions,
+            max_countries: input.caps.maxCountries,
+          },
+        }
+      : {}),
     ...(input.sort === null ? {} : { p_sort: input.sort }),
   });
   refused(error);

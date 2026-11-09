@@ -87,6 +87,7 @@ export function NumberField({
   id,
   labelKey,
   helpKey,
+  placeholderKey,
   value,
   onChange,
   disabled = false,
@@ -94,6 +95,8 @@ export function NumberField({
   id: string;
   labelKey: MessageKey;
   helpKey?: MessageKey;
+  /** The word a blank field stands for (a reach row's cap: "No limit"). */
+  placeholderKey?: MessageKey;
   value: string;
   onChange: (next: string) => void;
   disabled?: boolean;
@@ -110,6 +113,7 @@ export function NumberField({
         data-testid={id}
         inputMode="numeric"
         value={value}
+        placeholder={placeholderKey === undefined ? undefined : t(placeholderKey)}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       />

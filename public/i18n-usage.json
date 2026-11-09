@@ -1,7 +1,7 @@
 {
   "generator": "scripts/i18n-usage-map.ts",
   "scanned": 682,
-  "dynamicCallSites": 439,
+  "dynamicCallSites": 440,
   "keys": {
     "account.deactivatedBanner": [
       "/settings"
@@ -3589,6 +3589,9 @@
       "/admin/monetisation"
     ],
     "admin.monetisation.product.unknown": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.reach.field.capsHint": [
       "/admin/monetisation"
     ],
     "admin.monetisation.reach.field.cities": [

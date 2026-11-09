@@ -23,13 +23,29 @@ import { PRODUCT_NAME_MAX, type ProductKind, type ProductRow } from "./monetisat
 import { useSaveProduct } from "./use-monetisation";
 import { useMonetisationError } from "./use-monetisation-error";
 
+/** A reach row's three place limits (DEC-356), in the table's column order. */
+const CAP_FIELDS: ReadonlyArray<{
+  field: "maxCities" | "maxRegions" | "maxCountries";
+  suffix: string;
+  labelKey: MessageKey;
+}> = [
+  { field: "maxCities", suffix: "cities", labelKey: "admin.monetisation.reach.field.cities" },
+  { field: "maxRegions", suffix: "regions", labelKey: "admin.monetisation.reach.field.regions" },
+  {
+    field: "maxCountries",
+    suffix: "countries",
+    labelKey: "admin.monetisation.reach.field.countries",
+  },
+];
+
 /**
  * P-1b (D290, D295) — THE PRODUCT EDITOR, one surface for Add and Edit (CT-8).
  * The key is typed once and fixed on edit (the door upserts by key; its kind
  * never changes). The name is one field per language, the way the categories
  * editor names a category (EN required, AM optional — the English stands in).
  * A level carries its own perks; a reach product shows none (the door refuses
- * them). There is no delete door: a product is switched off, never removed.
+ * them) and carries its three place limits instead, blank for no limit. There
+ * is no delete door: a product is switched off, never removed.
  *
  * INC-188 — the save round-trips EVERY stored field this surface holds.
  */
@@ -150,7 +166,23 @@ export function ProductEditorDialog({
             onChange={(next) => change({ badge: next })}
           />
         </>
-      ) : null}
+      ) : (
+        <>
+          {CAP_FIELDS.map(({ field, suffix, labelKey }) => (
+            <NumberField
+              key={field}
+              id={`${prefix}-${suffix}`}
+              labelKey={labelKey}
+              placeholderKey="admin.monetisation.reach.field.unlimited"
+              value={form[field]}
+              onChange={(next) => change({ [field]: next })}
+            />
+          ))}
+          <p className="text-sm text-muted-foreground" data-testid={`${prefix}-caps-hint`}>
+            {t("admin.monetisation.reach.field.capsHint")}
+          </p>
+        </>
+      )}
       <Toggle
         id={`${prefix}-enabled`}
         labelKey="admin.packages.field.enabled"
