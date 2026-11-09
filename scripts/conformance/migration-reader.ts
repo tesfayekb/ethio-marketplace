@@ -17,11 +17,29 @@ import { walkFiles } from "./kit";
  * public-surface judge, DEC-357) and every string literal that spans a line
  * break (`spanningLiterals`, for the migration guard, INC-1089).
  *
- * What it cannot see (INC-1083): text a statement computes at run time — a
- * `format(…)` or an `EXECUTE` of a built string — is a literal to it, never a
- * declaration or an insertion. A census over its answer judges the files as
- * written.
+ * What it reads of computed text (INC-1083): a `DO` block's `format('CREATE …
+ * FUNCTION public.<fn>(…', …)` — or `public.%I(` with the name as its first
+ * literal argument — is that function's last event, `computed: true` with an
+ * empty body (the body is built at run time; a census reads nothing it cannot
+ * see). An `EXECUTE` of a string built any other way names no function: the
+ * one record of those is `COMPUTED_BY_HAND` below, each name with the file
+ * from which its body is built and why. A census over the answer judges the
+ * files as written, minus the computed bodies.
  */
+
+/**
+ * The functions whose live body is built by an `EXECUTE` no template names,
+ * each with the stamp of the file that builds it and why. A name the files no
+ * longer declare, or whose last event the reader reads (a declaration or a
+ * template after `since`), is a stale line (`staleComputedByHand`, MGR-6).
+ */
+export const COMPUTED_BY_HAND: Readonly<Record<string, { since: string; reason: string }>> = {
+  attr_import_plan: {
+    since: "20261017093039",
+    reason:
+      "assembled from the chunks stored in migration_text_parts and run as EXECUTE v_text (20261017093039); four earlier files patch the live text through pg_get_functiondef",
+  },
+};
 
 /**
  * A string literal on one line: a doubled quote is a quote, and a backslash
@@ -197,10 +215,52 @@ export function droppedObjects(root: string): Set<string> {
   );
 }
 
-export type LastDeclaration = Declaration & { file: string };
+/** `computed`: the body is built at run time (a template or COMPUTED_BY_HAND); `body` is then "". */
+export type LastDeclaration = Declaration & { file: string; computed?: boolean };
 
-/** Each function's last declaration across the migrations (file order), minus the dropped. */
-export function lastDeclarations(root: string): Map<string, LastDeclaration> {
+const FORMAT_OPENER = /\bformat\s*\(\s*'/gi;
+const TEMPLATE_CREATE =
+  /^\s*CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?(?:"?([A-Za-z_][A-Za-z0-9_]*)"?|(%I))\s*\(/i;
+const FIRST_LITERAL_ARGUMENT = /^\s*,\s*'([A-Za-z_][A-Za-z0-9_]*)'/;
+
+/** The text of the literal opening at `from` (its `''` read as `'`), and the offset after it. */
+function literalAt(code: string, from: number): { text: string; end: number } {
+  let text = "";
+  let at = from;
+  while (at < code.length) {
+    if (code[at] === "'") {
+      if (code[at + 1] !== "'") return { text, end: at + 1 };
+      text += "'";
+      at += 2;
+    } else {
+      text += code[at];
+      at += 1;
+    }
+  }
+  return { text, end: at };
+}
+
+/** Every function a file's `DO` blocks declare through a `format()` template, with its offset. */
+export function templateDeclarationsOf(sql: string): Array<{ fn: string; offset: number }> {
+  const code = sqlCodeOf(sql);
+  const found: Array<{ fn: string; offset: number }> = [];
+  for (const block of code.matchAll(DO_BLOCK)) {
+    const text = block[0];
+    for (const opener of text.matchAll(FORMAT_OPENER)) {
+      const start = (opener.index ?? 0) + opener[0].length;
+      const { text: template, end } = literalAt(text, start);
+      const create = TEMPLATE_CREATE.exec(template);
+      if (create === null) continue;
+      const fn = create[1] ?? FIRST_LITERAL_ARGUMENT.exec(text.slice(end))?.[1];
+      if (fn !== undefined)
+        found.push({ fn: fn.toLowerCase(), offset: (block.index ?? 0) + start });
+    }
+  }
+  return found;
+}
+
+/** Each function's last event across the migrations (file order): a declaration or a template. */
+function readLastEvents(root: string): Map<string, LastDeclaration> {
   const last = new Map<string, LastDeclaration>();
   for (const file of migrationFiles(root)) {
     const rel = file
@@ -215,6 +275,23 @@ export function lastDeclarations(root: string): Map<string, LastDeclaration> {
         apply: () => last.set(declaration.fn, { ...declaration, file: rel }),
       });
     }
+    for (const { fn, offset } of templateDeclarationsOf(sql)) {
+      const line = sql.slice(0, offset).split("\n").length;
+      events.push({
+        offset,
+        apply: () =>
+          last.set(fn, {
+            fn,
+            header: "",
+            body: "",
+            line,
+            offset,
+            bodyLine: line,
+            file: rel,
+            computed: true,
+          }),
+      });
+    }
     for (const drop of dropsOf(sql)) {
       if (drop.kind === "function")
         events.push({ offset: drop.offset, apply: () => last.delete(drop.name) });
@@ -222,6 +299,47 @@ export function lastDeclarations(root: string): Map<string, LastDeclaration> {
     events.sort((a, b) => a.offset - b.offset).forEach((event) => event.apply());
   }
   return last;
+}
+
+const stampOf = (file: string) => (file.split("/").pop() ?? "").slice(0, 14);
+
+/** Whether the reader's last event for a hand-listed name is the one the list stands for. */
+function standsFor(event: LastDeclaration, since: string): boolean {
+  return event.computed !== true && stampOf(event.file) < since;
+}
+
+/**
+ * Each function's last declaration across the migrations (file order), minus the
+ * dropped; a function whose body is built at run time is `computed` with an
+ * empty body.
+ */
+export function lastDeclarations(
+  root: string,
+  byHand: Readonly<Record<string, { since: string }>> = COMPUTED_BY_HAND,
+): Map<string, LastDeclaration> {
+  const last = readLastEvents(root);
+  for (const [fn, { since }] of Object.entries(byHand)) {
+    const event = last.get(fn);
+    if (event !== undefined && standsFor(event, since))
+      last.set(fn, { ...event, header: "", body: "", computed: true });
+  }
+  return last;
+}
+
+/** COMPUTED_BY_HAND's stale lines: a name no file declares, or whose last event the reader reads. */
+export function staleComputedByHand(
+  root: string,
+  byHand: Readonly<Record<string, { since: string }>> = COMPUTED_BY_HAND,
+): string[] {
+  const last = readLastEvents(root);
+  const stale: string[] = [];
+  for (const [fn, { since }] of Object.entries(byHand)) {
+    const event = last.get(fn);
+    if (event === undefined) stale.push(`${fn}: no migration declares it`);
+    else if (!standsFor(event, since))
+      stale.push(`${fn}: its last event (${event.file}) is one the reader reads`);
+  }
+  return stale;
 }
 
 /** `--spanning <file>…`: one line per spanning literal, for scripts/check-migrations.sh. */

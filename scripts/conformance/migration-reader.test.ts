@@ -4,12 +4,15 @@ import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  COMPUTED_BY_HAND,
   declarationsOf,
   droppedObjects,
   dropsOf,
   lastDeclarations,
   spanningLiterals,
   sqlCodeOf,
+  staleComputedByHand,
+  templateDeclarationsOf,
 } from "./migration-reader";
 
 /**
@@ -129,5 +132,82 @@ describe("the reader knows what the migrations dropped (DEC-357)", () => {
     ]);
     expect([...droppedObjects(root)].sort()).toEqual(["gone", "gone_table"]);
     expect([...lastDeclarations(root).keys()].sort()).toEqual(["back", "kept"]);
+  });
+});
+
+describe("a body built at run time is computed (INC-1083)", () => {
+  it("MGR-6 COMPUTED_BY_HAND: a line stands for its name's last declaration; one the files no longer declare, or whose last event the reader reads, is stale", () => {
+    expect(staleComputedByHand(process.cwd())).toEqual([]);
+    expect(Object.keys(COMPUTED_BY_HAND)).toEqual(["attr_import_plan"]);
+    const root = tree({
+      "20990101000000_a.sql":
+        fn("built", "  RETURN 'x';") +
+        fn("later", "  RETURN 'x';") +
+        fn("templated", "  RETURN 'x';"),
+      "20990101000002_b.sql":
+        fn("later", "  RETURN 'y';") +
+        "DO $t$ BEGIN EXECUTE format('CREATE OR REPLACE FUNCTION public.templated(%s) RETURNS text LANGUAGE sql AS $b$%s$b$', 'p uuid', 'SELECT 1'); END $t$;\n",
+    });
+    const since = { since: "20990101000001" };
+    const byHand = { built: since, gone: since, later: since, templated: since };
+    expect(staleComputedByHand(root, byHand)).toEqual([
+      "gone: no migration declares it",
+      "later: its last event (supabase/migrations/20990101000002_b.sql) is one the reader reads",
+      "templated: its last event (supabase/migrations/20990101000002_b.sql) is one the reader reads",
+    ]);
+    const built = lastDeclarations(root, byHand).get("built");
+    expect(built?.computed).toBe(true);
+    expect(built?.body).toBe("");
+    expect(built?.file).toBe("supabase/migrations/20990101000000_a.sql");
+    expect(lastDeclarations(root, {}).get("built")?.computed).toBeUndefined();
+  });
+
+  it("MGR-7 a DO block's format() template — by its literal name or %I with a literal argument — is the last event; a later declaration, a comment or another format() is not", () => {
+    const root = tree({
+      "001_a.sql":
+        fn("named", "  RETURN 'one';") +
+        fn("by_ident", "  RETURN 'one';") +
+        fn("redone", "  RETURN 'one';"),
+      "002_b.sql":
+        "DO $t$\nBEGIN\n" +
+        "  -- EXECUTE format('CREATE OR REPLACE FUNCTION public.quiet(%s)', 'x');\n" +
+        "  RAISE NOTICE '%', format('drift for %s', 'named');\n" +
+        "  EXECUTE format('CREATE OR REPLACE FUNCTION public.named(%s) RETURNS %s LANGUAGE plpgsql AS $m$%s$m$', v_args, v_result, v_new);\n" +
+        "  EXECUTE format('CREATE FUNCTION public.%I(%s) RETURNS %s LANGUAGE plpgsql AS $m$%s$m$',\n    'by_ident', v_args, v_result, v_new);\n" +
+        "  EXECUTE format('CREATE OR REPLACE FUNCTION public.%I(%s) AS $m$%s$m$', 'redone', v_args, v_new);\n" +
+        "END $t$;\n",
+      "003_c.sql": fn("redone", "  RETURN 'two';"),
+    });
+    const sql = readFileSync(join(root, "supabase/migrations/002_b.sql"), "utf8");
+    expect(templateDeclarationsOf(sql).map((t) => t.fn)).toEqual(["named", "by_ident", "redone"]);
+    const last = lastDeclarations(root, {});
+    expect([...last.keys()].sort()).toEqual(["by_ident", "named", "redone"]);
+    for (const name of ["named", "by_ident"]) {
+      expect(last.get(name)?.computed).toBe(true);
+      expect(last.get(name)?.body).toBe("");
+      expect(last.get(name)?.file).toBe("supabase/migrations/002_b.sql");
+    }
+    expect(last.get("named")?.line).toBe(5);
+    expect(last.get("redone")?.computed).toBeUndefined();
+    expect(last.get("redone")?.body).toContain("'two'");
+    expect(
+      [...lastDeclarations(process.cwd())]
+        .filter(([, d]) => d.computed === true)
+        .map(([name]) => name)
+        .sort(),
+    ).toEqual([
+      "admin_commit_attribute_import",
+      "admin_commit_category_import",
+      "admin_commit_location_import",
+      "admin_import_translations",
+      "admin_undo_attribute_import",
+      "admin_undo_category_import",
+      "admin_undo_import",
+      "admin_undo_location_import",
+      "attr_import_plan",
+      "edit_my_listing",
+      "public_listing_json",
+      "validate_listing_draft",
+    ]);
   });
 });
