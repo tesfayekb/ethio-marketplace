@@ -195,7 +195,10 @@ prices is no longer offered.
 Dialog prefixes: `monetisation-market-<create|edit>` (the market picked on
 create — the default row when none holds it, then the open markets; shown as
 text on edit), `monetisation-<level|reach>-<create|edit>` (key on create, EN and
-AM names, days, the level's photos / placement / badge, the three switches, the
+AM names, days, the level's photos / placement / badge, a reach row's three
+place limits `-cities` / `-regions` / `-countries` — blank for no limit, "No
+limit" as the blank field's word, `-caps-hint` under them; `saveProduct` sends a
+reach row's `p_caps` whole, a level's never (DEC-356) — the three switches, the
 order), `monetisation-override-<create|edit|clear>` (the level as a line `-level`
 — `fixedLevel`, the row it was opened from — main category, market, the four
 cells; the scope line `-scope` on edit and clear),
