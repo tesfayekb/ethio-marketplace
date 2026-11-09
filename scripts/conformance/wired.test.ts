@@ -135,6 +135,14 @@ describe("every guard script is wired to a caller (INC-563)", () => {
     expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
       "check-doors.ts --live",
     );
+    // seller-names.ts (DEC-359) is the seller-name law: seller-names.test.ts SPA-10a…10d runs its
+    // file half; the smoke lane runs its live half after the door guard.
+    expect(readFileSync(join(ROOT, "scripts/conformance/seller-names.test.ts"), "utf8")).toContain(
+      "SPA-10d",
+    );
+    expect(readFileSync(join(ROOT, ".github/workflows/local-backend-proof.yml"), "utf8")).toContain(
+      "bun scripts/conformance/seller-names.ts --live ",
+    );
     // proof-readers.test.ts CF-PROOF-1 PRF-1…4 and CF-PROOF-2 PRF-5 (turn P-2 (a), INC-1052, DEC-341, INC-1054) is discovered by test:unit's scripts/**/*.test.ts.
     expect(readFileSync(join(ROOT, "scripts/conformance/proof-readers.test.ts"), "utf8")).toContain(
       "PRF-5",
