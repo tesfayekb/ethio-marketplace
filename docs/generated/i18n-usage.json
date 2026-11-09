@@ -8042,6 +8042,12 @@
       "/post",
       "/post/$listingId"
     ],
+    "post.where.planLineNoLimit": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
     "post.where.planLineUnknown": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
@@ -8055,6 +8061,12 @@
       "/post/$listingId"
     ],
     "post.where.reachCaption": [
+      "/admin/listings/$listingId/edit",
+      "/my-listings/$listingId/edit",
+      "/post",
+      "/post/$listingId"
+    ],
+    "post.where.reachCaptionNoLimit": [
       "/admin/listings/$listingId/edit",
       "/my-listings/$listingId/edit",
       "/post",

@@ -1653,9 +1653,7 @@ function WizardShell({
                             }
                             pinCarried={pinCarried}
                             onPinCarried={setPinCarried}
-                            maxCities={planCaps?.maxCities ?? null}
-                            maxRegions={planCaps?.maxRegions ?? null}
-                            maxCountries={planCaps?.maxCountries ?? null}
+                            caps={planCaps}
                             invitePlaceId={prefill?.placeId ?? null}
                             textMode={edit === null ? "door" : "form"}
                             onTextChange={edit === null ? undefined : edit.setPlaceText}
