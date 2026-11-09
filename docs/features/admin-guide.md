@@ -194,10 +194,11 @@ form with that cause on its line.
 
 ## Turn (a) — Monetisation
 
-The six guides (`en-guide.ts` / `am-guide.ts`, prefixes
-`admin.monetisation.{markets,level,reach,levelOverrides,productPrices,caps}`),
-the strip (`monetisation-order`, `monetisationSteps` in
-`monetisation-order.ts`: Markets → Products → Prices → Posting caps) and the
+The five guides (`en-guide.ts` / `am-guide.ts`, prefixes
+`admin.monetisation.{markets,level,reach,levelOverrides,productPrices}`; the
+`caps` guide left with its block in P-2 (c) c2b, and the reach Guide names the
+three cap columns), the strip (`monetisation-order`, `monetisationSteps` in
+`monetisation-order.ts`: Markets → Products → Prices) and the
 regroup by product (`docs/features/plans.md` §The console). The Monetisation
 page keeps one h1; its blocks and inner tables pass `level="h2"`.
 

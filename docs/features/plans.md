@@ -12,9 +12,12 @@ M-d, the console, the strings, the guards). The ad's own columns, the seller's
 doors and the sweep are P-2's; credits P-3's; payments P-4's. Nothing of P-1b
 reaches a buyer's page.
 
-Until P-2 the posting wizard keeps reading the free plan's `max_photos` (10
-today) through `get_posting_schema`; the Posting caps block of the console is
-where that dial is edited (D304).
+An ad's caps are its own level's photos and its reach row's place limits
+(`max_cities`, `max_regions`, `max_countries`, each NULL for no limit), resolved
+by `listing_caps` (P-2 (c) c2b, DEC-356): the seller's edit reads them from
+`my_listing_private`'s `caps`, a new ad's step 6 from `get_posting_schema`'s
+plan block (the market's included reach). The console's Posting caps block is
+retired; a reach product's limits are set in the Reach block's editor.
 
 ## The data
 
@@ -138,40 +141,40 @@ read and the door mutations), `monetisation-service.ts` (the seam: the Supabase
 door, `admin_list_monetisation`, the doors, `DOOR_MESSAGE_KEYS`),
 `monetisation-rows.ts` (the reader's rows, narrowed by shape — a malformed row
 is a `ReaderError`), `use-monetisation-names.ts` (a market's, a category's and
-a product's name in the catalogue's language), the sections and their dialogs,
-`monetisation-forms.ts` / `price-forms.ts` / `caps-forms.ts` (the forms judge
+a product's name in the catalogue's language; a product or a category the read
+does not hold is "not known", never its key or id — INC-1087), the sections and their dialogs,
+`monetisation-forms.ts` / `price-forms.ts` (the forms judge
 the doors' own shapes first; a blank number is a refusal, never 0),
 `monetisation-dialogs.tsx` (`MonetisationErrorLine`, the verb bar,
 `NumberField`, `Toggle`, the placement and badge selects), `on-off.tsx`,
 `monetisation-columns.tsx` (`attributionColumns`: created by / updated by as
-staff NAMES, detail tier), `monetisation-order.ts` (the strip's states from the
+staff NAMES, detail tier; `capWord`: a reach row's limit, "No limit" when NULL), `monetisation-order.ts` (the strip's states from the
 one read; `MONETISATION_ANCHORS`, `productAnchor`), the product row's pieces
 (`product-name-toggle.tsx`, `product-details.tsx`, `level-overrides-table.tsx`,
 `product-prices-table.tsx`).
 
 **The order strip** (P-1c, D313; `OrderStrip` testid `monetisation-order`) sits
-under the h1: Markets → Products → Prices → Posting caps (the last with
-`coverage:view`), each a link into its block. Markets is _Set_ and names the
+under the h1: Markets → Products → Prices, each a link into its block. Markets is _Set_ and names the
 markets whose paid levels are on; Products is _Set_ once one level and one reach
 are enabled; Prices reads _Needs a row_ when a market with paid levels on has an
 enabled self-serve product without a price valid now for it (its own market or
 every market) — the detail names the first such product and market and the
-link opens that product's prices; Posting caps is _Set_.
+link opens that product's prices.
 
-**Regrouped by product** (P-1c): four blocks on the page, each the agreed table
+**Regrouped by product** (P-1c): three blocks on the page (P-2 (c) c2b
+retired the fourth, Posting caps), each the agreed table
 shape (`DataTable` `cardUntil="lg"`, `TableToolbar` with `ColumnsButton` +
 `useHiddenColumns`, the Guide (`docs/features/admin-guide.md`),
 `DataTablePagination` + `useKeptPage`, `RowActions`, `card: "title"`,
 `TableActions level="h2"` under the page's one h1; testids `monetisation-<id>`,
 `-header`, `-help`, `-toolbar`, `-columns`, `-pagination`, `-empty`; frame ids
-`admin-monetisation-<markets|level|reach|caps>`), in this order:
+`admin-monetisation-<markets|level|reach>`), in this order:
 
-| Block (id)                                  | Rows (row testid)                                                                                                                | Header verb                                                           | Row verbs                                                                    |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------- |
-| Markets (`markets`)                         | `market-<code                                                                                                                    | default>`: name, free ads, included reach, paid levels, launch, since | Add market (`monetisation-market-add`)                                       | Edit (`market-actions-<code>-edit`) |
-| Levels (`levels`)                           | `product-<key>`: key, name (the toggle `product-<key>-open`), days, photos, placement, badge, enabled, self-serve, extends, sort | Add level (`monetisation-level-add`)                                  | Edit (`product-actions-<key>-edit`; the key shown, never typed)              |
-| Reach (`reach`)                             | `product-<key>`: key, name (the toggle), days, enabled, self-serve, extends, sort                                                | Add reach (`monetisation-reach-add`)                                  | Edit                                                                         |
-| Posting caps (`caps`; with `coverage:view`) | `caps-<plan>`: plan, cities, regions, countries, photos, days, ads ("Unlimited"), everywhere, updated                            | —                                                                     | Edit with `coverage:update` (`caps-actions-<plan>-edit`); no Label key field |
+| Block (id)          | Rows (row testid)                                                                                                                                              | Header verb                                                           | Row verbs                                                       |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------- |
+| Markets (`markets`) | `market-<code                                                                                                                                                  | default>`: name, free ads, included reach, paid levels, launch, since | Add market (`monetisation-market-add`)                          | Edit (`market-actions-<code>-edit`) |
+| Levels (`levels`)   | `product-<key>`: key, name (the toggle `product-<key>-open`), days, photos, placement, badge, enabled, self-serve, extends, sort                               | Add level (`monetisation-level-add`)                                  | Edit (`product-actions-<key>-edit`; the key shown, never typed) |
+| Reach (`reach`)     | `product-<key>`: key, name (the toggle), days, cities, regions, countries ("No limit" when NULL, `product-<key>-cities` …), enabled, self-serve, extends, sort | Add reach (`monetisation-reach-add`)                                  | Edit                                                            |
 
 A product's name is a toggle (`aria-expanded`, `aria-controls`); open, the
 row's `expandedRow` (`product-<key>-details`) holds the product's own tables,
@@ -200,7 +203,7 @@ cells; the scope line `-scope` on edit and clear),
 `monetisation-price-<create|edit>` (the product as a line `-product` —
 `fixedProduct` — market, category, amount, currency — the curated list's first
 is the default — credit cost, from, until), `monetisation-price-end` (a day;
-today = now), `monetisation-caps-edit`. Each has `-error` (role alert; the
+today = now). Each has `-error` (role alert; the
 door's raw words under it as `-reason` when no key names them), `-cancel`,
 `-save` / `-confirm`. A product's prices toolbar sieves by market, category and
 currency (`product-<key>-prices-search`, label `admin.monetisation.prices.searchLabel`).
@@ -225,10 +228,12 @@ currency (`product-<key>-prices-search`, label `admin.monetisation.prices.search
   come from its level and reach rows through `listing_caps`). Its reader of the
   migrations is `scripts/conformance/migration-reader.ts` (MGR-1…3), shared by
   the SQL censuses and the door catalogue.
-- CF-PERM-1: the `packages` and `coverage` resources' `admin.roles.perm.*` keys.
-- `scripts/admin-tables.ts` judges the four blocks and the two inner tables
-  (T1–T10; the search slot is on a product's prices); CF-GUIDE-1 their six
-  guides (`docs/features/admin-guide.md`); `scripts/check-hardcoded-strings.sh` (key-typed props are `labelKey`
+- CF-PERM-1: the `packages` resource's `admin.roles.perm.*` keys (the
+  `coverage` resource and its key leave with M-3c-b, P-2 (c) c2b).
+- `scripts/admin-tables.ts` judges the three blocks and the two inner tables
+  (T1–T10; the search slot is on a product's prices); CF-GUIDE-1 their five
+  guides (the reach Guide names the three cap columns, the level Guide says a
+  level has none) (`docs/features/admin-guide.md`); `scripts/check-hardcoded-strings.sh` (key-typed props are `labelKey`
   / `helpKey` / `titleKey`); the budget line `/admin/monetisation` in
   `scripts/route-budgets.mjs` (DEC-296); `vendor-seams.test.ts` (the merged
   service reads through the door; the P-1 coverage-service allowlist line is
@@ -237,11 +242,11 @@ currency (`product-<key>-prices-search`, label `admin.monetisation.prices.search
 ## Tests
 
 `e2e/admin-monetisation.spec.ts` (area `admin-monetisation` in
-`scripts/e2e-select.ts`) — MON-1 the entry, the strip and the four blocks on
+`scripts/e2e-select.ts`) — MON-1 the entry, the strip and the three blocks on
 both twins, no overflow, a level opened to its perks and prices, one h1, the
 real rows read, Amharic headings · MON-2 a reviewer: no entry,
 the deep link refused, both doors refuse by name; a `packages:view`-only staff
-sees the blocks without a verb (the inner ones too) and no caps or caps step;
+sees the blocks without a verb (the inner ones too);
 nothing written · MON-3 the two
 redirects · MON-4 a level created with its perks and both names (the key
 lower-cased), the language switch, created by / updated by as names, opened
@@ -264,33 +269,35 @@ scratch market: ON without a bundle refused by name (dialog and door), ON with
 and a plain user read the own columns of enabled products, valid prices and
 markets, never `created_by` / `updated_by`, never a disabled product or an
 ended price; the console rpc refuses them · MON-14 step-up before any write,
-the outcome reported after · MON-15 Posting caps: the free plan's editor opens
-on every stored dial (read only; no Label key field); a scratch plan's save
-round-trips every field and leaves `label_key` untouched · MON-16 the strip:
+the outcome reported after · MON-16 the strip:
 a scratch market on with a sellable product without a price → Prices \_Needs a
 row*, naming a product and its market, the link opening that product's prices;
 Markets names the market; Products _Set_ · MON-17 a price added inside that
 product (every market) clears it from the strip; _Set_ once no pair is left
-(the expectation computed from the rows, `unpricedPairs`).
+(the expectation computed from the rows, `unpricedPairs`) · MON-18 (after the
+types patch) a scratch reach product saved with cities blank and regions 3: the
+table reads "No limit" and 3; reopening the editor shows blank and 3.
 `e2e/admin-guides.spec.ts` AG-1 → AG-7 — the Guides (`admin-guide.md`).
 `e2e/admin-roles.spec.ts` RP-17 — the matrix's `packages` resource.
 `e2e/admin-locations.spec.ts` OV-1 — the overview has no Plans tile.
 
-Scratch products carry the `e2e_mon_` prefix (plans `e_probe_mon_`, letters
-only), namespaced run × worker × project × test, and are removed (overrides and
+Scratch products carry the `e2e_mon_` prefix, namespaced run × worker × project × test, and are removed (overrides and
 prices first; a scratch market's or category's rows before the fixture) in
 `afterEach`; the real levels, reach rows and the default market are only READ.
 
-Unit: `monetisation-service.test.ts` MNS-1…6 (the reader's rows, a malformed
-row, the door calls, the message map against M-a / M-b / M-c);
-`monetisation-forms.test.ts` MNF-2…10 (the product, override, price, market and
-caps forms' judges and defaults; MNF-1's whole-number read moved with
+Unit: `monetisation-service.test.ts` MNS-1…3, MNS-5…7 (the reader's rows, a
+malformed row, the door calls, the message map against M-a / M-b / M-c, the
+caps refusals and a reach row's caps);
+`monetisation-forms.test.ts` MNF-2…9, MNF-11 (the product, override, price and
+market forms' judges and defaults, a reach product's three caps; MNF-1's whole-number read moved with
 `wholeNumber` to `src/lib/whole-number.test.ts` WN-1 in P-2 (b)); `rail-items.test.ts` (the group after
 Listings; the old paths gone); `monetisation-order.test.ts` MNO-1…4 (the
 strip's states on fixtures: an on market without a price → _Needs a row_ naming
-the product; a null-market price counts; an ended price does not; no caps step
-without the permission); `monetisation-page.test.tsx` MNP-1 (one h1, the h2s,
-the strip, the Guides, a product's open row).
+the product; a null-market price counts; an ended price does not; three steps,
+no caps step); `monetisation-page.test.tsx` MNP-1 (one h1, the h2s, the strip,
+the Guides, a reach row's cap cells, a product's open row);
+`use-monetisation-names.test.ts` MNN-1…3 (a held product's names; a missing
+product or category is "not known").
 
 ## Related
 
