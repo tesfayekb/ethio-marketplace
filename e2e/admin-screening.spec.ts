@@ -1398,7 +1398,7 @@ test.describe("ADMIN SCREENING", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(corrected);
     await page.getByTestId("post-next").click();
@@ -1459,7 +1459,7 @@ test.describe("ADMIN SCREENING", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(corrected);
     await page.getByTestId("post-next").click();

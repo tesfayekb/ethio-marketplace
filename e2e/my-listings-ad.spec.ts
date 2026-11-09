@@ -1005,7 +1005,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 15000 });
     await page.getByTestId("post-price-amount").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("90");
     await page.getByTestId("post-next").click();
@@ -1021,7 +1021,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
     const newTitle = `E2E new words ${token()}`;
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(newTitle);
     await page.getByTestId("post-next").click();
@@ -1041,7 +1041,7 @@ test.describe("MY LISTINGS — one ad's page (bundle 16 turn 3)", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 15000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.getByTestId("post-next").click();
     const refusal = page.locator(

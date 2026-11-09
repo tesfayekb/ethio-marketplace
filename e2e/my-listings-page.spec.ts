@@ -666,7 +666,7 @@ test.describe("MY LISTINGS — the list page (bundle 16 turn 2)", () => {
       { timeout: 15000 },
     );
     await search.click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await expect(twin(page, Y)).toBeVisible({ timeout: 15000 });
     await expect(twin(page, X)).toBeVisible();

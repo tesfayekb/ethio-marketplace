@@ -1459,7 +1459,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="4"]').click();
     await expect(page.getByTestId("post-step-4")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-price-amount").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("120");
     await page.getByTestId("post-next").click();
@@ -1472,7 +1472,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(title);
     await page.getByTestId("post-next").click();
@@ -1564,7 +1564,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("Call me on 0911 223 344");
     await page.getByTestId("post-next").click();
@@ -1682,7 +1682,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await page.locator('[data-testid="post-review-edit"][data-step="5"]').click();
     await expect(page.getByTestId("post-step-5")).toBeVisible({ timeout: 20000 });
     await page.getByTestId("post-title").click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type(title);
     await page.getByTestId("post-next").click();
@@ -2133,7 +2133,7 @@ test.describe("ADMIN LISTINGS — the console's doors", () => {
     await expectStored();
 
     await days.click();
-    await page.keyboard.press("Control+A");
+    await page.keyboard.press("ControlOrMeta+A");
     await page.keyboard.press("Backspace");
     await page.keyboard.type("0");
     await dialog.getByTestId("listings-settings-save").click();

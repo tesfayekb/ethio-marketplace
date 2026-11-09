@@ -188,6 +188,12 @@ The fill sequence now targets that cold-start window explicitly:
 - submit uses the anchored `getByRole('button', { name: /^sign in$/i })`, which cannot match
   the "create an account" toggle or the disabled OAuth slots.
 
+A test that selects a field's text before typing over it presses `ControlOrMeta+A`, never the
+bare `Control+A` (INC-1091). On macOS the bare chord moves the caret to the line's start instead
+of selecting, so the new text lands beside the old value and the test fails on that machine
+alone. `scripts/conformance/select-all.test.ts` (SAC-1) refuses the bare chord anywhere under
+`e2e/`; its allowlist is `select-all-allowlist.txt`.
+
 ## Pass bar (unchanged from the decision report)
 
 Both viewport projects green in GitHub Actions on push to `main`; under 5 minutes added;
