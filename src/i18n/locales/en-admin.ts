@@ -1882,6 +1882,7 @@ export const enAdmin = {
   "admin.monetisation.category.unknown": "Category not known",
   "admin.monetisation.market.add": "Add market",
   "admin.monetisation.market.edit": "Edit market",
+  "admin.monetisation.market.unknown": "Market not known",
   "admin.monetisation.level.edit": "Edit level",
   "admin.monetisation.product.add": "Add product",
   "admin.monetisation.product.unknown": "Product not known",

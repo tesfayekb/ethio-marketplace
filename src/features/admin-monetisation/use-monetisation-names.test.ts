@@ -4,9 +4,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ProductRow } from "./monetisation-service";
 
 /**
- * P-2 (c) c2b (INC-1087) — the console's names: a product and a category the
- * read holds are named in the reader's language; one it does not hold is
- * named "not known", never by its key or its id.
+ * P-2 (c) c2b (INC-1087) — the console's names: a market, a product and a
+ * category the read holds are named in the reader's language; one it does not
+ * hold is named "not known", never by its code, its key or its id.
  */
 
 const reader = vi.hoisted(() => ({ language: "en" }));
@@ -20,8 +20,11 @@ vi.mock("@/i18n", () => ({
     entities: { lang: reader.language, map: {} },
   }),
 }));
+const openMarkets = vi.hoisted(() => ({
+  markets: [] as Array<{ code: string; nameEn: string; anchorId: string | null }>,
+}));
 vi.mock("@/components/shell/location-data", () => ({
-  useOpenMarkets: () => ({ markets: [], isLoading: false, failed: false }),
+  useOpenMarkets: () => ({ markets: openMarkets.markets, isLoading: false, failed: false }),
 }));
 vi.mock("@/features/categories/category-tree", () => ({
   useCategoryTree: () => ({
@@ -56,6 +59,7 @@ const product: ProductRow = {
 
 beforeEach(() => {
   reader.language = "en";
+  openMarkets.markets = [];
 });
 
 describe("the monetisation console's names (INC-1087)", () => {
@@ -81,5 +85,15 @@ describe("the monetisation console's names (INC-1087)", () => {
     expect(result.current.categoryName(null, "everyCategory")).toBe(
       "admin.packages.prices.everyCategory",
     );
+  });
+
+  it("MNN-4 a market the open markets do not hold is not known, never its code; a held one is named; none is the caller's every-word", () => {
+    openMarkets.markets = [{ code: "KE", nameEn: "Kenya", anchorId: null }];
+    const { result } = renderHook(() => useMonetisationNames([product]));
+    expect(result.current.marketName("ZZ", "everyMarket")).toBe(
+      "admin.monetisation.market.unknown",
+    );
+    expect(result.current.marketName("KE", "everyMarket")).toBe("Kenya");
+    expect(result.current.marketName(null, "countryAny")).toBe("admin.monetisation.countryAny");
   });
 });

@@ -1765,6 +1765,7 @@ export const amAdmin: { [K in keyof typeof enAdmin]: string } = {
   "admin.monetisation.category.unknown": "ምድቡ አይታወቅም",
   "admin.monetisation.market.add": "ገበያ ጨምር",
   "admin.monetisation.market.edit": "ገበያ አርትዕ",
+  "admin.monetisation.market.unknown": "ገበያው አይታወቅም",
   "admin.monetisation.level.edit": "ደረጃ አርትዕ",
   "admin.monetisation.product.add": "ምርት ጨምር",
   "admin.monetisation.product.unknown": "ምርቱ አይታወቅም",
