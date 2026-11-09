@@ -56,12 +56,17 @@ function statementsAt(sql: string, opener: RegExp): { at: number; text: string }
   return found;
 }
 
-const insertOpener = (table: string) => new RegExp(`insert\\s+into\\s+public\\.${table}\\b`, "gi");
+/** The tables whose INSERT statements the vocabulary reads, each by its own literal opener. */
+const INSERT_OPENER = {
+  resources: /insert\s+into\s+public\.resources\b/gi,
+  permissions: /insert\s+into\s+public\.permissions\b/gi,
+} as const;
+export type VocabularyTable = keyof typeof INSERT_OPENER;
 const DELETE_RESOURCES = /delete\s+from\s+public\.resources\b/gi;
 
 /** Every `INSERT INTO public.<table> …;` statement of a file, as text. */
-export function insertStatements(sql: string, table: string): string[] {
-  return statementsAt(sql, insertOpener(table)).map(({ text }) => text);
+export function insertStatements(sql: string, table: VocabularyTable): string[] {
+  return statementsAt(sql, INSERT_OPENER[table]).map(({ text }) => text);
 }
 
 /** Every `DELETE FROM public.resources …;` statement of a file, as text. */
@@ -104,7 +109,7 @@ export function seededVocabulary(root: string): SeededVocabulary {
     .sort((a, b) => a.rel.localeCompare(b.rel));
   for (const { rel, sql } of texts) {
     const steps = [
-      ...statementsAt(sql, insertOpener("resources")).map((step) => ({ ...step, retires: false })),
+      ...statementsAt(sql, INSERT_OPENER.resources).map((step) => ({ ...step, retires: false })),
       ...statementsAt(sql, DELETE_RESOURCES).map((step) => ({ ...step, retires: true })),
     ].sort((a, b) => a.at - b.at);
     for (const { text, retires } of steps) {
