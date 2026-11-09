@@ -30,10 +30,15 @@ import {
   saveProduct,
 } from "./monetisation-service";
 
-/** P-1b M-a, M-b and M-c — the doors, read for the messages they RAISE (TIR-5's shape). */
+/**
+ * P-1b M-a, M-b and M-c — the doors, read for the messages they RAISE (TIR-5's
+ * shape); the product door from its last declaration, P-2 (c) M-3c-b part 2.
+ */
 const MIGRATIONS = {
-  "supabase/migrations/20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql": [
+  "supabase/migrations/20261109044934_b2f1fad4-455f-48bd-b1ce-15aa1048a75f.sql": [
     "admin_save_listing_package",
+  ],
+  "supabase/migrations/20261103040805_1fc03fef-6725-4f22-93c0-7b86ef13246a.sql": [
     "admin_save_level_override",
     "admin_clear_level_override",
   ],
