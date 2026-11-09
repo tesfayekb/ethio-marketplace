@@ -16,7 +16,7 @@ import type { GuardFn } from "@/features/auth/mfa/use-step-up";
 import { useI18n } from "@/i18n";
 import { dateFormatter } from "@/lib/format";
 
-import { attributionColumns } from "./monetisation-columns";
+import { attributionColumns, capWord } from "./monetisation-columns";
 import { OnOff } from "./on-off";
 import { PLACEMENT_LABEL } from "./monetisation-forms";
 import { MONETISATION_ANCHORS } from "./monetisation-order";
@@ -29,15 +29,16 @@ import { useMonetisationNames } from "./use-monetisation-names";
 /**
  * P-1b (D290, D295) — THE PRODUCTS of one kind: LEVELS (an ad's level with its
  * own perks: default days, photos at most, placement, badge) and REACH (where
- * an ad is seen; days only). One block shape, the kind choosing the title, the
- * perk columns and the editor's fields. The row's one verb is Edit; the header
+ * an ad is seen: days and its place limits, a blank limit shown as "No limit").
+ * One block shape, the kind choosing the title, the perk or cap columns and
+ * the editor's fields. The row's one verb is Edit; the header
  * adds a product of this kind. A product is switched off, never removed.
  *
  * P-1c (D313) — a product's name opens its row: a level's per-category perks
  * and its prices, a reach's prices (product-details.tsx), each from the page's
  * one read. The page's hash names a product (`product-<key>`, or one of its
  * inner frames) and that row opens on arrival. Each block carries its Guide
- * (markets → levels → reach → the product's prices → caps).
+ * (markets → levels → reach → the product's prices).
  */
 const LOCKED = ["name"];
 
@@ -103,6 +104,12 @@ export function ProductsSection({
       current.includes(key) ? current.filter((one) => one !== key) : [...current, key],
     );
 
+  const capCell = (row: ProductRow, name: string, cap: number | null) => (
+    <span className="text-sm tabular-nums" data-testid={`${idOf(row)}-${name}`}>
+      {capWord(cap, t)}
+    </span>
+  );
+
   const perkColumns: DataTableColumn<ProductRow>[] = isLevel
     ? [
         {
@@ -136,6 +143,32 @@ export function ProductsSection({
         },
       ]
     : [];
+
+  const capColumns: DataTableColumn<ProductRow>[] = isLevel
+    ? []
+    : [
+        {
+          key: "cities",
+          header: t("admin.monetisation.reach.field.cities"),
+          priority: "secondary",
+          card: "meta",
+          cell: (row) => capCell(row, "cities", row.maxCities),
+        },
+        {
+          key: "regions",
+          header: t("admin.monetisation.reach.field.regions"),
+          priority: "secondary",
+          card: "meta",
+          cell: (row) => capCell(row, "regions", row.maxRegions),
+        },
+        {
+          key: "countries",
+          header: t("admin.monetisation.reach.field.countries"),
+          priority: "secondary",
+          card: "meta",
+          cell: (row) => capCell(row, "countries", row.maxCountries),
+        },
+      ];
 
   const columns: DataTableColumn<ProductRow>[] = [
     {
@@ -175,6 +208,7 @@ export function ProductsSection({
       ),
     },
     ...perkColumns,
+    ...capColumns,
     {
       key: "enabled",
       header: t("admin.packages.col.enabled"),

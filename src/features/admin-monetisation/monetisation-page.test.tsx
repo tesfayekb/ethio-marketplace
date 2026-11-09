@@ -137,6 +137,12 @@ describe("AdminMonetisationPage (D313)", () => {
       expect(screen.getAllByTestId(`${anchor}-guide`).length).toBeGreaterThan(0);
       expect(document.getElementById(anchor)).not.toBeNull();
     }
+    // A reach row's place limits: a null cap is "No limit"; a level row carries none.
+    expect(screen.getAllByTestId("product-country-cities")[0]).toHaveTextContent(
+      "admin.monetisation.reach.field.unlimited",
+    );
+    expect(screen.getAllByTestId("product-country-countries")[0]).toHaveTextContent("1");
+    expect(screen.queryAllByTestId("product-featured-cities")).toHaveLength(0);
 
     fireEvent.click(screen.getAllByTestId("product-featured-open")[0] as HTMLElement);
     expect(document.querySelectorAll("h1").length).toBe(1);

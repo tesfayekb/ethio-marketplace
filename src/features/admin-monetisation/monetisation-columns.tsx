@@ -9,6 +9,11 @@ import type { Attribution } from "./monetisation-rows";
  * The on/off word is `OnOff` (on-off.tsx).
  */
 
+/** A reach row's place limit as a cell says it: a null cap is "No limit" (DEC-356). */
+export function capWord(cap: number | null, t: (key: MessageKey) => string): string {
+  return cap === null ? t("admin.monetisation.reach.field.unlimited") : String(cap);
+}
+
 export function attributionColumns<T extends Attribution>(
   t: (key: MessageKey) => string,
   format: (iso: string) => string,

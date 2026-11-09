@@ -31,6 +31,9 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.level.guide.col.placement":
     "በዚህ ደረጃ ያሉ ማስታወቂያዎች የት እንደሚታዩ፦ መደበኛ፣ የጎላ ወይም በመጀመሪያ።",
   "admin.monetisation.level.guide.col.badge": "በዚህ ደረጃ ያሉ ማስታወቂያዎች ምልክት እንደሚኖራቸው።",
+  "admin.monetisation.level.guide.col.cities": "ደረጃ የከተማ ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.level.guide.col.regions": "ደረጃ የክልል ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
+  "admin.monetisation.level.guide.col.countries": "ደረጃ የሀገር ገደብ የለውም፤ ተደራሽነቱ ያስቀምጠዋል።",
   "admin.monetisation.level.guide.col.enabled":
     "ሻጮች ይህን ደረጃ አሁንም ማግኘት ይችሉ እንደሆነ፤ ጠፍቶ ከሆነ በየትም ቦታ አይታይም።",
   "admin.monetisation.level.guide.col.selfServe": "ሻጭ ይህን ደረጃ ያለ ሠራተኞች ብቻውን መግዛት ይችል እንደሆነ።",
@@ -59,6 +62,12 @@ export const amGuide: { [K in keyof typeof enGuide]: string } = {
   "admin.monetisation.reach.guide.col.photos": "ተደራሽነት የፎቶ ገደብ የለውም፤ ደረጃው ያስቀምጠዋል።",
   "admin.monetisation.reach.guide.col.placement": "ተደራሽነት አቀማመጥ የለውም፤ ደረጃው ያስቀምጠዋል።",
   "admin.monetisation.reach.guide.col.badge": "ተደራሽነት ምልክት የለውም፤ ደረጃው ያስቀምጠዋል።",
+  "admin.monetisation.reach.guide.col.cities":
+    "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ከተሞች ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።",
+  "admin.monetisation.reach.guide.col.regions":
+    "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ክልሎች ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።",
+  "admin.monetisation.reach.guide.col.countries":
+    "በዚህ ተደራሽነት ያለ ማስታወቂያ ስንት ሀገራት ሊሸፍን እንደሚችል፤ ባዶ ማለት ገደብ የለም።",
   "admin.monetisation.reach.guide.how":
     "«ተደራሽነት ጨምር» በመለያው፣ በስሞቹ እና በቀናቱ ተደራሽነት ይፈጥራል፤ በተደራሽነት ላይ ጥቅሞች አይፈቀዱም። «አርትዕ» ከመለያው በስተቀር ሁሉንም ይቀይራል። ተደራሽነት ይጠፋል እንጂ በፍጹም አይወገድም። ዋጋዎቹን ለመጨመር ረድፉን ይክፈቱ።",
   "admin.monetisation.reach.guide.next": "የሚከፈልባቸው ደረጃዎች በበሩበት በእያንዳንዱ ገበያ ለእያንዳንዱ ምርት ዋጋ ይስጡ።",

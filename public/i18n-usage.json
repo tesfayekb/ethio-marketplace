@@ -3585,6 +3585,18 @@
     "admin.monetisation.product.add": [
       "/admin/monetisation"
     ],
+    "admin.monetisation.reach.field.cities": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.reach.field.countries": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.reach.field.regions": [
+      "/admin/monetisation"
+    ],
+    "admin.monetisation.reach.field.unlimited": [
+      "/admin/monetisation"
+    ],
     "admin.monetisation.step.marketsOn": [
       "/admin/monetisation"
     ],

@@ -40,6 +40,10 @@ export const enGuide = {
   "admin.monetisation.level.guide.col.placement":
     "Where ads at this level appear: standard, boosted or at the top.",
   "admin.monetisation.level.guide.col.badge": "Whether ads at this level wear a badge.",
+  "admin.monetisation.level.guide.col.cities": "A level has no city limit; the reach sets it.",
+  "admin.monetisation.level.guide.col.regions": "A level has no region limit; the reach sets it.",
+  "admin.monetisation.level.guide.col.countries":
+    "A level has no country limit; the reach sets it.",
   "admin.monetisation.level.guide.col.enabled":
     "Whether sellers can still get this level; off hides it everywhere.",
   "admin.monetisation.level.guide.col.selfServe":
@@ -72,6 +76,12 @@ export const enGuide = {
   "admin.monetisation.reach.guide.col.photos": "A reach has no photo limit; the level sets it.",
   "admin.monetisation.reach.guide.col.placement": "A reach has no placement; the level sets it.",
   "admin.monetisation.reach.guide.col.badge": "A reach has no badge; the level sets it.",
+  "admin.monetisation.reach.guide.col.cities":
+    "How many cities an ad with this reach may cover; blank means no limit.",
+  "admin.monetisation.reach.guide.col.regions":
+    "How many regions an ad with this reach may cover; blank means no limit.",
+  "admin.monetisation.reach.guide.col.countries":
+    "How many countries an ad with this reach may cover; blank means no limit.",
   "admin.monetisation.reach.guide.how":
     "Add reach creates a reach with its key, names and days; perks are refused on a reach. Edit changes everything but the key. A reach is switched off, never removed. Open a row to add its prices.",
   "admin.monetisation.reach.guide.next":
