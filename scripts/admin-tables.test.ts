@@ -243,7 +243,7 @@ describe("T2b — the toolbar's search slot (INC-987)", () => {
     expect(
       breaches(
         f,
-        GOOD.replace("<ColumnsButton />", "<ColumnsButton />").replace(
+        GOOD.replace(
           "<TableToolbar>",
           '<TableToolbar search={<Input />} columns={<Select value="x" />}>',
         ),
